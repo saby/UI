@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui_module id="f27abe12-19df-4c9f-b886-634bd20a0011" name="UI" package="WS" responsible="Zuev Dmitriy" version="1.00">
+
+  <description>UI framework elements</description>
+
+  <depends/>
+
+  <load_after/>
+
+  <parameters/>
+
+  <resources/>
+
+  <preload/>
+
+</ui_module>

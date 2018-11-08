@@ -1,0 +1,62 @@
+{
+   "name": "UI",
+   "version": "3.18.600",
+   "repository": {
+      "type": "git",
+      "url": "git@platform-git.sbis.ru:saby/UI.git"
+   },
+   "files": [
+      "UI/*",
+      "VTree/*",
+      "Wml/*"
+   ],
+   "config": {
+      "app_port": 1024,
+      "test_server_port": 1023,
+      "test_report": "artifacts/xunit-report.xml",
+      "test_url": {
+         "scheme": "http",
+         "host": "localhost",
+         "port": 1025,
+         "path": "",
+         "query": "reporter=XUnit"
+      },
+      "htmlCoverageReport": "artifacts/coverage/index.html",
+      "jsonCoverageReport": "artifacts/coverage.json"
+   },
+   "scripts": {
+      "start": "node test-server",
+      "start-es": "node test-server-es",
+      "test": "node node_modules/ws-unit-testing/mocha --amd test-isolated",
+      "test:debug": "node node_modules/ws-unit-testing/mocha --amd %NODE_DEBUG_OPTION% test-isolated",
+      "coverage": "node node_modules/ws-unit-testing/cover --amd test-isolated",
+      "require-min": "node node_modules/uglify-js/bin/uglifyjs --compress --mangle -o ws/ext/requirejs/require-min.js -- ws/ext/requirejs/require.js",
+      "lint": "node ./node_modules/eslint/bin/eslint --ext .js --ext .es --color --no-eslintrc -c=.eslintrc.json -f=stylish .",
+      "lint:fix": "node ./node_modules/eslint/bin/eslint --ext .js --ext .es --color --no-eslintrc -c=.eslintrc.json -f=stylish --fix ."
+   },
+   "dependencies": {},
+   "devDependencies": {
+      "@tensor-corp/eslint-config": "^2.0.3",
+      "body-parser": "^1.18.3",
+      "cookie-parser": "^1.4.3",
+      "eslint": "^5.6.1",
+      "express": "^4.16.3",
+      "gulp": "^4.0.0",
+      "gulp-less": "^3.5.0",
+      "gulp-livereload": "^3.8.1",
+      "humanize": "0.0.9",
+      "less": "^2.7.3",
+      "load-grunt-config": "0.16.0",
+      "merge": "1.2.0",
+      "minimatch": "^3.0.3",
+      "postcss": "^6.0.23",
+      "progress": "^2.0.0",
+      "requirejs": "2.1.18",
+      "sbis3-builder": "git+https://git.sbis.ru/root/sbis3-builder.git#rc-3.18.700",
+      "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#rc-3.18.700",
+      "serve-static": "1.11.x",
+      "typescript": "^3.1.3",
+      "ws-data": "git+http://git.sbis.ru/ws/data.git#rc-3.18.700",
+      "ws-unit-testing": "git+https://git.sbis.ru/ws/unit-testing.git#rc-3.18.600"
+   }
+}

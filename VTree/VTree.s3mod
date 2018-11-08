@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui_module id="51d94a6b-f0ce-4760-9255-9870666e0bab" name="VTree" package="WS" responsible="Izygin Nikita" version="1.00">
+
+  <description>Algorithms processing virtual trees</description>
+
+  <depends/>
+
+  <load_after/>
+
+  <parameters/>
+
+  <resources/>
+
+  <preload/>
+
+</ui_module>
