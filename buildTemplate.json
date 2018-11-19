@@ -1,0 +1,69 @@
+{
+  "cache": "%cd%/builder-ui/builder-json-cache",
+  "output": "%cd%/application",
+  "logs": "%cd%/builder-ui/logs",
+  "mode": "debug",
+  "modules": [
+    {
+      "name": "Core",
+      "path": "%cd%/node_modules/sbis3-ws/Core"
+    },
+    {
+      "name": "WS.Core",
+      "path": "%cd%/node_modules/sbis3-ws/ws"
+    },
+    {
+      "name": "Lib",
+      "path": "%cd%/node_modules/sbis3-ws/ws/lib"
+    },
+    {
+      "name": "Ext",
+      "path": "%cd%/node_modules/sbis3-ws/ws/lib/Ext"
+    },
+    {
+      "name": "Transport",
+      "path": "%cd%/node_modules/sbis3-ws/ws/transport"
+    },
+    {
+      "name": "View",
+      "path": "%cd%/node_modules/sbis3-ws/View"
+    },
+    {
+      "name": "WS.Data",
+      "path": "%cd%/node_modules/ws-data/WS.Data"
+    },
+    {
+      "name": "Data",
+      "path": "%cd%/node_modules/ws-data/Data"
+    },
+    {
+      "name": "Vdom",
+      "path": "%cd%/node_modules/sbis3-ws/Vdom"
+    },
+    {
+      "name": "UI",
+      "path": "%cd%/UI"
+    },
+    {
+      "name": "UITest",
+      "path": "%cd%/UITest"
+    },
+    {
+      "name": "VTree",
+      "path": "%cd%/VTree"
+    },
+    {
+      "name": "VTreeTest",
+      "path": "%cd%/VTreeTest"
+    },
+    {
+      "name": "Wml",
+      "path": "%cd%/Wml"
+    },
+    {
+      "name": "WmlTest",
+      "path": "%cd%/WmlTest"
+    }
+
+  ]
+}
