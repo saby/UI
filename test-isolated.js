@@ -7,10 +7,11 @@
  */
 
 let app = require('ws-unit-testing/isolated');
+const config = require('./package.json').config;
 
 app.run({
    moduleType: 'amd',
    root: './application',
    ws: 'WS.Core',
-   tests: 'RouterTest'
+   tests: config.tests
 });

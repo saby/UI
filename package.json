@@ -21,6 +21,7 @@
          "path": "",
          "query": "reporter=XUnit"
       },
+      "tests": "UITest",
       "htmlCoverageReport": "artifacts/coverage/index.html",
       "jsonCoverageReport": "artifacts/coverage.json"
    },

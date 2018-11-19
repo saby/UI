@@ -13,6 +13,6 @@ app.run({
    moduleType: 'amd',
    root: './application',
    ws: 'WS.Core',
-   tests: 'RouterTest',
+   tests: config.tests,
    reportFile: process.env.test_report || config.test_report
 });
