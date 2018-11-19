@@ -53,16 +53,8 @@
       "path": "%cd%/VTree"
     },
     {
-      "name": "VTreeTest",
-      "path": "%cd%/VTreeTest"
-    },
-    {
       "name": "Wml",
       "path": "%cd%/Wml"
-    },
-    {
-      "name": "WmlTest",
-      "path": "%cd%/WmlTest"
     }
 
   ]
