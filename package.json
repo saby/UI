@@ -25,6 +25,20 @@
       "htmlCoverageReport": "artifacts/coverage/index.html",
       "jsonCoverageReport": "artifacts/coverage.json"
    },
+   "nyc": {
+      "include": [
+         "UI/**/*.js",
+         "VTree/**/*.js",
+         "Wml/**/*.js"
+      ],
+      "reporter": [
+         "text",
+         "html"
+      ],
+      "cache": false,
+      "eager": true,
+      "report-dir": "./artifacts/coverage"
+   },
    "scripts": {
       "start": "node test-server",
       "start-es": "node test-server-es",
