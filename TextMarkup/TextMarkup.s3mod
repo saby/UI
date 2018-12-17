@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui_module id="722575bb-20cd-4218-9093-245add574a8e" name="TextMarkup" package="WS" responsible="Zuev Dmitriy" version="1.00">
+
+  <description>TextMarkup implementation</description>
+
+  <depends/>
+
+  <load_after/>
+
+  <parameters/>
+
+  <resources/>
+
+  <preload/>
+
+</ui_module>

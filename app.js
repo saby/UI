@@ -38,7 +38,7 @@ require(['Core/core-init'], () => {
 });
 
 app.get('/cdn*', (req, res) => {
-   res.redirect('http://dev-cdn.wasaby.io' + req.url);
+   res.redirect('http://dev-cdn.wasaby.io' + req.url.replace('/cdn/', '/'));
 });
 
 
@@ -60,19 +60,6 @@ app.get('/:moduleName/*', (req, res) => {
 
    try {
       require(appName);
-    /*  res.render = function(template, options) {
-         const tpl = require(template);
-         const html = tpl(options);
-         if (html.addCallback) {
-            html.addCallback((htmlRes) => {
-               this.writeHead(200, {'Content-Type': 'text/html'});
-               this.end(htmlRes);
-            });
-         } else {
-            this.writeHead(200, {'Content-Type': 'text/html'});
-            this.end(html);
-         }
-      };*/
       const html = tpl({
          lite: true,
          wsRoot: '/WS.Core/',

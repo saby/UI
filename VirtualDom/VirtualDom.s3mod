@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui_module id="24fe698c-de89-4825-b2ff-2c5d264543b1" name="VirtualDom" package="WS" responsible="Zuev Dmitriy" version="1.00">
+
+  <description>VirtualDom</description>
+
+  <depends/>
+
+  <load_after/>
+
+  <parameters/>
+
+  <resources/>
+
+  <preload/>
+
+</ui_module>

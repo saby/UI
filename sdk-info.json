@@ -1,0 +1,11 @@
+{
+    "ui-modules":
+    [
+        "Markup",
+        "TextMarkup",
+        "VirtualDom",
+        "VirtualTreeMarkup",
+        "WmlBuilder",
+        "UI"
+    ]
+}

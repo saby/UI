@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui_module id="20900143-d257-48ef-b5db-0ccc8141fe4b" name="VirtualTreeMarkup" package="WS" responsible="Zuev Dmitriy" version="1.00">
+
+  <description>VirtualTree implementation</description>
+
+  <depends/>
+
+  <load_after/>
+
+  <parameters/>
+
+  <resources/>
+
+  <preload/>
+
+</ui_module>
