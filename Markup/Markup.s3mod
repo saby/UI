@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui_module id="e76c9481-9d6f-49a4-b71f-b567061e6e38" name="Markup" package="WS" responsible="Zuev Dmitriy" version="1.00">
+
+  <description>Markup generator</description>
+
+  <depends/>
+
+  <load_after/>
+
+  <parameters/>
+
+  <resources/>
+
+  <preload/>
+
+</ui_module>

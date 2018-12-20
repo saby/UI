@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui_module id="16b7a546-95bc-437c-af6a-77f8bbf2a724" name="WmlBuilder" package="WS" responsible="Zuev Dmitriy" version="1.00">
+
+  <description>Builder WML files</description>
+
+  <depends/>
+
+  <load_after/>
+
+  <parameters/>
+
+  <resources/>
+
+  <preload/>
+
+</ui_module>
