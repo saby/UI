@@ -17,7 +17,6 @@ declare module "tmpl!*" {
 }*/
 
 declare const process: any;
-declare const require: any;
 
 declare module "Core/Control" {
    class Control {
