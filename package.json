@@ -1,6 +1,6 @@
 {
    "name": "UI",
-   "version": "3.18.600",
+   "version": "19.100",
    "repository": {
       "type": "git",
       "url": "git@platform-git.sbis.ru:saby/UI.git"
@@ -68,11 +68,11 @@
       "postcss": "^6.0.23",
       "progress": "^2.0.0",
       "requirejs": "2.1.18",
-      "sbis3-builder": "git+https://github.com/saby/Builder.git#rc-3.19.100",
-      "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#rc-3.19.100",
+      "sbis3-builder": "git+https://github.com/saby/Builder.git#rc-19.100",
+      "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#rc-19.100",
       "serve-static": "1.11.x",
       "typescript": "^3.1.3",
-      "ws-data": "git+http://git.sbis.ru/ws/data.git#rc-3.19.100",
-      "saby-units": "git+https://github.com/saby/Units.git#rc-3.19.100"
+      "ws-data": "git+http://git.sbis.ru/ws/data.git#rc-19.100",
+      "saby-units": "git+https://github.com/saby/Units.git#rc-19.100"
    }
 }
