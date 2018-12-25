@@ -1,6 +1,6 @@
 {
    "name": "UI",
-   "version": "19.100",
+   "version": "19.100.0",
    "repository": {
       "type": "git",
       "url": "git@platform-git.sbis.ru:saby/UI.git"
