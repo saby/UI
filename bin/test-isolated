@@ -1,8 +1,0 @@
-#!/bin/sh
-# Run testing via Node.js
-
-node -v
-npm install
-
-node build-app
-node node_modules/saby-units/mocha -t 10000 -R xunit --amd test-report
