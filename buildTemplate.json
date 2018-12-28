@@ -36,6 +36,10 @@
       "path": "%cd%/node_modules/sbis3-ws/ws/transport"
     },
     {
+      "name": "View",
+      "path": "%cd%/node_modules/sbis3-ws/View"
+    },
+    {
       "name": "Types",
       "path": "%cd%/node_modules/saby-types/Types"
     },
