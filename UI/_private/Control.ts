@@ -1,14 +1,16 @@
 // @ts-ignore
 import template = require('wml!Router/Link');
 
-import Vdom from 'Vdom/Vdom';
+
 
 // @ts-ignore
 import IoC = require('Core/IoC');
 // @ts-ignore
 import doAutofocus = require('Core/helpers/Hcontrol/doAutofocus');
 
-import Expressions from 'View/Executor/Expressions';
+import { Synchronizer, TabIndex } from 'Vdom/Vdom';
+import { OptionsResolver } from 'View/Executor/Utils';
+import { Focus, ContextResolver } from 'View/Executor/Expressions';
 import Logger from 'View/Logger';
 
 /**
@@ -33,29 +35,10 @@ import Logger from 'View/Logger';
 
 let countInst = 1;
 
-let _private = {
-   _forceUpdate: function(self, environment, controlNode) {
-      var control = self || (controlNode && controlNode.control);
-      if (control && !control._mounted) {
-         // _forceUpdate was called asynchronous from _beforeMount before control was mounted to DOM
-         // So we need to delay _forceUpdate till the moment component will be mounted to DOM
-         control._$needForceUpdate = true;
-      } else {
-         environment && environment.forceRebuild(controlNode.id);
-      }
-   },
-
-   /** Функция инициирует событие eventName
-    *  Возвращает результат последнего выполненого обработчика
-    *  @private
-    */
-   _notify: function(self, environment, controlNode, args) {
-      return environment && environment.startEvent(controlNode, args);
-   }
-};
-
 class Control {
    public _template: Function = template;
+
+   static isWasaby: Boolean = true;
 
    private _mounted: Boolean = false;
    private _unmounted: Boolean = false;
@@ -65,8 +48,6 @@ class Control {
    private _instId: String;
    private _options: any = null;
    private _internalOptions: HashMap<String, any> = null;
-
-   public _moduleName: String; //require sets it automatically
 
    public getInstanceId(): String {
       return this._instId;
@@ -78,7 +59,7 @@ class Control {
       if (!this._mounted) {
          this._mounted = true;
          this._container = element;
-         Vdom.Synchronizer.mountControlToDOM(this, controlClass, cfg, this._container);
+         Synchronizer.mountControlToDOM(this, controlClass, cfg, this._container);
       }
       if (cfg) {
          this.saveOptions(cfg);
@@ -104,6 +85,26 @@ class Control {
       }
 
       return inherit;
+   }
+
+   static createControl(ctor: any, cfg: any, domElement: HTMLElement):Control {
+      if (OptionsResolver.resolveOptions(ctor, cfg)) {
+         var attrs = { inheritOptions: {} }, ctr;
+         OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
+         try {
+            ctr = new ctor(cfg);
+         } catch (error) {
+            ctr = new Control({});
+            Logger.catchLifeCircleErrors('constructor', error);
+         }
+         ctr.saveInheritOptions(attrs.inheritOptions);
+         ctr._container = domElement;
+         Focus.patchDom(domElement, cfg);
+         ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
+         ctr.mountToDom(ctr._container, cfg, ctor);
+         return ctr;
+      }
+      return null;
    };
 
    /**
@@ -303,7 +304,7 @@ class Control {
     * @param {Object} internal Объект, содержащий ключи и значения устанавливаемых служебных опций
     */
    public _setInternalOptions(internal: HashMap<String, any>): void {
-      for (var name in internal) {
+      for (let name in internal) {
          if (internal.hasOwnProperty(name)) {
             this._setInternalOption(name, internal[name]);
          }
@@ -313,7 +314,7 @@ class Control {
    public destroy(): void {
       this._destroyed = true;
       try {
-         var contextTypes = this.constructor.contextTypes ? this.constructor.contextTypes() : {};
+         let contextTypes = this.constructor.contextTypes ? this.constructor.contextTypes() : {};
          for (var i in contextTypes) {
             if (contextTypes.hasOwnProperty(i)) {
                this.context.get(i).unregisterConsumer(this);
@@ -321,7 +322,7 @@ class Control {
          }
          if (this._mounted) {
             this._beforeUnmount();
-            Vdom.Synchronizer.cleanControlDomLink(this._container);
+            Synchronizer.cleanControlDomLink(this._container);
          }
       } catch (error) {
          Logger.catchLifeCircleErrors('_beforeUnmount', error);
@@ -331,11 +332,11 @@ class Control {
    // <editor-fold desc="API">
 
    public _blur(): void {
-      var container = this._container[0] ? this._container[0] : this._container,
+      let container = this._container[0] ? this._container[0] : this._container,
          activeElement = document.activeElement,
          tmpTabindex;
 
-      if (!Expressions.Focus.closest(document.activeElement, container)) {
+      if (!Focus.closest(document.activeElement, container)) {
          return;
       }
 
@@ -402,8 +403,8 @@ class Control {
                res = false;
             }
          } else {
-            if (Vdom.TabIndex.getElementProps(container).tabStop) {
-               Vdom.TabIndex.focus(container);
+            if (TabIndex.getElementProps(container).tabStop) {
+               TabIndex.focus(container);
             }
             res = container === document.activeElement;
 
@@ -445,9 +446,9 @@ class Control {
       // причем если это будет конейнер старого компонента, активируем его по старому тоже
       if (!found) {
          // так ищем DOMEnvironment для текущего компонента. В нем сосредоточен код по работе с фокусами.
-         var getElementProps = Vdom.TabIndex.getElementProps;
+         var getElementProps = TabIndex.getElementProps;
 
-         var next = Vdom.TabIndex.findFirstInContext(container, false, getElementProps);
+         var next = TabIndex.findFirstInContext(container, false, getElementProps);
          if (next) {
             res = doFocus.call(this, next);
          } else {
@@ -701,4 +702,4 @@ class Control {
    // </editor-fold>
 }
 
-export = Control;
+export default Control;
