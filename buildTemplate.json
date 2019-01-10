@@ -7,7 +7,7 @@
   "contents": true,
   "deprecatedWebPageTemplates": true,
   "htmlWml": true,
-  "themes": true,
+  "themes": false,
 
   "minimize": false,
   "wml": false,
@@ -38,14 +38,6 @@
     {
       "name": "View",
       "path": "%cd%/node_modules/sbis3-ws/View"
-    },
-    {
-      "name": "WS.Data",
-      "path": "%cd%/node_modules/ws-data/WS.Data"
-    },
-    {
-      "name": "Data",
-      "path": "%cd%/node_modules/ws-data/Data"
     },
     {
       "name": "Vdom",

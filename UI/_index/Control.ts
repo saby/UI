@@ -1,5 +1,5 @@
 // @ts-ignore
-import template = require('wml!Router/Link');
+import template = require('wml!UI/_index/Control');
 
 
 

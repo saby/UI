@@ -1,5 +1,5 @@
 /// <amd-module name="UI/Index" />
-import Control from 'UI/_private/Control';
+import Control from 'UI/_index/Control';
 
 export = {
    Control
