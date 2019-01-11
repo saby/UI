@@ -7,7 +7,7 @@
   "contents": true,
   "deprecatedWebPageTemplates": true,
   "htmlWml": true,
-  "themes": true,
+  "themes": false,
 
   "minimize": false,
   "wml": false,
@@ -36,8 +36,8 @@
       "path": "%cd%/node_modules/sbis3-ws/ws/transport"
     },
     {
-      "name": "Types",
-      "path": "%cd%/node_modules/saby-types/Types"
+      "name": "View",
+      "path": "%cd%/node_modules/sbis3-ws/View"
     },
     {
       "name": "Vdom",
