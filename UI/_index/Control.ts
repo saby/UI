@@ -36,8 +36,6 @@ import Logger from 'View/Logger';
 let countInst = 1;
 
 class Control {
-   public _template: Function = template;
-
    static isWasaby: Boolean = true;
 
    private _mounted: Boolean = false;
@@ -701,5 +699,7 @@ class Control {
 
    // </editor-fold>
 }
+
+Control.prototype._template = template;
 
 export default Control;
