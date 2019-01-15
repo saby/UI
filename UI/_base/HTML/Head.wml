@@ -56,5 +56,18 @@
             type="text/css" key="{{ 'simple-css-' + index }}"/>
    </ws:for>
 
+   <ws:for data="themeName, themedCss in newThemed">
+      <ws:for data="cssName, value in themedCss">
+         <link rel="stylesheet" class="new-styles" data-vdomignore="true"
+               css-name="{{cssName}}"
+               href="{{ _options.linkResolver.resolveCssWithTheme(cssName, themeName) }}"
+               type="text/css"
+               theme-name="{{ themeName }}"/>
+      </ws:for>
+   </ws:for>
+   <ws:for data="cssName, value in newSimple">
+      <link rel="stylesheet" class="new-styles" data-vdomignore="true" css-name="{{ cssName }}" href="{{ _options.linkResolver.resolveLink(cssName, 'css') }}" type="text/css"/>
+   </ws:for>
+
    {{ errorState }}
 </head>

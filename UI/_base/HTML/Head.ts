@@ -6,6 +6,7 @@ import Control from '../Control';
 import template = require('wml!UI/_base/HTML/Head');
 
 import * as Request from 'View/Request';
+import ThemesControllerNew = require('Core/Themes/ThemesControllerNew');
 
 class Head extends Control {
    public _template: Function = template;
@@ -64,6 +65,9 @@ class Head extends Control {
       this.cssLinks = [];
       return new Promise((resolve, reject) => {
          def.then((res) => {
+            this.newSimple = ThemesControllerNew.getInstance().getSimpleCssList();
+            this.newThemed = ThemesControllerNew.getInstance().getThemedCssList();
+
             this.themedCss = res.css.themedCss;
             this.simpleCss = res.css.simpleCss;
             this.errorState = res.errorState;
