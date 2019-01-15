@@ -16,28 +16,16 @@
 
   "modules": [
     {
-      "name": "Core",
-      "path": "%cd%/node_modules/sbis3-ws/Core"
-    },
-    {
       "name": "WS.Core",
-      "path": "%cd%/node_modules/sbis3-ws/ws"
-    },
-    {
-      "name": "Lib",
-      "path": "%cd%/node_modules/sbis3-ws/ws/lib"
-    },
-    {
-      "name": "Ext",
-      "path": "%cd%/node_modules/sbis3-ws/ws/lib/Ext"
-    },
-    {
-      "name": "Transport",
-      "path": "%cd%/node_modules/sbis3-ws/ws/transport"
+      "path": "%cd%/node_modules/sbis3-ws/WS.Core"
     },
     {
       "name": "View",
       "path": "%cd%/node_modules/sbis3-ws/View"
+    },
+    {
+      "name": "Inferno",
+      "path": "%cd%/node_modules/sbis3-ws/Inferno"
     },
     {
       "name": "Vdom",
@@ -50,14 +38,6 @@
     {
       "name": "UITest",
       "path": "%cd%/UITest"
-    },
-    {
-      "name": "VTree",
-      "path": "%cd%/VTree"
-    },
-    {
-      "name": "Wml",
-      "path": "%cd%/Wml"
     }
 
   ]
