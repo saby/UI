@@ -1,0 +1,6 @@
+<Router.Controller>
+   <ws:partial template="{{_application}}" scope="{{_options}}"
+               on:themeChanged="setTheme()"
+               on:changeApplication="changeApplicationHandler()"
+               theme="{{coreTheme}}"/>
+</Router.Controller>

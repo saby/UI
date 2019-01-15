@@ -1,0 +1,16 @@
+<div key="scripts">
+   <ws:if data="{{!_options.compat && _options.onServer}}">
+      <script key="init_script">
+         require(['Core/polyfill', 'Core/app', 'UI/Base'], function(polyfill, app, UI){
+            var AppData = UI.AppData;
+
+            window.startContextData = {AppData: new AppData({})};
+            var deps = {{ __setHTMLUnsafe(getDeps()) }};
+            app(deps);
+         });
+      </script>
+   </ws:if>
+   <ws:if data="{{ _options.compat }}">
+      <ws:partial template="wml!UI/_base/HTML/CompatibleScripts" />
+   </ws:if>
+</div>

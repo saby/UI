@@ -1,4 +1,4 @@
-define(['UI/Index'], function(UI){
+define(['UI/Base'], function(UI){
    describe('UITest/Test', function(){
 
       it('new control', function() {

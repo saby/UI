@@ -62,9 +62,9 @@
       "progress": "^2.0.0",
       "requirejs": "2.1.18",
       "sbis3-builder": "git+https://github.com/saby/Builder.git#rc-19.100",
-      "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#19.100/bugfix/prepare-ts-control",
+      "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#rc-19.100",
       "serve-static": "1.11.x",
-      "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-19.100",
+      "saby-typescript": "git+https://github.com/saby/TypeScript.git#rc-19.100",
       "saby-units": "git+https://github.com/saby/Units.git#rc-19.100"
    }
 }

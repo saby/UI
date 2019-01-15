@@ -2,32 +2,6 @@ let root = process.cwd(),
    fs = require('fs'),
    path = require('path');
 
-/**
- * Look ma, it cp -R.
- * @param {string} src The path to the thing to copy.
- * @param {string} dest The path to the new copy.
- */
-let copyRecursiveSync = function (src, dest) {
-   const exists = fs.existsSync(src);
-   const stats = exists && fs.statSync(src);
-   const isDirectory = exists && stats.isDirectory();
-   if (exists && isDirectory) {
-      if (!fs.existsSync(dest)) {
-         fs.mkdirSync(dest);
-      }
-      fs.readdirSync(src).forEach(function (childItemName) {
-         copyRecursiveSync(path.join(src, childItemName),
-            path.join(dest, childItemName));
-      });
-   } else {
-      if (!fs.existsSync(dest)) {
-         try {
-            fs.linkSync(src, dest);
-         } catch (e) {
-         }
-      }
-   }
-};
 
 var gultConfig = JSON.stringify(require('./buildTemplate.json'));
 gultConfig = gultConfig.replace(/%cd%/ig, root).replace(/\\/ig, '/');
@@ -62,8 +36,6 @@ fs.writeFile(path.join(root, 'builderCfg.json'), gultConfig, function(){
    child.on('exit', function (code, signal) {
       console.log('child process exited with ' + `code ${code} and signal ${signal}`);
 
-
-      copyRecursiveSync(path.join(root, 'application', 'ws', 'core'), path.join(root, 'application', 'Core'));
 
       gultConfig = JSON.parse(gultConfig);
       gultConfig.modules.forEach((one) => {
