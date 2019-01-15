@@ -4,6 +4,9 @@
 
 <ws:template name="bodyTemplate">
    <body id="body" key="1_2_">
+      <ws:if data="{{isCompatible}}">
+         <div class="ws-focus-in"></div>
+      </ws:if>
       <ws:if data="{{  _options.content }}">
          <UI._base.HTML.Wait>
             <ws:partial
@@ -55,6 +58,9 @@
 
       <ws:if data="{{ themeChanging }}">
          <div id="theme-changing-overlay"></div>
+      </ws:if>
+      <ws:if data="{{ body }}">
+         <ws:partial template="{{ body }}" />
       </ws:if>
    </body>
 </ws:template>
