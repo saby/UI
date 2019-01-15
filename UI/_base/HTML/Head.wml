@@ -1,0 +1,73 @@
+<head key="1_1_">
+   <title key="title">{{ _options.title }}</title>
+   <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+   <meta name="viewport" content="{{_options.viewport || 'width=1024'}}"/>
+   <meta charset="utf-8"/>
+   <script key="ws-config">
+      window.wsConfig = {
+         wsRoot: '{{_options.wsRoot}}',
+         resourceRoot: '{{_options.resourceRoot}}',
+         appRoot: '{{_options.appRoot}}',
+         RUMEnabled: '{{ _options.RUMEnabled }}',
+         pageName: '{{ _options.pageName }}',
+         userConfigSupport: true,
+         staticDomains: {{ __setHTMLUnsafe(staticDomainsstringified) }},
+         defaultServiceUrl: '{{_options.servicesPath}}',
+         compatible: {{ _options.compat }},
+         product: '{{ _options.product }}'
+      };
+      window.buildnumber = '{{ _options.buildnumber }}';
+      {{__setHTMLUnsafe(_options.preInitScript)}}
+   </script>
+   <ws:if data="{{!_options.compat}}">
+      <script>
+         window.themesActive = true;
+      </script>
+   </ws:if>
+
+   <ws:if data="{{ head }}">
+      <ws:if data="{{ isArrayHead() }}">
+         <ws:for data="i in head">
+            <ws:partial template="{{ i }}"  attr:data-vdomignore="true" attr:class="head-custom-block"/>
+         </ws:for>
+      </ws:if>
+      <ws:else>
+         <ws:partial template="{{ head }}"  attr:data-vdomignore="true" attr:class="head-custom-block"/>
+      </ws:else>
+   </ws:if>
+
+   <ws:for data="index, value in themedCss">
+      <ws:if data="{{_options.theme}}">
+         <link rel="stylesheet" class="css-bundles" data-vdomignore="true"
+               css-name="{{value}}"
+               href="{{ _options.linkResolver.resolveCssWithTheme(value, _options.theme) }}"
+               type="text/css"
+               key="{{ 'themed-css-' + index }}"/>
+      </ws:if>
+      <ws:else>
+         <link rel="stylesheet" class="css-bundles" data-vdomignore="true" css-name="{{value}}"
+               href="{{ _options.linkResolver.resolveLink(value, 'css') }}"
+               type="text/css" key="{{ 'themed-css-' + index }}"/>
+      </ws:else>
+   </ws:for>
+   <ws:for data="index, value in simpleCss">
+      <link rel="stylesheet" class="css-bundles" data-vdomignore="true" css-name="{{value}}"
+            href="{{ _options.linkResolver.resolveLink(value, 'css') }}"
+            type="text/css" key="{{ 'simple-css-' + index }}"/>
+   </ws:for>
+
+   <ws:for data="themeName, themedCss in newThemed">
+      <ws:for data="cssName, value in themedCss">
+         <link rel="stylesheet" class="new-styles" data-vdomignore="true"
+               css-name="{{cssName}}"
+               href="{{ _options.linkResolver.resolveCssWithTheme(cssName, themeName) }}"
+               type="text/css"
+               theme-name="{{ themeName }}"/>
+      </ws:for>
+   </ws:for>
+   <ws:for data="cssName, value in newSimple">
+      <link rel="stylesheet" class="new-styles" data-vdomignore="true" css-name="{{ cssName }}" href="{{ _options.linkResolver.resolveLink(cssName, 'css') }}" type="text/css"/>
+   </ws:for>
+
+   {{ errorState }}
+</head>

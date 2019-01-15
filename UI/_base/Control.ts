@@ -1,5 +1,5 @@
 // @ts-ignore
-import template = require('wml!UI/_index/Control');
+import template = require('wml!UI/_base/Control');
 
 
 
@@ -43,11 +43,11 @@ class Control {
    private _destroyed: Boolean = false;
    private _active: Boolean = false;
 
-   private _instId: String;
+   private _instId: string;
    private _options: any = null;
-   private _internalOptions: HashMap<String, any> = null;
+   private _internalOptions: HashMap<string, any> = null;
 
-   public getInstanceId(): String {
+   public getInstanceId(): string {
       return this._instId;
    }
 
@@ -149,7 +149,7 @@ class Control {
    //Render function for text generator
    public render: Function = null;
 
-   public _children:HasMap<String, Control>  = null;
+   public _children:HasMap<string, Control>  = null;
 
    constructor(cfg: any) {
       if (!cfg) {
@@ -286,10 +286,10 @@ class Control {
 
    /**
     * Метод задания значения служебной опции
-    * @param {String} name Имя служебной опции
+    * @param {string} name Имя служебной опции
     * @param {*} value Значение опции
     */
-   private _setInternalOption(name:String, value:any): void {
+   private _setInternalOption(name:string, value:any): void {
       if (!this._internalOptions) {
          this._internalOptions = {};
          IoC.resolve('ILogger').error('Component with ' + (this._options ? ('name ' + this._options.name + ' config ' + this._options.__$config) : ('maybe id ' + this._$id)), 'Control.constructor wasn\'t called');
@@ -301,7 +301,7 @@ class Control {
     * Метод задания служебных опций
     * @param {Object} internal Объект, содержащий ключи и значения устанавливаемых служебных опций
     */
-   public _setInternalOptions(internal: HashMap<String, any>): void {
+   public _setInternalOptions(internal: HashMap<string, any>): void {
       for (let name in internal) {
          if (internal.hasOwnProperty(name)) {
             this._setInternalOption(name, internal[name]);
