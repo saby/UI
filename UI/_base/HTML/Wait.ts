@@ -23,7 +23,7 @@ let asyncTemplate = function() {
 asyncTemplate.stable = template.stable;
 
 class Wait extends Control {
-   public _template: Function = template;
+   public _template: Function = asyncTemplate;
 
    public waitDef: Promise<any>;
 

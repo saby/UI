@@ -13,6 +13,8 @@ class JsLinks extends Control {
    public js: Array<string> = [];
    public tmpl: Array<string> = [];
    public wml: Array<string> = [];
+   public themedCss: Array<string> = [];
+   public simpleCss: Array<string> = [];
    public receivedStateArr: string = '';
 
    public _beforeMountLimited():Promise<any> {
@@ -36,11 +38,33 @@ class JsLinks extends Control {
             this.js = res.js;
             this.tmpl = res.tmpl;
             this.wml = res.wml;
+            this.themedCss = res.css.themedCss;
+            this.simpleCss = res.css.simpleCss;
             this.receivedStateArr = res.receivedStateArr;
             resolve(true);
          });
       });
    }
+
+   public getCssNameForDefineWithTheme(cssLink:string): string {
+      return 'theme?' + cssLink;
+   }
+
+   public getDefines():string {
+      let result = '';
+      if (this.themedCss && this.simpleCss) {
+         let i;
+         for (i = 0; i < this.simpleCss.length; i++) {
+            result += 'define("css!' + this.simpleCss[i] + '", "");';
+         }
+         for (i = 0; i < this.themedCss.length; i++) {
+            result += 'define("css!' + this.getCssNameForDefineWithTheme(this.themedCss[i]) + '", "");';
+         }
+      }
+
+      return result;
+   }
+
 
 }
 
