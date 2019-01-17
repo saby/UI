@@ -12,6 +12,7 @@ import ThemesController = require('Core/Themes/ThemesController');
 import LinkResolver = require('Core/LinkResolver/LinkResolver');
 
 import * as Request from 'View/Request';
+import AppData from './Deprecated/AppData';
 
 class HTML extends Control {
    public _template: Function = template;
@@ -33,6 +34,12 @@ class HTML extends Control {
    private application: string = '';
    private product: string = '';
    private linkResolver: any = null;
+
+   static contextTypes() {
+      return {
+         AppData: AppData
+      };
+   }
 
    private initState(cfg): void {
       this.title = cfg.title;

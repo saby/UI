@@ -8,15 +8,14 @@ const global = (function() {
    return this || (0, eval)('this');
 })();
 
-const requirejs = require(path.join(root, 'node_modules', 'sbis3-ws', 'ws', 'ext', 'requirejs', 'r.js'));
+const requirejs = require(path.join(root, 'node_modules', 'sbis3-ws', 'WS.Core', 'ext', 'requirejs', 'r.js'));
 global.requirejs = requirejs;
 
 
-const createConfig = require(path.join(root, 'node_modules', 'sbis3-ws', 'ws', 'ext', 'requirejs', 'config.js'));
+const createConfig = require(path.join(root, 'node_modules', 'sbis3-ws', 'WS.Core', 'ext', 'requirejs', 'config.js'));
 const config = createConfig(path.join(root,'application'),
-   path.join(root, 'application','WS.Core'),
-   path.join(root, 'application'),
-   { lite: true });
+   path.join(root, 'application', 'WS.Core'),
+   path.join(root, 'application'));
 
 global.require = global.requirejs = require = requirejs;
 requirejs.config(config);
@@ -43,7 +42,10 @@ app.get('/cdn*', (req, res) => {
 
 
 const serverRouter = require('Router/ServerRouting');
-const tpl = require('wml!Controls/Application/Route');
+const UIBase = require('UI/Base');
+const tpl = UIBase.BaseRoute;
+const constants = require('Core/constants');
+constants.isNodePlatform = true;
 
 /*server side render*/
 app.get('/:moduleName/*', (req, res) => {
@@ -61,9 +63,9 @@ app.get('/:moduleName/*', (req, res) => {
    try {
       require(appName);
       const html = tpl({
-         lite: true,
          wsRoot: '/WS.Core/',
          resourceRoot: '/',
+         appRoot: '/',
          application: appName
       });
       if (html.addCallback) {

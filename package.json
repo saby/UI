@@ -7,8 +7,11 @@
    },
    "files": [
       "UI/*",
-      "VTree/*",
-      "Wml/*"
+      "Markup/*",
+      "TextMarkup/*",
+      "VirtualTreeMarkup/*",
+      "VirtualDom/*",
+      "WmlBuilder/*"
    ],
    "scripts": {
       "build": "npm run build:typescript && npm run build:app",
@@ -64,6 +67,8 @@
       "postcss": "^6.0.23",
       "progress": "^2.0.0",
       "requirejs": "2.1.18",
+      "Router": "git+https://github.com/saby/Router.git#19.100/bugfix/baseroutestartpoint",
+      "saby-inferno": "git+https://github.com/saby/inferno#master",
       "sbis3-builder": "git+https://github.com/saby/Builder.git#rc-19.100",
       "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#rc-19.100",
       "serve-static": "1.11.x",

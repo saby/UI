@@ -4,6 +4,9 @@
 
 <ws:template name="bodyTemplate">
    <body id="body" key="1_2_">
+      <ws:if data="{{isCompatible}}">
+         <div class="ws-focus-in"></div>
+      </ws:if>
       <ws:if data="{{  _options.content }}">
          <UI._base.HTML.Wait>
             <ws:partial
@@ -25,7 +28,7 @@
       <script key="bundles" type="text/javascript"
               src="{{resourceRoot}}bundles.js"></script>
       <script key="require" type="text/javascript"
-              src="/cdn/requirejs/2.3.5-p4/require-min.js"></script>
+              src="http://dev-cdn.wasaby.io/requirejs/2.3.5-p4/require-min.js"></script>
       <script key="contents" type="text/javascript" src="{{ linkResolver.resolveLink('contents', 'js') }}"></script>
       <script key="config" type="text/javascript"
               src="{{wsRoot}}ext/requirejs/config.js"></script>
@@ -55,6 +58,9 @@
 
       <ws:if data="{{ themeChanging }}">
          <div id="theme-changing-overlay"></div>
+      </ws:if>
+      <ws:if data="{{ body }}">
+         <ws:partial template="{{ body }}" />
       </ws:if>
    </body>
 </ws:template>

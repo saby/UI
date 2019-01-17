@@ -4,7 +4,7 @@ import ThemesController = require('Core/Themes/ThemesController');
 // @ts-ignore
 import cookie = require('Core/cookie');
 // @ts-ignore
-import DepsCollector = require('Controls/Application/DepsCollector/DepsCollector');
+import DepsCollector from './DepsCollector';
 
 import * as Request from 'View/Request';
 

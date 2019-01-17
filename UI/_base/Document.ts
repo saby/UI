@@ -32,7 +32,7 @@ class Document extends Control {
 
          //need create request for SSR
          //on client request will create in app-init.js
-         var req = new Request(createDefault.default(Request));
+         var req = new Request(createDefault(Request));
          req.setStateReceiver(new StateReceiver());
          if (typeof window !== 'undefined' && window.receivedStates) {
             req.stateReceiver.deserialize(window.receivedStates);

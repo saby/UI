@@ -11,6 +11,9 @@ import doAutofocus = require('Core/helpers/Hcontrol/doAutofocus');
 import { Synchronizer, TabIndex } from 'Vdom/Vdom';
 import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
+
+import ThemesController = require('Core/Themes/ThemesControllerNew');
+import PromiseLib = require('Core/PromiseLib/PromiseLib');
 import Logger from 'View/Logger';
 
 /**
@@ -86,23 +89,23 @@ class Control {
    }
 
    static createControl(ctor: any, cfg: any, domElement: HTMLElement):Control {
-      if (OptionsResolver.resolveOptions(ctor, cfg)) {
-         var attrs = { inheritOptions: {} }, ctr;
-         OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
-         try {
-            ctr = new ctor(cfg);
-         } catch (error) {
-            ctr = new Control({});
-            Logger.catchLifeCircleErrors('constructor', error);
-         }
-         ctr.saveInheritOptions(attrs.inheritOptions);
-         ctr._container = domElement;
-         Focus.patchDom(domElement, cfg);
-         ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
-         ctr.mountToDom(ctr._container, cfg, ctor);
-         return ctr;
+      var defaultOpts = OptionsResolver.getDefaultOptions(ctor);
+      OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
+      var attrs = { inheritOptions: {} }, ctr;
+      OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
+      try {
+         ctr = new ctor(cfg);
+      } catch (error) {
+         ctr = new Control({});
+         Logger.catchLifeCircleErrors('constructor', error);
       }
-      return null;
+      ctr.saveInheritOptions(attrs.inheritOptions);
+      ctr._container = domElement;
+      Focus.patchDom(domElement, cfg);
+      ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
+      ctr.mountToDom(ctr._container, cfg, ctor);
+      return ctr;
+
    };
 
    /**
@@ -444,9 +447,19 @@ class Control {
       // причем если это будет конейнер старого компонента, активируем его по старому тоже
       if (!found) {
          // так ищем DOMEnvironment для текущего компонента. В нем сосредоточен код по работе с фокусами.
-         var getElementProps = TabIndex.getElementProps;
-
-         var next = TabIndex.findFirstInContext(container, false, getElementProps);
+         let getElementProps = TabIndex.getElementProps;
+         let next = TabIndex.findFirstInContext(container, false, getElementProps);
+         if (next) {
+            // при поиске первого элемента игнорируем vdom-focus-in и vdom-focus-out
+            let startElem = 'vdom-focus-in';
+            let finishElem = 'vdom-focus-out';
+            if (next.classList.contains(startElem)) {
+               next = TabIndex.findWithContexts(container, next, false, getElementProps);
+            }
+            if (next.classList.contains(finishElem)) {
+               next = null;
+            }
+         }
          if (next) {
             res = doFocus.call(this, next);
          } else {
@@ -496,51 +509,104 @@ class Control {
       return Promise.resolve();
    }
 
-   public _beforeMountLimited():Promise<any> {
-      if (typeof window !== 'undefined') {
-         return this._beforeMount.apply(this, arguments);
+   private _styles: Array<string> = [];
+   private _theme: Array<string> = [];
+
+   private _manageStyles(theme:string) {
+      let themesController = ThemesController.getInstance();
+      let styles = this._styles;
+      let themedStyles = this._theme;
+      let promiseArray = [];
+      if (typeof window === 'undefined') {
+         styles.forEach(function(name) {
+            themesController.pushCss(name);
+         });
+         themedStyles.forEach(function(name) {
+            themesController.pushThemedCss(name, theme);
+         });
+         return true;
+      } else {
+         styles.forEach((name) => {
+            // Wrap promise with timeout and reflect
+            if (!themesController.isCssLoaded(name)) {
+               let loadPromise = PromiseLib.reflect(PromiseLib.wrapTimeout(themesController.pushCssAsync(name), 2000));
+               loadPromise.then(function(res) {
+                  if(res.status === 'rejected') {
+                     IoC.resolve('ILogger').error('Styles loading error', 'Could not load style ' + name + ' for control ' + this._moduleName);
+                  }
+               });
+               promiseArray.push(loadPromise);
+            }
+         });
+         themedStyles.forEach((name) => {
+            // Wrap promise with timeout and reflect
+            if (!themesController.isThemedCssLoaded(name, theme)) {
+               let loadPromise = PromiseLib.reflect(PromiseLib.wrapTimeout(themesController.pushCssThemedAsync(name, theme), 2000));
+               loadPromise.then(function(res) {
+                  if(res.status === 'rejected') {
+                     IoC.resolve('ILogger').error('Styles loading error', 'Could not load style ' + name + ' for control ' + this._moduleName + ' with theme ' + theme);
+                  }
+               });
+               promiseArray.push(loadPromise);
+            }
+         });
+         if (promiseArray.length) {
+            return Promise.all(promiseArray);
+         } else {
+            return true;
+         }
+      }
+   }
+
+   public _beforeMountLimited(opts:any) {
+      var resultBeforeMount = this._beforeMount.apply(this, arguments);
+
+      if (typeof window === 'undefined') {
+         if (resultBeforeMount && resultBeforeMount.callback) {
+            resultBeforeMount = new Promise((resolve, reject) => {
+               var timeout = 0;
+               resultBeforeMount.then((result) => {
+                  if (!timeout) {
+                     timeout = 1;
+                     resolve(result);
+                  }
+                  return result;
+               }, (error) => {
+                  if (!timeout) {
+                     timeout = 1;
+                     reject(error);
+                  }
+                  return error;
+               });
+               setTimeout(() => {
+                  if (!timeout) {
+                     /* Change _template and _afterMount
+                         *  if execution was longer than 2 sec
+                         * */
+                     IoC.resolve('ILogger').error('_beforeMount', 'Wait 20000 ms ' + this._moduleName);
+                     timeout = 1;
+                     require(['View/Runner/tclosure'], function(thelpers) {
+                        this._originTemplate = this._template;
+                        this._template = function(data, attr, context, isVdom, sets) {
+                           try {
+                              return this._originTemplate.apply(self, arguments);
+                           } catch (e) {
+                              return thelpers.getMarkupGenerator(isVdom).createText('');
+                           }
+                        };
+                        this._template.stable = true;
+                        this._afterMount = function() {};
+                        resolve(false);
+                     });
+                  }
+               }, 20000);
+            });
+         }
       }
 
-      let resultBeforeMount = this._beforeMount.apply(this, arguments);
-      if (resultBeforeMount && resultBeforeMount.callback) {
-         return new Promise((resolve, reject) => {
-            var timeout = 0;
-            resultBeforeMount.then((result) =>{
-               if (!timeout) {
-                  timeout = 1;
-                  resolve(result);
-               }
-               return result;
-            }, (error) => {
-               if (!timeout) {
-                  timeout = 1;
-                  reject(error);
-               }
-               return error;
-            });
-            setTimeout(() => {
-               if (!timeout) {
-                  /* Change _template and _afterMount
-                      *  if execution was longer than 2 sec
-                      * */
-                  IoC.resolve('ILogger').error('_beforeMount', 'Wait 20000 ms ' + self._moduleName);
-                  timeout = 1;
-                  import('View/Executor/TClosure').then((thelpers) => {
-                     this._originTemplate = self._template;
-                     this._template = function(data, attr, context, isVdom, sets) {
-                        try {
-                           return this._originTemplate.apply(self, arguments);
-                        } catch (e) {
-                           return thelpers.getMarkupGenerator(isVdom).createText('');
-                        }
-                     };
-                     this._template.stable = true;
-                     this._afterMount = function() {};
-                     resolve(false);
-                  });
-               }
-            }, 20000);
-         });
+      var cssResult = this._manageStyles(opts.theme);
+      if(cssResult.then) {
+         resultBeforeMount = Promise.all([cssResult, resultBeforeMount]);
       }
       return resultBeforeMount;
    }
