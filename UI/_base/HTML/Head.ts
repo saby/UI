@@ -71,6 +71,8 @@ class Head extends Control {
             this.themedCss = res.css.themedCss;
             this.simpleCss = res.css.simpleCss;
             this.errorState = res.errorState;
+            resolve();
+
          });
       });
    }

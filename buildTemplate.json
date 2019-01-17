@@ -24,12 +24,16 @@
       "path": "%cd%/node_modules/sbis3-ws/View"
     },
     {
-      "name": "Inferno",
-      "path": "%cd%/node_modules/sbis3-ws/Inferno"
-    },
-    {
       "name": "Vdom",
       "path": "%cd%/node_modules/sbis3-ws/Vdom"
+    },
+    {
+      "name": "Inferno",
+      "path": "%cd%/node_modules/saby-inferno/Inferno"
+    },
+    {
+      "name": "Router",
+      "path": "%cd%/node_modules/Router/Router"
     },
     {
       "name": "UI",
@@ -38,6 +42,10 @@
     {
       "name": "UITest",
       "path": "%cd%/UITest"
+    },
+    {
+      "name": "UIDemo",
+      "path": "%cd%/UIDemo"
     }
 
   ]
