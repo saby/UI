@@ -179,7 +179,7 @@ class Control {
             if (_contextObj && _contextObj.hasOwnProperty(field)) {
                return _contextObj[field];
             }
-            throw new Error('You trying to get unrequired field ' + field);
+            return null;
          },
          set: function() {
             throw new Error("Can't set data to context. Context is readonly!");
@@ -318,7 +318,9 @@ class Control {
          let contextTypes = this.constructor.contextTypes ? this.constructor.contextTypes() : {};
          for (var i in contextTypes) {
             if (contextTypes.hasOwnProperty(i)) {
-               this.context.get(i).unregisterConsumer(this);
+               let field = this.context.get(i);
+               if (field)
+                  field.unregisterConsumer(this);
             }
          }
          if (this._mounted) {
