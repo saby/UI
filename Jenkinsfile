@@ -13,7 +13,7 @@ def workspace = "/home/sbis/workspace/ui_${version}/${BRANCH_NAME}"
                 submoduleCfg: [],
                 userRemoteConfigs: [[
                     credentialsId: CREDENTIAL_ID_GIT,
-                    url: 'git@git.sbis.ru:sbis-ci/jenkins_pipeline.git']]
+                    url: "${GIT}:sbis-ci/jenkins_pipeline.git"]]
                                     ])
         start = load "./jenkins_pipeline/platforma/branch/JenkinsfileUI"
         start.start(version, BRANCH_NAME, env)
