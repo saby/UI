@@ -7,7 +7,7 @@
   "contents": true,
   "deprecatedWebPageTemplates": true,
   "htmlWml": true,
-  "themes": true,
+  "themes": false,
 
   "minimize": false,
   "wml": false,
@@ -16,32 +16,24 @@
 
   "modules": [
     {
-      "name": "Core",
-      "path": "%cd%/node_modules/sbis3-ws/Core"
-    },
-    {
       "name": "WS.Core",
-      "path": "%cd%/node_modules/sbis3-ws/ws"
+      "path": "%cd%/node_modules/sbis3-ws/WS.Core"
     },
     {
-      "name": "Lib",
-      "path": "%cd%/node_modules/sbis3-ws/ws/lib"
-    },
-    {
-      "name": "Ext",
-      "path": "%cd%/node_modules/sbis3-ws/ws/lib/Ext"
-    },
-    {
-      "name": "Transport",
-      "path": "%cd%/node_modules/sbis3-ws/ws/transport"
-    },
-    {
-      "name": "Types",
-      "path": "%cd%/node_modules/saby-types/Types"
+      "name": "View",
+      "path": "%cd%/node_modules/sbis3-ws/View"
     },
     {
       "name": "Vdom",
       "path": "%cd%/node_modules/sbis3-ws/Vdom"
+    },
+    {
+      "name": "Inferno",
+      "path": "%cd%/node_modules/saby-inferno/Inferno"
+    },
+    {
+      "name": "Router",
+      "path": "%cd%/node_modules/Router/Router"
     },
     {
       "name": "UI",
@@ -52,12 +44,8 @@
       "path": "%cd%/UITest"
     },
     {
-      "name": "VTree",
-      "path": "%cd%/VTree"
-    },
-    {
-      "name": "Wml",
-      "path": "%cd%/Wml"
+      "name": "UIDemo",
+      "path": "%cd%/UIDemo"
     }
 
   ]

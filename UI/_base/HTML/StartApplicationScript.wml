@@ -1,0 +1,32 @@
+<div key="scripts">
+   <ws:if data="{{!_options.compat && _options.onServer}}">
+      <script key="init_script">
+         require(['Core/polyfill', 'UI/Base', 'View/Request', 'View/_Request/createDefault', 'Core/ConsoleLogger'],
+            function(polyfill, UI, Request, createDefault){
+               function StartApplication() {
+                  var req = new Request(createDefault.default(Request));
+                  var StateReceiver = UI.StateReceiver;
+                  req.setStateReceiver(new StateReceiver());
+                  Request.setCurrent(req);
+
+                  UI.Start();
+               }
+
+               var AppData = UI.AppData;
+
+               window.startContextData = {AppData: new AppData({})};
+               var deps = {{ __setHTMLUnsafe(getDeps()) }};
+               if (deps && deps.length>0) {
+                  require(deps, function(){
+                     StartApplication();
+                  });
+               } else {
+                  StartApplication();
+               }
+            });
+      </script>
+   </ws:if>
+   <ws:if data="{{ _options.compat }}">
+      <ws:partial template="wml!UI/_base/HTML/CompatibleScripts" />
+   </ws:if>
+</div>

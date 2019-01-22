@@ -1,0 +1,4 @@
+<ws:partial template="{{application}}" scope="{{_options}}"
+            on:themeChanged="setTheme()"
+            on:changeApplication="changeApplicationHandler()"
+            theme="{{coreTheme}}"/>

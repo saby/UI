@@ -1,14 +1,17 @@
 {
-   "name": "UI",
-   "version": "19.100.0",
+   "name": "saby-ui",
+   "version": "19.200.0",
    "repository": {
       "type": "git",
       "url": "git@platform-git.sbis.ru:saby/UI.git"
    },
    "files": [
       "UI/*",
-      "VTree/*",
-      "Wml/*"
+      "Markup/*",
+      "TextMarkup/*",
+      "VirtualTreeMarkup/*",
+      "VirtualDom/*",
+      "WmlBuilder/*"
    ],
    "scripts": {
       "build": "npm run build:typescript && npm run build:app",
@@ -29,6 +32,9 @@
       "moduleType": "amd",
       "root": "application",
       "tests": "UITest",
+      "report": "./application/artifacts/xunit-report.xml",
+      "htmlCoverageReport": "./application/artifacts/coverage/index.html",
+      "jsonCoverageReport": "./application/artifacts/coverage.json",
       "url": {
          "port": 1023
       }
@@ -45,7 +51,7 @@
       ],
       "cache": false,
       "eager": true,
-      "report-dir": "./artifacts/coverage"
+      "report-dir": "./application/artifacts/coverage"
    },
    "dependencies": {},
    "devDependencies": {
@@ -61,11 +67,12 @@
       "postcss": "^6.0.23",
       "progress": "^2.0.0",
       "requirejs": "2.1.18",
+      "Router": "git+https://github.com/saby/Router.git#19.100/bugfix/baseroutestartpoint",
+      "saby-inferno": "git+https://github.com/saby/inferno#master",
       "sbis3-builder": "git+https://github.com/saby/Builder.git#rc-19.100",
       "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#rc-19.100",
       "serve-static": "1.11.x",
-      "saby-types": "git+https://platform-git.sbis.ru/saby/Types.git#rc-19.100",
-      "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-19.100",
+      "saby-typescript": "git+https://github.com/saby/TypeScript.git#rc-19.100",
       "saby-units": "git+https://github.com/saby/Units.git#rc-19.100"
    }
 }
