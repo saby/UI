@@ -19,3 +19,4 @@ def workspace = "/home/sbis/workspace/ui_${version}/${BRANCH_NAME}"
         start.start(version, workspace)
     }
 }
+
