@@ -1,9 +1,5 @@
 node ('controls') {
-<<<<<<< HEAD
 def version = "19.200"
-=======
-def version = "19.110"
->>>>>>> origin/rc-19.110
 def workspace = "/home/sbis/workspace/ui_${version}/${BRANCH_NAME}"
     ws (workspace){
         deleteDir()
