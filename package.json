@@ -1,6 +1,6 @@
 {
    "name": "saby-ui",
-   "version": "19.200.0",
+   "version": "19.100.0",
    "repository": {
       "type": "git",
       "url": "git@platform-git.sbis.ru:saby/UI.git"
@@ -67,7 +67,7 @@
       "postcss": "^6.0.23",
       "progress": "^2.0.0",
       "requirejs": "2.1.18",
-      "Router": "git+https://github.com/saby/Router.git#19.100/bugfix/baseroutestartpoint",
+      "Router": "git+https://github.com/saby/Router.git#rc-19.100",
       "saby-inferno": "git+https://github.com/saby/inferno#master",
       "sbis3-builder": "git+https://github.com/saby/Builder.git#rc-19.100",
       "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#rc-19.100",
