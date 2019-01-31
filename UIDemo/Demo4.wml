@@ -1,0 +1,5 @@
+<div>
+   Multi themes<br />
+   <UIDemo.Demo4_sub theme="theme1" />
+   <UIDemo.Demo4_sub theme="theme2" />
+</div>

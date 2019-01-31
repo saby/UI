@@ -7,7 +7,7 @@
   "contents": true,
   "deprecatedWebPageTemplates": true,
   "htmlWml": true,
-  "themes": false,
+  "themes": true,
 
   "minimize": false,
   "wml": false,
