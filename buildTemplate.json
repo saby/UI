@@ -7,37 +7,36 @@
   "contents": true,
   "deprecatedWebPageTemplates": true,
   "htmlWml": true,
-  "themes": false,
-
-  "minimize": false,
-  "wml": false,
-  "сustomPack": false,
-  "dependenciesGraph": false,
-
   "modules": [
     {
       "name": "WS.Core",
-      "path": "%cd%/node_modules/sbis3-ws/WS.Core"
+      "path": "%cd%/node_modules/sbis3-ws/WS.Core",
+      "require": true
     },
     {
       "name": "View",
-      "path": "%cd%/node_modules/sbis3-ws/View"
+      "path": "%cd%/node_modules/sbis3-ws/View",
+      "require": true
     },
     {
       "name": "Vdom",
-      "path": "%cd%/node_modules/sbis3-ws/Vdom"
+      "path": "%cd%/node_modules/sbis3-ws/Vdom",
+      "require": true
     },
     {
       "name": "Inferno",
-      "path": "%cd%/node_modules/saby-inferno/Inferno"
+      "path": "%cd%/node_modules/saby-inferno/Inferno",
+      "require": true
     },
     {
       "name": "Router",
-      "path": "%cd%/node_modules/Router/Router"
+      "path": "%cd%/node_modules/Router/Router",
+      "require": true
     },
     {
       "name": "UI",
-      "path": "%cd%/UI"
+      "path": "%cd%/UI",
+      "require": true
     },
     {
       "name": "UITest",
