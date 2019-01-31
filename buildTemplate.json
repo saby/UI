@@ -11,32 +11,32 @@
     {
       "name": "WS.Core",
       "path": "%cd%/node_modules/sbis3-ws/WS.Core",
-      "require": true
+      "required": true
     },
     {
       "name": "View",
       "path": "%cd%/node_modules/sbis3-ws/View",
-      "require": true
+      "required": true
     },
     {
       "name": "Vdom",
       "path": "%cd%/node_modules/sbis3-ws/Vdom",
-      "require": true
+      "required": true
     },
     {
       "name": "Inferno",
       "path": "%cd%/node_modules/saby-inferno/Inferno",
-      "require": true
+      "required": true
     },
     {
       "name": "Router",
       "path": "%cd%/node_modules/Router/Router",
-      "require": true
+      "required": true
     },
     {
       "name": "UI",
       "path": "%cd%/UI",
-      "require": true
+      "required": true
     },
     {
       "name": "UITest",
