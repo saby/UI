@@ -250,7 +250,7 @@ class Control {
             if (attributes.events.hasOwnProperty(i)) {
                for (var handl = 0; handl < attributes.events[i].length; handl++) {
                   if (attributes.events[i][handl].fn.isControlEvent &&
-                     !attributes.events[i][handl].fn.controlDestination) {
+                      !attributes.events[i][handl].fn.controlDestination) {
                      attributes.events[i][handl].fn.controlDestination = this;
                   }
                }
@@ -312,19 +312,103 @@ class Control {
       }
    }
 
+   public _manageStyles(theme, oldTheme) {
+      if(!this._checkNewStyles()) {
+         return true;
+      }
+      var themesController = ThemesController.getInstance();
+      var styles = this._styles || [];
+      var themedStyles = this._theme || [];
+      if(oldTheme) {
+         this._removeOldStyles(themesController, oldTheme, themedStyles, []);
+      }
+      return this._loadNewStyles(themesController, theme, themedStyles, styles);
+   }
+
+   public _checkNewStyles(): Boolean {
+      if((this._theme && !this._theme.forEach) || (this._style && !this._style.forEach)) {
+         return false;
+      }
+      return true;
+   }
+
+   public _loadNewStyles(themesController, theme, themedStyles, styles): any {
+      let self = this;
+      let promiseArray = [];
+      if (typeof window === 'undefined') {
+         styles.forEach(function(name) {
+            themesController.pushCss(name);
+         });
+         themedStyles.forEach(function(name) {
+            themesController.pushThemedCss(name, theme);
+         });
+      } else {
+         styles.forEach(function(name) {
+            if (themesController.isCssLoaded(name)) {
+               themesController.pushCssLoaded(name);
+            } else {
+               let loadPromise = PromiseLib.reflect(PromiseLib.wrapTimeout(themesController.pushCssAsync(name), 2000));
+               loadPromise.then(function(res) {
+                  if(res.status === 'rejected') {
+                     IoC.resolve('ILogger').error('Styles loading error', 'Could not load style '
+                         + name + ' for control ' + self._moduleName);
+                  }
+               });
+               promiseArray.push(loadPromise);
+            }
+         });
+         themedStyles.forEach(function(name) {
+            if (themesController.isThemedCssLoaded(name, theme)) {
+               themesController.pushCssThemedLoaded(name, theme);
+            } else {
+               let loadPromise = PromiseLib.reflect(PromiseLib.wrapTimeout(themesController.pushCssThemedAsync(name, theme), 2000));
+               loadPromise.then(function(res) {
+                  if(res.status === 'rejected') {
+                     IoC.resolve('ILogger').error('Styles loading error', 'Could not load style '
+                         + name + ' for control ' + self._moduleName +
+                         ' with theme ' + theme);
+                  }
+               });
+               promiseArray.push(loadPromise);
+            }
+         });
+         if (promiseArray.length) {
+            return Promise.all(promiseArray);
+         }
+      }
+      return true;
+   }
+
+   public _removeOldStyles(themesController, theme, themedStyles, styles) {
+      styles.forEach(function(name) {
+         themesController.removeCss(name);
+      });
+      themedStyles.forEach(function(name) {
+         themesController.removeCssThemed(name, theme);
+      });
+   }
+
+   public _removeStyles(theme) {
+      if(!this._checkNewStyles()) {
+         return true;
+      }
+      var themesController = ThemesController.getInstance();
+      var styles = this._styles || [];
+      var themedStyles = this._theme || [];
+      this._removeOldStyles(themesController, theme, themedStyles, styles);
+   }
+
    public destroy(): void {
       this._destroyed = true;
       try {
          let contextTypes = this.constructor.contextTypes ? this.constructor.contextTypes() : {};
          for (var i in contextTypes) {
             if (contextTypes.hasOwnProperty(i)) {
-               let field = this.context.get(i);
-               if (field)
-                  field.unregisterConsumer(this);
+               this.context.get(i).unregisterConsumer(this);
             }
          }
          if (this._mounted) {
-            this._beforeUnmount();
+            this.__beforeUnmount();
             Synchronizer.cleanControlDomLink(this._container);
          }
       } catch (error) {
@@ -336,8 +420,8 @@ class Control {
 
    public _blur(): void {
       let container = this._container[0] ? this._container[0] : this._container,
-         activeElement = document.activeElement,
-         tmpTabindex;
+          activeElement = document.activeElement,
+          tmpTabindex;
 
       if (!Focus.closest(document.activeElement, container)) {
          return;
@@ -514,52 +598,6 @@ class Control {
    private _styles: Array<string> = [];
    private _theme: Array<string> = [];
 
-   private _manageStyles(theme:string) {
-      let themesController = ThemesController.getInstance();
-      let styles = this._styles;
-      let themedStyles = this._theme;
-      let promiseArray = [];
-      if (typeof window === 'undefined') {
-         styles.forEach(function(name) {
-            themesController.pushCss(name);
-         });
-         themedStyles.forEach(function(name) {
-            themesController.pushThemedCss(name, theme);
-         });
-         return true;
-      } else {
-         styles.forEach((name) => {
-            // Wrap promise with timeout and reflect
-            if (!themesController.isCssLoaded(name)) {
-               let loadPromise = PromiseLib.reflect(PromiseLib.wrapTimeout(themesController.pushCssAsync(name), 2000));
-               loadPromise.then(function(res) {
-                  if(res.status === 'rejected') {
-                     IoC.resolve('ILogger').error('Styles loading error', 'Could not load style ' + name + ' for control ' + this._moduleName);
-                  }
-               });
-               promiseArray.push(loadPromise);
-            }
-         });
-         themedStyles.forEach((name) => {
-            // Wrap promise with timeout and reflect
-            if (!themesController.isThemedCssLoaded(name, theme)) {
-               let loadPromise = PromiseLib.reflect(PromiseLib.wrapTimeout(themesController.pushCssThemedAsync(name, theme), 2000));
-               loadPromise.then(function(res) {
-                  if(res.status === 'rejected') {
-                     IoC.resolve('ILogger').error('Styles loading error', 'Could not load style ' + name + ' for control ' + this._moduleName + ' with theme ' + theme);
-                  }
-               });
-               promiseArray.push(loadPromise);
-            }
-         });
-         if (promiseArray.length) {
-            return Promise.all(promiseArray);
-         } else {
-            return true;
-         }
-      }
-   }
-
    public _beforeMountLimited(opts:any) {
       var resultBeforeMount = this._beforeMount.apply(this, arguments);
 
@@ -670,6 +708,14 @@ class Control {
     * @see Documentation: Context.
     * @private
     */
+
+   public __beforeUpdate(options): void {
+      if(options.theme !== this._options.theme) {
+         this._manageStyles(options.theme, this._options.theme);
+      }
+      this._beforeUpdate.apply(this, arguments);
+   }
+
    public _beforeUpdate(): void {
       // Do
    }
@@ -761,7 +807,12 @@ class Control {
     * @see Documentation: Context
     * @private
     */
-   public _beforeUnmount(): void {
+   public __beforeUnmount() {
+      this._removeStyles(this._options.theme);
+      this._beforeUnmount.apply(this, arguments);
+   }
+
+   public _beforeUnmount() {
       //Do
    }
 
