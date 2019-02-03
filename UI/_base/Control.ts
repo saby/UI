@@ -532,7 +532,7 @@ class Control {
             // Wrap promise with timeout and reflect
             if (!themesController.isCssLoaded(name)) {
                let loadPromise = PromiseLib.reflect(PromiseLib.wrapTimeout(themesController.pushCssAsync(name), 2000));
-               loadPromise.then(function(res) {
+               loadPromise.then((res) => {
                   if(res.status === 'rejected') {
                      IoC.resolve('ILogger').error('Styles loading error', 'Could not load style ' + name + ' for control ' + this._moduleName);
                   }
@@ -544,7 +544,7 @@ class Control {
             // Wrap promise with timeout and reflect
             if (!themesController.isThemedCssLoaded(name, theme)) {
                let loadPromise = PromiseLib.reflect(PromiseLib.wrapTimeout(themesController.pushCssThemedAsync(name, theme), 2000));
-               loadPromise.then(function(res) {
+               loadPromise.then((res) => {
                   if(res.status === 'rejected') {
                      IoC.resolve('ILogger').error('Styles loading error', 'Could not load style ' + name + ' for control ' + this._moduleName + ' with theme ' + theme);
                   }

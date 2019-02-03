@@ -70,7 +70,7 @@
       "Router": "git+https://github.com/saby/Router.git#19.100/bugfix/baseroutestartpoint",
       "saby-inferno": "git+https://github.com/saby/inferno#master",
       "sbis3-builder": "git+https://github.com/saby/Builder.git#rc-19.100",
-      "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#rc-19.100",
+      "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#19.200/bugfix/themes-tests",
       "serve-static": "1.11.x",
       "saby-typescript": "git+https://github.com/saby/TypeScript.git#rc-19.100",
       "saby-units": "git+https://github.com/saby/Units.git#rc-19.100"

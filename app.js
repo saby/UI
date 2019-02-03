@@ -1,6 +1,7 @@
 const root = process.cwd(),
    path = require('path'),
    express = require('express'),
+   cookieParser = require('cookie-parser'),
    app = express(),
    resourcesPath = path.join('', 'application');
 
@@ -8,7 +9,7 @@ const global = (function() {
    return this || (0, eval)('this');
 })();
 
-const requirejs = require(path.join(root, 'node_modules', 'sbis3-ws', 'WS.Core', 'ext', 'requirejs', 'r.js'));
+var requirejs = require(path.join(root, 'node_modules', 'saby-units', 'lib', 'requirejs', 'r.js'));
 global.requirejs = requirejs;
 
 
@@ -23,6 +24,7 @@ requirejs.config(config);
 
 
 app.use(express.static(resourcesPath));
+app.use(cookieParser());
 
 const port = process.env.PORT || 777;
 app.listen(port);
