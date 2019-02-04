@@ -43,6 +43,7 @@ class Document extends Control {
       var headData = new HeadData();
       Request.getCurrent().setStorage('HeadData', headData);
 
+      Request.getCurrent().setStorage('CoreInstance', { instance: this });
       this.ctxData = new AppData(cfg);
    }
 
