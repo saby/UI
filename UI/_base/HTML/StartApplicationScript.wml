@@ -9,6 +9,12 @@
                   req.setStateReceiver(new StateReceiver());
                   Request.setCurrent(req);
 
+                  var constants = require('Core/constants');
+                  var wsCfg = window.wsConfig || {};
+                  for(var key in wsCfg) {
+                     constants[key] = wsCfg[key];
+                  }
+
                   UI.Start();
                }
 

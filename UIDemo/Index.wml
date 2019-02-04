@@ -1,26 +1,24 @@
 <UI.Base:HTML scope="{{_options}}" theme="theme1" resourceRoot="/">
-   <Router.Controller>
-      <div>
-         <b>Demos::</b><br />
-         <Router.Link href="page/:pageId" pageId="Demo1"><span>Demo1</span></Router.Link><br />
-         <Router.Link href="page/:pageId" pageId="Demo2"><span>Demo2</span></Router.Link><br />
-         <Router.Link href="page/:pageId" pageId="Demo3"><span>Demo3</span></Router.Link><br />
-         <Router.Link href="page/:pageId" pageId="Demo4"><span>Demo4</span></Router.Link><br />
+   <div>
+      <b>Demos::</b><br />
+      <Router.Reference href="page/:pageId" pageId="Demo1"><span>Demo1</span></Router.Reference><br />
+      <Router.Reference href="page/:pageId" pageId="Demo2"><span>Demo2</span></Router.Reference><br />
+      <Router.Reference href="page/:pageId" pageId="Demo3"><span>Demo3</span></Router.Reference><br />
+      <Router.Reference href="page/:pageId" pageId="Demo4"><span>Demo4</span></Router.Reference><br />
 
-         <hr />
-         <Router.Route mask="page/:pageId">
-            <UIDemo.PageLoader pageId="{{content.pageId || 'Demo1'}}" />
-         </Router.Route>
+      <hr />
+      <Router.Route mask="page/:pageId">
+         <UIDemo.PageLoader pageId="{{content.pageId || 'Demo1'}}" />
+      </Router.Route>
 
-         <Router.Route mask="param/:p1">
-            <ws:content>
-               <div>
-                  {{content.p1}}
-               </div>
-            </ws:content>
-         </Router.Route>
+      <Router.Route mask="param/:p1">
+         <ws:content>
+            <div>
+               {{content.p1}}
+            </div>
+         </ws:content>
+      </Router.Route>
 
-      </div>
-   </Router.Controller>
+   </div>
 </UI.Base:HTML>
 
