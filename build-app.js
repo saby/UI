@@ -71,7 +71,7 @@ fs.writeFile(path.join(root, 'builderCfg.json'), gultConfig, function(){
 
       fs.writeFileSync(path.join(root, 'application', 'contents.js'),
          'contents = ' + JSON.stringify(contents, '', 3)+';' );
-      fs.linkSync(path.join(root, 'application', 'contents.js'), path.join(root, 'application', 'contents.min.js'));
+      //fs.linkSync(path.join(root, 'application', 'contents.js'), path.join(root, 'application', 'contents.min.js'));
       fs.writeFileSync(path.join(root, 'application', 'bundles.js'),
          'bundles = ' + JSON.stringify(bundles, '', 3)+';' );
 

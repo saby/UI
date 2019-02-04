@@ -1,0 +1,3 @@
+<div class="themed theme_{{_options.theme}}">
+   It's control with theme {{_options.theme}}
+</div>
