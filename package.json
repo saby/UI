@@ -68,7 +68,7 @@
       "progress": "^2.0.0",
       "requirejs": "2.1.18",
       "Router": "git+https://github.com/saby/Router.git#rc-19.110",
-      "saby-inferno": "git+https://github.com/saby/inferno#master",
+      "saby-inferno": "git+https://github.com/saby/inferno.git#master",
       "sbis3-builder": "git+https://github.com/saby/Builder.git#rc-19.110",
       "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#rc-19.110",
       "serve-static": "1.11.x",
