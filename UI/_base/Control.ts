@@ -4,7 +4,7 @@ import template = require('wml!UI/_base/Control');
 
 
 // @ts-ignore
-import IoC = require('Core/IoC');
+import { IoC } from 'Env/Env';
 // @ts-ignore
 import doAutofocus = require('Core/helpers/Hcontrol/doAutofocus');
 

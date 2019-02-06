@@ -5,7 +5,7 @@ import Control from './Control';
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/HTML');
 // @ts-ignore
-import constants = require('Core/constants');
+import { constants } from 'Env/Env';
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesController');
 // @ts-ignore
