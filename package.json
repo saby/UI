@@ -73,6 +73,7 @@
       "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#rc-19.200",
       "serve-static": "1.11.x",
       "saby-typescript": "git+https://github.com/saby/TypeScript.git#rc-19.200",
-      "saby-units": "git+https://github.com/saby/Units.git#rc-19.200"
+      "saby-units": "git+https://github.com/saby/Units.git#rc-19.200",
+      "saby-types": "git+https://github.com/saby/Types.git#rc-19.200"
    }
 }
