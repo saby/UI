@@ -29,6 +29,11 @@
       "required": true
     },
     {
+      "name": "Types",
+      "path": "%cd%/node_modules/saby-types/Types",
+      "required": true
+    },
+    {
       "name": "Router",
       "path": "%cd%/node_modules/Router/Router",
       "required": true
