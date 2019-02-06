@@ -6,6 +6,7 @@ import StateReceiver from './_base/StateReceiver';
 
 import AppData from './_base/Deprecated/AppData';
 import Start from './_base/Start';
+import HeadController from './_base/HeadController';
 
 import BaseRoute = require('wml!UI/_base/Route');
 
@@ -16,5 +17,6 @@ export = {
    StateReceiver,
    AppData,
    Start,
-   BaseRoute
+   BaseRoute,
+   HeadController
 };
