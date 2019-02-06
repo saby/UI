@@ -1,13 +1,18 @@
 <div key="scripts">
    <ws:if data="{{!_options.compat && _options.onServer}}">
       <script key="init_script">
-         require(['Core/polyfill', 'UI/Base', 'View/Request', 'View/_Request/createDefault', 'Core/ConsoleLogger'],
-            function(polyfill, UI, Request, createDefault){
+         require(['Core/polyfill', 'UI/Base', 'View/Request', 'View/_Request/createDefault', 'Core/ConsoleLogger', 'Core/constants'],
+            function(polyfill, UI, Request, createDefault, logger, constants){
                function StartApplication() {
                   var req = new Request(createDefault.default(Request));
                   var StateReceiver = UI.StateReceiver;
                   req.setStateReceiver(new StateReceiver());
                   Request.setCurrent(req);
+
+                  var wsCfg = window.wsConfig || {};
+                  for(var key in wsCfg) {
+                     constants[key] = wsCfg[key];
+                  }
 
                   UI.Start();
                }

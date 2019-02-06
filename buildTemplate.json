@@ -7,6 +7,13 @@
   "contents": true,
   "deprecatedWebPageTemplates": true,
   "htmlWml": true,
+  "themes": true,
+
+  "minimize": false,
+  "wml": false,
+  "сustomPack": false,
+  "dependenciesGraph": false,
+
   "modules": [
     {
       "name": "WS.Core",
