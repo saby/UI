@@ -2,7 +2,7 @@
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesController');
 // @ts-ignore
-import cookie = require('Core/cookie');
+import { cookie } from 'Env/Env';
 // @ts-ignore
 import DepsCollector from './DepsCollector';
 

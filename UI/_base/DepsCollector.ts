@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_base/DepsCollector" />
 
 import * as Logger from 'View/Logger';
-import IoC = require('Core/IoC');
+import { IoC } from 'Env/Env';
 
 var DEPTYPES = {
    BUNDLE: 1,

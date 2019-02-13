@@ -46,7 +46,7 @@ app.get('/cdn*', (req, res) => {
 const serverRouter = require('Router/ServerRouting');
 const UIBase = require('UI/Base');
 const tpl = UIBase.BaseRoute;
-const constants = require('Core/constants');
+const constants = require('Env/Env').constants;
 constants.isNodePlatform = true;
 
 /*server side render*/

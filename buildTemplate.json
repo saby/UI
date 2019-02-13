@@ -57,7 +57,16 @@
     {
       "name": "UIDemo",
       "path": "%cd%/UIDemo"
+    },
+    {
+      "name": "Env",
+      "path": "%cd%/node_modules/rmi/src/client/Env",
+      "required": true
+    },
+    {
+      "name": "Browser",
+      "path": "%cd%/node_modules/rmi/src/client/Browser",
+      "required": true
     }
-
   ]
 }

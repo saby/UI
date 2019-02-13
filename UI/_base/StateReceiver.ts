@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_base/StateReceiver" />
 
 import Serializer = require('Core/Serializer');
-import IoC = require('Core/IoC');
+import { IoC } from 'Env/Env';
 import {Common} from 'View/Executor/Utils';
 
 type SerilizedType = {
