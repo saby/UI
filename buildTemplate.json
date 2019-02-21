@@ -1,71 +1,67 @@
 {
-  "cache": "%cd%/builder-ui/builder-json-cache",
-  "output": "%cd%/application",
-  "logs": "%cd%/builder-ui/logs",
+  "cache": "./builder-ui/builder-json-cache",
+  "output": "./application",
+  "logs": "./builder-ui/logs",
   "typescript": true,
   "less": true,
   "contents": true,
   "deprecatedWebPageTemplates": true,
   "htmlWml": true,
   "themes": true,
-
-  "minimize": false,
-  "wml": false,
-  "сustomPack": false,
-  "dependenciesGraph": false,
+  "joinedMeta": true,
 
   "modules": [
     {
       "name": "WS.Core",
-      "path": "%cd%/node_modules/sbis3-ws/WS.Core",
+      "path": "./node_modules/sbis3-ws/WS.Core",
       "required": true
     },
     {
       "name": "View",
-      "path": "%cd%/node_modules/sbis3-ws/View",
+      "path": "./node_modules/sbis3-ws/View",
       "required": true
     },
     {
       "name": "Vdom",
-      "path": "%cd%/node_modules/sbis3-ws/Vdom",
+      "path": "./node_modules/sbis3-ws/Vdom",
       "required": true
     },
     {
       "name": "Inferno",
-      "path": "%cd%/node_modules/saby-inferno/Inferno",
+      "path": "./node_modules/saby-inferno/Inferno",
       "required": true
     },
     {
       "name": "Types",
-      "path": "%cd%/node_modules/saby-types/Types",
+      "path": "./node_modules/saby-types/Types",
       "required": true
     },
     {
       "name": "Router",
-      "path": "%cd%/node_modules/Router/Router",
+      "path": "./node_modules/Router/Router",
       "required": true
     },
     {
       "name": "UI",
-      "path": "%cd%/UI",
+      "path": "./UI",
       "required": true
     },
     {
       "name": "UITest",
-      "path": "%cd%/UITest"
+      "path": "./UITest"
     },
     {
       "name": "UIDemo",
-      "path": "%cd%/UIDemo"
+      "path": "./UIDemo"
     },
     {
       "name": "Env",
-      "path": "%cd%/node_modules/rmi/src/client/Env",
+      "path": "./node_modules/rmi/src/client/Env",
       "required": true
     },
     {
       "name": "Browser",
-      "path": "%cd%/node_modules/rmi/src/client/Browser",
+      "path": "./node_modules/rmi/src/client/Browser",
       "required": true
     }
   ]
