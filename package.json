@@ -1,6 +1,6 @@
 {
    "name": "saby-ui",
-   "version": "19.200.0",
+   "version": "19.210.0",
    "repository": {
       "type": "git",
       "url": "git@platform-git.sbis.ru:saby/UI.git"
@@ -61,14 +61,14 @@
       "eslint": "^5.6.1",
       "express": "^4.16.3",
       "requirejs": "2.1.18",
-      "rmi": "git+https://git.sbis.ru/sbis/rmi.git#rc-19.200",
-      "Router": "git+https://github.com/saby/Router.git#rc-19.200",
+      "rmi": "git+https://git.sbis.ru/sbis/rmi.git#rc-19.210",
+      "Router": "git+https://github.com/saby/Router.git#rc-19.210",
       "saby-inferno": "git+https://github.com/saby/inferno.git#master",
-      "sbis3-builder": "git+https://github.com/saby/Builder.git#rc-19.200",
+      "sbis3-builder": "git+https://github.com/saby/Builder.git#rc-19.210",
       "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#19.200/bugfix/themes-tests",
       "serve-static": "1.11.x",
-      "saby-typescript": "git+https://github.com/saby/TypeScript.git#rc-19.200",
-      "saby-units": "git+https://github.com/saby/Units.git#rc-19.200",
-      "saby-types": "git+https://github.com/saby/Types.git#rc-19.200"
+      "saby-typescript": "git+https://github.com/saby/TypeScript.git#rc-19.210",
+      "saby-units": "git+https://github.com/saby/Units.git#rc-19.210",
+      "saby-types": "git+https://github.com/saby/Types.git#rc-19.210"
    }
 }
