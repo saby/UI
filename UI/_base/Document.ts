@@ -14,7 +14,6 @@ import StateReceiver from './StateReceiver';
 import AppData from './Deprecated/AppData';
 
 import * as Request from 'View/Request';
-import createDefault from 'View/_Request/createDefault';
 
 class Document extends Control {
    public _template: Function = template;
@@ -32,7 +31,7 @@ class Document extends Control {
 
          //need create request for SSR
          //on client request will create in app-init.js
-         var req = new Request(createDefault(Request));
+         var req = Request.createDefault(Request);
          req.setStateReceiver(new StateReceiver());
          if (typeof window !== 'undefined' && window.receivedStates) {
             req.stateReceiver.deserialize(window.receivedStates);
