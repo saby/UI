@@ -75,7 +75,7 @@ function getCoverByPath(path) {
     return coverageByPath
 }
 
-let uiCoverage = getCoverByPath(controlsPath);
+let uiCoverage = getCoverByPath(uiPath);
 
 // сохраняем покрытие Общее, UI
 fs.writeFileSync(coverageAllPath, JSON.stringify(newCover), 'utf8');
