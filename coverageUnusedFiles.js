@@ -79,4 +79,4 @@ let uiCoverage = getCoverByPath(uiPath);
 
 // сохраняем покрытие Общее, UI
 fs.writeFileSync(coverageAllPath, JSON.stringify(newCover), 'utf8');
-fs.writeFileSync(coverageUIPath, JSON.stringify(coverageUI), 'utf8');
+fs.writeFileSync(coverageUIPath, JSON.stringify(uiCoverage), 'utf8');
