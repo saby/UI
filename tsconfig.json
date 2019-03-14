@@ -1,5 +1,9 @@
 {
   "extends": "./tsconfig.base",
+  "compilerOptions": {
+    "baseUrl": "application",
+    "noEmit": true
+  },
   "include": [
     "./Router/*",
     "./spec/*",
