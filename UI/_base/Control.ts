@@ -625,7 +625,7 @@ class Control {
                          * */
                      IoC.resolve('ILogger').error('_beforeMount', 'Wait 20000 ms ' + this._moduleName);
                      timeout = 1;
-                     require(['View/Runner/tclosure'], function(thelpers) {
+                     require(['View/Executor/TClosure'], function(thelpers) {
                         this._originTemplate = this._template;
                         this._template = function(data, attr, context, isVdom, sets) {
                            try {
