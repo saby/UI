@@ -70,6 +70,7 @@
       "serve-static": "1.11.x",
       "saby-typescript": "git+https://github.com/saby/TypeScript.git#rc-19.300",
       "saby-units": "git+https://github.com/saby/Units.git#rc-19.300",
-      "saby-types": "git+https://github.com/saby/Types.git#rc-19.300"
+      "saby-types": "git+https://github.com/saby/Types.git#rc-19.300",
+      "sbis-cdn": "git+https://github.com/saby/wasaby-cdn.git#rc-19.300"
    }
 }
