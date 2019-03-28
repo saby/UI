@@ -71,6 +71,7 @@
       "saby-typescript": "git+https://github.com/saby/TypeScript.git#rc-19.400",
       "saby-units": "git+https://github.com/saby/Units.git#rc-19.400",
       "saby-types": "git+https://github.com/saby/Types.git#rc-19.400",
-      "sbis-cdn": "git+https://github.com/saby/wasaby-cdn.git#rc-19.400"
+      "sbis-cdn": "git+https://github.com/saby/wasaby-cdn.git#rc-19.400",
+      "wasaby-app": "git+https://github.com/saby/wasaby-app.git#rc-19.400"
    }
 }
