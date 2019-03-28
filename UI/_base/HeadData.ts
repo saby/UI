@@ -5,7 +5,7 @@ import ThemesController = require('Core/Themes/ThemesController');
 import { cookie } from 'Env/Env';
 // @ts-ignore
 import DepsCollector from './DepsCollector';
-
+// @ts-ignore
 import * as AppEnv from 'Application/Env';
 
 function cropSlash(str) {
