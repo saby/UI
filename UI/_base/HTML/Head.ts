@@ -5,7 +5,7 @@ import Control from '../Control';
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Head');
 
-import * as Request from 'View/Request';
+import * as AppEnv from 'Application/Env';
 import ThemesControllerNew = require('Core/Themes/ThemesControllerNew');
 
 class Head extends Control {
@@ -60,7 +60,7 @@ class Head extends Control {
          this.simpleCss = [];
          return;
       }
-      var headData = Request.getCurrent().getStorage('HeadData');
+      var headData = AppEnv.getStore('HeadData');
       var def = headData.waitAppContent();
       this.cssLinks = [];
       return new Promise((resolve, reject) => {

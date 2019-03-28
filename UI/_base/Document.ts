@@ -13,7 +13,9 @@ import HeadData from './HeadData';
 import StateReceiver from './StateReceiver';
 import AppData from './Deprecated/AppData';
 
-import * as Request from 'View/Request';
+import * as AppInit from 'Application/Initializer';
+import * as AppEnv from 'Application/Env';
+import { PresentationService } from 'SbisEnv/PresentationService';
 
 class Document extends Control {
    public _template: Function = template;
@@ -27,22 +29,25 @@ class Document extends Control {
    constructor(cfg: any) {
       super(cfg);
 
+      var stateReceiverInst = new StateReceiver();
+      var environmentFactory = undefined;
       if (typeof window === 'undefined') {
+         environmentFactory = PresentationService;
+      }
+      AppInit(cfg, environmentFactory, stateReceiverInst);
 
+      if (typeof window === 'undefined') {
          //need create request for SSR
          //on client request will create in app-init.js
-         var req = Request.createDefault(Request);
-         req.setStateReceiver(new StateReceiver());
          if (typeof window !== 'undefined' && window.receivedStates) {
-            req.stateReceiver.deserialize(window.receivedStates);
+            stateReceiverInst.deserialize(window.receivedStates);
          }
-         Request.setCurrent(req);
       }
 
       var headData = new HeadData();
-      Request.getCurrent().setStorage('HeadData', headData);
+      AppEnv.setStore('HeadData', headData);
 
-      Request.getCurrent().setStorage('CoreInstance', { instance: this });
+      AppEnv.setStore('CoreInstance', { instance: this });
       this.ctxData = new AppData(cfg);
    }
 
@@ -76,7 +81,7 @@ class Document extends Control {
       let result;
       if (this.application !== app) {
          this.applicationForChange = app;
-         var headData = Request.getCurrent().getStorage('HeadData');
+         var headData = AppEnv.getStore('HeadData');
          headData && headData.resetRenderDeferred();
          this._forceUpdate();
          result = true;

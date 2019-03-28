@@ -2,8 +2,8 @@
    <script>
       window.receivedStates = '{"ThemesController": { "themes" : {"' + (window.defaultStaticTheme || 'default') + '": true}}}';
 
-      require(['UI/Index', 'Core/app-start', 'View/Request', 'Core/app-init', 'View/Executor/TClosure'],
-      function(UI, AppStart, Request, appInit, Core) {
+      require(['UI/Index', 'Core/app-start', 'Application/Env', 'Core/app-init', 'View/Executor/TClosure'],
+      function(UI, AppStart, AppEnv, appInit, Core) {
          var AppData = UI.AppData,
             HeadData = UI.HeadData,
             Core = UI.Control;
@@ -11,7 +11,7 @@
          appInit();
 
          var headData = new HeadData([], true);
-         Request.getCurrent().setStorage('HeadData', headData);
+         AppEnv.setStore('HeadData', headData);
 
          window.startContextData = {AppData: new AppData({})};
          require([ {{_options.dependencies | unescape}} ], function (){
