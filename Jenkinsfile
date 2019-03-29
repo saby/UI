@@ -1,4 +1,4 @@
-node ('controls') {
+node ('controls_3') {
 def version = "19.300"
 def workspace = "/home/sbis/workspace/ui_${version}/${BRANCH_NAME}"
     ws (workspace){
