@@ -13,8 +13,9 @@ import HeadData from './HeadData';
 import StateReceiver from './StateReceiver';
 import AppData from './Deprecated/AppData';
 
-import * as AppInit from 'Application/Initializer';
+import { default as AppInit } from 'Application/Initializer';
 import * as AppEnv from 'Application/Env';
+// @ts-ignore
 import { PresentationService } from 'SbisEnv/PresentationService';
 
 class Document extends Control {
@@ -34,6 +35,8 @@ class Document extends Control {
       if (typeof window === 'undefined') {
          environmentFactory = PresentationService;
       }
+
+      // @ts-ignore
       AppInit(cfg, environmentFactory, stateReceiverInst);
 
       if (typeof window === 'undefined') {
