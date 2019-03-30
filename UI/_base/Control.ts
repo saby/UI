@@ -16,6 +16,10 @@ import ThemesController = require('Core/Themes/ThemesControllerNew');
 import PromiseLib = require('Core/PromiseLib/PromiseLib');
 import Logger from 'View/Logger';
 
+import {start} from 'Markup/process';
+import {VirtualTreeMarkup} from 'VirtualTreeMarkup/process';
+import * as Inferno from 'Inferno/third-party/index.min';
+
 /**
  * @event Core/Control#activated Occurs when the component becomes active.
  * @param {Boolean} isTabPressed Indicates whether control was activated by Tab press.
@@ -233,6 +237,11 @@ class Control {
        */
       this._getMarkup = function _getMarkup(rootKey, isRoot, attributes, isVdom) {
          if (!this._template.stable) {
+            let str = new VirtualTreeMarkup();
+            str.library = Inferno;
+            let gen = start(str);
+            let res = this._template(this, rootKey, gen);
+            return res[0];
             IoC.resolve('ILogger').error(this._moduleName, 'Check what you put in _template');
             return '';
          }

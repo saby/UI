@@ -52,12 +52,31 @@
       "required": true
     },
     {
+      "name": "WmlBuilder",
+      "path": "./WmlBuilder",
+      "required": true
+    },
+    {
+      "name": "Markup",
+      "path": "./Markup",
+      "required": true
+    },
+    {
+      "name": "VirtualTreeMarkup",
+      "path": "./VirtualTreeMarkup",
+      "required": true
+    },
+    {
       "name": "UITest",
       "path": "./UITest"
     },
     {
       "name": "UIDemo",
       "path": "./UIDemo"
+    },
+    {
+      "name": "UIDemoNewVer",
+      "path": "./UIDemoNewVer"
     },
     {
       "name": "Env",

@@ -37,10 +37,10 @@ require(['Core/core-init'], () => {
    console.log(err);
    console.log('core init failed');
 });
-
+/*
 app.get('/cdn*', (req, res) => {
-   res.redirect('http://dev-cdn.wasaby.io' + req.url.replace('/cdn/', '/'));
-});
+   res.redirect('http://wasaby.io' + req.url.replace('/cdn/', '/'));
+});*/
 
 
 const serverRouter = require('Router/ServerRouting');

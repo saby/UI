@@ -1,6 +1,7 @@
 <UI.Base:HTML scope="{{_options}}" theme="theme1" resourceRoot="/">
    <div>
       <b>Demos::</b><br />
+      <UIDemoNewVer.Demo1 />
    </div>
 </UI.Base:HTML>
 
