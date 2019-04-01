@@ -3,7 +3,7 @@
    <div>
       {{tempValue}}
       <UIDemoNewVer.Demo2>
-         <div>
+         <div> {{tempValue}}
             Привет, мир! {{value}}
          </div>
       </UIDemoNewVer.Demo2>
@@ -14,29 +14,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -46,29 +30,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -78,29 +46,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -110,29 +62,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -142,29 +78,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -174,29 +94,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -206,29 +110,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -238,29 +126,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -270,29 +142,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -302,29 +158,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -334,23 +174,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div class="myClass">
-   Hello world application!
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -360,29 +190,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -392,29 +206,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -424,29 +222,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -456,29 +238,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -488,29 +254,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -520,29 +270,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -552,29 +286,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -584,29 +302,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -616,29 +318,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -648,29 +334,13 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
-         </div>
-      </UIDemoNewVer.Demo2>
-   </div>
-   <div>
-      {{tempValue}}
-      <UIDemoNewVer.Demo2>
-         <div>
-            Привет, мир! {{value}}
-            <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
@@ -680,16 +350,670 @@
          <div>
             Привет, мир! {{value}}
             <div>
-            {{tempValue}}
-            <UIDemoNewVer.Demo2>
-               <div>
-                  Привет, мир! {{value}}
-               </div>
-            </UIDemoNewVer.Demo2>
-         </div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
          </div>
       </UIDemoNewVer.Demo2>
    </div>
-</div>
-
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
+   <div>
+      {{tempValue}}
+      <UIDemoNewVer.Demo2>
+         <div>
+            Привет, мир! {{value}}
+            <div>
+               {{tempValue}}
+               <UIDemoNewVer.Demo2>
+                  <div>
+                     Привет, мир! {{value}}
+                  </div>
+               </UIDemoNewVer.Demo2>
+            </div>
+         </div>
+      </UIDemoNewVer.Demo2>
+   </div>
 </div>
