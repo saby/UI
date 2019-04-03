@@ -5,8 +5,8 @@ import ThemesController = require('Core/Themes/ThemesController');
 import { cookie } from 'Env/Env';
 // @ts-ignore
 import DepsCollector from './DepsCollector';
-
-import * as Request from 'View/Request';
+// @ts-ignore
+import * as AppEnv from 'Application/Env';
 
 function cropSlash(str) {
    let res = str;
@@ -99,7 +99,7 @@ class HeadData {
             });
          }
 
-         let rcsData = Request.getCurrent().stateReceiver.serialize();
+         let rcsData = AppEnv.getStateReceiver().serialize();
          let additionalDepsArray = [];
          for (var key in rcsData.additionalDeps) {
             if (rcsData.additionalDeps.hasOwnProperty(key)) {

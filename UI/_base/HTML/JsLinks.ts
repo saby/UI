@@ -4,7 +4,7 @@ import Control from '../Control';
 
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/JsLinks');
-import * as Request from 'View/Request';
+import * as AppEnv from 'Application/Env';
 
 
 class JsLinks extends Control {
@@ -31,7 +31,7 @@ class JsLinks extends Control {
       if (typeof window !== 'undefined') {
          return;
       }
-      let headData = Request.getCurrent().getStorage('HeadData');
+      let headData = AppEnv.getStore('HeadData');
       let def = headData.waitAppContent();
       return new Promise((resolve, reject) => {
          def.then((res) => {

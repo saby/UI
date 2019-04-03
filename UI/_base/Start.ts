@@ -1,7 +1,8 @@
 /// <amd-module name="UI/_base/Start" />
 
 import Control from 'UI/_base/Control';
-import * as Request from 'View/Request';
+import * as AppInit from 'Application/Initializer';
+import * as AppEnv from 'Application/Env';
 
 function createControl(control, config, dom) {
    let configReady = config||{};
@@ -30,7 +31,10 @@ function createControl(control, config, dom) {
 function startFunction(config) {
    if (typeof window !== 'undefined' && window.receivedStates) {
       //для совместимости версий. чтобы можно было влить контролы и WS одновременно
-      let sr = Request.getCurrent().stateReceiver;
+      let sr;
+      if (AppInit.isInit()) {
+         sr = AppEnv.getStateReceiver();
+      }
       sr && sr.deserialize(window.receivedStates);
    }
 

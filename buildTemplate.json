@@ -68,6 +68,16 @@
       "name": "Browser",
       "path": "./node_modules/rmi/src/client/Browser",
       "required": true
+    },
+    {
+      "name": "Application",
+      "path": "./node_modules/wasaby-app/src/Application",
+      "required": true
+    },
+    {
+      "name": "SbisEnv",
+      "path": "./node_modules/rmi/src/client/SbisEnv",
+      "required": true
     }
   ]
 }
