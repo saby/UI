@@ -2,7 +2,8 @@
   "extends": "./tsconfig.base",
   "compilerOptions": {
     "baseUrl": "application",
-    "noEmit": true
+    "noEmit": true,
+    "types": ["wasaby-app"]
   },
   "include": [
     "./Router/*",

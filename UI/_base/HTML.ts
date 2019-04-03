@@ -11,7 +11,7 @@ import ThemesController = require('Core/Themes/ThemesController');
 // @ts-ignore
 import LinkResolver = require('Core/LinkResolver/LinkResolver');
 
-import * as Request from 'View/Request';
+import * as AppEnv from 'Application/Env';
 import AppData from './Deprecated/AppData';
 
 class HTML extends Control {
@@ -79,7 +79,7 @@ class HTML extends Control {
          ThemesController.getInstance().themes = {};
          ThemesController.getInstance().setTheme(cfg.theme);
       }
-      var headData = Request.getCurrent().getStorage('HeadData');
+      var headData = AppEnv.getStore('HeadData');
 
       this.linkResolver = new LinkResolver(headData.isDebug,
          this.buildnumber,

@@ -4,7 +4,7 @@ import Control from '../Control';
 
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Wait');
-import * as Request from 'View/Request';
+import * as AppEnv from 'Application/Env';
 
 let asyncTemplate = function() {
    let res = template.apply(this, arguments);
@@ -42,7 +42,7 @@ class Wait extends Control {
 
    public _beforeMount(): void {
       this.createPromise();
-      Request.getCurrent().getStorage('HeadData').pushWaiterDeferred(this.waitDef);
+      AppEnv.getStore('HeadData').pushWaiterDeferred(this.waitDef);
       if (typeof window !== 'undefined') {
          this.resolvePromiseFn();
          this.createPromise();
