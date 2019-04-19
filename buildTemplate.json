@@ -9,6 +9,11 @@
   "htmlWml": true,
   "themes": true,
   "joinedMeta": true,
+  "minimize": false,
+  "wml": false,
+  "customPack": false,
+  "dependenciesGraph": false,
+  "resourcesUrl": false,
 
   "modules": [
     {

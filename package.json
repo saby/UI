@@ -18,15 +18,15 @@
       "build:typescript": "saby-typescript --install --tsconfig=tsconfig.base.json",
       "build:app": "node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=../../buildTemplate.json",
       "compile": "tsc",
-      "start": "node node_modules/saby-units/cli/server",
+      "start": "node app",
+      "start:units": "node node_modules/saby-units/cli/server",
       "test": "saby-units --isolated",
       "test:node": "saby-units --isolated --report",
       "test:node-coverage": "saby-units --isolated --report --coverage",
       "test:browser": "saby-units --browser --report",
       "test:browser-coverage": "saby-units --browser --report --coverage",
-      "require-min": "node node_modules/uglify-js/bin/uglifyjs --compress --mangle -o ws/ext/requirejs/require-min.js -- ws/ext/requirejs/require.js",
-      "lint": "node ./node_modules/eslint/bin/eslint --ext .js --ext .es --color --no-eslintrc -c=.eslintrc.json -f=stylish .",
-      "lint:fix": "node ./node_modules/eslint/bin/eslint --ext .js --ext .es --color --no-eslintrc -c=.eslintrc.json -f=stylish --fix ."
+      "lint": "node ./node_modules/eslint/bin/eslint --color --no-eslintrc -c=.eslintrc -f=stylish .",
+      "lintless": "stylelint \"Controls/**/*.less\""
    },
    "saby-units": {
       "moduleType": "amd",
