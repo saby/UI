@@ -3,10 +3,10 @@
 import BaseControl = require('Core/Control');
 
 // @ts-ignore
-import template = require('wml!UIDemo/Index');
+import template = require('wml!UIDemo/RootRouter');
 
 var Index = BaseControl.extend({
-   _template: template,
+    _template: template,
 });
 
-export = Index;
+export default Index;
