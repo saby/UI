@@ -8,13 +8,12 @@
   "deprecatedWebPageTemplates": true,
   "htmlWml": true,
   "themes": true,
-  "joinedMeta": true,
   "minimize": false,
   "wml": false,
   "customPack": false,
   "dependenciesGraph": false,
   "resourcesUrl": false,
-
+  "joinedMeta": true,
   "modules": [
     {
       "name": "WS.Core",
@@ -30,6 +29,23 @@
       "name": "Vdom",
       "path": "./node_modules/sbis3-ws/Vdom",
       "required": true
+    },
+    {
+      "name": "Controls",
+      "path": "./node_modules/sbis3-controls/Controls",
+      "required": true
+    },
+    {
+      "name": "Controls-demo",
+      "path": "./node_modules/sbis3-controls/Controls-demo"
+    },
+    {
+      "name": "Controls-theme",
+      "path": "./node_modules/sbis3-controls/Controls-theme"
+    },
+    {
+      "name": "SBIS3.CONTROLS",
+      "path": "./node_modules/sbis3-controls/SBIS3.CONTROLS"
     },
     {
       "name": "Inferno",

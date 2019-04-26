@@ -18,11 +18,11 @@ class PageLoader extends Control {
             resolve();
          })
       });
-   }
+   };
 
    _beforeMount(cfg: any): Promise<void> {
       return this.changePage(cfg.pageId);
-   }
+   };
 
    _beforeUpdate(newCfg: any): void {
       // @ts-ignore
@@ -32,7 +32,7 @@ class PageLoader extends Control {
             this._forceUpdate();
          });
       }
-   }
+   };
 }
 
 export = PageLoader;

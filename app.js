@@ -20,6 +20,29 @@ var config = createConfig(
 );
 requirejs.config(config);
 
+/**
+ * Look ma, it cp -R.
+ * @param {string} src The path to the thing to copy.
+ * @param {string} dest The path to the new copy.
+ */
+var copyRecursiveSync = function(src, dest) {
+   var exists = fs.existsSync(src);
+   var stats = exists && fs.statSync(src);
+   var isDirectory = exists && stats.isDirectory();
+   if (exists && isDirectory) {
+      if (!fs.existsSync(dest)) {
+         fs.mkdirSync(dest);
+      }
+      fs.readdirSync(src).forEach(function(childItemName) {
+         copyRecursiveSync(path.join(src, childItemName),
+            path.join(dest, childItemName));
+      });
+   } else {
+      if (!fs.existsSync(dest)) {
+         fs.linkSync(src, dest);
+      }
+   }
+};
 
 var express = require('express'),
    http = require('http'),
@@ -35,13 +58,15 @@ var resourcesPath = path.join('', 'application');
 app.use(bodyParser.json());
 app.use(cookieParser());
 app.use('/', serveStatic(resourcesPath));
-app.use('/cdn/', serveStatic('./node_modules/sbis-cdn'));
+app.use('/cdn/', serveStatic('./node_modules/cdn'));
 
 
 var port = process.env.PORT || 777;
 var server = app.listen(port);
 
 console.log('app available on port ' + port);
+
+
 
 console.log('path rjs');
 

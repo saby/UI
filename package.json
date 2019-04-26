@@ -68,10 +68,11 @@
       "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#rc-19.300",
       "saby-i18n": "git+https://github.com/saby/i18n.git#rc-19.300",
       "serve-static": "1.11.x",
+      "sbis3-controls": "git+https://git.sbis.ru/sbis/controls.git#rc-19.300",
       "saby-typescript": "git+https://github.com/saby/TypeScript.git#rc-19.300",
       "saby-units": "git+https://github.com/saby/Units.git#rc-19.300",
       "saby-types": "git+https://github.com/saby/Types.git#rc-19.300",
-      "sbis-cdn": "git+https://github.com/saby/wasaby-cdn.git#rc-19.300",
+      "cdn": "git+https://github.com/saby/wasaby-cdn.git#rc-19.300",
       "wasaby-app": "git+https://github.com/saby/wasaby-app.git#rc-19.300"
    }
 }
