@@ -1,24 +1,5 @@
-<UI.Base:HTML scope="{{_options}}" theme="theme1" resourceRoot="/">
-   <div>
-      <b>Demos::</b><br />
-      <Router.router:Reference href="page/:pageId" pageId="Demo1"><span>Demo1</span></Router.router:Reference><br />
-      <Router.router:Reference href="page/:pageId" pageId="Demo2"><span>Demo2</span></Router.router:Reference><br />
-      <Router.router:Reference href="page/:pageId" pageId="Demo3"><span>Demo3</span></Router.router:Reference><br />
-      <Router.router:Reference href="page/:pageId" pageId="Demo4"><span>Demo4</span></Router.router:Reference><br />
-
-      <hr />
-      <Router.router:Route mask="page/:pageId">
-         <UIDemo.PageLoader pageId="{{content.pageId || 'Demo1'}}" />
-      </Router.router:Route>
-
-      <Router.router:Route mask="param/:p1">
-         <ws:content>
-            <div>
-               {{content.p1}}
-            </div>
-         </ws:content>
-      </Router.router:Route>
-
-   </div>
-</UI.Base:HTML>
-
+<Controls.Application scope="{{_options}}" bodyClass="controls-default-bg">
+   <ws:content>
+      <UIDemo.RootRouter />
+   </ws:content>
+</Controls.Application>
