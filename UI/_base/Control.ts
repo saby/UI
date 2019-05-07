@@ -12,8 +12,13 @@ import { Synchronizer, TabIndex } from 'Vdom/Vdom';
 import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
 
+// @ts-ignore
 import ThemesController = require('Core/Themes/ThemesControllerNew');
+// @ts-ignore
 import PromiseLib = require('Core/PromiseLib/PromiseLib');
+// @ts-ignore
+import ReactiveObserver = require('Core/ReactiveObserver');
+
 import Logger from 'View/Logger';
 
 /**
@@ -38,6 +43,8 @@ import Logger from 'View/Logger';
 
 let countInst = 1;
 
+const useCheck = typeof document !== 'undefined' && document.cookie && document.cookie.indexOf('s3debug=true') !== -1
+
 class Control {
    static isWasaby: Boolean = true;
 
@@ -48,8 +55,81 @@ class Control {
 
    private _instId: string;
    private _options: any = null;
-   private _internalOptions: HashMap<string, any> = null;
+   private _internalOptions: HashMap<any> = null;
 
+   private _$forceUpdateLog: number[];
+   private _checkForceUpdate():void {
+      if (useCheck) {
+         if (!this.hasOwnProperty('_$forceUpdateLog')) {
+            this._$forceUpdateLog = [];
+         }
+         this._$forceUpdateLog.push(Date.now());
+         if (this._$forceUpdateLog.length >= 10) {
+            var update1 = this._$forceUpdateLog[this._$forceUpdateLog.length - 10];
+            var update2 = this._$forceUpdateLog[this._$forceUpdateLog.length - 1];
+
+            // если за 10 секунд позвалось не менее 10 _forceUpdate - что-то тут не так
+            if (update2 - update1 < 10000) {
+               IoC.resolve('ILogger').warn('Control', 'too much calls of _forceUpdate!!!');
+            }
+         }
+         if (this._$forceUpdateLog.length >= 100) {
+            this._$forceUpdateLog = this._$forceUpdateLog.slice(this._$forceUpdateLog.length - 10, this._$forceUpdateLog.length);
+         }
+      }
+   }
+   /**
+    * @name Core/Control#readOnly
+ * @cfg {Boolean} Determines whether user can change control's value
+ * (or interact with the control if its value is not editable).
+    * @variant true User cannot change control's value (or interact with the control if its value is not editable).
+    * @variant false User can change control's value (or interact with the control if its value is not editable).
+    * @variant inherited Value inherited from the parent.
+    * @default Inherited
+    * @example
+    * In this example, List and Input.Text will be rendered with read-only styles, and the user won't be
+    * able to edit them. However, Button has readOnly option explicitly set to false,
+    * thus it won't inherit this option from the List, and user will be able to click on it.
+       * <pre>
+       *    <Controls.list:View readOnly="{{true}}">
+       *       <ws:itemTemplate>
+       *          <Controls.input:Text />
+       *          <Controls.buttons:Path readOnly="{{false}}" />
+       *       </ws:itemTemplate>
+       *    </Controls.list:View>
+       * </pre>
+    * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
+    * from the parent control. By default, all controls are active.
+       * @see Inherited options
+       */
+
+   /**
+       * @name Core/Control#theme
+    * @cfg {String} Theme name. Depending on the theme, different stylesheets are loaded and
+    * different styles are applied to the control.
+       * @variant any Any value that was passed to the control.
+       * @variant inherited Value inherited from the parent.
+       * @default ''(empty string)
+       * @example
+    * In this example, Controls.Application and all of its chil controls will have "carry" theme styles.
+    * However, Carry.Head will "carry" theme styles. If you put controls inside Carry.Head and does not specify
+    * the theme option, they will inherit "carry" theme.
+       * <pre>
+       *    <Controls.Application theme="carry">
+       *       <Carry.Head theme="presto" />
+       *       <Carry.Workspace>
+       *          <Controls.Tree />
+       *       </Carry.Workspace>
+       *    </Controls.Application>
+       * </pre>
+    * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
+    * from the parent control. The path to CSS file with theme parameters determined automatically
+    * based on the theme name. CSS files should be prepared in advance according to documentation.
+       * @see Themes
+       * @see Inherited options
+       */
+
+      
    public getInstanceId(): string {
       return this._instId;
    }
@@ -60,6 +140,7 @@ class Control {
       if (!this._mounted) {
          this._mounted = true;
          this._container = element;
+         // @ts-ignore
          Synchronizer.mountControlToDOM(this, controlClass, cfg, this._container);
       }
       if (cfg) {
@@ -90,6 +171,7 @@ class Control {
 
    static createControl(ctor: any, cfg: any, domElement: HTMLElement):Control {
       var defaultOpts = OptionsResolver.getDefaultOptions(ctor);
+      // @ts-ignore
       OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
       var attrs = { inheritOptions: {} }, ctr;
       OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
@@ -152,7 +234,7 @@ class Control {
    //Render function for text generator
    public render: Function = null;
 
-   public _children:HasMap<string, Control>  = null;
+   public _children:HashMap<Control>  = null;
 
    constructor(cfg: any) {
       if (!cfg) {
@@ -215,6 +297,10 @@ class Control {
          return environment && environment.startEvent(controlNode, arguments);
       };
 
+
+      //@ts-ignore
+      this._notify._isVdomNotify = true;
+
       this._forceUpdate = () => {
          let control = this || (controlNode && controlNode.control);
          if (control && !control._mounted) {
@@ -222,6 +308,7 @@ class Control {
             // So we need to delay _forceUpdate till the moment component will be mounted to DOM
             control._$needForceUpdate = true;
          } else {
+            this._checkForceUpdate();
             environment && environment.forceRebuild(controlNode.id);
          }
       };
@@ -304,7 +391,7 @@ class Control {
     * Метод задания служебных опций
     * @param {Object} internal Объект, содержащий ключи и значения устанавливаемых служебных опций
     */
-   public _setInternalOptions(internal: HashMap<string, any>): void {
+   public _setInternalOptions(internal: HashMap<any>): void {
       for (let name in internal) {
          if (internal.hasOwnProperty(name)) {
             this._setInternalOption(name, internal[name]);
@@ -312,7 +399,7 @@ class Control {
       }
    }
 
-   public _manageStyles(theme, oldTheme) {
+   public _manageStyles(theme, oldTheme?) {
       if(!this._checkNewStyles()) {
          return true;
       }
@@ -326,7 +413,7 @@ class Control {
    }
 
    public _checkNewStyles(): Boolean {
-      if((this._theme && !this._theme.forEach) || (this._style && !this._style.forEach)) {
+      if((this._theme && !this._theme.forEach) || (this._styles && !this._styles.forEach)) {
          return false;
       }
       return true;
@@ -599,6 +686,12 @@ class Control {
    private _theme: Array<string> = [];
 
    public _beforeMountLimited(opts:any) {
+      // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
+      // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
+      // _template на экземпляре, _template устанавливается сразу после вызова базового конструктора
+      ReactiveObserver.observeProperties(this);
+
+      
       var resultBeforeMount = this._beforeMount.apply(this, arguments);
 
       if (typeof window === 'undefined') {
@@ -625,8 +718,11 @@ class Control {
                          * */
                      IoC.resolve('ILogger').error('_beforeMount', 'Wait 20000 ms ' + this._moduleName);
                      timeout = 1;
+                     //@ts-ignore
                      require(['View/Executor/TClosure'], (thelpers) => {
+                        //@ts-ignore
                         this._originTemplate = this._template;
+                        //@ts-ignore
                         this._template = function(data, attr, context, isVdom, sets) {
                            try {
                               return this._originTemplate.apply(self, arguments);
@@ -634,6 +730,7 @@ class Control {
                               return thelpers.getMarkupGenerator(isVdom).createText('');
                            }
                         };
+                        //@ts-ignore
                         this._template.stable = true;
                         this._afterMount = function() {};
                         resolve(false);
@@ -644,9 +741,12 @@ class Control {
          }
       }
 
+
       var cssResult = this._manageStyles(opts.theme);
       if(cssResult.then) {
-         resultBeforeMount = Promise.all([cssResult, resultBeforeMount]);
+         if (!opts.iWantBeWS3) {
+            resultBeforeMount = Promise.all([cssResult, resultBeforeMount]);
+         }
       }
       return resultBeforeMount;
    }
@@ -819,6 +919,7 @@ class Control {
    // </editor-fold>
 }
 
+//@ts-ignore
 Control.prototype._template = template;
 
 export default Control;
