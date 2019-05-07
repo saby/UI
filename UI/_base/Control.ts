@@ -48,6 +48,21 @@ const useCheck = typeof document !== 'undefined' && document.cookie && document.
 class Control {
    static isWasaby: Boolean = true;
 
+   /**
+    * @deprecated
+    */
+   static extend(mixinsList: any, classExtender: any): Function {
+      //@ts-ignore
+      if (!require.defined('Core/core-extend')) {
+         throw new ReferenceError(
+            'You should require module "Core/core-extend" to use old-fashioned "Types/_entity/Record::extend()" method.'
+         );
+      }
+      //@ts-ignore
+      const coreExtend = require('Core/core-extend');
+      return coreExtend(this, mixinsList, classExtender);
+   }
+
    private _mounted: Boolean = false;
    private _unmounted: Boolean = false;
    private _destroyed: Boolean = false;
