@@ -21,7 +21,7 @@ import ReactiveObserver = require('Core/ReactiveObserver');
 // @ts-ignore
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
 
-import Logger from 'View/Logger';
+import * as Logger from 'View/Logger';
 
 /**
  * @event Core/Control#activated Occurs when the component becomes active.
@@ -198,7 +198,7 @@ class Control {
          ctr = new ctor(cfg);
       } catch (error) {
          ctr = new Control({});
-         Logger.catchLifeCircleErrors('constructor', error);
+         Logger.catchLifeCircleErrors('constructor', error, ctor.prototype && ctor.prototype._moduleName);
       }
       ctr.saveInheritOptions(attrs.inheritOptions);
       ctr._container = domElement;
@@ -707,7 +707,8 @@ class Control {
     * @private
     */
    public _beforeMount(): Promise<any> {
-      return Promise.resolve();
+      //@ts-ignore
+      return undefined;
    }
 
    private _styles: Array<string> = [];
