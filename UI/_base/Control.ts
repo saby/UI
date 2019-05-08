@@ -152,8 +152,10 @@ class Control {
    private _container: HTMLElement = null;
 
    public mountToDom(element: HTMLElement, cfg: any, controlClass: any) {
-      if (!this._mounted) {
-         this._mounted = true;
+      // @ts-ignore
+      if (!this.VDOMReady) {
+         // @ts-ignore
+         this.VDOMReady = true;
          this._container = element;
          // @ts-ignore
          Synchronizer.mountControlToDOM(this, controlClass, cfg, this._container);
@@ -201,6 +203,7 @@ class Control {
       Focus.patchDom(domElement, cfg);
       ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
       ctr.mountToDom(ctr._container, cfg, ctor);
+      ctr._$createdFromCode = true;
       return ctr;
 
    };
