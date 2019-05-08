@@ -8,7 +8,7 @@ import { IoC } from 'Env/Env';
 // @ts-ignore
 import doAutofocus = require('Core/helpers/Hcontrol/doAutofocus');
 
-import { Synchronizer, TabIndex } from 'Vdom/Vdom';
+import { Synchronizer, TabIndex, Focus as VFocus } from 'Vdom/Vdom';
 import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
 
@@ -18,6 +18,8 @@ import ThemesController = require('Core/Themes/ThemesControllerNew');
 import PromiseLib = require('Core/PromiseLib/PromiseLib');
 // @ts-ignore
 import ReactiveObserver = require('Core/ReactiveObserver');
+// @ts-ignore
+import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
 
 import Logger from 'View/Logger';
 
@@ -528,7 +530,7 @@ class Control {
           activeElement = document.activeElement,
           tmpTabindex;
 
-      if (!Focus.closest(document.activeElement, container)) {
+      if (!container.contains(document.activeElement)) {
          return;
       }
 
@@ -582,7 +584,7 @@ class Control {
     * @see deactivated
     */
    public activate(): Boolean {
-      function doFocus(container):Boolean {
+      function doFocus(container) {
          var res = false,
             activeElement = document.activeElement;
          if (container.wsControl && container.wsControl.setActive) {
@@ -596,15 +598,14 @@ class Control {
             }
          } else {
             if (TabIndex.getElementProps(container).tabStop) {
-               TabIndex.focus(container);
+               VFocus.focus(container);
             }
             res = container === document.activeElement;
 
             container = this._container[0] ? this._container[0] : this._container;
 
             // может случиться так, что на focus() сработает обработчик в DOMEnvironment, и тогда тут ничего не надо делать
-            // todo делать проверку не на _active а на то, что реально состояние изменилось. например переходим от
-            // компонента к его предку, у предка состояние не изменилось. но с которого уходили у него изменилось
+            // todo делать проверку не на _active а на то, что реально состояние изменилось. например переходим от компонента к его предку, у предка состояние не изменилось. но с которого уходили у него изменилось
             if (res && !this._active) {
                var env = container.controlNodes[0].environment;
                env._handleFocusEvent({ target: container, relatedTarget: activeElement });
@@ -613,7 +614,7 @@ class Control {
          return res;
       }
 
-      let res = false,
+      var res = false,
          container = this._container[0] ? this._container[0] : this._container;
 
       // сначала попробуем поискать по ws-autofocus, если найдем - позовем focus рекурсивно для найденного компонента
@@ -628,7 +629,9 @@ class Control {
          if (!found) {
             // фокусируем только найденный компонент, ws-autofocus можно повесить только на контейнер компонента
             if (autofocusElem && autofocusElem.controlNodes && autofocusElem.controlNodes.length) {
-               res = autofocusElem.controlNodes[0].control.activate();
+               // берем самый внешний контрол и активируем его
+               var outerControlNode = autofocusElem.controlNodes[autofocusElem.controlNodes.length - 1];
+               res = outerControlNode.control.activate();
                found = res;
             }
          }
@@ -638,12 +641,13 @@ class Control {
       // причем если это будет конейнер старого компонента, активируем его по старому тоже
       if (!found) {
          // так ищем DOMEnvironment для текущего компонента. В нем сосредоточен код по работе с фокусами.
-         let getElementProps = TabIndex.getElementProps;
-         let next = TabIndex.findFirstInContext(container, false, getElementProps);
+         var getElementProps = TabIndex.getElementProps;
+
+         var next = TabIndex.findFirstInContext(container, false, getElementProps);
          if (next) {
             // при поиске первого элемента игнорируем vdom-focus-in и vdom-focus-out
-            let startElem = 'vdom-focus-in';
-            let finishElem = 'vdom-focus-out';
+            var startElem = 'vdom-focus-in';
+            var finishElem = 'vdom-focus-out';
             if (next.classList.contains(startElem)) {
                next = TabIndex.findWithContexts(container, next, false, getElementProps);
             }
@@ -654,11 +658,17 @@ class Control {
          if (next) {
             res = doFocus.call(this, next);
          } else {
-            res = doFocus.call(this, container);
+            if (isElementVisible(container)) {
+               res = doFocus.call(this, container);
+            } else {
+               // если элемент не видим - не можем его сфокусировать
+               res = false;
+            }
          }
       }
 
       return res;
+
    }
 
    public _afterCreate(cfg: any): void {
