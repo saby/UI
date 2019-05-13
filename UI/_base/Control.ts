@@ -182,7 +182,7 @@ class Control {
          inherit.readOnly = false;
       }
       if (!inherit.hasOwnProperty('theme')) {
-         inherit.theme = '';
+         inherit.theme = 'default';
       }
 
       return inherit;
