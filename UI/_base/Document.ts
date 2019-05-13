@@ -36,22 +36,30 @@ class Document extends Control {
          environmentFactory = PresentationService;
       }
 
-      // @ts-ignore
-      AppInit(cfg, environmentFactory, stateReceiverInst);
+      if (!AppInit.isInit()) {
+         var stateReceiverInst = new StateReceiver();
+         var environmentFactory = undefined;
+         if (typeof window === 'undefined') {
+            environmentFactory = PresentationService.default;
+         }
+         AppInit.default(cfg, environmentFactory, stateReceiverInst);
 
-      if (typeof window === 'undefined') {
-         //need create request for SSR
-         //on client request will create in app-init.js
-         if (typeof window !== 'undefined' && window.receivedStates) {
-            stateReceiverInst.deserialize(window.receivedStates);
+         if (typeof window === 'undefined' || window.__hasRequest === undefined) {
+            //need create request for SSR
+            //on client request will create in app-init.js
+            if (typeof window !== 'undefined' && window.receivedStates) {
+               stateReceiverInst.deserialize(window.receivedStates);
+            }
          }
       }
 
       var headData = new HeadData();
       AppEnv.setStore('HeadData', headData);
 
+      AppData.initAppData(cfg);
+      this.ctxData = new AppData.getAppData();
+      
       AppEnv.setStore('CoreInstance', { instance: this });
-      this.ctxData = new AppData(cfg);
    }
 
    public _beforeMount(cfg:any) {
@@ -65,12 +73,6 @@ class Document extends Control {
       } else {
          this.application = cfg.application;
       }
-   }
-
-   public _getChildContext() {
-      return {
-         AppData: this.ctxData
-      };
    }
 
    public setTheme(ev: Event, theme: string) {
