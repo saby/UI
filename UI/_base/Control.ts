@@ -8,13 +8,20 @@ import { IoC } from 'Env/Env';
 // @ts-ignore
 import doAutofocus = require('Core/helpers/Hcontrol/doAutofocus');
 
-import { Synchronizer, TabIndex } from 'Vdom/Vdom';
+import { Synchronizer, TabIndex, Focus as VFocus } from 'Vdom/Vdom';
 import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
 
+// @ts-ignore
 import ThemesController = require('Core/Themes/ThemesControllerNew');
+// @ts-ignore
 import PromiseLib = require('Core/PromiseLib/PromiseLib');
-import Logger from 'View/Logger';
+// @ts-ignore
+import ReactiveObserver = require('Core/ReactiveObserver');
+// @ts-ignore
+import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
+
+import * as Logger from 'View/Logger';
 
 /**
  * @event Core/Control#activated Occurs when the component becomes active.
@@ -38,8 +45,25 @@ import Logger from 'View/Logger';
 
 let countInst = 1;
 
+const useCheck = typeof document !== 'undefined' && document.cookie && document.cookie.indexOf('s3debug=true') !== -1
+
 class Control {
    static isWasaby: Boolean = true;
+
+   /**
+    * @deprecated
+    */
+   static extend(mixinsList: any, classExtender: any): Function {
+      //@ts-ignore
+      if (!require.defined('Core/core-extend')) {
+         throw new ReferenceError(
+            'You should require module "Core/core-extend" to use old-fashioned "Types/_entity/Record::extend()" method.'
+         );
+      }
+      //@ts-ignore
+      const coreExtend = require('Core/core-extend');
+      return coreExtend(this, mixinsList, classExtender);
+   }
 
    private _mounted: Boolean = false;
    private _unmounted: Boolean = false;
@@ -48,8 +72,81 @@ class Control {
 
    private _instId: string;
    private _options: any = null;
-   private _internalOptions: HashMap<string, any> = null;
+   private _internalOptions: HashMap<any> = null;
 
+   private _$forceUpdateLog: number[];
+   private _checkForceUpdate():void {
+      if (useCheck) {
+         if (!this.hasOwnProperty('_$forceUpdateLog')) {
+            this._$forceUpdateLog = [];
+         }
+         this._$forceUpdateLog.push(Date.now());
+         if (this._$forceUpdateLog.length >= 10) {
+            var update1 = this._$forceUpdateLog[this._$forceUpdateLog.length - 10];
+            var update2 = this._$forceUpdateLog[this._$forceUpdateLog.length - 1];
+
+            // если за 10 секунд позвалось не менее 10 _forceUpdate - что-то тут не так
+            if (update2 - update1 < 10000) {
+               IoC.resolve('ILogger').warn('Control', 'too much calls of _forceUpdate!!!');
+            }
+         }
+         if (this._$forceUpdateLog.length >= 100) {
+            this._$forceUpdateLog = this._$forceUpdateLog.slice(this._$forceUpdateLog.length - 10, this._$forceUpdateLog.length);
+         }
+      }
+   }
+   /**
+    * @name Core/Control#readOnly
+ * @cfg {Boolean} Determines whether user can change control's value
+ * (or interact with the control if its value is not editable).
+    * @variant true User cannot change control's value (or interact with the control if its value is not editable).
+    * @variant false User can change control's value (or interact with the control if its value is not editable).
+    * @variant inherited Value inherited from the parent.
+    * @default Inherited
+    * @example
+    * In this example, List and Input.Text will be rendered with read-only styles, and the user won't be
+    * able to edit them. However, Button has readOnly option explicitly set to false,
+    * thus it won't inherit this option from the List, and user will be able to click on it.
+       * <pre>
+       *    <Controls.list:View readOnly="{{true}}">
+       *       <ws:itemTemplate>
+       *          <Controls.input:Text />
+       *          <Controls.buttons:Path readOnly="{{false}}" />
+       *       </ws:itemTemplate>
+       *    </Controls.list:View>
+       * </pre>
+    * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
+    * from the parent control. By default, all controls are active.
+       * @see Inherited options
+       */
+
+   /**
+       * @name Core/Control#theme
+    * @cfg {String} Theme name. Depending on the theme, different stylesheets are loaded and
+    * different styles are applied to the control.
+       * @variant any Any value that was passed to the control.
+       * @variant inherited Value inherited from the parent.
+       * @default ''(empty string)
+       * @example
+    * In this example, Controls.Application and all of its chil controls will have "carry" theme styles.
+    * However, Carry.Head will "carry" theme styles. If you put controls inside Carry.Head and does not specify
+    * the theme option, they will inherit "carry" theme.
+       * <pre>
+       *    <Controls.Application theme="carry">
+       *       <Carry.Head theme="presto" />
+       *       <Carry.Workspace>
+       *          <Controls.Tree />
+       *       </Carry.Workspace>
+       *    </Controls.Application>
+       * </pre>
+    * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
+    * from the parent control. The path to CSS file with theme parameters determined automatically
+    * based on the theme name. CSS files should be prepared in advance according to documentation.
+       * @see Themes
+       * @see Inherited options
+       */
+
+      
    public getInstanceId(): string {
       return this._instId;
    }
@@ -57,9 +154,12 @@ class Control {
    private _container: HTMLElement = null;
 
    public mountToDom(element: HTMLElement, cfg: any, controlClass: any) {
-      if (!this._mounted) {
-         this._mounted = true;
+      // @ts-ignore
+      if (!this.VDOMReady) {
+         // @ts-ignore
+         this.VDOMReady = true;
          this._container = element;
+         // @ts-ignore
          Synchronizer.mountControlToDOM(this, controlClass, cfg, this._container);
       }
       if (cfg) {
@@ -90,6 +190,7 @@ class Control {
 
    static createControl(ctor: any, cfg: any, domElement: HTMLElement):Control {
       var defaultOpts = OptionsResolver.getDefaultOptions(ctor);
+      // @ts-ignore
       OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
       var attrs = { inheritOptions: {} }, ctr;
       OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
@@ -97,13 +198,14 @@ class Control {
          ctr = new ctor(cfg);
       } catch (error) {
          ctr = new Control({});
-         Logger.catchLifeCircleErrors('constructor', error);
+         Logger.catchLifeCircleErrors('constructor', error, ctor.prototype && ctor.prototype._moduleName);
       }
       ctr.saveInheritOptions(attrs.inheritOptions);
       ctr._container = domElement;
       Focus.patchDom(domElement, cfg);
       ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
       ctr.mountToDom(ctr._container, cfg, ctor);
+      ctr._$createdFromCode = true;
       return ctr;
 
    };
@@ -152,7 +254,7 @@ class Control {
    //Render function for text generator
    public render: Function = null;
 
-   public _children:HasMap<string, Control>  = null;
+   public _children:HashMap<Control>  = null;
 
    constructor(cfg: any) {
       if (!cfg) {
@@ -215,6 +317,10 @@ class Control {
          return environment && environment.startEvent(controlNode, arguments);
       };
 
+
+      //@ts-ignore
+      this._notify._isVdomNotify = true;
+
       this._forceUpdate = () => {
          let control = this || (controlNode && controlNode.control);
          if (control && !control._mounted) {
@@ -222,6 +328,7 @@ class Control {
             // So we need to delay _forceUpdate till the moment component will be mounted to DOM
             control._$needForceUpdate = true;
          } else {
+            this._checkForceUpdate();
             environment && environment.forceRebuild(controlNode.id);
          }
       };
@@ -304,7 +411,7 @@ class Control {
     * Метод задания служебных опций
     * @param {Object} internal Объект, содержащий ключи и значения устанавливаемых служебных опций
     */
-   public _setInternalOptions(internal: HashMap<string, any>): void {
+   public _setInternalOptions(internal: HashMap<any>): void {
       for (let name in internal) {
          if (internal.hasOwnProperty(name)) {
             this._setInternalOption(name, internal[name]);
@@ -312,7 +419,7 @@ class Control {
       }
    }
 
-   public _manageStyles(theme, oldTheme) {
+   public _manageStyles(theme, oldTheme?) {
       if(!this._checkNewStyles()) {
          return true;
       }
@@ -326,7 +433,7 @@ class Control {
    }
 
    public _checkNewStyles(): Boolean {
-      if((this._theme && !this._theme.forEach) || (this._style && !this._style.forEach)) {
+      if((this._theme && !this._theme.forEach) || (this._styles && !this._styles.forEach)) {
          return false;
       }
       return true;
@@ -423,7 +530,7 @@ class Control {
           activeElement = document.activeElement,
           tmpTabindex;
 
-      if (!Focus.closest(document.activeElement, container)) {
+      if (!container.contains(document.activeElement)) {
          return;
       }
 
@@ -477,7 +584,7 @@ class Control {
     * @see deactivated
     */
    public activate(): Boolean {
-      function doFocus(container):Boolean {
+      function doFocus(container) {
          var res = false,
             activeElement = document.activeElement;
          if (container.wsControl && container.wsControl.setActive) {
@@ -491,15 +598,14 @@ class Control {
             }
          } else {
             if (TabIndex.getElementProps(container).tabStop) {
-               TabIndex.focus(container);
+               VFocus.focus(container);
             }
             res = container === document.activeElement;
 
             container = this._container[0] ? this._container[0] : this._container;
 
             // может случиться так, что на focus() сработает обработчик в DOMEnvironment, и тогда тут ничего не надо делать
-            // todo делать проверку не на _active а на то, что реально состояние изменилось. например переходим от
-            // компонента к его предку, у предка состояние не изменилось. но с которого уходили у него изменилось
+            // todo делать проверку не на _active а на то, что реально состояние изменилось. например переходим от компонента к его предку, у предка состояние не изменилось. но с которого уходили у него изменилось
             if (res && !this._active) {
                var env = container.controlNodes[0].environment;
                env._handleFocusEvent({ target: container, relatedTarget: activeElement });
@@ -508,7 +614,7 @@ class Control {
          return res;
       }
 
-      let res = false,
+      var res = false,
          container = this._container[0] ? this._container[0] : this._container;
 
       // сначала попробуем поискать по ws-autofocus, если найдем - позовем focus рекурсивно для найденного компонента
@@ -523,7 +629,9 @@ class Control {
          if (!found) {
             // фокусируем только найденный компонент, ws-autofocus можно повесить только на контейнер компонента
             if (autofocusElem && autofocusElem.controlNodes && autofocusElem.controlNodes.length) {
-               res = autofocusElem.controlNodes[0].control.activate();
+               // берем самый внешний контрол и активируем его
+               var outerControlNode = autofocusElem.controlNodes[autofocusElem.controlNodes.length - 1];
+               res = outerControlNode.control.activate();
                found = res;
             }
          }
@@ -533,12 +641,13 @@ class Control {
       // причем если это будет конейнер старого компонента, активируем его по старому тоже
       if (!found) {
          // так ищем DOMEnvironment для текущего компонента. В нем сосредоточен код по работе с фокусами.
-         let getElementProps = TabIndex.getElementProps;
-         let next = TabIndex.findFirstInContext(container, false, getElementProps);
+         var getElementProps = TabIndex.getElementProps;
+
+         var next = TabIndex.findFirstInContext(container, false, getElementProps);
          if (next) {
             // при поиске первого элемента игнорируем vdom-focus-in и vdom-focus-out
-            let startElem = 'vdom-focus-in';
-            let finishElem = 'vdom-focus-out';
+            var startElem = 'vdom-focus-in';
+            var finishElem = 'vdom-focus-out';
             if (next.classList.contains(startElem)) {
                next = TabIndex.findWithContexts(container, next, false, getElementProps);
             }
@@ -549,11 +658,17 @@ class Control {
          if (next) {
             res = doFocus.call(this, next);
          } else {
-            res = doFocus.call(this, container);
+            if (isElementVisible(container)) {
+               res = doFocus.call(this, container);
+            } else {
+               // если элемент не видим - не можем его сфокусировать
+               res = false;
+            }
          }
       }
 
       return res;
+
    }
 
    public _afterCreate(cfg: any): void {
@@ -592,13 +707,20 @@ class Control {
     * @private
     */
    public _beforeMount(): Promise<any> {
-      return Promise.resolve();
+      //@ts-ignore
+      return undefined;
    }
 
    private _styles: Array<string> = [];
    private _theme: Array<string> = [];
 
    public _beforeMountLimited(opts:any) {
+      // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
+      // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
+      // _template на экземпляре, _template устанавливается сразу после вызова базового конструктора
+      ReactiveObserver.observeProperties(this);
+
+      
       var resultBeforeMount = this._beforeMount.apply(this, arguments);
 
       if (typeof window === 'undefined') {
@@ -625,8 +747,11 @@ class Control {
                          * */
                      IoC.resolve('ILogger').error('_beforeMount', 'Wait 20000 ms ' + this._moduleName);
                      timeout = 1;
+                     //@ts-ignore
                      require(['View/Executor/TClosure'], (thelpers) => {
+                        //@ts-ignore
                         this._originTemplate = this._template;
+                        //@ts-ignore
                         this._template = function(data, attr, context, isVdom, sets) {
                            try {
                               return this._originTemplate.apply(self, arguments);
@@ -634,6 +759,7 @@ class Control {
                               return thelpers.getMarkupGenerator(isVdom).createText('');
                            }
                         };
+                        //@ts-ignore
                         this._template.stable = true;
                         this._afterMount = function() {};
                         resolve(false);
@@ -644,9 +770,12 @@ class Control {
          }
       }
 
+
       var cssResult = this._manageStyles(opts.theme);
       if(cssResult.then) {
-         resultBeforeMount = Promise.all([cssResult, resultBeforeMount]);
+         if (!opts.iWantBeWS3) {
+            resultBeforeMount = Promise.all([cssResult, resultBeforeMount]);
+         }
       }
       return resultBeforeMount;
    }
@@ -819,6 +948,7 @@ class Control {
    // </editor-fold>
 }
 
+//@ts-ignore
 Control.prototype._template = template;
 
 export default Control;
