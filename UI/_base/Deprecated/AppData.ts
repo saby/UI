@@ -1,7 +1,7 @@
 import DataContext = require('Core/DataContext');
 
 class AppData extends DataContext {
-   public jsLinks: Array<string> = [];
+   jsLinks: string[] = [];
 
    private RUMEnabled: Boolean = false;
    private buildnumber: string = '';

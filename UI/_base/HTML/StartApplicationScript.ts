@@ -8,24 +8,24 @@ import template = require('wml!UI/_base/HTML/StartApplicationScript');
 import * as AppEnv from 'Application/Env';
 
 class StartApplicationScript extends Control {
-   public _template: Function = template;
-   private additionalDeps:Array<string> = [];
+   _template: Function = template;
+   private additionalDeps: string[] = [];
 
-   public _beforeMount(): Promise<any> {
+   _beforeMount(): Promise<any> {
       if (typeof window !== 'undefined') {
          return;
       }
-      let def = AppEnv.getStore('HeadData').waitAppContent();
+      const def = AppEnv.getStore('HeadData').waitAppContent();
 
       return new Promise((resolve) => {
          def.then((res) => {
             this.additionalDeps = res.additionalDeps;
             resolve();
          });
-      })
+      });
    }
 
-   public getDeps(): string {
+   getDeps(): string {
       if (!this.additionalDeps || !this.additionalDeps.length) {
          return '[]';
       }
