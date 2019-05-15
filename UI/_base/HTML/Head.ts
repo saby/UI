@@ -9,16 +9,16 @@ import * as AppEnv from 'Application/Env';
 import ThemesControllerNew = require('Core/Themes/ThemesControllerNew');
 
 class Head extends Control {
-   public _template: Function = template;
+   _template: Function = template;
 
-   public head: Array<Function> = null;
+   head: Function[] = null;
 
-   public themedCss: Array<string> = [];
-   public simpleCss: Array<string> = [];
+   themedCss: string[] = [];
+   simpleCss: string[] = [];
 
-   public staticDomainsstringified: string = '[]';
+   staticDomainsstringified: string = '[]';
 
-   public _beforeMountLimited():Promise<any> {
+   _beforeMountLimited(): Promise<any> {
       // https://online.sbis.ru/opendoc.html?guid=252155de-dc95-402c-967d-7565951d2061
       // This component awaits completion of building content of _Wait component
       // So we don't need timeout of async building in this component
@@ -27,10 +27,10 @@ class Head extends Control {
       return this._beforeMount.apply(this, arguments);
    }
 
-
-   public _beforeMount(options:any):Promise<any> {
-      this._forceUpdate = function() {
-         //do nothing
+   _beforeMount(options: any): Promise<any> {
+      // tslint:disable-next-line:only-arrow-functions
+      this._forceUpdate = function(): void {
+         // do nothing
       };
 
       if (typeof options.staticDomains === 'string') {
@@ -60,8 +60,8 @@ class Head extends Control {
          this.simpleCss = [];
          return;
       }
-      var headData = AppEnv.getStore('HeadData');
-      var def = headData.waitAppContent();
+      const headData = AppEnv.getStore('HeadData');
+      const def = headData.waitAppContent();
       this.cssLinks = [];
       return new Promise((resolve, reject) => {
          def.then((res) => {
@@ -77,18 +77,18 @@ class Head extends Control {
       });
    }
 
-   public _shouldUpdate():Boolean {
+   _shouldUpdate(): Boolean {
       return false;
    }
-   public isArrayHead():Boolean {
+   isArrayHead(): Boolean {
       return Array.isArray(this.head);
    }
 
-   public isMultiThemes():Boolean {
+   isMultiThemes(): Boolean {
       return Array.isArray(this._options.theme);
    }
 
-   public getCssWithTheme(value:string, theme:string):string {
+   getCssWithTheme(value: string, theme: string): string {
       return value.replace('.css', '') + '_' + theme + '.css';
    }
 }

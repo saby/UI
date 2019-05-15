@@ -11,12 +11,12 @@ import HeadController from './_base/HeadController';
 import BaseRoute = require('wml!UI/_base/Route');
 
 export = {
-   Control,
-   HTML,
-   Document,
-   StateReceiver,
-   AppData,
-   Start,
-   BaseRoute,
-   HeadController
+    Control,
+    HTML,
+    Document,
+    StateReceiver,
+    AppData,
+    Start,
+    BaseRoute,
+    HeadController
 };

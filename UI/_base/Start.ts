@@ -4,63 +4,65 @@ import Control from 'UI/_base/Control';
 import * as AppInit from 'Application/Initializer';
 import * as AppEnv from 'Application/Env';
 
-function createControl(control, config, dom) {
-   let configReady = config||{};
-   if (typeof window && window.wsConfig){
-      for (var i in window.wsConfig){
-         if (window.wsConfig.hasOwnProperty(i)) {
-            configReady[i] = window.wsConfig[i];
-         }
-      }
-   }
-   let _getChildContext = control.prototype._getChildContext;
-   control.prototype._getChildContext = function(){
-      var base = _getChildContext?_getChildContext.call(this):{};
-      if (typeof window && window.startContextData){
-         for (var i in window.startContextData){
-            if (window.startContextData.hasOwnProperty(i) && !base.hasOwnProperty(i)) {
-               base[i] = window.startContextData[i];
+function createControl(control: any, config: any, dom: any): void {
+    const configReady = config || {};
+    if (typeof window && window.wsConfig) {
+        for (const i in window.wsConfig) {
+            if (window.wsConfig.hasOwnProperty(i)) {
+                configReady[i] = window.wsConfig[i];
             }
-         }
-      }
-      return base;
-   };
-   Control.createControl(control, configReady, dom);
+        }
+    }
+    const _getChildContext = control.prototype._getChildContext;
+    control.prototype._getChildContext = function(): any {
+        const base = _getChildContext ? _getChildContext.call(this) : {};
+        if (typeof window && window.startContextData) {
+            for (const i in window.startContextData) {
+                if (window.startContextData.hasOwnProperty(i) && !base.hasOwnProperty(i)) {
+                    base[i] = window.startContextData[i];
+                }
+            }
+        }
+        return base;
+    };
+    Control.createControl(control, configReady, dom);
 }
 
-function startFunction(config) {
-   if (typeof window !== 'undefined' && window.receivedStates) {
-      //для совместимости версий. чтобы можно было влить контролы и WS одновременно
-      let sr;
-      if (AppInit.isInit()) {
-         sr = AppEnv.getStateReceiver();
-      }
-      sr && sr.deserialize(window.receivedStates);
-   }
+function startFunction(config: any): void {
+    if (typeof window !== 'undefined' && window.receivedStates) {
+        // для совместимости версий. чтобы можно было влить контролы и WS одновременно
+        let sr;
+        if (AppInit.isInit()) {
+            sr = AppEnv.getStateReceiver();
+        }
+        if (sr) {
+            sr.deserialize(window.receivedStates);
+        }
+    }
 
-   let dom = document.getElementById('root');
-   let dcomp = dom.attributes["rootapp"];
-   if (dcomp) {
-      dcomp = dcomp.value;
-   }
-   let module = '';
+    const dom = document.getElementById('root');
+    let dcomp = dom.attributes.rootapp;
+    if (dcomp) {
+        dcomp = dcomp.value;
+    }
+    let module = '';
 
-   if (dcomp && dcomp.indexOf(':') > -1) {
-      dcomp = dcomp.split(':');
-      module = dcomp[1];
-      dcomp = dcomp[0];
-   }
-   require([dcomp||undefined, dom.attributes["application"].value], function(result, component) {
-      if (result) {
-         if (module) {
-            result = result[module];
-         }
-         config = config || {};
-         config.application = dom.attributes["application"].value;
-      }
-      config.buildnumber = window.buildnumber;
-      createControl(result || component, config, dom);
-   });
-};
+    if (dcomp && dcomp.indexOf(':') > -1) {
+        dcomp = dcomp.split(':');
+        module = dcomp[1];
+        dcomp = dcomp[0];
+    }
+    require([dcomp || undefined, dom.attributes.application.value], (result: any, component: any): void => {
+        if (result) {
+            if (module) {
+                result = result[module];
+            }
+            config = config || {};
+            config.application = dom.attributes.application.value;
+        }
+        config.buildnumber = window.buildnumber;
+        createControl(result || component, config, dom);
+    });
+}
 
 export default startFunction;
