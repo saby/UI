@@ -6,8 +6,8 @@ import Control from '../Control';
 import template = require('wml!UI/_base/HTML/Wait');
 import * as AppEnv from 'Application/Env';
 
-let asyncTemplate = function() {
-   let res = template.apply(this, arguments);
+const asyncTemplate = function(): any {
+   const res = template.apply(this, arguments);
    if (res.then) {
       res.then((result) => {
          this.resolvePromiseFn();
@@ -23,9 +23,9 @@ let asyncTemplate = function() {
 asyncTemplate.stable = template.stable;
 
 class Wait extends Control {
-   public _template: Function = asyncTemplate;
+   _template: Function = asyncTemplate;
 
-   public waitDef: Promise<any>;
+   waitDef: Promise<any>;
 
    private resolvePromise: Function = null;
    private resolvePromiseFn(): void {
@@ -40,7 +40,7 @@ class Wait extends Control {
       });
    }
 
-   public _beforeMount(): void {
+   _beforeMount(): void {
       this.createPromise();
       AppEnv.getStore('HeadData').pushWaiterDeferred(this.waitDef);
       if (typeof window !== 'undefined') {
