@@ -41,9 +41,7 @@
    },
    "nyc": {
       "include": [
-         "UI/**/*.js",
-         "VTree/**/*.js",
-         "Wml/**/*.js"
+         "./application/UI/*"
       ],
       "reporter": [
          "text",
