@@ -32,13 +32,9 @@ class VDOMStartPage(Page):
 
         log("Открываем демо-страницу теста: '{0}{1}'".format(page_path, add_param))
         encoded_address = self.encoded_address(page_path)
-        self.browser.open(self.config.SITE)
-        self.browser.execute_script('document.cookie="s3debug=true"')
-
         self.browser.open(self.config.SITE + '/UIDemo/page/' + encoded_address + add_param)
         self.check_load_page()
 
-        self.browser.execute_script('document.cookie="s3debug=true"')
         if BrowserNames.is_edge() or BrowserNames.is_ie():
             self.set_cookie_lang()
 
