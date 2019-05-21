@@ -6,7 +6,7 @@ from pages.new_themes import UIDemoPage
 
 
 @mark('online')
-class RegressionDemo4(TestCasePlatform):
+class RegressionDemo4(TestCaseUI):
     """Demo4"""
 
     def test_01_change_themes(self):

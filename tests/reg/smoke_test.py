@@ -5,7 +5,7 @@ from pages.vdom_common import VDOMStartPage
 from pages.new_themes import UIDemoPage
 
 
-class RegressionTestSmoke(TestCasePlatform):
+class RegressionTestSmoke(TestCaseUI):
     """Для проверки доступности стенда"""
 
     def test_ready_page(self):
