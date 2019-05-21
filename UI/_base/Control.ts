@@ -392,8 +392,11 @@ class Control {
             return true;
         }
         const themesController = ThemesController.getInstance();
-        const styles = this._styles || [];
-        const themedStyles = this._theme || [];
+        //@ts-ignore
+        const styles = this.constructor._styles || this._styles || [];
+        //@ts-ignore
+        const themedStyles = this.constructor._theme || this._theme || [];
+        
         if (oldTheme) {
             this._removeOldStyles(themesController, oldTheme, themedStyles, []);
         }
