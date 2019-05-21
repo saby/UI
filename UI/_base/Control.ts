@@ -951,7 +951,7 @@ class Control {
         // @ts-ignore
         if (!require.defined('Core/core-extend')) {
             throw new ReferenceError(
-                'You should require module "Core/core-extend" to use old "Types/_entity/Record::extend()" method.'
+                'You should require module "Core/core-extend" to use old "UI/_base/Control::extend()" method.'
             );
         }
         // @ts-ignore

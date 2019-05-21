@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_base/HTML" />
 
 // @ts-ignore
-import * as Control from 'Core/Control';
+import Control from './Control';
 
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/HTML');

@@ -1,6 +1,6 @@
 /// <amd-module name="UI/_base/Start" />
 
-import Control from 'UI/_base/Control';
+import Control from './Control';
 import * as AppInit from 'Application/Initializer';
 import * as AppEnv from 'Application/Env';
 
