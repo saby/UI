@@ -59,63 +59,6 @@ class Control {
 
     private _container: HTMLElement = null;
 
-    public mountToDom(element: HTMLElement, cfg: any, controlClass: any) {
-        // @ts-ignore
-        if (!this.VDOMReady) {
-            // @ts-ignore
-            this.VDOMReady = true;
-            this._container = element;
-            // @ts-ignore
-            Synchronizer.mountControlToDOM(this, controlClass, cfg, this._container);
-        }
-        if (cfg) {
-            this.saveOptions(cfg);
-        }
-    }
-
-    // Just save link to new options
-    public saveOptions(options: any, controlNode: any = null): Boolean {
-        this._options = options;
-        if (controlNode) {
-            this._container = controlNode.element;
-        }
-        return true;
-    }
-
-    static _getInheritOptions(ctor: any): any {
-        var inherit = ctor.getInheritOptions && ctor.getInheritOptions() || {};
-        if (!inherit.hasOwnProperty('readOnly')) {
-            inherit.readOnly = false;
-        }
-        if (!inherit.hasOwnProperty('theme')) {
-            inherit.theme = 'default';
-        }
-
-        return inherit;
-    }
-
-    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
-        var defaultOpts = OptionsResolver.getDefaultOptions(ctor);
-        // @ts-ignore
-        OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
-        var attrs = { inheritOptions: {} }, ctr;
-        OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
-        try {
-            ctr = new ctor(cfg);
-        } catch (error) {
-            ctr = new Control({});
-            Logger.catchLifeCircleErrors('constructor', error, ctor.prototype && ctor.prototype._moduleName);
-        }
-        ctr.saveInheritOptions(attrs.inheritOptions);
-        ctr._container = domElement;
-        Focus.patchDom(domElement, cfg);
-        ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
-        ctr.mountToDom(ctr._container, cfg, ctor);
-        ctr._$createdFromCode = true;
-        return ctr;
-
-    };
-
     /**
      * TODO: delete it
      */
@@ -419,10 +362,12 @@ class Control {
     private _setInternalOption(name: string, value: any): void {
         if (!this._internalOptions) {
             this._internalOptions = {};
+            
             IoC.resolve('ILogger').error(
                 'Component with ' +
                 (this._options
                     ? 'name ' + this._options.name + ' config ' + this._options.__$config
+                    //@ts-ignore
                     : 'maybe id ' + this._$id),
                 "Control.constructor wasn't called"
             );
@@ -1020,7 +965,7 @@ class Control {
             inherit.readOnly = false;
         }
         if (!inherit.hasOwnProperty('theme')) {
-            inherit.theme = '';
+            inherit.theme = 'default';
         }
 
         return inherit;
