@@ -164,7 +164,7 @@ class Control {
         };
 
         // tslint:disable-next-line:only-arrow-functions
-        this._notify = function(): any {
+        this._notify = function (): any {
             return environment && environment.startEvent(controlNode, arguments);
         };
 
@@ -237,7 +237,7 @@ class Control {
             return res;
         };
 
-        this.render = function(empty?: any, attributes?: any): any {
+        this.render = function (empty?: any, attributes?: any): any {
             const markup = this._getMarkup(null, true, attributes, false);
             this._isRendered = true;
             return markup;
@@ -277,29 +277,29 @@ class Control {
         }
     }
     /**
-     * @name Core/Control#readOnly
-     * @cfg {Boolean} Determines whether user can change control's value
-     * (or interact with the control if its value is not editable).
-     * @variant true User cannot change control's value (or interact with the control if its value is not editable).
-     * @variant false User can change control's value (or interact with the control if its value is not editable).
-     * @variant inherited Value inherited from the parent.
-     * @default Inherited
-     * @example
-     * In this example, List and Input.Text will be rendered with read-only styles, and the user won't be
-     * able to edit them. However, Button has readOnly option explicitly set to false,
-     * thus it won't inherit this option from the List, and user will be able to click on it.
-     * <pre>
-     *    <Controls.list:View readOnly="{{true}}">
-     *       <ws:itemTemplate>
-     *          <Controls.input:Text />
-     *          <Controls.buttons:Path readOnly="{{false}}" />
-     *       </ws:itemTemplate>
-     *    </Controls.list:View>
-     * </pre>
-     * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
-     * from the parent control. By default, all controls are active.
-     * @see Inherited options
-     */
+      * @name Core/Control#readOnly
+      * @cfg {Boolean} Determines whether user can change control's value
+      * (or interact with the control if its value is not editable).
+      * @variant true User cannot change control's value (or interact with the control if its value is not editable).
+      * @variant false User can change control's value (or interact with the control if its value is not editable).
+      * @variant inherited Value inherited from the parent.
+      * @default Inherited
+      * @example
+      * In this example, List and Input.Text will be rendered with read-only styles, and the user won't be
+      * able to edit them. However, Button has readOnly option explicitly set to false,
+      * thus it won't inherit this option from the List, and user will be able to click on it.
+      * <pre>
+      *    <Controls.list:View readOnly="{{true}}">
+      *       <ws:itemTemplate>
+      *          <Controls.input:Text />
+      *          <Controls.buttons:Path readOnly="{{false}}" />
+      *       </ws:itemTemplate>
+      *    </Controls.list:View>
+      * </pre>
+      * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
+      * from the parent control. By default, all controls are active.
+      * @see Inherited options
+      */
 
     /**
      * @name Core/Control#theme
@@ -355,18 +355,20 @@ class Control {
     }
 
     /**
-     * Метод задания значения служебной опции
-     * @param {string} name Имя служебной опции
-     * @param {*} value Значение опции
-     */
+    * Метод задания значения служебной опции
+    * @param {string} name Имя служебной опции
+    * @param {*} value Значение опции
+    */
     private _setInternalOption(name: string, value: any): void {
         if (!this._internalOptions) {
             this._internalOptions = {};
+            
             IoC.resolve('ILogger').error(
                 'Component with ' +
-                    (this._options
-                        ? 'name ' + this._options.name + ' config ' + this._options.__$config
-                        : 'maybe id ' + this._$id),
+                (this._options
+                    ? 'name ' + this._options.name + ' config ' + this._options.__$config
+                    //@ts-ignore
+                    : 'maybe id ' + this._$id),
                 "Control.constructor wasn't called"
             );
         }
@@ -451,11 +453,11 @@ class Control {
                             IoC.resolve('ILogger').error(
                                 'Styles loading error',
                                 'Could not load style ' +
-                                    name +
-                                    ' for control ' +
-                                    self._moduleName +
-                                    ' with theme ' +
-                                    theme
+                                name +
+                                ' for control ' +
+                                self._moduleName +
+                                ' with theme ' +
+                                theme
                             );
                         }
                     });
@@ -731,8 +733,8 @@ class Control {
                     setTimeout(() => {
                         if (!timeout) {
                             /* Change _template and _afterMount
-                             *  if execution was longer than 2 sec
-                             * */
+                                *  if execution was longer than 2 sec
+                                * */
                             IoC.resolve('ILogger').error('_beforeMount', 'Wait 20000 ms ' + this._moduleName);
                             timeout = 1;
                             // @ts-ignore
@@ -740,7 +742,7 @@ class Control {
                                 // @ts-ignore
                                 this._originTemplate = this._template;
                                 // @ts-ignore
-                                this._template = function(
+                                this._template = function (
                                     data: any,
                                     attr: any,
                                     context: any,
@@ -756,7 +758,7 @@ class Control {
                                 // @ts-ignore
                                 this._template.stable = true;
                                 // tslint:disable-next-line:only-arrow-functions
-                                this._afterMount = function(): void {
+                                this._afterMount = function (): void {
                                     // can be overridden
                                 };
                                 resolve(false);
@@ -949,7 +951,7 @@ class Control {
         // @ts-ignore
         if (!require.defined('Core/core-extend')) {
             throw new ReferenceError(
-                'You should require module "Core/core-extend" to use old "Types/_entity/Record::extend()" method.'
+                'You should require module "Core/core-extend" to use old "UI/_base/Control::extend()" method.'
             );
         }
         // @ts-ignore
@@ -963,7 +965,7 @@ class Control {
             inherit.readOnly = false;
         }
         if (!inherit.hasOwnProperty('theme')) {
-            inherit.theme = '';
+            inherit.theme = 'default';
         }
 
         return inherit;
