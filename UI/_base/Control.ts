@@ -1,8 +1,6 @@
 // @ts-ignore
 import template = require('wml!UI/_base/Control');
 
-
-
 // @ts-ignore
 import { IoC } from 'Env/Env';
 // @ts-ignore
@@ -45,26 +43,9 @@ import * as Logger from 'View/Logger';
 
 let countInst = 1;
 
-const useCheck = typeof document !== 'undefined' && document.cookie && document.cookie.indexOf('s3debug=true') !== -1
+const useCheck = typeof document !== 'undefined' && document.cookie && document.cookie.indexOf('s3debug=true') !== -1;
 
 class Control {
-   static isWasaby: Boolean = true;
-
-   /**
-    * @deprecated
-    */
-   static extend(mixinsList: any, classExtender: any): Function {
-      //@ts-ignore
-      if (!require.defined('Core/core-extend')) {
-         throw new ReferenceError(
-            'You should require module "Core/core-extend" to use old-fashioned "Types/_entity/Record::extend()" method.'
-         );
-      }
-      //@ts-ignore
-      const coreExtend = require('Core/core-extend');
-      return coreExtend(this, mixinsList, classExtender);
-   }
-
    private _mounted: Boolean = false;
    private _unmounted: Boolean = false;
    private _destroyed: Boolean = false;
@@ -75,81 +56,6 @@ class Control {
    private _internalOptions: HashMap<any> = null;
 
    private _$forceUpdateLog: number[];
-   private _checkForceUpdate():void {
-      if (useCheck) {
-         if (!this.hasOwnProperty('_$forceUpdateLog')) {
-            this._$forceUpdateLog = [];
-         }
-         this._$forceUpdateLog.push(Date.now());
-         if (this._$forceUpdateLog.length >= 10) {
-            var update1 = this._$forceUpdateLog[this._$forceUpdateLog.length - 10];
-            var update2 = this._$forceUpdateLog[this._$forceUpdateLog.length - 1];
-
-            // если за 10 секунд позвалось не менее 10 _forceUpdate - что-то тут не так
-            if (update2 - update1 < 10000) {
-               IoC.resolve('ILogger').warn('Control', 'too much calls of _forceUpdate!!!');
-            }
-         }
-         if (this._$forceUpdateLog.length >= 100) {
-            this._$forceUpdateLog = this._$forceUpdateLog.slice(this._$forceUpdateLog.length - 10, this._$forceUpdateLog.length);
-         }
-      }
-   }
-   /**
-    * @name Core/Control#readOnly
- * @cfg {Boolean} Determines whether user can change control's value
- * (or interact with the control if its value is not editable).
-    * @variant true User cannot change control's value (or interact with the control if its value is not editable).
-    * @variant false User can change control's value (or interact with the control if its value is not editable).
-    * @variant inherited Value inherited from the parent.
-    * @default Inherited
-    * @example
-    * In this example, List and Input.Text will be rendered with read-only styles, and the user won't be
-    * able to edit them. However, Button has readOnly option explicitly set to false,
-    * thus it won't inherit this option from the List, and user will be able to click on it.
-       * <pre>
-       *    <Controls.list:View readOnly="{{true}}">
-       *       <ws:itemTemplate>
-       *          <Controls.input:Text />
-       *          <Controls.buttons:Path readOnly="{{false}}" />
-       *       </ws:itemTemplate>
-       *    </Controls.list:View>
-       * </pre>
-    * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
-    * from the parent control. By default, all controls are active.
-       * @see Inherited options
-       */
-
-   /**
-       * @name Core/Control#theme
-    * @cfg {String} Theme name. Depending on the theme, different stylesheets are loaded and
-    * different styles are applied to the control.
-       * @variant any Any value that was passed to the control.
-       * @variant inherited Value inherited from the parent.
-       * @default ''(empty string)
-       * @example
-    * In this example, Controls.Application and all of its chil controls will have "carry" theme styles.
-    * However, Carry.Head will "carry" theme styles. If you put controls inside Carry.Head and does not specify
-    * the theme option, they will inherit "carry" theme.
-       * <pre>
-       *    <Controls.Application theme="carry">
-       *       <Carry.Head theme="presto" />
-       *       <Carry.Workspace>
-       *          <Controls.Tree />
-       *       </Carry.Workspace>
-       *    </Controls.Application>
-       * </pre>
-    * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
-    * from the parent control. The path to CSS file with theme parameters determined automatically
-    * based on the theme name. CSS files should be prepared in advance according to documentation.
-       * @see Themes
-       * @see Inherited options
-       */
-
-      
-   public getInstanceId(): string {
-      return this._instId;
-   }
 
    private _container: HTMLElement = null;
 
@@ -215,14 +121,13 @@ class Control {
     */
    private _context: any = null;
    private context: any = null;
-   private saveFullContext:any = null;
-   private _saveContextObject:any = null;
+    private saveFullContext: any = null;
+    private _saveContextObject: any = null;
 
-
-   private _saveEnvironment:Function = null;
-   private saveInheritOptions:Function = null;
-   private _getEnvironment:Function = null;
-   private _notify:Function = null;
+    private _saveEnvironment: Function = null;
+    private saveInheritOptions: Function = null;
+    private _getEnvironment: Function = null;
+    private _notify: Function = null;
 
    /**
     * Manually triggers start of the update cycle for the control.
@@ -247,14 +152,17 @@ class Control {
     * @see Documentation: Control lifecycle
     * @private
     */
-   public _forceUpdate:Function = null;
+    _forceUpdate: Function = null;
 
-   //Render function for virtual dom
-   public _getMarkup: Function = null;
-   //Render function for text generator
-   public render: Function = null;
+    // Render function for virtual dom
+    _getMarkup: Function = null;
+    // Render function for text generator
+    render: Function = null;
 
-   public _children:HashMap<Control>  = null;
+    _children: HashMap<Control> = null;
+
+    private _styles: string[] = [];
+    private _theme: string[] = [];
 
    constructor(cfg: any) {
       if (!cfg) {
@@ -264,8 +172,8 @@ class Control {
       /**
        * TODO: delete it
        */
-      let fullContext = null,
-         _contextObj = null;
+        let fullContext = null;
+        let _contextObj = null;
 
       this.saveFullContext = (ctx) => {
          fullContext = ctx;
@@ -277,16 +185,16 @@ class Control {
       };
 
       this.context = {
-         get: function(field) {
+            get(field: string): Record<string, unknown> {
             if (_contextObj && _contextObj.hasOwnProperty(field)) {
                return _contextObj[field];
             }
             return null;
          },
-         set: function() {
+            set(): void {
             throw new Error("Can't set data to context. Context is readonly!");
          },
-         has: function() {
+            has(): boolean {
             return true;
          }
       };
@@ -295,10 +203,9 @@ class Control {
        * end todo
        */
 
-
-      let controlNode = null,
-         savedInheritOptions = null,
-         environment = null;
+        let controlNode = null;
+        let savedInheritOptions = null;
+        let environment = null;
 
       this.saveInheritOptions = (opts: any) => {
          savedInheritOptions = opts;
@@ -313,24 +220,26 @@ class Control {
          return environment;
       };
 
-      this._notify = function() {
+        // tslint:disable-next-line:only-arrow-functions
+        this._notify = function(): any {
          return environment && environment.startEvent(controlNode, arguments);
       };
 
-
-      //@ts-ignore
+        // @ts-ignore
       this._notify._isVdomNotify = true;
 
       this._forceUpdate = () => {
-         let control = this || (controlNode && controlNode.control);
+            const control = this || (controlNode && controlNode.control);
          if (control && !control._mounted) {
             // _forceUpdate was called asynchronous from _beforeMount before control was mounted to DOM
             // So we need to delay _forceUpdate till the moment component will be mounted to DOM
             control._$needForceUpdate = true;
          } else {
             this._checkForceUpdate();
-            environment && environment.forceRebuild(controlNode.id);
+                if (environment) {
+                    environment.forceRebuild(controlNode.id);
          }
+            }
       };
 
       /**
@@ -338,7 +247,12 @@ class Control {
        * @param rootKey
        * @returns {*}
        */
-      this._getMarkup = function _getMarkup(rootKey, isRoot, attributes, isVdom) {
+        this._getMarkup = function _getMarkup(
+            rootKey?: string,
+            isRoot?: boolean,
+            attributes?: any,
+            isVdom?: boolean
+        ): any {
          if (!this._template.stable) {
             IoC.resolve('ILogger').error(this._moduleName, 'Check what you put in _template');
             return '';
@@ -353,11 +267,13 @@ class Control {
          }
          attributes.context = fullContext;
          attributes.inheritOptions = savedInheritOptions;
-         for (var i in attributes.events) {
+            for (const i in attributes.events) {
             if (attributes.events.hasOwnProperty(i)) {
-               for (var handl = 0; handl < attributes.events[i].length; handl++) {
-                  if (attributes.events[i][handl].fn.isControlEvent &&
-                      !attributes.events[i][handl].fn.controlDestination) {
+                    for (let handl = 0; handl < attributes.events[i].length; handl++) {
+                        if (
+                            attributes.events[i][handl].fn.isControlEvent &&
+                            !attributes.events[i][handl].fn.controlDestination
+                        ) {
                      attributes.events[i][handl].fn.controlDestination = this;
                   }
                }
@@ -366,7 +282,7 @@ class Control {
          res = this._template(this, attributes, rootKey, isVdom);
          if (res) {
             if (isVdom) {
-               for (var k = 0; k < res.length; k++) {
+                    for (let k = 0; k < res.length; k++) {
                   if (res[k]) {
                      return res[k];
                   }
@@ -378,9 +294,8 @@ class Control {
          return res;
       };
 
-
-      this.render = function(empty, attributes) {
-         var markup = this._getMarkup(null, true, attributes, false);
+        this.render = function(empty?: any, attributes?: any): any {
+            const markup = this._getMarkup(null, true, attributes, false);
          this._isRendered = true;
          return markup;
       };
@@ -391,18 +306,126 @@ class Control {
       this._instId = 'inst_' + countInst++;
 
       /*dont use this*/
-      this._afterCreate && this._afterCreate(cfg);
+        if (this._afterCreate) {
+            this._afterCreate(cfg);
    }
+    }
+    private _checkForceUpdate(): void {
+        if (useCheck) {
+            if (!this.hasOwnProperty('_$forceUpdateLog')) {
+                this._$forceUpdateLog = [];
+            }
+            this._$forceUpdateLog.push(Date.now());
+            if (this._$forceUpdateLog.length >= 10) {
+                const update1 = this._$forceUpdateLog[this._$forceUpdateLog.length - 10];
+                const update2 = this._$forceUpdateLog[this._$forceUpdateLog.length - 1];
 
+                // если за 10 секунд позвалось не менее 10 _forceUpdate - что-то тут не так
+                if (update2 - update1 < 10000) {
+                    IoC.resolve('ILogger').warn('Control', 'too much calls of _forceUpdate!!!');
+                }
+            }
+            if (this._$forceUpdateLog.length >= 100) {
+                this._$forceUpdateLog = this._$forceUpdateLog.slice(
+                    this._$forceUpdateLog.length - 10,
+                    this._$forceUpdateLog.length
+                );
+            }
+        }
+    }
    /**
+     * @name Core/Control#readOnly
+     * @cfg {Boolean} Determines whether user can change control's value
+     * (or interact with the control if its value is not editable).
+     * @variant true User cannot change control's value (or interact with the control if its value is not editable).
+     * @variant false User can change control's value (or interact with the control if its value is not editable).
+     * @variant inherited Value inherited from the parent.
+     * @default Inherited
+     * @example
+     * In this example, List and Input.Text will be rendered with read-only styles, and the user won't be
+     * able to edit them. However, Button has readOnly option explicitly set to false,
+     * thus it won't inherit this option from the List, and user will be able to click on it.
+     * <pre>
+     *    <Controls.list:View readOnly="{{true}}">
+     *       <ws:itemTemplate>
+     *          <Controls.input:Text />
+     *          <Controls.buttons:Path readOnly="{{false}}" />
+     *       </ws:itemTemplate>
+     *    </Controls.list:View>
+     * </pre>
+     * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
+     * from the parent control. By default, all controls are active.
+     * @see Inherited options
+     */
+
+    /**
+     * @name Core/Control#theme
+     * @cfg {String} Theme name. Depending on the theme, different stylesheets are loaded and
+     * different styles are applied to the control.
+     * @variant any Any value that was passed to the control.
+     * @variant inherited Value inherited from the parent.
+     * @default ''(empty string)
+     * @example
+     * In this example, Controls.Application and all of its chil controls will have "carry" theme styles.
+     * However, Carry.Head will "carry" theme styles. If you put controls inside Carry.Head and does not specify
+     * the theme option, they will inherit "carry" theme.
+     * <pre>
+     *    <Controls.Application theme="carry">
+     *       <Carry.Head theme="presto" />
+     *       <Carry.Workspace>
+     *          <Controls.Tree />
+     *       </Carry.Workspace>
+     *    </Controls.Application>
+     * </pre>
+     * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
+     * from the parent control. The path to CSS file with theme parameters determined automatically
+     * based on the theme name. CSS files should be prepared in advance according to documentation.
+     * @see Themes
+     * @see Inherited options
+     */
+
+    getInstanceId(): string {
+        return this._instId;
+    }
+
+    mountToDom(element: HTMLElement, cfg: any, controlClass: any): void {
+        // @ts-ignore
+        if (!this.VDOMReady) {
+            // @ts-ignore
+            this.VDOMReady = true;
+            this._container = element;
+            // @ts-ignore
+            Synchronizer.mountControlToDOM(this, controlClass, cfg, this._container);
+        }
+        if (cfg) {
+            this.saveOptions(cfg);
+        }
+    }
+
+    // Just save link to new options
+    saveOptions(options: any, controlNode: any = null): Boolean {
+        this._options = options;
+        if (controlNode) {
+            this._container = controlNode.element;
+        }
+        return true;
+    }
+
+    /**
     * Метод задания значения служебной опции
     * @param {string} name Имя служебной опции
     * @param {*} value Значение опции
     */
-   private _setInternalOption(name:string, value:any): void {
+    private _setInternalOption(name: string, value: any): void {
       if (!this._internalOptions) {
          this._internalOptions = {};
-         IoC.resolve('ILogger').error('Component with ' + (this._options ? ('name ' + this._options.name + ' config ' + this._options.__$config) : ('maybe id ' + this._$id)), 'Control.constructor wasn\'t called');
+            IoC.resolve('ILogger').error(
+                'Component with ' +
+                    (this._options
+                        ? 'name ' + this._options.name + ' config ' + this._options.__$config
+                        : 'maybe id ' + this._$id),
+                "Control.constructor wasn't called"
+            );
       }
       this._internalOptions[name] = value;
    }
@@ -411,69 +434,86 @@ class Control {
     * Метод задания служебных опций
     * @param {Object} internal Объект, содержащий ключи и значения устанавливаемых служебных опций
     */
-   public _setInternalOptions(internal: HashMap<any>): void {
-      for (let name in internal) {
+   _setInternalOptions(internal: HashMap<any>): void {
+        for (const name in internal) {
          if (internal.hasOwnProperty(name)) {
             this._setInternalOption(name, internal[name]);
          }
       }
    }
 
-   public _manageStyles(theme, oldTheme?) {
-      if(!this._checkNewStyles()) {
+    _manageStyles(theme: string, oldTheme?: string): boolean | Promise<boolean | boolean[]> {
+        if (!this._checkNewStyles()) {
          return true;
       }
-      var themesController = ThemesController.getInstance();
-      var styles = this._styles || [];
-      var themedStyles = this._theme || [];
-      if(oldTheme) {
+        const themesController = ThemesController.getInstance();
+        const styles = this._styles || [];
+        const themedStyles = this._theme || [];
+        if (oldTheme) {
          this._removeOldStyles(themesController, oldTheme, themedStyles, []);
       }
       return this._loadNewStyles(themesController, theme, themedStyles, styles);
    }
 
-   public _checkNewStyles(): Boolean {
-      if((this._theme && !this._theme.forEach) || (this._styles && !this._styles.forEach)) {
+    _checkNewStyles(): Boolean {
+        if ((this._theme && !this._theme.forEach) || (this._styles && !this._styles.forEach)) {
          return false;
       }
       return true;
    }
 
-   public _loadNewStyles(themesController, theme, themedStyles, styles): any {
-      let self = this;
-      let promiseArray = [];
+    _loadNewStyles(
+        themesController: any,
+        theme: string,
+        themedStyles: any[],
+        styles: any[]
+    ): Promise<boolean | boolean[]> | boolean {
+        const self = this;
+        const promiseArray = [];
       if (typeof window === 'undefined') {
-         styles.forEach(function(name) {
+            styles.forEach((name) => {
             themesController.pushCss(name);
          });
-         themedStyles.forEach(function(name) {
+            themedStyles.forEach((name) => {
             themesController.pushThemedCss(name, theme);
          });
       } else {
-         styles.forEach(function(name) {
+            styles.forEach((name) => {
             if (themesController.isCssLoaded(name)) {
                themesController.pushCssLoaded(name);
             } else {
-               let loadPromise = PromiseLib.reflect(PromiseLib.wrapTimeout(themesController.pushCssAsync(name), 2000));
-               loadPromise.then(function(res) {
-                  if(res.status === 'rejected') {
-                     IoC.resolve('ILogger').error('Styles loading error', 'Could not load style '
-                         + name + ' for control ' + self._moduleName);
+                    const loadPromise = PromiseLib.reflect(
+                        PromiseLib.wrapTimeout(themesController.pushCssAsync(name), 2000)
+                    );
+                    loadPromise.then((res) => {
+                        if (res.status === 'rejected') {
+                            IoC.resolve('ILogger').error(
+                                'Styles loading error',
+                                'Could not load style ' + name + ' for control ' + self._moduleName
+                            );
                   }
                });
                promiseArray.push(loadPromise);
             }
          });
-         themedStyles.forEach(function(name) {
+            themedStyles.forEach((name) => {
             if (themesController.isThemedCssLoaded(name, theme)) {
                themesController.pushCssThemedLoaded(name, theme);
             } else {
-               let loadPromise = PromiseLib.reflect(PromiseLib.wrapTimeout(themesController.pushCssThemedAsync(name, theme), 2000));
-               loadPromise.then(function(res) {
-                  if(res.status === 'rejected') {
-                     IoC.resolve('ILogger').error('Styles loading error', 'Could not load style '
-                         + name + ' for control ' + self._moduleName +
-                         ' with theme ' + theme);
+                    const loadPromise = PromiseLib.reflect(
+                        PromiseLib.wrapTimeout(themesController.pushCssThemedAsync(name, theme), 2000)
+                    );
+                    loadPromise.then((res) => {
+                        if (res.status === 'rejected') {
+                            IoC.resolve('ILogger').error(
+                                'Styles loading error',
+                                'Could not load style ' +
+                                    name +
+                                    ' for control ' +
+                                    self._moduleName +
+                                    ' with theme ' +
+                                    theme
+                            );
                   }
                });
                promiseArray.push(loadPromise);
@@ -486,30 +526,34 @@ class Control {
       return true;
    }
 
-   public _removeOldStyles(themesController, theme, themedStyles, styles) {
-      styles.forEach(function(name) {
+    _removeOldStyles(themesController: any, theme: string, themedStyles: any[], styles: any[]): void {
+        styles.forEach(
+            (name): void => {
          themesController.removeCss(name);
-      });
-      themedStyles.forEach(function(name) {
+            }
+        );
+        themedStyles.forEach(
+            (name): void => {
          themesController.removeCssThemed(name, theme);
-      });
    }
+        );
+    }
 
-   public _removeStyles(theme) {
-      if(!this._checkNewStyles()) {
+    _removeStyles(theme: string): boolean {
+        if (!this._checkNewStyles()) {
          return true;
       }
-      var themesController = ThemesController.getInstance();
-      var styles = this._styles || [];
-      var themedStyles = this._theme || [];
+        const themesController = ThemesController.getInstance();
+        const styles = this._styles || [];
+        const themedStyles = this._theme || [];
       this._removeOldStyles(themesController, theme, themedStyles, styles);
    }
 
-   public destroy(): void {
+    destroy(): void {
       this._destroyed = true;
       try {
-         let contextTypes = this.constructor.contextTypes ? this.constructor.contextTypes() : {};
-         for (var i in contextTypes) {
+            const contextTypes = this.constructor.contextTypes ? this.constructor.contextTypes() : {};
+            for (const i in contextTypes) {
             if (contextTypes.hasOwnProperty(i)) {
                this.context.get(i).unregisterConsumer(this);
             }
@@ -525,10 +569,10 @@ class Control {
 
    // <editor-fold desc="API">
 
-   public _blur(): void {
-      let container = this._container[0] ? this._container[0] : this._container,
-          activeElement = document.activeElement,
-          tmpTabindex;
+    _blur(): void {
+        const container = this._container[0] ? this._container[0] : this._container;
+        const activeElement = document.activeElement;
+        let tmpTabindex;
 
       if (!container.contains(document.activeElement)) {
          return;
@@ -542,7 +586,7 @@ class Control {
       }
       document.body.focus();
       if (this._active) {
-         var env = container.controlNodes[0].environment;
+            const env = container.controlNodes[0].environment;
 
          // если DOMEnvironment не перехватил переход фокуса, вызовем обработчик ухода фокуса вручную
          env._handleFocusEvent({ target: document.body, relatedTarget: activeElement });
@@ -583,10 +627,10 @@ class Control {
     * @see activated
     * @see deactivated
     */
-   public activate(): Boolean {
-      function doFocus(container) {
-         var res = false,
-            activeElement = document.activeElement;
+    activate(): Boolean {
+        function doFocus(container: any): boolean {
+            let res = false;
+            const activeElement = document.activeElement;
          if (container.wsControl && container.wsControl.setActive) {
             // если нашли контейнер старого контрола, активируем его старым способом (для совместимости)
             if (container.wsControl.canAcceptFocus()) {
@@ -604,25 +648,28 @@ class Control {
 
             container = this._container[0] ? this._container[0] : this._container;
 
-            // может случиться так, что на focus() сработает обработчик в DOMEnvironment, и тогда тут ничего не надо делать
-            // todo делать проверку не на _active а на то, что реально состояние изменилось. например переходим от компонента к его предку, у предка состояние не изменилось. но с которого уходили у него изменилось
+                // может случиться так, что на focus() сработает обработчик в DOMEnvironment,
+                // и тогда тут ничего не надо делать
+                // todo делать проверку не на _active а на то, что реально состояние изменилось.
+                // например переходим от компонента к его предку, у предка состояние не изменилось.
+                // но с которого уходили у него изменилось
             if (res && !this._active) {
-               var env = container.controlNodes[0].environment;
+                    const env = container.controlNodes[0].environment;
                env._handleFocusEvent({ target: container, relatedTarget: activeElement });
             }
          }
          return res;
       }
 
-      var res = false,
-         container = this._container[0] ? this._container[0] : this._container;
+        let res = false;
+        const container = this._container[0] ? this._container[0] : this._container;
 
       // сначала попробуем поискать по ws-autofocus, если найдем - позовем focus рекурсивно для найденного компонента
-      var autofocusElems = doAutofocus.findAutofocusForVDOM(container),
-         autofocusElem,
-         found;
+        const autofocusElems = doAutofocus.findAutofocusForVDOM(container);
+        let autofocusElem;
+        let found;
 
-      for (var i = 0; i < autofocusElems.length; i++) {
+        for (let i = 0; i < autofocusElems.length; i++) {
          autofocusElem = autofocusElems[i];
 
          // если что-то зафокусировали, перестаем поиск
@@ -630,7 +677,7 @@ class Control {
             // фокусируем только найденный компонент, ws-autofocus можно повесить только на контейнер компонента
             if (autofocusElem && autofocusElem.controlNodes && autofocusElem.controlNodes.length) {
                // берем самый внешний контрол и активируем его
-               var outerControlNode = autofocusElem.controlNodes[autofocusElem.controlNodes.length - 1];
+                    const outerControlNode = autofocusElem.controlNodes[autofocusElem.controlNodes.length - 1];
                res = outerControlNode.control.activate();
                found = res;
             }
@@ -641,13 +688,13 @@ class Control {
       // причем если это будет конейнер старого компонента, активируем его по старому тоже
       if (!found) {
          // так ищем DOMEnvironment для текущего компонента. В нем сосредоточен код по работе с фокусами.
-         var getElementProps = TabIndex.getElementProps;
+            const getElementProps = TabIndex.getElementProps;
 
-         var next = TabIndex.findFirstInContext(container, false, getElementProps);
+            let next = TabIndex.findFirstInContext(container, false, getElementProps);
          if (next) {
             // при поиске первого элемента игнорируем vdom-focus-in и vdom-focus-out
-            var startElem = 'vdom-focus-in';
-            var finishElem = 'vdom-focus-out';
+                const startElem = 'vdom-focus-in';
+                const finishElem = 'vdom-focus-out';
             if (next.classList.contains(startElem)) {
                next = TabIndex.findWithContexts(container, next, false, getElementProps);
             }
@@ -668,11 +715,10 @@ class Control {
       }
 
       return res;
-
    }
 
-   public _afterCreate(cfg: any): void {
-
+    _afterCreate(cfg: any): void {
+        // can be overridden
    }
    /**
     * Control’s lifecycle hook. Called right before the mounting of the component to DOM.
@@ -706,40 +752,39 @@ class Control {
     * @see Documentation: Server render
     * @private
     */
-   public _beforeMount(): Promise<any> {
-      //@ts-ignore
+    _beforeMount(options?: any): Promise<any> | void {
+        // @ts-ignore
       return undefined;
    }
 
-   private _styles: Array<string> = [];
-   private _theme: Array<string> = [];
-
-   public _beforeMountLimited(opts:any) {
+    _beforeMountLimited(opts: any): Promise<any> | void {
       // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
       // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
       // _template на экземпляре, _template устанавливается сразу после вызова базового конструктора
       ReactiveObserver.observeProperties(this);
 
-      
-      var resultBeforeMount = this._beforeMount.apply(this, arguments);
+        let resultBeforeMount = this._beforeMount.apply(this, arguments);
 
       if (typeof window === 'undefined') {
          if (resultBeforeMount && resultBeforeMount.callback) {
             resultBeforeMount = new Promise((resolve, reject) => {
-               var timeout = 0;
-               resultBeforeMount.then((result) => {
+                    let timeout = 0;
+                    resultBeforeMount.then(
+                        (result) => {
                   if (!timeout) {
                      timeout = 1;
                      resolve(result);
                   }
                   return result;
-               }, (error) => {
+                        },
+                        (error) => {
                   if (!timeout) {
                      timeout = 1;
                      reject(error);
                   }
                   return error;
-               });
+                        }
+                    );
                setTimeout(() => {
                   if (!timeout) {
                      /* Change _template and _afterMount
@@ -747,21 +792,30 @@ class Control {
                          * */
                      IoC.resolve('ILogger').error('_beforeMount', 'Wait 20000 ms ' + this._moduleName);
                      timeout = 1;
-                     //@ts-ignore
+                            // @ts-ignore
                      require(['View/Executor/TClosure'], (thelpers) => {
-                        //@ts-ignore
+                                // @ts-ignore
                         this._originTemplate = this._template;
-                        //@ts-ignore
-                        this._template = function(data, attr, context, isVdom, sets) {
+                                // @ts-ignore
+                                this._template = function(
+                                    data: any,
+                                    attr: any,
+                                    context: any,
+                                    isVdom: boolean,
+                                    sets: any
+                                ): any {
                            try {
                               return this._originTemplate.apply(self, arguments);
                            } catch (e) {
                               return thelpers.getMarkupGenerator(isVdom).createText('');
                            }
                         };
-                        //@ts-ignore
+                                // @ts-ignore
                         this._template.stable = true;
-                        this._afterMount = function() {};
+                                // tslint:disable-next-line:only-arrow-functions
+                                this._afterMount = function(): void {
+                                    // can be overridden
+                                };
                         resolve(false);
                      });
                   }
@@ -770,9 +824,8 @@ class Control {
          }
       }
 
-
-      var cssResult = this._manageStyles(opts.theme);
-      if(cssResult.then) {
+        const cssResult = this._manageStyles(opts.theme);
+        if (cssResult.then) {
          if (!opts.iWantBeWS3) {
             resultBeforeMount = Promise.all([cssResult, resultBeforeMount]);
          }
@@ -805,7 +858,7 @@ class Control {
     * @see Documentation: Server render
     * @private
     */
-   public _afterMount(): void {
+    _afterMount(): void {
       // Do
    }
 
@@ -838,14 +891,14 @@ class Control {
     * @private
     */
 
-   public __beforeUpdate(options): void {
-      if(options.theme !== this._options.theme) {
+    __beforeUpdate(options: any): void {
+        if (options.theme !== this._options.theme) {
          this._manageStyles(options.theme, this._options.theme);
       }
       this._beforeUpdate.apply(this, arguments);
    }
 
-   public _beforeUpdate(): void {
+    _beforeUpdate(options?: any): void {
       // Do
    }
 
@@ -882,7 +935,7 @@ class Control {
     * @see Documentation: Server render
     * @private
     */
-   public _shouldUpdate(): Boolean {
+    _shouldUpdate(): Boolean {
       return true;
    }
 
@@ -913,7 +966,7 @@ class Control {
     * @see Documentation: Context
     * @private
     */
-   public _afterUpdate(): void {
+    _afterUpdate(): void {
       // Do
    }
 
@@ -936,19 +989,69 @@ class Control {
     * @see Documentation: Context
     * @private
     */
-   public __beforeUnmount() {
+    __beforeUnmount(): void {
       this._removeStyles(this._options.theme);
       this._beforeUnmount.apply(this, arguments);
    }
 
-   public _beforeUnmount() {
-      //Do
+    _beforeUnmount(): void {
+        // Do
    }
+    static isWasaby: Boolean = true;
+
+    /**
+     * @deprecated
+     */
+    static extend(mixinsList: any, classExtender: any): Function {
+        // @ts-ignore
+        if (!require.defined('Core/core-extend')) {
+            throw new ReferenceError(
+                'You should require module "Core/core-extend" to use old "Types/_entity/Record::extend()" method.'
+            );
+        }
+        // @ts-ignore
+        const coreExtend = require('Core/core-extend');
+        return coreExtend(this, mixinsList, classExtender);
+    }
+
+    static _getInheritOptions(ctor: any): any {
+        const inherit = (ctor.getInheritOptions && ctor.getInheritOptions()) || {};
+        if (!inherit.hasOwnProperty('readOnly')) {
+            inherit.readOnly = false;
+        }
+        if (!inherit.hasOwnProperty('theme')) {
+            inherit.theme = '';
+        }
+
+        return inherit;
+    }
+
+    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
+        const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
+        // @ts-ignore
+        OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
+        const attrs = { inheritOptions: {} };
+        let ctr;
+        OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
+        try {
+            ctr = new ctor(cfg);
+        } catch (error) {
+            ctr = new Control({});
+            Logger.catchLifeCircleErrors('constructor', error, ctor.prototype && ctor.prototype._moduleName);
+        }
+        ctr.saveInheritOptions(attrs.inheritOptions);
+        ctr._container = domElement;
+        Focus.patchDom(domElement, cfg);
+        ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
+        ctr.mountToDom(ctr._container, cfg, ctor);
+        ctr._$createdFromCode = true;
+        return ctr;
+    }
 
    // </editor-fold>
 }
 
-//@ts-ignore
+// @ts-ignore
 Control.prototype._template = template;
 
 export default Control;
