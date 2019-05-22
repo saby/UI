@@ -6,18 +6,17 @@ import Control from '../Control';
 import template = require('wml!UI/_base/HTML/JsLinks');
 import * as AppEnv from 'Application/Env';
 
-
 class JsLinks extends Control {
-   public _template: Function = template;
+   _template: Function = template;
 
-   public js: Array<string> = [];
-   public tmpl: Array<string> = [];
-   public wml: Array<string> = [];
-   public themedCss: Array<string> = [];
-   public simpleCss: Array<string> = [];
-   public receivedStateArr: string = '';
+   js: string[] = [];
+   tmpl: string[] = [];
+   wml: string[] = [];
+   themedCss: string[] = [];
+   simpleCss: string[] = [];
+   receivedStateArr: string = '';
 
-   public _beforeMountLimited():Promise<any> {
+   _beforeMountLimited(): Promise<any> {
       // https://online.sbis.ru/opendoc.html?guid=252155de-dc95-402c-967d-7565951d2061
       // This component awaits completion of building content of _Wait component
       // So we don't need timeout of async building in this component
@@ -26,13 +25,12 @@ class JsLinks extends Control {
       return this._beforeMount.apply(this, arguments);
    }
 
-
-   public _beforeMount():Promise<any> {
+   _beforeMount(): Promise<any> {
       if (typeof window !== 'undefined') {
          return;
       }
-      let headData = AppEnv.getStore('HeadData');
-      let def = headData.waitAppContent();
+      const headData = AppEnv.getStore('HeadData');
+      const def = headData.waitAppContent();
       return new Promise((resolve, reject) => {
          def.then((res) => {
             this.js = res.js;
@@ -46,11 +44,11 @@ class JsLinks extends Control {
       });
    }
 
-   public getCssNameForDefineWithTheme(cssLink:string): string {
+   getCssNameForDefineWithTheme(cssLink: string): string {
       return 'theme?' + cssLink;
    }
 
-   public getDefines():string {
+   getDefines(): string {
       let result = '';
       if (this.themedCss && this.simpleCss) {
          let i;
@@ -64,7 +62,6 @@ class JsLinks extends Control {
 
       return result;
    }
-
 
 }
 

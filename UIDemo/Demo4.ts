@@ -1,22 +1,22 @@
 /// <amd-module name="UIDemo/Demo4" />
 
-import {Control} from 'UI/Base';
+import BaseControl = require('Core/Control');
 
 // @ts-ignore
 import template = require('wml!UIDemo/Demo4');
 
-class Demo4 extends Control {
-   public _template: Function = template;
-   protected _beforeMount(): void {
+var Demo4 = BaseControl.extend({
+   _template: template,
+   _beforeMount: function () {
       this.theme1 = 'theme1';
       this.theme2 = 'theme1';
-   };
-   private switchFirst(): void {
+   },
+   switchFirst: function() {
       this.theme1 = this.theme1 === 'theme1' ? 'theme2' : 'theme1';
-   }
-   private switchSecond(): void {
+   },
+   switchSecond: function() {
       this.theme2 = this.theme2 === 'theme1' ? 'theme2' : 'theme1';
    }
-}
+});
 
 export = Demo4;

@@ -1,16 +1,16 @@
 /// <amd-module name="UIDemo/Demo4_sub" />
 
-import {Control} from 'UI/Base';
+import BaseControl = require('Core/Control');
 
 // @ts-ignore
 import template = require('wml!UIDemo/Demo4_sub');
 
 import "css!theme?UIDemo/Demo4_sub";
 
-class Demo4_sub extends Control {
-   public _template: Function = template;
+var Demo4_sub = BaseControl.extend({
+    _template: template
+});
 
-   public _theme: Array<string> = ['UIDemo/Demo4_sub'];
-}
+Demo4_sub._theme = ['UIDemo/Demo4_sub'];
 
 export = Demo4_sub;
