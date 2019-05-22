@@ -55,7 +55,7 @@ class RegressionDemo4(TestCaseUI):
         test_page.second_btn.click()
         test_page.theme1_cslst.should_be(CountElements(2))
         test_page.theme2_cslst.should_be(CountElements(0))
-        self.capture('switchSecond_theme1', height=100, width=300)
+        self.capture('switchSecond_theme1', height=100, width=200)
 
 
 if __name__ == '__main__':
