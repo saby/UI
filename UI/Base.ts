@@ -10,17 +10,17 @@ import HeadController from './_base/HeadController';
 
 //@ts-ignore
 import BaseRoute = require('wml!UI/_base/Route');
-import Creator, {async as AsyncCreator} from './_base/Creator';
+import Creator, { async as AsyncCreator } from './_base/Creator';
 
 export = {
-   Control,
-   HTML,
-   Document,
-   StateReceiver,
-   AppData,
-   Start,
-   BaseRoute,
-   HeadController,
-   Creator,
-   AsyncCreator
+    Control,
+    HTML,
+    Document,
+    StateReceiver,
+    AppData,
+    Start,
+    BaseRoute,
+    HeadController,
+    Creator,
+    AsyncCreator
 };
