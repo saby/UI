@@ -104,8 +104,8 @@ class Control {
 
     _children: HashMap<Control> = null;
 
-    private _styles: string[] = [];
-    private _theme: string[] = [];
+    static _styles: string[] = [];
+    static _theme: string[] = [];
 
     constructor(cfg: any) {
         if (!cfg) {
@@ -383,9 +383,9 @@ class Control {
         }
         const themesController = ThemesController.getInstance();
         //@ts-ignore
-        const styles = this.constructor._styles || this._styles || [];
+        const styles = this._styles || this.constructor._styles || [];
         //@ts-ignore
-        const themedStyles = this.constructor._theme || this._theme || [];
+        const themedStyles = this._theme || this.constructor._theme || [];
         
         if (oldTheme) {
             this._removeOldStyles(themesController, oldTheme, themedStyles, []);
