@@ -207,7 +207,6 @@ class Control {
       ctr.mountToDom(ctr._container, cfg, ctor);
       ctr._$createdFromCode = true;
       return ctr;
-
    };
 
    /**
@@ -402,7 +401,6 @@ class Control {
    private _setInternalOption(name:string, value:any): void {
       if (!this._internalOptions) {
          this._internalOptions = {};
-         IoC.resolve('ILogger').error('Component with ' + (this._options ? ('name ' + this._options.name + ' config ' + this._options.__$config) : ('maybe id ' + this._$id)), 'Control.constructor wasn\'t called');
       }
       this._internalOptions[name] = value;
    }

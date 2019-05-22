@@ -8,7 +8,9 @@ import AppData from './_base/Deprecated/AppData';
 import Start from './_base/Start';
 import HeadController from './_base/HeadController';
 
+//@ts-ignore
 import BaseRoute = require('wml!UI/_base/Route');
+import Creator, {async as AsyncCreator} from './_base/Creator';
 
 export = {
    Control,
@@ -18,5 +20,7 @@ export = {
    AppData,
    Start,
    BaseRoute,
-   HeadController
+   HeadController,
+   Creator,
+   AsyncCreator
 };
