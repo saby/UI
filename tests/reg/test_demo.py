@@ -35,27 +35,27 @@ class RegressionDemo4(TestCaseUI):
         test_page.theme1_cslst.should_be(CountElements(2))
         test_page.theme2_cslst.should_be(CountElements(0))
 
-        self.capture('plain', height=100, width=400)
+        self.capture('plain', height=100, width=300)
 
         test_page.first_btn.click()
         test_page.theme1_cslst.should_be(CountElements(1))
         test_page.theme2_cslst.should_be(CountElements(1))
-        self.capture('switchFirst_theme2', height=100, width=400)
+        self.capture('switchFirst_theme2', height=100, width=300)
 
         test_page.first_btn.click()
         test_page.theme1_cslst.should_be(CountElements(2))
         test_page.theme2_cslst.should_be(CountElements(0))
-        self.capture('switchFirst_theme1', height=100, width=400)
+        self.capture('switchFirst_theme1', height=100, width=300)
 
         test_page.second_btn.click()
         test_page.theme1_cslst.should_be(CountElements(1))
         test_page.theme2_cslst.should_be(CountElements(1))
-        self.capture('switchSecond_theme2', height=100, width=400)
+        self.capture('switchSecond_theme2', height=100, width=300)
 
         test_page.second_btn.click()
         test_page.theme1_cslst.should_be(CountElements(2))
         test_page.theme2_cslst.should_be(CountElements(0))
-        self.capture('switchSecond_theme1', height=100, width=400)
+        self.capture('switchSecond_theme1', height=100, width=300)
 
 
 if __name__ == '__main__':
