@@ -2,7 +2,6 @@
 from atf import *
 from atf.ui import *
 from urllib import parse
-from atf.ui.browser import BrowserNames
 
 
 class VDOMStartPage(Page):

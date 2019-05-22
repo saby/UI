@@ -14,5 +14,6 @@ class RegressionTestSmoke(TestCaseUI):
         VDOMStartPage(self).open_vdom_page('UIDemo/Demo4')
         UIDemoPage(self).first_btn.should_be(Visible, msg='Страница не построена', wait_time=60)
 
+
 if __name__ == '__main__':
     run_tests()
