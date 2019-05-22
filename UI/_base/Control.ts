@@ -126,7 +126,6 @@ class Control {
             _contextObj = ctx;
             this._context = ctx;
         };
-
         this.context = {
             get(field: string): Record<string, unknown> {
                 if (_contextObj && _contextObj.hasOwnProperty(field)) {
@@ -359,21 +358,12 @@ class Control {
     * @param {string} name Имя служебной опции
     * @param {*} value Значение опции
     */
-    private _setInternalOption(name: string, value: any): void {
-        if (!this._internalOptions) {
-            this._internalOptions = {};
-            
-            IoC.resolve('ILogger').error(
-                'Component with ' +
-                (this._options
-                    ? 'name ' + this._options.name + ' config ' + this._options.__$config
-                    //@ts-ignore
-                    : 'maybe id ' + this._$id),
-                "Control.constructor wasn't called"
-            );
-        }
-        this._internalOptions[name] = value;
-    }
+   private _setInternalOption(name:string, value:any): void {
+      if (!this._internalOptions) {
+         this._internalOptions = {};
+      }
+      this._internalOptions[name] = value;
+   }
 
     /**
      * Метод задания служебных опций
