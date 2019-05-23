@@ -2,7 +2,7 @@
 import template = require('wml!UI/_base/Control');
 
 // @ts-ignore
-import { IoC } from 'Env/Env';
+import { IoC, detection, TabIndex } from 'Env/Env';
 // @ts-ignore
 import doAutofocus = require('Core/helpers/Hcontrol/doAutofocus');
 
@@ -42,6 +42,11 @@ import * as Logger from 'View/Logger';
  */
 
 let countInst = 1;
+
+
+function matches(el: Element, selector: string): boolean {
+    return (el.matches || el.matchesSelector || el.msMatchesSelector || el.mozMatchesSelector || el.webkitMatchesSelector || el.oMatchesSelector).call(el, selector);
+}
 
 const useCheck = typeof document !== 'undefined' && document.cookie && document.cookie.indexOf('s3debug=true') !== -1;
 
@@ -556,6 +561,8 @@ class Control {
      *       <Controls.Input.Text name="textInput" />
      *    </div>
      * </pre>
+     * @param {Object} cfg Object containing parameters of this method
+     * Using of parameter ignoreInputsOnMobiles=true on mobile devices, it will focus not input fields but parent element
      * @remark Method finds DOM element inside the control (and its child controls) that can be focused and
      * sets focus on it. Returns true if focus was set successfully and false if nothing was focused.
      * When control becomes active, all of its child controls become active too. When control activates,
@@ -565,7 +572,16 @@ class Control {
      * @see activated
      * @see deactivated
      */
-    activate(): Boolean {
+    activate(cfg: object = {}): Boolean {
+        function getContainerWithControlNode(element: Element): Element {
+            while (element) {
+                if (element.controlNodes && TabIndex.getElementProps(element).tabStop) {
+                    break;
+                }
+                element = element.parentElement;
+            }
+            return element;
+        }
         function doFocus(container: any): boolean {
             let res = false;
             const activeElement = document.activeElement;
@@ -580,6 +596,27 @@ class Control {
                 }
             } else {
                 if (TabIndex.getElementProps(container).tabStop) {
+                    // на мобильных устройствах иногда не надо ставить фокус в поля ввода. потому что может показаться
+                    // экранная клавиатура. на ipad в случае асинхронной фокусировки вообще фокусировка откладывается
+                    // до следующего клика, и экранная клавиатура показывается не вовремя.
+
+                    // можно было бы вообще ничего не фокусировать, но есть кейс когда это нужно:
+                    // при открытии задачи поле исполнителя должно активироваться, чтобы показался саггест.
+                    // но фокус на поле ввода внутри не должен попасть, чтобы не повторилась ошибка на ipad.
+
+                    // поищем родительский элемент от найденного и сфокусируем его. так контрол, в котором лежит поле ввода,
+                    // будет сфокусирован, но фокус встанет не в поле ввода, а в его контейнер.
+
+                    // ignoreInputsOnMobiles должен быть параметром метода activate, а не свойством контрола поля ввода,
+                    // потому что решается базовая проблема, и решаться она должна в общем случае (для любого поля ввода),
+                    // и не для любого вызова activate а только для тех вызовов, когда эта поведение необходимо.
+                    // Например, при открытии панели не надо фокусировать поля ввода на мобильных устройствах.
+                    if (cfg.ignoreInputsOnMobiles && detection.isMobilePlatform) {
+                        // если попали на поле ввода, нужно взять его родительский элемент и фокусировать его
+                        if (matches(container, 'input[type="text"], textarea, *[contentEditable=true]')) {
+                            container = getContainerWithControlNode(container);
+                        }
+                    }
                     VFocus.focus(container);
                 }
                 res = container === document.activeElement;
