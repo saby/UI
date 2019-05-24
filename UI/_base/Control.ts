@@ -43,6 +43,8 @@ import * as Logger from 'View/Logger';
 
 let countInst = 1;
 
+var lastInteractionTime;
+var dndMode = false;
 
 function matches(el: Element, selector: string): boolean {
     return (el.matches || el.matchesSelector || el.msMatchesSelector || el.mozMatchesSelector || el.webkitMatchesSelector || el.oMatchesSelector).call(el, selector);
@@ -262,6 +264,25 @@ class Control {
             if (!this.hasOwnProperty('_$forceUpdateLog')) {
                 this._$forceUpdateLog = [];
             }
+            if (!lastInteractionTime) {
+                lastInteractionTime = Date.now();
+                document.body.addEventListener('mousedown', () => {
+                    lastInteractionTime = Date.now();
+                    dndMode = true;
+                }, true);
+                document.body.addEventListener('mousemove', () => {
+                    if (dndMode) {
+                        lastInteractionTime = Date.now();
+                    }
+                }, true);
+                document.body.addEventListener('mouseup', () => {
+                    lastInteractionTime = Date.now();
+                    dndMode = false;
+                }, true);
+                document.body.addEventListener('keydown', () => {
+                    lastInteractionTime = Date.now();
+                }, true);
+            }
             this._$forceUpdateLog.push(Date.now());
             if (this._$forceUpdateLog.length >= 10) {
                 const update1 = this._$forceUpdateLog[this._$forceUpdateLog.length - 10];
@@ -269,8 +290,21 @@ class Control {
 
                 // если за 10 секунд позвалось не менее 10 _forceUpdate - что-то тут не так
                 if (update2 - update1 < 10000) {
-                    IoC.resolve('ILogger').warn('Control', 'too much calls of _forceUpdate!!!');
+                    // странным поведением считается только ситуация, когда 10 вызовов _forceUpdate подряд без кликов и нажатия клавиш.
+                    // отключил предупреждения too many calls of _forceUpdate на drag and drop, на нажатия клавиш, и вообще на действия пользователя.
+                    // теперь отлавливаем только лишние перерисовки которые происходят без действий пользователя.
+                    // происходят вызовы _forceUpdate на каждое действие, например:
+                    // в каждый момент драгндропа устанавливается позиция перетаскиваемого элемента, в случае ввода текста - текст отрисовывается через биндинг.
+
+                    // будем ловить только 10 перерисовок подряд без действий пользователя и считать это неправильным.
+
+                    // в доброске https://online.sbis.ru/opendoc.html?guid=7ee516bb-a35b-4ecc-bbd7-43f3bb0fe6e9 происходит другое
+                    // там попадаются процессы, где много длительных операций происходит за короткое время,
+                    // поэтому на событие modelChanged зовется много пересинхронизаций, в этом месте такое не отловить, поэтому там делается debounce
+                    if (lastInteractionTime < update1) {
+                        IoC.resolve('ILogger').warn('Control', 'too many calls of _forceUpdate!!!');
                 }
+            }
             }
             if (this._$forceUpdateLog.length >= 100) {
                 this._$forceUpdateLog = this._$forceUpdateLog.slice(
