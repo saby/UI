@@ -1,11 +1,12 @@
 /// <amd-module name="UIDemo/Demo4" />
 
+// @ts-ignore
 import BaseControl = require('Core/Control');
 
 // @ts-ignore
-import template = require('wml!UIDemo/Demo4');
+import template = require('wml!UIDemo/ThemesDemo/Page');
 
-var Demo4 = BaseControl.extend({
+var Page = BaseControl.extend({
    _template: template,
    _beforeMount: function () {
       this.theme1 = 'theme1';
@@ -19,4 +20,4 @@ var Demo4 = BaseControl.extend({
    }
 });
 
-export = Demo4;
+export = Page;
