@@ -1,5 +1,4 @@
 <div class="ControlsDemo-Page ws-flexbox ws-flex-column">
-
       <Router.router:Route mask="page/:app">
          <ws:if data="{{content.app}}">
             <Controls.Container.Async templateName="{{content.app}}"
