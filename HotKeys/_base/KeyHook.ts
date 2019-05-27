@@ -1,11 +1,11 @@
 // @ts-ignore
 import { Control } from 'UI/Base';
 // @ts-ignore
-import template = require('wml!HotKeys/_base/Registrator');
+import template = require('wml!HotKeys/_base/KeyHook');
 // @ts-ignore
 import { DOMEnvironment } from 'Vdom/Vdom';
 // @ts-ignore
-import Catcher from 'HotKeys/_base/Catcher';
+import Dispatcher from 'HotKeys/_base/Dispatcher';
 
 /**
  * Создание события нажатия определенной клавиши
@@ -25,11 +25,11 @@ function createEvent(key: string): object {
 }
 
 /**
- * Контрол DefaultActionRegistrator - контрол, который указывает клавиши, нажатие на которые будет обработано по умолчанию дочерним контролом.
+ * Контрол KeyHook - контрол, который указывает клавиши, нажатие на которые будет обработано по умолчанию дочерним контролом.
  * Он регистрирует клавиши по умолчанию для всех предков, у которых еще нет зарегистрированного действия на эту клавишу, и,
  * в случае необработанного нажатия этих клавиш, в дочерний контрол будет перенаправлено событие о нажатии на клавишу, и там будет обработано.
  */
-class Registrator extends Control {
+class KeyHook extends Control {
     // набор действий по умолчанию, зарегистрированных на определенные клавиши
     private _actions: object = {};
 
@@ -47,14 +47,14 @@ class Registrator extends Control {
                     if (parent._$defaultActions && parent._$defaultActions[action.keyCode]) {
                         break;
                     }
-                    // выше контрола Catcher не регистрируем. Catcher ограничивает область перехвата и регистрации действий по умолчанию.
-                    if (parent.constructor === Catcher) {
+                    // выше контрола Dispatcher не регистрируем. Dispatcher ограничивает область перехвата и регистрации действий по умолчанию.
+                    if (parent.constructor === Dispatcher) {
                         break;
                     }
                     parent._$defaultActions = parent._$defaultActions || {};
 
                     // действием по умолчанию будет отправка события нажатия на клавишу по умолчанию,
-                    // это событие будет всплывать от контрола, обернутого в DefaultActionRegistrator.
+                    // это событие будет всплывать от контрола, обернутого в KeyHook.
                     // таким образом мы как бы перенаправляем событие нажатия клавиши из места, где оно не обработано - в место, где оно обрабатывается по умолчанию.
                     this._actions[action.keyCode] = this._actions[action.keyCode] || {
                         action: function() {
@@ -87,6 +87,6 @@ class Registrator extends Control {
 }
 
 // @ts-ignore
-Registrator.prototype._template = template;
+KeyHook.prototype._template = template;
 
-export default Registrator;
+export default KeyHook;

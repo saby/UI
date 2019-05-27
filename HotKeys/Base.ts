@@ -1,8 +1,8 @@
 /// <amd-module name="HotKeys/Index" />
-import Registrator from './_base/Registrator';
-import Catcher from './_base/Catcher';
+import KeyHook from './_base/KeyHook';
+import Dispatcher from './_base/Dispatcher';
 
 export = {
-    Registrator,
-    Catcher
+    KeyHook,
+    Dispatcher
 };

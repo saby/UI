@@ -1,7 +1,7 @@
 // @ts-ignore
 import { Control } from 'UI/Base';
 // @ts-ignore
-import template = require('wml!HotKeys/_base/Catcher');
+import template = require('wml!HotKeys/_base/Dispatcher');
 // @ts-ignore
 import { DOMEnvironment } from 'Vdom/Vdom';
 // @ts-ignore
@@ -10,7 +10,7 @@ import { constants } from 'Env/Env';
 /**
 
  */
-class Catcher extends Control {
+class Dispatcher extends Control {
     keyDownHandler(event): void {
         // если isTrusted = false, значит это мы запустили событие по горячим клавишам, его не надо повторно обрабатывать
         // клавиши home и end не обрабатываем, у поля ввода есть реакция на эти клавиши
@@ -31,6 +31,6 @@ class Catcher extends Control {
 }
 
 // @ts-ignore
-Catcher.prototype._template = template;
+Dispatcher.prototype._template = template;
 
-export default Catcher;
+export default Dispatcher;
