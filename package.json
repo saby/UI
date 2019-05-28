@@ -7,7 +7,6 @@
    },
    "files": [
       "UI/*",
-      "HotKeys/*",
       "Markup/*",
       "TextMarkup/*",
       "VirtualTreeMarkup/*",
@@ -42,8 +41,7 @@
    },
    "nyc": {
       "include": [
-         "./application/UI/*",
-         "./application/HotKeys/*"
+         "./application/UI/*"
       ],
       "reporter": [
          "text",

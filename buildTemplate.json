@@ -68,11 +68,6 @@
       "required": true
     },
     {
-      "name": "HotKeys",
-      "path": "./HotKeys",
-      "required": true
-    },
-    {
       "name": "UI",
       "path": "./UI",
       "required": true

@@ -1,11 +1,11 @@
 // @ts-ignore
 import { Control } from 'UI/Base';
 // @ts-ignore
-import template = require('wml!HotKeys/_base/KeyHook');
+import template = require('wml!UI/_hotKeys/KeyHook');
 // @ts-ignore
 import { DOMEnvironment } from 'Vdom/Vdom';
 // @ts-ignore
-import Dispatcher from 'HotKeys/_base/Dispatcher';
+import Dispatcher from './Dispatcher';
 
 /**
  * Создание события нажатия определенной клавиши

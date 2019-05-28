@@ -1,14 +1,16 @@
 // @ts-ignore
 import { Control } from 'UI/Base';
 // @ts-ignore
-import template = require('wml!HotKeys/_base/Dispatcher');
+import template = require('wml!UI/_hotKeys/Dispatcher');
 // @ts-ignore
 import { DOMEnvironment } from 'Vdom/Vdom';
 // @ts-ignore
 import { constants } from 'Env/Env';
 
 /**
-
+    Контрол выделяет область, в которой будут перехватываться клавиши и перенаправляться на обработку дочернему контролу,
+    который зарегистрировал себя на обработку этих клавиш с помощью контрола UI/HotKeys:KeyHook.
+    Облатсь содержимого body также выделена контролом UI/HotKeys:Dispatcher
  */
 class Dispatcher extends Control {
     keyDownHandler(event): void {
