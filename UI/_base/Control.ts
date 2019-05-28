@@ -60,14 +60,14 @@ function matches(el: Element, selector: string): boolean {
 const useCheck = typeof document !== 'undefined' && document.cookie && document.cookie.indexOf('s3debug=true') !== -1;
 
 class Control {
-    private _mounted: Boolean = false;
-    private _unmounted: Boolean = false;
-    private _destroyed: Boolean = false;
-    private _active: Boolean = false;
+    private _mounted: boolean = false;
+    private _unmounted: boolean = false;
+    private _destroyed: boolean = false;
+    private _active: boolean = false;
 
     private _instId: string;
     private _options: any = null;
-    private _internalOptions: HashMap<any> = null;
+    private _internalOptions: Record<string, unknown> = null;
 
     private _$forceUpdateLog: number[];
 
@@ -83,7 +83,7 @@ class Control {
     private saveInheritOptions: Function = null;
     private _getEnvironment: Function = null;
 
-    protected _notify: Function = null;
+    protected _notify: (eventName: string, args?: unknown[], options?: {bubbling?: boolean}) => unknown = null;
     protected _template: Function;
 
     // protected for compatibility, should be private
@@ -119,7 +119,7 @@ class Control {
     // Render function for text generator
     render: Function = null;
 
-    _children: HashMap<Control> = null;
+    _children: Record<string, Control | HTMLElement> = null;
 
     constructor(cfg: any) {
         if (!cfg) {
@@ -206,7 +206,7 @@ class Control {
         this._getMarkup = function _getMarkup(
             rootKey?: string,
             isRoot?: boolean,
-            attributes?: any,
+            attributes?: object,
             isVdom?: boolean
         ): any {
             if (!this._template.stable) {
@@ -378,7 +378,7 @@ class Control {
         return this._instId;
     }
 
-    mountToDom(element: HTMLElement, cfg: any, controlClass: any): void {
+    mountToDom(element: HTMLElement, cfg: any, controlClass: Control): void {
         // @ts-ignore
         if (!this.VDOMReady) {
             // @ts-ignore
@@ -393,7 +393,7 @@ class Control {
     }
 
     // Just save link to new options
-    saveOptions(options: any, controlNode: any = null): Boolean {
+    saveOptions(options: any, controlNode: any = null): boolean {
         this._options = options;
         if (controlNode) {
             this._container = controlNode.element;
@@ -406,7 +406,7 @@ class Control {
      * @param {string} name Имя служебной опции
      * @param {*} value Значение опции
      */
-   private _setInternalOption(name: string, value: any): void {
+   private _setInternalOption(name: string, value: unknown): void {
       if (!this._internalOptions) {
          this._internalOptions = {};
       }
@@ -417,7 +417,7 @@ class Control {
      * Метод задания служебных опций
      * @param {Object} internal Объект, содержащий ключи и значения устанавливаемых служебных опций
      */
-    _setInternalOptions(internal: HashMap<any>): void {
+    _setInternalOptions(internal: Record<string, unknown>): void {
         for (const name in internal) {
             if (internal.hasOwnProperty(name)) {
                 this._setInternalOption(name, internal[name]);
@@ -441,7 +441,7 @@ class Control {
         return this._loadNewStyles(themesController, theme, themedStyles, styles);
     }
 
-    _checkNewStyles(): Boolean {
+    _checkNewStyles(): boolean {
         if ((this._theme && !this._theme.forEach) || (this._styles && !this._styles.forEach)) {
             return false;
         }
@@ -614,7 +614,7 @@ class Control {
      * @see activated
      * @see deactivated
      */
-    activate(cfg: object = {}): Boolean {
+    activate(cfg: { ignoreInputsOnMobiles?: boolean } = { }): boolean {
         function getContainerWithControlNode(element: Element): Element {
             while (element) {
                 if (element.controlNodes && TabIndex.getElementProps(element).tabStop) {
@@ -770,7 +770,7 @@ class Control {
      * @see Documentation: Server render
      * @private
      */
-    protected _beforeMount(options?: any, contexts?: any, receivedState?: any): Promise<any> | void {
+    protected _beforeMount<State>(options?: any, contexts?: object, receivedState?: State): Promise<State> | void {
         // @ts-ignore
         return undefined;
     }
@@ -953,7 +953,7 @@ class Control {
      * @see Documentation: Server render
      * @private
      */
-    protected _shouldUpdate(): Boolean {
+    protected _shouldUpdate(): boolean {
         return true;
     }
 
@@ -1018,7 +1018,7 @@ class Control {
 
     static _styles: string[] = [];
     static _theme: string[] = [];
-    static isWasaby: Boolean = true;
+    static isWasaby: boolean = true;
 
     /**
      * @deprecated
