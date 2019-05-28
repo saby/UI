@@ -49,7 +49,7 @@
     },
     {
       "name": "Inferno",
-      "path": "./node_modules/saby-inferno/Inferno",
+      "path": "./node_modules/sbis3-ws/Inferno",
       "required": true
     },
     {

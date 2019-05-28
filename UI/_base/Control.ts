@@ -2,7 +2,7 @@
 import template = require('wml!UI/_base/Control');
 
 // @ts-ignore
-import { IoC, detection, TabIndex } from 'Env/Env';
+import { IoC, detection } from 'Env/Env';
 // @ts-ignore
 import doAutofocus = require('Core/helpers/Hcontrol/doAutofocus');
 
@@ -43,11 +43,18 @@ import * as Logger from 'View/Logger';
 
 let countInst = 1;
 
-var lastInteractionTime;
-var dndMode = false;
+let lastInteractionTime;
+let dndMode = false;
 
 function matches(el: Element, selector: string): boolean {
-    return (el.matches || el.matchesSelector || el.msMatchesSelector || el.mozMatchesSelector || el.webkitMatchesSelector || el.oMatchesSelector).call(el, selector);
+    return (
+        el.matches ||
+        el.matchesSelector ||
+        el.msMatchesSelector ||
+        el.mozMatchesSelector ||
+        el.webkitMatchesSelector ||
+        el.oMatchesSelector
+    ).call(el, selector);
 }
 
 const useCheck = typeof document !== 'undefined' && document.cookie && document.cookie.indexOf('s3debug=true') !== -1;
@@ -64,8 +71,6 @@ class Control {
 
     private _$forceUpdateLog: number[];
 
-    private _container: HTMLElement = null;
-
     /**
      * TODO: delete it
      */
@@ -77,7 +82,12 @@ class Control {
     private _saveEnvironment: Function = null;
     private saveInheritOptions: Function = null;
     private _getEnvironment: Function = null;
-    private _notify: Function = null;
+
+    protected _notify: Function = null;
+    protected _template: Function;
+
+    // protected for compatibility, should be private
+    protected _container: HTMLElement = null;
 
     /**
      * Manually triggers start of the update cycle for the control.
@@ -110,9 +120,6 @@ class Control {
     render: Function = null;
 
     _children: HashMap<Control> = null;
-
-    static _styles: string[] = [];
-    static _theme: string[] = [];
 
     constructor(cfg: any) {
         if (!cfg) {
@@ -170,7 +177,7 @@ class Control {
         };
 
         // tslint:disable-next-line:only-arrow-functions
-        this._notify = function (): any {
+        this._notify = function(): any {
             return environment && environment.startEvent(controlNode, arguments);
         };
 
@@ -243,7 +250,7 @@ class Control {
             return res;
         };
 
-        this.render = function (empty?: any, attributes?: any): any {
+        this.render = function(empty?: any, attributes?: any): any {
             const markup = this._getMarkup(null, true, attributes, false);
             this._isRendered = true;
             return markup;
@@ -290,17 +297,19 @@ class Control {
 
                 // если за 10 секунд позвалось не менее 10 _forceUpdate - что-то тут не так
                 if (update2 - update1 < 10000) {
-                    // странным поведением считается только ситуация, когда 10 вызовов _forceUpdate подряд без кликов и нажатия клавиш.
-                    // отключил предупреждения too many calls of _forceUpdate на drag and drop, на нажатия клавиш, и вообще на действия пользователя.
-                    // теперь отлавливаем только лишние перерисовки которые происходят без действий пользователя.
-                    // происходят вызовы _forceUpdate на каждое действие, например:
-                    // в каждый момент драгндропа устанавливается позиция перетаскиваемого элемента, в случае ввода текста - текст отрисовывается через биндинг.
+                    // странным поведением считается только ситуация, когда 10 вызовов _forceUpdate подряд
+                    // без кликов и нажатия клавиш. отключил предупреждения too many calls of _forceUpdate
+                    // на drag and drop, на нажатия клавиш, и вообще на действия пользователя. теперь отлавливаем
+                    // только лишние перерисовки которые происходят без действий пользователя. происходят вызовы
+                    // _forceUpdate на каждое действие, например: в каждый момент драгндропа устанавливается позиция
+                    // перетаскиваемого элемента, в случае ввода текста - текст отрисовывается через биндинг.
 
                     // будем ловить только 10 перерисовок подряд без действий пользователя и считать это неправильным.
 
-                    // в доброске https://online.sbis.ru/opendoc.html?guid=7ee516bb-a35b-4ecc-bbd7-43f3bb0fe6e9 происходит другое
-                    // там попадаются процессы, где много длительных операций происходит за короткое время,
-                    // поэтому на событие modelChanged зовется много пересинхронизаций, в этом месте такое не отловить, поэтому там делается debounce
+                    // в доброске https://online.sbis.ru/opendoc.html?guid=7ee516bb-a35b-4ecc-bbd7-43f3bb0fe6e9
+                    // происходит другое там попадаются процессы, где много длительных операций происходит за короткое
+                    // время, поэтому на событие modelChanged зовется много пересинхронизаций, в этом месте такое
+                    // не отловить, поэтому там делается debounce
                     if (lastInteractionTime < update1) {
                         IoC.resolve('ILogger').warn('Control', 'too many calls of _forceUpdate!!!');
                 }
@@ -397,7 +406,7 @@ class Control {
     * @param {string} name Имя служебной опции
     * @param {*} value Значение опции
     */
-   private _setInternalOption(name:string, value:any): void {
+   private _setInternalOption(name: string, value: any): void {
       if (!this._internalOptions) {
          this._internalOptions = {};
       }
@@ -421,11 +430,11 @@ class Control {
             return true;
         }
         const themesController = ThemesController.getInstance();
-        //@ts-ignore
+        // @ts-ignore
         const styles = this._styles || this.constructor._styles || [];
-        //@ts-ignore
+        // @ts-ignore
         const themedStyles = this._theme || this.constructor._theme || [];
-        
+
         if (oldTheme) {
             this._removeOldStyles(themesController, oldTheme, themedStyles, []);
         }
@@ -639,13 +648,14 @@ class Control {
                     // при открытии задачи поле исполнителя должно активироваться, чтобы показался саггест.
                     // но фокус на поле ввода внутри не должен попасть, чтобы не повторилась ошибка на ipad.
 
-                    // поищем родительский элемент от найденного и сфокусируем его. так контрол, в котором лежит поле ввода,
-                    // будет сфокусирован, но фокус встанет не в поле ввода, а в его контейнер.
+                    // поищем родительский элемент от найденного и сфокусируем его. так контрол, в котором лежит
+                    // поле ввода, будет сфокусирован, но фокус встанет не в поле ввода, а в его контейнер.
 
                     // enableScreenKeyboard должен быть параметром метода activate, а не свойством контрола поля ввода,
-                    // потому что решается базовая проблема, и решаться она должна в общем случае (для любого поля ввода),
-                    // и не для любого вызова activate а только для тех вызовов, когда эта поведение необходимо.
-                    // Например, при открытии панели не надо фокусировать поля ввода на мобильных устройствах.
+                    // потому что решается базовая проблема, и решаться она должна в общем случае (для любого
+                    // поля ввода), и не для любого вызова activate а только для тех вызовов, когда эта поведение
+                    // необходимо. Например, при открытии панели не надо фокусировать поля ввода
+                    // на мобильных устройствах.
                     if (!_cfg.enableScreenKeyboard && detection.isMobilePlatform) {
                         // если попали на поле ввода, нужно взять его родительский элемент и фокусировать его
                         if (matches(container, 'input[type="text"], textarea, *[contentEditable=true]')) {
@@ -762,7 +772,7 @@ class Control {
      * @see Documentation: Server render
      * @private
      */
-    _beforeMount(options?: any): Promise<any> | void {
+    protected _beforeMount(options?: any, contexts?: any, receivedState?: any): Promise<any> | void {
         // @ts-ignore
         return undefined;
     }
@@ -807,7 +817,7 @@ class Control {
                                 // @ts-ignore
                                 this._originTemplate = this._template;
                                 // @ts-ignore
-                                this._template = function (
+                                this._template = function(
                                     data: any,
                                     attr: any,
                                     context: any,
@@ -823,7 +833,7 @@ class Control {
                                 // @ts-ignore
                                 this._template.stable = true;
                                 // tslint:disable-next-line:only-arrow-functions
-                                this._afterMount = function (): void {
+                                this._afterMount = function(): void {
                                     // can be overridden
                                 };
                                 resolve(false);
@@ -868,7 +878,7 @@ class Control {
      * @see Documentation: Server render
      * @private
      */
-    _afterMount(): void {
+    protected _afterMount(options?: any, contexts?: any): void {
         // Do
     }
 
@@ -908,7 +918,7 @@ class Control {
         this._beforeUpdate.apply(this, arguments);
     }
 
-    _beforeUpdate(options?: any): void {
+    protected _beforeUpdate(options?: any, contexts?: any): void {
         // Do
     }
 
@@ -945,7 +955,7 @@ class Control {
      * @see Documentation: Server render
      * @private
      */
-    _shouldUpdate(): Boolean {
+    protected _shouldUpdate(): Boolean {
         return true;
     }
 
@@ -976,7 +986,7 @@ class Control {
      * @see Documentation: Context
      * @private
      */
-    _afterUpdate(): void {
+    protected _afterUpdate(oldOptions?: any, oldContext?: any): void {
         // Do
     }
 
@@ -1004,9 +1014,12 @@ class Control {
         this._beforeUnmount.apply(this, arguments);
     }
 
-    _beforeUnmount(): void {
+    protected _beforeUnmount(): void {
         // Do
     }
+
+    static _styles: string[] = [];
+    static _theme: string[] = [];
     static isWasaby: Boolean = true;
 
     /**

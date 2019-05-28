@@ -1,11 +1,11 @@
 <div>
    Multi themes<br />
    <div>
-      <UIDemo.Demo4_sub theme="{{theme1}}" />
+      <UIDemo.ThemesDemo.ThemedControl theme="{{theme1}}" />
       <button on:click="switchFirst()">switch theme</button>
    </div>
    <div>
-      <UIDemo.Demo4_sub theme="{{theme2}}" />
+      <UIDemo.ThemesDemo.ThemedControl theme="{{theme2}}" />
       <button on:click="switchSecond()">switch theme</button>
    </div>
 </div>
