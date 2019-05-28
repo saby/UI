@@ -64,14 +64,14 @@ export interface IControlOptions {
     theme?: string;
 }
 
-class Control<T extends IControlOptions> {
+class Control<Options extends IControlOptions> {
     private _mounted: Boolean = false;
     private _unmounted: Boolean = false;
     private _destroyed: Boolean = false;
     private _active: Boolean = false;
 
     private _instId: string;
-    private _options: T = null;
+    private _options: Options = null;
     private _internalOptions: HashMap<any> = null;
 
     private _$forceUpdateLog: number[];
@@ -398,7 +398,7 @@ class Control<T extends IControlOptions> {
     }
 
     // Just save link to new options
-    saveOptions(options: T, controlNode: any = null): Boolean {
+    saveOptions(options: Options, controlNode: any = null): Boolean {
         this._options = options;
         if (controlNode) {
             this._container = controlNode.element;
@@ -775,12 +775,12 @@ class Control<T extends IControlOptions> {
      * @see Documentation: Server render
      * @private
      */
-    protected _beforeMount(options?: T, contexts?: any, receivedState?: any): Promise<any> | void {
+    protected _beforeMount(options?: Options, contexts?: any, receivedState?: any): Promise<any> | void {
         // @ts-ignore
         return undefined;
     }
 
-    _beforeMountLimited(opts: T): Promise<any> | void {
+    _beforeMountLimited(opts: Options): Promise<any> | void {
         // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
         // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
         // _template на экземпляре, _template устанавливается сразу после вызова базового конструктора
@@ -881,7 +881,7 @@ class Control<T extends IControlOptions> {
      * @see Documentation: Server render
      * @private
      */
-    protected _afterMount(options?: T, contexts?: any): void {
+    protected _afterMount(options?: Options, contexts?: any): void {
         // Do
     }
 
@@ -914,14 +914,14 @@ class Control<T extends IControlOptions> {
      * @private
      */
 
-    __beforeUpdate(options: T): void {
+    __beforeUpdate(options: Options): void {
         if (options.theme !== this._options.theme) {
             this._manageStyles(options.theme, this._options.theme);
         }
         this._beforeUpdate.apply(this, arguments);
     }
 
-    protected _beforeUpdate(options?: T, contexts?: any): void {
+    protected _beforeUpdate(options?: Options, contexts?: any): void {
         // Do
     }
 
@@ -989,7 +989,7 @@ class Control<T extends IControlOptions> {
      * @see Documentation: Context
      * @private
      */
-    protected _afterUpdate(oldOptions?: T, oldContext?: any): void {
+    protected _afterUpdate(oldOptions?: Options, oldContext?: any): void {
         // Do
     }
 
