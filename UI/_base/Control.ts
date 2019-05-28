@@ -64,8 +64,6 @@ class Control {
 
     private _$forceUpdateLog: number[];
 
-    private _container: HTMLElement = null;
-
     /**
      * TODO: delete it
      */
@@ -77,7 +75,12 @@ class Control {
     private _saveEnvironment: Function = null;
     private saveInheritOptions: Function = null;
     private _getEnvironment: Function = null;
-    private _notify: Function = null;
+
+    protected _notify: Function = null;
+    protected _template: Function;
+
+    // protected for compatibility, should be private
+    protected _container: HTMLElement = null;
 
     /**
      * Manually triggers start of the update cycle for the control.
@@ -425,7 +428,7 @@ class Control {
         const styles = this._styles || this.constructor._styles || [];
         //@ts-ignore
         const themedStyles = this._theme || this.constructor._theme || [];
-        
+
         if (oldTheme) {
             this._removeOldStyles(themesController, oldTheme, themedStyles, []);
         }
@@ -761,7 +764,7 @@ class Control {
      * @see Documentation: Server render
      * @private
      */
-    _beforeMount(options?: any): Promise<any> | void {
+    protected _beforeMount(options?: any, contexts?: any, receivedState?: any): Promise<any> | void {
         // @ts-ignore
         return undefined;
     }
@@ -867,7 +870,7 @@ class Control {
      * @see Documentation: Server render
      * @private
      */
-    _afterMount(): void {
+    protected _afterMount(options?: any, contexts?: any): void {
         // Do
     }
 
@@ -907,7 +910,7 @@ class Control {
         this._beforeUpdate.apply(this, arguments);
     }
 
-    _beforeUpdate(options?: any): void {
+    protected _beforeUpdate(options?: any, contexts?: any): void {
         // Do
     }
 
@@ -944,7 +947,7 @@ class Control {
      * @see Documentation: Server render
      * @private
      */
-    _shouldUpdate(): Boolean {
+    protected _shouldUpdate(): Boolean {
         return true;
     }
 
@@ -975,7 +978,7 @@ class Control {
      * @see Documentation: Context
      * @private
      */
-    _afterUpdate(): void {
+    protected _afterUpdate(oldOptions?: any, oldContext?: any): void {
         // Do
     }
 
@@ -1003,7 +1006,7 @@ class Control {
         this._beforeUnmount.apply(this, arguments);
     }
 
-    _beforeUnmount(): void {
+    protected _beforeUnmount(): void {
         // Do
     }
     static isWasaby: Boolean = true;
