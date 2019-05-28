@@ -43,9 +43,6 @@ import * as Logger from 'View/Logger';
 
 let countInst = 1;
 
-let lastInteractionTime;
-let dndMode = false;
-
 function matches(el: Element, selector: string): boolean {
     return (
         el.matches ||
@@ -57,8 +54,6 @@ function matches(el: Element, selector: string): boolean {
     ).call(el, selector);
 }
 
-const useCheck = typeof document !== 'undefined' && document.cookie && document.cookie.indexOf('s3debug=true') !== -1;
-
 class Control {
     private _mounted: boolean = false;
     private _unmounted: boolean = false;
@@ -68,8 +63,6 @@ class Control {
     private _instId: string;
     private _options: any = null;
     private _internalOptions: Record<string, unknown> = null;
-
-    private _$forceUpdateLog: number[];
 
     /**
      * TODO: delete it
@@ -191,7 +184,6 @@ class Control {
                 // So we need to delay _forceUpdate till the moment component will be mounted to DOM
                 control._$needForceUpdate = true;
             } else {
-                this._checkForceUpdate();
                 if (environment) {
                     environment.forceRebuild(controlNode.id);
                 }
@@ -264,63 +256,6 @@ class Control {
         /*dont use this*/
         if (this._afterCreate) {
             this._afterCreate(cfg);
-        }
-    }
-    private _checkForceUpdate(): void {
-        if (useCheck) {
-            if (!this.hasOwnProperty('_$forceUpdateLog')) {
-                this._$forceUpdateLog = [];
-            }
-            if (!lastInteractionTime) {
-                lastInteractionTime = Date.now();
-                document.body.addEventListener('mousedown', () => {
-                    lastInteractionTime = Date.now();
-                    dndMode = true;
-                }, true);
-                document.body.addEventListener('mousemove', () => {
-                    if (dndMode) {
-                        lastInteractionTime = Date.now();
-                    }
-                }, true);
-                document.body.addEventListener('mouseup', () => {
-                    lastInteractionTime = Date.now();
-                    dndMode = false;
-                }, true);
-                document.body.addEventListener('keydown', () => {
-                    lastInteractionTime = Date.now();
-                }, true);
-            }
-            this._$forceUpdateLog.push(Date.now());
-            if (this._$forceUpdateLog.length >= 10) {
-                const update1 = this._$forceUpdateLog[this._$forceUpdateLog.length - 10];
-                const update2 = this._$forceUpdateLog[this._$forceUpdateLog.length - 1];
-
-                // если за 10 секунд позвалось не менее 10 _forceUpdate - что-то тут не так
-                if (update2 - update1 < 10000) {
-                    // странным поведением считается только ситуация, когда 10 вызовов _forceUpdate подряд
-                    // без кликов и нажатия клавиш. отключил предупреждения too many calls of _forceUpdate
-                    // на drag and drop, на нажатия клавиш, и вообще на действия пользователя. теперь отлавливаем
-                    // только лишние перерисовки которые происходят без действий пользователя. происходят вызовы
-                    // _forceUpdate на каждое действие, например: в каждый момент драгндропа устанавливается позиция
-                    // перетаскиваемого элемента, в случае ввода текста - текст отрисовывается через биндинг.
-
-                    // будем ловить только 10 перерисовок подряд без действий пользователя и считать это неправильным.
-
-                    // в доброске https://online.sbis.ru/opendoc.html?guid=7ee516bb-a35b-4ecc-bbd7-43f3bb0fe6e9
-                    // происходит другое там попадаются процессы, где много длительных операций происходит за короткое
-                    // время, поэтому на событие modelChanged зовется много пересинхронизаций, в этом месте такое
-                    // не отловить, поэтому там делается debounce
-                    if (lastInteractionTime < update1) {
-                        IoC.resolve('ILogger').warn('Control', 'too many calls of _forceUpdate!!!');
-                }
-            }
-            }
-            if (this._$forceUpdateLog.length >= 100) {
-                this._$forceUpdateLog = this._$forceUpdateLog.slice(
-                    this._$forceUpdateLog.length - 10,
-                    this._$forceUpdateLog.length
-                );
-            }
         }
     }
     /**
