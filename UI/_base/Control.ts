@@ -958,7 +958,7 @@ class Control<Options extends IControlOptions> {
      * @see Documentation: Server render
      * @private
      */
-    protected _shouldUpdate(): Boolean {
+    protected _shouldUpdate(options: Options, context: any): Boolean {
         return true;
     }
 
