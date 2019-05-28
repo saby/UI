@@ -43,11 +43,18 @@ import * as Logger from 'View/Logger';
 
 let countInst = 1;
 
-var lastInteractionTime;
-var dndMode = false;
+let lastInteractionTime;
+let dndMode = false;
 
 function matches(el: Element, selector: string): boolean {
-    return (el.matches || el.matchesSelector || el.msMatchesSelector || el.mozMatchesSelector || el.webkitMatchesSelector || el.oMatchesSelector).call(el, selector);
+    return (
+        el.matches ||
+        el.matchesSelector ||
+        el.msMatchesSelector ||
+        el.mozMatchesSelector ||
+        el.webkitMatchesSelector ||
+        el.oMatchesSelector
+    ).call(el, selector);
 }
 
 const useCheck = typeof document !== 'undefined' && document.cookie && document.cookie.indexOf('s3debug=true') !== -1;
@@ -114,9 +121,6 @@ class Control {
 
     _children: HashMap<Control> = null;
 
-    static _styles: string[] = [];
-    static _theme: string[] = [];
-
     constructor(cfg: any) {
         if (!cfg) {
             cfg = {};
@@ -173,7 +177,7 @@ class Control {
         };
 
         // tslint:disable-next-line:only-arrow-functions
-        this._notify = function (): any {
+        this._notify = function(): any {
             return environment && environment.startEvent(controlNode, arguments);
         };
 
@@ -246,7 +250,7 @@ class Control {
             return res;
         };
 
-        this.render = function (empty?: any, attributes?: any): any {
+        this.render = function(empty?: any, attributes?: any): any {
             const markup = this._getMarkup(null, true, attributes, false);
             this._isRendered = true;
             return markup;
@@ -293,17 +297,19 @@ class Control {
 
                 // если за 10 секунд позвалось не менее 10 _forceUpdate - что-то тут не так
                 if (update2 - update1 < 10000) {
-                    // странным поведением считается только ситуация, когда 10 вызовов _forceUpdate подряд без кликов и нажатия клавиш.
-                    // отключил предупреждения too many calls of _forceUpdate на drag and drop, на нажатия клавиш, и вообще на действия пользователя.
-                    // теперь отлавливаем только лишние перерисовки которые происходят без действий пользователя.
-                    // происходят вызовы _forceUpdate на каждое действие, например:
-                    // в каждый момент драгндропа устанавливается позиция перетаскиваемого элемента, в случае ввода текста - текст отрисовывается через биндинг.
+                    // странным поведением считается только ситуация, когда 10 вызовов _forceUpdate подряд
+                    // без кликов и нажатия клавиш. отключил предупреждения too many calls of _forceUpdate
+                    // на drag and drop, на нажатия клавиш, и вообще на действия пользователя. теперь отлавливаем
+                    // только лишние перерисовки которые происходят без действий пользователя. происходят вызовы
+                    // _forceUpdate на каждое действие, например: в каждый момент драгндропа устанавливается позиция
+                    // перетаскиваемого элемента, в случае ввода текста - текст отрисовывается через биндинг.
 
                     // будем ловить только 10 перерисовок подряд без действий пользователя и считать это неправильным.
 
-                    // в доброске https://online.sbis.ru/opendoc.html?guid=7ee516bb-a35b-4ecc-bbd7-43f3bb0fe6e9 происходит другое
-                    // там попадаются процессы, где много длительных операций происходит за короткое время,
-                    // поэтому на событие modelChanged зовется много пересинхронизаций, в этом месте такое не отловить, поэтому там делается debounce
+                    // в доброске https://online.sbis.ru/opendoc.html?guid=7ee516bb-a35b-4ecc-bbd7-43f3bb0fe6e9
+                    // происходит другое там попадаются процессы, где много длительных операций происходит за короткое
+                    // время, поэтому на событие modelChanged зовется много пересинхронизаций, в этом месте такое
+                    // не отловить, поэтому там делается debounce
                     if (lastInteractionTime < update1) {
                         IoC.resolve('ILogger').warn('Control', 'too many calls of _forceUpdate!!!');
                 }
@@ -318,29 +324,29 @@ class Control {
         }
     }
     /**
-      * @name Core/Control#readOnly
-      * @cfg {Boolean} Determines whether user can change control's value
-      * (or interact with the control if its value is not editable).
-      * @variant true User cannot change control's value (or interact with the control if its value is not editable).
-      * @variant false User can change control's value (or interact with the control if its value is not editable).
-      * @variant inherited Value inherited from the parent.
-      * @default Inherited
-      * @example
-      * In this example, List and Input.Text will be rendered with read-only styles, and the user won't be
-      * able to edit them. However, Button has readOnly option explicitly set to false,
-      * thus it won't inherit this option from the List, and user will be able to click on it.
-      * <pre>
-      *    <Controls.list:View readOnly="{{true}}">
-      *       <ws:itemTemplate>
-      *          <Controls.input:Text />
-      *          <Controls.buttons:Path readOnly="{{false}}" />
-      *       </ws:itemTemplate>
-      *    </Controls.list:View>
-      * </pre>
-      * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
-      * from the parent control. By default, all controls are active.
-      * @see Inherited options
-      */
+     * @name Core/Control#readOnly
+     * @cfg {Boolean} Determines whether user can change control's value
+     * (or interact with the control if its value is not editable).
+     * @variant true User cannot change control's value (or interact with the control if its value is not editable).
+     * @variant false User can change control's value (or interact with the control if its value is not editable).
+     * @variant inherited Value inherited from the parent.
+     * @default Inherited
+     * @example
+     * In this example, List and Input.Text will be rendered with read-only styles, and the user won't be
+     * able to edit them. However, Button has readOnly option explicitly set to false,
+     * thus it won't inherit this option from the List, and user will be able to click on it.
+     * <pre>
+     *    <Controls.list:View readOnly="{{true}}">
+     *       <ws:itemTemplate>
+     *          <Controls.input:Text />
+     *          <Controls.buttons:Path readOnly="{{false}}" />
+     *       </ws:itemTemplate>
+     *    </Controls.list:View>
+     * </pre>
+     * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
+     * from the parent control. By default, all controls are active.
+     * @see Inherited options
+     */
 
     /**
      * @name Core/Control#theme
@@ -396,11 +402,11 @@ class Control {
     }
 
     /**
-    * Метод задания значения служебной опции
-    * @param {string} name Имя служебной опции
-    * @param {*} value Значение опции
-    */
-   private _setInternalOption(name:string, value:any): void {
+     * Метод задания значения служебной опции
+     * @param {string} name Имя служебной опции
+     * @param {*} value Значение опции
+     */
+   private _setInternalOption(name: string, value: any): void {
       if (!this._internalOptions) {
          this._internalOptions = {};
       }
@@ -424,9 +430,9 @@ class Control {
             return true;
         }
         const themesController = ThemesController.getInstance();
-        //@ts-ignore
+        // @ts-ignore
         const styles = this._styles || this.constructor._styles || [];
-        //@ts-ignore
+        // @ts-ignore
         const themedStyles = this._theme || this.constructor._theme || [];
 
         if (oldTheme) {
@@ -599,7 +605,6 @@ class Control {
      *    </div>
      * </pre>
      * @param {Object} cfg Object containing parameters of this method
-     * Using of parameter ignoreInputsOnMobiles=true on mobile devices, it will focus not input fields but parent element
      * @remark Method finds DOM element inside the control (and its child controls) that can be focused and
      * sets focus on it. Returns true if focus was set successfully and false if nothing was focused.
      * When control becomes active, all of its child controls become active too. When control activates,
@@ -641,13 +646,14 @@ class Control {
                     // при открытии задачи поле исполнителя должно активироваться, чтобы показался саггест.
                     // но фокус на поле ввода внутри не должен попасть, чтобы не повторилась ошибка на ipad.
 
-                    // поищем родительский элемент от найденного и сфокусируем его. так контрол, в котором лежит поле ввода,
-                    // будет сфокусирован, но фокус встанет не в поле ввода, а в его контейнер.
+                    // поищем родительский элемент от найденного и сфокусируем его. так контрол, в котором лежит
+                    // поле ввода, будет сфокусирован, но фокус встанет не в поле ввода, а в его контейнер.
 
                     // ignoreInputsOnMobiles должен быть параметром метода activate, а не свойством контрола поля ввода,
-                    // потому что решается базовая проблема, и решаться она должна в общем случае (для любого поля ввода),
-                    // и не для любого вызова activate а только для тех вызовов, когда эта поведение необходимо.
-                    // Например, при открытии панели не надо фокусировать поля ввода на мобильных устройствах.
+                    // потому что решается базовая проблема, и решаться она должна в общем случае (для любого
+                    // поля ввода), и не для любого вызова activate а только для тех вызовов, когда эта поведение
+                    // необходимо. Например, при открытии панели не надо фокусировать поля ввода
+                    // на мобильных устройствах.
                     if (cfg.ignoreInputsOnMobiles && detection.isMobilePlatform) {
                         // если попали на поле ввода, нужно взять его родительский элемент и фокусировать его
                         if (matches(container, 'input[type="text"], textarea, *[contentEditable=true]')) {
@@ -809,7 +815,7 @@ class Control {
                                 // @ts-ignore
                                 this._originTemplate = this._template;
                                 // @ts-ignore
-                                this._template = function (
+                                this._template = function(
                                     data: any,
                                     attr: any,
                                     context: any,
@@ -825,7 +831,7 @@ class Control {
                                 // @ts-ignore
                                 this._template.stable = true;
                                 // tslint:disable-next-line:only-arrow-functions
-                                this._afterMount = function (): void {
+                                this._afterMount = function(): void {
                                     // can be overridden
                                 };
                                 resolve(false);
@@ -1009,6 +1015,9 @@ class Control {
     protected _beforeUnmount(): void {
         // Do
     }
+
+    static _styles: string[] = [];
+    static _theme: string[] = [];
     static isWasaby: Boolean = true;
 
     /**

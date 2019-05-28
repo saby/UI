@@ -1,16 +1,19 @@
-//@ts-ignore
+// @ts-ignore
 import { OptionsResolver } from 'View/Executor/Utils';
 import Control from './Control';
-//@ts-ignore
+// @ts-ignore
 import * as Logger from 'View/Logger';
-//@ts-ignore
+// @ts-ignore
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
 
 export default function createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
-    var defaultOpts = OptionsResolver.getDefaultOptions(ctor);
+    const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
     // @ts-ignore
     OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
-    var attrs = { inheritOptions: {} }, ctr;
+    const attrs = {
+        inheritOptions: {}
+    };
+    let ctr: any;
     OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
     try {
         ctr = new ctor(cfg);
@@ -28,12 +31,13 @@ export default function createControl(ctor: any, cfg: any, domElement: HTMLEleme
 }
 
 export async function async(ctor: any, cfg: any, domElement: HTMLElement): Promise<Control> {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         try {
-            var inst = createControl(ctor, cfg, domElement),
-                baseAM = inst._afterMount;
+            const inst = createControl(ctor, cfg, domElement);
+            const baseAM = inst._afterMount;
 
-            inst._afterMount = function () {
+            // @ts-ignore
+            inst._afterMount = function(): void {
                 baseAM.apply(this, arguments);
                 resolve(this);
             };
