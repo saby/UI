@@ -656,7 +656,7 @@ class Control {
                     // поля ввода), и не для любого вызова activate а только для тех вызовов, когда эта поведение
                     // необходимо. Например, при открытии панели не надо фокусировать поля ввода
                     // на мобильных устройствах.
-                    if (!_cfg.enableScreenKeyboard && detection.isMobilePlatform) {
+                    if (!cfg.enableScreenKeyboard && detection.isMobilePlatform) {
                         // если попали на поле ввода, нужно взять его родительский элемент и фокусировать его
                         if (matches(container, 'input[type="text"], textarea, *[contentEditable=true]')) {
                             container = getContainerWithControlNode(container);
