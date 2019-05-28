@@ -4,8 +4,7 @@ def workspace = "/home/sbis/workspace/ui_${version}/${BRANCH_NAME}"
     ws (workspace){
         deleteDir()
         checkout([$class: 'GitSCM',
-            //branches: [[name: "rc-${version}"]],
-            branches: [[name: "19.400/feature/may/add-ui-themes-stage-230519"]],
+            branches: [[name: "rc-${version}"]],
             doGenerateSubmoduleConfigurations: false,
             extensions: [[
                 $class: 'RelativeTargetDirectory',
