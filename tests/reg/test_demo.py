@@ -26,7 +26,7 @@ class RegressionDemo4(TestCaseUI):
         https://online.sbis.ru/opendoc.html?guid=ea9d4352-5047-436c-9bfc-8c61af9978f8
         """
 
-        VDOMStartPage(self).open_vdom_page('UIDemo/Demo4')
+        VDOMStartPage(self).open_vdom_page('UIDemo/ThemesDemo/Page')
         self.browser.set_window_position(0, 0)
         self.browser.maximize_window()
 

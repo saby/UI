@@ -11,7 +11,7 @@ class RegressionTestSmoke(TestCaseUI):
     def test_ready_page(self):
 
         log("Проверка на пустую страницу")
-        VDOMStartPage(self).open_vdom_page('UIDemo/Demo4')
+        VDOMStartPage(self).open_vdom_page('UIDemo/ThemesDemo/Page')
         UIDemoPage(self).first_btn.should_be(Visible, msg='Страница не построена', wait_time=60)
 
 
