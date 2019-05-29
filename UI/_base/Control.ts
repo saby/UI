@@ -540,6 +540,8 @@ class Control {
      *    </div>
      * </pre>
      * @param {Object} cfg Object containing parameters of this method
+     * Using of parameter enableScreenKeyboard = true on devices with on-screen keyboard, method will focus input fields and try to show screen keyboard.
+     * Using of parameter enableScreenKeyboard = false, method will focus not input fields but parent element.
      * @remark Method finds DOM element inside the control (and its child controls) that can be focused and
      * sets focus on it. Returns true if focus was set successfully and false if nothing was focused.
      * When control becomes active, all of its child controls become active too. When control activates,
@@ -584,12 +586,12 @@ class Control {
                     // поищем родительский элемент от найденного и сфокусируем его. так контрол, в котором лежит
                     // поле ввода, будет сфокусирован, но фокус встанет не в поле ввода, а в его контейнер.
 
-                    // ignoreInputsOnMobiles должен быть параметром метода activate, а не свойством контрола поля ввода,
+                    // enableScreenKeyboard должен быть параметром метода activate, а не свойством контрола поля ввода,
                     // потому что решается базовая проблема, и решаться она должна в общем случае (для любого
                     // поля ввода), и не для любого вызова activate а только для тех вызовов, когда эта поведение
                     // необходимо. Например, при открытии панели не надо фокусировать поля ввода
                     // на мобильных устройствах.
-                    if (cfg.ignoreInputsOnMobiles && detection.isMobilePlatform) {
+                    if (!cfg.enableScreenKeyboard && detection.isMobilePlatform) {
                         // если попали на поле ввода, нужно взять его родительский элемент и фокусировать его
                         if (matches(container, 'input[type="text"], textarea, *[contentEditable=true]')) {
                             container = getContainerWithControlNode(container);
