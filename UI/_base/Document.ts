@@ -15,7 +15,7 @@ import AppData from './Deprecated/AppData';
 import { default as AppInit } from 'Application/Initializer';
 import * as AppEnv from 'Application/Env';
 // @ts-ignore
-import { PresentationService } from 'SbisEnv/PresentationService';
+import PresentationService from 'SbisEnv/PresentationService';
 
 class Document extends Control {
     _template: Function = template;

@@ -43,9 +43,6 @@ import * as Logger from 'View/Logger';
 
 let countInst = 1;
 
-let lastInteractionTime;
-let dndMode = false;
-
 function matches(el: Element, selector: string): boolean {
     return (
         el.matches ||
@@ -57,24 +54,20 @@ function matches(el: Element, selector: string): boolean {
     ).call(el, selector);
 }
 
-const useCheck = typeof document !== 'undefined' && document.cookie && document.cookie.indexOf('s3debug=true') !== -1;
-
 export interface IControlOptions {
     readOnly?: boolean;
     theme?: string;
 }
 
-class Control<Options extends IControlOptions> {
-    private _mounted: Boolean = false;
-    private _unmounted: Boolean = false;
-    private _destroyed: Boolean = false;
-    private _active: Boolean = false;
+class Control<TOptions extends IControlOptions> {
+    private _mounted: boolean = false;
+    private _unmounted: boolean = false;
+    private _destroyed: boolean = false;
+    private _active: boolean = false;
 
     private _instId: string;
-    private _options: Options = null;
-    private _internalOptions: HashMap<any> = null;
-
-    private _$forceUpdateLog: number[];
+    private _options: TOptions = null;
+    private _internalOptions: Record<string, unknown> = null;
 
     /**
      * TODO: delete it
@@ -88,7 +81,7 @@ class Control<Options extends IControlOptions> {
     private saveInheritOptions: Function = null;
     private _getEnvironment: Function = null;
 
-    protected _notify: Function = null;
+    protected _notify: (eventName: string, args?: unknown[], options?: {bubbling?: boolean}) => unknown = null;
     protected _template: Function;
 
     // protected for compatibility, should be private
@@ -124,7 +117,7 @@ class Control<Options extends IControlOptions> {
     // Render function for text generator
     render: Function = null;
 
-    _children: HashMap<Control> = null;
+    _children: Record<string, Control | HTMLElement> = null;
 
     constructor(cfg: any) {
         if (!cfg) {
@@ -196,7 +189,6 @@ class Control<Options extends IControlOptions> {
                 // So we need to delay _forceUpdate till the moment component will be mounted to DOM
                 control._$needForceUpdate = true;
             } else {
-                this._checkForceUpdate();
                 if (environment) {
                     environment.forceRebuild(controlNode.id);
                 }
@@ -211,7 +203,7 @@ class Control<Options extends IControlOptions> {
         this._getMarkup = function _getMarkup(
             rootKey?: string,
             isRoot?: boolean,
-            attributes?: any,
+            attributes?: object,
             isVdom?: boolean
         ): any {
             if (!this._template.stable) {
@@ -271,63 +263,6 @@ class Control<Options extends IControlOptions> {
             this._afterCreate(cfg);
         }
     }
-    private _checkForceUpdate(): void {
-        if (useCheck) {
-            if (!this.hasOwnProperty('_$forceUpdateLog')) {
-                this._$forceUpdateLog = [];
-            }
-            if (!lastInteractionTime) {
-                lastInteractionTime = Date.now();
-                document.body.addEventListener('mousedown', () => {
-                    lastInteractionTime = Date.now();
-                    dndMode = true;
-                }, true);
-                document.body.addEventListener('mousemove', () => {
-                    if (dndMode) {
-                        lastInteractionTime = Date.now();
-                    }
-                }, true);
-                document.body.addEventListener('mouseup', () => {
-                    lastInteractionTime = Date.now();
-                    dndMode = false;
-                }, true);
-                document.body.addEventListener('keydown', () => {
-                    lastInteractionTime = Date.now();
-                }, true);
-            }
-            this._$forceUpdateLog.push(Date.now());
-            if (this._$forceUpdateLog.length >= 10) {
-                const update1 = this._$forceUpdateLog[this._$forceUpdateLog.length - 10];
-                const update2 = this._$forceUpdateLog[this._$forceUpdateLog.length - 1];
-
-                // если за 10 секунд позвалось не менее 10 _forceUpdate - что-то тут не так
-                if (update2 - update1 < 10000) {
-                    // странным поведением считается только ситуация, когда 10 вызовов _forceUpdate подряд
-                    // без кликов и нажатия клавиш. отключил предупреждения too many calls of _forceUpdate
-                    // на drag and drop, на нажатия клавиш, и вообще на действия пользователя. теперь отлавливаем
-                    // только лишние перерисовки которые происходят без действий пользователя. происходят вызовы
-                    // _forceUpdate на каждое действие, например: в каждый момент драгндропа устанавливается позиция
-                    // перетаскиваемого элемента, в случае ввода текста - текст отрисовывается через биндинг.
-
-                    // будем ловить только 10 перерисовок подряд без действий пользователя и считать это неправильным.
-
-                    // в доброске https://online.sbis.ru/opendoc.html?guid=7ee516bb-a35b-4ecc-bbd7-43f3bb0fe6e9
-                    // происходит другое там попадаются процессы, где много длительных операций происходит за короткое
-                    // время, поэтому на событие modelChanged зовется много пересинхронизаций, в этом месте такое
-                    // не отловить, поэтому там делается debounce
-                    if (lastInteractionTime < update1) {
-                        IoC.resolve('ILogger').warn('Control', 'too many calls of _forceUpdate!!!');
-                }
-            }
-            }
-            if (this._$forceUpdateLog.length >= 100) {
-                this._$forceUpdateLog = this._$forceUpdateLog.slice(
-                    this._$forceUpdateLog.length - 10,
-                    this._$forceUpdateLog.length
-                );
-            }
-        }
-    }
     /**
      * @name Core/Control#readOnly
      * @cfg {Boolean} Determines whether user can change control's value
@@ -383,7 +318,7 @@ class Control<Options extends IControlOptions> {
         return this._instId;
     }
 
-    mountToDom(element: HTMLElement, cfg: any, controlClass: any): void {
+    mountToDom(element: HTMLElement, cfg: any, controlClass: Control): void {
         // @ts-ignore
         if (!this.VDOMReady) {
             // @ts-ignore
@@ -398,7 +333,7 @@ class Control<Options extends IControlOptions> {
     }
 
     // Just save link to new options
-    saveOptions(options: Options, controlNode: any = null): Boolean {
+    saveOptions(options: TOptions, controlNode: any = null): boolean {
         this._options = options;
         if (controlNode) {
             this._container = controlNode.element;
@@ -411,7 +346,7 @@ class Control<Options extends IControlOptions> {
      * @param {string} name Имя служебной опции
      * @param {*} value Значение опции
      */
-   private _setInternalOption(name: string, value: any): void {
+   private _setInternalOption(name: string, value: unknown): void {
       if (!this._internalOptions) {
          this._internalOptions = {};
       }
@@ -422,7 +357,7 @@ class Control<Options extends IControlOptions> {
      * Метод задания служебных опций
      * @param {Object} internal Объект, содержащий ключи и значения устанавливаемых служебных опций
      */
-    _setInternalOptions(internal: HashMap<any>): void {
+    _setInternalOptions(internal: Record<string, unknown>): void {
         for (const name in internal) {
             if (internal.hasOwnProperty(name)) {
                 this._setInternalOption(name, internal[name]);
@@ -446,7 +381,7 @@ class Control<Options extends IControlOptions> {
         return this._loadNewStyles(themesController, theme, themedStyles, styles);
     }
 
-    _checkNewStyles(): Boolean {
+    _checkNewStyles(): boolean {
         if ((this._theme && !this._theme.forEach) || (this._styles && !this._styles.forEach)) {
             return false;
         }
@@ -610,6 +545,8 @@ class Control<Options extends IControlOptions> {
      *    </div>
      * </pre>
      * @param {Object} cfg Object containing parameters of this method
+     * Using of parameter enableScreenKeyboard = true on devices with on-screen keyboard, method will focus input fields and try to show screen keyboard.
+     * Using of parameter enableScreenKeyboard = false, method will focus not input fields but parent element.
      * @remark Method finds DOM element inside the control (and its child controls) that can be focused and
      * sets focus on it. Returns true if focus was set successfully and false if nothing was focused.
      * When control becomes active, all of its child controls become active too. When control activates,
@@ -619,7 +556,7 @@ class Control<Options extends IControlOptions> {
      * @see activated
      * @see deactivated
      */
-    activate(cfg: object = {}): Boolean {
+    activate(cfg: { ignoreInputsOnMobiles?: boolean } = { }): boolean {
         function getContainerWithControlNode(element: Element): Element {
             while (element) {
                 if (element.controlNodes && TabIndex.getElementProps(element).tabStop) {
@@ -654,12 +591,12 @@ class Control<Options extends IControlOptions> {
                     // поищем родительский элемент от найденного и сфокусируем его. так контрол, в котором лежит
                     // поле ввода, будет сфокусирован, но фокус встанет не в поле ввода, а в его контейнер.
 
-                    // ignoreInputsOnMobiles должен быть параметром метода activate, а не свойством контрола поля ввода,
+                    // enableScreenKeyboard должен быть параметром метода activate, а не свойством контрола поля ввода,
                     // потому что решается базовая проблема, и решаться она должна в общем случае (для любого
                     // поля ввода), и не для любого вызова activate а только для тех вызовов, когда эта поведение
                     // необходимо. Например, при открытии панели не надо фокусировать поля ввода
                     // на мобильных устройствах.
-                    if (cfg.ignoreInputsOnMobiles && detection.isMobilePlatform) {
+                    if (!cfg.enableScreenKeyboard && detection.isMobilePlatform) {
                         // если попали на поле ввода, нужно взять его родительский элемент и фокусировать его
                         if (matches(container, 'input[type="text"], textarea, *[contentEditable=true]')) {
                             container = getContainerWithControlNode(container);
@@ -775,12 +712,12 @@ class Control<Options extends IControlOptions> {
      * @see Documentation: Server render
      * @private
      */
-    protected _beforeMount(options?: Options, contexts?: any, receivedState?: any): Promise<any> | void {
+    protected _beforeMount<State>(options?: TOptions, contexts?: object, receivedState?: State): Promise<State> | void {
         // @ts-ignore
         return undefined;
     }
 
-    _beforeMountLimited(opts: Options): Promise<any> | void {
+    _beforeMountLimited(opts: TOptions): Promise<any> | void {
         // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
         // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
         // _template на экземпляре, _template устанавливается сразу после вызова базового конструктора
@@ -881,7 +818,7 @@ class Control<Options extends IControlOptions> {
      * @see Documentation: Server render
      * @private
      */
-    protected _afterMount(options?: Options, contexts?: any): void {
+    protected _afterMount(options?: TOptions, contexts?: any): void {
         // Do
     }
 
@@ -914,14 +851,14 @@ class Control<Options extends IControlOptions> {
      * @private
      */
 
-    __beforeUpdate(options: Options): void {
+    __beforeUpdate(options: TOptions): void {
         if (options.theme !== this._options.theme) {
             this._manageStyles(options.theme, this._options.theme);
         }
         this._beforeUpdate.apply(this, arguments);
     }
 
-    protected _beforeUpdate(options?: Options, contexts?: any): void {
+    protected _beforeUpdate(options?: TOptions, contexts?: any): void {
         // Do
     }
 
@@ -958,7 +895,7 @@ class Control<Options extends IControlOptions> {
      * @see Documentation: Server render
      * @private
      */
-    protected _shouldUpdate(options: Options, context: any): Boolean {
+    protected _shouldUpdate(options: TOptions, context: any): boolean {
         return true;
     }
 
@@ -989,7 +926,7 @@ class Control<Options extends IControlOptions> {
      * @see Documentation: Context
      * @private
      */
-    protected _afterUpdate(oldOptions?: Options, oldContext?: any): void {
+    protected _afterUpdate(oldOptions?: TOptions, oldContext?: any): void {
         // Do
     }
 
@@ -1023,7 +960,7 @@ class Control<Options extends IControlOptions> {
 
     static _styles: string[] = [];
     static _theme: string[] = [];
-    static isWasaby: Boolean = true;
+    static isWasaby: boolean = true;
 
     /**
      * @deprecated
