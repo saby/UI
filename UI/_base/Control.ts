@@ -54,14 +54,19 @@ function matches(el: Element, selector: string): boolean {
     ).call(el, selector);
 }
 
-class Control {
+export interface IControlOptions {
+    readOnly?: boolean;
+    theme?: string;
+}
+
+class Control<TOptions extends IControlOptions> {
     private _mounted: boolean = false;
     private _unmounted: boolean = false;
     private _destroyed: boolean = false;
     private _active: boolean = false;
 
     private _instId: string;
-    private _options: any = null;
+    private _options: TOptions = null;
     private _internalOptions: Record<string, unknown> = null;
 
     /**
@@ -328,7 +333,7 @@ class Control {
     }
 
     // Just save link to new options
-    saveOptions(options: any, controlNode: any = null): boolean {
+    saveOptions(options: TOptions, controlNode: any = null): boolean {
         this._options = options;
         if (controlNode) {
             this._container = controlNode.element;
@@ -708,12 +713,12 @@ class Control {
      * @see Documentation: Server render
      * @private
      */
-    protected _beforeMount<State>(options?: any, contexts?: object, receivedState?: State): Promise<State> | void {
+    protected _beforeMount<State>(options?: TOptions, contexts?: object, receivedState?: State): Promise<State> | void {
         // @ts-ignore
         return undefined;
     }
 
-    _beforeMountLimited(opts: any): Promise<any> | void {
+    _beforeMountLimited(opts: TOptions): Promise<any> | void {
         // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
         // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
         // _template на экземпляре, _template устанавливается сразу после вызова базового конструктора
@@ -814,7 +819,7 @@ class Control {
      * @see Documentation: Server render
      * @private
      */
-    protected _afterMount(options?: any, contexts?: any): void {
+    protected _afterMount(options?: TOptions, contexts?: any): void {
         // Do
     }
 
@@ -847,14 +852,14 @@ class Control {
      * @private
      */
 
-    __beforeUpdate(options: any): void {
+    __beforeUpdate(options: TOptions): void {
         if (options.theme !== this._options.theme) {
             this._manageStyles(options.theme, this._options.theme);
         }
         this._beforeUpdate.apply(this, arguments);
     }
 
-    protected _beforeUpdate(options?: any, contexts?: any): void {
+    protected _beforeUpdate(options?: TOptions, contexts?: any): void {
         // Do
     }
 
@@ -891,7 +896,7 @@ class Control {
      * @see Documentation: Server render
      * @private
      */
-    protected _shouldUpdate(): boolean {
+    protected _shouldUpdate(options: TOptions, context: any): boolean {
         return true;
     }
 
@@ -922,7 +927,7 @@ class Control {
      * @see Documentation: Context
      * @private
      */
-    protected _afterUpdate(oldOptions?: any, oldContext?: any): void {
+    protected _afterUpdate(oldOptions?: TOptions, oldContext?: any): void {
         // Do
     }
 
