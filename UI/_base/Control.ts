@@ -540,7 +540,8 @@ class Control {
      *    </div>
      * </pre>
      * @param {Object} cfg Object containing parameters of this method
-     * Using of parameter enableScreenKeyboard = true on devices with on-screen keyboard, method will focus input fields and try to show screen keyboard.
+     * Using of parameter enableScreenKeyboard = true on devices with on-screen keyboard, method will focus input
+     * fields and try to show screen keyboard.
      * Using of parameter enableScreenKeyboard = false, method will focus not input fields but parent element.
      * @remark Method finds DOM element inside the control (and its child controls) that can be focused and
      * sets focus on it. Returns true if focus was set successfully and false if nothing was focused.
