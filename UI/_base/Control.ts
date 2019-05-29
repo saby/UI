@@ -43,9 +43,6 @@ import * as Logger from 'View/Logger';
 
 let countInst = 1;
 
-let lastInteractionTime;
-let dndMode = false;
-
 function matches(el: Element, selector: string): boolean {
     return (
         el.matches ||
@@ -57,19 +54,15 @@ function matches(el: Element, selector: string): boolean {
     ).call(el, selector);
 }
 
-const useCheck = typeof document !== 'undefined' && document.cookie && document.cookie.indexOf('s3debug=true') !== -1;
-
 class Control {
-    private _mounted: Boolean = false;
-    private _unmounted: Boolean = false;
-    private _destroyed: Boolean = false;
-    private _active: Boolean = false;
+    private _mounted: boolean = false;
+    private _unmounted: boolean = false;
+    private _destroyed: boolean = false;
+    private _active: boolean = false;
 
     private _instId: string;
     private _options: any = null;
-    private _internalOptions: HashMap<any> = null;
-
-    private _$forceUpdateLog: number[];
+    private _internalOptions: Record<string, unknown> = null;
 
     /**
      * TODO: delete it
@@ -83,7 +76,7 @@ class Control {
     private saveInheritOptions: Function = null;
     private _getEnvironment: Function = null;
 
-    protected _notify: Function = null;
+    protected _notify: (eventName: string, args?: unknown[], options?: {bubbling?: boolean}) => unknown = null;
     protected _template: Function;
 
     // protected for compatibility, should be private
@@ -119,7 +112,7 @@ class Control {
     // Render function for text generator
     render: Function = null;
 
-    _children: HashMap<Control> = null;
+    _children: Record<string, Control | HTMLElement> = null;
 
     constructor(cfg: any) {
         if (!cfg) {
@@ -191,7 +184,6 @@ class Control {
                 // So we need to delay _forceUpdate till the moment component will be mounted to DOM
                 control._$needForceUpdate = true;
             } else {
-                this._checkForceUpdate();
                 if (environment) {
                     environment.forceRebuild(controlNode.id);
                 }
@@ -206,7 +198,7 @@ class Control {
         this._getMarkup = function _getMarkup(
             rootKey?: string,
             isRoot?: boolean,
-            attributes?: any,
+            attributes?: object,
             isVdom?: boolean
         ): any {
             if (!this._template.stable) {
@@ -266,63 +258,6 @@ class Control {
             this._afterCreate(cfg);
         }
     }
-    private _checkForceUpdate(): void {
-        if (useCheck) {
-            if (!this.hasOwnProperty('_$forceUpdateLog')) {
-                this._$forceUpdateLog = [];
-            }
-            if (!lastInteractionTime) {
-                lastInteractionTime = Date.now();
-                document.body.addEventListener('mousedown', () => {
-                    lastInteractionTime = Date.now();
-                    dndMode = true;
-                }, true);
-                document.body.addEventListener('mousemove', () => {
-                    if (dndMode) {
-                        lastInteractionTime = Date.now();
-                    }
-                }, true);
-                document.body.addEventListener('mouseup', () => {
-                    lastInteractionTime = Date.now();
-                    dndMode = false;
-                }, true);
-                document.body.addEventListener('keydown', () => {
-                    lastInteractionTime = Date.now();
-                }, true);
-            }
-            this._$forceUpdateLog.push(Date.now());
-            if (this._$forceUpdateLog.length >= 10) {
-                const update1 = this._$forceUpdateLog[this._$forceUpdateLog.length - 10];
-                const update2 = this._$forceUpdateLog[this._$forceUpdateLog.length - 1];
-
-                // если за 10 секунд позвалось не менее 10 _forceUpdate - что-то тут не так
-                if (update2 - update1 < 10000) {
-                    // странным поведением считается только ситуация, когда 10 вызовов _forceUpdate подряд
-                    // без кликов и нажатия клавиш. отключил предупреждения too many calls of _forceUpdate
-                    // на drag and drop, на нажатия клавиш, и вообще на действия пользователя. теперь отлавливаем
-                    // только лишние перерисовки которые происходят без действий пользователя. происходят вызовы
-                    // _forceUpdate на каждое действие, например: в каждый момент драгндропа устанавливается позиция
-                    // перетаскиваемого элемента, в случае ввода текста - текст отрисовывается через биндинг.
-
-                    // будем ловить только 10 перерисовок подряд без действий пользователя и считать это неправильным.
-
-                    // в доброске https://online.sbis.ru/opendoc.html?guid=7ee516bb-a35b-4ecc-bbd7-43f3bb0fe6e9
-                    // происходит другое там попадаются процессы, где много длительных операций происходит за короткое
-                    // время, поэтому на событие modelChanged зовется много пересинхронизаций, в этом месте такое
-                    // не отловить, поэтому там делается debounce
-                    if (lastInteractionTime < update1) {
-                        IoC.resolve('ILogger').warn('Control', 'too many calls of _forceUpdate!!!');
-                }
-            }
-            }
-            if (this._$forceUpdateLog.length >= 100) {
-                this._$forceUpdateLog = this._$forceUpdateLog.slice(
-                    this._$forceUpdateLog.length - 10,
-                    this._$forceUpdateLog.length
-                );
-            }
-        }
-    }
     /**
       * @name Core/Control#readOnly
       * @cfg {Boolean} Determines whether user can change control's value
@@ -378,7 +313,7 @@ class Control {
         return this._instId;
     }
 
-    mountToDom(element: HTMLElement, cfg: any, controlClass: any): void {
+    mountToDom(element: HTMLElement, cfg: any, controlClass: Control): void {
         // @ts-ignore
         if (!this.VDOMReady) {
             // @ts-ignore
@@ -393,7 +328,7 @@ class Control {
     }
 
     // Just save link to new options
-    saveOptions(options: any, controlNode: any = null): Boolean {
+    saveOptions(options: any, controlNode: any = null): boolean {
         this._options = options;
         if (controlNode) {
             this._container = controlNode.element;
@@ -406,7 +341,7 @@ class Control {
     * @param {string} name Имя служебной опции
     * @param {*} value Значение опции
     */
-   private _setInternalOption(name: string, value: any): void {
+   private _setInternalOption(name: string, value: unknown): void {
       if (!this._internalOptions) {
          this._internalOptions = {};
       }
@@ -417,7 +352,7 @@ class Control {
      * Метод задания служебных опций
      * @param {Object} internal Объект, содержащий ключи и значения устанавливаемых служебных опций
      */
-    _setInternalOptions(internal: HashMap<any>): void {
+    _setInternalOptions(internal: Record<string, unknown>): void {
         for (const name in internal) {
             if (internal.hasOwnProperty(name)) {
                 this._setInternalOption(name, internal[name]);
@@ -441,7 +376,7 @@ class Control {
         return this._loadNewStyles(themesController, theme, themedStyles, styles);
     }
 
-    _checkNewStyles(): Boolean {
+    _checkNewStyles(): boolean {
         if ((this._theme && !this._theme.forEach) || (this._styles && !this._styles.forEach)) {
             return false;
         }
@@ -616,7 +551,7 @@ class Control {
      * @see activated
      * @see deactivated
      */
-    activate(cfg: object = {}): Boolean {
+    activate(cfg: { ignoreInputsOnMobiles?: boolean } = { }): boolean {
         function getContainerWithControlNode(element: Element): Element {
             while (element) {
                 if (element.controlNodes && TabIndex.getElementProps(element).tabStop) {
@@ -772,7 +707,7 @@ class Control {
      * @see Documentation: Server render
      * @private
      */
-    protected _beforeMount(options?: any, contexts?: any, receivedState?: any): Promise<any> | void {
+    protected _beforeMount<State>(options?: any, contexts?: object, receivedState?: State): Promise<State> | void {
         // @ts-ignore
         return undefined;
     }
@@ -955,7 +890,7 @@ class Control {
      * @see Documentation: Server render
      * @private
      */
-    protected _shouldUpdate(): Boolean {
+    protected _shouldUpdate(): boolean {
         return true;
     }
 
@@ -1020,7 +955,7 @@ class Control {
 
     static _styles: string[] = [];
     static _theme: string[] = [];
-    static isWasaby: Boolean = true;
+    static isWasaby: boolean = true;
 
     /**
      * @deprecated
