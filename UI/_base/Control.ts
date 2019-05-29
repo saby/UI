@@ -259,29 +259,29 @@ class Control {
         }
     }
     /**
-      * @name Core/Control#readOnly
-      * @cfg {Boolean} Determines whether user can change control's value
-      * (or interact with the control if its value is not editable).
-      * @variant true User cannot change control's value (or interact with the control if its value is not editable).
-      * @variant false User can change control's value (or interact with the control if its value is not editable).
-      * @variant inherited Value inherited from the parent.
-      * @default Inherited
-      * @example
-      * In this example, List and Input.Text will be rendered with read-only styles, and the user won't be
-      * able to edit them. However, Button has readOnly option explicitly set to false,
-      * thus it won't inherit this option from the List, and user will be able to click on it.
-      * <pre>
-      *    <Controls.list:View readOnly="{{true}}">
-      *       <ws:itemTemplate>
-      *          <Controls.input:Text />
-      *          <Controls.buttons:Path readOnly="{{false}}" />
-      *       </ws:itemTemplate>
-      *    </Controls.list:View>
-      * </pre>
-      * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
-      * from the parent control. By default, all controls are active.
-      * @see Inherited options
-      */
+     * @name Core/Control#readOnly
+     * @cfg {Boolean} Determines whether user can change control's value
+     * (or interact with the control if its value is not editable).
+     * @variant true User cannot change control's value (or interact with the control if its value is not editable).
+     * @variant false User can change control's value (or interact with the control if its value is not editable).
+     * @variant inherited Value inherited from the parent.
+     * @default Inherited
+     * @example
+     * In this example, List and Input.Text will be rendered with read-only styles, and the user won't be
+     * able to edit them. However, Button has readOnly option explicitly set to false,
+     * thus it won't inherit this option from the List, and user will be able to click on it.
+     * <pre>
+     *    <Controls.list:View readOnly="{{true}}">
+     *       <ws:itemTemplate>
+     *          <Controls.input:Text />
+     *          <Controls.buttons:Path readOnly="{{false}}" />
+     *       </ws:itemTemplate>
+     *    </Controls.list:View>
+     * </pre>
+     * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
+     * from the parent control. By default, all controls are active.
+     * @see Inherited options
+     */
 
     /**
      * @name Core/Control#theme
@@ -337,10 +337,10 @@ class Control {
     }
 
     /**
-    * Метод задания значения служебной опции
-    * @param {string} name Имя служебной опции
-    * @param {*} value Значение опции
-    */
+     * Метод задания значения служебной опции
+     * @param {string} name Имя служебной опции
+     * @param {*} value Значение опции
+     */
    private _setInternalOption(name: string, value: unknown): void {
       if (!this._internalOptions) {
          this._internalOptions = {};
