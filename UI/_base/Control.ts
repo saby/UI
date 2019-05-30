@@ -460,7 +460,7 @@ class Control {
                     themesController.pushCssLoaded(name);
                 } else {
                     const loadPromise = PromiseLib.reflect(
-                        PromiseLib.wrapTimeout(themesController.pushCssAsync(name), 2000)
+                        PromiseLib.wrapTimeout(themesController.pushCssAsync(name), 5000)
                     );
                     loadPromise.then((res) => {
                         if (res.status === 'rejected') {
@@ -478,7 +478,7 @@ class Control {
                     themesController.pushCssThemedLoaded(name, theme);
                 } else {
                     const loadPromise = PromiseLib.reflect(
-                        PromiseLib.wrapTimeout(themesController.pushCssThemedAsync(name, theme), 2000)
+                        PromiseLib.wrapTimeout(themesController.pushCssThemedAsync(name, theme), 5000)
                     );
                     loadPromise.then((res) => {
                         if (res.status === 'rejected') {
