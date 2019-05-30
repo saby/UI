@@ -66,7 +66,7 @@ class Control<TOptions extends IControlOptions> {
     private _active: boolean = false;
 
     private _instId: string;
-    private _options: TOptions = null;
+    protected _options: TOptions = null;
     private _internalOptions: Record<string, unknown> = null;
 
     /**
