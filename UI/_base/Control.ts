@@ -347,7 +347,7 @@ class Control {
             if (themesController.isCssLoaded(name)) {
                themesController.pushCssLoaded(name);
             } else {
-               let loadPromise = PromiseLib.reflect(PromiseLib.wrapTimeout(themesController.pushCssAsync(name), 2000));
+               let loadPromise = PromiseLib.reflect(PromiseLib.wrapTimeout(themesController.pushCssAsync(name), 5000));
                loadPromise.then(function(res) {
                   if(res.status === 'rejected') {
                      IoC.resolve('ILogger').error('Styles loading error', 'Could not load style '
@@ -361,7 +361,7 @@ class Control {
             if (themesController.isThemedCssLoaded(name, theme)) {
                themesController.pushCssThemedLoaded(name, theme);
             } else {
-               let loadPromise = PromiseLib.reflect(PromiseLib.wrapTimeout(themesController.pushCssThemedAsync(name, theme), 2000));
+               let loadPromise = PromiseLib.reflect(PromiseLib.wrapTimeout(themesController.pushCssThemedAsync(name, theme), 5000));
                loadPromise.then(function(res) {
                   if(res.status === 'rejected') {
                      IoC.resolve('ILogger').error('Styles loading error', 'Could not load style '
