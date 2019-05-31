@@ -122,7 +122,11 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
 
     _children: Record<string, Control<TOptions, TState> | HTMLElement> = null;
 
-    constructor(cfg: any = {}) {
+    constructor(cfg: any) {
+        if (!cfg) {
+            cfg = {};
+        }
+
         /**
          * TODO: delete it
          */
