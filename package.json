@@ -41,7 +41,7 @@
    },
    "nyc": {
       "include": [
-         "./application/UI/*"
+         "application/UI/**/*.js"
       ],
       "reporter": [
          "text",
