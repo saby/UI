@@ -44,7 +44,7 @@ import * as Logger from 'View/Logger';
 let countInst = 1;
 
 const WAIT_TIMEOUT = 20000;
-const WRAP_TIMEOUT = 2000;
+const WRAP_TIMEOUT = 5000;
 
 function matches(el: Element, selector: string): boolean {
     return (
