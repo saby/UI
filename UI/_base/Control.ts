@@ -61,7 +61,15 @@ export interface IControlOptions {
     readOnly?: boolean;
     theme?: string;
 }
-
+/**
+ * @class Core/Control
+ * @author Шипин А.А.
+ * @remark {
+ * @link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator
+ * Asynchronous creation of Core/Creator component}
+ * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
+ * @public
+ */
 export default class Control<TOptions extends IControlOptions, TState = void> {
     private _mounted: boolean = false;
     private _unmounted: boolean = false;
@@ -992,7 +1000,16 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
 
         return inherit;
     }
-
+    /**
+     * Method for creation a root control.
+     * @function Core/Control#createControl
+     * @remark
+     * Use this method when you want to create a root control. When you call this method, you create the entire
+     * Wasaby infrastructure.
+     * For asynchronous item creation you can use
+     * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator
+     * Core/Creator}.
+     */
     static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control<IControlOptions> {
         const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
         // @ts-ignore
