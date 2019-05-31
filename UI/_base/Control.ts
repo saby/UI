@@ -69,7 +69,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
     private _active: boolean = false;
 
     private readonly _instId: string;
-    private _options: TOptions = null;
+    protected _options: TOptions = null;
     private _internalOptions: Record<string, unknown> = null;
 
     /**
