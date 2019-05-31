@@ -43,6 +43,9 @@ import * as Logger from 'View/Logger';
 
 let countInst = 1;
 
+const WAIT_TIMEOUT = 20000;
+const WRAP_TIMEOUT = 5000;
+
 function matches(el: Element, selector: string): boolean {
     return (
         el.matches ||
@@ -68,14 +71,14 @@ export interface IControlOptions {
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
-class Control<TOptions extends IControlOptions> {
+export default class Control<TOptions extends IControlOptions, TState = void> {
     private _mounted: boolean = false;
     private _unmounted: boolean = false;
     private _destroyed: boolean = false;
     private _active: boolean = false;
 
-    private _instId: string;
-    private _options: TOptions = null;
+    private readonly _instId: string;
+    protected _options: TOptions = null;
     private _internalOptions: Record<string, unknown> = null;
 
     /**
@@ -90,7 +93,7 @@ class Control<TOptions extends IControlOptions> {
     private saveInheritOptions: Function = null;
     private _getEnvironment: Function = null;
 
-    protected _notify: (eventName: string, args?: unknown[], options?: {bubbling?: boolean}) => unknown = null;
+    protected _notify: (eventName: string, args?: unknown[], options?: { bubbling?: boolean }) => unknown = null;
     protected _template: Function;
 
     // protected for compatibility, should be private
@@ -126,7 +129,7 @@ class Control<TOptions extends IControlOptions> {
     // Render function for text generator
     render: Function = null;
 
-    _children: Record<string, Control | HTMLElement> = null;
+    _children: Record<string, Control<TOptions, TState> | HTMLElement> = null;
 
     constructor(cfg: any) {
         if (!cfg) {
@@ -207,13 +210,16 @@ class Control<TOptions extends IControlOptions> {
         /**
          * Метод, который возвращает разметку для компонента
          * @param rootKey
+         * @param isRoot
+         * @param attributes
+         * @param isVdom
          * @returns {*}
          */
         this._getMarkup = function _getMarkup(
             rootKey?: string,
             isRoot?: boolean,
             attributes?: object,
-            isVdom?: boolean
+            isVdom: boolean = true
         ): any {
             if (!this._template.stable) {
                 IoC.resolve('ILogger').error(this._moduleName, 'Check what you put in _template');
@@ -221,9 +227,6 @@ class Control<TOptions extends IControlOptions> {
             }
             let res;
 
-            if (isVdom === undefined) {
-                isVdom = true;
-            }
             if (!attributes) {
                 attributes = {};
             }
@@ -272,8 +275,9 @@ class Control<TOptions extends IControlOptions> {
             this._afterCreate(cfg);
         }
     }
+
     /**
-     * @name Core/Control#readOnly
+     * @name UI/Base:Control#readOnly
      * @cfg {Boolean} Determines whether user can change control's value
      * (or interact with the control if its value is not editable).
      * @variant true User cannot change control's value (or interact with the control if its value is not editable).
@@ -298,7 +302,7 @@ class Control<TOptions extends IControlOptions> {
      */
 
     /**
-     * @name Core/Control#theme
+     * @name UI/Base:Control#theme
      * @cfg {String} Theme name. Depending on the theme, different stylesheets are loaded and
      * different styles are applied to the control.
      * @variant any Any value that was passed to the control.
@@ -327,7 +331,7 @@ class Control<TOptions extends IControlOptions> {
         return this._instId;
     }
 
-    mountToDom(element: HTMLElement, cfg: any, controlClass: Control): void {
+    mountToDom(element: HTMLElement, cfg: any, controlClass: Control<IControlOptions, TState>): void {
         // @ts-ignore
         if (!this.VDOMReady) {
             // @ts-ignore
@@ -391,11 +395,8 @@ class Control<TOptions extends IControlOptions> {
     }
 
     _checkNewStyles(): boolean {
-        if ((this._theme && !this._theme.forEach) || (this._styles && !this._styles.forEach)) {
-            return false;
+        return !((this._theme && !this._theme.forEach) || (this._styles && !this._styles.forEach));
         }
-        return true;
-    }
 
     _loadNewStyles(
         themesController: any,
@@ -418,7 +419,7 @@ class Control<TOptions extends IControlOptions> {
                     themesController.pushCssLoaded(name);
                 } else {
                     const loadPromise = PromiseLib.reflect(
-                        PromiseLib.wrapTimeout(themesController.pushCssAsync(name), 2000)
+                        PromiseLib.wrapTimeout(themesController.pushCssAsync(name), WRAP_TIMEOUT)
                     );
                     loadPromise.then((res) => {
                         if (res.status === 'rejected') {
@@ -436,7 +437,7 @@ class Control<TOptions extends IControlOptions> {
                     themesController.pushCssThemedLoaded(name, theme);
                 } else {
                     const loadPromise = PromiseLib.reflect(
-                        PromiseLib.wrapTimeout(themesController.pushCssThemedAsync(name, theme), 2000)
+                        PromiseLib.wrapTimeout(themesController.pushCssThemedAsync(name, theme), WRAP_TIMEOUT)
                     );
                     loadPromise.then((res) => {
                         if (res.status === 'rejected') {
@@ -524,7 +525,7 @@ class Control<TOptions extends IControlOptions> {
             const env = container.controlNodes[0].environment;
 
             // если DOMEnvironment не перехватил переход фокуса, вызовем обработчик ухода фокуса вручную
-            env._handleFocusEvent({ target: document.body, relatedTarget: activeElement });
+            env._handleFocusEvent({target: document.body, relatedTarget: activeElement});
         }
 
         if (tmpTabindex !== undefined) {
@@ -566,7 +567,7 @@ class Control<TOptions extends IControlOptions> {
      * @see activated
      * @see deactivated
      */
-    activate(cfg: { ignoreInputsOnMobiles?: boolean } = { }): boolean {
+    activate(cfg: { ignoreInputsOnMobiles?: boolean } = {}): boolean {
         function getContainerWithControlNode(element: Element): Element {
             while (element) {
                 if (element.controlNodes && TabIndex.getElementProps(element).tabStop) {
@@ -576,6 +577,7 @@ class Control<TOptions extends IControlOptions> {
             }
             return element;
         }
+
         function doFocus(container: any): boolean {
             let res = false;
             const activeElement = document.activeElement;
@@ -625,7 +627,7 @@ class Control<TOptions extends IControlOptions> {
                 // но с которого уходили у него изменилось
                 if (res && !this._active) {
                     const env = container.controlNodes[0].environment;
-                    env._handleFocusEvent({ target: container, relatedTarget: activeElement });
+                    env._handleFocusEvent({target: container, relatedTarget: activeElement});
                 }
             }
             return res;
@@ -690,6 +692,7 @@ class Control<TOptions extends IControlOptions> {
     _afterCreate(cfg: any): void {
         // can be overridden
     }
+
     /**
      * Control’s lifecycle hook. Called right before the mounting of the component to DOM.
      *
@@ -722,12 +725,12 @@ class Control<TOptions extends IControlOptions> {
      * @see Documentation: Server render
      * @private
      */
-    protected _beforeMount<State>(options?: TOptions, contexts?: object, receivedState?: State): Promise<State> | void {
-        // @ts-ignore
+    protected _beforeMount(options?: TOptions, contexts?: object, receivedState?: TState): Promise<TState> |
+        Promise<void> | void {
         return undefined;
     }
 
-    _beforeMountLimited(opts: TOptions): Promise<any> | void {
+    _beforeMountLimited(opts: TOptions): Promise<TState> | Promise<void> | void {
         // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
         // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
         // _template на экземпляре, _template устанавливается сразу после вызова базового конструктора
@@ -789,7 +792,7 @@ class Control<TOptions extends IControlOptions> {
                                 resolve(false);
                             });
                         }
-                    }, 20000);
+                    }, WAIT_TIMEOUT);
                 });
             }
         }
@@ -861,9 +864,9 @@ class Control<TOptions extends IControlOptions> {
      * @private
      */
 
-    __beforeUpdate(options: TOptions): void {
-        if (options.theme !== this._options.theme) {
-            this._manageStyles(options.theme, this._options.theme);
+    __beforeUpdate(newOptions: TOptions): void {
+        if (newOptions.theme !== this._options.theme) {
+            this._manageStyles(newOptions.theme, this._options.theme);
         }
         this._beforeUpdate.apply(this, arguments);
     }
@@ -1010,11 +1013,11 @@ class Control<TOptions extends IControlOptions> {
      * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator
      * Core/Creator}.
      */
-    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
+    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control<IControlOptions> {
         const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
         // @ts-ignore
         OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
-        const attrs = { inheritOptions: {} };
+        const attrs = {inheritOptions: {}};
         let ctr;
         OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
         try {
@@ -1026,7 +1029,7 @@ class Control<TOptions extends IControlOptions> {
         ctr.saveInheritOptions(attrs.inheritOptions);
         ctr._container = domElement;
         Focus.patchDom(domElement, cfg);
-        ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
+        ctr.saveFullContext(ContextResolver.wrapContext(ctr, {asd: 123}));
         ctr.mountToDom(ctr._container, cfg, ctor);
         ctr._$createdFromCode = true;
         return ctr;
@@ -1037,5 +1040,3 @@ class Control<TOptions extends IControlOptions> {
 
 // @ts-ignore
 Control.prototype._template = template;
-
-export default Control;
