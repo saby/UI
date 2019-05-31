@@ -59,6 +59,15 @@ export interface IControlOptions {
     theme?: string;
 }
 
+/**
+ * @class Core/Control
+ * @author Шипин А.А.
+ * @remark {
+ * @link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator
+ * Asynchronous creation of Core/Creator component}
+ * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
+ * @public
+ */
 class Control<TOptions extends IControlOptions> {
     private _mounted: boolean = false;
     private _unmounted: boolean = false;
