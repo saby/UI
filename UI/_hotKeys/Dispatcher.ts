@@ -4,6 +4,8 @@ import { Control } from 'UI/Base';
 import template = require('wml!UI/_hotKeys/Dispatcher');
 // @ts-ignore
 import { goUpByControlTree } from 'Vdom/Vdom';
+// @ts-ignore
+import { constants } from 'Env/Env';
 
 /**
  * Контрол выделяет область, в которой будут перехватываться клавиши и перенаправляться на обработку дочернему контролу,
@@ -12,15 +14,21 @@ import { goUpByControlTree } from 'Vdom/Vdom';
  */
 class Dispatcher extends Control {
     keyDownHandler(event: Event): void {
+        const nativeEvent = event.nativeEvent;
+        const key = 'which' in nativeEvent ? nativeEvent.which : nativeEvent.keyCode;
+
+        // клавиша таб не может быть клавишей по умолчанию, у нее есть конкретное предназначение - переход по табу
+        if (key === constants.key.tab) {
+            return;
+        }
+
         // если isTrusted = false, значит это мы запустили событие по горячим клавишам,
         // его не надо повторно обрабатывать клавиши home и end не обрабатываем, у поля ввода есть реакция
         // на эти клавиши
         if (event.nativeEvent.isTrusted) {
-            const nativeEvent = event.nativeEvent;
             const parents = goUpByControlTree(nativeEvent.target);
             for (let i = 0; i < parents.length; i++) {
                 const parent = parents[i];
-                const key = 'which' in nativeEvent ? nativeEvent.which : nativeEvent.keyCode;
                 if (parent._$defaultActions && parent._$defaultActions[key]) {
                     parent._$defaultActions[key].action();
                     break;
