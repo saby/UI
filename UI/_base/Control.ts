@@ -293,7 +293,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
      */
 
     /**
-     * @name UI:Base/Control#theme
+     * @name UI/Base:Control#theme
      * @cfg {String} Theme name. Depending on the theme, different stylesheets are loaded and
      * different styles are applied to the control.
      * @variant any Any value that was passed to the control.
