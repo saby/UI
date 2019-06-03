@@ -56,6 +56,9 @@ function matches(el: Element, selector: string): boolean {
         el.oMatchesSelector
     ).call(el, selector);
 }
+function checkInput(el: Element): boolean {
+    return matches(el, 'input[type="text"], textarea, *[contentEditable=true]');
+}
 
 export interface IControlOptions {
     readOnly?: boolean;
@@ -569,7 +572,8 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
     activate(cfg: { ignoreInputsOnMobiles?: boolean } = {}): boolean {
         function getContainerWithControlNode(element: Element): Element {
             while (element) {
-                if (element.controlNodes && TabIndex.getElementProps(element).tabStop) {
+                // ищем ближайший элемент, который может быть сфокусирован и не является полем ввода
+                if (element.controlNodes && TabIndex.getElementProps(element).tabStop && !checkInput(element)) {
                     break;
                 }
                 element = element.parentElement;
@@ -609,7 +613,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
                     // на мобильных устройствах.
                     if (!cfg.enableScreenKeyboard && detection.isMobilePlatform) {
                         // если попали на поле ввода, нужно взять его родительский элемент и фокусировать его
-                        if (matches(container, 'input[type="text"], textarea, *[contentEditable=true]')) {
+                        if (checkInput(container)) {
                             container = getContainerWithControlNode(container);
                         }
                     }
