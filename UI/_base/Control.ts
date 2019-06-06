@@ -22,7 +22,7 @@ import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
 import * as Logger from 'View/Logger';
 
 /**
- * @event Core/Control#activated Occurs when the component becomes active.
+ * @event UI/_base/Control#activated Occurs when the component becomes active.
  * @param {Boolean} isTabPressed Indicates whether control was activated by Tab press.
  * @remark Control is activated when one of its DOM elements becomes focused. Detailed description and u
  * se cases of the event can be found
@@ -32,7 +32,7 @@ import * as Logger from 'View/Logger';
  */
 
 /**
- * @event Core/Control#deactivated Occurs when control becomes inactive.
+ * @event UI/_base/Control#deactivated Occurs when control becomes inactive.
  * @param {Boolean} isTabPressed Indicates whether control was deactivated by Tab press.
  * @remark Control is deactivated when all of its child component lose focus.
  * Detailed description and use cases of the event can be found
@@ -65,7 +65,7 @@ export interface IControlOptions {
     theme?: string;
 }
 /**
- * @class Core/Control
+ * @class UI/_base/Control
  * @author Шипин А.А.
  * @remark {
  * @link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator
@@ -83,9 +83,6 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
     protected _options: TOptions = null;
     private _internalOptions: Record<string, unknown> = null;
 
-    /**
-     * TODO: delete it
-     */
     private _context: any = null;
     private context: any = null;
     private saveFullContext: any = null;
@@ -124,7 +121,9 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
      * @see Documentation: Control lifecycle
      * @private
      */
-    _forceUpdate: Function = null;
+    _forceUpdate(): void {
+        // будет переопределено в конструкторе, чтобы был доступ к замыканиям
+    }
 
     // Render function for virtual dom
     _getMarkup: Function = null;
@@ -184,6 +183,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
             environment = env;
         };
 
+        // сделано так чтобы были доступны замыкания
         this._getEnvironment = () => {
             return environment;
         };
@@ -196,6 +196,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
         // @ts-ignore
         this._notify._isVdomNotify = true;
 
+        // сделано так чтобы были доступны замыкания
         this._forceUpdate = () => {
             const control = this || (controlNode && controlNode.control);
             if (control && !control._mounted) {
@@ -279,7 +280,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
     }
 
     /**
-     * @name UI/Base:Control#readOnly
+     * @name UI/_base/Control#readOnly
      * @cfg {Boolean} Determines whether user can change control's value
      * (or interact with the control if its value is not editable).
      * @variant true User cannot change control's value (or interact with the control if its value is not editable).
@@ -304,7 +305,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
      */
 
     /**
-     * @name UI/Base:Control#theme
+     * @name UI/_base/Control#theme
      * @cfg {String} Theme name. Depending on the theme, different stylesheets are loaded and
      * different styles are applied to the control.
      * @variant any Any value that was passed to the control.
@@ -1006,7 +1007,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
     }
     /**
      * Method for creation a root control.
-     * @function Core/Control#createControl
+     * @function UI/_base/Control#createControl
      * @remark
      * Use this method when you want to create a root control. When you call this method, you create the entire
      * Wasaby infrastructure.
