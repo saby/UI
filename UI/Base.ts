@@ -1,5 +1,5 @@
 /// <amd-module name="UI/Index" />
-import {default as Control, IControlOptions} from './_base/Control';
+import {default as Control, IControlOptions, TemplateFunction} from './_base/Control';
 import HTML from './_base/HTML';
 import Document from './_base/Document';
 import StateReceiver from './_base/StateReceiver';
@@ -23,5 +23,6 @@ export {
     BaseRoute,
     HeadController,
     Creator,
-    AsyncCreator
+    AsyncCreator,
+    TemplateFunction
 };

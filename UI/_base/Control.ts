@@ -21,6 +21,7 @@ import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
 
 import * as Logger from 'View/Logger';
 
+export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
 /**
  * @event UI/_base/Control#activated Occurs when the component becomes active.
  * @param {Boolean} isTabPressed Indicates whether control was activated by Tab press.
@@ -93,7 +94,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
     private _getEnvironment: Function = null;
 
     protected _notify: (eventName: string, args?: unknown[], options?: { bubbling?: boolean }) => unknown = null;
-    protected _template: Function;
+    protected _template: TemplateFunction;
 
     // protected for compatibility, should be private
     protected _container: HTMLElement = null;
