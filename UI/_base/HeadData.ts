@@ -4,7 +4,7 @@ import ThemesController = require('Core/Themes/ThemesController');
 // @ts-ignore
 import { cookie } from 'Env/Env';
 // @ts-ignore
-import DepsCollector from './DepsCollector';
+import { DepsCollector, ICollectedFiles } from './DepsCollector';
 // @ts-ignore
 import * as AppEnv from 'Application/Env';
 
@@ -60,6 +60,8 @@ class HeadData {
     private additionalDeps: any = {};
     private waiterDef: Promise<any> = null;
     private isDebug: Boolean = false;
+    private themesActive: boolean;
+    private err: string;
 
     // переедет в константы реквеста, изменяется в Controls/Application
     private isNewEnvironment: Boolean = false;
@@ -74,6 +76,7 @@ class HeadData {
 
         this.depComponentsMap = {};
         this.additionalDeps = {};
+        this.themesActive = true;
         this.isDebug = cookie.get('s3debug') === 'true' || contents.buildMode === 'debug';
     }
 
@@ -85,26 +88,43 @@ class HeadData {
         }
     }
 
+    getDepsCollector(): DepsCollector {
+        return new DepsCollector(modDeps.links, modDeps.nodes, bundles);
+    }
+
+    initThemesController(themedCss, simpleCss): any {
+        return ThemesController.getInstance().initCss({
+            themedCss: themedCss,
+            simpleCss: simpleCss
+        });
+    }
+
+    getSerializedData(): any {
+        return AppEnv.getStateReceiver().serialize();
+    }
+
     pushWaiterDeferred(def: Promise<any>): void {
-        const depsCollector = new DepsCollector(modDeps.links, modDeps.nodes, bundles, true);
+        const depsCollector = this.getDepsCollector();
         this.waiterDef = def;
         this.waiterDef.then(() => {
             if (!this.resolve) {
                 return;
             }
             const components = Object.keys(this.depComponentsMap);
-            let files = {};
+            let files:ICollectedFiles;
             if (this.isDebug) {
-                files = {};
+                files = {
+                    js: [],
+                    css: { themedCss: [], simpleCss: [] },
+                    tmpl: [],
+                    wml: []
+                };
             } else {
                 files = depsCollector.collectDependencies(components);
-                ThemesController.getInstance().initCss({
-                    themedCss: files.css.themedCss,
-                    simpleCss: files.css.simpleCss
-                });
+                this.initThemesController(files.css.themedCss, files.css.simpleCss);
             }
 
-            const rcsData = AppEnv.getStateReceiver().serialize();
+            const rcsData = this.getSerializedData();
             const additionalDepsArray = [];
             for (const key in rcsData.additionalDeps) {
                 if (rcsData.additionalDeps.hasOwnProperty(key)) {
@@ -129,7 +149,6 @@ class HeadData {
                 js: files.js || [],
                 tmpl: files.tmpl || [],
                 css: files.css || { themedCss: [], simpleCss: [] },
-                errorState: this.err,
                 receivedStateArr: rcsData.serialized,
                 additionalDeps: Object.keys(rcsData.additionalDeps).concat(Object.keys(this.additionalDeps))
             });
