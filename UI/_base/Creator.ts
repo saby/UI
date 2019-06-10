@@ -6,6 +6,23 @@ import * as Logger from 'View/Logger';
 // @ts-ignore
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
 
+/**
+ * @class UI/_base/Creator
+ * @author Шипин А.А.
+ * @public
+ */
+
+
+/**
+ * Method for creation a root control.
+ * @function UI/_base/Creator#createControl
+ * @remark
+ * Use this method when you want to create a root control. When you call this method, you create the entire
+ * Wasaby infrastructure.
+ * For asynchronous item creation you can use
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator
+ * Core/Creator}.
+ */
 export default function createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
     const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
     // @ts-ignore
@@ -30,6 +47,10 @@ export default function createControl(ctor: any, cfg: any, domElement: HTMLEleme
     return ctr;
 }
 
+/**
+ * Method for asynchronous item creation.
+ * @function UI/_base/Creator#async
+ */
 export async function async(ctor: any, cfg: any, domElement: HTMLElement): Promise<Control> {
     return new Promise((resolve, reject) => {
         try {
