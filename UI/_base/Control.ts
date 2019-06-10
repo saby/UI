@@ -1009,6 +1009,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
     /**
      * Method for creation a root control.
      * @function UI/_base/Control#createControl
+     * @deprecated 
      * @remark
      * Use this method when you want to create a root control. When you call this method, you create the entire
      * Wasaby infrastructure.
