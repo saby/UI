@@ -1,8 +1,15 @@
 /// <amd-module name="UI/_base/DepsCollector" />
 
 import * as Logger from 'View/Logger';
-import { IoC } from 'Env/Env';
+import { IoC, constants } from 'Env/Env';
+import i18n = require('Core/i18n');
 
+interface ICollectedFiles {
+    js: Array<String>,
+    css: { themedCss: Array<String>, simpleCss: Array<String> },
+    tmpl: Array<String>,
+    wml: Array<String>
+}
 const DEPTYPES = {
     BUNDLE: 1,
     SINGLE: 2
@@ -76,6 +83,10 @@ function isThemedCss(key: string): boolean {
     return key.indexOf('theme?') >= 0;
 }
 
+function removeThemeParam(name) {
+    return name.replace('theme?', '');
+}
+
 function parseModuleName(name: string): any {
     const typeInfo = getType(name);
     if (typeInfo === null) {
@@ -132,18 +143,19 @@ function getPacksNames(allDeps: any, bundlesRoute: any): any {
     return packages;
 }
 
-function getCssPackages(allDeps: any, bundlesRoute: any, themesActive: any): any {
+function getCssPackages(allDeps: any, bundlesRoute: any): any {
     const packages = {
         themedCss: {},
         simpleCss: {}
     };
     for (const key in allDeps) {
         if (allDeps.hasOwnProperty(key)) {
-            const bundleName = bundlesRoute[key];
+            let noParamsName = removeThemeParam(key);
+            const bundleName = bundlesRoute[noParamsName];
             if (bundleName) {
                 Logger.log('Custom packets logs', ['Module ' + key + ' in bundle ' + bundleName]);
                 delete allDeps[key];
-                if (isThemedCss(key) && themesActive) {
+                if (isThemedCss(key)) {
                     packages.themedCss[getPackageName(bundleName)] = DEPTYPES.BUNDLE;
                 } else {
                     packages.simpleCss[getPackageName(bundleName)] = DEPTYPES.BUNDLE;
@@ -153,23 +165,24 @@ function getCssPackages(allDeps: any, bundlesRoute: any, themesActive: any): any
     }
     for (const key in allDeps) {
         if (allDeps.hasOwnProperty(key)) {
+            let noParamsName = removeThemeParam(key).split('css!')[1];
             if (isThemedCss(key)) {
-                packages.themedCss[key.split('theme?')[1]] = DEPTYPES.SINGLE;
+                packages.themedCss[noParamsName] = DEPTYPES.SINGLE;
             } else {
-                packages.simpleCss[key.split('css!')[1]] = DEPTYPES.SINGLE;
+                packages.simpleCss[noParamsName] = DEPTYPES.SINGLE;
             }
         }
     }
     return packages;
 }
 
-function getAllPackagesNames(all: any, bRoute: any, themesActive: any): any {
+function getAllPackagesNames(all: any, bRoute: any): any {
     const packs = getEmptyPackages();
     mergePacks(packs, getPacksNames(all.js, bRoute));
     mergePacks(packs, getPacksNames(all.tmpl, bRoute));
     mergePacks(packs, getPacksNames(all.wml, bRoute));
 
-    packs.css = getCssPackages(all.css, bRoute, themesActive);
+    packs.css = getCssPackages(all.css, bRoute);
     return packs;
 }
 
@@ -205,7 +218,7 @@ function recursiveWalker(allDeps: any, curNodeDeps: any, modDeps: any, modInfo: 
                 splitted.shift();
                 node = splitted.join('!');
                 if (!modInfo[node]) {
-                    return;
+                    continue;
                 }
             }
             const module = parseModuleName(node);
@@ -232,22 +245,20 @@ class DepsCollector {
     modDeps: any;
     modInfo: any;
     bundlesRoute: any;
-    themesActive: any;
 
     /**
      * @param modDeps - object, contains all nodes of dependency tree
      * @param modInfo - contains info about path to module files
      * @param bundlesRoute - contains info about custom packets with modules
      */
-    constructor(modDeps: any, modInfo: any, bundlesRoute: any, themesActive: any) {
+    constructor(modDeps: any, modInfo: any, bundlesRoute: any) {
         this.modDeps = modDeps;
         this.modInfo = modInfo;
         this.bundlesRoute = bundlesRoute;
-        this.themesActive = themesActive;
     }
 
-    collectDependencies(deps: any): any {
-        const files = {
+    public collectDependencies(deps: any): ICollectedFiles {
+        const files:ICollectedFiles = {
             js: [],
             css: { themedCss: [], simpleCss: [] },
             tmpl: [],
@@ -257,7 +268,11 @@ class DepsCollector {
         recursiveWalker(allDeps, deps, this.modDeps, this.modInfo);
 
         // Find all bundles, and removes dependencies that are included in bundles
-        const packages = getAllPackagesNames(allDeps, this.bundlesRoute, this.themesActive);
+        const packages = getAllPackagesNames(allDeps, this.bundlesRoute);
+
+        // Add i18n dependencies
+        this.collectI18n(files, packages);
+
         for (const key in packages.js) {
             if (packages.js.hasOwnProperty(key)) {
                 files.js.push(key);
@@ -291,6 +306,41 @@ class DepsCollector {
         }
         return files;
     }
+    getLang() {
+        return i18n.getLang();
+    }
+    getAvailableDictList(lang) {
+        return i18n._dictNames[lang] || {};
+    }
+    getModules() {
+        return constants.modules;
+    }
+    collectI18n(files, packages) {
+        var collectedDictList = {};
+        var module;
+        var moduleLang;
+        var lang = this.getLang();
+        var availableDictList = this.getAvailableDictList(lang);
+        var modules = this.getModules();
+        for (var key in packages.js) {
+            module = key.split('/')[0];
+            moduleLang = module + '/lang/' + lang + '/' + lang;
+            if (availableDictList[moduleLang + '.json']) {
+                collectedDictList[module] = { moduleLang: moduleLang };
+            }
+        }
+        for (var key in collectedDictList) {
+            if (collectedDictList.hasOwnProperty(key)) {
+                files.js.push(collectedDictList[key].moduleLang + '.json');
+                if (modules[key].dict && modules[key].dict && ~modules[key].dict.indexOf(lang + '.css')) {
+                    files.css.simpleCss.push(collectedDictList[key].moduleLang);
+                }
+            }
+        }
+    }
 }
 
-export default DepsCollector;
+export {
+    DepsCollector,
+    ICollectedFiles
+};
