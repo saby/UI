@@ -68,6 +68,4 @@
    <ws:for data="cssName, value in newSimple">
       <link rel="stylesheet" class="new-styles" data-vdomignore="true" css-name="{{ cssName }}" href="{{ _options.linkResolver.resolveLink(cssName, 'css') }}" type="text/css"/>
    </ws:for>
-
-   {{ errorState }}
 </head>

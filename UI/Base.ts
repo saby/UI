@@ -7,6 +7,8 @@ import StateReceiver from './_base/StateReceiver';
 import AppData from './_base/Deprecated/AppData';
 import Start from './_base/Start';
 import HeadController from './_base/HeadController';
+import HeadData from './_base/HeadData';
+import {DepsCollector} from './_base/DepsCollector';
 
 //@ts-ignore
 import BaseRoute = require('wml!UI/_base/Route');
@@ -24,5 +26,7 @@ export {
     HeadController,
     Creator,
     AsyncCreator,
+    DepsCollector,
+    HeadData,
     TemplateFunction
 };
