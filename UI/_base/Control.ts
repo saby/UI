@@ -571,7 +571,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
      * @see activated
      * @see deactivated
      */
-    activate(cfg: { ignoreInputsOnMobiles?: boolean } = {}): boolean {
+    activate(cfg: { ignoreInputsOnMobiles?: boolean, enableScrollToElement?: boolean } = {}): boolean {
         function getContainerWithControlNode(element: Element): Element {
             while (element) {
                 // ищем ближайший элемент, который может быть сфокусирован и не является полем ввода
@@ -619,7 +619,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
                             container = getContainerWithControlNode(container);
                         }
                     }
-                    VFocus.focus(container);
+                    VFocus.focus(container, cfg);
                 }
                 res = container === document.activeElement;
 
@@ -655,7 +655,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
                 if (autofocusElem && autofocusElem.controlNodes && autofocusElem.controlNodes.length) {
                     // берем самый внешний контрол и активируем его
                     const outerControlNode = autofocusElem.controlNodes[autofocusElem.controlNodes.length - 1];
-                    res = outerControlNode.control.activate();
+                    res = outerControlNode.control.activate(cfg);
                     found = res;
                 }
             }
