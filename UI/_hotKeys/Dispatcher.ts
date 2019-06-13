@@ -47,7 +47,7 @@ class Dispatcher extends Control {
            // у события не будет bubbling фазы
            // TODO: Нужно поправить после исправления
            // https://online.sbis.ru/opendoc.html?guid=cefa8cd9-6a81-47cf-b642-068f9b3898b7
-           if (!event.target.closest('.richEditor_TinyMCE')) {
+           if (!event.target.closest('.richEditor_TinyMCE') && !event.target.closest('.controls-RichEditor')) {
               event.stopPropagation();
            }
         }
