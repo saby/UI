@@ -22,6 +22,7 @@ class Dispatcher extends Control {
             return;
         }
 
+        let needStop = false;
         // если isTrusted = false, значит это мы запустили событие по горячим клавишам,
         // его не надо повторно обрабатывать клавиши home и end не обрабатываем, у поля ввода есть реакция
         // на эти клавиши
@@ -31,18 +32,24 @@ class Dispatcher extends Control {
                 const parent = parents[i];
                 if (parent._$defaultActions && parent._$defaultActions[key]) {
                     parent._$defaultActions[key].action();
+                    needStop = true;
                     break;
                 }
             }
         }
-        // Так как наша система событий ловит события на стадии capture,
-        // а подписки в БТРе на стадии bubbling, то не нужно звать stopPropagation
-        // так как обработчики БТРа в таком случае не отработают, потому что
-        // у события не будет bubbling фазы
-        // TODO: Нужно поправить после исправления
-        // https://online.sbis.ru/opendoc.html?guid=cefa8cd9-6a81-47cf-b642-068f9b3898b7
-        if (!event.target.closest('.richEditor_TinyMCE')) {
-            event.stopPropagation();
+
+        // если диспетчер нашел зарегистрированное действие на сочетание клавиш и запустил обработчик,
+        // клавиши считаются обработанными и больше не должны всплывтаь
+        if (needStop) {
+           // Так как наша система событий ловит события на стадии capture,
+           // а подписки в БТРе на стадии bubbling, то не нужно звать stopPropagation
+           // так как обработчики БТРа в таком случае не отработают, потому что
+           // у события не будет bubbling фазы
+           // TODO: Нужно поправить после исправления
+           // https://online.sbis.ru/opendoc.html?guid=cefa8cd9-6a81-47cf-b642-068f9b3898b7
+           if (!event.target.closest('.richEditor_TinyMCE')) {
+              event.stopPropagation();
+           }
         }
     }
 }
