@@ -24,17 +24,24 @@ class Dispatcher extends Control {
 
         let needStop = false;
         // если isTrusted = false, значит это мы запустили событие по горячим клавишам,
-        // его не надо повторно обрабатывать клавиши home и end не обрабатываем, у поля ввода есть реакция
-        // на эти клавиши
+        // его не надо повторно обрабатывать
         if (event.nativeEvent.isTrusted) {
-            const parents = goUpByControlTree(nativeEvent.target);
-            for (let i = 0; i < parents.length; i++) {
-                const parent = parents[i];
-                if (parent._$defaultActions && parent._$defaultActions[key]) {
-                    parent._$defaultActions[key].action();
-                    needStop = true;
-                    break;
-                }
+            // ищем только в пределах попапа
+            // todo придумать проверку получше https://online.sbis.ru/opendoc.html?guid=50215de6-da5c-44bf-b6f6-a9f7cb0e17d2
+            const wholeParents = goUpByControlTree(nativeEvent.target);
+            const popupIndex = wholeParents.findIndex((parent) => parent._moduleName === 'Controls/_popup/Manager/Popup');
+            const parents = popupIndex === -1 ? wholeParents : wholeParents.slice(0, popupIndex + 1);
+            // Dispatcher и активный контрол должны находиться в одной области. Иначе может отработать действие из
+            // другой области. Например, фокус находится в панели, нажимаем клавишу вниз и в реестре сдвигается маркер
+            if (parents.indexOf(this) !== -1) {
+               for (let i = 0; i < parents.length; i++) {
+                  const parent = parents[i];
+                  if (parent._$defaultActions && parent._$defaultActions[key]) {
+                     parent._$defaultActions[key].action();
+                     needStop = true;
+                     break;
+                  }
+               }
             }
         }
 
