@@ -71,7 +71,7 @@ export interface IControlOptions {
  * @remark {
  * @link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator
  * Asynchronous creation of Core/Creator component}
- * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
+ * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup createControl
  * @public
  */
 export default class Control<TOptions extends IControlOptions, TState = void> {
@@ -1009,6 +1009,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
     /**
      * Method for creation a root control.
      * @function UI/_base/Control#createControl
+     * @deprecated 
      * @remark
      * Use this method when you want to create a root control. When you call this method, you create the entire
      * Wasaby infrastructure.
