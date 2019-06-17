@@ -71,7 +71,7 @@ export interface IControlOptions {
  * @remark {
  * @link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator
  * Asynchronous creation of Core/Creator component}
- * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup createControl
+ * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
 export default class Control<TOptions extends IControlOptions, TState = void> {

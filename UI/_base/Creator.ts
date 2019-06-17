@@ -14,10 +14,19 @@ import { Focus, ContextResolver } from 'View/Executor/Expressions';
 
 
 /**
- * Method for creation a root control.
+ * Создаёт корневой контрол.
  * @function UI/_base/Creator#createControl
  * @remark
- * Use this method when you want to create a root control. When you call this method, you create the entire
+ * При вызове метода инициализируется инфраструктура веб-фреймворка Wasaby.
+ * Метод выполняется синхронно.
+ * Для асинхронного создания контрола используйте метод
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator
+ * Core/Creator}.
+ */
+/**
+ * Method for creation a root control.
+ * Use this method when you want to create a root control.
+ * When you call this method, you create the entire
  * Wasaby infrastructure.
  * For asynchronous item creation you can use
  * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator
@@ -48,8 +57,13 @@ export default function createControl(ctor: any, cfg: any, domElement: HTMLEleme
 }
 
 /**
- * Method for asynchronous item creation.
+ * Асинхронно создаёт элемент.
  * @function UI/_base/Creator#async
+ * @remark
+ * Возвращается promise, который сработает на хуке afterMount().
+ */
+/**
+ * Method for asynchronous item creation.
  */
 export async function async(ctor: any, cfg: any, domElement: HTMLElement): Promise<Control> {
     return new Promise((resolve, reject) => {
