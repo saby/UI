@@ -37,9 +37,13 @@ class KeyHook extends Control {
     _afterMount(): void {
         // опция defaultActions хранит набор клавиш, которые будут обработаны по умолчанию
         if (this._options.defaultActions) {
-            const parents = goUpByControlTree(this._container);
+           // регистрируем только в пределах попапа
+           // todo придумать проверку получше https://online.sbis.ru/opendoc.html?guid=50215de6-da5c-44bf-b6f6-a9f7cb0e17d2
+            const wholeParents = goUpByControlTree(this._container);
+            const popupIndex = wholeParents.findIndex((parent) => parent._moduleName === 'Controls/_popup/Manager/Popup');
+            const parents = popupIndex === -1 ? wholeParents : wholeParents.slice(0, popupIndex + 1);
 
-            // собираем всех предков, и говорим им, какое действие по умолчанию нужно выполнить на необработанное
+           // собираем всех предков, и говорим им, какое действие по умолчанию нужно выполнить на необработанное
             // нажатие клавиш
             this._options.defaultActions.forEach((action) => {
                 for (let i = 0; i < parents.length; i++) {
