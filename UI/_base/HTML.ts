@@ -14,6 +14,7 @@ import LinkResolver = require('Core/LinkResolver/LinkResolver');
 
 import * as AppEnv from 'Application/Env';
 import AppData from './Deprecated/AppData';
+import {detection} from 'Env/Env';
 
 class HTML extends Control {
     _template: Function = template;
@@ -125,6 +126,12 @@ class HTML extends Control {
             });
         });
     }
+
+   _afterMount(): void {
+      if (!detection.isMobilePlatform) {
+         this.activate();
+      }
+   }
 
     static contextTypes(): { AppData: any } {
         return {
