@@ -99,6 +99,9 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
     // protected for compatibility, should be private
     protected _container: HTMLElement = null;
 
+    // TODO: Didn't remove all uses yet. Have to get back this to fix uses later.
+    private _logicParent: Control<TOptions, void> = null;
+
     /**
      * Manually triggers start of the update cycle for the control.
      *
@@ -269,6 +272,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
             return markup;
         };
 
+        this._logicParent = cfg._logicParent;
         this._options = {};
         this._internalOptions = {};
         this._children = {};
