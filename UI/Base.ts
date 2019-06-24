@@ -1,4 +1,4 @@
-/// <amd-module name="UI/Index" />
+/// <amd-module name="UI/Base" />
 import {default as Control, IControlOptions, TemplateFunction} from './_base/Control';
 import HTML from './_base/HTML';
 import Document from './_base/Document';
