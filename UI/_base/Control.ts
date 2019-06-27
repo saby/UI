@@ -99,6 +99,10 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
     // protected for compatibility, should be private
     protected _container: HTMLElement = null;
 
+    // TODO: Временное решение. Удалить после выполнения удаления всех использований.
+    // Ссылка: https://online.sbis.ru/opendoc.html?guid=5f576e21-6606-4a55-94fd-6979c6bfcb53.
+    private _logicParent: Control<TOptions, void> = null;
+
     /**
      * Manually triggers start of the update cycle for the control.
      *
@@ -269,6 +273,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
             return markup;
         };
 
+        this._logicParent = cfg._logicParent;
         this._options = {};
         this._internalOptions = {};
         this._children = {};
@@ -494,7 +499,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
         try {
             const contextTypes = this.constructor.contextTypes ? this.constructor.contextTypes() : {};
             for (const i in contextTypes) {
-                if (contextTypes.hasOwnProperty(i)) {
+                if (contextTypes.hasOwnProperty(i) && this.context.get(i) instanceof contextTypes[i]) {
                     this.context.get(i).unregisterConsumer(this);
                 }
             }

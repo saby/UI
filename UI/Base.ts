@@ -1,7 +1,7 @@
-/// <amd-module name="UI/Index" />
+/// <amd-module name="UI/Base" />
 import {default as Control, IControlOptions, TemplateFunction} from './_base/Control';
-import HTML from './_base/HTML';
-import Document from './_base/Document';
+// import HTML from './_base/HTML';
+// import Document from './_base/Document';
 import StateReceiver from './_base/StateReceiver';
 
 import AppData from './_base/Deprecated/AppData';
@@ -17,8 +17,8 @@ import Creator, { async as AsyncCreator } from './_base/Creator';
 export {
     Control,
     IControlOptions,
-    HTML,
-    Document,
+    // HTML,
+    // Document,
     StateReceiver,
     AppData,
     Start,
