@@ -505,7 +505,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
             }
             if (this._mounted) {
                 this.__beforeUnmount();
-                Synchronizer.cleanControlDomLink(this._container);
+                Synchronizer.cleanControlDomLink(this._container, this);
             }
         } catch (error) {
             Logger.catchLifeCircleErrors('_beforeUnmount', error);
