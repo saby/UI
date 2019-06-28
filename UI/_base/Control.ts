@@ -74,7 +74,7 @@ export interface IControlOptions {
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
-export default class Control<TOptions extends IControlOptions, TState = void> {
+export default class Control<TOptions extends IControlOptions = {}, TState = void> {
     private _mounted: boolean = false;
     private _unmounted: boolean = false;
     private _destroyed: boolean = false;
@@ -102,33 +102,6 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
     // TODO: Временное решение. Удалить после выполнения удаления всех использований.
     // Ссылка: https://online.sbis.ru/opendoc.html?guid=5f576e21-6606-4a55-94fd-6979c6bfcb53.
     private _logicParent: Control<TOptions, void> = null;
-
-    /**
-     * Manually triggers start of the update cycle for the control.
-     *
-     * @remark Control's update starts automatically when you subscribe to DOM and control events from the
-     * template. If you update control's state at some other time (timeout or subscription to server event),
-     * you need to start update manually. After _forceUpdate, all hooks from update lifecycle will be called
-     * (_shouldUpdate, _beforeUpdate, _afterUpdate).
-     * @example
-     * In this example, _statusUpdatedHandler is called when new status received from server.
-     * You then update the state with this status and manually trigger control's update to rerender its' template.
-     * <pre>
-     *    Control.extend({
-     *       ...
-     *       _statusUpdatedHandler(newStatus) {
-     *          this._status = newStatus;
-     *          this._forceUpdate();
-     *       }
-     *       ...
-     *    });
-     * </pre>
-     * @see Documentation: Control lifecycle
-     * @private
-     */
-    _forceUpdate(): void {
-        // будет переопределено в конструкторе, чтобы был доступ к замыканиям
-    }
 
     // Render function for virtual dom
     _getMarkup: Function = null;
@@ -286,6 +259,33 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
     }
 
     /**
+     * Manually triggers start of the update cycle for the control.
+     *
+     * @remark Control's update starts automatically when you subscribe to DOM and control events from the
+     * template. If you update control's state at some other time (timeout or subscription to server event),
+     * you need to start update manually. After _forceUpdate, all hooks from update lifecycle will be called
+     * (_shouldUpdate, _beforeUpdate, _afterUpdate).
+     * @example
+     * In this example, _statusUpdatedHandler is called when new status received from server.
+     * You then update the state with this status and manually trigger control's update to rerender its' template.
+     * <pre>
+     *    Control.extend({
+     *       ...
+     *       _statusUpdatedHandler(newStatus) {
+     *          this._status = newStatus;
+     *          this._forceUpdate();
+     *       }
+     *       ...
+     *    });
+     * </pre>
+     * @see Documentation: Control lifecycle
+     * @private
+     */
+    _forceUpdate(): void {
+        // будет переопределено в конструкторе, чтобы был доступ к замыканиям
+    }
+
+    /**
      * @name UI/_base/Control#readOnly
      * @cfg {Boolean} Determines whether user can change control's value
      * (or interact with the control if its value is not editable).
@@ -340,7 +340,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
         return this._instId;
     }
 
-    mountToDom(element: HTMLElement, cfg: any, controlClass: Control<IControlOptions, TState>): void {
+    mountToDom(element: HTMLElement, cfg: any, controlClass: Control): void {
         // @ts-ignore
         if (!this.VDOMReady) {
             // @ts-ignore
@@ -1016,7 +1016,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
 
         return inherit;
     }
-    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control<IControlOptions> {
+    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
         const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
         // @ts-ignore
         OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
