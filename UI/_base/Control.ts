@@ -496,6 +496,11 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
 
     destroy(): void {
         this._destroyed = true;
+
+        // освобождаем сложные реактивные свойства, чтобы их вновь можно было регистрировать как реактивные
+        // для других экземпляров
+        ReactiveObserver.releaseProperties(this);
+
         try {
             const contextTypes = this.constructor.contextTypes ? this.constructor.contextTypes() : {};
             for (const i in contextTypes) {
