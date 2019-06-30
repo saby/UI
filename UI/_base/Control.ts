@@ -210,7 +210,16 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
                 control._$needForceUpdate = true;
             } else {
                 if (environment) {
-                    environment.forceRebuild(controlNode.id);
+                    // This is fix for specific case. When environment has _haveRebuildRequest and after that 
+                    // we creating another one. We don't have to do that, it's better to delay rebuild, after current
+                    // sync cycle.
+                    // after 410 condition "control._moduleName === 'FED2/UI/DocumentCompatible'" will be deleted.
+                    if (environment._haveRebuildRequest && control._moduleName === 'FED2/UI/DocumentCompatible') {
+                        control._$needForceUpdate = true;
+                    } else {
+                        environment.forceRebuild(controlNode.id);
+                    }
+                    
                 }
             }
         };
