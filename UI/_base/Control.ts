@@ -183,15 +183,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                 control._$needForceUpdate = true;
             } else {
                 if (environment) {
-                    // This is fix for specific case. When environment has _haveRebuildRequest and after that 
-                    // we creating another one. We don't have to do that, it's better to delay rebuild, after current
-                    // sync cycle.
-                    if (environment._haveRebuildRequest) {
-                        control._$needForceUpdate = true;
-                    } else {
-                        environment.forceRebuild(controlNode.id);
-                    }
-                    
+                    environment.forceRebuild(controlNode.id);
                 }
             }
         };
