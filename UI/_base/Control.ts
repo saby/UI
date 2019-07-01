@@ -23,7 +23,7 @@ import * as Logger from 'View/Logger';
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
 /**
- * @event UI/_base/Control#activated Occurs when the component becomes active.
+ * @event UI/_base/Control#activated Происходит, когда компонент становится активным.
  * @param {Boolean} isTabPressed Indicates whether control was activated by Tab press.
  * @remark Control is activated when one of its DOM elements becomes focused. Detailed description and u
  * se cases of the event can be found
