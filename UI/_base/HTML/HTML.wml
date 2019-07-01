@@ -7,10 +7,10 @@
       <ws:if data="{{isCompatible}}">
          <div class="ws-focus-in"></div>
       </ws:if>
-      <ws:if data="{{  _options.content }}">
+      <ws:if data="{{ bodyContent }}">
          <UI._base.HTML.Wait>
             <ws:partial
-               template="{{ _options.content }}"
+               template="{{ bodyContent }}"
                scope="{{ templateConfig }}"
                attr:class="zIndex-context" />
          </UI._base.HTML.Wait>
@@ -20,18 +20,18 @@
          </UI._base.HTML.Wait>
       </ws:else>
 
-      <ws:if data="{{ _options.scripts && _options.beforeScripts}}">
-         <ws:for data="i in _options.scripts">
+      <ws:if data="{{ scripts && _options.beforeScripts}}">
+         <ws:for data="i in scripts">
             <ws:partial template="{{ i }}"/>
          </ws:for>
       </ws:if>
       <script key="bundles" type="text/javascript"
               src="{{resourceRoot}}bundles.js"></script>
       <script key="require" type="text/javascript"
-              src="http://dev-cdn.wasaby.io/requirejs/2.3.5-p4/require-min.js"></script>
+              src="/cdn/requirejs/2.3.5-p5/require-min.js"></script>
       <script key="contents" type="text/javascript" src="{{ linkResolver.resolveLink('contents', 'js') }}"></script>
       <script key="config" type="text/javascript"
-              src="{{wsRoot}}ext/requirejs/config.js"></script>
+              src="{{ linkResolver.resolveLink('WS.Core/ext/requirejs/config', 'js') }}"></script>
 
 
       <ws:if data="{{_options.builder && _options.builderCompatible}}">
@@ -47,8 +47,8 @@
             <UI._base.HTML.JsLinks attr:tabindex="-1"
                                            appRoot="{{ appRoot }}"
                                            linkResolver="{{ linkResolver }}"/>
-            <ws:if data="{{ _options.scripts && !_options.beforeScripts }}">
-               <ws:for data="i in _options.scripts">
+            <ws:if data="{{ scripts && !_options.beforeScripts }}">
+               <ws:for data="i in scripts">
                   <ws:partial template="{{ i }}"/>
                </ws:for>
             </ws:if>
@@ -85,7 +85,7 @@
    </UI._base.HTML.Head>
    <ws:if data="{{_options.bodyTemplate}}">
       <ws:partial template="{{_options.bodyTemplate}}">
-         <ws:partial template="bodyTemplate" />
+         <ws:partial template="bodyTemplate" scope="{{content}}" />
       </ws:partial>
    </ws:if>
    <ws:else>

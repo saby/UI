@@ -10,7 +10,7 @@ import ThemesController = require('Core/Themes/ThemesController');
 
 import HeadData from './HeadData';
 import StateReceiver from './StateReceiver';
-import AppData from './Deprecated/AppData';
+import AppData from './AppData';
 
 import { default as AppInit } from 'Application/Initializer';
 import * as AppEnv from 'Application/Env';
@@ -48,7 +48,7 @@ class Document extends Control {
 
         const headData = new HeadData();
         AppEnv.setStore('HeadData', headData);
-
+        AppData.initAppData(cfg);
         AppEnv.setStore('CoreInstance', { instance: this });
         this.ctxData = new AppData(cfg);
     }
@@ -66,11 +66,11 @@ class Document extends Control {
         }
     }
 
-    _getChildContext(): { AppData: any } {
-        return {
-            AppData: this.ctxData
-        };
-    }
+    // _getChildContext(): { AppData: any } {
+    //     return {
+    //         AppData: this.ctxData
+    //     };
+    // }
 
     setTheme(ev: Event, theme: string): void {
         this.coreTheme = theme;

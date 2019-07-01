@@ -494,7 +494,7 @@ export default class Control<TOptions extends IControlOptions, TState = void> {
         try {
             const contextTypes = this.constructor.contextTypes ? this.constructor.contextTypes() : {};
             for (const i in contextTypes) {
-                if (contextTypes.hasOwnProperty(i)) {
+                if (contextTypes.hasOwnProperty(i) && this.context.get(i) instanceof contextTypes[i]) {
                     this.context.get(i).unregisterConsumer(this);
                 }
             }

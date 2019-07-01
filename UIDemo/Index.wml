@@ -1,5 +1,5 @@
-<Controls.Application scope="{{_options}}" bodyClass="controls-default-bg">
+<UI.Base:HTML scope="{{_options}}" bodyClass="controls-default-bg">
    <ws:content>
       <UIDemo.RootRouter />
    </ws:content>
-</Controls.Application>
+</UI.Base:HTML>
