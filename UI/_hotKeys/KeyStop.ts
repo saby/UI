@@ -7,7 +7,10 @@ import { SyntheticEvent } from 'Vdom/Vdom';
 
 class KeyStop extends Control {
    _keydownHandler(event: SyntheticEvent): void {
-      event.stopped = true;
+      const keys = this._options.stopKeys || [];
+      if (keys.find((key) => key.keyCode === event.keyCode)) {
+         event.stopped = true;
+      }
    }
 }
 
