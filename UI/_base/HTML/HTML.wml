@@ -11,8 +11,7 @@
          <UI._base.HTML.Wait>
             <ws:partial
                template="{{ bodyContent }}"
-               scope="{{ templateConfig }}"
-               attr:class="zIndex-context" />
+               scope="{{ templateConfig }}" />
          </UI._base.HTML.Wait>
       </ws:if>
       <ws:else>
@@ -25,13 +24,26 @@
             <ws:partial template="{{ i }}"/>
          </ws:for>
       </ws:if>
-      <script key="bundles" type="text/javascript"
-              src="{{resourceRoot}}bundles.js"></script>
-      <script key="require" type="text/javascript"
-              src="/cdn/requirejs/2.3.5-p5/require-min.js"></script>
-      <script key="contents" type="text/javascript" src="{{ linkResolver.resolveLink('contents', 'js') }}"></script>
-      <script key="config" type="text/javascript"
-              src="{{ linkResolver.resolveLink('WS.Core/ext/requirejs/config', 'js') }}"></script>
+      <ws:if data="{{ _options.builder }}">
+         <script key="bundles" type="text/javascript"
+                 src="{{resourceRoot}}bundles.js"></script>
+         <script key="require" type="text/javascript"
+                 src="/cdn/RequireJS/2.3.5-p5/require-min.js"></script>
+         <script key="contents" type="text/javascript"
+                 src="{{resourceRoot}}contents.js"></script>
+         <script key="config" type="text/javascript"
+                 src="{{resourceRoot}}WS.Core/ext/requirejs/config.js"></script>
+      </ws:if>
+      <ws:else>
+         <script key="bundles" type="text/javascript"
+                 src="{{ linkResolver.resolveLink('bundles', 'js') }}"></script>
+         <script key="require" type="text/javascript"
+                 src="/cdn/RequireJS/2.3.5-p5/require-min.js"></script>
+         <script key="contents" type="text/javascript"
+                 src="{{ linkResolver.resolveLink('contents', 'js') }}"></script>
+         <script key="config" type="text/javascript"
+                 src="{{ linkResolver.resolveLink('WS.Core/ext/requirejs/config', 'js') }}"></script>
+      </ws:else>
 
 
       <ws:if data="{{_options.builder && _options.builderCompatible}}">
@@ -78,6 +90,7 @@
       title="{{ title }}"
       staticDomains="{{ staticDomains }}"
       buildnumber="{{ buildnumber }}"
+      noscript="{{ _options.noscript }}"
       viewport="{{ _options.viewport }}"
       preInitScript="{{ _options.preInitScript }}"
       servicesPath="{{ servicesPath }}"
