@@ -90,8 +90,8 @@ class Head extends Control {
         return false;
     }
 
-    isArrayHead(): Boolean {
-        return Array.isArray(this.head);
+    isArray(obj: any): Boolean {
+        return Array.isArray(obj);
     }
 
     isMultiThemes(): Boolean {
