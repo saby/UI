@@ -86,6 +86,7 @@
       RUMEnabled="{{ RUMEnabled }}"
       pageName="{{ pageName }}"
       compat="{{ compat }}"
+      headContent="{{ _options.headContent }}"
       head="{{ _options.head }}"
       title="{{ title }}"
       staticDomains="{{ staticDomains }}"

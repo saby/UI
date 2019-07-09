@@ -12,6 +12,7 @@ class Head extends Control {
     _template: Function = template;
 
     head: Function[] = null;
+    headContent: Function[] = null;
 
     themedCss: string[] = [];
     simpleCss: string[] = [];
@@ -44,6 +45,7 @@ class Head extends Control {
         * мы хотим рендерить их только 1 раз, при этом, если мы ренедрим их на сервере мы добавим класс
         * head-custom-block */
         this.head = options.head;
+        this.headContent = options.headContent;
 
         this.wasServerSide = false;
         if (typeof window !== 'undefined') {
@@ -62,6 +64,7 @@ class Head extends Control {
 
             if (document.getElementsByClassName('head-custom-block').length > 0) {
                 this.head = undefined;
+                this.headContent = undefined;
             }
             this.themedCss = [];
             this.simpleCss = [];
