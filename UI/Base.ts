@@ -4,7 +4,7 @@ import {default as Control, IControlOptions, TemplateFunction} from './_base/Con
 // import Document from './_base/Document';
 import StateReceiver from './_base/StateReceiver';
 
-import AppData from './_base/Deprecated/AppData';
+import AppData from './_base/AppData';
 import Start from './_base/Start';
 import HeadController from './_base/HeadController';
 import HeadData from './_base/HeadData';
