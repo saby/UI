@@ -15,7 +15,7 @@
          appinit();
          require(['UI/Base', 'Core/app-start', 'View/Executor/TClosure',
             'Core/helpers/Hcontrol/makeInstanceCompatible',
-            {{_options.dependencies | unescape}}], function(UI, AppStart, tclosure, makeInstanceCompatible) {
+            {{ __setHTMLUnsafe(_options.dependencies) }}], function(UI, AppStart, tclosure, makeInstanceCompatible) {
             var AppData = UI.AppData,
                Control = UI.Control,
                Core = UI.Document;
@@ -24,7 +24,7 @@
             makeInstanceCompatible(templCtr);
             templCtr.destroy();
             window.startContextData = {AppData: new AppData({})};
-            var templateFn = {{_options.builder | unescape}};
+            var templateFn = {{ __setHTMLUnsafe(_options.builder) }};
             templateFn.stable = true;
             var cnt = Core.extend({
                _template: templateFn

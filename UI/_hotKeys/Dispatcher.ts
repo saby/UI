@@ -31,16 +31,13 @@ class Dispatcher extends Control {
          const wholeParents = goUpByControlTree(nativeEvent.target);
          const popupIndex = wholeParents.findIndex((parent) => parent._moduleName === 'Controls/_popup/Manager/Popup');
          const parents = popupIndex === -1 ? wholeParents : wholeParents.slice(0, popupIndex + 1);
-         // Dispatcher и активный контрол должны находиться в одной области. Иначе может отработать действие из
-         // другой области. Например, фокус находится в панели, нажимаем клавишу вниз и в реестре сдвигается маркер
-         if (parents.indexOf(this) !== -1) {
-            for (let i = 0; i < parents.length; i++) {
-               const parent = parents[i];
-               if (parent._$defaultActions && parent._$defaultActions[key]) {
-                  parent._$defaultActions[key].action();
-                  needStop = true;
-                  break;
-               }
+
+         for (let i = 0; i < parents.length; i++) {
+            const parent = parents[i];
+            if (parent._$defaultActions && parent._$defaultActions[key]) {
+               parent._$defaultActions[key].action();
+               needStop = true;
+               break;
             }
          }
       }
