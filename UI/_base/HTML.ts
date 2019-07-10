@@ -70,7 +70,7 @@ class HTML extends Control {
         // TODO нужно удалить после решения
         // https://online.sbis.ru/opendoc.html?guid=a9ceff55-1c8b-4238-90a7-22dde0e1bdbe
         this.servicesPath =
-            appData.servicesPath || cfg.servicesPath || constants.defaultServiceUrl || '/service/';
+            cfg.servicesPath || appData.servicesPath || constants.defaultServiceUrl || '/service/';
         this.application = appData.application;
 
         if (typeof window === 'undefined' && cfg.theme !== 'default') {
