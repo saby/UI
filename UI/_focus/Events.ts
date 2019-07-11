@@ -1,4 +1,5 @@
 /// <amd-module name="UI/_focus/Events" />
+/* tslint:disable */
 
 // @ts-ignore
 import { goUpByControlTree } from 'Vdom/Vdom';

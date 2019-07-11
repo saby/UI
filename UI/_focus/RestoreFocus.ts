@@ -3,9 +3,11 @@ import { goUpByControlTree } from 'Vdom/Vdom';
 // @ts-ignore
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
 
+import { Control } from 'UI/Base';
+
 import { focus } from './Focus';
 
-export function restoreFocus(control, action) {
+export function restoreFocus(control: Control, action: Function): void {
    const savedActiveElement = document.activeElement;
    // нужно вычислять родительские контролы заранее, во время перерисовки эти контролы могут быть
    // разрушены и мы потеряем реальную иерархию, и не сможем восстановить фокус куда надо.

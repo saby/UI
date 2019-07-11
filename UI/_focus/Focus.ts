@@ -89,7 +89,7 @@ function tryMoveFocus(element: Element): boolean {
 /**
  * check if focus of element was successful.
  */
-function checkFocused(element: Element) {
+function checkFocused(element: Element): void {
    // если фокусируется скрытый элемент (или его предок скрыт), выводим ошибку, потому что он не сфокусируется
    if (element !== document.activeElement) {
       let currentElement = element;
@@ -136,7 +136,9 @@ function isIosScrollableInput(element: Element): boolean {
 }
 
 // Empty function, does nothing
-const ignoreResetScroll = () => {};
+const ignoreResetScroll = () => {
+   // empty
+};
 
 function makeResetScrollFunction(element: Element, enableScrollToElement: boolean): () => void {
    if (
@@ -159,13 +161,17 @@ function makeResetScrollFunction(element: Element, enableScrollToElement: boolea
 /**
  * Moves focus to a specific HTML or SVG element
  */
-export function focus(element: Element, cfg: { ignoreInputsOnMobiles?: boolean, enableScrollToElement?: boolean } = {}): boolean {
+export function focus(
+      element: Element,
+      cfg: { ignoreInputsOnMobiles?: boolean, enableScrollToElement?: boolean } = {}
+      ): boolean {
    const undoScrolling = makeResetScrollFunction(element, cfg.enableScrollToElement);
    const result = tryMoveFocus(element);
 
    if (result) {
       if (detection.safari) {
-         // для сафари нужен timeout, почему-то фокус не успевает проскроллить элемент, и вычисляется неправильный новый scrollTOp
+         // для сафари нужен timeout, почему-то фокус не успевает проскроллить элемент,
+         // и вычисляется неправильный новый scrollTOp
          setTimeout(() => {
             undoScrolling();
          }, 0);
@@ -178,4 +184,3 @@ export function focus(element: Element, cfg: { ignoreInputsOnMobiles?: boolean, 
    }
    return result;
 }
-

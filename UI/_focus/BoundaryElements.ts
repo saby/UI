@@ -1,4 +1,5 @@
 /// <amd-module name="UI/_focus/BoundaryElements" />
+/* tslint:disable */
 
 import { Vdom } from 'View/Executor/Utils';
 

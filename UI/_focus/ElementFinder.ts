@@ -1,4 +1,5 @@
 /// <amd-module name="UI/_focus/ElementFinder" />
+/* tslint:disable */
 
 let NODE_NODE_TYPE = 1;
 
@@ -423,4 +424,4 @@ export function findWithContexts(rootElement, fromElement, reverse, getElementPr
 
    return result;
 }
-
+
