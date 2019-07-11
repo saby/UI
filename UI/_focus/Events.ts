@@ -87,7 +87,7 @@ export function notifyActivationEvents(environment, target, relatedTarget, isTab
                isShiftKey: isTabPressed && isTabPressed.isShiftKey
             }
          ]);
-         control._active = false;
+         control._$active = false;
          return false;
       } else {
          return true;
@@ -105,7 +105,7 @@ export function notifyActivationEvents(environment, target, relatedTarget, isTab
                isShiftKey: isTabPressed && isTabPressed.isShiftKey
             }
          ]);
-         control._active = true;
+         control._$active = true;
          return false;
       } else {
          return true;

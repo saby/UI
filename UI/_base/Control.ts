@@ -81,7 +81,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     private _mounted: boolean = false;
     private _unmounted: boolean = false;
     private _destroyed: boolean = false;
-    private _active: boolean = false;
+    private _$active: boolean = false;
 
     private readonly _instId: string;
     protected _options: TOptions = null;
@@ -618,7 +618,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
             document.body.tabIndex = 1;
         }
         document.body.focus();
-        if (this._active) {
+        if (this._$active) {
             const env = container.controlNodes[0].environment;
 
             // если DOMEnvironment не перехватил переход фокуса, вызовем обработчик ухода фокуса вручную
@@ -706,10 +706,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
         // может случиться так, что на focus() сработает обработчик в DOMEnvironment,
         // и тогда тут ничего не надо делать
-        // todo делать проверку не на _active а на то, что реально состояние изменилось.
+        // todo делать проверку не на _$active а на то, что реально состояние изменилось.
         // например переходим от компонента к его предку, у предка состояние не изменилось.
         // но с которого уходили у него изменилось
-        if (res && !this._active) {
+        if (res && !this._$active) {
             const env = container.controlNodes[0].environment;
             env._handleFocusEvent({target: container, relatedTarget: activeElement});
         }
