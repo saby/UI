@@ -1274,8 +1274,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
         // Do
     }
 
-    static _styles: string[] = [];
-    static _theme: string[] = [];
+    static _styles: string[];
+    static _theme: string[];
     static isWasaby: boolean = true;
 
     /**
