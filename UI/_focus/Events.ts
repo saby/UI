@@ -37,7 +37,7 @@ function detectStrangeElement(element) {
  * @param relatedTarget - откуда ушел фокус
  * @param isTabPressed - true, если фокус перешел по нажатию tab
  */
-export function notifyActivationEvents(target, relatedTarget, isTabPressed) {
+export function notifyActivationEvents(environment, target, relatedTarget, isTabPressed) {
    if (detectStrangeElement(target)) {
       return;
    }
@@ -48,8 +48,6 @@ export function notifyActivationEvents(target, relatedTarget, isTabPressed) {
    const
       arrayMaker = goUpByControlTree(target), // Массив активированных компонентов
       relatedArrayMaker = goUpByControlTree(realRelatedTarget); // Массив деактивированных компонентов
-
-   const environment = arrayMaker[0]._getEnvironment();
 
    // последний активный элемент, который не странный
    environment._savedFocusedElement = target;
@@ -130,4 +128,4 @@ export function notifyActivationEvents(target, relatedTarget, isTabPressed) {
       }
    }
 }
-
+
