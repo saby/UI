@@ -2,13 +2,12 @@
 import template = require('wml!UI/_base/Control');
 
 // @ts-ignore
-import { IoC, detection } from 'Env/Env';
-// @ts-ignore
-import doAutofocus = require('Core/helpers/Hcontrol/doAutofocus');
+import { IoC } from 'Env/Env';
 
-import { Synchronizer, TabIndex, Focus as VFocus } from 'Vdom/Vdom';
+import { Synchronizer } from 'Vdom/Vdom';
 import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
+import { activate } from 'UI/Focus';
 
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesControllerNew');
@@ -16,8 +15,6 @@ import ThemesController = require('Core/Themes/ThemesControllerNew');
 import PromiseLib = require('Core/PromiseLib/PromiseLib');
 // @ts-ignore
 import ReactiveObserver = require('Core/ReactiveObserver');
-// @ts-ignore
-import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
 
 import * as Logger from 'View/Logger';
 
@@ -67,20 +64,6 @@ let countInst = 1;
 const WAIT_TIMEOUT = 20000;
 const WRAP_TIMEOUT = 5000;
 
-function matches(el: Element, selector: string): boolean {
-    return (
-        el.matches ||
-        el.matchesSelector ||
-        el.msMatchesSelector ||
-        el.mozMatchesSelector ||
-        el.webkitMatchesSelector ||
-        el.oMatchesSelector
-    ).call(el, selector);
-}
-function checkInput(el: Element): boolean {
-    return matches(el, 'input[type="text"], textarea, *[contentEditable=true]');
-}
-
 export interface IControlOptions {
     readOnly?: boolean;
     theme?: string;
@@ -98,7 +81,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     private _mounted: boolean = false;
     private _unmounted: boolean = false;
     private _destroyed: boolean = false;
-    private _active: boolean = false;
+    private _$active: boolean = false;
 
     private readonly _instId: string;
     protected _options: TOptions = null;
@@ -635,7 +618,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
             document.body.tabIndex = 1;
         }
         document.body.focus();
-        if (this._active) {
+        if (this._$active) {
             const env = container.controlNodes[0].environment;
 
             // если DOMEnvironment не перехватил переход фокуса, вызовем обработчик ухода фокуса вручную
@@ -716,123 +699,19 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      * @see deactivated
      */
     activate(cfg: { ignoreInputsOnMobiles?: boolean, enableScrollToElement?: boolean } = {}): boolean {
-        function getContainerWithControlNode(element: Element): Element {
-            while (element) {
-                // ищем ближайший элемент, который может быть сфокусирован и не является полем ввода
-                if (element.controlNodes && TabIndex.getElementProps(element).tabStop && !checkInput(element)) {
-                    break;
-                }
-                element = element.parentElement;
-            }
-            return element;
-        }
-
-        function doFocus(container: any): boolean {
-            let res = false;
-            const activeElement = document.activeElement;
-            if (container.wsControl && container.wsControl.setActive) {
-                // если нашли контейнер старого контрола, активируем его старым способом (для совместимости)
-                if (container.wsControl.canAcceptFocus()) {
-                    container.wsControl.setActive(true);
-                    res = container.wsControl.isActive();
-                } else {
-                    // todo попробовать поискать следующий элемент?
-                    res = false;
-                }
-            } else {
-                if (TabIndex.getElementProps(container).tabStop) {
-                    // на мобильных устройствах иногда не надо ставить фокус в поля ввода. потому что может показаться
-                    // экранная клавиатура. на ipad в случае асинхронной фокусировки вообще фокусировка откладывается
-                    // до следующего клика, и экранная клавиатура показывается не вовремя.
-
-                    // можно было бы вообще ничего не фокусировать, но есть кейс когда это нужно:
-                    // при открытии задачи поле исполнителя должно активироваться, чтобы показался саггест.
-                    // но фокус на поле ввода внутри не должен попасть, чтобы не повторилась ошибка на ipad.
-
-                    // поищем родительский элемент от найденного и сфокусируем его. так контрол, в котором лежит
-                    // поле ввода, будет сфокусирован, но фокус встанет не в поле ввода, а в его контейнер.
-
-                    // enableScreenKeyboard должен быть параметром метода activate, а не свойством контрола поля ввода,
-                    // потому что решается базовая проблема, и решаться она должна в общем случае (для любого
-                    // поля ввода), и не для любого вызова activate а только для тех вызовов, когда эта поведение
-                    // необходимо. Например, при открытии панели не надо фокусировать поля ввода
-                    // на мобильных устройствах.
-                    if (!cfg.enableScreenKeyboard && detection.isMobilePlatform) {
-                        // если попали на поле ввода, нужно взять его родительский элемент и фокусировать его
-                        if (checkInput(container)) {
-                            container = getContainerWithControlNode(container);
-                        }
-                    }
-                    VFocus.focus(container, cfg);
-                }
-                res = container === document.activeElement;
-
-                container = this._container[0] ? this._container[0] : this._container;
-
-                // может случиться так, что на focus() сработает обработчик в DOMEnvironment,
-                // и тогда тут ничего не надо делать
-                // todo делать проверку не на _active а на то, что реально состояние изменилось.
-                // например переходим от компонента к его предку, у предка состояние не изменилось.
-                // но с которого уходили у него изменилось
-                if (res && !this._active) {
-                    const env = container.controlNodes[0].environment;
-                    env._handleFocusEvent({target: container, relatedTarget: activeElement});
-                }
-            }
-            return res;
-        }
-
-        let res = false;
         const container = this._container[0] ? this._container[0] : this._container;
+        const activeElement = document.activeElement;
 
-        // сначала попробуем поискать по ws-autofocus, если найдем - позовем focus рекурсивно для найденного компонента
-        const autofocusElems = doAutofocus.findAutofocusForVDOM(container);
-        let autofocusElem;
-        let found;
+        const res = activate(container, cfg);
 
-        for (let i = 0; i < autofocusElems.length; i++) {
-            autofocusElem = autofocusElems[i];
-
-            // если что-то зафокусировали, перестаем поиск
-            if (!found) {
-                // фокусируем только найденный компонент, ws-autofocus можно повесить только на контейнер компонента
-                if (autofocusElem && autofocusElem.controlNodes && autofocusElem.controlNodes.length) {
-                    // берем самый внешний контрол и активируем его
-                    const outerControlNode = autofocusElem.controlNodes[autofocusElem.controlNodes.length - 1];
-                    res = outerControlNode.control.activate(cfg);
-                    found = res;
-                }
-            }
-        }
-
-        // если не получилось найти по автофокусу, поищем первый элемент по табиндексам и сфокусируем его.
-        // причем если это будет конейнер старого компонента, активируем его по старому тоже
-        if (!found) {
-            // так ищем DOMEnvironment для текущего компонента. В нем сосредоточен код по работе с фокусами.
-            const getElementProps = TabIndex.getElementProps;
-
-            let next = TabIndex.findFirstInContext(container, false, getElementProps);
-            if (next) {
-                // при поиске первого элемента игнорируем vdom-focus-in и vdom-focus-out
-                const startElem = 'vdom-focus-in';
-                const finishElem = 'vdom-focus-out';
-                if (next.classList.contains(startElem)) {
-                    next = TabIndex.findWithContexts(container, next, false, getElementProps);
-                }
-                if (next.classList.contains(finishElem)) {
-                    next = null;
-                }
-            }
-            if (next) {
-                res = doFocus.call(this, next);
-            } else {
-                if (isElementVisible(container)) {
-                    res = doFocus.call(this, container);
-                } else {
-                    // если элемент не видим - не можем его сфокусировать
-                    res = false;
-                }
-            }
+        // может случиться так, что на focus() сработает обработчик в DOMEnvironment,
+        // и тогда тут ничего не надо делать
+        // todo делать проверку не на _$active а на то, что реально состояние изменилось.
+        // например переходим от компонента к его предку, у предка состояние не изменилось.
+        // но с которого уходили у него изменилось
+        if (res && !this._$active) {
+            const env = container.controlNodes[0].environment;
+            env._handleFocusEvent({target: container, relatedTarget: activeElement});
         }
 
         return res;
