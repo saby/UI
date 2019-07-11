@@ -95,7 +95,6 @@ export function activate(
    }
 
    let res = false;
-   const container = this._container[0] ? this._container[0] : this._container;
 
    // сначала попробуем поискать по ws-autofocus, если найдем - позовем focus рекурсивно для найденного компонента
    const autofocusElems = findAutofocusForVDOM(container);
