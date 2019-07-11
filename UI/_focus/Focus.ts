@@ -7,7 +7,7 @@
 // @ts-ignore
 import { detection, IoC } from 'Env/Env';
 
-import resetScrolling from 'Vdom/_private/Utils/ResetScrolling';
+import { collectScrollPositions } from './_ResetScrolling';
 
 /**
  * make foreignObject instance. using for hack with svg focusing.
@@ -155,7 +155,7 @@ function makeResetScrollFunction(element: Element, enableScrollToElement: boolea
       // если настроена специальная опция, которая разрешает скроллить к фокусируемому элементу, разрешаем скролл
       return ignoreResetScroll;
    }
-   return resetScrolling(element);
+   return collectScrollPositions(element);
 }
 
 /**
