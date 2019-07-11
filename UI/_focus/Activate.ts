@@ -43,7 +43,6 @@ export function activate(
 
    function doFocus(container: any): boolean {
       let res = false;
-      const activeElement = document.activeElement;
       if (container.wsControl && container.wsControl.setActive) {
          // если нашли контейнер старого контрола, активируем его старым способом (для совместимости)
          if (container.wsControl.canAcceptFocus()) {
@@ -80,16 +79,6 @@ export function activate(
             focus(container, cfg);
          }
          res = container === document.activeElement;
-
-         // может случиться так, что на focus() сработает обработчик в DOMEnvironment,
-         // и тогда тут ничего не надо делать
-         // todo делать проверку не на _active а на то, что реально состояние изменилось.
-         // например переходим от компонента к его предку, у предка состояние не изменилось.
-         // но с которого уходили у него изменилось
-         if (res && !this._active) {
-            const env = container.controlNodes[0].environment;
-            env._handleFocusEvent({target: container, relatedTarget: activeElement});
-         }
       }
       return res;
    }
@@ -135,10 +124,10 @@ export function activate(
          }
       }
       if (next) {
-         res = doFocus.call(this, next);
+         res = doFocus(next);
       } else {
          if (isElementVisible(container)) {
-            res = doFocus.call(this, container);
+            res = doFocus(container);
          } else {
             // если элемент не видим - не можем его сфокусировать
             res = false;

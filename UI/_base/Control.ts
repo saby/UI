@@ -700,7 +700,21 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      */
     activate(cfg: { ignoreInputsOnMobiles?: boolean, enableScrollToElement?: boolean } = {}): boolean {
         const container = this._container[0] ? this._container[0] : this._container;
-        return activate(container, cfg);
+        const activeElement = document.activeElement;
+
+        const res = activate(container, cfg);
+
+        // может случиться так, что на focus() сработает обработчик в DOMEnvironment,
+        // и тогда тут ничего не надо делать
+        // todo делать проверку не на _active а на то, что реально состояние изменилось.
+        // например переходим от компонента к его предку, у предка состояние не изменилось.
+        // но с которого уходили у него изменилось
+        if (res && !this._active) {
+            const env = container.controlNodes[0].environment;
+            env._handleFocusEvent({target: container, relatedTarget: activeElement});
+        }
+
+        return res;
     }
 
     _afterCreate(cfg: any): void {
