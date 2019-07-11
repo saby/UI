@@ -52,7 +52,7 @@ function startFunction(config: any): void {
         module = dcomp[1];
         dcomp = dcomp[0];
     }
-    require([dcomp || undefined, dom.attributes.application.value], (result: any, component: any): void => {
+    require([dcomp || undefined, dom.attributes.application.value], (result: any): void => {
         if (result) {
             if (module) {
                 result = result[module];
@@ -61,7 +61,7 @@ function startFunction(config: any): void {
             config.application = dom.attributes.application.value;
         }
         config.buildnumber = window.buildnumber;
-        createControl(result || component, config, dom);
+        createControl(result, config, dom);
     });
 }
 

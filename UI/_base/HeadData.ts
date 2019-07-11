@@ -59,7 +59,7 @@ class HeadData {
     private depComponentsMap: any = {};
     private additionalDeps: any = {};
     private waiterDef: Promise<any> = null;
-    private isDebug: Boolean = false;
+    private isDebug: Boolean;
     private themesActive: boolean;
     private err: string;
 
@@ -77,7 +77,7 @@ class HeadData {
         this.depComponentsMap = {};
         this.additionalDeps = {};
         this.themesActive = true;
-        this.isDebug = cookie.get('s3debug') === 'true' || contents.buildMode === 'debug';
+        this.isDebug = HeadData.isDebug();
     }
 
     /* toDO: StateRec.register */
@@ -164,6 +164,10 @@ class HeadData {
         this.renderPromise = new Promise((resolve) => {
             this.resolve = resolve;
         });
+    }
+
+    static isDebug(): boolean {
+        return cookie.get('s3debug') === 'true' || contents.buildMode === 'debug';
     }
 }
 
