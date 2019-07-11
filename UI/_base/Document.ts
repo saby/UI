@@ -10,9 +10,9 @@ import ThemesController = require('Core/Themes/ThemesController');
 
 import HeadData from './HeadData';
 import StateReceiver from './StateReceiver';
-import AppData from './Deprecated/AppData';
+import AppData from './AppData';
 
-import { default as AppInit } from 'Application/Initializer';
+import { default as AppInit, isInit } from 'Application/Initializer';
 import * as AppEnv from 'Application/Env';
 // @ts-ignore
 import PresentationService from 'SbisEnv/PresentationService';
@@ -29,26 +29,28 @@ class Document extends Control {
     constructor(cfg: any) {
         super(cfg);
 
-        const stateReceiverInst = new StateReceiver();
-        let environmentFactory;
-        if (typeof window === 'undefined') {
-            environmentFactory = PresentationService;
-        }
+        if(!isInit()) {
+            const stateReceiverInst = new StateReceiver();
+            let environmentFactory;
+            if (typeof window === 'undefined') {
+                environmentFactory = PresentationService;
+            }
 
-        // @ts-ignore
-        AppInit(cfg, environmentFactory, stateReceiverInst);
+            // @ts-ignore
+            AppInit(cfg, environmentFactory, stateReceiverInst);
 
-        if (typeof window === 'undefined') {
-            // need create request for SSR
-            // on client request will create in app-init.js
-            if (typeof window !== 'undefined' && window.receivedStates) {
-                stateReceiverInst.deserialize(window.receivedStates);
+            if (typeof window === 'undefined') {
+                // need create request for SSR
+                // on client request will create in app-init.js
+                if (typeof window !== 'undefined' && window.receivedStates) {
+                    stateReceiverInst.deserialize(window.receivedStates);
+                }
             }
         }
 
         const headData = new HeadData();
         AppEnv.setStore('HeadData', headData);
-
+        AppData.initAppData(cfg);
         AppEnv.setStore('CoreInstance', { instance: this });
         this.ctxData = new AppData(cfg);
     }
@@ -66,11 +68,11 @@ class Document extends Control {
         }
     }
 
-    _getChildContext(): { AppData: any } {
-        return {
-            AppData: this.ctxData
-        };
-    }
+    // _getChildContext(): { AppData: any } {
+    //     return {
+    //         AppData: this.ctxData
+    //     };
+    // }
 
     setTheme(ev: Event, theme: string): void {
         this.coreTheme = theme;
