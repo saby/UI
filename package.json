@@ -1,6 +1,10 @@
 {
    "name": "saby-ui",
+<<<<<<< HEAD
    "version": "19.600.0",
+=======
+   "version": "19.510.0",
+>>>>>>> 19.510/bugfix/ui-html
    "repository": {
       "type": "git",
       "url": "git@platform-git.sbis.ru:saby/UI.git"
