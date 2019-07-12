@@ -15,6 +15,7 @@ import BaseRoute = require('wml!UI/_base/Route');
 import Creator, { async as AsyncCreator } from './_base/Creator';
 
 import { goUpByControlTree } from './_base/goUpByControlTree';
+import * as DefaultOpenerFinder from './_base/DefaultOpenerFinder';
 
 export {
     Control,
@@ -31,5 +32,6 @@ export {
     DepsCollector,
     HeadData,
     TemplateFunction,
-    goUpByControlTree
+    goUpByControlTree,
+    DefaultOpenerFinder
 };
