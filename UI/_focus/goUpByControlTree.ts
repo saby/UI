@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_base/goUpByControlTree" />
+/// <amd-module name="UI/_focus/goUpByControlTree" />
 /* tslint:disable */
 
 //@ts-ignore

@@ -8,6 +8,9 @@ import { activate } from './_focus/Activate';
 import { preventFocus } from './_focus/PreventFocus';
 import { restoreFocus } from './_focus/RestoreFocus';
 
+import { goUpByControlTree } from './_focus/goUpByControlTree';
+import * as DefaultOpenerFinder from './_focus/DefaultOpenerFinder';
+
 export {
    ElementFinder,
    Events,
@@ -15,5 +18,7 @@ export {
    focus,
    activate,
    preventFocus,
-   restoreFocus
+   restoreFocus,
+   goUpByControlTree,
+   DefaultOpenerFinder
 };

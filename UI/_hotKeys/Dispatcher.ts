@@ -3,7 +3,7 @@ import { Control } from 'UI/Base';
 // @ts-ignore
 import template = require('wml!UI/_hotKeys/Dispatcher');
 // @ts-ignore
-import { goUpByControlTree } from 'UI/Base';
+import { goUpByControlTree } from 'UI/Focus';
 // @ts-ignore
 import { constants } from 'Env/Env';
 

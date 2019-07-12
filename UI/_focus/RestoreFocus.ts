@@ -1,5 +1,5 @@
 // @ts-ignore
-import { goUpByControlTree } from 'UI/Base';
+import { goUpByControlTree } from 'UI/Focus';
 // @ts-ignore
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
 

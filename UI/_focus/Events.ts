@@ -2,7 +2,7 @@
 /* tslint:disable */
 
 // @ts-ignore
-import { goUpByControlTree } from 'UI/Base';
+import { goUpByControlTree } from 'UI/Focus';
 // @ts-ignore
 import { constants, detection } from 'Env/Env';
 

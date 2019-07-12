@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_base/DefaultOpenerFinder" />
+/// <amd-module name="UI/_focus/DefaultOpenerFinder" />
 /* tslint:disable */
 
 /*Проблема:
