@@ -2,7 +2,7 @@
 /* tslint:disable */
 
 // @ts-ignore
-import { goUpByControlTree } from 'Vdom/Vdom';
+import { goUpByControlTree } from './goUpByControlTree';
 // @ts-ignore
 import { constants, detection } from 'Env/Env';
 
