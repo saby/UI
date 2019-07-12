@@ -710,8 +710,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
         // например переходим от компонента к его предку, у предка состояние не изменилось.
         // но с которого уходили у него изменилось
         if (res && !this._$active) {
-            const env = container.controlNodes[0].environment;
-            env._handleFocusEvent({target: container, relatedTarget: activeElement});
+            const env = this._getEnvironment();
+            env._handleFocusEvent({target: document.activeElement, relatedTarget: activeElement});
         }
 
         return res;
