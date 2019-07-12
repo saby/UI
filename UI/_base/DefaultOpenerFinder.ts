@@ -30,7 +30,7 @@ Controls/Popup/Opener/Sticky
 import * as cInstance from 'Core/core-instance';
 // @ts-ignore
 import { IoC } from 'Env/Env';
-import { goUpByControlTree } from 'UI/Base';
+import { goUpByControlTree } from './goUpByControlTree';
 
 export function find(control) {
    let container;
