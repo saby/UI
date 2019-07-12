@@ -14,6 +14,8 @@ import {DepsCollector} from './_base/DepsCollector';
 import BaseRoute = require('wml!UI/_base/Route');
 import Creator, { async as AsyncCreator } from './_base/Creator';
 
+import { goUpByControlTree } from './_base/goUpByControlTree';
+
 export {
     Control,
     IControlOptions,
@@ -28,5 +30,6 @@ export {
     AsyncCreator,
     DepsCollector,
     HeadData,
-    TemplateFunction
+    TemplateFunction,
+    goUpByControlTree
 };
