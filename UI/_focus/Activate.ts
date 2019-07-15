@@ -28,7 +28,7 @@ function checkInput(el: Element): boolean {
 
 export function activate(
    container: Element,
-   cfg: { ignoreInputsOnMobiles?: boolean, enableScrollToElement?: boolean } = {}
+   cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}
    ): boolean {
    function getContainerWithControlNode(element: Element): Element {
       while (element) {

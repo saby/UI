@@ -105,7 +105,7 @@ function checkFocused(element: Element): void {
          if (reason) {
             const elementString = element.outerHTML.slice(0, element.outerHTML.indexOf('>') + 1);
             const currentElementString = currentElement.outerHTML.slice(0, currentElement.outerHTML.indexOf('>') + 1);
-            IoC.resolve('ILogger').warn('UI/Focus', 'Can\'t focus element because of this element or it\'s parent ' +
+            IoC.resolve('ILogger').warn('UI/Focus:focus', 'Can\'t focus element because of this element or it\'s parent ' +
                'has "' + reason + '" style! maybe you need use ws-hidden or ws-invisible classes for change element ' +
                'visibility (in old ws3 controls case). Please check why invisible element is focusing. ' +
                'focusing element is "' + elementString + '", invisible element is "' + currentElementString + '"');
@@ -161,9 +161,9 @@ function makeResetScrollFunction(element: Element, enableScrollToElement: boolea
 /**
  * Moves focus to a specific HTML or SVG element
  */
-export function focus(
+function focusInner(
       element: Element,
-      cfg: { ignoreInputsOnMobiles?: boolean, enableScrollToElement?: boolean } = {}
+      cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}
       ): boolean {
    const undoScrolling = makeResetScrollFunction(element, cfg.enableScrollToElement);
    const result = tryMoveFocus(element);
@@ -180,7 +180,41 @@ export function focus(
       }
       checkFocused(element);
    } else {
-      IoC.resolve('ILogger').error('UI/Focus', 'Can\'t focus element. Undefined way to focus.');
+      IoC.resolve('ILogger').error('UI/Focus:focus', 'Can\'t focus element. Undefined way to focus.');
    }
    return result;
 }
+
+let focusingState;
+const nativeFocus = HTMLElement.prototype.focus;
+function focus(
+      element: Element,
+      cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}
+      ): boolean {
+   let res;
+   if (focusingState) {
+      nativeFocus.call(element);
+   } else {
+      focusingState = true;
+      try {
+         res = focusInner.apply(this, arguments);
+      } finally {
+         focusingState = false;
+      }
+   }
+   return res;
+}
+
+HTMLElement.prototype.focus = function replacedFocus(): void {
+   if (!focusingState) {
+      IoC.resolve('ILogger').warn('UI/Focus:focus', '' +
+         'Native focus is called! Please use special focus method (UI/Focus:focus)');
+   }
+
+   focus(this, {
+      enableScreenKeyboard: true,
+      enableScrollToElement: true
+   });
+};
+
+export { focus };
