@@ -698,7 +698,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      * @see activated
      * @see deactivated
      */
-    activate(cfg: { ignoreInputsOnMobiles?: boolean, enableScrollToElement?: boolean } = {}): boolean {
+    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
         const container = this._container[0] ? this._container[0] : this._container;
         const activeElement = document.activeElement;
 
