@@ -1,8 +1,8 @@
 <div key="scripts">
    <ws:if data="{{!_options.compat && _options.onServer}}">
       <script key="init_script">
-         require(['Core/polyfill', 'UI/Base', 'Application/Initializer', 'Application/Env', 'Core/ConsoleLogger', 'Core/constants'],
-            function(polyfill, UI, AppInit, AppEnv, logger, constants){
+         require(['Core/polyfill', 'UI/Base', 'Application/Initializer', 'Application/Env', 'Core/ConsoleLogger', 'Core/constants', 'Core/app-init'],
+            function(polyfill, UI, AppInit, AppEnv, logger, constants, appInit){
                function StartApplication() {
                   var StateReceiver = UI.StateReceiver;
                   AppInit.default({}, undefined, new StateReceiver());
@@ -14,12 +14,13 @@
 
                   UI.Start();
                }
-
+               debugger;
                var AppData = UI.AppData;
 
                window.startContextData = {AppData: new AppData({})};
                var deps = {{ __setHTMLUnsafe(getDeps()) }};
                if (deps && deps.length>0) {
+                  appInit();
                   require(deps, function(){
                      StartApplication();
                   });
