@@ -1,5 +1,9 @@
-<UI.Base:HTML scope="{{_options}}" bodyClass="controls-default-bg">
-   <ws:content>
-      <UIDemo.RootRouter />
-   </ws:content>
+<UI.Base:HTML attr:application="UIDemo/Index" attr:rootapp="UI/Base:Document" scope="{{_options}}" bodyClass="controls-default-bg">
+   <ws:bodyTemplate>
+         <ws:partial template="{{bodyTemplate.content}}">
+            <ws:bodyContent>
+               <UIDemo.RootRouter />
+            </ws:bodyContent>
+         </ws:partial>
+   </ws:bodyTemplate>
 </UI.Base:HTML>

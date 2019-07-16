@@ -9,4 +9,6 @@ var Index = BaseControl.extend({
    _template: template,
 });
 
+Index._styles = ['UIDemo/Index'];
+
 export = Index;
