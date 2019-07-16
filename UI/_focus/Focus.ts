@@ -186,7 +186,7 @@ function focusInner(
 }
 
 let focusingState;
-const nativeFocus = HTMLElement.prototype.focus;
+const nativeFocus = typeof HTMLElement !== 'undefined' ? HTMLElement.prototype.focus : null;
 function focus(
       element: Element,
       cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}
@@ -205,16 +205,18 @@ function focus(
    return res;
 }
 
-HTMLElement.prototype.focus = function replacedFocus(): void {
-   if (!focusingState) {
-      IoC.resolve('ILogger').warn('UI/Focus:focus', '' +
-         'Native focus is called! Please use special focus method (UI/Focus:focus)');
-   }
+if(typeof HTMLElement !== 'undefined') {
+   HTMLElement.prototype.focus = function replacedFocus(): void {
+      if (!focusingState) {
+         IoC.resolve('ILogger').warn('UI/Focus:focus', '' +
+             'Native focus is called! Please use special focus method (UI/Focus:focus)');
+      }
 
-   focus(this, {
-      enableScreenKeyboard: true,
-      enableScrollToElement: true
-   });
-};
+      focus(this, {
+         enableScreenKeyboard: true,
+         enableScrollToElement: true
+      });
+   };
+}
 
 export { focus };
