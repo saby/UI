@@ -14,7 +14,6 @@
 
                   UI.Start();
                }
-               debugger;
                var AppData = UI.AppData;
 
                window.startContextData = {AppData: new AppData({})};
