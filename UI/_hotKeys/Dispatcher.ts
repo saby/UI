@@ -1,10 +1,6 @@
-// @ts-ignore
 import { Control } from 'UI/Base';
-// @ts-ignore
 import template = require('wml!UI/_hotKeys/Dispatcher');
-// @ts-ignore
 import { goUpByControlTree } from 'Vdom/Vdom';
-// @ts-ignore
 import { constants } from 'Env/Env';
 
 /**
