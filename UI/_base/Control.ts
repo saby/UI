@@ -1,3 +1,5 @@
+/* tslint:disable */
+
 // @ts-ignore
 import template = require('wml!UI/_base/Control');
 
