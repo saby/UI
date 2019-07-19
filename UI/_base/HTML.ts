@@ -126,7 +126,7 @@ class HTML extends Control {
     }
 
    _afterMount(): void {
-      if (!detection.isMobilePlatform) {
+      if (!detection.isMobilePlatform && this._options.noAfterMountActivate !== true) {
          this.activate();
       }
    }
