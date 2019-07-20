@@ -64,6 +64,7 @@ export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: b
 let countInst = 1;
 
 const WAIT_TIMEOUT = 20000;
+// Css loading timeout. Need it to not blocking rendering of control if its styles couldn't be loaded
 const WRAP_TIMEOUT = 5000;
 
 export interface IControlOptions {
