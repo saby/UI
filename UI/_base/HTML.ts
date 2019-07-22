@@ -125,8 +125,29 @@ class HTML extends Control {
         });
     }
 
+    /**
+     * @name UI/_base/Control#disableAutofocus
+     * @cfg {Boolean} Depending on this option HTML will take focus after rendering or not.
+     * @variant true Disable autofocus on mount.
+     * @variant false Enable autofocus on mount.
+     * @default false
+     * @example
+     * In this case focus won't be setted on the input
+     * <pre>
+     *    <UI.Base:HTML disableAutofocus="{{true}}">
+     *       <ws:bodyTemplate>
+     *         <ws:partial template="{{bodyTemplate.content}}">
+     *          <ws:bodyContent>
+     *              <input type="text" tabindex="1"/>
+     *          </ws:bodyContent>
+     *         </ws:partial>
+     *       </ws:bodyTemplate>
+     *    </UI.Base:HTML>
+     * </pre>
+     */
+
    _afterMount(): void {
-      if (!detection.isMobilePlatform) {
+      if (!detection.isMobilePlatform && this._options.disableAutofocus !== true) {
          this.activate();
       }
    }
