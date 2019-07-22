@@ -589,6 +589,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
         try {
             const contextTypes = this.constructor.contextTypes ? this.constructor.contextTypes() : {};
             for (const i in contextTypes) {
+                // Need to check if context field actually exists.
+                // Because context field can be described in contextTypes but not provided by parent of the control.
                 if (contextTypes.hasOwnProperty(i) && this.context.get(i) instanceof contextTypes[i]) {
                     this.context.get(i).unregisterConsumer(this);
                 }
