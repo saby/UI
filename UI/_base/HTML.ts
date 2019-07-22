@@ -6,7 +6,7 @@ import Control from './Control';
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/HTML');
 // @ts-ignore
-import { constants, detection } from 'Env/Env';
+import {constants, detection} from 'Env/Env';
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesController');
 // @ts-ignore
@@ -125,32 +125,23 @@ class HTML extends Control {
         });
     }
 
-    /**
-     * @name UI/_base/Control#disableAutofocus
-     * @cfg {Boolean} Depending on this option HTML will take focus after rendering or not.
-     * @variant true Disable autofocus on mount.
-     * @variant false Enable autofocus on mount.
-     * @default false
-     * @example
-     * In this case focus won't be setted on the input
-     * <pre>
-     *    <UI.Base:HTML disableAutofocus="{{true}}">
-     *       <ws:bodyTemplate>
-     *         <ws:partial template="{{bodyTemplate.content}}">
-     *          <ws:bodyContent>
-     *              <input type="text" tabindex="1"/>
-     *          </ws:bodyContent>
-     *         </ws:partial>
-     *       </ws:bodyTemplate>
-     *    </UI.Base:HTML>
-     * </pre>
-     */
+    _afterMount(): void {
+        function inIframe() {
+            try {
+                return window.self !== window.top;
+            } catch (e) {
+                // Browsers can block access to window.top due to same origin policy.
+                return true;
+            }
+        }
 
-   _afterMount(): void {
-      if (!detection.isMobilePlatform && this._options.disableAutofocus !== true) {
-         this.activate();
-      }
-   }
+        // We don't know how UI/Base:HTML should behave inside iframe,
+        // because we don't know what tasks UI/Base:HTML must solve inside of the iframe
+        // You should activate UI/Base:HTML manually(by calling activate() method, for example) if you need it
+        if (!detection.isMobilePlatform && !inIframe()) {
+            this.activate();
+        }
+    }
 
     static contextTypes(): { AppData: any } {
         return {
