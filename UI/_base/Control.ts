@@ -65,6 +65,8 @@ let countInst = 1;
 
 const WAIT_TIMEOUT = 20000;
 // Css loading timeout. Need it to not blocking rendering of control if its styles couldn't be loaded
+// If css wasn't loaded in 5 seconds it probably won't be loaded at all
+// At first it was 2 seconds. But for ie it's too less.
 const WRAP_TIMEOUT = 5000;
 
 export interface IControlOptions {
