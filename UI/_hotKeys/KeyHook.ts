@@ -21,6 +21,13 @@ function createEvent(key: string): object {
 }
 
 /**
+ * проверка элемента на видимость
+ */
+function isHidden(container: HTMLElement): boolean {
+    return !container || !container.offsetParent;
+}
+
+/**
  * Контрол KeyHook - контрол, который указывает клавиши, нажатие на которые будет обработано по умолчанию дочерним
  * контролом. Он регистрирует клавиши по умолчанию для всех предков, у которых еще нет зарегистрированного действия на
  * эту клавишу, и, в случае необработанного нажатия этих клавиш, в дочерний контрол будет перенаправлено событие о
@@ -33,6 +40,11 @@ class KeyHook extends Control {
     _afterMount(): void {
         // опция defaultActions хранит набор клавиш, которые будут обработаны по умолчанию
         if (this._options.defaultActions) {
+            // не регистрируем для скрытых контролов
+            if (isHidden(this._container)) {
+                return;
+            }
+
            // регистрируем только в пределах попапа
            // todo придумать проверку получше https://online.sbis.ru/opendoc.html?guid=50215de6-da5c-44bf-b6f6-a9f7cb0e17d2
             const wholeParents = goUpByControlTree(this._container);
