@@ -31,6 +31,9 @@ export function restoreFocus(control: Control, action: Function): void {
          const container = control._container[0] ? control._container[0] : control._container;
          return isElementVisible(control._container) && focus(container);
       });
+      // следим за состоянием _savedFocusedElement. хотелось бы делать это в environment в обработчике
+      // на focus, но как минимум в IE на вызов фокуса туда не попадеам
+      environment._savedFocusedElement = document.activeElement;
    }
    environment._restoreFocusState = false;
 
