@@ -1,9 +1,9 @@
-<html attr:lang="ru" attr:xml:lang="ru" attr:xmlns="http://www.w3.org/1999/xhtml" attr:key="_" attr:id="root"
+<html attr:lang="ru" attr:xml:lang="ru" attr:xmlns="http://www.w3.org/1999/xhtml" attr:id="root"
       attr:component="Controls/Application"
       attr:class="{{ onServer && !isCompatible ? 'pre-load' : '' }}">
 
 <ws:template name="bodyTemplate">
-   <body id="body" key="1_2_">
+   <body id="body" key="body-el">
       <ws:if data="{{isCompatible}}">
          <div class="ws-focus-in"></div>
       </ws:if>
