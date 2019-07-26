@@ -65,7 +65,7 @@ class HTML extends Control {
         }
 
         this.resourceRoot = cfg.resourceRoot || constants.resourceRoot;
-        this.product = cfg.product || constants.product;
+        this.product = cfg.product || appData.product || constants.product;
 
         // TODO нужно удалить после решения
         // https://online.sbis.ru/opendoc.html?guid=a9ceff55-1c8b-4238-90a7-22dde0e1bdbe
