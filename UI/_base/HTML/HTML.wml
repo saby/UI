@@ -3,7 +3,7 @@
       attr:class="{{ onServer && !isCompatible ? 'pre-load' : '' }}">
 
 <ws:template name="bodyTemplate">
-   <body id="body" key="1_2_">
+   <body id="body" key="body-el">
       <ws:if data="{{isCompatible}}">
          <div class="ws-focus-in"></div>
       </ws:if>
