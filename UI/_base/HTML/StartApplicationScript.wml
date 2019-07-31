@@ -12,7 +12,7 @@
                      constants[key] = wsCfg[key];
                   }
 
-                  UI.Start();
+                  UI.Start(, document.getElementById('root'));
                }
                var AppData = UI.AppData;
 
