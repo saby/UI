@@ -729,7 +729,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                             /* Change _template and _afterMount
                                 *  if execution was longer than 2 sec
                                 * */
-                            IoC.resolve('ILogger').error('_beforeMount', 'Wait 20000 ms ' + this._moduleName);
+                            IoC.resolve('ILogger').warn('_beforeMount', 'Wait 20000 ms ' + this._moduleName);
                             timeout = 1;
                             // @ts-ignore
                             require(['View/Executor/TClosure'], (thelpers) => {
