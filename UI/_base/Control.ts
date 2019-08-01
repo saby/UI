@@ -387,7 +387,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
         const themedStyles = this._theme || this.constructor._theme || [];
 
         if (oldTheme) {
-            this._removeOldStyles(themesController, oldTheme, themedStyles, []);
+            // We don't know the exact moment when a control was umounted from DOM. So we can't remove styles from DOM
+            // because html can be still there
+            // TODO uncomment after fixing this: https://online.sbis.ru/opendoc.html?guid=9f0d3079-cb6d-4acc-bbdf-de565f768f8c
+            // this._removeOldStyles(themesController, oldTheme, themedStyles, []);
         }
         return this._loadNewStyles(themesController, theme, themedStyles, styles);
     }
@@ -461,16 +464,16 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     }
 
     _removeOldStyles(themesController: any, theme: string, themedStyles: any[], styles: any[]): void {
-        styles.forEach(
-            (name): void => {
-                themesController.removeCss(name);
-            }
-        );
-        themedStyles.forEach(
-            (name): void => {
-                themesController.removeCssThemed(name, theme);
-            }
-        );
+        // styles.forEach(
+        //     (name): void => {
+        //         themesController.removeCss(name);
+        //     }
+        // );
+        // themedStyles.forEach(
+        //     (name): void => {
+        //         themesController.removeCssThemed(name, theme);
+        //     }
+        // );
     }
 
     _removeStyles(theme: string): boolean {
@@ -1053,7 +1056,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      * @private
      */
     __beforeUnmount(): void {
-        this._removeStyles(this._options.theme);
+        // this._removeStyles(this._options.theme);
         this._beforeUnmount.apply(this, arguments);
     }
 
