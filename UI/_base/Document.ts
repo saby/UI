@@ -29,6 +29,16 @@ class Document extends Control {
     constructor(cfg: any) {
         super(cfg);
 
+        /*
+        * Копипаста из Controls/Application/Core для сервиса представления.
+        * TODO: Удалить либо эту копипасту, либо комментарий в задаче:
+        * https://online.sbis.ru/opendoc.html?guid=bd7fb25b-fdde-4caf-8144-9cf8502713d0
+        * */
+        try {
+            process.domain.req.compatible = false;
+        } catch (e) {
+        }
+
         if(!isInit()) {
             const stateReceiverInst = new StateReceiver();
             let environmentFactory;
