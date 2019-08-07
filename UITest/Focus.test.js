@@ -20,7 +20,7 @@ define([
 
       before(function (done) {
          if (typeof document === 'undefined') {
-            require(['jsdom'], function (jsdom) {
+            requirejs(['jsdom'], function (jsdom) {
                var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
                global.window = browser.window;
                global.document = window.document;
