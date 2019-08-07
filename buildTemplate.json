@@ -44,6 +44,10 @@
       "path": "./node_modules/sbis3-controls/Controls-theme"
     },
     {
+      "name": "jsdom",
+      "path": "./node_modules/jsdom/lib"
+    },
+    {
       "name": "SBIS3.CONTROLS",
       "path": "./node_modules/sbis3-controls/SBIS3.CONTROLS"
     },
