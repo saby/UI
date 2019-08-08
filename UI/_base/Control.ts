@@ -116,7 +116,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     // Render function for text generator
     render: Function = null;
 
-    _children: Record<string, Control<TOptions, TState> | HTMLElement> = null;
+    _children: {
+        [key: string]: any
+    };
 
     constructor(cfg: any) {
         if (!cfg) {
