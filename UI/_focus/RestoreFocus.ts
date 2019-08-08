@@ -28,6 +28,11 @@ export function restoreFocus(control: Control, action: Function): void {
    // предыдущего активного, чтобы сохранить контекст фокуса и дать возможность управлять с клавиатуры
    if (checkActiveElement(savedActiveElement)) {
       prevControls.find((control) => {
+         if (!control._template && !control._container) {
+            // СОВМЕСТИМОСТЬ: у старых невизуальных контролов может не быть контейнера
+            // (например, SBIS3.CONTROLS/Action/OpenDialog)
+            return false;
+         }
          const container = control._container[0] ? control._container[0] : control._container;
          return isElementVisible(control._container) && focus(container);
       });
