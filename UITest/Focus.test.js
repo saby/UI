@@ -17,9 +17,10 @@ define([
       var control;
       var cases;
       var currentCase;
+      var fromNode = typeof document === 'undefined';
 
       before(function (done) {
-         if (typeof document === 'undefined') {
+         if (fromNode) {
             require(['jsdom'], function (jsdom) {
                var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
                global.window = browser.window;
@@ -32,6 +33,17 @@ define([
             });
          } else {
             done();
+         }
+      });
+
+      after(function() {
+         if (fromNode) {
+            delete global.window;
+            delete global.document;
+            delete global.HTMLElement;
+            delete global.SVGElement;
+            delete global.Node;
+            delete global.getComputedStyle;
          }
       });
 
