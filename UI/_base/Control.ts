@@ -1065,9 +1065,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     static _theme: string[];
     static isWasaby: boolean = true;
 
-    /**
-     * @deprecated
-     */
     static extend(mixinsList: any, classExtender: any): Function {
         // @ts-ignore
         if (!require.defined('Core/core-extend')) {
