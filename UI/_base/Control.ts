@@ -824,6 +824,14 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
         // Do
     }
 
+    __beforeUpdate(newOptions: TOptions): void {
+        if (newOptions.theme !== this._options.theme) {
+            this._manageStyles(newOptions.theme, this._options.theme);
+        }
+        this._beforeUpdate.apply(this, arguments);
+    }
+
+
     /**
      * Хук жизненного цикла контрола. Вызывается перед обновлением контрола.
      *
@@ -878,14 +886,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      * @see Documentation: Context.
      * @private
      */
-
-    __beforeUpdate(newOptions: TOptions): void {
-        if (newOptions.theme !== this._options.theme) {
-            this._manageStyles(newOptions.theme, this._options.theme);
-        }
-        this._beforeUpdate.apply(this, arguments);
-    }
-
     protected _beforeUpdate(options?: TOptions, contexts?: any): void {
         // Do
     }
@@ -1015,6 +1015,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
         // Do
     }
 
+    __beforeUnmount(): void {
+        this._removeStyles(this._options.theme);
+        this._beforeUnmount.apply(this, arguments);
+    }
+
     /**
      * Хук жизненного цикла контрола. Вызывается до удаления контрола.
      * @remark Это последний хук жизненного цикла контрола. Контрол не будет существовать после вызова этого хука.
@@ -1052,11 +1057,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      * @see Documentation: Context
      * @private
      */
-    __beforeUnmount(): void {
-        this._removeStyles(this._options.theme);
-        this._beforeUnmount.apply(this, arguments);
-    }
-
     protected _beforeUnmount(): void {
         // Do
     }
