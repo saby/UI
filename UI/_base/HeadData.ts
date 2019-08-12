@@ -167,7 +167,7 @@ class HeadData {
     }
 
     static isDebug(): boolean {
-        return cookie.get('s3debug') === 'true' || contents.buildMode === 'debug';
+        return cookie.get('s3debug') === 'true' || (contents.buildMode === 'release'? false : true );
     }
 }
 

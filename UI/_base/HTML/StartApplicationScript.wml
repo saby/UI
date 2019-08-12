@@ -11,7 +11,7 @@
                   for(var key in wsCfg) {
                      constants[key] = wsCfg[key];
                   }
-
+git
                   UI.Start(document.getElementById('root'));
                }
                var AppData = UI.AppData;
