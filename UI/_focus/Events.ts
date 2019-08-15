@@ -44,14 +44,15 @@ export function notifyActivationEvents(environment, target, relatedTarget, isTab
    }
 
    // странные элементы вообще проигнорируем, возьмем вместо него предыдущий активный
-   const realRelatedTarget = (!detectStrangeElement(relatedTarget) && relatedTarget) || environment.__proto__._savedFocusedElement;
+   const realRelatedTarget = (!detectStrangeElement(relatedTarget) && relatedTarget) ||
+      environment.constructor.prototype._savedFocusedElement;
 
    const
       arrayMaker = goUpByControlTree(target), // Массив активированных компонентов
       relatedArrayMaker = goUpByControlTree(realRelatedTarget); // Массив деактивированных компонентов
 
    // последний активный элемент, который не странный
-   environment.__proto__._savedFocusedElement = target;
+   environment.constructor.prototype._savedFocusedElement = target;
 
    environment._focused = true;
 
