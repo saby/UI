@@ -67,9 +67,9 @@ export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: b
 let countInst = 1;
 
 const WAIT_TIMEOUT = 20000;
-// Css loading timeout. Need it to not blocking rendering of control if its styles couldn't be loaded
-// If css wasn't loaded in 5 seconds it probably won't be loaded at all
-// At first it was 2 seconds. But for ie it's too less.
+// This timeout is needed for loading control css.
+// If we can not load css file we want to continue building control without blocking it by throwing an error.
+// IE browser only needs more than 5 sec to load so we increased timeout up to 30 sec.
 const WRAP_TIMEOUT = 30000;
 
 function matches(el: Element, selector: string): boolean {
