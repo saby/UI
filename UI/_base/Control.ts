@@ -27,8 +27,8 @@ export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: b
 /**
  * @event UI/_base/Control#activated Происходит при активации контрола.
  * @param {Boolean} isTabPressed Указывает, был ли активирован контрол нажатием на клавишу Tab.
- * @remark Контрол активируется, когда на один из его DOM-элементов переходит фокус. 
- * Подробное описание и примеры использования события читайте 
+ * @remark Контрол активируется, когда на один из его DOM-элементов переходит фокус.
+ * Подробное описание и примеры использования события читайте
  * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ здесь}.
  * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ Работа с фокусами}
  * @see deactivated
@@ -45,10 +45,10 @@ export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: b
  */
 
 /**
- * @event UI/_base/Control#deactivated Происходит при деактивации контрола. 
+ * @event UI/_base/Control#deactivated Происходит при деактивации контрола.
  * @param {Boolean} isTabPressed Указывает, был ли деактивирован контрол нажатием на клавишу Tab.
  * @remark Контрол перестает быть активным, когда все его дочерние контролы теряют фокус.
- * Подробное описание и примеры использования события читайте 
+ * Подробное описание и примеры использования события читайте
  * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ здесь}.
  * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ Работа с фокусами}
  * @see activated
@@ -208,7 +208,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                 control._$needForceUpdate = true;
             } else {
                 if (environment) {
-                    // This is fix for specific case. When environment has _haveRebuildRequest and after that 
+                    // This is fix for specific case. When environment has _haveRebuildRequest and after that
                     // we creating another one. We don't have to do that, it's better to delay rebuild, after current
                     // sync cycle.
                     // after 410 condition "control._moduleName === 'FED2/UI/DocumentCompatible'" will be deleted.
@@ -217,7 +217,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                     } else {
                         environment.forceRebuild(controlNode.id);
                     }
-                    
+
                 }
             }
         };
@@ -295,8 +295,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     /**
      * Запускает цикл обновления контрола вручную.
      *
-     * @remark Обновление контрола запускается автоматически при подписке на DOM-события и события контролов из шаблона. 
-     * Если состояние контрола обновляется в другое время (тайм-аут или подписка на событие сервера), необходимо запустить обновление вручную.  
+     * @remark Обновление контрола запускается автоматически при подписке на DOM-события и события контролов из шаблона.
+     * Если состояние контрола обновляется в другое время (тайм-аут или подписка на событие сервера), необходимо запустить обновление вручную.
      * После _forceUpdate будут вызваны все хуки жизненного цикла обновления (_shouldUpdate, _beforeUpdate, _afterUpdate).
      * @example
      * В этом примере при получении нового состояния от сервера вызывается обработчик _statusUpdatedHandler.
@@ -351,8 +351,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      * @variant inherited Значение контрола унаследовано от родителя.
      * @default Inherited
      * @example
-     * Рассмотрим на примере контролов List и Input. Текст будет отображаться со стилем "только для чтения", и пользователь не сможет его редактировать. 
-     * Однако, у кнопки есть опция readOnly, которая имеет значение false, поэтому кнопка не унаследует эту опцию из списка, и пользователь сможет кликнуть по ней. 
+     * Рассмотрим на примере контролов List и Input. Текст будет отображаться со стилем "только для чтения", и пользователь не сможет его редактировать.
+     * Однако, у кнопки есть опция readOnly, которая имеет значение false, поэтому кнопка не унаследует эту опцию из списка, и пользователь сможет кликнуть по ней.
      * <pre>
      *    <Controls.list:View readOnly="{{true}}">
      *       <ws:itemTemplate>
@@ -397,8 +397,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      * @variant inherited Значение, унаследованное от родителя.
      * @default ''(пустая строка)
      * @example
-     * В этом примере Controls.Application и все его дочерние контролы будут иметь стиль темы "carry". 
-     * Однако, Carry.Head будет иметь стиль "carry". 
+     * В этом примере Controls.Application и все его дочерние контролы будут иметь стиль темы "carry".
+     * Однако, Carry.Head будет иметь стиль "carry".
      * Если вы поместите контролы в Carry.Head и не укажите опцию theme, они унаследуют тему "carry".
      * <pre>
      *    <Controls.Application theme="carry">
@@ -617,6 +617,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                 this.__beforeUnmount();
                 Synchronizer.cleanControlDomLink(this._container, this);
             }
+            // Избегаем утечки контролов по замыканию
+            this._forceUpdate = function() {};
         } catch (error) {
             Logger.catchLifeCircleErrors('_beforeUnmount', error);
         }
@@ -674,12 +676,12 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      *    </div>
      * </pre>
      * @param {Object} cfg Объект, содержащий параметры этого метода.
-     * Используйте параметр enableScreenKeyboard = true на устройствах с экранной клавиатурой, фокус будет установлен на поле ввода и экранная клавиатура будет отображена. 
+     * Используйте параметр enableScreenKeyboard = true на устройствах с экранной клавиатурой, фокус будет установлен на поле ввода и экранная клавиатура будет отображена.
      * Используйте параметр enableScreenKeyboard = false, фокус будет установлен на родительском элементе, а не на полях ввода.
-     * @remark Метод находит DOM-элемент внутри контрола (и его дочерних контролов), который может быть сфокусирован и устанавливает на него фокус. 
+     * @remark Метод находит DOM-элемент внутри контрола (и его дочерних контролов), который может быть сфокусирован и устанавливает на него фокус.
      * Метод возвращает true, если фокус был установлен успешно, false - если фокус не был установлен.
      * Когда контрол становится активным, все его дочерниеконтролы также становятся активными. Когда контрол активируется, он запускает событие активации.
-     * Подробное описание и инструкцию по работе с методом читайте 
+     * Подробное описание и инструкцию по работе с методом читайте
      * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ здесь}.
      * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ Работа с фокусами}
      * @see activated
@@ -852,7 +854,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      *
      * @param {Object} options Опции контрола.
      * @param {Object} context Поля контекста, запрошенные контролом.
-     * @param {Object} receivedState Данные, полученные посредством серверного рендеринга. 
+     * @param {Object} receivedState Данные, полученные посредством серверного рендеринга.
      * @example
      * <pre>
      *    Control.extend({
@@ -870,7 +872,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      *       ...
      *    });
      * </pre>
-     * @remark 
+     * @remark
      * Первый хук жизненного цикла контрола и единственный хук, который вызывается как на стороне сервера, так и на стороне клиента.
      * Он вызывается до рендеринга шаблона, поэтому обычно используется для подготовки данных для шаблона.
      * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
@@ -1005,7 +1007,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      *       ...
      *    });
      * </pre>
-     * @remark 
+     * @remark
      * Первый хук жизненного цикла контрола, который вызывается после подключения контрола к DOM-окружению.
      * На этом этапе вы можете получить доступ к параметрам и контексту this._options и this._context.
      * Этот хук жизненного цикла часто используется для доступа к DOM-элементам и подписки на события сервера.
@@ -1119,7 +1121,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      *    <li>false: контрол не будет обновлен. Хук _afterUpdate не будет вызван.</li>
      * </ol>
      * @example
-     * Например, если employeeSalary является единственным параметром, используемым в шаблоне контрола, 
+     * Например, если employeeSalary является единственным параметром, используемым в шаблоне контрола,
      * можно обновлять контрол только при изменении параметра employeeSalary.
      * <pre>
      *    Control.extend({
@@ -1132,8 +1134,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      *       ...
      *    });
      * </pre>
-     * @remark 
-     * Хук жизненного цикла контрола вызывается после хука _beforeUpdate перед перестроением шаблона. Этот хук можно использовать для оптимизаций. 
+     * @remark
+     * Хук жизненного цикла контрола вызывается после хука _beforeUpdate перед перестроением шаблона. Этот хук можно использовать для оптимизаций.
      * Вы можете сравнить новые и текущие параметры и вернуть false, если нет необходимости пересчитывать DOM-дерево контрола.
      * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
      * @private
@@ -1183,7 +1185,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      * Текущие опции можно найти в this._options.
      * @param {Object} oldContext Контекст контрола до обновления.
      * Текущий контекст можно найти в this._context.
-     * @remark Этот хук жизненного цикла вызывается после обновления DOM-контрола. 
+     * @remark Этот хук жизненного цикла вызывается после обновления DOM-контрола.
      * На этом этапе вы получаете доступ к дочерним контролам и взаимодействуете с DOM-окружением.
      * Часто код в этом хуке схож с кодом в хуке _afterMount.
      * @example
