@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_focus/ResetScrolling" />
+/// <amd-module name="UI/_focus/_ResetScrolling" />
 /* tslint:disable */
 
 // input may be undefined, selector-tring, Node, NodeList, HTMLCollection, array of Nodes
