@@ -53,26 +53,28 @@
       </ws:else>
    </ws:if>
 
-   <ws:for data="index, value in themedCss">
-      <ws:if data="{{_options.theme}}">
-         <link rel="stylesheet" class="css-bundles" data-vdomignore="true"
-               css-name="{{value}}"
-               href="{{ _options.linkResolver.resolveCssWithTheme(value, _options.theme) }}"
-               type="text/css"
-               key="{{ 'themed-css-' + index }}"/>
-      <!-- TODO Remove keys. Fix ThemesController.  -->
-      </ws:if>
-      <ws:else>
+   <ws:if data="{{ _options.preLoadCss }}">
+      <ws:for data="index, value in themedCss">
+         <ws:if data="{{_options.theme}}">
+            <link rel="stylesheet" class="css-bundles" data-vdomignore="true"
+                  css-name="{{value}}"
+                  href="{{ _options.linkResolver.resolveCssWithTheme(value, _options.theme) }}"
+                  type="text/css"
+                  key="{{ 'themed-css-' + index }}"/>
+            <!-- TODO Remove keys. Fix ThemesController.  -->
+         </ws:if>
+         <ws:else>
+            <link rel="stylesheet" class="css-bundles" data-vdomignore="true" css-name="{{value}}"
+                  href="{{ _options.linkResolver.resolveLink(value, 'css') }}"
+                  type="text/css" key="{{ 'themed-css-' + index }}"/>
+         </ws:else>
+      </ws:for>
+      <ws:for data="index, value in simpleCss">
          <link rel="stylesheet" class="css-bundles" data-vdomignore="true" css-name="{{value}}"
                href="{{ _options.linkResolver.resolveLink(value, 'css') }}"
-               type="text/css" key="{{ 'themed-css-' + index }}"/>
-      </ws:else>
-   </ws:for>
-   <ws:for data="index, value in simpleCss">
-      <link rel="stylesheet" class="css-bundles" data-vdomignore="true" css-name="{{value}}"
-            href="{{ _options.linkResolver.resolveLink(value, 'css') }}"
-            type="text/css" key="{{ 'simple-css-' + index }}"/>
-   </ws:for>
+               type="text/css" key="{{ 'simple-css-' + index }}"/>
+      </ws:for>
+   </ws:if>
 
    <ws:for data="themeName, themedCss in newThemed">
       <ws:for data="cssName, value in themedCss">
