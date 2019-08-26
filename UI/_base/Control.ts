@@ -1174,8 +1174,9 @@ Control.prototype._template = template;
      * @default ''(пустая строка)
      * @example
      * В этом примере Controls.Application и все его дочерние контролы будут иметь стиль темы "carry".
-     * Однако, Carry.Head будет иметь стиль "carry".
-     * Если вы поместите контролы в Carry.Head и не укажите опцию theme, они унаследуют тему "carry".
+     * Однако, Carry.Head будет иметь тему "presto".
+     * Если вы поместите контролы в Carry.Head и не укажите опцию theme, они унаследуют ее значение от родителей
+     * и тоже построятся в теме "presto".
      * <pre>
      *    <Controls.Application theme="carry">
      *       <Carry.Head theme="presto" />
