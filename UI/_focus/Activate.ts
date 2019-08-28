@@ -12,35 +12,10 @@ function findAutofocusForVDOM(findContainer: Element): NodeListOf<Element> {
    return findContainer.querySelectorAll('[ws-autofocus="true"]');
 }
 
-function matches(el: Element, selector: string): boolean {
-   return (
-      el.matches ||
-      el.matchesSelector ||
-      el.msMatchesSelector ||
-      el.mozMatchesSelector ||
-      el.webkitMatchesSelector ||
-      el.oMatchesSelector
-   ).call(el, selector);
-}
-function checkInput(el: Element): boolean {
-   return matches(el, 'input[type="text"], textarea, *[contentEditable=true]');
-}
-
 export function activate(
    container: Element,
    cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}
    ): boolean {
-   function getContainerWithControlNode(element: Element): Element {
-      while (element) {
-         // ищем ближайший элемент, который может быть сфокусирован и не является полем ввода
-         if (element.controlNodes && ElementFinder.getElementProps(element).tabStop && !checkInput(element)) {
-            break;
-         }
-         element = element.parentElement;
-      }
-      return element;
-   }
-
    function doFocus(container: any): boolean {
       let res = false;
       if (container.wsControl && container.wsControl.setActive) {
@@ -54,28 +29,6 @@ export function activate(
          }
       } else {
          if (ElementFinder.getElementProps(container).tabStop) {
-            // на мобильных устройствах иногда не надо ставить фокус в поля ввода. потому что может показаться
-            // экранная клавиатура. на ipad в случае асинхронной фокусировки вообще фокусировка откладывается
-            // до следующего клика, и экранная клавиатура показывается не вовремя.
-
-            // можно было бы вообще ничего не фокусировать, но есть кейс когда это нужно:
-            // при открытии задачи поле исполнителя должно активироваться, чтобы показался саггест.
-            // но фокус на поле ввода внутри не должен попасть, чтобы не повторилась ошибка на ipad.
-
-            // поищем родительский элемент от найденного и сфокусируем его. так контрол, в котором лежит
-            // поле ввода, будет сфокусирован, но фокус встанет не в поле ввода, а в его контейнер.
-
-            // enableScreenKeyboard должен быть параметром метода activate, а не свойством контрола поля ввода,
-            // потому что решается базовая проблема, и решаться она должна в общем случае (для любого
-            // поля ввода), и не для любого вызова activate а только для тех вызовов, когда эта поведение
-            // необходимо. Например, при открытии панели не надо фокусировать поля ввода
-            // на мобильных устройствах.
-            if (!cfg.enableScreenKeyboard && detection.isMobilePlatform) {
-               // если попали на поле ввода, нужно взять его родительский элемент и фокусировать его
-               if (checkInput(container)) {
-                  container = getContainerWithControlNode(container);
-               }
-            }
             focus(container, cfg);
          }
          res = container === document.activeElement;
