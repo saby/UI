@@ -142,7 +142,7 @@ export function insertBoundaryElements(environment, vnode) {
          }
       }
    } else {
-      if (vnode && vnode.children[1]) {
+      if (vnode && vnode.children && vnode.children[1]) {
          const body = vnode.children[1];
          if (vnode && appendFocusesElements(environment, body)) {
             let bodyDOM = environment._rootDOMNode.getElementsByTagName('body');
