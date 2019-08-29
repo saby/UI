@@ -18,6 +18,20 @@ import PromiseLib = require('Core/PromiseLib/PromiseLib');
 // @ts-ignore
 import ReactiveObserver = require('Core/ReactiveObserver');
 
+import * as Expressions from 'View/Executor/Expressions';
+import * as Utils from 'View/Executor/Utils';
+import * as Markup from 'View/Executor/Markup';
+import * as Vdom from 'Vdom/Vdom';
+import * as DevtoolsHook from 'Vdom/DevtoolsHook';
+import * as FocusLib from 'UI/Focus';
+
+// @ts-ignore
+import * as Hydrate from 'Inferno/third-party/hydrate.dev';
+
+if(Hydrate.initInferno) {
+    Hydrate.initInferno(Expressions, Utils, Markup, Vdom, FocusLib, DevtoolsHook);
+}
+
 import * as Logger from 'View/Logger';
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
