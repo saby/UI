@@ -138,7 +138,7 @@ function appendFocusesElements(environment, vnode) {
 }
 
 export function insertBoundaryElements(environment, vnode) {
-   const dom = environment._rootDOMNode;
+   const dom = vnode.dom;
    if (dom === environment._rootDOMNode && environment._rootDOMNode.tagName !== 'HTML' || vnode.type === 'body') {
       if (vnode && vnode.children) {
          var appendedElements = appendFocusesElements(environment, vnode);
