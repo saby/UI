@@ -80,9 +80,9 @@ function findDirectChildren(elem, cssClass) {
  * We have to insert focus elements are already in the DOM,  before virtual dom synchronization
  * @param rootElement
  */
-function appendFocusElementsToDOM(rootElement) {
+function appendFocusElementsToDOM(vnode, rootElement) {
    const firstChild = rootElement.firstChild;
-   if (firstChild && firstChild.classList && !firstChild.classList.contains('vdom-focus-in')) {
+   if (!firstChild || firstChild && firstChild.classList && !firstChild.classList.contains('vdom-focus-in')) {
       const vdomFocusInElems = findDirectChildren(rootElement, '.vdom-focus-in');
       const vdomFocusOutElems = findDirectChildren(rootElement, '.vdom-focus-out');
       const focusInElem = vdomFocusInElems.length ? vdomFocusInElems[0] : document.createElement('a');
@@ -91,12 +91,21 @@ function appendFocusElementsToDOM(rootElement) {
       const focusOutElem = vdomFocusOutElems.length ? vdomFocusOutElems[0] : document.createElement('a');
       focusOutElem.classList.add('vdom-focus-out');
       (focusOutElem as any).tabIndex = 0;
-      rootElement.insertBefore(focusInElem, firstChild);
-      rootElement.appendChild(focusOutElem);
-      return true;
-   }
 
-   return false;
+      if (firstChild) {
+         rootElement.insertBefore(focusInElem, firstChild);
+      } else {
+         rootElement.appendChild(focusInElem);
+      }
+      rootElement.appendChild(focusOutElem);
+      vnode.children[0].dom = rootElement.firstChild;
+      vnode.children[vnode.children.length - 1].dom = rootElement.lastChild;
+      return true;
+   } else {
+      vnode.children[0].dom = rootElement.firstChild;
+      vnode.children[vnode.children.length - 1].dom = rootElement.lastChild;
+      return false;
+   }
 }
 
 function appendFocusesElements(environment, vnode) {
