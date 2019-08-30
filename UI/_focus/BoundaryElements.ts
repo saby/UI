@@ -1,7 +1,6 @@
 /// <amd-module name="UI/_focus/BoundaryElements" />
 /* tslint:disable */
 
-import { Vdom } from 'View/Executor/Utils';
 // @ts-ignore
 import * as Inferno from 'Inferno/third-party/index.dev';
 
@@ -66,50 +65,6 @@ function fireEvent(e) {
    target.dispatchEvent(evt);
 }
 
-/**
- * We have to find focus elements, that belongs to the specific rootNode
- * @param elem
- * @param cssClass
- * @returns {*}
- */
-function findDirectChildren(elem, cssClass) {
-   return Array.prototype.filter.call(elem.children, function(el) { return el.matches(cssClass); });
-}
-
-/**
- * We have to insert focus elements are already in the DOM,  before virtual dom synchronization
- * @param rootElement
- */
-function appendFocusElementsToDOM(vnode, rootElement) {
-   const firstChild = rootElement.firstChild;
-   let result;
-   if (!firstChild || firstChild && firstChild.classList && !firstChild.classList.contains('vdom-focus-in')) {
-      const vdomFocusInElems = findDirectChildren(rootElement, '.vdom-focus-in');
-      const vdomFocusOutElems = findDirectChildren(rootElement, '.vdom-focus-out');
-      const focusInElem = vdomFocusInElems.length ? vdomFocusInElems[0] : document.createElement('a');
-      focusInElem.classList.add('vdom-focus-in');
-      (focusInElem as any).tabIndex = 1;
-      const focusOutElem = vdomFocusOutElems.length ? vdomFocusOutElems[0] : document.createElement('a');
-      focusOutElem.classList.add('vdom-focus-out');
-      (focusOutElem as any).tabIndex = 0;
-
-      if (firstChild) {
-         rootElement.insertBefore(focusInElem, firstChild);
-      } else {
-         rootElement.appendChild(focusInElem);
-      }
-      rootElement.appendChild(focusOutElem);
-      result = true;
-   } else {
-      result = false;
-   }
-
-   vnode.children[0].dom = rootElement.firstChild;
-   vnode.children[vnode.children.length - 1].dom = rootElement.lastChild;
-
-   return result;
-}
-
 function appendFocusesElements(environment, vnode) {
    const firstChild = findFirstVNode(vnode.children),
       fireTab = function(e) {
@@ -132,21 +87,13 @@ function appendFocusesElements(environment, vnode) {
       }, 'vdom-focus-out', hookOut);
 
       vnode.children = [].concat(focusInNode, vnode.children, focusOutNode);
-      return true;
    }
-
-   return false;
 }
 
 export function insertBoundaryElements(environment, vnode) {
    const dom = vnode.dom || environment._rootDOMNode;
    if (dom === environment._rootDOMNode && environment._rootDOMNode.tagName !== 'HTML' || vnode.type === 'body') {
-      if (vnode && vnode.children) {
-         var appendedElements = appendFocusesElements(environment, vnode);
-         if (appendedElements) {
-            appendFocusElementsToDOM(vnode, environment._rootDOMNode);
-         }
-      }
+      appendFocusesElements(environment, vnode);
    }
 }
 
