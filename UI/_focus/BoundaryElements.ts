@@ -2,6 +2,8 @@
 /* tslint:disable */
 
 import { Vdom } from 'View/Executor/Utils';
+// @ts-ignore
+import * as Inferno from 'Inferno/third-party/index.dev';
 
 /**
  * check if container contains element strictly (container and element are not equal)
@@ -78,9 +80,10 @@ function findDirectChildren(elem, cssClass) {
  * We have to insert focus elements are already in the DOM,  before virtual dom synchronization
  * @param rootElement
  */
-function appendFocusElementsToDOM(rootElement) {
+function appendFocusElementsToDOM(vnode, rootElement) {
    const firstChild = rootElement.firstChild;
-   if (firstChild && firstChild.classList && !firstChild.classList.contains('vdom-focus-in')) {
+   let result;
+   if (!firstChild || firstChild && firstChild.classList && !firstChild.classList.contains('vdom-focus-in')) {
       const vdomFocusInElems = findDirectChildren(rootElement, '.vdom-focus-in');
       const vdomFocusOutElems = findDirectChildren(rootElement, '.vdom-focus-out');
       const focusInElem = vdomFocusInElems.length ? vdomFocusInElems[0] : document.createElement('a');
@@ -89,12 +92,22 @@ function appendFocusElementsToDOM(rootElement) {
       const focusOutElem = vdomFocusOutElems.length ? vdomFocusOutElems[0] : document.createElement('a');
       focusOutElem.classList.add('vdom-focus-out');
       (focusOutElem as any).tabIndex = 0;
-      rootElement.insertBefore(focusInElem, firstChild);
+
+      if (firstChild) {
+         rootElement.insertBefore(focusInElem, firstChild);
+      } else {
+         rootElement.appendChild(focusInElem);
+      }
       rootElement.appendChild(focusOutElem);
-      return true;
+      result = true;
+   } else {
+      result = false;
    }
 
-   return false;
+   vnode.children[0].dom = rootElement.firstChild;
+   vnode.children[vnode.children.length - 1].dom = rootElement.lastChild;
+
+   return result;
 }
 
 function appendFocusesElements(environment, vnode) {
@@ -109,24 +122,15 @@ function appendFocusesElements(environment, vnode) {
       };
    // добавляем ноды vdom-focus-in и vdom-focus-out тольео если есть какие-то внутренние ноды
    if (firstChild && firstChild.key !== 'vdom-focus-in') {
-      const focusInNode = Vdom.htmlNode(
-         'a',
-         {
-            attributes: { class: 'vdom-focus-in', tabindex: '1' }
-         },
-         [],
-         'vdom-focus-in',
-         hookOut
-      );
-      const focusOutNode = Vdom.htmlNode(
-         'a',
-         {
-            attributes: { class: 'vdom-focus-out', tabindex: '0' }
-         },
-         [],
-         'vdom-focus-out',
-         hookOut
-      );
+      const focusInNode = Inferno.createVNode(Inferno.getFlagsForElementVnode('a'), 'a', 'vdom-focus-in', [], 0, {
+         class: 'vdom-focus-in',
+         tabindex: '1'
+      }, 'vdom-focus-in', hookOut);
+      const focusOutNode = Inferno.createVNode(Inferno.getFlagsForElementVnode('a'), 'a', 'vdom-focus-out', [], 0, {
+         class: 'vdom-focus-out',
+         tabindex: '0'
+      }, 'vdom-focus-out', hookOut);
+
       vnode.children = [].concat(focusInNode, vnode.children, focusOutNode);
       return true;
    }
@@ -135,21 +139,12 @@ function appendFocusesElements(environment, vnode) {
 }
 
 export function insertBoundaryElements(environment, vnode) {
-   if (environment._rootDOMNode.tagName !== 'HTML') {
-      if (vnode && appendFocusesElements(environment, vnode)) {
-         if (vnode && appendFocusesElements(environment, vnode)) {
-            appendFocusElementsToDOM(environment._rootDOMNode);
-         }
-      }
-   } else {
-      if (vnode && vnode.children && vnode.children[1]) {
-         const body = vnode.children[1];
-         if (vnode && appendFocusesElements(environment, body)) {
-            let bodyDOM = environment._rootDOMNode.getElementsByTagName('body');
-            if (bodyDOM.length) {
-               bodyDOM = bodyDOM[0];
-               appendFocusElementsToDOM(bodyDOM);
-            }
+   const dom = vnode.dom || environment._rootDOMNode;
+   if (dom === environment._rootDOMNode && environment._rootDOMNode.tagName !== 'HTML' || vnode.type === 'body') {
+      if (vnode && vnode.children) {
+         var appendedElements = appendFocusesElements(environment, vnode);
+         if (appendedElements) {
+            appendFocusElementsToDOM(vnode, environment._rootDOMNode);
          }
       }
    }
