@@ -1,0 +1,7 @@
+<div>
+   <div id="start focus it">
+      <div ws-delegates-tabfocus="true" tabindex="0">
+         <div id="delegated" tabindex="0">delegated</div>
+      </div>
+   </div>
+</div>

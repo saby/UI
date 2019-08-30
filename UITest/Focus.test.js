@@ -1,9 +1,11 @@
 define([
    'UI/Focus',
    'UI/Base',
+   'UI/_focus/_ResetScrolling',
    'UITest/Focus'
 ], function (Focus,
              Base,
+             _ResetScrolling,
              FocusTestControls
 ) {
    'use strict';
@@ -15,7 +17,7 @@ define([
    describe('Focus', function () {
       var div;
       var control;
-      var cases;
+      var globalCases = [];
       var currentCase;
       var fromNode = typeof document === 'undefined';
 
@@ -25,6 +27,7 @@ define([
                var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
                global.window = browser.window;
                global.document = window.document;
+               global.Element = window.Element;
                global.HTMLElement = window.HTMLElement;
                global.SVGElement = window.SVGElement;
                global.Node = window.Node;
@@ -40,6 +43,7 @@ define([
          if (fromNode) {
             delete global.window;
             delete global.document;
+            delete global.Element;
             delete global.HTMLElement;
             delete global.SVGElement;
             delete global.Node;
@@ -48,7 +52,7 @@ define([
       });
 
       beforeEach(function(done) {
-         currentCase = cases.shift();
+         currentCase = globalCases.shift();
          div = document.createElement('div');
          document.body.appendChild(div);
          var ctr = currentCase.control;
@@ -58,7 +62,9 @@ define([
                   control = div.controlNodes[0].control;
                   control._mounted = true;
                   done();
-               }
+               },
+               fromNode: fromNode,
+               testName: currentCase.name
             }, div);
          } else {
             done();
@@ -73,13 +79,13 @@ define([
       });
 
       describe('activate', function() {
-         cases = [
+         var localCases = [
             {
                control: FocusTestControls.Simple,
                name: 'simple',
                checkFn: function() {
                   assert.ok(Focus.activate(div));
-                  assert.ok(document.activeElement === div);
+                  assert.strictEqual(document.activeElement, div);
                }
             },
             {
@@ -87,7 +93,23 @@ define([
                name: 'tabindex="-1"',
                checkFn: function() {
                   assert.notOk(Focus.activate(div));
-                  assert.ok(document.activeElement === document.body);
+                  assert.strictEqual(document.activeElement, document.body);
+               }
+            },
+            {
+               control: FocusTestControls.DelegatedTabfocus,
+               name: 'delegates tabfocus',
+               checkFn: function() {
+                  assert.ok(Focus.activate(document.getElementById('start focus it')));
+                  assert.strictEqual(document.activeElement, document.getElementById('delegated'));
+               }
+            },
+            {
+               control: FocusTestControls.SvgWithNoFocus,
+               name: 'focus SVG Element',
+               checkFn: function() {
+                  assert.notOk(Focus.activate(div));
+                  assert.strictEqual(document.activeElement, document.body);
                }
             },
             {
@@ -95,15 +117,232 @@ define([
                name: 'has autofocus control inside',
                checkFn: function() {
                   assert.ok(Focus.activate(div));
-                  assert.ok(document.activeElement === control._children['autofocusChild']._container);
+                  assert.strictEqual(document.activeElement, control._children['autofocusChild']._container);
+               }
+            },
+            {
+               control: FocusTestControls.ConditionContent,
+               name: 'restore focus after remove',
+               async: true,
+               checkFn: function(done) {
+                  try {
+                     control.afterUpdateCallback = function () {
+                        assert.strictEqual(document.activeElement, div);
+                        done();
+                     };
+                     var container = document.getElementById('start');
+                     assert.ok(Focus.activate(container));
+                     assert.strictEqual(document.activeElement, container);
+                     control.noNeedContent = true;
+                  } catch(e) {
+                     done(e);
+                  }
+               }
+            },
+            {
+               control: FocusTestControls.Deactivate,
+               name: 'deactivate event',
+               checkFn: function() {
+                  assert.ok(Focus.activate(document.getElementById('first')));
+                  assert.ok(Focus.activate(document.getElementById('second')));
+                  assert.strictEqual(control.lastDeactivatedName, 'first');
+               }
+            },
+            {
+               control: FocusTestControls.WithInputFakeMobile,
+               name: 'focus textarea in mobile platform',
+               checkFn: function() {
+                  assert.notOk(Focus.activate(document.getElementById('textarea')));
+                  assert.strictEqual(document.activeElement, div);
+               }
+            },
+            {
+               control: FocusTestControls.WithInputFakeMobile,
+               name: 'focus input with type text in mobile platform',
+               checkFn: function() {
+                  assert.notOk(Focus.activate(document.getElementById('inputText')));
+                  assert.strictEqual(document.activeElement, div);
+               }
+            },
+            {
+               control: FocusTestControls.WithInputFakeMobile,
+               name: 'focus textarea in mobile platform',
+               checkFn: function() {
+                  assert.notOk(Focus.activate(document.getElementById('contentEditableTrue')));
+                  assert.strictEqual(document.activeElement, div);
                }
             }
          ];
 
-         for (var i = 0; i < cases.length; ++i) {
-            it(cases[i].name || `test cases[${i}]`, function(done) {
+         globalCases = globalCases.concat(localCases);
+
+         for (var i = 0; i < localCases.length; ++i) {
+            it(localCases[i].name || `test localCases[${i}]`, function(done) {
                currentCase.checkFn(done);
-               done();
+               if (!currentCase.async) {
+                  done();
+               }
+            })
+         }
+      });
+
+      describe('DefaultOpenerFinder', function() {
+         var localCases = [
+            {
+               name: 'from control',
+               control: FocusTestControls.WithDefaultOpener,
+               checkFn: function() {
+                  var startControl = control._children.start;
+                  var goodDefaultOpener = control._children.defaultOpener;
+                  var checkDefaultOpener = Focus.DefaultOpenerFinder.find(startControl);
+                  assert.strictEqual(goodDefaultOpener, checkDefaultOpener);
+               }
+            },
+            {
+               name: 'from element',
+               control: FocusTestControls.WithDefaultOpener,
+               checkFn: function() {
+                  div;
+                  var element = document.getElementById('simple');
+                  var goodDefaultOpener = control._children.defaultOpener;
+                  var checkDefaultOpener = Focus.DefaultOpenerFinder.find(element);
+                  assert.strictEqual(goodDefaultOpener, checkDefaultOpener);
+               }
+            },
+            {
+               name: 'from jquery element',
+               control: FocusTestControls.WithDefaultOpener,
+               checkFn: function() {
+                  var fakeJqueryElement = [document.getElementById('simple')];
+                  var goodDefaultOpener = control._children.defaultOpener;
+                  var checkDefaultOpener = Focus.DefaultOpenerFinder.find(fakeJqueryElement);
+                  assert.strictEqual(goodDefaultOpener, checkDefaultOpener);
+               }
+            }
+         ];
+
+         globalCases = globalCases.concat(localCases);
+
+         for (var i = 0; i < localCases.length; ++i) {
+            it(localCases[i].name || `test localCases[${i}]`, function(done) {
+               currentCase.checkFn(done);
+               if (!currentCase.async) {
+                  done();
+               }
+            })
+         }
+      });
+
+      describe('_ResetScrolling', function() {
+         var localCases = [
+            {
+               name: 'for container',
+               control: FocusTestControls.Simple,
+               checkFn: function() {
+                  var container = div;
+                  document.body.scrollTop = 13;
+                  var undoScrollingFunction = _ResetScrolling.collectScrollPositions(container);
+                  document.body.scrollTop = 0;
+                  assert.strictEqual(0, document.body.scrollTop);
+                  undoScrollingFunction();
+                  assert.strictEqual(13, document.body.scrollTop);
+               }
+            },
+            {
+               name: 'for array',
+               control: FocusTestControls.Simple,
+               checkFn: function() {
+                  var container = [div];
+                  document.body.scrollTop = 13;
+                  var undoScrollingFunction = _ResetScrolling.collectScrollPositions(container);
+                  document.body.scrollTop = 0;
+                  assert.strictEqual(0, document.body.scrollTop);
+                  undoScrollingFunction();
+                  assert.strictEqual(13, document.body.scrollTop);
+               }
+            },
+            {
+               name: 'for pseudo array',
+               control: FocusTestControls.Simple,
+               checkFn: function() {
+                  var container = {0: div, length: 1};
+                  document.body.scrollTop = 13;
+                  var undoScrollingFunction = _ResetScrolling.collectScrollPositions(container);
+                  document.body.scrollTop = 0;
+                  assert.strictEqual(0, document.body.scrollTop);
+                  undoScrollingFunction();
+                  assert.strictEqual(13, document.body.scrollTop);
+               }
+            },
+            {
+               name: 'for query selector string',
+               control: FocusTestControls.Simple,
+               checkFn: function() {
+                  var container = '#simple';
+                  document.body.scrollTop = 13;
+                  var undoScrollingFunction = _ResetScrolling.collectScrollPositions(container);
+                  document.body.scrollTop = 0;
+                  assert.strictEqual(0, document.body.scrollTop);
+                  undoScrollingFunction();
+                  assert.strictEqual(13, document.body.scrollTop);
+               }
+            }
+         ];
+
+         globalCases = globalCases.concat(localCases);
+
+         for (var i = 0; i < localCases.length; ++i) {
+            it(localCases[i].name || `test localCases[${i}]`, function(done) {
+               currentCase.checkFn(done);
+               if (!currentCase.async) {
+                  done();
+               }
+            })
+         }
+      });
+
+      describe('PreventFocus', function() {
+         var localCases = [
+            {
+               name: 'need prevent',
+               checkFn: function() {
+                  div.innerHTML = '<div ws-no-focus="true"><div><div id="start"><div></div></div>';
+                  var wasPrevented = false;
+                  var event = {
+                     target: document.getElementById('start'),
+                     preventDefault: function() {
+                        wasPrevented = true;
+                     }
+                  };
+                  Focus.preventFocus(event);
+                  assert.ok(wasPrevented);
+               }
+            },
+            {
+               name: 'no need prevent',
+               checkFn: function() {
+                  div.innerHTML = '<div><div><div id="start"><div></div></div>';
+                  var wasPrevented = false;
+                  var event = {
+                     target: document.getElementById('start'),
+                     preventDefault: function() {
+                        wasPrevented = true;
+                     }
+                  };
+                  Focus.preventFocus(event);
+                  assert.notOk(wasPrevented);
+               }
+            }
+         ];
+
+         globalCases = globalCases.concat(localCases);
+
+         for (var i = 0; i < localCases.length; ++i) {
+            it(localCases[i].name || `test localCases[${i}]`, function(done) {
+               currentCase.checkFn(done);
+               if (!currentCase.async) {
+                  done();
+               }
             })
          }
       });
