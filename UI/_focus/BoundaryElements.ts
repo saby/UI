@@ -152,7 +152,7 @@ export function insertBoundaryElements(environment, vnode) {
       if (vnode && vnode.children) {
          var appendedElements = appendFocusesElements(environment, vnode);
          if (appendedElements) {
-            appendFocusElementsToDOM(environment._rootDOMNode);
+            appendFocusElementsToDOM(vnode, environment._rootDOMNode);
          }
       }
    }
