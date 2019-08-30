@@ -2,6 +2,8 @@
 /* tslint:disable */
 
 import { Vdom } from 'View/Executor/Utils';
+// @ts-ignore
+import * as Inferno from 'Inferno/third-party/index.dev';
 
 /**
  * check if container contains element strictly (container and element are not equal)
@@ -127,6 +129,7 @@ function appendFocusesElements(environment, vnode) {
          'vdom-focus-out',
          hookOut
       );
+
       vnode.children = [].concat(focusInNode, vnode.children, focusOutNode);
       return true;
    }
@@ -135,21 +138,12 @@ function appendFocusesElements(environment, vnode) {
 }
 
 export function insertBoundaryElements(environment, vnode) {
-   if (environment._rootDOMNode.tagName !== 'HTML') {
-      if (vnode && appendFocusesElements(environment, vnode)) {
-         if (vnode && appendFocusesElements(environment, vnode)) {
+   const dom = vnode.dom || environment._rootDOMNode;
+   if (dom === environment._rootDOMNode && environment._rootDOMNode.tagName !== 'HTML' || vnode.type === 'body') {
+      if (vnode && vnode.children) {
+         var appendedElements = appendFocusesElements(environment, vnode);
+         if (appendedElements) {
             appendFocusElementsToDOM(environment._rootDOMNode);
-         }
-      }
-   } else {
-      if (vnode && vnode.children && vnode.children[1]) {
-         const body = vnode.children[1];
-         if (vnode && appendFocusesElements(environment, body)) {
-            let bodyDOM = environment._rootDOMNode.getElementsByTagName('body');
-            if (bodyDOM.length) {
-               bodyDOM = bodyDOM[0];
-               appendFocusElementsToDOM(bodyDOM);
-            }
          }
       }
    }
