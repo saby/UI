@@ -3,6 +3,7 @@
 
 import { Vdom } from 'View/Executor/Utils';
 // @ts-ignore
+import * as Inferno from 'Inferno/third-party/index.dev';
 
 /**
  * check if container contains element strictly (container and element are not equal)
@@ -79,10 +80,9 @@ function findDirectChildren(elem, cssClass) {
  * We have to insert focus elements are already in the DOM,  before virtual dom synchronization
  * @param rootElement
  */
-function appendFocusElementsToDOM(vnode, rootElement) {
+function appendFocusElementsToDOM(rootElement) {
    const firstChild = rootElement.firstChild;
-   let result;
-   if (!firstChild || firstChild && firstChild.classList && !firstChild.classList.contains('vdom-focus-in')) {
+   if (firstChild && firstChild.classList && !firstChild.classList.contains('vdom-focus-in')) {
       const vdomFocusInElems = findDirectChildren(rootElement, '.vdom-focus-in');
       const vdomFocusOutElems = findDirectChildren(rootElement, '.vdom-focus-out');
       const focusInElem = vdomFocusInElems.length ? vdomFocusInElems[0] : document.createElement('a');
@@ -91,22 +91,12 @@ function appendFocusElementsToDOM(vnode, rootElement) {
       const focusOutElem = vdomFocusOutElems.length ? vdomFocusOutElems[0] : document.createElement('a');
       focusOutElem.classList.add('vdom-focus-out');
       (focusOutElem as any).tabIndex = 0;
-
-      if (firstChild) {
-         rootElement.insertBefore(focusInElem, firstChild);
-      } else {
-         rootElement.appendChild(focusInElem);
-      }
+      rootElement.insertBefore(focusInElem, firstChild);
       rootElement.appendChild(focusOutElem);
-      result = true;
-   } else {
-      result = false;
+      return true;
    }
 
-   vnode.children[0].dom = rootElement.firstChild;
-   vnode.children[vnode.children.length - 1].dom = rootElement.lastChild;
-
-   return result;
+   return false;
 }
 
 function appendFocusesElements(environment, vnode) {
@@ -153,7 +143,7 @@ export function insertBoundaryElements(environment, vnode) {
       if (vnode && vnode.children) {
          var appendedElements = appendFocusesElements(environment, vnode);
          if (appendedElements) {
-            appendFocusElementsToDOM(vnode, environment._rootDOMNode);
+            appendFocusElementsToDOM(environment._rootDOMNode);
          }
       }
    }
