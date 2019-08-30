@@ -3,7 +3,6 @@
 
 import { Vdom } from 'View/Executor/Utils';
 // @ts-ignore
-import * as Inferno from 'Inferno/third-party/index.dev';
 
 /**
  * check if container contains element strictly (container and element are not equal)
@@ -122,14 +121,24 @@ function appendFocusesElements(environment, vnode) {
       };
    // добавляем ноды vdom-focus-in и vdom-focus-out тольео если есть какие-то внутренние ноды
    if (firstChild && firstChild.key !== 'vdom-focus-in') {
-      const focusInNode = Inferno.createVNode(Inferno.getFlagsForElementVnode('a'), 'a', 'vdom-focus-in', [], 0, {
-         class: 'vdom-focus-in',
-         tabindex: '1'
-      }, 'vdom-focus-in', hookOut);
-      const focusOutNode = Inferno.createVNode(Inferno.getFlagsForElementVnode('a'), 'a', 'vdom-focus-out', [], 0, {
-         class: 'vdom-focus-out',
-         tabindex: '0'
-      }, 'vdom-focus-out', hookOut);
+      const focusInNode = Vdom.htmlNode(
+         'a',
+         {
+            attributes: { class: 'vdom-focus-in', tabindex: '1' }
+         },
+         [],
+         'vdom-focus-in',
+         hookOut
+      );
+      const focusOutNode = Vdom.htmlNode(
+         'a',
+         {
+            attributes: { class: 'vdom-focus-out', tabindex: '0' }
+         },
+         [],
+         'vdom-focus-out',
+         hookOut
+      );
 
       vnode.children = [].concat(focusInNode, vnode.children, focusOutNode);
       return true;
