@@ -32,6 +32,7 @@ define([
                global.SVGElement = window.SVGElement;
                global.Node = window.Node;
                global.getComputedStyle = window.getComputedStyle;
+               Focus._initFocus();
                done();
             });
          } else {
@@ -344,6 +345,36 @@ define([
                   done();
                }
             })
+         }
+      });
+
+      describe('BoundElements', function() {
+         var localCases = [
+            {
+               name: 'vdom-focus-in',
+               control: FocusTestControls.Input,
+               checkFn: function() {
+                  var vdomfocusin = document.getElementsByClassName('vdom-focus-in');
+                  var vdomfocusinElement = vdomfocusin.length ? vdomfocusin[0] : null;
+                  var keyCode = 0;
+                  vdomfocusinElement.addEventListener('keydown', function(e) {
+                     keyCode = e.keyCode;
+                  });
+                  vdomfocusinElement.focus();
+                  assert.strictEqual(keyCode, 9); // tab
+               }
+            }
+         ];
+
+         globalCases = globalCases.concat(localCases);
+
+         for (var i = 0; i < localCases.length; ++i) {
+            it(localCases[i].name || `test localCases[${i}]`, function(done) {
+               currentCase.checkFn(done);
+               if (!currentCase.async) {
+                  done();
+               }
+            });
          }
       });
    });
