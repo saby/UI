@@ -1,0 +1,9 @@
+<div>
+   <div>
+      Before content
+      <ws:if data="{{!noNeedContent}}">
+         <div id="start" tabindex="0">Show content if need</div>
+      </ws:if>
+      After content
+   </div>
+</div>

@@ -1,0 +1,5 @@
+<div>
+   <textarea id="textarea"></textarea>
+   <input type="text" id="inputText" />
+   <div contenteditable="true" id="contentEditableTrue">I'm input</div>
+</div>
