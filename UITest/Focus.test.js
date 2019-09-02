@@ -1,10 +1,12 @@
 define([
    'UI/Focus',
    'UI/Base',
+   'Env/Env',
    'UI/_focus/_ResetScrolling',
    'UITest/Focus'
 ], function (Focus,
              Base,
+             Env,
              _ResetScrolling,
              FocusTestControls
 ) {
@@ -53,6 +55,11 @@ define([
       });
 
       beforeEach(function(done) {
+         // Run these tests in browser only
+         if (!fromNode) {
+            this.skip();
+         }
+
          currentCase = globalCases.shift();
          div = document.createElement('div');
          document.body.appendChild(div);
@@ -167,7 +174,7 @@ define([
             },
             {
                control: FocusTestControls.WithInputFakeMobile,
-               name: 'focus textarea in mobile platform',
+               name: 'focus textarea in mobile platform 2',
                checkFn: function() {
                   assert.notOk(Focus.activate(document.getElementById('contentEditableTrue')));
                   assert.strictEqual(document.activeElement, div);
@@ -362,6 +369,68 @@ define([
                   });
                   vdomfocusinElement.focus();
                   assert.strictEqual(keyCode, 9); // tab
+               }
+            },
+            {
+               name: 'vdom-focus-out',
+               control: FocusTestControls.Input,
+               checkFn: function() {
+                  var vdomfocusout = document.getElementsByClassName('vdom-focus-out');
+                  var vdomfocusoutElement = vdomfocusout.length ? vdomfocusout[0] : null;
+                  var keyCode = 0;
+                  vdomfocusoutElement.addEventListener('keydown', function(e) {
+                     keyCode = e.keyCode;
+                  });
+                  vdomfocusoutElement.focus();
+                  assert.strictEqual(keyCode, 9); // tab
+               }
+            }
+         ];
+
+         globalCases = globalCases.concat(localCases);
+
+         for (var i = 0; i < localCases.length; ++i) {
+            it(localCases[i].name || `test localCases[${i}]`, function(done) {
+               currentCase.checkFn(done);
+               if (!currentCase.async) {
+                  done();
+               }
+            });
+         }
+      });
+
+      describe('Focus method', function() {
+         var localCases = [
+            {
+               name: 'makeResetScrollFunction',
+               checkFn: function() {
+                  div.innerHTML = '<div id="input" contenteditable="true"></div>';
+                  var input = document.getElementById('input');
+                  var scrolled = false;
+
+                  var detection = Env.detection;
+                  Env.detection = {
+                     safari: true,
+                     isMobileIOS : true,
+                     isMobilePlatform: true
+                  };
+
+                  var collectScrollPositions = _ResetScrolling.collectScrollPositions;
+                  _ResetScrolling.collectScrollPositions = function() {
+                     scrolled = true;
+                     return function(){};
+                  };
+
+                  try {
+                     Focus.focus(input, {
+                        enableScreenKeyboard: true
+                     });
+                  } finally {
+                     Env.detection = detection;
+                     _ResetScrolling.collectScrollPositions = collectScrollPositions;
+                  }
+                  assert.notOk(scrolled);
+                  // assert.strictEqual(document.activeElement, input);
                }
             }
          ];
