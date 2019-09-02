@@ -11,8 +11,8 @@
                   for(var key in wsCfg) {
                      constants[key] = wsCfg[key];
                   }
-
-                  UI.Start();
+                  var domElement = document.getElementById('root');
+                  UI.Start({}, domElement);
                }
                var AppData = UI.AppData;
 
