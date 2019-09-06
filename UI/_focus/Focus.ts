@@ -172,10 +172,13 @@ function matches(el: Element, selector: string): boolean {
 function checkInput(el: Element): boolean {
    return matches(el, 'input[type="text"], textarea, *[contentEditable=true]');
 }
+function hasControl(element) {
+   return element.controlNodes || element.wsControl;
+}
 function getContainerWithControlNode(element: Element): Element {
    while (element) {
       // ищем ближайший элемент, который может быть сфокусирован и не является полем ввода
-      if (element.controlNodes && ElementFinder.getElementProps(element).tabStop && !checkInput(element)) {
+      if (hasControl(element) && ElementFinder.getElementProps(element).tabStop && !checkInput(element)) {
          break;
       }
       element = element.parentElement;
