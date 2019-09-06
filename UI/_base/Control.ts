@@ -1,14 +1,15 @@
+/* tslint:disable */
+
 // @ts-ignore
 import template = require('wml!UI/_base/Control');
 
 // @ts-ignore
-import { IoC, detection } from 'Env/Env';
-// @ts-ignore
-import doAutofocus = require('Core/helpers/Hcontrol/doAutofocus');
+import { IoC } from 'Env/Env';
 
-import { Synchronizer, TabIndex, Focus as VFocus } from 'Vdom/Vdom';
+import { Synchronizer } from 'Vdom/Vdom';
 import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
+import { activate } from 'UI/Focus';
 
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesControllerNew');
@@ -16,13 +17,35 @@ import ThemesController = require('Core/Themes/ThemesControllerNew');
 import PromiseLib = require('Core/PromiseLib/PromiseLib');
 // @ts-ignore
 import ReactiveObserver = require('Core/ReactiveObserver');
+
+import * as Expressions from 'View/Executor/Expressions';
+import * as Utils from 'View/Executor/Utils';
+import * as Markup from 'View/Executor/Markup';
+import * as Vdom from 'Vdom/Vdom';
+import * as DevtoolsHook from 'Vdom/DevtoolsHook';
+import * as FocusLib from 'UI/Focus';
+
 // @ts-ignore
-import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
+import * as Hydrate from 'Inferno/third-party/hydrate.dev';
+
+if(Hydrate.initInferno) {
+    Hydrate.initInferno(Expressions, Utils, Markup, Vdom, FocusLib, DevtoolsHook);
+}
 
 import * as Logger from 'View/Logger';
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
 /**
+ * @event UI/_base/Control#activated Происходит при активации контрола.
+ * @param {Boolean} isTabPressed Указывает, был ли активирован контрол нажатием на клавишу Tab.
+ * @remark Контрол активируется, когда на один из его DOM-элементов переходит фокус.
+ * Подробное описание и примеры использования события читайте
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ здесь}.
+ * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ Работа с фокусами}
+ * @see deactivated
+ */
+
+/*
  * @event UI/_base/Control#activated Occurs when the component becomes active.
  * @param {Boolean} isTabPressed Indicates whether control was activated by Tab press.
  * @remark Control is activated when one of its DOM elements becomes focused. Detailed description and u
@@ -33,6 +56,16 @@ export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: b
  */
 
 /**
+ * @event UI/_base/Control#deactivated Происходит при деактивации контрола.
+ * @param {Boolean} isTabPressed Указывает, был ли деактивирован контрол нажатием на клавишу Tab.
+ * @remark Контрол перестает быть активным, когда все его дочерние контролы теряют фокус.
+ * Подробное описание и примеры использования события читайте
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ здесь}.
+ * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ Работа с фокусами}
+ * @see activated
+ */
+
+/*
  * @event UI/_base/Control#deactivated Occurs when control becomes inactive.
  * @param {Boolean} isTabPressed Indicates whether control was deactivated by Tab press.
  * @remark Control is deactivated when all of its child component lose focus.
@@ -45,21 +78,10 @@ export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: b
 let countInst = 1;
 
 const WAIT_TIMEOUT = 20000;
-const WRAP_TIMEOUT = 5000;
-
-function matches(el: Element, selector: string): boolean {
-    return (
-        el.matches ||
-        el.matchesSelector ||
-        el.msMatchesSelector ||
-        el.mozMatchesSelector ||
-        el.webkitMatchesSelector ||
-        el.oMatchesSelector
-    ).call(el, selector);
-}
-function checkInput(el: Element): boolean {
-    return matches(el, 'input[type="text"], textarea, *[contentEditable=true]');
-}
+// This timeout is needed for loading control css.
+// If we can not load css file we want to continue building control without blocking it by throwing an error.
+// IE browser only needs more than 5 sec to load so we increased timeout up to 30 sec.
+const WRAP_TIMEOUT = 30000;
 
 export interface IControlOptions {
     readOnly?: boolean;
@@ -78,7 +100,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     private _mounted: boolean = false;
     private _unmounted: boolean = false;
     private _destroyed: boolean = false;
-    private _active: boolean = false;
+    private _$active: boolean = false;
 
     private readonly _instId: string;
     protected _options: TOptions = null;
@@ -183,7 +205,16 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                 control._$needForceUpdate = true;
             } else {
                 if (environment) {
-                    environment.forceRebuild(controlNode.id);
+                    // This is fix for specific case. When environment has _haveRebuildRequest and after that
+                    // we creating another one. We don't have to do that, it's better to delay rebuild, after current
+                    // sync cycle.
+                    // after 410 condition "control._moduleName === 'FED2/UI/DocumentCompatible'" will be deleted.
+                    if (environment._haveRebuildRequest && control._moduleName === 'FED2/UI/DocumentCompatible') {
+                        control._$needForceUpdate = true;
+                    } else {
+                        environment.forceRebuild(controlNode.id);
+                    }
+
                 }
             }
         };
@@ -259,6 +290,29 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     }
 
     /**
+     * Запускает цикл обновления контрола вручную.
+     *
+     * @remark Обновление контрола запускается автоматически при подписке на DOM-события и события контролов из шаблона.
+     * Если состояние контрола обновляется в другое время (тайм-аут или подписка на событие сервера), необходимо запустить обновление вручную.
+     * После _forceUpdate будут вызваны все хуки жизненного цикла обновления (_shouldUpdate, _beforeUpdate, _afterUpdate).
+     * @example
+     * В этом примере при получении нового состояния от сервера вызывается обработчик _statusUpdatedHandler.
+     * Затем вы обновляете состояние с этим статусом и вручную запускаете обновление контрола для отображения его шаблона.
+     * <pre>
+     *    Control.extend({
+     *       ...
+     *       _statusUpdatedHandler(newStatus) {
+     *          this._status = newStatus;
+     *          this._forceUpdate();
+     *       }
+     *       ...
+     *    });
+     * </pre>
+     * @see Documentation: Control lifecycle
+     * @private
+     */
+
+    /*
      * Manually triggers start of the update cycle for the control.
      *
      * @remark Control's update starts automatically when you subscribe to DOM and control events from the
@@ -284,57 +338,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     _forceUpdate(): void {
         // будет переопределено в конструкторе, чтобы был доступ к замыканиям
     }
-
-    /**
-     * @name UI/_base/Control#readOnly
-     * @cfg {Boolean} Determines whether user can change control's value
-     * (or interact with the control if its value is not editable).
-     * @variant true User cannot change control's value (or interact with the control if its value is not editable).
-     * @variant false User can change control's value (or interact with the control if its value is not editable).
-     * @variant inherited Value inherited from the parent.
-     * @default Inherited
-     * @example
-     * In this example, List and Input.Text will be rendered with read-only styles, and the user won't be
-     * able to edit them. However, Button has readOnly option explicitly set to false,
-     * thus it won't inherit this option from the List, and user will be able to click on it.
-     * <pre>
-     *    <Controls.list:View readOnly="{{true}}">
-     *       <ws:itemTemplate>
-     *          <Controls.input:Text />
-     *          <Controls.buttons:Path readOnly="{{false}}" />
-     *       </ws:itemTemplate>
-     *    </Controls.list:View>
-     * </pre>
-     * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
-     * from the parent control. By default, all controls are active.
-     * @see Inherited options
-     */
-
-    /**
-     * @name UI/_base/Control#theme
-     * @cfg {String} Theme name. Depending on the theme, different stylesheets are loaded and
-     * different styles are applied to the control.
-     * @variant any Any value that was passed to the control.
-     * @variant inherited Value inherited from the parent.
-     * @default ''(empty string)
-     * @example
-     * In this example, Controls.Application and all of its chil controls will have "carry" theme styles.
-     * However, Carry.Head will "carry" theme styles. If you put controls inside Carry.Head and does not specify
-     * the theme option, they will inherit "carry" theme.
-     * <pre>
-     *    <Controls.Application theme="carry">
-     *       <Carry.Head theme="presto" />
-     *       <Carry.Workspace>
-     *          <Controls.Tree />
-     *       </Carry.Workspace>
-     *    </Controls.Application>
-     * </pre>
-     * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
-     * from the parent control. The path to CSS file with theme parameters determined automatically
-     * based on the theme name. CSS files should be prepared in advance according to documentation.
-     * @see Themes
-     * @see Inherited options
-     */
 
     getInstanceId(): string {
         return this._instId;
@@ -496,17 +499,26 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
     destroy(): void {
         this._destroyed = true;
+
+        // освобождаем сложные реактивные свойства, чтобы их вновь можно было регистрировать как реактивные
+        // для других экземпляров
+        ReactiveObserver.releaseProperties(this);
+
         try {
             const contextTypes = this.constructor.contextTypes ? this.constructor.contextTypes() : {};
             for (const i in contextTypes) {
+                // Need to check if context field actually exists.
+                // Because context field can be described in contextTypes but not provided by parent of the control.
                 if (contextTypes.hasOwnProperty(i) && this.context.get(i) instanceof contextTypes[i]) {
                     this.context.get(i).unregisterConsumer(this);
                 }
             }
             if (this._mounted) {
                 this.__beforeUnmount();
-                Synchronizer.cleanControlDomLink(this._container);
+                Synchronizer.cleanControlDomLink(this._container, this);
             }
+            // Избегаем утечки контролов по замыканию
+            this._forceUpdate = function() {};
         } catch (error) {
             Logger.catchLifeCircleErrors('_beforeUnmount', error);
         }
@@ -530,7 +542,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
             document.body.tabIndex = 1;
         }
         document.body.focus();
-        if (this._active) {
+        if (this._$active) {
             const env = container.controlNodes[0].environment;
 
             // если DOMEnvironment не перехватил переход фокуса, вызовем обработчик ухода фокуса вручную
@@ -543,6 +555,40 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     }
 
     /**
+     * Активирует контрол.
+     * @returns {Boolean} True - когда фокус был установлен успешно, false - когда фокус не установлен.
+     * @example
+     * В следующем примере показано, как активировать ввод при нажатии кнопки.
+     * <pre>
+     *    Control.extend({
+     *       ...
+     *       _clickHandler() {
+     *          this._children.textInput.activate();
+     *       }
+     *       ...
+     *    });
+     * </pre>
+     *
+     * <pre>
+     *    <div>
+     *       <Button on:click="_clickHandler()" />
+     *       <Controls.Input.Text name="textInput" />
+     *    </div>
+     * </pre>
+     * @param {Object} cfg Объект, содержащий параметры этого метода.
+     * Используйте параметр enableScreenKeyboard = true на устройствах с экранной клавиатурой, фокус будет установлен на поле ввода и экранная клавиатура будет отображена.
+     * Используйте параметр enableScreenKeyboard = false, фокус будет установлен на родительском элементе, а не на полях ввода.
+     * @remark Метод находит DOM-элемент внутри контрола (и его дочерних контролов), который может быть сфокусирован и устанавливает на него фокус.
+     * Метод возвращает true, если фокус был установлен успешно, false - если фокус не был установлен.
+     * Когда контрол становится активным, все его дочерниеконтролы также становятся активными. Когда контрол активируется, он запускает событие активации.
+     * Подробное описание и инструкцию по работе с методом читайте
+     * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ здесь}.
+     * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ Работа с фокусами}
+     * @see activated
+     * @see deactivated
+     */
+
+    /*
      * Activates the control.
      * @returns {Boolean} True - when focus was set successfully, false - when nothing was focused.
      * @example
@@ -576,124 +622,20 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      * @see activated
      * @see deactivated
      */
-    activate(cfg: { ignoreInputsOnMobiles?: boolean, enableScrollToElement?: boolean } = {}): boolean {
-        function getContainerWithControlNode(element: Element): Element {
-            while (element) {
-                // ищем ближайший элемент, который может быть сфокусирован и не является полем ввода
-                if (element.controlNodes && TabIndex.getElementProps(element).tabStop && !checkInput(element)) {
-                    break;
-                }
-                element = element.parentElement;
-            }
-            return element;
-        }
-
-        function doFocus(container: any): boolean {
-            let res = false;
-            const activeElement = document.activeElement;
-            if (container.wsControl && container.wsControl.setActive) {
-                // если нашли контейнер старого контрола, активируем его старым способом (для совместимости)
-                if (container.wsControl.canAcceptFocus()) {
-                    container.wsControl.setActive(true);
-                    res = container.wsControl.isActive();
-                } else {
-                    // todo попробовать поискать следующий элемент?
-                    res = false;
-                }
-            } else {
-                if (TabIndex.getElementProps(container).tabStop) {
-                    // на мобильных устройствах иногда не надо ставить фокус в поля ввода. потому что может показаться
-                    // экранная клавиатура. на ipad в случае асинхронной фокусировки вообще фокусировка откладывается
-                    // до следующего клика, и экранная клавиатура показывается не вовремя.
-
-                    // можно было бы вообще ничего не фокусировать, но есть кейс когда это нужно:
-                    // при открытии задачи поле исполнителя должно активироваться, чтобы показался саггест.
-                    // но фокус на поле ввода внутри не должен попасть, чтобы не повторилась ошибка на ipad.
-
-                    // поищем родительский элемент от найденного и сфокусируем его. так контрол, в котором лежит
-                    // поле ввода, будет сфокусирован, но фокус встанет не в поле ввода, а в его контейнер.
-
-                    // enableScreenKeyboard должен быть параметром метода activate, а не свойством контрола поля ввода,
-                    // потому что решается базовая проблема, и решаться она должна в общем случае (для любого
-                    // поля ввода), и не для любого вызова activate а только для тех вызовов, когда эта поведение
-                    // необходимо. Например, при открытии панели не надо фокусировать поля ввода
-                    // на мобильных устройствах.
-                    if (!cfg.enableScreenKeyboard && detection.isMobilePlatform) {
-                        // если попали на поле ввода, нужно взять его родительский элемент и фокусировать его
-                        if (checkInput(container)) {
-                            container = getContainerWithControlNode(container);
-                        }
-                    }
-                    VFocus.focus(container, cfg);
-                }
-                res = container === document.activeElement;
-
-                container = this._container[0] ? this._container[0] : this._container;
-
-                // может случиться так, что на focus() сработает обработчик в DOMEnvironment,
-                // и тогда тут ничего не надо делать
-                // todo делать проверку не на _active а на то, что реально состояние изменилось.
-                // например переходим от компонента к его предку, у предка состояние не изменилось.
-                // но с которого уходили у него изменилось
-                if (res && !this._active) {
-                    const env = container.controlNodes[0].environment;
-                    env._handleFocusEvent({target: container, relatedTarget: activeElement});
-                }
-            }
-            return res;
-        }
-
-        let res = false;
+    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
         const container = this._container[0] ? this._container[0] : this._container;
+        const activeElement = document.activeElement;
 
-        // сначала попробуем поискать по ws-autofocus, если найдем - позовем focus рекурсивно для найденного компонента
-        const autofocusElems = doAutofocus.findAutofocusForVDOM(container);
-        let autofocusElem;
-        let found;
+        const res = activate(container, cfg);
 
-        for (let i = 0; i < autofocusElems.length; i++) {
-            autofocusElem = autofocusElems[i];
-
-            // если что-то зафокусировали, перестаем поиск
-            if (!found) {
-                // фокусируем только найденный компонент, ws-autofocus можно повесить только на контейнер компонента
-                if (autofocusElem && autofocusElem.controlNodes && autofocusElem.controlNodes.length) {
-                    // берем самый внешний контрол и активируем его
-                    const outerControlNode = autofocusElem.controlNodes[autofocusElem.controlNodes.length - 1];
-                    res = outerControlNode.control.activate(cfg);
-                    found = res;
-                }
-            }
-        }
-
-        // если не получилось найти по автофокусу, поищем первый элемент по табиндексам и сфокусируем его.
-        // причем если это будет конейнер старого компонента, активируем его по старому тоже
-        if (!found) {
-            // так ищем DOMEnvironment для текущего компонента. В нем сосредоточен код по работе с фокусами.
-            const getElementProps = TabIndex.getElementProps;
-
-            let next = TabIndex.findFirstInContext(container, false, getElementProps);
-            if (next) {
-                // при поиске первого элемента игнорируем vdom-focus-in и vdom-focus-out
-                const startElem = 'vdom-focus-in';
-                const finishElem = 'vdom-focus-out';
-                if (next.classList.contains(startElem)) {
-                    next = TabIndex.findWithContexts(container, next, false, getElementProps);
-                }
-                if (next.classList.contains(finishElem)) {
-                    next = null;
-                }
-            }
-            if (next) {
-                res = doFocus.call(this, next);
-            } else {
-                if (isElementVisible(container)) {
-                    res = doFocus.call(this, container);
-                } else {
-                    // если элемент не видим - не можем его сфокусировать
-                    res = false;
-                }
-            }
+        // может случиться так, что на focus() сработает обработчик в DOMEnvironment,
+        // и тогда тут ничего не надо делать
+        // todo делать проверку не на _$active а на то, что реально состояние изменилось.
+        // например переходим от компонента к его предку, у предка состояние не изменилось.
+        // но с которого уходили у него изменилось
+        if (res && !this._$active) {
+            const env = this._getEnvironment();
+            env._handleFocusEvent({target: document.activeElement, relatedTarget: activeElement});
         }
 
         return res;
@@ -704,6 +646,36 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     }
 
     /**
+     * Хук жизненного цикла контрола. Вызывается непосредственно перед установкой контрола в DOM-окружение.
+     *
+     * @param {Object} options Опции контрола.
+     * @param {Object} context Поля контекста, запрошенные контролом.
+     * @param {Object} receivedState Данные, полученные посредством серверного рендеринга.
+     * @example
+     * <pre>
+     *    Control.extend({
+     *       ...
+     *       _beforeMount(options, context, receivedState) {
+     *          if (receivedState) {
+     *             this.employeeName = receivedState;
+     *          } else {
+     *             return EmployeeNameSource.query().addCallback(function(employeeName) {
+     *                this.employeeName = employeeName;
+     *                return employeeName;
+     *             });
+     *          }
+     *       }
+     *       ...
+     *    });
+     * </pre>
+     * @remark
+     * Первый хук жизненного цикла контрола и единственный хук, который вызывается как на стороне сервера, так и на стороне клиента.
+     * Он вызывается до рендеринга шаблона, поэтому обычно используется для подготовки данных для шаблона.
+     * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
+     * @private
+     */
+
+    /*
      * Control’s lifecycle hook. Called right before the mounting of the component to DOM.
      *
      * @param {Object} options Control's options.
@@ -773,7 +745,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                             /* Change _template and _afterMount
                                 *  if execution was longer than 2 sec
                                 * */
-                            IoC.resolve('ILogger').error('_beforeMount', 'Wait 20000 ms ' + this._moduleName);
+                            IoC.resolve('ILogger').warn('_beforeMount', 'Wait 20000 ms ' + this._moduleName);
                             timeout = 1;
                             // @ts-ignore
                             require(['View/Executor/TClosure'], (thelpers) => {
@@ -817,6 +789,29 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     }
 
     /**
+     * Хук жизненного цикла контрола. Вызывается сразу после установки контрола в DOM-окружение.
+     * @param {Object} options Опции контрола.
+     * @param {Object} context Поле контекста, запрошенное контролом.
+     * @example
+     * <pre>
+     *    Control.extend({
+     *       ...
+     *       _beforeMount(options, context) {
+     *          this.subscribeToServerEvents();
+     *          this.buttonHeight = this._children.myButton.offsetHeight;
+     *       }
+     *       ...
+     *    });
+     * </pre>
+     * @remark
+     * Первый хук жизненного цикла контрола, который вызывается после подключения контрола к DOM-окружению.
+     * На этом этапе вы можете получить доступ к параметрам и контексту this._options и this._context.
+     * Этот хук жизненного цикла часто используется для доступа к DOM-элементам и подписки на события сервера.
+     * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
+     * @private
+     */
+
+    /*
      * Control’s lifecycle hook. Called right after component was mounted to DOM.
      * @param {Object} options Control's options.
      * @param {Object} context Context fields that controls requested. See "Context in Wasaby controls."
@@ -845,7 +840,41 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
         // Do
     }
 
+    __beforeUpdate(newOptions: TOptions): void {
+        if (newOptions.theme !== this._options.theme) {
+            this._manageStyles(newOptions.theme, this._options.theme);
+        }
+        this._beforeUpdate.apply(this, arguments);
+    }
+
+
     /**
+     * Хук жизненного цикла контрола. Вызывается перед обновлением контрола.
+     *
+     * @param {Object} newOptions Опции, полученные контролом. Устаревшие опции можно найти в this._options.
+     * @param {Object} newContext Контекст, полученный контролом. Устаревшие контексты можно найти в this._context.
+     * @remark В этом хуке вы можете сравнить новые и старые опции и обновить состояние контрола.
+     * В этом хуке, также, вы можете подготовить все необходимое для визуализации шаблона контрола. Часто код в этом блоке схож с кодом в хуке _beforeMount.
+     * @example
+     * <pre>
+     *    Control.extend({
+     *       ...
+     *       _beforeUpdate(newOptions, newContext) {
+     *
+     *          // Update control's state before template is rerendered.
+     *          this.userName = newOptions.firstName + ' ' + newOptions.lastName;
+     *          if (newOptions.salary !=== this._options.salary) {
+     *             this._recalculateBenefits(newOptions.salary);
+     *          }
+     *       }
+     *       ...
+     *    });
+     * </pre>
+     * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
+     * @private
+     */
+
+    /*
      * Control’s lifecycle hook. Called before update of the control.
      *
      * @param {Object} newOptions Options that control received. Old options can be found in this._options.
@@ -873,19 +902,42 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      * @see Documentation: Context.
      * @private
      */
-
-    __beforeUpdate(newOptions: TOptions): void {
-        if (newOptions.theme !== this._options.theme) {
-            this._manageStyles(newOptions.theme, this._options.theme);
-        }
-        this._beforeUpdate.apply(this, arguments);
-    }
-
     protected _beforeUpdate(options?: TOptions, contexts?: any): void {
         // Do
     }
 
     /**
+     * Определяет, должен ли контрол обновляться. Вызывается каждый раз перед обновлением контрола.
+     *
+     * @param {Object} options Опции контрола.
+     * @param {Object} context Поле контекста, запрошенное контролом.
+     * @returns {Boolean}
+     * <ol>
+     *    <li>true(значание по умолчанию): контрол будет обновлен.</li>
+     *    <li>false: контрол не будет обновлен. Хук _afterUpdate не будет вызван.</li>
+     * </ol>
+     * @example
+     * Например, если employeeSalary является единственным параметром, используемым в шаблоне контрола,
+     * можно обновлять контрол только при изменении параметра employeeSalary.
+     * <pre>
+     *    Control.extend({
+     *       ...
+     *       _shouldUpdate: function(newOptions, newContext) {
+     *          if (newOptions.employeeSalary === this._options.employeeSalary) {
+     *             return false;
+     *          }
+     *       }
+     *       ...
+     *    });
+     * </pre>
+     * @remark
+     * Хук жизненного цикла контрола вызывается после хука _beforeUpdate перед перестроением шаблона. Этот хук можно использовать для оптимизаций.
+     * Вы можете сравнить новые и текущие параметры и вернуть false, если нет необходимости пересчитывать DOM-дерево контрола.
+     * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
+     * @private
+     */
+
+    /*
      * Determines whether control should update. Called every time before control update.
      *
      * @param {Object} newOptions Options that control received. Old options can be found in this._options.
@@ -923,6 +975,32 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     }
 
     /**
+     * Хук жизненного цикла контрола. Вызывается после обновления контрола.
+     *
+     * @param {Object} oldOptions Опции контрола до обновления.
+     * Текущие опции можно найти в this._options.
+     * @param {Object} oldContext Контекст контрола до обновления.
+     * Текущий контекст можно найти в this._context.
+     * @remark Этот хук жизненного цикла вызывается после обновления DOM-контрола.
+     * На этом этапе вы получаете доступ к дочерним контролам и взаимодействуете с DOM-окружением.
+     * Часто код в этом хуке схож с кодом в хуке _afterMount.
+     * @example
+     * <pre>
+     *    Control.extend({
+     *       ...
+     *       _afterUpdate(oldOptions, oldContext) {
+     *
+     *          // Accessing DOM elements to update control's state.
+     *          this.buttonHeight = this._children.myButton.offsetHeight;
+     *       }
+     *       ...
+     *    });
+     * </pre>
+     * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
+     * @private
+     */
+
+    /*
      * Control’s lifecycle hook. Called after control was updated.
      *
      * @param {Object} oldOptions Options that control had before the update.
@@ -953,7 +1031,30 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
         // Do
     }
 
+    __beforeUnmount(): void {
+        this._removeStyles(this._options.theme);
+        this._beforeUnmount.apply(this, arguments);
+    }
+
     /**
+     * Хук жизненного цикла контрола. Вызывается до удаления контрола.
+     * @remark Это последний хук жизненного цикла контрола. Контрол не будет существовать после вызова этого хука.
+     * Его можно использовать для отмены подписки на события сервера и очистки всего, что было сохранено в памяти.
+     * @example
+     * <pre>
+     *    Control.extend({
+     *       ...
+     *       _beforeUnmount() {
+     *          this._unsubscribeFromMyEvents();
+     *       }
+     *       ...
+     *    });
+     * </pre>
+     * @see {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
+     * @private
+     */
+
+    /*
      * Control’s lifecycle hook. Called before the destruction of the control.
      * @remark This is the last hook of the control's lifecycle. Control will no exist after this hook.
      * It can be used to unsubscribe from server events and clean up anything that was stored in memory.
@@ -972,22 +1073,14 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      * @see Documentation: Context
      * @private
      */
-    __beforeUnmount(): void {
-        this._removeStyles(this._options.theme);
-        this._beforeUnmount.apply(this, arguments);
-    }
-
     protected _beforeUnmount(): void {
         // Do
     }
 
-    static _styles: string[] = [];
-    static _theme: string[] = [];
+    static _styles: string[];
+    static _theme: string[];
     static isWasaby: boolean = true;
 
-    /**
-     * @deprecated
-     */
     static extend(mixinsList: any, classExtender: any): Function {
         // @ts-ignore
         if (!require.defined('Core/core-extend')) {
@@ -1038,3 +1131,103 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
 // @ts-ignore
 Control.prototype._template = template;
+
+    /**
+     * @name UI/_base/Control#readOnly
+     * @cfg {Boolean} Определяет, может ли пользователь изменить значение контрола.
+     * (или взаимодействовать с контролом, если его значение не редактируется).
+     * @variant true Пользователь не может изменить значение контрола. (или взаимодействовать с контролом, если его значение не редактируется).
+     * @variant false  Пользователь может изменить значение контрола. (или взаимодействовать с контролом, если его значение не редактируется).
+     * @variant inherited Значение контрола унаследовано от родителя.
+     * @default Inherited
+     * @example
+     * Рассмотрим на примере контролов List и Input. Текст будет отображаться со стилем "только для чтения", и пользователь не сможет его редактировать.
+     * Однако, у кнопки есть опция readOnly, которая имеет значение false, поэтому кнопка не унаследует эту опцию из списка, и пользователь сможет кликнуть по ней.
+     * <pre>
+     *    <Controls.list:View readOnly="{{true}}">
+     *       <ws:itemTemplate>
+     *          <Controls.input:Text />
+     *          <Controls.buttons:Path readOnly="{{false}}" />
+     *       </ws:itemTemplate>
+     *    </Controls.list:View>
+     * </pre>
+     * @remark Эта опция наследуется. Если параметр не задан явно, значение параметра наследуется от родительского контрола. По умолчанию все контролы активны.
+     * @see Inherited options
+     */
+
+    /*
+     * @name UI/_base/Control#readOnly
+     * @cfg {Boolean} Determines whether user can change control's value
+     * (or interact with the control if its value is not editable).
+     * @variant true User cannot change control's value (or interact with the control if its value is not editable).
+     * @variant false User can change control's value (or interact with the control if its value is not editable).
+     * @variant inherited Value inherited from the parent.
+     * @default Inherited
+     * @example
+     * In this example, List and Input.Text will be rendered with read-only styles, and the user won't be
+     * able to edit them. However, Button has readOnly option explicitly set to false,
+     * thus it won't inherit this option from the List, and user will be able to click on it.
+     * <pre>
+     *    <Controls.list:View readOnly="{{true}}">
+     *       <ws:itemTemplate>
+     *          <Controls.input:Text />
+     *          <Controls.buttons:Path readOnly="{{false}}" />
+     *       </ws:itemTemplate>
+     *    </Controls.list:View>
+     * </pre>
+     * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
+     * from the parent control. By default, all controls are active.
+     * @see Inherited options
+     */
+
+    /**
+     * @name UI/_base/Control#theme
+     * @cfg {String} Название темы. В зависимости от темы загружаются различные таблицы стилей и применяются различные стили к контролу.
+     * @variant any Любое значение, переданное контролу.
+     * @variant inherited Значение, унаследованное от родителя.
+     * @default ''(пустая строка)
+     * @example
+     * В этом примере Controls.Application и все его дочерние контролы будут иметь стиль темы "carry".
+     * Однако, Carry.Head будет иметь тему "presto".
+     * Если вы поместите контролы в Carry.Head и не укажите опцию theme, они унаследуют ее значение от родителей
+     * и тоже построятся в теме "presto".
+     * <pre>
+     *    <Controls.Application theme="carry">
+     *       <Carry.Head theme="presto" />
+     *       <Carry.Workspace>
+     *          <Controls.Tree />
+     *       </Carry.Workspace>
+     *    </Controls.Application>
+     * </pre>
+     * @remark Эта опция наследуется. Если параметр не задан явно, значение параметра наследуется от родительского контрола.
+     * Путь к CSS-файлу с параметрами темы определяется автоматически на основе имени темы.
+     * CSS-файлы должны быть подготовлены заранее в соответствии с документацией.
+     * @see Themes
+     * @see Inherited options
+     */
+
+    /*
+     * @name UI/_base/Control#theme
+     * @cfg {String} Theme name. Depending on the theme, different stylesheets are loaded and
+     * different styles are applied to the control.
+     * @variant any Any value that was passed to the control.
+     * @variant inherited Value inherited from the parent.
+     * @default ''(empty string)
+     * @example
+     * In this example, Controls.Application and all of its chil controls will have "carry" theme styles.
+     * However, Carry.Head will "carry" theme styles. If you put controls inside Carry.Head and does not specify
+     * the theme option, they will inherit "carry" theme.
+     * <pre>
+     *    <Controls.Application theme="carry">
+     *       <Carry.Head theme="presto" />
+     *       <Carry.Workspace>
+     *          <Controls.Tree />
+     *       </Carry.Workspace>
+     *    </Controls.Application>
+     * </pre>
+     * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
+     * from the parent control. The path to CSS file with theme parameters determined automatically
+     * based on the theme name. CSS files should be prepared in advance according to documentation.
+     * @see Themes
+     * @see Inherited options
+     */

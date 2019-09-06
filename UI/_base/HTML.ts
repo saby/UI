@@ -6,15 +6,14 @@ import Control from './Control';
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/HTML');
 // @ts-ignore
-import { constants } from 'Env/Env';
+import {constants, detection} from 'Env/Env';
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesController');
 // @ts-ignore
 import LinkResolver = require('Core/LinkResolver/LinkResolver');
 
 import * as AppEnv from 'Application/Env';
-import AppData from './Deprecated/AppData';
-import {detection} from 'Env/Env';
+import AppData from './AppData';
 
 class HTML extends Control {
     _template: Function = template;
@@ -51,29 +50,29 @@ class HTML extends Control {
             receivedState = {};
         }
 
+        let appData = AppData.getAppData();
+
         this.buildnumber = cfg.buildnumber || constants.buildnumber;
 
-        this.appRoot = cfg.appRoot || context.AppData.appRoot || (cfg.builder ? '/' : constants.appRoot);
+        this.appRoot = cfg.appRoot || appData.appRoot || (cfg.builder ? '/' : constants.appRoot);
 
-        this.RUMEnabled = cfg.RUMEnabled || context.AppData.RUMEnabled || false;
-        this.pageName = cfg.pageName || context.AppData.pageName || false;
+        this.RUMEnabled = cfg.RUMEnabled || appData.RUMEnabled || false;
+        this.pageName = cfg.pageName || appData.pageName || false;
 
-        this.staticDomains = cfg.staticDomains || context.AppData.staticDomains || constants.staticDomains || '[]';
+        this.staticDomains = cfg.staticDomains || appData.staticDomains || constants.staticDomains || '[]';
         if (typeof this.staticDomains !== 'string') {
             this.staticDomains = '[]';
         }
 
-        this.wsRoot = cfg.wsRoot || constants.wsRoot;
         this.resourceRoot = cfg.resourceRoot || constants.resourceRoot;
-        this.product = cfg.product || constants.product;
+        this.product = cfg.product || appData.product || constants.product;
+        this.wsRoot = cfg.wsRoot || appData.wsRoot || constants.wsRoot;
 
         // TODO нужно удалить после решения
         // https://online.sbis.ru/opendoc.html?guid=a9ceff55-1c8b-4238-90a7-22dde0e1bdbe
         this.servicesPath =
-            (context.AppData ? context.AppData.servicesPath : cfg.servicesPath) ||
-            constants.defaultServiceUrl ||
-            '/service/';
-        this.application = context.AppData.application;
+            cfg.servicesPath || appData.servicesPath || constants.defaultServiceUrl || '/service/';
+        this.application = appData.application;
 
         if (typeof window === 'undefined' && cfg.theme !== 'default') {
             ThemesController.getInstance().themes = {};
@@ -127,11 +126,23 @@ class HTML extends Control {
         });
     }
 
-   _afterMount(): void {
-      if (!detection.isMobilePlatform) {
-         this.activate();
-      }
-   }
+    _afterMount(): void {
+        function inIframe() {
+            try {
+                return window.self !== window.top;
+            } catch (e) {
+                // Browsers can block access to window.top due to same origin policy.
+                return true;
+            }
+        }
+
+        // We don't know how UI/Base:HTML should behave inside iframe,
+        // because we don't know what tasks UI/Base:HTML must solve inside of the iframe
+        // You should activate UI/Base:HTML manually(by calling activate() method, for example) if you need it
+        if (!detection.isMobilePlatform && !inIframe()) {
+            this.activate();
+        }
+    }
 
     static contextTypes(): { AppData: any } {
         return {

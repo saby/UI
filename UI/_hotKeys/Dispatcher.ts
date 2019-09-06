@@ -1,10 +1,6 @@
-// @ts-ignore
 import { Control } from 'UI/Base';
-// @ts-ignore
 import template = require('wml!UI/_hotKeys/Dispatcher');
-// @ts-ignore
-import { goUpByControlTree } from 'Vdom/Vdom';
-// @ts-ignore
+import { goUpByControlTree } from 'UI/Focus';
 import { constants } from 'Env/Env';
 
 /**
@@ -15,6 +11,13 @@ import { constants } from 'Env/Env';
 class Dispatcher extends Control {
    keyDownHandler(event: Event): void {
       const nativeEvent = event.nativeEvent;
+      if(nativeEvent.handledByDispatcher) {
+         // TODO https://online.sbis.ru/opendoc.html?guid=0de5f15f-70eb-40da-b3f0-8b99d4eb1c85
+         // It's probably not the right way to fix a problem.
+         // We shouldn't handle event if it was already handled by Dispatcher
+         return;
+      }
+      nativeEvent.handledByDispatcher = true;
       const key = 'which' in nativeEvent ? nativeEvent.which : nativeEvent.keyCode;
 
       // клавиша таб не может быть клавишей по умолчанию, у нее есть конкретное предназначение - переход по табу
