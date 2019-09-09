@@ -973,6 +973,32 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     protected _shouldUpdate(options: TOptions, context: any): boolean {
         return true;
     }
+    
+   /**
+    * Хук жизненного цикла контрола. Вызывается синхронно после применения измененной верстки контрола.
+    *
+    * @remark На этом этапе вы получаете доступ к отрисованной верстке.
+    * Жизненный хук используется в случае, если не подходит _afterUpdate для некоторых ускорений.
+    * Например, если после отрисовки необходимо выполнить корректировку положения скролла (вовзрат на прежнее положение),
+    * это нужно делать синхронно после отрисовки, чтобы не было видно прыжка.
+    * @example
+    * <pre>
+    *    Control.extend({
+    *       ...
+    *       _afterRender() {
+    *
+    *          // Accessing DOM elements to some fix after render.
+    *          this._container.scrollTop = this._savedScrollTop;
+    *       }
+    *       ...
+    *    });
+    * </pre>
+    * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
+    * @private
+    */
+   protected _afterRender(): void {
+      // Do
+   }
 
     /**
      * Хук жизненного цикла контрола. Вызывается после обновления контрола.
