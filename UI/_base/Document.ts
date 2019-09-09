@@ -59,11 +59,14 @@ class Document extends Control {
         }
 
         const headData = new HeadData();
+        // Временно положим это в HeadData, потом это переедет в константы реквеста
+        // Если запуск страницы начинается с UI/Base:Document, значит мы находимся в новом окружении
+        headData.isNewEnvironment = true;
         AppEnv.setStore('HeadData', headData);
         AppData.initAppData(cfg);
         AppEnv.setStore('CoreInstance', { instance: this });
         this.ctxData = new AppData(cfg);
-    }
+        }
 
     _beforeMount(cfg: any): void {
         this.application = cfg.application;

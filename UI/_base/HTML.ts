@@ -92,9 +92,6 @@ class HTML extends Control {
 
         headData.pushDepComponent(this.application, false);
 
-        // Временно положим это в HeadData, потом это переедет в константы реквеста
-        headData.isNewEnvironment = !this.isCompatible;
-
         if (receivedState.csses && !headData.isDebug) {
             ThemesController.getInstance().initCss({
                 themedCss: receivedState.csses.themedCss,
