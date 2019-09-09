@@ -745,7 +745,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                             /* Change _template and _afterMount
                                 *  if execution was longer than 2 sec
                                 * */
-                            IoC.resolve('ILogger').warn('_beforeMount', 'Wait 20000 ms ' + this._moduleName);
+                            IoC.resolve('ILogger').warn('_beforeMount', `Wait ${WAIT_TIMEOUT} ms ` + this._moduleName);
                             timeout = 1;
                             // @ts-ignore
                             require(['View/Executor/TClosure'], (thelpers) => {
@@ -760,8 +760,12 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                                     sets: any
                                 ): any {
                                     try {
+                                        // Попробуем вернуть результат оригинального шаблона, не дожидаясь результат
+                                        // долгого асинхронного _beforeMount
                                         return this._originTemplate.apply(this, arguments);
                                     } catch (e) {
+                                        // Не вышло построить шаблон сразу. Пишем ошибку в логи, возвращаем пустоту.
+                                        IoC.resolve('ILogger').error('_beforeMount', this._moduleName, e);
                                         return template.apply(this, arguments);
                                     }
                                 };
