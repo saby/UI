@@ -760,9 +760,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                                     sets: any
                                 ): any {
                                     try {
-                                        return this._originTemplate.apply(self, arguments);
+                                        return this._originTemplate.apply(this, arguments);
                                     } catch (e) {
-                                        return thelpers.getMarkupGenerator(isVdom).createText('');
+                                        return template.apply(this, arguments);
                                     }
                                 };
                                 // @ts-ignore
@@ -973,7 +973,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     protected _shouldUpdate(options: TOptions, context: any): boolean {
         return true;
     }
-    
+
    /**
     * Хук жизненного цикла контрола. Вызывается синхронно после применения измененной верстки контрола.
     *
