@@ -28,7 +28,7 @@ function createControl(control: any, config: any, dom: any): void {
     Control.createControl(control, configReady, dom);
 }
 
-function startFunction(config: any): void {
+function startFunction(config: any, domElement: HTMLElement): void {
     if (typeof window !== 'undefined' && window.receivedStates) {
         // для совместимости версий. чтобы можно было влить контролы и WS одновременно
         let sr;
@@ -40,7 +40,7 @@ function startFunction(config: any): void {
         }
     }
 
-    const dom = document.getElementById('root');
+    const dom = domElement || document.getElementById('root');
     let dcomp = dom.attributes.rootapp;
     if (dcomp) {
         dcomp = dcomp.value;

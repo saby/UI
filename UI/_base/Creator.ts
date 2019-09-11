@@ -5,6 +5,8 @@ import Control from './Control';
 import * as Logger from 'View/Logger';
 // @ts-ignore
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
+// @ts-ignore
+import { consoleLogger } from 'Application/Env';
 
 /**
  * @class UI/_base/Creator
@@ -33,6 +35,10 @@ import { Focus, ContextResolver } from 'View/Executor/Expressions';
  * Core/Creator}.
  */
 export default function createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
+    // @ts-ignore
+    if(!domElement instanceof HTMLElement) {
+        consoleLogger.error('domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.');
+    }
     const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
     // @ts-ignore
     OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
