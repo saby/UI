@@ -3,5 +3,5 @@
     "UI/Base",
     "UI/HotKeys"
   ],
-  "extendsTo": "vdom-superbundle.package.js"
+  "extendsTo": "main-core-superbundle.package.js"
 }
