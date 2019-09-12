@@ -88,7 +88,8 @@ class StateReceiver {
             delete this.deserialized[key];
         }
         if (typeof this.receivedStateObjectsArray[key] !== 'undefined') {
-            IoC.resolve('ILogger').warn('StateReceiver::register', 'Try to register instance more than once or duplication of keys happened');
+            IoC.resolve('ILogger').warn('StateReceiver::register', 'Try to register instance more than once ' +
+                'or duplication of keys happened; current key is "' + key + '"');
         }
         this.receivedStateObjectsArray[key] = inst;
     }
