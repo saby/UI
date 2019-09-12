@@ -8,7 +8,7 @@
                   AppInit.default({}, undefined, new StateReceiver());
 
                   var wsCfg = window.wsConfig || {};
-                  for(var key in wsCfg) {
+                  for (var key in wsCfg) {
                      constants[key] = wsCfg[key];
                   }
 
@@ -17,12 +17,14 @@
                var AppData = UI.AppData;
 
                window.startContextData = {AppData: new AppData({})};
-               var deps = {{ __setHTMLUnsafe(getDeps()) }}
+               var deps ={{ __setHTMLUnsafe(getDeps()) }};
                   appInit();
                   require(deps, function(){
                      StartApplication();
 
             });
+         });
+
       </script>
    </ws:if>
    <ws:if data="{{ _options.compat }}">
