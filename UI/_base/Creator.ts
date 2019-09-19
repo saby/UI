@@ -1,4 +1,10 @@
+// @ts-ignore
+import { OptionsResolver } from 'View/Executor/Utils';
 import Control from './Control';
+// @ts-ignore
+import * as Logger from 'View/Logger';
+// @ts-ignore
+import { Focus, ContextResolver } from 'View/Executor/Expressions';
 
 /**
  * @class UI/_base/Creator
@@ -27,7 +33,27 @@ import Control from './Control';
  * Core/Creator}.
  */
 export default function createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
-    return Control.createControl.apply(this, arguments);
+   const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
+   // @ts-ignore
+   OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
+   const attrs = {
+      inheritOptions: {}
+   };
+   let ctr: any;
+   OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
+   try {
+      ctr = new ctor(cfg);
+   } catch (error) {
+      ctr = new Control({});
+      Logger.catchLifeCircleErrors('constructor', error, ctor.prototype && ctor.prototype._moduleName);
+   }
+   ctr.saveInheritOptions(attrs.inheritOptions);
+   ctr._container = domElement;
+   Focus.patchDom(domElement, cfg);
+   ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
+   ctr.mountToDom(ctr._container, cfg, ctor);
+   ctr._$createdFromCode = true;
+   return ctr;
 }
 
 /**
