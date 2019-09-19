@@ -4,7 +4,7 @@
 // @ts-ignore
 import { goUpByControlTree } from './goUpByControlTree';
 // @ts-ignore
-import { constants, detection } from 'Env/Env';
+import { constants, detection, IoC } from 'Env/Env';
 
 // иногда фокус уходит на какой-то фейковый элемент в боди. и наша система реагирует по делу что фокус улетел.
 // например, когда нужно скопировать текст в буфер обмена, текст вставляется в фейковое поле ввода на боди.
@@ -65,21 +65,29 @@ export function notifyActivationEvents(environment, target, relatedTarget, isTab
    relatedArrayMaker.find(function(control) {
       if (control !== mutualTarget) {
          let container = control._container;
-         if (container && container[0]) {
+
+         // jquery
+         if (container && container.hasOwnProperty('length')) {
             container = container[0];
          }
-         // todo каким-то образом фокус улетает в IE на дочерний элемент, а deactivated зовется на его предке
-         // https://online.sbis.ru/opendoc.html?guid=3dceaf87-5f2a-4730-a7bc-febe297649c5
-         if (container && container.contains && container.contains(target)) {
-            return false;
+
+         if (container) {
+            // todo каким-то образом фокус улетает в IE на дочерний элемент, а deactivated зовется на его предке
+            // https://online.sbis.ru/opendoc.html?guid=3dceaf87-5f2a-4730-a7bc-febe297649c5
+            if (container.contains && container.contains(target)) {
+               return false;
+            }
+            // todo если элемент не в доме, не стреляем для контрола deactivated, потому что он уже удален
+            // https://online.sbis.ru/opendoc.html?guid=0a8bd5b7-f809-4571-a6cf-ee605870594e
+            // тут перерисовывается popup и фокус слетает сам, потом зовут активацию и relatedTarget берется как
+            // savedFocusedElement который уже не в доме, потому что он был на попапе который удалили
+            if (!document.body.contains(container)) {
+               return false;
+            }
+         } else {
+            IoC.resolve('ILogger').warn('UI/Focus:Events', 'Control "' + control._moduleName + '" has no container!');
          }
-         // todo если элемент не в доме, не стреляем для контрола deactivated, потому что он уже удален
-         // https://online.sbis.ru/opendoc.html?guid=0a8bd5b7-f809-4571-a6cf-ee605870594e
-         // тут перерисовывается popup и фокус слетает сам, потом зовут активацию и relatedTarget берется как
-         // savedFocusedElement который уже не в доме, потому что он был на попапе который удалили
-         if (container && !document.body.contains(container)) {
-            return false;
-         }
+
          control._notify('deactivated', [
             {
                // to: arrayMaker[0],
