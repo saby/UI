@@ -60,7 +60,7 @@ function tryMoveFocus(element: Element): boolean {
          // makes the element active without scrolling to it
          try {
             element.setActive();
-            result = true;
+            result = element === document.activeElement;
          } catch (e) {
             result = false;
          }
@@ -69,7 +69,7 @@ function tryMoveFocus(element: Element): boolean {
    if (!result) {
       if (element.focus) {
          element.focus();
-         result = true;
+         result = element === document.activeElement;;
       }
    }
    if (!result) {
@@ -80,7 +80,7 @@ function tryMoveFocus(element: Element): boolean {
          // IE9 - 11 will let us abuse HTMLElement's focus method,
          // Firefox and Edge will throw an error.
          HTMLElement.prototype.focus.call(element);
-         result = true;
+         result = element === document.activeElement;;
       } catch (e) {
          result = focusSvgForeignObjectHack(element);
       }

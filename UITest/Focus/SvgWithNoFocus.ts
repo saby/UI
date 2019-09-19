@@ -1,5 +1,5 @@
 import {TemplateFunction} from 'UI/Base';
-import {TestBaseControl} from '../Base'
+import {TestBaseControl} from '../Base';
 
 import template = require('wml!UITest/Focus/SvgWithNoFocus');
 
