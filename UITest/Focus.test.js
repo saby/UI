@@ -116,7 +116,7 @@ define([
                control: FocusTestControls.SvgWithNoFocus,
                name: 'focus SVG Element',
                checkFn: function() {
-                  assert.notOk(Focus.activate(div));
+                  assert.ok(Focus.activate(div));
                   assert.strictEqual(document.activeElement, document.body);
                }
             },
@@ -160,7 +160,7 @@ define([
                control: FocusTestControls.WithInputFakeMobile,
                name: 'focus textarea in mobile platform',
                checkFn: function() {
-                  assert.notOk(Focus.activate(document.getElementById('textarea')));
+                  assert.ok(Focus.activate(document.getElementById('textarea')));
                   assert.strictEqual(document.activeElement, div);
                }
             },
@@ -168,7 +168,7 @@ define([
                control: FocusTestControls.WithInputFakeMobile,
                name: 'focus input with type text in mobile platform',
                checkFn: function() {
-                  assert.notOk(Focus.activate(document.getElementById('inputText')));
+                  assert.ok(Focus.activate(document.getElementById('inputText')));
                   assert.strictEqual(document.activeElement, div);
                }
             },
@@ -176,7 +176,7 @@ define([
                control: FocusTestControls.WithInputFakeMobile,
                name: 'focus textarea in mobile platform 2',
                checkFn: function() {
-                  assert.notOk(Focus.activate(document.getElementById('contentEditableTrue')));
+                  assert.ok(Focus.activate(document.getElementById('contentEditableTrue')));
                   assert.strictEqual(document.activeElement, div);
                }
             }
