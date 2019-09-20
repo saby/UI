@@ -15,6 +15,8 @@ import BaseRoute = require('wml!UI/_base/Route');
 import Creator, { async as AsyncCreator } from './_base/Creator';
 export { default as startApplication } from 'UI/_base/startApplication';
 
+import Logger from './_base/Logger';
+
 export {
     Control,
     IControlOptions,
@@ -29,5 +31,6 @@ export {
     AsyncCreator,
     DepsCollector,
     HeadData,
-    TemplateFunction
+    TemplateFunction,
+    Logger
 };
