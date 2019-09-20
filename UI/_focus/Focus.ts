@@ -69,7 +69,7 @@ function tryMoveFocus(element: Element): boolean {
    if (!result) {
       if (element.focus) {
          element.focus();
-         result = element === document.activeElement;;
+         result = element === document.activeElement;
       }
    }
    if (!result) {
@@ -80,7 +80,7 @@ function tryMoveFocus(element: Element): boolean {
          // IE9 - 11 will let us abuse HTMLElement's focus method,
          // Firefox and Edge will throw an error.
          HTMLElement.prototype.focus.call(element);
-         result = element === document.activeElement;;
+         result = element === document.activeElement;
       } catch (e) {
          result = focusSvgForeignObjectHack(element);
       }
@@ -218,6 +218,7 @@ function focusInner(
 
    const undoScrolling = makeResetScrollFunction(element, cfg.enableScrollToElement);
    const result = tryMoveFocus(element);
+   checkFocused(element);
 
    if (result) {
       if (detection.safari) {
@@ -229,9 +230,6 @@ function focusInner(
       } else {
          undoScrolling();
       }
-      checkFocused(element);
-   } else {
-      IoC.resolve('ILogger').error('UI/Focus:focus', 'Can\'t focus element. Undefined way to focus.');
    }
    return result;
 }
