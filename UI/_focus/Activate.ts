@@ -29,9 +29,8 @@ export function activate(
          }
       } else {
          if (ElementFinder.getElementProps(container).tabStop) {
-            focus(container, cfg);
+            res = focus(container, cfg);
          }
-         res = container === document.activeElement;
       }
       return res;
    }

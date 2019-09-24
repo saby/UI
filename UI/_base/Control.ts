@@ -12,6 +12,8 @@ import { Focus, ContextResolver } from 'View/Executor/Expressions';
 import { activate } from 'UI/Focus';
 
 // @ts-ignore
+import { consoleLogger } from 'Application/Env';
+// @ts-ignore
 import ThemesController = require('Core/Themes/ThemesControllerNew');
 // @ts-ignore
 import PromiseLib = require('Core/PromiseLib/PromiseLib');
@@ -1139,6 +1141,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
         return inherit;
     }
     static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
+       // @ts-ignore
+       if(!domElement instanceof HTMLElement) {
+          consoleLogger.error('domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.');
+       }
         const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
         // @ts-ignore
         OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
