@@ -286,6 +286,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
         this._children = {};
         this._instId = 'inst_' + countInst++;
 
+        if(cfg.__compatibleActivate) {
+            // @ts-ignore
+            this.__mic = require('Core/helpers/Hcontrol/makeInstanceCompatible');
+        }
+
         /*dont use this*/
         if (this._afterCreate) {
             this._afterCreate(cfg);
@@ -626,6 +631,13 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
      * @see deactivated
      */
     activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
+        if(this._options && this._options.__compatibleActivate) {
+            if(this.__mic) {
+                this.__mic(this);
+                delete this.__mic;
+            }
+            this._activate(this);
+        }
         const container = this._container[0] ? this._container[0] : this._container;
         const activeElement = document.activeElement;
 
