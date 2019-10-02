@@ -1,5 +1,5 @@
 /// <amd-module name="UI/_base/StateReceiver" />
-
+import { IStateReceiver } from 'Application/Interface';
 import Serializer = require('Core/Serializer');
 import { IoC } from 'Env/Env';
 import { Common } from 'View/Executor/Utils';
@@ -34,7 +34,7 @@ function getDepsFromSerializer(slr: any): any {
     return deps;
 }
 
-class StateReceiver {
+class StateReceiver implements IStateReceiver {
     private receivedStateObjectsArray: any = {};
     private deserialized: any = {};
 
