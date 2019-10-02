@@ -26,6 +26,7 @@ import * as Markup from 'View/Executor/Markup';
 import * as Vdom from 'Vdom/Vdom';
 import * as DevtoolsHook from 'Vdom/DevtoolsHook';
 import * as FocusLib from 'UI/Focus';
+import startApplication from 'UI/_base/startApplication';
 
 // @ts-ignore
 import * as Hydrate from 'Inferno/third-party/hydrate.dev';
@@ -1141,6 +1142,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
         return inherit;
     }
     static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
+       startApplication();
        // @ts-ignore
        if(!domElement instanceof HTMLElement) {
           consoleLogger.error('domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.');
