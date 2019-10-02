@@ -5,13 +5,13 @@ import Control from './Control';
 import * as Logger from 'View/Logger';
 // @ts-ignore
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
+import startApplication from 'UI/_base/startApplication';
 
 /**
  * @class UI/_base/Creator
  * @author Шипин А.А.
  * @public
  */
-
 
 /**
  * Создаёт корневой контрол.
@@ -33,6 +33,7 @@ import { Focus, ContextResolver } from 'View/Executor/Expressions';
  * Core/Creator}.
  */
 export default function createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
+   startApplication();
    const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
    // @ts-ignore
    OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);

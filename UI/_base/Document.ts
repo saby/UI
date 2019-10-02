@@ -7,15 +7,11 @@ import template = require('wml!UI/_base/Document/Document');
 
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesController');
-
-import HeadData from './HeadData';
-import StateReceiver from './StateReceiver';
-import AppData from './AppData';
-
-import { default as AppInit, isInit } from 'Application/Initializer';
 import * as AppEnv from 'Application/Env';
-// @ts-ignore
-import PresentationService from 'SbisEnv/PresentationService';
+import HeadData from './HeadData';
+import AppData from './AppData';
+import startApplication from 'UI/_base/startApplication';
+
 
 class Document extends Control {
     _template: Function = template;
@@ -39,25 +35,7 @@ class Document extends Control {
         } catch (e) {
         }
 
-        if(!isInit()) {
-            const stateReceiverInst = new StateReceiver();
-            let environmentFactory;
-            if (typeof window === 'undefined') {
-                environmentFactory = PresentationService;
-            }
-
-            // @ts-ignore
-            AppInit(cfg, environmentFactory, stateReceiverInst);
-
-            if (typeof window === 'undefined') {
-                // need create request for SSR
-                // on client request will create in app-init.js
-                if (typeof window !== 'undefined' && window.receivedStates) {
-                    stateReceiverInst.deserialize(window.receivedStates);
-                }
-            }
-        }
-
+        startApplication(cfg);
         const headData = new HeadData();
         // Временно положим это в HeadData, потом это переедет в константы реквеста
         // Если запуск страницы начинается с UI/Base:Document, значит мы находимся в новом окружении
