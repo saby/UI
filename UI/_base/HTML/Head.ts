@@ -48,7 +48,8 @@ class Head extends Control {
         this.headContent = options.headContent;
 
         this.wasServerSide = false;
-        if (typeof window !== 'undefined') {
+        this.isSSR = typeof window === 'undefined';
+        if (!this.isSSR) {
 
             /*всем элементам в head назначается атрибут data-vdomignore
             * то есть, inferno их не удалит, и если в head есть спец элементы,
