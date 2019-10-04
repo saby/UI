@@ -1,95 +1,154 @@
-/// <amd-module name="UI/_base/Logger" />
-
 // @ts-ignore
 import { IoC } from 'Env/Env';
 
-function prepareStack (data: any): string {
-      _polyfillRepeat();
-      let message = '';
-      let countIndent = 1;
-      let nodeDom = data;
-      let arrow = ' \u21B1 ';
+const logger = IoC.resolve('ILogger');
 
-      const excludeControls = {
-         'Controls/event:Register': true,
-         // todo 
-      };
+/**
+   Пример ошибки с обработкой:
+   CONTROL ERROR => Event handle: "click" in "Controls-demo/ErrorsEmulator/ErrorsDemo"
 
-      do {
-         let control = nodeDom.control;
-         if (control) {
-            let moduleName = control._moduleName;
-            if (moduleName && !excludeControls[moduleName]) {
-               message += '\n' + ' '.repeat(countIndent) + arrow + moduleName;
-               countIndent += 1;
-            }
+   ↱ Controls-demo/ErrorsEmulator/ErrorsDemo
+      ↱ Controls/Container/Async
+      ↱ Controls-demo/RootRouter
+      ↱ Controls-demo/Index
+         ↱ UI/Base:Document
+
+   Error: Ошибка по клику внутри обработчика (прикладной текст).
+      at overrides.constructor._notFoundHandler (ErrorsDemo.js:47)
+      at overrides.constructor.f (eval at req.exec (require-min.js:1), <anonymous>:12:2279)
+      at vdomEventBubbling (DOMEnvironment.js:744)
+      at constructor.captureEventHandler (DOMEnvironment.js:911)
+      at constructor.handleClick [as _handleClick] (DOMEnvironment.js:479)
+      at constructor.<anonymous> (DOMEnvironment.js:968)
+ */
+
+
+/**
+ * Подготавливает стек относительно точки возникновения ошибки
+ * Пример:
+ *    ↱ Controls-demo/ErrorsEmulator/ErrorsDemo
+ *     ↱ Controls/Container/Async
+ *      ↱ Controls-demo/RootRouter
+ *       ↱ Controls-demo/Index
+ *        ↱ UI/Base:Document
+ *
+ * @param data - Control \ WCN \ DOM элемент
+ */
+function prepareStack(data: any): string {
+   let message = '';
+   let countIndent = 1;
+   let arrow = ' \u21B1 ';
+
+   // если передали DOM - конвертируем в WCN
+   if (data.getAttribute) {
+      data = data.controlNodes[0];
+   }
+
+   let isControl = Boolean(data._options)
+
+   const excludeControls = {
+      'Controls/event:Register': true,
+      // TODO нужно подумать на тему иных модулей для отфильтровывания стека 
+   };
+
+   /**
+   * Функция генерация отступов для стека
+   * IE не поддерживает String.repeat
+   * TODO задать вопрос о переносе к полифилам
+   * https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/String/repeat
+   */
+   const _repeat = (count: number, str: string): string => {
+      var rpt = '';
+      for (var i = 0; i < count; i++) {
+         rpt += str;
+      }
+      return rpt;
+   }
+
+   let unit = data;
+   do {
+      if (unit) {
+         let moduleName = unit._moduleName;
+         if (moduleName && !excludeControls[moduleName]) {
+            message += '\n' + _repeat(countIndent, ' ') + arrow + moduleName;
+            countIndent += 1;
          }
-         nodeDom = nodeDom.parent;
-      } while (nodeDom);
+      }
 
-      return message;
+      // для контролов и DOM узлов разные способы подъема вверх по дереву
+      unit = isControl ? unit._logicParent : unit.parent;
+   } while (unit);
+
+   return message;
 }
 
 /**
- * IE не поддерживает repeat
- * TODO задать вопрос о переносе к остальным полифилам
- * https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/String/repeat
+ * Обработка сообщений
+ * @param {String} msg - произвольное текстовое сообщение
  */
-function _polyfillRepeat () {
-   if (!String.prototype.repeat) {
-      String.prototype.repeat = function(count) {
-        'use strict';
-        if (this == null) {
-          throw new TypeError('can\'t convert ' + this + ' to object');
-        }
-        var str = '' + this;
-        count = +count;
-        if (count != count) {
-          count = 0;
-        }
-        if (count < 0) {
-          throw new RangeError('repeat count must be non-negative');
-        }
-        if (count == Infinity) {
-          throw new RangeError('repeat count must be less than infinity');
-        }
-        count = Math.floor(count);
-        if (str.length == 0 || count == 0) {
-          return '';
-        }
-        // Обеспечение того, что count является 31-битным целым числом, позволяет нам значительно
-        // с оптимизировать главную часть функции. Впрочем, большинство современных (на август
-        // 2014 года) браузеров не обрабатывают строки, длиннее 1 << 28 символов, так что:
-        if (str.length * count >= 1 << 28) {
-          throw new RangeError('repeat count must not overflow maximum string size');
-        }
-        var rpt = '';
-        for (var i = 0; i < count; i++) {
-          rpt += str;
-        }
-        return rpt;
+function log(msg: string): object {
+   logger.log(`CONTROL INFO => ${msg}`);
+   return {msg};
+};
+
+/**
+ * Обработка ошибки
+ * @param {String} msg - текстовое сообщение об ошибки, расширяется в зависимости от errorPoint 
+ * @param {Object|DOM|WCN|any} errorPoint - точка возникновения ошибки, может быть контролом, DOM элементом или WCN
+ * @param {Object} errorInfo - нативный объект ERROR с информацией по ошибке
+ */
+function error(msg: string, errorPoint: any, errorInfo: any): object {
+
+   // если нет информации по ошибке, создадим сами
+   if (!errorInfo) {
+      errorInfo = new Error('CONTROL ERROR => ');
+   }
+
+   if (errorPoint) {
+      // если есть точка входа - подготовим стек
+      if (msg) {
+         msg = 'CONTROL ERROR => ' + msg;
+
+         // если мы можем определить контрол источник, добавим в вывод
+         if (errorPoint._moduleName) {
+            msg += ` in "${errorPoint._moduleName}"`;
+         }
+
+         // определение стека вызова по источнику ошибки
+         msg += '\n' + prepareStack(errorPoint) + '\n';
+      } else {
+         // если есть точка входа, но нет сообщения - создадим по точке входа (берется последняя функция)
+         msg = 'CONTROL ERROR => IN ' + errorInfo.stack.match(/at (\S+)/g)[0].slice(3);
       }
-    }
-}
+   }
 
-
-function lifeCircleError (hookName:string, error:any, moduleName:string): any {
-   error('LIFECYCLE ERROR. IN CONTROL ' + moduleName + '. HOOK NAME: ' + hookName, error, error);
+   logger.error(msg, errorInfo);
+   return {msg, errorInfo};
 };
 
-function log (): any {
-   const logger = IoC.resolve('ILogger');
-   logger.log.apply(logger, arguments);
+/**
+ * Обработка хуков жизненного цикла
+ * @param {String} hookName 
+ * @param {Object|DOM|WCN|any} errorPoint - точка возникновения ошибки, может быть контролом, DOM элементом или WCN
+ * @param {Object} errorInfo - нативный объект ERROR с информацией по ошибке
+ */
+function lifeError(hookName: string, errorPoint: any, errorInfo: any): object {
+   return error('LIFECYCLE ERROR => IN ' + errorPoint._moduleName + '. HOOK NAME: ' + hookName, errorPoint, errorInfo);
 };
 
-function error (): any {
-   const logger = IoC.resolve('ILogger');
-   logger.error.apply(logger, arguments);
+/**
+ * Обработка ошибок шаблона
+ * @param {String} hookName 
+ * @param {Object|DOM|WCN|any} errorPoint - точка возникновения ошибки, может быть контролом, DOM элементом или WCN
+ * @param {Object} errorInfo - нативный объект ERROR с информацией по ошибке
+ */
+function templateError(hookName: string, errorPoint: any, errorInfo: any): object {
+   return error('TEMPLATE ERROR => IN ' + errorPoint._moduleName + '. HOOK NAME: ' + hookName, errorPoint, errorInfo);
 };
 
-
-export default {
-   lifeCircleError,
+export {
    log,
-   error
+   error,
+   lifeError,
+   templateError
 };

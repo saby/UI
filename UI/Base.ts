@@ -14,7 +14,7 @@ import {DepsCollector} from './_base/DepsCollector';
 import BaseRoute = require('wml!UI/_base/Route');
 import Creator, { async as AsyncCreator } from './_base/Creator';
 
-import Logger from './_base/Logger';
+import * as Logger from './_base/Logger';
 
 export {
     Control,
