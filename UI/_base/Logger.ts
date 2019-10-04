@@ -34,7 +34,7 @@ const logger = IoC.resolve('ILogger');
  *
  * @param data - Control \ WCN \ DOM элемент
  */
-function prepareStack(data: any): string {
+const prepareStack = (data: any): string => {
    let message = '';
    let countIndent = 1;
    let arrow = ' \u21B1 ';
@@ -86,7 +86,7 @@ function prepareStack(data: any): string {
  * Обработка сообщений
  * @param {String} msg - произвольное текстовое сообщение
  */
-function log(msg: string): object {
+const log = (msg: string): object => {
    logger.log(`CONTROL INFO => ${msg}`);
    return {msg};
 };
@@ -97,7 +97,7 @@ function log(msg: string): object {
  * @param {Object|DOM|WCN|any} errorPoint - точка возникновения ошибки, может быть контролом, DOM элементом или WCN
  * @param {Object} errorInfo - нативный объект ERROR с информацией по ошибке
  */
-function error(msg: string, errorPoint: any, errorInfo: any): object {
+const error = (msg: string, errorPoint: any, errorInfo: any): object => {
 
    // если нет информации по ошибке, создадим сами
    if (!errorInfo) {
@@ -132,7 +132,7 @@ function error(msg: string, errorPoint: any, errorInfo: any): object {
  * @param {Object|DOM|WCN|any} errorPoint - точка возникновения ошибки, может быть контролом, DOM элементом или WCN
  * @param {Object} errorInfo - нативный объект ERROR с информацией по ошибке
  */
-function lifeError(hookName: string, errorPoint: any, errorInfo: any): object {
+const lifeError = (hookName: string, errorPoint: any, errorInfo: any): object => {
    return error('LIFECYCLE ERROR => IN ' + errorPoint._moduleName + '. HOOK NAME: ' + hookName, errorPoint, errorInfo);
 };
 
@@ -142,7 +142,7 @@ function lifeError(hookName: string, errorPoint: any, errorInfo: any): object {
  * @param {Object|DOM|WCN|any} errorPoint - точка возникновения ошибки, может быть контролом, DOM элементом или WCN
  * @param {Object} errorInfo - нативный объект ERROR с информацией по ошибке
  */
-function templateError(hookName: string, errorPoint: any, errorInfo: any): object {
+const templateError = (hookName: string, errorPoint: any, errorInfo: any): object => {
    return error('TEMPLATE ERROR => IN ' + errorPoint._moduleName + '. HOOK NAME: ' + hookName, errorPoint, errorInfo);
 };
 
