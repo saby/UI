@@ -29,7 +29,7 @@ import * as FocusLib from 'UI/Focus';
 import startApplication from 'UI/_base/startApplication';
 
 // @ts-ignore
-import * as Hydrate from 'Inferno/third-party/hydrate.dev';
+import * as Hydrate from 'Inferno/third-party/hydrate.min';
 
 if(Hydrate.initInferno) {
     Hydrate.initInferno(Expressions, Utils, Markup, Vdom, FocusLib, DevtoolsHook);
