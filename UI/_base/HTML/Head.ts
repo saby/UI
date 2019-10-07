@@ -6,6 +6,7 @@ import Control from '../Control';
 import template = require('wml!UI/_base/HTML/Head');
 
 import * as AppEnv from 'Application/Env';
+import { constants } from 'Env/Env';
 import ThemesControllerNew = require('Core/Themes/ThemesControllerNew');
 
 class Head extends Control {
@@ -16,6 +17,9 @@ class Head extends Control {
 
     themedCss: string[] = [];
     simpleCss: string[] = [];
+
+    wasServerSide: boolean;
+    isSSR: boolean;
 
     staticDomainsstringified: string = '[]';
 
@@ -48,7 +52,7 @@ class Head extends Control {
         this.headContent = options.headContent;
 
         this.wasServerSide = false;
-        this.isSSR = typeof window === 'undefined';
+        this.isSSR = !constants.isBrowserPlatform;
         if (!this.isSSR) {
 
             /*всем элементам в head назначается атрибут data-vdomignore
