@@ -26,7 +26,7 @@ import * as DevtoolsHook from 'Vdom/DevtoolsHook';
 import * as FocusLib from 'UI/Focus';
 
 // @ts-ignore
-import * as Hydrate from 'Inferno/third-party/hydrate.dev';
+import * as Hydrate from 'Inferno/third-party/hydrate.min';
 
 if(Hydrate.initInferno) {
     Hydrate.initInferno(Expressions, Utils, Markup, Vdom, FocusLib, DevtoolsHook);
