@@ -93,9 +93,7 @@ export interface IControlOptions {
 /**
  * @class UI/_base/Control
  * @author Шипин А.А.
- * @remark {
- * @link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator
- * Asynchronous creation of Core/Creator component}
+ * @remark {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator Asynchronous creation of Core/Creator component}
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
