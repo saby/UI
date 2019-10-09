@@ -6,6 +6,7 @@ import Control from '../Control';
 import template = require('wml!UI/_base/HTML/Head');
 
 import * as AppEnv from 'Application/Env';
+import { constants } from 'Env/Env';
 import ThemesControllerNew = require('Core/Themes/ThemesControllerNew');
 
 class Head extends Control {
@@ -16,6 +17,15 @@ class Head extends Control {
 
     themedCss: string[] = [];
     simpleCss: string[] = [];
+
+    // Содержит информацию о том, был ли серверный рендеринг
+    // Будет true, если мы строимся на клиенте и серверная верстка есть.
+    // Наличие серверной верстки определяется по тому, нашли ли в DOM элемент с классом .head-server-block
+    wasServerSide: boolean;
+    // Содержит информацию о том, строимся ли мы на сервере или на клиенте. Нам необходимы оба этих флага,
+    // потому что поведение контрола head должно быть разное на сервере и на клиенте.
+    // Также оно должно быть разное на клиенте при наличии или отсутствии серверное верстки.
+    isSSR: boolean;
 
     staticDomainsstringified: string = '[]';
 
@@ -40,25 +50,18 @@ class Head extends Control {
             this.staticDomainsstringified = JSON.stringify(options.staticDomains);
         }
 
-        /*Этот коммент требует английского рефакторинга
-        * Сохраним пользовательские данные на инстанс
-        * мы хотим рендерить их только 1 раз, при этом, если мы ренедрим их на сервере мы добавим класс
-        * head-custom-block */
         this.head = options.head;
         this.headContent = options.headContent;
 
         this.wasServerSide = false;
-        if (typeof window !== 'undefined') {
-
-            /*всем элементам в head назначается атрибут data-vdomignore
-            * то есть, inferno их не удалит, и если в head есть спец элементы,
-            * значит мы рендерились на сервере и здесь сейчас оживаем, а значит пользовательский
-            * контент уже на странице и генерировать второй раз не надо, чтобы не было синхронизаций
-            * */
-
+        this.isSSR = !constants.isBrowserPlatform;
+        if (!this.isSSR) {
+            // Проверяем наличие серверной верстки, чтобы решить, нужно ли нам рендерить ссылки на ресурсы внутри тега <head>.
+            // Если серверная верстка была, то никакие ссылки больше рендериться не будут.
+            // А на всех ссылках, пришедших с сервера, будет висеть атрибут data-vdomignore.
+            // Из-за этого инферно не будет учитывать их при пересинхронизации. Это сделано для того,
+            // чтобы инферно ни в каком случае не стал перерисовывать ссылки, т.к. это приводит к "морганию" стилей на странице.
             if (document.getElementsByClassName('head-server-block').length > 0) {
-                // Element with right class name is already existed in "_beforeMount" hook on client side.
-                // All nodes in this block have true value of data-vdomignore attribute, so inferno never redraw them.
                 this.wasServerSide = true;
             }
 
