@@ -12,6 +12,8 @@ import { Focus, ContextResolver } from 'View/Executor/Expressions';
 import { activate } from 'UI/Focus';
 
 // @ts-ignore
+import { consoleLogger } from 'Application/Env';
+// @ts-ignore
 import ThemesController = require('Core/Themes/ThemesControllerNew');
 // @ts-ignore
 import PromiseLib = require('Core/PromiseLib/PromiseLib');
@@ -24,6 +26,7 @@ import * as Markup from 'View/Executor/Markup';
 import * as Vdom from 'Vdom/Vdom';
 import * as DevtoolsHook from 'Vdom/DevtoolsHook';
 import * as FocusLib from 'UI/Focus';
+import startApplication from 'UI/_base/startApplication';
 
 // @ts-ignore
 import * as Hydrate from 'Inferno/third-party/hydrate.dev';
@@ -90,9 +93,7 @@ export interface IControlOptions {
 /**
  * @class UI/_base/Control
  * @author Шипин А.А.
- * @remark {
- * @link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator
- * Asynchronous creation of Core/Creator component}
+ * @remark {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator Asynchronous creation of Core/Creator component}
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
@@ -101,6 +102,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     private _unmounted: boolean = false;
     private _destroyed: boolean = false;
     private _$active: boolean = false;
+    private _reactiveStart: boolean = false;
 
     private readonly _instId: string;
     protected _options: TOptions = null;
@@ -720,6 +722,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
         let resultBeforeMount = this._beforeMount.apply(this, arguments);
 
+        // _reactiveStart means starting of monitor change in properties
+        this._reactiveStart = true;
+
         if (typeof window === 'undefined') {
             if (resultBeforeMount && resultBeforeMount.callback) {
                 resultBeforeMount = new Promise((resolve, reject) => {
@@ -745,7 +750,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                             /* Change _template and _afterMount
                                 *  if execution was longer than 2 sec
                                 * */
-                            IoC.resolve('ILogger').warn('_beforeMount', 'Wait 20000 ms ' + this._moduleName);
+                            IoC.resolve('ILogger').warn('_beforeMount', `Wait ${WAIT_TIMEOUT} ms ` + this._moduleName);
                             timeout = 1;
                             // @ts-ignore
                             require(['View/Executor/TClosure'], (thelpers) => {
@@ -760,9 +765,13 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                                     sets: any
                                 ): any {
                                     try {
-                                        return this._originTemplate.apply(self, arguments);
+                                        // Попробуем вернуть результат оригинального шаблона, не дожидаясь результат
+                                        // долгого асинхронного _beforeMount
+                                        return this._originTemplate.apply(this, arguments);
                                     } catch (e) {
-                                        return thelpers.getMarkupGenerator(isVdom).createText('');
+                                        // Не вышло построить шаблон сразу. Пишем ошибку в логи, возвращаем пустоту.
+                                        IoC.resolve('ILogger').error('_beforeMount', this._moduleName, e);
+                                        return template.apply(this, arguments);
                                     }
                                 };
                                 // @ts-ignore
@@ -974,6 +983,32 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
         return true;
     }
 
+   /**
+    * Хук жизненного цикла контрола. Вызывается синхронно после применения измененной верстки контрола.
+    *
+    * @remark На этом этапе вы получаете доступ к отрисованной верстке.
+    * Жизненный хук используется в случае, если не подходит _afterUpdate для некоторых ускорений.
+    * Например, если после отрисовки необходимо выполнить корректировку положения скролла (вовзрат на прежнее положение),
+    * это нужно делать синхронно после отрисовки, чтобы не было видно прыжка.
+    * @example
+    * <pre>
+    *    Control.extend({
+    *       ...
+    *       _afterRender() {
+    *
+    *          // Accessing DOM elements to some fix after render.
+    *          this._container.scrollTop = this._savedScrollTop;
+    *       }
+    *       ...
+    *    });
+    * </pre>
+    * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
+    * @private
+    */
+   protected _afterRender(): void {
+      // Do
+   }
+
     /**
      * Хук жизненного цикла контрола. Вызывается после обновления контрола.
      *
@@ -1105,6 +1140,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
         return inherit;
     }
     static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
+       startApplication();
+       // @ts-ignore
+       if(!domElement instanceof HTMLElement) {
+          consoleLogger.error('domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.');
+       }
         const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
         // @ts-ignore
         OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);

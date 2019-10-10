@@ -1,8 +1,9 @@
 /// <amd-module name="UI/_base/Start" />
 
 import Control from './Control';
-import * as AppInit from 'Application/Initializer';
 import * as AppEnv from 'Application/Env';
+import * as AppInit from 'Application/Initializer';
+import startApplication from 'UI/_base/startApplication';
 
 function createControl(control: any, config: any, dom: any): void {
     const configReady = config || {};
@@ -28,19 +29,15 @@ function createControl(control: any, config: any, dom: any): void {
     Control.createControl(control, configReady, dom);
 }
 
-function startFunction(config: any): void {
-    if (typeof window !== 'undefined' && window.receivedStates) {
+function startFunction(config: any, domElement: HTMLElement): void {
+    startApplication(config);
+
+    if (typeof window !== 'undefined' && window['receivedStates'] && AppInit.isInit()) {
         // для совместимости версий. чтобы можно было влить контролы и WS одновременно
-        let sr;
-        if (AppInit.isInit()) {
-            sr = AppEnv.getStateReceiver();
-        }
-        if (sr) {
-            sr.deserialize(window.receivedStates);
-        }
+        AppEnv.getStateReceiver().deserialize(window['receivedStates']);
     }
 
-    const dom = document.getElementById('root');
+    const dom = domElement || document.getElementById('root');
     let dcomp = dom.attributes.rootapp;
     if (dcomp) {
         dcomp = dcomp.value;

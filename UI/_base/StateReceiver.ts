@@ -1,5 +1,5 @@
 /// <amd-module name="UI/_base/StateReceiver" />
-
+import { IStateReceiver } from 'Application/Interface';
 import Serializer = require('Core/Serializer');
 import { IoC } from 'Env/Env';
 import { Common } from 'View/Executor/Utils';
@@ -34,7 +34,7 @@ function getDepsFromSerializer(slr: any): any {
     return deps;
 }
 
-class StateReceiver {
+class StateReceiver implements IStateReceiver {
     private receivedStateObjectsArray: any = {};
     private deserialized: any = {};
 
@@ -86,6 +86,13 @@ class StateReceiver {
         if (this.deserialized[key]) {
             inst.setState(this.deserialized[key]);
             delete this.deserialized[key];
+        }
+        // todo проверка на сервис представления
+        if (typeof process !== 'undefined' && !process.versions) {
+           if (typeof this.receivedStateObjectsArray[key] !== 'undefined') {
+              IoC.resolve('ILogger').warn('StateReceiver::register', 'Try to register instance more than once ' +
+                 'or duplication of keys happened; current key is "' + key + '"');
+           }
         }
         this.receivedStateObjectsArray[key] = inst;
     }
