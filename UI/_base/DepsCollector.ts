@@ -241,6 +241,11 @@ function recursiveWalker(allDeps: any, curNodeDeps: any, modDeps: any, modInfo: 
     }
 }
 
+interface ILangModuleInfo {
+    moduleLang: string;
+    lang: string;
+}
+
 class DepsCollector {
     modDeps: any;
     modInfo: any;
@@ -309,6 +314,9 @@ class DepsCollector {
     getLang() {
         return i18n.getLang();
     }
+    getLangNoLocale(lang) {
+        return lang.split('-')[0];
+    }
     getAvailableDictList(lang) {
         return i18n._dictNames[lang] || {};
     }
@@ -316,24 +324,35 @@ class DepsCollector {
         return constants.modules;
     }
     collectI18n(files, packages) {
-        var collectedDictList = {};
-        var module;
-        var moduleLang;
-        var lang = this.getLang();
-        var availableDictList = this.getAvailableDictList(lang);
-        var modules = this.getModules();
+        let collectedDictList = {};
+        const langLocale = this.getLang();
+        const langNoLocale = this.getLangNoLocale(langLocale);
+        const availableDictList = this.getAvailableDictList(langLocale);
+        const modules = this.getModules();
         for (var key in packages.js) {
-            module = key.split('/')[0];
-            moduleLang = module + '/lang/' + lang + '/' + lang;
-            if (availableDictList[moduleLang + '.json']) {
-                collectedDictList[module] = { moduleLang: moduleLang };
+            let module = key.split('/')[0];
+            let moduleLangNoLocale = module + '/lang/' + langNoLocale + '/' + langNoLocale;
+            let moduleLangWithLocale = module + '/lang/' + langLocale + '/' + langLocale;
+            let isAvailableWithLocale = !!availableDictList[moduleLangWithLocale + '.json'],
+                isAvailableNoLocale = !!availableDictList[moduleLangNoLocale + '.json'];
+            if(isAvailableWithLocale || isAvailableNoLocale) {
+                collectedDictList[module] = [];
+                if(isAvailableWithLocale) {
+                    collectedDictList[module].push({ moduleLang: moduleLangWithLocale, lang: langLocale });
+                }
+                if(isAvailableNoLocale) {
+                    collectedDictList[module].push({ moduleLang: moduleLangNoLocale, lang: langNoLocale });
+                }
             }
         }
         for (var key in collectedDictList) {
             if (collectedDictList.hasOwnProperty(key)) {
-                files.js.push(collectedDictList[key].moduleLang + '.json');
-                if (modules[key].dict && modules[key].dict && ~modules[key].dict.indexOf(lang + '.css')) {
-                    files.css.simpleCss.push(collectedDictList[key].moduleLang);
+                let currentDicts = collectedDictList[key];
+                for(let i = 0; i < currentDicts.length; i++) {
+                    files.js.push(currentDicts[i].moduleLang + '.json');
+                    if (modules[key].dict && modules[key].dict && ~modules[key].dict.indexOf(currentDicts[i].lang + '.css')) {
+                        files.css.simpleCss.push(currentDicts[i].moduleLang);
+                    }
                 }
             }
         }
