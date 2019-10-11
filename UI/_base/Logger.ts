@@ -1,6 +1,9 @@
 // @ts-ignore
 import { IoC } from 'Env/Env';
 
+// TODO нужно обсудить задачу на перенос goUpByControlTree к общим функции UI
+import { goUpByControlTree } from 'UI/Focus';
+
 const logger = IoC.resolve('ILogger');
 
 /**
@@ -53,11 +56,10 @@ const prepareStack = (data: any): string => {
       }
    }
 
-   let isControl = Boolean(data._options)
-
    // список модулей для отфильтровывания стека 
    const excludeControls = {
-      'Controls/event:Register': true
+      'Controls/event:Register': true,
+      'Router/router:Route': true
    };
 
    /**
@@ -73,20 +75,42 @@ const prepareStack = (data: any): string => {
       }
       return rpt;
    }
-
-   let unit = data;
-   do {
-      if (unit) {
-         let moduleName = unit._moduleName;
-         if (moduleName && !excludeControls[moduleName]) {
-            message += '\n' + _repeat(countIndent, ' ') + arrow + moduleName;
-            countIndent += 1;
-         }
+   
+   /**
+    * Формируем строку лесенкой со стеком
+    * @param {Controls} control 
+    */
+   const _createStack = (control): void => {
+      let moduleName = control._moduleName;
+      if (moduleName && !excludeControls[moduleName]) {
+         message += '\n' + _repeat(countIndent, ' ') + arrow + moduleName;
+         countIndent += 1;
       }
+   }
 
-      // для Controls и DOM узлов разные способы подъема вверх по дереву
-      unit = isControl ? unit._logicParent : unit.parent;
-   } while (unit);
+   if (window && data && data._container) {
+      // на клиенте используем функционал из модуля Focus
+      let array_control = goUpByControlTree(data._container);
+      array_control.map(_createStack);
+   } else {
+      // на сервере просто поднимаемся вверх по родителям
+      do {
+         if (data) {
+            _createStack(data);
+         }
+
+         if (data._logicParent) {
+            // Wasaby
+            data = data._logicParent
+         } else if (data.getParent) {
+            // WS3
+            data = data.getParent()
+         } else {
+            // конец, родителей больше нет
+            data = null
+         }
+      } while (data);
+   }
 
    return message;
 }
