@@ -41,11 +41,16 @@ const logger = IoC.resolve('ILogger');
 const prepareStack = (data: any): string => {
    let message = '';
    let countIndent = 1;
-   let arrow = ' \u21B1 ';
+   const arrow = ' \u21B1 ';
 
    // если передали DOM - конвертируем в WCN
    if (data.getAttribute) {
-      data = data.controlNodes[0];
+      var nodes = data.controlNodes;
+
+      // controls на переданной ноде может не быть
+      if (nodes) {
+         data = nodes[nodes.length-1]; // последний контрол, есть основной
+      }
    }
 
    let isControl = Boolean(data._options)
@@ -102,6 +107,7 @@ const getCurrentFunctionInfo = (data?: any): string  => {
    try {
       currentFunc = data.stack.match(/at (\S+)/g)[0].slice(3);
    } catch (e) {
+      // Страховка, если вдруг возникла ошибка определения точки входа 
       currentFunc = '[not detected]';
    }
    return currentFunc;
