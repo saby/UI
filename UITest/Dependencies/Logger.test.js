@@ -1,9 +1,8 @@
 /* global describe, it, assert */
 define([
-   'UI/Base',
-], function(Base) {
-   describe('UI/Base:Logger //Started testing log message, please ignore console log', () => {
-      let Logger = Base.Logger;
+   'UI/Logger',
+], function(Logger) {
+   describe('UI/Logger //Started testing log message, please ignore console log', () => {
       let result = '';
 
       // // template for case
