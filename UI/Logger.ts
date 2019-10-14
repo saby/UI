@@ -1,7 +1,10 @@
+/// <amd-module name="UI/Logger" />
+
 // @ts-ignore
 import { IoC } from 'Env/Env';
 
 // TODO нужно обсудить задачу на перенос goUpByControlTree к общим функции UI
+// @ts-ignore
 import { goUpByControlTree } from 'UI/Focus';
 
 const logger = IoC.resolve('ILogger');
