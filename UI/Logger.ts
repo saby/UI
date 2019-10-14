@@ -7,12 +7,16 @@ import { IoC } from 'Env/Env';
 // @ts-ignore
 import { goUpByControlTree } from 'UI/Focus';
 
-const logger = IoC.resolve('ILogger');
+/** 
+ * Каждый раз при обращении к логеру - нужно получить актуальный инстанс
+ * Если этого не делать, то все потребители кто мокнул (тесты\прикладные точки) - теряют возможность сделать bind
+ */
+const logger = () => IoC.resolve('ILogger');
 
 /**
    Модуль логирования, восстанавливает стек и формирует сообщения в едином формате.
    Пример обработки:
-   CONTROL ERROR => Event handle: "click" in "Controls-demo/ErrorsEmulator/ErrorsDemo"
+   CONTROL ERROR: Event handle "click" in "Controls-demo/ErrorsEmulator/ErrorsDemo"
 
       ↱ Controls-demo/ErrorsEmulator/ErrorsDemo
        ↱ Controls/Container/Async
@@ -28,7 +32,6 @@ const logger = IoC.resolve('ILogger');
       at constructor.handleClick [as _handleClick] (DOMEnvironment.js:479)
       at constructor.<anonymous> (DOMEnvironment.js:968)
  */
-
 
 /**
  * Подготавливает стек относительно точки возникновения ошибки. Работает как с DOM, так и с Control
@@ -162,8 +165,8 @@ const createFakeError = (msg: string=''): any => {
  * @return {Object}
  */
 const log = (msg: string=''): object => {
-   let data = `CONTROL INFO => ${msg}`;
-   logger.log(data);
+   let data = `CONTROL INFO: ${msg}`;
+   logger().log(data);
    return {msg, data} ;
 };
 
@@ -173,8 +176,8 @@ const log = (msg: string=''): object => {
  * @return {Object}
  */
 const warn = (msg: string=''): object => {
-   let data = `CONTROL WARN => ${msg}`;
-   logger.warn(data);
+   let data = `CONTROL WARN: ${msg}`;
+   logger().warn(data);
    return {msg, data};
 }
 
@@ -195,13 +198,13 @@ const error = (msg: string='', errorPoint: any, errorInfo: any): object => {
    if (msg) {
       
       if (!msg.includes('LIFECYCLE')){
-         data = 'CONTROL ERROR => ' + msg;
+         data = ' ' + msg;
       }
          
       if (errorPoint) {
          // если мы можем определить контрол источник, добавим в вывод
          if (errorPoint._moduleName) {
-            data += ` in "${errorPoint._moduleName}"`;
+            data += ` IN "${errorPoint._moduleName}"`;
          }
 
          // определение стека вызова по источнику ошибки
@@ -209,10 +212,11 @@ const error = (msg: string='', errorPoint: any, errorInfo: any): object => {
       }
    } else {
       // если есть точка входа, но нет сообщения - создадим по точке входа (берется последняя функция)
-      data = 'CONTROL ERROR => IN ' + getCurrentFunctionInfo(errorInfo)
+      data = ' IN ' + getCurrentFunctionInfo(errorInfo)
    }
 
-   logger.error(data, errorInfo);
+   logger().error('CONTROL ERROR', data, errorInfo);
+   data = 'CONTROL ERROR:' + data;
    return {msg, data, errorInfo};
 };
 
@@ -224,7 +228,7 @@ const error = (msg: string='', errorPoint: any, errorInfo: any): object => {
  */
 const lifeError = (hookName: string='[not detected]', errorPoint: any, errorInfo: any): object => {
    let moduleName = errorPoint ? errorPoint._moduleName : getCurrentFunctionInfo();
-   return error('LIFECYCLE ERROR => IN ' + moduleName + '. HOOK NAME: ' + hookName, errorPoint, errorInfo);
+   return error('LIFECYCLE ERROR: IN ' + moduleName + '. HOOK NAME: ' + hookName, errorPoint, errorInfo);
 };
 
 /**
@@ -235,7 +239,7 @@ const lifeError = (hookName: string='[not detected]', errorPoint: any, errorInfo
  */
 const templateError = (hookName: string='[not detected]', errorPoint: any, errorInfo: any): object => {
    let moduleName = errorPoint ? errorPoint._moduleName : getCurrentFunctionInfo();
-   return error('TEMPLATE ERROR => IN ' + moduleName + '. HOOK NAME: ' + hookName, errorPoint, errorInfo);
+   return error('TEMPLATE ERROR: IN ' + moduleName + '. HOOK NAME: ' + hookName, errorPoint, errorInfo);
 };
 
 export {
