@@ -52,8 +52,8 @@ define([
 
       describe('Logger => error()', () => {
          it('send error "error text" ', () => {
-            result = Logger.error('error text');
-            assert.equal(result.msg, 'error text');
+            result = Logger.error(' error text');
+            assert.equal(result.msg, ' error text');
             assert.equal(result.data, 'CONTROL ERROR: error text');
          });
          it('send error without param', () => {
