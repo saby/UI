@@ -52,7 +52,7 @@ const prepareStack = (data: any): string => {
    let countIndent = 1;
    const arrow = ' \u21B1 ';
 
-   // если передали DOM - конвертируем в WCN
+   // если передали DOM - конвертируем в контрол
    if (data.getAttribute) {
       var nodes = data.controlNodes;
 
@@ -62,10 +62,16 @@ const prepareStack = (data: any): string => {
       }
    }
 
+   // если передали WCN - конвертируем в контрол
+   if (data.control) {
+      data = data.control; 
+   }
+
    // список модулей для отфильтровывания стека 
    const excludeControls = {
       'Controls/event:Register': true,
-      'Router/router:Route': true
+      'Router/router:Route': true,
+      'UI/_base/HTML/Wait': true
    };
 
    /**
@@ -198,7 +204,7 @@ const error = (msg: string='', errorPoint: any, errorInfo: any): object => {
    if (msg) {
       
       if (!msg.includes('LIFECYCLE')){
-         data = ' ' + msg;
+         data = msg;
       }
          
       if (errorPoint) {
