@@ -80,6 +80,11 @@ export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: b
 
 let countInst = 1;
 
+// tslint:disable-next-line
+const EMPTY_FUNC: Function = function () { };
+// tslint:disable-next-line
+const EMPTY_OBJ: object = {};
+
 const WAIT_TIMEOUT = 20000;
 // This timeout is needed for loading control css.
 // If we can not load css file we want to continue building control without blocking it by throwing an error.
@@ -520,7 +525,15 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                 Synchronizer.cleanControlDomLink(this._container, this);
             }
             // Избегаем утечки контролов по замыканию
-            this._forceUpdate = function() {};
+            this.saveFullContext = EMPTY_FUNC;
+            this._saveContextObject = EMPTY_FUNC;
+            this.context = EMPTY_OBJ;
+            this.saveInheritOptions = EMPTY_FUNC;
+            this._saveEnvironment = EMPTY_FUNC;
+            this._getEnvironment = EMPTY_FUNC;
+            this._notify = EMPTY_FUNC;
+            this._forceUpdate = EMPTY_FUNC;
+            this._getMarkup = EMPTY_FUNC;
         } catch (error) {
             Logger.catchLifeCircleErrors('_beforeUnmount', error);
         }
