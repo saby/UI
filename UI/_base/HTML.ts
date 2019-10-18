@@ -104,23 +104,25 @@ class HTML extends Control {
          * cfg - это конфиг, который нам прийдет из файла роутинга и с ним же надо
          * восстанавливаться на клиенте.
          */
-        return new Promise((resolve) => {
-            resolve({
-                buildnumber: this.buildnumber,
-                csses: ThemesController.getInstance().getCss(),
-                title: this.title,
-                appRoot: this.appRoot,
-                staticDomains: this.staticDomains,
-                RUMEnabled: this.RUMEnabled,
-                pageName: this.pageName,
-                wsRoot: this.wsRoot,
-                resourceRoot: this.resourceRoot,
-                templateConfig: this.templateConfig,
-                servicesPath: this.servicesPath,
-                compat: this.compat,
-                product: this.product
+        if(!_options.builder && !_options.builderCompatible) {
+            return new Promise((resolve) => {
+                resolve({
+                    buildnumber: this.buildnumber,
+                    csses: ThemesController.getInstance().getCss(),
+                    title: this.title,
+                    appRoot: this.appRoot,
+                    staticDomains: this.staticDomains,
+                    RUMEnabled: this.RUMEnabled,
+                    pageName: this.pageName,
+                    wsRoot: this.wsRoot,
+                    resourceRoot: this.resourceRoot,
+                    templateConfig: this.templateConfig,
+                    servicesPath: this.servicesPath,
+                    compat: this.compat,
+                    product: this.product
+                });
             });
-        });
+        }
     }
 
     _afterMount(): void {
