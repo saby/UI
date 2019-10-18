@@ -108,7 +108,7 @@ class HTML extends Control {
         // Он вставляет конфиги сразу после контрола, а не через StateReceiver. По-другому сейчас не сделать, т.к.
         // функция generatorCompatible решает, какой генератор вернуть? только по константам, а не по аргументам.
         // https://git.sbis.ru/sbis/ws/blob/rc-20.1000/View/Executor/TClosure.ts#L296
-        if(!_options.builder && !_options.builderCompatible) {
+        if(!cfg.builder && !cfg.builderCompatible) {
             return new Promise((resolve) => {
                 resolve({
                     buildnumber: this.buildnumber,
