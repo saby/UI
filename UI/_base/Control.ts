@@ -545,7 +545,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
         }
         document.body.focus();
         if (this._$active) {
-            const env = container.controlNodes[0].environment;
+            const env = this._getEnvironment();
 
             // если DOMEnvironment не перехватил переход фокуса, вызовем обработчик ухода фокуса вручную
             env._handleFocusEvent({target: document.body, relatedTarget: activeElement});
