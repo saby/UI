@@ -1,15 +1,17 @@
 <div class="ControlsDemo-Page ws-flexbox ws-flex-column">
-      <Router.router:Route mask="page/:app">
-         <ws:if data="{{content.app}}">
-            <Controls.Container.Async templateName="{{content.app}}"
-                                      attr:id="newListView" attr:class="ControlsDemo-Page_content"/>
-         </ws:if>
-         <ws:else>
-            <div>Не указан шаблон. Может быть перейти на
-               <Router.router:Reference state="/UIDemo/page/:app">
-                  <ws:content><a href="{{ content.href }}">разводящую</a></ws:content>
-               </Router.router:Reference> ?
-            </div>
-         </ws:else>
-      </Router.router:Route>
+   <Router.router:Route mask="app/:app">
+      <ws:if data="{{content.app}}">
+         <Controls.Container.Async 
+            templateName="UIDemo/{{ content.app }}"
+            attr:id="newListView" 
+            attr:class="ControlsDemo-Page_content"/>
+      </ws:if>
+      <ws:else>
+         <div>Не указан шаблон. Может быть перейти на
+            <Router.router:Reference state="/UIDemo/app/:app">
+               <ws:content><a href="{{ content.href }}">разводящую</a></ws:content>
+            </Router.router:Reference> ?
+         </div>
+      </ws:else>
+   </Router.router:Route>
 </div>
