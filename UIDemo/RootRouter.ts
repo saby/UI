@@ -1,4 +1,4 @@
-/// <amd-module name="UIDemo/Index" />
+/// <amd-module name="UIDemo/RootRouter" />
 
 import BaseControl = require('Core/Control');
 

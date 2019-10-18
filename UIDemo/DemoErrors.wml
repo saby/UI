@@ -1,0 +1,40 @@
+<div class="UIDemo_Error-wrapper">
+    <div>
+        <h2>Ошибки в обработчиках</h2>
+        
+        <h3>Ошибка по клику: нет обработчика</h3>
+        <div class="UIDemo_Error-button" on:click="_notFoundHandler1()">{{ _caption }}</div>
+
+        <h3>Ошибка по клику: внутри обработчика, через throw</h3>
+        <div class="UIDemo_Error-button" on:click="_notFoundHandler2()">{{ _caption }}</div>
+
+        <h3>Ошибка по клику: внутри обработчика, системная (опечатка)</h3>
+        <div class="UIDemo_Error-button" on:click="_systemError()">{{ _caption }}</div>
+
+        <h3>Ошибка по клику: внутри обработчика, ошибка жизненного цикла (ломает демо!!!)</h3>
+        <div class="UIDemo_Error-button" on:click="_lifeError()">{{ _caption }}</div>
+
+        <h2>Ошибки в шаблонах</h2>
+        <h2 class="UIDemo_Error-red">(пока не отлавливаются!!! Нужно подключать Logger в View\Builder\*)</h2>
+
+        <h3>Ошибка по клику: загрузка несуществующего шаблона</h3>
+        <div class="UIDemo_Error-button" on:click="_loadPartial('notFound')">{{ _caption }}</div>
+        <ws:if data="{{ _notFoundTemplate }}">
+            <ws:partial template="{{ _notFoundTemplate }}" />
+        </ws:if>
+
+        <h3>Ошибка по клику: загрузка существующего не загруженного шаблона</h3>
+        <div>{{ _foundTemplate ? 'второй клик сделает require'}}</div>
+        <div class="UIDemo_Error-button" on:click="_loadPartial('found')">{{ _caption }}</div>
+
+        <ws:if data="{{ _foundTemplate }}">
+            <ws:partial template="{{ _foundTemplate }}" />
+        </ws:if>
+
+        <h3>Ошибка по клику: загрузка шаблона с ошибками (эквивалент серверного ответа [Object object])</h3>
+        <div class="UIDemo_Error-button" on:click="_loadPartial('errorTemplate')">{{ _caption }}</div>
+        <ws:if data="{{ _badTemplateName }}">
+            <ws:partial template="{{ _badTemplateName }}" />
+        </ws:if>  
+    </div>
+</div>
