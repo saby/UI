@@ -1,8 +1,8 @@
 <div key="scripts">
    <ws:if data="{{!_options.compat && _options.onServer}}">
       <script key="init_script">
-         require(['Core/polyfill', 'UI/Base', 'Application/Initializer', 'Application/Env', 'Core/ConsoleLogger', 'Core/constants', 'Core/app-init'],
-            function(polyfill, UI, AppInit, AppEnv, logger, constants, appInit){
+         require(['Core/polyfill', 'UI/Base', 'Application/Initializer', 'Application/Env', 'Core/constants', 'Core/app-init'],
+            function(polyfill, UI, AppInit, AppEnv, constants, appInit){
                function StartApplication() {
                   var StateReceiver = UI.StateReceiver;
                   AppInit.default({}, undefined, new StateReceiver());
