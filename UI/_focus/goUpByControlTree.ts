@@ -2,8 +2,10 @@
 /* tslint:disable */
 
 //@ts-ignore
-import { constants, IoC } from 'Env/Env';
+import { constants } from 'Env/Env';
 
+//@ts-ignore
+import * as logger from 'UI/Logger'
 
 export function goUpByControlTree(target, array?) {
    array = array || [];
@@ -42,17 +44,13 @@ function getControlNode(control) {
 }
 
 function checkOpener(opener) {
-   var error;
+   let error;
 
    if (opener) {
       // Component instance must have _options
       if (opener && !opener._options) {
-         error =
-            'Control ' +
-            opener._moduleName +
-            ' with name ' +
-            (opener.getName && opener.getName()) +
-            ' must have _options';
+         let name = opener.getName ? opener.getName() : '[not detected]';
+         error = `Control ${opener._moduleName} with name ${name} must have _options`;
       }
 
       // if (opener.isDestroyed && opener.isDestroyed()) {
@@ -61,10 +59,8 @@ function checkOpener(opener) {
    }
 
    if (error) {
-      IoC.resolve('ILogger').error(
-         'DOMEnvironment',
-         'Incorrect opener or parent is found! It seems that anybody set wrong opener option! ' + error
-      );
+      const message = `[UI/_focus/goUpByControlTree:checkOpener] DOMEnvironment - Incorrect opener or parent is found! It seems that anybody set wrong opener option! ${error}`;
+      logger.error(message, opener);
    }
 }
 
