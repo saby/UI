@@ -230,33 +230,41 @@ const warn = (msg: string = '', errorPoint?): object => {
  * @public
  */
 const error = (msg: string = '', errorPoint?, errorInfo?): object => {
-   let data;
+   let data = '';
+   let typeError = 'CONTROL ERROR';
+   
    // если нет информации по ошибке, создадим сами
    if (!errorInfo) {
       errorInfo = _createFakeError(msg);
    }
 
-   // если есть точка входа - подготовим стек
    if (msg) {
-      if (!msg.includes('LIFECYCLE')) {
-         data = msg;
-      }
-      if (errorPoint) {
-         // если мы можем определить контрол источник, добавим в вывод
-         if (errorPoint._moduleName) {
-            data += ` IN "${errorPoint._moduleName}"`;
+      // если ошибки хуков или другое
+      if (msg.includes('LIFECYCLE') || msg.includes('TEMPLATE')) {
+         typeError = msg.split(':')[0]; // возьмем тип из сообщения
+         data = msg.replace(`${typeError}: `, ''); // уберем тип из сообщения, так как он пойдет 1 аргументом
+         if (errorPoint) {
+            data += '\n' + prepareStack(errorPoint) + '\n'; // добавим стек
          }
+      } else {
+         data = msg;
+         if (errorPoint) {
+            // если мы можем определить контрол источник, добавим в вывод
+            if (errorPoint._moduleName) {
+               data += ` IN "${errorPoint._moduleName}"`;
+            }
 
-         // определение стека вызова по источнику ошибки
-         data += '\n' + prepareStack(errorPoint) + '\n';
+            // определение стека вызова по источнику ошибки
+            data += '\n' + prepareStack(errorPoint) + '\n';
+         }
       }
    } else {
-      // если есть точка входа, но нет сообщения - создадим по точке входа (берется последняя функция)
+      // если нет сообщения - создадим по точке входа (берется последняя функция)
       data = 'IN ' + _getCurrentFunctionInfo(errorInfo);
    }
 
-   logger().error('CONTROL ERROR', data, errorInfo);
-   data = `CONTROL ERROR: ${data}`;
+   logger().error(typeError, data, errorInfo);
+   data = `${typeError}: ${data}`;
    return {msg, data, errorInfo};
 };
 
