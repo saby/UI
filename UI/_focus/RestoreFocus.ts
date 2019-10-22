@@ -3,7 +3,10 @@ import { goUpByControlTree } from './goUpByControlTree';
 // @ts-ignore
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
 
-import { Control } from 'UI/Base';
+// TODO подумать как решить проблему циклических зависимостей при импорте интерфейсов
+// В качестве временного решения отключен импорт и указан тип `any` в restoreFocus()
+// https://online.sbis.ru/opendoc.html?guid=918b22a9-fbd5-4122-ab51-75a88f01bbbc
+// import { Control } from 'UI/Base';
 
 import { focus } from './Focus';
 
@@ -12,7 +15,7 @@ function checkActiveElement(savedActiveElement: Element): boolean {
    return isBody && document.activeElement !== savedActiveElement;
 }
 
-export function restoreFocus(control: Control, action: Function): void {
+export function restoreFocus(control: any, action: Function): void {
    const savedActiveElement = document.activeElement;
    // нужно вычислять родительские контролы заранее, во время перерисовки эти контролы могут быть
    // разрушены и мы потеряем реальную иерархию, и не сможем восстановить фокус куда надо.
