@@ -28,9 +28,10 @@ Controls/Popup/Opener/Sticky
 */
 // @ts-ignore
 import * as cInstance from 'Core/core-instance';
-// @ts-ignore
-import { IoC } from 'Env/Env';
+
 import { goUpByControlTree } from './goUpByControlTree';
+
+import * as logger from 'UI/Logger';
 
 export function find(control) {
    let container;
@@ -42,7 +43,8 @@ export function find(control) {
       // для совместимости, если пришел jquery
       container = control[0];
    } else {
-      IoC.resolve('ILogger').error('DOMEnvironment', rk('The arguments should be control or node element'));
+      const message = '[UI/_focus/DefaultOpenerFinder:find] DOMEnvironment - The arguments should be control or node element';
+      logger.error(message, control);
    }
 
    const controlTree = goUpByControlTree(container);
