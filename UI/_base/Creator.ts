@@ -1,19 +1,17 @@
 // @ts-ignore
 import { OptionsResolver } from 'View/Executor/Utils';
 import Control from './Control';
-// @ts-ignore
-import * as Logger from 'View/Logger';
+import * as logger from 'UI/Logger';
+
 // @ts-ignore
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
-// @ts-ignore
-import { consoleLogger } from 'Application/Env';
+import startApplication from 'UI/_base/startApplication';
 
 /**
  * @class UI/_base/Creator
  * @author Шипин А.А.
  * @public
  */
-
 
 /**
  * Создаёт корневой контрол.
@@ -35,31 +33,28 @@ import { consoleLogger } from 'Application/Env';
  * Core/Creator}.
  */
 export default function createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
-    // @ts-ignore
-    if(!domElement instanceof HTMLElement) {
-        consoleLogger.error('domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.');
-    }
-    const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
-    // @ts-ignore
-    OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
-    const attrs = {
-        inheritOptions: {}
-    };
-    let ctr: any;
-    OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
-    try {
-        ctr = new ctor(cfg);
-    } catch (error) {
-        ctr = new Control({});
-        Logger.catchLifeCircleErrors('constructor', error, ctor.prototype && ctor.prototype._moduleName);
-    }
-    ctr.saveInheritOptions(attrs.inheritOptions);
-    ctr._container = domElement;
-    Focus.patchDom(domElement, cfg);
-    ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
-    ctr.mountToDom(ctr._container, cfg, ctor);
-    ctr._$createdFromCode = true;
-    return ctr;
+   startApplication();
+   const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
+   // @ts-ignore
+   OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
+   const attrs = {
+      inheritOptions: {}
+   };
+   let ctr: any;
+   OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
+   try {
+      ctr = new ctor(cfg);
+   } catch (error) {
+      ctr = new Control({});
+      logger.lifeError('constructor', ctor.prototype, error);
+   }
+   ctr.saveInheritOptions(attrs.inheritOptions);
+   ctr._container = domElement;
+   Focus.patchDom(domElement, cfg);
+   ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
+   ctr.mountToDom(ctr._container, cfg, ctor);
+   ctr._$createdFromCode = true;
+   return ctr;
 }
 
 /**

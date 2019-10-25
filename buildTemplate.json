@@ -99,6 +99,11 @@
       "name": "SbisEnv",
       "path": "./node_modules/rmi/src/client/SbisEnv",
       "required": true
+    },
+    {
+      "name": "cdn",
+      "path": "./node_modules/cdn",
+      "required": true
     }
   ]
 }

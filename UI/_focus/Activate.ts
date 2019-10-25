@@ -4,6 +4,7 @@
 import { detection } from 'Env/Env';
 import * as ElementFinder from './ElementFinder';
 import { focus } from './Focus';
+import { goUpByControlTree } from './goUpByControlTree';
 
 // @ts-ignore
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
@@ -29,9 +30,17 @@ export function activate(
          }
       } else {
          if (ElementFinder.getElementProps(container).tabStop) {
-            focus(container, cfg);
+            res = focus(container, cfg);
+            if (res) {
+               // поддерживаем совместимость. нужно отстрелять старые события чтобы область в WindowManager стала
+               // последней активной, чтобы потом на нее восстанавливался фокус если он будет восстанавливаться
+               // по старому механизму
+               const parents = goUpByControlTree(container);
+               if (parents.length && parents[0]._activate) {
+                  parents[0]._activate(parents[0]);
+               }
+            }
          }
-         res = container === document.activeElement;
       }
       return res;
    }

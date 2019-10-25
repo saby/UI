@@ -104,23 +104,29 @@ class HTML extends Control {
          * cfg - это конфиг, который нам прийдет из файла роутинга и с ним же надо
          * восстанавливаться на клиенте.
          */
-        return new Promise((resolve) => {
-            resolve({
-                buildnumber: this.buildnumber,
-                csses: ThemesController.getInstance().getCss(),
-                title: this.title,
-                appRoot: this.appRoot,
-                staticDomains: this.staticDomains,
-                RUMEnabled: this.RUMEnabled,
-                pageName: this.pageName,
-                wsRoot: this.wsRoot,
-                resourceRoot: this.resourceRoot,
-                templateConfig: this.templateConfig,
-                servicesPath: this.servicesPath,
-                compat: this.compat,
-                product: this.product
+        // Не будем возвращать промис в билдере, потому что там используется GeneratorCompatible
+        // Он вставляет конфиги сразу после контрола, а не через StateReceiver. По-другому сейчас не сделать, т.к.
+        // функция generatorCompatible решает, какой генератор вернуть? только по константам, а не по аргументам.
+        // https://git.sbis.ru/sbis/ws/blob/rc-20.1000/View/Executor/TClosure.ts#L296
+        if(!cfg.builder && !cfg.builderCompatible) {
+            return new Promise((resolve) => {
+                resolve({
+                    buildnumber: this.buildnumber,
+                    csses: ThemesController.getInstance().getCss(),
+                    title: this.title,
+                    appRoot: this.appRoot,
+                    staticDomains: this.staticDomains,
+                    RUMEnabled: this.RUMEnabled,
+                    pageName: this.pageName,
+                    wsRoot: this.wsRoot,
+                    resourceRoot: this.resourceRoot,
+                    templateConfig: this.templateConfig,
+                    servicesPath: this.servicesPath,
+                    compat: this.compat,
+                    product: this.product
+                });
             });
-        });
+        }
     }
 
     _afterMount(): void {

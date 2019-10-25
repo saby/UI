@@ -42,63 +42,63 @@ define([
    describe('DepsCollector', function() {
       it('single in bundle', function() {
          var deps = dc.collectDependencies(["aaa/aaa"]);
-         assert.deepEqual(deps.js, ["bdl/aaa.package"]);
+         assert.deepStrictEqual(deps.js, ["bdl/aaa.package"]);
       });
       it('several in bundle', function() {
          var deps = dc.collectDependencies(["vvv/aaa", "vvv/bbb"]);
-         assert.deepEqual(deps.js, ["bdl/ccc.package"]);
+         assert.deepStrictEqual(deps.js, ["bdl/ccc.package"]);
       });
       it('css-bundle hook js simple', function() {
          var deps = dc.collectDependencies(["css!aaa/bbb"]);
-         assert.deepEqual(deps.js, ["bdl/aaa.package"]);
-         assert.deepEqual(deps.css.simpleCss, ["bdl/aaa.package"]);
+         assert.deepStrictEqual(deps.js, ["bdl/aaa.package"]);
+         assert.deepStrictEqual(deps.css.simpleCss, ["bdl/aaa.package"]);
       });
       it('css-bundle hook js themed', function() {
          var deps = dc.collectDependencies(["css!theme?aaat/bbbt"]);
-         assert.deepEqual(deps.js, ["bdl/aaat.package"]);
-         assert.deepEqual(deps.css.themedCss, ["bdl/aaat.package"]);
+         assert.deepStrictEqual(deps.js, ["bdl/aaat.package"]);
+         assert.deepStrictEqual(deps.css.themedCss, ["bdl/aaat.package"]);
       });
       it('single css not hooks js simple', function() {
          var deps = dc.collectDependencies(["css!aaa/ddd"]);
-         assert.deepEqual(deps.css.simpleCss, ["aaa/ddd"]);
-         assert.deepEqual(deps.js, []);
+         assert.deepStrictEqual(deps.css.simpleCss, ["aaa/ddd"]);
+         assert.deepStrictEqual(deps.js, []);
       });
       it('single css not hooks js themed', function() {
          var deps = dc.collectDependencies(["css!theme?aaa/ddd"]);
-         assert.deepEqual(deps.css.themedCss, ["aaa/ddd"]);
-         assert.deepEqual(deps.js, []);
+         assert.deepStrictEqual(deps.css.themedCss, ["aaa/ddd"]);
+         assert.deepStrictEqual(deps.js, []);
       });
       it('recursive', function() {
          var deps = dc.collectDependencies(["ccc/aaa"]);
-         assert.deepEqual(deps.js, ["bdl/ddd.package",
+         assert.deepStrictEqual(deps.js, ["bdl/ddd.package",
             "bdl/eee.package",
             "bdl/hhh.package",
             "bdl/ggg.package"]);
       });
       it('optional pre-load', function() {
          var deps = dc.collectDependencies(["optional!xxx/aaa"]);
-         assert.deepEqual(deps.js, ["bdl/jjj.package"]);
+         assert.deepStrictEqual(deps.js, ["bdl/jjj.package"]);
       });
       it('optional no pre-load', function() {
          var deps = dc.collectDependencies(["optional!ccc/bbb"]);
-         assert.deepEqual(deps.js, []);
+         assert.deepStrictEqual(deps.js, []);
       });
       it('ext tmpl', function() {
          var deps = dc.collectDependencies(["tmpl!xxx/aaa"]);
-         assert.deepEqual(deps.tmpl, ["xxx/aaa"]);
+         assert.deepStrictEqual(deps.tmpl, ["xxx/aaa"]);
       });
       it('tmpl packed in parent js', function() {
          var deps = dc.collectDependencies(["js/tmplDep"]);
-         assert.deepEqual(deps.js, ["jstmplbdl/tmpldep.package"]);
-         assert.deepEqual(deps.tmpl, []);
+         assert.deepStrictEqual(deps.js, ["jstmplbdl/tmpldep.package"]);
+         assert.deepStrictEqual(deps.tmpl, []);
       });
       it('custom extension in bundlesRoute', function() {
          var deps = dc.collectDependencies(["tmpl!ppp/ppp"]);
-         assert.deepEqual(deps.js, ["bdl/tmplpckd.package"]);
-         assert.deepEqual(deps.tmpl, []);
+         assert.deepStrictEqual(deps.js, ["bdl/tmplpckd.package"]);
+         assert.deepStrictEqual(deps.tmpl, []);
       });
       it('Localization enabled', function() {
-         var depsCollectorWithLocalization = new DepsCollector(modDeps, modInfo, bundlesRoute, true, true);
+         var depsCollectorWithLocalization = new DepsCollector(modDeps, modInfo, bundlesRoute);
          depsCollectorWithLocalization.getLang = function() {
             return 'ru-RU';
          };
@@ -115,16 +115,36 @@ define([
             };
          };
          var deps = depsCollectorWithLocalization.collectDependencies(["moduleWithLang/test"]);
-         assert.deepEqual(deps.js, ["moduleWithLang/lang/ru-RU/ru-RU.json",
+         assert.deepStrictEqual(deps.js, ["moduleWithLang/lang/ru-RU/ru-RU.json",
             "moduleWithLang2/lang/ru-RU/ru-RU.json",
             "moduleWithLang/test",
             "moduleWithLang2/test2"]);
-         assert.deepEqual(deps.css.simpleCss, ["moduleWithLang/lang/ru-RU/ru-RU", "moduleWithLang2/lang/ru-RU/ru-RU"]);
+         assert.deepStrictEqual(deps.css.simpleCss, ["moduleWithLang/lang/ru-RU/ru-RU", "moduleWithLang2/lang/ru-RU/ru-RU"]);
+      });
+      it('New localization enabled', function() {
+         var depsCollectorWithLocalization = new DepsCollector(modDeps, modInfo, bundlesRoute);
+         depsCollectorWithLocalization.getLang = function() {
+            return 'en-US';
+         };
+         depsCollectorWithLocalization.getAvailableDictList = function() {
+            return {
+               'moduleWithLang2/lang/en/en.json': true,
+               'moduleWithLang2/lang/en-US/en-US.json': true
+            };
+         };
+         depsCollectorWithLocalization.getModules = function() {
+            return {
+               'moduleWithLang2': {dict: ['en.json', 'en.css', 'en-US.json', 'en-US.css']}
+            };
+         };
+         var deps = depsCollectorWithLocalization.collectDependencies(["moduleWithLang2/test"]);
+         assert.deepStrictEqual(deps.js, ["moduleWithLang2/lang/en-US/en-US.json", "moduleWithLang2/lang/en/en.json", "moduleWithLang2/test"]);
+         assert.deepStrictEqual(deps.css.simpleCss, ["moduleWithLang2/lang/en-US/en-US", "moduleWithLang2/lang/en/en"]);
       });
       it('missing optional dep', function() {
          var deps = dc.collectDependencies(["optional!nosuchdep", "tmpl!ppp/ppp"]);
-         assert.deepEqual(deps.js, ["bdl/tmplpckd.package"]);
-         assert.deepEqual(deps.tmpl, []);
+         assert.deepStrictEqual(deps.js, ["bdl/tmplpckd.package"]);
+         assert.deepStrictEqual(deps.tmpl, []);
       });
    });
 });
