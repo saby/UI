@@ -1,6 +1,3 @@
-// @ts-ignore
-import { goUpByControlTree } from './goUpByControlTree';
-
 import { appendFocusElementsToDOM } from './BoundaryElements';
 // @ts-ignore
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
@@ -25,9 +22,9 @@ export function restoreFocus(savedActiveElement: Element, prevControls: any, con
    const rootContainer = control._container[0] ? control._container[0] : control._container;
    if (rootContainer === environment._rootDOMNode) {
       if (environment._rootDOMNode.tagName === 'HTML') {
-         appendFocusElementsToDOM(document.body);
+         appendFocusElementsToDOM(environment, document.body);
       } else {
-         appendFocusElementsToDOM(environment._rootDOMNode);
+         appendFocusElementsToDOM(environment, environment._rootDOMNode);
       }
    }
 
