@@ -17,15 +17,9 @@ function checkActiveElement(savedActiveElement: Element): boolean {
    return isBody && document.activeElement !== savedActiveElement;
 }
 
-export function restoreFocus(control: any, action: Function): void {
-   const savedActiveElement = document.activeElement;
-   // нужно вычислять родительские контролы заранее, во время перерисовки эти контролы могут быть
-   // разрушены и мы потеряем реальную иерархию, и не сможем восстановить фокус куда надо.
-   // метод должен отрабатывать супер быстро, не должно влиять на скорость
-   const prevControls = goUpByControlTree(savedActiveElement);
-
-   action();
-
+// нужно вычислять родительские контролы заранее, во время перерисовки эти контролы могут быть
+// разрушены и мы потеряем реальную иерархию, и не сможем восстановить фокус куда надо.
+export function restoreFocus(savedActiveElement: Element, prevControls: any, control: any): void {
    const environment = control._getEnvironment();
 
    const rootContainer = control._container[0] ? control._container[0] : control._container;
