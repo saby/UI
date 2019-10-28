@@ -3,9 +3,8 @@
 
 //@ts-ignore
 import { constants } from 'Env/Env';
-
 //@ts-ignore
-import * as logger from 'UI/Logger'
+import { Logger } from 'UI/Utils';
 
 export function goUpByControlTree(target, array?) {
    array = array || [];
@@ -60,7 +59,7 @@ function checkOpener(opener) {
 
    if (error) {
       const message = `[UI/_focus/goUpByControlTree:checkOpener] DOMEnvironment - Incorrect opener or parent is found! It seems that anybody set wrong opener option! ${error}`;
-      logger.error(message, opener);
+      Logger.error(message, opener);
    }
 }
 
