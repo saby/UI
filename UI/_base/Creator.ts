@@ -1,7 +1,9 @@
 // @ts-ignore
 import { OptionsResolver } from 'View/Executor/Utils';
 import Control from './Control';
-import * as logger from 'UI/Logger';
+
+//@ts-ignore
+import { Logger } from 'UI/Utils';
 
 // @ts-ignore
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
@@ -46,7 +48,7 @@ export default function createControl(ctor: any, cfg: any, domElement: HTMLEleme
       ctr = new ctor(cfg);
    } catch (error) {
       ctr = new Control({});
-      logger.lifeError('constructor', ctor.prototype, error);
+      Logger.lifeError('constructor', ctor.prototype, error);
    }
    ctr.saveInheritOptions(attrs.inheritOptions);
    ctr._container = domElement;

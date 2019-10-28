@@ -2,7 +2,9 @@
 import { IStateReceiver } from 'Application/Interface';
 import Serializer = require('Core/Serializer');
 import { Common } from 'View/Executor/Utils';
-import * as logger from 'UI/Logger';
+
+//@ts-ignore
+import { Logger } from 'UI/Utils';
 
 interface ISerializedType {
    serialized: string;
@@ -79,7 +81,7 @@ class StateReceiver implements IStateReceiver {
          this.deserialized = JSON.parse(str, slr.deserialize);
       } catch (error) {
          const message = `[UI/_base/StateReceiver:deserialize] - Deserialize, сant't deserialize ${str}`;
-         logger.error(message, null, error);
+         Logger.error(message, null, error);
       }
    }
 
@@ -93,7 +95,7 @@ class StateReceiver implements IStateReceiver {
          if (typeof this.receivedStateObjectsArray[key] !== 'undefined') {
             const message = '[UI/_base/StateReceiver:register] - Try to register instance more than once ' +
                             `or duplication of keys happened; current key is ${key}`;
-            logger.warn(message, inst);
+            Logger.warn(message, inst);
          }
       }
       this.receivedStateObjectsArray[key] = inst;
