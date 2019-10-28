@@ -77,9 +77,10 @@ function findDirectChildren(elem, cssClass) {
 
 /**
  * We have to insert focus elements are already in the DOM,  before virtual dom synchronization
+ * @param environment
  * @param rootElement
  */
-export function appendFocusElementsToDOM(rootElement) {
+export function appendFocusElementsToDOM(environment, rootElement) {
    const firstChild = rootElement.firstChild;
    const lastChild = rootElement.lastChild;
 
@@ -103,6 +104,14 @@ export function appendFocusElementsToDOM(rootElement) {
          rootElement.appendChild(focusInElem);
       }
       rootElement.appendChild(focusOutElem);
+
+      focusInElem.addEventListener('focus', function(e) {
+         fireEvent.call(environment, e);
+      });
+      focusOutElem.addEventListener('focus', function(e) {
+         fireEvent.call(environment, e);
+      });
+
       result = true;
    } else {
       result = false;
