@@ -81,8 +81,13 @@ function findDirectChildren(elem, cssClass) {
  */
 export function appendFocusElementsToDOM(rootElement) {
    const firstChild = rootElement.firstChild;
+   const lastChild = rootElement.lastChild;
+
+   const needVdomFocusin = !(firstChild instanceof Element) || !firstChild.classList.contains('vdom-focus-in');
+   const needVdomFocusout = !(lastChild instanceof Element) || !lastChild.classList.contains('vdom-focus-out');
+
    let result;
-   if (!firstChild || firstChild && firstChild.classList && !firstChild.classList.contains('vdom-focus-in')) {
+   if (needVdomFocusin || needVdomFocusout) {
       const vdomFocusInElems = findDirectChildren(rootElement, '.vdom-focus-in');
       const vdomFocusOutElems = findDirectChildren(rootElement, '.vdom-focus-out');
       const focusInElem = vdomFocusInElems.length ? vdomFocusInElems[0] : document.createElement('a');
