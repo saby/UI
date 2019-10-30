@@ -172,7 +172,7 @@ const prepareStack = (data: any): string => {
          if (point._logicParent) {
             // Wasaby
             point = point._logicParent;
-         } else if (data.getParent) {
+         } else if (point.getParent) {
             // WS3
             point = point.getParent();
          } else {
