@@ -1,7 +1,10 @@
 /// <amd-module name="UI/_base/DepsCollector" />
 
-import * as logger from 'UI/Logger';
+//@ts-ignore
+import { Logger } from 'UI/Utils';
+//@ts-ignore
 import { constants } from 'Env/Env';
+//@ts-ignore
 import i18n = require('Core/i18n');
 
 interface ICollectedFiles {
@@ -77,7 +80,7 @@ function getExt(fileName: string): string {
    }
 
    const message = `[UI/_base/DepsCollector:getExt] Incorrect extension: ${fileName}`;
-   logger.error(message);
+   Logger.error(message);
    return '';
 }
 
@@ -93,7 +96,7 @@ function parseModuleName(name: string): any {
    const typeInfo = getType(name);
    if (typeInfo === null) {
       // TODO Change to error after https://online.sbis.ru/opendoc.html?guid=5de9d9bd-be4a-483a-bece-b41983e916e4
-      logger.log(`[UI/_base/DepsCollector:parseModuleName] Wrong type Can not process module: ${name}`);
+      Logger.info(`[UI/_base/DepsCollector:parseModuleName] Wrong type Can not process module: ${name}`);
       return null;
    }
    let nameWithoutPlugin;
@@ -125,7 +128,7 @@ function getPacksNames(allDeps: any, bundlesRoute: any): any {
       if (allDeps.hasOwnProperty(key)) {
          const bundleName = bundlesRoute[key];
          if (bundleName) {
-            logger.log(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${key} in bundle ${bundleName}`);
+            Logger.info(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${key} in bundle ${bundleName}`);
             delete allDeps[key];
             const ext = getExt(bundleName);
             packages[ext][getPackageName(bundleName)] = DEPTYPES.BUNDLE;
@@ -155,7 +158,7 @@ function getCssPackages(allDeps: any, bundlesRoute: any): any {
          let noParamsName = removeThemeParam(key);
          const bundleName = bundlesRoute[noParamsName];
          if (bundleName) {
-            logger.log(`[UI/_base/DepsCollector:getCssPackages] Custom packets logs, module ${key} in bundle ${bundleName}`);
+            Logger.info(`[UI/_base/DepsCollector:getCssPackages] Custom packets logs, module ${key} in bundle ${bundleName}`);
             delete allDeps[key];
             if (isThemedCss(key)) {
                packages.themedCss[getPackageName(bundleName)] = DEPTYPES.BUNDLE;
