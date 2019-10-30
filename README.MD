@@ -15,7 +15,7 @@ To start the unit testing server, run the following commands:
 ```bash
     npm install
     npm run build
-    npm start:units
+    npm run start:units
 ```
 
 Go to [http://localhost:1023](http://localhost:1023) in your browser to execute the tests and see the results.

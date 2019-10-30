@@ -4,11 +4,12 @@
  * Utility module that provides a cross-browser way to move focus
  * to specific elements
  */
-// @ts-ignore
+
+//@ts-ignore
 import { detection } from 'Env/Env';
 
-// @ts-ignore
-import * as logger from 'UI/Logger';
+//@ts-ignore
+import { Logger } from 'UI/Utils';
 
 import { collectScrollPositions } from './_ResetScrolling';
 import * as ElementFinder from './ElementFinder';
@@ -113,7 +114,7 @@ function checkFocused(element: Element): void {
                             `has ${reason} style! maybe you need use ws-hidden or ws-invisible classes for change element ` +
                             'visibility (in old ws3 controls case). Please check why invisible element is focusing.' +
                             `Focusing element is ${elementString}, invisible element is ${currentElementString}.`;
-            logger.warn(message, currentElement);
+            Logger.warn(message, currentElement);
 
             break;
          }
@@ -265,7 +266,7 @@ function _initFocus() {
       HTMLElement.prototype.focus = function replacedFocus(): void {
          if (!focusingState) {
             const message = '[UI/_focus/Focus:_initFocus]" - Native focus is called! Please use special focus method (UI/Focus:focus)';
-            logger.warn(message);
+            Logger.warn(message);
          }
 
          focus(this, {

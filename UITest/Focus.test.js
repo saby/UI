@@ -1,31 +1,33 @@
+/* global describe, it, assert */
 define([
    'UI/Focus',
    'UI/Base',
    'Env/Env',
    'UI/_focus/_ResetScrolling',
    'UITest/Focus'
-], function (Focus,
-             Base,
-             Env,
-             _ResetScrolling,
-             FocusTestControls
+], function(
+   Focus,
+   Base,
+   Env,
+   _ResetScrolling,
+   FocusTestControls
 ) {
    'use strict';
 
-   var global = function () {
+   var global = (function() {
       return this || (0, eval)('this');
-   }();
+   }());
 
-   describe('Focus', function () {
+   describe('Focus', function() {
       var div;
       var control;
       var globalCases = [];
       var currentCase;
       var fromNode = typeof document === 'undefined';
 
-      before(function (done) {
+      before(function(done) {
          if (fromNode) {
-            require(['jsdom'], function (jsdom) {
+            require(['jsdom'], function(jsdom) {
                var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
                global.window = browser.window;
                global.document = window.document;
@@ -79,7 +81,7 @@ define([
          }
       });
 
-      afterEach(function () {
+      afterEach(function() {
          if (control) {
             control.destroy();
          }
@@ -125,7 +127,7 @@ define([
                name: 'has autofocus control inside',
                checkFn: function() {
                   assert.ok(Focus.activate(div));
-                  assert.strictEqual(document.activeElement, control._children['autofocusChild']._container);
+                  assert.strictEqual(document.activeElement, control._children.autofocusChild._container);
                }
             },
             {
@@ -134,7 +136,7 @@ define([
                async: true,
                checkFn: function(done) {
                   try {
-                     control.afterUpdateCallback = function () {
+                     control.afterUpdateCallback = function() {
                         assert.strictEqual(document.activeElement, div);
                         done();
                      };
@@ -142,7 +144,7 @@ define([
                      assert.ok(Focus.activate(container));
                      assert.strictEqual(document.activeElement, container);
                      control.noNeedContent = true;
-                  } catch(e) {
+                  } catch (e) {
                      done(e);
                   }
                }
@@ -190,7 +192,7 @@ define([
                if (!currentCase.async) {
                   done();
                }
-            })
+            });
          }
       });
 
@@ -237,7 +239,7 @@ define([
                if (!currentCase.async) {
                   done();
                }
-            })
+            });
          }
       });
 
@@ -273,7 +275,7 @@ define([
                name: 'for pseudo array',
                control: FocusTestControls.Simple,
                checkFn: function() {
-                  var container = {0: div, length: 1};
+                  var container = { 0: div, length: 1 };
                   document.body.scrollTop = 13;
                   var undoScrollingFunction = _ResetScrolling.collectScrollPositions(container);
                   document.body.scrollTop = 0;
@@ -305,7 +307,7 @@ define([
                if (!currentCase.async) {
                   done();
                }
-            })
+            });
          }
       });
 
@@ -351,7 +353,7 @@ define([
                if (!currentCase.async) {
                   done();
                }
-            })
+            });
          }
       });
 
@@ -411,14 +413,14 @@ define([
                   var detection = Env.detection;
                   Env.detection = {
                      safari: true,
-                     isMobileIOS : true,
+                     isMobileIOS: true,
                      isMobilePlatform: true
                   };
 
                   var collectScrollPositions = _ResetScrolling.collectScrollPositions;
                   _ResetScrolling.collectScrollPositions = function() {
                      scrolled = true;
-                     return function(){};
+                     return function() { };
                   };
 
                   try {
@@ -430,6 +432,7 @@ define([
                      _ResetScrolling.collectScrollPositions = collectScrollPositions;
                   }
                   assert.notOk(scrolled);
+
                   // assert.strictEqual(document.activeElement, input);
                }
             }

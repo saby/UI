@@ -7,6 +7,7 @@ import { Synchronizer } from 'Vdom/Vdom';
 import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
 import { activate } from 'UI/Focus';
+import { Logger } from 'UI/Utils';
 
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesControllerNew');
@@ -29,9 +30,6 @@ import * as Hydrate from 'Inferno/third-party/hydrate.dev';
 if (Hydrate.initInferno) {
    Hydrate.initInferno(Expressions, Utils, Markup, Vdom, FocusLib, DevtoolsHook);
 }
-
-import * as logger from 'UI/Logger';
-
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
 /**
@@ -237,7 +235,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          isVdom: boolean = true
       ): any {
          if (!this._template.stable) {
-            logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
+            Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
             return '';
          }
          let res;
@@ -440,7 +438,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                   if (res.status === 'rejected') {
                      const message = '[UI/_base/Control:_loadNewStyles] Styles loading error ' +
                         `Could not load style ${name} for "${self._moduleName}`;
-                     logger.error(message, self);
+                     Logger.error(message, self);
                   }
                });
                promiseArray.push(loadPromise);
@@ -457,7 +455,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                   if (res.status === 'rejected') {
                      const message = '[UI/_base/Control:_loadNewStyles] Styles loading error ' +
                         `Could not load style ${name} for "${self._moduleName} with thene ${theme}`;
-                     logger.error(message, self);
+                     Logger.error(message, self);
                   }
                });
                promiseArray.push(loadPromise);
@@ -524,7 +522,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._forceUpdate = EMPTY_FUNC;
          //this._getMarkup = EMPTY_FUNC;
       } catch (error) {
-         logger.lifeError('_beforeUnmount', this, error);
+         Logger.lifeError('_beforeUnmount', this, error);
       }
    }
 
@@ -755,7 +753,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                      const message = `Promise, который вернули из метода _beforeMount контрола ${this._moduleName}` +
                         `не завершился за ${WAIT_TIMEOUT} миллисекунд.` +
                         `Шаблон контрола не будет построен.`
-                     logger.error(message, this);
+                     Logger.error(message, this);
 
                      timeout = 1;
                      // @ts-ignore
@@ -1142,7 +1140,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // @ts-ignore
       if (!domElement instanceof HTMLElement) {
          const message = '[UI/_base/Control:createControl] domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.';
-         logger.error(message, ctor.prototype);
+         Logger.error(message, ctor.prototype);
       }
       const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
       // @ts-ignore
@@ -1154,7 +1152,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          ctr = new ctor(cfg);
       } catch (error) {
          ctr = new Control({});
-         logger.lifeError('constructor', ctor.prototype, error)
+         Logger.lifeError('constructor', ctor.prototype, error)
       }
       ctr.saveInheritOptions(attrs.inheritOptions);
       ctr._container = domElement;
