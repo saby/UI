@@ -1,0 +1,66 @@
+<ws:if data="{{ !boomerangInitialized && RUMEnabled }}">
+   <div data-vdomignore="true">
+      <script type="text/javascript" key="boomerangBeacon">
+         function boomerangBeacon() {
+            BOOMR.subscribe('before_beacon', function (vars) {
+               /* Костыль, исправляющий ошибку 2 стреляний событий before_beacon подряд. TODO: В задаче
+               https://online.sbis.ru/opendoc.html?guid=3d2f495d-8a71-4ce6-9e1f-55f096b76ba9 сделать нормально.
+               */
+               if (BOOMR.sbisResult) {
+                  return;
+               }
+               var loadStartTime = vars.nt_nav_st;
+               BOOMR.sbisResult = JSON.stringify({
+                  'd_boomerangVersion': vars.v,
+                  'd_url': vars.u,
+                  'd_urlRef': document.referrer,
+                  'd_page': '{{_options.pageName}}' || vars.u,
+                  'd_userAgent': navigator.userAgent,
+                  'r_navigationTiming': {
+                     'm_navigationStart': vars.nt_nav_st - loadStartTime,
+                     'm_redirectStart': vars.nt_red_st - loadStartTime,
+                     'm_redirectEnd': vars.nt_red_end - loadStartTime,
+                     'm_fetchStart': vars.nt_fet_st - loadStartTime,
+                     'm_domainLookupStart': vars.nt_dns_st - loadStartTime,
+                     'm_domainLookupEnd': vars.nt_dns_end - loadStartTime,
+                     'm_connectStart': vars.nt_con_st - loadStartTime,
+                     'm_secureConnectionStart': vars.nt_ssl_st - loadStartTime,
+                     'm_connectEnd': vars.nt_con_end - loadStartTime,
+                     'm_requestStart': vars.nt_req_st - loadStartTime,
+                     'm_responseStart': vars.nt_res_st - loadStartTime,
+                     'm_responseEnd': vars.nt_res_end - loadStartTime,
+                     'm_domLoading': vars.nt_domloading - loadStartTime,
+                     'm_domInteractive': vars.nt_domint - loadStartTime,
+                     'm_domContentLoaded': vars.nt_domcontloaded_end - loadStartTime,
+                     'm_domComplete': vars.nt_domcomp - loadStartTime,
+                     'm_loadEventStart': vars.nt_load_st - loadStartTime,
+                     'm_loadEventEnd': vars.nt_load_end - loadStartTime,
+                     'm_unloadStart': vars.nt_unload_st - loadStartTime,
+                     'm_unloadEnd': vars.nt_unload_end - loadStartTime
+                  },
+                  'm_loadStartTime': loadStartTime,
+                  'm_visualReady': vars['c.tti.vr'],
+                  'm_tti': vars['c.tti']
+               });
+
+               require(['Types/source'], function (Source) {
+                  new Source.provider.SbisBusinessLogic({
+                     endpoint: {
+                        address: '/central-statistics-rum/service/',
+                        contract: 'RUM'
+                     }
+                  }).call('Data', {json: BOOMR.sbisResult});
+               }, function () {});
+            });
+         }
+      </script>
+      <script
+         type="text/javascript"
+         key="boomerang"
+         src="/cdn/Boomerang/1.650.0/boomerang.js">
+      </script>
+   </div>
+</ws:if>
+<ws:else>
+   <invisible-node />
+</ws:else>
