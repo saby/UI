@@ -22,7 +22,6 @@
             <ws:partial template="{{ _badTemplateName }}" />
         </ws:if> 
 
-        <h2 class="UIDemo_Error-red">(пока не отлавливаются!!! Нужно подключать Logger в View\Builder\*)</h2>
         <h3>Ошибка по клику: загрузка несуществующего шаблона</h3>
         <div class="UIDemo_Error-button" on:click="_loadPartial('notFound')">{{ _caption }}</div>
         <ws:if data="{{ _notFoundTemplate }}">
