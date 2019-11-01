@@ -64,15 +64,7 @@ const _getCurrentFunctionInfo = (data?): string  => {
  * @return {Error}
  */
 const _createFakeError = () => {
-   let errorObject = {};
-   try {
-      // нужно для того чтобы не потерять стек исходной ошибки,
-      // в противном случае в лог будет попадать стек из ближайшего catch
-      throw new Error();
-   } catch (error) {
-      errorObject = error;
-   }
-   return errorObject;
+   return new Error();
 };
 
 /**
