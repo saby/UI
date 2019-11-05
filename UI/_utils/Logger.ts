@@ -131,10 +131,18 @@ const prepareStack = (data: any): string => {
     * @private
     */
    const _createStack = (control: any, msg: string): string => {
-      const moduleName = control._moduleName;
+      let moduleName = control._moduleName;
       let stack;
       let arrow;
+      let result = msg;
       if (moduleName && !excludeControls[moduleName]) {
+
+         // для асинхронных контейнеров важен не сам контейнер в стеке, а шаблон внутри
+         // сформируем читаемую строку: Controls/Container/Async:template - "MyControl/Base"
+         if (moduleName === 'Controls/Container/Async') {
+            const asyncTemplate = control._options.templateName || 'not detected';
+            moduleName += `:template - "${asyncTemplate}"`;
+         }
 
          // если стек очень глубокий, экономим экранное место и уже строим в строчку
          if (countIndent > LIMIT_LEVEL_STACK) {
@@ -145,10 +153,10 @@ const prepareStack = (data: any): string => {
             arrow = ARROW_NEXT;
          }
 
-         msg += `${stack}${arrow} ${moduleName}`;
+         result += `${stack}${arrow} ${moduleName}`;
          countIndent += 1;
       }
-      return msg;
+      return result;
    };
 
    /**
@@ -181,7 +189,7 @@ const prepareStack = (data: any): string => {
       const Focus = requirejs('UI/Focus');
       // TODO: допущение, что библиотеке фокусов загружена до ошибок, подумать как сделать лучше
       // явно тащить нельзя, цикл - UI/Focus -> UI/_utils/Logger -> UI/Focus
-      
+
       let arrayControls = [];
       if (Focus) {
          // на клиенте используем функционал из модуля Focus
