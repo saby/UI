@@ -42,6 +42,10 @@ class HTML extends Control {
         this.compat = cfg.compat || false;
     }
 
+    /**
+     * @mixes UI/_base/HTML/RUM
+     */
+
     _beforeMount(cfg: any, context: any, receivedState: any): Promise<any> {
         this.onServer = typeof window === 'undefined';
         this.isCompatible = cfg.compat;
