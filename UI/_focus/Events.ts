@@ -138,11 +138,13 @@ export function notifyActivationEvents(environment, target, relatedTarget, isTab
                environment._rootDOMNode.controlNodes[0].control
             );
 
-            if (!arrayMaker[0].isActive) {
-               Logger.warn('Контрол нуждается в слое совместимости.', arrayMaker[0]);
-            } else {
-               if (!arrayMaker[0].isActive()) {
-                  arrayMaker[0].setActive(true);
+            if (arrayMaker.length) {
+               if (!arrayMaker[0].isActive) {
+                  Logger.warn('Контрол нуждается в слое совместимости.', arrayMaker[0]);
+               } else {
+                  if (!arrayMaker[0].isActive()) {
+                     arrayMaker[0]._activate(arrayMaker[0]);
+                  }
                }
             }
          }
