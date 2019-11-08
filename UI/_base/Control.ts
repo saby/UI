@@ -8,6 +8,7 @@ import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
 import { activate } from 'UI/Focus';
 import { Logger } from 'UI/Utils';
+import { constants } from 'Env/Env';
 
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesControllerNew');
@@ -1136,6 +1137,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return inherit;
    }
    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
+      if (constants.compat) {
+         cfg.iWantBeWS3 = true;
+      }
+
       startApplication();
       // @ts-ignore
       if (!domElement instanceof HTMLElement) {
