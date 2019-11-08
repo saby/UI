@@ -1140,6 +1140,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       if (constants.compat) {
          cfg.iWantBeWS3 = true;
       }
+      cfg._$createdFromCode = true;
 
       startApplication();
       // @ts-ignore
@@ -1164,7 +1165,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       Focus.patchDom(domElement, cfg);
       ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
       ctr.mountToDom(ctr._container, cfg, ctor);
-      ctr._$createdFromCode = true;
       return ctr;
    }
 
