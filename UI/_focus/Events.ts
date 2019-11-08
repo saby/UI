@@ -4,7 +4,9 @@
 // @ts-ignore
 import { goUpByControlTree } from './goUpByControlTree';
 // @ts-ignore
-import { constants, detection, IoC } from 'Env/Env';
+import { constants, detection } from 'Env/Env';
+//@ts-ignore
+import { Logger } from 'UI/Utils';
 
 // иногда фокус уходит на какой-то фейковый элемент в боди. и наша система реагирует по делу что фокус улетел.
 // например, когда нужно скопировать текст в буфер обмена, текст вставляется в фейковое поле ввода на боди.
@@ -85,7 +87,8 @@ export function notifyActivationEvents(environment, target, relatedTarget, isTab
                return false;
             }
          } else {
-            IoC.resolve('ILogger').warn('UI/Focus:Events', 'Control "' + control._moduleName + '" has no container!');
+            const message = `[UI/_focus/Events:notifyActivationEvents] - Control "${control._moduleName}" has no container!`;
+            Logger.warn(message, control);
          }
 
          control._notify('deactivated', [
