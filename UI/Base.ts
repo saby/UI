@@ -12,6 +12,7 @@ import {DepsCollector} from './_base/DepsCollector';
 
 //@ts-ignore
 import BaseRoute = require('wml!UI/_base/Route');
+import {IHTMLOptions, IHTML} from './_base/interface/IHTML';
 import Creator, { async as AsyncCreator } from './_base/Creator';
 export { default as startApplication } from 'UI/_base/startApplication';
 
@@ -29,5 +30,7 @@ export {
     AsyncCreator,
     DepsCollector,
     HeadData,
-    TemplateFunction
+    TemplateFunction,
+    IHTMLOptions,
+    IHTML
 };
