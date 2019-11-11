@@ -716,6 +716,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    _beforeMountLimited(opts: TOptions): Promise<TState> | Promise<void> | void {
+      if (this._$resultBeforeMount) {
+         return this._$resultBeforeMount;
+      }
+
       // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
       // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
       // _template на экземпляре, _template устанавливается сразу после вызова базового конструктора
@@ -791,6 +795,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
             resultBeforeMount = Promise.all([cssResult, resultBeforeMount]);
          }
       }
+
+      this._$resultBeforeMount = resultBeforeMount;
       return resultBeforeMount;
    }
 
@@ -1139,6 +1145,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
       if (constants.compat) {
          cfg.iWantBeWS3 = true;
+         cfg.element = domElement;
       }
       cfg._$createdFromCode = true;
 
@@ -1164,6 +1171,12 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       ctr._container = domElement;
       Focus.patchDom(domElement, cfg);
       ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
+
+      if (cfg.iWantBeWS3) {
+         const makeInstanceCompatible = require('Core/helpers/Hcontrol/makeInstanceCompatible');
+         makeInstanceCompatible(ctr, cfg);
+      }
+
       ctr.mountToDom(ctr._container, cfg, ctor);
       return ctr;
    }
