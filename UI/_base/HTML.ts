@@ -14,6 +14,14 @@ import LinkResolver = require('Core/LinkResolver/LinkResolver');
 
 import * as AppEnv from 'Application/Env';
 import AppData from './AppData';
+import { IHTMLOptions } from './interface/IHTML';
+import { IRootTemplateOptions } from './interface/IRootTemplate';
+
+interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
+    // Добавим здесь поля для RUM-статистики Потому что их нам нужно сериализовать в wsConfig, чтобы потом получить на клиенте.
+    RUMEnabled: boolean,
+    pageName: string
+}
 
 class HTML extends Control {
     _template: Function = template;
@@ -42,7 +50,12 @@ class HTML extends Control {
         this.compat = cfg.compat || false;
     }
 
-    _beforeMount(cfg: any, context: any, receivedState: any): Promise<any> {
+    /**
+     * @mixes UI/_base/HTML/IHTML
+     * @mixes UI/_base/HTML/IRootTemplate
+     */
+
+    _beforeMount(cfg: IHTMLCombinedOptions, context: any, receivedState: any): Promise<any> {
         this.onServer = typeof window === 'undefined';
         this.isCompatible = cfg.compat;
         this.initState(receivedState || cfg);
@@ -57,8 +70,9 @@ class HTML extends Control {
         this.appRoot = cfg.appRoot || appData.appRoot || (cfg.builder ? '/' : constants.appRoot);
 
         this.RUMEnabled = cfg.RUMEnabled || appData.RUMEnabled || false;
-        this.pageName = cfg.pageName || appData.pageName || false;
+        this.pageName = cfg.pageName || appData.pageName || '';
 
+        // @ts-ignore
         this.staticDomains = cfg.staticDomains || appData.staticDomains || constants.staticDomains || '[]';
         if (typeof this.staticDomains !== 'string') {
             this.staticDomains = '[]';
