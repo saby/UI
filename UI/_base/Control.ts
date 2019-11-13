@@ -1220,8 +1220,6 @@ Control.prototype._template = template;
 /**
  * @name UI/_base/Control#theme
  * @cfg {String} Название темы. В зависимости от темы загружаются различные таблицы стилей и применяются различные стили к контролу.
- * @variant any Любое значение, переданное контролу.
- * @variant inherited Значение, унаследованное от родителя.
  * @default ''(пустая строка)
  * @example
  * В этом примере Controls.Application и все его дочерние контролы будут иметь стиль темы "carry".
@@ -1238,7 +1236,7 @@ Control.prototype._template = template;
  * </pre>
  * @remark Эта опция наследуется. Если параметр не задан явно, значение параметра наследуется от родительского контрола.
  * Путь к CSS-файлу с параметрами темы определяется автоматически на основе имени темы.
- * CSS-файлы должны быть подготовлены заранее в соответствии с документацией.
+ * CSS-файлы должны быть подготовлены заранее в соответствии с {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/ документацией}.
  * @see Themes
  * @see Inherited options
  */
