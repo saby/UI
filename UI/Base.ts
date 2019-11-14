@@ -1,4 +1,10 @@
-/// <amd-module name="UI/Base" />
+/**
+ * Библиотека базового контрола
+ * @library UI/Base
+ * @includes Control UI/_base/Control
+ * @public
+ * @author Шипин А.А.
+ */
 import {default as Control, IControlOptions, TemplateFunction} from './_base/Control';
 import HTML from './_base/HTML';
 import Document from './_base/Document';
