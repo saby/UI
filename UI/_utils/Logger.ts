@@ -131,7 +131,7 @@ const prepareStack = (data: any): string => {
     * @private
     */
    const _createStack = (control: any, msg: string): string => {
-      let moduleName = control._moduleName;
+      let moduleName = control ? control._moduleName : null;
       let stack;
       let arrow;
       let result = msg;
@@ -140,7 +140,8 @@ const prepareStack = (data: any): string => {
          // для асинхронных контейнеров важен не сам контейнер в стеке, а шаблон внутри
          // сформируем читаемую строку: Controls/Container/Async:template - "MyControl/Base"
          if (moduleName === 'Controls/Container/Async') {
-            const asyncTemplate = control._options.templateName || 'not detected';
+            const opts = control._options; 
+            const asyncTemplate = opts && opts.templateName || 'not detected';
             moduleName += `:template - "${asyncTemplate}"`;
          }
 
