@@ -1177,8 +1177,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
 
       if (cfg.iWantBeWS3) {
-         const makeInstanceCompatible = require('Core/helpers/Hcontrol/makeInstanceCompatible');
-         makeInstanceCompatible(ctr, cfg);
+         if (require.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
+            const makeInstanceCompatible = require('Core/helpers/Hcontrol/makeInstanceCompatible');
+            makeInstanceCompatible(ctr, cfg);
+         }
       }
 
       ctr.mountToDom(ctr._container, cfg, ctor);
