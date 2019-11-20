@@ -46,7 +46,9 @@ export function restoreFocus(control: any, action: Function): void {
    environment._restoreFocusState = false;
 
    // для совместимости, фокус устанавливаелся через старый механизм setActive, нужно восстановить фокус после _rebuild
-   if (control.__$focusing && !control.isDestroyed()) {
+   // проверяю на control._mounted, _rebuild сейчас не синхронный, он не гарантирует что асинхронные ветки перерисовалис
+   // ь
+   if (control.__$focusing && !control.isDestroyed() && control._mounted) {
       control.activate();
       // до синхронизации мы сохранили __$focusing - фокусируемый элемент, а после синхронизации здесь фокусируем его.
       // если не нашли фокусируемый элемент - значит в доме не оказалось этого элемента.
