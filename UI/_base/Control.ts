@@ -492,8 +492,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    destroy(): void {
-      this._destroyed = true;
-
       // освобождаем сложные реактивные свойства, чтобы их вновь можно было регистрировать как реактивные
       // для других экземпляров
       ReactiveObserver.releaseProperties(this);
@@ -511,18 +509,21 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
             this.__beforeUnmount();
             Synchronizer.cleanControlDomLink(this._container, this);
          }
-         // Избегаем утечки контролов по замыканию
-         //this.saveFullContext = EMPTY_FUNC;
-         //this._saveContextObject = EMPTY_FUNC;
-         //this.context = EMPTY_OBJ;
-         //this.saveInheritOptions = EMPTY_FUNC;
-         //this._saveEnvironment = EMPTY_FUNC;
-         //this._getEnvironment = EMPTY_FUNC;
-         //this._notify = EMPTY_FUNC;
-         this._forceUpdate = EMPTY_FUNC;
-         //this._getMarkup = EMPTY_FUNC;
       } catch (error) {
          Logger.lifeError('_beforeUnmount', this, error);
+      } finally {
+          this._destroyed = true;
+
+          // Избегаем утечки контролов по замыканию
+          //this.saveFullContext = EMPTY_FUNC;
+          //this._saveContextObject = EMPTY_FUNC;
+          //this.context = EMPTY_OBJ;
+          //this.saveInheritOptions = EMPTY_FUNC;
+          //this._saveEnvironment = EMPTY_FUNC;
+          //this._getEnvironment = EMPTY_FUNC;
+          //this._notify = EMPTY_FUNC;
+          this._forceUpdate = EMPTY_FUNC;
+          //this._getMarkup = EMPTY_FUNC;
       }
    }
 
