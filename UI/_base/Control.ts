@@ -989,6 +989,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    /**
     * Хук жизненного цикла контрола. Вызывается синхронно после применения измененной верстки контрола.
     *
+    * @param {Object} oldOptions Опции контрола до обновления.
+    * Текущие опции можно найти в this._options.
+    * @param {Object} oldContext Контекст контрола до обновления.
+    * Текущий контекст можно найти в this._context.
     * @remark На этом этапе вы получаете доступ к отрисованной верстке.
     * Жизненный хук используется в случае, если не подходит _afterUpdate для некоторых ускорений.
     * Например, если после отрисовки необходимо выполнить корректировку положения скролла (вовзрат на прежнее положение),
@@ -1008,7 +1012,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
     * @private
     */
-   protected _afterRender(): void {
+   protected _afterRender(oldOptions?: TOptions, oldContext?: any): void {
       // Do
    }
 
