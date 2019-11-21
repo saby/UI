@@ -1149,7 +1149,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          cfg.iWantBeWS3 = true;
          cfg.element = domElement;
       }
-      cfg._$createdFromCode = true;
 
       startApplication();
       // @ts-ignore
@@ -1173,6 +1172,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       ctr._container = domElement;
       Focus.patchDom(domElement, cfg);
       ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
+      ctr._$createdFromCode = true;
 
       if (cfg.iWantBeWS3) {
          if (require.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
