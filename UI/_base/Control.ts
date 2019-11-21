@@ -791,9 +791,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
       const cssResult = this._manageStyles(opts.theme);
       if (cssResult.then) {
-         if (!opts.iWantBeWS3) {
-            resultBeforeMount = Promise.all([cssResult, resultBeforeMount]);
-         }
+         resultBeforeMount = Promise.all([cssResult, resultBeforeMount]);
       }
 
       this._$resultBeforeMount = resultBeforeMount;
