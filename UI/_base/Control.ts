@@ -22,6 +22,7 @@ import * as Markup from 'View/Executor/Markup';
 import * as Vdom from 'Vdom/Vdom';
 import * as DevtoolsHook from 'Vdom/DevtoolsHook';
 import * as FocusLib from 'UI/Focus';
+import * as AppEnv from 'Application/Env';
 import startApplication from 'UI/_base/startApplication';
 
 // @ts-ignore
@@ -79,7 +80,6 @@ const EMPTY_FUNC = function () { };
 // tslint:disable-next-line
 const EMPTY_OBJ: object = {};
 
-const WAIT_TIMEOUT = 20000;
 // This timeout is needed for loading control css.
 // If we can not load css file we want to continue building control without blocking it by throwing an error.
 // IE browser only needs more than 5 sec to load so we increased timeout up to 30 sec.
@@ -714,6 +714,69 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return undefined;
    }
 
+   private _resultBeforeMount(resultBeforeMount: Promise<void | TState>, time: number): Promise<void | TState> | Promise<void> | void {
+      return new Promise((resolve, reject) => {
+         let timeout = 0;
+         resultBeforeMount.then(
+             (result) => {
+                if (!timeout) {
+                   timeout = 1;
+                   resolve(result);
+                }
+                return result;
+             },
+             (error) => {
+                if (!timeout) {
+                   timeout = 1;
+                   reject(error);
+                }
+                return error;
+             }
+         );
+         if (time > 0){
+            setTimeout(() => {
+               if (!timeout) {
+                  /* Change _template and _afterMount
+                  *  if execution was longer than 2 sec
+                  */
+                  const message = `Promise, который вернули из метода _beforeMount контрола ${this._moduleName} ` +
+                      `не завершился за ${time} миллисекунд. ` +
+                      `Шаблон контрола не будет построен на сервере.`
+                  Logger.warn(message, this);
+
+                  timeout = 1;
+                  resolve(false);
+                  // @ts-ignore
+                  require(['View/Executor/TClosure'], (thelpers) => {
+                     // @ts-ignore
+                     this._originTemplate = this._template;
+                     // @ts-ignore
+                     this._template = function (
+                         data: any,
+                         attr: any,
+                         context: any,
+                         isVdom: boolean,
+                         sets: any
+                     ): any {
+                        return template.apply(this, arguments);
+                     };
+                     // @ts-ignore
+                     this._template.stable = true;
+
+                     // tslint:disable-next-line:only-arrow-functions
+                     this._afterMount = function (): void {
+                        // can be overridden
+                     };
+                  });
+               }
+            }, time);
+         } else {
+            timeout = 1;
+            resolve(false);
+         }
+      });
+   }
+
    _beforeMountLimited(opts: TOptions): Promise<TState> | Promise<void> | void {
       // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
       // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
@@ -727,60 +790,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
       if (typeof window === 'undefined') {
          if (resultBeforeMount && resultBeforeMount.callback) {
-            resultBeforeMount = new Promise((resolve, reject) => {
-               let timeout = 0;
-               resultBeforeMount.then(
-                  (result) => {
-                     if (!timeout) {
-                        timeout = 1;
-                        resolve(result);
-                     }
-                     return result;
-                  },
-                  (error) => {
-                     if (!timeout) {
-                        timeout = 1;
-                        reject(error);
-                     }
-                     return error;
-                  }
-               );
-               setTimeout(() => {
-                  if (!timeout) {
-                     /* Change _template and _afterMount
-                     *  if execution was longer than 2 sec
-                     */
-                     const message = `Promise, который вернули из метода _beforeMount контрола ${this._moduleName}` +
-                        `не завершился за ${WAIT_TIMEOUT} миллисекунд.` +
-                        `Шаблон контрола не будет построен.`
-                     Logger.error(message, this);
-
-                     timeout = 1;
-                     // @ts-ignore
-                     require(['View/Executor/TClosure'], (thelpers) => {
-                        // @ts-ignore
-                        this._originTemplate = this._template;
-                        // @ts-ignore
-                        this._template = function (
-                           data: any,
-                           attr: any,
-                           context: any,
-                           isVdom: boolean,
-                           sets: any
-                        ): any {
-                           return template.apply(this, arguments);
-                        };
-                        // @ts-ignore
-                        this._template.stable = true;
-                        // tslint:disable-next-line:only-arrow-functions
-                        this._afterMount = function (): void {
-                           // can be overridden
-                        };
-                        resolve(false);
-                     });
-                  }
-               }, WAIT_TIMEOUT);
-            });
+            let time = AppEnv.getStore('HeadData').ssrWaitTimeManager();
+            resultBeforeMount = this._resultBeforeMount(resultBeforeMount, time);
          }
       }
 
