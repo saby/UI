@@ -2,7 +2,7 @@
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesController');
 // @ts-ignore
-import { cookie } from 'Env/Env';
+import {cookie, IoC} from 'Env/Env';
 // @ts-ignore
 import { DepsCollector, ICollectedFiles } from './DepsCollector';
 // @ts-ignore
@@ -69,6 +69,9 @@ class HeadData {
     private resolve: Function = null;
     private renderPromise: Promise<any> = null;
 
+    private ssrWaitTime: number = 4000;
+    private ssrEndTime: number = null;
+
     constructor() {
         this.renderPromise = new Promise((resolve) => {
             this.resolve = resolve;
@@ -78,6 +81,8 @@ class HeadData {
         this.additionalDeps = {};
         this.themesActive = true;
         this.isDebug = HeadData.isDebug();
+
+        this.ssrEndTime = Date.now() + this.ssrWaitTime;
     }
 
     /* toDO: StateRec.register */
@@ -85,6 +90,14 @@ class HeadData {
         this.depComponentsMap[componentName] = true;
         if (needRequire) {
             this.additionalDeps[componentName] = true;
+        }
+    }
+
+    ssrWaitTimeManager(): number {
+        if (Date.now() < this.ssrEndTime) {
+            return this.ssrEndTime - Date.now();
+        } else {
+            return 0;
         }
     }
 
