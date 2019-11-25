@@ -723,7 +723,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       let resultBeforeMount = this._beforeMount.apply(this, arguments);
 
       // _reactiveStart means starting of monitor change in properties
-      this._reactiveStart = true;
+      // prevent start reactive properties if beforeMount return Promise.
+      // Reactive properties will be started in Synchronizer
+      this._reactiveStart = !resultBeforeMount ? true : false;
 
       if (typeof window === 'undefined') {
          if (resultBeforeMount && resultBeforeMount.callback) {
