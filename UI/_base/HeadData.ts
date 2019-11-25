@@ -69,7 +69,7 @@ class HeadData {
     private resolve: Function = null;
     private renderPromise: Promise<any> = null;
 
-    private ssrWaitTime: number = 4000;
+    private ssrWaitTime: number = 10000;
     private ssrEndTime: number = null;
 
     constructor() {
