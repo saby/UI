@@ -192,6 +192,10 @@ function getContainerWithControlNode(element: Element): Element {
    return element;
 }
 
+function checkEnableScreenKeyboard(): boolean {
+   return detection.isMobilePlatform || detection.retailOffline;
+}
+
 /**
  * Moves focus to a specific HTML or SVG element
  */
@@ -215,7 +219,7 @@ function focusInner(
    // поля ввода), и не для любого вызова activate а только для тех вызовов, когда эта поведение
    // необходимо. Например, при открытии панели не надо фокусировать поля ввода
    // на мобильных устройствах.
-   if (!cfg.enableScreenKeyboard && detection.isMobilePlatform) {
+   if (!cfg.enableScreenKeyboard && checkEnableScreenKeyboard()) {
       // если попали на поле ввода, нужно взять его родительский элемент и фокусировать его
       if (checkInput(element)) {
          element = getContainerWithControlNode(element);
