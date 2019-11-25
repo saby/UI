@@ -260,6 +260,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          res = this._template(this, attributes, rootKey, isVdom);
          if (res) {
             if (isVdom) {
+               if (res.length !== 1) {
+                  const message = `There should be only one root element in control markup. Got ${res.length} root(s) in "${this._moduleName}"`;
+                  Logger.error(message, this);
+               }
                for (let k = 0; k < res.length; k++) {
                   if (res[k]) {
                      return res[k];
@@ -1238,9 +1242,9 @@ Control.prototype._template = template;
  * </pre>
  * @remark
  * default — это тема оформления "по умолчанию", которая распространяется вместе с исходным кодом контролов Wasaby и используется для их стилевого оформления.
- * 
+ *
  * Когда значение опции не задано явно, оно будет взято от родительского контрола. Это продемонстрировано в примере.
- * 
+ *
  * Подробнее о работе с темами оформления читайте {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/ здесь}.
  */
 
