@@ -1,4 +1,10 @@
-/// <amd-module name="UI/Base" />
+/**
+ * Библиотека базового контрола
+ * @library UI/Base
+ * @includes Control UI/_base/Control
+ * @public
+ * @author Шипин А.А.
+ */
 import {default as Control, IControlOptions, TemplateFunction} from './_base/Control';
 import HTML from './_base/HTML';
 import Document from './_base/Document';
@@ -12,6 +18,8 @@ import {DepsCollector} from './_base/DepsCollector';
 
 //@ts-ignore
 import BaseRoute = require('wml!UI/_base/Route');
+import {IHTMLOptions, IHTML} from './_base/interface/IHTML';
+import {IRootTemplateOptions, IRootTemplate} from './_base/interface/IRootTemplate';
 import Creator, { async as AsyncCreator } from './_base/Creator';
 export { default as startApplication } from 'UI/_base/startApplication';
 
@@ -29,5 +37,9 @@ export {
     AsyncCreator,
     DepsCollector,
     HeadData,
-    TemplateFunction
+    TemplateFunction,
+    IHTMLOptions,
+    IHTML,
+    IRootTemplateOptions,
+    IRootTemplate
 };

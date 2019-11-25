@@ -993,6 +993,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    /**
     * Хук жизненного цикла контрола. Вызывается синхронно после применения измененной верстки контрола.
     *
+    * @param {Object} oldOptions Опции контрола до обновления.
+    * Текущие опции можно найти в this._options.
+    * @param {Object} oldContext Контекст контрола до обновления.
+    * Текущий контекст можно найти в this._context.
     * @remark На этом этапе вы получаете доступ к отрисованной верстке.
     * Жизненный хук используется в случае, если не подходит _afterUpdate для некоторых ускорений.
     * Например, если после отрисовки необходимо выполнить корректировку положения скролла (вовзрат на прежнее положение),
@@ -1012,7 +1016,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
     * @private
     */
-   protected _afterRender(): void {
+   protected _afterRender(oldOptions?: TOptions, oldContext?: any): void {
       // Do
    }
 
@@ -1230,15 +1234,11 @@ Control.prototype._template = template;
 
 /**
  * @name UI/_base/Control#theme
- * @cfg {String} Название темы. В зависимости от темы загружаются различные таблицы стилей и применяются различные стили к контролу.
- * @variant any Любое значение, переданное контролу.
- * @variant inherited Значение, унаследованное от родителя.
- * @default ''(пустая строка)
+ * @cfg {String} Название темы оформления. В зависимости от темы загружаются различные таблицы стилей и применяются различные стили к контролу.
+ * @default default
  * @example
- * В этом примере Controls.Application и все его дочерние контролы будут иметь стиль темы "carry".
- * Однако, Carry.Head будет иметь тему "presto".
- * Если вы поместите контролы в Carry.Head и не укажите опцию theme, они унаследуют ее значение от родителей
- * и тоже построятся в теме "presto".
+ * В следующем примере {@link Controls/Application} и все его дочерние контролы будут иметь стиль темы оформления "carry". Однако контрол Carry.Head будет иметь тему "presto".
+ * Если вы поместите контролы в Carry.Head и не укажите опцию theme, они унаследуют ее значение от родителей и тоже построятся в теме "presto".
  * <pre>
  *    <Controls.Application theme="carry">
  *       <Carry.Head theme="presto" />
@@ -1247,11 +1247,12 @@ Control.prototype._template = template;
  *       </Carry.Workspace>
  *    </Controls.Application>
  * </pre>
- * @remark Эта опция наследуется. Если параметр не задан явно, значение параметра наследуется от родительского контрола.
- * Путь к CSS-файлу с параметрами темы определяется автоматически на основе имени темы.
- * CSS-файлы должны быть подготовлены заранее в соответствии с документацией.
- * @see Themes
- * @see Inherited options
+ * @remark
+ * default — это тема оформления "по умолчанию", которая распространяется вместе с исходным кодом контролов Wasaby и используется для их стилевого оформления.
+ * 
+ * Когда значение опции не задано явно, оно будет взято от родительского контрола. Это продемонстрировано в примере.
+ * 
+ * Подробнее о работе с темами оформления читайте {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/ здесь}.
  */
 
 /*
