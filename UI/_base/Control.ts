@@ -520,6 +520,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          //this._getEnvironment = EMPTY_FUNC;
          //this._notify = EMPTY_FUNC;
          this._forceUpdate = EMPTY_FUNC;
+         this._beforeUnmount = EMPTY_FUNC;
          //this._getMarkup = EMPTY_FUNC;
       } catch (error) {
          Logger.lifeError('_beforeUnmount', this, error);
