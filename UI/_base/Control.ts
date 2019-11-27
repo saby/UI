@@ -520,6 +520,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          //this._getEnvironment = EMPTY_FUNC;
          //this._notify = EMPTY_FUNC;
          this._forceUpdate = EMPTY_FUNC;
+         this._beforeUnmount = EMPTY_FUNC;
          //this._getMarkup = EMPTY_FUNC;
       } catch (error) {
          Logger.lifeError('_beforeUnmount', this, error);
@@ -785,14 +786,17 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
       let resultBeforeMount = this._beforeMount.apply(this, arguments);
 
-      // _reactiveStart means starting of monitor change in properties
-      this._reactiveStart = true;
-
-      if (typeof window === 'undefined') {
-         if (resultBeforeMount && resultBeforeMount.callback) {
+      // prevent start reactive properties if beforeMount return Promise.
+      // Reactive properties will be started in Synchronizer
+      if (resultBeforeMount && resultBeforeMount.callback) {
+         //start server side render
+         if (typeof window === 'undefined') {
             let time = AppEnv.getStore('HeadData').ssrWaitTimeManager();
             resultBeforeMount = this._resultBeforeMount(resultBeforeMount, time);
          }
+      } else {
+         // _reactiveStart means starting of monitor change in properties
+         this._reactiveStart = true;
       }
 
       const cssResult = this._manageStyles(opts.theme);
@@ -1249,9 +1253,9 @@ Control.prototype._template = template;
  * </pre>
  * @remark
  * default — это тема оформления "по умолчанию", которая распространяется вместе с исходным кодом контролов Wasaby и используется для их стилевого оформления.
- * 
+ *
  * Когда значение опции не задано явно, оно будет взято от родительского контрола. Это продемонстрировано в примере.
- * 
+ *
  * Подробнее о работе с темами оформления читайте {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/ здесь}.
  */
 
