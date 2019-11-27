@@ -11,22 +11,22 @@ define([
       describe('UI/Base:HeadData', () => {
          beforeEach(() => {
             headData = new Base.HeadData;
-            headData.ssrEndTime = Date.now() + 1000;
+            headData.ssrEndTime = Date.now() + 40;
          });
 
          it('Execute time is below time limit', (done) => {
             setTimeout( () => {
                assert.isAbove(headData.ssrWaitTimeManager(), 0, 'Ok');
                done();
-            }, 500);
-         }).timeout(550);
+            }, 15);
+         }).timeout(25);
 
          it('Execute time is above time limit', (done) => {
             setTimeout(() => {
                assert.strictEqual(headData.ssrWaitTimeManager(), 0, 'Ok');
                done();
-            }, 1050);
-         }).timeout(1100);
+            }, 40);
+         }).timeout(50);
       });
 
       describe('UI/Base:Control', function() {
@@ -58,7 +58,7 @@ define([
             before(() => {
                inst = new Base.Control();
                headData = new Base.HeadData;
-               globalTimer = 1000;
+               globalTimer = 40;
             });
 
             it('Resolve Promise time is 0', (done) => {
@@ -80,7 +80,7 @@ define([
                beforeMount = new Promise((resolve) => {
                   setTimeout(() => {
                      resolve(true);
-                  }, 500);
+                  }, 20);
                });
                resultPromise = Promise.resolve(inst._resultBeforeMount(beforeMount, globalTimer));
                setTimeout(() => {
@@ -95,7 +95,7 @@ define([
                      beforeMount = new Promise((resolve) => {
                         setTimeout(() => {
                            resolve(true);
-                        }, 1100);
+                        }, 50);
                      });
                      resultPromise = Promise.resolve(inst._resultBeforeMount(beforeMount, globalTimer));
                      setTimeout(() => {
@@ -115,11 +115,11 @@ define([
             before(() => {
                inst = new Base.Control();
                headData = new Base.HeadData;
-               globalTimer = 1000;
+               globalTimer = 40;
             });
 
             beforeEach(() => {
-               waitTime = 200;
+               waitTime = 10;
             });
 
             for (let i = 1; i < 6; i++) {
