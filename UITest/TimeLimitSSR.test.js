@@ -18,8 +18,8 @@ define([
             setTimeout( () => {
                assert.isAbove(headData.ssrWaitTimeManager(), 0, 'Ok');
                done();
-            }, 15);
-         }).timeout(25);
+            }, 10);
+         }).timeout(30);
 
          it('Execute time is above time limit', (done) => {
             setTimeout(() => {
@@ -54,7 +54,7 @@ define([
             }
          });
 
-         describe('Single Promise', function() {
+         describe('Promise in _beforeMount', function() {
             before(() => {
                inst = new Base.Control();
                headData = new Base.HeadData;
@@ -110,51 +110,6 @@ define([
                }).timeout(globalTimer);
 
          });
-
-         describe('Chained Promise', function () {
-            before(() => {
-               inst = new Base.Control();
-               headData = new Base.HeadData;
-               globalTimer = 40;
-            });
-
-            beforeEach(() => {
-               waitTime = 10;
-            });
-
-            for (let i = 1; i < 6; i++) {
-               it(`Resolve Promise ${i} times`, (done) => {
-
-                  if(!fromNode) {
-                     waitTime = waitTime * i;
-                     beforeMount = new Promise((resolve) => {
-                        setTimeout(() => {
-                           resolve(true);
-                        }, waitTime);
-                     });
-                     resultPromise = Promise.resolve(inst._resultBeforeMount(beforeMount, globalTimer));
-                     setTimeout(() => {
-                        resultPromise.then((value) => {
-                           if (globalTimer > 0) {
-                              assert.isTrue(value);
-                           } else {
-                              assert.isFalse(value);
-                           }
-                        });
-                        globalTimer -= waitTime;
-                        if (globalTimer < 0) {
-                           globalTimer = 0;
-                        }
-                        done();
-                     }, globalTimer);
-                  }else{
-                     done();
-                  }
-               }).timeout(globalTimer);
-
-            }
-         });
-
       });
    });
 });
