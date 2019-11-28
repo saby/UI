@@ -787,6 +787,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          if (typeof window === 'undefined') {
             resultBeforeMount = this._resultBeforeMount(resultBeforeMount);
          }
+         resultBeforeMount.then(() => {
+            this._reactiveStart = true;
+         })
       } else {
          // _reactiveStart means starting of monitor change in properties
          this._reactiveStart = true;
