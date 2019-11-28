@@ -3,6 +3,9 @@ import {IControlOptions} from "../Control";
 /**
  * @interface UI/_base/interface/IHTML
 */
+export interface IHTML {
+    readonly '[UI/_base/interface/IHTML]': boolean
+};
 
 /**
  * @name UI/_base/interface/IHTML#head
@@ -108,11 +111,6 @@ import {IControlOptions} from "../Control";
  * @name UI/_base/interface/IHTML#width
  * @cfg {String} Used by Controls.popup:Manager
 */
-
-
-export interface IHTML {
-    readonly '[UI/_base/interface/IHTML]': boolean
-};
 
 export interface IHTMLOptions extends IControlOptions {
     head?: Array<Function> | Function,
