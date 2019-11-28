@@ -787,7 +787,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          if (typeof window === 'undefined') {
             resultBeforeMount = this._resultBeforeMount(resultBeforeMount);
          }
-         resultBeforeMount.then((result) => {
+         resultBeforeMount.then(() => {
             this._reactiveStart = true;
          })
       } else {
