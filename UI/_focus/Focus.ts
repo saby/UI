@@ -193,7 +193,7 @@ function getContainerWithControlNode(element: Element): Element {
 }
 
 function checkEnableScreenKeyboard(): boolean {
-   return detection.isMobilePlatform || detection.retailOffline;
+   return detection.isMobilePlatform;
 }
 
 /**
