@@ -10,7 +10,7 @@ class Simple extends Control {
 
     private _state: boolean = false;
     private _isClear: boolean = false;
-    private _timeOut: number = 2000;
+    private _timeOut: number = 500;
     private _actionClick: number = 0;
 
     public _beforeMount() {

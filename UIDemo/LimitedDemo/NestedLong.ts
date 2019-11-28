@@ -9,7 +9,7 @@ class NestedLong extends Control {
     public _template: Function = template;
 
     private _state: boolean = false;
-    private _timeOut: number = 7000;
+    private _timeOut: number = 5000;
 
     public _beforeMount() {
         return new Promise((resolve) => {

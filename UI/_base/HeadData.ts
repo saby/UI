@@ -26,7 +26,7 @@ function joinPaths(arr: string[]): string {
 let bundles;
 let modDeps;
 let contents;
-const ssrWaitTime = 10000;
+const ssrWaitTime = 20000;
 // Need these try-catch because:
 // 1. We don't need to load these files on client
 // 2. We don't have another way to check if these files exists on server
@@ -68,7 +68,6 @@ class HeadData {
 
     private resolve: Function = null;
     private renderPromise: Promise<any> = null;
-
     private ssrEndTime: number = null;
 
     constructor() {
@@ -80,7 +79,6 @@ class HeadData {
         this.additionalDeps = {};
         this.themesActive = true;
         this.isDebug = HeadData.isDebug();
-
         this.ssrEndTime = Date.now() + ssrWaitTime;
     }
 

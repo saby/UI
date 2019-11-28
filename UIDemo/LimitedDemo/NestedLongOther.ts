@@ -1,15 +1,15 @@
-/// <amd-module name="UIDemo/LimitedDemo/Nested" />
+/// <amd-module name="UIDemo/LimitedDemo/NestedLongOther" />
 
 import {Control} from 'UI/Base';
 
 // @ts-ignore
-import template = require('wml!UIDemo/LimitedDemo/Nested');
+import template = require('wml!UIDemo/LimitedDemo/NestedLongOther');
 
-class Nested extends Control {
+class NestedLongOther extends Control {
     public _template: Function = template;
 
     private _state: boolean = false;
-    private _timeOut: number = 19000;
+    private _timeOut: number = 1000;
 
     public _beforeMount() {
         return new Promise((resolve) => {
@@ -21,6 +21,6 @@ class Nested extends Control {
     }
 }
 
-Nested._styles = ['UIDemo/LimitedDemo/Nested'];
+NestedLongOther._styles = ['UIDemo/LimitedDemo/NestedLongOther'];
 
-export = Nested;
+export = NestedLongOther;

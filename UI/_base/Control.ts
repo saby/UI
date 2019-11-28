@@ -734,47 +734,45 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                 return error;
              }
          );
-         if (time > 0){
-            setTimeout(() => {
-               if (!timeout) {
-                  /* Change _template and _afterMount
-                  *  if execution was longer than 2 sec
-                  */
-                  const message = `Promise, который вернули из метода _beforeMount контрола ${this._moduleName} ` +
-                      `не завершился за ${time} миллисекунд. ` +
-                      `Шаблон контрола не будет построен на сервере.`
-                  Logger.warn(message, this);
-
-                  timeout = 1;
-                  resolve(false);
-                  // @ts-ignore
-                  require(['View/Executor/TClosure'], (thelpers) => {
-                     // @ts-ignore
-                     this._originTemplate = this._template;
-                     // @ts-ignore
-                     this._template = function (
-                         data: any,
-                         attr: any,
-                         context: any,
-                         isVdom: boolean,
-                         sets: any
-                     ): any {
-                        return template.apply(this, arguments);
-                     };
-                     // @ts-ignore
-                     this._template.stable = true;
-
-                     // tslint:disable-next-line:only-arrow-functions
-                     this._afterMount = function (): void {
-                        // can be overridden
-                     };
-                  });
-               }
-            }, time);
-         } else {
-            timeout = 1;
-            resolve(false);
+         if (time === 0){
+            return resolve(false);
          }
+         setTimeout(() => {
+            if (!timeout) {
+               /* Change _template and _afterMount
+               *  if execution was longer than 2 sec
+               */
+               const message = `Promise, который вернули из метода _beforeMount контрола ${this._moduleName} ` +
+                   `не завершился за ${time} миллисекунд. ` +
+                   `Шаблон контрола не будет построен на сервере.`
+               Logger.warn(message, this);
+
+               timeout = 1;
+               resolve(false);
+               // @ts-ignore
+               require(['View/Executor/TClosure'], (thelpers) => {
+                  // @ts-ignore
+                  this._originTemplate = this._template;
+                  // @ts-ignore
+                  this._template = function (
+                      data: any,
+                      attr: any,
+                      context: any,
+                      isVdom: boolean,
+                      sets: any
+                  ): any {
+                     return template.apply(this, arguments);
+                  };
+                  // @ts-ignore
+                  this._template.stable = true;
+
+                  // tslint:disable-next-line:only-arrow-functions
+                  this._afterMount = function (): void {
+                     // can be overridden
+                  };
+               });
+            }
+         }, time);
       });
    }
 
