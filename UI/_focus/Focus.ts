@@ -4,11 +4,15 @@
  * Utility module that provides a cross-browser way to move focus
  * to specific elements
  */
-// @ts-ignore
-import { detection, IoC } from 'Env/Env';
+
+//@ts-ignore
+import { detection } from 'Env/Env';
+
+//@ts-ignore
+import { Logger } from 'UI/Utils';
 
 import { collectScrollPositions } from './_ResetScrolling';
-import * as ElementFinder from "./ElementFinder";
+import * as ElementFinder from './ElementFinder';
 
 /**
  * make foreignObject instance. using for hack with svg focusing.
@@ -106,10 +110,12 @@ function checkFocused(element: Element): void {
          if (reason) {
             const elementString = element.outerHTML.slice(0, element.outerHTML.indexOf('>') + 1);
             const currentElementString = currentElement.outerHTML.slice(0, currentElement.outerHTML.indexOf('>') + 1);
-            IoC.resolve('ILogger').warn('UI/Focus:focus', 'Can\'t focus element because of this element or it\'s parent ' +
-               'has "' + reason + '" style! maybe you need use ws-hidden or ws-invisible classes for change element ' +
-               'visibility (in old ws3 controls case). Please check why invisible element is focusing. ' +
-               'focusing element is "' + elementString + '", invisible element is "' + currentElementString + '"');
+            const message = '[UI/_focus/Focus:checkFocused] - Can\'t focus element because of this element or it\'s parent ' +
+                            `has ${reason} style! maybe you need use ws-hidden or ws-invisible classes for change element ` +
+                            'visibility (in old ws3 controls case). Please check why invisible element is focusing.' +
+                            `Focusing element is ${elementString}, invisible element is ${currentElementString}.`;
+            Logger.warn(message, currentElement);
+
             break;
          }
          currentElement = currentElement.parentElement;
@@ -186,6 +192,10 @@ function getContainerWithControlNode(element: Element): Element {
    return element;
 }
 
+function checkEnableScreenKeyboard(): boolean {
+   return detection.isMobilePlatform;
+}
+
 /**
  * Moves focus to a specific HTML or SVG element
  */
@@ -209,7 +219,7 @@ function focusInner(
    // поля ввода), и не для любого вызова activate а только для тех вызовов, когда эта поведение
    // необходимо. Например, при открытии панели не надо фокусировать поля ввода
    // на мобильных устройствах.
-   if (!cfg.enableScreenKeyboard && detection.isMobilePlatform) {
+   if (!cfg.enableScreenKeyboard && checkEnableScreenKeyboard()) {
       // если попали на поле ввода, нужно взять его родительский элемент и фокусировать его
       if (checkInput(element)) {
          element = getContainerWithControlNode(element);
@@ -259,8 +269,8 @@ function _initFocus() {
       nativeFocus = HTMLElement.prototype.focus;
       HTMLElement.prototype.focus = function replacedFocus(): void {
          if (!focusingState) {
-            IoC.resolve('ILogger').warn('UI/Focus:focus', '' +
-               'Native focus is called! Please use special focus method (UI/Focus:focus)');
+            const message = '[UI/_focus/Focus:_initFocus]" - Native focus is called! Please use special focus method (UI/Focus:focus)';
+            Logger.warn(message);
          }
 
          focus(this, {
