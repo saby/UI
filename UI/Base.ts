@@ -5,7 +5,8 @@
  * @public
  * @author Шипин А.А.
  */
-import {default as Control, IControlOptions, TemplateFunction} from './_base/Control';
+import {default as Control, TemplateFunction} from './_base/Control';
+import {default as IControl, IControlOptions, IControlChildren} from './_base/interface/IControl';
 import HTML from './_base/HTML';
 import Document from './_base/Document';
 import StateReceiver from './_base/StateReceiver';
@@ -24,8 +25,10 @@ import Creator, { async as AsyncCreator } from './_base/Creator';
 export { default as startApplication } from 'UI/_base/startApplication';
 
 export {
+    IControl,
     Control,
     IControlOptions,
+    IControlChildren,
     HTML,
     Document,
     StateReceiver,

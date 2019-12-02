@@ -8,6 +8,7 @@ import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
 import { activate } from 'UI/Focus';
 import { Logger } from 'UI/Utils';
+import IControl, { IControlChildren, IControlOptions } from './interface/IControl';
 
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesControllerNew');
@@ -85,10 +86,6 @@ const WAIT_TIMEOUT = 20000;
 // IE browser only needs more than 5 sec to load so we increased timeout up to 30 sec.
 const WRAP_TIMEOUT = 30000;
 
-export interface IControlOptions {
-   readOnly?: boolean;
-   theme?: string;
-}
 /**
  * @class UI/_base/Control
  * @author Шипин А.А.
@@ -96,7 +93,7 @@ export interface IControlOptions {
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
-export default class Control<TOptions extends IControlOptions = {}, TState = void> {
+export default class Control<TOptions extends IControlOptions = {}, TState = void, TChildren = IControlChildren> implements IControl {
    private _mounted: boolean = false;
    private _unmounted: boolean = false;
    private _destroyed: boolean = false;
@@ -131,7 +128,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    // Render function for text generator
    render: Function = null;
 
-   _children: Record<string, Control<TOptions, TState> | HTMLElement> = null;
+   _children: TChildren = null;
 
    constructor(cfg: any) {
       if (!cfg) {
@@ -1249,9 +1246,9 @@ Control.prototype._template = template;
  * </pre>
  * @remark
  * default — это тема оформления "по умолчанию", которая распространяется вместе с исходным кодом контролов Wasaby и используется для их стилевого оформления.
- * 
+ *
  * Когда значение опции не задано явно, оно будет взято от родительского контрола. Это продемонстрировано в примере.
- * 
+ *
  * Подробнее о работе с темами оформления читайте {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/ здесь}.
  */
 
