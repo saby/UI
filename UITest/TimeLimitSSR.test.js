@@ -36,24 +36,6 @@ define([
             return this || (0, eval)('this');
          }());
 
-         before((done) => {
-            if (fromNode) {
-               require(['jsdom'], function(jsdom) {
-                  var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
-                  global.window = browser.window;
-                  done();
-               });
-            } else {
-               done();
-            }
-         });
-
-         after(function() {
-            if (fromNode) {
-               delete global.window;
-            }
-         });
-
          describe('Promise in _beforeMount', function() {
             before(() => {
                inst = new Base.Control();
