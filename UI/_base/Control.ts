@@ -788,7 +788,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // Reactive properties will be started in Synchronizer
       if (resultBeforeMount && resultBeforeMount.callback) {
          //start server side render
-         if (typeof window === 'undefined') {
+          // todo проверка на сервис представления
+         if (typeof process !== 'undefined' && !process.versions) {
             let time = AppEnv.getStore('HeadData').ssrWaitTimeManager();
             resultBeforeMount = this._resultBeforeMount(resultBeforeMount, time);
          }
