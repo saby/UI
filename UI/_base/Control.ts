@@ -792,6 +792,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
             let time = AppEnv.getStore('HeadData').ssrWaitTimeManager();
             resultBeforeMount = this._resultBeforeMount(resultBeforeMount, time);
          }
+         resultBeforeMount.then(() => {
+            this._reactiveStart = true;
+         })
       } else {
          // _reactiveStart means starting of monitor change in properties
          this._reactiveStart = true;
