@@ -42,10 +42,12 @@ export function restoreFocus(control: any, action: Function): void {
       // следим за состоянием _savedFocusedElement. хотелось бы делать это в environment в обработчике
       // на focus, но как минимум в IE на вызов фокуса туда не попадеам
       environment.constructor.prototype._savedFocusedElement = document.activeElement;
-
+      
       // Попытаемся восстановить фокус, только если он действительно слетел с контрола, помеченного __$focusing
       // для совместимости, фокус устанавливаелся через старый механизм setActive, нужно восстановить фокус после _rebuild
-      if (control.__$focusing && !control.isDestroyed()) {
+      //проверяю на control._mounted, _rebuild сейчас не синхронный, он не гарантирует что асинхронные ветки
+      // перерисовались
+      if (control.__$focusing && !control.isDestroyed()  && control._mounted) {
          control.activate();
          // до синхронизации мы сохранили __$focusing - фокусируемый элемент, а после синхронизации здесь фокусируем его.
          // если не нашли фокусируемый элемент - значит в доме не оказалось этого элемента.
