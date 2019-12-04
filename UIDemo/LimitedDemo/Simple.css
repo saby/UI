@@ -1,0 +1,34 @@
+body {
+    background: #252525;
+    color: #af5b04;
+}
+.limitedDemo{
+    display: flex;
+    flex-direction: column;
+}
+.limitedDemo__row{
+    display: flex;
+    flex-direction: column;
+}
+.limitedDemo__loaded{
+    color: #1aff8d;
+}
+.limitedDemo__nested{
+    margin: 1em;
+}
+.limitedDemo__counter{
+    font-size: 2em;
+    font-weight: 800;
+    align-self: center;
+}
+.limitedDemo__button{
+    background: #414141;
+    border: 1px solid #af5b04;
+    height: 2em;
+    color: #ffffff;
+    cursor: pointer;
+    margin: 0.5em 0;
+}
+.limitedDemo__button:hover{
+    border: 1px solid #af0404;
+}
