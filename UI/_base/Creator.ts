@@ -37,9 +37,11 @@ export default Control.createControl;
  * Method for asynchronous item creation.
  */
 export async function async(ctor: any, cfg: any, domElement: HTMLElement): Promise<Control> {
+    // @ts-ignore
     return new Promise((resolve, reject) => {
         try {
             const inst = Control.createControl(ctor, cfg, domElement);
+           // @ts-ignore
             const baseAM = inst._afterMount;
 
             // @ts-ignore
