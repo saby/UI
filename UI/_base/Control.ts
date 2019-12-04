@@ -83,7 +83,7 @@ const WAIT_TIMEOUT = 20000;
 // This timeout is needed for loading control css.
 // If we can not load css file we want to continue building control without blocking it by throwing an error.
 // IE browser only needs more than 5 sec to load so we increased timeout up to 30 sec.
-const WAIT_TIMEOUT = 30000;
+const WRAP_TIMEOUT = 30000;
 
 export interface IControlOptions {
    readOnly?: boolean;
