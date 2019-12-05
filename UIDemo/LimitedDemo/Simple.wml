@@ -1,0 +1,15 @@
+<div class="limitedDemo">
+    <button on:click="_clearHandler()" class="limitedDemo__button">Clear</button>
+    <ws:if data="{{!_isClear}}">
+        <div class="limitedDemo__row">
+            <div>I'm Index control. My timeout is <span class="{{ _state && 'limitedDemo__loaded' }}">{{_timeOut}}</span></div>
+            <div>Summary timeout is <span class="{{ _state && 'limitedDemo__summary' }}">{{ _timeOut }}</span></div>
+            <ws:partial template = "UIDemo/LimitedDemo/Nested" timeOut = "{{ _timeOut }}"/>
+<!--            <Controls.Container.Async templateName="UIDemo/LimitedDemo/Nested">-->
+<!--                <ws:templateOptions timeOut = "{{ _timeOut }}" />-->
+<!--            </Controls.Container.Async>-->
+        </div>
+    </ws:if>
+    <button on:click="_actionHandler()" class="limitedDemo__button">Action</button>
+    <div class="limitedDemo__counter">{{ _actionClick }}</div>
+</div>
