@@ -63,8 +63,12 @@ export function notifyActivationEvents(environment, target, relatedTarget, isTab
       return relatedArrayMaker.indexOf(target) !== -1;
    });
 
+   let prevControl = null;
+
    // Меняем состояние у тех компонентов, которые реально потеряли активность
    relatedArrayMaker.find(function(control) {
+      let found = undefined;
+
       if (control !== mutualTarget) {
          let container = control._container;
 
@@ -77,51 +81,73 @@ export function notifyActivationEvents(environment, target, relatedTarget, isTab
             // todo каким-то образом фокус улетает в IE на дочерний элемент, а deactivated зовется на его предке
             // https://online.sbis.ru/opendoc.html?guid=3dceaf87-5f2a-4730-a7bc-febe297649c5
             if (container.contains && container.contains(target)) {
-               return false;
+               found = false;
             }
             // todo если элемент не в доме, не стреляем для контрола deactivated, потому что он уже удален
             // https://online.sbis.ru/opendoc.html?guid=0a8bd5b7-f809-4571-a6cf-ee605870594e
             // тут перерисовывается popup и фокус слетает сам, потом зовут активацию и relatedTarget берется как
             // savedFocusedElement который уже не в доме, потому что он был на попапе который удалили
             if (!document.body.contains(container)) {
-               return false;
+               found = false;
             }
          } else {
             const message = `[UI/_focus/Events:notifyActivationEvents] - Control "${control._moduleName}" has no container!`;
             Logger.warn(message, control);
          }
 
-         control._notify('deactivated', [
-            {
-               // to: arrayMaker[0],
-               // from: relatedArrayMaker[0],
-               isTabPressed: !!isTabPressed,
-               isShiftKey: isTabPressed && isTabPressed.isShiftKey
+         if (found === undefined) {
+            // не стреляем событием для HOC, события сейчас так работают что если
+            // стрельнем событием на контроле, обработчик позовутся и для контрола, и для его хоков.
+            // todo надо удалить этот код, если события исправят этот недочет.
+            if (!prevControl || control._container !== prevControl._container) {
+               control._notify('deactivated', [
+                  {
+                     // to: arrayMaker[0],
+                     // from: relatedArrayMaker[0],
+                     isTabPressed: !!isTabPressed,
+                     isShiftKey: isTabPressed && isTabPressed.isShiftKey
+                  }
+               ]);
+               control._$active = false;
             }
-         ]);
-         control._$active = false;
-         return false;
+            found = false;
+         }
+
+         prevControl = control;
       } else {
-         return true;
+         found = true;
       }
+
+      return found;
    });
 
+   prevControl = null;
    // Меняем состояние у тех компонентов, которые реально получили активность
    arrayMaker.find(function(control) {
+      let found = undefined;
       if (control !== mutualTarget) {
-         control._notify('activated', [
-            {
-               _$to: arrayMaker[0],
-               // from: relatedArrayMaker[0],
-               isTabPressed: !!isTabPressed,
-               isShiftKey: isTabPressed && isTabPressed.isShiftKey
-            }
-         ]);
-         control._$active = true;
-         return false;
+         // не стреляем событием для HOC, события сейчас так работают что если
+         // стрельнем событием на контроле, обработчик позовутся и для контрола, и для его хоков.
+         // todo надо удалить этот код, если события исправят этот недочет.
+         if (!prevControl || control._container !== prevControl._container) {
+            control._notify('activated', [
+               {
+                  _$to: arrayMaker[0],
+                  // from: relatedArrayMaker[0],
+                  isTabPressed: !!isTabPressed,
+                  isShiftKey: isTabPressed && isTabPressed.isShiftKey
+               }
+            ]);
+            control._$active = true;
+         }
+         found = false;
+
+         prevControl = control;
       } else {
-         return true;
+         found = true;
       }
+
+      return found;
    });
 
    // todo обратная совместимость
