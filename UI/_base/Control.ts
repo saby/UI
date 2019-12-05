@@ -80,6 +80,7 @@ const EMPTY_FUNC = function () { };
 // tslint:disable-next-line
 const EMPTY_OBJ: object = {};
 
+const WAIT_TIME = 20000;
 // This timeout is needed for loading control css.
 // If we can not load css file we want to continue building control without blocking it by throwing an error.
 // IE browser only needs more than 5 sec to load so we increased timeout up to 30 sec.
@@ -790,7 +791,13 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          //start server side render
           // todo проверка на сервис представления
          if (typeof process !== 'undefined' && !process.versions) {
-            let time = AppEnv.getStore('HeadData').ssrWaitTimeManager();
+            let time = WAIT_TIME;
+            try {
+               time = AppEnv.getStore('HeadData').ssrWaitTimeManager();
+            }
+            catch (e) {
+
+            }
             resultBeforeMount = this._resultBeforeMount(resultBeforeMount, time);
          }
          resultBeforeMount.then(() => {
