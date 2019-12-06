@@ -1,0 +1,8 @@
+<div class="limitedDemo__nested">
+    <div>I'm Nested control. My timeout is <span class="{{ _state && 'limitedDemo__loaded' }}">{{_timeOut}}</span></div>
+    <div>Summary timeout is <span class="{{ _state && 'limitedDemo__summary' }}">{{ _timeOut + _options.timeOut }}</span></div>
+    <ws:partial template = "UIDemo/LimitedDemo/NestedLong" timeOut = "{{ _timeOut + _options.timeOut }}"/>
+    <Controls.Container.Async templateName="UIDemo/LimitedDemo/NestedLongOther">
+        <ws:templateOptions timeOut = "{{ _timeOut + _options.timeOut }}"/>
+    </Controls.Container.Async>
+</div>
