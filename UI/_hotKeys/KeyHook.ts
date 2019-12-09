@@ -109,19 +109,21 @@ class KeyHook extends Control {
        const parents = this._savedParents;
        this._savedParents = null;
 
-       // при удалении контрола произведем разрегистрацию.
-       if (this._options.defaultActions) {
-          this._options.defaultActions.forEach((action) => {
-             for (let i = 0; i < parents.length; i++) {
-                const parent = parents[i];
-                const curAction = this._actions[action.keyCode];
-                if (parent._$defaultActions && parent._$defaultActions[action.keyCode] === curAction) {
-                   delete parent._$defaultActions[action.keyCode];
-                } else {
-                   break;
+       if (parents) {
+          // при удалении контрола произведем разрегистрацию.
+          if (this._options.defaultActions) {
+             this._options.defaultActions.forEach((action) => {
+                for (let i = 0; i < parents.length; i++) {
+                   const parent = parents[i];
+                   const curAction = this._actions[action.keyCode];
+                   if (parent._$defaultActions && parent._$defaultActions[action.keyCode] === curAction) {
+                      delete parent._$defaultActions[action.keyCode];
+                   } else {
+                      break;
+                   }
                 }
-             }
-          });
+             });
+          }
        }
     }
 }
