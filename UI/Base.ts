@@ -15,6 +15,8 @@ import Start from './_base/Start';
 import HeadController from './_base/HeadController';
 import HeadData from './_base/HeadData';
 import {DepsCollector} from './_base/DepsCollector';
+import SwipeController from './_base/MobileTouchEvent/SwipeController';
+import LongTapController from './_base/MobileTouchEvent/LongTapController';
 
 //@ts-ignore
 import BaseRoute = require('wml!UI/_base/Route');
@@ -38,6 +40,8 @@ export {
     DepsCollector,
     HeadData,
     TemplateFunction,
+    SwipeController,
+    LongTapController,
     IHTMLOptions,
     IHTML,
     IRootTemplateOptions,
