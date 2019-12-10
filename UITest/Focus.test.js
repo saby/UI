@@ -435,6 +435,32 @@ define([
 
                   // assert.strictEqual(document.activeElement, input);
                }
+            },
+            {
+               name: 'no call HTMLElement.focus if focus() on element redefined',
+               async: true,
+               checkFn: function(done) {
+                  assert.notOk(false);
+                  div.innerHTML = '<div id="input" contenteditable="true"></div>';
+                  var input = document.getElementById('input');
+                  var overridedFocusCalled = false;
+                  input.focus = function() { overridedFocusCalled = true };
+                  var originFocus = HTMLElement.prototype.focus;
+                  var nativeFocusCalled = false;
+                  HTMLElement.prototype.focus = function() {
+                     nativeFocusCalled = true;
+                  }
+                  try {
+                     Focus.focus(input);
+                     assert.notOk(nativeFocusCalled);
+                     assert.ok(overridedFocusCalled);
+                     done();
+                  } catch(e) {
+                     done(e);
+                  } finally {
+                     HTMLElement.prototype.focus = originFocus;
+                  }
+               }
             }
          ];
 
