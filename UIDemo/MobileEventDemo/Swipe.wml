@@ -1,0 +1,8 @@
+<div class="container">
+    <div>tapCount: <span>{{ tapCount }}</span></div>
+    <div>swipeCount:  <span>{{ swipeCount }}</span></div>
+    <div on:click="simpleClick()" on:swipe="swipe()" class="lcontainer__button"></div>
+    <Controls.heading:Title caption="swipeOnly" readOnly="{{true}}" fontColorStyle="primary" fontSize="l"  on:swipe="swipe()"/>
+    <Controls.buttons:Button on:click="simpleClick()" caption="tapOnly" class="container__button"/>
+    <Controls.buttons:Button on:swipe="swipe()" caption="swipeOnly" class="container__button"/>
+</div>
