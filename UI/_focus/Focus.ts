@@ -74,19 +74,18 @@ function tryMoveFocus(element: Element): boolean {
       if (element.focus) {
          element.focus();
          result = element === document.activeElement;
-      }
-   }
-   if (!result) {
-      try {
-         // The element itself does not have a focus method.
-         // This is true for SVG elements in Firefox and IE,
-         // as well as MathML elements in every browser.
-         // IE9 - 11 will let us abuse HTMLElement's focus method,
-         // Firefox and Edge will throw an error.
-         HTMLElement.prototype.focus.call(element);
-         result = element === document.activeElement;
-      } catch (e) {
-         result = focusSvgForeignObjectHack(element);
+      } else {
+         try {
+            // The element itself does not have a focus method.
+            // This is true for SVG elements in Firefox and IE,
+            // as well as MathML elements in every browser.
+            // IE9 - 11 will let us abuse HTMLElement's focus method,
+            // Firefox and Edge will throw an error.
+            HTMLElement.prototype.focus.call(element);
+            result = element === document.activeElement;
+         } catch (e) {
+            result = focusSvgForeignObjectHack(element);
+         }
       }
    }
    return result;
