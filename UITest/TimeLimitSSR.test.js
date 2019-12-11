@@ -11,22 +11,19 @@ define([
       describe('UI/Base:HeadData', () => {
          beforeEach(() => {
             headData = new Base.HeadData;
-            headData.ssrEndTime = Date.now() + 40;
          });
 
-         it('Execute time is below time limit', (done) => {
-            setTimeout( () => {
-               assert.isAbove(headData.ssrWaitTimeManager(), 0, 'Ok');
-               done();
-            }, 10);
-         }).timeout(30);
 
-         it('Execute time is above time limit', (done) => {
-            setTimeout(() => {
-               assert.strictEqual(headData.ssrWaitTimeManager(), 0, 'Ok');
-               done();
-            }, 40);
-         }).timeout(50);
+         it('Execute time is below time limit', () => {
+            headData.ssrEndTime = (Date.now()+20);
+            assert.isAbove(headData.ssrWaitTimeManager(), 0, 'Ok');
+         });
+
+         it('Execute time is above time limit', () => {
+            headData.ssrEndTime = (Date.now()-100);
+            assert.strictEqual(headData.ssrWaitTimeManager(), 0, 'Ok');
+
+         });
       });
 
       describe('UI/Base:Control', function() {
