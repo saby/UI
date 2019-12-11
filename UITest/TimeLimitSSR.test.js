@@ -5,23 +5,21 @@ define([
    'use strict';
 
    describe('Test Server Side Render time manager', () => {
-      let headData;
       let fromNode = typeof document === 'undefined';
 
       describe('UI/Base:HeadData', () => {
-         beforeEach(() => {
-            headData = new Base.HeadData;
-            headData.ssrEndTime = Date.now() + 40;
-         });
-
          it('Execute time is below time limit', (done) => {
+            var headData = new Base.HeadData;
+            headData.ssrEndTime = Date.now() + 40;
             setTimeout( () => {
                assert.isAbove(headData.ssrWaitTimeManager(), 0, 'Ok');
                done();
             }, 10);
-         }).timeout(30);
+         }).timeout(20);
 
          it('Execute time is above time limit', (done) => {
+            var headData = new Base.HeadData;
+            headData.ssrEndTime = Date.now() + 20;
             setTimeout(() => {
                assert.strictEqual(headData.ssrWaitTimeManager(), 0, 'Ok');
                done();
@@ -30,7 +28,7 @@ define([
       });
 
       describe('UI/Base:Control', function() {
-         let globalTimer, inst, beforeMount, waitTime, resultPromise;
+         let globalTimer, inst, beforeMount, waitTime, resultPromise, headData;
 
          var global = (function() {
             return this || (0, eval)('this');
