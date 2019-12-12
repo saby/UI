@@ -743,7 +743,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                const message = `Promise, который вернули из метода _beforeMount контрола ${this._moduleName}` +
                    `не завершился за ${WAIT_TIMEOUT} миллисекунд.` +
                    `Шаблон контрола не будет построен.`
-               Logger.error(message, this);
+               Logger.warn(message, this);
 
                timeout = 1;
                // @ts-ignore
