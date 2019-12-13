@@ -1,5 +1,0 @@
-<div>
-   this._options.prop = {{ _options.prop }} <br />
-   this.prop10 = {{ prop10 }}
-   {{prop1}}
-</div>
