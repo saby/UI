@@ -1,8 +1,0 @@
-<div>
-   ws:for demonstration<br />
-   <ws:for data="key,value in data">
-      <div on:click="testevent(key, value)">
-         {{value.title}}
-      </div>
-   </ws:for>
-</div>

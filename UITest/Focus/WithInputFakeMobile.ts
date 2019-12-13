@@ -6,7 +6,7 @@ import template = require('wml!UITest/Focus/WithInputFakeMobile');
 
 class TestControl extends TestBaseControl {
     _template: TemplateFunction = template;
-    isMobilePlatform: false;
+    protected isMobilePlatform: boolean;
     _beforeMount() {
         TestBaseControl.prototype._beforeMount.apply(this, arguments);
         if (this.fromNode) {
@@ -14,6 +14,7 @@ class TestControl extends TestBaseControl {
             detection['test::isMobilePlatform'] = true;
         } else {
             this.isMobilePlatform = detection.isMobilePlatform;
+            // @ts-ignore
             detection.isMobilePlatform = true;
         }
     }
@@ -22,6 +23,7 @@ class TestControl extends TestBaseControl {
         if (this.fromNode) {
             detection['test::isMobilePlatform'] = this.isMobilePlatform
         } else {
+            // @ts-ignore
             detection.isMobilePlatform = this.isMobilePlatform;
         }
     }

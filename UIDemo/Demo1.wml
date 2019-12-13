@@ -1,4 +1,0 @@
-<div>
-   Hello world application!<br />
-   <span on:click="clickHere()">Click here to say "Hello"</span>
-</div>
