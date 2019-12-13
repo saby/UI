@@ -802,7 +802,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          }
          resultBeforeMount.then(() => {
             this._reactiveStart = true;
-         })
+         }). catch (() => {})
       } else {
          // _reactiveStart means starting of monitor change in properties
          this._reactiveStart = true;
