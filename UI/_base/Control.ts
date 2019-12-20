@@ -261,6 +261,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          res = this._template(this, attributes, rootKey, isVdom);
          if (res) {
             if (isVdom) {
+               if (res.length !== 1) {
+                  const message = `There should be only one root element in control markup. Got ${res.length} root(s) in "${this._moduleName}"`;
+                  Logger.error(message, this);
+               }
                for (let k = 0; k < res.length; k++) {
                   if (res[k]) {
                      return res[k];
