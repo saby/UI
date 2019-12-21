@@ -25,11 +25,11 @@
          </ws:for>
       </ws:if>
       <script key="bundles" type="text/javascript"
-              src="{{resourceRoot}}bundles.js"></script>
+              src="{{getResourceUrl(resourceRoot + 'bundles.js')}}.js"></script>
       <script key="require" type="text/javascript"
               src="/cdn/RequireJS/2.3.5-p5/require-min.js"></script>
       <script key="contents" type="text/javascript"
-              src="{{resourceRoot}}contents.js"></script>
+              src="{{getResourceUrl(resourceRoot + 'contents.js')}}.js"></script>
       <ws:if data="{{ _options.builder }}">
          <script key="config" type="text/javascript"
                  src="{{resourceRoot}}WS.Core/ext/requirejs/config.js"></script>
