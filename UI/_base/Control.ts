@@ -535,7 +535,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    // <editor-fold desc="API">
 
    _blur(): void {
-      const container = this._container[0] ? this._container[0] : this._container;
+      const container = this._container;
       const activeElement = document.activeElement;
       let tmpTabindex;
 
@@ -631,7 +631,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see deactivated
     */
    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
-      const container = this._container[0] ? this._container[0] : this._container;
+      const container = this._container;
       const activeElement = document.activeElement;
 
       const res = activate(container, cfg);

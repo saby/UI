@@ -36,8 +36,9 @@ export function restoreFocus(control: any, action: Function): void {
             // (например, SBIS3.CONTROLS/Action/OpenDialog)
             return false;
          }
-         const container = control._container && control._container[0] ? control._container[0] : control._container;
-         return isElementVisible(control._container) && focus(container);
+         // совместимость. среди контролов могут встретиться ws3
+         const container = control._template ? control._container : control.getContainer()[0];
+         return isElementVisible(container) && focus(container);
       });
       // следим за состоянием _savedFocusedElement. хотелось бы делать это в environment в обработчике
       // на focus, но как минимум в IE на вызов фокуса туда не попадеам
