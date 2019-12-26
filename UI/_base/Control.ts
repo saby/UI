@@ -113,6 +113,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private context: any = null;
    private saveFullContext: any = null;
    private _saveContextObject: any = null;
+   private _$resultBeforeMount: any = null;
 
    private _saveEnvironment: Function = null;
    private saveInheritOptions: Function = null;
