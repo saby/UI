@@ -1174,13 +1174,13 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return inherit;
    }
    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
+      if (domElement) {
+         // если пришел jquery, вытащим оттуда элемент
+         domElement = domElement[0] || domElement;
+      }
       if (constants.compat) {
          cfg.iWantBeWS3 = true;
          cfg.element = domElement;
-      }
-      if (cfg.element) {
-         // если пришел jquery, вытащим оттуда элемент
-         cfg.element = cfg.element[0] || cfg.element;
       }
       cfg._$createdFromCode = true;
 
