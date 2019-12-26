@@ -1176,9 +1176,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
       if (constants.compat) {
          cfg.iWantBeWS3 = true;
-         cfg.element = domElement[0] || domElement;
+         cfg.element = domElement;
       }
       cfg._$createdFromCode = true;
+      cfg.element = cfg.element[0] || cfg.element;
 
       startApplication();
       // @ts-ignore
