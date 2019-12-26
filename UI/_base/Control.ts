@@ -1178,8 +1178,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          cfg.iWantBeWS3 = true;
          cfg.element = domElement;
       }
+      if (cfg.element) {
+         // если пришел jquery, вытащим оттуда элемент
+         cfg.element = cfg.element[0] || cfg.element;
+      }
       cfg._$createdFromCode = true;
-      cfg.element = cfg.element[0] || cfg.element;
 
       startApplication();
       // @ts-ignore
