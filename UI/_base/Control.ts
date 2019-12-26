@@ -8,6 +8,7 @@ import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
 import { activate } from 'UI/Focus';
 import { Logger } from 'UI/Utils';
+import { constants } from 'Env/Env';
 
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesControllerNew');
@@ -782,6 +783,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    _beforeMountLimited(opts: TOptions): Promise<TState> | Promise<void> | void {
+      if (this._$resultBeforeMount) {
+         return this._$resultBeforeMount;
+      }
+
       // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
       // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
       // _template на экземпляре, _template устанавливается сразу после вызова базового конструктора
@@ -814,10 +819,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
       const cssResult = this._manageStyles(opts.theme);
       if (cssResult.then) {
-         if (!opts.iWantBeWS3) {
-            resultBeforeMount = Promise.all([cssResult, resultBeforeMount]);
-         }
+         resultBeforeMount = Promise.all([cssResult, resultBeforeMount]);
       }
+
+      this._$resultBeforeMount = resultBeforeMount;
       return resultBeforeMount;
    }
 
@@ -1168,6 +1173,12 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return inherit;
    }
    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
+      if (constants.compat) {
+         cfg.iWantBeWS3 = true;
+         cfg.element = domElement;
+      }
+      cfg._$createdFromCode = true;
+
       startApplication();
       // @ts-ignore
       if (!domElement instanceof HTMLElement) {
@@ -1190,8 +1201,15 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       ctr._container = domElement;
       Focus.patchDom(domElement, cfg);
       ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
+
+      if (cfg.iWantBeWS3) {
+         if (require.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
+            const makeInstanceCompatible = require('Core/helpers/Hcontrol/makeInstanceCompatible');
+            makeInstanceCompatible(ctr, cfg);
+         }
+      }
+
       ctr.mountToDom(ctr._container, cfg, ctor);
-      ctr._$createdFromCode = true;
       return ctr;
    }
 
