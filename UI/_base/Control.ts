@@ -712,7 +712,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: Options
     * @see Documentation: Context
     * @see Documentation: Server render
-    * @private
     */
    protected _beforeMount(options?: TOptions, contexts?: object, receivedState?: TState): Promise<TState> |
       Promise<void> | void {
@@ -865,7 +864,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: Options
     * @see Documentation: Context
     * @see Documentation: Server render
-    * @private
     */
    protected _afterMount(options?: TOptions, contexts?: any): void {
       // Do
@@ -930,7 +928,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: Control lifecycle.
     * @see Documentation: Options.
     * @see Documentation: Context.
-    * @private
     */
    protected _beforeUpdate(options?: TOptions, contexts?: any): void {
       // Do
@@ -997,7 +994,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: Options
     * @see Documentation: Context
     * @see Documentation: Server render
-    * @private
     */
    protected _shouldUpdate(options: TOptions, context: any): boolean {
       return true;
@@ -1082,7 +1078,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: Control lifecycle
     * @see Documentation: Options
     * @see Documentation: Context
-    * @private
     */
    protected _afterUpdate(oldOptions?: TOptions, oldContext?: any): void {
       // Do
@@ -1127,7 +1122,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: Control lifecycle
     * @see Documentation: Options
     * @see Documentation: Context
-    * @private
     */
    protected _beforeUnmount(): void {
       // Do
