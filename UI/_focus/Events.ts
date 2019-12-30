@@ -130,21 +130,20 @@ export function notifyActivationEvents(environment, target, relatedTarget, isTab
          // если компонент уже активен, простреливаем событием onFocusInside
          if (environment._rootDOMNode.controlNodes[0].control.isActive()) {
             environment._rootDOMNode.controlNodes[0].control._callOnFocusInside();
-         } else {
-            // если еще не активен, активируем
-            // @ts-ignore
-            const areaAbstract = require('Lib/Control/AreaAbstract/AreaAbstract.compatible');
-            areaAbstract._storeActiveChildInner.apply(
-               environment._rootDOMNode.controlNodes[0].control
-            );
+         }
+         // если еще не активен, активируем
+         // @ts-ignore
+         const areaAbstract = require('Lib/Control/AreaAbstract/AreaAbstract.compatible');
+         areaAbstract._storeActiveChildInner.apply(
+            environment._rootDOMNode.controlNodes[0].control
+         );
 
-            if (arrayMaker.length) {
-               if (!arrayMaker[0].isActive) {
-                  Logger.warn('Контрол нуждается в слое совместимости.', arrayMaker[0]);
-               } else {
-                  if (!arrayMaker[0].isActive()) {
-                     arrayMaker[0]._activate(arrayMaker[0]);
-                  }
+         if (arrayMaker.length) {
+            if (!arrayMaker[0].isActive) {
+               Logger.warn('Контрол нуждается в слое совместимости.', arrayMaker[0]);
+            } else {
+               if (!arrayMaker[0].isActive()) {
+                  arrayMaker[0]._activate(arrayMaker[0]);
                }
             }
          }
