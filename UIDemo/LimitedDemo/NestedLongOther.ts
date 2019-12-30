@@ -4,7 +4,7 @@ import {Control, IControlOptions, TemplateFunction} from 'UI/Base';
 
 // @ts-ignore
 import template = require('wml!UIDemo/LimitedDemo/NestedLongOther');
-import { INestedState } from './Nested';
+import INestedState from './INestedState'
 
 class NestedLongOther extends Control<IControlOptions, INestedState> {
     public _template: TemplateFunction = template;

@@ -29,15 +29,6 @@ class Head extends Control {
 
     staticDomainsstringified: string = '[]';
 
-    _beforeMountLimited(): Promise<any> {
-        // https://online.sbis.ru/opendoc.html?guid=252155de-dc95-402c-967d-7565951d2061
-        // This component awaits completion of building content of _Wait component
-        // So we don't need timeout of async building in this component
-        // Because we need to build depends list in any case
-        // before returning html to client
-        return this._beforeMount.apply(this, arguments);
-    }
-
     _beforeMount(options: any): Promise<any> {
         // tslint:disable-next-line:only-arrow-functions
         this._forceUpdate = function (): void {
