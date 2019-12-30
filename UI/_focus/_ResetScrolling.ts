@@ -1,6 +1,10 @@
 /// <amd-module name="UI/_focus/_ResetScrolling" />
 /* tslint:disable */
 
+/**
+ * @author Белотелов Н.В.
+ */
+
 // input may be undefined, selector-tring, Node, NodeList, HTMLCollection, array of Nodes
 // yes, to some extent this is a bad replica of jQuery's constructor function
 function nodeArray(input: any) {

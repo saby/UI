@@ -1,5 +1,9 @@
 /// <amd-module name="UI/_focus/PreventFocus" />
 
+/**
+ * @author Белотелов Н.В.
+ */
+
 export function hasNoFocus(element: Element): boolean {
    const html = document.documentElement;
    while (element !== html) {
