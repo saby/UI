@@ -7,6 +7,7 @@ import template = require('wml!UI/_base/HTML/JsLinks');
 import * as AppEnv from 'Application/Env';
 
 class JsLinks extends Control {
+   // @ts-ignore
    _template: Function = template;
 
    js: string[] = [];
@@ -21,6 +22,7 @@ class JsLinks extends Control {
          return;
       }
       const headData = AppEnv.getStore('HeadData');
+      // @ts-ignore
       const def = headData.waitAppContent();
       return new Promise((resolve, reject) => {
          def.then((res) => {

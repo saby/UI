@@ -10,6 +10,7 @@ import { constants } from 'Env/Env';
 import ThemesControllerNew = require('Core/Themes/ThemesControllerNew');
 
 class Head extends Control {
+    // @ts-ignore
     _template: Function = template;
 
     head: Function[] = null;
@@ -47,10 +48,12 @@ class Head extends Control {
         this.wasServerSide = false;
         this.isSSR = !constants.isBrowserPlatform;
         if (!this.isSSR) {
+            // tslint:disable-next-line:max-line-length
             // Проверяем наличие серверной верстки, чтобы решить, нужно ли нам рендерить ссылки на ресурсы внутри тега <head>.
             // Если серверная верстка была, то никакие ссылки больше рендериться не будут.
             // А на всех ссылках, пришедших с сервера, будет висеть атрибут data-vdomignore.
             // Из-за этого инферно не будет учитывать их при пересинхронизации. Это сделано для того,
+            // tslint:disable-next-line:max-line-length
             // чтобы инферно ни в каком случае не стал перерисовывать ссылки, т.к. это приводит к "морганию" стилей на странице.
             if (document.getElementsByClassName('head-server-block').length > 0) {
                 this.wasServerSide = true;
@@ -65,11 +68,15 @@ class Head extends Control {
             return;
         }
         const headData = AppEnv.getStore('HeadData');
+        // @ts-ignore
         const def = headData.waitAppContent();
+        // @ts-ignore
         this.cssLinks = [];
         return new Promise((resolve, reject) => {
             def.then((res) => {
+                // @ts-ignore
                 this.newSimple = ThemesControllerNew.getInstance().getSimpleCssList();
+                // @ts-ignore
                 this.newThemed = ThemesControllerNew.getInstance().getThemedCssList();
 
                 this.themedCss = res.css.themedCss;
@@ -80,6 +87,7 @@ class Head extends Control {
         });
     }
 
+    // @ts-ignore
     _shouldUpdate(): Boolean {
         return false;
     }

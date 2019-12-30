@@ -8,6 +8,7 @@ import template = require('wml!UI/_base/HTML/StartApplicationScript');
 import * as AppEnv from 'Application/Env';
 
 class StartApplicationScript extends Control {
+   // @ts-ignore
    _template: Function = template;
    private additionalDeps: string[] = [];
 
@@ -15,6 +16,7 @@ class StartApplicationScript extends Control {
       if (typeof window !== 'undefined') {
          return;
       }
+      // @ts-ignore
       const def = AppEnv.getStore('HeadData').waitAppContent();
 
       return new Promise((resolve) => {
