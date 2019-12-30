@@ -680,7 +680,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * Первый хук жизненного цикла контрола и единственный хук, который вызывается как на стороне сервера, так и на стороне клиента.
     * Он вызывается до рендеринга шаблона, поэтому обычно используется для подготовки данных для шаблона.
     * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
-    * @private
     */
 
    /*
@@ -841,7 +840,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * На этом этапе вы можете получить доступ к параметрам и контексту this._options и this._context.
     * Этот хук жизненного цикла часто используется для доступа к DOM-элементам и подписки на события сервера.
     * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
-    * @private
     */
 
    /*
@@ -904,7 +902,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     *    });
     * </pre>
     * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
-    * @private
     */
 
    /*
@@ -967,7 +964,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * Хук жизненного цикла контрола вызывается после хука _beforeUpdate перед перестроением шаблона. Этот хук можно использовать для оптимизаций.
     * Вы можете сравнить новые и текущие параметры и вернуть false, если нет необходимости пересчитывать DOM-дерево контрола.
     * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
-    * @private
     */
 
    /*
@@ -1031,7 +1027,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     *    });
     * </pre>
     * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
-    * @private
     */
    protected _afterRender(oldOptions?: TOptions, oldContext?: any): void {
       // Do
@@ -1060,7 +1055,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     *    });
     * </pre>
     * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
-    * @private
     */
 
    /*
@@ -1114,7 +1108,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     *    });
     * </pre>
     * @see {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
-    * @private
     */
 
    /*
