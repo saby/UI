@@ -32,20 +32,20 @@
     },
     {
       "name": "Controls",
-      "path": "./node_modules/sbis3-controls/Controls",
+      "path": "./node_modules/wasaby-controls/Controls",
       "required": true
     },
     {
       "name": "Controls-demo",
-      "path": "./node_modules/sbis3-controls/Controls-demo"
+      "path": "./node_modules/wasaby-controls/Controls-demo"
     },
     {
       "name": "Controls-theme",
-      "path": "./node_modules/sbis3-controls/Controls-theme"
+      "path": "./node_modules/wasaby-controls/Controls-theme"
     },
     {
       "name": "SBIS3.CONTROLS",
-      "path": "./node_modules/sbis3-controls/SBIS3.CONTROLS"
+      "path": "./node_modules/sbis3controls/SBIS3.CONTROLS"
     },
     {
       "name": "Inferno",
