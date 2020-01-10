@@ -1,0 +1,8 @@
+<div>
+    <div class="loaded">
+        Loaded
+    </div>
+    <UIDemo.BeforeMountTimeout.Child maxWaitTime="{{2000}}"/>
+    <UIDemo.BeforeMountTimeout.Child1 maxWaitTime="{{2000}}"/>
+    <UIDemo.BeforeMountTimeout.Child1 />
+</div>
