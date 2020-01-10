@@ -358,7 +358,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this.VDOMReady = true;
          this._container = element;
          // @ts-ignore
-         Synchronizer.mountControlToDOM(this, controlClass, cfg, this._container);
+         Synchronizer.mountControlToDOM(this, cfg, this._container);
       }
       if (cfg) {
          this.saveOptions(cfg);
