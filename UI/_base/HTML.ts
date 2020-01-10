@@ -11,6 +11,8 @@ import {constants, detection} from 'Env/Env';
 import ThemesController = require('Core/Themes/ThemesController');
 // @ts-ignore
 import LinkResolver = require('Core/LinkResolver/LinkResolver');
+// @ts-ignore
+import getResourceUrl = require('Core/helpers/getResourceUrl');
 
 import * as AppEnv from 'Application/Env';
 import AppData from './AppData';
@@ -43,6 +45,7 @@ class HTML extends Control {
     private application: string = '';
     private product: string = '';
     private linkResolver: any = null;
+    private getResourceUrl: Function = getResourceUrl;
 
     private initState(cfg: any): void {
         this.title = cfg.title;
