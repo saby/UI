@@ -16,6 +16,7 @@ import * as AppEnv from 'Application/Env';
 import AppData from './AppData';
 import { IHTMLOptions } from './interface/IHTML';
 import { IRootTemplateOptions } from './interface/IRootTemplate';
+import HeadData from 'UI/_base/HeadData';
 
 interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
     // Добавим здесь поля для RUM-статистики Потому что их нам нужно сериализовать в wsConfig, чтобы потом получить на клиенте.
@@ -92,8 +93,7 @@ class HTML extends Control {
             ThemesController.getInstance().themes = {};
             ThemesController.getInstance().setTheme(cfg.theme);
         }
-        const headData = AppEnv.getStore('HeadData');
-
+        const headData = AppEnv.getStore<HeadData>('headDataStore').get('headData');
         this.linkResolver = new LinkResolver(
             headData.isDebug,
             this.buildnumber,

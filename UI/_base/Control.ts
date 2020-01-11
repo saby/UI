@@ -27,6 +27,7 @@ import startApplication from 'UI/_base/startApplication';
 
 // @ts-ignore
 import * as Hydrate from 'Inferno/third-party/hydrate.dev';
+import HeadData from 'UI/_base/HeadData';
 
 if (Hydrate.initInferno) {
    Hydrate.initInferno(Expressions, Utils, Markup, Vdom, FocusLib, DevtoolsHook);
@@ -795,7 +796,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          if (typeof process !== 'undefined' && !process.versions) {
             let time = WAIT_TIMEOUT;
             try {
-               time = AppEnv.getStore('HeadData').ssrWaitTimeManager();
+               const headData = AppEnv.getStore<HeadData>('headDataStore').get('headData');
+               time = headData.ssrWaitTimeManager();
             }
             catch (e) {
 
