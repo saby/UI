@@ -11,6 +11,8 @@ import * as AppEnv from 'Application/Env';
 import HeadData from './HeadData';
 import AppData from './AppData';
 import startApplication from 'UI/_base/startApplication';
+import { IStore } from 'Application/Interface';
+import { ObjectStore } from 'Application/Env';
 
 
 class Document extends Control {
@@ -22,7 +24,7 @@ class Document extends Control {
 
     private coreTheme: string = '';
 
-    constructor(cfg: any) {
+    constructor(cfg = {}) {
         super(cfg);
 
         /*
@@ -40,7 +42,9 @@ class Document extends Control {
         // Временно положим это в HeadData, потом это переедет в константы реквеста
         // Если запуск страницы начинается с UI/Base:Document, значит мы находимся в новом окружении
         headData.isNewEnvironment = true;
-        AppEnv.setStore('HeadData', headData);
+        const headDataStore: IStore<HeadData> = new ObjectStore();
+        headDataStore.set('headData', headData);
+        AppEnv.setStore<HeadData>('headDataStore', headDataStore);
         AppData.initAppData(cfg);
         AppEnv.setStore('CoreInstance', { instance: this });
         this.ctxData = new AppData(cfg);
@@ -76,7 +80,7 @@ class Document extends Control {
         let result;
         if (this.application !== app) {
             this.applicationForChange = app;
-            const headData = AppEnv.getStore('HeadData');
+            const headData = AppEnv.getStore<HeadData>('headDataStore').get('headData');
             if (headData) {
                 headData.resetRenderDeferred();
             }
