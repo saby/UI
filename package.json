@@ -1,6 +1,6 @@
 {
    "name": "saby-ui",
-   "version": "20.2000.0",
+   "version": "20.1100.0",
    "repository": {
       "type": "git",
       "url": "git@platform-git.sbis.ru:saby/UI.git"
@@ -56,9 +56,9 @@
       "sbis3controls": "git+https://git.sbis.ru/sbis/sbis3controls.git#rc-20.1100",
       "wasaby-controls": "git+https://git.sbis.ru/sbis/wasaby-controls.git#rc-20.1100",
       "@tensor-corp/eslint-config": "^2.0.3",
-      "Router": "git+https://github.com/saby/Router.git#rc-20.2000",
+      "Router": "git+https://github.com/saby/Router.git#rc-20.1100",
       "body-parser": "^1.18.3",
-      "cdn": "git+https://github.com/saby/wasaby-cdn.git#rc-20.2000",
+      "cdn": "git+https://github.com/saby/wasaby-cdn.git#rc-20.1100",
       "cookie-parser": "^1.4.3",
       "eslint": "^5.6.1",
       "express": "^4.16.3",
@@ -71,6 +71,6 @@
       "sbis3-builder": "git+https://github.com/saby/Builder.git#rc-20.1100",
       "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#rc-20.1100",
       "serve-static": "1.11.x",
-      "wasaby-app": "git+https://github.com/saby/wasaby-app.git#rc-20.2000"
+      "wasaby-app": "git+https://github.com/saby/wasaby-app.git#rc-20.1100"
    }
 }
