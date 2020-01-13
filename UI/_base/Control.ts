@@ -90,6 +90,7 @@ const WRAP_TIMEOUT = 30000;
 export interface IControlOptions {
    readOnly?: boolean;
    theme?: string;
+   maxWaitTime?: number;
 }
 /**
  * @class UI/_base/Control
@@ -107,6 +108,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    private readonly _instId: string;
    protected _options: TOptions = null;
+   protected _maxWaitTime: number;
    private _internalOptions: Record<string, unknown> = null;
 
    private _context: any = null;
@@ -715,7 +717,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: Context
     * @see Documentation: Server render
     */
-   protected _beforeMount(options?: TOptions, contexts?: object, receivedState?: TState): Promise<TState> |
+   protected _beforeMount(options?: TOptions, contexts?: object, receivedState?: TState, timeout?: number): Promise<TState> |
       Promise<void> | void {
       return undefined;
    }
@@ -781,6 +783,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       });
    }
 
+   _getServerSideWaitTimeManager(): number{
+      return AppEnv.getStore('HeadData').ssrWaitTimeManager();
+   }
+
    _beforeMountLimited(opts: TOptions): Promise<TState> | Promise<void> | void {
       if (this._$resultBeforeMount) {
          return this._$resultBeforeMount;
@@ -799,12 +805,14 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          //start server side render
           // todo проверка на сервис представления
          if (typeof process !== 'undefined' && !process.versions) {
-            let time = WAIT_TIMEOUT;
-            try {
-               time = AppEnv.getStore('HeadData').ssrWaitTimeManager();
-            }
-            catch (e) {
+            let time = opts.maxWaitTime || this._maxWaitTime;
+            if(!time) {
+               time = WAIT_TIMEOUT;
+               try {
+                  time = this._getServerSideWaitTimeManager();
+               } catch (e) {
 
+               }
             }
             resultBeforeMount = this._resultBeforeMount(resultBeforeMount, time);
          }
