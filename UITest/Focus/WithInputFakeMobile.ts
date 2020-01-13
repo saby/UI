@@ -4,6 +4,7 @@ import {detection} from 'Env/Env';
 
 import template = require('wml!UITest/Focus/WithInputFakeMobile');
 
+/** my test comment */
 class TestControl extends TestBaseControl {
     _template: TemplateFunction = template;
     protected isMobilePlatform: boolean;
