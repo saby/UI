@@ -12,12 +12,8 @@ define(['UI/Base', 'Application/Env'], function (UI, AppEnv) {
             new UI.Document();
          });
 
-         it('UI.Document creates headDataStore', function () {
-            assert.instanceOf(AppEnv.getStore('headDataStore'), AppEnv.ObjectStore);
-         });
-
-         it('headDataStore contains headData', function () {
-            assert.instanceOf(AppEnv.getStore('headDataStore').get('headData'), UI.HeadData);
+         it('AppEnv contains HeadData Store', function () {
+            assert.instanceOf(AppEnv.getStore('headData'), UI.HeadData);
          });
 
          afterEach(() => {

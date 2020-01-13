@@ -8,7 +8,7 @@ import { Logger } from 'UI/Utils';
 
 interface ISerializedType {
    serialized: string;
-   additionalDeps: any;
+   additionalDeps: { [depPath: string]: boolean; };
 }
 
 function getDepsFromSerializer(slr: any): any {

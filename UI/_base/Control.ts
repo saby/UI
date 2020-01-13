@@ -796,8 +796,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          if (typeof process !== 'undefined' && !process.versions) {
             let time = WAIT_TIMEOUT;
             try {
-               const headData = AppEnv.getStore<HeadData>('headDataStore').get('headData');
-               time = headData.ssrWaitTimeManager();
+               time = AppEnv.getStore<HeadData>('headData').get('ssrWaitTimeManager')();
             }
             catch (e) {
 

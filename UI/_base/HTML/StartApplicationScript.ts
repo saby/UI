@@ -17,8 +17,8 @@ class StartApplicationScript extends Control {
       if (typeof window !== 'undefined') {
          return;
       }
-      const headData = AppEnv.getStore<HeadData>('headDataStore').get('headData');
-      const def = headData.waitAppContent();
+      const headData = AppEnv.getStore<HeadData>('headData');
+      const def = headData.get('waitAppContent')();
 
       return new Promise((resolve) => {
          def.then((res) => {

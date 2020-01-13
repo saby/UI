@@ -16,7 +16,7 @@ import { ObjectStore } from 'Application/Env';
 
 
 class Document extends Control {
-    _template: Function = template;
+    _template = template;
 
     private ctxData: any = null;
     private application: string = '';
@@ -41,10 +41,8 @@ class Document extends Control {
         const headData = new HeadData();
         // Временно положим это в HeadData, потом это переедет в константы реквеста
         // Если запуск страницы начинается с UI/Base:Document, значит мы находимся в новом окружении
-        headData.isNewEnvironment = true;
-        const headDataStore: IStore<HeadData> = new ObjectStore();
-        headDataStore.set('headData', headData);
-        AppEnv.setStore<HeadData>('headDataStore', headDataStore);
+        headData.set('isNewEnvironment', true);
+        AppEnv.setStore<HeadData>('headData', headData);
         AppData.initAppData(cfg);
         AppEnv.setStore('CoreInstance', { instance: this });
         this.ctxData = new AppData(cfg);
@@ -80,9 +78,9 @@ class Document extends Control {
         let result;
         if (this.application !== app) {
             this.applicationForChange = app;
-            const headData = AppEnv.getStore<HeadData>('headDataStore').get('headData');
+            const headData = AppEnv.getStore<HeadData>('headData');
             if (headData) {
-                headData.resetRenderDeferred();
+                headData.get('resetRenderDeferred')();
             }
             this._forceUpdate();
             result = true;

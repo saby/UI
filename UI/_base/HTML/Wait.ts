@@ -43,8 +43,8 @@ class Wait extends Control {
 
    _beforeMount(): void {
       this.createPromise();
-      const headData = AppEnv.getStore<HeadData>('headDataStore').get('headData');
-      headData.pushWaiterDeferred(this.waitDef);
+      const headData = AppEnv.getStore<HeadData>('headData');
+      headData.get('pushWaiterDeferred')(this.waitDef);
       if (typeof window !== 'undefined') {
          this.resolvePromiseFn();
          this.createPromise();

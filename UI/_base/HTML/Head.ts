@@ -68,8 +68,8 @@ class Head extends Control {
             this.simpleCss = [];
             return;
         }
-        const headData = AppEnv.getStore<HeadData>('headDataStore').get('headData');
-        const def = headData.waitAppContent();
+        const headData = AppEnv.getStore<HeadData>('headData');
+        const def = headData.get('waitAppContent')();
         // @ts-ignore
         this.cssLinks = [];
         return new Promise((resolve, reject) => {

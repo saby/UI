@@ -22,8 +22,8 @@ class JsLinks extends Control {
       if (typeof window !== 'undefined') {
          return;
       }
-      const headData = AppEnv.getStore<HeadData>('headDataStore').get('headData');
-      headData.waitAppContent().then((res) => {
+      const headData = AppEnv.getStore<HeadData>('headData');
+      headData.get('waitAppContent')().then((res) => {
          this.js = res.js;
          this.tmpl = res.tmpl;
          this.wml = res.wml;
