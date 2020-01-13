@@ -2,7 +2,7 @@
 /* tslint:disable */
 
 // @ts-ignore
-import * as Inferno from 'Inferno/third-party/index.dev';
+import * as Inferno from 'Inferno/third-party/index';
 
 /**
  * check if container contains element strictly (container and element are not equal)

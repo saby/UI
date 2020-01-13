@@ -27,7 +27,7 @@ import * as AppEnv from 'Application/Env';
 import startApplication from 'UI/_base/startApplication';
 
 // @ts-ignore
-import * as Hydrate from 'Inferno/third-party/hydrate.dev';
+import * as Hydrate from 'Inferno/third-party/hydrate';
 
 if (Hydrate.initInferno) {
    Hydrate.initInferno(Expressions, Utils, Markup, Vdom, FocusLib, DevtoolsHook);
