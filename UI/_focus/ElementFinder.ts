@@ -1,6 +1,10 @@
 /// <amd-module name="UI/_focus/ElementFinder" />
 /* tslint:disable */
 
+/**
+ * @author Белотелов Н.В.
+ */
+
 let NODE_NODE_TYPE = 1;
 
 let FOCUSABLE_ELEMENTS = {

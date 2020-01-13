@@ -1,6 +1,10 @@
 /// <amd-module name="UI/_focus/BoundaryElements" />
 /* tslint:disable */
 
+/**
+ * @author Белотелов Н.В.
+ */
+
 // @ts-ignore
 import * as Inferno from 'Inferno/third-party/index';
 
