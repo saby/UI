@@ -5,6 +5,7 @@ import Control from '../Control';
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/JsLinks');
 import * as AppEnv from 'Application/Env';
+import HeadData from 'UI/_base/HeadData';
 
 class JsLinks extends Control {
    // @ts-ignore
@@ -17,23 +18,18 @@ class JsLinks extends Control {
    simpleCss: string[] = [];
    receivedStateArr: string = '';
 
-   _beforeMount(): Promise<any> {
+   _beforeMount() {
       if (typeof window !== 'undefined') {
          return;
       }
-      const headData = AppEnv.getStore('HeadData');
-      // @ts-ignore
-      const def = headData.waitAppContent();
-      return new Promise((resolve, reject) => {
-         def.then((res) => {
-            this.js = res.js;
-            this.tmpl = res.tmpl;
-            this.wml = res.wml;
-            this.themedCss = res.css.themedCss;
-            this.simpleCss = res.css.simpleCss;
-            this.receivedStateArr = res.receivedStateArr;
-            resolve(true);
-         });
+      const headData = AppEnv.getStore<HeadData>('headData');
+      headData.get('waitAppContent')().then((res) => {
+         this.js = res.js;
+         this.tmpl = res.tmpl;
+         this.wml = res.wml;
+         this.themedCss = res.css.themedCss;
+         this.simpleCss = res.css.simpleCss;
+         this.receivedStateArr = res.receivedStateArr;
       });
    }
 

@@ -7,25 +7,15 @@ import { cookie } from 'Env/Env';
 import { DepsCollector, ICollectedFiles } from './DepsCollector';
 // @ts-ignore
 import * as AppEnv from 'Application/Env';
-
-function cropSlash(str: string): string {
-    let res = str;
-    res = res.replace(/\/+$/, '');
-    res = res.replace(/^\/+/, '');
-    return res;
-}
-
-function joinPaths(arr: string[]): string {
-    const arrRes = [];
-    for (let i = 0; i < arr.length; i++) {
-        arrRes.push(cropSlash(arr[i]));
-    }
-    return arrRes.join('/');
-}
-
+import { IStore } from '../../../builder-ui/builder-json-cache/platform/Application/Interface';
+/**
+ * в s3debug может быть true или строка-перечисление имен непакуемых ресурсов
+ * https://online.sbis.ru/opendoc.html?guid=1d5ab888-6f9e-4ee0-b0bd-12e788e60ed9
+ */
+const isDebug = () => cookie.get('s3debug') && cookie.get('s3debug') !== 'false' || contents['buildMode'] === 'debug';
 let bundles;
 let modDeps;
-let contents;
+let contents = {};
 const ssrWaitTime = 20000;
 // Need these try-catch because:
 // 1. We don't need to load these files on client
@@ -53,18 +43,17 @@ try {
 
 bundles = bundles || {};
 modDeps = modDeps || { links: {}, nodes: {} };
-contents = contents || {};
 
-class HeadData {
-    private depComponentsMap: any = {};
-    private additionalDeps: any = {};
+class HeadData implements IStore<Record<keyof HeadData, any>> {
+    isDebug: boolean;
+    private depComponentsMap: object = {};
+    private additionalDeps: object = {};
     private waiterDef: Promise<any> = null;
-    private isDebug: Boolean;
-    private themesActive: boolean;
+    private themesActive: boolean = true;
     private err: string;
 
     // переедет в константы реквеста, изменяется в Controls/Application
-    private isNewEnvironment: Boolean = false;
+    isNewEnvironment: boolean = false;
 
     private resolve: Function = null;
     private renderPromise: Promise<any> = null;
@@ -74,11 +63,7 @@ class HeadData {
         this.renderPromise = new Promise((resolve) => {
             this.resolve = resolve;
         });
-
-        this.depComponentsMap = {};
-        this.additionalDeps = {};
-        this.themesActive = true;
-        this.isDebug = HeadData.isDebug();
+        this.isDebug = isDebug();
         this.ssrEndTime = Date.now() + ssrWaitTime;
     }
 
@@ -175,10 +160,39 @@ class HeadData {
             this.resolve = resolve;
         });
     }
-
-    static isDebug(): boolean {
-        return cookie.get('s3debug') === 'true' || contents.buildMode === 'debug';
+    // #region IStore
+    get<K extends keyof HeadData>(key: K): HeadData[K] {
+        return this[key];
     }
+    set<K extends keyof HeadData>(key: K, value: this[K]): boolean {
+        try {
+            this[key] = value;
+            return true;
+        } catch (_e) {
+            return false;
+        }
+    }
+    remove() { }
+    getKeys(): (keyof HeadData)[] {
+        return <(keyof HeadData)[]> Object.keys(this);
+    };
+    toObject() {
+        return Object.assign({}, this);
+    }
+    // #endregion
 }
 
 export default HeadData;
+
+/**
+ * Словарь внешних ресурсов страницы
+ * @interface ExternalResources
+ * @typedef {Object} ExternalResources
+ */
+interface ExternalResources {
+    js: string[];
+    tmpl: string[];
+    css: string[];
+    receivedStateArr: string[];
+    additionalDeps: string[];
+}
