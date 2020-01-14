@@ -6,18 +6,11 @@ define(['UI/Base', 'Application/Env'], function (UI, AppEnv) {
          assert.instanceOf(new UI.Document(), UI.Document);
       });
 
-      describe('UITest/_base/Document Application Store', function () {
-
-         beforeEach(() => {
-            new UI.Document();
-         });
-
+      describe('UITest/_base/Document AppEnv Store', function () {
          it('AppEnv contains HeadData Store', function () {
+            new UI.Document();
             assert.instanceOf(AppEnv.getStore('headData'), UI.HeadData);
-         });
-
-         afterEach(() => {
-            AppEnv.setStore('headDataStore', null);
+            AppEnv.setStore('headData', null);
          });
       });
    });
