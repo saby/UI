@@ -18,10 +18,6 @@ function needErrorOnGet(stateValue: any): boolean {
 
 function purifyInstanceSync(instance: Record<string, any>, instanceName: string) {
     for (let stateName in instance) {
-        if (!instance.hasOwnProperty(stateName)) {
-            continue;
-        }
-
         const stateValue = instance[stateName];
 
         const getterFunction = needErrorOnGet(stateValue) ?
