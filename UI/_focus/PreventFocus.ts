@@ -9,7 +9,7 @@ export function hasNoFocus(element: Element): boolean {
    let currentElement = element;
    while (currentElement !== html) {
       // todo совместимость! когда уберем совместимость, надо убрать element.getAttribute('ws-no-focus')
-      if (element['ws-no-focus'] || element.getAttribute('ws-no-focus')) {
+      if (currentElement['ws-no-focus'] || currentElement.getAttribute('ws-no-focus')) {
          return true;
       } else {
          currentElement = currentElement.parentElement;
