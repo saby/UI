@@ -7,7 +7,7 @@ import { cookie } from 'Env/Env';
 import { DepsCollector, ICollectedFiles } from './DepsCollector';
 // @ts-ignore
 import * as AppEnv from 'Application/Env';
-import { IStore } from '../../../builder-ui/builder-json-cache/platform/Application/Interface';
+import { IStore } from 'Application/Interface';
 /**
  * в s3debug может быть true или строка-перечисление имен непакуемых ресурсов
  * https://online.sbis.ru/opendoc.html?guid=1d5ab888-6f9e-4ee0-b0bd-12e788e60ed9
@@ -46,15 +46,13 @@ modDeps = modDeps || { links: {}, nodes: {} };
 
 class HeadData implements IStore<Record<keyof HeadData, any>> {
     isDebug: boolean;
+    // переедет в константы реквеста, изменяется в Controls/Application
+    isNewEnvironment: boolean = false;
     private depComponentsMap: object = {};
     private additionalDeps: object = {};
     private waiterDef: Promise<any> = null;
     private themesActive: boolean = true;
     private err: string;
-
-    // переедет в константы реквеста, изменяется в Controls/Application
-    isNewEnvironment: boolean = false;
-
     private resolve: Function = null;
     private renderPromise: Promise<any> = null;
     private ssrEndTime: number = null;
@@ -65,6 +63,11 @@ class HeadData implements IStore<Record<keyof HeadData, any>> {
         });
         this.isDebug = isDebug();
         this.ssrEndTime = Date.now() + ssrWaitTime;
+        this.waitAppContent = this.waitAppContent.bind(this);
+        this.ssrWaitTimeManager = this.ssrWaitTimeManager.bind(this);
+        this.pushDepComponent = this.pushDepComponent.bind(this);
+        this.pushWaiterDeferred = this.pushWaiterDeferred.bind(this);
+        this.resetRenderDeferred = this.resetRenderDeferred.bind(this);
     }
 
     /* toDO: StateRec.register */
@@ -81,21 +84,6 @@ class HeadData implements IStore<Record<keyof HeadData, any>> {
         } else {
             return 0;
         }
-    }
-
-    getDepsCollector(): DepsCollector {
-        return new DepsCollector(modDeps.links, modDeps.nodes, bundles);
-    }
-
-    initThemesController(themedCss, simpleCss): any {
-        return ThemesController.getInstance().initCss({
-            themedCss: themedCss,
-            simpleCss: simpleCss
-        });
-    }
-
-    getSerializedData(): any {
-        return AppEnv.getStateReceiver().serialize();
     }
 
     pushWaiterDeferred(def: Promise<any>): void {
@@ -160,6 +148,22 @@ class HeadData implements IStore<Record<keyof HeadData, any>> {
             this.resolve = resolve;
         });
     }
+    
+    private getDepsCollector(): DepsCollector {
+        return new DepsCollector(modDeps.links, modDeps.nodes, bundles);
+    }
+
+    private initThemesController(themedCss, simpleCss): any {
+        return ThemesController.getInstance().initCss({
+            themedCss: themedCss,
+            simpleCss: simpleCss
+        });
+    }
+
+    private getSerializedData(): any {
+        return AppEnv.getStateReceiver().serialize();
+    }
+    
     // #region IStore
     get<K extends keyof HeadData>(key: K): HeadData[K] {
         return this[key];
@@ -183,16 +187,3 @@ class HeadData implements IStore<Record<keyof HeadData, any>> {
 }
 
 export default HeadData;
-
-/**
- * Словарь внешних ресурсов страницы
- * @interface ExternalResources
- * @typedef {Object} ExternalResources
- */
-interface ExternalResources {
-    js: string[];
-    tmpl: string[];
-    css: string[];
-    receivedStateArr: string[];
-    additionalDeps: string[];
-}

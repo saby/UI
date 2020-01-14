@@ -11,8 +11,6 @@ import * as AppEnv from 'Application/Env';
 import HeadData from './HeadData';
 import AppData from './AppData';
 import startApplication from 'UI/_base/startApplication';
-import { IStore } from 'Application/Interface';
-import { ObjectStore } from 'Application/Env';
 
 
 class Document extends Control {
