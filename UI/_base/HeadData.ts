@@ -12,10 +12,10 @@ import { IStore } from 'Application/Interface';
  * в s3debug может быть true или строка-перечисление имен непакуемых ресурсов
  * https://online.sbis.ru/opendoc.html?guid=1d5ab888-6f9e-4ee0-b0bd-12e788e60ed9
  */
-const isDebug = () => cookie.get('s3debug') && cookie.get('s3debug') !== 'false' || contents['buildMode'] === 'debug';
 let bundles;
 let modDeps;
 let contents = {};
+const isDebug = () => cookie.get('s3debug') && cookie.get('s3debug') !== 'false' || contents['buildMode'] === 'debug';
 const ssrWaitTime = 20000;
 // Need these try-catch because:
 // 1. We don't need to load these files on client
