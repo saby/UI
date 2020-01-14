@@ -4,11 +4,13 @@ const asyncPurifyTimeout = 3000;
 
 const typesToPurify: string[] = ['object', 'function'];
 
-function createUseAfterDestroyErrorFunction(stateName: string, instanceName: string) {
+function createUseAfterDestroyErrorFunction(stateName: string, instanceName: string): () => void {
     return () => {
-        Logger.error(`Trying to use ${stateName} in purified ${instanceName}`);
+        Logger.error(`Trying to get the ${stateName} out of the purified ${instanceName}`);
     };
 }
+
+function emptyFunction() {}
 
 function needErrorOnGet(stateValue: any): boolean {
     return !!(stateValue && ~typesToPurify.indexOf(typeof stateValue));
@@ -22,13 +24,14 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string)
 
         const stateValue = instance[stateName];
 
-        const errorFunction = createUseAfterDestroyErrorFunction(stateName, instanceName);
-        const getterFunction = needErrorOnGet(stateValue) ? errorFunction : () => stateValue;
+        const getterFunction = needErrorOnGet(stateValue) ?
+            createUseAfterDestroyErrorFunction(stateName, instanceName) :
+            () => stateValue;
 
         Object.defineProperty(instance, stateName, {
             enumerable: false,
             configurable: false,
-            set: errorFunction,
+            set: emptyFunction,
             get: getterFunction
         });
     }
@@ -36,7 +39,8 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string)
 }
 
 /**
- * Функция, очищающая экземпляр от объектов и фунций. Генерирует ошибку при обращении после очистки.
+ * Функция, очищающая экземпляр от объектов и фунций. Генерирует ошибку при попытке обратиться к ним.
+ * Также замораживает экземпляр, тем самым убирая возможность записать или перезаписать поле любого типа.
  * @param {Record<string, any>} instance - экземпляр, поля которого нужно очистить.
  * @param {string} [instanceName = 'instance'] - имя экземпляра для отображения в ошибке.
  * @param {boolean} [async = false] - вызывать ли очистку с задержкой.
