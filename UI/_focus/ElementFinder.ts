@@ -234,7 +234,6 @@ function find(contextElement, fromElement, fromElementTabIndex, reverse, getElem
       cmp,
       props,
       nearestElement = null,
-      nearestElementStage,
       nearestTabIndex = null,
       foundDelegated,
       savedDelegated;
@@ -273,7 +272,6 @@ function find(contextElement, fromElement, fromElementTabIndex, reverse, getElem
                         if (canDelegate(next, nextProps)) {
                            nearestElement = next;
                            nearestTabIndex = nextProps.tabIndex;
-                           nearestElementStage = stage;
                            savedDelegated = foundDelegated;
                         }
                      }
@@ -286,7 +284,6 @@ function find(contextElement, fromElement, fromElementTabIndex, reverse, getElem
                         if (canDelegate(next, nextProps)) {
                            nearestElement = next;
                            nearestTabIndex = nextProps.tabIndex;
-                           nearestElementStage = stage;
                            savedDelegated = foundDelegated;
 
                            startFromFirst = false;
