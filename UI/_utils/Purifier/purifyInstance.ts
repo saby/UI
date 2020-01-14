@@ -1,6 +1,6 @@
 import * as Logger from '../Logger';
 
-const asyncPurifyTimeout = 3000;
+const asyncPurifyTimeout = 6000;
 
 const typesToPurify: string[] = ['object', 'function'];
 
