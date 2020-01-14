@@ -21,6 +21,9 @@ import { IoC } from 'Env/Env';
       at constructor.captureEventHandler (DOMEnvironment.js:911)
       at constructor.handleClick [as _handleClick] (DOMEnvironment.js:479)
       at constructor.<anonymous> (DOMEnvironment.js:968)
+
+   @class UI/_utils/Logger
+   @public
 */
 
 /**
@@ -32,7 +35,7 @@ const logger = () => IoC.resolve('ILogger');
 /**
  * Доступность режима отладки для сообщений
  */
-const loggerConfig = { debug : false }; 
+const loggerConfig = { debug : false };
 
 /**
  * Получает имя текущей функции по стеку ошибки, для граничных случаев
@@ -140,7 +143,7 @@ const prepareStack = (data: any): string => {
          // для асинхронных контейнеров важен не сам контейнер в стеке, а шаблон внутри
          // сформируем читаемую строку: Controls/Container/Async:template - "MyControl/Base"
          if (moduleName === 'Controls/Container/Async') {
-            const opts = control._options; 
+            const opts = control._options;
             const asyncTemplate = opts && opts.templateName || 'not detected';
             moduleName += `:template - "${asyncTemplate}"`;
          }
@@ -214,8 +217,8 @@ const prepareStack = (data: any): string => {
    return message;
 };
 
-/** 
- * При установке режима Debug активируется дополнительное логирование определенных участков ядра 
+/**
+ * При установке режима Debug активируется дополнительное логирование определенных участков ядра
  * @param {Boolean} value
  * @public
  * @return {Boolean}
@@ -230,7 +233,7 @@ const setDebug = (value: boolean): boolean => {
  * @param {String} msg - произвольное текстовое сообщение
  * @param {Object} data - произвольный object
  */
-const debug = (msg: string = '', data: any): object => {
+const debug = (msg: string = '', data: any = null): object => {
    let logMsg = '';
    if (loggerConfig.debug) {
       let prepareData = '';
@@ -290,7 +293,7 @@ const warn = (msg: string = '', errorPoint?): object => {
 const error = (msg: string = '', errorPoint?, errorInfo?): object => {
    let data = '';
    let typeError = 'CONTROL ERROR';
-   
+
    // если нет информации по ошибке, создадим сами
    if (!errorInfo) {
       errorInfo = _createFakeError();
