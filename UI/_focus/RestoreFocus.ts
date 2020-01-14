@@ -8,6 +8,10 @@ import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
 // https://online.sbis.ru/opendoc.html?guid=918b22a9-fbd5-4122-ab51-75a88f01bbbc
 // import { Control } from 'UI/Base';
 
+/**
+ * @author Белотелов Н.В.
+ */
+
 import { focus } from './Focus';
 
 function checkActiveElement(savedActiveElement: Element): boolean {
