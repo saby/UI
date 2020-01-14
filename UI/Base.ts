@@ -5,7 +5,7 @@
  * @public
  * @author Шипин А.А.
  */
-import {default as Control, IControlOptions, TemplateFunction, IControlChildren} from './_base/Control';
+import {default as Control, IControlOptions, TemplateFunction} from './_base/Control';
 import HTML from './_base/HTML';
 import Document from './_base/Document';
 import StateReceiver from './_base/StateReceiver';
@@ -26,7 +26,6 @@ export { default as startApplication } from 'UI/_base/startApplication';
 export {
     Control,
     IControlOptions,
-    IControlChildren,
     HTML,
     Document,
     StateReceiver,

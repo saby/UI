@@ -35,7 +35,7 @@ if (Hydrate.initInferno) {
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
 
-export type IControlChildren = Record<string, Element | Control>;
+type IControlChildren = Record<string, Element | Control>;
 
 /**
  * @event UI/_base/Control#activated Происходит при активации контрола.
@@ -101,7 +101,7 @@ export interface IControlOptions {
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
-export default class Control<TOptions extends IControlOptions = {}, TState = void, TChildren extends IControlChildren = {}> {
+export default class Control<TOptions extends IControlOptions = {}, TState = void> {
    private _mounted: boolean = false;
    private _unmounted: boolean = false;
    private _destroyed: boolean = false;
@@ -137,7 +137,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    // Render function for text generator
    render: Function = null;
 
-   protected _children: TChildren = null;
+   protected _children: IControlChildren = null;
 
    constructor(cfg: any) {
       if (!cfg) {
