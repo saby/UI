@@ -15,7 +15,7 @@ import { IStore } from 'Application/Interface';
 let bundles;
 let modDeps;
 let contents = {};
-const isDebug = () => cookie.get('s3debug') && cookie.get('s3debug') !== 'false' || contents['buildMode'] === 'debug';
+const isDebug = () => cookie.get('s3debug') && cookie.get('s3debug') !== 'false' || contents?.['buildMode'] === 'debug';
 const ssrWaitTime = 20000;
 // Need these try-catch because:
 // 1. We don't need to load these files on client
