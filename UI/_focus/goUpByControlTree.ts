@@ -1,6 +1,10 @@
 /// <amd-module name="UI/_focus/goUpByControlTree" />
 /* tslint:disable */
 
+/**
+ * @author Белотелов Н.В.
+ */
+
 //@ts-ignore
 import { constants } from 'Env/Env';
 //@ts-ignore

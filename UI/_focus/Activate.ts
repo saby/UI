@@ -1,5 +1,9 @@
 /// <amd-module name="UI/_focus/Activate" />
 
+/**
+ * @author Белотелов Н.В.
+ */
+
 // @ts-ignore
 import { detection } from 'Env/Env';
 import * as ElementFinder from './ElementFinder';
