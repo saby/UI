@@ -1,6 +1,10 @@
 /// <amd-module name="UI/_focus/Events" />
 /* tslint:disable */
 
+/**
+ * @author Белотелов Н.В.
+ */
+
 // @ts-ignore
 import { goUpByControlTree } from './goUpByControlTree';
 // @ts-ignore

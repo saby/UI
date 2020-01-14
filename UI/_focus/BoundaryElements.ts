@@ -1,6 +1,10 @@
 /// <amd-module name="UI/_focus/BoundaryElements" />
 /* tslint:disable */
 
+/**
+ * @author Белотелов Н.В.
+ */
+
 // @ts-ignore
 import * as Inferno from 'Inferno/third-party/index.dev';
 
@@ -11,7 +15,7 @@ function isContainsStrict(container: Element, element: Element): boolean {
    return container.contains(element) && container !== element;
 }
 
-function findFirstVNode(arr: Array<any>): Array<any> {
+function findFirstVNode(arr: Array<any>): any {
    if (!Array.isArray(arr)) {
       return null;
    }
