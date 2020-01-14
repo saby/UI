@@ -43,56 +43,56 @@ define([
 
          it('string value', () => {
             instance.stringValue = 'another string';
-            assert.equal(errorMessage, 'Trying to use stringValue in purified test_instance');
+            assert.equal(errorMessage, '');
 
             const stringValue = instance.stringValue;
             assert.equal(stringValue, 'some string');
-            assert.equal(errorMessage, 'Trying to use stringValue in purified test_instance');
+            assert.equal(errorMessage, '');
          });
 
          it('number value', () => {
             instance.numberValue = 9265;
-            assert.equal(errorMessage, 'Trying to use numberValue in purified test_instance');
+            assert.equal(errorMessage, '');
 
             const numberValue = instance.numberValue;
             assert.equal(numberValue, 31415);
-            assert.equal(errorMessage, 'Trying to use numberValue in purified test_instance');
+            assert.equal(errorMessage, '');
          });
 
          it('undefined value', () => {
             instance.undefinedValue = 'defined';
-            assert.equal(errorMessage, 'Trying to use undefinedValue in purified test_instance');
+            assert.equal(errorMessage, '');
 
             const undefinedValue = instance.undefinedValue;
             assert.strictEqual(undefinedValue, undefined);
-            assert.equal(errorMessage, 'Trying to use undefinedValue in purified test_instance');
+            assert.equal(errorMessage, '');
          });
 
          it('null value', () => {
             instance.nullValue = { a: 'b' };
-            assert.equal(errorMessage, 'Trying to use nullValue in purified test_instance');
+            assert.equal(errorMessage, '');
 
             const nullValue = instance.nullValue;
             assert.strictEqual(nullValue, null);
-            assert.equal(errorMessage, 'Trying to use nullValue in purified test_instance');
+            assert.equal(errorMessage, '');
          });
 
          it('object value', () => {
             instance.objectValue = { a: 'b' };
-            assert.equal(errorMessage, 'Trying to use objectValue in purified test_instance');
+            assert.equal(errorMessage, '');
 
             const objectValue = instance.objectValue;
             assert.strictEqual(objectValue, undefined);
-            assert.equal(errorMessage, 'Trying to use objectValue in purified test_instance'.repeat(2));
+            assert.equal(errorMessage, 'Trying to get the objectValue out of the purified test_instance');
          });
 
          it('function value', () => {
             instance.functionValue = () => {};
-            assert.equal(errorMessage, 'Trying to use functionValue in purified test_instance');
+            assert.equal(errorMessage, '');
 
             const functionValue = instance.functionValue;
             assert.strictEqual(functionValue, undefined);
-            assert.equal(errorMessage, 'Trying to use functionValue in purified test_instance'.repeat(2));
+            assert.equal(errorMessage, 'Trying to get the functionValue out of the purified test_instance');
          });
 
          it('no enumerable properties', () => {
