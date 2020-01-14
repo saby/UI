@@ -15,7 +15,7 @@ function isContainsStrict(container: Element, element: Element): boolean {
    return container.contains(element) && container !== element;
 }
 
-function findFirstVNode(arr: Array<any>): Array<any> {
+function findFirstVNode(arr: Array<any>): any {
    if (!Array.isArray(arr)) {
       return null;
    }

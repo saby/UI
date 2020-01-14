@@ -66,7 +66,7 @@ function contextToElement({
 
 // [elem, elem.parent, elem.parent.parent, �, html]
 // will not contain the shadowRoot (DOCUMENT_FRAGMENT_NODE) and shadowHost
-function getParents({context} = {}) {
+function getParents({ context }: any) {
    const list = [];
    let element = contextToElement({
       label: 'get/parents',
