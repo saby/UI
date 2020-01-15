@@ -34,6 +34,9 @@ if (Hydrate.initInferno) {
 }
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
+
+type IControlChildren = Record<string, Element | Control>;
+
 /**
  * @event UI/_base/Control#activated Происходит при активации контрола.
  * @param {Boolean} isTabPressed Указывает, был ли активирован контрол нажатием на клавишу Tab.
@@ -134,7 +137,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    // Render function for text generator
    render: Function = null;
 
-   _children: Record<string, Control<TOptions, TState> | HTMLElement> = null;
+   protected _children: IControlChildren = null;
 
    constructor(cfg: any) {
       if (!cfg) {
