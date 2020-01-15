@@ -44,12 +44,16 @@
       "path": "./node_modules/wasaby-controls/Controls-theme"
     },
     {
+      "name": "Controls-default-theme",
+      "path": "./node_modules/wasaby-controls/Controls-default-theme"
+    },
+    {
       "name": "SBIS3.CONTROLS",
       "path": "./node_modules/sbis3controls/SBIS3.CONTROLS"
     },
     {
       "name": "Inferno",
-      "path": "./node_modules/sbis3-ws/Inferno",
+      "path": "./node_modules/saby-inferno/Inferno",
       "required": true
     },
     {
