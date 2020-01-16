@@ -44,7 +44,7 @@ try {
 bundles = bundles || {};
 modDeps = modDeps || { links: {}, nodes: {} };
 
-class HeadData implements IStore<Record<keyof HeadData, any>> {
+export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     isDebug: boolean;
     // переедет в константы реквеста, изменяется в Controls/Application
     isNewEnvironment: boolean = false;
@@ -186,4 +186,19 @@ class HeadData implements IStore<Record<keyof HeadData, any>> {
     // #endregion
 }
 
-export default HeadData;
+/**
+ * Singleton для работы со Store.
+ * https://wi.sbis.ru/doc/platform/developmentapl/interface-development/application-architecture/#store
+ */
+class HeadDataStore {
+    constructor (private storageKey: string = 'nonamestore') {
+        AppEnv.setStore<HeadData>(storageKey, new HeadData());
+    }
+    read<K extends keyof HeadData>(key: K): HeadData[K] {
+        return AppEnv.getStore<HeadData>(this.storageKey).get(key);
+    }
+    write<K extends keyof HeadData>(key: K, value: HeadData[K]) {
+        return AppEnv.getStore<HeadData>(this.storageKey).set(key, value);
+    }
+}
+export const headDataStore = new HeadDataStore('headDataStore');

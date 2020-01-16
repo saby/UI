@@ -23,12 +23,11 @@ import * as Markup from 'View/Executor/Markup';
 import * as Vdom from 'Vdom/Vdom';
 import * as DevtoolsHook from 'Vdom/DevtoolsHook';
 import * as FocusLib from 'UI/Focus';
-import * as AppEnv from 'Application/Env';
 import startApplication from 'UI/_base/startApplication';
+import { headDataStore } from 'UI/_base/HeadData';
 
 // @ts-ignore
 import * as Hydrate from 'Inferno/third-party/hydrate';
-import HeadData from 'UI/_base/HeadData';
 
 if (Hydrate.initInferno) {
    Hydrate.initInferno(Expressions, Utils, Markup, Vdom, FocusLib, DevtoolsHook);
@@ -805,7 +804,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          if (typeof process !== 'undefined' && !process.versions) {
             let time = WAIT_TIMEOUT;
             try {
-               time = AppEnv.getStore<HeadData>('headData').get('ssrWaitTimeManager')();
+               time = headDataStore.read('ssrWaitTimeManager')();
             }
             catch (e) {
 
