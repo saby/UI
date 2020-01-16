@@ -63,10 +63,14 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
         });
         this.isDebug = isDebug();
         this.ssrEndTime = Date.now() + ssrWaitTime;
+        this.get = this.get.bind(this);
+        this.set = this.set.bind(this);
+        this.getKeys = this.getKeys.bind(this);
+        this.toObject = this.toObject.bind(this);
         this.waitAppContent = this.waitAppContent.bind(this);
-        this.ssrWaitTimeManager = this.ssrWaitTimeManager.bind(this);
         this.pushDepComponent = this.pushDepComponent.bind(this);
         this.pushWaiterDeferred = this.pushWaiterDeferred.bind(this);
+        this.ssrWaitTimeManager = this.ssrWaitTimeManager.bind(this);
         this.resetRenderDeferred = this.resetRenderDeferred.bind(this);
     }
 
@@ -192,7 +196,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
  */
 class HeadDataStore {
     constructor (private storageKey: string = 'nonamestore') {
-        AppEnv.setStore<HeadData>(storageKey, new HeadData());
+        AppEnv.setStore<HeadData>(this.storageKey, new HeadData());
     }
     read<K extends keyof HeadData>(key: K): HeadData[K] {
         return AppEnv.getStore<HeadData>(this.storageKey).get(key);
