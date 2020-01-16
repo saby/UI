@@ -201,4 +201,9 @@ class HeadDataStore {
         return AppEnv.getStore<HeadData>(this.storageKey).set(key, value);
     }
 }
-export const headDataStore = new HeadDataStore('headDataStore');
+let _headDataStore: HeadDataStore;
+/**
+ * Возвращает singleton store HeadData
+ */
+export const getHeadDataStore = (): HeadDataStore =>
+    _headDataStore || (_headDataStore = new HeadDataStore('getHeadDataStore'));

@@ -8,7 +8,7 @@ import template = require('wml!UI/_base/Document/Document');
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesController');
 import * as AppEnv from 'Application/Env';
-import { headDataStore } from 'UI/_base/HeadData';
+import { getHeadDataStore } from 'UI/_base/HeadData';
 import AppData from './AppData';
 import startApplication from 'UI/_base/startApplication';
 
@@ -37,7 +37,7 @@ class Document extends Control {
         startApplication(cfg);
         // Временно положим это в HeadData, потом это переедет в константы реквеста
         // Если запуск страницы начинается с UI/Base:Document, значит мы находимся в новом окружении
-        headDataStore.write('isNewEnvironment', true);
+        getHeadDataStore().write('isNewEnvironment', true);
         AppData.initAppData(cfg);
         AppEnv.setStore('CoreInstance', { instance: this });
         this.ctxData = new AppData(cfg);
@@ -73,7 +73,7 @@ class Document extends Control {
         let result;
         if (this.application !== app) {
             this.applicationForChange = app;
-            headDataStore.read('resetRenderDeferred')();
+            getHeadDataStore().read('resetRenderDeferred')();
             this._forceUpdate();
             result = true;
         } else {
