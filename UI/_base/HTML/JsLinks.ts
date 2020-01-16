@@ -23,7 +23,7 @@ class JsLinks extends Control {
          return;
       }
       const headData = AppEnv.getStore<HeadData>('headData');
-      headData.get('waitAppContent')().then((res) => {
+      return headData.get('waitAppContent')().then((res) => {
          this.js = res.js;
          this.tmpl = res.tmpl;
          this.wml = res.wml;
