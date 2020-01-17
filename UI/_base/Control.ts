@@ -91,6 +91,7 @@ const WRAP_TIMEOUT = 30000;
 export interface IControlOptions {
    readOnly?: boolean;
    theme?: string;
+   maxWaitTime?: number;
 }
 /**
  * @class UI/_base/Control
@@ -110,6 +111,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    private readonly _instId: string;
    protected _options: TOptions = null;
+   protected _maxWaitTime: number;
    private _internalOptions: Record<string, unknown> = null;
 
    private _context: any = null;
@@ -784,6 +786,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       });
    }
 
+   private _getServerSideWaitTimeManager(): number{
+      return AppEnv.getStore('HeadData').ssrWaitTimeManager();
+   }
+
    _beforeMountLimited(opts: TOptions): Promise<TState> | Promise<void> | void {
       if (this._$resultBeforeMount) {
          return this._$resultBeforeMount;
@@ -800,14 +806,16 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // Reactive properties will be started in Synchronizer
       if (resultBeforeMount && resultBeforeMount.callback) {
          //start server side render
-          // todo проверка на сервис представления
+         // todo проверка на сервис представления
          if (typeof process !== 'undefined' && !process.versions) {
-            let time = WAIT_TIMEOUT;
-            try {
-               time = AppEnv.getStore('HeadData').ssrWaitTimeManager();
-            }
-            catch (e) {
+            let time = opts.maxWaitTime || this._maxWaitTime;
+            if(!time) {
+               time = WAIT_TIMEOUT;
+               try {
+                  time = this._getServerSideWaitTimeManager();
+               } catch (e) {
 
+               }
             }
             resultBeforeMount = this._resultBeforeMount(resultBeforeMount, time);
          }
