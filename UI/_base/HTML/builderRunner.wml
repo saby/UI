@@ -2,22 +2,18 @@
    <script>
       window.receivedStates = '{"ThemesController": { "themes" : {"' + (window.defaultStaticTheme || 'default') + '": true}}}';
 
-      require(['UI/Base', 'Core/app-start', 'Application/Env', 'Core/app-init', 'View/Executor/TClosure'],
-      function(UI, AppStart, AppEnv, appInit, Core) {
+      require(['UI/Base', 'Core/app-start',  'Core/app-init', 'View/Executor/TClosure'],
+      function(UI, AppStart, appInit, Core) {
          var AppData = UI.AppData,
-            HeadData = UI.HeadData,
+            getHeadDataStore = UI.getHeadDataStore,
             Core = UI.Control;
          /*Первый шаг - иницализация ядра и темы. Второй шаг - загрузка ресурсов*/
          appInit();
 
-         var headData = new HeadData([], true);
          /* Этот же флаг проставляется в UI/Base:Document
          Проблема в том, что при старте html.tmpl-страницы на клиенте, не вызывается UI/Base:Document
          Это должно быть сведено в одну точку */
-         headData.isNewEnvironment = true;
-         const headDataStore = new AppEnv.ObjectStore();
-         headDataStore.set('headData', headData);
-         AppEnv.setStore('headDataStore', headDataStore);
+         getHeadDataStore().write('isNewEnvironment', true);
          window.startContextData = {AppData: new AppData({})};
          require([ {{ __setHTMLUnsafe(_options.dependencies) }} ], function (){
             var templateFn = {{ __setHTMLUnsafe(_options.builder) }};

@@ -8,15 +8,12 @@ import template = require('wml!UI/_base/Document/Document');
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesController');
 import * as AppEnv from 'Application/Env';
-import HeadData from './HeadData';
+import { getHeadDataStore } from 'UI/_base/HeadData';
 import AppData from './AppData';
 import startApplication from 'UI/_base/startApplication';
-import { IStore } from 'Application/Interface';
-import { ObjectStore } from 'Application/Env';
-
 
 class Document extends Control {
-    _template: Function = template;
+    _template = template;
 
     private ctxData: any = null;
     private application: string = '';
@@ -38,13 +35,9 @@ class Document extends Control {
         }
 
         startApplication(cfg);
-        const headData = new HeadData();
         // Временно положим это в HeadData, потом это переедет в константы реквеста
         // Если запуск страницы начинается с UI/Base:Document, значит мы находимся в новом окружении
-        headData.isNewEnvironment = true;
-        const headDataStore: IStore<HeadData> = new ObjectStore();
-        headDataStore.set('headData', headData);
-        AppEnv.setStore<HeadData>('headDataStore', headDataStore);
+        getHeadDataStore().write('isNewEnvironment', true);
         AppData.initAppData(cfg);
         AppEnv.setStore('CoreInstance', { instance: this });
         this.ctxData = new AppData(cfg);
@@ -80,10 +73,7 @@ class Document extends Control {
         let result;
         if (this.application !== app) {
             this.applicationForChange = app;
-            const headData = AppEnv.getStore<HeadData>('headDataStore').get('headData');
-            if (headData) {
-                headData.resetRenderDeferred();
-            }
+            getHeadDataStore().read('resetRenderDeferred')();
             this._forceUpdate();
             result = true;
         } else {
