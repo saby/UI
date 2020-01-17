@@ -16,7 +16,6 @@ let bundles;
 let modDeps;
 let contents = {};
 const isDebug = () => cookie.get('s3debug') && cookie.get('s3debug') !== 'false' || contents?.['buildMode'] === 'debug';
-const ssrWaitTime = 20000;
 // Need these try-catch because:
 // 1. We don't need to load these files on client
 // 2. We don't have another way to check if these files exists on server
@@ -45,6 +44,7 @@ bundles = bundles || {};
 modDeps = modDeps || { links: {}, nodes: {} };
 
 export default class HeadData implements IStore<Record<keyof HeadData, any>> {
+    static readonly SSR_DELAY = 20000;
     isDebug: boolean;
     // переедет в константы реквеста, изменяется в Controls/Application
     isNewEnvironment: boolean = false;
@@ -62,7 +62,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             this.resolve = resolve;
         });
         this.isDebug = isDebug();
-        this.ssrEndTime = Date.now() + ssrWaitTime;
+        this.ssrEndTime = Date.now() + HeadData.SSR_DELAY;
         this.get = this.get.bind(this);
         this.set = this.set.bind(this);
         this.getKeys = this.getKeys.bind(this);
