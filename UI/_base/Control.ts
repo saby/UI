@@ -23,8 +23,8 @@ import * as Markup from 'View/Executor/Markup';
 import * as Vdom from 'Vdom/Vdom';
 import * as DevtoolsHook from 'Vdom/DevtoolsHook';
 import * as FocusLib from 'UI/Focus';
-import * as AppEnv from 'Application/Env';
 import startApplication from 'UI/_base/startApplication';
+import { getHeadDataStore } from 'UI/_base/HeadData';
 
 // @ts-ignore
 import * as Hydrate from 'Inferno/third-party/hydrate';
@@ -804,7 +804,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          if (typeof process !== 'undefined' && !process.versions) {
             let time = WAIT_TIMEOUT;
             try {
-               time = AppEnv.getStore('HeadData').ssrWaitTimeManager();
+               time = getHeadDataStore().read('ssrWaitTimeManager')();
             }
             catch (e) {
 

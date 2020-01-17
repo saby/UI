@@ -4,9 +4,9 @@ import Control from '../Control';
 
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Wait');
-import * as AppEnv from 'Application/Env';
+import { getHeadDataStore } from 'UI/_base/HeadData';
 
-const asyncTemplate = function(): any {
+const asyncTemplate: TemplateFunction = function() {
    const res = template.apply(this, arguments);
    if (res.then) {
       res.then((result) => {
@@ -20,10 +20,10 @@ const asyncTemplate = function(): any {
 };
 
 // Template functions should have true "stable" flag to send error on using, for example, some control instead it.
-asyncTemplate.stable = template.stable;
+asyncTemplate['stable'] = template['stable'];
 
 class Wait extends Control {
-   _template: Function = asyncTemplate;
+   _template = asyncTemplate;
 
    waitDef: Promise<any>;
 
@@ -42,7 +42,7 @@ class Wait extends Control {
 
    _beforeMount(): void {
       this.createPromise();
-      AppEnv.getStore('HeadData').pushWaiterDeferred(this.waitDef);
+      getHeadDataStore().read('pushWaiterDeferred')(this.waitDef);
       if (typeof window !== 'undefined') {
          this.resolvePromiseFn();
          this.createPromise();
