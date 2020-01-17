@@ -195,7 +195,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
  * https://wi.sbis.ru/doc/platform/developmentapl/interface-development/application-architecture/#store
  */
 class HeadDataStore {
-    constructor (private storageKey: string = 'nonamestore') {
+    constructor (private storageKey: string) {
         AppEnv.setStore<HeadData>(this.storageKey, new HeadData());
     }
     read<K extends keyof HeadData>(key: K): HeadData[K] {
@@ -210,4 +210,4 @@ let _headDataStore: HeadDataStore;
  * Возвращает singleton store HeadData
  */
 export const getHeadDataStore = (): HeadDataStore =>
-    _headDataStore || (_headDataStore = new HeadDataStore('getHeadDataStore'));
+    _headDataStore || (_headDataStore = new HeadDataStore('HeadData'));
