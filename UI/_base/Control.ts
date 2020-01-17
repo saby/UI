@@ -7,7 +7,7 @@ import { Synchronizer } from 'Vdom/Vdom';
 import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
 import { activate } from 'UI/Focus';
-import { Logger } from 'UI/Utils';
+import { Logger, Purifier } from 'UI/Utils';
 import { constants } from 'Env/Env';
 
 // @ts-ignore
@@ -27,14 +27,17 @@ import * as AppEnv from 'Application/Env';
 import startApplication from 'UI/_base/startApplication';
 
 // @ts-ignore
-import * as Hydrate from 'Inferno/third-party/hydrate.dev';
 import HeadData from 'UI/_base/HeadData';
+import * as Hydrate from 'Inferno/third-party/hydrate';
 
 if (Hydrate.initInferno) {
    Hydrate.initInferno(Expressions, Utils, Markup, Vdom, FocusLib, DevtoolsHook);
 }
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
+
+type IControlChildren = Record<string, Element | Control>;
+
 /**
  * @event UI/_base/Control#activated Происходит при активации контрола.
  * @param {Boolean} isTabPressed Указывает, был ли активирован контрол нажатием на клавишу Tab.
@@ -79,8 +82,6 @@ let countInst = 1;
 
 // tslint:disable-next-line
 const EMPTY_FUNC = function () { };
-// tslint:disable-next-line
-const EMPTY_OBJ: object = {};
 
 const WAIT_TIMEOUT = 20000;
 // This timeout is needed for loading control css.
@@ -100,6 +101,8 @@ export interface IControlOptions {
  * @public
  */
 export default class Control<TOptions extends IControlOptions = {}, TState = void> {
+   protected _moduleName: string;
+
    private _mounted: boolean = false;
    private _unmounted: boolean = false;
    private _destroyed: boolean = false;
@@ -135,7 +138,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    // Render function for text generator
    render: Function = null;
 
-   _children: Record<string, Control<TOptions, TState> | HTMLElement> = null;
+   protected _children: IControlChildren = null;
 
    constructor(cfg: any) {
       if (!cfg) {
@@ -265,7 +268,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          if (res) {
             if (isVdom) {
                if (res.length !== 1) {
-                  const message = `There should be only one root element in control markup. Got ${res.length} root(s) in "${this._moduleName}"`;
+                  const message = `There should be only one root element in control markup. Got ${res.length} root(s).`;
                   Logger.error(message, this);
                }
                for (let k = 0; k < res.length; k++) {
@@ -522,7 +525,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          // Избегаем утечки контролов по замыканию
          //this.saveFullContext = EMPTY_FUNC;
          //this._saveContextObject = EMPTY_FUNC;
-         //this.context = EMPTY_OBJ;
          //this.saveInheritOptions = EMPTY_FUNC;
          //this._saveEnvironment = EMPTY_FUNC;
          //this._getEnvironment = EMPTY_FUNC;
@@ -533,6 +535,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       } catch (error) {
          Logger.lifeError('_beforeUnmount', this, error);
       }
+      Purifier.purifyInstance(this, this._moduleName, true);
    }
 
    // <editor-fold desc="API">
