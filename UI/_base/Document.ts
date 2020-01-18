@@ -21,7 +21,7 @@ class Document extends Control {
 
     private coreTheme: string = '';
 
-    constructor(cfg = {}) {
+    constructor (cfg: object) {
         super(cfg);
 
         /*
