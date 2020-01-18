@@ -91,7 +91,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     }
 
     pushWaiterDeferred(def: Promise<any>): void {
-        const depsCollector = this.getDepsCollector();
+        const depsCollector = getDepsCollector();
         this.waiterDef = def;
         this.waiterDef.then(() => {
             if (!this.resolve) {
@@ -108,10 +108,10 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
                 };
             } else {
                 files = depsCollector.collectDependencies(components);
-                this.initThemesController(files.css.themedCss, files.css.simpleCss);
+                initThemesController(files.css.themedCss, files.css.simpleCss);
             }
 
-            const rcsData = this.getSerializedData();
+            const rcsData = getSerializedData();
             const additionalDepsArray = [];
             for (const key in rcsData.additionalDeps) {
                 if (rcsData.additionalDeps.hasOwnProperty(key)) {
@@ -153,21 +153,6 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
         });
     }
     
-    private getDepsCollector(): DepsCollector {
-        return new DepsCollector(modDeps.links, modDeps.nodes, bundles);
-    }
-
-    private initThemesController(themedCss, simpleCss): any {
-        return ThemesController.getInstance().initCss({
-            themedCss: themedCss,
-            simpleCss: simpleCss
-        });
-    }
-
-    private getSerializedData(): any {
-        return AppEnv.getStateReceiver().serialize();
-    }
-    
     // #region IStore
     get<K extends keyof HeadData>(key: K): HeadData[K] {
         return this[key];
@@ -190,6 +175,20 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     // #endregion
 }
 
+function getDepsCollector(): DepsCollector {
+    return new DepsCollector(modDeps.links, modDeps.nodes, bundles);
+}
+
+function initThemesController(themedCss, simpleCss): any {
+    return ThemesController.getInstance().initCss({
+        themedCss: themedCss,
+        simpleCss: simpleCss
+    });
+}
+
+function getSerializedData(): any {
+    return AppEnv.getStateReceiver().serialize();
+}
 /**
  * Singleton для работы со Store.
  * https://wi.sbis.ru/doc/platform/developmentapl/interface-development/application-architecture/#store
