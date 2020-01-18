@@ -28,7 +28,6 @@ class JsLinks extends Control {
          this.themedCss = res.css.themedCss;
          this.simpleCss = res.css.simpleCss;
          this.receivedStateArr = res.receivedStateArr;
-         return true;
       });
    }
 
