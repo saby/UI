@@ -189,24 +189,19 @@ function initThemesController(themedCss, simpleCss): any {
 function getSerializedData(): any {
     return AppEnv.getStateReceiver().serialize();
 }
-/**
- * Singleton для работы со Store.
- * https://wi.sbis.ru/doc/platform/developmentapl/interface-development/application-architecture/#store
- */
+
 class HeadDataStore {
-    constructor (private storageKey: string) {
-        AppEnv.setStore<HeadData>(this.storageKey, new HeadData());
-    }
+    constructor (private readonly storageKey: string) { }
+
     read<K extends keyof HeadData>(key: K): HeadData[K] {
-        return AppEnv.getStore<HeadData>(this.storageKey).get(key);
+        return AppEnv.getStore<HeadData>(this.storageKey, () => new HeadData()).get(key);
     }
+
     write<K extends keyof HeadData>(key: K, value: HeadData[K]) {
-        return AppEnv.getStore<HeadData>(this.storageKey).set(key, value);
+        return AppEnv.getStore<HeadData>(this.storageKey, () => new HeadData()).set(key, value);
     }
 }
-let _headDataStore: HeadDataStore;
 /**
- * Возвращает singleton store HeadData
+ * Singleton для работы со HeadData Store.
  */
-export const getHeadDataStore = (): HeadDataStore =>
-    _headDataStore || (_headDataStore = new HeadDataStore('HeadData'));
+export const headDataStore = new HeadDataStore('HeadData');
