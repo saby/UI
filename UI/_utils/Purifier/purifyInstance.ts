@@ -6,21 +6,23 @@ const typesToPurify: string[] = ['object', 'function'];
 
 function createUseAfterDestroyErrorFunction(stateName: string, instanceName: string): () => void {
     return () => {
-        Logger.error(`Trying to get the ${stateName} out of the purified ${instanceName}`);
+        Logger.error(`Попытка получить поле ${stateName} в очищенном ${instanceName}`);
     };
 }
 
 function emptyFunction() {}
 
-function needErrorOnGet(stateValue: any): boolean {
+function isValueToPurify(stateValue: any): boolean {
     return !!(stateValue && ~typesToPurify.indexOf(typeof stateValue));
 }
 
 function purifyInstanceSync(instance: Record<string, any>, instanceName: string) {
-    for (let stateName in instance) {
-        const stateValue = instance[stateName];
+    // @ts-ignore: есть полифилл для Object.entries, информации о котором нет у компиллятора ts.
+    const instanceEntries = Object.entries(instance);
+    while (instanceEntries.length) {
+        const [stateName, stateValue] = instanceEntries.pop();
 
-        const getterFunction = needErrorOnGet(stateValue) ?
+        const getterFunction = isValueToPurify(stateValue) ?
             createUseAfterDestroyErrorFunction(stateName, instanceName) :
             () => stateValue;
 
