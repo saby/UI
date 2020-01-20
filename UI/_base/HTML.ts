@@ -17,7 +17,7 @@ import getResourceUrl = require('Core/helpers/getResourceUrl');
 import AppData from './AppData';
 import { IHTMLOptions } from './interface/IHTML';
 import { IRootTemplateOptions } from './interface/IRootTemplate';
-import { getHeadDataStore } from 'UI/_base/HeadData';
+import { headDataStore } from 'UI/_base/HeadData';
 
 interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
     // Добавим здесь поля для RUM-статистики Потому что их нам нужно сериализовать в wsConfig, чтобы потом получить на клиенте.
@@ -96,7 +96,7 @@ class HTML extends Control {
             ThemesController.getInstance().setTheme(cfg.theme);
         }
         this.linkResolver = new LinkResolver(
-            getHeadDataStore().read('isDebug'),
+            headDataStore.read('isDebug'),
             this.buildnumber,
             this.wsRoot,
             this.appRoot,
@@ -105,9 +105,9 @@ class HTML extends Control {
 
         // LinkResolver.getInstance().init(context.headData.isDebug, self.buildnumber, self.appRoot, self.resourceRoot);
 
-        getHeadDataStore().read('pushDepComponent')(this.application, false);
+        headDataStore.read('pushDepComponent')(this.application, false);
 
-        if (receivedState.csses && !getHeadDataStore().read('isDebug')) {
+        if (receivedState.csses && !headDataStore.read('isDebug')) {
             ThemesController.getInstance().initCss({
                 themedCss: receivedState.csses.themedCss,
                 simpleCss: receivedState.csses.simpleCss

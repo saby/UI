@@ -4,7 +4,7 @@ import Control from '../Control';
 
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/JsLinks');
-import { getHeadDataStore } from 'UI/_base/HeadData';
+import { headDataStore } from 'UI/_base/HeadData';
 
 class JsLinks extends Control {
    // @ts-ignore
@@ -21,7 +21,7 @@ class JsLinks extends Control {
       if (typeof window !== 'undefined') {
          return;
       }
-      return getHeadDataStore().read('waitAppContent')().then((res) => {
+      return headDataStore.read('waitAppContent')().then((res) => {
          this.js = res.js;
          this.tmpl = res.tmpl;
          this.wml = res.wml;

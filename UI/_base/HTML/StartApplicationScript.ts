@@ -4,7 +4,7 @@ import Control from '../Control';
 
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/StartApplicationScript');
-import { getHeadDataStore } from 'UI/_base/HeadData';
+import { headDataStore } from 'UI/_base/HeadData';
 
 class StartApplicationScript extends Control {
    // @ts-ignore
@@ -15,7 +15,7 @@ class StartApplicationScript extends Control {
       if (typeof window !== 'undefined') {
          return;
       }
-      const def = getHeadDataStore().read('waitAppContent')();
+      const def = headDataStore.read('waitAppContent')();
       return new Promise((resolve) => {
          def.then((res) => {
             this.additionalDeps = res.additionalDeps;
