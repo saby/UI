@@ -22,6 +22,12 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string)
     while (instanceEntries.length) {
         const [stateName, stateValue] = instanceEntries.pop();
 
+        // TODO: Удалить исключение для поля _children после решения ошибки по ссылке ниже.
+        // https://online.sbis.ru/opendoc.html?guid=095a1b4d-77e9-49fb-96ec-cf4aa6372e2b
+        if (stateName === '_children') {
+            continue;
+        }
+
         const getterFunction = isValueToPurify(stateValue) ?
             createUseAfterDestroyErrorFunction(stateName, instanceName) :
             () => stateValue;
