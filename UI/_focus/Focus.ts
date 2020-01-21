@@ -265,6 +265,9 @@ function focus(
 }
 
 function _initFocus() {
+   // Заменяем нативный фокус на функцию из библиотеки фокусов.
+   // В ней исправлены многие ошибки кроссбраузерной и кроссплатформенной совместимости.
+   // Кроме того это упрощает отладку, т.к. способ программно сфокусировать элемент будет только один.
    if (typeof HTMLElement !== 'undefined') {
       nativeFocus = HTMLElement.prototype.focus;
       HTMLElement.prototype.focus = function replacedFocus(): void {
