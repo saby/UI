@@ -83,7 +83,7 @@ define([
 
             const objectValue = instance.objectValue;
             assert.strictEqual(objectValue, undefined);
-            assert.equal(errorMessage, 'Trying to get the objectValue out of the purified test_instance');
+            assert.equal(errorMessage, 'Попытка получить поле objectValue в очищенном test_instance');
          });
 
          it('function value', () => {
@@ -92,7 +92,7 @@ define([
 
             const functionValue = instance.functionValue;
             assert.strictEqual(functionValue, undefined);
-            assert.equal(errorMessage, 'Trying to get the functionValue out of the purified test_instance');
+            assert.equal(errorMessage, 'Попытка получить поле functionValue в очищенном test_instance');
          });
 
          it('no enumerable properties', () => {
@@ -104,6 +104,43 @@ define([
          it('purify instance more than once', () => {
             purifyInstance(instance);
             assert.equal(errorMessage, '');
+         });
+
+         it('purify instance with a getter (string)', () => {
+            instance = {
+               a: 'a',
+               z: 'z'
+            };
+            Object.defineProperty(instance, 'getterValue', {
+               get: () => instance.a + instance.z,
+               configurable: true,
+               enumerable: true
+            });
+            purifyInstance(instance);
+
+            const getterValue = instance.getterValue;
+            assert.equal(getterValue, 'az');
+            assert.equal(errorMessage, '');
+         });
+
+         it('purify instance with a getter (object)', () => {
+            instance = {
+               a: 'a',
+               z: 'z'
+            };
+            Object.defineProperty(instance, 'getterValue', {
+               get: () => ({
+                  a: instance.z,
+                  z: instance.a
+               }),
+               configurable: true,
+               enumerable: true
+            });
+            purifyInstance(instance, 'test_instance');
+
+            const getterValue = instance.getterValue;
+            assert.strictEqual(getterValue, undefined);
+            assert.equal(errorMessage, 'Попытка получить поле getterValue в очищенном test_instance');
          });
       });
    });
