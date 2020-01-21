@@ -1,11 +1,4 @@
-// @ts-ignore
-import { OptionsResolver } from 'View/Executor/Utils';
 import Control from './Control';
-import * as logger from 'UI/Logger';
-
-// @ts-ignore
-import { Focus, ContextResolver } from 'View/Executor/Expressions';
-import startApplication from 'UI/_base/startApplication';
 
 /**
  * @class UI/_base/Creator
@@ -32,30 +25,7 @@ import startApplication from 'UI/_base/startApplication';
  * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator
  * Core/Creator}.
  */
-export default function createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
-   startApplication();
-   const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
-   // @ts-ignore
-   OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
-   const attrs = {
-      inheritOptions: {}
-   };
-   let ctr: any;
-   OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
-   try {
-      ctr = new ctor(cfg);
-   } catch (error) {
-      ctr = new Control({});
-      logger.lifeError('constructor', ctor.prototype, error);
-   }
-   ctr.saveInheritOptions(attrs.inheritOptions);
-   ctr._container = domElement;
-   Focus.patchDom(domElement, cfg);
-   ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
-   ctr.mountToDom(ctr._container, cfg, ctor);
-   ctr._$createdFromCode = true;
-   return ctr;
-}
+export default Control.createControl;
 
 /**
  * Асинхронно создаёт элемент.
@@ -67,9 +37,11 @@ export default function createControl(ctor: any, cfg: any, domElement: HTMLEleme
  * Method for asynchronous item creation.
  */
 export async function async(ctor: any, cfg: any, domElement: HTMLElement): Promise<Control> {
+    // @ts-ignore
     return new Promise((resolve, reject) => {
         try {
-            const inst = createControl(ctor, cfg, domElement);
+            const inst = Control.createControl(ctor, cfg, domElement);
+           // @ts-ignore
             const baseAM = inst._afterMount;
 
             // @ts-ignore

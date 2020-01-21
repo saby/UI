@@ -1,40 +1,47 @@
 const jsdom = require('jsdom');
+/* global describe, it, assert */
 define([
    'UI/Focus',
    'UI/Base',
    'Env/Env',
    'UI/_focus/_ResetScrolling',
    'UITest/Focus'
-], function (Focus,
-             Base,
-             Env,
-             _ResetScrolling,
-             FocusTestControls
+], function(
+   Focus,
+   Base,
+   Env,
+   _ResetScrolling,
+   FocusTestControls
 ) {
    'use strict';
 
-   var global = function () {
+   var global = (function() {
       return this || (0, eval)('this');
-   }();
+   }());
 
-   describe('Focus', function () {
+   describe('Focus', function() {
       var div;
       var control;
       var globalCases = [];
       var currentCase;
       var fromNode = typeof document === 'undefined';
 
-      before(function () {
+      before(function(done) {
          if (fromNode) {
-            var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
-            global.window = browser.window;
-            global.document = window.document;
-            global.Element = window.Element;
-            global.HTMLElement = window.HTMLElement;
-            global.SVGElement = window.SVGElement;
-            global.Node = window.Node;
-            global.getComputedStyle = window.getComputedStyle;
-            Focus._initFocus();
+            require(['jsdom'], function(jsdom) {
+               var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
+               global.window = browser.window;
+               global.document = window.document;
+               global.Element = window.Element;
+               global.HTMLElement = window.HTMLElement;
+               global.SVGElement = window.SVGElement;
+               global.Node = window.Node;
+               global.getComputedStyle = window.getComputedStyle;
+               Focus._initFocus();
+               done();
+            });
+         } else {
+            done();
          }
       });
 
@@ -75,7 +82,7 @@ define([
          }
       });
 
-      afterEach(function () {
+      afterEach(function() {
          if (control) {
             control.destroy();
          }
@@ -121,7 +128,7 @@ define([
                name: 'has autofocus control inside',
                checkFn: function() {
                   assert.ok(Focus.activate(div));
-                  assert.strictEqual(document.activeElement, control._children['autofocusChild']._container);
+                  assert.strictEqual(document.activeElement, control._children.autofocusChild._container);
                }
             },
             {
@@ -130,7 +137,7 @@ define([
                async: true,
                checkFn: function(done) {
                   try {
-                     control.afterUpdateCallback = function () {
+                     control.afterUpdateCallback = function() {
                         assert.strictEqual(document.activeElement, div);
                         done();
                      };
@@ -138,7 +145,7 @@ define([
                      assert.ok(Focus.activate(container));
                      assert.strictEqual(document.activeElement, container);
                      control.noNeedContent = true;
-                  } catch(e) {
+                  } catch (e) {
                      done(e);
                   }
                }
@@ -186,7 +193,7 @@ define([
                if (!currentCase.async) {
                   done();
                }
-            })
+            });
          }
       });
 
@@ -233,7 +240,7 @@ define([
                if (!currentCase.async) {
                   done();
                }
-            })
+            });
          }
       });
 
@@ -269,7 +276,7 @@ define([
                name: 'for pseudo array',
                control: FocusTestControls.Simple,
                checkFn: function() {
-                  var container = {0: div, length: 1};
+                  var container = { 0: div, length: 1 };
                   document.body.scrollTop = 13;
                   var undoScrollingFunction = _ResetScrolling.collectScrollPositions(container);
                   document.body.scrollTop = 0;
@@ -301,7 +308,7 @@ define([
                if (!currentCase.async) {
                   done();
                }
-            })
+            });
          }
       });
 
@@ -347,7 +354,7 @@ define([
                if (!currentCase.async) {
                   done();
                }
-            })
+            });
          }
       });
 
@@ -407,14 +414,14 @@ define([
                   var detection = Env.detection;
                   Env.detection = {
                      safari: true,
-                     isMobileIOS : true,
+                     isMobileIOS: true,
                      isMobilePlatform: true
                   };
 
                   var collectScrollPositions = _ResetScrolling.collectScrollPositions;
                   _ResetScrolling.collectScrollPositions = function() {
                      scrolled = true;
-                     return function(){};
+                     return function() { };
                   };
 
                   try {
@@ -426,7 +433,34 @@ define([
                      _ResetScrolling.collectScrollPositions = collectScrollPositions;
                   }
                   assert.notOk(scrolled);
+
                   // assert.strictEqual(document.activeElement, input);
+               }
+            },
+            {
+               name: 'no call HTMLElement.focus if focus() on element redefined',
+               async: true,
+               checkFn: function(done) {
+                  assert.notOk(false);
+                  div.innerHTML = '<div id="input" contenteditable="true"></div>';
+                  var input = document.getElementById('input');
+                  var overridedFocusCalled = false;
+                  input.focus = function() { overridedFocusCalled = true };
+                  var originFocus = HTMLElement.prototype.focus;
+                  var nativeFocusCalled = false;
+                  HTMLElement.prototype.focus = function() {
+                     nativeFocusCalled = true;
+                  }
+                  try {
+                     Focus.focus(input);
+                     assert.notOk(nativeFocusCalled);
+                     assert.ok(overridedFocusCalled);
+                     done();
+                  } catch(e) {
+                     done(e);
+                  } finally {
+                     HTMLElement.prototype.focus = originFocus;
+                  }
                }
             }
          ];

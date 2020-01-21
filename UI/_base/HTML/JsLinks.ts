@@ -7,6 +7,7 @@ import template = require('wml!UI/_base/HTML/JsLinks');
 import * as AppEnv from 'Application/Env';
 
 class JsLinks extends Control {
+   // @ts-ignore
    _template: Function = template;
 
    js: string[] = [];
@@ -16,20 +17,12 @@ class JsLinks extends Control {
    simpleCss: string[] = [];
    receivedStateArr: string = '';
 
-   _beforeMountLimited(): Promise<any> {
-      // https://online.sbis.ru/opendoc.html?guid=252155de-dc95-402c-967d-7565951d2061
-      // This component awaits completion of building content of _Wait component
-      // So we don't need timeout of async building in this component
-      // Because we need to build depends list in any case
-      // before returning html to client
-      return this._beforeMount.apply(this, arguments);
-   }
-
    _beforeMount(): Promise<any> {
       if (typeof window !== 'undefined') {
          return;
       }
       const headData = AppEnv.getStore('HeadData');
+      // @ts-ignore
       const def = headData.waitAppContent();
       return new Promise((resolve, reject) => {
          def.then((res) => {

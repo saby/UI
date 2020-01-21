@@ -1,0 +1,4 @@
+<div class="limitedDemo__nested">
+    <div>I'm Long Nested Other control. My timeout is <span class="{{ _state && 'limitedDemo__loaded' }}">{{_timeOut}}</span></div>
+    <div>Summary timeout is <span class="{{ _state && 'limitedDemo__timeOutOther' }}">{{ _timeOut + _options.timeOut }}</span></div>
+</div>

@@ -7,6 +7,7 @@ import { Synchronizer } from 'Vdom/Vdom';
 import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
 import { activate } from 'UI/Focus';
+import { Logger } from 'UI/Utils';
 
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesControllerNew');
@@ -21,6 +22,7 @@ import * as Markup from 'View/Executor/Markup';
 import * as Vdom from 'Vdom/Vdom';
 import * as DevtoolsHook from 'Vdom/DevtoolsHook';
 import * as FocusLib from 'UI/Focus';
+import * as AppEnv from 'Application/Env';
 import startApplication from 'UI/_base/startApplication';
 
 // @ts-ignore
@@ -30,9 +32,6 @@ if (Hydrate.initInferno) {
    Hydrate.initInferno(Expressions, Utils, Markup, Vdom, FocusLib, DevtoolsHook);
 }
 
-import * as logger from 'UI/Logger';
-
-
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
 /**
  * @event UI/_base/Control#activated Происходит при активации контрола.
@@ -40,7 +39,7 @@ export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: b
  * @remark Контрол активируется, когда на один из его DOM-элементов переходит фокус.
  * Подробное описание и примеры использования события читайте
  * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ здесь}.
- * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ Работа с фокусами}
+ * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/
  * @see deactivated
  */
 
@@ -60,7 +59,7 @@ export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: b
  * @remark Контрол перестает быть активным, когда все его дочерние контролы теряют фокус.
  * Подробное описание и примеры использования события читайте
  * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ здесь}.
- * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ Работа с фокусами}
+ * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/
  * @see activated
  */
 
@@ -237,7 +236,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          isVdom: boolean = true
       ): any {
          if (!this._template.stable) {
-            logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
+            Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
             return '';
          }
          let res;
@@ -262,6 +261,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          res = this._template(this, attributes, rootKey, isVdom);
          if (res) {
             if (isVdom) {
+               if (res.length !== 1) {
+                  const message = `There should be only one root element in control markup. Got ${res.length} root(s) in "${this._moduleName}"`;
+                  Logger.error(message, this);
+               }
                for (let k = 0; k < res.length; k++) {
                   if (res[k]) {
                      return res[k];
@@ -440,7 +443,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                   if (res.status === 'rejected') {
                      const message = '[UI/_base/Control:_loadNewStyles] Styles loading error ' +
                         `Could not load style ${name} for "${self._moduleName}`;
-                     logger.error(message, self);
+                     Logger.error(message, self);
                   }
                });
                promiseArray.push(loadPromise);
@@ -456,8 +459,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                loadPromise.then((res) => {
                   if (res.status === 'rejected') {
                      const message = '[UI/_base/Control:_loadNewStyles] Styles loading error ' +
-                        `Could not load style ${name} for "${self._moduleName} with thene ${theme}`;
-                     logger.error(message, self);
+                        `Could not load style ${name} for "${self._moduleName} with theme ${theme}`;
+                     Logger.error(message, self);
                   }
                });
                promiseArray.push(loadPromise);
@@ -522,16 +525,17 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          //this._getEnvironment = EMPTY_FUNC;
          //this._notify = EMPTY_FUNC;
          this._forceUpdate = EMPTY_FUNC;
+         this._beforeUnmount = EMPTY_FUNC;
          //this._getMarkup = EMPTY_FUNC;
       } catch (error) {
-         logger.lifeError('_beforeUnmount', this, error);
+         Logger.lifeError('_beforeUnmount', this, error);
       }
    }
 
    // <editor-fold desc="API">
 
    _blur(): void {
-      const container = this._container[0] ? this._container[0] : this._container;
+      const container = this._container;
       const activeElement = document.activeElement;
       let tmpTabindex;
 
@@ -587,7 +591,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * Когда контрол становится активным, все его дочерниеконтролы также становятся активными. Когда контрол активируется, он запускает событие активации.
     * Подробное описание и инструкцию по работе с методом читайте
     * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ здесь}.
-    * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ Работа с фокусами}
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/
     * @see activated
     * @see deactivated
     */
@@ -627,7 +631,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see deactivated
     */
    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
-      const container = this._container[0] ? this._container[0] : this._container;
+      const container = this._container;
       const activeElement = document.activeElement;
 
       const res = activate(container, cfg);
@@ -675,8 +679,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @remark
     * Первый хук жизненного цикла контрола и единственный хук, который вызывается как на стороне сервера, так и на стороне клиента.
     * Он вызывается до рендеринга шаблона, поэтому обычно используется для подготовки данных для шаблона.
-    * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
-    * @private
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
 
    /*
@@ -709,11 +712,71 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: Options
     * @see Documentation: Context
     * @see Documentation: Server render
-    * @private
     */
    protected _beforeMount(options?: TOptions, contexts?: object, receivedState?: TState): Promise<TState> |
       Promise<void> | void {
       return undefined;
+   }
+
+   private _resultBeforeMount(resultBeforeMount: Promise<void | TState>, time: number): Promise<void | TState> | Promise<void> | void {
+      return new Promise((resolve, reject) => {
+         let timeout = 0;
+         resultBeforeMount.then(
+             (result) => {
+                if (!timeout) {
+                   timeout = 1;
+                   resolve(result);
+                }
+                return result;
+             },
+             (error) => {
+                if (!timeout) {
+                   timeout = 1;
+                   reject(error);
+                }
+                return error;
+             }
+         );
+         if (time === 0){
+            return resolve(false);
+         }
+         setTimeout(() => {
+            if (!timeout) {
+               /* Change _template and _afterMount
+               *  if execution was longer than 2 sec
+               */
+               const message = `Promise, который вернули из метода _beforeMount контрола ${this._moduleName} ` +
+                   `не завершился за ${time} миллисекунд. ` +
+                   `Шаблон контрола не будет построен на сервере.`
+               Logger.warn(message, this);
+
+               timeout = 1;
+               resolve(false);
+               // @ts-ignore
+               require(['View/Executor/TClosure'], (thelpers) => {
+                  // @ts-ignore
+                  this._originTemplate = this._template;
+                  // @ts-ignore
+                  this._template = function (
+                      data: any,
+                      attr: any,
+                      context: any,
+                      isVdom: boolean,
+                      sets: any
+                  ): any {
+                     return template.apply(this, arguments);
+                  };
+                  // @ts-ignore
+                  this._template.stable = true;
+
+                  // tslint:disable-next-line:only-arrow-functions
+                  this._afterMount = function (): void {
+                     // can be overridden
+                  };
+               });
+            }
+         }, time);
+      });
    }
 
    _beforeMountLimited(opts: TOptions): Promise<TState> | Promise<void> | void {
@@ -724,66 +787,27 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
       let resultBeforeMount = this._beforeMount.apply(this, arguments);
 
-      // _reactiveStart means starting of monitor change in properties
-      this._reactiveStart = true;
+      // prevent start reactive properties if beforeMount return Promise.
+      // Reactive properties will be started in Synchronizer
+      if (resultBeforeMount && resultBeforeMount.callback) {
+         //start server side render
+          // todo проверка на сервис представления
+         if (typeof process !== 'undefined' && !process.versions) {
+            let time = WAIT_TIMEOUT;
+            try {
+               time = AppEnv.getStore('HeadData').ssrWaitTimeManager();
+            }
+            catch (e) {
 
-      if (typeof window === 'undefined') {
-         if (resultBeforeMount && resultBeforeMount.callback) {
-            resultBeforeMount = new Promise((resolve, reject) => {
-               let timeout = 0;
-               resultBeforeMount.then(
-                  (result) => {
-                     if (!timeout) {
-                        timeout = 1;
-                        resolve(result);
-                     }
-                     return result;
-                  },
-                  (error) => {
-                     if (!timeout) {
-                        timeout = 1;
-                        reject(error);
-                     }
-                     return error;
-                  }
-               );
-               setTimeout(() => {
-                  if (!timeout) {
-                     /* Change _template and _afterMount
-                     *  if execution was longer than 2 sec
-                     */
-                     const message = `Promise, который вернули из метода _beforeMount контрола ${this._moduleName}` +
-                        `не завершился за ${WAIT_TIMEOUT} миллисекунд.` +
-                        `Шаблон контрола не будет построен.`
-                     logger.error(message, this);
-
-                     timeout = 1;
-                     // @ts-ignore
-                     require(['View/Executor/TClosure'], (thelpers) => {
-                        // @ts-ignore
-                        this._originTemplate = this._template;
-                        // @ts-ignore
-                        this._template = function (
-                           data: any,
-                           attr: any,
-                           context: any,
-                           isVdom: boolean,
-                           sets: any
-                        ): any {
-                           return template.apply(this, arguments);
-                        };
-                        // @ts-ignore
-                        this._template.stable = true;
-                        // tslint:disable-next-line:only-arrow-functions
-                        this._afterMount = function (): void {
-                           // can be overridden
-                        };
-                        resolve(false);
-                     });
-                  }
-               }, WAIT_TIMEOUT);
-            });
+            }
+            resultBeforeMount = this._resultBeforeMount(resultBeforeMount, time);
          }
+         resultBeforeMount.then(() => {
+            this._reactiveStart = true;
+         }). catch (() => {})
+      } else {
+         // _reactiveStart means starting of monitor change in properties
+         this._reactiveStart = true;
       }
 
       const cssResult = this._manageStyles(opts.theme);
@@ -814,8 +838,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * Первый хук жизненного цикла контрола, который вызывается после подключения контрола к DOM-окружению.
     * На этом этапе вы можете получить доступ к параметрам и контексту this._options и this._context.
     * Этот хук жизненного цикла часто используется для доступа к DOM-элементам и подписки на события сервера.
-    * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
-    * @private
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
 
    /*
@@ -841,7 +864,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: Options
     * @see Documentation: Context
     * @see Documentation: Server render
-    * @private
     */
    protected _afterMount(options?: TOptions, contexts?: any): void {
       // Do
@@ -877,8 +899,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     *       ...
     *    });
     * </pre>
-    * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
-    * @private
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
 
    /*
@@ -907,7 +928,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: Control lifecycle.
     * @see Documentation: Options.
     * @see Documentation: Context.
-    * @private
     */
    protected _beforeUpdate(options?: TOptions, contexts?: any): void {
       // Do
@@ -940,8 +960,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @remark
     * Хук жизненного цикла контрола вызывается после хука _beforeUpdate перед перестроением шаблона. Этот хук можно использовать для оптимизаций.
     * Вы можете сравнить новые и текущие параметры и вернуть false, если нет необходимости пересчитывать DOM-дерево контрола.
-    * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
-    * @private
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
 
    /*
@@ -975,7 +994,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: Options
     * @see Documentation: Context
     * @see Documentation: Server render
-    * @private
     */
    protected _shouldUpdate(options: TOptions, context: any): boolean {
       return true;
@@ -984,6 +1002,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    /**
     * Хук жизненного цикла контрола. Вызывается синхронно после применения измененной верстки контрола.
     *
+    * @param {Object} oldOptions Опции контрола до обновления.
+    * Текущие опции можно найти в this._options.
+    * @param {Object} oldContext Контекст контрола до обновления.
+    * Текущий контекст можно найти в this._context.
     * @remark На этом этапе вы получаете доступ к отрисованной верстке.
     * Жизненный хук используется в случае, если не подходит _afterUpdate для некоторых ускорений.
     * Например, если после отрисовки необходимо выполнить корректировку положения скролла (вовзрат на прежнее положение),
@@ -1000,10 +1022,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     *       ...
     *    });
     * </pre>
-    * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
-    * @private
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
-   protected _afterRender(): void {
+   protected _afterRender(oldOptions?: TOptions, oldContext?: any): void {
       // Do
    }
 
@@ -1029,8 +1050,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     *       ...
     *    });
     * </pre>
-    * @see Documentation: {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
-    * @private
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
 
    /*
@@ -1058,7 +1078,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: Control lifecycle
     * @see Documentation: Options
     * @see Documentation: Context
-    * @private
     */
    protected _afterUpdate(oldOptions?: TOptions, oldContext?: any): void {
       // Do
@@ -1083,8 +1102,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     *       ...
     *    });
     * </pre>
-    * @see {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases Жизненный цикл}
-    * @private
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
 
    /*
@@ -1104,7 +1122,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: Control lifecycle
     * @see Documentation: Options
     * @see Documentation: Context
-    * @private
     */
    protected _beforeUnmount(): void {
       // Do
@@ -1142,7 +1159,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // @ts-ignore
       if (!domElement instanceof HTMLElement) {
          const message = '[UI/_base/Control:createControl] domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.';
-         logger.error(message, ctor.prototype);
+         Logger.error(message, ctor.prototype);
       }
       const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
       // @ts-ignore
@@ -1154,7 +1171,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          ctr = new ctor(cfg);
       } catch (error) {
          ctr = new Control({});
-         logger.lifeError('constructor', ctor.prototype, error)
+         Logger.lifeError('constructor', ctor.prototype, error)
       }
       ctr.saveInheritOptions(attrs.inheritOptions);
       ctr._container = domElement;
@@ -1221,15 +1238,11 @@ Control.prototype._template = template;
 
 /**
  * @name UI/_base/Control#theme
- * @cfg {String} Название темы. В зависимости от темы загружаются различные таблицы стилей и применяются различные стили к контролу.
- * @variant any Любое значение, переданное контролу.
- * @variant inherited Значение, унаследованное от родителя.
- * @default ''(пустая строка)
+ * @cfg {String} Название темы оформления. В зависимости от темы загружаются различные таблицы стилей и применяются различные стили к контролу.
+ * @default default
  * @example
- * В этом примере Controls.Application и все его дочерние контролы будут иметь стиль темы "carry".
- * Однако, Carry.Head будет иметь тему "presto".
- * Если вы поместите контролы в Carry.Head и не укажите опцию theme, они унаследуют ее значение от родителей
- * и тоже построятся в теме "presto".
+ * В следующем примере {@link Controls/Application} и все его дочерние контролы будут иметь стиль темы оформления "carry". Однако контрол Carry.Head будет иметь тему "presto".
+ * Если вы поместите контролы в Carry.Head и не укажите опцию theme, они унаследуют ее значение от родителей и тоже построятся в теме "presto".
  * <pre>
  *    <Controls.Application theme="carry">
  *       <Carry.Head theme="presto" />
@@ -1238,11 +1251,12 @@ Control.prototype._template = template;
  *       </Carry.Workspace>
  *    </Controls.Application>
  * </pre>
- * @remark Эта опция наследуется. Если параметр не задан явно, значение параметра наследуется от родительского контрола.
- * Путь к CSS-файлу с параметрами темы определяется автоматически на основе имени темы.
- * CSS-файлы должны быть подготовлены заранее в соответствии с документацией.
- * @see Themes
- * @see Inherited options
+ * @remark
+ * default — это тема оформления "по умолчанию", которая распространяется вместе с исходным кодом контролов Wasaby и используется для их стилевого оформления.
+ *
+ * Когда значение опции не задано явно, оно будет взято от родительского контрола. Это продемонстрировано в примере.
+ *
+ * Подробнее о работе с темами оформления читайте {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/ здесь}.
  */
 
 /*

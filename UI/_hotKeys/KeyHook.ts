@@ -37,6 +37,8 @@ class KeyHook extends Control {
     // набор действий по умолчанию, зарегистрированных на определенные клавиши
     private _actions: object = {};
 
+    private _savedParents: object[] = [];
+
     _afterMount(): void {
         this.register();
     }
@@ -59,7 +61,12 @@ class KeyHook extends Control {
           // todo придумать проверку получше https://online.sbis.ru/opendoc.html?guid=50215de6-da5c-44bf-b6f6-a9f7cb0e17d2
           const wholeParents = goUpByControlTree(this._container);
           const popupIndex = wholeParents.findIndex((parent) => parent._moduleName === 'Controls/_popup/Manager/Popup');
-          const parents = popupIndex === -1 ? wholeParents : wholeParents.slice(0, popupIndex + 1);
+          const keyHookIndex = wholeParents.findIndex((parent) => parent._moduleName === 'UI/HotKeys:KeyHook');
+          const startIndex = keyHookIndex === -1 ? 0 : keyHookIndex;
+          const endIndex = popupIndex === -1 ? wholeParents.length : popupIndex + 1;
+          const parents = wholeParents.slice(startIndex, endIndex);
+
+          this._savedParents = parents;
 
           // собираем всех предков, и говорим им, какое действие по умолчанию нужно выполнить на необработанное
           // нажатие клавиш
@@ -99,20 +106,24 @@ class KeyHook extends Control {
     * Разрегистрация для дочернего контрола горячих клавиш, объявленных в опции defaultActions
     */
     unregister(): void {
-       // при удалении контрола произведем разрегистрацию.
-       if (this._options.defaultActions) {
-          const parents = goUpByControlTree(this._container);
-          this._options.defaultActions.forEach((action) => {
-             for (let i = 0; i < parents.length; i++) {
-                const parent = parents[i];
-                const curAction = this._actions[action.keyCode];
-                if (parent._$defaultActions && parent._$defaultActions[action.keyCode] === curAction) {
-                   delete parent._$defaultActions[action.keyCode];
-                } else {
-                   break;
+       const parents = this._savedParents;
+       this._savedParents = null;
+
+       if (parents) {
+          // при удалении контрола произведем разрегистрацию.
+          if (this._options.defaultActions) {
+             this._options.defaultActions.forEach((action) => {
+                for (let i = 0; i < parents.length; i++) {
+                   const parent = parents[i];
+                   const curAction = this._actions[action.keyCode];
+                   if (parent._$defaultActions && parent._$defaultActions[action.keyCode] === curAction) {
+                      delete parent._$defaultActions[action.keyCode];
+                   } else {
+                      break;
+                   }
                 }
-             }
-          });
+             });
+          }
        }
     }
 }

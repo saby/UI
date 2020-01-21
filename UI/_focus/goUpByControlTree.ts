@@ -3,9 +3,8 @@
 
 //@ts-ignore
 import { constants } from 'Env/Env';
-
 //@ts-ignore
-import * as logger from 'UI/Logger'
+import { Logger } from 'UI/Utils';
 
 export function goUpByControlTree(target, array?) {
    array = array || [];
@@ -35,7 +34,7 @@ export function goUpByControlTree(target, array?) {
  * @returns {*}
  */
 function getControlNode(control) {
-   var controlNodes = control._container.length ? control._container[0].controlNodes : control._container.controlNodes;
+   var controlNodes = control._container.controlNodes;
    for (var i in controlNodes) {
       if (controlNodes[i].control === control) {
          return controlNodes[i];
@@ -60,7 +59,7 @@ function checkOpener(opener) {
 
    if (error) {
       const message = `[UI/_focus/goUpByControlTree:checkOpener] DOMEnvironment - Incorrect opener or parent is found! It seems that anybody set wrong opener option! ${error}`;
-      logger.error(message, opener);
+      Logger.error(message, opener);
    }
 }
 
@@ -126,7 +125,7 @@ function addControlsToFlatArrayOld(control, array) {
    if (parent) {
       // если найденный компонент является vdom-компонентом, начинаем всплывать по новому
       if (parent._template && parent._container) {
-         var container = parent._container.length ? parent._container[0] : parent._container;
+         var container = parent._container;
          var controlNode = container.controlNodes && container.controlNodes[0];
          if (controlNode) {
             addControlsToFlatArray(container.controlNodes[0], array);

@@ -1,14 +1,14 @@
 /// <amd-module name="UIDemo/PageLoader" />
 
 // @ts-ignore
-import { Control } from 'UI/Base';
+import { Control, TemplateFunction } from 'UI/Base';
 // @ts-ignore
 import template = require('wml!UIDemo/PageLoader');
 
 class PageLoader extends Control {
-   public _template: Function = template;
+   public _template: TemplateFunction = template;
 
-   private pageClassLoaded: Function = null;
+   protected pageClassLoaded: Function = null;
 
    private changePage(newPage: String): Promise<void> {
       return new Promise((resolve, reject) => {

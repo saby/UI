@@ -1,7 +1,7 @@
 /// <amd-module name="UIDemo/DemoErrors" />
 
 // @ts-ignore
-import {Control} from 'UI/Base';
+import {Control, TemplateFunction} from 'UI/Base';
 
 // @ts-ignore
 import template = require('wml!UIDemo/DemoErrors');
@@ -10,7 +10,7 @@ import template = require('wml!UIDemo/DemoErrors');
 import 'css!UIDemo/DemoErrors';
 
 class DemoErrors extends Control {
-   public _template: Function = template;
+   public _template: TemplateFunction = template;
 
    public _caption: String = 'create error';
    public _hookError: Boolean = false;

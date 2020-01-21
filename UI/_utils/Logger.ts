@@ -1,4 +1,4 @@
-/// <amd-module name="UI/Logger" />
+/// <amd-module name="UI/_utils/Logger" />
 
 // @ts-ignore
 import { IoC } from 'Env/Env';
@@ -30,8 +30,12 @@ import { IoC } from 'Env/Env';
 const logger = () => IoC.resolve('ILogger');
 
 /**
+ * Доступность режима отладки для сообщений
+ */
+const loggerConfig = { debug : false }; 
+
+/**
  * Получает имя текущей функции по стеку ошибки, для граничных случаев
- * https://stackoverflow.com/questions/1013239/can-i-get-the-name-of-the-currently-running-function-in-javascript
  * @param {Any} data
  * @private
  * @return {String}
@@ -40,39 +44,33 @@ const _getCurrentFunctionInfo = (data?): string  => {
    let currentFunc = '';
    const PART_STACK = 3;
    if (!data) {
-      data = _createFakeError('error');
+      data = _createFakeError();
    }
 
    try {
+      // https://stackoverflow.com/questions/1013239/can-i-get-the-name-of-the-currently-running-function-in-javascript
       currentFunc = data.stack.match(/at (\S+)/g)[0].slice(PART_STACK);
-   } catch (e) {
+   } catch (err) {
       // Страховка, если вдруг возникла ошибка определения точки входа
       currentFunc = '[not detected]';
+      logger().error('CONTROL ERROR', '[UI/_utils/Logger:_getCurrentFunctionInfo()] - ошибка получения текущей функции', err);
    }
    return currentFunc;
 };
 
 /**
  * Создание объекта ошибки для генерации стека и точки входа (когда не передали точку возникновения ошибки)
- * @param {String} msg - сообщение в стек ошибки
  * @private
  * @return {Error}
  */
-const _createFakeError = (msg: string = '') => {
-   let errorObject = {};
-   try {
-      // нужно для того чтобы не потерять стек исходной ошибки,
-      // в противном случае в лог будет попадать стек из ближайшего catch
-      throw new Error(msg);
-   } catch (error) {
-      errorObject = error;
-   }
-   return errorObject;
+const _createFakeError = () => {
+   return new Error();
 };
 
 /**
  * Подготавливает стек относительно точки возникновения ошибки. Работает как с DOM, так и с Control
- * Пример:
+ * Если стек слишком большой, после уровня LIMIT_LEVEL_STACK будет в одну строку
+ *  Пример:
  *    ↱ Controls-demo/ErrorsEmulator/ErrorsDemo
  *     ↱ Controls/Container/Async
  *      ↱ Controls-demo/RootRouter
@@ -85,8 +83,10 @@ const _createFakeError = (msg: string = '') => {
  */
 const prepareStack = (data: any): string => {
    let message = '';
-   let countIndent = 1;
-   const arrow = ' \u21B1 ';
+   let countIndent = 1; // глобальна для сбора стека, _createStack()
+   const ARROW_NEXT = '\u21B1';
+   const ARROW = '\u2192';
+   const LIMIT_LEVEL_STACK = 20;
 
    // если передали DOM - конвертируем в контрол
    if (data.getAttribute) {
@@ -131,12 +131,33 @@ const prepareStack = (data: any): string => {
     * @private
     */
    const _createStack = (control: any, msg: string): string => {
-      const moduleName = control._moduleName;
+      let moduleName = control ? control._moduleName : null;
+      let stack;
+      let arrow;
+      let result = msg;
       if (moduleName && !excludeControls[moduleName]) {
-         msg += '\n' + `${_repeat(countIndent, ' ')}${arrow} ${moduleName}`;
+
+         // для асинхронных контейнеров важен не сам контейнер в стеке, а шаблон внутри
+         // сформируем читаемую строку: Controls/Container/Async:template - "MyControl/Base"
+         if (moduleName === 'Controls/Container/Async') {
+            const opts = control._options; 
+            const asyncTemplate = opts && opts.templateName || 'not detected';
+            moduleName += `:template - "${asyncTemplate}"`;
+         }
+
+         // если стек очень глубокий, экономим экранное место и уже строим в строчку
+         if (countIndent > LIMIT_LEVEL_STACK) {
+            stack = ' ';
+            arrow = ARROW;
+         } else {
+            stack = '\n' + _repeat(countIndent, ' ');
+            arrow = ARROW_NEXT;
+         }
+
+         result += `${stack}${arrow} ${moduleName}`;
          countIndent += 1;
       }
-      return msg;
+      return result;
    };
 
    /**
@@ -152,7 +173,7 @@ const prepareStack = (data: any): string => {
          if (point._logicParent) {
             // Wasaby
             point = point._logicParent;
-         } else if (data.getParent) {
+         } else if (point.getParent) {
             // WS3
             point = point.getParent();
          } else {
@@ -168,7 +189,8 @@ const prepareStack = (data: any): string => {
       // @ts-ignore
       const Focus = requirejs('UI/Focus');
       // TODO: допущение, что библиотеке фокусов загружена до ошибок, подумать как сделать лучше
-      // явно тащить нельзя, цикл - UI/Focus -> UI/Logger -> UI/Focus
+      // явно тащить нельзя, цикл - UI/Focus -> UI/_utils/Logger -> UI/Focus
+
       let arrayControls = [];
       if (Focus) {
          // на клиенте используем функционал из модуля Focus
@@ -192,13 +214,48 @@ const prepareStack = (data: any): string => {
    return message;
 };
 
+/** 
+ * При установке режима Debug активируется дополнительное логирование определенных участков ядра 
+ * @param {Boolean} value
+ * @public
+ * @return {Boolean}
+ */
+const setDebug = (value: boolean): boolean => {
+   loggerConfig.debug = value;
+   return loggerConfig.debug;
+};
+
+/**
+ * Логирование отладочной информации
+ * @param {String} msg - произвольное текстовое сообщение
+ * @param {Object} data - произвольный object
+ */
+const debug = (msg: string = '', data: any): object => {
+   let logMsg = '';
+   if (loggerConfig.debug) {
+      let prepareData = '';
+      if (data) {
+         try {
+            prepareData = JSON.stringify(data);
+         } catch (err) {
+            prepareData = data;
+         } finally {
+            prepareData =`\n${prepareData}`;
+         }
+      }
+      logMsg = `CONTROL DEBUG: ${msg} ${prepareData}`;
+      logger().log(logMsg);
+   }
+   return {msg, logMsg} ;
+};
+
 /**
  * Обработка сообщений
  * @param {String} msg - произвольное текстовое сообщение
  * @public
  * @return {Object}
  */
-const log = (msg: string = ''): object => {
+const info = (msg: string = ''): object => {
    const data = `CONTROL INFO: ${msg}`;
    logger().log(data);
    return {msg, data} ;
@@ -228,6 +285,7 @@ const warn = (msg: string = '', errorPoint?): object => {
  * @param {Object|DOM|WCN|any} errorPoint - точка возникновения ошибки, может быть Control, DOM элементом или WCN
  * @param {Object} errorInfo - нативный объект ERROR с информацией по ошибке
  * @public
+ * @return {Object}
  */
 const error = (msg: string = '', errorPoint?, errorInfo?): object => {
    let data = '';
@@ -235,7 +293,7 @@ const error = (msg: string = '', errorPoint?, errorInfo?): object => {
    
    // если нет информации по ошибке, создадим сами
    if (!errorInfo) {
-      errorInfo = _createFakeError(msg);
+      errorInfo = _createFakeError();
    }
 
    if (msg) {
@@ -269,7 +327,7 @@ const error = (msg: string = '', errorPoint?, errorInfo?): object => {
 };
 
 /**
- * Обработка ошибок хуков жизненного цикла
+ * Обработка ошибок хуков жизненного цикла, использовать если известно имя хука
  * @param {String} hookName
  * @param {Object|DOM|WCN|any} errorPoint - точка возникновения ошибки, может быть Control, DOM элементом или WCN
  * @param {Object} errorInfo - нативный объект ERROR с информацией по ошибке
@@ -277,26 +335,28 @@ const error = (msg: string = '', errorPoint?, errorInfo?): object => {
  */
 const lifeError = (hookName: string = '[not detected]', errorPoint?, errorInfo?): object => {
    const moduleName = errorPoint ? errorPoint._moduleName : _getCurrentFunctionInfo();
-   return error(`LIFECYCLE ERROR: IN ${moduleName}. HOOK NAME: ${hookName}`, errorPoint, errorInfo);
+   return error(`LIFECYCLE ERROR: IN "${moduleName}". HOOK NAME: "${hookName}"`, errorPoint, errorInfo);
 };
 
 /**
- * Обработка ошибок шаблона
- * @param {String} hookName
+ * Обработка ошибок построения шаблона, использовать если известно имя шаблона
+ * @param {String} message - детальное сообщение о ошибке
+ * @param {String} templateName - потенциальное имя шаблона
  * @param {Object|DOM|WCN|any} errorPoint - точка возникновения ошибки, может быть Control, DOM элементом или WCN
  * @param {Object} errorInfo - нативный объект ERROR с информацией по ошибке
  * @public
  */
-const templateError = (hookName: string= '[not detected]', errorPoint?, errorInfo?): object => {
-   const moduleName = errorPoint ? errorPoint._moduleName : _getCurrentFunctionInfo();
-   return error(`TEMPLATE ERROR: IN ${moduleName}. HOOK NAME: ${hookName}`, errorPoint, errorInfo);
+const templateError = (message: string = '', templateName: string = '[not detected]', errorPoint?, errorInfo?): object => {
+   return error(`TEMPLATE ERROR: ${message} IN "${templateName}"`, errorPoint, errorInfo);
 };
 
 export {
    prepareStack,
-   log,
-   error,
+   setDebug,
+   debug,
+   info,
    warn,
+   error,
    lifeError,
    templateError
 };

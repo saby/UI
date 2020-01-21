@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<ui_module id="20900143-d257-48ef-b5db-0ccc8141fe4b" name="VirtualTreeMarkup" package="Платформа" responsible="Изыгин Н.Р." version="1.00">
+<ui_module id="20900143-d257-48ef-b5db-0ccc8141fe4b" name="VirtualTreeMarkup" package="Платформа" responsible="Тэн В.А." version="1.00">
 
   <description>VirtualTree implementation</description>
 
