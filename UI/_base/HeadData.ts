@@ -7,26 +7,15 @@ import { cookie } from 'Env/Env';
 import { DepsCollector, ICollectedFiles } from './DepsCollector';
 // @ts-ignore
 import * as AppEnv from 'Application/Env';
-
-function cropSlash(str: string): string {
-    let res = str;
-    res = res.replace(/\/+$/, '');
-    res = res.replace(/^\/+/, '');
-    return res;
-}
-
-function joinPaths(arr: string[]): string {
-    const arrRes = [];
-    for (let i = 0; i < arr.length; i++) {
-        arrRes.push(cropSlash(arr[i]));
-    }
-    return arrRes.join('/');
-}
-
+import { IStore } from 'Application/Interface';
+/**
+ * в s3debug может быть true или строка-перечисление имен непакуемых ресурсов
+ * https://online.sbis.ru/opendoc.html?guid=1d5ab888-6f9e-4ee0-b0bd-12e788e60ed9
+ */
 let bundles;
 let modDeps;
-let contents;
-const ssrWaitTime = 20000;
+let contents = {};
+const isDebug = () => cookie.get('s3debug') && cookie.get('s3debug') !== 'false' || contents?.['buildMode'] === 'debug';
 // Need these try-catch because:
 // 1. We don't need to load these files on client
 // 2. We don't have another way to check if these files exists on server
@@ -53,19 +42,17 @@ try {
 
 bundles = bundles || {};
 modDeps = modDeps || { links: {}, nodes: {} };
-contents = contents || {};
 
-class HeadData {
-    private depComponentsMap: any = {};
-    private additionalDeps: any = {};
-    private waiterDef: Promise<any> = null;
-    private isDebug: Boolean;
-    private themesActive: boolean;
-    private err: string;
-
+export default class HeadData implements IStore<Record<keyof HeadData, any>> {
+    static readonly SSR_DELAY = 20000;
+    isDebug: boolean;
     // переедет в константы реквеста, изменяется в Controls/Application
-    private isNewEnvironment: Boolean = false;
-
+    isNewEnvironment: boolean = false;
+    private depComponentsMap: object = {};
+    private additionalDeps: object = {};
+    private waiterDef: Promise<any> = null;
+    private themesActive: boolean = true;
+    private err: string;
     private resolve: Function = null;
     private renderPromise: Promise<any> = null;
     private ssrEndTime: number = null;
@@ -74,12 +61,17 @@ class HeadData {
         this.renderPromise = new Promise((resolve) => {
             this.resolve = resolve;
         });
-
-        this.depComponentsMap = {};
-        this.additionalDeps = {};
-        this.themesActive = true;
-        this.isDebug = HeadData.isDebug();
-        this.ssrEndTime = Date.now() + ssrWaitTime;
+        this.isDebug = isDebug();
+        this.ssrEndTime = Date.now() + HeadData.SSR_DELAY;
+        this.get = this.get.bind(this);
+        this.set = this.set.bind(this);
+        this.getKeys = this.getKeys.bind(this);
+        this.toObject = this.toObject.bind(this);
+        this.waitAppContent = this.waitAppContent.bind(this);
+        this.pushDepComponent = this.pushDepComponent.bind(this);
+        this.pushWaiterDeferred = this.pushWaiterDeferred.bind(this);
+        this.ssrWaitTimeManager = this.ssrWaitTimeManager.bind(this);
+        this.resetRenderDeferred = this.resetRenderDeferred.bind(this);
     }
 
     /* toDO: StateRec.register */
@@ -98,23 +90,8 @@ class HeadData {
         }
     }
 
-    getDepsCollector(): DepsCollector {
-        return new DepsCollector(modDeps.links, modDeps.nodes, bundles);
-    }
-
-    initThemesController(themedCss, simpleCss): any {
-        return ThemesController.getInstance().initCss({
-            themedCss: themedCss,
-            simpleCss: simpleCss
-        });
-    }
-
-    getSerializedData(): any {
-        return AppEnv.getStateReceiver().serialize();
-    }
-
     pushWaiterDeferred(def: Promise<any>): void {
-        const depsCollector = this.getDepsCollector();
+        const depsCollector = getDepsCollector();
         this.waiterDef = def;
         this.waiterDef.then(() => {
             if (!this.resolve) {
@@ -131,10 +108,10 @@ class HeadData {
                 };
             } else {
                 files = depsCollector.collectDependencies(components);
-                this.initThemesController(files.css.themedCss, files.css.simpleCss);
+                initThemesController(files.css.themedCss, files.css.simpleCss);
             }
 
-            const rcsData = this.getSerializedData();
+            const rcsData = getSerializedData();
             const additionalDepsArray = [];
             for (const key in rcsData.additionalDeps) {
                 if (rcsData.additionalDeps.hasOwnProperty(key)) {
@@ -175,10 +152,56 @@ class HeadData {
             this.resolve = resolve;
         });
     }
-
-    static isDebug(): boolean {
-        return cookie.get('s3debug') === 'true' || contents.buildMode === 'debug';
+    
+    // #region IStore
+    get<K extends keyof HeadData>(key: K): HeadData[K] {
+        return this[key];
     }
+    set<K extends keyof HeadData>(key: K, value: this[K]): boolean {
+        try {
+            this[key] = value;
+            return true;
+        } catch (_e) {
+            return false;
+        }
+    }
+    remove() { }
+    getKeys(): (keyof HeadData)[] {
+        return <(keyof HeadData)[]> Object.keys(this);
+    };
+    toObject() {
+        return Object.assign({}, this);
+    }
+    // #endregion
 }
 
-export default HeadData;
+function getDepsCollector(): DepsCollector {
+    return new DepsCollector(modDeps.links, modDeps.nodes, bundles);
+}
+
+function initThemesController(themedCss, simpleCss): any {
+    return ThemesController.getInstance().initCss({
+        themedCss: themedCss,
+        simpleCss: simpleCss
+    });
+}
+
+function getSerializedData(): any {
+    return AppEnv.getStateReceiver().serialize();
+}
+
+class HeadDataStore {
+    constructor (private readonly storageKey: string) { }
+
+    read<K extends keyof HeadData>(key: K): HeadData[K] {
+        return AppEnv.getStore<HeadData>(this.storageKey, () => new HeadData()).get(key);
+    }
+
+    write<K extends keyof HeadData>(key: K, value: HeadData[K]) {
+        return AppEnv.getStore<HeadData>(this.storageKey, () => new HeadData()).set(key, value);
+    }
+}
+/**
+ * Singleton для работы со HeadData Store.
+ */
+export const headDataStore = new HeadDataStore('HeadData');
