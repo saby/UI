@@ -5,9 +5,9 @@ import Control from '../Control';
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Head');
 
-import * as AppEnv from 'Application/Env';
 import { constants } from 'Env/Env';
 import ThemesControllerNew = require('Core/Themes/ThemesControllerNew');
+import { headDataStore } from 'UI/_base/HeadData';
 
 class Head extends Control {
     // @ts-ignore
@@ -67,9 +67,7 @@ class Head extends Control {
             this.simpleCss = [];
             return;
         }
-        const headData = AppEnv.getStore('HeadData');
-        // @ts-ignore
-        const def = headData.waitAppContent();
+        const def = headDataStore.read('waitAppContent')();
         // @ts-ignore
         this.cssLinks = [];
         return new Promise((resolve, reject) => {
