@@ -14,7 +14,7 @@ import { Logger } from 'UI/Utils';
 
 import { collectScrollPositions } from './_ResetScrolling';
 import * as ElementFinder from './ElementFinder';
-import { Events } from 'UI/Focus';
+import { notifyActivationEvents } from 'UI/_focus/Events';
 
 interface IFocusConfig {
    enableScreenKeyboard?: boolean;
@@ -263,7 +263,7 @@ function focusInner(
 }
 
 function fireActivationEvents(target: Element, relatedTarget: Element): void {
-   Events.notifyActivationEvents(target, relatedTarget, false);
+   notifyActivationEvents(target, relatedTarget, false);
 }
 
 let focusingState;
