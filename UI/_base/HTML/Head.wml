@@ -21,6 +21,7 @@
             appRoot: '{{_options.appRoot}}',
             RUMEnabled: '{{ _options.RUMEnabled }}',
             pageName: '{{ _options.pageName }}',
+            loadDataProviders: '{{ _options.loadDataProviders }}',
             userConfigSupport: true,
             staticDomains: {{ __setHTMLUnsafe(staticDomainsstringified) }},
          defaultServiceUrl: '{{_options.servicesPath}}',
