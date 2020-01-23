@@ -84,6 +84,7 @@
       head="{{ _options.head }}"
       title="{{ title }}"
       staticDomains="{{ staticDomains }}"
+      loadDataProviders="{{ _options.loadDataProviders }}"
       buildnumber="{{ buildnumber }}"
       noscript="{{ _options.noscript }}"
       viewport="{{ _options.viewport }}"
