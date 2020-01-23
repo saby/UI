@@ -6,14 +6,20 @@
  * @author Белотелов Н.В.
  */
 
-//@ts-ignore
+// @ts-ignore
 import { detection } from 'Env/Env';
 
-//@ts-ignore
+// @ts-ignore
 import { Logger } from 'UI/Utils';
 
 import { collectScrollPositions } from './_ResetScrolling';
 import * as ElementFinder from './ElementFinder';
+import { Events } from 'UI/Focus';
+
+interface IFocusConfig {
+   enableScreenKeyboard?: boolean;
+   enableScrollToElement?: boolean;
+}
 
 /**
  * make foreignObject instance. using for hack with svg focusing.
@@ -54,24 +60,24 @@ function focusSvgForeignObjectHack(element: SVGElement): boolean {
    return true;
 }
 /**
- * trying to focus element by different ways
+ * Trying all possible ways to focus element. Return true if successfully focused.
+ * @param element
  */
 function tryMoveFocus(element: Element): boolean {
    let result = false;
-   if (!result) {
-      if (detection.isIE && element.setActive) {
-         // In IE, calling `focus` scrolls the focused element into view,
-         // which is not the desired behavior. Built-in `setActive` method
-         // makes the element active without scrolling to it
-         try {
-            element.setActive();
-            result = element === document.activeElement;
-         } catch (e) {
-            result = false;
-         }
+   if (detection.isIE) {
+      // In IE, calling `focus` scrolls the focused element into view,
+      // which is not the desired behavior. Built-in `setActive` method
+      // makes the element active without scrolling to it
+      try {
+         // @ts-ignore
+         element.setActive();
+         result = element === document.activeElement;
+      } catch (e) {
+         Logger.warn("[UI/_focus/Focus:tryMoveFocus] - Couldn't focused element with native setActive method. It is propably a problem with a focus library. Ask author to help.");
+         result = false;
       }
-   }
-   if (!result) {
+   } else {
       if (element.focus) {
          element.focus();
          result = element === document.activeElement;
@@ -85,7 +91,7 @@ function tryMoveFocus(element: Element): boolean {
             HTMLElement.prototype.focus.call(element);
             result = element === document.activeElement;
          } catch (e) {
-            result = focusSvgForeignObjectHack(element);
+            result = focusSvgForeignObjectHack(element as SVGAElement);
          }
       }
    }
@@ -196,13 +202,19 @@ function checkEnableScreenKeyboard(): boolean {
    return detection.isMobilePlatform;
 }
 
-/**
- * Moves focus to a specific HTML or SVG element
- */
-function focusInner(
-      element: Element,
-      cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}
-      ): boolean {
+function fixScrollingEffect(undoScrolling: Function): void {
+   if (detection.safari) {
+      // для сафари нужен timeout, почему-то фокус не успевает проскроллить элемент,
+      // и вычисляется неправильный новый scrollTOp
+      setTimeout(() => {
+         undoScrolling();
+      }, 0);
+   } else {
+      undoScrolling();
+   }
+}
+
+function fixElementForMobileInputs(element: Element, cfg: IFocusConfig): Element {
    // на мобильных устройствах иногда не надо ставить фокус в поля ввода. потому что может показаться
    // экранная клавиатура. на ipad в случае асинхронной фокусировки вообще фокусировка откладывается
    // до следующего клика, и экранная клавиатура показывается не вовремя.
@@ -222,35 +234,43 @@ function focusInner(
    if (!cfg.enableScreenKeyboard && checkEnableScreenKeyboard()) {
       // если попали на поле ввода, нужно взять его родительский элемент и фокусировать его
       if (checkInput(element)) {
-         element = getContainerWithControlNode(element);
+         return getContainerWithControlNode(element);
       }
    }
+   return element;
+}
 
-   const undoScrolling = makeResetScrollFunction(element, cfg.enableScrollToElement);
-   const result = tryMoveFocus(element);
-   checkFocused(element);
+/**
+ * Moves focus to a specific HTML or SVG element
+ */
+function focusInner(
+      element: Element,
+      cfg: IFocusConfig = {}
+      ): boolean {
+   let fixedElement: Element = element;
 
-   if (result) {
-      if (detection.safari) {
-         // для сафари нужен timeout, почему-то фокус не успевает проскроллить элемент,
-         // и вычисляется неправильный новый scrollTOp
-         setTimeout(() => {
-            undoScrolling();
-         }, 0);
-      } else {
-         undoScrolling();
-      }
+   fixedElement = fixElementForMobileInputs(element, cfg);
+
+   const undoScrolling = makeResetScrollFunction(fixedElement, cfg.enableScrollToElement);
+   const result = tryMoveFocus(fixedElement);
+   checkFocused(fixedElement);
+
+   if (!result) {
+      fixScrollingEffect(undoScrolling);
    }
+
    return result;
 }
 
+function fireActivationEvents(target: Element, relatedTarget: Element): void {
+   Events.notifyActivationEvents(target, relatedTarget, false);
+}
+
 let focusingState;
-let nativeFocus;
-function focus(
-      element: Element,
-      cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}
-      ): boolean {
+const nativeFocus = HTMLElement.prototype.focus;
+function focus(element: Element, cfg: IFocusConfig = {}): boolean {
    let res;
+   const lastFocused: Element = document.activeElement;
    if (focusingState) {
       nativeFocus.call(element);
    } else {
@@ -261,12 +281,12 @@ function focus(
          focusingState = false;
       }
    }
+   fireActivationEvents(document.activeElement, lastFocused);
    return res;
 }
 
-function _initFocus() {
+function _initFocus(): void {
    if (typeof HTMLElement !== 'undefined') {
-      nativeFocus = HTMLElement.prototype.focus;
       HTMLElement.prototype.focus = function replacedFocus(): void {
          if (!focusingState) {
             const message = '[UI/_focus/Focus:_initFocus]" - Native focus is called! Please use special focus method (UI/Focus:focus)';
@@ -282,4 +302,4 @@ function _initFocus() {
 }
 _initFocus();
 
-export { focus, _initFocus };
+export { focus, _initFocus, IFocusConfig };

@@ -37,6 +37,35 @@ function detectStrangeElement(element) {
    );
 }
 
+function compatibleActivationEvents(environment: any, arrayMaker: any) {
+     // todo обратная совместимость
+     if (constants.compat && environment._rootDOMNode && environment._rootDOMNode.controlNodes) {
+      if (environment._rootDOMNode.controlNodes[0] && environment._rootDOMNode.controlNodes[0].control.isActive) {
+         // если компонент уже активен, простреливаем событием onFocusInside
+         if (environment._rootDOMNode.controlNodes[0].control.isActive()) {
+            environment._rootDOMNode.controlNodes[0].control._callOnFocusInside();
+         } else {
+            // если еще не активен, активируем
+            // @ts-ignore
+            const areaAbstract = require('Lib/Control/AreaAbstract/AreaAbstract.compatible');
+            areaAbstract._storeActiveChildInner.apply(
+               environment._rootDOMNode.controlNodes[0].control
+            );
+         }
+
+         if (arrayMaker.length) {
+            if (!arrayMaker[0].isActive) {
+               Logger.warn('Контрол нуждается в слое совместимости.', arrayMaker[0]);
+            } else {
+               if (!arrayMaker[0].isActive()) {
+                  arrayMaker[0]._activate(arrayMaker[0]);
+               }
+            }
+         }
+      }
+   }
+}
+
 /**
  * Вычисляем состояние активности компонентов, и стреляем событием активности у тех компонентов,
  * что поменяли свое состояние
@@ -44,23 +73,23 @@ function detectStrangeElement(element) {
  * @param relatedTarget - откуда ушел фокус
  * @param isTabPressed - true, если фокус перешел по нажатию tab
  */
-export function notifyActivationEvents(environment, target, relatedTarget, isTabPressed) {
+export function notifyActivationEvents(target, relatedTarget, isTabPressed) {
    if (detectStrangeElement(target)) {
       return;
    }
 
    // странные элементы вообще проигнорируем, возьмем вместо него предыдущий активный
    const realRelatedTarget = (!detectStrangeElement(relatedTarget) && relatedTarget) ||
-      environment.constructor.prototype._savedFocusedElement;
+   // @ts-ignore
+      window._savedFocusedElement;
 
    const
       arrayMaker = goUpByControlTree(target), // Массив активированных компонентов
       relatedArrayMaker = goUpByControlTree(realRelatedTarget); // Массив деактивированных компонентов
 
    // последний активный элемент, который не странный
-   environment.constructor.prototype._savedFocusedElement = target;
-
-   environment._focused = true;
+   // @ts-ignore
+   window._savedFocusedElement = target;
 
    // Вычисляем общего предка
    const mutualTarget = arrayMaker.find(function(target) {
@@ -154,31 +183,7 @@ export function notifyActivationEvents(environment, target, relatedTarget, isTab
       return found;
    });
 
-   // todo обратная совместимость
-   if (constants.compat && environment._rootDOMNode && environment._rootDOMNode.controlNodes) {
-      if (environment._rootDOMNode.controlNodes[0] && environment._rootDOMNode.controlNodes[0].control.isActive) {
-         // если компонент уже активен, простреливаем событием onFocusInside
-         if (environment._rootDOMNode.controlNodes[0].control.isActive()) {
-            environment._rootDOMNode.controlNodes[0].control._callOnFocusInside();
-         } else {
-            // если еще не активен, активируем
-            // @ts-ignore
-            const areaAbstract = require('Lib/Control/AreaAbstract/AreaAbstract.compatible');
-            areaAbstract._storeActiveChildInner.apply(
-               environment._rootDOMNode.controlNodes[0].control
-            );
-         }
-
-         if (arrayMaker.length) {
-            if (!arrayMaker[0].isActive) {
-               Logger.warn('Контрол нуждается в слое совместимости.', arrayMaker[0]);
-            } else {
-               if (!arrayMaker[0].isActive()) {
-                  arrayMaker[0]._activate(arrayMaker[0]);
-               }
-            }
-         }
-      }
-   }
+   let environment = {}; // ZHOPA
+   //compatibleActivationEvents(environment, arrayMaker);
 }
 
