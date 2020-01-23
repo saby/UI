@@ -267,7 +267,14 @@ function fireActivationEvents(target: Element, relatedTarget: Element): void {
 }
 
 let focusingState;
-const nativeFocus = HTMLElement.prototype.focus;
+let nativeFocus: Function;
+if (typeof HTMLElement !== 'undefined') {
+   nativeFocus = HTMLElement.prototype.focus;
+} else {
+   nativeFocus = () => {
+      // do nothing
+   };
+}
 function focus(element: Element, cfg: IFocusConfig = {}): boolean {
    let res;
    const lastFocused: Element = document.activeElement;
