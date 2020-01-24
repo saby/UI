@@ -1,5 +1,6 @@
 // @ts-ignore
 import { goUpByControlTree } from './goUpByControlTree';
+import { DOMEnvironment } from 'Vdom/Vdom';
 // @ts-ignore
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
 
@@ -47,7 +48,7 @@ export function restoreFocus(control: any, action: Function): void {
       // следим за состоянием _savedFocusedElement. хотелось бы делать это в environment в обработчике
       // на focus, но как минимум в IE на вызов фокуса туда не попадеам
       // @ts-ignore
-      window = document.activeElement;
+      DOMEnvironment.prototype._savedFocusedElement = document.activeElement;
 
       // Попытаемся восстановить фокус, только если он действительно слетел с контрола, помеченного __$focusing
       // для совместимости, фокус устанавливаелся через старый механизм setActive,
