@@ -9,7 +9,6 @@
 import { goUpByControlTree } from './goUpByControlTree';
 // @ts-ignore
 import { constants, detection } from 'Env/Env';
-import { DOMEnvironment, findClosestEnvironment } from 'Vdom/Vdom';
 //@ts-ignore
 import { Logger } from 'UI/Utils';
 
@@ -39,8 +38,8 @@ function detectStrangeElement(element) {
 }
 
 function compatibleActivationEvents(environment: any, arrayMaker: any) {
-     // todo обратная совместимость
-     if (constants.compat && environment._rootDOMNode && environment._rootDOMNode.controlNodes) {
+   // todo обратная совместимость
+   if (constants.compat && environment._rootDOMNode && environment._rootDOMNode.controlNodes) {
       if (environment._rootDOMNode.controlNodes[0] && environment._rootDOMNode.controlNodes[0].control.isActive) {
          // если компонент уже активен, простреливаем событием onFocusInside
          if (environment._rootDOMNode.controlNodes[0].control.isActive()) {
@@ -67,6 +66,24 @@ function compatibleActivationEvents(environment: any, arrayMaker: any) {
    }
 }
 
+function getEnvironment(element: Element) {
+   // @ts-ignore
+   return element.controlNodes && element.controlNodes[0].environment || null;
+}
+function findClosestEnvironment(sourceElement: Element): any {
+   let currentElement = sourceElement;
+   while(currentElement.parentElement) {
+      let env = getEnvironment(currentElement);
+      if(env) {
+         return env;
+      } else {
+         currentElement = currentElement.parentElement;
+      }
+   }
+   return null;
+}
+
+
 /**
  * Вычисляем состояние активности компонентов, и стреляем событием активности у тех компонентов,
  * что поменяли свое состояние
@@ -81,8 +98,8 @@ export function notifyActivationEvents(target, relatedTarget, isTabPressed) {
 
    // странные элементы вообще проигнорируем, возьмем вместо него предыдущий активный
    const realRelatedTarget = (!detectStrangeElement(relatedTarget) && relatedTarget) ||
-   // @ts-ignore
-      DOMEnvironment.prototype._savedFocusedElement;
+      // @ts-ignore
+      notifyActivationEvents._savedFocusedElement;
 
    const
       arrayMaker = goUpByControlTree(target), // Массив активированных компонентов
@@ -90,17 +107,17 @@ export function notifyActivationEvents(target, relatedTarget, isTabPressed) {
 
    // последний активный элемент, который не странный
    // @ts-ignore
-   DOMEnvironment.prototype._savedFocusedElement = target;
+   notifyActivationEvents_savedFocusedElement = target;
 
    // Вычисляем общего предка
-   const mutualTarget = arrayMaker.find(function(target) {
+   const mutualTarget = arrayMaker.find(function (target) {
       return relatedArrayMaker.indexOf(target) !== -1;
    });
 
    let prevControl = null;
 
    // Меняем состояние у тех компонентов, которые реально потеряли активность
-   relatedArrayMaker.find(function(control) {
+   relatedArrayMaker.find(function (control) {
       let found = undefined;
 
       if (control !== mutualTarget) {
@@ -157,7 +174,7 @@ export function notifyActivationEvents(target, relatedTarget, isTabPressed) {
 
    prevControl = null;
    // Меняем состояние у тех компонентов, которые реально получили активность
-   arrayMaker.find(function(control) {
+   arrayMaker.find(function (control) {
       let found = undefined;
       if (control !== mutualTarget) {
          // не стреляем событием для HOC, события сейчас так работают что если
@@ -185,6 +202,8 @@ export function notifyActivationEvents(target, relatedTarget, isTabPressed) {
    });
 
    let environment = findClosestEnvironment(target);
-   compatibleActivationEvents(environment, arrayMaker);
+   if(environment) {
+      compatibleActivationEvents(environment, arrayMaker);
+   }
 }
 
