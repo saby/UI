@@ -4,7 +4,7 @@ import ThemesController = require('Core/Themes/ThemesController');
 // @ts-ignore
 import { cookie } from 'Env/Env';
 // @ts-ignore
-import { DepsCollector, ICollectedFiles } from './DepsCollector';
+import { DepsCollector, IPageResources } from './DepsCollector';
 // @ts-ignore
 import * as AppEnv from 'Application/Env';
 
@@ -121,7 +121,7 @@ class HeadData {
                 return;
             }
             const components = Object.keys(this.depComponentsMap);
-            let files:ICollectedFiles;
+            let files:IPageResources;
             if (this.isDebug) {
                 files = {
                     js: [],
@@ -131,7 +131,7 @@ class HeadData {
                 };
             } else {
                 files = depsCollector.collectDependencies(components);
-                this.initThemesController(files.css.themedCss, files.css.simpleCss);
+                this.initThemesController(files.themedCss, files.css);
             }
 
             const rcsData = this.getSerializedData();

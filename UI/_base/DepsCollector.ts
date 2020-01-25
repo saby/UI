@@ -7,66 +7,120 @@ import { constants } from 'Env/Env';
 //@ts-ignore
 import i18n = require('Core/i18n');
 
-interface ICollectedFiles {
-   js: Array<String>,
-   css: { themedCss: Array<String>, simpleCss: Array<String> },
-   tmpl: Array<String>,
-   wml: Array<String>
+// #region interface
+/** type means js resource */
+type ResourceType = 'css'| 'themedCss' | 'wml' | 'tmpl' | 'js';
+type IDep = string;
+type IDeps = IDep[];
+interface IPageResources {
+   themedCss: IResorceInfo;
+   css: IResorceInfo;
+   tmpl: IResorceInfo;
+   wml: IResorceInfo;
+   js: IResorceInfo;
 }
-const DEPTYPES = {
-   BUNDLE: 1,
-   SINGLE: 2
-};
-const TYPES = {
-   tmpl: {
-      type: 'tmpl',
-      plugin: 'tmpl',
-      hasDeps: true,
-      hasPacket: false,
-      canBePackedInParent: true
-   },
+interface IResorceInfo {
+   moduleName: string,
+   fullName: string,
+   typeInfo: IResourceConfig;
+}
+interface IResourceConfig{
+   hasDeps: boolean,
+   hasPacket: boolean,
+   canBePackedInParent?: boolean
+   packOwnDeps?: boolean
+}
+/** 
+ * contains all nodes of dependency tree
+ * {
+ *    module_name: [
+ *       wml!path
+ *       dep_module
+ *       i18n!path
+ *    ]   
+ * }
+ */
+interface IModulesDeps {
+   [name: string]: IDeps;
+}
+/** 
+ * info about path to module files 
+ * { 
+ *    module_name: {
+ *       path: module_path.min.js
+ *       amd: true
+ *    }
+ *  }
+ */
+interface IModuleInfo {
+   [name: string]: {
+      path: IDep;
+      amd: boolean
+   };
+}
+/** Info extracted from the module name */
+interface IModuleNameInfo {
+   type: ResourceType,
+   name: string;
+   fullName: string;
+   config: IResourceConfig;
+}
+/** 
+ * Принадлежность ресурса к кастомному бандлу
+ * Т.е все module_name пакуются в package либо не пакуются вообще (не библиотеки)
+ * { module_name: package_path.js }
+ */
+interface IPackagesRoute {
+   [name: string]: string;
+}
+
+type IBundleCollection = {
+   [resource in ResourceType]: {
+      [pack: string]: BUNDLING;
+   };
+}
+// #endregion
+enum BUNDLING { PACKAGE, LIBRARY };
+
+const requireJsPlugins: { [resource in ResourceType]: IResourceConfig } = {
    js: {
-      type: 'js',
-      plugin: '',
       hasDeps: true,
       hasPacket: true,
       packOwnDeps: true
    },
+   tmpl: {
+      hasDeps: true,
+      hasPacket: false,
+      canBePackedInParent: true
+   },
    wml: {
-      type: 'wml',
-      plugin: 'wml',
       hasDeps: true,
       hasPacket: false,
       canBePackedInParent: true
    },
    css: {
-      type: 'css',
-      plugin: 'css',
       hasDeps: false,
       hasPacket: true
    },
-   default: {
-      hasDeps: false
-   }
+   themedCss: {
+      hasDeps: false,
+      hasPacket: true
+   },
 };
 
-function getPlugin(name: string): string {
-   let res;
-   res = name.split('!')[0];
-   if (res === name) {
-      res = '';
-   }
-   return res;
+// #region helpers
+function getRequireJSPlugin(name): ResourceType {
+   const [plugin]: ResourceType[] = name.split('!');
+   return (plugin === name) ? 'js' : plugin;
 }
 
-function getType(name: string): any {
-   const plugin = getPlugin(name);
-   for (const key in TYPES) {
-      if (TYPES[key].plugin === plugin) {
-         return TYPES[key];
-      }
+function getResourceConfig(name: string): IResourceConfig | null {
+   const type = getRequireJSPlugin(name);
+   if (!(type in requireJsPlugins)){
+      Logger.info(`Неизвестное расширение ресурса ${type}::${typeof type}`);
+      return null;
    }
-   return null;
+   return requireJsPlugins[type];
 }
 
 function getPackageName(packageLink: string): string {
@@ -85,44 +139,39 @@ function getExt(fileName: string): string {
 }
 
 function isThemedCss(key: string): boolean {
-   return key.indexOf('theme?') >= 0;
+   return key.indexOf('theme?') !== -1;
 }
 
-function removeThemeParam(name) {
+function removeThemeParam(name: string): string {
    return name.replace('theme?', '');
 }
 
-function parseModuleName(name: string): any {
-   const typeInfo = getType(name);
-   if (typeInfo === null) {
+function parseModuleName(fullName: string): IModuleNameInfo | null {
+   const config = getResourceConfig(fullName);
+   if (Object.is(config, null)) {
       // TODO Change to error after https://online.sbis.ru/opendoc.html?guid=5de9d9bd-be4a-483a-bece-b41983e916e4
-      Logger.info(`[UI/_base/DepsCollector:parseModuleName] Wrong type Can not process module: ${name}`);
+      Logger.info(`[UI/_base/DepsCollector:parseModuleName] Wrong type Can not process module: ${fullName}`);
       return null;
    }
-   let nameWithoutPlugin;
-   if (typeInfo.plugin) {
-      nameWithoutPlugin = name.split(typeInfo.plugin + '!')[1];
-   } else {
-      nameWithoutPlugin = name;
-   }
-   return {
-      moduleName: nameWithoutPlugin,
-      fullName: name,
-      typeInfo
-   };
+   const [type, name] = <[ResourceType, string]> fullName.split('!');
+   return {type, name, fullName, config };
 }
 
 function getEmptyPackages(): any {
    const packages = {};
-   for (const key in TYPES) {
-      if (TYPES.hasOwnProperty(key)) {
+   for (const key in requireJsPlugins) {
+      if (requireJsPlugins.hasOwnProperty(key)) {
          packages[key] = {};
       }
    }
    return packages;
 }
 
-function getPacksNames(allDeps: any, bundlesRoute: any): any {
+function getBundles(resources: IPageResources, route: IPackagesRoute): IBundleCollection {
+   
+}
+
+function getPacksNames(allDeps: IResorceInfo, bundlesRoute: any): any {
    const packages = getEmptyPackages();
    for (const key in allDeps) {
       if (allDeps.hasOwnProperty(key)) {
@@ -131,29 +180,29 @@ function getPacksNames(allDeps: any, bundlesRoute: any): any {
             Logger.info(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${key} in bundle ${bundleName}`);
             delete allDeps[key];
             const ext = getExt(bundleName);
-            packages[ext][getPackageName(bundleName)] = DEPTYPES.BUNDLE;
+            packages[ext][getPackageName(bundleName)] = BUNDLING.PACKAGE;
          }
       }
    }
    for (const key in allDeps) {
       if (allDeps.hasOwnProperty(key)) {
-         const ext = allDeps[key].typeInfo.type;
-         if (allDeps[key].typeInfo.plugin) {
-            packages[ext][key.split(allDeps[key].typeInfo.plugin + '!')[1]] = DEPTYPES.SINGLE;
+         const ext = allDeps[key].config.type;
+         if (allDeps[key].config.plugin) {
+            packages[ext][key.split(allDeps[key].config.plugin + '!')[1]] = BUNDLING.LIBRARY;
          } else {
-            packages[ext][key] = DEPTYPES.SINGLE;
+            packages[ext][key] = BUNDLING.LIBRARY;
          }
       }
    }
    return packages;
 }
-
-function getCssPackages(allDeps: any, bundlesRoute: any): any {
-   const packages = {
-      themedCss: {},
-      simpleCss: {}
-   };
+function getCssPackages(allDeps: IPackagesRoute, bundlesRoute: IPackagesRoute): any {
+   const packages = { };
    for (const key in allDeps) {
+      /**
+       * Перебор зависимостей allDeps, если в bundlesRoute указан ресурс, 
+       * добавляем как название пакета ex.: "OnlineSidebar/vdom-sidebar.package": 1,
+       */
       if (allDeps.hasOwnProperty(key)) {
          let noParamsName = removeThemeParam(key);
          const bundleName = bundlesRoute[noParamsName];
@@ -161,27 +210,30 @@ function getCssPackages(allDeps: any, bundlesRoute: any): any {
             Logger.info(`[UI/_base/DepsCollector:getCssPackages] Custom packets logs, module ${key} in bundle ${bundleName}`);
             delete allDeps[key];
             if (isThemedCss(key)) {
-               packages.themedCss[getPackageName(bundleName)] = DEPTYPES.BUNDLE;
+               packages.themedCss[getPackageName(bundleName)] = BUNDLING.PACKAGE;
             } else {
-               packages.simpleCss[getPackageName(bundleName)] = DEPTYPES.BUNDLE;
+               packages.simpleCss[getPackageName(bundleName)] = BUNDLING.PACKAGE;
             }
          }
       }
    }
+   /**
+    * Все не пакеты добавляются как либы
+    */
    for (const key in allDeps) {
       if (allDeps.hasOwnProperty(key)) {
          let noParamsName = removeThemeParam(key).split('css!')[1];
          if (isThemedCss(key)) {
-            packages.themedCss[noParamsName] = DEPTYPES.SINGLE;
+            packages.themedCss[noParamsName] = BUNDLING.LIBRARY;
          } else {
-            packages.simpleCss[noParamsName] = DEPTYPES.SINGLE;
+            packages.simpleCss[noParamsName] = BUNDLING.LIBRARY;
          }
       }
    }
    return packages;
 }
 
-function getAllPackagesNames(all: any, bRoute: any): any {
+function getAllPackagesNames(all: IPageResources, bRoute: IPackagesRoute): IBundleCollection {
    const packs = getEmptyPackages();
    mergePacks(packs, getPacksNames(all.js, bRoute));
    mergePacks(packs, getPacksNames(all.tmpl, bRoute));
@@ -226,49 +278,37 @@ function recursiveWalker(allDeps: any, curNodeDeps: any, modDeps: any, modInfo: 
                continue;
             }
          }
-         const module = parseModuleName(node);
-         if (module) {
-            const moduleType = module.typeInfo.type;
-            if (!allDeps[moduleType]) {
-               allDeps[moduleType] = {};
-            }
-            if (!allDeps[moduleType][node]) {
-               if (!(skipDep && !!module.typeInfo.canBePackedInParent)) {
-                  allDeps[moduleType][module.fullName] = module;
-               }
-               if (module.typeInfo.hasDeps) {
-                  const nodeDeps = modDeps[node];
-                  recursiveWalker(allDeps, nodeDeps, modDeps, modInfo, !!module.typeInfo.packOwnDeps);
-               }
-            }
+         const info = parseModuleName(node);
+         const { type, config, fullName } = info;
+         if (!allDeps[type]) {
+            allDeps[type] = {};
          }
+         if (allDeps[type][node]) { return; }
+         if (!(skipDep && !!config.canBePackedInParent)) {
+            allDeps[type][fullName] = info;
+         }
+         if (!config.hasDeps) { return; }
+         const nodeDeps = modDeps[node];
+         recursiveWalker(allDeps, nodeDeps, modDeps, modInfo, !!config.packOwnDeps);
       }
    }
 }
-
-interface ILangModuleInfo {
-   moduleLang: string;
-   lang: string;
-}
-
+// #endregion
 class DepsCollector {
-   modDeps: any;
-   modInfo: any;
-   bundlesRoute: any;
-
    /**
     * @param modDeps - object, contains all nodes of dependency tree
     * @param modInfo - contains info about path to module files
     * @param bundlesRoute - contains info about custom packets with modules
     */
-   constructor(modDeps: any, modInfo: any, bundlesRoute: any) {
-      this.modDeps = modDeps;
-      this.modInfo = modInfo;
-      this.bundlesRoute = bundlesRoute;
+   constructor(
+      private modDeps: IModulesDeps, 
+      private modInfo: IModuleInfo, 
+      private bundlesRoute: IPackagesRoute
+      ) {
    }
 
-   public collectDependencies(deps: any): ICollectedFiles {
-      const files: ICollectedFiles = {
+   public collectDependencies(deps: IDeps): IPageResources {
+      const files: IPageResources = {
          js: [],
          css: { themedCss: [], simpleCss: [] },
          tmpl: [],
@@ -298,20 +338,20 @@ class DepsCollector {
             files.wml.push(key);
          }
       }
-      for (const key in packages.css.themedCss) {
-         if (packages.css.themedCss.hasOwnProperty(key)) {
-            if (!packages.js[key] && packages.css.themedCss[key] === DEPTYPES.BUNDLE) {
+      for (const key in packages.themedCss) {
+         if (packages.themedCss.hasOwnProperty(key)) {
+            if (!packages.js[key] && packages.themedCss[key] === BUNDLING.PACKAGE) {
                files.js.push(key);
             }
-            files.css.themedCss.push(key);
+            files.themedCss.push(key);
          }
       }
-      for (const key in packages.css.simpleCss) {
-         if (packages.css.simpleCss.hasOwnProperty(key)) {
-            if (!packages.js[key] && packages.css.simpleCss[key] === DEPTYPES.BUNDLE) {
+      for (const key in packages.css) {
+         if (packages.css.hasOwnProperty(key)) {
+            if (!packages.js[key] && packages.css[key] === BUNDLING.PACKAGE) {
                files.js.push(key);
             }
-            files.css.simpleCss.push(key);
+            files.css.push(key);
          }
       }
       return files;
@@ -356,7 +396,7 @@ class DepsCollector {
             for (let i = 0; i < currentDicts.length; i++) {
                files.js.push(currentDicts[i].moduleLang + '.json');
                if (modules[key].dict && modules[key].dict && ~modules[key].dict.indexOf(currentDicts[i].lang + '.css')) {
-                  files.css.simpleCss.push(currentDicts[i].moduleLang);
+                  files.css.push(currentDicts[i].moduleLang);
                }
             }
          }
@@ -366,5 +406,5 @@ class DepsCollector {
 
 export {
    DepsCollector,
-   ICollectedFiles
+   IPageResources
 };

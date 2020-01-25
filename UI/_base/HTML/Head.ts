@@ -79,8 +79,8 @@ class Head extends Control {
                 // @ts-ignore
                 this.newThemed = ThemesControllerNew.getInstance().getThemedCssList();
 
-                this.themedCss = res.css.themedCss;
-                this.simpleCss = res.css.simpleCss;
+                this.themedCss = res.themedCss;
+                this.simpleCss = res.css;
                 resolve();
 
             });

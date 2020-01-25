@@ -29,8 +29,8 @@ class JsLinks extends Control {
             this.js = res.js;
             this.tmpl = res.tmpl;
             this.wml = res.wml;
-            this.themedCss = res.css.themedCss;
-            this.simpleCss = res.css.simpleCss;
+            this.themedCss = res.themedCss;
+            this.simpleCss = res.css;
             this.receivedStateArr = res.receivedStateArr;
             resolve(true);
          });
