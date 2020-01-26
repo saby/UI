@@ -11,11 +11,13 @@ import {constants, detection} from 'Env/Env';
 import ThemesController = require('Core/Themes/ThemesController');
 // @ts-ignore
 import LinkResolver = require('Core/LinkResolver/LinkResolver');
+// @ts-ignore
+import getResourceUrl = require('Core/helpers/getResourceUrl');
 
-import * as AppEnv from 'Application/Env';
 import AppData from './AppData';
 import { IHTMLOptions } from './interface/IHTML';
 import { IRootTemplateOptions } from './interface/IRootTemplate';
+import { headDataStore } from 'UI/_base/HeadData';
 
 interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
     // Добавим здесь поля для RUM-статистики Потому что их нам нужно сериализовать в wsConfig, чтобы потом получить на клиенте.
@@ -43,6 +45,7 @@ class HTML extends Control {
     private application: string = '';
     private product: string = '';
     private linkResolver: any = null;
+    private getResourceUrl: Function = getResourceUrl;
 
     private initState(cfg: any): void {
         this.title = cfg.title;
@@ -92,10 +95,8 @@ class HTML extends Control {
             ThemesController.getInstance().themes = {};
             ThemesController.getInstance().setTheme(cfg.theme);
         }
-        const headData = AppEnv.getStore('HeadData');
-
         this.linkResolver = new LinkResolver(
-            headData.isDebug,
+            headDataStore.read('isDebug'),
             this.buildnumber,
             this.wsRoot,
             this.appRoot,
@@ -104,9 +105,9 @@ class HTML extends Control {
 
         // LinkResolver.getInstance().init(context.headData.isDebug, self.buildnumber, self.appRoot, self.resourceRoot);
 
-        headData.pushDepComponent(this.application, false);
+        headDataStore.read('pushDepComponent')(this.application, false);
 
-        if (receivedState.csses && !headData.isDebug) {
+        if (receivedState.csses && !headDataStore.read('isDebug')) {
             ThemesController.getInstance().initCss({
                 themedCss: receivedState.csses.themedCss,
                 simpleCss: receivedState.csses.simpleCss

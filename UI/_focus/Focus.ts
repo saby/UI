@@ -3,6 +3,7 @@
 /**
  * Utility module that provides a cross-browser way to move focus
  * to specific elements
+ * @author Белотелов Н.В.
  */
 
 //@ts-ignore

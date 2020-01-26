@@ -23,17 +23,20 @@ import * as Markup from 'View/Executor/Markup';
 import * as Vdom from 'Vdom/Vdom';
 import * as DevtoolsHook from 'Vdom/DevtoolsHook';
 import * as FocusLib from 'UI/Focus';
-import * as AppEnv from 'Application/Env';
 import startApplication from 'UI/_base/startApplication';
+import { headDataStore } from 'UI/_base/HeadData';
 
 // @ts-ignore
-import * as Hydrate from 'Inferno/third-party/hydrate.dev';
+import * as Hydrate from 'Inferno/third-party/hydrate';
 
 if (Hydrate.initInferno) {
    Hydrate.initInferno(Expressions, Utils, Markup, Vdom, FocusLib, DevtoolsHook);
 }
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
+
+type IControlChildren = Record<string, Element | Control>;
+
 /**
  * @event UI/_base/Control#activated Происходит при активации контрола.
  * @param {Boolean} isTabPressed Указывает, был ли активирован контрол нажатием на клавишу Tab.
@@ -134,7 +137,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    // Render function for text generator
    render: Function = null;
 
-   _children: Record<string, Control<TOptions, TState> | HTMLElement> = null;
+   protected _children: IControlChildren = null;
 
    constructor(cfg: any) {
       if (!cfg) {
@@ -264,7 +267,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          if (res) {
             if (isVdom) {
                if (res.length !== 1) {
-                  const message = `There should be only one root element in control markup. Got ${res.length} root(s) in "${this._moduleName}"`;
+                  const message = `There should be only one root element in control markup. Got ${res.length} root(s).`;
                   Logger.error(message, this);
                }
                for (let k = 0; k < res.length; k++) {
@@ -358,7 +361,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this.VDOMReady = true;
          this._container = element;
          // @ts-ignore
-         Synchronizer.mountControlToDOM(this, cfg, this._container);
+         Synchronizer.mountControlToDOM(this, cfg, this._container, this._decOptions);
       }
       if (cfg) {
          this.saveOptions(cfg);
@@ -801,7 +804,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          if (typeof process !== 'undefined' && !process.versions) {
             let time = WAIT_TIMEOUT;
             try {
-               time = AppEnv.getStore('HeadData').ssrWaitTimeManager();
+               time = headDataStore.read('ssrWaitTimeManager')();
             }
             catch (e) {
 
@@ -1173,7 +1176,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
       startApplication();
       // @ts-ignore
-      if (!domElement instanceof HTMLElement) {
+      if (!(domElement instanceof HTMLElement)) {
          const message = '[UI/_base/Control:createControl] domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.';
          Logger.error(message, ctor.prototype);
       }
