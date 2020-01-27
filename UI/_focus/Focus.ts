@@ -268,13 +268,6 @@ function fireActivationEvents(target: Element, relatedTarget: Element): void {
 
 let focusingState;
 let nativeFocus: Function;
-if (typeof HTMLElement !== 'undefined') {
-   nativeFocus = HTMLElement.prototype.focus;
-} else {
-   nativeFocus = () => {
-      // do nothing
-   };
-}
 function focus(element: Element, cfg: IFocusConfig = {}): boolean {
    let res;
    const lastFocused: Element = document.activeElement;
@@ -294,6 +287,7 @@ function focus(element: Element, cfg: IFocusConfig = {}): boolean {
 
 function _initFocus(): void {
    if (typeof HTMLElement !== 'undefined') {
+      nativeFocus = HTMLElement.prototype.focus;
       HTMLElement.prototype.focus = function replacedFocus(): void {
          if (!focusingState) {
             const message = '[UI/_focus/Focus:_initFocus]" - Native focus is called! Please use special focus method (UI/Focus:focus)';

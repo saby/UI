@@ -107,7 +107,7 @@ export function notifyActivationEvents(target, relatedTarget, isTabPressed) {
 
    // последний активный элемент, который не странный
    // @ts-ignore
-   notifyActivationEvents_savedFocusedElement = target;
+   notifyActivationEvents._savedFocusedElement = target;
 
    // Вычисляем общего предка
    const mutualTarget = arrayMaker.find(function (target) {
