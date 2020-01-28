@@ -3,8 +3,7 @@
 import ThemesController = require('Core/Themes/ThemesController');
 // @ts-ignore
 import { cookie } from 'Env/Env';
-// @ts-ignore
-import { DepsCollector, ICollectedFiles } from './DepsCollector';
+import { DepsCollector, ICollectedFiles, IDeps } from 'UI/_base/DepsCollector';
 // @ts-ignore
 import * as AppEnv from 'Application/Env';
 import { IStore } from 'Application/Interface';
@@ -15,26 +14,26 @@ import { IStore } from 'Application/Interface';
 let bundles;
 let modDeps;
 let contents = {};
-const isDebug = () => cookie.get('s3debug') && cookie.get('s3debug') !== 'false' || contents?.['buildMode'] === 'debug';
+
 // Need these try-catch because:
 // 1. We don't need to load these files on client
 // 2. We don't have another way to check if these files exists on server
 try {
     // TODO https://online.sbis.ru/opendoc.html?guid=7e096cc5-d95a-48b9-8b71-2a719bd9886f
     // Need to fix this, to remove hardcoded paths
-    // tslint:disable-next-line:no-var-requires
+    // @ts-ignore tslint:disable-next-line:no-var-requires
     modDeps = require('json!resources/module-dependencies');
 } catch (e) {
     // ignore
 }
 try {
-    // tslint:disable-next-line:no-var-requires
+    // @ts-ignore tslint:disable-next-line:no-var-requires
     contents = require('json!resources/contents');
 } catch (e) {
     // ignore
 }
 try {
-    // tslint:disable-next-line:no-var-requires
+    // @ts-ignore tslint:disable-next-line:no-var-requires
     bundles = require('json!resources/bundlesRoute');
 } catch (e) {
     // ignore
@@ -48,96 +47,53 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     isDebug: boolean;
     // переедет в константы реквеста, изменяется в Controls/Application
     isNewEnvironment: boolean = false;
-    private depComponentsMap: object = {};
-    private additionalDeps: object = {};
-    private waiterDef: Promise<any> = null;
+    private initDeps: string[] = [];
+    private requireInitDeps: string[] = [];
     private themesActive: boolean = true;
-    private err: string;
     private resolve: Function = null;
     private renderPromise: Promise<any> = null;
-    private ssrEndTime: number = null;
+    private _ssrTimeout: number = 0;
 
     constructor() {
-        this.renderPromise = new Promise((resolve) => {
-            this.resolve = resolve;
-        });
-        this.isDebug = isDebug();
-        this.ssrEndTime = Date.now() + HeadData.SSR_DELAY;
         this.get = this.get.bind(this);
         this.set = this.set.bind(this);
         this.getKeys = this.getKeys.bind(this);
         this.toObject = this.toObject.bind(this);
+        this.collectDeps = this.collectDeps.bind(this);
         this.waitAppContent = this.waitAppContent.bind(this);
         this.pushDepComponent = this.pushDepComponent.bind(this);
-        this.pushWaiterDeferred = this.pushWaiterDeferred.bind(this);
-        this.ssrWaitTimeManager = this.ssrWaitTimeManager.bind(this);
         this.resetRenderDeferred = this.resetRenderDeferred.bind(this);
+
+        this.isDebug = isDebug();
+        this.resetRenderDeferred();
+        this._ssrTimeout = Date.now() + HeadData.SSR_DELAY;
     }
 
     /* toDO: StateRec.register */
-    pushDepComponent(componentName: string, needRequire: boolean): void {
-        this.depComponentsMap[componentName] = true;
+    pushDepComponent(componentName: string, needRequire: boolean = false): void {
+        this.initDeps.push(componentName);
         if (needRequire) {
-            this.additionalDeps[componentName] = true;
+            this.requireInitDeps.push(componentName);
         }
     }
 
-    ssrWaitTimeManager(): number {
-        if (Date.now() < this.ssrEndTime) {
-            return this.ssrEndTime - Date.now();
-        } else {
-            return 0;
-        }
+    get ssrTimeout(): number {
+        return (Date.now() < this._ssrTimeout) ? this._ssrTimeout - Date.now() : 0;
     }
 
-    pushWaiterDeferred(def: Promise<any>): void {
-        const depsCollector = getDepsCollector();
-        this.waiterDef = def;
-        this.waiterDef.then(() => {
+    collectDeps(tempLoading: Promise<void>): void {
+        tempLoading.then(() => {
             if (!this.resolve) {
                 return;
             }
-            const components = Object.keys(this.depComponentsMap);
-            let files:ICollectedFiles;
-            if (this.isDebug) {
-                files = {
-                    js: [],
-                    css: { themedCss: [], simpleCss: [] },
-                    tmpl: [],
-                    wml: []
-                };
-            } else {
-                files = depsCollector.collectDependencies(components);
-                initThemesController(files.css.themedCss, files.css.simpleCss);
-            }
-
-            const rcsData = getSerializedData();
-            const additionalDepsArray = [];
-            for (const key in rcsData.additionalDeps) {
-                if (rcsData.additionalDeps.hasOwnProperty(key)) {
-                    additionalDepsArray.push(key);
-                }
-            }
-
-            // Костыль. Чтобы сериализовать receivedState, нужно собрать зависимости, т.к. в receivedState у компонента
-            // Application сейчас будет список css, для восстановления состояния с сервера.
-            // Но собирать зависимости нам нужно после receivedState, потому что в нем могут тоже могут быть зависимости
-            const additionalDeps = depsCollector.collectDependencies(additionalDepsArray);
-
-            files.js = files.js || [];
-            if (!this.isDebug) {
-                for (let i = 0; i < additionalDeps.js.length; i++) {
-                    if (files.js.indexOf(additionalDeps.js[i]) === -1) {
-                        files.js.push(additionalDeps.js[i]);
-                    }
-                }
-            }
+            const { additionalDeps: rsDeps, serialized: rsSerialized } = getSerializedData();
+            const prevDeps = Object.keys(rsDeps);
+            const files = this.isDebug ? getDebugDeps() : getRealeseDeps([...prevDeps, ...this.initDeps], getUnpackDeps());
+            initThemesController(files.css.themedCss, files.css.simpleCss);
             this.resolve({
-                js: files.js || [],
-                tmpl: files.tmpl || [],
-                css: files.css || { themedCss: [], simpleCss: [] },
-                receivedStateArr: rcsData.serialized,
-                additionalDeps: Object.keys(rcsData.additionalDeps).concat(Object.keys(this.additionalDeps))
+                ...files,
+                rsSerialized,
+                additionalDeps: [...prevDeps, ...this.requireInitDeps]
             });
             this.resolve = null;
         });
@@ -175,21 +131,6 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     // #endregion
 }
 
-function getDepsCollector(): DepsCollector {
-    return new DepsCollector(modDeps.links, modDeps.nodes, bundles);
-}
-
-function initThemesController(themedCss, simpleCss): any {
-    return ThemesController.getInstance().initCss({
-        themedCss: themedCss,
-        simpleCss: simpleCss
-    });
-}
-
-function getSerializedData(): any {
-    return AppEnv.getStateReceiver().serialize();
-}
-
 class HeadDataStore {
     constructor (private readonly storageKey: string) { }
 
@@ -205,3 +146,40 @@ class HeadDataStore {
  * Singleton для работы со HeadData Store.
  */
 export const headDataStore = new HeadDataStore('HeadData');
+
+function getDebugDeps(): ICollectedFiles {
+    return {
+        js: [],
+        css: { themedCss: [], simpleCss: [] },
+        tmpl: [],
+        wml: []
+    };
+}
+function getRealeseDeps(deps: IDeps, unpack: IDeps): ICollectedFiles {
+    return getDepsCollector().collectDependencies(deps, unpack);
+}
+
+function getDepsCollector(): DepsCollector {
+    return new DepsCollector(modDeps.links, modDeps.nodes, bundles);
+}
+
+function getSerializedData(): ISerializedData {
+    return AppEnv.getStateReceiver().serialize();
+}
+
+function isDebug(): boolean {
+    return cookie.get('s3debug') && cookie.get('s3debug') === 'true' || contents?.['buildMode'] === 'debug';
+}
+
+function getUnpackDeps(): IDeps {
+    return cookie.get('s3debug')?.split(',') || [];
+} 
+
+function initThemesController(themedCss: string[], simpleCss: string[]): void {
+    ThemesController.getInstance().initCss({ themedCss, simpleCss });
+}
+
+interface ISerializedData {
+    additionalDeps: IDeps;
+    serialized: string;
+}
