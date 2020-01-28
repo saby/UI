@@ -68,7 +68,7 @@ function compatibleActivationEvents(environment: any, arrayMaker: any) {
 
 function getEnvironment(element: Element) {
    // @ts-ignore
-   return element.controlNodes && element.controlNodes[0].environment || null;
+   return element.controlNodes && element.controlNodes.length > 0 && element.controlNodes[0].environment || null;
 }
 function findClosestEnvironment(sourceElement: Element): any {
    let currentElement = sourceElement;
@@ -83,6 +83,15 @@ function findClosestEnvironment(sourceElement: Element): any {
    return null;
 }
 
+function fixNotifyArguments(env: any, target: any, relatedTarget: any, isTabPressed): [any, any, any] {
+   // Пока не смержили правку в ws, не можем поменять сигнатуру функции.
+   // Поэтому будем менять в три доброски, с совместимостью в ui
+   if(env.captureEventHandler) {
+      return [target, relatedTarget, isTabPressed];
+   } else {
+      return [env, relatedTarget, isTabPressed];
+   }
+}
 
 /**
  * Вычисляем состояние активности компонентов, и стреляем событием активности у тех компонентов,
@@ -91,7 +100,8 @@ function findClosestEnvironment(sourceElement: Element): any {
  * @param relatedTarget - откуда ушел фокус
  * @param isTabPressed - true, если фокус перешел по нажатию tab
  */
-export function notifyActivationEvents(target, relatedTarget, isTabPressed) {
+export function notifyActivationEvents(env: any, target, relatedTarget, isTabPressed) {
+   [target, relatedTarget, isTabPressed] = fixNotifyArguments(env, target, relatedTarget, isTabPressed);
    if (detectStrangeElement(target)) {
       return;
    }
