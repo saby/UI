@@ -19,6 +19,7 @@ import { notifyActivationEvents } from 'UI/_focus/Events';
 interface IFocusConfig {
    enableScreenKeyboard?: boolean;
    enableScrollToElement?: boolean;
+   enableActivationEvents?: boolean;
 }
 
 /**
@@ -117,9 +118,9 @@ function checkFocused(element: Element): void {
             const elementString = element.outerHTML.slice(0, element.outerHTML.indexOf('>') + 1);
             const currentElementString = currentElement.outerHTML.slice(0, currentElement.outerHTML.indexOf('>') + 1);
             const message = '[UI/_focus/Focus:checkFocused] - Can\'t focus element because of this element or it\'s parent ' +
-                            `has ${reason} style! maybe you need use ws-hidden or ws-invisible classes for change element ` +
-                            'visibility (in old ws3 controls case). Please check why invisible element is focusing.' +
-                            `Focusing element is ${elementString}, invisible element is ${currentElementString}.`;
+               `has ${reason} style! maybe you need use ws-hidden or ws-invisible classes for change element ` +
+               'visibility (in old ws3 controls case). Please check why invisible element is focusing.' +
+               `Focusing element is ${elementString}, invisible element is ${currentElementString}.`;
             Logger.warn(message, currentElement);
 
             break;
@@ -244,9 +245,9 @@ function fixElementForMobileInputs(element: Element, cfg: IFocusConfig): Element
  * Moves focus to a specific HTML or SVG element
  */
 function focusInner(
-      element: Element,
-      cfg: IFocusConfig = {}
-      ): boolean {
+   element: Element,
+   cfg: IFocusConfig = {}
+): boolean {
    let fixedElement: Element = element;
 
    fixedElement = fixElementForMobileInputs(element, cfg);
@@ -281,7 +282,9 @@ function focus(element: Element, cfg: IFocusConfig = {}): boolean {
          focusingState = false;
       }
    }
-   fireActivationEvents(document.activeElement, lastFocused);
+   if (cfg.enableActivationEvents !== false) {
+      fireActivationEvents(document.activeElement, lastFocused);
+   }
    return res;
 }
 
@@ -296,7 +299,8 @@ function _initFocus(): void {
 
          focus(this, {
             enableScreenKeyboard: true,
-            enableScrollToElement: true
+            enableScrollToElement: true,
+            enableActivationEvents: false
          });
       };
    }

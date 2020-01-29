@@ -43,7 +43,7 @@ export function restoreFocus(control: any, action: Function): void {
          }
          // совместимость. среди контролов могут встретиться ws3
          const container = control._template ? control._container : control.getContainer()[0];
-         return isElementVisible(container) && focus(container);
+         return isElementVisible(container) && focus(container, { enableActivationEvents: false });
       });
       // следим за состоянием _savedFocusedElement. хотелось бы делать это в environment в обработчике
       // на focus, но как минимум в IE на вызов фокуса туда не попадеам
