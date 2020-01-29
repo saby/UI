@@ -271,7 +271,7 @@ export class DepsCollector {
       this.bundlesRoute = bundlesRoute;
    }
 
-   public collectDependencies(depends: IDeps = [], unpack: IDeps = []): ICollectedFiles {
+   collectDependencies(depends: IDeps = [], unpack: IDeps = []): ICollectedFiles {
       /** Убираем дубликаты зависимостей */
       const deps = depends
          .filter((d) => !!d && unpack.indexOf(d) === -1)

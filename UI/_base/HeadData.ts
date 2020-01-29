@@ -47,6 +47,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     isDebug: boolean;
     // переедет в константы реквеста, изменяется в Controls/Application
     isNewEnvironment: boolean = false;
+    pageDeps: PageDeps;
     private initDeps: string[] = [];
     private requireInitDeps: string[] = [];
     private themesActive: boolean = true;
@@ -64,7 +65,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
         this.pushDepComponent = this.pushDepComponent.bind(this);
         this.resetRenderDeferred = this.resetRenderDeferred.bind(this);
 
-        this.isDebug = isDebug();
+        this.pageDeps = new PageDeps();
         this.resetRenderDeferred();
         this._ssrTimeout = Date.now() + HeadData.SSR_DELAY;
     }
@@ -88,7 +89,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             }
             const { additionalDeps: rsDeps, serialized: rsSerialized } = getSerializedData();
             const prevDeps = Object.keys(rsDeps);
-            const files = this.isDebug ? getDebugDeps() : getRealeseDeps([...prevDeps, ...this.initDeps], getUnpackDeps());
+            const files = this.pageDeps.collect([...prevDeps, ...this.initDeps]);
             initThemesController(files.css.themedCss, files.css.simpleCss);
             this.resolve({
                 ...files,
@@ -147,33 +148,39 @@ class HeadDataStore {
  */
 export const headDataStore = new HeadDataStore('HeadData');
 
-function getDebugDeps(): ICollectedFiles {
-    return {
-        js: [],
-        css: { themedCss: [], simpleCss: [] },
-        tmpl: [],
-        wml: []
-    };
-}
-function getRealeseDeps(deps: IDeps, unpack: IDeps): ICollectedFiles {
-    return getDepsCollector().collectDependencies(deps, unpack);
-}
 
-function getDepsCollector(): DepsCollector {
-    return new DepsCollector(modDeps.links, modDeps.nodes, bundles);
+class PageDeps {
+    public isDebug: boolean;
+
+    constructor () {
+        this.isDebug = cookie.get('s3debug') && cookie.get('s3debug') === 'true' || contents?.['buildMode'] === 'debug';
+    }
+
+    collect(initDeps: IDeps = []): ICollectedFiles {
+        return this.isDebug ? this.getDebugDeps() : this.getRealeseDeps(initDeps, this.getUnpackDeps());
+    }
+
+    private getDebugDeps(): ICollectedFiles {
+        return {
+            js: [],
+            css: { themedCss: [], simpleCss: [] },
+            tmpl: [],
+            wml: []
+        };
+    }
+
+    private getRealeseDeps(deps: IDeps, unpack: IDeps): ICollectedFiles {
+        return new DepsCollector(modDeps.links, modDeps.nodes, bundles).collectDependencies(deps, unpack);
+    }
+
+    private getUnpackDeps(): IDeps {
+        return cookie.get('s3debug')?.split?.(',') || [];
+    } 
 }
 
 function getSerializedData(): ISerializedData {
     return AppEnv.getStateReceiver().serialize();
 }
-
-function isDebug(): boolean {
-    return cookie.get('s3debug') && cookie.get('s3debug') === 'true' || contents?.['buildMode'] === 'debug';
-}
-
-function getUnpackDeps(): IDeps {
-    return cookie.get('s3debug')?.split?.(',') || [];
-} 
 
 function initThemesController(themedCss: string[], simpleCss: string[]): void {
     ThemesController.getInstance().initCss({ themedCss, simpleCss });

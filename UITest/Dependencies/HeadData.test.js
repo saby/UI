@@ -29,7 +29,7 @@ define([
          };
       });
       it('DefRender aready fired', function() {
-         hd.isDebug = false;
+         hd.pageDeps.isDebug = false;
          hd.getDepsCollector = function() {
             return dc;
          };
@@ -46,7 +46,7 @@ define([
          defRender.callback();
       });
       it('Debug true', function() {
-         hd.isDebug = true;
+         hd.pageDeps.isDebug = true;
          var tcInitialized = false
          hd.getDepsCollector = function() {
             return dc;
@@ -67,7 +67,7 @@ define([
          });
       });
       it('Deps collected', function() {
-         hd.isDebug = false;
+         hd.pageDeps.isDebug = false;
          var tcInitialized = false
          hd.getDepsCollector = function() {
             return dc;

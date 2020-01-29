@@ -96,7 +96,7 @@ class HTML extends Control {
             ThemesController.getInstance().setTheme(cfg.theme);
         }
         this.linkResolver = new LinkResolver(
-            headDataStore.read('isDebug'),
+            headDataStore.read('pageDeps').isDebug,
             this.buildnumber,
             this.wsRoot,
             this.appRoot,
@@ -107,7 +107,7 @@ class HTML extends Control {
 
         headDataStore.read('pushDepComponent')(this.application, false);
 
-        if (receivedState.csses && !headDataStore.read('isDebug')) {
+        if (receivedState.csses && !headDataStore.read('pageDeps').isDebug) {
             ThemesController.getInstance().initCss({
                 themedCss: receivedState.csses.themedCss,
                 simpleCss: receivedState.csses.simpleCss
