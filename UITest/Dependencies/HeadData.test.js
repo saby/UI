@@ -37,7 +37,7 @@ define([
          defRender.addCallback(function() {
             hd.defRender = defRender;
             var waiterDef = new Deferred();
-            hd.pushWaiterDeferred(waiterDef);
+            hd.collectDeps(waiterDef);
             waiterDef.addCallback(function(res) {
                assert.equal(res, null);
             });
@@ -57,7 +57,7 @@ define([
          var defRender = new Deferred();
          hd.defRender = defRender;
          var waiterDef = new Deferred();
-         hd.pushWaiterDeferred(waiterDef);
+         hd.collectDeps(waiterDef);
          waiterDef.callback();
          defRender.addCallback(function(res) {
             assert.equal(tcInitialized, false);
@@ -78,7 +78,7 @@ define([
          var defRender = new Deferred();
          hd.defRender = defRender;
          var waiterDef = new Deferred();
-         hd.pushWaiterDeferred(waiterDef);
+         hd.collectDeps(waiterDef);
          waiterDef.callback();
          defRender.addCallback(function(res) {
             assert.equal(tcInitialized, true);
