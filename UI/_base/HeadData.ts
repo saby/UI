@@ -172,7 +172,7 @@ function isDebug(): boolean {
 }
 
 function getUnpackDeps(): IDeps {
-    return cookie.get('s3debug')?.split(',') || [];
+    return cookie.get('s3debug')?.split?.(',') || [];
 } 
 
 function initThemesController(themedCss: string[], simpleCss: string[]): void {
