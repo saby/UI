@@ -83,13 +83,13 @@ function findClosestEnvironment(sourceElement: Element): any {
    return null;
 }
 
-function fixNotifyArguments(env: any, target: any, relatedTarget: any, isTabPressed): [any, any, any] {
+function fixNotifyArguments(env: any, target: any, relatedTarget: any, isTabPressed: any): [any, any, any] {
    // Пока не смержили правку в ws, не можем поменять сигнатуру функции.
    // Поэтому будем менять в три доброски, с совместимостью в ui
    if(env.captureEventHandler) {
       return [target, relatedTarget, isTabPressed];
    } else {
-      return [env, relatedTarget, isTabPressed];
+      return [env, target, relatedTarget];
    }
 }
 
