@@ -274,8 +274,8 @@ export class DepsCollector {
    public collectDependencies(depends: IDeps = [], unpack: IDeps = []): ICollectedFiles {
       /** Убираем дубликаты зависимостей */
       const deps = depends
-         .filter((d, i) => depends.indexOf(d) === i)
-         .filter((d) => unpack.indexOf(d) === -1);
+         .filter((d) => !!d && unpack.indexOf(d) === -1)
+         .filter((d, i) => depends.indexOf(d) === i);
          
       const files: ICollectedFiles = {
          js: [],
