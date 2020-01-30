@@ -65,14 +65,12 @@ function focusSvgForeignObjectHack(element: SVGElement): boolean {
  */
 function tryMoveFocus(element: Element, cfg: IFocusConfig): boolean {
    let result = false;
-   if (!result) {
-      if (detection.isIE && element.setActive) {
+   if (!cfg.enableScrollToElement && detection.isIE && element.setActive) {
          // In IE, calling `focus` scrolls the focused element into view,
          // which is not the desired behavior. Built-in `setActive` method
          // makes the element active without scrolling to it
          element.setActive();
          result = element === document.activeElement;
-      }
    }
    if (!result) {
       if (element.focus) {
