@@ -8,23 +8,21 @@ define([
       let fromNode = typeof document === 'undefined';
 
       describe('UI/Base:HeadData', () => {
-         it('Execute time is below time limit', (done) => {
-            var headData = new Base.HeadData;
-            headData.ssrEndTime = Date.now() + 40;
-            setTimeout( () => {
-               assert.isAbove(headData.ssrWaitTimeManager(), 0, 'Ok');
-               done();
-            }, 10);
-         }).timeout(20);
-
-         it('Execute time is above time limit', (done) => {
-            var headData = new Base.HeadData;
-            headData.ssrEndTime = Date.now() + 20;
+         it('ssrWaitTimeManager returns rest ssr delay', (done) => {
+            const headData = new Base.HeadData();
             setTimeout(() => {
-               assert.strictEqual(headData.ssrWaitTimeManager(), 0, 'Ok');
+               assert.isAbove(headData.ssrWaitTimeManager(), 0, 'ssrWaitTimeManager returns rest ssr timeout');
                done();
-            }, 40);
-         }).timeout(50);
+            }, Base.HeadData.SSR_DELAY / 2 );
+         }).timeout(Base.HeadData.SSR_DELAY / 2 + 100);
+
+         it('ssrWaitTimeManager returns 0 after ssr timeout', (done) => {
+            const headData = new Base.HeadData();
+            setTimeout(() => {
+               assert.strictEqual(headData.ssrWaitTimeManager(), 0, 'ssrWaitTimeManager returns 0 after ssr timeout');
+               done();
+            }, Base.HeadData.SSR_DELAY + 100);
+         }).timeout(Base.HeadData.SSR_DELAY + 200);
       });
 
       describe('UI/Base:Control', function() {
