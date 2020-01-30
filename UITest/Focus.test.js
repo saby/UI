@@ -2,17 +2,20 @@
 define([
    'UI/Focus',
    'UI/Base',
+   'UI/Utils',
    'Env/Env',
    'UI/_focus/_ResetScrolling',
    'UITest/Focus'
 ], function(
    Focus,
    Base,
+   Utils,
    Env,
    _ResetScrolling,
    FocusTestControls
 ) {
    'use strict';
+   const Logger = Utils.Logger;
 
    var global = (function() {
       return this || (0, eval)('this');
@@ -27,9 +30,6 @@ define([
 
       before(function(done) {
          if (fromNode) {
-            // if require() not complete on 10 sec, force skip node test
-            // https://online.sbis.ru/opendoc.html?guid=066d507b-71d5-4e3f-9440-23121fae3420
-            setTimeout(() => {this.skip();}, 10000);
             require(['jsdom'], function(jsdom) {
                var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
                global.window = browser.window;
@@ -40,6 +40,9 @@ define([
                global.Node = window.Node;
                global.getComputedStyle = window.getComputedStyle;
                Focus._initFocus();
+               done();
+            }, function(err) {
+               Logger.error(`Failed to load "jsdom"! ${err}`);
                done();
             });
          } else {
