@@ -249,7 +249,7 @@ function focusInner(
    fixedElement = fixElementForMobileInputs(element, cfg);
 
    const undoScrolling = makeResetScrollFunction(fixedElement, cfg.enableScrollToElement);
-   const result = tryMoveFocus(fixedElement);
+   const result = tryMoveFocus(fixedElement, cfg);
    checkFocused(fixedElement);
 
    if (result) {
@@ -275,7 +275,7 @@ function focus(element: Element, {enableScreenKeyboard = false, enableScrollToEl
    } else {
       focusingState = true;
       try {
-         res = focusInner.apply(this, arguments);
+         res = focusInner.call(this, element, cfg);
       } finally {
          focusingState = false;
       }
@@ -301,8 +301,7 @@ function _initFocus(): void {
 
          focus(this, {
             enableScreenKeyboard: true,
-            enableScrollToElement: true,
-            enableActivationEvents: false
+            enableScrollToElement: true
          });
       };
    }
