@@ -515,8 +515,8 @@ define([
             "ws-no-focus": true
          };
          let testTarget = {
-            parentNode: null,
-            parentElement: divElement,
+            parentNode: divElement,
+            parentElement: null,
             getAttribute: function () {
                return undefined;
             }
