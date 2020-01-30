@@ -19,7 +19,6 @@ import { notifyActivationEvents } from 'UI/_focus/Events';
 interface IFocusConfig {
    enableScreenKeyboard?: boolean;
    enableScrollToElement?: boolean;
-   enableActivationEvents?: boolean;
 }
 
 /**
@@ -64,21 +63,18 @@ function focusSvgForeignObjectHack(element: SVGElement): boolean {
  * Trying all possible ways to focus element. Return true if successfully focused.
  * @param element
  */
-function tryMoveFocus(element: Element): boolean {
+function tryMoveFocus(element: Element, cfg: IFocusConfig): boolean {
    let result = false;
-   if (detection.isIE) {
-      // In IE, calling `focus` scrolls the focused element into view,
-      // which is not the desired behavior. Built-in `setActive` method
-      // makes the element active without scrolling to it
-      try {
-         // @ts-ignore
+   if (!result) {
+      if (detection.isIE && element.setActive) {
+         // In IE, calling `focus` scrolls the focused element into view,
+         // which is not the desired behavior. Built-in `setActive` method
+         // makes the element active without scrolling to it
          element.setActive();
          result = element === document.activeElement;
-      } catch (e) {
-         Logger.warn("[UI/_focus/Focus:tryMoveFocus] - Couldn't focused element with native setActive method. It is propably a problem with a focus library. Ask author to help.");
-         result = false;
       }
-   } else {
+   }
+   if (!result) {
       if (element.focus) {
          element.focus();
          result = element === document.activeElement;
@@ -92,7 +88,7 @@ function tryMoveFocus(element: Element): boolean {
             HTMLElement.prototype.focus.call(element);
             result = element === document.activeElement;
          } catch (e) {
-            result = focusSvgForeignObjectHack(element as SVGAElement);
+            result = focusSvgForeignObjectHack(element);
          }
       }
    }
@@ -232,13 +228,14 @@ function fixElementForMobileInputs(element: Element, cfg: IFocusConfig): Element
    // поля ввода), и не для любого вызова activate а только для тех вызовов, когда эта поведение
    // необходимо. Например, при открытии панели не надо фокусировать поля ввода
    // на мобильных устройствах.
+   let result = element;
    if (!cfg.enableScreenKeyboard && checkEnableScreenKeyboard()) {
       // если попали на поле ввода, нужно взять его родительский элемент и фокусировать его
       if (checkInput(element)) {
-         return getContainerWithControlNode(element);
+         result = getContainerWithControlNode(element);
       }
    }
-   return element;
+   return result;
 }
 
 /**
@@ -246,9 +243,10 @@ function fixElementForMobileInputs(element: Element, cfg: IFocusConfig): Element
  */
 function focusInner(
    element: Element,
-   cfg: IFocusConfig = {}
+   cfg: IFocusConfig
 ): boolean {
    let fixedElement: Element = element;
+   // Заполняем cfg значениями по умолчанию, если другие не переданы
 
    fixedElement = fixElementForMobileInputs(element, cfg);
 
@@ -269,8 +267,10 @@ function fireActivationEvents(target: Element, relatedTarget: Element): void {
 
 let focusingState;
 let nativeFocus: Function;
-function focus(element: Element, cfg: IFocusConfig = {}): boolean {
+function focus(element: Element, {enableScreenKeyboard = false, enableScrollToElement = false}:
+   IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}): boolean {
    let res;
+   const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard};
    const lastFocused: Element = document.activeElement;
    if (focusingState) {
       nativeFocus.call(element);
@@ -282,7 +282,11 @@ function focus(element: Element, cfg: IFocusConfig = {}): boolean {
          focusingState = false;
       }
    }
-   if (cfg.enableActivationEvents !== false) {
+   // @ts-ignore
+   // мы не должны стрелять событиями активации во время восстановления фокуса после перерисовки
+   // но делать это публичным апи тоже нельзя, 
+   // т.к. фокусировка без событий активации может сломать систему фокусов
+   if (!focus.__restoreFocusPhase) {
       fireActivationEvents(document.activeElement, lastFocused);
    }
    return res;
