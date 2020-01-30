@@ -88,7 +88,7 @@ function tryMoveFocus(element: Element, cfg: IFocusConfig): boolean {
             HTMLElement.prototype.focus.call(element);
             result = element === document.activeElement;
          } catch (e) {
-            result = focusSvgForeignObjectHack(element);
+            result = focusSvgForeignObjectHack(element as SVGElement);
          }
       }
    }
