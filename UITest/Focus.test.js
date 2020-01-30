@@ -42,7 +42,7 @@ define([
                Focus._initFocus();
                done();
             }, function(err) {
-               Logger.error((err));
+               Logger.error(`Failed to load "jsdom"! ${err}`);
                done();
             });
          } else {
