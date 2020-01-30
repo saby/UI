@@ -361,7 +361,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this.VDOMReady = true;
          this._container = element;
          // @ts-ignore
-         Synchronizer.mountControlToDOM(this, controlClass, cfg, this._container, this._decOptions);
+         Synchronizer.mountControlToDOM(this, cfg, this._container, this._decOptions);
       }
       if (cfg) {
          this.saveOptions(cfg);
@@ -1176,7 +1176,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
       startApplication();
       // @ts-ignore
-      if (!domElement instanceof HTMLElement) {
+      if (!(domElement instanceof HTMLElement)) {
          const message = '[UI/_base/Control:createControl] domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.';
          Logger.error(message, ctor.prototype);
       }
