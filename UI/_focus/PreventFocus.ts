@@ -6,13 +6,15 @@
 
 export function hasNoFocus(element: Element): boolean {
    const html = document.documentElement;
-   let currentElement = element;
+   let currentElement: Element = element;
    while (currentElement !== html) {
       // todo совместимость! когда уберем совместимость, надо убрать element.getAttribute('ws-no-focus')
       if (currentElement['ws-no-focus'] || currentElement.getAttribute('ws-no-focus')) {
          return true;
       } else {
-         currentElement = currentElement.parentElement;
+         // Используем parentNode, вместо parentElement, потому что в ie у svg-элементов, нет свойства parentElement
+         // @ts-ignore
+         currentElement = currentElement.parentNode;
       }
    }
    return false;
