@@ -2,20 +2,17 @@
 define([
    'UI/Focus',
    'UI/Base',
-   'UI/Utils',
    'Env/Env',
    'UI/_focus/_ResetScrolling',
    'UITest/Focus'
 ], function(
    Focus,
    Base,
-   Utils,
    Env,
    _ResetScrolling,
    FocusTestControls
 ) {
    'use strict';
-   const Logger = Utils.Logger;
 
    var global = (function() {
       return this || (0, eval)('this');
@@ -42,8 +39,8 @@ define([
                Focus._initFocus();
                done();
             }, function(err) {
-               Logger.error(`Failed to load "jsdom"! ${err}`);
-               done();
+               let error = `Failed to load "jsdom"! ${err}`;
+               done(new Error(error));
             });
          } else {
             done();
