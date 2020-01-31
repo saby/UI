@@ -42,8 +42,9 @@ define([
                Focus._initFocus();
                done();
             }, function(err) {
-               Logger.error(`Failed to load "jsdom"! ${err}`);
-               done();
+               let error = `Failed to load "jsdom"! ${err}`;
+               Logger.error(error);
+               done(new Error(error));
             });
          } else {
             done();
