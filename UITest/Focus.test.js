@@ -30,7 +30,7 @@ define([
 
       before(function(done) {
          if (fromNode) {
-            require(['jsdom'], function(jsdom, err ) {
+            require(['jsdom'], function(jsdom) {
                var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
                global.window = browser.window;
                global.document = window.document;
@@ -40,7 +40,7 @@ define([
                global.Node = window.Node;
                global.getComputedStyle = window.getComputedStyle;
                Focus._initFocus();
-               done (new Error('Expected method to reject.'))
+               done();
             }, function(err) {
                let error = `Failed to load "jsdom"! ${err}`;
                Logger.error(error);
