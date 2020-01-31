@@ -476,4 +476,58 @@ define([
          }
       });
    });
+
+   describe('Focus functions', function() {
+      var fromNode = typeof document === 'undefined';
+      before(function(done) {
+         if (fromNode) {
+            require(['jsdom'], function(jsdom) {
+               var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
+               global.window = browser.window;
+               global.document = window.document;
+               global.Element = window.Element;
+               global.HTMLElement = window.HTMLElement;
+               global.SVGElement = window.SVGElement;
+               global.Node = window.Node;
+               global.getComputedStyle = window.getComputedStyle;
+               Focus._initFocus();
+               done();
+            });
+         } else {
+            done();
+         }
+      });
+
+      after(function() {
+         if (fromNode) {
+            delete global.window;
+            delete global.document;
+            delete global.Element;
+            delete global.HTMLElement;
+            delete global.SVGElement;
+            delete global.Node;
+            delete global.getComputedStyle;
+         }
+      });
+      it("Prevent focus on element without parentElement", function () {
+         let focusPrevented = false;
+         let divElement = {
+            "ws-no-focus": true
+         };
+         let testTarget = {
+            parentNode: divElement,
+            parentElement: null,
+            getAttribute: function () {
+               return undefined;
+            }
+         };
+         Focus.preventFocus({
+            target: testTarget,
+            preventDefault: function () {
+               focusPrevented = true;
+            }
+         })
+         assert.isOk(focusPrevented);
+      });
+   })
 });
