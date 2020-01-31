@@ -2,17 +2,20 @@
 define([
    'UI/Focus',
    'UI/Base',
+   'UI/Utils',
    'Env/Env',
    'UI/_focus/_ResetScrolling',
    'UITest/Focus'
 ], function(
    Focus,
    Base,
+   Utils,
    Env,
    _ResetScrolling,
    FocusTestControls
 ) {
    'use strict';
+   const Logger = Utils.Logger;
 
    var global = (function() {
       return this || (0, eval)('this');
@@ -27,7 +30,7 @@ define([
 
       before(function(done) {
          if (fromNode) {
-            require(['jsdom'], function(jsdom) {
+            require(['jsdom'], function(jsdom, err ) {
                var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
                global.window = browser.window;
                global.document = window.document;
@@ -37,9 +40,10 @@ define([
                global.Node = window.Node;
                global.getComputedStyle = window.getComputedStyle;
                Focus._initFocus();
-               done();
+               done (new Error('Expected method to reject.'))
             }, function(err) {
                let error = `Failed to load "jsdom"! ${err}`;
+               Logger.error(error);
                done(new Error(error));
             });
          } else {
