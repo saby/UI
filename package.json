@@ -54,7 +54,7 @@
    "dependencies": {},
    "devDependencies": {
       "sbis3controls": "git+https://git.sbis.ru/sbis/sbis3controls.git#rc-20.2000",
-      "wasaby-controls": "git+https://git.sbis.ru/sbis/wasaby-controls.git#rc-20.2000",
+      "wasaby-controls": "git+https://platform-git.sbis.ru/saby/wasaby-controls.git#rc-20.2000",
       "@tensor-corp/eslint-config": "^2.0.3",
       "Router": "git+https://github.com/saby/Router.git#rc-20.2000",
       "body-parser": "^1.18.3",
