@@ -12,3 +12,4 @@ node_modules
 .nyc_output/
 artifacts/
 /tslib.js
+.vscode/
