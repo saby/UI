@@ -173,7 +173,8 @@ export function notifyActivationEvents(environment, target, relatedTarget, isTab
             if (!arrayMaker[0].isActive) {
                Logger.warn('Контрол нуждается в слое совместимости.', arrayMaker[0]);
             } else {
-               if (!arrayMaker[0].isActive()) {
+               // У deprecated контролов нет метода _activate, у них его вызывать не нужно
+               if (!arrayMaker[0].isActive() && arrayMaker[0]._activate) {
                   arrayMaker[0]._activate(arrayMaker[0]);
                }
             }
