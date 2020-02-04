@@ -37,6 +37,62 @@ function detectStrangeElement(element) {
    );
 }
 
+function compatibleActivationEvents(environment: any, arrayMaker: any) {
+   // todo обратная совместимость
+   if (constants.compat && environment._rootDOMNode && environment._rootDOMNode.controlNodes) {
+      if (environment._rootDOMNode.controlNodes[0] && environment._rootDOMNode.controlNodes[0].control.isActive) {
+         // если компонент уже активен, простреливаем событием onFocusInside
+         if (environment._rootDOMNode.controlNodes[0].control.isActive()) {
+            environment._rootDOMNode.controlNodes[0].control._callOnFocusInside();
+         } else {
+            // если еще не активен, активируем
+            // @ts-ignore
+            const areaAbstract = require('Lib/Control/AreaAbstract/AreaAbstract.compatible');
+            areaAbstract._storeActiveChildInner.apply(
+               environment._rootDOMNode.controlNodes[0].control
+            );
+         }
+
+         if (arrayMaker.length) {
+            if (!arrayMaker[0].isActive) {
+               Logger.warn('Контрол нуждается в слое совместимости.', arrayMaker[0]);
+            } else {
+               if (!arrayMaker[0].isActive()) {
+                  arrayMaker[0]._activate(arrayMaker[0]);
+               }
+            }
+         }
+      }
+   }
+}
+
+function getEnvironment(element: Element) {
+   // @ts-ignore
+   return element.controlNodes && element.controlNodes.length > 0 && element.controlNodes[0].environment || null;
+}
+function findClosestEnvironment(sourceElement: Element): any {
+   let currentElement = sourceElement;
+   while(currentElement.parentElement) {
+      let env = getEnvironment(currentElement);
+      if(env) {
+         return env;
+      } else {
+         currentElement = currentElement.parentElement;
+      }
+   }
+   return null;
+}
+
+function fixNotifyArguments(env: any, target: any, relatedTarget: any, isTabPressed: any): [any, any, any] {
+   // Пока не смержили правку в ws, не можем поменять сигнатуру функции.
+   // Поэтому будем менять в три доброски, с совместимостью в ui
+   if(env.captureEventHandler) {
+      return [target, relatedTarget, isTabPressed];
+   } else {
+      return [env, target, relatedTarget];
+   }
+}
+
 /**
  * Вычисляем состояние активности компонентов, и стреляем событием активности у тех компонентов,
  * что поменяли свое состояние
@@ -44,33 +100,34 @@ function detectStrangeElement(element) {
  * @param relatedTarget - откуда ушел фокус
  * @param isTabPressed - true, если фокус перешел по нажатию tab
  */
-export function notifyActivationEvents(environment, target, relatedTarget, isTabPressed) {
+export function notifyActivationEvents(env: any, target, relatedTarget, isTabPressed) {
+   [target, relatedTarget, isTabPressed] = fixNotifyArguments(env, target, relatedTarget, isTabPressed);
    if (detectStrangeElement(target)) {
       return;
    }
 
    // странные элементы вообще проигнорируем, возьмем вместо него предыдущий активный
    const realRelatedTarget = (!detectStrangeElement(relatedTarget) && relatedTarget) ||
-      environment.constructor.prototype._savedFocusedElement;
+      // @ts-ignore
+      notifyActivationEvents._savedFocusedElement;
 
    const
       arrayMaker = goUpByControlTree(target), // Массив активированных компонентов
       relatedArrayMaker = goUpByControlTree(realRelatedTarget); // Массив деактивированных компонентов
 
    // последний активный элемент, который не странный
-   environment.constructor.prototype._savedFocusedElement = target;
-
-   environment._focused = true;
+   // @ts-ignore
+   notifyActivationEvents._savedFocusedElement = target;
 
    // Вычисляем общего предка
-   const mutualTarget = arrayMaker.find(function(target) {
+   const mutualTarget = arrayMaker.find(function (target) {
       return relatedArrayMaker.indexOf(target) !== -1;
    });
 
    let prevControl = null;
 
    // Меняем состояние у тех компонентов, которые реально потеряли активность
-   relatedArrayMaker.find(function(control) {
+   relatedArrayMaker.find(function (control) {
       let found = undefined;
 
       if (control !== mutualTarget) {
@@ -127,7 +184,7 @@ export function notifyActivationEvents(environment, target, relatedTarget, isTab
 
    prevControl = null;
    // Меняем состояние у тех компонентов, которые реально получили активность
-   arrayMaker.find(function(control) {
+   arrayMaker.find(function (control) {
       let found = undefined;
       if (control !== mutualTarget) {
          // не стреляем событием для HOC, события сейчас так работают что если
@@ -154,31 +211,9 @@ export function notifyActivationEvents(environment, target, relatedTarget, isTab
       return found;
    });
 
-   // todo обратная совместимость
-   if (constants.compat && environment._rootDOMNode && environment._rootDOMNode.controlNodes) {
-      if (environment._rootDOMNode.controlNodes[0] && environment._rootDOMNode.controlNodes[0].control.isActive) {
-         // если компонент уже активен, простреливаем событием onFocusInside
-         if (environment._rootDOMNode.controlNodes[0].control.isActive()) {
-            environment._rootDOMNode.controlNodes[0].control._callOnFocusInside();
-         } else {
-            // если еще не активен, активируем
-            // @ts-ignore
-            const areaAbstract = require('Lib/Control/AreaAbstract/AreaAbstract.compatible');
-            areaAbstract._storeActiveChildInner.apply(
-               environment._rootDOMNode.controlNodes[0].control
-            );
-         }
-
-         if (arrayMaker.length) {
-            if (!arrayMaker[0].isActive) {
-               Logger.warn('Контрол нуждается в слое совместимости.', arrayMaker[0]);
-            } else {
-               if (!arrayMaker[0].isActive()) {
-                  arrayMaker[0]._activate(arrayMaker[0]);
-               }
-            }
-         }
-      }
+   let environment = findClosestEnvironment(target);
+   if(environment) {
+      compatibleActivationEvents(environment, arrayMaker);
    }
 }
 
