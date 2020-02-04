@@ -18,13 +18,13 @@ define([
          before(() => {
             instance = {};
             errorMessage = '';
-            Logger.error = loggerErrorMock;
+            Logger.warn = loggerErrorMock;
          });
 
          after(() => {
             instance = {};
             errorMessage = '';
-            Logger.error = loggerError;
+            Logger.warn = loggerError;
          });
 
          beforeEach(() => {

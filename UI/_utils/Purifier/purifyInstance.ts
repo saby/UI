@@ -1,12 +1,15 @@
 import * as Logger from '../Logger';
-
-const asyncPurifyTimeout = 6000;
+// TODO: по задаче
+// https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
+const asyncPurifyTimeout = 10000;
 
 const typesToPurify: string[] = ['object', 'function'];
 
 function createUseAfterDestroyErrorFunction(stateName: string, instanceName: string): () => void {
     return () => {
-        Logger.error(`Попытка получить поле ${stateName} в очищенном ${instanceName}`);
+        // TODO: по задаче
+        // https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
+        Logger.warn(`Попытка получить поле ${stateName} в очищенном ${instanceName}`);
     };
 }
 
