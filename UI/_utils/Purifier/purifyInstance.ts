@@ -27,7 +27,7 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string)
 
         // TODO: Удалить исключение для поля _children после решения ошибки по ссылке ниже.
         // https://online.sbis.ru/opendoc.html?guid=095a1b4d-77e9-49fb-96ec-cf4aa6372e2b
-        if (stateName === '_children') {
+        if (stateName === '_children' || stateName === '__purified') {
             continue;
         }
 
@@ -42,7 +42,13 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string)
             get: getterFunction
         });
     }
-    instance.__purified = true;
+    if (!instance.__purified) {
+        Object.defineProperty(instance, '__purified', {
+            enumerable: false,
+            configurable: false,
+            get: () => true
+        });
+    }
     Object.freeze(instance);
 }
 

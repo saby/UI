@@ -145,6 +145,21 @@ define([
             assert.isTrue(result[0] === target.controlNodes[0].control, 'Check controls count');
             assert.isTrue(result[1] === target.controlNodes[0].control._options.parent, 'Check first control');
          }
+      },
+      'purified opener': {
+         target: {
+            controlNodes: false,
+            wsControl: {
+               _options: {
+                  opener: {
+                     __purified: true
+                  }
+               }
+            }
+         },
+         ckeckFn: function(target, result) {
+            assert.isTrue(result.length === 1);
+         }
       }
    };
 
