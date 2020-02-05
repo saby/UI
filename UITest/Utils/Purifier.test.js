@@ -5,12 +5,11 @@ define([
    describe('UI/_utils/Purifier', () => {
       const Purifier = Utils.Purifier;
       const Logger = Utils.Logger;
-
       describe('purifyInstance', () => {
          let instance;
          let errorMessage;
+         let warnStub;
          const purifyInstance = Purifier.purifyInstance;
-         const loggerError = Logger.error;
          const loggerErrorMock = (msg) => {
             errorMessage += msg;
          };
@@ -18,13 +17,13 @@ define([
          before(() => {
             instance = {};
             errorMessage = '';
-            Logger.warn = loggerErrorMock;
+            warnStub = sinon.stub(Logger, 'warn').callsFake(loggerErrorMock);
          });
 
          after(() => {
             instance = {};
             errorMessage = '';
-            Logger.warn = loggerError;
+            warnStub.restore();
          });
 
          beforeEach(() => {
