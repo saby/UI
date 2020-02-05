@@ -7,11 +7,15 @@ import { constants } from 'Env/Env';
 //@ts-ignore
 import i18n = require('Core/i18n');
 
-interface ICollectedFiles {
-   js: Array<String>,
-   css: { themedCss: Array<String>, simpleCss: Array<String> },
-   tmpl: Array<String>,
-   wml: Array<String>
+export type IDeps = string[];
+export interface ICollectedFiles {
+   js: string[];
+   css: {
+      themedCss: string[];
+      simpleCss: string[];
+   },
+   tmpl: string[];
+   wml: string[];
 }
 const DEPTYPES = {
    BUNDLE: 1,
@@ -122,29 +126,34 @@ function getEmptyPackages(): any {
    return packages;
 }
 
-function getPacksNames(allDeps: any, bundlesRoute: any): any {
+function getPacksNames(allDeps = {}, unpack: IDeps, bundlesRoute = {}): any {
+   const unpackBundles = [];
    const packages = getEmptyPackages();
-   for (const key in allDeps) {
-      if (allDeps.hasOwnProperty(key)) {
-         const bundleName = bundlesRoute[key];
-         if (bundleName) {
-            Logger.info(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${key} in bundle ${bundleName}`);
-            delete allDeps[key];
-            const ext = getExt(bundleName);
-            packages[ext][getPackageName(bundleName)] = DEPTYPES.BUNDLE;
-         }
+   Object.keys(allDeps).forEach((key) => {
+      const bundleName = bundlesRoute[key];
+      if (!bundleName) { return; }
+      Logger.info(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${key} in bundle ${bundleName}`);
+      delete allDeps[key];
+      const ext = getExt(bundleName);
+      const packageName = getPackageName(bundleName);
+      if (unpack.indexOf(key) !== -1) {
+         unpackBundles.push(packageName);
+         delete packages[ext][packageName];
       }
-   }
-   for (const key in allDeps) {
-      if (allDeps.hasOwnProperty(key)) {
-         const ext = allDeps[key].typeInfo.type;
-         if (allDeps[key].typeInfo.plugin) {
-            packages[ext][key.split(allDeps[key].typeInfo.plugin + '!')[1]] = DEPTYPES.SINGLE;
-         } else {
-            packages[ext][key] = DEPTYPES.SINGLE;
-         }
+      if (unpackBundles.indexOf(packageName) !== -1) { return; }
+      packages[ext][packageName] = DEPTYPES.BUNDLE;
+   });
+
+   Object.keys(allDeps).forEach((key) => {
+      const { plugin, type: ext } = allDeps[key].typeInfo;
+      const packageName = plugin ? key.split(plugin + '!').pop() : key;
+      if (unpack.indexOf(key) !== -1) {
+         unpackBundles.push(packageName);
+         delete packages[ext][packageName];
       }
-   }
+      if (unpackBundles.indexOf(packageName) !== -1) { return; }
+      packages[ext][packageName] = DEPTYPES.SINGLE;
+   });
    return packages;
 }
 
@@ -181,11 +190,11 @@ function getCssPackages(allDeps: any, bundlesRoute: any): any {
    return packages;
 }
 
-function getAllPackagesNames(all: any, bRoute: any): any {
+function getAllPackagesNames(all: any, unpack:IDeps, bRoute: any): any {
    const packs = getEmptyPackages();
-   mergePacks(packs, getPacksNames(all.js, bRoute));
-   mergePacks(packs, getPacksNames(all.tmpl, bRoute));
-   mergePacks(packs, getPacksNames(all.wml, bRoute));
+   mergePacks(packs, getPacksNames(all.js, unpack, bRoute));
+   mergePacks(packs, getPacksNames(all.tmpl, unpack, bRoute));
+   mergePacks(packs, getPacksNames(all.wml, unpack, bRoute));
 
    packs.css = getCssPackages(all.css, bRoute);
    return packs;
@@ -246,12 +255,7 @@ function recursiveWalker(allDeps: any, curNodeDeps: any, modDeps: any, modInfo: 
    }
 }
 
-interface ILangModuleInfo {
-   moduleLang: string;
-   lang: string;
-}
-
-class DepsCollector {
+export class DepsCollector {
    modDeps: any;
    modInfo: any;
    bundlesRoute: any;
@@ -267,7 +271,12 @@ class DepsCollector {
       this.bundlesRoute = bundlesRoute;
    }
 
-   public collectDependencies(deps: any): ICollectedFiles {
+   collectDependencies(depends: IDeps = [], unpack: IDeps = []): ICollectedFiles {
+      /** Убираем дубликаты зависимостей */
+      const deps = depends
+         .filter((d) => !!d && unpack.indexOf(d) === -1)
+         .filter((d, i) => depends.indexOf(d) === i);
+         
       const files: ICollectedFiles = {
          js: [],
          css: { themedCss: [], simpleCss: [] },
@@ -278,7 +287,7 @@ class DepsCollector {
       recursiveWalker(allDeps, deps, this.modDeps, this.modInfo);
 
       // Find all bundles, and removes dependencies that are included in bundles
-      const packages = getAllPackagesNames(allDeps, this.bundlesRoute);
+      const packages = getAllPackagesNames(allDeps, unpack, this.bundlesRoute);
 
       // Add i18n dependencies
       this.collectI18n(files, packages);
@@ -364,7 +373,3 @@ class DepsCollector {
    }
 }
 
-export {
-   DepsCollector,
-   ICollectedFiles
-};
