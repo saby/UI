@@ -42,6 +42,7 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string)
             get: getterFunction
         });
     }
+    instance.__purified = true;
     Object.freeze(instance);
 }
 
