@@ -69,8 +69,15 @@ function tryMoveFocus(element: Element, cfg: IFocusConfig): boolean {
          // In IE, calling `focus` scrolls the focused element into view,
          // which is not the desired behavior. Built-in `setActive` method
          // makes the element active without scrolling to it
-         element.setActive();
-         result = element === document.activeElement;
+         try {
+            // @ts-ignore метод позовется только в ie, где он поддерживается
+            element.setActive();
+         } finally {
+            // Обернули в try/finally, потому что вызов setActive у элемента с visibility:hidden в ie падает с ошибкой
+            // Можно порефакторить, попробовать смотреть на element.currentStyle.visibility
+            // Но в 20.1100 уже не до экспериментов
+            result = element === document.activeElement;
+         }
    }
    if (!result) {
       if (element.focus) {
@@ -282,7 +289,7 @@ function focus(element: Element, {enableScreenKeyboard = false, enableScrollToEl
    }
    // @ts-ignore
    // мы не должны стрелять событиями активации во время восстановления фокуса после перерисовки
-   // но делать это публичным апи тоже нельзя, 
+   // но делать это публичным апи тоже нельзя,
    // т.к. фокусировка без событий активации может сломать систему фокусов
    if (!focus.__restoreFocusPhase) {
       fireActivationEvents(document.activeElement, lastFocused);
