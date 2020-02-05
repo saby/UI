@@ -1,12 +1,15 @@
 import * as Logger from '../Logger';
-
-const asyncPurifyTimeout = 6000;
+// TODO: по задаче
+// https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
+const asyncPurifyTimeout = 10000;
 
 const typesToPurify: string[] = ['object', 'function'];
 
 function createUseAfterDestroyErrorFunction(stateName: string, instanceName: string): () => void {
     return () => {
-        Logger.error(`Попытка получить поле ${stateName} в очищенном ${instanceName}`);
+        // TODO: по задаче
+        // https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
+        Logger.warn(`Попытка получить поле ${stateName} в очищенном ${instanceName}`);
     };
 }
 
@@ -24,7 +27,7 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string)
 
         // TODO: Удалить исключение для поля _children после решения ошибки по ссылке ниже.
         // https://online.sbis.ru/opendoc.html?guid=095a1b4d-77e9-49fb-96ec-cf4aa6372e2b
-        if (stateName === '_children') {
+        if (stateName === '_children' || stateName === '__purified') {
             continue;
         }
 
@@ -37,6 +40,13 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string)
             configurable: false,
             set: emptyFunction,
             get: getterFunction
+        });
+    }
+    if (!instance.__purified) {
+        Object.defineProperty(instance, '__purified', {
+            enumerable: false,
+            configurable: false,
+            get: () => true
         });
     }
     Object.freeze(instance);
