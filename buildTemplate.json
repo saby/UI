@@ -40,10 +40,6 @@
       "path": "./node_modules/wasaby-controls/Controls-demo"
     },
     {
-      "name": "Controls-theme",
-      "path": "./node_modules/wasaby-controls/Controls-theme"
-    },
-    {
       "name": "Controls-default-theme",
       "path": "./node_modules/wasaby-controls/Controls-default-theme"
     },
