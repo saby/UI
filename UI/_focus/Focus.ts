@@ -66,11 +66,19 @@ function focusSvgForeignObjectHack(element: SVGElement): boolean {
 function tryMoveFocus(element: Element, cfg: IFocusConfig): boolean {
    let result = false;
    if (!cfg.enableScrollToElement && detection.isIE && element.setActive) {
-      // In IE, calling `focus` scrolls the focused element into view,
-      // which is not the desired behavior. Built-in `setActive` method
-      // makes the element active without scrolling to it
-      element.setActive();
-      result = element === document.activeElement;
+       // In IE, calling `focus` scrolls the focused element into view,
+       // which is not the desired behavior. Built-in `setActive` method
+       // makes the element active without scrolling to it
+       try {
+          // @ts-ignore метод позовется только в ie, где он поддерживается
+          element.setActive();
+       } catch (e) {
+          // Обернули в try/catch, потому что вызов setActive у элемента с visibility:hidden в ie падает с ошибкой
+          // Можно порефакторить, попробовать смотреть на element.currentStyle.visibility
+          // Но в 20.1100 уже не до экспериментов//
+       } finally {
+          result = element === document.activeElement;
+       }
    }
    if (!result) {
       if (element.focus) {
