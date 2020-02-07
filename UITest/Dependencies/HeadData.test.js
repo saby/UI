@@ -29,7 +29,7 @@ define([
          };
       });
       it('DefRender aready fired', function() {
-         hd.isDebug = false;
+         hd.pageDeps.isDebug = false;
          hd.getDepsCollector = function() {
             return dc;
          };
@@ -37,7 +37,7 @@ define([
          defRender.addCallback(function() {
             hd.defRender = defRender;
             var waiterDef = new Deferred();
-            hd.pushWaiterDeferred(waiterDef);
+            hd.collectDeps(waiterDef);
             waiterDef.addCallback(function(res) {
                assert.equal(res, null);
             });
@@ -46,7 +46,7 @@ define([
          defRender.callback();
       });
       it('Debug true', function() {
-         hd.isDebug = true;
+         hd.pageDeps.isDebug = true;
          var tcInitialized = false
          hd.getDepsCollector = function() {
             return dc;
@@ -57,7 +57,7 @@ define([
          var defRender = new Deferred();
          hd.defRender = defRender;
          var waiterDef = new Deferred();
-         hd.pushWaiterDeferred(waiterDef);
+         hd.collectDeps(waiterDef);
          waiterDef.callback();
          defRender.addCallback(function(res) {
             assert.equal(tcInitialized, false);
@@ -67,7 +67,7 @@ define([
          });
       });
       it('Deps collected', function() {
-         hd.isDebug = false;
+         hd.pageDeps.isDebug = false;
          var tcInitialized = false
          hd.getDepsCollector = function() {
             return dc;
@@ -78,7 +78,7 @@ define([
          var defRender = new Deferred();
          hd.defRender = defRender;
          var waiterDef = new Deferred();
-         hd.pushWaiterDeferred(waiterDef);
+         hd.collectDeps(waiterDef);
          waiterDef.callback();
          defRender.addCallback(function(res) {
             assert.equal(tcInitialized, true);

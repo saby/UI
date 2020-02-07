@@ -8,18 +8,18 @@ define([
       let fromNode = typeof document === 'undefined';
 
       describe('UI/Base:HeadData', () => {
-         it('ssrWaitTimeManager returns rest ssr delay', (done) => {
+         it('ssrTimeout returns rest ssr delay', (done) => {
             const headData = new Base.HeadData();
             setTimeout(() => {
-               assert.isAbove(headData.ssrWaitTimeManager(), 0, 'ssrWaitTimeManager returns rest ssr timeout');
+               assert.isAbove(headData.ssrTimeout, 0, 'ssrTimeout returns rest ssr timeout');
                done();
             }, Base.HeadData.SSR_DELAY / 2 );
          }).timeout(Base.HeadData.SSR_DELAY / 2 + 100);
 
-         it('ssrWaitTimeManager returns 0 after ssr timeout', (done) => {
+         it('ssrTimeout returns 0 after ssr timeout', (done) => {
             const headData = new Base.HeadData();
             setTimeout(() => {
-               assert.strictEqual(headData.ssrWaitTimeManager(), 0, 'ssrWaitTimeManager returns 0 after ssr timeout');
+               assert.strictEqual(headData.ssrTimeout, 0, 'ssrTimeout returns 0 after ssr timeout');
                done();
             }, Base.HeadData.SSR_DELAY + 100);
          }).timeout(Base.HeadData.SSR_DELAY + 200);

@@ -15,7 +15,7 @@ class JsLinks extends Control {
    wml: string[] = [];
    themedCss: string[] = [];
    simpleCss: string[] = [];
-   receivedStateArr: string = '';
+   rsSerialized: string = '';
 
    _beforeMount() {
       if (typeof window !== 'undefined') {
@@ -27,7 +27,7 @@ class JsLinks extends Control {
          this.wml = res.wml;
          this.themedCss = res.css.themedCss;
          this.simpleCss = res.css.simpleCss;
-         this.receivedStateArr = res.receivedStateArr;
+         this.rsSerialized = res.rsSerialized;
       });
    }
 

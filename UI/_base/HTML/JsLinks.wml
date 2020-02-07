@@ -15,7 +15,7 @@
          <script type="text/javascript" src="{{ _options.linkResolver.resolveLink(value, 'wml') }}" defer="defer" key="{{ 'scripts_' + index }}" data-vdomignore="true"></script>
       </ws:for>
    </ws:if>
-   <ws:if data="{{ receivedStateArr }}">
-      <script data-vdomignore="true">window['receivedStates']='{{__setHTMLUnsafe(receivedStateArr)}}';</script>
+   <ws:if data="{{ rsSerialized }}">
+      <script data-vdomignore="true">window['receivedStates']='{{__setHTMLUnsafe(rsSerialized)}}';</script>
    </ws:if>
 </div>

@@ -290,6 +290,9 @@ function focus(element: Element, {enableScreenKeyboard = false, enableScrollToEl
    return res;
 }
 
+   // Заменяем нативный фокус на функцию из библиотеки фокусов.
+   // В ней исправлены многие ошибки кроссбраузерной и кроссплатформенной совместимости.
+   // Кроме того это упрощает отладку, т.к. способ программно сфокусировать элемент будет только один.
 function _initFocus(): void {
    if (typeof HTMLElement !== 'undefined') {
       nativeFocus = HTMLElement.prototype.focus;
