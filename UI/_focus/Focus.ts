@@ -302,10 +302,11 @@ function _initFocus(): void {
    if (typeof HTMLElement !== 'undefined') {
       nativeFocus = HTMLElement.prototype.focus;
       HTMLElement.prototype.focus = function replacedFocus(): void {
-         if (!focusingState) {
-            const message = '[UI/_focus/Focus:_initFocus]" - Native focus is called! Please use special focus method (UI/Focus:focus)';
-            Logger.warn(message);
-         }
+         // TODO https://online.sbis.ru/opendoc.html?guid=4c7a118d-c590-4795-bff6-c05c14a170ac
+         // if (!focusingState) {
+         //    const message = '[UI/_focus/Focus:_initFocus]" - Native focus is called! Please use special focus method (UI/Focus:focus)';
+         //    Logger.warn(message);
+         // }
 
          focus(this, {
             enableScreenKeyboard: true,
