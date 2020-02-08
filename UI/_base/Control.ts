@@ -638,8 +638,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
       const container = this._container;
       const activeElement = document.activeElement;
-
-      const res = activate(container, cfg);
+      // проверим не пустой ли контейнер, например в случае CompaundContainer'а, видимость которого зависит от условия
+      const res = container && activate(container, cfg);
 
       // может случиться так, что на focus() сработает обработчик в DOMEnvironment,
       // и тогда тут ничего не надо делать
