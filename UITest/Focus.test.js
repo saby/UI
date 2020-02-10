@@ -28,26 +28,17 @@ define([
       var currentCase;
       var fromNode = typeof document === 'undefined';
 
-      before(function(done) {
+      before(function() {
          if (fromNode) {
-            require(['jsdom'], function(jsdom) {
-               var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
-               global.window = browser.window;
-               global.document = window.document;
-               global.Element = window.Element;
-               global.HTMLElement = window.HTMLElement;
-               global.SVGElement = window.SVGElement;
-               global.Node = window.Node;
-               global.getComputedStyle = window.getComputedStyle;
-               Focus._initFocus();
-               done();
-            }, function(err) {
-               let error = `Failed to load "jsdom"! ${err}`;
-               Logger.error(error);
-               done(new Error(error));
-            });
-         } else {
-            done();
+            var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
+            global.window = browser.window;
+            global.document = window.document;
+            global.Element = window.Element;
+            global.HTMLElement = window.HTMLElement;
+            global.SVGElement = window.SVGElement;
+            global.Node = window.Node;
+            global.getComputedStyle = window.getComputedStyle;
+            Focus._initFocus();
          }
       });
 
