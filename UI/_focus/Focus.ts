@@ -75,6 +75,7 @@ function tryMoveFocus(element: Element, cfg: IFocusConfig): boolean {
          } catch (e) {
             // Обернули в try/catch, потому что вызов setActive у элемента с visibility:hidden в ie падает с ошибкой
             // Можно порефакторить, попробовать смотреть на element.currentStyle.visibility
+            // В ie также падает setActive у элементов с hidefocus="true"
             // Но в 20.1100 уже не до экспериментов//
          } finally {
             result = element === document.activeElement;
