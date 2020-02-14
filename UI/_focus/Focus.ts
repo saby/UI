@@ -75,7 +75,6 @@ function tryMoveFocus(element: Element, cfg: IFocusConfig): boolean {
          } catch (e) {
             // Обернули в try/catch, потому что вызов setActive у элемента с visibility:hidden в ie падает с ошибкой
             // Можно порефакторить, попробовать смотреть на element.currentStyle.visibility
-            // В ie также падает setActive у элементов с hidefocus="true"
             // Но в 20.1100 уже не до экспериментов//
          } finally {
             result = element === document.activeElement;
@@ -293,7 +292,7 @@ function focus(element: Element, {enableScreenKeyboard = false, enableScrollToEl
    // мы не должны стрелять событиями активации во время восстановления фокуса после перерисовки
    // но делать это публичным апи тоже нельзя,
    // т.к. фокусировка без событий активации может сломать систему фокусов
-   if (!focus.__restoreFocusPhase) {
+   if (res && !focus.__restoreFocusPhase) {
       fireActivationEvents(document.activeElement, lastFocused);
    }
    return res;
