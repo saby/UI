@@ -1,5 +1,5 @@
 /// <amd-module name='UI/theme/_controller/Store' />
-import {ICssLink, THEME_TYPE } from 'UI/theme/_controller/CssLink';
+import { ICssLink, THEME_TYPE } from 'UI/theme/_controller/CssLinkSP';
 
 const themeType = '__theme_type';
 
@@ -30,13 +30,6 @@ export default class Store<T extends ICssLink = ICssLink> {
          Object.defineProperty(themesDescriptor, themeType, { value: link.themeType });
          this.store[link.name] = <IThemesDescripion<T>> themesDescriptor;
          return link;
-      }
-      if (link.themeType === THEME_TYPE.SINGLE) {
-         /**
-          * при переключении немультитемной темы остальные темы должны удаляться,
-          * т.к возникают конфликты селекторов (они одинаковые)
-          */
-         this.clearThemes(link.name);
       }
       this.store[link.name][link.theme] = link;
       return link;
@@ -81,13 +74,15 @@ export default class Store<T extends ICssLink = ICssLink> {
     * @param name
     * @param theme
     */
-   async remove(name: string, theme: string): Promise<boolean> {
-      return this.get(name, theme).remove().then((isRemoved) => {
-         if (isRemoved) {
-            delete this.store[name][theme];
-         }
-         return isRemoved;
-      });
+   remove(name: string, theme: string): Promise<boolean> {
+      return this.get(name, theme)
+         .remove()
+         .then((isRemoved) => {
+            if (isRemoved) {
+               delete this.store[name][theme];
+            }
+            return isRemoved;
+         });
    }
 
    /**
@@ -96,14 +91,12 @@ export default class Store<T extends ICssLink = ICssLink> {
    getNames(): string[] {
       return Object.keys(this.store);
    }
-   /**
-    * Возвращает массив тем контролов, для которых есть css в store
-    */
-   getThemes(name: string): string[] {
-      return Object.keys(this.store?.[name] || []);
-   }
 
-   private clearThemes(name: string): void {
+   /**
+    * Удаление всех тем для контрола `name`
+    * @param name 
+    */
+   clearThemes(name: string): void {
       Object
          .keys(this.store[name])
          .map((theme) => this.store[name][theme])
@@ -111,5 +104,12 @@ export default class Store<T extends ICssLink = ICssLink> {
       Object
          .keys(this.store[name])
          .forEach((theme) => { delete this.store[name][theme]; });
+   }
+
+   /**
+    * Возвращает массив тем контролов, для которых есть css в store
+    */
+   private getThemes(name: string): string[] {
+      return Object.keys(this.store?.[name] || []);
    }
 }

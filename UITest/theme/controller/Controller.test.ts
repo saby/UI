@@ -4,6 +4,7 @@ import { assert } from 'chai';
 import { constants } from 'Env/Env';
 import 'mocha';
 import CssLink from 'UI/theme/_controller/CssLink';
+import CssLinkSP, { THEME_TYPE, DEFAULT_THEME } from 'UI/theme/_controller/CssLinkSP';
 
 describe('UI/theme/_controller/Controller', () => {
    const name = 'Some/Control1';
@@ -18,7 +19,7 @@ describe('UI/theme/_controller/Controller', () => {
 
    class CssLoaderMock {
       loads = {};
-      loadCssThemedAsync(name, theme = CssLink.DEFAULT_THEME) {
+      loadCssThemedAsync(name, theme = DEFAULT_THEME) {
          if (!this.loads[name]) {
             this.loads[name] = {};
          }
@@ -69,6 +70,26 @@ describe('UI/theme/_controller/Controller', () => {
          await controller.get(name, theme);
          await controller.get(name, theme2);
          assert.isTrue(loader.isValid());
+      });
+   });
+
+   describe('set', () => {
+
+      it('Метод сохраняет CssLinkSP', () => {
+         const link = new CssLinkSP(name, theme);
+         controller.set(link);
+         return controller.get(name, theme).then((l) => { assert.deepEqual(l, link); });
+      });
+
+      
+      it('Добавление новой немультитемной темы css удаляет другие темы', () => {
+         const theme2 = 'dark-theme';
+         const link = new CssLinkSP(name, theme);
+         const link2 = new CssLinkSP(name, theme2, THEME_TYPE.SINGLE);
+         controller.set(link);
+         controller.set(link2);
+         assert.isFalse(controller.has(name, theme));
+         assert.isTrue(controller.has(name, theme2));
       });
    });
 

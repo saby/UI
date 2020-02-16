@@ -1,20 +1,11 @@
 /// <amd-module name='UI/theme/_controller/CssLink' />
-export enum THEME_TYPE {
-   /**
-    * мультитемные css
-    * нет необходимости удалять другие темы
-    * селекторы включают в себя имя темы, т.е уникальны
-    */
-   MULTI = 'multitheme',
-   /**
-    * немультитемные css, при переключении темы остальные темы должны удаляться,
-    * т.к возникают конфликты селекторов (они одинаковые)
-    */
-   SINGLE = 'signletheme'
-}
-export default class CssLink implements ICssLink {
-   static readonly DEFAULT_THEME: string = 'default';
-   static readonly DEFAULT_THEME_TYPE: THEME_TYPE = THEME_TYPE.MULTI;
+
+import CssLinkSP, { ICssLink, THEME_TYPE, DEFAULT_THEME } from 'UI/theme/_controller/CssLinkSP';
+
+/**
+ * Сущность, представляющая стили в DOM
+ */
+export default class CssLink extends CssLinkSP implements ICssLink {
    name: string;
    theme: string;
    css: string;
@@ -23,18 +14,16 @@ export default class CssLink implements ICssLink {
       readonly element: ICssLinkElement,
       readonly themeType: THEME_TYPE = THEME_TYPE.MULTI
    ) {
-      this.theme = element.getAttribute('theme-name') || CssLink.DEFAULT_THEME;
-      this.name = element.getAttribute('css-name');
+      super(element.getAttribute('css-name'), element.getAttribute('theme-name'));
       this.css = element.innerHTML || '';
    }
 
    static create(
       style: string,
       name: string,
-      theme: string = CssLink.DEFAULT_THEME,
+      theme: string = DEFAULT_THEME,
       themeType: THEME_TYPE = THEME_TYPE.MULTI
    ): CssLink {
-      if (typeof document === 'undefined') { throw new Error(`Document isn't defined`); }
       const element = document.createElement('style');
       element.setAttribute('data-vdomignore', 'true');
       element.setAttribute('css-name', name);
@@ -42,17 +31,6 @@ export default class CssLink implements ICssLink {
       element.setAttribute('theme-name', theme);
       element.innerHTML = style;
       return new CssLink(element, themeType);
-   }
-
-   /**
-    * Скольким контролам требуется данная css
-    * Если 0 - удаляем из DOM
-    */
-   private requirement: number = 1;
-
-   require() {
-      this.requirement++;
-      return this;
    }
 
    /**
@@ -94,17 +72,9 @@ export function replaceCssURL(cssStyle: string, path: string = "/"): string {
    });
 }
 
+
 interface ICssLinkElement {
    getAttribute(a: string): string;
    remove(): void;
    innerHTML: string;
-}
-export interface ICssLink {
-   name: string;
-   theme: string;
-   css: string;
-   themeType: THEME_TYPE;
-   require(): this;
-   remove(): Promise<boolean>;
-   element: ICssLinkElement,
 }

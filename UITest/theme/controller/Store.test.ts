@@ -1,5 +1,5 @@
 import Store from "UI/theme/_controller/Store";
-import CssLink, { THEME_TYPE, ICssLink } from "UI/theme/_controller/CssLink";
+import { ICssLink, DEFAULT_THEME, DEFAULT_THEME_TYPE } from "UI/theme/_controller/CssLinkSP";
 import { assert } from 'chai';
 import 'mocha';
 
@@ -13,8 +13,8 @@ class LinkMock implements ICssLink {
 
    constructor(
       public name,
-      public theme = CssLink.DEFAULT_THEME,
-      public themeType = CssLink.DEFAULT_THEME_TYPE
+      public theme = DEFAULT_THEME,
+      public themeType = DEFAULT_THEME_TYPE
    ) { }
 
    require() {
@@ -54,7 +54,6 @@ describe('UI/theme/_controller/Store', () => {
          store.set(link);
          assert.deepEqual(store.get(name, theme), link);
          assert.sameMembers(store.getNames(), [name]);
-         assert.sameMembers(store.getThemes(name), [theme]);
       });
 
       it('Добавление новой темы css', () => {
@@ -65,18 +64,6 @@ describe('UI/theme/_controller/Store', () => {
          assert.deepEqual(store.get(name, theme), link);
          assert.deepEqual(store.get(name, theme2), link2);
          assert.sameMembers(store.getNames(), [name]);
-         assert.sameMembers(store.getThemes(name), [theme, theme2]);
-      });
-
-      it('Добавление новой немультитемной темы css удаляет другие темы', () => {
-         const theme2 = 'dark-theme';
-         const link2 = new LinkMock(name, theme2, THEME_TYPE.SINGLE);
-         store.set(link);
-         store.set(link2);
-         assert.isFalse(store.has(name, theme));
-         assert.deepEqual(store.get(name, theme2), link2);
-         assert.sameMembers(store.getNames(), [name]);
-         assert.sameMembers(store.getThemes(name), [theme2]);
       });
    });
 
@@ -88,7 +75,6 @@ describe('UI/theme/_controller/Store', () => {
          assert.isTrue(isRemoved);
          assert.isFalse(store.has(name, theme));
          assert.sameMembers(store.getNames(), [name]);
-         assert.sameMembers(store.getThemes(name), []);
       });
 
       it('Невозможно удалить тему, от которой зависят другие контролы', async () => {
@@ -98,7 +84,6 @@ describe('UI/theme/_controller/Store', () => {
          assert.isFalse(isRemoved);
          assert.isTrue(store.has(name, theme));
          assert.sameMembers(store.getNames(), [name]);
-         assert.sameMembers(store.getThemes(name), [theme]);
       });
    });
 });

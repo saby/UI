@@ -11,5 +11,5 @@
  * @author Ибрагимов А.А.
  */
 
-export { getInstance } from 'UI/theme/_controller/Controller';
-export { THEME_TYPE } from 'UI/theme/_controller/CssLink';
+export { getInstance as getThemeController } from 'UI/theme/_controller/Controller';
+export { default as CssLinkSP, THEME_TYPE } from 'UI/theme/_controller/CssLinkSP';

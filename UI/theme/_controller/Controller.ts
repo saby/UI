@@ -6,7 +6,9 @@ import * as CssLoader from 'Core/CssLoader/CssLoader';
 // @ts-ignore
 import LinkResolver = require('Core/LinkResolver/LinkResolver');
 
-import CssLink, {replaceCssURL, THEME_TYPE } from 'UI/theme/_controller/CssLink';
+import CssLink, { replaceCssURL } from 'UI/theme/_controller/CssLink';
+import { ICssLink, THEME_TYPE, DEFAULT_THEME } from 'UI/theme/_controller/CssLinkSP';
+
 import Store from 'UI/theme/_controller/Store';
 /**
  * Контроллер тем 
@@ -15,37 +17,14 @@ import Store from 'UI/theme/_controller/Store';
  */
 export class Controller {
    private store: Store = new Store();
+   public currentTheme: string = DEFAULT_THEME;
 
    constructor(
       private linkResolver: ILinkResolver,
       private cssLoader: ICssLoader
    ) {
+      this.set = this.set.bind(this);
       this.collectCss();
-   }
-
-   /**
-    * Загружает тему `theme` для контрола `controlName`
-    * @returns {Promsie<string>} Возвращает Promise<cssStyle> загрузки
-    * @param controlName
-    * @param theme
-    */
-   private load(controlName: string, theme: string = CssLink.DEFAULT_THEME): Promise<string> {
-      const name = this.linkResolver.fixOld(controlName);
-      const path = this.linkResolver.resolveLink(name, { ext: 'css', theme });
-      return this.cssLoader
-         .loadCssThemedAsync(name, theme)
-         .then((css) => replaceCssURL(css, path));
-   }
-
-   /**
-    * Монтирование style элемента со стилями в head, 
-    * сохрание CssLink в Store
-    */
-   private mount(css: string, name: string, theme: string = CssLink.DEFAULT_THEME) {
-      const themeType = this.linkResolver.isNewTheme(name, theme) ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
-      const link = CssLink.create(css, name, theme, themeType);
-      document.head.appendChild(<HTMLStyleElement> link.element);
-      return this.store.set(link);
    }
 
    /**
@@ -53,11 +32,22 @@ export class Controller {
     * В случае отсутсвия сохранненого значения в Store возвращается процесс загрузки стилей
     * При повторном запросе востребованность темы возрастает
     */
-   get(name: string, theme: string = CssLink.DEFAULT_THEME) {
+   get(name: string, theme: string = DEFAULT_THEME) {
       if (this.has(name, theme)) {
          return Promise.resolve(this.store.get(name, theme).require());
       }
       return this.load(name, theme).then((css) => this.mount(css, name, theme));
+   }
+
+   set(link: ICssLink) {
+      if (link.themeType === THEME_TYPE.SINGLE) {
+         /**
+          * при переключении немультитемной темы остальные темы должны удаляться,
+          * т.к возникают конфликты селекторов (они одинаковые)
+          */
+         this.store.clearThemes(link.name);
+      }
+      return this.store.set(link);
    }
 
    /**
@@ -65,7 +55,7 @@ export class Controller {
     * @param name
     * @param theme
     */
-   has(controlName: string, theme: string = CssLink.DEFAULT_THEME): boolean {
+   has(controlName: string, theme: string = DEFAULT_THEME): boolean {
       const name = this.linkResolver.fixOld(controlName);
       return this.store.has(name, theme);
    }
@@ -75,6 +65,10 @@ export class Controller {
     * @param {string} theme
     */
    setTheme(theme: string) {
+      if (theme === this.currentTheme) {
+         return Promise.resolve([]);
+      }
+      this.currentTheme = theme;
       const themeLoading = this.store
          .getNames()
          .map((name) => this.get(name, theme));
@@ -87,7 +81,7 @@ export class Controller {
     * @param controlName
     * @param theme
     */
-   remove(controlName: string, theme: string = CssLink.DEFAULT_THEME): Promise<boolean> {
+   remove(controlName: string, theme: string = DEFAULT_THEME): Promise<boolean> {
       const name = this.linkResolver.fixOld(controlName);
       return this.store.remove(name, theme);
    }
@@ -105,7 +99,32 @@ export class Controller {
          .from(document.getElementsByClassName(multiThemeClass))
          .map((link: HTMLLinkElement) => new CssLink(link, THEME_TYPE.MULTI));
 
-      [...signleLinks, ...multiLinks].forEach(this.store.set);
+      [...signleLinks, ...multiLinks].forEach(this.set);
+   }
+
+   /**
+    * Загружает тему `theme` для контрола `controlName`
+    * @returns {Promsie<string>} Возвращает Promise<cssStyle> загрузки
+    * @param controlName
+    * @param theme
+    */
+   private load(controlName: string, theme: string = DEFAULT_THEME): Promise<string> {
+      const name = this.linkResolver.fixOld(controlName);
+      const path = this.linkResolver.resolveLink(name, { ext: 'css', theme });
+      return this.cssLoader
+         .loadCssThemedAsync(name, theme)
+         .then((css) => replaceCssURL(css, path));
+   }
+
+   /**
+    * Монтирование style элемента со стилями в head, 
+    * сохрание CssLink в Store
+    */
+   private mount(css: string, name: string, theme: string = DEFAULT_THEME) {
+      const themeType = this.linkResolver.isNewTheme(name, theme) ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
+      const link = CssLink.create(css, name, theme, themeType);
+      document.head.appendChild(<HTMLStyleElement> link.element);
+      return this.set(link);
    }
 }
 

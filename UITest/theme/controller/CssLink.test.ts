@@ -1,8 +1,8 @@
-import CssLink, { THEME_TYPE, replaceCssURL } from 'UI/theme/_controller/CssLink';
+import CssLink, { replaceCssURL } from 'UI/theme/_controller/CssLink';
+import { DEFAULT_THEME, DEFAULT_THEME_TYPE, THEME_TYPE } from 'UI/theme/_controller/CssLinkSP';
 import { assert } from 'chai';
 import 'mocha';
 
-const { DEFAULT_THEME, DEFAULT_THEME_TYPE } = CssLink;
 class ElementMock {
    __removed = false;
    innerHTML = 'test css';
