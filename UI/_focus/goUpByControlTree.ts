@@ -76,10 +76,15 @@ function checkOpener(opener) {
  */
 function getFocusParent(control) {
    // ищем предка текущего контрола, сначала смотрим есть ли opener, если нет - берем parent
-   return (control._options && control._options.opener) ||
-      (control.getOpener && control.getOpener()) ||
-      (control._options && control._options.parent) ||
-      (control.getParent && control.getParent());
+   var result = (control._options && control._options.opener) ||
+       (control.getOpener && control.getOpener()) ||
+       (control._options && control._options.parent) ||
+       (control.getParent && control.getParent());
+       if(!result || result.__purified) {
+           return null;
+       } else {
+           return result;
+       }
 }
 
 /**

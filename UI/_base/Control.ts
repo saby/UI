@@ -7,7 +7,7 @@ import { Synchronizer } from 'Vdom/Vdom';
 import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
 import { activate } from 'UI/Focus';
-import { Logger } from 'UI/Utils';
+import { Logger, Purifier } from 'UI/Utils';
 import { constants } from 'Env/Env';
 
 // @ts-ignore
@@ -81,8 +81,6 @@ let countInst = 1;
 
 // tslint:disable-next-line
 const EMPTY_FUNC = function () { };
-// tslint:disable-next-line
-const EMPTY_OBJ: object = {};
 
 const WAIT_TIMEOUT = 20000;
 // This timeout is needed for loading control css.
@@ -102,6 +100,8 @@ export interface IControlOptions {
  * @public
  */
 export default class Control<TOptions extends IControlOptions = {}, TState = void> {
+   protected _moduleName: string;
+
    private _mounted: boolean = false;
    private _unmounted: boolean = false;
    private _destroyed: boolean = false;
@@ -361,7 +361,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this.VDOMReady = true;
          this._container = element;
          // @ts-ignore
-         Synchronizer.mountControlToDOM(this, controlClass, cfg, this._container, this._decOptions);
+         Synchronizer.mountControlToDOM(this, cfg, this._container, this._decOptions);
       }
       if (cfg) {
          this.saveOptions(cfg);
@@ -525,7 +525,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          // Избегаем утечки контролов по замыканию
          //this.saveFullContext = EMPTY_FUNC;
          //this._saveContextObject = EMPTY_FUNC;
-         //this.context = EMPTY_OBJ;
          //this.saveInheritOptions = EMPTY_FUNC;
          //this._saveEnvironment = EMPTY_FUNC;
          //this._getEnvironment = EMPTY_FUNC;
@@ -536,6 +535,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       } catch (error) {
          Logger.lifeError('_beforeUnmount', this, error);
       }
+      Purifier.purifyInstance(this, this._moduleName, true);
    }
 
    // <editor-fold desc="API">
@@ -805,7 +805,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          if (typeof process !== 'undefined' && !process.versions) {
             let time = WAIT_TIMEOUT;
             try {
-               time = headDataStore.read('ssrWaitTimeManager')();
+               time = headDataStore.read('ssrTimeout');
             }
             catch (e) {
 
@@ -1177,7 +1177,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
       startApplication();
       // @ts-ignore
-      if (!domElement instanceof HTMLElement) {
+      if (!(domElement instanceof HTMLElement)) {
          const message = '[UI/_base/Control:createControl] domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.';
          Logger.error(message, ctor.prototype);
       }
