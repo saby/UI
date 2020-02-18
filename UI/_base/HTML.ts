@@ -19,6 +19,28 @@ import { IHTMLOptions } from './interface/IHTML';
 import { IRootTemplateOptions } from './interface/IRootTemplate';
 import { headDataStore } from 'UI/_base/HeadData';
 
+// Бывают ситуации, когда страницу открыли и сразу перешли на другую вкладку или перевели компьютер в режим сна.
+// У открытой страницы в фоновом режиме начинают по таймауту отваливаться запросы и страница в итоге не оживает.
+// Для обработки таких ситуаций запустим проверку в интервале. Запускаем именно интервал, а не таймаут на максимально
+// допустимое время, т.к. если компьютер перейдет в режим сна, то оставшееся время таймаута сохранится.
+// И в таком случае после пробуждения страница перезагрузится не сразу, а когда пройдет оставшееся время таймаута.
+// Если шаблон страницы построился, то в _afterMount мы остановим проверку, т.к. страница рабочая и проверять
+// что-то больше не надо. Если же мы попали в обработчик, занчит страница еще не ожила.
+// Проврим что время от начала загрузки прошло достаточно, чтобы страница построилась. Если же страница не
+// построилась за максимально допустимое время, нужно ее перезагрузить. Интервал запускается сразу при загрузке файла,
+// т.к. если построение страницы упадет, _beforeMount и _afterMount могут не выполниться.
+let reloadPageInterval;
+if (constants.isBrowserPlatform) {
+    const startPageLoadTime = Date.now();
+    const PAGE_CHECK_INTERVAL = 2 * 1000;
+    const MAX_PAGE_MOUNT_TIME = 2 * 60 * 1000;
+    reloadPageInterval = setInterval(() => {
+        if (Date.now() - startPageLoadTime > MAX_PAGE_MOUNT_TIME) {
+            window.location.reload();
+        }
+    }, PAGE_CHECK_INTERVAL);
+}
+
 interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
     // Добавим здесь поля для RUM-статистики Потому что их нам нужно сериализовать в wsConfig, чтобы потом получить на клиенте.
     RUMEnabled: boolean,
@@ -145,6 +167,7 @@ class HTML extends Control {
     }
 
     _afterMount(): void {
+        clearInterval(reloadPageInterval);
         function inIframe() {
             try {
                 return window.self !== window.top;
