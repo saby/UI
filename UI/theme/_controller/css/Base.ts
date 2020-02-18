@@ -1,16 +1,14 @@
-/// <amd-module name='UI/theme/_controller/CssLinkSP' />
+/// <amd-module name='UI/theme/_controller/css/Base' />
 
-/**
- * Сущность, представляющая стили на СП
- */
-export default class CssLinkSP implements ICssLink {
+export abstract class Base implements ICssEntity {
+   public html: string = '';
 
    constructor(
       public name: string,
       public theme: string = DEFAULT_THEME,
       public themeType: THEME_TYPE = DEFAULT_THEME_TYPE
    ) { };
-   
+
    /**
     * Скольким контролам требуется данная css
     * Если 0 - удаляем 
@@ -31,7 +29,18 @@ export default class CssLinkSP implements ICssLink {
       return Promise.resolve(this.requirement === 0);
    }
 }
-
+/**
+ * перечисление аттрибутов css сущностей в DOM
+ */
+export enum ELEMENT_ATTR {
+   HREF = 'href',
+   NAME = 'css-entity-name',
+   THEME = 'css-entity-theme',
+   THEME_TYPE = 'theme-type',
+}
+/**
+ * Тип темы
+ */
 export enum THEME_TYPE {
    /**
     * мультитемные css
@@ -54,9 +63,14 @@ export const DEFAULT_THEME: string = 'default';
  */
 export const DEFAULT_THEME_TYPE: THEME_TYPE = THEME_TYPE.MULTI;
 
-export interface ICssLink {
+export interface ICssEntity {
+   /** html разметка css сущности */
+   html: string;
+   /** Название контрола */
    name: string;
+   /** Название темы */
    theme: string;
+   /** Тип темы */
    themeType: THEME_TYPE;
    require(): this;
    remove(): Promise<boolean>;

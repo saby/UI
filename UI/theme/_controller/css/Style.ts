@@ -1,36 +1,35 @@
-/// <amd-module name='UI/theme/_controller/CssLink' />
+/// <amd-module name='UI/theme/_controller/css/Style' />
 
-import CssLinkSP, { ICssLink, THEME_TYPE, DEFAULT_THEME } from 'UI/theme/_controller/CssLinkSP';
+import { Base, THEME_TYPE, DEFAULT_THEME, ELEMENT_ATTR } from 'UI/theme/_controller/css/Base';
 
 /**
- * Сущность, представляющая стили в DOM
+ * Сущность, представляющая StyleElement,
+ * Используется для подкючения в head на клиенте
  */
-export default class CssLink extends CssLinkSP implements ICssLink {
-   name: string;
-   theme: string;
-   css: string;
+export default class Style extends Base {
 
    constructor(
-      readonly element: ICssLinkElement,
-      readonly themeType: THEME_TYPE = THEME_TYPE.MULTI
-   ) {
-      super(element.getAttribute('css-name'), element.getAttribute('theme-name'));
-      this.css = element.innerHTML || '';
+      public readonly element: HTMLStyleElement,
+      name: string,
+      theme: string,
+      themeType: THEME_TYPE) {
+      super(name, theme, themeType);
+      this.html = element.innerHTML;
    }
 
-   static create(
-      style: string,
+   static from(
+      css: string,
       name: string,
       theme: string = DEFAULT_THEME,
       themeType: THEME_TYPE = THEME_TYPE.MULTI
-   ): CssLink {
+   ): Style {
       const element = document.createElement('style');
       element.setAttribute('data-vdomignore', 'true');
-      element.setAttribute('css-name', name);
-      element.setAttribute('theme-type', `${themeType}`);
-      element.setAttribute('theme-name', theme);
-      element.innerHTML = style;
-      return new CssLink(element, themeType);
+      element.setAttribute(ELEMENT_ATTR.NAME, name);
+      element.setAttribute(ELEMENT_ATTR.THEME, theme);
+      element.setAttribute(ELEMENT_ATTR.THEME_TYPE, `${themeType}`);
+      element.innerHTML = css;
+      return new Style(element, name, theme, themeType);
    }
 
    /**
@@ -70,11 +69,4 @@ export function replaceCssURL(cssStyle: string, path: string = "/"): string {
       }
       return `url("${path.split('/').slice(0, -1).join('/')}/${url.replace(/url\(|\)|'|"/g, '')}")`;
    });
-}
-
-
-interface ICssLinkElement {
-   getAttribute(a: string): string;
-   remove(): void;
-   innerHTML: string;
 }

@@ -3,15 +3,13 @@
 import { cookie, constants } from 'Env/Env';
 // @ts-ignore
 import * as CssLoader from 'Core/CssLoader/CssLoader';
-// @ts-ignore
-import LinkResolver = require('Core/LinkResolver/LinkResolver');
-
-import CssLink, { replaceCssURL } from 'UI/theme/_controller/CssLink';
-import { ICssLink, THEME_TYPE, DEFAULT_THEME } from 'UI/theme/_controller/CssLinkSP';
-
+import Style, { replaceCssURL } from 'UI/theme/_controller/css/Style';
+import Link from 'UI/theme/_controller/css/Link';
+import { THEME_TYPE, DEFAULT_THEME, ICssEntity } from 'UI/theme/_controller/css/Base';
 import Store from 'UI/theme/_controller/Store';
+
 /**
- * Контроллер тем 
+ * Контроллер тем, необходим для скачивания/удаления/коллекции/переключения тем на странице
  * @class UI/theme/_controller/Controller
  * @singleton
  */
@@ -19,35 +17,29 @@ export class Controller {
    private store: Store = new Store();
    public currentTheme: string = DEFAULT_THEME;
 
-   constructor(
-      private linkResolver: ILinkResolver,
-      private cssLoader: ICssLoader
-   ) {
-      this.set = this.set.bind(this);
-      this.collectCss();
+   constructor(private cssLoader: ICssLoader) {
+      this.collectCssLinks();
    }
 
    /**
-    * Получение экземпляра CssLink по имени и теме
-    * В случае отсутсвия сохранненого значения в Store возвращается процесс загрузки стилей
+    * Получение экземпляра CssEntity по имени и теме
+    * В случае отсутсвия сохранненого значения в Store
+    *  - на СП создается `css/Link`, содержит имя контрола и тему
+    *  - на клиенте тема скачиватся и монтируется в DOM, возвращается `css/Style`
     * При повторном запросе востребованность темы возрастает
     */
-   get(name: string, theme: string = DEFAULT_THEME) {
+   get(name: string, theme: string = DEFAULT_THEME): Promise<ICssEntity> {
       if (this.has(name, theme)) {
          return Promise.resolve(this.store.get(name, theme).require());
       }
-      return this.load(name, theme).then((css) => this.mount(css, name, theme));
-   }
-
-   set(link: ICssLink) {
-      if (link.themeType === THEME_TYPE.SINGLE) {
-         /**
-          * при переключении немультитемной темы остальные темы должны удаляться,
-          * т.к возникают конфликты селекторов (они одинаковые)
-          */
-         this.store.clearThemes(link.name);
+      if (constants.isServerSide) {
+         const { href, isNewTheme } = this.cssLoader.getInfo(name, theme);
+         const themeType = isNewTheme ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
+         const link = new Link(href, name, theme, themeType);
+         return Promise.resolve(this.set(link));
       }
-      return this.store.set(link);
+      return this.load(name, theme)
+         .then(({ css, isNewTheme }) => this.mount(css, name, theme, isNewTheme));
    }
 
    /**
@@ -55,8 +47,7 @@ export class Controller {
     * @param name
     * @param theme
     */
-   has(controlName: string, theme: string = DEFAULT_THEME): boolean {
-      const name = this.linkResolver.fixOld(controlName);
+   has(name: string, theme: string = DEFAULT_THEME): boolean {
       return this.store.has(name, theme);
    }
 
@@ -64,8 +55,8 @@ export class Controller {
     * Скачивание отсутвующей темы всем контролам
     * @param {string} theme
     */
-   setTheme(theme: string) {
-      if (theme === this.currentTheme) {
+   setTheme(theme: string): Promise<ICssEntity[]> {
+      if (typeof theme === 'undefined' || theme === this.currentTheme) {
          return Promise.resolve([]);
       }
       this.currentTheme = theme;
@@ -77,54 +68,54 @@ export class Controller {
 
    /**
     * Уменьшить 'востребованность' css,
-    * т.е контрол `controlName` удаляется и, если больше нет зависимостей, css также удаляется из DOM
-    * @param controlName
+    * т.е контрол `name` удаляется и, если больше нет зависимостей, css также удаляется из DOM
+    * @param name
     * @param theme
     */
-   remove(controlName: string, theme: string = DEFAULT_THEME): Promise<boolean> {
-      const name = this.linkResolver.fixOld(controlName);
+   remove(name: string, theme: string = DEFAULT_THEME): Promise<boolean> {
       return this.store.remove(name, theme);
    }
 
-   private collectCss(): void {
+   private set(link: ICssEntity): ICssEntity {
+      if (link.themeType === THEME_TYPE.SINGLE) {
+         /**
+          * при переключении немультитемной темы остальные темы должны удаляться,
+          * т.к возникают конфликты селекторов (они одинаковые)
+          */
+         this.store.clearThemes(link.name);
+      }
+      return this.store.set(link);
+   }
+
+   private collectCssLinks(): void {
       if (typeof document === 'undefined') { return; }
-      const singleThemeClass = 'css-bundles';
-      const multiThemeClass = 'new-styles';
-
-      const signleLinks = Array
-         .from(document.getElementsByClassName(singleThemeClass))
-         .map((link: HTMLLinkElement) => new CssLink(link, THEME_TYPE.SINGLE));
-
-      const multiLinks: CssLink[] = Array
-         .from(document.getElementsByClassName(multiThemeClass))
-         .map((link: HTMLLinkElement) => new CssLink(link, THEME_TYPE.MULTI));
-
-      [...signleLinks, ...multiLinks].forEach(this.set);
+      Array
+         .from(document.getElementsByTagName('link'))
+         .map(Link.from)
+         .forEach(this.set);
    }
 
    /**
     * Загружает тему `theme` для контрола `controlName`
     * @returns {Promsie<string>} Возвращает Promise<cssStyle> загрузки
-    * @param controlName
+    * @param name
     * @param theme
     */
-   private load(controlName: string, theme: string = DEFAULT_THEME): Promise<string> {
-      const name = this.linkResolver.fixOld(controlName);
-      const path = this.linkResolver.resolveLink(name, { ext: 'css', theme });
+   private load(name: string, theme: string = DEFAULT_THEME) {
       return this.cssLoader
          .loadCssThemedAsync(name, theme)
-         .then((css) => replaceCssURL(css, path));
+         .then(({ css, path, isNewTheme }) => ({ css: replaceCssURL(css, path), isNewTheme }));
    }
 
    /**
     * Монтирование style элемента со стилями в head, 
     * сохрание CssLink в Store
     */
-   private mount(css: string, name: string, theme: string = DEFAULT_THEME) {
-      const themeType = this.linkResolver.isNewTheme(name, theme) ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
-      const link = CssLink.create(css, name, theme, themeType);
-      document.head.appendChild(<HTMLStyleElement> link.element);
-      return this.set(link);
+   private mount(css: string, name: string, theme: string = DEFAULT_THEME, isNewTheme: boolean = true) {
+      const themeType = isNewTheme ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
+      const style = Style.from(css, name, theme, themeType);
+      document.head.appendChild(style.element);
+      return this.set(style);
    }
 }
 
@@ -138,20 +129,11 @@ export function getInstance() {
    if (typeof controller !== undefined) {
       return controller;
    }
-   const isDebug = cookie.get('s3debug') === 'true' || (1, eval)('this').contents?.buildMode === 'debug';
-   const { buildnumber, wsRoot, appRoot, resourceRoot } = constants;
-   const linkResolver = new LinkResolver(isDebug, buildnumber, wsRoot, appRoot, resourceRoot);
-   const cssLoader = new CssLoader(this.linkResolver);
-   controller = new Controller(linkResolver, cssLoader);
+   controller = new Controller(new CssLoader());
    return controller;
 }
 
-interface ILinkResolver {
-   fixOld(name: string): string;
-   isNewTheme(name: string, theme: string): boolean;
-   resolveLink(name: string, cfg: { ext: string, theme: string; }): string;
-}
-
 interface ICssLoader {
-   loadCssThemedAsync(name: string, theme: string): Promise<string>;
+   getInfo(name: string, theme?: string): { isNewTheme: boolean, href: string; };
+   loadCssThemedAsync(name: string, theme: string): Promise<{ css: string, path: string; isNewTheme: boolean; }>;
 }

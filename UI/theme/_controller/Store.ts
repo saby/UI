@@ -1,11 +1,14 @@
 /// <amd-module name='UI/theme/_controller/Store' />
-import { ICssLink, THEME_TYPE } from 'UI/theme/_controller/CssLinkSP';
+import { ICssEntity, THEME_TYPE } from 'UI/theme/_controller/css/Base';
 
 const themeType = '__theme_type';
 
 type IThemesDescripion<T> = Partial<{ [theme: string]: T; }> & { [themeType]: THEME_TYPE; };
 
-export default class Store<T extends ICssLink = ICssLink> {
+/**
+ * Хранилище тем
+ */
+export default class Store<T extends ICssEntity = ICssEntity> {
    private store: { [name: string]: IThemesDescripion<T>; } = Object.create(null);
 
    constructor() {
