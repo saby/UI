@@ -114,7 +114,7 @@ export class Controller {
    private mount(css: string, name: string, theme: string = DEFAULT_THEME, isNewTheme: boolean = true) {
       const themeType = isNewTheme ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
       const style = Style.from(css, name, theme, themeType);
-      document.head.appendChild(style.element);
+      document.head.appendChild(<HTMLStyleElement>style.element);
       return this.set(style);
    }
 }
