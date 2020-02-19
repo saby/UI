@@ -4,6 +4,7 @@ import { constants } from 'Env/Env';
 import 'mocha';
 import Link, { IHTMLLinkElement } from 'UI/theme/_controller/css/Link';
 import { THEME_TYPE } from 'UI/theme/controller';
+import { ELEMENT_ATTR } from 'UI/theme/_controller/css/Base';
 
 const href = 'Some/href';
 const name = 'Some/Control';
@@ -14,10 +15,14 @@ class LinkElementMock implements IHTMLLinkElement {
    __removed = false;
    innerHTML = 'test css';
    constructor(
-      public href: string,
-      public name: string,
-      public theme: string,
-      public themeType: THEME_TYPE) { }
+      _href: string,
+      name: string,
+      theme: string,
+      themeType: THEME_TYPE) { 
+         this[ELEMENT_ATTR.NAME] = name;
+         this[ELEMENT_ATTR.THEME] = theme;
+         this[ELEMENT_ATTR.THEME_TYPE] = themeType;
+      }
    getAttribute(attr) {
       return this[attr];
    }

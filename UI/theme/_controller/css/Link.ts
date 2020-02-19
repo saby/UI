@@ -1,4 +1,4 @@
-/// <amd-module name='UI/theme/_controller/CssLinkSP' />
+/// <amd-module name='UI/theme/_controller/css/Link' />
 import { Base, THEME_TYPE, ELEMENT_ATTR } from 'UI/theme/_controller/css/Base';
 /**
  * Сущность, представляющая StyleLink

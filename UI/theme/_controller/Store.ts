@@ -56,7 +56,7 @@ export default class Store<T extends ICssEntity = ICssEntity> {
     */
    get(name: string, theme: string): T {
       if (!this.has(name, theme)) {
-         throw new Error(`CssLink ${name} for ${theme} theme is not exists!`);
+         throw new Error(`css/Style ${name} for ${theme} theme is not exists!`);
       }
       return this.store[name][theme];
    }

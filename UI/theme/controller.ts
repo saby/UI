@@ -6,7 +6,7 @@
  * {@link Темы https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/}
  * @library UI/theme/controller
  * @includes getThemeController UI/theme/_controller/Controller#getInstance
- * @includes THEME_TYPE UI/theme/_controller/CssLink#THEME_TYPE
+ * @includes THEME_TYPE UI/theme/_controller/css/Style#THEME_TYPE
  * @public
  * @author Ибрагимов А.А.
  */

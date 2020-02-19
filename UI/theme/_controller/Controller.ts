@@ -109,7 +109,7 @@ export class Controller {
 
    /**
     * Монтирование style элемента со стилями в head, 
-    * сохрание CssLink в Store
+    * сохрание css/Style в Store
     */
    private mount(css: string, name: string, theme: string = DEFAULT_THEME, isNewTheme: boolean = true) {
       const themeType = isNewTheme ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;

@@ -53,10 +53,18 @@ describe('UI/theme/_controller/Controller', () => {
    });
 
    describe('get', () => {
-      it('Метод возвращает Promise<CssLink>', () => {
+      it('Метод возвращает Promise<Style> на клиенте', () => {
+         if (!constants.isBrowserPlatform) { return; }
          const getting = controller.get(name);
          assert.instanceOf(getting, Promise);
          return getting.then((css) => { assert.instanceOf(css, Style); });
+      });
+
+      it('Метод возвращает Promise<Link> на СП', () => {
+         if (!constants.isServerSide) { return; }
+         const getting = controller.get(name);
+         assert.instanceOf(getting, Promise);
+         return getting.then((css) => { assert.instanceOf(css, Link); });
       });
 
       it('Загруженные стили не запрашиваются повторно', async () => {
