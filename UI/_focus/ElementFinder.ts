@@ -204,25 +204,6 @@ function startChildElement(parent, reverse) {
    return reverse ? lastElementChild(parent) : firstElementChild(parent);
 }
 
-function canDelegate(next, nextProps, foundDelegated, reverse, propsGetter) {
-   if (nextProps.delegateFocusToChildren && next.childElementCount) {
-      if (next.wsControl && next.wsControl.canAcceptFocus && next.wsControl.canAcceptFocus()) {
-         // todo костыль для совместимости, чтобы когда старый компонент внутри нового окружения, он мог принять фокус
-         foundDelegated = next;
-      } else {
-         foundDelegated = findInner(next, reverse, propsGetter);
-      }
-   }
-   // элемент может принять фокус только если он не делегирует внутрь
-   // или сам является фокусируемем элементом (тогда игнорируем флаг делегации внутрь, некуда там делегировать)
-   // или делегирует внутрь и внутри есть что сфокусировать (тогда он делегирует фокус внутрь)
-   return !!(
-      !nextProps.delegateFocusToChildren ||
-      canAcceptSelfFocus(next) ||
-      foundDelegated
-   );
-}
-
 /**
  * Обходит DOM, обход осуществляется в пределах rootElement. При этом если находит элемент, в который может провалиться,
  * проваливается и ищет там.
@@ -256,6 +237,25 @@ function find(contextElement, fromElement, fromElementTabIndex, reverse, propsGe
       next = next || contextElement;
    }
 
+   function canDelegate(next, nextProps) {
+      if (nextProps.delegateFocusToChildren && next.childElementCount) {
+         if (next.wsControl && next.wsControl.canAcceptFocus && next.wsControl.canAcceptFocus()) {
+            // todo костыль для совместимости, чтобы когда старый компонент внутри нового окружения, он мог принять фокус
+            foundDelegated = next;
+         } else {
+            foundDelegated = findInner(next, reverse, propsGetter);
+         }
+      }
+      // элемент может принять фокус только если он не делегирует внутрь
+      // или сам является фокусируемем элементом (тогда игнорируем флаг делегации внутрь, некуда там делегировать)
+      // или делегирует внутрь и внутри есть что сфокусировать (тогда он делегирует фокус внутрь)
+      return !!(
+         !nextProps.delegateFocusToChildren ||
+         canAcceptSelfFocus(next) ||
+         foundDelegated
+      );
+   }
+
    let startFromFirst = false;
    for (stage = 0; stage !== 2 && !result; stage++) {
       while (next !== contextElement && next !== fromElement && !result) {
@@ -265,7 +265,7 @@ function find(contextElement, fromElement, fromElementTabIndex, reverse, propsGe
             cmp = compareIndexes(nextProps.tabIndex, fromElementTabIndex, reverse);
             if (cmp === 0 && stage === 0) {
                // если индекс совпал, мы уже нашли то что надо
-               if (canDelegate(next, nextProps, foundDelegated, reverse, propsGetter)) {
+               if (canDelegate(next, nextProps)) {
                   result = next;
                   savedDelegated = foundDelegated;
                }
@@ -278,7 +278,7 @@ function find(contextElement, fromElement, fromElementTabIndex, reverse, propsGe
                         nearestElement === null ||
                         compareIndexes(nextProps.tabIndex, nearestElement.tabIndex, reverse) < 0
                      ) {
-                        if (canDelegate(next, nextProps, foundDelegated, reverse, propsGetter)) {
+                        if (canDelegate(next, nextProps)) {
                            nearestElement = next;
                            nearestTabIndex = nextProps.tabIndex;
                            savedDelegated = foundDelegated;
@@ -290,7 +290,7 @@ function find(contextElement, fromElement, fromElementTabIndex, reverse, propsGe
                         compareIndexes(nextProps.tabIndex, nearestElement.tabIndex, reverse) < 0 ||
                         (startFromFirst && compareIndexes(nextProps.tabIndex, nearestElement.tabIndex, reverse) <= 0)
                      ) {
-                        if (canDelegate(next, nextProps, foundDelegated, reverse, propsGetter)) {
+                        if (canDelegate(next, nextProps)) {
                            nearestElement = next;
                            nearestTabIndex = nextProps.tabIndex;
                            savedDelegated = foundDelegated;

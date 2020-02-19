@@ -79,25 +79,23 @@ export function activate(
    // причем если это будет конейнер старого компонента, активируем его по старому тоже
    if (!found) {
       // так ищем DOMEnvironment для текущего компонента. В нем сосредоточен код по работе с фокусами.
-      const getElementProps = ElementFinder.getElementProps;
-
-      let next = ElementFinder.findFirstInContext(container, false, getElementProps);
+      let next = ElementFinder.findFirstInContext(container, false);
       if (next) {
          // при поиске первого элемента игнорируем vdom-focus-in и vdom-focus-out
          const startElem = 'vdom-focus-in';
          const finishElem = 'vdom-focus-out';
          if (next.classList.contains(startElem)) {
-            next = ElementFinder.findWithContexts(container, next, false, getElementProps);
+            next = ElementFinder.findWithContexts(container, next, false);
          }
          if (next.classList.contains(finishElem)) {
             next = null;
          }
       }
       if (next) {
-         res = doFocus(next);
+         res = doFocus(next, cfg);
       } else {
          if (isElementVisible(container)) {
-            res = doFocus(container);
+            res = doFocus(container, cfg);
          } else {
             // если элемент не видим - не можем его сфокусировать
             res = false;
