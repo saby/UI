@@ -7,6 +7,15 @@
 
 let NODE_NODE_TYPE = 1;
 
+interface IFocusElementProps {
+   enabled: boolean,
+   tabStop: boolean,
+   createsContext: boolean,
+   tabIndex: number,
+   delegateFocusToChildren: boolean,
+   tabCycling: boolean
+}
+
 let FOCUSABLE_ELEMENTS = {
       a: true,
       link: true,
@@ -51,7 +60,7 @@ function canAcceptSelfFocus(element: HTMLElement) {
       (tabIndex !== -1 && element.hasAttribute('contenteditable'));
 }
 
-export function getElementProps(element) {
+export function getElementProps(element: Element): IFocusElementProps {
    let
       elementPropsClassRe = /\bws-(hidden|disabled)\b/g,
       className = element.getAttribute('class'),
@@ -130,101 +139,101 @@ function nextElementSibling(element) {
 }
 
 /**
- * Обходит DOM, обход осуществляется в пределах rootElement. При этом если находит элемент, в который может провалиться,
- * проваливается и ищет там.
+ * сравнивает табиндексы по величине
+ * @param i1
+ * @param i2
+ * @returns {number}
+ * @param reverse
  */
-function find(contextElement, fromElement, fromElementTabIndex, reverse, getElementProps) {
-   assert(
-      contextElement &&
-      (fromElement || fromElementTabIndex !== undefined) &&
-      getElementProps &&
-      contextElement !== fromElement
-   );
+function compareIndexes(i1, i2, reverse) {
+   let res;
+   assert(typeof i1 === 'number' && typeof i2 === 'number');
 
-   /**
-    * сравнивает табиндексы по величине
-    * @param i1
-    * @param i2
-    * @returns {number}
-    * @param reverse
-    */
-   function compareIndexes(i1, i2, reverse) {
-      let res;
-      assert(typeof i1 === 'number' && typeof i2 === 'number');
+   i1 = i1 === 0 ? Infinity : i1 > 0 ? i1 : -1;
+   i2 = i2 === 0 ? Infinity : i2 > 0 ? i2 : -1;
 
-      i1 = i1 === 0 ? Infinity : i1 > 0 ? i1 : -1;
-      i2 = i2 === 0 ? Infinity : i2 > 0 ? i2 : -1;
-
-      if (i2 === -1 && i1 !== -1) {
-         return 1;
-      }
-      if (i1 === -1 && i2 !== -1) {
-         return -1;
-      }
-
-      if (i1 > i2) {
-         res = reverse ? -1 : 1;
-      } else if (i1 < i2) {
-         res = reverse ? 1 : -1;
-      } else {
-         res = 0;
-      }
-
-      return res;
+   if (i2 === -1 && i1 !== -1) {
+      return 1;
+   }
+   if (i1 === -1 && i2 !== -1) {
+      return -1;
    }
 
-   function findNextElement(element, props, reverse) {
-      let
-         stepInto = props.enabled && !props.createsContext,
-         next,
-         parent;
+   if (i1 > i2) {
+      res = reverse ? -1 : 1;
+   } else if (i1 < i2) {
+      res = reverse ? 1 : -1;
+   } else {
+      res = 0;
+   }
 
-      if (stepInto) {
-         next = reverse ? lastElementChild(element) : firstElementChild(element);
-      }
+   return res;
+}
 
+function findNextElement(element, props, reverse, contextElement) {
+   let
+      stepInto = props.enabled && !props.createsContext,
+      next,
+      parent;
+
+   if (stepInto) {
+      next = reverse ? lastElementChild(element) : firstElementChild(element);
+   }
+
+   if (!next) {
+      next = reverse ? previousElementSibling(element) : nextElementSibling(element);
       if (!next) {
-         next = reverse ? previousElementSibling(element) : nextElementSibling(element);
-         if (!next) {
-            parent = element.parentNode;
-            while (parent !== contextElement && !next) {
-               next = reverse ? previousElementSibling(parent) : nextElementSibling(parent);
-               if (!next) {
-                  parent = parent.parentNode;
-               }
+         parent = element.parentNode;
+         while (parent !== contextElement && !next) {
+            next = reverse ? previousElementSibling(parent) : nextElementSibling(parent);
+            if (!next) {
+               parent = parent.parentNode;
             }
          }
       }
-
-      return next || contextElement;
    }
 
-   function findInner(elem) {
-      return find(elem, undefined, reverse ? 0 : 1, reverse, getElementProps);
-   }
+   return next || contextElement;
+}
 
-   function startChildElement(parent) {
-      return reverse ? lastElementChild(parent) : firstElementChild(parent);
-   }
+function findInner(elem, reverse, propsGetter) {
+   return find(elem, undefined, reverse ? 0 : 1, reverse, propsGetter);
+}
 
-   function canDelegate(next, nextProps) {
-      if (nextProps.delegateFocusToChildren && next.childElementCount) {
-         if (next.wsControl && next.wsControl.canAcceptFocus && next.wsControl.canAcceptFocus()) {
-            // todo костыль для совместимости, чтобы когда старый компонент внутри нового окружения, он мог принять фокус
-            foundDelegated = next;
-         } else {
-            foundDelegated = findInner(next);
-         }
+function startChildElement(parent, reverse) {
+   return reverse ? lastElementChild(parent) : firstElementChild(parent);
+}
+
+function canDelegate(next, nextProps, foundDelegated, reverse, propsGetter) {
+   if (nextProps.delegateFocusToChildren && next.childElementCount) {
+      if (next.wsControl && next.wsControl.canAcceptFocus && next.wsControl.canAcceptFocus()) {
+         // todo костыль для совместимости, чтобы когда старый компонент внутри нового окружения, он мог принять фокус
+         foundDelegated = next;
+      } else {
+         foundDelegated = findInner(next, reverse, propsGetter);
       }
-      // элемент может принять фокус только если он не делегирует внутрь
-      // или сам является фокусируемем элементом (тогда игнорируем флаг делегации внутрь, некуда там делегировать)
-      // или делегирует внутрь и внутри есть что сфокусировать (тогда он делегирует фокус внутрь)
-      return !!(
-         !nextProps.delegateFocusToChildren ||
-         canAcceptSelfFocus(next) ||
-         foundDelegated
-      );
    }
+   // элемент может принять фокус только если он не делегирует внутрь
+   // или сам является фокусируемем элементом (тогда игнорируем флаг делегации внутрь, некуда там делегировать)
+   // или делегирует внутрь и внутри есть что сфокусировать (тогда он делегирует фокус внутрь)
+   return !!(
+      !nextProps.delegateFocusToChildren ||
+      canAcceptSelfFocus(next) ||
+      foundDelegated
+   );
+}
+
+/**
+ * Обходит DOM, обход осуществляется в пределах rootElement. При этом если находит элемент, в который может провалиться,
+ * проваливается и ищет там.
+ */
+function find(contextElement, fromElement, fromElementTabIndex, reverse, propsGetter:(Element) => IFocusElementProps) {
+   assert(
+      contextElement &&
+      (fromElement || fromElementTabIndex !== undefined) &&
+      propsGetter &&
+      contextElement !== fromElement
+   );
 
    let
       next,
@@ -239,9 +248,9 @@ function find(contextElement, fromElement, fromElementTabIndex, reverse, getElem
       savedDelegated;
 
    if (fromElement) {
-      props = getElementProps(fromElement);
+      props = propsGetter(fromElement);
       fromElementTabIndex = props.tabIndex;
-      next = findNextElement(fromElement, props, reverse);
+      next = findNextElement(fromElement, props, reverse, contextElement);
    } else {
       next = reverse ? lastElementChild(contextElement) : firstElementChild(contextElement);
       next = next || contextElement;
@@ -250,13 +259,13 @@ function find(contextElement, fromElement, fromElementTabIndex, reverse, getElem
    let startFromFirst = false;
    for (stage = 0; stage !== 2 && !result; stage++) {
       while (next !== contextElement && next !== fromElement && !result) {
-         nextProps = getElementProps(next);
+         nextProps = propsGetter(next);
 
          if (nextProps.enabled && nextProps.tabStop) {
             cmp = compareIndexes(nextProps.tabIndex, fromElementTabIndex, reverse);
             if (cmp === 0 && stage === 0) {
                // если индекс совпал, мы уже нашли то что надо
-               if (canDelegate(next, nextProps)) {
+               if (canDelegate(next, nextProps, foundDelegated, reverse, propsGetter)) {
                   result = next;
                   savedDelegated = foundDelegated;
                }
@@ -269,7 +278,7 @@ function find(contextElement, fromElement, fromElementTabIndex, reverse, getElem
                         nearestElement === null ||
                         compareIndexes(nextProps.tabIndex, nearestElement.tabIndex, reverse) < 0
                      ) {
-                        if (canDelegate(next, nextProps)) {
+                        if (canDelegate(next, nextProps, foundDelegated, reverse, propsGetter)) {
                            nearestElement = next;
                            nearestTabIndex = nextProps.tabIndex;
                            savedDelegated = foundDelegated;
@@ -281,7 +290,7 @@ function find(contextElement, fromElement, fromElementTabIndex, reverse, getElem
                         compareIndexes(nextProps.tabIndex, nearestElement.tabIndex, reverse) < 0 ||
                         (startFromFirst && compareIndexes(nextProps.tabIndex, nearestElement.tabIndex, reverse) <= 0)
                      ) {
-                        if (canDelegate(next, nextProps)) {
+                        if (canDelegate(next, nextProps, foundDelegated, reverse, propsGetter)) {
                            nearestElement = next;
                            nearestTabIndex = nextProps.tabIndex;
                            savedDelegated = foundDelegated;
@@ -300,7 +309,7 @@ function find(contextElement, fromElement, fromElementTabIndex, reverse, getElem
          }
 
          if (!result) {
-            next = findNextElement(next, nextProps, reverse);
+            next = findNextElement(next, nextProps, reverse, contextElement);
             // if (stage === 0 && !next) { // todo ?? findNextElement
             //    next = contextElement;
             // }
@@ -314,7 +323,7 @@ function find(contextElement, fromElement, fromElementTabIndex, reverse, getElem
             ((reverse === false && fromElementTabIndex > 0) ||
                (reverse === true && fromElementTabIndex !== 1 && fromElementTabIndex !== -1))
          ) {
-            next = startChildElement(contextElement);
+            next = startChildElement(contextElement, reverse);
          }
       }
       if (stage === 0) {
@@ -340,71 +349,74 @@ function find(contextElement, fromElement, fromElementTabIndex, reverse, getElem
    return result;
 }
 
-export function findFirstInContext(contextElement, reverse, getElementProps) {
-   return find(contextElement, undefined, reverse ? 0 : 1, reverse, getElementProps);
+export function findFirstInContext(contextElement, reverse, propsGetter:(Element) => IFocusElementProps = getElementProps) {
+   return find(contextElement, undefined, reverse ? 0 : 1, reverse, propsGetter);
 }
+
+function getValidatedWithContext(element, rootElement, propsGetter) {
+   let
+      context,
+      lastInvalid = null,
+      validatedElement,
+      parent = element;
+
+   while (parent && parent !== rootElement) {
+      if (!propsGetter(parent).enabled) {
+         lastInvalid = parent;
+      }
+      parent = parent.parentElement;
+   }
+
+   if (!parent) {
+      throw new Error('Узел fromElement должен лежать внутри узла rootElement');
+   }
+   // ASSERT: !!parent
+
+   validatedElement = lastInvalid || element;
+
+   if (validatedElement !== rootElement) {
+      parent = validatedElement.parentElement;
+      while (parent !== rootElement && !propsGetter(parent).createsContext) {
+         parent = parent.parentElement;
+      }
+      context = parent;
+   }
+
+   return {
+      element, // разрешённый/запрещённый, и лежит в разрешённой иерархии, лежит точно в элементе context
+      context // разрешённый, и лежит в разрешённой иерархии
+   };
+}
+
+
+function checkElement(element, paramName) {
+   // разрешаются только рутовые элементы, у которых есть parentElement или они являются  documentElement
+   let hasParentElement = element === document.documentElement || !!element.parentElement;
+   if (!element || !element.ownerDocument || !hasParentElement || element.nodeType !== NODE_NODE_TYPE) {
+      throw new Error('Плохой параметр ' + paramName);
+   }
+}
+
 /**
  * ищем следующий элемент в обходе, с учетом того, что у некоторых элементов может быть свой контекст табиндексов
  */
-export function findWithContexts(rootElement, fromElement, reverse, getElementProps) {
-   function getValidatedWithContext(element) {
-      let
-         context,
-         lastInvalid = null,
-         validatedElement,
-         parent = element;
-
-      while (parent && parent !== rootElement) {
-         if (!getElementProps(parent).enabled) {
-            lastInvalid = parent;
-         }
-         parent = parent.parentElement;
-      }
-
-      if (!parent) {
-         throw new Error('Узел fromElement должен лежать внутри узла rootElement');
-      }
-      // ASSERT: !!parent
-
-      validatedElement = lastInvalid || element;
-
-      if (validatedElement !== rootElement) {
-         parent = validatedElement.parentElement;
-         while (parent !== rootElement && !getElementProps(parent).createsContext) {
-            parent = parent.parentElement;
-         }
-         context = parent;
-      }
-
-      return {
-         element, // разрешённый/запрещённый, и лежит в разрешённой иерархии, лежит точно в элементе context
-         context // разрешённый, и лежит в разрешённой иерархии
-      };
-   }
-
-   function checkElement(element, paramName) {
-      // разрешаются только рутовые элементы, у которых есть parentElement или они являются  documentElement
-      let hasParentElement = element === document.documentElement || !!element.parentElement;
-      if (!element || !element.ownerDocument || !hasParentElement || element.nodeType !== NODE_NODE_TYPE) {
-         throw new Error('Плохой параметр ' + paramName);
-      }
-   }
+export function findWithContexts(rootElement, fromElement, reverse, propsGetter:(Element) => IFocusElementProps = getElementProps) {
 
    checkElement(fromElement, 'fromElement');
    checkElement(rootElement, 'rootElement');
 
    let
-      validated = getValidatedWithContext(fromElement),
+      validated = getValidatedWithContext(fromElement, rootElement, propsGetter),
       result = validated.element;
 
    if (result !== rootElement) {
       do {
-         result = find(validated.context, validated.element, undefined, reverse, getElementProps);
+         result = find(validated.context, validated.element, undefined, reverse, propsGetter);
          if (!result) {
-            if (getElementProps(validated.context).tabCycling) {
+            if (propsGetter(validated.context).tabCycling) {
                break;
             } else {
-               validated = getValidatedWithContext(validated.context);
+               validated = getValidatedWithContext(validated.context, rootElement, propsGetter);
             }
          }
       } while (!result && validated.element !== rootElement);
@@ -412,12 +424,12 @@ export function findWithContexts(rootElement, fromElement, reverse, getElementPr
 
    // прокомментить
    if (result === rootElement) {
-      result = findFirstInContext(rootElement, reverse, getElementProps);
+      result = findFirstInContext(rootElement, reverse, propsGetter);
    }
 
    // прокомментить
-   if (!result && getElementProps(validated.context || rootElement).tabCycling) {
-      result = findFirstInContext(validated.context || rootElement, reverse, getElementProps);
+   if (!result && propsGetter(validated.context || rootElement).tabCycling) {
+      result = findFirstInContext(validated.context || rootElement, reverse, propsGetter);
       if (result === undefined) {
          result = fromElement;
       }

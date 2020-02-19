@@ -17,37 +17,41 @@ function findAutofocusForVDOM(findContainer: Element): NodeListOf<Element> {
    return findContainer.querySelectorAll('[ws-autofocus="true"]');
 }
 
+function doFocus(container: any,
+                 cfg: { enableScreenKeyboard?: boolean,
+                        enableScrollToElement?: boolean } = {}): boolean {
+
+   let res = false;
+   if (container.wsControl && container.wsControl.setActive) {
+      // если нашли контейнер старого контрола, активируем его старым способом (для совместимости)
+      if (container.wsControl.canAcceptFocus()) {
+         container.wsControl.setActive(true);
+         res = container.wsControl.isActive();
+      } else {
+         // todo попробовать поискать следующий элемент?
+         res = false;
+      }
+   } else {
+      if (ElementFinder.getElementProps(container).tabStop) {
+         res = focus(container, cfg);
+         if (res) {
+            // поддерживаем совместимость. нужно отстрелять старые события чтобы область в WindowManager стала
+            // последней активной, чтобы потом на нее восстанавливался фокус если он будет восстанавливаться
+            // по старому механизму
+            const parents = goUpByControlTree(container);
+            if (parents.length && parents[0]._activate) {
+               parents[0]._activate(parents[0]);
+            }
+         }
+      }
+   }
+   return res;
+}
+
 export function activate(
    container: Element,
    cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}
    ): boolean {
-   function doFocus(container: any): boolean {
-      let res = false;
-      if (container.wsControl && container.wsControl.setActive) {
-         // если нашли контейнер старого контрола, активируем его старым способом (для совместимости)
-         if (container.wsControl.canAcceptFocus()) {
-            container.wsControl.setActive(true);
-            res = container.wsControl.isActive();
-         } else {
-            // todo попробовать поискать следующий элемент?
-            res = false;
-         }
-      } else {
-         if (ElementFinder.getElementProps(container).tabStop) {
-            res = focus(container, cfg);
-            if (res) {
-               // поддерживаем совместимость. нужно отстрелять старые события чтобы область в WindowManager стала
-               // последней активной, чтобы потом на нее восстанавливался фокус если он будет восстанавливаться
-               // по старому механизму
-               const parents = goUpByControlTree(container);
-               if (parents.length && parents[0]._activate) {
-                  parents[0]._activate(parents[0]);
-               }
-            }
-         }
-      }
-      return res;
-   }
 
    let res = false;
 
