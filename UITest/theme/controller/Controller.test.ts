@@ -14,7 +14,7 @@ describe('UI/theme/_controller/Controller', () => {
 
    class CssLoaderMock {
       loads = {};
-      loadCssThemedAsync(name, theme = DEFAULT_THEME) {
+      load(name, theme = DEFAULT_THEME) {
          if (!this.loads[name]) {
             this.loads[name] = {};
          }
