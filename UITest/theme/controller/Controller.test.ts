@@ -3,19 +3,14 @@ import { assert } from 'chai';
 // @ts-ignore
 import { constants } from 'Env/Env';
 import 'mocha';
-import CssLink from 'UI/theme/_controller/CssLink';
-import CssLinkSP, { THEME_TYPE, DEFAULT_THEME } from 'UI/theme/_controller/CssLinkSP';
+import Style from 'UI/theme/_controller/css/Style';
+import { DEFAULT_THEME } from 'UI/theme/_controller/css/Base';
+import Link from 'UI/theme/_controller/css/Link';
 
 describe('UI/theme/_controller/Controller', () => {
    const name = 'Some/Control1';
    const theme = 'Some/Theme1';
    const cssStyle = 'style';
-
-   class LinkResolverMock {
-      fixOld = (name) => name;
-      isNewTheme = () => true;
-      resolveLink = (link: string) => link;
-   };
 
    class CssLoaderMock {
       loads = {};
@@ -24,13 +19,24 @@ describe('UI/theme/_controller/Controller', () => {
             this.loads[name] = {};
          }
          this.loads[name][theme] = this.loads[name][theme] ? this.loads[name][theme] + 1 : 1;
-         return Promise.resolve(cssStyle);
+         return Promise.resolve({
+            css: cssStyle,
+            path: 'href',
+            isNewTheme: true
+         });
+      }
+      getInfo() {
+         return {
+            isNewTheme: true,
+            href: 'href'
+         };
       }
       /** 
        * Загрузчик использовался правильно, если для каждой темы
        * стили загружались только 1 раз
        */
       isValid() {
+         if (!constants.isBrowserPlatform) { return true; }
          return Object.keys(this.loads).every((name) =>
             Object.keys(this.loads[name]).every((theme) =>
                this.loads[name][theme] === 1)
@@ -40,22 +46,17 @@ describe('UI/theme/_controller/Controller', () => {
 
    let controller: Controller;
    let loader: CssLoaderMock;
-   let resolver: LinkResolverMock;
 
    beforeEach(() => {
-      resolver = new LinkResolverMock();
       loader = new CssLoaderMock();
-      controller = new Controller(resolver, loader);
+      controller = new Controller(loader);
    });
 
    describe('get', () => {
-      /** тестируется только в браузере, т.к необходимо монтировать style в DOM */
-      if (!constants.isBrowserPlatform) { return; }
-
       it('Метод возвращает Promise<CssLink>', () => {
          const getting = controller.get(name);
          assert.instanceOf(getting, Promise);
-         return getting.then((css) => { assert.instanceOf(css, CssLink); });
+         return getting.then((css) => { assert.instanceOf(css, Style); });
       });
 
       it('Загруженные стили не запрашиваются повторно', async () => {
@@ -73,33 +74,12 @@ describe('UI/theme/_controller/Controller', () => {
       });
    });
 
-   describe('set', () => {
-
-      it('Метод сохраняет CssLinkSP', () => {
-         const link = new CssLinkSP(name, theme);
-         controller.set(link);
-         return controller.get(name, theme).then((l) => { assert.deepEqual(l, link); });
-      });
-
-      
-      it('Добавление новой немультитемной темы css удаляет другие темы', () => {
-         const theme2 = 'dark-theme';
-         const link = new CssLinkSP(name, theme);
-         const link2 = new CssLinkSP(name, theme2, THEME_TYPE.SINGLE);
-         controller.set(link);
-         controller.set(link2);
-         assert.isFalse(controller.has(name, theme));
-         assert.isTrue(controller.has(name, theme2));
-      });
-   });
-
    describe('has', () => {
       it('Возвращает false для несохраненной темы', () => {
          assert.isFalse(controller.has(name));
       });
 
       it('Возвращает true для сохраненной темы', () => {
-         if (!constants.isBrowserPlatform) { return; }
          return controller
             .get(name)
             .then(() => { assert.isTrue(controller.has(name)); });
@@ -107,8 +87,6 @@ describe('UI/theme/_controller/Controller', () => {
    });
 
    describe('setTheme', () => {
-      if (!constants.isBrowserPlatform) { return; }
-
       const name2 = 'Another/Control';
       const theme2 = 'Another/Theme';
 
@@ -116,27 +94,36 @@ describe('UI/theme/_controller/Controller', () => {
          await controller.get(name, theme);
          await controller.get(name2, theme);
          return controller.setTheme(theme2).then(() => {
-            assert.isTrue(loader.isValid());
             assert.isTrue(controller.has(name, theme));
             assert.isTrue(controller.has(name2, theme));
             assert.isTrue(controller.has(name, theme2));
             assert.isTrue(controller.has(name2, theme2));
+            assert.isTrue(loader.isValid());
          });
       });
 
-      it('setTheme возвращает массив CssLink', async () => {
+      it('setTheme возвращает массив Style на клиенте', async () => {
+         if (!constants.isBrowserPlatform) { return; }
          await controller.get(name, theme);
          await controller.get(name2, theme);
          return controller.setTheme(theme2).then((links) => {
             assert.isTrue(loader.isValid());
-            links.forEach((link) => { assert.instanceOf(link, CssLink); });
+            links.forEach((link) => { assert.instanceOf(link, Style); });
+         });
+      });
+
+      it('setTheme возвращает массив Link на СП', async () => {
+         if (!constants.isServerSide) { return; }
+         await controller.get(name, theme);
+         await controller.get(name2, theme);
+         return controller.setTheme(theme2).then((links) => {
+            assert.isTrue(loader.isValid());
+            links.forEach((link) => { assert.instanceOf(link, Link); });
          });
       });
    });
 
    describe('remove', () => {
-      /** .get используется только в браузере */
-      if (!constants.isBrowserPlatform) { return; }
 
       it('невостребованные стили удаляются', async () => {
          await controller.get(name);
@@ -152,7 +139,6 @@ describe('UI/theme/_controller/Controller', () => {
          assert.isFalse(isRemoved);
          assert.isTrue(controller.has(name));
       });
-
    });
 });
 

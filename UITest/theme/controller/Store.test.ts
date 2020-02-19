@@ -1,14 +1,14 @@
 import Store from "UI/theme/_controller/Store";
-import { ICssLink, DEFAULT_THEME, DEFAULT_THEME_TYPE } from "UI/theme/_controller/CssLinkSP";
+import { ICssEntity, DEFAULT_THEME, DEFAULT_THEME_TYPE } from "UI/theme/_controller/css/Base";
 import { assert } from 'chai';
 import 'mocha';
 
 const name = 'Some/Control';
 const theme = 'Some-theme';
 
-class LinkMock implements ICssLink {
+class LinkMock implements ICssEntity {
    private requirement = 1;
-   css = '';
+   html = '';
    element = null;
 
    constructor(

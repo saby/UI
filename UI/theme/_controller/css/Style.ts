@@ -9,7 +9,7 @@ import { Base, THEME_TYPE, DEFAULT_THEME, ELEMENT_ATTR } from 'UI/theme/_control
 export default class Style extends Base {
 
    constructor(
-      public readonly element: HTMLStyleElement,
+      public readonly element: IHTMLStyleElement,
       name: string,
       theme: string,
       themeType: THEME_TYPE) {
@@ -69,4 +69,9 @@ export function replaceCssURL(cssStyle: string, path: string = "/"): string {
       }
       return `url("${path.split('/').slice(0, -1).join('/')}/${url.replace(/url\(|\)|'|"/g, '')}")`;
    });
+}
+
+interface IHTMLStyleElement {
+   remove(): void;
+   innerHTML: string;
 }

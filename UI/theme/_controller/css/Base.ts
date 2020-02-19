@@ -1,6 +1,6 @@
 /// <amd-module name='UI/theme/_controller/css/Base' />
 
-export abstract class Base implements ICssEntity {
+export class Base implements ICssEntity {
    public html: string = '';
 
    constructor(

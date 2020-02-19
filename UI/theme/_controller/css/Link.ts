@@ -16,7 +16,7 @@ export default class Link extends Base {
       this.html = getLinkHtml(href, name, theme, themeType);
    };
 
-   static from(element: HTMLLinkElement): Link {
+   static from(element: IHTMLLinkElement): Link {
       const href = element.getAttribute(ELEMENT_ATTR.HREF);
       const name = element.getAttribute(ELEMENT_ATTR.NAME);
       const theme = element.getAttribute(ELEMENT_ATTR.THEME);
@@ -32,4 +32,8 @@ function getLinkHtml(href: string, name: string, theme: string, themeType: THEME
             ${ELEMENT_ATTR.NAME}="${name}"
             ${ELEMENT_ATTR.HREF}="${href}" 
             />`;
+}
+
+export interface IHTMLLinkElement {
+   getAttribute(a: string): string;
 }

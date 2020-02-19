@@ -1,7 +1,11 @@
-import CssLink, { replaceCssURL } from 'UI/theme/_controller/CssLink';
-import { DEFAULT_THEME, DEFAULT_THEME_TYPE, THEME_TYPE } from 'UI/theme/_controller/CssLinkSP';
 import { assert } from 'chai';
+// @ts-ignore
+import { constants } from 'Env/Env';
 import 'mocha';
+import Link from 'UI/theme/_controller/css/Link';
+import Style, { replaceCssURL } from 'UI/theme/_controller/css/Style';
+
+const name = 'Some/Control';
 
 class ElementMock {
    __removed = false;
@@ -17,7 +21,7 @@ class ElementMock {
    }
 }
 
-describe('UI/theme/_controller/CssLink', () => {
+describe('UI/theme/_controller/css/Style', () => {
    describe('replaceCssURL', () => {
       it('replaceCssURL не меняет пути cdn, data', () => {
          const tests = {
@@ -44,41 +48,30 @@ describe('UI/theme/_controller/CssLink', () => {
       });
    });
 
-   describe('constructor', () => {
-      it('default property CssLink`s instance ', () => {
-         const cssLink = new CssLink(new ElementMock());
-         assert.equal(cssLink.theme, DEFAULT_THEME);
-         assert.equal(cssLink.themeType, DEFAULT_THEME_TYPE);
-      });
+   describe('from', () => {
+      if (!constants.isBrowserPlatform) { return; }
 
-      it('экземпляр CssLink извлекает название темы и контрола из HTMLElement`a', () => {
-         const name = 'Some/control';
-         const theme = 'Some-theme';
-         const themeType = THEME_TYPE.SINGLE;
-         const element = new ElementMock();
-         element.setAttribute('css-name', name);
-         element.setAttribute('theme-name', theme);
-         const cssLink = new CssLink(element, themeType);
-         assert.equal(cssLink.name, name);
-         assert.equal(cssLink.theme, theme);
-         assert.equal(cssLink.themeType, themeType);
+      it('Style`s instance from css ', () => {
+         const link = Style.from('css', name);
+         assert.instanceOf(link, Link);
       });
    });
 
    describe('require / remove', () => {
-      it('при удалении экземпляр CssLink также удаляется элемент из DOM', async () => {
+
+      it('при удалении экземпляр Style также удаляется элемент из DOM', async () => {
          const element = new ElementMock();
-         const cssLink = new CssLink(element);
-         const isRemoved = await cssLink.remove();
+         const style = new Style(element, name, null, null);
+         const isRemoved = await style.remove();
          assert.isTrue(isRemoved);
          assert.isTrue(element.__removed);
       });
 
       it('css, необходимая другим контролам, не удаляется', async () => {
          const element = new ElementMock();
-         const cssLink = new CssLink(element);
-         cssLink.require();
-         const isRemoved = await cssLink.remove();
+         const style = new Style(element, name, null, null);
+         style.require();
+         const isRemoved = await style.remove();
          assert.isFalse(isRemoved);
          assert.isFalse(element.__removed);
       });
