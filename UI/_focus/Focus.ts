@@ -292,7 +292,7 @@ function focus(element: Element, {enableScreenKeyboard = false, enableScrollToEl
    // мы не должны стрелять событиями активации во время восстановления фокуса после перерисовки
    // но делать это публичным апи тоже нельзя,
    // т.к. фокусировка без событий активации может сломать систему фокусов
-   if (!focus.__restoreFocusPhase) {
+   if (res && !focus.__restoreFocusPhase) {
       fireActivationEvents(document.activeElement, lastFocused);
    }
    return res;
