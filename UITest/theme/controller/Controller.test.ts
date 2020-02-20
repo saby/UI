@@ -2,7 +2,6 @@ import { Controller } from "UI/theme/_controller/Controller";
 import { assert } from 'chai';
 // @ts-ignore
 import { constants } from 'Env/Env';
-import 'mocha';
 import Style from 'UI/theme/_controller/css/Style';
 import { DEFAULT_THEME } from 'UI/theme/_controller/css/Base';
 import Link from 'UI/theme/_controller/css/Link';

@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-import 'mocha';
 import {Base} from 'UI/theme/_controller/css/Base';
 import { THEME_TYPE } from 'UI/theme/controller';
 

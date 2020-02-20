@@ -1,7 +1,6 @@
 import { assert } from 'chai';
 // @ts-ignore
 import { constants } from 'Env/Env';
-import 'mocha';
 import Link from 'UI/theme/_controller/css/Link';
 import Style, { replaceCssURL } from 'UI/theme/_controller/css/Style';
 
