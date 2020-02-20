@@ -51,8 +51,8 @@ describe('UI/theme/_controller/css/Style', () => {
       if (!constants.isBrowserPlatform) { return; }
 
       it('Style`s instance from css ', () => {
-         const link = Style.from('css', name);
-         assert.instanceOf(link, Link);
+         const entity = Style.from('css', name);
+         assert.instanceOf(entity, Style);
       });
    });
 
