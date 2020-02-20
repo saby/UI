@@ -31,14 +31,20 @@ import { headDataStore } from 'UI/_base/HeadData';
 // т.к. если построение страницы упадет, _beforeMount и _afterMount могут не выполниться.
 let reloadPageInterval;
 if (constants.isBrowserPlatform) {
-    const startPageLoadTime = Date.now();
-    const PAGE_CHECK_INTERVAL = 2 * 1000;
-    const MAX_PAGE_MOUNT_TIME = 2 * 60 * 1000;
-    reloadPageInterval = setInterval(() => {
-        if (Date.now() - startPageLoadTime > MAX_PAGE_MOUNT_TIME) {
-            window.location.reload();
-        }
-    }, PAGE_CHECK_INTERVAL);
+    // Интервал запускаем только на новых страницах, т.к. этот файл может прилететь в пакете на старые страницы и запустить
+    // интервал. Но т.к. файл грузится просто как зависимость, то интервал никто не удалит и страница обновится.
+    const isNewEnvironment = !!document.getElementsByClassName('ui-HTML').length;
+
+    if (isNewEnvironment) {
+        const startPageLoadTime = Date.now();
+        const PAGE_CHECK_INTERVAL = 2 * 1000;
+        const MAX_PAGE_MOUNT_TIME = 2 * 60 * 1000;
+        reloadPageInterval = setInterval(() => {
+            if (Date.now() - startPageLoadTime > MAX_PAGE_MOUNT_TIME) {
+                window.location.reload();
+            }
+        }, PAGE_CHECK_INTERVAL);
+    }
 }
 
 interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
