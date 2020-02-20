@@ -1,6 +1,6 @@
 /// <amd-module name='UI/theme/_controller/css/Style' />
 
-import { Base, THEME_TYPE, DEFAULT_THEME, ELEMENT_ATTR } from 'UI/theme/_controller/css/Base';
+import { Base, THEME_TYPE, DEFAULT_THEME, ELEMENT_ATTR, IHTMLElement } from 'UI/theme/_controller/css/Base';
 
 /**
  * Сущность, представляющая StyleElement,
@@ -9,11 +9,12 @@ import { Base, THEME_TYPE, DEFAULT_THEME, ELEMENT_ATTR } from 'UI/theme/_control
 export default class Style extends Base {
 
    constructor(
-      public readonly element: IHTMLStyleElement,
       name: string,
       theme: string,
-      themeType: THEME_TYPE) {
-      super(name, theme, themeType);
+      themeType: THEME_TYPE,
+      element: IHTMLElement,
+   ) {
+      super(name, theme, themeType, element);
       this.html = element.innerHTML;
    }
 
@@ -29,26 +30,7 @@ export default class Style extends Base {
       element.setAttribute(ELEMENT_ATTR.THEME, theme);
       element.setAttribute(ELEMENT_ATTR.THEME_TYPE, `${themeType}`);
       element.innerHTML = css;
-      return new Style(element, name, theme, themeType);
-   }
-
-   /**
-    * Удаление зависимости контрола от css
-    * @return {boolean} true, если css никому не нужна контролам, удалена из DOM
-    */
-   remove(): Promise<boolean> {
-      this.requirement--;
-      if (this.requirement !== 0) {
-         return Promise.resolve(false);
-      }
-      return new Promise((res, rej) => {
-         setTimeout(() => {
-            try {
-               this.element.remove();
-               res(true);
-            } catch (e) { rej(e); }
-         }, 0);
-      });
+      return new Style(name, theme, themeType, element);
    }
 }
 
@@ -69,9 +51,4 @@ export function replaceCssURL(cssStyle: string, path: string = "/"): string {
       }
       return `url("${path.split('/').slice(0, -1).join('/')}/${url.replace(/url\(|\)|'|"/g, '')}")`;
    });
-}
-
-interface IHTMLStyleElement {
-   remove(): void;
-   innerHTML: string;
 }

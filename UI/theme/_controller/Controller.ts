@@ -18,13 +18,18 @@ export class Controller {
    public appTheme: string = DEFAULT_THEME;
 
    constructor(private cssLoader: ICssLoader) {
+      this.get = this.get.bind(this);
+      this.has = this.has.bind(this);
+      this.remove = this.remove.bind(this);
+      this.setTheme = this.setTheme.bind(this);
+      
       this.collectCssLinks();
    }
 
    /**
     * Получение экземпляра CssEntity по имени и теме
     * В случае отсутсвия сохранненого значения в Store
-    *  - на СП создается `css/Link`, содержит имя контрола и тему
+    *  - на СП создается `css/Link`, содержит имя контрола, тему, ссылку
     *  - на клиенте тема скачиватся и монтируется в DOM, возвращается `css/Style`
     * При повторном запросе востребованность темы возрастает
     */
@@ -75,17 +80,25 @@ export class Controller {
       return this.store.remove(name, theme);
    }
 
-   private set(link: ICssEntity): ICssEntity {
-      if (link.themeType === THEME_TYPE.SINGLE) {
+   /**
+    * Сохранение css сущности в store
+    * @param entity 
+    */
+   private set(entity: ICssEntity): ICssEntity {
+      if (entity.themeType === THEME_TYPE.SINGLE) {
          /**
           * при переключении немультитемной темы остальные темы должны удаляться,
           * т.к возникают конфликты селекторов (они одинаковые)
           */
-         this.store.clearThemes(link.name);
+         this.store.clearThemes(entity.name);
       }
-      return this.store.set(link);
+      return this.store.set(entity);
    }
 
+   /**
+    * Сбор всех ссылок на css из DOM,
+    * и сохранение их в store
+    */
    private collectCssLinks(): void {
       if (typeof document === 'undefined') { return; }
       Array
@@ -95,12 +108,12 @@ export class Controller {
    }
 
    /**
-    * Загружает тему `theme` для контрола `controlName`
-    * @returns {Promsie<string>} Возвращает Promise<cssStyle> загрузки
+    * Загружает тему `theme` для контрола `name`
+    * @returns {Promise<{css:string, isNewTheme:boolean}>} Возвращает Promise загрузки
     * @param name
     * @param theme
     */
-   private load(name: string, theme: string = DEFAULT_THEME) {
+   private load(name: string, theme: string) {
       return this.cssLoader
          .load(name, theme)
          .then(({ css, path, isNewTheme }) => ({ css: replaceCssURL(css, path), isNewTheme }));
@@ -110,7 +123,7 @@ export class Controller {
     * Монтирование style элемента со стилями в head, 
     * сохрание css/Style в Store
     */
-   private mount(css: string, name: string, theme: string = DEFAULT_THEME, isNewTheme: boolean = true) {
+   private mount(css: string, name: string, theme: string, isNewTheme: boolean) {
       const themeType = isNewTheme ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
       const style = Style.from(css, name, theme, themeType);
       document.head.appendChild(<HTMLStyleElement> style.element);

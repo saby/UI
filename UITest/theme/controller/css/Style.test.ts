@@ -61,7 +61,7 @@ describe('UI/theme/_controller/css/Style', () => {
 
       it('при удалении экземпляр Style также удаляется элемент из DOM', async () => {
          const element = new ElementMock();
-         const style = new Style(element, name, null, null);
+         const style = new Style(name, null, null, element);
          const isRemoved = await style.remove();
          assert.isTrue(isRemoved);
          assert.isTrue(element.__removed);
@@ -69,7 +69,7 @@ describe('UI/theme/_controller/css/Style', () => {
 
       it('css, необходимая другим контролам, не удаляется', async () => {
          const element = new ElementMock();
-         const style = new Style(element, name, null, null);
+         const style = new Style(name, null, null, element);
          style.require();
          const isRemoved = await style.remove();
          assert.isFalse(isRemoved);

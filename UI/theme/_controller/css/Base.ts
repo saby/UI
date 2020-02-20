@@ -6,7 +6,8 @@ export class Base implements ICssEntity {
    constructor(
       public name: string,
       public theme: string = DEFAULT_THEME,
-      public themeType: THEME_TYPE = DEFAULT_THEME_TYPE
+      public themeType: THEME_TYPE = DEFAULT_THEME_TYPE,
+      public element: IHTMLElement = null
    ) { };
 
    /**
@@ -20,13 +21,25 @@ export class Base implements ICssEntity {
       return this;
    }
 
+
    /**
     * Удаление зависимости контрола от css
+    * @param force принудительное удаление
     * @return {boolean} true, если css никому не нужна контролам, удалена из DOM
     */
-   remove(): Promise<boolean> {
+   remove(force: boolean = false): Promise<boolean> {
       this.requirement--;
-      return Promise.resolve(this.requirement === 0);
+      if (!force && this.requirement !== 0) {
+         return Promise.resolve(false);
+      }
+      return new Promise((res, rej) => {
+         setTimeout(() => {
+            try {
+               this.element?.remove();
+               res(true);
+            } catch (e) { rej(e); }
+         }, 0);
+      });
    }
 }
 /**
@@ -73,5 +86,12 @@ export interface ICssEntity {
    /** Тип темы */
    themeType: THEME_TYPE;
    require(): this;
-   remove(): Promise<boolean>;
+   remove(force?: boolean): Promise<boolean>;
+}
+
+
+export interface IHTMLElement {
+   innerHTML: string;
+   remove(): void;
+   getAttribute(a: string): string;
 }

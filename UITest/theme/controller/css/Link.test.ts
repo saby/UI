@@ -2,16 +2,16 @@ import { assert } from 'chai';
 // @ts-ignore
 import { constants } from 'Env/Env';
 import 'mocha';
-import Link, { IHTMLLinkElement } from 'UI/theme/_controller/css/Link';
+import Link from 'UI/theme/_controller/css/Link';
 import { THEME_TYPE } from 'UI/theme/controller';
-import { ELEMENT_ATTR } from 'UI/theme/_controller/css/Base';
+import { ELEMENT_ATTR, IHTMLElement } from 'UI/theme/_controller/css/Base';
 
 const href = 'Some/href';
 const name = 'Some/Control';
 const theme = 'Some-theme';
 const themeType = THEME_TYPE.MULTI;
 
-class LinkElementMock implements IHTMLLinkElement {
+class LinkElementMock implements IHTMLElement {
    __removed = false;
    innerHTML = 'test css';
    constructor(

@@ -76,15 +76,6 @@ describe('UI/theme/_controller/Store', () => {
          assert.isFalse(store.has(name, theme));
          assert.sameMembers(store.getNames(), [name]);
       });
-
-      it('Невозможно удалить тему, от которой зависят другие контролы', async () => {
-         store.set(link);
-         store.require(name, theme);
-         const isRemoved = await store.remove(name, theme);
-         assert.isFalse(isRemoved);
-         assert.isTrue(store.has(name, theme));
-         assert.sameMembers(store.getNames(), [name]);
-      });
    });
 });
 
