@@ -72,6 +72,10 @@ export enum THEME_TYPE {
  */
 export const DEFAULT_THEME: string = 'default';
 /**
+ * Стили без темы
+ */
+export const EMPTY_THEME: string = '';
+/**
  * Тип темы по-умолчанию
  */
 export const DEFAULT_THEME_TYPE: THEME_TYPE = THEME_TYPE.MULTI;

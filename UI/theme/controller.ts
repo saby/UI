@@ -6,10 +6,11 @@
  * {@link Темы https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/}
  * @library UI/theme/controller
  * @includes getThemeController UI/theme/_controller/Controller#getInstance
- * @includes THEME_TYPE UI/theme/_controller/css/Style#THEME_TYPE
+ * @includes THEME_TYPE UI/theme/_controller/css/Base#THEME_TYPE
+ * @includes EMPTY_THEME UI/theme/_controller/css/Base#EMPTY_THEME
  * @public
  * @author Ибрагимов А.А.
  */
 
 export { getInstance as getThemeController } from 'UI/theme/_controller/Controller';
-export { THEME_TYPE } from 'UI/theme/_controller/css/Base';
+export { THEME_TYPE, EMPTY_THEME } from 'UI/theme/_controller/css/Base';

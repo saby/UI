@@ -1,11 +1,10 @@
 /// <amd-module name='UI/theme/_controller/Controller' />
 // @ts-ignore
 import { cookie, constants } from 'Env/Env';
-// @ts-ignore
-import * as CssLoader from 'Core/CssLoader/CssLoader';
+import Loader from 'UI/theme/_controller/Loader';
 import Style, { replaceCssURL } from 'UI/theme/_controller/css/Style';
 import Link from 'UI/theme/_controller/css/Link';
-import { THEME_TYPE, DEFAULT_THEME, ICssEntity } from 'UI/theme/_controller/css/Base';
+import { THEME_TYPE, EMPTY_THEME, ICssEntity } from 'UI/theme/_controller/css/Base';
 import Store from 'UI/theme/_controller/Store';
 
 /**
@@ -15,7 +14,7 @@ import Store from 'UI/theme/_controller/Store';
  */
 export class Controller {
    private store: Store = new Store();
-   public appTheme: string = DEFAULT_THEME;
+   public appTheme: string = EMPTY_THEME;
 
    constructor(private cssLoader: ICssLoader) {
       this.get = this.get.bind(this);
@@ -26,7 +25,7 @@ export class Controller {
       this.remove = this.remove.bind(this);
       this.setTheme = this.setTheme.bind(this);
       this.collectCssLinks = this.collectCssLinks.bind(this);
-      
+
       this.collectCssLinks();
    }
 
@@ -42,14 +41,14 @@ export class Controller {
       if (this.has(name, theme)) {
          return Promise.resolve(this.store.get(name, theme).require());
       }
+      const { href, isNewTheme } = this.cssLoader.getInfo(name, theme);
+      const themeType = isNewTheme ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
       if (constants.isServerSide) {
-         const { href, isNewTheme } = this.cssLoader.getInfo(name, theme);
-         const themeType = isNewTheme ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
          const link = new Link(href, name, theme, themeType);
          return Promise.resolve(this.set(link));
       }
       return this.load(name, theme)
-         .then(({ css, isNewTheme }) => this.mount(css, name, theme, isNewTheme));
+         .then(({ css }) => this.mount(css, name, theme, themeType));
    }
 
    /**
@@ -120,15 +119,14 @@ export class Controller {
    private load(name: string, theme: string) {
       return this.cssLoader
          .load(name, theme)
-         .then(({ css, path, isNewTheme }) => ({ css: replaceCssURL(css, path), isNewTheme }));
+         .then(({ css, href }) => ({ css: replaceCssURL(css, href) }));
    }
 
    /**
     * Монтирование style элемента со стилями в head, 
     * сохрание css/Style в Store
     */
-   private mount(css: string, name: string, theme: string, isNewTheme: boolean) {
-      const themeType = isNewTheme ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
+   private mount(css: string, name: string, theme: string, themeType: THEME_TYPE) {
       const style = Style.from(css, name, theme, themeType);
       document.head.appendChild(<HTMLStyleElement> style.element);
       return this.set(style);
@@ -145,11 +143,11 @@ export function getInstance() {
    if (typeof controller !== undefined) {
       return controller;
    }
-   controller = new Controller(new CssLoader());
+   controller = new Controller(new Loader());
    return controller;
 }
 
 interface ICssLoader {
    getInfo(name: string, theme?: string): { isNewTheme: boolean, href: string; };
-   load(name: string, theme: string): Promise<{ css: string, path: string; isNewTheme: boolean; }>;
+   load(name: string, theme: string): Promise<{ css: string, href: string; }>;
 }

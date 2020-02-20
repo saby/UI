@@ -1,6 +1,6 @@
 /// <amd-module name='UI/theme/_controller/css/Style' />
 
-import { Base, THEME_TYPE, DEFAULT_THEME, ELEMENT_ATTR, IHTMLElement } from 'UI/theme/_controller/css/Base';
+import { Base, THEME_TYPE, EMPTY_THEME, ELEMENT_ATTR, IHTMLElement } from 'UI/theme/_controller/css/Base';
 
 /**
  * Сущность, представляющая StyleElement,
@@ -21,7 +21,7 @@ export default class Style extends Base {
    static from(
       css: string,
       name: string,
-      theme: string = DEFAULT_THEME,
+      theme: string = EMPTY_THEME,
       themeType: THEME_TYPE = THEME_TYPE.MULTI
    ): Style {
       const element = document.createElement('style');
