@@ -1,11 +1,11 @@
 /// <amd-module name='UI/theme/_controller/Controller' />
-// @ts-ignore
-import { cookie, constants } from 'Env/Env';
+import { THEME_TYPE, EMPTY_THEME, ICssEntity } from 'UI/theme/_controller/css/Base';
 import Loader, { ICssLoader, load } from 'UI/theme/_controller/Loader';
 import Style from 'UI/theme/_controller/css/Style';
 import Link from 'UI/theme/_controller/css/Link';
-import { THEME_TYPE, EMPTY_THEME, ICssEntity } from 'UI/theme/_controller/css/Base';
 import Store from 'UI/theme/_controller/Store';
+// @ts-ignore
+import { cookie, constants } from 'Env/Env';
 
 /**
  * Контроллер тем, необходим для скачивания/удаления/коллекции/переключения тем на странице
@@ -85,7 +85,7 @@ export class Controller {
 
    /**
     * Сохранение css сущности в store
-    * @param entity 
+    * @param entity
     */
    private set(entity: ICssEntity): void {
       if (entity.themeType === THEME_TYPE.SINGLE) {
@@ -111,7 +111,7 @@ export class Controller {
    }
 
    /**
-    * Монтирование style элемента со стилями в head, 
+    * Монтирование style элемента со стилями в head,
     * сохрание css/Style в Store
     */
    private mount(css: string, cssName: string, themeName: string, themeType: THEME_TYPE): ICssEntity {

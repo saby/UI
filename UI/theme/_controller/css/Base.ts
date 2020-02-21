@@ -71,7 +71,7 @@ export enum ELEMENT_ATTR {
    HREF = 'href',
    NAME = 'css-entity-name',
    THEME = 'css-entity-theme',
-   THEME_TYPE = 'theme-type',
+   THEME_TYPE = 'theme-type'
 }
 /**
  * Тип темы

@@ -1,10 +1,10 @@
 /// <amd-module name='UI/theme/_controller/css/Link' />
-import { Base, THEME_TYPE, ELEMENT_ATTR, IHTMLElement } from 'UI/theme/_controller/css/Base';
+import { Base, THEME_TYPE, ELEMENT_ATTR, IHTMLElement, ICssEntity } from 'UI/theme/_controller/css/Base';
 /**
  * Сущность, представляющая css/Link
  * Используется для подключения внешних тем в head на СП
  */
-export default class Link extends Base {
+export default class Link extends Base implements ICssEntity {
 
    constructor(
       href: string,
@@ -39,6 +39,6 @@ function getLinkHtml(href: string, name: string, theme: string, themeType: THEME
             ${ELEMENT_ATTR.THEME_TYPE}="${themeType}"
             ${ELEMENT_ATTR.THEME}="${theme}"
             ${ELEMENT_ATTR.NAME}="${name}"
-            ${ELEMENT_ATTR.HREF}="${href}" 
+            ${ELEMENT_ATTR.HREF}="${href}"
             />`;
 }

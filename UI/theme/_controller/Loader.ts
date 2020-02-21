@@ -58,7 +58,7 @@ function parseResponse(req: XMLHttpRequest): string {
  * @param cssStyle
  * @param path относительный путь до css
  */
-export function replaceCssURL(cssStyle: string, path: string = "/"): string {
+export function replaceCssURL(cssStyle: string, path: string = '/'): string {
    const forbiddenUrlSym: string[] = ['url(/', "url('/", 'url("/', 'url(#', 'data:'];
    const expectedUrlSym: string[] = ['url(', '?#iefix'];
 

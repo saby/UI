@@ -1,18 +1,18 @@
 /// <amd-module name='UI/theme/_controller/css/Style' />
 
-import { Base, THEME_TYPE, EMPTY_THEME, ELEMENT_ATTR, IHTMLElement } from 'UI/theme/_controller/css/Base';
+import { Base, THEME_TYPE, EMPTY_THEME, ELEMENT_ATTR, IHTMLElement, ICssEntity } from 'UI/theme/_controller/css/Base';
 
 /**
  * Сущность, представляющая StyleElement,
  * Используется для подкючения в head на клиенте
  */
-export default class Style extends Base {
+export default class Style extends Base implements ICssEntity {
 
    constructor(
       cssName: string,
       themeName: string,
       themeType: THEME_TYPE,
-      element: IHTMLElement,
+      element: IHTMLElement
    ) {
       super(cssName, themeName, themeType, element);
       this.outerHtml = element.innerHTML;
