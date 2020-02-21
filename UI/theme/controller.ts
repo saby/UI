@@ -11,6 +11,6 @@
  * @public
  * @author Ибрагимов А.А.
  */
-
-export { getInstance as getThemeController } from 'UI/theme/_controller/Controller';
+import { Controller } from 'UI/theme/_controller/Controller';
+export const getThemeController = Controller.getInstance;
 export { THEME_TYPE, EMPTY_THEME } from 'UI/theme/_controller/css/Base';

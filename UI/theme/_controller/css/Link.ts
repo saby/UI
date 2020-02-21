@@ -8,25 +8,33 @@ export default class Link extends Base {
 
    constructor(
       href: string,
-      name: string,
-      theme: string,
+      cssName: string,
+      themeName: string,
       themeType: THEME_TYPE,
       element?: IHTMLElement
    ) {
-      super(name, theme, themeType, element);
-      this.html = element?.innerHTML || getLinkHtml(href, name, theme, themeType);
-   };
+      super(cssName, themeName, themeType, element);
+      this.outerHtml = element?.innerHTML || getLinkHtml(href, cssName, themeName, themeType);
+   }
 
+   /**
+    * Создание экземпляра Link из HTMLLinkElement
+    * @example
+    * // получить массив Link
+    *    Array
+    *         .from(document.getElementsByTagName('link'))
+    *         .map(Link.from)
+    */
    static from(element: IHTMLElement): Link {
       const href = element.getAttribute(ELEMENT_ATTR.HREF);
       const name = element.getAttribute(ELEMENT_ATTR.NAME);
       const theme = element.getAttribute(ELEMENT_ATTR.THEME);
-      const themeType = <THEME_TYPE> element.getAttribute(ELEMENT_ATTR.THEME_TYPE);
+      const themeType = element.getAttribute(ELEMENT_ATTR.THEME_TYPE) as THEME_TYPE;
       return new Link(href, name, theme, themeType, element);
-   };
+   }
 }
 
-function getLinkHtml(href: string, name: string, theme: string, themeType: THEME_TYPE) {
+function getLinkHtml(href: string, name: string, theme: string, themeType: THEME_TYPE): string {
    return `<link rel="stylesheet" type="text/css" data-vdomignore="true"
             ${ELEMENT_ATTR.THEME_TYPE}="${themeType}"
             ${ELEMENT_ATTR.THEME}="${theme}"

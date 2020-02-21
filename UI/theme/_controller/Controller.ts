@@ -1,8 +1,8 @@
 /// <amd-module name='UI/theme/_controller/Controller' />
 // @ts-ignore
 import { cookie, constants } from 'Env/Env';
-import Loader from 'UI/theme/_controller/Loader';
-import Style, { replaceCssURL } from 'UI/theme/_controller/css/Style';
+import Loader, { ICssLoader, load } from 'UI/theme/_controller/Loader';
+import Style from 'UI/theme/_controller/css/Style';
 import Link from 'UI/theme/_controller/css/Link';
 import { THEME_TYPE, EMPTY_THEME, ICssEntity } from 'UI/theme/_controller/css/Base';
 import Store from 'UI/theme/_controller/Store';
@@ -14,13 +14,12 @@ import Store from 'UI/theme/_controller/Store';
  */
 export class Controller {
    private store: Store = new Store();
-   public appTheme: string = EMPTY_THEME;
+   appTheme: string = EMPTY_THEME;
 
    constructor(private cssLoader: ICssLoader) {
       this.get = this.get.bind(this);
       this.set = this.set.bind(this);
       this.has = this.has.bind(this);
-      this.load = this.load.bind(this);
       this.mount = this.mount.bind(this);
       this.remove = this.remove.bind(this);
       this.setTheme = this.setTheme.bind(this);
@@ -36,66 +35,67 @@ export class Controller {
     *  - на клиенте тема скачиватся и монтируется в DOM, возвращается `css/Style`
     * При повторном запросе востребованность темы возрастает
     */
-   get(name: string, themeName?: string): Promise<ICssEntity> {
+   get(cssName: string, themeName?: string): Promise<ICssEntity> {
       const theme = typeof themeName !== 'undefined' ? themeName : this.appTheme;
-      if (this.has(name, theme)) {
-         return Promise.resolve(this.store.get(name, theme).require());
+      if (this.has(cssName, theme)) {
+         const entity = this.store.get(cssName, theme);
+         entity.require();
+         return Promise.resolve(entity);
       }
-      const { href, isNewTheme } = this.cssLoader.getInfo(name, theme);
-      const themeType = isNewTheme ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
-      if (constants.isServerSide) {
-         const link = new Link(href, name, theme, themeType);
-         return Promise.resolve(this.set(link));
+      const { href, themeType } = this.cssLoader.getInfo(cssName, theme);
+      if (constants.isBrowserPlatform) {
+         return load(href).then((css) => this.mount(css, cssName, theme, themeType));
       }
-      return this.load(name, theme)
-         .then(({ css }) => this.mount(css, name, theme, themeType));
+      const link = new Link(href, cssName, theme, themeType);
+      this.set(link);
+      return Promise.resolve(link);
    }
 
    /**
     * Проверка наличия темы `themeName` у контрола `name`
     */
-   has(name: string, themeName?: string): boolean {
+   has(cssName: string, themeName?: string): boolean {
       const theme = typeof themeName !== 'undefined' ? themeName : this.appTheme;
-      return this.store.has(name, theme);
+      return this.store.has(cssName, theme);
    }
 
    /**
     * Скачивание отсутвующей темы всем контролам
-    * @param {string} theme
+    * @param {string} themeName
     */
-   setTheme(theme: string): Promise<ICssEntity[]> {
-      if (typeof theme === 'undefined' || theme === this.appTheme) {
-         return Promise.resolve([]);
+   setTheme(themeName: string): Promise<void> {
+      if (typeof themeName === 'undefined' || themeName === this.appTheme) {
+         return Promise.resolve();
       }
-      this.appTheme = theme;
+      this.appTheme = themeName;
       const themeLoading = this.store
          .getNames()
-         .map((name) => this.get(name, theme));
-      return Promise.all(themeLoading);
+         .map((name) => this.get(name, themeName));
+      return Promise.all(themeLoading).then(() => void 0);
    }
 
    /**
     * Уменьшить 'востребованность' css,
     * т.е контрол `name` удаляется и, если больше нет зависимостей, css также удаляется из DOM
     */
-   remove(name: string, themeName?: string): Promise<boolean> {
+   remove(cssName: string, themeName?: string): Promise<boolean> {
       const theme = typeof themeName !== 'undefined' ? themeName : this.appTheme;
-      return this.store.remove(name, theme);
+      return this.store.remove(cssName, theme);
    }
 
    /**
     * Сохранение css сущности в store
     * @param entity 
     */
-   private set(entity: ICssEntity): ICssEntity {
+   private set(entity: ICssEntity): void {
       if (entity.themeType === THEME_TYPE.SINGLE) {
          /**
           * при переключении немультитемной темы остальные темы должны удаляться,
           * т.к возникают конфликты селекторов (они одинаковые)
           */
-         this.store.clearThemes(entity.name);
+         this.store.clearThemes(entity.cssName);
       }
-      return this.store.set(entity);
+      this.store.set(entity);
    }
 
    /**
@@ -111,43 +111,22 @@ export class Controller {
    }
 
    /**
-    * Загружает тему `theme` для контрола `name`
-    * @returns {Promise<{css:string, isNewTheme:boolean}>} Возвращает Promise загрузки
-    * @param name
-    * @param theme
-    */
-   private load(name: string, theme: string) {
-      return this.cssLoader
-         .load(name, theme)
-         .then(({ css, href }) => ({ css: replaceCssURL(css, href) }));
-   }
-
-   /**
     * Монтирование style элемента со стилями в head, 
     * сохрание css/Style в Store
     */
-   private mount(css: string, name: string, theme: string, themeType: THEME_TYPE) {
-      const style = Style.from(css, name, theme, themeType);
-      document.head.appendChild(<HTMLStyleElement> style.element);
-      return this.set(style);
+   private mount(css: string, cssName: string, themeName: string, themeType: THEME_TYPE): ICssEntity {
+      const style = Style.from(css, cssName, themeName, themeType);
+      document.head.appendChild(style.element as HTMLStyleElement);
+      this.set(style);
+      return style;
    }
-}
 
-let controller: Controller;
-/**
- * @name UI/theme/_controller/Controller#getInstance
- * Функция, возвращаюшая экземпляр контроллера
- * @returns {Controller} controller
- */
-export function getInstance() {
-   if (typeof controller !== undefined) {
-      return controller;
+   static instance: Controller;
+   static getInstance(): Controller {
+      if (typeof Controller.instance !== undefined) {
+         return Controller.instance;
+      }
+      Controller.instance = new Controller(new Loader());
+      return Controller.instance;
    }
-   controller = new Controller(new Loader());
-   return controller;
-}
-
-interface ICssLoader {
-   getInfo(name: string, theme?: string): { isNewTheme: boolean, href: string; };
-   load(name: string, theme: string): Promise<{ css: string, href: string; }>;
 }

@@ -7,12 +7,12 @@ const theme = 'Some-theme';
 
 class LinkMock implements ICssEntity {
    private requirement = 1;
-   html = '';
+   outerHtml = '';
    element = null;
 
    constructor(
-      public name,
-      public theme = DEFAULT_THEME,
+      public cssName,
+      public themeName = DEFAULT_THEME,
       public themeType = DEFAULT_THEME_TYPE
    ) { }
 

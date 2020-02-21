@@ -21,20 +21,19 @@ export default class Store<T extends ICssEntity = ICssEntity> {
    /**
     * Сохранить `entity` в Store
     */
-   set(entity: T): T {
-      if (this.getThemes(entity.name).length === 0) {
-         this.store[entity.name] = { [entity.theme]: entity };
-         return entity;
+   set(entity: T): void {
+      if (this.getThemes(entity.cssName).length === 0) {
+         this.store[entity.cssName] = { [entity.themeName]: entity };
+         return;
       }
-      this.store[entity.name][entity.theme] = entity;
-      return entity;
+      this.store[entity.cssName][entity.themeName] = entity;
    }
 
    /**
     * Проверка наличия темы `theme` у контрола `name`
     */
-   has(name: string, theme: string): boolean {
-      return !Object.is(this.store[name]?.[theme], undefined);
+   has(cssName: string, themeName: string): boolean {
+      return !Object.is(this.store[cssName]?.[themeName], undefined);
    }
 
    /**
@@ -42,21 +41,21 @@ export default class Store<T extends ICssEntity = ICssEntity> {
     * Если темы нет в Store, выбрасывается исключение
     * @throws
     */
-   get(name: string, theme: string): T {
-      if (!this.has(name, theme)) {
-         throw new Error(`CSS ${name} for ${theme} theme is not exists!`);
+   get(cssName: string, themeName: string): T {
+      if (!this.has(cssName, themeName)) {
+         throw new Error(`CSS ${cssName} for ${themeName} theme is not exists!`);
       }
-      return this.store[name][theme];
+      return this.store[cssName][themeName];
    }
 
    /**
     * Уменьшить 'востребованность' css,
     * т.е контрол `name` удаляется и, если больше нет зависимостей, css также удаляется из DOM
     */
-   remove(name: string, theme: string): Promise<boolean> {
-      return this.get(name, theme).remove().then((isRemoved) => {
+   remove(cssName: string, themeName: string): Promise<boolean> {
+      return this.get(cssName, themeName).remove().then((isRemoved) => {
          if (isRemoved) {
-            delete this.store[name][theme];
+            delete this.store[cssName][themeName];
          }
          return isRemoved;
       });

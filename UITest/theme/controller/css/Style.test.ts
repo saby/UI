@@ -1,12 +1,12 @@
 import { assert } from 'chai';
 // @ts-ignore
 import { constants } from 'Env/Env';
-import Link from 'UI/theme/_controller/css/Link';
-import Style, { replaceCssURL } from 'UI/theme/_controller/css/Style';
+import Style from 'UI/theme/_controller/css/Style';
+import { IHTMLElement } from 'UI/theme/_controller/css/Base';
 
 const name = 'Some/Control';
 
-class ElementMock {
+class ElementMock implements IHTMLElement {
    __removed = false;
    innerHTML = 'test css';
    getAttribute(attr) {
@@ -21,31 +21,6 @@ class ElementMock {
 }
 
 describe('UI/theme/_controller/css/Style', () => {
-   describe('replaceCssURL', () => {
-      it('replaceCssURL не меняет пути cdn, data', () => {
-         const tests = {
-            'url(/cdn/themes/1.0.0/background.jpg)': 'url(/cdn/themes/1.0.0/background.jpg)',
-            'url(/cdn/themes/1.0.0/background.jpg?#iefix)': 'url(/cdn/themes/1.0.0/background.jpg?#iefix)',
-            'url("/cdn/themes/1.0.0/background.jpg?#iefix")': 'url("/cdn/themes/1.0.0/background.jpg?#iefix")',
-            'url(data:image/png;base64,iVBORw0KGg=)': 'url(data:image/png;base64,iVBORw0KGg=)',
-            'fill: url(#woodH)': 'fill: url(#woodH)'
-         };
-         for (const path in tests) {
-            assert.equal(path, replaceCssURL(tests[path]));
-         }
-      });
-
-      it('replaceCssURL разрешает относительные пути', () => {
-         const tests = {
-            'fill: url("/Controls/Input/Text/../../icons/im.png?#iefix")': ['fill: url("../../icons/im.png?#iefix")', '/Controls/Input/Text/Text.css'],
-            'background: url("/EngineLanguage/Selector/images/flags.png");': ['background: url("images/flags.png");', '/EngineLanguage/Selector/Selector.css'],
-            'fill: url("/Controls/Input/Text/../../icons/im.png")': ['fill: url("../../icons/im.png")', '/Controls/Input/Text/Text.css'],
-         };
-         for (const path in tests) {
-            assert.equal(path, replaceCssURL.apply(null, tests[path]));
-         }
-      });
-   });
 
    describe('from', () => {
       if (!constants.isBrowserPlatform) { return; }

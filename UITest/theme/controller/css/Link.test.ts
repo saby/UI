@@ -43,8 +43,8 @@ describe('UI/theme/_controller/css/Link', () => {
    describe('from', () => {
       it('Link`s instance from HTMLLinkElement', () => {
          assert.instanceOf(link, Link);
-         assert.strictEqual(name, link.name);
-         assert.strictEqual(theme, link.theme);
+         assert.strictEqual(name, link.cssName);
+         assert.strictEqual(theme, link.themeName);
          assert.strictEqual(themeType, link.themeType);
       });
    });

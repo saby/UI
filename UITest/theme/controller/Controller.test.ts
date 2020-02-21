@@ -3,7 +3,7 @@ import { assert } from 'chai';
 // @ts-ignore
 import { constants } from 'Env/Env';
 import Style from 'UI/theme/_controller/css/Style';
-import { DEFAULT_THEME } from 'UI/theme/_controller/css/Base';
+import { DEFAULT_THEME, THEME_TYPE } from 'UI/theme/_controller/css/Base';
 import Link from 'UI/theme/_controller/css/Link';
 
 describe('UI/theme/_controller/Controller', () => {
@@ -26,7 +26,7 @@ describe('UI/theme/_controller/Controller', () => {
       }
       getInfo() {
          return {
-            isNewTheme: true,
+            themeType: THEME_TYPE.MULTI,
             href: 'href'
          };
       }
@@ -106,26 +106,6 @@ describe('UI/theme/_controller/Controller', () => {
             assert.isTrue(controller.has(name, theme2));
             assert.isTrue(controller.has(name2, theme2));
             assert.isTrue(loader.isValid());
-         });
-      });
-
-      it('setTheme возвращает массив Style на клиенте', async () => {
-         if (!constants.isBrowserPlatform) { return; }
-         await controller.get(name, theme);
-         await controller.get(name2, theme);
-         return controller.setTheme(theme2).then((links) => {
-            assert.isTrue(loader.isValid());
-            links.forEach((link) => { assert.instanceOf(link, Style); });
-         });
-      });
-
-      it('setTheme возвращает массив Link на СП', async () => {
-         if (!constants.isServerSide) { return; }
-         await controller.get(name, theme);
-         await controller.get(name2, theme);
-         return controller.setTheme(theme2).then((links) => {
-            assert.isTrue(loader.isValid());
-            links.forEach((link) => { assert.instanceOf(link, Link); });
          });
       });
    });

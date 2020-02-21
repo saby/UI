@@ -1,31 +1,53 @@
 /// <amd-module name='UI/theme/_controller/css/Base' />
 
 export class Base implements ICssEntity {
-   public html: string = '';
-
-   constructor(
-      public name: string,
-      public theme: string = DEFAULT_THEME,
-      public themeType: THEME_TYPE = DEFAULT_THEME_TYPE,
-      public element: IHTMLElement = null
-   ) { };
+   /**
+    * HTML- разметка сущности
+    * @example
+    * // ts
+    * this.styles = cssNames.map((name) => new Link(name).outerHtml)
+    *                       .join('\n');
+    * // wml
+    * <head>
+    *    {{ styles }}
+    * </head>
+    */
+   outerHtml: string = '';
 
    /**
     * Скольким контролам требуется данная css
-    * Если 0 - удаляем 
+    * Если 0 - удаляем
     */
    protected requirement: number = 1;
 
-   require() {
-      this.requirement++;
-      return this;
-   }
+   constructor(
+      public cssName: string,
+      public themeName: string = DEFAULT_THEME,
+      public themeType: THEME_TYPE = DEFAULT_THEME_TYPE,
+      public element: IHTMLElement = null
+   ) { }
 
+   /**
+    * Восстребование стилей контроллом
+    * @example
+    *    const base = new Base(name, theme, themeType);
+    *    base.require();
+    *    await base.remove(); // Promise<false>
+    *    await base.remove(); // Promise<true>
+    */
+   require(): void {
+      this.requirement++;
+   }
 
    /**
     * Удаление зависимости контрола от css
     * @param force принудительное удаление
     * @return {boolean} true, если css никому не нужна контролам, удалена из DOM
+    * @example
+    *    const base = new Base(name, theme, themeType);
+    *    base.require();
+    *    await base.remove(); // Promise<false>
+    *    await base.remove(); // Promise<true>
     */
    remove(force: boolean = false): Promise<boolean> {
       this.requirement--;
@@ -82,17 +104,16 @@ export const DEFAULT_THEME_TYPE: THEME_TYPE = THEME_TYPE.MULTI;
 
 export interface ICssEntity {
    /** html разметка css сущности */
-   html: string;
-   /** Название контрола */
-   name: string;
+   outerHtml: string;
+   /** Название css */
+   cssName: string;
    /** Название темы */
-   theme: string;
+   themeName: string;
    /** Тип темы */
    themeType: THEME_TYPE;
-   require(): this;
+   require(): void;
    remove(force?: boolean): Promise<boolean>;
 }
-
 
 export interface IHTMLElement {
    innerHTML: string;

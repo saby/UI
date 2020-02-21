@@ -9,13 +9,13 @@ import { Base, THEME_TYPE, EMPTY_THEME, ELEMENT_ATTR, IHTMLElement } from 'UI/th
 export default class Style extends Base {
 
    constructor(
-      name: string,
-      theme: string,
+      cssName: string,
+      themeName: string,
       themeType: THEME_TYPE,
       element: IHTMLElement,
    ) {
-      super(name, theme, themeType, element);
-      this.html = element.innerHTML;
+      super(cssName, themeName, themeType, element);
+      this.outerHtml = element.innerHTML;
    }
 
    static from(
@@ -32,23 +32,4 @@ export default class Style extends Base {
       element.innerHTML = css;
       return new Style(name, theme, themeType, element);
    }
-}
-
-/**
- * Если css вставляется в страницу в <style>, относительные пути перестанут работать
- * replaceURL меняет эти url, чтобы они работали от корня.
- * @param cssStyle
- * @param path относительный путь до css
- */
-export function replaceCssURL(cssStyle: string, path: string = "/"): string {
-   const forbiddenUrlSym: string[] = ['url(/', "url('/", 'url("/', "url(#", 'data:'];
-   const expectedUrlSym: string[] = ['url(', '?#iefix'];
-
-   return cssStyle.replace(/url\(.+?\)/g, (url: string) => {
-      const isIncluded = (sym: string) => url.indexOf(sym) !== -1;
-      if (!expectedUrlSym.some(isIncluded) || forbiddenUrlSym.some(isIncluded)) {
-         return url;
-      }
-      return `url("${path.split('/').slice(0, -1).join('/')}/${url.replace(/url\(|\)|'|"/g, '')}")`;
-   });
 }
