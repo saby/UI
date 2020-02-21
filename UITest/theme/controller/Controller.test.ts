@@ -10,7 +10,6 @@ import { ICssLoader } from 'UI/theme/_controller/Loader';
 describe('UI/theme/_controller/Controller', () => {
    const name = 'Some/Control1';
    const theme = 'Some/Theme1';
-   const theme2 = 'Some/Theme2';
    const cssStyle = 'style';
 
    class CssLoaderMock implements ICssLoader {
@@ -52,22 +51,22 @@ describe('UI/theme/_controller/Controller', () => {
    describe('get', () => {
       it('Метод возвращает Promise<Style> на клиенте', () => {
          if (!constants.isBrowserPlatform) { return; }
-         const getting = controller.get(name, theme);
+         const getting = controller.get(name);
          assert.instanceOf(getting, Promise);
          return getting.then((css) => { assert.instanceOf(css, Style); });
       });
 
       it('Метод возвращает Promise<Link> на СП', () => {
          if (!constants.isServerSide) { return; }
-         const getting = controller.get(name, theme);
+         const getting = controller.get(name);
          assert.instanceOf(getting, Promise);
          return getting.then((css) => { assert.instanceOf(css, Link); });
       });
 
       it('Загруженные стили не запрашиваются повторно', async () => {
+         await controller.get(name);
          await controller.get(name, theme);
-         await controller.get(name, theme2);
-         await controller.get(name, theme);
+         await controller.get(name);
          assert.isTrue(loader.isValid());
       });
 
@@ -86,7 +85,7 @@ describe('UI/theme/_controller/Controller', () => {
 
       it('Возвращает true для сохраненной темы', () => {
          return controller
-            .get(name, theme)
+            .get(name)
             .then(() => { assert.isTrue(controller.has(name)); });
       });
    });
@@ -111,15 +110,15 @@ describe('UI/theme/_controller/Controller', () => {
    describe('remove', () => {
 
       it('невостребованные стили удаляются', async () => {
-         await controller.get(name, theme);
+         await controller.get(name);
          const isRemoved = await controller.remove(name);
          assert.isTrue(isRemoved);
          assert.isFalse(controller.has(name));
       });
 
       it('востребованные стили не удаляются', async () => {
-         await controller.get(name, theme);
-         await controller.get(name, theme);
+         await controller.get(name);
+         await controller.get(name);
          const isRemoved = await controller.remove(name);
          assert.isFalse(isRemoved);
          assert.isTrue(controller.has(name));
