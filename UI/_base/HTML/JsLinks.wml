@@ -1,5 +1,4 @@
 <div>
-   <script>{{__setHTMLUnsafe(getDefines())}}</script>
    <ws:if data="{{ js }}">
       <ws:for data="index, value in js">
          <script type="text/javascript" src="{{ _options.linkResolver.resolveLink(value, 'js') }}" defer="defer" key="{{ 'scripts_' + index }}" data-vdomignore="true"></script>

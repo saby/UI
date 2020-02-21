@@ -4,9 +4,7 @@ import Control from './Control';
 
 // @ts-ignore
 import template = require('wml!UI/_base/Document/Document');
-
-// @ts-ignore
-import ThemesController = require('Core/Themes/ThemesController');
+import { getThemeController } from 'UI/theme/controller';
 import * as AppEnv from 'Application/Env';
 import { headDataStore } from 'UI/_base/HeadData';
 import AppData from './AppData';
@@ -64,9 +62,7 @@ class Document extends Control {
 
     setTheme(ev: Event, theme: string): void {
         this.coreTheme = theme;
-        if (ThemesController.getInstance().setTheme) {
-            ThemesController.getInstance().setTheme(theme);
-        }
+        getThemeController().setTheme(theme);
     }
 
     changeApplicationHandler(e: Event, app: string): Boolean {

@@ -25,31 +25,9 @@ class JsLinks extends Control {
          this.js = res.js;
          this.tmpl = res.tmpl;
          this.wml = res.wml;
-         this.themedCss = res.css.themedCss;
-         this.simpleCss = res.css.simpleCss;
          this.rsSerialized = res.rsSerialized;
       });
    }
-
-   getCssNameForDefineWithTheme(cssLink: string): string {
-      return 'theme?' + cssLink;
-   }
-
-   getDefines(): string {
-      let result = '';
-      if (this.themedCss && this.simpleCss) {
-         let i;
-         for (i = 0; i < this.simpleCss.length; i++) {
-            result += 'define("css!' + this.simpleCss[i] + '", "");';
-         }
-         for (i = 0; i < this.themedCss.length; i++) {
-            result += 'define("css!' + this.getCssNameForDefineWithTheme(this.themedCss[i]) + '", "");';
-         }
-      }
-
-      return result;
-   }
-
 }
 
 export default JsLinks;

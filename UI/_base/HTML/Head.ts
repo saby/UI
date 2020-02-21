@@ -4,9 +4,9 @@ import Control from '../Control';
 
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Head');
-
+import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
+// @ts-ignore
 import { constants } from 'Env/Env';
-import ThemesControllerNew = require('Core/Themes/ThemesControllerNew');
 import { headDataStore } from 'UI/_base/HeadData';
 
 class Head extends Control {
@@ -29,6 +29,9 @@ class Head extends Control {
     isSSR: boolean;
 
     staticDomainsstringified: string = '[]';
+
+    /** html разметка подключенных на СП стилей */
+    protected stylesHtml: string = '';
 
     _beforeMount(options: any): Promise<any> {
         // tslint:disable-next-line:only-arrow-functions
@@ -67,24 +70,22 @@ class Head extends Control {
             this.simpleCss = [];
             return;
         }
-        const def = headDataStore.read('waitAppContent')();
-        // @ts-ignore
-        this.cssLinks = [];
-        return new Promise((resolve, reject) => {
-            def.then((res) => {
-                // @ts-ignore
-                this.newSimple = ThemesControllerNew.getInstance().getSimpleCssList();
-                // @ts-ignore
-                this.newThemed = ThemesControllerNew.getInstance().getThemedCssList();
-
-                this.themedCss = res.css.themedCss;
-                this.simpleCss = res.css.simpleCss;
-                resolve();
-
-            });
+        return headDataStore.read('waitAppContent')().then(({ css }) => {
+            this.collectStyles(options.theme, css.simpleCss, css.themedCss);
         });
     }
 
+    private collectStyles(theme: string, simpleCss: string[], themedCss: string[]): void {
+        const tc = getThemeController();
+        Promise.all([
+            ...simpleCss.map((name) => tc.get(name, EMPTY_THEME)),
+            ...themedCss.map((name) => tc.get(name, theme))
+        ])
+            .then((enities) => enities
+                .map((entity) => entity.outerHtml)
+                .join('\n'))
+            .then((html) => { this.stylesHtml = html; });
+    }
     // @ts-ignore
     _shouldUpdate(): Boolean {
         return false;
