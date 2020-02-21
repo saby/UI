@@ -63,7 +63,6 @@ type IControlChildren = Record<string, Element | Control>;
  * @remark Контрол перестает быть активным, когда все его дочерние контролы теряют фокус.
  * Подробное описание и примеры использования события читайте
  * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ здесь}.
- * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/
  * @see activated
  */
 
