@@ -3,6 +3,7 @@
 
 /**
  * @author Белотелов Н.В.
+ * Модуль, в котором находится логика по отмене скролла, который произошел в результате фокусировки
  */
 
 // input may be undefined, selector-tring, Node, NodeList, HTMLCollection, array of Nodes

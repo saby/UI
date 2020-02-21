@@ -11,6 +11,7 @@ import { notifyActivationEvents } from "UI/_focus/Events";
 
 /**
  * @author Белотелов Н.В.
+ * Содержит логику восстановление фокуса, если фокус слетает на body
  */
 
 import { focus } from './Focus';

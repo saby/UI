@@ -1,9 +1,8 @@
 /// <amd-module name="UI/_focus/Focus" />
 
 /**
- * Utility module that provides a cross-browser way to move focus
- * to specific elements
  * @author Белотелов Н.В.
+ * Утилита для кроссбраузерной фокусировки, с возможностью отключить вызов экранной клавиатуре и отменить скролл при фокусировке
  */
 
 // @ts-ignore
