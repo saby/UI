@@ -1,6 +1,6 @@
 /// <amd-module name='UI/theme/_controller/Controller' />
 import { THEME_TYPE, EMPTY_THEME, ICssEntity } from 'UI/theme/_controller/css/Base';
-import Loader, { ICssLoader, load } from 'UI/theme/_controller/Loader';
+import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
 import Style from 'UI/theme/_controller/css/Style';
 import Link from 'UI/theme/_controller/css/Link';
 import Store from 'UI/theme/_controller/Store';
@@ -44,7 +44,7 @@ export class Controller {
       }
       const { href, themeType } = this.cssLoader.getInfo(cssName, theme);
       if (constants.isBrowserPlatform) {
-         return load(href).then((css) => this.mount(css, cssName, theme, themeType));
+         return this.cssLoader.load(href).then((css) => this.mount(css, cssName, theme, themeType));
       }
       const link = new Link(href, cssName, theme, themeType);
       this.set(link);

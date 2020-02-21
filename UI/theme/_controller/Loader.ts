@@ -21,12 +21,12 @@ export default class Loader implements ICssLoader {
          this.lr.resolveCssWithTheme(name, theme);
       return { href, themeType };
    }
-}
 
-export function load(href: string): Promise<string> {
-   return fetchCss(href)
-      .then(parseResponse)
-      .then((css) => replaceCssURL(css, href));
+   load(href: string): Promise<string> {
+      return fetchCss(href)
+         .then(parseResponse)
+         .then((css) => replaceCssURL(css, href));
+   }
 }
 
 function fetchCss(url: string): Promise<XMLHttpRequest> {
@@ -72,6 +72,7 @@ export function replaceCssURL(cssStyle: string, path: string = '/'): string {
 }
 export interface ICssLoader {
    getInfo(name: string, theme?: string): IThemeInfo;
+   load(href: string): Promise<string>;
 }
 
 interface IThemeInfo {
