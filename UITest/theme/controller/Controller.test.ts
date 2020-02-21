@@ -5,24 +5,21 @@ import { constants } from 'Env/Env';
 import Style from 'UI/theme/_controller/css/Style';
 import { DEFAULT_THEME, THEME_TYPE } from 'UI/theme/_controller/css/Base';
 import Link from 'UI/theme/_controller/css/Link';
+import { ICssLoader } from 'UI/theme/_controller/Loader';
 
 describe('UI/theme/_controller/Controller', () => {
    const name = 'Some/Control1';
    const theme = 'Some/Theme1';
    const cssStyle = 'style';
 
-   class CssLoaderMock {
+   class CssLoaderMock implements ICssLoader {
       loads = {};
       load(name, theme = DEFAULT_THEME) {
          if (!this.loads[name]) {
             this.loads[name] = {};
          }
          this.loads[name][theme] = this.loads[name][theme] ? this.loads[name][theme] + 1 : 1;
-         return Promise.resolve({
-            css: cssStyle,
-            path: 'href',
-            isNewTheme: true
-         });
+         return Promise.resolve(cssStyle);
       }
       getInfo() {
          return {
