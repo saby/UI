@@ -2,6 +2,7 @@
 
 /**
  * @author Белотелов Н.В.
+ * Содержит логику по предотвращению фокуса по клику
  */
 
 export function hasNoFocus(element: Element): boolean {
