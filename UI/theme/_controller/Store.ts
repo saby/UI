@@ -9,15 +9,6 @@ type IThemesDescripion<T> = Partial<{ [theme: string]: T; }>;
 export default class Store<T extends ICssEntity = ICssEntity> {
    private store: { [name: string]: IThemesDescripion<T>; } = Object.create(null);
 
-   constructor() {
-      this.set = this.set.bind(this);
-      this.get = this.get.bind(this);
-      this.has = this.has.bind(this);
-      this.remove = this.remove.bind(this);
-      this.getNames = this.getNames.bind(this);
-      this.getThemes = this.getThemes.bind(this);
-   }
-
    /**
     * Сохранить `entity` в Store
     */

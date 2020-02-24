@@ -4,8 +4,7 @@ import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
 import Style from 'UI/theme/_controller/css/Style';
 import Link from 'UI/theme/_controller/css/Link';
 import Store from 'UI/theme/_controller/Store';
-// @ts-ignore
-import { cookie, constants } from 'Env/Env';
+import { constants } from 'Env/Env';
 
 /**
  * Контроллер тем, необходим для скачивания/удаления/коллекции/переключения тем на странице
@@ -14,17 +13,10 @@ import { cookie, constants } from 'Env/Env';
  */
 export class Controller {
    private store: Store = new Store();
+   /** Имя темы приложения */
    appTheme: string = EMPTY_THEME;
 
    constructor(private cssLoader: ICssLoader) {
-      this.get = this.get.bind(this);
-      this.set = this.set.bind(this);
-      this.has = this.has.bind(this);
-      this.mount = this.mount.bind(this);
-      this.remove = this.remove.bind(this);
-      this.setTheme = this.setTheme.bind(this);
-      this.collectCssLinks = this.collectCssLinks.bind(this);
-
       this.collectCssLinks();
    }
 
@@ -123,7 +115,7 @@ export class Controller {
 
    static instance: Controller;
    static getInstance(): Controller {
-      if (typeof Controller.instance !== undefined) {
+      if (typeof Controller.instance !== 'undefined') {
          return Controller.instance;
       }
       Controller.instance = new Controller(new Loader());
