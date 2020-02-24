@@ -17,6 +17,7 @@ export class Controller {
    appTheme: string = EMPTY_THEME;
 
    constructor(private cssLoader: ICssLoader) {
+      this.set = this.set.bind(this);
       this.collectCssLinks();
    }
 
