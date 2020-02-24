@@ -1,10 +1,9 @@
 /// <amd-module name='UI/theme/_controller/Loader' />
 // @ts-ignore
 import * as LinkResolver from 'Core/LinkResolver/LinkResolver';
-// @ts-ignore
 import { constants, cookie } from 'Env/Env';
 import { EMPTY_THEME, THEME_TYPE } from 'UI/theme/_controller/css/Base';
-
+import { fetch } from 'Browser/Transport';
 export default class Loader implements ICssLoader {
    lr: LinkResolver;
    constructor() {
@@ -22,34 +21,11 @@ export default class Loader implements ICssLoader {
       return { href, themeType };
    }
 
-   load(href: string): Promise<string> {
-      return fetchCss(href)
-         .then(parseResponse)
-         .then((css) => replaceCssURL(css, href));
+   load(url: string): Promise<string> {
+      return fetch.fetch({ url })
+         .then((res) => res.text())
+         .then((css) => replaceCssURL(css, url));
    }
-}
-
-function fetchCss(url: string): Promise<XMLHttpRequest> {
-   return new Promise((resolve, reject) => {
-      const req = new XMLHttpRequest();
-      req.open('GET', url, true);
-      req.onload = () => {
-         resolve(req);
-      };
-      req.onerror = () => {
-         reject(new Error(`Couldn\'t load css: ${req.responseURL}\nResponse status ${req.status}`));
-      };
-      req.withCredentials = true;
-      req.send();
-   });
-}
-const SUCCESS_RESPONCSE_CODE = 200;
-
-function parseResponse(req: XMLHttpRequest): string {
-   if (req.status !== SUCCESS_RESPONCSE_CODE) {
-      throw new Error(`Couldn\'t load css: ${req.responseURL}\nResponse status ${req.status}`);
-   }
-   return req.response;
 }
 
 /**
