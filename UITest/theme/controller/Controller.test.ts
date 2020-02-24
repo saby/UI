@@ -79,6 +79,34 @@ describe('UI/theme/_controller/Controller', () => {
       });
    });
 
+   describe('getAll', () => {
+      it('Метод возвращает Style[] на клиенте', () => {
+         if (!constants.isBrowserPlatform) { return; }
+         const cssName2 = 'Another/Control';
+         Promise.all([
+            controller.get(cssName),
+            controller.get(cssName2)
+         ]).then(() => {
+            controller.getAll().forEach((entity) => {
+               assert.instanceOf(entity, Style);
+            });
+         });
+      });
+
+      it('Метод возвращает Link[] на СП', () => {
+         if (!constants.isServerSide) { return; }
+         const cssName2 = 'Another/Control';
+         Promise.all([
+            controller.get(cssName),
+            controller.get(cssName2)
+         ]).then(() => {
+            controller.getAll().forEach((entity) => {
+               assert.instanceOf(entity, Link);
+            });
+         });
+      });
+   });
+
    describe('has', () => {
       it('Возвращает false для несохраненной темы', () => {
          assert.isFalse(controller.has(cssName));

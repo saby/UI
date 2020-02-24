@@ -1,5 +1,5 @@
 /// <amd-module name='UI/theme/_controller/Controller' />
-import { THEME_TYPE, EMPTY_THEME, ICssEntity } from 'UI/theme/_controller/css/Base';
+import { THEME_TYPE, DEFAULT_THEME, ICssEntity } from 'UI/theme/_controller/css/Base';
 import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
 import Style from 'UI/theme/_controller/css/Style';
 import Link from 'UI/theme/_controller/css/Link';
@@ -14,7 +14,7 @@ import { constants } from 'Env/Env';
 export class Controller {
    private store: Store = new Store();
    /** Имя темы приложения */
-   appTheme: string = EMPTY_THEME;
+   appTheme: string = DEFAULT_THEME;
 
    constructor(private cssLoader: ICssLoader) {
       this.set = this.set.bind(this);
@@ -44,6 +44,13 @@ export class Controller {
       return Promise.resolve(link);
    }
 
+   /**
+    * Синхронное получение всех сохраненных ICssEntity сущностей
+    */
+   getAll(themeName?: string): ICssEntity[] {
+      const theme = typeof themeName !== 'undefined' ? themeName : this.appTheme;
+      return this.store.getNames().map((name) => this.store.get(name, theme));
+   }
    /**
     * Проверка наличия темы `themeName` у контрола `name`
     */
