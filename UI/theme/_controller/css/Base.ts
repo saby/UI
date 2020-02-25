@@ -116,7 +116,7 @@ export interface ICssEntity {
 }
 
 export interface IHTMLElement {
-   innerHTML: string;
+   outerHTML: string;
    remove(): void;
    getAttribute(a: string): string;
 }

@@ -12,7 +12,7 @@ const themeType = THEME_TYPE.MULTI;
 
 class LinkElementMock implements IHTMLElement {
    __removed = false;
-   innerHTML = 'test css';
+   outerHTML = 'test css';
    constructor(
       _href: string,
       name: string,

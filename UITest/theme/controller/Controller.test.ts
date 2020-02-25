@@ -2,7 +2,6 @@ import { Controller } from "UI/theme/_controller/Controller";
 import { assert } from 'chai';
 // @ts-ignore
 import { constants } from 'Env/Env';
-import Style from 'UI/theme/_controller/css/Style';
 import { THEME_TYPE } from 'UI/theme/_controller/css/Base';
 import Link from 'UI/theme/_controller/css/Link';
 import { ICssLoader } from 'UI/theme/_controller/Loader';
@@ -14,13 +13,13 @@ describe('UI/theme/_controller/Controller', () => {
 
    class CssLoaderMock implements ICssLoader {
       loads: object = {};
-      load(href: string): Promise<string> {
+      load(href: string): Promise<void> {
          const [name, theme]: string[] = href.split('-');
          if (!this.loads[name]) {
             this.loads[name] = {};
          }
          this.loads[name][theme] = this.loads[name][theme] ? this.loads[name][theme] + 1 : 1;
-         return Promise.resolve(cssStyle);
+         return Promise.resolve(void 0);
       }
       getInfo(name: string, theme: string) {
          return {
@@ -50,15 +49,7 @@ describe('UI/theme/_controller/Controller', () => {
    });
 
    describe('get', () => {
-      it('Метод возвращает Promise<Style> на клиенте', () => {
-         if (!constants.isBrowserPlatform) { return; }
-         const getting = controller.get(cssName);
-         assert.instanceOf(getting, Promise);
-         return getting.then((css) => { assert.instanceOf(css, Style); });
-      });
-
-      it('Метод возвращает Promise<Link> на СП', () => {
-         if (!constants.isServerSide) { return; }
+      it('Метод возвращает Promise<Link>', () => {
          const getting = controller.get(cssName);
          assert.instanceOf(getting, Promise);
          return getting.then((css) => { assert.instanceOf(css, Link); });
@@ -80,21 +71,7 @@ describe('UI/theme/_controller/Controller', () => {
    });
 
    describe('getAll', () => {
-      it('Метод возвращает Style[] на клиенте', () => {
-         if (!constants.isBrowserPlatform) { return; }
-         const cssName2 = 'Another/Control';
-         Promise.all([
-            controller.get(cssName),
-            controller.get(cssName2)
-         ]).then(() => {
-            controller.getAll().forEach((entity) => {
-               assert.instanceOf(entity, Style);
-            });
-         });
-      });
-
-      it('Метод возвращает Link[] на СП', () => {
-         if (!constants.isServerSide) { return; }
+      it('Метод возвращает Link[] ', () => {
          const cssName2 = 'Another/Control';
          Promise.all([
             controller.get(cssName),
