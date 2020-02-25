@@ -17,6 +17,7 @@ export class Controller {
 
    constructor(private cssLoader: ICssLoader) {
       this.set = this.set.bind(this);
+      this.has = this.has.bind(this);
       this.collectCssLinks();
    }
 
