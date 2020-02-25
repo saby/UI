@@ -62,8 +62,7 @@ type IControlChildren = Record<string, Element | Control>;
  * @param {Boolean} isTabPressed Указывает, был ли деактивирован контрол нажатием на клавишу Tab.
  * @remark Контрол перестает быть активным, когда все его дочерние контролы теряют фокус.
  * Подробное описание и примеры использования события читайте
- * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ здесь}.
- * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ здесь}.
  * @see activated
  */
 
