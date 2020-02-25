@@ -400,21 +400,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       }
    }
 
-   _addStyles(theme: string) {
-      const tc = getThemeController();
-      // @ts-ignore
-      const styles: string[] = this._styles || this.constructor._styles || [];
-      const gettingStyles = Promise.all(styles.map((name) => tc.get(name, EMPTY_THEME)));
-
-      if (!theme) { return gettingStyles; }
-
-      // @ts-ignore
-      const themed: string[] = this._theme || this.constructor._theme || [];
-      const gettingThemed = Promise.all(themed.map((name) => tc.get(name, theme)));
-      
-      return Promise.all([gettingStyles, gettingThemed])
-         .then(() => getThemeController().setTheme(theme));
-   }
 
    destroy(): void {
       this._destroyed = true;
@@ -739,7 +724,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._reactiveStart = true;
       }
 
-      resultBeforeMount = Promise.all([this._addStyles(opts.theme), resultBeforeMount]);
+      resultBeforeMount = Promise.all([
+         this.constructor['loadStyles'](opts.theme),
+         resultBeforeMount]);
 
       this._$resultBeforeMount = resultBeforeMount;
       return resultBeforeMount;
@@ -1008,18 +995,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUnmount(): void {
-      const tc = getThemeController();
-      // @ts-ignore
-      const styles: string[] = this._styles || this.constructor._styles || [];
-      const removingStyles = Promise.all(styles.map((name) => tc.remove(name, EMPTY_THEME)));
-
-      // @ts-ignore
-      const themed: string[] = this._theme || this.constructor._theme || [];
-      const removingThemed = Promise.all(themed.map((name) => tc.remove(name)));
-
-      Promise.all([removingStyles, removingThemed]).then(() => {
-         this._beforeUnmount();
-      });
+      this.constructor['removeStyles']().then(() => this._beforeUnmount());
    }
 
    /**
@@ -1061,9 +1037,32 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // Do
    }
 
-   static _styles: string[];
-   static _theme: string[];
+   static _styles: string[]= [];
+   static _theme: string[] = [];
    static isWasaby: boolean = true;
+
+   /**
+    * Загрузка стилей контрола, монтирование скаченных css в head страницы 
+    * @param themeName имя темы, по-умолчанию тема приложения
+    * @static
+    * @method
+    */
+   static loadStyles(themeName?: string): Promise<void> {
+      const tc = getThemeController();
+      const gettingStyles = Promise.all(this._styles.map((name) => tc.get(name, EMPTY_THEME)));
+      const gettingThemed = Promise.all(this._theme.map((name) => tc.get(name, themeName)));
+      return Promise.all([gettingStyles, gettingThemed]).then(() => tc.setTheme(themeName));
+   }
+
+   /**
+    * Удаление style элементов из DOM 
+    */
+   static removeStyles(): Promise<void> {
+      const tc = getThemeController();
+      const removingStyles = Promise.all(this._styles.map((name) => tc.remove(name, EMPTY_THEME)));
+      const removingThemed = Promise.all(this._theme.map((name) => tc.remove(name)));
+      return Promise.all([removingStyles, removingThemed]).then(() => void 0);
+   }
 
    static extend(mixinsList: any, classExtender: any): Function {
       // @ts-ignore
