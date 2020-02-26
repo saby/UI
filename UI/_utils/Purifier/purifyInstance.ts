@@ -20,16 +20,14 @@ function isValueToPurify(stateValue: any): boolean {
 }
 
 function purifyInstanceSync(instance: Record<string, any>, instanceName: string) {
+    if (instance.__purified) {
+        return;
+    }
+
     // @ts-ignore: есть полифилл для Object.entries, информации о котором нет у компиллятора ts.
     const instanceEntries = Object.entries(instance);
     while (instanceEntries.length) {
         const [stateName, stateValue] = instanceEntries.pop();
-
-        // TODO: Удалить исключение для поля _children после решения ошибки по ссылке ниже.
-        // https://online.sbis.ru/opendoc.html?guid=095a1b4d-77e9-49fb-96ec-cf4aa6372e2b
-        if (stateName === '_children' || stateName === '__purified') {
-            continue;
-        }
 
         const getterFunction = isValueToPurify(stateValue) ?
             createUseAfterDestroyErrorFunction(stateName, instanceName) :
@@ -42,21 +40,20 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string)
             get: getterFunction
         });
     }
-    if (!instance.__purified) {
-        Object.defineProperty(instance, '__purified', {
-            enumerable: false,
-            configurable: false,
-            get: () => true
-        });
-    }
+
+    Object.defineProperty(instance, '__purified', {
+        enumerable: false,
+        configurable: false,
+        get: () => true
+    });
     Object.freeze(instance);
 }
 
 /**
- * Функция, очищающая экземпляр от объектов и фунций. Генерирует ошибку при попытке обратиться к ним.
+ * Функция, очищающая экземпляр от объектов и фунций. Генерирует предупреждение при попытке обратиться к ним.
  * Также замораживает экземпляр, тем самым убирая возможность записать или перезаписать поле любого типа.
  * @param {Record<string, any>} instance - экземпляр, поля которого нужно очистить.
- * @param {string} [instanceName = 'instance'] - имя экземпляра для отображения в ошибке.
+ * @param {string} [instanceName = 'instance'] - имя экземпляра для отображения в предупреждении.
  * @param {boolean} [async = false] - вызывать ли очистку с задержкой.
  * @class UI/_utils/Purifier/purifyInstance
  * @author Кондаков Р.Н.
