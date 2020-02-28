@@ -1,11 +1,14 @@
 /// <amd-module name='UI/_base/PageDeps' />
 import { cookie, constants } from 'Env/Env';
 import { DepsCollector, ICollectedFiles, IDeps } from 'UI/_base/DepsCollector';
+const root = constants.resourceRoot || 'resources';
 let contents: Partial<IContents> = {};
 try {
    // @ts-ignore tslint:disable-next-line:no-var-requires
-   contents = require(`json!${constants.resourceRoot}/contents`);
-} catch { }
+   contents = require(`json!${root}/contents`);
+} catch {
+   contents = {};
+}
 
 const noDescription: IModulesDescription = {
    bundles: {},
@@ -62,7 +65,7 @@ function getModulesDeps(modules: IModules = {}): IModulesDescription[] {
       .filter((name) => !!modules[name].path)
       .map((name) => modules[name].path);
 
-   return [constants.resourceRoot, ...externalPaths]
+   return [root, ...externalPaths]
       .map(requireModuleDeps);
 }
 
