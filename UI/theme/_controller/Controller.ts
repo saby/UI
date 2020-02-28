@@ -12,7 +12,7 @@ import { constants, cookie } from 'Env/Env';
  * @singleton
  */
 export class Controller {
-   private store: Store<Link> = new Store<Link>();
+   private store: Store<ICssEntity> = new Store<ICssEntity>();
    /** Имя темы приложения */
    appTheme: string = DEFAULT_THEME;
 
@@ -29,7 +29,7 @@ export class Controller {
     *  - на клиенте `Link` содержит HTMLLinkElement, который монтируется в head
     * При повторном запросе востребованность темы возрастает
     */
-   get(cssName: string, themeName?: string): Promise<Link> {
+   get(cssName: string, themeName?: string): Promise<ICssEntity> {
       const theme = typeof themeName !== 'undefined' ? themeName : this.appTheme;
       if (this.has(cssName, theme)) {
          const entity = this.store.get(cssName, theme);
@@ -88,7 +88,7 @@ export class Controller {
     * Сохранение css сущности в store
     * @param link
     */
-   private set(link: Link): void {
+   private set(link: ICssEntity): void {
       if (link.themeType === THEME_TYPE.SINGLE) {
          /**
           * при переключении немультитемной темы остальные темы должны удаляться,
