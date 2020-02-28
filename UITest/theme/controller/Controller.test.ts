@@ -123,19 +123,25 @@ describe('UI/theme/_controller/Controller', () => {
 
    describe('remove', () => {
 
-      it('невостребованные стили удаляются', async () => {
-         await controller.get(cssName);
-         const isRemoved = await controller.remove(cssName);
-         assert.isTrue(isRemoved);
-         assert.isFalse(controller.has(cssName));
+      it('невостребованные стили удаляются', (done) => {
+         controller.get(cssName)
+            .then(() => controller.remove(cssName))
+            .then((isRemoved) => {
+               assert.isTrue(isRemoved);
+               assert.isFalse(controller.has(cssName));
+            })
+            .then(done, done);
       });
 
-      it('востребованные стили не удаляются', async () => {
-         await controller.get(cssName);
-         await controller.get(cssName);
-         const isRemoved = await controller.remove(cssName);
-         assert.isFalse(isRemoved);
-         assert.isTrue(controller.has(cssName));
+      it('востребованные стили не удаляются', (done) => {
+         controller.get(cssName)
+            .then(() => { controller.get(cssName); })
+            .then(() => controller.remove(cssName))
+            .then((isRemoved) => {
+               assert.isFalse(isRemoved);
+               assert.isTrue(controller.has(cssName));
+            })
+            .then(done, done);
       });
    });
 

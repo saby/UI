@@ -25,7 +25,6 @@ export abstract class Base implements ICssEntity {
       public cssName: string,
       public themeName: string = DEFAULT_THEME,
       public themeType: THEME_TYPE = DEFAULT_THEME_TYPE,
-      public element: IHTMLElement = null
    ) { }
 
    /**
@@ -51,18 +50,12 @@ export abstract class Base implements ICssEntity {
     *    await base.remove(); // Promise<true>
     */
    remove(force: boolean = false): Promise<boolean> {
-      this.requirement--;
-      if (!force && this.requirement !== 0) {
-         return Promise.resolve(false);
+      if (force) {
+         this.requirement = 0;
+         return Promise.resolve(true);
       }
-      return new Promise((res, rej) => {
-         setTimeout(() => {
-            try {
-               this.element?.remove();
-               res(true);
-            } catch (e) { rej(e); }
-         }, 0);
-      });
+      this.requirement--;
+      return Promise.resolve(this.requirement === 0);
    }
 
    /**

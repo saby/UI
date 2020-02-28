@@ -11,9 +11,9 @@ export default class Link extends Base implements ICssEntity {
       cssName: string,
       themeName: string,
       themeType: THEME_TYPE,
-      element: IHTMLElement = createElement(href, cssName, themeName, themeType)
+      public element: IHTMLElement = createElement(href, cssName, themeName, themeType)
    ) {
-      super(href, cssName, themeName, themeType, element);
+      super(href, cssName, themeName, themeType);
       this.outerHtml = element.outerHTML;
    }
 
@@ -23,6 +23,25 @@ export default class Link extends Base implements ICssEntity {
        * Браузер кэширует запрошенные через fetch стили, повторной загрузки не будет, а ошибки загрузки перехватываются.
        */
       return loader.load(this.href).then(() => { mountElement(this.element); });
+   }
+
+   /**
+    * Удаление зависимости контрола от css
+    * @param force принудительное удаление
+    * @return {boolean} true, если css никому не нужна контролам, удалена из DOM
+    * @example
+    *    const base = new Base(name, theme, themeType);
+    *    base.require();
+    *    await base.remove(); // Promise<false>
+    *    await base.remove(); // Promise<true>
+    */
+   remove(force: boolean = false): Promise<boolean> {
+      return super.remove(force).then((isRemoved) => {
+         if (isRemoved) {
+            this.element.remove();
+         }
+         return isRemoved;
+      });
    }
 
    /**
