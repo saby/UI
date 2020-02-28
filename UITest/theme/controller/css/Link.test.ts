@@ -51,11 +51,12 @@ describe('UI/theme/_controller/css/Link', () => {
       if (!constants.isBrowserPlatform) { return; }
 
       it('load returns Promise<void>', () => {
-         assert.instanceOf(link.load(loader), Promise);
+         assert.instanceOf(new Link(href, name, theme, themeType).load(loader), Promise);
       });
 
       it('load fetch css by href', () =>
-         link.load(loader)
+         new Link(href, name, theme, themeType)
+            .load(loader)
             .then(() => { assert.isTrue(href in loader.loads); })
       );
    });

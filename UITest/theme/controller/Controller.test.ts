@@ -138,4 +138,9 @@ describe('UI/theme/_controller/Controller', () => {
          assert.isTrue(controller.has(cssName));
       });
    });
+
+   afterEach(() => {
+      controller = null;
+      loader = null;
+   });
 });
