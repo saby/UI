@@ -1,7 +1,5 @@
 /// <amd-module name="UI/_base/HeadData" />
 // @ts-ignore
-import ThemesController = require('Core/Themes/ThemesController');
-// @ts-ignore
 import { cookie } from 'Env/Env';
 import { DepsCollector, ICollectedFiles, IDeps } from 'UI/_base/DepsCollector';
 // @ts-ignore
@@ -90,7 +88,6 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             const { additionalDeps: rsDeps, serialized: rsSerialized } = getSerializedData();
             const prevDeps = Object.keys(rsDeps);
             const files = this.pageDeps.collect([...prevDeps, ...this.initDeps]);
-            initThemesController(files.css.themedCss, files.css.simpleCss);
             this.resolve({
                 ...files,
                 rsSerialized,
@@ -180,10 +177,6 @@ class PageDeps {
 
 function getSerializedData(): ISerializedData {
     return AppEnv.getStateReceiver().serialize();
-}
-
-function initThemesController(themedCss: string[], simpleCss: string[]): void {
-    ThemesController.getInstance().initCss({ themedCss, simpleCss });
 }
 
 interface ISerializedData {

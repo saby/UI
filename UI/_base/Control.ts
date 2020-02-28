@@ -10,8 +10,7 @@ import { activate } from 'UI/Focus';
 import { Logger, Purifier } from 'UI/Utils';
 import { constants } from 'Env/Env';
 
-// @ts-ignore
-import ThemesController = require('Core/Themes/ThemesControllerNew');
+import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
 // @ts-ignore
 import PromiseLib = require('Core/PromiseLib/PromiseLib');
 // @ts-ignore
@@ -400,105 +399,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       }
    }
 
-   _manageStyles(theme: string, oldTheme?: string): boolean | Promise<boolean | boolean[]> {
-      if (!this._checkNewStyles()) {
-         return true;
-      }
-      const themesController = ThemesController.getInstance();
-      // @ts-ignore
-      const styles = this._styles || this.constructor._styles || [];
-      // @ts-ignore
-      const themedStyles = this._theme || this.constructor._theme || [];
-
-      if (oldTheme) {
-         this._removeOldStyles(themesController, oldTheme, themedStyles, []);
-      }
-      return this._loadNewStyles(themesController, theme, themedStyles, styles);
-   }
-
-   _checkNewStyles(): boolean {
-      return !((this._theme && !this._theme.forEach) || (this._styles && !this._styles.forEach));
-   }
-
-   _loadNewStyles(
-      themesController: any,
-      theme: string,
-      themedStyles: any[],
-      styles: any[]
-   ): Promise<boolean | boolean[]> | boolean {
-      const self = this;
-      const promiseArray = [];
-      if (typeof window === 'undefined') {
-         styles.forEach((name) => {
-            themesController.pushCss(name);
-         });
-         themedStyles.forEach((name) => {
-            themesController.pushThemedCss(name, theme);
-         });
-      } else {
-         styles.forEach((name) => {
-            if (themesController.isCssLoaded(name)) {
-               themesController.pushCssLoaded(name);
-            } else {
-               const loadPromise = PromiseLib.reflect(
-                  PromiseLib.wrapTimeout(themesController.pushCssAsync(name), WRAP_TIMEOUT)
-               );
-               loadPromise.then((res) => {
-                  if (res.status === 'rejected') {
-                     const message = '[UI/_base/Control:_loadNewStyles] Styles loading error ' +
-                        `Could not load style ${name} for "${self._moduleName}`;
-                     Logger.error(message, self);
-                  }
-               });
-               promiseArray.push(loadPromise);
-            }
-         });
-         themedStyles.forEach((name) => {
-            if (themesController.isThemedCssLoaded(name, theme)) {
-               themesController.pushCssThemedLoaded(name, theme);
-            } else {
-               const loadPromise = PromiseLib.reflect(
-                  PromiseLib.wrapTimeout(themesController.pushCssThemedAsync(name, theme), WRAP_TIMEOUT)
-               );
-               loadPromise.then((res) => {
-                  if (res.status === 'rejected') {
-                     const message = '[UI/_base/Control:_loadNewStyles] Styles loading error ' +
-                        `Could not load style ${name} for "${self._moduleName} with theme ${theme}`;
-                     Logger.error(message, self);
-                  }
-               });
-               promiseArray.push(loadPromise);
-            }
-         });
-         if (promiseArray.length) {
-            return Promise.all(promiseArray);
-         }
-      }
-      return true;
-   }
-
-   _removeOldStyles(themesController: any, theme: string, themedStyles: any[], styles: any[]): void {
-      styles.forEach(
-         (name): void => {
-            themesController.removeCss(name);
-         }
-      );
-      themedStyles.forEach(
-         (name): void => {
-            themesController.removeCssThemed(name, theme);
-         }
-      );
-   }
-
-   _removeStyles(theme: string): boolean {
-      if (!this._checkNewStyles()) {
-         return true;
-      }
-      const themesController = ThemesController.getInstance();
-      const styles = this._styles || [];
-      const themedStyles = this._theme || [];
-      this._removeOldStyles(themesController, theme, themedStyles, styles);
-   }
 
    destroy(): void {
       this._destroyed = true;
@@ -783,6 +683,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       });
    }
 
+   /**
+    * хук должен ограничивать асинхронное построение 20-ю секундами (устанавливается в HeadData).
+    * вызывается он в процессе генерации верстки
+    * @author Тэн В.А.
+    */
    _beforeMountLimited(opts: TOptions): Promise<TState> | Promise<void> | void {
       if (this._$resultBeforeMount) {
          return this._$resultBeforeMount;
@@ -818,10 +723,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._reactiveStart = true;
       }
 
-      const cssResult = this._manageStyles(opts.theme);
-      if (cssResult.then) {
-         resultBeforeMount = Promise.all([cssResult, resultBeforeMount]);
-      }
+      resultBeforeMount = Promise.all([
+         this.constructor['loadStyles'](opts.theme),
+         resultBeforeMount]);
 
       this._$resultBeforeMount = resultBeforeMount;
       return resultBeforeMount;
@@ -878,9 +782,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUpdate(newOptions: TOptions): void {
-      if (newOptions.theme !== this._options.theme) {
-         this._manageStyles(newOptions.theme, this._options.theme);
-      }
+      getThemeController().setTheme(newOptions.theme);
       this._beforeUpdate.apply(this, arguments);
    }
 
@@ -1092,8 +994,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUnmount(): void {
-      this._removeStyles(this._options.theme);
-      this._beforeUnmount.apply(this, arguments);
+      this.constructor['removeStyles']().then(() => this._beforeUnmount());
    }
 
    /**
@@ -1135,9 +1036,32 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // Do
    }
 
-   static _styles: string[];
-   static _theme: string[];
+   static _styles: string[]= [];
+   static _theme: string[] = [];
    static isWasaby: boolean = true;
+
+   /**
+    * Загрузка стилей контрола, монтирование скаченных css в head страницы 
+    * @param themeName имя темы, по-умолчанию тема приложения
+    * @static
+    * @method
+    */
+   static loadStyles(themeName?: string): Promise<void> {
+      const tc = getThemeController();
+      const gettingStyles = Promise.all(this._styles.map((name) => tc.get(name, EMPTY_THEME)));
+      const gettingThemed = Promise.all(this._theme.map((name) => tc.get(name, themeName)));
+      return Promise.all([gettingStyles, gettingThemed]).then(() => tc.setTheme(themeName));
+   }
+
+   /**
+    * Удаление style элементов из DOM 
+    */
+   static removeStyles(): Promise<void> {
+      const tc = getThemeController();
+      const removingStyles = Promise.all(this._styles.map((name) => tc.remove(name, EMPTY_THEME)));
+      const removingThemed = Promise.all(this._theme.map((name) => tc.remove(name)));
+      return Promise.all([removingStyles, removingThemed]).then(() => void 0);
+   }
 
    static extend(mixinsList: any, classExtender: any): Function {
       // @ts-ignore
