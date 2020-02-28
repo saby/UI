@@ -1,10 +1,10 @@
 /// <amd-module name='UI/theme/_controller/Controller' />
 import { THEME_TYPE, DEFAULT_THEME, ICssEntity } from 'UI/theme/_controller/css/Base';
 import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
+import LinkSP from 'UI/theme/_controller//css/LinkSP';
 import Link from 'UI/theme/_controller/css/Link';
 import Store from 'UI/theme/_controller/Store';
 import { constants, cookie } from 'Env/Env';
-import LinkSP from './css/LinkSP';
 
 /**
  * Контроллер тем, необходим для скачивания/удаления/коллекции/переключения тем на странице
