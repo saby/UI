@@ -9,7 +9,6 @@ import { IStore } from 'Application/Interface';
 
 export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     static readonly SSR_DELAY = 20000;
-    isDebug: boolean;
     // переедет в константы реквеста, изменяется в Controls/Application
     isNewEnvironment: boolean = false;
     pageDeps: PageDeps;

@@ -19,7 +19,7 @@ export default class PageDeps {
    isDebug: boolean;
 
    constructor() {
-      this.isDebug = cookie.get('s3debug') === 'true' || contents.buildMode === 'debug';
+      this.isDebug = cookie.get('s3debug') === 'true' || contents?.buildMode === 'debug';
    }
 
    collect(initDeps: IDeps = []): ICollectedFiles {
