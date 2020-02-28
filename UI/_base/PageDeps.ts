@@ -5,7 +5,7 @@ const root = constants.resourceRoot || 'resources';
 let contents: Partial<IContents> = {};
 try {
    // @ts-ignore tslint:disable-next-line:no-var-requires
-   contents = require(`json!${root}/contents`);
+   contents = require(`json!${root}/contents`) || {};
 } catch {
    contents = {};
 }
@@ -22,7 +22,7 @@ export default class PageDeps {
    isDebug: boolean;
 
    constructor() {
-      this.isDebug = cookie.get('s3debug') === 'true' || contents?.buildMode === 'debug';
+      this.isDebug = cookie.get('s3debug') === 'true' || contents.buildMode === 'debug';
    }
 
    collect(initDeps: IDeps = []): ICollectedFiles {
