@@ -5,6 +5,7 @@ import { constants } from 'Env/Env';
 import { THEME_TYPE } from 'UI/theme/_controller/css/Base';
 import Link from 'UI/theme/_controller/css/Link';
 import { ICssLoader } from 'UI/theme/_controller/Loader';
+import LinkSP from 'UI/theme/_controller/css/LinkSP';
 
 describe('UI/theme/_controller/Controller', () => {
    const cssName = 'Some/Control1';
@@ -49,10 +50,18 @@ describe('UI/theme/_controller/Controller', () => {
    });
 
    describe('get', () => {
-      it('Метод возвращает Promise<Link>', () => {
+      it('Метод возвращает Promise<Link> на клиенте', () => {
+         if (!constants.isBrowserPlatform) { return; }
          const getting = controller.get(cssName);
          assert.instanceOf(getting, Promise);
          return getting.then((css) => { assert.instanceOf(css, Link); });
+      });
+
+      it('Метод возвращает Promise<LinkSP> на СП', () => {
+         if (!constants.isServerSide) { return; }
+         const getting = controller.get(cssName);
+         assert.instanceOf(getting, Promise);
+         return getting.then((css) => { assert.instanceOf(css, LinkSP); });
       });
 
       it('Загруженные стили не запрашиваются повторно', async () => {

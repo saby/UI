@@ -1,10 +1,9 @@
 import { assert } from 'chai';
-// @ts-ignore
 import { constants } from 'Env/Env';
 import Link from 'UI/theme/_controller/css/Link';
 import { THEME_TYPE } from 'UI/theme/controller';
-import { ELEMENT_ATTR, IHTMLElement } from 'UI/theme/_controller/css/Base';
-
+import { ELEMENT_ATTR, IHTMLElement, ILoader } from 'UI/theme/_controller/css/Base';
+import 'mocha';
 const href = 'Some/href';
 const name = 'Some/Control';
 const theme = 'Some-theme';
@@ -17,11 +16,11 @@ class LinkElementMock implements IHTMLElement {
       _href: string,
       name: string,
       theme: string,
-      themeType: THEME_TYPE) { 
-         this[ELEMENT_ATTR.NAME] = name;
-         this[ELEMENT_ATTR.THEME] = theme;
-         this[ELEMENT_ATTR.THEME_TYPE] = themeType;
-      }
+      themeType: THEME_TYPE) {
+      this[ELEMENT_ATTR.NAME] = name;
+      this[ELEMENT_ATTR.THEME] = theme;
+      this[ELEMENT_ATTR.THEME_TYPE] = themeType;
+   }
    getAttribute(attr) {
       return this[attr];
    }
@@ -31,13 +30,41 @@ class LinkElementMock implements IHTMLElement {
 }
 
 let element: LinkElementMock;
+let loader: LoaderMock;
 let link: Link;
+class LoaderMock implements ILoader {
+   loads: object = {};
+   load(href: string): Promise<void> {
+      this.loads[href] = this.loads[href] ? this.loads[href] + 1 : 1;
+      return Promise.resolve(void 0);
+   }
+};
 
 describe('UI/theme/_controller/css/Link', () => {
 
    beforeEach(() => {
       element = new LinkElementMock(href, name, theme, themeType);
       link = Link.from(element);
+      loader = new LoaderMock();
+   });
+
+   describe('load', () => {
+      if (!constants.isBrowserPlatform) { return; }
+
+      it('load returns Promise<void>', () => {
+         assert.instanceOf(link.load(loader), Promise);
+      });
+
+      it('load fetch css by href', () =>
+         link.load(loader)
+            .then(() => { assert.isTrue(href in loader.loads); })
+      );
+   });
+
+   describe('outerHtml', () => {
+      it('outerHtml непустая строка', () => {
+         assert.isString(link.outerHtml);
+      });
    });
 
    describe('from', () => {
@@ -50,8 +77,6 @@ describe('UI/theme/_controller/css/Link', () => {
    });
 
    describe('require / remove', () => {
-      if (!constants.isBrowserPlatform) { return; }
-
       it('при удалении экземпляр Link также удаляется элемент из DOM', async () => {
          const isRemoved = await link.remove();
          assert.isTrue(isRemoved);

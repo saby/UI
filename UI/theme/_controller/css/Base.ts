@@ -1,6 +1,6 @@
 /// <amd-module name='UI/theme/_controller/css/Base' />
 
-export class Base implements ICssEntity {
+export abstract class Base implements ICssEntity {
    /**
     * HTML- разметка сущности
     * @example
@@ -21,6 +21,7 @@ export class Base implements ICssEntity {
    protected requirement: number = 1;
 
    constructor(
+      public href: string,
       public cssName: string,
       public themeName: string = DEFAULT_THEME,
       public themeType: THEME_TYPE = DEFAULT_THEME_TYPE,
@@ -63,6 +64,15 @@ export class Base implements ICssEntity {
          }, 0);
       });
    }
+
+   /**
+    * Скачивание стилей
+    * @param loader
+    */
+   abstract load(loader: ILoader): Promise<void>;
+}
+export interface ILoader {
+   load(href: string): Promise<void>;
 }
 /**
  * перечисление аттрибутов css сущностей в DOM

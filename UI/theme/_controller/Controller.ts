@@ -4,6 +4,7 @@ import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
 import Link from 'UI/theme/_controller/css/Link';
 import Store from 'UI/theme/_controller/Store';
 import { constants, cookie } from 'Env/Env';
+import LinkSP from './css/LinkSP';
 
 /**
  * Контроллер тем, необходим для скачивания/удаления/коллекции/переключения тем на странице
@@ -36,18 +37,9 @@ export class Controller {
          return Promise.resolve(entity);
       }
       const { href, themeType } = this.cssLoader.getInfo(cssName, theme);
-      if (constants.isServerSide) {
-         const link = new Link(href, cssName, theme, themeType);
-         this.set(link);
-         return Promise.resolve(link);
-      }
-      /**
-       * На клиенте делаем fetch для новых стилей и игнориуем результат т.к монтируем в head стили как link элемент.
-       * Браузер кэширует запрошенные через fetch стили, повторной загрузки не будет, а ошибки загрузки перехватываются.
-       */
-      return this.cssLoader.load(href).then(() => {
-         const link = Link.create(href, cssName, theme, themeType);
-         this.mount(link);
+      const LinkClass = (constants.isServerSide) ? LinkSP : Link;
+      const link = new LinkClass(href, cssName, theme, themeType);
+      return link.load(this.cssLoader).then(() => {
          this.set(link);
          return link;
       });
@@ -117,14 +109,6 @@ export class Controller {
          .from(document.getElementsByTagName('link'))
          .map(Link.from)
          .forEach(this.set);
-   }
-
-   /**
-    * Монтирование style элемента со стилями в head,
-    * сохрание css/Style в Store
-    */
-   private mount(link: Link): void {
-      document.head.appendChild(link.element as HTMLLinkElement);
    }
 
    static instance: Controller;
