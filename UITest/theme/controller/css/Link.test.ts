@@ -3,7 +3,6 @@ import { constants } from 'Env/Env';
 import Link from 'UI/theme/_controller/css/Link';
 import { THEME_TYPE } from 'UI/theme/controller';
 import { ELEMENT_ATTR, IHTMLElement, ILoader } from 'UI/theme/_controller/css/Base';
-import 'mocha';
 const href = 'Some/href';
 const name = 'Some/Control';
 const theme = 'Some-theme';

@@ -1,7 +1,7 @@
 /// <amd-module name='UI/theme/_controller/Controller' />
 import { THEME_TYPE, DEFAULT_THEME, ICssEntity } from 'UI/theme/_controller/css/Base';
 import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
-import LinkSP from 'UI/theme/_controller//css/LinkSP';
+import LinkSP from 'UI/theme/_controller/css/LinkSP';
 import Link from 'UI/theme/_controller/css/Link';
 import Store from 'UI/theme/_controller/Store';
 import { constants, cookie } from 'Env/Env';
@@ -24,8 +24,8 @@ export class Controller {
 
    /**
     * Получение экземпляра CssEntity по имени и теме
-    * В случае отсутсвия сохранненого значения в Store создается экземпляр `Link`
-    *  - на СП `Link` содержит имя контрола, тему, ссылку, строковое представление outerHtml link элемента
+    * В случае отсутсвия сохранненого значения в Store
+    *  - на СП `LinkSP` содержит имя контрола, тему, ссылку, строковое представление outerHtml link элемента
     *  - на клиенте `Link` содержит HTMLLinkElement, который монтируется в head
     * При повторном запросе востребованность темы возрастает
     */

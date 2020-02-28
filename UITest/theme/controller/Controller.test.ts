@@ -10,7 +10,6 @@ import LinkSP from 'UI/theme/_controller/css/LinkSP';
 describe('UI/theme/_controller/Controller', () => {
    const cssName = 'Some/Control1';
    const themeName = 'Some/Theme1';
-   const cssStyle = 'style';
 
    class CssLoaderMock implements ICssLoader {
       loads: object = {};

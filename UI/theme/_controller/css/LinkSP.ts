@@ -10,7 +10,7 @@ export default class LinkSP extends Base implements ICssEntity {
       href: string,
       cssName: string,
       themeName: string,
-      themeType: THEME_TYPE,
+      themeType: THEME_TYPE
    ) {
       super(href, cssName, themeName, themeType);
       this.outerHtml = getLinkHtml(href, cssName, themeName, themeType);
