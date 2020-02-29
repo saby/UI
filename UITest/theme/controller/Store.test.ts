@@ -1,6 +1,5 @@
 import Store from "UI/theme/_controller/Store";
 import { ICssEntity, DEFAULT_THEME, DEFAULT_THEME_TYPE } from "UI/theme/_controller/css/Base";
-import { assert } from 'chai';
 
 const name = 'Some/Control';
 const theme = 'Some-theme';
@@ -31,12 +30,21 @@ let store: Store;
 
 describe('UI/theme/_controller/Store', () => {
 
-   beforeEach(() => {
-      link = new LinkMock(name, theme);
-      store = new Store();
-   });
+   const setHooks = () => {
+      beforeEach(() => {
+         link = new LinkMock(name, theme);
+         store = new Store();
+      });
+
+      afterEach(() => {
+         link = null;
+         store = null;
+      });
+   };
 
    describe('has', () => {
+      setHooks();
+
       it('Проверка наличия темы для контрола css', () => {
          store.set(link);
          assert.isTrue(store.has(name, theme));
@@ -49,6 +57,8 @@ describe('UI/theme/_controller/Store', () => {
    });
 
    describe('set / get', () => {
+      setHooks();
+
       it('Добавление новой css', () => {
          store.set(link);
          assert.deepEqual(store.get(name, theme), link);
@@ -67,14 +77,15 @@ describe('UI/theme/_controller/Store', () => {
    });
 
    describe('remove / require', () => {
+      setHooks();
 
-      it('Удаление темы', async () => {
+      it('Удаление темы', () => {
          store.set(link);
-         const isRemoved = await store.remove(name, theme);
-         assert.isTrue(isRemoved);
-         assert.isFalse(store.has(name, theme));
-         assert.sameMembers(store.getNames(), [name]);
+         return store.remove(name, theme).then((isRemoved) => {
+            assert.isTrue(isRemoved);
+            assert.isFalse(store.has(name, theme));
+            assert.sameMembers(store.getNames(), [name]);
+         });
       });
    });
 });
-

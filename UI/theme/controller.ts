@@ -2,7 +2,7 @@
 /**
  * Библиотека контроллера тем
  * @remark
- * Контроллер управляет загрузкой/удаленим темизированных стилей на wasaby-странице
+ * Контроллер управляет загрузкой/удалением темизированных стилей на wasaby-странице
  * {@link Темы https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/}
  * @library UI/theme/controller
  * @includes getThemeController UI/theme/_controller/Controller#getInstance

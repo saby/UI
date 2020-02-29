@@ -1,10 +1,8 @@
-import { assert } from 'chai';
 import { constants } from 'Env/Env';
 import Link from 'UI/theme/_controller/css/Link';
 import { THEME_TYPE } from 'UI/theme/controller';
 import { ELEMENT_ATTR, IHTMLElement, ILoader } from 'UI/theme/_controller/css/Base';
-import 'mocha';
-const href = 'Some/href';
+const href = '#Some/href';
 const name = 'Some/Control';
 const theme = 'Some-theme';
 const themeType = THEME_TYPE.MULTI;
@@ -42,32 +40,46 @@ class LoaderMock implements ILoader {
 
 describe('UI/theme/_controller/css/Link', () => {
 
-   beforeEach(() => {
-      element = new LinkElementMock(href, name, theme, themeType);
-      link = Link.from(element);
-      loader = new LoaderMock();
-   });
+   const setHooks = () => {
+      beforeEach(() => {
+         element = new LinkElementMock(href, name, theme, themeType);
+         link = Link.from(element);
+         loader = new LoaderMock();
+      });
+      afterEach(() => {
+         element = null;
+         link = null;
+         loader = null;
+      });
+   };
 
    describe('load', () => {
       if (!constants.isBrowserPlatform) { return; }
+      setHooks();
 
       it('load returns Promise<void>', () => {
-         assert.instanceOf(link.load(loader), Promise);
+         const link = new Link(href, name, theme, themeType);
+         assert.instanceOf(new Link(href, name, theme, themeType).load(loader), Promise);
+         link.remove();
       });
 
-      it('load fetch css by href', () =>
-         link.load(loader)
+      it('load fetch css by href', () => {
+         const link = new Link(href, name, theme, themeType);
+         return link.load(loader)
             .then(() => { assert.isTrue(href in loader.loads); })
-      );
+            .then(() => link.remove());
+      });
    });
 
    describe('outerHtml', () => {
+      setHooks();
       it('outerHtml непустая строка', () => {
          assert.isString(link.outerHtml);
       });
    });
 
    describe('from', () => {
+      setHooks();
       it('Link`s instance from HTMLLinkElement', () => {
          assert.instanceOf(link, Link);
          assert.strictEqual(name, link.cssName);
@@ -77,17 +89,20 @@ describe('UI/theme/_controller/css/Link', () => {
    });
 
    describe('require / remove', () => {
-      it('при удалении экземпляр Link также удаляется элемент из DOM', async () => {
-         const isRemoved = await link.remove();
-         assert.isTrue(isRemoved);
-         assert.isTrue(element.__removed);
+      setHooks();
+      it('при удалении экземпляр Link также удаляется элемент из DOM', () => {
+         return link.remove().then((isRemoved) => {
+            assert.isTrue(isRemoved);
+            assert.isTrue(element.__removed);
+         });
       });
 
-      it('css, необходимая другим контролам, не удаляется', async () => {
+      it('css, необходимая другим контролам, не удаляется', () => {
          link.require();
-         const isRemoved = await link.remove();
-         assert.isFalse(isRemoved);
-         assert.isFalse(element.__removed);
+         return link.remove().then((isRemoved) => {
+            assert.isFalse(isRemoved);
+            assert.isFalse(element.__removed);
+         });
       });
    });
 });

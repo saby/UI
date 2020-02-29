@@ -11,9 +11,9 @@ export default class Link extends Base implements ICssEntity {
       cssName: string,
       themeName: string,
       themeType: THEME_TYPE,
-      element: IHTMLElement = createElement(href, cssName, themeName, themeType)
+      public element: IHTMLElement = createElement(href, cssName, themeName, themeType)
    ) {
-      super(href, cssName, themeName, themeType, element);
+      super(href, cssName, themeName, themeType);
       this.outerHtml = element.outerHTML;
    }
 
@@ -26,6 +26,25 @@ export default class Link extends Base implements ICssEntity {
    }
 
    /**
+    * Удаление зависимости контрола от css
+    * @param force принудительное удаление
+    * @return {boolean} true, если css никому не нужна контролам, удалена из DOM
+    * @example
+    *    const base = new Base(name, theme, themeType);
+    *    base.require();
+    *    await base.remove(); // Promise<false>
+    *    await base.remove(); // Promise<true>
+    */
+   remove(force: boolean = false): Promise<boolean> {
+      return super.remove(force).then((isRemoved) => {
+         if (isRemoved) {
+            this.element.remove();
+         }
+         return isRemoved;
+      });
+   }
+
+   /**
     * Создание экземпляра Link из HTMLLinkElement
     * @example
     * // получить массив Link
@@ -33,11 +52,15 @@ export default class Link extends Base implements ICssEntity {
     *         .from(document.getElementsByTagName('link'))
     *         .map(Link.from)
     */
-   static from(element: IHTMLElement): Link {
+   static from(element: IHTMLElement): Link | null {
       const href = element.getAttribute(ELEMENT_ATTR.HREF);
       const name = element.getAttribute(ELEMENT_ATTR.NAME);
       const theme = element.getAttribute(ELEMENT_ATTR.THEME);
       const themeType = element.getAttribute(ELEMENT_ATTR.THEME_TYPE) as THEME_TYPE;
+      const isNull = (prop) => Object.is(prop, null);
+      if ([name, href, theme, themeType].some(isNull)) {
+         return null;
+      }
       return new Link(href, name, theme, themeType, element);
    }
 }

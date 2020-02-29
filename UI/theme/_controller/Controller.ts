@@ -1,7 +1,7 @@
 /// <amd-module name='UI/theme/_controller/Controller' />
 import { THEME_TYPE, DEFAULT_THEME, ICssEntity } from 'UI/theme/_controller/css/Base';
 import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
-import LinkSP from 'UI/theme/_controller//css/LinkSP';
+import LinkSP from 'UI/theme/_controller/css/LinkSP';
 import Link from 'UI/theme/_controller/css/Link';
 import Store from 'UI/theme/_controller/Store';
 import { constants, cookie } from 'Env/Env';
@@ -12,7 +12,7 @@ import { constants, cookie } from 'Env/Env';
  * @singleton
  */
 export class Controller {
-   private store: Store<Link> = new Store<Link>();
+   private store: Store<ICssEntity> = new Store<ICssEntity>();
    /** Имя темы приложения */
    appTheme: string = DEFAULT_THEME;
 
@@ -24,12 +24,12 @@ export class Controller {
 
    /**
     * Получение экземпляра CssEntity по имени и теме
-    * В случае отсутсвия сохранненого значения в Store создается экземпляр `Link`
-    *  - на СП `Link` содержит имя контрола, тему, ссылку, строковое представление outerHtml link элемента
+    * В случае отсутсвия сохранненого значения в Store
+    *  - на СП `LinkSP` содержит имя контрола, тему, ссылку, строковое представление outerHtml link элемента
     *  - на клиенте `Link` содержит HTMLLinkElement, который монтируется в head
     * При повторном запросе востребованность темы возрастает
     */
-   get(cssName: string, themeName?: string): Promise<Link> {
+   get(cssName: string, themeName?: string): Promise<ICssEntity> {
       const theme = typeof themeName !== 'undefined' ? themeName : this.appTheme;
       if (this.has(cssName, theme)) {
          const entity = this.store.get(cssName, theme);
@@ -46,11 +46,13 @@ export class Controller {
    }
 
    /**
-    * Синхронное получение всех сохраненных ICssEntity сущностей
+    * Синхронное получение всех сохраненных Link'ов
     */
-   getAll(themeName?: string): ICssEntity[] {
-      const theme = typeof themeName !== 'undefined' ? themeName : this.appTheme;
-      return this.store.getNames().map((name) => this.store.get(name, theme));
+   getAll(): ICssEntity[] {
+      return this.store.getNames()
+         .map((name) => this.store.getThemes(name)
+            .map((theme) => this.store.get(name, theme)))
+         .reduce((prev, cur) => prev.concat(cur), []);
    }
    /**
     * Проверка наличия темы `themeName` у контрола `name`
@@ -69,8 +71,7 @@ export class Controller {
          return Promise.resolve();
       }
       this.appTheme = themeName;
-      const themeLoading = this.store
-         .getNames()
+      const themeLoading = this.store.getNames()
          .map((name) => this.get(name, themeName));
       return Promise.all(themeLoading).then(() => void 0);
    }
@@ -88,7 +89,7 @@ export class Controller {
     * Сохранение css сущности в store
     * @param link
     */
-   private set(link: Link): void {
+   private set(link: ICssEntity): void {
       if (link.themeType === THEME_TYPE.SINGLE) {
          /**
           * при переключении немультитемной темы остальные темы должны удаляться,
@@ -108,6 +109,7 @@ export class Controller {
       Array
          .from(document.getElementsByTagName('link'))
          .map(Link.from)
+         .filter((link) => link instanceof Link)
          .forEach(this.set);
    }
 
