@@ -1,50 +1,14 @@
 /// <amd-module name="UI/_base/HeadData" />
 // @ts-ignore
 import ThemesController = require('Core/Themes/ThemesController');
-// @ts-ignore
-import { cookie } from 'Env/Env';
-import { DepsCollector, ICollectedFiles, IDeps } from 'UI/_base/DepsCollector';
+import { IDeps } from 'UI/_base/DepsCollector';
+import PageDeps from 'UI/_base/PageDeps';
 // @ts-ignore
 import * as AppEnv from 'Application/Env';
 import { IStore } from 'Application/Interface';
-/**
- * в s3debug может быть true или строка-перечисление имен непакуемых ресурсов
- * https://online.sbis.ru/opendoc.html?guid=1d5ab888-6f9e-4ee0-b0bd-12e788e60ed9
- */
-let bundles;
-let modDeps;
-let contents = {};
-
-// Need these try-catch because:
-// 1. We don't need to load these files on client
-// 2. We don't have another way to check if these files exists on server
-try {
-    // TODO https://online.sbis.ru/opendoc.html?guid=7e096cc5-d95a-48b9-8b71-2a719bd9886f
-    // Need to fix this, to remove hardcoded paths
-    // @ts-ignore tslint:disable-next-line:no-var-requires
-    modDeps = require('json!resources/module-dependencies');
-} catch (e) {
-    // ignore
-}
-try {
-    // @ts-ignore tslint:disable-next-line:no-var-requires
-    contents = require('json!resources/contents');
-} catch (e) {
-    // ignore
-}
-try {
-    // @ts-ignore tslint:disable-next-line:no-var-requires
-    bundles = require('json!resources/bundlesRoute');
-} catch (e) {
-    // ignore
-}
-
-bundles = bundles || {};
-modDeps = modDeps || { links: {}, nodes: {} };
 
 export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     static readonly SSR_DELAY = 20000;
-    isDebug: boolean;
     // переедет в константы реквеста, изменяется в Controls/Application
     isNewEnvironment: boolean = false;
     pageDeps: PageDeps;
@@ -147,36 +111,6 @@ class HeadDataStore {
  * Singleton для работы со HeadData Store.
  */
 export const headDataStore = new HeadDataStore('HeadData');
-
-
-class PageDeps {
-    public isDebug: boolean;
-
-    constructor () {
-        this.isDebug = cookie.get('s3debug') && cookie.get('s3debug') === 'true' || contents?.['buildMode'] === 'debug';
-    }
-
-    collect(initDeps: IDeps = []): ICollectedFiles {
-        return this.isDebug ? this.getDebugDeps() : this.getRealeseDeps(initDeps, this.getUnpackDeps());
-    }
-
-    private getDebugDeps(): ICollectedFiles {
-        return {
-            js: [],
-            css: { themedCss: [], simpleCss: [] },
-            tmpl: [],
-            wml: []
-        };
-    }
-
-    private getRealeseDeps(deps: IDeps, unpack: IDeps): ICollectedFiles {
-        return new DepsCollector(modDeps.links, modDeps.nodes, bundles).collectDependencies(deps, unpack);
-    }
-
-    private getUnpackDeps(): IDeps {
-        return cookie.get('s3debug')?.split?.(',') || [];
-    } 
-}
 
 function getSerializedData(): ISerializedData {
     return AppEnv.getStateReceiver().serialize();
