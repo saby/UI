@@ -75,7 +75,7 @@ export default class Store<T extends ICssEntity = ICssEntity> {
    /**
     * Возвращает массив тем контролов, для которых есть css в store
     */
-   private getThemes(name: string): string[] {
+   getThemes(name: string): string[] {
       return Object.keys(this.store?.[name] || []);
    }
 }

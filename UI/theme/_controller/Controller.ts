@@ -46,11 +46,13 @@ export class Controller {
    }
 
    /**
-    * Синхронное получение всех сохраненных ICssEntity сущностей
+    * Синхронное получение всех сохраненных Link'ов
     */
-   getAll(themeName?: string): ICssEntity[] {
-      const theme = typeof themeName !== 'undefined' ? themeName : this.appTheme;
-      return this.store.getNames().map((name) => this.store.get(name, theme));
+   getAll(): ICssEntity[] {
+      return this.store.getNames()
+         .map((name) => this.store.getThemes(name)
+            .map((theme) => this.store.get(name, theme)))
+         .reduce((prev, cur) => prev.concat(cur), []);
    }
    /**
     * Проверка наличия темы `themeName` у контрола `name`
@@ -69,8 +71,7 @@ export class Controller {
          return Promise.resolve();
       }
       this.appTheme = themeName;
-      const themeLoading = this.store
-         .getNames()
+      const themeLoading = this.store.getNames()
          .map((name) => this.get(name, themeName));
       return Promise.all(themeLoading).then(() => void 0);
    }
@@ -108,6 +109,7 @@ export class Controller {
       Array
          .from(document.getElementsByTagName('link'))
          .map(Link.from)
+         .filter((link) => link instanceof Link)
          .forEach(this.set);
    }
 

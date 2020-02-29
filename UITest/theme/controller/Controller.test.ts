@@ -1,20 +1,19 @@
-import { Controller } from "UI/theme/_controller/Controller";
-import { assert } from 'chai';
-// @ts-ignore
+import { Controller } from 'UI/theme/_controller/Controller';
 import { constants } from 'Env/Env';
 import { THEME_TYPE } from 'UI/theme/_controller/css/Base';
 import Link from 'UI/theme/_controller/css/Link';
 import { ICssLoader } from 'UI/theme/_controller/Loader';
 import LinkSP from 'UI/theme/_controller/css/LinkSP';
-
 describe('UI/theme/_controller/Controller', () => {
    const cssName = 'Some/Control1';
    const themeName = 'Some/Theme1';
 
+   /** добавляем # в начало href, чтобы не сыпались ошибки о ненайденных стилях */
+   const sharp = '#';
    class CssLoaderMock implements ICssLoader {
       loads: object = {};
       load(href: string): Promise<void> {
-         const [name, theme]: string[] = href.split('-');
+         const [sharp, name, theme]: string[] = href.split('-');
          if (!this.loads[name]) {
             this.loads[name] = {};
          }
@@ -24,7 +23,8 @@ describe('UI/theme/_controller/Controller', () => {
       getInfo(name: string, theme: string) {
          return {
             themeType: THEME_TYPE.MULTI,
-            href: [name, theme].join('-')
+
+            href: [sharp, name, theme].join('-')
          };
       }
       /**
@@ -43,12 +43,24 @@ describe('UI/theme/_controller/Controller', () => {
    let controller: Controller;
    let loader: CssLoaderMock;
 
-   beforeEach(() => {
-      loader = new CssLoaderMock();
-      controller = new Controller(loader);
-   });
+   const setHooks = () => {
+      beforeEach(() => {
+         loader = new CssLoaderMock();
+         controller = new Controller(loader);
+      });
+      afterEach(() => {
+         return Promise.all(
+            controller.getAll().map((link) => { link.remove(true); })
+         ).then(() => {
+            controller = null;
+            loader = null;
+         });
+      });
+   };
 
    describe('get', () => {
+      setHooks();
+
       it('Метод возвращает Promise<Link> на клиенте', () => {
          if (!constants.isBrowserPlatform) { return; }
          const getting = controller.get(cssName);
@@ -63,36 +75,40 @@ describe('UI/theme/_controller/Controller', () => {
          return getting.then((css) => { assert.instanceOf(css, LinkSP); });
       });
 
-      it('Загруженные стили не запрашиваются повторно', async () => {
-         await controller.get(cssName, themeName);
-         await controller.get(cssName, themeName);
-         await controller.get(cssName, themeName);
-         assert.isTrue(loader.isValid());
+      it('Загруженные стили не запрашиваются повторно', () => {
+         if (!constants.isBrowserPlatform) { return; }
+         return controller.get(cssName, themeName)
+            .then(() => controller.get(cssName, themeName))
+            .then(() => controller.get(cssName, themeName))
+            .then(() => { assert.isTrue(loader.isValid()); });
       });
 
-      it('Стили загружаются отдельно для каждой темы', async () => {
+      it('Стили загружаются отдельно для каждой темы', () => {
+         if (!constants.isBrowserPlatform) { return; }
          const theme2 = 'Another/Theme';
-         await controller.get(cssName, themeName);
-         await controller.get(cssName, theme2);
-         assert.isTrue(loader.isValid());
+         return controller.get(cssName, themeName)
+            .then(() => controller.get(cssName, theme2))
+            .then(() => { assert.isTrue(loader.isValid()); });
       });
    });
 
    describe('getAll', () => {
+      setHooks();
+
       it('Метод возвращает Link[] ', () => {
          const cssName2 = 'Another/Control';
-         Promise.all([
-            controller.get(cssName),
-            controller.get(cssName2)
-         ]).then(() => {
-            controller.getAll().forEach((entity) => {
-               assert.instanceOf(entity, Link);
+         return controller.get(cssName)
+            .then(() => controller.get(cssName2))
+            .then(() => {
+               controller.getAll()
+                  .forEach((entity) => { assert.instanceOf(entity, Link); });
             });
-         });
       });
    });
 
    describe('has', () => {
+      setHooks();
+
       it('Возвращает false для несохраненной темы', () => {
          assert.isFalse(controller.has(cssName));
       });
@@ -105,48 +121,45 @@ describe('UI/theme/_controller/Controller', () => {
    });
 
    describe('setTheme', () => {
+      setHooks();
+
       const name2 = 'Another/Control';
       const theme2 = 'Another/Theme';
 
-      it('При установке темы запрашиваются стили для всех контролов', async () => {
-         await controller.get(cssName, themeName);
-         await controller.get(name2, themeName);
-         return controller.setTheme(theme2).then(() => {
-            assert.isTrue(controller.has(cssName, themeName));
-            assert.isTrue(controller.has(name2, themeName));
-            assert.isTrue(controller.has(cssName, theme2));
-            assert.isTrue(controller.has(name2, theme2));
-            assert.isTrue(loader.isValid());
-         });
+      it('При установке темы запрашиваются стили для всех контролов', () => {
+         return controller.get(cssName, themeName)
+            .then(() => controller.get(name2, themeName))
+            .then(() => controller.setTheme(theme2))
+            .then(() => {
+               assert.isTrue(controller.has(cssName, themeName));
+               assert.isTrue(controller.has(name2, themeName));
+               assert.isTrue(controller.has(cssName, theme2));
+               assert.isTrue(controller.has(name2, theme2));
+               assert.isTrue(loader.isValid());
+            });
       });
    });
 
    describe('remove', () => {
+      setHooks();
 
-      it('невостребованные стили удаляются', (done) => {
-         controller.get(cssName)
+      it('невостребованные стили удаляются', () => {
+         return controller.get(cssName)
             .then(() => controller.remove(cssName))
             .then((isRemoved) => {
                assert.isTrue(isRemoved);
                assert.isFalse(controller.has(cssName));
-            })
-            .then(done, done);
+            });
       });
 
-      it('востребованные стили не удаляются', (done) => {
-         controller.get(cssName)
-            .then(() => { controller.get(cssName); })
+      it('востребованные стили не удаляются', () => {
+         return controller.get(cssName)
+            .then(() => controller.get(cssName))
             .then(() => controller.remove(cssName))
             .then((isRemoved) => {
                assert.isFalse(isRemoved);
                assert.isTrue(controller.has(cssName));
-            })
-            .then(done, done);
+            });
       });
-   });
-
-   afterEach(() => {
-      controller = null;
-      loader = null;
    });
 });
