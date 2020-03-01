@@ -61,6 +61,6 @@
    </ws:if>
 
    <ws:if data="{{ _options.preLoadCss }}">
-      {{ stylesHtml }}
+      {{ __setHTMLUnsafe( stylesHtml ) }}
    </ws:if>
 </head>
