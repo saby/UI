@@ -5,8 +5,9 @@ import Link from 'UI/theme/_controller/css/Link';
 import { ICssLoader } from 'UI/theme/_controller/Loader';
 import LinkSP from 'UI/theme/_controller/css/LinkSP';
 describe('UI/theme/_controller/Controller', () => {
-   const cssName = 'Some/Control1';
-   const themeName = 'Some/Theme1';
+   
+   const cssName = 'Some/Control';
+   const themeName = 'Some/Theme';
 
    /** добавляем # в начало href, чтобы не сыпались ошибки о ненайденных стилях */
    const sharp = '#';
@@ -95,13 +96,26 @@ describe('UI/theme/_controller/Controller', () => {
    describe('getAll', () => {
       setHooks();
 
-      it('Метод возвращает Link[] ', () => {
+      it('Метод возвращает Link[] на клиенте', () => {
+         if (!constants.isBrowserPlatform) { return; }
          const cssName2 = 'Another/Control';
          return controller.get(cssName)
             .then(() => controller.get(cssName2))
             .then(() => {
                controller.getAll()
                   .forEach((entity) => { assert.instanceOf(entity, Link); });
+            });
+      });
+
+      it('Метод возвращает LinkSP[] на СП', () => {
+         if (!constants.isServerSide) { return; }
+
+         const cssName2 = 'Another/Control';
+         return controller.get(cssName)
+            .then(() => controller.get(cssName2))
+            .then(() => {
+               controller.getAll()
+                  .forEach((entity) => { assert.instanceOf(entity, LinkSP); });
             });
       });
    });
