@@ -10,6 +10,9 @@ define(['UI/Base', 'UI/Utils'], (Base, Utils) => {
    });
 
    describe('Async _beforeMount on client', () => {
+      if (fromNode){
+         this.skip();
+      }
       var Logger = Utils.Logger;
       var inst, startTime, beforeMount, result, message;
       var warnMessage, errorMessage, warnStub, errorStub;
