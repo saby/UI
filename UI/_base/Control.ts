@@ -81,6 +81,9 @@ let countInst = 1;
 // tslint:disable-next-line
 const EMPTY_FUNC = function () { };
 
+const BL_MAX_EXECUTE_TIME = 5000;
+const CONTROL_WAIT_TIMEOUT = 20000;
+
 const WAIT_TIMEOUT = 20000;
 // This timeout is needed for loading control css.
 // If we can not load css file we want to continue building control without blocking it by throwing an error.
@@ -90,6 +93,7 @@ const WRAP_TIMEOUT = 30000;
 export interface IControlOptions {
    readOnly?: boolean;
    theme?: string;
+   clientTimeout?: number;
 }
 /**
  * @class UI/_base/Control
@@ -783,6 +787,48 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       });
    }
 
+   private _checkAsyncExecuteTime(startTime: number, customBLExecuteTime: number): void {
+      let executeTime = Date.now() - startTime;
+      if (executeTime > (customBLExecuteTime ? customBLExecuteTime : BL_MAX_EXECUTE_TIME)) {
+         const message = `Долгое выполнение _beforeMount на клиенте! 
+            Promise, который вернули из метода _beforeMount контрола ${this._moduleName} ` +
+            `завершился за ${executeTime} миллисекунд. 
+            Необходимо: 
+            - ускорить работу БЛ или
+            - перенести работу в _afterMount контрола ${this._moduleName} или
+            - увеличить константу ожидания по согласованию с Бегуновым А. ` +
+            `прикреплять согласование комментарием к константе, чтобы проект прошел ревью`;
+         Logger.warn(message, this);
+      }
+   }
+
+   private _asyncClientBeforeMount(resultBeforeMount: Promise<void | TState>, time: number, customBLExecuteTime: number): Promise<void | TState> | Promise<void> | void {
+      let startTime = Date.now();
+
+      let asyncTimer = setTimeout(() => {
+         const message = `Ошибка построения на клиенте! 
+            Promise, который вернули из метода _beforeMount контрола ${this._moduleName} ` +
+            `не завершился за ${time} миллисекунд. 
+            Необходимо исправить Promise в _beforeMount контрола ${this._moduleName}.`;
+         Logger.error(message, this);
+      }, time);
+
+      return new Promise((resolve, reject) => {
+         resultBeforeMount.then((result) => {
+            resolve(result);
+            clearTimeout(asyncTimer);
+            this._checkAsyncExecuteTime(startTime, customBLExecuteTime);
+            return result;
+         },
+         (error) => {
+            reject(error);
+            clearTimeout(asyncTimer);
+            this._checkAsyncExecuteTime(startTime, customBLExecuteTime);
+            return error;
+         });
+      });
+   }
+
    _beforeMountLimited(opts: TOptions): Promise<TState> | Promise<void> | void {
       if (this._$resultBeforeMount) {
          return this._$resultBeforeMount;
@@ -812,7 +858,13 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          }
          resultBeforeMount.then(() => {
             this._reactiveStart = true;
-         }). catch (() => {})
+         }). catch (() => {});
+
+         //start client render
+         if (window !== undefined) {
+            let clientTimeout = opts.clientTimeout ? (opts.clientTimeout > CONTROL_WAIT_TIMEOUT ? opts.clientTimeout : CONTROL_WAIT_TIMEOUT) : CONTROL_WAIT_TIMEOUT;
+            this._asyncClientBeforeMount(resultBeforeMount, clientTimeout, opts.clientTimeout);
+         }
       } else {
          // _reactiveStart means starting of monitor change in properties
          this._reactiveStart = true;
