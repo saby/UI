@@ -24,8 +24,12 @@ export abstract class Base implements ICssEntity {
       public href: string,
       public cssName: string,
       public themeName: string = DEFAULT_THEME,
-      public themeType: THEME_TYPE = DEFAULT_THEME_TYPE,
-   ) { }
+      public themeType: THEME_TYPE = DEFAULT_THEME_TYPE
+   ) {
+      if (!href || !cssName) {
+         throw new Error(`Invalid arguments href - ${href} or cssName - ${cssName}`);
+      }
+   }
 
    /**
     * Восстребование стилей контроллом

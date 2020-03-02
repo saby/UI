@@ -723,9 +723,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._reactiveStart = true;
       }
 
-      resultBeforeMount = Promise.all([
-         this.constructor['loadStyles'](opts.theme),
-         resultBeforeMount]);
+      const stylesLoading = this.constructor['loadStyles'](opts.theme).catch((e: Error) => {
+         Logger.error(`[UI/_base/Control:_beforeMountLimited]: "${e.stack}"`);
+      });
+      resultBeforeMount = Promise.all([stylesLoading, resultBeforeMount]);
 
       this._$resultBeforeMount = resultBeforeMount;
       return resultBeforeMount;
@@ -782,7 +783,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUpdate(newOptions: TOptions): void {
-      getThemeController().setTheme(newOptions.theme);
+      this.constructor['loadStyles'](newOptions.theme).catch((e: Error) => {
+         Logger.error(`[UI/_base/Control:__beforeUpdate]: "${e.message}"`);
+      });
       this._beforeUpdate.apply(this, arguments);
    }
 
@@ -1045,12 +1048,18 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @param themeName имя темы, по-умолчанию тема приложения
     * @static
     * @method
+    * @example
+    * <pre>
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadStyles())
+    * </pre>
     */
    static loadStyles(themeName?: string): Promise<void> {
+      if (this._styles.length === 0 && this._theme.length === 0) { return Promise.resolve(); }
       const tc = getThemeController();
       const gettingStyles = Promise.all(this._styles.map((name) => tc.get(name, EMPTY_THEME)));
       const gettingThemed = Promise.all(this._theme.map((name) => tc.get(name, themeName)));
-      return Promise.all([gettingStyles, gettingThemed]).then(() => tc.setTheme(themeName));
+      return Promise.all([gettingStyles, gettingThemed]).then(() => void 0);
    }
 
    /**
