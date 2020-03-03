@@ -286,7 +286,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._isRendered = true;
          return markup;
       };
-
+      if (cfg._logicParent && !(cfg._logicParent instanceof Control)) {
+         Logger.error('Option "_logicParent" is not instance of "Control"', this);
+      }
       this._logicParent = cfg._logicParent;
       this._options = {};
       this._internalOptions = {};
