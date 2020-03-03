@@ -93,7 +93,6 @@ const WRAP_TIMEOUT = 30000;
 export interface IControlOptions {
    readOnly?: boolean;
    theme?: string;
-   clientTimeout?: number;
 }
 /**
  * @class UI/_base/Control
@@ -127,6 +126,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    protected _notify: (eventName: string, args?: unknown[], options?: { bubbling?: boolean }) => unknown = null;
    protected _template: TemplateFunction;
+   protected _clientTimeout: number = null;
 
    // protected for compatibility, should be private
    protected _container: HTMLElement = null;
@@ -862,8 +862,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
          //start client render
          if (window !== undefined) {
-            let clientTimeout = opts.clientTimeout ? (opts.clientTimeout > CONTROL_WAIT_TIMEOUT ? opts.clientTimeout : CONTROL_WAIT_TIMEOUT) : CONTROL_WAIT_TIMEOUT;
-            this._asyncClientBeforeMount(resultBeforeMount, clientTimeout, opts.clientTimeout);
+            let clientTimeout = this._clientTimeout ? (this._clientTimeout > CONTROL_WAIT_TIMEOUT ? this._clientTimeout : CONTROL_WAIT_TIMEOUT) : CONTROL_WAIT_TIMEOUT;
+            this._asyncClientBeforeMount(resultBeforeMount, clientTimeout, this._clientTimeout);
          }
       } else {
          // _reactiveStart means starting of monitor change in properties
