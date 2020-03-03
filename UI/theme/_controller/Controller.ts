@@ -129,8 +129,8 @@ export class Controller {
  * @param e
  */
 function onerror(e: HTTP): never {
-   throw new Error(
-      `Couldn't load: ${e.url}
-      It's probably an error with internet connection or CORS settings.`
-   );
+   throw new Error(`
+      Couldn't load: ${e.url}
+      It's probably an error with internet connection or CORS settings.
+   `);
 }

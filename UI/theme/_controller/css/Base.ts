@@ -103,7 +103,7 @@ export const DEFAULT_THEME: string = 'default';
 /**
  * Стили без темы
  */
-export const EMPTY_THEME: string = '';
+export const EMPTY_THEME: string = 'no_theme';
 /**
  * Тип темы по-умолчанию
  */
