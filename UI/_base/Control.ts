@@ -724,7 +724,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       }
 
       const stylesLoading = this.constructor['loadStyles'](opts.theme).catch((e: Error) => {
-         Logger.error(`[UI/_base/Control:_beforeMountLimited]: "${e.stack}"`);
+         Logger.error(e.message);
       });
       resultBeforeMount = Promise.all([stylesLoading, resultBeforeMount]);
 
@@ -784,7 +784,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    __beforeUpdate(newOptions: TOptions): void {
       this.constructor['loadStyles'](newOptions.theme).catch((e: Error) => {
-         Logger.error(`[UI/_base/Control:__beforeUpdate]: "${e.message}"`);
+         Logger.error(e.message);
       });
       this._beforeUpdate.apply(this, arguments);
    }
@@ -997,7 +997,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUnmount(): void {
-      this.constructor['removeStyles']().then(() => this._beforeUnmount());
+      this.constructor['removeStyles']()
+         .then(() => { this._beforeUnmount(); })
+         .catch((e: Error) => { Logger.error(e.message); });
    }
 
    /**

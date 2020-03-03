@@ -62,7 +62,13 @@ class Document extends Control {
 
     setTheme(ev: Event, theme: string): void {
         this.coreTheme = theme;
-        getThemeController().setTheme(theme);
+        getThemeController()
+            .setTheme(theme)
+            .catch((e: Error) => {
+                import('UI/Utils').then(({ Logger }) => {
+                    Logger.error(e.message);
+                });
+            });
     }
 
     changeApplicationHandler(e: Event, app: string): Boolean {

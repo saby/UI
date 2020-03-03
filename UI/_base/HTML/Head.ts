@@ -84,7 +84,12 @@ class Head extends Control {
             .then((enities) => enities
                 .map((entity) => entity.outerHtml)
                 .join('\n'))
-            .then((html) => { this.stylesHtml = html; });
+            .then((html) => { this.stylesHtml = html; })
+            .catch((e: Error) => {
+                import('UI/Utils').then(({ Logger }) => {
+                    Logger.error(e.message);
+                });
+            });
     }
     // @ts-ignore
     _shouldUpdate(): Boolean {

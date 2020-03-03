@@ -5,7 +5,7 @@ import LinkSP from 'UI/theme/_controller/css/LinkSP';
 import Link from 'UI/theme/_controller/css/Link';
 import Store from 'UI/theme/_controller/Store';
 import { constants, cookie } from 'Env/Env';
-
+import { HTTP } from 'Browser/_Transport/fetch/Errors';
 /**
  * Контроллер тем, необходим для скачивания/удаления/коллекции/переключения тем на странице
  * @class UI/theme/_controller/Controller
@@ -42,7 +42,7 @@ export class Controller {
       return link.load(this.cssLoader).then(() => {
          this.set(link);
          return link;
-      });
+      }).catch(onerror);
    }
 
    /**
@@ -123,4 +123,14 @@ export class Controller {
       Controller.instance = new Controller(new Loader(isDebug));
       return Controller.instance;
    }
+}
+/**
+ * Обработчик ошибки загрузки стилей
+ * @param e
+ */
+function onerror(e: HTTP): never {
+   throw new Error(
+      `Couldn't load: ${e.url}
+      It's probably an error with internet connection or CORS settings.`
+   );
 }
