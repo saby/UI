@@ -1,5 +1,5 @@
 /* global describe, it, assert */
-define(['UI/Base', 'UI/Utils'], (Base, Utils) => {
+define(['UI/Base', 'UI/Utils', 'UI/_base/Control'], (Base, Utils, Private) => {
    var fromNode = typeof document === 'undefined';
 
    describe('UITest/Test', () => {
@@ -38,7 +38,7 @@ define(['UI/Base', 'UI/Utils'], (Base, Utils) => {
       });
 
       beforeEach(() => {
-         inst = new Base.Control();
+         inst = Private._private;
          startTime = Date.now();
          warnMessage = '';
          errorMessage = '';
@@ -46,7 +46,7 @@ define(['UI/Base', 'UI/Utils'], (Base, Utils) => {
       });
 
       afterEach(() => {
-         inst.destroy();
+         inst = null;
          startTime = null;
       });
 

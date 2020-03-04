@@ -90,6 +90,51 @@ const WAIT_TIMEOUT = 20000;
 // IE browser only needs more than 5 sec to load so we increased timeout up to 30 sec.
 const WRAP_TIMEOUT = 30000;
 
+export let _private = {
+   _checkAsyncExecuteTime: function (startTime: number, customBLExecuteTime: number, moduleName: string): void {
+      let executeTime = Date.now() - startTime;
+      customBLExecuteTime = customBLExecuteTime ? customBLExecuteTime : BL_MAX_EXECUTE_TIME;
+      if (executeTime > customBLExecuteTime) {
+         const message = `Долгое выполнение _beforeMount на клиенте! 
+            Promise, который вернули из метода _beforeMount контрола ${moduleName} ` +
+            `завершился за ${executeTime} миллисекунд. 
+            Необходимо: 
+            - ускорить работу БЛ или
+            - перенести работу в _afterMount контрола ${moduleName} или
+            - увеличить константу ожидания по согласованию с Бегуновым А. ` +
+            `прикреплять согласование комментарием к константе, чтобы проект прошел ревью`;
+         Logger.warn(message, this);
+      }
+   },
+
+   _asyncClientBeforeMount: function(resultBeforeMount: Promise<void>, time: number, customBLExecuteTime: number, moduleName: string): Promise<boolean> | boolean {
+      let startTime = Date.now();
+
+      let asyncTimer = setTimeout(() => {
+         const message = `Ошибка построения на клиенте! 
+            Promise, который вернули из метода _beforeMount контрола ${moduleName} ` +
+            `не завершился за ${time} миллисекунд. 
+            Необходимо проверить правильность написания асинхронных вызовов в _beforeMount контрола ${moduleName}.
+            Возможные причины:
+            - Promise не вернул результат/причину отказа
+            - Метод БЛ выполняется более 20 секунд`;
+         Logger.error(message, this);
+      }, time);
+
+      return resultBeforeMount.then((result) => {
+            return result;
+         },
+         (error) => {
+            return error;
+         }).finally(() => {
+            clearTimeout(asyncTimer);
+            this._checkAsyncExecuteTime(startTime, customBLExecuteTime);
+         }
+      );
+   }
+};
+
+
 export interface IControlOptions {
    readOnly?: boolean;
    theme?: string;
@@ -109,6 +154,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private _destroyed: boolean = false;
    private _$active: boolean = false;
    private _reactiveStart: boolean = false;
+   private _private: any;
 
    private readonly _instId: string;
    protected _options: TOptions = null;
@@ -787,48 +833,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       });
    }
 
-   private _checkAsyncExecuteTime(startTime: number, customBLExecuteTime: number): void {
-      let executeTime = Date.now() - startTime;
-      if (executeTime > (customBLExecuteTime ? customBLExecuteTime : BL_MAX_EXECUTE_TIME)) {
-         const message = `Долгое выполнение _beforeMount на клиенте! 
-            Promise, который вернули из метода _beforeMount контрола ${this._moduleName} ` +
-            `завершился за ${executeTime} миллисекунд. 
-            Необходимо: 
-            - ускорить работу БЛ или
-            - перенести работу в _afterMount контрола ${this._moduleName} или
-            - увеличить константу ожидания по согласованию с Бегуновым А. ` +
-            `прикреплять согласование комментарием к константе, чтобы проект прошел ревью`;
-         Logger.warn(message, this);
-      }
-   }
-
-   private _asyncClientBeforeMount(resultBeforeMount: Promise<void | TState>, time: number, customBLExecuteTime: number): Promise<void | TState> | Promise<void> | void {
-      let startTime = Date.now();
-
-      let asyncTimer = setTimeout(() => {
-         const message = `Ошибка построения на клиенте! 
-            Promise, который вернули из метода _beforeMount контрола ${this._moduleName} ` +
-            `не завершился за ${time} миллисекунд. 
-            Необходимо исправить Promise в _beforeMount контрола ${this._moduleName}.`;
-         Logger.error(message, this);
-      }, time);
-
-      return new Promise((resolve, reject) => {
-         resultBeforeMount.then((result) => {
-            resolve(result);
-            clearTimeout(asyncTimer);
-            this._checkAsyncExecuteTime(startTime, customBLExecuteTime);
-            return result;
-         },
-         (error) => {
-            reject(error);
-            clearTimeout(asyncTimer);
-            this._checkAsyncExecuteTime(startTime, customBLExecuteTime);
-            return error;
-         });
-      });
-   }
-
    _beforeMountLimited(opts: TOptions): Promise<TState> | Promise<void> | void {
       if (this._$resultBeforeMount) {
          return this._$resultBeforeMount;
@@ -861,9 +865,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          }). catch (() => {});
 
          //start client render
-         if (window !== undefined) {
+         if (typeof window !== 'undefined') {
             let clientTimeout = this._clientTimeout ? (this._clientTimeout > CONTROL_WAIT_TIMEOUT ? this._clientTimeout : CONTROL_WAIT_TIMEOUT) : CONTROL_WAIT_TIMEOUT;
-            this._asyncClientBeforeMount(resultBeforeMount, clientTimeout, this._clientTimeout);
+            _private._asyncClientBeforeMount(resultBeforeMount, clientTimeout, this._clientTimeout, this._moduleName);
          }
       } else {
          // _reactiveStart means starting of monitor change in properties
