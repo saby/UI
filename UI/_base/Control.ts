@@ -90,7 +90,7 @@ const WAIT_TIMEOUT = 20000;
 // IE browser only needs more than 5 sec to load so we increased timeout up to 30 sec.
 const WRAP_TIMEOUT = 30000;
 
-export let _private = {
+export const _private = {
    _checkAsyncExecuteTime: function (startTime: number, customBLExecuteTime: number, moduleName: string): void {
       let executeTime = Date.now() - startTime;
       customBLExecuteTime = customBLExecuteTime ? customBLExecuteTime : BL_MAX_EXECUTE_TIME;
@@ -154,7 +154,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private _destroyed: boolean = false;
    private _$active: boolean = false;
    private _reactiveStart: boolean = false;
-   private _private: any;
 
    private readonly _instId: string;
    protected _options: TOptions = null;

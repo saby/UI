@@ -22,7 +22,7 @@ define(['UI/Base', 'UI/Utils', 'UI/_base/Control'], (Base, Utils, Private) => {
       var loggerErrorMock = (msg) => {
          errorMessage = msg;
       };
-      before(function () {
+      before(() => {
          warnMessage = '';
          warnStub = sinon.stub(Logger, 'warn').callsFake(loggerWarnMock);
          errorMessage = '';
@@ -30,7 +30,7 @@ define(['UI/Base', 'UI/Utils', 'UI/_base/Control'], (Base, Utils, Private) => {
          message = '';
       });
 
-      after(function () {
+      after(() => {
          warnMessage = '';
          warnStub.restore();
          errorMessage = '';
