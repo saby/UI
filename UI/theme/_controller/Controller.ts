@@ -1,7 +1,7 @@
 /// <amd-module name='UI/theme/_controller/Controller' />
 import { THEME_TYPE, DEFAULT_THEME, ICssEntity } from 'UI/theme/_controller/css/Base';
 import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
-import LinkPS from '../UI/theme/_controller/css/LinkPS';
+import LinkPS from 'UI/theme/_controller/css/LinkPS';
 import Link from 'UI/theme/_controller/css/Link';
 import Store from 'UI/theme/_controller/Store';
 import { constants, cookie } from 'Env/Env';
