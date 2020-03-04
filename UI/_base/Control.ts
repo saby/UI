@@ -107,7 +107,7 @@ export const _private = {
       }
    },
 
-   _asyncClientBeforeMount: function(resultBeforeMount: Promise<void>, time: number, customBLExecuteTime: number, moduleName: string): Promise<boolean> | boolean {
+   _asyncClientBeforeMount: function<TState>(resultBeforeMount: Promise<void | TState>, time: number, customBLExecuteTime: number, moduleName: string): Promise<void | TState> | boolean {
       let startTime = Date.now();
 
       let asyncTimer = setTimeout(() => {
@@ -128,7 +128,7 @@ export const _private = {
             return error;
          }).finally(() => {
             clearTimeout(asyncTimer);
-            this._checkAsyncExecuteTime(startTime, customBLExecuteTime);
+            this._checkAsyncExecuteTime(startTime, customBLExecuteTime, moduleName);
          }
       );
    }
