@@ -1,7 +1,7 @@
 /// <amd-module name='UI/theme/_controller/Controller' />
 import { THEME_TYPE, DEFAULT_THEME, ICssEntity } from 'UI/theme/_controller/css/Base';
 import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
-import LinkSP from 'UI/theme/_controller/css/LinkSP';
+import LinkPS from '../UI/theme/_controller/css/LinkPS';
 import Link from 'UI/theme/_controller/css/Link';
 import Store from 'UI/theme/_controller/Store';
 import { constants, cookie } from 'Env/Env';
@@ -25,7 +25,7 @@ export class Controller {
    /**
     * Получение экземпляра CssEntity по имени и теме
     * В случае отсутсвия сохранненого значения в Store
-    *  - на СП `LinkSP` содержит имя контрола, тему, ссылку, строковое представление outerHtml link элемента
+    *  - на СП `LinkPS` содержит имя контрола, тему, ссылку, строковое представление outerHtml link элемента
     *  - на клиенте `Link` содержит HTMLLinkElement, который монтируется в head
     * При повторном запросе востребованность темы возрастает
     */
@@ -37,7 +37,7 @@ export class Controller {
          return Promise.resolve(entity);
       }
       const { href, themeType } = this.cssLoader.getInfo(cssName, theme);
-      const LinkClass = (constants.isServerSide) ? LinkSP : Link;
+      const LinkClass = (constants.isServerSide) ? LinkPS : Link;
       const link = new LinkClass(href, cssName, theme, themeType);
       return link.load(this.cssLoader).then(() => {
          this.set(link);

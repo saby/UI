@@ -3,7 +3,7 @@ import { constants } from 'Env/Env';
 import { THEME_TYPE } from 'UI/theme/_controller/css/Base';
 import Link from 'UI/theme/_controller/css/Link';
 import { ICssLoader } from 'UI/theme/_controller/Loader';
-import LinkSP from 'UI/theme/_controller/css/LinkSP';
+import LinkPS from 'UI/theme/_controller/css/LinkPS';
 describe('UI/theme/_controller/Controller', () => {
    
    const cssName = 'Some/Control';
@@ -69,11 +69,11 @@ describe('UI/theme/_controller/Controller', () => {
          return getting.then((css) => { assert.instanceOf(css, Link); });
       });
 
-      it('Метод возвращает Promise<LinkSP> на СП', () => {
+      it('Метод возвращает Promise<LinkPS> на СП', () => {
          if (!constants.isServerSide) { return; }
          const getting = controller.get(cssName);
          assert.instanceOf(getting, Promise);
-         return getting.then((css) => { assert.instanceOf(css, LinkSP); });
+         return getting.then((css) => { assert.instanceOf(css, LinkPS); });
       });
 
       it('Загруженные стили не запрашиваются повторно', () => {
@@ -107,7 +107,7 @@ describe('UI/theme/_controller/Controller', () => {
             });
       });
 
-      it('Метод возвращает LinkSP[] на СП', () => {
+      it('Метод возвращает LinkPS[] на СП', () => {
          if (!constants.isServerSide) { return; }
 
          const cssName2 = 'Another/Control';
@@ -115,7 +115,7 @@ describe('UI/theme/_controller/Controller', () => {
             .then(() => controller.get(cssName2))
             .then(() => {
                controller.getAll()
-                  .forEach((entity) => { assert.instanceOf(entity, LinkSP); });
+                  .forEach((entity) => { assert.instanceOf(entity, LinkPS); });
             });
       });
    });

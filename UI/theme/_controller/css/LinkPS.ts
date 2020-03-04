@@ -1,10 +1,10 @@
-/// <amd-module name='UI/theme/_controller/css/LinkSP' />
+/// <amd-module name='UI/theme/_controller/css/LinkPS' />
 import { Base, THEME_TYPE, ELEMENT_ATTR, ICssEntity, ILoader } from 'UI/theme/_controller/css/Base';
 /**
- * Сущность, представляющая css/LinkSP
+ * Сущность, представляющая css/LinkPS
  * Используется для подключения внешних тем в head на СП
  */
-export default class LinkSP extends Base implements ICssEntity {
+export default class LinkPS extends Base implements ICssEntity {
 
    constructor(
       href: string,

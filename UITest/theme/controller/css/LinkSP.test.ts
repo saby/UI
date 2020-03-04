@@ -1,4 +1,4 @@
-import LinkSP from 'UI/theme/_controller/css/LinkSP';
+import LinkPS from 'UI/theme/_controller/css/LinkPS';
 import { THEME_TYPE } from 'UI/theme/controller';
 import { ILoader } from 'UI/theme/_controller/css/Base';
 
@@ -13,14 +13,14 @@ class LoaderMock implements ILoader {
    }
 }
 
-let link: LinkSP;
+let link: LinkPS;
 let loader: LoaderMock;
 
-describe('UI/theme/_controller/css/LinkSP', () => {
+describe('UI/theme/_controller/css/LinkPS', () => {
 
    const setHooks = () => {
       beforeEach(() => {
-         link = new LinkSP(href, name, theme, themeType);
+         link = new LinkPS(href, name, theme, themeType);
          loader = new LoaderMock();
       });
       afterEach(() => {
@@ -44,7 +44,7 @@ describe('UI/theme/_controller/css/LinkSP', () => {
 
    describe('require / remove', () => {
       setHooks();
-      it('невостребованный экземпляр LinkSP удаляется', () => {
+      it('невостребованный экземпляр LinkPS удаляется', () => {
          return link.remove().then((isRemoved) => {
             assert.isTrue(isRemoved);
          });
