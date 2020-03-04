@@ -723,7 +723,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._reactiveStart = true;
       }
 
-      const stylesLoading = this.constructor['loadStyles'](opts.theme).catch((e: Error) => {
+      const stylesLoading = this.constructor['loadStyles'](opts.theme, this.extractInstanceStyles()).catch((e: Error) => {
          Logger.error(e.message);
       });
       resultBeforeMount = Promise.all([stylesLoading, resultBeforeMount]);
@@ -783,12 +783,25 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUpdate(newOptions: TOptions): void {
-      this.constructor['loadStyles'](newOptions.theme).catch((e: Error) => {
+      this.constructor['loadStyles'](newOptions.theme, this.extractInstanceStyles()).catch((e: Error) => {
          Logger.error(e.message);
       });
       this._beforeUpdate.apply(this, arguments);
    }
 
+   /**
+    * Стили должны перечисляться в статическом свойстве класса, но у некоторых контролах хранятся в собственных
+    * Кидаем ошибку в консоль
+    */
+   private extractInstanceStyles(): IControlStyles {
+      // @ts-ignore
+      if (this._theme && this._theme.length !== 0 || this._style && this._style.length !== 0) {
+         Logger.warn("Стили должны перечисляться в статическом свойстве класса " + this._moduleName);
+         // @ts-ignore
+         return { styles: this._style || [], themes: this._theme || [], };
+      }
+      return { styles: [], themes: [] };
+   }
 
    /**
     * Хук жизненного цикла контрола. Вызывается перед обновлением контрола.
@@ -997,7 +1010,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUnmount(): void {
-      this.constructor['removeStyles']()
+      this.constructor['removeStyles'](this._options.theme)
          .then(() => { this._beforeUnmount(); })
          .catch((e: Error) => { Logger.error(e.message); });
    }
@@ -1048,6 +1061,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    /**
     * Загрузка стилей контрола, монтирование скаченных css в head страницы 
     * @param themeName имя темы, по-умолчанию тема приложения
+    * @param instStyles стили экземпляра
     * @static
     * @method
     * @example
@@ -1056,21 +1070,34 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     *         .then((InfoboxTemplate) => InfoboxTemplate.loadStyles())
     * </pre>
     */
-   static loadStyles(themeName?: string): Promise<void> {
-      if (this._styles.length === 0 && this._theme.length === 0) { return Promise.resolve(); }
+   static loadStyles(themeName?: string, instStyles: IControlStyles = { styles: [], themes: [] }): Promise<void> {
+      const styles = [...this._styles, ...instStyles.styles];
+      const themes = [...this._theme, ...instStyles.themes];
+      if (styles.length === 0 && themes.length === 0) {
+         return Promise.resolve();
+      }
       const tc = getThemeController();
-      const gettingStyles = Promise.all(this._styles.map((name) => tc.get(name, EMPTY_THEME)));
-      const gettingThemed = Promise.all(this._theme.map((name) => tc.get(name, themeName)));
+      const gettingStyles = Promise.all(styles.map((name) => tc.get(name, EMPTY_THEME)));
+      const gettingThemed = Promise.all(themes.map((name) => tc.get(name, themeName)));
       return Promise.all([gettingStyles, gettingThemed]).then(() => void 0);
    }
 
    /**
     * Удаление style элементов из DOM 
+    * @param themeName имя темы, по-умолчанию тема приложения
+    * @param instStyles стили экземпляра
+    * @static
+    * @method
     */
-   static removeStyles(): Promise<void> {
+   static removeStyles(themeName?: string, instStyles: IControlStyles = { styles: [], themes: [] }): Promise<void> {
+      const styles = [...this._styles, ...instStyles.styles];
+      const themes = [...this._theme, ...instStyles.themes];
+      if (styles.length === 0 && themes.length === 0) {
+         return Promise.resolve();
+      }
       const tc = getThemeController();
-      const removingStyles = Promise.all(this._styles.map((name) => tc.remove(name, EMPTY_THEME)));
-      const removingThemed = Promise.all(this._theme.map((name) => tc.remove(name)));
+      const removingStyles = Promise.all(styles.map((name) => tc.remove(name, EMPTY_THEME)));
+      const removingThemed = Promise.all(themes.map((name) => tc.remove(name, themeName)));
       return Promise.all([removingStyles, removingThemed]).then(() => void 0);
    }
 
@@ -1144,7 +1171,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    // </editor-fold>
 }
-
+interface IControlStyles {
+   styles: string[];
+   themes: string[];
+}
 // @ts-ignore
 Control.prototype._template = template;
 
