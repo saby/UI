@@ -20,6 +20,13 @@ interface IFocusConfig {
    enableScrollToElement?: boolean;
 }
 
+var USER_IS_TOUCHING = false;
+if (typeof window !== 'undefined') {
+   window.addEventListener('touchstart', function onFirstTouch() {
+      USER_IS_TOUCHING = true;
+      window.removeEventListener('touchstart', onFirstTouch, false);
+   }, false);
+}
 /**
  * make foreignObject instance. using for hack with svg focusing.
  */
@@ -201,7 +208,7 @@ function getContainerWithControlNode(element: Element): Element {
 }
 
 function checkEnableScreenKeyboard(): boolean {
-   return detection.isMobilePlatform;
+   return detection.isMobilePlatform || USER_IS_TOUCHING;
 }
 
 function fixScrollingEffect(undoScrolling: Function): void {
