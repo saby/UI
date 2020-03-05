@@ -126,42 +126,45 @@ function getEmptyPackages(): any {
    return packages;
 }
 
-function getPacksNames(allDeps = {}, unpack: IDeps, bundlesRoute = {}): any {
-   const unpackBundles = [];
+function getPacksNames(allDeps = {}, isUnpackModule: (key: string) => boolean, bundlesRoute = {}): any {
+   const unpackBundles: string[] = [];
    const packages = getEmptyPackages();
-   Object.keys(allDeps).forEach((key) => {
-      const bundleName = bundlesRoute[key];
+   Object.keys(allDeps).forEach((moduleName) => {
+      const bundleName = bundlesRoute[moduleName];
       if (!bundleName) { return; }
-      Logger.info(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${key} in bundle ${bundleName}`);
-      delete allDeps[key];
+      Logger.info(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${moduleName} in bundle ${bundleName}`);
+      delete allDeps[moduleName];
       const ext = getExt(bundleName);
       const packageName = getPackageName(bundleName);
-      if (unpack.indexOf(key) !== -1) {
+      if (unpackBundles.indexOf(packageName) !== -1) { return; }
+      if (isUnpackModule(moduleName)) {
          unpackBundles.push(packageName);
          delete packages[ext][packageName];
+         return;
       }
-      if (unpackBundles.indexOf(packageName) !== -1) { return; }
       packages[ext][packageName] = DEPTYPES.BUNDLE;
    });
 
-   Object.keys(allDeps).forEach((key) => {
-      const { plugin, type: ext } = allDeps[key].typeInfo;
-      const packageName = plugin ? key.split(plugin + '!').pop() : key;
-      if (unpack.indexOf(key) !== -1) {
+   Object.keys(allDeps).forEach((moduleName) => {
+      const { plugin, type: ext } = allDeps[moduleName].typeInfo;
+      const packageName = plugin ? moduleName.split(plugin + '!').pop() : moduleName;
+      if (unpackBundles.indexOf(packageName) !== -1) { return; }
+      if (isUnpackModule(moduleName)) {
          unpackBundles.push(packageName);
          delete packages[ext][packageName];
+         return;
       }
-      if (unpackBundles.indexOf(packageName) !== -1) { return; }
       packages[ext][packageName] = DEPTYPES.SINGLE;
    });
    return packages;
 }
 
-function getCssPackages(allDeps: any, bundlesRoute: any): any {
+function getCssPackages(allDeps: any, isUnpackModule: (key: string) => boolean, bundlesRoute: any): any {
    const packages = {
       themedCss: {},
       simpleCss: {}
    };
+   const unpackBundles: string[] = [];
    for (const key in allDeps) {
       if (allDeps.hasOwnProperty(key)) {
          let noParamsName = removeThemeParam(key);
@@ -169,22 +172,29 @@ function getCssPackages(allDeps: any, bundlesRoute: any): any {
          if (bundleName) {
             Logger.info(`[UI/_base/DepsCollector:getCssPackages] Custom packets logs, module ${key} in bundle ${bundleName}`);
             delete allDeps[key];
-            if (isThemedCss(key)) {
-               packages.themedCss[getPackageName(bundleName)] = DEPTYPES.BUNDLE;
-            } else {
-               packages.simpleCss[getPackageName(bundleName)] = DEPTYPES.BUNDLE;
+            const packageName = getPackageName(bundleName);
+            if (unpackBundles.indexOf(packageName) !== -1) { continue; }
+            const ext = isThemedCss(key) ? 'themedCss' : 'simpleCss';
+            if (isUnpackModule(key)) {
+               unpackBundles.push(packageName);
+               delete packages[ext][packageName];
+               continue;
             }
+            packages[ext][packageName] = DEPTYPES.BUNDLE;
          }
       }
    }
    for (const key in allDeps) {
       if (allDeps.hasOwnProperty(key)) {
-         let noParamsName = removeThemeParam(key).split('css!')[1];
-         if (isThemedCss(key)) {
-            packages.themedCss[noParamsName] = DEPTYPES.SINGLE;
-         } else {
-            packages.simpleCss[noParamsName] = DEPTYPES.SINGLE;
+         const noParamsName = removeThemeParam(key).split('css!')[1];
+         if (unpackBundles.indexOf(noParamsName) !== -1) { continue; }
+         const ext = isThemedCss(key) ? 'themedCss' : 'simpleCss';
+         if (isUnpackModule(key)) {
+            unpackBundles.push(noParamsName);
+            delete packages[ext][noParamsName];
+            continue;
          }
+         packages[ext][noParamsName] = DEPTYPES.SINGLE;
       }
    }
    return packages;
@@ -192,11 +202,12 @@ function getCssPackages(allDeps: any, bundlesRoute: any): any {
 
 function getAllPackagesNames(all: any, unpack:IDeps, bRoute: any): any {
    const packs = getEmptyPackages();
-   mergePacks(packs, getPacksNames(all.js, unpack, bRoute));
-   mergePacks(packs, getPacksNames(all.tmpl, unpack, bRoute));
-   mergePacks(packs, getPacksNames(all.wml, unpack, bRoute));
+   const isUnpackModule = (key: string) => unpack.some((moduleName) => key.indexOf(moduleName) !== -1);
+   mergePacks(packs, getPacksNames(all.js, isUnpackModule, bRoute));
+   mergePacks(packs, getPacksNames(all.tmpl, isUnpackModule, bRoute));
+   mergePacks(packs, getPacksNames(all.wml, isUnpackModule, bRoute));
 
-   packs.css = getCssPackages(all.css, bRoute);
+   packs.css = getCssPackages(all.css, isUnpackModule, bRoute);
    return packs;
 }
 
