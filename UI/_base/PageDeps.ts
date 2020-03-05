@@ -1,7 +1,7 @@
 /// <amd-module name='UI/_base/PageDeps' />
 import { cookie, constants } from 'Env/Env';
 import { DepsCollector, ICollectedFiles, IDeps } from 'UI/_base/DepsCollector';
-const root = constants.resourceRoot || 'resources';
+const root = 'resources';
 let contents: Partial<IContents> = {};
 try {
    // @ts-ignore tslint:disable-next-line:no-var-requires
