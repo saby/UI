@@ -81,11 +81,54 @@ let countInst = 1;
 // tslint:disable-next-line
 const EMPTY_FUNC = function () { };
 
+const BL_MAX_EXECUTE_TIME = 5000;
+const CONTROL_WAIT_TIMEOUT = 20000;
+
 const WAIT_TIMEOUT = 20000;
 // This timeout is needed for loading control css.
 // If we can not load css file we want to continue building control without blocking it by throwing an error.
 // IE browser only needs more than 5 sec to load so we increased timeout up to 30 sec.
 const WRAP_TIMEOUT = 30000;
+
+export const _private = {
+   _checkAsyncExecuteTime: function (startTime: number, customBLExecuteTime: number, moduleName: string): void {
+      let executeTime = Date.now() - startTime;
+      customBLExecuteTime = customBLExecuteTime ? customBLExecuteTime : BL_MAX_EXECUTE_TIME;
+      if (executeTime > customBLExecuteTime) {
+         const message = `Долгое выполнение _beforeMount на клиенте! 
+            Promise, который вернули из метода _beforeMount контрола ${moduleName} ` +
+            `завершился за ${executeTime} миллисекунд. 
+            Необходимо: 
+            - ускорить работу БЛ или
+            - перенести работу в _afterMount контрола ${moduleName} или
+            - увеличить константу ожидания по согласованию с Бегуновым А. ` +
+            `прикреплять согласование комментарием к константе, чтобы проект прошел ревью`;
+         Logger.warn(message, this);
+      }
+   },
+
+   _asyncClientBeforeMount: function<TState>(resultBeforeMount: Promise<void | TState>, time: number, customBLExecuteTime: number, moduleName: string): Promise<void | TState> | boolean {
+      let startTime = Date.now();
+
+      let asyncTimer = setTimeout(() => {
+         const message = `Ошибка построения на клиенте! 
+            Promise, который вернули из метода _beforeMount контрола ${moduleName} ` +
+            `не завершился за ${time} миллисекунд. 
+            Необходимо проверить правильность написания асинхронных вызовов в _beforeMount контрола ${moduleName}.
+            Возможные причины:
+            - Promise не вернул результат/причину отказа
+            - Метод БЛ выполняется более 20 секунд`;
+         Logger.error(message, this);
+      }, time);
+
+      return resultBeforeMount.finally(() => {
+            clearTimeout(asyncTimer);
+            _private._checkAsyncExecuteTime(startTime, customBLExecuteTime, moduleName);
+         }
+      );
+   }
+};
+
 
 export interface IControlOptions {
    readOnly?: boolean;
@@ -123,6 +166,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    protected _notify: (eventName: string, args?: unknown[], options?: { bubbling?: boolean }) => unknown = null;
    protected _template: TemplateFunction;
+   protected _clientTimeout: number = null;
 
    // protected for compatibility, should be private
    protected _container: HTMLElement = null;
@@ -812,7 +856,13 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          }
          resultBeforeMount.then(() => {
             this._reactiveStart = true;
-         }). catch (() => {})
+         }). catch (() => {});
+
+         //start client render
+         if (typeof window !== 'undefined') {
+            let clientTimeout = this._clientTimeout ? (this._clientTimeout > CONTROL_WAIT_TIMEOUT ? this._clientTimeout : CONTROL_WAIT_TIMEOUT) : CONTROL_WAIT_TIMEOUT;
+            _private._asyncClientBeforeMount(resultBeforeMount, clientTimeout, this._clientTimeout, this._moduleName);
+         }
       } else {
          // _reactiveStart means starting of monitor change in properties
          this._reactiveStart = true;
