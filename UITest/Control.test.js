@@ -14,7 +14,7 @@ define(['UI/Base', 'UI/Utils', 'UI/_base/Control'], (Base, Utils, Private) => {
          this.skip();
       }
       var Logger = Utils.Logger;
-      var inst, startTime, beforeMount, result, message;
+      var _privateFromControl, startTime, beforeMount, result, message;
       var warnMessage, errorMessage, warnStub, errorStub;
       var loggerWarnMock = (msg) => {
          warnMessage = msg;
@@ -38,7 +38,7 @@ define(['UI/Base', 'UI/Utils', 'UI/_base/Control'], (Base, Utils, Private) => {
       });
 
       beforeEach(() => {
-         inst = Private._private;
+         _privateFromControl = Private._private;
          startTime = Date.now();
          warnMessage = '';
          errorMessage = '';
@@ -46,32 +46,32 @@ define(['UI/Base', 'UI/Utils', 'UI/_base/Control'], (Base, Utils, Private) => {
       });
 
       afterEach(() => {
-         inst = null;
+         _privateFromControl = null;
          startTime = null;
       });
 
       it('Default BL Execute Timer', () => {
          startTime = startTime - 1000;
-         result = inst._checkAsyncExecuteTime(startTime, undefined);
+         result = _privateFromControl._checkAsyncExecuteTime(startTime, undefined);
          assert.equal(warnMessage, '');
       });
 
       it('Default BL Execute Timer - warn', () => {
          startTime = startTime - 10000;
-         result = inst._checkAsyncExecuteTime(startTime, undefined);
+         result = _privateFromControl._checkAsyncExecuteTime(startTime, undefined);
          message = `Долгое выполнение _beforeMount на клиенте!`;
          assert.include(warnMessage, message);
       });
 
       it('Custom BL Execute Timer', () => {
          startTime = startTime - 8000;
-         result = inst._checkAsyncExecuteTime(startTime, 10000);
+         result = _privateFromControl._checkAsyncExecuteTime(startTime, 10000);
          assert.equal(warnMessage, '');
       });
 
       it('Custom BL Execute Timer - warn', () => {
          startTime = startTime - 10000;
-         result = inst._checkAsyncExecuteTime(startTime, 6000);
+         result = _privateFromControl._checkAsyncExecuteTime(startTime, 6000);
          message = `Долгое выполнение _beforeMount на клиенте!`;
          assert.include(warnMessage, message);
       });
@@ -80,7 +80,7 @@ define(['UI/Base', 'UI/Utils', 'UI/_base/Control'], (Base, Utils, Private) => {
          beforeMount = new Promise((resolve) => {
             resolve(true);
          });
-         return inst._asyncClientBeforeMount(beforeMount, 20000, undefined).then((result) => {
+         return _privateFromControl._asyncClientBeforeMount(beforeMount, 20000, undefined).then((result) => {
             assert.isTrue(result);
          });
       });
@@ -90,7 +90,7 @@ define(['UI/Base', 'UI/Utils', 'UI/_base/Control'], (Base, Utils, Private) => {
             setTimeout(() => {resolve(true)}, 10);
          });
          message = `Ошибка построения на клиенте!`;
-         return inst._asyncClientBeforeMount(beforeMount, 0, undefined).then((result) => {
+         return _privateFromControl._asyncClientBeforeMount(beforeMount, 0, undefined).then((result) => {
             assert.include(errorMessage, message);
          });
       });

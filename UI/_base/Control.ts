@@ -121,14 +121,9 @@ export const _private = {
          Logger.error(message, this);
       }, time);
 
-      return resultBeforeMount.then((result) => {
-            return result;
-         },
-         (error) => {
-            return error;
-         }).finally(() => {
+      return resultBeforeMount.finally(() => {
             clearTimeout(asyncTimer);
-            this._checkAsyncExecuteTime(startTime, customBLExecuteTime, moduleName);
+            _private._checkAsyncExecuteTime(startTime, customBLExecuteTime, moduleName);
          }
       );
    }
