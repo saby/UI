@@ -17,6 +17,8 @@ const noDescription: IModulesDescription = {
    packedLibraries: {},
    lessDependencies: {}
 };
+const { links, nodes, bundles } = getModulesDeps(contents.modules).reduce(collect);
+const depsCollector = new DepsCollector(links, nodes, bundles);
 
 export default class PageDeps {
    isDebug: boolean;
@@ -48,8 +50,7 @@ function getDebugDeps(): ICollectedFiles {
 }
 
 function getRealeseDeps(deps: IDeps, unpack: IDeps): ICollectedFiles {
-   const { links, nodes, bundles } = getModulesDeps(contents.modules).reduce(collect);
-   return new DepsCollector(links, nodes, bundles).collectDependencies(deps, unpack);
+   return depsCollector.collectDependencies(deps, unpack);
 }
 
 /**
