@@ -5,25 +5,32 @@
  * Модуль, в котором находится логика по активации контролов
  */
 
-// @ts-ignore
-import { detection } from 'Env/Env';
 import * as ElementFinder from './ElementFinder';
 import { focus } from './Focus';
 import { goUpByControlTree } from './goUpByControlTree';
 
-// @ts-ignore
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
+
+interface IContainer {
+   wsControl: IOldContainer;
+}
+
+interface IOldContainer {
+   setActive: Function;
+   canAcceptFocus: Function;
+   isActive: Function;
+}
 
 function findAutofocusForVDOM(findContainer: Element): NodeListOf<Element> {
    return findContainer.querySelectorAll('[ws-autofocus="true"]');
 }
 
-function doFocus(container: any,
+function doFocus(container: Element | IContainer,
                  cfg: { enableScreenKeyboard?: boolean,
                         enableScrollToElement?: boolean } = {}): boolean {
 
    let res = false;
-   if (container.wsControl && container.wsControl.setActive) {
+   if (!(container instanceof Element) && container.wsControl && container.wsControl.setActive) {
       // если нашли контейнер старого контрола, активируем его старым способом (для совместимости)
       if (container.wsControl.canAcceptFocus()) {
          container.wsControl.setActive(true);
@@ -32,7 +39,8 @@ function doFocus(container: any,
          // todo попробовать поискать следующий элемент?
          res = false;
       }
-   } else {
+   }
+   if (container instanceof Element) {
       if (ElementFinder.getElementProps(container).tabStop) {
          res = focus(container, cfg);
          if (res) {

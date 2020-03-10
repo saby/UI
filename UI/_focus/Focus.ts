@@ -7,8 +7,6 @@
 
 // @ts-ignore
 import { detection } from 'Env/Env';
-
-// @ts-ignore
 import { Logger } from 'UI/Utils';
 
 import { collectScrollPositions } from './_ResetScrolling';
@@ -18,6 +16,13 @@ import { notifyActivationEvents } from 'UI/_focus/Events';
 interface IFocusConfig {
    enableScreenKeyboard?: boolean;
    enableScrollToElement?: boolean;
+}
+
+interface IExtendElement extends Element {
+   controlNodes?: Record<string, object>;
+   wsControl?: Record<string, object>;
+   setActive?: Function;
+   focus?: Function;
 }
 
 /**
@@ -58,18 +63,20 @@ function focusSvgForeignObjectHack(element: SVGElement): boolean {
    element.removeChild(foreignObject);
    return true;
 }
+
 /**
  * Trying all possible ways to focus element. Return true if successfully focused.
  * @param element
+ * @param cfg
  */
-function tryMoveFocus(element: Element, cfg: IFocusConfig): boolean {
+function tryMoveFocus<T extends IExtendElement>(element: T, cfg: IFocusConfig): boolean {
    let result = false;
    if (!cfg.enableScrollToElement && detection.isIE && element.setActive) {
          // In IE, calling `focus` scrolls the focused element into view,
          // which is not the desired behavior. Built-in `setActive` method
          // makes the element active without scrolling to it
          try {
-            // @ts-ignore метод позовется только в ie, где он поддерживается
+            // метод позовется только в ie, где он поддерживается
             element.setActive();
          } catch (e) {
             // Обернули в try/catch, потому что вызов setActive у элемента с visibility:hidden в ie падает с ошибкой
@@ -93,7 +100,7 @@ function tryMoveFocus(element: Element, cfg: IFocusConfig): boolean {
             HTMLElement.prototype.focus.call(element);
             result = element === document.activeElement;
          } catch (e) {
-            result = focusSvgForeignObjectHack(element as SVGElement);
+            result = focusSvgForeignObjectHack(element as unknown as SVGElement);
          }
       }
    }
@@ -118,7 +125,8 @@ function checkFocused(element: Element): void {
          if (reason) {
             const elementString = element.outerHTML.slice(0, element.outerHTML.indexOf('>') + 1);
             const currentElementString = currentElement.outerHTML.slice(0, currentElement.outerHTML.indexOf('>') + 1);
-            const message = '[UI/_focus/Focus:checkFocused] - Can\'t focus element because of this element or it\'s parent ' +
+            const message = '[UI/_focus/Focus:checkFocused] ' +
+               '- Can\'t focus element because of this element or it\'s parent ' +
                `has ${reason} style! maybe you need use ws-hidden or ws-invisible classes for change element ` +
                'visibility (in old ws3 controls case). Please check why invisible element is focusing.' +
                `Focusing element is ${elementString}, invisible element is ${currentElementString}.`;
@@ -173,7 +181,7 @@ function makeResetScrollFunction(element: Element, enableScrollToElement: boolea
    return collectScrollPositions(element);
 }
 
-function matches(el: Element, selector: string): boolean {
+function matches(el: HTMLElement, selector: string): boolean {
    return (
       el.matches ||
       el.matchesSelector ||
@@ -186,16 +194,17 @@ function matches(el: Element, selector: string): boolean {
 function checkInput(el: Element): boolean {
    return matches(el, 'input[type="text"], textarea, *[contentEditable=true]');
 }
-function hasControl(element) {
+
+function hasControl<T extends IExtendElement>(element: T): Record<string, object> {
    return element.controlNodes || element.wsControl;
 }
-function getContainerWithControlNode(element: Element): Element {
+function getContainerWithControlNode(element: IExtendElement): Element {
    while (element) {
       // ищем ближайший элемент, который может быть сфокусирован и не является полем ввода
       if (hasControl(element) && ElementFinder.getElementProps(element).tabStop && !checkInput(element)) {
          break;
       }
-      element = element.parentElement;
+      element = (element.parentElement as unknown as HTMLElement);
    }
    return element;
 }
@@ -216,7 +225,7 @@ function fixScrollingEffect(undoScrolling: Function): void {
    }
 }
 
-function fixElementForMobileInputs(element: Element, cfg: IFocusConfig): Element {
+function fixElementForMobileInputs(element: IExtendElement, cfg: IFocusConfig): IExtendElement {
    // на мобильных устройствах иногда не надо ставить фокус в поля ввода. потому что может показаться
    // экранная клавиатура. на ipad в случае асинхронной фокусировки вообще фокусировка откладывается
    // до следующего клика, и экранная клавиатура показывается не вовремя.
@@ -237,7 +246,7 @@ function fixElementForMobileInputs(element: Element, cfg: IFocusConfig): Element
    if (!cfg.enableScreenKeyboard && checkEnableScreenKeyboard()) {
       // если попали на поле ввода, нужно взять его родительский элемент и фокусировать его
       if (checkInput(element)) {
-         result = getContainerWithControlNode(element);
+         result = <IExtendElement> getContainerWithControlNode(element);
       }
    }
    return result;
@@ -247,10 +256,10 @@ function fixElementForMobileInputs(element: Element, cfg: IFocusConfig): Element
  * Moves focus to a specific HTML or SVG element
  */
 function focusInner(
-   element: Element,
+   element: IExtendElement,
    cfg: IFocusConfig
 ): boolean {
-   let fixedElement: Element = element;
+   let fixedElement: IExtendElement = element;
    // Заполняем cfg значениями по умолчанию, если другие не переданы
 
    fixedElement = fixElementForMobileInputs(element, cfg);
