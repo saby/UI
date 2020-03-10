@@ -9,9 +9,10 @@ import * as ElementFinder from './ElementFinder';
 import { focus } from './Focus';
 import { goUpByControlTree } from './goUpByControlTree';
 
+// @ts-ignore
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
 
-interface IContainer {
+interface IContainer extends Element {
    wsControl: IOldContainer;
 }
 
@@ -24,13 +25,12 @@ interface IOldContainer {
 function findAutofocusForVDOM(findContainer: Element): NodeListOf<Element> {
    return findContainer.querySelectorAll('[ws-autofocus="true"]');
 }
-
-function doFocus(container: Element | IContainer,
+function doFocus(container: IContainer,
                  cfg: { enableScreenKeyboard?: boolean,
                         enableScrollToElement?: boolean } = {}): boolean {
 
    let res = false;
-   if (!(container instanceof Element) && container.wsControl && container.wsControl.setActive) {
+   if (container.wsControl && container.wsControl.setActive) {
       // если нашли контейнер старого контрола, активируем его старым способом (для совместимости)
       if (container.wsControl.canAcceptFocus()) {
          container.wsControl.setActive(true);
@@ -39,8 +39,7 @@ function doFocus(container: Element | IContainer,
          // todo попробовать поискать следующий элемент?
          res = false;
       }
-   }
-   if (container instanceof Element) {
+   } else {
       if (ElementFinder.getElementProps(container).tabStop) {
          res = focus(container, cfg);
          if (res) {
