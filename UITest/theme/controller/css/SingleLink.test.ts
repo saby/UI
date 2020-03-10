@@ -60,54 +60,6 @@ describe('UI/theme/_controller/css/SingleLink', () => {
       });
    };
 
-   describe('load', () => {
-      if (!constants.isBrowserPlatform) { return; }
-      setHooks();
-
-      it('load returns Promise<void>', () => {
-         assert.instanceOf(link.load(loader), Promise);
-      });
-
-      it('load fetch css by href', () => {
-         return link.load(loader)
-            .then(() => { assert.isTrue(href in loader.loads); });
-      });
-   });
-
-   describe('outerHtml', () => {
-      setHooks();
-      it('outerHtml непустая строка', () => {
-         assert.isString(link.outerHtml);
-      });
-   });
-
-   describe('from', () => {
-      setHooks();
-      it('SingleLink`s instance from HTMLLinkElement', () => {
-         assert.instanceOf(link, SingleLink);
-         assert.strictEqual(name, link.cssName);
-         assert.strictEqual(theme, link.themeName);
-      });
-   });
-
-   describe('require / remove', () => {
-      setHooks();
-      it('при удалении экземпляр SingleLink также удаляется элемент из DOM', () => {
-         return link.remove().then((isRemoved) => {
-            assert.isTrue(isRemoved);
-            assert.isTrue(element.__removed);
-         });
-      });
-
-      it('css, необходимая другим контролам, не удаляется', () => {
-         link.require();
-         return link.remove().then((isRemoved) => {
-            assert.isFalse(isRemoved);
-            assert.isFalse(element.__removed);
-         });
-      });
-   });
-
    describe('removeForce', () => {
       setHooks();
       it('при удалении экземпляр SingleLink также удаляется элемент из DOM', () => {
