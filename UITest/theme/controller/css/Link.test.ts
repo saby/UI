@@ -63,12 +63,16 @@ describe('UI/theme/_controller/css/Link', () => {
       setHooks();
 
       it('load returns Promise<void>', () => {
+         const link = new Link(href, name, theme);
          assert.instanceOf(link.load(loader), Promise);
+         link.remove();
       });
 
       it('load fetch css by href', () => {
+         const link = new Link(href, name, theme);
          return link.load(loader)
-            .then(() => { assert.isTrue(href in loader.loads); });
+            .then(() => { assert.isTrue(href in loader.loads); })
+            .then(() => link.remove());
       });
    });
 
