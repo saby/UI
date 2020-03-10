@@ -1,20 +1,23 @@
 /// <amd-module name='UI/theme/_controller/css/Link' />
-import { Base, THEME_TYPE, ELEMENT_ATTR, IHTMLElement, ICssEntity, ILoader } from 'UI/theme/_controller/css/Base';
+import { Base } from 'UI/theme/_controller/css/Base';
+import { IHTMLElement, ICssEntity, ILoader } from 'UI/theme/_controller/css/interface';
+import { THEME_TYPE, ELEMENT_ATTR } from 'UI/theme/_controller/css/const';
 /**
- * Сущность, представляющая css/Link
- * Используется для подключения внешних тем в head на СП
+ * Мультитемная ссылка на клиенте
  */
 export default class Link extends Base implements ICssEntity {
+   protected readonly themeType: THEME_TYPE = THEME_TYPE.MULTI;
+   public element: IHTMLElement;
 
    constructor(
       href: string,
       cssName: string,
       themeName: string,
-      themeType: THEME_TYPE,
-      public element: IHTMLElement = createElement(href, cssName, themeName, themeType)
+      element?: IHTMLElement
    ) {
-      super(href, cssName, themeName, themeType);
-      this.outerHtml = element.outerHTML;
+      super(href, cssName, themeName);
+      this.element = element || createElement(href, cssName, themeName, this.themeType);
+      this.outerHtml = this.element.outerHTML;
    }
 
    load(loader: ILoader): Promise<void> {
@@ -27,7 +30,6 @@ export default class Link extends Base implements ICssEntity {
 
    /**
     * Удаление зависимости контрола от css
-    * @param force принудительное удаление
     * @return {boolean} true, если css никому не нужна контролам, удалена из DOM
     * @example
     *    const base = new Base(name, theme, themeType);
@@ -35,33 +37,13 @@ export default class Link extends Base implements ICssEntity {
     *    await base.remove(); // Promise<false>
     *    await base.remove(); // Promise<true>
     */
-   remove(force: boolean = false): Promise<boolean> {
-      return super.remove(force).then((isRemoved) => {
+   remove(): Promise<boolean> {
+      return super.remove().then((isRemoved) => {
          if (isRemoved) {
             this.element.remove();
          }
          return isRemoved;
       });
-   }
-
-   /**
-    * Создание экземпляра Link из HTMLLinkElement
-    * @example
-    * // получить массив Link
-    *    Array
-    *         .from(document.getElementsByTagName('link'))
-    *         .map(Link.from)
-    */
-   static from(element: IHTMLElement): Link | null {
-      const href = element.getAttribute(ELEMENT_ATTR.HREF);
-      const name = element.getAttribute(ELEMENT_ATTR.NAME);
-      const theme = element.getAttribute(ELEMENT_ATTR.THEME);
-      const themeType = element.getAttribute(ELEMENT_ATTR.THEME_TYPE) as THEME_TYPE;
-      const isNull = (prop) => Object.is(prop, null);
-      if ([name, href, theme, themeType].some(isNull)) {
-         return null;
-      }
-      return new Link(href, name, theme, themeType, element);
    }
 }
 

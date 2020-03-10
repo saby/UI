@@ -1,11 +1,11 @@
-import LinkPS from 'UI/theme/_controller/css/LinkPS';
-import { THEME_TYPE } from 'UI/theme/controller';
-import { ILoader } from 'UI/theme/_controller/css/Base';
+import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
+import { ILoader } from 'UI/theme/_controller/css/interface';
+// import { assert } from 'chai';
+// import 'mocha';
 
 const href = '#Some/href';
 const name = 'Some/Control';
 const theme = 'Some-theme';
-const themeType = THEME_TYPE.MULTI;
 
 class LoaderMock implements ILoader {
    load(_: string): Promise<void> {
@@ -13,14 +13,14 @@ class LoaderMock implements ILoader {
    }
 }
 
-let link: LinkPS;
+let link: SingleLinkPS;
 let loader: LoaderMock;
 
-describe('UI/theme/_controller/css/LinkPS', () => {
+describe('UI/theme/_controller/css/SingleLinkPS', () => {
 
    const setHooks = () => {
       beforeEach(() => {
-         link = new LinkPS(href, name, theme, themeType);
+         link = new SingleLinkPS(href, name, theme);
          loader = new LoaderMock();
       });
       afterEach(() => {
@@ -44,7 +44,7 @@ describe('UI/theme/_controller/css/LinkPS', () => {
 
    describe('require / remove', () => {
       setHooks();
-      it('невостребованный экземпляр LinkPS удаляется', () => {
+      it('невостребованный экземпляр SingleLinkPS удаляется', () => {
          return link.remove().then((isRemoved) => {
             assert.isTrue(isRemoved);
          });
@@ -54,6 +54,24 @@ describe('UI/theme/_controller/css/LinkPS', () => {
          link.require();
          return link.remove().then((isRemoved) => {
             assert.isFalse(isRemoved);
+         });
+      });
+   });
+
+   describe('removeForce', () => {
+      setHooks();
+      it('при удалении экземпляр SingleLink также удаляется элемент из DOM', () => {
+         return link.removeForce().then(() => {
+            assert.isTrue(link['requirement'] === 0);
+         });
+      });
+
+      it('css, необходимая другим контролам, удаляется', () => {
+         link.require();
+         link.require();
+         link.require();
+         return link.removeForce().then(() => {
+            assert.isTrue(link['requirement'] === 0);
          });
       });
    });

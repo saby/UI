@@ -1,11 +1,15 @@
 import { Controller } from 'UI/theme/_controller/Controller';
+// @ts-ignore
 import { constants } from 'Env/Env';
-import { THEME_TYPE } from 'UI/theme/_controller/css/Base';
+import { THEME_TYPE } from 'UI/theme/_controller/css/const';
 import Link from 'UI/theme/_controller/css/Link';
 import { ICssLoader } from 'UI/theme/_controller/Loader';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
+// import { assert } from 'chai';
+// import 'mocha';
+
 describe('UI/theme/_controller/Controller', () => {
-   
+
    const cssName = 'Some/Control';
    const themeName = 'Some/Theme';
 
@@ -45,13 +49,15 @@ describe('UI/theme/_controller/Controller', () => {
    let loader: CssLoaderMock;
 
    const setHooks = () => {
+
       beforeEach(() => {
          loader = new CssLoaderMock();
          controller = new Controller(loader);
       });
+
       afterEach(() => {
          return Promise.all(
-            controller.getAll().map((link) => { link.remove(true); })
+            controller.getAll().map((link) => { link.remove(); })
          ).then(() => {
             controller = null;
             loader = null;
@@ -65,13 +71,16 @@ describe('UI/theme/_controller/Controller', () => {
       it('Метод возвращает Promise<Link> на клиенте', () => {
          if (!constants.isBrowserPlatform) { return; }
          const getting = controller.get(cssName);
+
          assert.instanceOf(getting, Promise);
+
          return getting.then((css) => { assert.instanceOf(css, Link); });
       });
 
       it('Метод возвращает Promise<LinkPS> на СП', () => {
          if (!constants.isServerSide) { return; }
          const getting = controller.get(cssName);
+
          assert.instanceOf(getting, Promise);
          return getting.then((css) => { assert.instanceOf(css, LinkPS); });
       });

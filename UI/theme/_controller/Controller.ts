@@ -1,11 +1,16 @@
 /// <amd-module name='UI/theme/_controller/Controller' />
-import { THEME_TYPE, DEFAULT_THEME, ICssEntity } from 'UI/theme/_controller/css/Base';
-import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
-import LinkPS from 'UI/theme/_controller/css/LinkPS';
-import Link from 'UI/theme/_controller/css/Link';
-import Store from 'UI/theme/_controller/Store';
-import { constants, cookie } from 'Env/Env';
+// @ts-ignore
 import { HTTP } from 'Browser/_Transport/fetch/Errors';
+// @ts-ignore
+import { cookie } from 'Env/Env';
+import { createEntity, restoreEntity } from 'UI/theme/_controller/CSS';
+import { DEFAULT_THEME } from 'UI/theme/_controller/css/const';
+import { ICssEntity } from 'UI/theme/_controller/css/interface';
+import Link from 'UI/theme/_controller/css/Link';
+import SingleLink from 'UI/theme/_controller/css/SingleLink';
+import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
+import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
+import Store from 'UI/theme/_controller/Store';
 /**
  * Контроллер тем, необходим для скачивания/удаления/коллекции/переключения тем на странице
  * @class UI/theme/_controller/Controller
@@ -30,15 +35,14 @@ export class Controller {
     * При повторном запросе востребованность темы возрастает
     */
    get(cssName: string, themeName?: string): Promise<ICssEntity> {
-      const theme = typeof themeName !== 'undefined' ? themeName : this.appTheme;
+      const theme = themeName || this.appTheme;
       if (this.has(cssName, theme)) {
          const entity = this.store.get(cssName, theme);
          entity.require();
          return Promise.resolve(entity);
       }
       const { href, themeType } = this.cssLoader.getInfo(cssName, theme);
-      const LinkClass = (constants.isServerSide) ? LinkPS : Link;
-      const link = new LinkClass(href, cssName, theme, themeType);
+      const link = createEntity(href, cssName, theme, themeType);
       return link.load(this.cssLoader).then(() => {
          this.set(link);
          return link;
@@ -50,24 +54,23 @@ export class Controller {
     */
    getAll(): ICssEntity[] {
       return this.store.getNames()
-         .map((name) => this.store.getThemes(name)
-            .map((theme) => this.store.get(name, theme)))
+         .map((name) => this.store.getThemes(name))
          .reduce((prev, cur) => prev.concat(cur), []);
    }
    /**
     * Проверка наличия темы `themeName` у контрола `name`
     */
    has(cssName: string, themeName?: string): boolean {
-      const theme = typeof themeName !== 'undefined' ? themeName : this.appTheme;
+      const theme = themeName || this.appTheme;
       return this.store.has(cssName, theme);
    }
 
    /**
-    * Скачивание отсутвующей темы всем контролам
+    * Установить тему приложения
     * @param {string} themeName
     */
    setTheme(themeName: string): Promise<void> {
-      if (typeof themeName === 'undefined' || themeName === this.appTheme) {
+      if (!themeName || themeName === this.appTheme) {
          return Promise.resolve();
       }
       this.appTheme = themeName;
@@ -81,7 +84,7 @@ export class Controller {
     * т.е контрол `name` удаляется и, если больше нет зависимостей, css также удаляется из DOM
     */
    remove(cssName: string, themeName?: string): Promise<boolean> {
-      const theme = typeof themeName !== 'undefined' ? themeName : this.appTheme;
+      const theme = themeName || this.appTheme;
       return this.store.remove(cssName, theme);
    }
 
@@ -90,13 +93,14 @@ export class Controller {
     * @param link
     */
    private set(link: ICssEntity): void {
-      if (link.themeType === THEME_TYPE.SINGLE) {
-         /**
-          * при переключении немультитемной темы остальные темы должны удаляться,
-          * т.к возникают конфликты селекторов (они одинаковые)
-          */
-         this.store.clearThemes(link.cssName);
-      }
+      /**
+       * при переключении темы остальные немультитемные темы должны удаляться,
+       * т.к возникают конфликты селекторов (они одинаковые)
+       */
+      this.store.getThemes(link.cssName)
+         .filter((link): link is SingleLink | SingleLinkPS => link instanceof SingleLink || link instanceof SingleLinkPS)
+         .forEach((singleLink) => singleLink.removeForce());
+
       this.store.set(link);
    }
 
@@ -108,7 +112,7 @@ export class Controller {
       if (typeof document === 'undefined') { return; }
       Array
          .from(document.getElementsByTagName('link'))
-         .map(Link.from)
+         .map(restoreEntity)
          .filter((link) => link instanceof Link)
          .forEach(this.set);
    }

@@ -1,8 +1,10 @@
 /// <amd-module name='UI/theme/_controller/Loader' />
 // @ts-ignore
 import * as LinkResolver from 'Core/LinkResolver/LinkResolver';
+// @ts-ignore
 import { constants } from 'Env/Env';
-import { EMPTY_THEME, THEME_TYPE } from 'UI/theme/_controller/css/Base';
+import { EMPTY_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
+// @ts-ignore
 import { fetch } from 'Browser/Transport';
 export default class Loader implements ICssLoader {
    lr: LinkResolver;

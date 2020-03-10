@@ -1,19 +1,21 @@
 /// <amd-module name='UI/theme/_controller/css/LinkPS' />
-import { Base, THEME_TYPE, ELEMENT_ATTR, ICssEntity, ILoader } from 'UI/theme/_controller/css/Base';
+import { Base } from 'UI/theme/_controller/css/Base';
+import { ICssEntity, ILoader } from 'UI/theme/_controller/css/interface';
+import { THEME_TYPE, ELEMENT_ATTR } from 'UI/theme/_controller/css/const';
+
 /**
- * Сущность, представляющая css/LinkPS
- * Используется для подключения внешних тем в head на СП
+ * Мультитемная ссылка на СП
  */
 export default class LinkPS extends Base implements ICssEntity {
+   protected readonly themeType: THEME_TYPE = THEME_TYPE.MULTI;
 
    constructor(
       href: string,
       cssName: string,
       themeName: string,
-      themeType: THEME_TYPE
    ) {
-      super(href, cssName, themeName, themeType);
-      this.outerHtml = getLinkHtml(href, cssName, themeName, themeType);
+      super(href, cssName, themeName);
+      this.outerHtml = getLinkHtml(href, cssName, themeName, this.themeType);
    }
 
    load(_: ILoader): Promise<void> {
