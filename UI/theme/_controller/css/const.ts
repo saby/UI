@@ -1,5 +1,4 @@
 /// <amd-module name='UI/theme/_controller/css/const' />
-
 /**
  * перечисление аттрибутов css сущностей в DOM
  */
