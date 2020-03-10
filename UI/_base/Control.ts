@@ -490,7 +490,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                loadPromise.then((res) => {
                   if (res.status === 'rejected') {
                      const message = '[UI/_base/Control:_loadNewStyles] Styles loading error ' +
-                        `Could not load style ${name} for "${self._moduleName}`;
+                        `Could not load style ${name} for "${self._moduleName}\n${res.error?.stack || res.error }`;
                      Logger.error(message, self);
                   }
                });
@@ -507,7 +507,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                loadPromise.then((res) => {
                   if (res.status === 'rejected') {
                      const message = '[UI/_base/Control:_loadNewStyles] Styles loading error ' +
-                        `Could not load style ${name} for "${self._moduleName} with theme ${theme}`;
+                        `Could not load style ${name} for "${self._moduleName} with theme ${theme}\n${res.error?.stack || res.error}`;
                      Logger.error(message, self);
                   }
                });
