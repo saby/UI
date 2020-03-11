@@ -13,7 +13,7 @@ import { goUpByControlTree } from './goUpByControlTree';
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
 
 interface IContainer extends Element {
-   wsControl: IOldContainer;
+   wsControl?: IOldContainer;
 }
 
 interface IOldContainer {
@@ -57,7 +57,7 @@ function doFocus(container: IContainer,
 }
 
 export function activate(
-   container: Element,
+   container: IContainer,
    cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}
    ): boolean {
 
