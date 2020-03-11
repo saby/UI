@@ -5,8 +5,6 @@
  * Модуль, в котором находится логика по активации контролов
  */
 
-// @ts-ignore
-import { detection } from 'Env/Env';
 import * as ElementFinder from './ElementFinder';
 import { focus } from './Focus';
 import { goUpByControlTree } from './goUpByControlTree';
@@ -14,11 +12,20 @@ import { goUpByControlTree } from './goUpByControlTree';
 // @ts-ignore
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
 
+interface IContainer extends Element {
+   wsControl?: IOldContainer;
+}
+
+interface IOldContainer {
+   setActive: Function;
+   canAcceptFocus: Function;
+   isActive: Function;
+}
+
 function findAutofocusForVDOM(findContainer: Element): NodeListOf<Element> {
    return findContainer.querySelectorAll('[ws-autofocus="true"]');
 }
-
-function doFocus(container: any,
+function doFocus(container: IContainer,
                  cfg: { enableScreenKeyboard?: boolean,
                         enableScrollToElement?: boolean } = {}): boolean {
 
@@ -50,7 +57,7 @@ function doFocus(container: any,
 }
 
 export function activate(
-   container: Element,
+   container: IContainer,
    cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}
    ): boolean {
 

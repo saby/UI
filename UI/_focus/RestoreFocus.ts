@@ -2,7 +2,7 @@
 import { goUpByControlTree } from './goUpByControlTree';
 // @ts-ignore
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
-import { notifyActivationEvents } from "UI/_focus/Events";
+import { notifyActivationEvents } from 'UI/_focus/Events';
 
 // TODO подумать как решить проблему циклических зависимостей при импорте интерфейсов
 // В качестве временного решения отключен импорт и указан тип `any` в restoreFocus()
@@ -46,7 +46,7 @@ export function restoreFocus(control: any, action: Function): void {
          const container = control._template ? control._container : control.getContainer()[0];
          // @ts-ignore
          focus.__restoreFocusPhase = true;
-         let result = isElementVisible(container) && focus(container);
+         const result = isElementVisible(container) && focus(container);
          // @ts-ignore
          delete focus.__restoreFocusPhase;
          return result;
