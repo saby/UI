@@ -1,7 +1,7 @@
-import { Control } from 'UI/Base';
+import {Control} from 'UI/Base';
+import {goUpByControlTree} from 'UI/Focus';
+import {constants} from 'Env/Env';
 import template = require('wml!UI/_hotKeys/Dispatcher');
-import { goUpByControlTree } from 'UI/Focus';
-import { constants } from 'Env/Env';
 
 /**
  * Контрол выделяет область, в которой будут перехватываться клавиши и перенаправляться на обработку дочернему контролу,
@@ -33,8 +33,7 @@ class Dispatcher extends Control {
          // todo придумать проверку получше https://online.sbis.ru/opendoc.html?guid=50215de6-da5c-44bf-b6f6-a9f7cb0e17d2
          const wholeParents = goUpByControlTree(nativeEvent.target);
          const findIndexFunction = (parent) => {
-            const isFindedIndex = (parent._keysWeHandle && key in parent._keysWeHandle) || parent._moduleName === 'Controls/_popup/Manager/Popup';
-            return isFindedIndex;
+            return (parent._keysWeHandle && key in parent._keysWeHandle) || parent._moduleName === 'Controls/_popup/Manager/Popup';
          };
          const popupIndex = wholeParents.findIndex(findIndexFunction);
          const parents = popupIndex === -1 ? wholeParents : wholeParents.slice(0, popupIndex + 1);
@@ -58,7 +57,8 @@ class Dispatcher extends Control {
          // у события не будет bubbling фазы
          // TODO: Нужно поправить после исправления
          // https://online.sbis.ru/opendoc.html?guid=cefa8cd9-6a81-47cf-b642-068f9b3898b7
-         if (!event.target.closest('.richEditor_TinyMCE') && !event.target.closest('.controls-RichEditor')) {
+         const target = (event.target as HTMLElement);
+         if (!target.closest('.richEditor_TinyMCE') && !target.closest('.controls-RichEditor')) {
             event.stopPropagation();
          }
       }
