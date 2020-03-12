@@ -1,5 +1,5 @@
 /* global describe, it, assert */
-define(['UI/Base', 'UI/Utils'], (Base, Utils) => {
+define(['UI/Base', 'UI/Utils', 'UI/_base/Control'], (Base, Utils, Private) => {
    var fromNode = typeof document === 'undefined';
 
    describe('UITest/Test', () => {
@@ -9,42 +9,90 @@ define(['UI/Base', 'UI/Utils'], (Base, Utils) => {
       });
    });
 
-   describe('Base control constructor', () => {
+   describe('Async _beforeMount on client', () => {
       if (fromNode){
          this.skip();
       }
       var Logger = Utils.Logger;
-      var inst, startTime, result, message;
-      var errorMessage, errorStub;
-
+      var _privateFromControl, startTime, beforeMount, result, message;
+      var warnMessage, errorMessage, warnStub, errorStub;
+      var loggerWarnMock = (msg) => {
+         warnMessage = msg;
+      };
       var loggerErrorMock = (msg) => {
          errorMessage = msg;
       };
-      before(function () {
+      before(() => {
+         warnMessage = '';
+         warnStub = sinon.stub(Logger, 'warn').callsFake(loggerWarnMock);
          errorMessage = '';
          errorStub = sinon.stub(Logger, 'error').callsFake(loggerErrorMock);
          message = '';
       });
 
-      after(function () {
+      after(() => {
+         warnMessage = '';
+         warnStub.restore();
          errorMessage = '';
          errorStub.restore();
       });
 
       beforeEach(() => {
+         _privateFromControl = Private._private;
          startTime = Date.now();
+         warnMessage = '';
          errorMessage = '';
          message = '';
       });
 
       afterEach(() => {
-         inst.destroy();
+         _privateFromControl = null;
          startTime = null;
       });
 
-      it('Logic parent type check in runtime', () => {
-         inst = new Base.Control({_logicParent: "<div></div>"});
-         assert.equal(errorMessage, 'Option "_logicParent" is not instance of "Control"');
+      it('Default BL Execute Timer', () => {
+         startTime = startTime - 1000;
+         result = _privateFromControl._checkAsyncExecuteTime(startTime, undefined);
+         assert.equal(warnMessage, '');
+      });
+
+      it('Default BL Execute Timer - warn', () => {
+         startTime = startTime - 10000;
+         result = _privateFromControl._checkAsyncExecuteTime(startTime, undefined);
+         message = `Долгое выполнение _beforeMount на клиенте!`;
+         assert.include(warnMessage, message);
+      });
+
+      it('Custom BL Execute Timer', () => {
+         startTime = startTime - 8000;
+         result = _privateFromControl._checkAsyncExecuteTime(startTime, 10000);
+         assert.equal(warnMessage, '');
+      });
+
+      it('Custom BL Execute Timer - warn', () => {
+         startTime = startTime - 10000;
+         result = _privateFromControl._checkAsyncExecuteTime(startTime, 6000);
+         message = `Долгое выполнение _beforeMount на клиенте!`;
+         assert.include(warnMessage, message);
+      });
+
+      it('Default control timeout', () => {
+         beforeMount = new Promise((resolve) => {
+            resolve(true);
+         });
+         return _privateFromControl._asyncClientBeforeMount(beforeMount, 20000, undefined).then((result) => {
+            assert.isTrue(result);
+         });
+      });
+
+      it('Custom control timeout - error', () => {
+         beforeMount = new Promise((resolve) => {
+            setTimeout(() => {resolve(true)}, 10);
+         });
+         message = `Ошибка построения на клиенте!`;
+         return _privateFromControl._asyncClientBeforeMount(beforeMount, 0, undefined).then((result) => {
+            assert.include(errorMessage, message);
+         });
       });
    });
 });
