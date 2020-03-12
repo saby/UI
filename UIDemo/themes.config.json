@@ -1,7 +1,0 @@
-{
-  "old": false,
-  "multi": true,
-  "compatibility": {
-    "**/*.less": ["ui-demo"]
-  }
-}
