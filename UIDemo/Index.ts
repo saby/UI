@@ -1,14 +1,9 @@
 /// <amd-module name="UIDemo/Index" />
 
-import BaseControl = require('Core/Control');
-
+import { Control } from 'UI/Base';
 // @ts-ignore
 import template = require('wml!UIDemo/Index');
-
-var Index = BaseControl.extend({
-   _template: template,
-});
-
-Index._styles = ['UIDemo/Index'];
-
-export = Index;
+export default class Index extends Control {
+   _template = template;
+   static _styles = ['UIDemo/Index'];
+}

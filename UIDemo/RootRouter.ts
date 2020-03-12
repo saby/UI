@@ -1,12 +1,9 @@
 /// <amd-module name="UIDemo/RootRouter" />
 
-import BaseControl = require('Core/Control');
-
+import { Control } from 'UI/Base';
 // @ts-ignore
 import template = require('wml!UIDemo/RootRouter');
+export default class Index extends Control {
+    _template = template;
+}
 
-var Index = BaseControl.extend({
-    _template: template,
-});
-
-export default Index;

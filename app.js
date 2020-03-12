@@ -1,52 +1,20 @@
-/** this is similar config for: https://git.sbis.ru/sbis/controls/blob/rc-20.1000/app.js */
-const global = (function() {
-   return this || (0, eval)('this');
-})();
-
-const root = process.cwd();
-const fs = require('fs');
 const path = require('path');
 
 const hasPathToResources = process.argv[2] && process.argv[2].includes('--applicationRoot=');
 const pathToResources = hasPathToResources ? process.argv[2].replace('--applicationRoot=', '') : 'application';
+const root =path.join( process.cwd(), pathToResources);
 
 const requirejs = require(path.join('saby-units', 'lib', 'requirejs', 'r.js'));
-global.requirejs = requirejs;
 
 // Configuring requirejs
-const createConfig = require(path.join(root, pathToResources, 'WS.Core', 'ext', 'requirejs', 'config.js'));
-const config = createConfig(
-   path.join(root, pathToResources),
-   path.join(root, pathToResources, 'WS.Core'),
-   path.join(root, pathToResources)
-);
-requirejs.config(config);
+global.define = define = requirejs.define;
+global.requirejs = requirejs;
+const getRequireJsConfig = require(root + '/WS.Core/ext/requirejs/config.js');
 
-/**
- * Look ma, it cp -R.
- * @param {string} src The path to the thing to copy.
- * @param {string} dest The path to the new copy.
- */
-function copyRecursiveSync(src, dest) {
-   const exists = fs.existsSync(src);
-   const stats = exists && fs.statSync(src);
-   const isDirectory = exists && stats.isDirectory();
-
-   if (exists && isDirectory) {
-      if (!fs.existsSync(dest)) {
-         fs.mkdirSync(dest);
-      }
-
-      fs.readdirSync(src).forEach(function(childItemName) {
-         copyRecursiveSync(
-            path.join(src, childItemName),
-            path.join(dest, childItemName)
-         );
-      });
-   } else if (!fs.existsSync(dest)) {
-      fs.linkSync(src, dest);
-   }
-}
+requirejs.config(getRequireJsConfig(root, 'WS.Core', root));
+global.require = global.requirejs = require = (url) => requirejs(url.replace('.min', ''));
+requirejs(['Core/core-init', 'Core/patchRequireJS']);
+requirejs('Env/Env').constants.resourceRoot = '/';
 
 const express = require('express');
 const cookieParser = require('cookie-parser');
@@ -64,81 +32,57 @@ app.listen(port);
 
 console.log('app available on port ' + port);
 
-global.require = global.requirejs = require = requirejs;
-
-console.log('start init');
-require(['Core/core-init'], function(){
-   console.log('core init success');
-}, function(err){
-   console.log(err);
-   console.log('core init failed');
-});
-
 /*server side render*/
-app.get('/:moduleName/*', function(req, res){
+app.get('/:moduleName/*', function (req, res) {
 
    req.compatible = false;
 
    if (!process.domain) {
       process.domain = {
-         enter: function(){},
-         exit: function(){}
+         enter: function () { },
+         exit: function () { }
       };
    }
 
    process.domain.req = req;
    process.domain.res = res;
-
-   const tpl = require('wml!Controls/Application/Route');
-
-   let pathRoot = req.originalUrl.split('/');
-   let cmp;
-   if(!pathRoot) {
-      console.error('Incorrect url. Couldn\'t resolve path to root component');
-   } else {
-      cmp = '';
-   }
-   pathRoot = pathRoot.filter(function(el) {
-      return el.length > 0;
-   });
-   if(~pathRoot.indexOf('app')) {
-      cmp = pathRoot[0] + '/Index';
-   } else {
-      cmp = pathRoot.join('/') + '/Index';
-   }
-   try {
-      require(cmp);
-   } catch(error){
-      res.writeHead(404, {
-         'Content-Type': 'text/html'
-      });
-      res.end('');
-
+   if (req.path.includes('.')) {
+      res.sendFile(path.join(root, req.url.replace('.min', '')));
       return;
    }
-
-   require('Env/Env').constants.resourceRoot = '/';
-
-   const html = tpl({
+   const tpl = require('wml!Controls/Application/Route');
+   const application = getApplicationName(req.path);
+   try {
+      require(application);
+   } catch (error) {
+      console.error(error);
+      res.end(JSON.stringify(error, null, 2));
+      return;
+   }
+   Promise.resolve(tpl({
       lite: true,
       wsRoot: '/WS.Core/',
       resourceRoot: '/',
-      application: cmp,
+      application,
       appRoot: '/',
       preInitScript: 'window.wsConfig.debug = true;'
-   });
-
-   if (html.addCallback) {
-      html.addCallback(function(htmlres) {
-         res.writeHead(200, {
-            'Content-Type': 'text/html'
-         });
-         res.end(htmlres);
-      });
-   } else {
+   })).then(function (htmlres) {
       res.writeHead(200, {
          'Content-Type': 'text/html'
       });
-      res.end(html);
-   }
+      res.end(htmlres);
+   }).catch((e) => {
+      console.error(e);
+      res.end(JSON.stringify(e, null, 2));
+   });
 });
+
+
+function getApplicationName(url) {
+   const lastSlash = url.lastIndexOf('/');
+   const firstSlash = url.indexOf('/');
+   if (lastSlash !== (url.length - 1)) {
+      return url.substr(firstSlash + 1);
+   }
+   return url.substr(firstSlash + 1).substring(0, lastSlash - 1);
+}

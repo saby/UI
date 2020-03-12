@@ -1,0 +1,15 @@
+<!-- <UI.Base:Document> -->
+<Controls.Application>
+   <div>
+      <h3>Multi themes</h3>
+      <div>
+         <UIDemo.theme.Foo theme="{{theme1}}" />
+         <button on:click="switchFirst()" attr:class="demo-UIDemo__switchFirst">switch theme</button>
+      </div>
+      <div>
+         <UIDemo.theme.Foo theme="{{theme2}}" />
+         <button on:click="switchSecond()" attr:class="demo-UIDemo__switchSecond">switch theme</button>
+      </div>
+   </div>
+   <!-- </UI.Base:Document> -->
+</Controls.Application>
