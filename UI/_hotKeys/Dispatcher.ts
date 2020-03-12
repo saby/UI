@@ -32,7 +32,11 @@ class Dispatcher extends Control {
          // ищем только в пределах попапа
          // todo придумать проверку получше https://online.sbis.ru/opendoc.html?guid=50215de6-da5c-44bf-b6f6-a9f7cb0e17d2
          const wholeParents = goUpByControlTree(nativeEvent.target);
-         const popupIndex = wholeParents.findIndex((parent) => parent._moduleName === 'Controls/_popup/Manager/Popup');
+         const findIndexFunction = (parent) => {
+            const isFindedIndex = (parent._keysWeHandle && key in parent._keysWeHandle) || parent._moduleName === 'Controls/_popup/Manager/Popup';
+            return isFindedIndex;
+         };
+         const popupIndex = wholeParents.findIndex(findIndexFunction);
          const parents = popupIndex === -1 ? wholeParents : wholeParents.slice(0, popupIndex + 1);
 
          for (let i = 0; i < parents.length; i++) {
