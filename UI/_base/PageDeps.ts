@@ -80,12 +80,13 @@ function getModulesDeps(modules: IModules = {}): IModulesDescription {
 }
 /**
  * Коллекция тем подключенных через static _theme
- * @param modules 
+ * @param {IModules} modules описание modules из contents.json
+ * @param {IDeps} deps подключенные зависимости
  */
 function getModulesThemes(modules: IModules = {}, deps: IDeps): IDeps {
    return Object.keys(modules)
       .filter((name) => 'newThemes' in modules[name])
-      .filter((name) => deps.some((dep) => dep.startsWith(name))) // сбор тем только подключенных зависимостей
+      .filter((name) => deps.some((dep) => dep.startsWith(name))) // сбор тем только для подключенных зависимостей
       .map((name) => modules[name].newThemes)
       .reduce(collectThemes, []);
 
