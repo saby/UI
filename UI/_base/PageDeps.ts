@@ -17,7 +17,7 @@ const noDescription: IModulesDescription = {
    packedLibraries: {},
    lessDependencies: {}
 };
-const { links, nodes, bundles } = getModulesDeps(contents.modules).reduce(collect);
+const { links, nodes, bundles } = getModulesDeps(contents.modules);
 const depsCollector = new DepsCollector(links, nodes, bundles);
 
 export default class PageDeps {
@@ -50,7 +50,15 @@ function getDebugDeps(): ICollectedFiles {
 }
 
 function getRealeseDeps(deps: IDeps, unpack: IDeps): ICollectedFiles {
-   return depsCollector.collectDependencies(deps, unpack);
+   const { js, css: prevCss, wml, tmpl } = depsCollector.collectDependencies(deps, unpack);
+   const newThemes = getModulesThemes(contents.modules, js);
+   return {
+      js, wml, tmpl,
+      css: {
+         simpleCss: prevCss.simpleCss,
+         themedCss: prevCss.themedCss.concat(newThemes)
+      },
+   };
 }
 
 /**
@@ -58,8 +66,8 @@ function getRealeseDeps(deps: IDeps, unpack: IDeps): ICollectedFiles {
  * для коллекции зависимостей на СП
  * @param modules - словарь используемых модулей, для которых собираются зависимости
  */
-function getModulesDeps(modules: IModules = {}): IModulesDescription[] {
-   if (constants.isBrowserPlatform) { return [noDescription]; }
+function getModulesDeps(modules: IModules = {}): IModulesDescription {
+   if (constants.isBrowserPlatform) { return noDescription; }
 
    /** Список путей до внешних сервисов */
    const externalPaths = Object.keys(modules)
@@ -67,7 +75,23 @@ function getModulesDeps(modules: IModules = {}): IModulesDescription[] {
       .map((name) => modules[name].path);
 
    return [root, ...externalPaths]
-      .map(requireModuleDeps);
+      .map(requireModuleDeps)
+      .reduce(collect);
+}
+/**
+ * Коллекция тем подключенных через static _theme
+ * @param modules 
+ */
+function getModulesThemes(modules: IModules = {}, deps: IDeps): IDeps {
+   return Object.keys(modules)
+      .filter((name) => 'newThemes' in modules[name])
+      .filter((name) => deps.some((dep) => dep.startsWith(name))) // сбор тем только подключенных зависимостей
+      .map((name) => modules[name].newThemes)
+      .reduce(collectThemes, []);
+
+   function collectThemes(prev: IDeps, themes: IThemes): IDeps {
+      return Array.prototype.concat(prev, Object.keys(themes));
+   }
 }
 
 function collect(prev: IModulesDescription, next: IModulesDescription): IModulesDescription {
@@ -101,7 +125,14 @@ interface IContents {
    modules: IModules;
 }
 interface IModules {
-   [mod: string]: { path?: string; };
+   [mod: string]: {
+      path?: string;
+      newThemes?: IThemes;
+   };
+}
+
+interface IThemes {
+   [name: string]: IDeps;
 }
 interface IModulesDeps {
    nodes: Record<string, { path: string, amd: boolean; }>;
