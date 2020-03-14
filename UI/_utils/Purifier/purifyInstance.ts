@@ -1,12 +1,15 @@
 import * as Logger from '../Logger';
+import { delay } from 'Types/function';
+import { factory, Abstract } from 'Types/chain'
+
 // TODO: по задаче
 // https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
 const asyncPurifyTimeout = 10000;
 
 const typesToPurify: string[] = ['object', 'function'];
 
-function createUseAfterDestroyErrorFunction(stateName: string, instanceName: string): () => void {
-    return () => {
+function createUseAfterPurifyErrorFunction(stateName: string, instanceName: string): () => void {
+    return function useAfterPurify() {
         // TODO: по задаче
         // https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
         Logger.warn(`Попытка получить поле ${stateName} в очищенном ${instanceName}`);
@@ -19,18 +22,27 @@ function isValueToPurify(stateValue: any): boolean {
     return !!(stateValue && ~typesToPurify.indexOf(typeof stateValue));
 }
 
+function collectAllEntries(instance: Record<string, any>): [string, any][] {
+    let instanceKeys: Abstract<string> = factory([]);
+    let subInstance: Record<string, any> = instance;
+    while(subInstance) {
+        instanceKeys = instanceKeys.union(Object.keys(subInstance));
+        subInstance = Object.getPrototypeOf(subInstance);
+    }
+    return instanceKeys.value().map((instanceKey) => [instanceKey, instance[instanceKey]] as [string, any]);
+}
+
 function purifyInstanceSync(instance: Record<string, any>, instanceName: string) {
     if (instance.__purified) {
         return;
     }
 
-    // @ts-ignore: есть полифилл для Object.entries, информации о котором нет у компиллятора ts.
-    const instanceEntries = Object.entries(instance);
+    const instanceEntries = collectAllEntries(instance);
     while (instanceEntries.length) {
         const [stateName, stateValue] = instanceEntries.pop();
 
         const getterFunction = isValueToPurify(stateValue) ?
-            createUseAfterDestroyErrorFunction(stateName, instanceName) :
+            createUseAfterPurifyErrorFunction(stateName, instanceName) :
             () => stateValue;
 
         Object.defineProperty(instance, stateName, {
@@ -60,7 +72,12 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string)
  */
 export default function purifyInstance(instance: Record<string, any>, instanceName: string = 'instance', async: boolean = false): void {
     if (async) {
-        setTimeout(purifyInstanceSync, asyncPurifyTimeout, instance, instanceName);
+        setTimeout(() => {
+            // Чтобы не копилась очередь таймаутов, блокирующая перерисовку, нужен delay.
+            delay(() => {
+                purifyInstanceSync(instance, instanceName);
+            });
+        }, asyncPurifyTimeout);
     } else {
         purifyInstanceSync(instance, instanceName);
     }
