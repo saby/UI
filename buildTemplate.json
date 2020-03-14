@@ -9,7 +9,7 @@
   "htmlWml": true,
   "themes": true,
   "minimize": false,
-  "wml": true,
+  "wml": false,
   "customPack": false,
   "dependenciesGraph": false,
   "resourcesUrl": false,

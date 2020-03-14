@@ -1,0 +1,11 @@
+<div>
+   Multi themes<br />
+   <div>
+      <UIDemo.ThemesDemo.ThemedControl theme="{{theme1}}" />
+      <button on:click="switchFirst()" attr:class="demo-UIDemo__switchFirst">switch theme</button>
+   </div>
+   <div>
+      <UIDemo.ThemesDemo.ThemedControl theme="{{theme2}}" />
+      <button on:click="switchSecond()" attr:class="demo-UIDemo__switchSecond">switch theme</button>
+   </div>
+</div>
