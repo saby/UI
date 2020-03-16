@@ -1,23 +1,21 @@
-/// <amd-module name="UIDemo/Demo4" />
+/// <amd-module name="UIDemo/ThemesDemo/Page" />
 
-// @ts-ignore
-import BaseControl = require('Core/Control');
-
+import { Control } from 'UI/Base';
 // @ts-ignore
 import template = require('wml!UIDemo/ThemesDemo/Page');
 
-var Page = BaseControl.extend({
-   _template: template,
-   _beforeMount: function () {
-      this.theme1 = 'theme1';
-      this.theme2 = 'theme1';
-   },
-   switchFirst: function() {
-      this.theme1 = this.theme1 === 'theme1' ? 'theme2' : 'theme1';
-   },
-   switchSecond: function() {
-      this.theme2 = this.theme2 === 'theme1' ? 'theme2' : 'theme1';
-   }
-});
+const LIGTH_THEME = 'default__ligth';
+const DARK_THEME = 'default__dark';
+const invertTheme = (theme: string) => (theme === LIGTH_THEME) ? DARK_THEME : LIGTH_THEME;
 
-export = Page;
+export default class Page extends Control {
+   _template = template;
+   theme1 = LIGTH_THEME;
+   theme2 = LIGTH_THEME;
+   switchFirst() {
+      this.theme1 = invertTheme(this.theme1);
+   }
+   switchSecond() {
+      this.theme2 = invertTheme(this.theme2);
+   }
+};
