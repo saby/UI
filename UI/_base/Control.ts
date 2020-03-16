@@ -39,6 +39,7 @@ type IControlChildren = Record<string, Element | Control>;
 /**
  * @event UI/_base/Control#activated Происходит при активации контрола.
  * @param {Boolean} isTabPressed Указывает, был ли активирован контрол нажатием на клавишу Tab.
+* @param {Boolean} isShiftKey Указывает, был ли активирован контрол нажатием Tab+Shift.
  * @remark Контрол активируется, когда на один из его DOM-элементов переходит фокус.
  * Подробное описание и примеры использования события читайте
  * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ здесь}.
@@ -329,7 +330,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._isRendered = true;
          return markup;
       };
-
+      if (cfg._logicParent && !(cfg._logicParent instanceof Control)) {
+         Logger.error('Option "_logicParent" is not instance of "Control"', this);
+      }
       this._logicParent = cfg._logicParent;
       this._options = {};
       this._internalOptions = {};
@@ -536,7 +539,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * Используйте параметр enableScreenKeyboard = false, фокус будет установлен на родительском элементе, а не на полях ввода.
     * @remark Метод находит DOM-элемент внутри контрола (и его дочерних контролов), который может быть сфокусирован и устанавливает на него фокус.
     * Метод возвращает true, если фокус был установлен успешно, false - если фокус не был установлен.
-    * Когда контрол становится активным, все его дочерниеконтролы также становятся активными. Когда контрол активируется, он запускает событие активации.
+    * Когда контрол становится активным, все его дочерние контролы также становятся активными. Когда контрол активируется, он запускает событие активации.
     * Подробное описание и инструкцию по работе с методом читайте
     * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ здесь}.
     * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/
