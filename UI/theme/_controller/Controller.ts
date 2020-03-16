@@ -3,12 +3,9 @@
 import { HTTP } from 'Browser/_Transport/fetch/Errors';
 // @ts-ignore
 import { cookie } from 'Env/Env';
-import { createEntity, restoreEntity } from 'UI/theme/_controller/CSS';
+import { createEntity, restoreEntity, isLinkEntity, isSingleEntity } from 'UI/theme/_controller/CSS';
 import { DEFAULT_THEME } from 'UI/theme/_controller/css/const';
 import { ICssEntity } from 'UI/theme/_controller/css/interface';
-import Link from 'UI/theme/_controller/css/Link';
-import SingleLink from 'UI/theme/_controller/css/SingleLink';
-import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
 import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
 import Store from 'UI/theme/_controller/Store';
 /**
@@ -98,7 +95,7 @@ export class Controller {
        * т.к возникают конфликты селекторов (они одинаковые)
        */
       this.store.getThemes(link.cssName)
-         .filter((link): link is SingleLink | SingleLinkPS => link instanceof SingleLink || link instanceof SingleLinkPS)
+         .filter(isSingleEntity)
          .forEach((singleLink) => singleLink.removeForce());
 
       this.store.set(link);
@@ -113,7 +110,7 @@ export class Controller {
       Array
          .from(document.getElementsByTagName('link'))
          .map(restoreEntity)
-         .filter((link) => link instanceof Link)
+         .filter(isLinkEntity)
          .forEach(this.set);
    }
 
@@ -133,8 +130,8 @@ export class Controller {
  * @param e
  */
 function onerror(e: HTTP): never {
-   throw new Error(`
-      Couldn't load: ${e.url}
-      It's probably an error with internet connection or CORS settings.
-   `);
+   throw new Error(
+      `Couldn't load: ${e.url}
+      It's probably an error with internet connection or CORS settings.`
+   );
 }
