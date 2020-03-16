@@ -1,12 +1,12 @@
 import { getModulesThemes, IModules } from 'UI/_base/PageDeps';
-import { assert } from 'chai';
-import 'mocha';
+// import { assert } from 'chai';
+// import 'mocha';
 import { IDeps } from 'UI/_base/DepsCollector';
 
 describe('UI/_base/PageDeps', () => {
    describe('getModuleDeps', () => {
 
-      it('Коллекция тем только для подключенных тем', () => {
+      it('Коллекция тем только для подключенных модулей', () => {
          const modules: IModules = {
             'Controls': {
                'newThemes': {
