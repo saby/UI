@@ -4,7 +4,7 @@ import { Control } from 'UI/Base';
 // @ts-ignore
 import template = require('wml!UIDemo/ThemesDemo/Page');
 
-const LIGTH_THEME = 'default__ligth';
+const LIGTH_THEME = 'default__light';
 const DARK_THEME = 'default__dark';
 const invertTheme = (theme: string) => (theme === LIGTH_THEME) ? DARK_THEME : LIGTH_THEME;
 

@@ -74,6 +74,9 @@ require(['Core/core-init'], function(){
    console.log('core init failed');
 });
 
+require('Env/Env').constants.resourceRoot = '/';
+require('Env/Env').constants.modules = require('json!/contents').modules;
+
 /*server side render*/
 app.get('/:moduleName/*', function(req, res){
 
@@ -116,8 +119,6 @@ app.get('/:moduleName/*', function(req, res){
 
       return;
    }
-
-   require('Env/Env').constants.resourceRoot = '/';
 
    const html = tpl({
       lite: true,
