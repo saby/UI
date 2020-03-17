@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui_module for_cdn="0" id="981002dc-65bb-40bc-8489-a18683d011fc" name="UIDemo-default-theme" required="0" responsible="Ибрагимов А.А." version="1.00">
+
+  <description/>
+
+  <depends/>
+
+  <load_after/>
+
+  <parameters/>
+
+  <resources/>
+
+  <preload/>
+
+</ui_module>
