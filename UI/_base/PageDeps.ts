@@ -83,7 +83,7 @@ function getModulesDeps(modules: IModules = {}): IModulesDescription {
  * @param {IModules} modules описание modules из contents.json
  * @param {IDeps} deps подключенные зависимости
  */
-function getModulesThemes(modules: IModules = {}, deps: IDeps): IDeps {
+export function getModulesThemes(modules: IModules = {}, deps: IDeps): IDeps {
    return Object.keys(modules)
       .filter((name) => 'newThemes' in modules[name])
       .filter((name) => deps.some((dep) => dep.startsWith(name))) // сбор тем только для подключенных зависимостей
@@ -91,7 +91,8 @@ function getModulesThemes(modules: IModules = {}, deps: IDeps): IDeps {
       .reduce(collectThemes, []);
 
    function collectThemes(prev: IDeps, themes: IThemes): IDeps {
-      return Array.prototype.concat(prev, Object.keys(themes));
+      const depThemes = Object.keys(themes).filter((theme) => deps.includes(theme));
+      return Array.prototype.concat(prev, depThemes);
    }
 }
 
@@ -125,7 +126,7 @@ interface IContents {
    jsModules: object;
    modules: IModules;
 }
-interface IModules {
+export interface IModules {
    [mod: string]: {
       path?: string;
       newThemes?: IThemes;
