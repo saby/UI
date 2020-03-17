@@ -32,7 +32,7 @@ function collectAllEntries(instance: Record<string, any>): [string, any][] {
     return instanceKeys.value().map((instanceKey) => [instanceKey, instance[instanceKey]] as [string, any]);
 }
 
-function purifyInstanceSync(instance: Record<string, any>, instanceName: string) {
+function purifyInstanceSync(instance: Record<string, any>, instanceName: string, stateNamesNoPurify: Record<string, boolean> = {}) {
     if (instance.__purified) {
         return;
     }
@@ -41,7 +41,7 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string)
     while (instanceEntries.length) {
         const [stateName, stateValue] = instanceEntries.pop();
 
-        const getterFunction = isValueToPurify(stateValue) ?
+        const getterFunction = isValueToPurify(stateValue) && !stateNamesNoPurify[stateName] ?
             createUseAfterPurifyErrorFunction(stateName, instanceName) :
             () => stateValue;
 
@@ -67,18 +67,22 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string)
  * @param {Record<string, any>} instance - экземпляр, поля которого нужно очистить.
  * @param {string} [instanceName = 'instance'] - имя экземпляра для отображения в предупреждении.
  * @param {boolean} [async = false] - вызывать ли очистку с задержкой.
+ * @param {Record<string, boolean>} [stateNamesNoPurify?] - объект с именами полей, которые чистить не нужно.
  * @class UI/_utils/Purifier/purifyInstance
  * @author Кондаков Р.Н.
  */
-export default function purifyInstance(instance: Record<string, any>, instanceName: string = 'instance', async: boolean = false): void {
+export default function purifyInstance(instance: Record<string, any>,
+                                       instanceName: string = 'instance',
+                                       async: boolean = false,
+                                       stateNamesNoPurify?: Record<string, boolean>): void {
     if (async) {
         setTimeout(() => {
             // Чтобы не копилась очередь таймаутов, блокирующая перерисовку, нужен delay.
             delay(() => {
-                purifyInstanceSync(instance, instanceName);
+                purifyInstanceSync(instance, instanceName, stateNamesNoPurify);
             });
         }, asyncPurifyTimeout);
     } else {
-        purifyInstanceSync(instance, instanceName);
+        purifyInstanceSync(instance, instanceName, stateNamesNoPurify);
     }
 };
