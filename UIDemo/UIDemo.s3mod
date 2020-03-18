@@ -3,7 +3,9 @@
 
   <description/>
 
-  <depends/>
+  <depends>
+      <module id="981002dc-65bb-40bc-8489-a18683d011fc" name="UIDemo-default-theme"/>
+  </depends>
 
   <load_after/>
 
