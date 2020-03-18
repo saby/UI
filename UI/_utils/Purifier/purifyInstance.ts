@@ -45,11 +45,13 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string,
             createUseAfterPurifyErrorFunction(stateName, instanceName) :
             () => stateValue;
 
+        // TODO: убрать костыль в https://online.sbis.ru/opendoc.html?guid=1c91dd41-5adf-4fd7-b2a4-ff8f103a8084
+        // возможно, нужно не удалять объекты и функции, а заменять на пустые функции и объекты соответственно
         Object.defineProperty(instance, stateName, {
             enumerable: false,
             configurable: false,
             set: emptyFunction,
-            get: getterFunction
+            get: stateName === 'destroy' ? () => emptyFunction : getterFunction
         });
     }
 
