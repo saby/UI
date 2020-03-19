@@ -166,6 +166,22 @@ define([
             assert.strictEqual(getterValue, undefined);
             assert.equal(errorMessage, 'Попытка получить поле getterValue в очищенном test_instance');
          });
+
+         it('do not purify some state', () => {
+            instance = {
+               safeState: {},
+               unsafeState: {
+                  value: new Date()
+               }
+            };
+            purifyInstance(instance, 'test_instance', false, { safeState: true });
+
+            const safeState = instance.safeState;
+            const unsafeState = instance.unsafeState;
+            assert.equal(typeof safeState, 'object');
+            assert.equal(typeof unsafeState, 'undefined');
+            assert.equal(errorMessage, 'Попытка получить поле unsafeState в очищенном test_instance');
+         });
       });
    });
 });

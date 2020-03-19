@@ -1,15 +1,11 @@
-/// <amd-module name="UIDemo/Demo4_sub" />
+/// <amd-module name="UIDemo/ThemesDemo/ThemedControl" />
 
-// @ts-ignore
-import BaseControl = require('Core/Control');
+import { Control } from 'UI/Base';
 
 // @ts-ignore
 import template = require('wml!UIDemo/ThemesDemo/ThemedControl');
 
-var ThemedControl = BaseControl.extend({
-    _template: template
-});
-
-ThemedControl._theme = ['UIDemo/ThemesDemo/ThemedControl'];
-
-export = ThemedControl;
+export default class ThemedControl extends Control {
+    _template = template;
+    static _theme = ['UIDemo/ThemesDemo/ThemedControl'];
+}
