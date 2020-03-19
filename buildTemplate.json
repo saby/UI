@@ -81,6 +81,10 @@
       "path": "./UIDemo"
     },
     {
+      "name": "UIDemo-default-theme",
+      "path": "./UIDemo-default-theme"
+    },
+    {
       "name": "Env",
       "path": "./node_modules/rmi/src/client/Env",
       "required": true
