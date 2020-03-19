@@ -1,8 +1,6 @@
 /// <amd-module name='UI/_base/PageDeps' />
 import { cookie, constants } from 'Env/Env';
 import { DepsCollector, ICollectedFiles, IDeps } from 'UI/_base/DepsCollector';
-import ThemesControllerNew = require('Core/Themes/ThemesControllerNew');
-
 const root = 'resources';
 let contents: Partial<IContents> = {};
 try {
@@ -52,9 +50,15 @@ function getDebugDeps(): ICollectedFiles {
 }
 
 function getRealeseDeps(deps: IDeps, unpack: IDeps): ICollectedFiles {
-   const collected = depsCollector.collectDependencies(deps, unpack);
-   addModulesThemes(contents.modules, collected.js);
-   return collected;
+   const { js, css: prevCss, wml, tmpl } = depsCollector.collectDependencies(deps, unpack);
+   const newThemes = getModulesThemes(contents.modules, js);
+   return {
+      js, wml, tmpl,
+      css: {
+         simpleCss: prevCss.simpleCss,
+         themedCss: prevCss.themedCss.concat(newThemes)
+      },
+   };
 }
 
 /**
@@ -79,21 +83,17 @@ function getModulesDeps(modules: IModules = {}): IModulesDescription {
  * @param {IModules} modules описание modules из contents.json
  * @param {IDeps} deps подключенные зависимости
  */
-export function addModulesThemes(modules: IModules = {}, deps: IDeps): void {
-   const tc = ThemesControllerNew.getInstance();
-   Object.keys(modules)
+export function getModulesThemes(modules: IModules = {}, deps: IDeps): IDeps {
+   return Object.keys(modules)
       .filter((name) => 'newThemes' in modules[name])
       .filter((name) => deps.some((dep) => dep.startsWith(name))) // сбор тем только для подключенных зависимостей
       .map((name) => modules[name].newThemes)
-      .forEach((themes) => {
-         Object.keys(themes)
-            .filter((cssName) => deps.includes(cssName))
-            .forEach((cssName) => {
-               themes[cssName].forEach((themeName) => {
-                  tc.pushThemedCss(cssName, themeName.replace(':', '__'));
-               });
-            });
-      });
+      .reduce(collectThemes, []);
+
+   function collectThemes(prev: IDeps, themes: IThemes): IDeps {
+      const depThemes = Object.keys(themes).filter((theme) => deps.includes(theme));
+      return Array.prototype.concat(prev, depThemes);
+   }
 }
 
 function collect(prev: IModulesDescription, next: IModulesDescription): IModulesDescription {
@@ -132,12 +132,9 @@ export interface IModules {
       newThemes?: IThemes;
    };
 }
-/**
- * Описание тем вида
- *    "Addressee/_demo/Base/Base": [ "default" ],
- */
+
 interface IThemes {
-   [name: string]: string[];
+   [name: string]: IDeps;
 }
 interface IModulesDeps {
    nodes: Record<string, { path: string, amd: boolean; }>;
