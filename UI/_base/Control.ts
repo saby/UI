@@ -565,6 +565,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          }
          if (this._mounted) {
             this.__beforeUnmount();
+            (this as any).unmountCallback && (this as any).unmountCallback();
             Synchronizer.cleanControlDomLink(this._container, this);
          }
          // Избегаем утечки контролов по замыканию
