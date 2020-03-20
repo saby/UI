@@ -91,6 +91,8 @@ const WAIT_TIMEOUT = 20000;
 // IE browser only needs more than 5 sec to load so we increased timeout up to 30 sec.
 const WRAP_TIMEOUT = 30000;
 
+const stateNamesNoPurify = {_notify: true};
+
 export const _private = {
    _checkAsyncExecuteTime: function (startTime: number, customBLExecuteTime: number, moduleName: string): void {
       let executeTime = Date.now() - startTime;
@@ -581,7 +583,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       } catch (error) {
          Logger.lifeError('_beforeUnmount', this, error);
       }
-      Purifier.purifyInstance(this, this._moduleName, true);
+      Purifier.purifyInstance(this, this._moduleName, true, stateNamesNoPurify);
    }
 
    // <editor-fold desc="API">
