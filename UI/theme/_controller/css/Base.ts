@@ -16,7 +16,7 @@ export abstract class Base implements ICssEntity {
    constructor(
       public href: string,
       public cssName: string,
-      public themeName: string = DEFAULT_THEME,
+      public themeName: string = DEFAULT_THEME
    ) {
       if (!href || !cssName) {
          throw new Error(`Invalid arguments href - ${href} or cssName - ${cssName}`);
@@ -34,4 +34,3 @@ export abstract class Base implements ICssEntity {
 
    abstract load(loader: ILoader): Promise<void>;
 }
-

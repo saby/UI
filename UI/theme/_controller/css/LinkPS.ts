@@ -12,7 +12,7 @@ export default class LinkPS extends Base implements ICssEntity {
    constructor(
       href: string,
       cssName: string,
-      themeName: string,
+      themeName: string
    ) {
       super(href, cssName, themeName);
       this.outerHtml = getLinkHtml(href, cssName, themeName, this.themeType);
