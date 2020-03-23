@@ -777,9 +777,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._reactiveStart = true;
       }
 
-      const stylesLoading = this.constructor['loadStyles'](opts.theme, this.extractInstanceStyles()).catch((e: Error) => {
-         Logger.error(e.message);
-      });
+      const stylesLoading = this.constructor['loadStyles'](opts.theme, this.extractInstanceStyles()).catch(logError);
       resultBeforeMount = Promise.all([stylesLoading, resultBeforeMount]);
 
       this._$resultBeforeMount = resultBeforeMount;
@@ -837,9 +835,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUpdate(newOptions: TOptions): void {
-      this.constructor['loadStyles'](newOptions.theme, this.extractInstanceStyles()).catch((e: Error) => {
-         Logger.error(e.message);
-      });
+      this.constructor['loadStyles'](newOptions.theme, this.extractInstanceStyles()).catch(logError);
       this._beforeUpdate.apply(this, arguments);
    }
 
@@ -1066,7 +1062,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    __beforeUnmount(): void {
       this.constructor['removeStyles'](this._options.theme)
          .then(() => { this._beforeUnmount(); })
-         .catch((e: Error) => { Logger.error(e.message); });
+         .catch(logError);
    }
 
    /**
@@ -1114,8 +1110,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    /**
     * Загрузка стилей контрола, монтирование скаченных css в head страницы 
-    * @param themeName имя темы, по-умолчанию тема приложения
-    * @param instStyles стили экземпляра
+    * @param themeName имя темы (по-умолчанию тема приложения)
+    * @param instStyles опционально дополнительные стили экземпляра
     * @static
     * @method
     * @example
@@ -1137,9 +1133,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    /**
-    * Удаление style элементов из DOM 
-    * @param themeName имя темы, по-умолчанию тема приложения
-    * @param instStyles стили экземпляра
+    * Удаление link элементов из DOM 
+    * @param themeName имя темы (по-умолчанию тема приложения)
+    * @param instStyles опционально дополнительные стили экземпляра
     * @static
     * @method
     */
@@ -1232,6 +1228,9 @@ interface IControlStyles {
 // @ts-ignore
 Control.prototype._template = template;
 
+function logError(e: Error) {
+   Logger.error(e.message);
+}
 /**
  * @name UI/_base/Control#readOnly
  * @cfg {Boolean} Определяет, может ли пользователь изменить значение контрола.

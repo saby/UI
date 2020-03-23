@@ -70,27 +70,13 @@ class Head extends Control {
             this.simpleCss = [];
             return;
         }
-        return headDataStore.read('waitAppContent')().then(({ css }) => {
-            this.collectStyles(options.theme, css.simpleCss, css.themedCss);
-        });
+        return headDataStore.read('waitAppContent')().then(({ css }) =>
+            collectCSS(options.theme, css.simpleCss, css.themedCss)
+                .then((html) => { this.stylesHtml = html; })
+                .catch(onerror)
+        );
     }
 
-    private collectStyles(theme: string, simpleCss: string[], themedCss: string[]): void {
-        const tc = getThemeController();
-        Promise.all([
-            ...simpleCss.map((name) => tc.get(name, EMPTY_THEME)),
-            ...themedCss.map((name) => tc.get(name, theme))
-        ])
-            .then((enities) => enities
-                .map((entity) => entity.outerHtml)
-                .join('\n'))
-            .then((html) => { this.stylesHtml = html; })
-            .catch((e: Error) => {
-                import('UI/Utils').then(({ Logger }) => {
-                    Logger.error(e.message);
-                });
-            });
-    }
     // @ts-ignore
     _shouldUpdate(): Boolean {
         return false;
@@ -99,14 +85,21 @@ class Head extends Control {
     isArray(obj: any): Boolean {
         return Array.isArray(obj);
     }
-
-    isMultiThemes(): Boolean {
-        return Array.isArray(this._options.theme);
-    }
-
-    getCssWithTheme(value: string, theme: string): string {
-        return value.replace('.css', '') + '_' + theme + '.css';
-    }
 }
 
 export default Head;
+
+function collectCSS(theme: string, simpleCss: string[], themedCss: string[]): Promise<string> {
+    const tc = getThemeController();
+    return Promise.all([
+        ...simpleCss.map((name) => tc.get(name, EMPTY_THEME)),
+        ...themedCss.map((name) => tc.get(name, theme))
+    ])
+        .then((enities) => enities
+            .map((entity) => entity.outerHtml)
+            .join('\n'));
+}
+
+function onerror(e: Error): void {
+    import('UI/Utils').then(({ Logger }) => { Logger.error(e.message); });
+}

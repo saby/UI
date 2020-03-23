@@ -1,8 +1,12 @@
 /// <amd-module name='UI/_base/PageDeps' />
 import { cookie, constants } from 'Env/Env';
 import { DepsCollector, ICollectedFiles, IDeps } from 'UI/_base/DepsCollector';
-import ThemesControllerNew = require('Core/Themes/ThemesControllerNew');
 
+/**
+ * constants.resourceRoot указан путь до корневой директории сервиса,
+ * а нужен путь до продукта, который 'resources'
+ * но в инт.тестах корень не 'resources', а именно constants.resourceRoot
+ */
 let root = 'resources';
 let contents: Partial<IContents> = {};
 try {
@@ -11,6 +15,7 @@ try {
 } catch {
    try {
       root = constants.resourceRoot;
+      // @ts-ignore tslint:disable-next-line:no-var-requires
       contents = require(`json!${root}contents`);
    } catch {
       contents = {};
@@ -64,7 +69,7 @@ function getRealeseDeps(deps: IDeps, unpack: IDeps): ICollectedFiles {
       css: {
          simpleCss: prevCss.simpleCss,
          themedCss: prevCss.themedCss.concat(newThemes)
-      },
+      }
    };
 }
 
