@@ -3,13 +3,18 @@ import { cookie, constants } from 'Env/Env';
 import { DepsCollector, ICollectedFiles, IDeps } from 'UI/_base/DepsCollector';
 import ThemesControllerNew = require('Core/Themes/ThemesControllerNew');
 
-const root = 'resources';
+let root = 'resources';
 let contents: Partial<IContents> = {};
 try {
    // @ts-ignore tslint:disable-next-line:no-var-requires
-   contents = require(`json!${root}/contents`) || {};
+   contents = require(`json!${root}/contents`);
 } catch {
-   contents = {};
+   try {
+      root = constants.resourceRoot;
+      contents = require(`json!${root}contents`);
+   } catch {
+      contents = {};
+   }
 }
 
 const noDescription: IModulesDescription = {
