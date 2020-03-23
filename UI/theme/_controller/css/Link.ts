@@ -7,7 +7,7 @@ import { THEME_TYPE, ELEMENT_ATTR } from 'UI/theme/_controller/css/const';
  */
 export default class Link extends Base implements ICssEntity {
    protected readonly themeType: THEME_TYPE = THEME_TYPE.MULTI;
-   public element: IHTMLElement;
+   element: IHTMLElement;
 
    constructor(
       href: string,

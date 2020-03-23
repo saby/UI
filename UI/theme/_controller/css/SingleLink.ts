@@ -8,7 +8,7 @@ import { ISingleCssEntity } from 'UI/theme/_controller/css/interface';
 export default class SingleLink extends Link implements ISingleCssEntity {
    protected readonly themeType: THEME_TYPE = THEME_TYPE.SINGLE;
 
-   removeForce() {
+   removeForce(): Promise<void> {
       this.requirement = 0;
       this.element.remove();
       return Promise.resolve();

@@ -8,7 +8,6 @@ import Link from 'UI/theme/_controller/css/Link';
 // @ts-ignore
 import { constants } from 'Env/Env';
 
-
 export function createEntity(href: string, cssName: string, themeName: string, themeType: THEME_TYPE): ICssEntity {
    if (themeType === THEME_TYPE.MULTI) {
       const LinkClass = constants.isServerSide ? LinkPS : Link;
@@ -41,8 +40,9 @@ export function restoreEntity(element: IHTMLElement): IRestoredEntity {
 export const isLinkEntity = (entity: IRestoredEntity) => entity instanceof Link;
 /**
  * Предикат фильтрации немультитемных css
- * @param link 
+ * @param link
  */
-export const isSingleEntity = (link: ICssEntity): link is SingleLink | SingleLinkPS => link instanceof SingleLink || link instanceof SingleLinkPS;
+export const isSingleEntity = (link: ICssEntity): link is SingleLink | SingleLinkPS =>
+link instanceof SingleLink || link instanceof SingleLinkPS;
 
 type IRestoredEntity = Link | SingleLink | null;

@@ -43,7 +43,7 @@ export class Controller {
       return link.load(this.cssLoader).then(() => {
          this.set(link);
          return link;
-      }).catch(onerror);
+      }).catch(decorateError);
    }
 
    /**
@@ -119,17 +119,14 @@ export class Controller {
       if (typeof Controller.instance !== 'undefined') {
          return Controller.instance;
       }
+      // @ts-ignore
       const buildMode = (1, eval)('this').contents?.buildMode;
       const isDebug = cookie.get('s3debug') === 'true' || buildMode === 'debug';
       Controller.instance = new Controller(new Loader(isDebug));
       return Controller.instance;
    }
 }
-/**
- * Обработчик ошибки загрузки стилей
- * @param e
- */
-function onerror(e: HTTP): never {
+function decorateError(e: HTTP): never {
    throw new Error(
       `Couldn't load: ${e.url}
       It's probably an error with internet connection or CORS settings.`
