@@ -35,7 +35,7 @@ define(['UI/Base', 'UI/Utils', 'UI/_base/Control'], (Base, Utils, Private) => {
          errorStub.restore();
       });
 
-      beforeEach(() => {
+      beforeEach(function() {
          if (fromNode){
             this.skip();
          }
