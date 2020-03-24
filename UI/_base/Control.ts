@@ -780,10 +780,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          // _reactiveStart means starting of monitor change in properties
          this._reactiveStart = true;
       }
-
-      const stylesLoading = this.constructor['loadStyles'](opts.theme, this.extractInstanceStyles()).catch(logError);
-      resultBeforeMount = Promise.all([stylesLoading, resultBeforeMount]);
-
+      this.constructor['loadStyles'](opts.theme, this.extractOwnStyles()).catch(logError);
       this._$resultBeforeMount = resultBeforeMount;
       return resultBeforeMount;
    }
@@ -839,7 +836,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUpdate(newOptions: TOptions): void {
-      this.constructor['loadStyles'](newOptions.theme, this.extractInstanceStyles()).catch(logError);
+      this.constructor['loadStyles'](newOptions.theme, this.extractOwnStyles()).catch(logError);
       this._beforeUpdate.apply(this, arguments);
    }
 
@@ -847,7 +844,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * Стили должны перечисляться в статическом свойстве класса, но у некоторых контролах хранятся в собственных
     * Кидаем ошибку в консоль
     */
-   private extractInstanceStyles(): IControlStyles {
+   private extractOwnStyles(): IControlStyles {
       // @ts-ignore
       if (this._theme && this._theme.length !== 0 || this._style && this._style.length !== 0) {
          Logger.warn("Стили должны перечисляться в статическом свойстве класса " + this._moduleName);
