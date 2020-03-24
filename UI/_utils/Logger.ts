@@ -2,29 +2,30 @@
 
 // @ts-ignore
 import { IoC } from 'Env/Env';
+// tslint:disable: no-any
 
 /**
-   Модуль логирования, восстанавливает стек и формирует сообщения в едином формате:
-
-   CONTROL ERROR: Event handle "click" in "Controls-demo/ErrorsEmulator/ErrorsDemo"
-
-      ↱ Controls-demo/ErrorsEmulator/ErrorsDemo
-       ↱ Controls/Container/Async
-        ↱ Controls-demo/RootRouter
-         ↱ Controls-demo/Index
-          ↱ UI/Base:Document
-
-   Error: Ошибка по клику внутри обработчика (прикладной текст).
-      at overrides.constructor._notFoundHandler (ErrorsDemo.js:47)
-      at overrides.constructor.f (eval at req.exec (require-min.js:1), <anonymous>:12:2279)
-      at vdomEventBubbling (DOMEnvironment.js:744)
-      at constructor.captureEventHandler (DOMEnvironment.js:911)
-      at constructor.handleClick [as _handleClick] (DOMEnvironment.js:479)
-      at constructor.<anonymous> (DOMEnvironment.js:968)
-
-   @class UI/_utils/Logger
-   @public
-*/
+ * Модуль логирования, восстанавливает стек и формирует сообщения в едином формате:
+ *
+ * CONTROL ERROR: Event handle "click" in "Controls-demo/ErrorsEmulator/ErrorsDemo"
+ *
+ *    ↱ Controls-demo/ErrorsEmulator/ErrorsDemo
+ *     ↱ Controls/Container/Async
+ *      ↱ Controls-demo/RootRouter
+ *       ↱ Controls-demo/Index
+ *        ↱ UI/Base:Document
+ *
+ * Error: Ошибка по клику внутри обработчика (прикладной текст).
+ *    at overrides.constructor._notFoundHandler (ErrorsDemo.js:47)
+ *    at overrides.constructor.f (eval at req.exec (require-min.js:1), <anonymous>:12:2279)
+ *    at vdomEventBubbling (DOMEnvironment.js:744)
+ *    at constructor.captureEventHandler (DOMEnvironment.js:911)
+ *    at constructor.handleClick [as _handleClick] (DOMEnvironment.js:479)
+ *    at constructor.<anonymous> (DOMEnvironment.js:968)
+ *
+ * @class UI/_utils/Logger
+ * @public
+ */
 
 /**
  * Каждый раз при обращении к ILogger - нужно получить актуальный инстанс
@@ -43,12 +44,9 @@ const loggerConfig = { debug : false };
  * @private
  * @return {String}
  */
-const _getCurrentFunctionInfo = (data?): string  => {
+const _getCurrentFunctionInfo = (data: any = _createFakeError()): string  => {
    let currentFunc = '';
    const PART_STACK = 3;
-   if (!data) {
-      data = _createFakeError();
-   }
 
    try {
       // https://stackoverflow.com/questions/1013239/can-i-get-the-name-of-the-currently-running-function-in-javascript
@@ -56,7 +54,10 @@ const _getCurrentFunctionInfo = (data?): string  => {
    } catch (err) {
       // Страховка, если вдруг возникла ошибка определения точки входа
       currentFunc = '[not detected]';
-      logger().error('CONTROL ERROR', '[UI/_utils/Logger:_getCurrentFunctionInfo()] - ошибка получения текущей функции', err);
+      logger().error(
+         'CONTROL ERROR',
+         '[UI/_utils/Logger:_getCurrentFunctionInfo()] \- ошибка получения текущей функции',
+         err);
    }
    return currentFunc;
 };
@@ -66,7 +67,7 @@ const _getCurrentFunctionInfo = (data?): string  => {
  * @private
  * @return {Error}
  */
-const _createFakeError = () => {
+const _createFakeError = (): Error => {
    return new Error();
 };
 
@@ -84,25 +85,33 @@ const _createFakeError = () => {
  * @public
  * @return {String}
  */
-const prepareStack = (data: any): string => {
+const prepareStack = (stackNode: {[key: string]: any}): string => {
+   if (!!stackNode) {
+      return '';
+   }
+
    let message = '';
    let countIndent = 1; // глобальна для сбора стека, _createStack()
    const ARROW_NEXT = '\u21B1';
    const ARROW = '\u2192';
    const LIMIT_LEVEL_STACK = 20;
+   let data = stackNode;
 
    // если передали DOM - конвертируем в контрол
-   if (data.getAttribute) {
+   if ('controlNodes' in data) {
       const nodes = data.controlNodes;
 
       // controls на переданной ноде может не быть
-      if (nodes) {
+      if (nodes && nodes.length > 0) {
          data = nodes[nodes.length - 1]; // последний контрол, есть основной
+      }
+      if (!!data) {
+         data = stackNode;
       }
    }
 
    // если передали WCN - конвертируем в контрол
-   if (data.control) {
+   if ('control' in data) {
       data = data.control;
    }
 
@@ -134,17 +143,21 @@ const prepareStack = (data: any): string => {
     * @private
     */
    const _createStack = (control: any, msg: string): string => {
-      let moduleName = control ? control._moduleName : null;
+      if (!(control instanceof Object)) {
+         return '';
+      }
+
+      let moduleName = '_moduleName' in control ? control._moduleName : null;
       let stack;
       let arrow;
       let result = msg;
-      if (moduleName && !excludeControls[moduleName]) {
+      if (typeof moduleName === 'string' && !excludeControls[moduleName]) {
 
          // для асинхронных контейнеров важен не сам контейнер в стеке, а шаблон внутри
          // сформируем читаемую строку: Controls/Container/Async:template - "MyControl/Base"
          if (moduleName === 'Controls/Container/Async') {
             const opts = control._options;
-            const asyncTemplate = opts && opts.templateName || 'not detected';
+            const asyncTemplate = opts && 'templateName' in opts || 'not detected';
             moduleName += `:template - "${asyncTemplate}"`;
          }
 
@@ -167,6 +180,7 @@ const prepareStack = (data: any): string => {
     * Поднимаемся вверх всеми возможными способами (пока есть куда) и готовим стек
     * @private
     */
+   // tslint:disable: no-parameter-reassignment
    const _customSearchParents = (point: any, msg: string): string => {
       do {
          if (point) {
@@ -233,7 +247,7 @@ const setDebug = (value: boolean): boolean => {
  * @param {String} msg - произвольное текстовое сообщение
  * @param {Object} data - произвольный object
  */
-const debug = (msg: string = '', data: any = null): object => {
+const debug = (msg: string = '', data: undefined = null): object => {
    let logMsg = '';
    if (loggerConfig.debug) {
       let prepareData = '';
@@ -290,7 +304,7 @@ const warn = (msg: string = '', errorPoint?): object => {
  * @public
  * @return {Object}
  */
-const error = (msg: string = '', errorPoint?, errorInfo?): object => {
+const error = (msg: string = '', errorPoint?: object | Node | any, errorInfo?: object): object => {
    let data = '';
    let typeError = 'CONTROL ERROR';
 
@@ -336,7 +350,10 @@ const error = (msg: string = '', errorPoint?, errorInfo?): object => {
  * @param {Object} errorInfo - нативный объект ERROR с информацией по ошибке
  * @public
  */
-const lifeError = (hookName: string = '[not detected]', errorPoint?, errorInfo?): object => {
+const lifeError = (
+   hookName: string = '[not detected]',
+   errorPoint?: object | Node | any,
+   errorInfo?: object): object => {
    const moduleName = errorPoint ? errorPoint._moduleName : _getCurrentFunctionInfo();
    return error(`LIFECYCLE ERROR: IN "${moduleName}". HOOK NAME: "${hookName}"`, errorPoint, errorInfo);
 };
@@ -349,8 +366,12 @@ const lifeError = (hookName: string = '[not detected]', errorPoint?, errorInfo?)
  * @param {Object} errorInfo - нативный объект ERROR с информацией по ошибке
  * @public
  */
-const templateError = (message: string = '', templateName: string = '[not detected]', errorPoint?, errorInfo?): object => {
-   return error(`TEMPLATE ERROR: ${message} IN "${templateName}"`, errorPoint, errorInfo);
+const templateError = (
+   message: string = '',
+   templateName: string = '[not detected]',
+   errorPoint?: object | Node | unknown,
+   errorInfo?: object): object => {
+      return error(`TEMPLATE ERROR: ${message} IN "${templateName}"`, errorPoint, errorInfo);
 };
 
 export {
