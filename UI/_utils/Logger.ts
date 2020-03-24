@@ -247,7 +247,7 @@ const setDebug = (value: boolean): boolean => {
  * @param {String} msg - произвольное текстовое сообщение
  * @param {Object} data - произвольный object
  */
-const debug = (msg: string = '', data: undefined = null): object => {
+const debug = (msg: string = '', data: unknown = null): object => {
    let logMsg = '';
    if (loggerConfig.debug) {
       let prepareData = '';
@@ -255,7 +255,7 @@ const debug = (msg: string = '', data: undefined = null): object => {
          try {
             prepareData = JSON.stringify(data);
          } catch (err) {
-            prepareData = data;
+            prepareData = String(data);
          } finally {
             prepareData =`\n${prepareData}`;
          }
