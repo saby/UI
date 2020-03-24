@@ -463,24 +463,28 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                this.context.get(i).unregisterConsumer(this);
             }
          }
-         if (this._mounted) {
-            this.__beforeUnmount();
-            (this as any).unmountCallback && (this as any).unmountCallback();
-            Synchronizer.cleanControlDomLink(this._container, this);
-         }
-         // Избегаем утечки контролов по замыканию
-         //this.saveFullContext = EMPTY_FUNC;
-         //this._saveContextObject = EMPTY_FUNC;
-         //this.saveInheritOptions = EMPTY_FUNC;
-         //this._saveEnvironment = EMPTY_FUNC;
-         //this._getEnvironment = EMPTY_FUNC;
-         //this._notify = EMPTY_FUNC;
-         this._forceUpdate = EMPTY_FUNC;
-         this._beforeUnmount = EMPTY_FUNC;
-         //this._getMarkup = EMPTY_FUNC;
       } catch (error) {
          Logger.lifeError('_beforeUnmount', this, error);
       }
+      if (this._mounted) {
+         this.__beforeUnmount().then(() => {
+            (this as any).unmountCallback && (this as any).unmountCallback();
+            Synchronizer.cleanControlDomLink(this._container, this);
+         }).catch((error) => {
+            Logger.lifeError('_beforeUnmount', this, error);
+         });
+      }
+      // Избегаем утечки контролов по замыканию
+      //this.saveFullContext = EMPTY_FUNC;
+      //this._saveContextObject = EMPTY_FUNC;
+      //this.saveInheritOptions = EMPTY_FUNC;
+      //this._saveEnvironment = EMPTY_FUNC;
+      //this._getEnvironment = EMPTY_FUNC;
+      //this._notify = EMPTY_FUNC;
+      this._forceUpdate = EMPTY_FUNC;
+      this._beforeUnmount = EMPTY_FUNC;
+      //this._getMarkup = EMPTY_FUNC;
+     
       Purifier.purifyInstance(this, this._moduleName, true);
    }
 
@@ -1059,10 +1063,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // Do
    }
 
-   __beforeUnmount(): void {
-      this.constructor['removeStyles'](this._options.theme)
-         .then(() => { this._beforeUnmount(); })
-         .catch(logError);
+   __beforeUnmount(): Promise<void> {
+      return this.constructor['removeStyles'](this._options.theme)
+         .catch(logError)
+         .then(() => { this._beforeUnmount(); });
    }
 
    /**
