@@ -1,5 +1,5 @@
 /// <amd-module name='UI/theme/_controller/Store' />
-import { ICssEntity } from 'UI/theme/_controller/css/Base';
+import { ICssEntity } from 'UI/theme/_controller/css/interface';
 
 type IThemesDescripion<T> = Partial<{ [theme: string]: T; }>;
 
@@ -60,22 +60,9 @@ export default class Store<T extends ICssEntity = ICssEntity> {
    }
 
    /**
-    * Удаление всех тем для контрола `name`
+    * Возвращает массив ICssEntity, для которых есть css в store
     */
-   clearThemes(name: string): void {
-      const forceRemove = true;
-      this.getThemes(name)
-         .map((theme) => this.store[name][theme])
-         .forEach((link) => link.remove(forceRemove));
-
-      this.getThemes(name)
-         .forEach((theme) => { delete this.store[name][theme]; });
-   }
-
-   /**
-    * Возвращает массив тем контролов, для которых есть css в store
-    */
-   getThemes(name: string): string[] {
-      return Object.keys(this.store?.[name] || []);
+   getThemes(name: string): ICssEntity[] {
+      return Object.keys(this.store?.[name] || []).map((theme) => this.get(name, theme));
    }
 }

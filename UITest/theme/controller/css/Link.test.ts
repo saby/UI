@@ -1,7 +1,11 @@
+// @ts-ignore
 import { constants } from 'Env/Env';
 import Link from 'UI/theme/_controller/css/Link';
 import { THEME_TYPE } from 'UI/theme/controller';
-import { ELEMENT_ATTR, IHTMLElement, ILoader } from 'UI/theme/_controller/css/Base';
+import { IHTMLElement, ILoader } from 'UI/theme/_controller/css/interface';
+import { ELEMENT_ATTR } from 'UI/theme/_controller/css/const';
+// import { assert } from 'chai';
+// import 'mocha';
 const href = '#Some/href';
 const name = 'Some/Control';
 const theme = 'Some-theme';
@@ -43,10 +47,11 @@ describe('UI/theme/_controller/css/Link', () => {
    const setHooks = () => {
       beforeEach(() => {
          element = new LinkElementMock(href, name, theme, themeType);
-         link = Link.from(element);
+         link = new Link(href, name, theme, element);
          loader = new LoaderMock();
       });
       afterEach(() => {
+         link.remove();
          element = null;
          link = null;
          loader = null;
@@ -58,13 +63,13 @@ describe('UI/theme/_controller/css/Link', () => {
       setHooks();
 
       it('load returns Promise<void>', () => {
-         const link = new Link(href, name, theme, themeType);
-         assert.instanceOf(new Link(href, name, theme, themeType).load(loader), Promise);
+         const link = new Link(href, name, theme);
+         assert.instanceOf(link.load(loader), Promise);
          link.remove();
       });
 
       it('load fetch css by href', () => {
-         const link = new Link(href, name, theme, themeType);
+         const link = new Link(href, name, theme);
          return link.load(loader)
             .then(() => { assert.isTrue(href in loader.loads); })
             .then(() => link.remove());
@@ -84,7 +89,6 @@ describe('UI/theme/_controller/css/Link', () => {
          assert.instanceOf(link, Link);
          assert.strictEqual(name, link.cssName);
          assert.strictEqual(theme, link.themeName);
-         assert.strictEqual(themeType, link.themeType);
       });
    });
 

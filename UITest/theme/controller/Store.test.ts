@@ -1,12 +1,18 @@
 import Store from "UI/theme/_controller/Store";
-import { ICssEntity, DEFAULT_THEME, DEFAULT_THEME_TYPE } from "UI/theme/_controller/css/Base";
-
+import { ICssEntity } from "UI/theme/_controller/css/interface";
+import { DEFAULT_THEME, DEFAULT_THEME_TYPE } from "UI/theme/_controller/css/const";
+// import { assert } from 'chai';
+// import 'mocha';
 const name = 'Some/Control';
 const theme = 'Some-theme';
 
 class LinkMock implements ICssEntity {
    private requirement = 1;
    outerHtml = '';
+   href = '';
+   load() {
+      return Promise.resolve();
+   }
    element = null;
 
    constructor(

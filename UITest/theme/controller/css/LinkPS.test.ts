@@ -1,11 +1,10 @@
-import LinkSP from 'UI/theme/_controller/css/LinkSP';
-import { THEME_TYPE } from 'UI/theme/controller';
-import { ILoader } from 'UI/theme/_controller/css/Base';
-
+import LinkPS from 'UI/theme/_controller/css/LinkPS';
+import { ILoader } from 'UI/theme/_controller/css/interface';
+// import { assert } from 'chai';
+// import 'mocha';
 const href = '#Some/href';
 const name = 'Some/Control';
 const theme = 'Some-theme';
-const themeType = THEME_TYPE.MULTI;
 
 class LoaderMock implements ILoader {
    load(_: string): Promise<void> {
@@ -20,7 +19,7 @@ describe('UI/theme/_controller/css/LinkSP', () => {
 
    const setHooks = () => {
       beforeEach(() => {
-         link = new LinkSP(href, name, theme, themeType);
+         link = new LinkPS(href, name, theme);
          loader = new LoaderMock();
       });
       afterEach(() => {

@@ -13,4 +13,4 @@
  */
 import { Controller } from 'UI/theme/_controller/Controller';
 export const getThemeController = Controller.getInstance;
-export { THEME_TYPE, EMPTY_THEME } from 'UI/theme/_controller/css/Base';
+export { THEME_TYPE, EMPTY_THEME } from 'UI/theme/_controller/css/const';
