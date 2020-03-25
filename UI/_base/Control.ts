@@ -1057,9 +1057,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUnmount(): void {
-      this.constructor['removeStyles'](this._options.theme)
-         .then(() => { this._beforeUnmount(); })
-         .catch(logError);
+      this.constructor['removeStyles'](this._options.theme).catch(logError);
+      this._beforeUnmount.apply(this, arguments);
    }
 
    /**

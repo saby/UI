@@ -94,10 +94,9 @@ function collectCSS(theme: string, simpleCss: string[], themedCss: string[]): Pr
     return Promise.all([
         ...simpleCss.map((name) => tc.get(name, EMPTY_THEME)),
         ...themedCss.map((name) => tc.get(name, theme))
-    ])
-        .then((enities) => enities
-            .map((entity) => entity.outerHtml)
-            .join('\n'));
+    ]).then((enities) => enities
+        .map((entity) => entity.outerHtml)
+        .join('\n'));
 }
 
 function onerror(e: Error): void {
