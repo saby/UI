@@ -5,8 +5,8 @@ import { THEME_TYPE } from 'UI/theme/_controller/css/const';
 import Link from 'UI/theme/_controller/css/Link';
 import { ICssLoader } from 'UI/theme/_controller/Loader';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
-import { assert } from 'chai';
-import 'mocha';
+// import { assert } from 'chai';
+// import 'mocha';
 
 describe('UI/theme/_controller/Controller', () => {
 
