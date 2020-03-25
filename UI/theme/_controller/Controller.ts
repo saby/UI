@@ -19,7 +19,7 @@ export class Controller {
    appTheme: string = DEFAULT_THEME;
 
    constructor(private cssLoader: ICssLoader) {
-      this.set = this.set.bind(this);
+      this.removeSingleEntities = this.removeSingleEntities.bind(this);
       this.has = this.has.bind(this);
       this.collectCssLinks();
    }
@@ -40,8 +40,11 @@ export class Controller {
       }
       const { href, themeType } = this.cssLoader.getInfo(cssName, theme);
       const link = createEntity(href, cssName, theme, themeType);
+      /** Еще нескаченный link сохраняется в store, чтобы избежать повторного fetch */
+      this.set(link);
       return link.load(this.cssLoader).then(() => {
-         this.set(link);
+         /** Если link успешно скачан, удаляем немультитемные стили */
+         this.removeSingleEntities(link);
          return link;
       }).catch(decorateError);
    }
@@ -50,8 +53,8 @@ export class Controller {
     * Синхронное получение всех сохраненных Link'ов
     */
    getAll(): ICssEntity[] {
-      return this.store.getNames()
-         .map((name) => this.store.getThemes(name))
+      return this.store.getCssNames()
+         .map((name) => this.store.getEntitiesByName(name))
          .reduce((prev, cur) => prev.concat(cur), []);
    }
    /**
@@ -71,7 +74,7 @@ export class Controller {
          return Promise.resolve();
       }
       this.appTheme = themeName;
-      const themeLoading = this.store.getNames()
+      const themeLoading = this.store.getCssNames()
          .map((name) => this.get(name, themeName));
       return Promise.all(themeLoading).then(() => void 0);
    }
@@ -93,15 +96,17 @@ export class Controller {
     * @param link
     */
    private set(link: ICssEntity): void {
-      /**
-       * при переключении темы остальные немультитемные темы должны удаляться,
-       * т.к возникают конфликты селекторов (они одинаковые)
-       */
-      this.store.getThemes(link.cssName)
-         .filter(isSingleEntity)
-         .forEach((singleLink) => singleLink.removeForce());
-
       this.store.set(link);
+   }
+   /**
+    * при добавлении темы, немультитемные темы должны удаляться,
+    * т.к возникают конфликты селекторов (они одинаковые)
+    */
+   private removeSingleEntities(link: ICssEntity): void {
+      this.store.getEntitiesByName(link.cssName)
+         .filter(isSingleEntity)
+         .filter((entity) => entity.themeName !== link.themeName)
+         .forEach((singleLink) => singleLink.removeForce());
    }
 
    /**
