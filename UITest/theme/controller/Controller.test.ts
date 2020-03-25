@@ -5,8 +5,8 @@ import { THEME_TYPE } from 'UI/theme/_controller/css/const';
 import Link from 'UI/theme/_controller/css/Link';
 import { ICssLoader } from 'UI/theme/_controller/Loader';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
-// import { assert } from 'chai';
-// import 'mocha';
+import { assert } from 'chai';
+import 'mocha';
 
 describe('UI/theme/_controller/Controller', () => {
 
@@ -182,6 +182,16 @@ describe('UI/theme/_controller/Controller', () => {
             .then((isRemoved) => {
                assert.isFalse(isRemoved);
                assert.isTrue(controller.has(cssName));
+            });
+      });
+
+      it('попытка удалить несуществующие стили не приводит к ошибке', () => {
+         return controller.remove(cssName).then((isRemoved) => {
+            assert.isTrue(isRemoved);
+            assert.isFalse(controller.has(cssName));
+         })
+            .catch((e: Error) => {
+               assert.fail(e, void 0, 'попытка удалить несуществующие стили не приводит к ошибке');
             });
       });
    });

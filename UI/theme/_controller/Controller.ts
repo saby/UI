@@ -78,10 +78,13 @@ export class Controller {
 
    /**
     * Уменьшить 'востребованность' css,
-    * т.е контрол `name` удаляется и, если больше нет зависимостей, css также удаляется из DOM
+    * т.е контрол `cssName` удаляется и, если больше нет зависимостей, css также удаляется из DOM
     */
    remove(cssName: string, themeName?: string): Promise<boolean> {
       const theme = themeName || this.appTheme;
+      if (!this.has(cssName, theme)) {
+         return Promise.resolve(true);
+      }
       return this.store.remove(cssName, theme);
    }
 

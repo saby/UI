@@ -31,7 +31,7 @@
    "saby-units": {
       "moduleType": "amd",
       "root": "application",
-      "tests": "UITest/theme",
+      "tests": "UITest",
       "report": "./application/artifacts/xunit-report.xml",
       "htmlCoverageReport": "./application/artifacts/coverage/index.html",
       "jsonCoverageReport": "./application/artifacts/coverage.json",
