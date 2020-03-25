@@ -19,7 +19,7 @@ export class Controller {
    appTheme: string = DEFAULT_THEME;
 
    constructor(private cssLoader: ICssLoader) {
-      this.removeSingleEntities = this.removeSingleEntities.bind(this);
+      this.set = this.set.bind(this);
       this.has = this.has.bind(this);
       this.collectCssLinks();
    }
