@@ -1,6 +1,7 @@
 import * as Logger from '../Logger';
 import { delay } from 'Types/function';
 import { factory, Abstract } from 'Types/chain'
+import { cookie } from 'Env/Env';
 
 // TODO: по задаче
 // https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
@@ -37,29 +38,46 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string,
         return;
     }
 
+    const isDebug = !!cookie.get('s3debug');
     const instanceEntries = collectAllEntries(instance);
     while (instanceEntries.length) {
         const [stateName, stateValue] = instanceEntries.pop();
 
-        const getterFunction = isValueToPurify(stateValue) && !stateNamesNoPurify[stateName] ?
-            createUseAfterPurifyErrorFunction(stateName, instanceName) :
-            () => stateValue;
+        const haveToPurify = isValueToPurify(stateValue) && !stateNamesNoPurify[stateName];
 
-        // TODO: убрать костыль в https://online.sbis.ru/opendoc.html?guid=1c91dd41-5adf-4fd7-b2a4-ff8f103a8084
-        // возможно, нужно не удалять объекты и функции, а заменять на пустые функции и объекты соответственно
-        Object.defineProperty(instance, stateName, {
-            enumerable: false,
-            configurable: false,
-            set: emptyFunction,
-            get: stateName === 'destroy' ? () => emptyFunction : getterFunction
-        });
+        if (isDebug) {
+            const getterFunction = haveToPurify ?
+                createUseAfterPurifyErrorFunction(stateName, instanceName) :
+                () => stateValue;
+
+            // TODO: убрать костыль в https://online.sbis.ru/opendoc.html?guid=1c91dd41-5adf-4fd7-b2a4-ff8f103a8084
+            // возможно, нужно не удалять объекты и функции, а заменять на пустые функции и объекты соответственно
+            Object.defineProperty(instance, stateName, {
+                enumerable: false,
+                configurable: false,
+                set: emptyFunction,
+                get: stateName === 'destroy' ? () => emptyFunction : getterFunction
+            });
+        } else {
+            if (haveToPurify) {
+                if (stateName === 'destroy') {
+                    instance[stateName] = emptyFunction;
+                } else {
+                    instance[stateName] = undefined;
+                }
+            }
+        }
     }
 
-    Object.defineProperty(instance, '__purified', {
-        enumerable: false,
-        configurable: false,
-        get: () => true
-    });
+    if (isDebug) {
+        Object.defineProperty(instance, '__purified', {
+            enumerable: false,
+            configurable: false,
+            get: () => true
+        });
+    } else {
+        instance.__purified = true;
+    }
     Object.freeze(instance);
 }
 
