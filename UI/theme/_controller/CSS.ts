@@ -41,7 +41,7 @@ export function restoreEntity(element: IHTMLElement): IRestoredEntity {
  * Устаревшие ссылки вставляются через Controls.decorator:Markup
  */
 // TODO https://online.sbis.ru/opendoc.html?guid=af492da0-f245-4a20-b567-8a789038fc39
-function restorDeprecatedEntity(element: IHTMLElement): IRestoredEntity {
+export function restorDeprecatedEntity(element: IHTMLElement): IRestoredEntity {
    const href = element.getAttribute(DEPRECATED_ELEMENT_ATTR.HREF);
    const name = element.getAttribute(DEPRECATED_ELEMENT_ATTR.NAME);
    const theme = element.getAttribute(DEPRECATED_ELEMENT_ATTR.THEME) || EMPTY_THEME;
