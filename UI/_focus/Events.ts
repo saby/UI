@@ -1,6 +1,8 @@
 /// <amd-module name="UI/_focus/Events" />
 /* tslint:disable */
 
+import { IDOMEnvironment } from 'Vdom/Vdom';
+
 /**
  * @author Белотелов Н.В.
  * Модуль содержит логику вызова событий активации у контролов
@@ -38,7 +40,7 @@ function detectStrangeElement(element) {
    );
 }
 
-function compatibleActivationEvents(environment: any, arrayMaker: any) {
+function compatibleActivationEvents(environment: IDOMEnvironment, arrayMaker: any) {
    // todo обратная совместимость
    if (constants.compat && environment._rootDOMNode && environment._rootDOMNode.controlNodes) {
       if (environment._rootDOMNode.controlNodes[0] && environment._rootDOMNode.controlNodes[0].control.isActive) {
@@ -85,10 +87,10 @@ function findClosestEnvironment(sourceElement: Element): any {
    return null;
 }
 
-function fixNotifyArguments(env: any, target: any, relatedTarget: any, isTabPressed: any): [any, any, any] {
+function fixNotifyArguments(env: IDOMEnvironment, target: any, relatedTarget: any, isTabPressed: any): [any, any, any] {
    // Пока не смержили правку в ws, не можем поменять сигнатуру функции.
    // Поэтому будем менять в три доброски, с совместимостью в ui
-   if(env && env.captureEventHandler) {
+   if (env && env.__captureEventHandler) {
       return [target, relatedTarget, isTabPressed];
    } else {
       return [env, target, relatedTarget];
@@ -218,4 +220,3 @@ export function notifyActivationEvents(env: any, target, relatedTarget, isTabPre
       compatibleActivationEvents(environment, arrayMaker);
    }
 }
-
