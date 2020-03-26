@@ -60,11 +60,7 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string,
             });
         } else {
             if (haveToPurify) {
-                if (stateName === 'destroy') {
-                    instance[stateName] = emptyFunction;
-                } else {
-                    instance[stateName] = undefined;
-                }
+                instance[stateName] = emptyFunction;
             }
         }
     }
