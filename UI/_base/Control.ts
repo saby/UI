@@ -902,7 +902,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * </pre>
     * @remark
     * Первый хук жизненного цикла контрола, который вызывается после подключения контрола к DOM-окружению.
-    * На этом этапе вы можете получить доступ к параметрам и контексту this._options и this._context.
+    * На этом этапе вы можете получить доступ к параметрам и контексту this._options.
     * Этот хук жизненного цикла часто используется для доступа к DOM-элементам и подписки на события сервера.
     * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
