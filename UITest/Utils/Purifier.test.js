@@ -113,31 +113,6 @@ define([
             assert.equal(errorMessage, '');
          });
 
-         it('purify instance with a prototype', () => {
-            const proproto = {
-               c: {}
-            };
-            const proto = {
-               b: {}
-            };
-            instance = {
-               a: {}
-            };
-            Object.setPrototypeOf(proto, proproto);
-            Object.setPrototypeOf(instance, proto);
-            purifyInstance(instance, 'test_instance');
-            const valueA = instance.a;
-            const errorMessageA = 'Попытка получить поле a в очищенном test_instance';
-            const valueB = instance.b;
-            const errorMessageB = 'Попытка получить поле b в очищенном test_instance';
-            const valueC = instance.c;
-            const errorMessageC = 'Попытка получить поле c в очищенном test_instance';
-            assert.strictEqual(valueA, undefined);
-            assert.strictEqual(valueB, undefined);
-            assert.strictEqual(valueC, undefined);
-            assert.equal(errorMessage, errorMessageA + errorMessageB + errorMessageC);
-         });
-
          it('purify instance with a getter (string)', () => {
             instance = {
                a: 'a',
