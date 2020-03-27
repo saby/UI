@@ -5,7 +5,7 @@ import { cookie } from 'Env/Env';
 
 // TODO: по задаче
 // https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
-const asyncPurifyTimeout = 10000;
+const asyncPurifyTimeout = 5000;
 
 const typesToPurify: string[] = ['object', 'function'];
 
@@ -63,7 +63,12 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string,
                 if (stateName === 'destroy') {
                     instance[stateName] = emptyFunction;
                 } else {
-                    instance[stateName] = undefined;
+                    try {
+                        instance[stateName] = undefined;
+                    } catch (e) {
+                        // Только getter, не переприсвоить
+                        delete instance[stateName];
+                    }
                 }
             }
         }
@@ -97,10 +102,7 @@ export default function purifyInstance(instance: Record<string, any>,
                                        stateNamesNoPurify?: Record<string, boolean>): void {
     if (async) {
         setTimeout(() => {
-            // Чтобы не копилась очередь таймаутов, блокирующая перерисовку, нужен delay.
-            delay(() => {
-                purifyInstanceSync(instance, instanceName, stateNamesNoPurify);
-            });
+            purifyInstanceSync(instance, instanceName, stateNamesNoPurify);
         }, asyncPurifyTimeout);
     } else {
         purifyInstanceSync(instance, instanceName, stateNamesNoPurify);
