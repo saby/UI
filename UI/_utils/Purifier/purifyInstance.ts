@@ -1,10 +1,9 @@
 import * as Logger from '../Logger';
-import { factory, Abstract } from 'Types/chain'
 import { cookie } from 'Env/Env';
 
 // TODO: по задаче
 // https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
-const asyncPurifyTimeout = 5000;
+const asyncPurifyTimeout = 10000;
 
 const typesToPurify: string[] = ['object', 'function'];
 
@@ -22,23 +21,15 @@ function isValueToPurify(stateValue: any): boolean {
     return !!(stateValue && ~typesToPurify.indexOf(typeof stateValue));
 }
 
-function collectAllEntries(instance: Record<string, any>): [string, any][] {
-    let instanceKeys: Abstract<string> = factory([]);
-    let subInstance: Record<string, any> = instance;
-    while(subInstance) {
-        instanceKeys = instanceKeys.union(Object.keys(subInstance));
-        subInstance = Object.getPrototypeOf(subInstance);
-    }
-    return instanceKeys.value().map((instanceKey) => [instanceKey, instance[instanceKey]] as [string, any]);
-}
-
 function purifyInstanceSync(instance: Record<string, any>, instanceName: string, stateNamesNoPurify: Record<string, boolean> = {}) {
     if (instance.__purified) {
         return;
     }
 
     const isDebug = !!cookie.get('s3debug');
-    const instanceEntries = collectAllEntries(instance);
+
+    // @ts-ignore У нас подмешивается полифилл Object.entries, о котором не знает ts
+    const instanceEntries = Object.entries(instance);
     while (instanceEntries.length) {
         const [stateName, stateValue] = instanceEntries.pop();
 
@@ -65,7 +56,7 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string,
                     try {
                         instance[stateName] = undefined;
                     } catch (e) {
-                        // Только getter, не переприсвоить
+                        // Может быть только getter, не переприсвоить.
                         delete instance[stateName];
                     }
                 }
