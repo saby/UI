@@ -46,7 +46,7 @@ export class Controller {
          /** Если link успешно скачан, удаляем немультитемные стили */
          this.removeSingleEntities(link);
          return link;
-      }).catch((e: Error) => {
+      }).catch((e: HTTP) => {
          if (theme === DEFAULT_THEME) { throw decorateError(e); }
          /** Если не удалось найти тему для контрола, скачиваем default */
          return this.remove(cssName, theme).then(() => this.get(cssName, DEFAULT_THEME));
