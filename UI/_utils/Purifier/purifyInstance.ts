@@ -1,5 +1,4 @@
 import * as Logger from '../Logger';
-import { delay } from 'Types/function';
 import { factory, Abstract } from 'Types/chain'
 import { cookie } from 'Env/Env';
 
