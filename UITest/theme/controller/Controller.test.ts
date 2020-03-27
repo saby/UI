@@ -1,7 +1,7 @@
 import { Controller } from 'UI/theme/_controller/Controller';
 // @ts-ignore
 import { constants } from 'Env/Env';
-import { THEME_TYPE } from 'UI/theme/_controller/css/const';
+import { THEME_TYPE, DEFAULT_THEME } from 'UI/theme/_controller/css/const';
 import Link from 'UI/theme/_controller/css/Link';
 import { ICssLoader } from 'UI/theme/_controller/Loader';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
@@ -15,9 +15,16 @@ describe('UI/theme/_controller/Controller', () => {
 
    /** добавляем # в начало href, чтобы не сыпались ошибки о ненайденных стилях */
    const sharp = '#';
+   const createHref = (name: string, theme: string) => [sharp, name, theme].join('-');
    class CssLoaderMock implements ICssLoader {
       loads: object = {};
+
+      constructor(private forbidden: string[] = []) { }
+
       load(href: string): Promise<void> {
+         if (this.forbidden.includes(href)) {
+            return Promise.reject(new Error('theme is not exists'));
+         }
          const [sharp, name, theme]: string[] = href.split('-');
          if (!this.loads[name]) {
             this.loads[name] = {};
@@ -25,11 +32,11 @@ describe('UI/theme/_controller/Controller', () => {
          this.loads[name][theme] = this.loads[name][theme] ? this.loads[name][theme] + 1 : 1;
          return Promise.resolve(void 0);
       }
+
       getInfo(name: string, theme: string) {
          return {
             themeType: THEME_TYPE.MULTI,
-
-            href: [sharp, name, theme].join('-')
+            href: createHref(name, theme)
          };
       }
       /**
@@ -82,7 +89,6 @@ describe('UI/theme/_controller/Controller', () => {
          const getting = controller.get(cssName);
 
          assert.instanceOf(getting, Promise);
-
          return getting.then((css) => { assert.instanceOf(css, LinkPS); });
       });
 
@@ -91,7 +97,9 @@ describe('UI/theme/_controller/Controller', () => {
          return controller.get(cssName, themeName)
             .then(() => controller.get(cssName, themeName))
             .then(() => controller.get(cssName, themeName))
-            .then(() => { assert.isTrue(loader.isValid()); });
+            .then(() => { assert.isTrue(loader.isValid()); })
+            .then(() => controller.remove(cssName, themeName))
+            .then(() => controller.remove(cssName, themeName));
       });
 
       it('Стили загружаются отдельно для каждой темы', () => {
@@ -100,6 +108,27 @@ describe('UI/theme/_controller/Controller', () => {
          return controller.get(cssName, themeName)
             .then(() => controller.get(cssName, theme2))
             .then(() => { assert.isTrue(loader.isValid()); });
+      });
+
+      it('При отсутствии кастомной темы скачивается default тема', () => {
+         if (!constants.isBrowserPlatform) { return; }
+         const loader2 = new CssLoaderMock([createHref(cssName, themeName)]);
+         const controller2 = new Controller(loader2);
+         return controller2.get(cssName, themeName)
+            .then(() => {
+               assert.isFalse(controller2.has(cssName, themeName));
+               assert.isTrue(controller2.has(cssName, DEFAULT_THEME));
+               return controller2.remove(cssName, DEFAULT_THEME);
+            });
+      });
+
+      it('При отсутствии кастомной и default темы возвращается Rejected Promise', () => {
+         if (!constants.isBrowserPlatform) { return; }
+         const loader2 = new CssLoaderMock([createHref(cssName, themeName), createHref(cssName, DEFAULT_THEME)]);
+         const controller2 = new Controller(loader2);
+         return controller2.get(cssName, themeName)
+            .then(() => { assert.fail('При отсутствии кастомной и default темы возвращается Rejected Promise'); })
+            .catch((e) => { assert.instanceOf(e, Error); });
       });
    });
 
@@ -183,6 +212,16 @@ describe('UI/theme/_controller/Controller', () => {
             .then((isRemoved) => {
                assert.isFalse(isRemoved);
                assert.isTrue(controller.has(cssName));
+            });
+      });
+
+      it('попытка удалить несуществующие стили не приводит к ошибке', () => {
+         return controller.remove(cssName).then((isRemoved) => {
+            assert.isTrue(isRemoved);
+            assert.isFalse(controller.has(cssName));
+         })
+            .catch((e: Error) => {
+               assert.fail(e, void 0, 'попытка удалить несуществующие стили не приводит к ошибке');
             });
       });
    });

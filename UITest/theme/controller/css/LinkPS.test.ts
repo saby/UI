@@ -12,10 +12,10 @@ class LoaderMock implements ILoader {
    }
 }
 
-let link: LinkSP;
+let link: LinkPS;
 let loader: LoaderMock;
 
-describe('UI/theme/_controller/css/LinkSP', () => {
+describe('UI/theme/_controller/css/LinkPS', () => {
 
    const setHooks = () => {
       beforeEach(() => {
@@ -43,7 +43,7 @@ describe('UI/theme/_controller/css/LinkSP', () => {
 
    describe('require / remove', () => {
       setHooks();
-      it('невостребованный экземпляр LinkSP удаляется', () => {
+      it('невостребованный экземпляр LinkPS удаляется', () => {
          return link.remove().then((isRemoved) => {
             assert.isTrue(isRemoved);
          });

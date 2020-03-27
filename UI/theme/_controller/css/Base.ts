@@ -21,6 +21,7 @@ export abstract class Base implements ICssEntity {
       if (!href || !cssName) {
          throw new Error(`Invalid arguments href - ${href} or cssName - ${cssName}`);
       }
+      this.remove = this.remove.bind(this);
    }
 
    require(): void {
@@ -28,6 +29,7 @@ export abstract class Base implements ICssEntity {
    }
 
    remove(): Promise<boolean> {
+      if (this.requirement === 0) { return Promise.resolve(true); }
       this.requirement--;
       return Promise.resolve(this.requirement === 0);
    }
