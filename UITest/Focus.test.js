@@ -27,8 +27,10 @@ define([
       var globalCases = [];
       var currentCase;
       var fromNode = typeof document === 'undefined';
+      let purifierStub;
 
       before(function() {
+         purifierStub = sinon.stub(Utils.Purifier, 'purifyInstance').callsFake(() => {});
          if (fromNode) {
             var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
             global.window = browser.window;
@@ -43,6 +45,7 @@ define([
       });
 
       after(function() {
+         purifierStub.restore();
          if (fromNode) {
             delete global.window;
             delete global.document;
