@@ -32,18 +32,18 @@ describe('UI/theme/_controller/css/SingleLinkPS', () => {
    describe('removeForce', () => {
       setHooks();
       it('при удалении экземпляр SingleLink также удаляется элемент из DOM', () => {
-         return link.removeForce().then(() => {
-            assert.isTrue(link['requirement'] === 0);
-         });
+         return link.removeForce()
+            .then(link.remove)
+            .then((isRemoved) => { assert.isTrue(isRemoved); });
       });
 
       it('css, необходимая другим контролам, удаляется', () => {
          link.require();
          link.require();
          link.require();
-         return link.removeForce().then(() => {
-            assert.isTrue(link['requirement'] === 0);
-         });
+         return link.removeForce()
+            .then(link.remove)
+            .then((isRemoved) => { assert.isTrue(isRemoved); });
       });
    });
 });

@@ -13,7 +13,7 @@ export default class Store<T extends ICssEntity = ICssEntity> {
     * Сохранить `entity` в Store
     */
    set(entity: T): void {
-      if (this.getThemes(entity.cssName).length === 0) {
+      if (this.getEntitiesByName(entity.cssName).length === 0) {
          this.store[entity.cssName] = { [entity.themeName]: entity };
          return;
       }
@@ -53,16 +53,16 @@ export default class Store<T extends ICssEntity = ICssEntity> {
    }
 
    /**
-    * Возвращает массив имен контролов, для которых есть css в store
+    * Возвращает массив имен css в store
     */
-   getNames(): string[] {
+   getCssNames(): string[] {
       return Object.keys(this.store);
    }
 
    /**
-    * Возвращает массив ICssEntity, для которых есть css в store
+    * Возвращает массив ICssEntity всех сохраненных тем по имени
     */
-   getThemes(name: string): ICssEntity[] {
+   getEntitiesByName(name: string): ICssEntity[] {
       return Object.keys(this.store?.[name] || []).map((theme) => this.get(name, theme));
    }
 }

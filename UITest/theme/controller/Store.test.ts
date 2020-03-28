@@ -68,7 +68,7 @@ describe('UI/theme/_controller/Store', () => {
       it('Добавление новой css', () => {
          store.set(link);
          assert.deepEqual(store.get(name, theme), link);
-         assert.sameMembers(store.getNames(), [name]);
+         assert.sameMembers(store.getCssNames(), [name]);
       });
 
       it('Добавление новой темы css', () => {
@@ -78,7 +78,7 @@ describe('UI/theme/_controller/Store', () => {
          store.set(link2);
          assert.deepEqual(store.get(name, theme), link);
          assert.deepEqual(store.get(name, theme2), link2);
-         assert.sameMembers(store.getNames(), [name]);
+         assert.sameMembers(store.getCssNames(), [name]);
       });
    });
 
@@ -90,7 +90,7 @@ describe('UI/theme/_controller/Store', () => {
          return store.remove(name, theme).then((isRemoved) => {
             assert.isTrue(isRemoved);
             assert.isFalse(store.has(name, theme));
-            assert.sameMembers(store.getNames(), [name]);
+            assert.sameMembers(store.getCssNames(), [name]);
          });
       });
    });
