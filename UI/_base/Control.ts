@@ -10,7 +10,7 @@ import { activate } from 'UI/Focus';
 import { Logger, Purifier } from 'UI/Utils';
 import { constants } from 'Env/Env';
 
-import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
+import { getThemeController, Controller, EMPTY_THEME, DEFAULT_THEME } from 'UI/theme/controller';
 // @ts-ignore
 import PromiseLib = require('Core/PromiseLib/PromiseLib');
 // @ts-ignore
@@ -133,6 +133,7 @@ export const _private = {
    }
 };
 
+const themeController = getThemeController();
 
 export interface IControlOptions {
    readOnly?: boolean;
@@ -780,7 +781,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          // _reactiveStart means starting of monitor change in properties
          this._reactiveStart = true;
       }
-      this.constructor['loadStyles'](opts.theme, this.extractOwnStyles()).catch(logError);
+      this.constructor['loadStyles'](this.extractOwnStyles()).catch(logError);
+      this.constructor['loadThemes'](opts.theme, this.extractOwnThemes()).catch(logError);
       this._$resultBeforeMount = resultBeforeMount;
       return resultBeforeMount;
    }
@@ -836,22 +838,37 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUpdate(newOptions: TOptions): void {
-      this.constructor['loadStyles'](newOptions.theme, this.extractOwnStyles()).catch(logError);
+      this.constructor['loadThemes'](newOptions.theme, this.extractOwnThemes()).catch(logError);
       this._beforeUpdate.apply(this, arguments);
    }
 
    /**
-    * Стили должны перечисляться в статическом свойстве класса, но у некоторых контролах хранятся в собственных
-    * Кидаем ошибку в консоль
+    * Стили должны перечисляться в статическом свойстве класса, 
+    * но у некоторых контролах хранятся в собственных
+    * Кидаем предупреждение в консоль
     */
-   private extractOwnStyles(): IControlStyles {
+   private extractOwnStyles(): string[] {
       // @ts-ignore
-      if (this._theme && this._theme.length !== 0 || this._style && this._style.length !== 0) {
+      if (this._style && this._style.length !== 0) {
          Logger.warn("Стили должны перечисляться в статическом свойстве класса " + this._moduleName);
          // @ts-ignore
-         return { styles: this._style || [], themes: this._theme || [], };
+         return this._style;
       }
-      return { styles: [], themes: [] };
+      return [];
+   }
+   /**
+    * Темы должны перечисляться в статическом свойстве класса, 
+    * но у некоторых контролах хранятся в собственных
+    * Кидаем предупреждение в консоль
+    */
+   private extractOwnThemes(): string[] {
+      // @ts-ignore
+      if (this._theme && this._theme.length !== 0) {
+         Logger.warn("Темы должны перечисляться в статическом свойстве класса " + this._moduleName);
+         // @ts-ignore
+         return this._theme;
+      }
+      return [];
    }
 
    /**
@@ -1109,10 +1126,24 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    static isWasaby: boolean = true;
 
    /**
-    * Загрузка стилей контрола, монтирование скаченных css в head страницы 
+    * Загрузка стилей и тем контрола
     * @param themeName имя темы (по-умолчанию тема приложения)
-    * @param instStyles опционально дополнительные стили экземпляра
     * @static
+    * @method
+    * @example
+    * <pre>
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadCSS('saby__dark'))
+    * </pre>
+    */
+   static loadCSS(themeName?: string): Promise<void> {
+      return Promise.all([this.loadStyles(), this.loadThemes(themeName)]).then(() => void 0);
+   }
+   /**
+    * Загрузка стилей контрола
+    * @param instStyles (опционально) дополнительные стили экземпляра
+    * @static
+    * @private
     * @method
     * @example
     * <pre>
@@ -1120,16 +1151,28 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     *         .then((InfoboxTemplate) => InfoboxTemplate.loadStyles())
     * </pre>
     */
-   static loadStyles(themeName?: string, instStyles: IControlStyles = { styles: [], themes: [] }): Promise<void> {
-      const styles = [...this._styles, ...instStyles.styles];
-      const themes = [...this._theme, ...instStyles.themes];
-      if (styles.length === 0 && themes.length === 0) {
-         return Promise.resolve();
-      }
-      const tc = getThemeController();
-      const gettingStyles = Promise.all(styles.map((name) => tc.get(name, EMPTY_THEME)));
-      const gettingThemed = Promise.all(themes.map((name) => tc.get(name, themeName)));
-      return Promise.all([gettingStyles, gettingThemed]).then(() => void 0);
+   static loadStyles(instStyles: string[] = []): Promise<void> {
+      const styles = [...this._styles, ...instStyles];
+      if (styles.length === 0) { return Promise.resolve(); }
+      return Promise.all(styles.map((name) => themeController.get(name, EMPTY_THEME))).then(() => void 0);
+   }
+   /**
+    * Загрузка тем контрола
+    * @param instStyles опционально дополнительные темы экземпляра
+    * @param themeName имя темы (по-умолчанию тема приложения)
+    * @static
+    * @private
+    * @method
+    * @example
+    * <pre>
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadThemes('saby__dark'))
+    * </pre>
+    */
+   static loadThemes(themeName?: string, instThemes: string[] = []): Promise<void> {
+      const themes = [...this._theme, ...instThemes];
+      if (themes.length === 0) { return Promise.resolve(); }
+      return loadThemes(themeController, themeName, themes);
    }
 
    /**
@@ -1145,9 +1188,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       if (styles.length === 0 && themes.length === 0) {
          return Promise.resolve();
       }
-      const tc = getThemeController();
-      const removingStyles = Promise.all(styles.map((name) => tc.remove(name, EMPTY_THEME)));
-      const removingThemed = Promise.all(themes.map((name) => tc.remove(name, themeName)));
+      const removingStyles = Promise.all(styles.map((name) => themeController.remove(name, EMPTY_THEME)));
+      const removingThemed = Promise.all(themes.map((name) => themeController.remove(name, themeName)));
       return Promise.all([removingStyles, removingThemed]).then(() => void 0);
    }
 
@@ -1230,6 +1272,18 @@ Control.prototype._template = template;
 
 function logError(e: Error) {
    Logger.error(e.message);
+}
+/**
+ * Получение тем контрола
+ * @param tc 
+ * @param themeName 
+ * @param themes 
+ */
+export function loadThemes(tc: Controller, themeName?: string, themes: string[] = []): Promise<void> {
+   return Promise.all(themes.map((name) =>
+      /** При отсутствии стилей в текущей теме, скачивается default */
+      tc.get(name, themeName).catch(() => tc.get(name, DEFAULT_THEME))
+   )).then(() => void 0);
 }
 /**
  * @name UI/_base/Control#readOnly

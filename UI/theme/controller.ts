@@ -12,5 +12,6 @@
  * @author Ибрагимов А.А.
  */
 import { Controller } from 'UI/theme/_controller/Controller';
-export const getThemeController = Controller.getInstance;
-export { THEME_TYPE, EMPTY_THEME } from 'UI/theme/_controller/css/const';
+const getThemeController = Controller.getInstance;
+export { Controller, getThemeController };
+export { THEME_TYPE, EMPTY_THEME, DEFAULT_THEME } from 'UI/theme/_controller/css/const';

@@ -11,12 +11,12 @@ let root = 'resources';
 let contents: Partial<IContents> = {};
 try {
    // @ts-ignore tslint:disable-next-line:no-var-requires
-   contents = require(`json!${root}/contents`);
+   contents = require(`json!${root}/contents`) || {};
 } catch {
    try {
       root = constants.resourceRoot;
       // @ts-ignore tslint:disable-next-line:no-var-requires
-      contents = require(`json!${root}contents`);
+      contents = require(`json!${root}contents`) || {};
    } catch {
       contents = {};
    }

@@ -46,7 +46,10 @@ export class Controller {
          /** Если link успешно скачан и вмонтирован в DOM, удаляем немультитемные стили */
          this.removeSingleEntities(link);
          return link;
-      }).catch(decorateError);
+      }).catch((e: HTTP) =>
+         /** Если стилей нет, удаляем link из Store */
+         this.remove(cssName, theme).then(() => { throw decorateError(e); })
+      );
    }
 
    /**
@@ -134,8 +137,8 @@ export class Controller {
       return Controller.instance;
    }
 }
-function decorateError(e: HTTP): never {
-   throw new Error(
+function decorateError(e: HTTP): Error {
+   return new Error(
       `UI/theme/controller:\tCouldn't load: ${e.url}
       It's probably an error with internet connection or CORS settings.`
    );
