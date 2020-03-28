@@ -43,7 +43,7 @@ export class Controller {
       /** Еще нескаченный link сохраняется в store, чтобы избежать повторного fetch */
       this.set(link);
       return link.load(this.cssLoader).then(() => {
-         /** Если link успешно скачан, удаляем немультитемные стили */
+         /** Если link успешно скачан и вмонтирован в DOM, удаляем немультитемные стили */
          this.removeSingleEntities(link);
          return link;
       }).catch(decorateError);

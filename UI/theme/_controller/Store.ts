@@ -62,7 +62,7 @@ export default class Store<T extends ICssEntity = ICssEntity> {
    /**
     * Возвращает массив ICssEntity всех сохраненных тем по имени
     */
-   getEntitiesByName(name: string): ICssEntity[] {
-      return Object.keys(this.store?.[name] || []).map((theme) => this.get(name, theme));
+   getEntitiesByName(cssName: string): ICssEntity[] {
+      return Object.keys(this.store?.[cssName] || []).map((theme) => this.get(cssName, theme));
    }
 }

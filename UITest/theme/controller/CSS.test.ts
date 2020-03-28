@@ -1,4 +1,4 @@
-import { createEntity, restoreEntity, restorDeprecatedEntity } from 'UI/theme/_controller/CSS';
+import { createEntity, restoreEntity, restoreDeprecatedEntity } from 'UI/theme/_controller/CSS';
 // @ts-ignore
 import { constants } from 'Env/Env';
 // import { assert } from 'chai';
@@ -128,38 +128,38 @@ describe('UI/theme/_controller/CSS', () => {
 
       it('Создает экземпляр Link для мультитемы', () => {
          const element = new DeprecatedLinkElementMock(href, cssName, themeName, DEPRECATED_THEME_TYPE.MULTI);
-         const entity = restorDeprecatedEntity(element);
+         const entity = restoreDeprecatedEntity(element);
          assert.instanceOf(entity, Link);
       });
 
       it('Создает экземпляр SingleLink для мультитемы', () => {
          const element = new DeprecatedLinkElementMock(href, cssName, themeName, DEPRECATED_THEME_TYPE.SINGLE);
-         const entity = restorDeprecatedEntity(element);
+         const entity = restoreDeprecatedEntity(element);
          assert.instanceOf(entity, SingleLink);
       });
 
       it('Возвращает null при отсутствии аттрибута href', () => {
          const element = new DeprecatedLinkElementMock(undefined, cssName, themeName, DEPRECATED_THEME_TYPE.SINGLE);
-         const entity = restorDeprecatedEntity(element);
+         const entity = restoreDeprecatedEntity(element);
          assert.isNull(entity);
       });
 
       it('Возвращает null при отсутствии аттрибута cssName', () => {
          const element = new DeprecatedLinkElementMock(href, undefined, themeName, DEPRECATED_THEME_TYPE.SINGLE);
-         const entity = restorDeprecatedEntity(element);
+         const entity = restoreDeprecatedEntity(element);
          assert.isNull(entity);
       });
 
       it('Возвращает SingleLink EMPTY_THEME при отсутствии темы', () => {
          const element = new DeprecatedLinkElementMock(href, cssName, null, DEPRECATED_THEME_TYPE.SINGLE);
-         const entity = restorDeprecatedEntity(element);
+         const entity = restoreDeprecatedEntity(element);
          assert.instanceOf(entity, SingleLink);
          assert.equal(entity.themeName, EMPTY_THEME);
       });
 
       it('Возвращает Link EMPTY_THEME при отсутствии темы', () => {
          const element = new DeprecatedLinkElementMock(href, cssName, null, DEPRECATED_THEME_TYPE.MULTI);
-         const entity = restorDeprecatedEntity(element);
+         const entity = restoreDeprecatedEntity(element);
          assert.instanceOf(entity, Link);
          assert.equal(entity.themeName, EMPTY_THEME);
       });
