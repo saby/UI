@@ -613,7 +613,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * Хук жизненного цикла контрола. Вызывается непосредственно перед установкой контрола в DOM-окружение.
     *
     * @param {Object} options Опции контрола.
-    * @param {Object} context Поля контекста, запрошенные контролом.
+    * @param {Object} contexts Поля контекста, запрошенные контролом.
     * @param {Object} receivedState Данные, полученные посредством серверного рендеринга.
     * @example
     * <pre>
@@ -642,7 +642,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * Control’s lifecycle hook. Called right before the mounting of the component to DOM.
     *
     * @param {Object} options Control's options.
-    * @param {Object} context Context fields that controls requested. See "Context in Wasaby controls".
+    * @param {Object} contexts Context fields that controls requested. See "Context in Wasaby controls".
     * @param {Object} receivedState Data received from server render. See "Server render in Wasaby controls".
     * @example
     * <pre>
@@ -802,7 +802,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * </pre>
     * @remark
     * Первый хук жизненного цикла контрола, который вызывается после подключения контрола к DOM-окружению.
-    * На этом этапе вы можете получить доступ к параметрам и контексту this._options и this._context.
+    * На этом этапе вы можете получить доступ к параметрам и контексту this._options.
     * Этот хук жизненного цикла часто используется для доступа к DOM-элементам и подписки на события сервера.
     * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */

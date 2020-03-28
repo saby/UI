@@ -1,6 +1,5 @@
 import * as Logger from '../Logger';
-import { delay } from 'Types/function';
-import { factory, Abstract } from 'Types/chain'
+import { cookie } from 'Env/Env';
 
 // TODO: по задаче
 // https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
@@ -22,44 +21,58 @@ function isValueToPurify(stateValue: any): boolean {
     return !!(stateValue && ~typesToPurify.indexOf(typeof stateValue));
 }
 
-function collectAllEntries(instance: Record<string, any>): [string, any][] {
-    let instanceKeys: Abstract<string> = factory([]);
-    let subInstance: Record<string, any> = instance;
-    while(subInstance) {
-        instanceKeys = instanceKeys.union(Object.keys(subInstance));
-        subInstance = Object.getPrototypeOf(subInstance);
-    }
-    return instanceKeys.value().map((instanceKey) => [instanceKey, instance[instanceKey]] as [string, any]);
-}
-
 function purifyInstanceSync(instance: Record<string, any>, instanceName: string, stateNamesNoPurify: Record<string, boolean> = {}) {
     if (instance.__purified) {
         return;
     }
 
-    const instanceEntries = collectAllEntries(instance);
+    const isDebug = !!cookie.get('s3debug');
+
+    // @ts-ignore У нас подмешивается полифилл Object.entries, о котором не знает ts
+    const instanceEntries = Object.entries(instance);
     while (instanceEntries.length) {
         const [stateName, stateValue] = instanceEntries.pop();
 
-        const getterFunction = isValueToPurify(stateValue) && !stateNamesNoPurify[stateName] ?
-            createUseAfterPurifyErrorFunction(stateName, instanceName) :
-            () => stateValue;
+        const haveToPurify = isValueToPurify(stateValue) && !stateNamesNoPurify[stateName];
 
-        // TODO: убрать костыль в https://online.sbis.ru/opendoc.html?guid=1c91dd41-5adf-4fd7-b2a4-ff8f103a8084
-        // возможно, нужно не удалять объекты и функции, а заменять на пустые функции и объекты соответственно
-        Object.defineProperty(instance, stateName, {
-            enumerable: false,
-            configurable: false,
-            set: emptyFunction,
-            get: stateName === 'destroy' ? () => emptyFunction : getterFunction
-        });
+        if (isDebug) {
+            const getterFunction = haveToPurify ?
+                createUseAfterPurifyErrorFunction(stateName, instanceName) :
+                () => stateValue;
+
+            // TODO: убрать костыль в https://online.sbis.ru/opendoc.html?guid=1c91dd41-5adf-4fd7-b2a4-ff8f103a8084
+            // возможно, нужно не удалять объекты и функции, а заменять на пустые функции и объекты соответственно
+            Object.defineProperty(instance, stateName, {
+                enumerable: false,
+                configurable: false,
+                set: emptyFunction,
+                get: stateName === 'destroy' ? () => emptyFunction : getterFunction
+            });
+        } else {
+            if (haveToPurify) {
+                if (stateName === 'destroy') {
+                    instance[stateName] = emptyFunction;
+                } else {
+                    try {
+                        instance[stateName] = undefined;
+                    } catch (e) {
+                        // Может быть только getter, не переприсвоить.
+                        delete instance[stateName];
+                    }
+                }
+            }
+        }
     }
 
-    Object.defineProperty(instance, '__purified', {
-        enumerable: false,
-        configurable: false,
-        get: () => true
-    });
+    if (isDebug) {
+        Object.defineProperty(instance, '__purified', {
+            enumerable: false,
+            configurable: false,
+            get: () => true
+        });
+    } else {
+        instance.__purified = true;
+    }
     Object.freeze(instance);
 }
 
@@ -79,10 +92,7 @@ export default function purifyInstance(instance: Record<string, any>,
                                        stateNamesNoPurify?: Record<string, boolean>): void {
     if (async) {
         setTimeout(() => {
-            // Чтобы не копилась очередь таймаутов, блокирующая перерисовку, нужен delay.
-            delay(() => {
-                purifyInstanceSync(instance, instanceName, stateNamesNoPurify);
-            });
+            purifyInstanceSync(instance, instanceName, stateNamesNoPurify);
         }, asyncPurifyTimeout);
     } else {
         purifyInstanceSync(instance, instanceName, stateNamesNoPurify);

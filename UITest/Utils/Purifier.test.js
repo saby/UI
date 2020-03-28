@@ -1,29 +1,37 @@
 define([
    'UI/Utils',
-], function(Utils) {
+   'Env/Env'
+], function(Utils,
+            Env
+   ) {
 
    describe('UI/_utils/Purifier', () => {
       const Purifier = Utils.Purifier;
       const Logger = Utils.Logger;
+      const cookie = Env.cookie;
       describe('purifyInstance', () => {
          let instance;
          let errorMessage;
          let warnStub;
+         let cookieStub;
          const purifyInstance = Purifier.purifyInstance;
          const loggerErrorMock = (msg) => {
             errorMessage += msg;
          };
+         const cookieGetMock = (name) => name === 's3debug';
 
          before(() => {
             instance = {};
             errorMessage = '';
             warnStub = sinon.stub(Logger, 'warn').callsFake(loggerErrorMock);
+            cookieStub = sinon.stub(cookie, 'get').callsFake(cookieGetMock);
          });
 
          after(() => {
             instance = {};
             errorMessage = '';
             warnStub.restore();
+            cookieStub.restore();
          });
 
          beforeEach(() => {
@@ -103,31 +111,6 @@ define([
          it('purify instance more than once', () => {
             purifyInstance(instance);
             assert.equal(errorMessage, '');
-         });
-
-         it('purify instance with a prototype', () => {
-            const proproto = {
-               c: {}
-            };
-            const proto = {
-               b: {}
-            };
-            instance = {
-               a: {}
-            };
-            Object.setPrototypeOf(proto, proproto);
-            Object.setPrototypeOf(instance, proto);
-            purifyInstance(instance, 'test_instance');
-            const valueA = instance.a;
-            const errorMessageA = 'Попытка получить поле a в очищенном test_instance';
-            const valueB = instance.b;
-            const errorMessageB = 'Попытка получить поле b в очищенном test_instance';
-            const valueC = instance.c;
-            const errorMessageC = 'Попытка получить поле c в очищенном test_instance';
-            assert.strictEqual(valueA, undefined);
-            assert.strictEqual(valueB, undefined);
-            assert.strictEqual(valueC, undefined);
-            assert.equal(errorMessage, errorMessageA + errorMessageB + errorMessageC);
          });
 
          it('purify instance with a getter (string)', () => {
