@@ -1,7 +1,7 @@
 import { Controller } from 'UI/theme/_controller/Controller';
 // @ts-ignore
 import { constants } from 'Env/Env';
-import { THEME_TYPE } from 'UI/theme/_controller/css/const';
+import { THEME_TYPE, DEFAULT_THEME } from 'UI/theme/_controller/css/const';
 import Link from 'UI/theme/_controller/css/Link';
 import { ICssLoader } from 'UI/theme/_controller/Loader';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
@@ -15,9 +15,16 @@ describe('UI/theme/_controller/Controller', () => {
 
    /** добавляем # в начало href, чтобы не сыпались ошибки о ненайденных стилях */
    const sharp = '#';
+   const createHref = (name: string, theme: string) => [sharp, name, theme].join('-');
    class CssLoaderMock implements ICssLoader {
       loads: object = {};
+
+      constructor(private forbidden: string[] = []) { }
+
       load(href: string): Promise<void> {
+         if (this.forbidden.includes(href)) {
+            return Promise.reject(new Error('theme is not exists'));
+         }
          const [sharp, name, theme]: string[] = href.split('-');
          if (!this.loads[name]) {
             this.loads[name] = {};
@@ -25,11 +32,11 @@ describe('UI/theme/_controller/Controller', () => {
          this.loads[name][theme] = this.loads[name][theme] ? this.loads[name][theme] + 1 : 1;
          return Promise.resolve(void 0);
       }
+
       getInfo(name: string, theme: string) {
          return {
             themeType: THEME_TYPE.MULTI,
-
-            href: [sharp, name, theme].join('-')
+            href: createHref(name, theme)
          };
       }
       /**
@@ -90,7 +97,9 @@ describe('UI/theme/_controller/Controller', () => {
          return controller.get(cssName, themeName)
             .then(() => controller.get(cssName, themeName))
             .then(() => controller.get(cssName, themeName))
-            .then(() => { assert.isTrue(loader.isValid()); });
+            .then(() => { assert.isTrue(loader.isValid()); })
+            .then(() => controller.remove(cssName, themeName))
+            .then(() => controller.remove(cssName, themeName));
       });
 
       it('Стили загружаются отдельно для каждой темы', () => {

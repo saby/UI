@@ -32,7 +32,7 @@ export function restoreEntity(element: IHTMLElement): IRestoredEntity {
    const themeType = element.getAttribute(ELEMENT_ATTR.THEME_TYPE) as THEME_TYPE;
    const isNull = (prop) => Object.is(prop, null);
    if ([name, href, theme, themeType].some(isNull)) {
-      return restorDeprecatedEntity(element);
+      return restoreDeprecatedEntity(element);
    }
    const LinkClass = (themeType === THEME_TYPE.SINGLE) ? SingleLink : Link;
    return new LinkClass(href, name, theme, element);
@@ -41,7 +41,7 @@ export function restoreEntity(element: IHTMLElement): IRestoredEntity {
  * Устаревшие ссылки вставляются через Controls.decorator:Markup
  */
 // TODO https://online.sbis.ru/opendoc.html?guid=af492da0-f245-4a20-b567-8a789038fc39
-export function restorDeprecatedEntity(element: IHTMLElement): IRestoredEntity {
+export function restoreDeprecatedEntity(element: IHTMLElement): IRestoredEntity {
    const href = element.getAttribute(DEPRECATED_ELEMENT_ATTR.HREF);
    const name = element.getAttribute(DEPRECATED_ELEMENT_ATTR.NAME);
    const theme = element.getAttribute(DEPRECATED_ELEMENT_ATTR.THEME) || EMPTY_THEME;
