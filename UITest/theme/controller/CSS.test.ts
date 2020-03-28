@@ -1,4 +1,4 @@
-import { createEntity, restoreEntity } from 'UI/theme/_controller/CSS';
+import { createEntity, restoreEntity, restorDeprecatedEntity } from 'UI/theme/_controller/CSS';
 // @ts-ignore
 import { constants } from 'Env/Env';
 // import { assert } from 'chai';
@@ -9,26 +9,44 @@ import LinkPS from 'UI/theme/_controller/css/LinkPS';
 import Link from 'UI/theme/_controller/css/Link';
 import { THEME_TYPE } from 'UI/theme/controller';
 import { IHTMLElement } from 'UI/theme/_controller/css/interface';
-import { ELEMENT_ATTR } from 'UI/theme/_controller/css/const';
+import { ELEMENT_ATTR, DEPRECATED_ELEMENT_ATTR, DEPRECATED_THEME_TYPE, EMPTY_THEME } from 'UI/theme/_controller/css/const';
 
-class LinkElementMock implements IHTMLElement {
+class LinkMock implements IHTMLElement {
    __removed = false;
    outerHTML = 'test css';
+   getAttribute(attr) {
+      return this[attr] || null;
+   }
+   remove() {
+      this.__removed = true;
+   }
+}
+
+class LinkElementMock extends LinkMock {
    constructor(
       href: string,
       name: string,
       theme: string,
       themeType: THEME_TYPE) {
+      super();
       this[ELEMENT_ATTR.HREF] = href;
       this[ELEMENT_ATTR.NAME] = name;
       this[ELEMENT_ATTR.THEME] = theme;
       this[ELEMENT_ATTR.THEME_TYPE] = themeType;
    }
-   getAttribute(attr) {
-      return this[attr];
-   }
-   remove() {
-      this.__removed = true;
+}
+
+class DeprecatedLinkElementMock extends LinkMock {
+   constructor(
+      href: string,
+      name: string,
+      theme: string,
+      themeType: DEPRECATED_THEME_TYPE) {
+      super();
+      this[DEPRECATED_ELEMENT_ATTR.HREF] = href;
+      this[DEPRECATED_ELEMENT_ATTR.NAME] = name;
+      this[DEPRECATED_ELEMENT_ATTR.THEME] = theme;
+      this[DEPRECATED_ELEMENT_ATTR.THEME_TYPE] = themeType;
    }
 }
 
@@ -74,16 +92,76 @@ describe('UI/theme/_controller/CSS', () => {
          assert.instanceOf(entity, Link);
       });
 
-      it('Создает экземпляр SingleLink для мультитемы', () => {
+      it('Создает экземпляр Link для deprecacted мультитемы', () => {
+         const element = new DeprecatedLinkElementMock(href, cssName, themeName, DEPRECATED_THEME_TYPE.MULTI);
+         const entity = restoreEntity(element);
+         assert.instanceOf(entity, Link);
+      });
+
+      it('Создает экземпляр SingleLink для немультитемы', () => {
          const element = new LinkElementMock(href, cssName, themeName, THEME_TYPE.SINGLE);
          const entity = restoreEntity(element);
          assert.instanceOf(entity, SingleLink);
       });
 
-      it('Возврщает null при отсутствии аттрибута', () => {
-         const element = new LinkElementMock(href, cssName, null, THEME_TYPE.SINGLE);
+      it('Создает экземпляр SingleLink для deprecacted немультитемы', () => {
+         const element = new DeprecatedLinkElementMock(href, cssName, themeName, DEPRECATED_THEME_TYPE.SINGLE);
+         const entity = restoreEntity(element);
+         assert.instanceOf(entity, SingleLink);
+      });
+
+      it('Возвращает null при отсутствии аттрибута href', () => {
+         const element = new LinkElementMock(null, cssName, themeName, THEME_TYPE.SINGLE);
          const entity = restoreEntity(element);
          assert.isNull(entity);
+      });
+
+      it('Возвращает null при отсутствии аттрибута cssName', () => {
+         const element = new LinkElementMock(href, undefined, themeName, THEME_TYPE.SINGLE);
+         const entity = restoreEntity(element);
+         assert.isNull(entity);
+      });
+   });
+
+   describe('restorDeprecatedEntity ', () => {
+      if (!constants.isBrowserPlatform) { return; }
+
+      it('Создает экземпляр Link для мультитемы', () => {
+         const element = new DeprecatedLinkElementMock(href, cssName, themeName, DEPRECATED_THEME_TYPE.MULTI);
+         const entity = restorDeprecatedEntity(element);
+         assert.instanceOf(entity, Link);
+      });
+
+      it('Создает экземпляр SingleLink для мультитемы', () => {
+         const element = new DeprecatedLinkElementMock(href, cssName, themeName, DEPRECATED_THEME_TYPE.SINGLE);
+         const entity = restorDeprecatedEntity(element);
+         assert.instanceOf(entity, SingleLink);
+      });
+
+      it('Возвращает null при отсутствии аттрибута href', () => {
+         const element = new DeprecatedLinkElementMock(undefined, cssName, themeName, DEPRECATED_THEME_TYPE.SINGLE);
+         const entity = restorDeprecatedEntity(element);
+         assert.isNull(entity);
+      });
+
+      it('Возвращает null при отсутствии аттрибута cssName', () => {
+         const element = new DeprecatedLinkElementMock(href, undefined, themeName, DEPRECATED_THEME_TYPE.SINGLE);
+         const entity = restorDeprecatedEntity(element);
+         assert.isNull(entity);
+      });
+
+      it('Возвращает SingleLink EMPTY_THEME при отсутствии темы', () => {
+         const element = new DeprecatedLinkElementMock(href, cssName, null, DEPRECATED_THEME_TYPE.SINGLE);
+         const entity = restorDeprecatedEntity(element);
+         assert.instanceOf(entity, SingleLink);
+         assert.equal(entity.themeName, EMPTY_THEME);
+      });
+
+      it('Возвращает Link EMPTY_THEME при отсутствии темы', () => {
+         const element = new DeprecatedLinkElementMock(href, cssName, null, DEPRECATED_THEME_TYPE.MULTI);
+         const entity = restorDeprecatedEntity(element);
+         assert.instanceOf(entity, Link);
+         assert.equal(entity.themeName, EMPTY_THEME);
       });
    });
 });

@@ -9,6 +9,17 @@ export enum ELEMENT_ATTR {
    THEME_TYPE = 'theme-type'
 }
 /**
+ * перечисление аттрибутов css сущностей в DOM
+ * @deprecated
+ * TODO https://online.sbis.ru/opendoc.html?guid=af492da0-f245-4a20-b567-8a789038fc39
+ */
+export enum DEPRECATED_ELEMENT_ATTR {
+   HREF = 'href',
+   NAME = 'css-name',
+   THEME = 'theme-name',
+   THEME_TYPE = 'class'
+}
+/**
  * Тип темы
  */
 export enum THEME_TYPE {
@@ -23,6 +34,24 @@ export enum THEME_TYPE {
     * т.к возникают конфликты селекторов (они одинаковые)
     */
    SINGLE = 'signletheme'
+}
+/**
+ * Тип темы
+ * @deprecated
+ * TODO https://online.sbis.ru/opendoc.html?guid=af492da0-f245-4a20-b567-8a789038fc39
+ */
+export enum DEPRECATED_THEME_TYPE {
+   /**
+    * мультитемные css
+    * нет необходимости удалять другие темы
+    * селекторы включают в себя имя темы, т.е уникальны
+    */
+   MULTI = 'new-styles',
+   /**
+    * немультитемные css, при переключении темы остальные темы должны удаляться,
+    * т.к возникают конфликты селекторов (они одинаковые)
+    */
+   SINGLE = 'css-bundles'
 }
 /**
  * Тема по-умолчанию
