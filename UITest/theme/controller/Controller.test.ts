@@ -50,7 +50,7 @@ describe('UI/theme/_controller/Controller', () => {
                this.loads[name][theme] === 1)
          );
       }
-   };
+   }
 
    let controller: Controller;
    let loader: CssLoaderMock;
@@ -109,6 +109,17 @@ describe('UI/theme/_controller/Controller', () => {
             .then(() => controller.get(cssName, theme2))
             .then(() => { assert.isTrue(loader.isValid()); });
       });
+
+      it('При ошибке скачивания стилей, link не сохраняется в Store', () => {
+         if (!constants.isBrowserPlatform) { return; }
+         const loader2 = new CssLoaderMock([createHref(cssName, themeName)]);
+         const controller2 = new Controller(loader2);
+         return controller2.get(cssName, themeName)
+            .then(() => { assert.fail('При ошибке скачивания стилей должен возвращаться Rejected Promise'); })
+            .catch((e) => {
+               assert.isFalse(controller2.has(cssName, themeName));
+            });
+      });
    });
 
    describe('getAll', () => {
@@ -135,6 +146,30 @@ describe('UI/theme/_controller/Controller', () => {
                controller.getAll()
                   .forEach((entity) => { assert.instanceOf(entity, LinkPS); });
             });
+      });
+   });
+
+   describe('getThemes', () => {
+
+      it('При отсутствии кастомной темы скачивается default тема', () => {
+         if (!constants.isBrowserPlatform) { return; }
+         const loader2 = new CssLoaderMock([createHref(cssName, themeName)]);
+         const controller2 = new Controller(loader2);
+         return controller2.getThemes(themeName, [cssName])
+            .then(() => {
+               assert.isFalse(controller2.has(cssName, themeName));
+               assert.isTrue(controller2.has(cssName, DEFAULT_THEME));
+               return controller2.remove(cssName, DEFAULT_THEME);
+            });
+      });
+
+      it('При отсутствии кастомной и default темы возвращается Rejected Promise', () => {
+         if (!constants.isBrowserPlatform) { return; }
+         const loader2 = new CssLoaderMock([createHref(cssName, themeName), createHref(cssName, DEFAULT_THEME)]);
+         const controller2 = new Controller(loader2);
+         return controller2.getThemes(themeName, [cssName])
+            .then(() => { assert.fail('При отсутствии кастомной и default темы возвращается Rejected Promise'); })
+            .catch((e) => { assert.instanceOf(e, Error); });
       });
    });
 

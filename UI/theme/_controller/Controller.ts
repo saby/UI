@@ -46,7 +46,10 @@ export class Controller {
          /** Если link успешно скачан и вмонтирован в DOM, удаляем немультитемные стили */
          this.removeSingleEntities(link);
          return link;
-      }).catch(decorateError);
+      }).catch((e: HTTP) =>
+         /** Если стилей нет, удаляем link из Store */
+         this.remove(cssName, theme).then(() => { throw decorateError(e); })
+      );
    }
 
    /**
@@ -56,6 +59,19 @@ export class Controller {
       return this.store.getCssNames()
          .map((name) => this.store.getEntitiesByName(name))
          .reduce((prev, cur) => prev.concat(cur), []);
+   }
+
+   /**
+    * Получение темизированных стилей,
+    * в случае ошибки, возвращаются стили в default теме
+    * @param themeName
+    * @param themes
+    */
+   getThemes(themeName?: string, themes: string[] = []): Promise<ICssEntity[]> {
+      return Promise.all(themes.map((name) =>
+         /** При отсутствии css в текущей теме, скачивается default */
+         this.get(name, themeName).catch(() => this.get(name, DEFAULT_THEME))
+      ));
    }
    /**
     * Проверка наличия темы `themeName` у контрола `name`
@@ -134,9 +150,9 @@ export class Controller {
       return Controller.instance;
    }
 }
-function decorateError(e: HTTP): never {
-   throw new Error(
-      `Couldn't load: ${e.url}
+function decorateError(e: HTTP): Error {
+   return new Error(
+      `UI/theme/controller:\tCouldn't load: ${e.url}
       It's probably an error with internet connection or CORS settings.`
    );
 }
