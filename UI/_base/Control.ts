@@ -348,6 +348,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       if (this._afterCreate) {
          this._afterCreate(cfg);
       }
+      this.loadCSS(cfg.theme);
    }
 
    /**
@@ -781,12 +782,17 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          // _reactiveStart means starting of monitor change in properties
          this._reactiveStart = true;
       }
-      this.constructor['loadStyles'](this.extractOwnStyles()).catch(logError);
-      this.constructor['loadThemes'](opts.theme, this.extractOwnThemes()).catch(logError);
       this._$resultBeforeMount = resultBeforeMount;
       return resultBeforeMount;
    }
 
+   private loadCSS(themeName?: string): Promise<void> {
+      return this.constructor['loadCSS'](
+         themeName,
+         this.extractOwnThemes(),
+         this.extractOwnStyles()
+      ).catch(logError);
+   }
    /**
     * Хук жизненного цикла контрола. Вызывается сразу после установки контрола в DOM-окружение.
     * @param {Object} options Опции контрола.
@@ -1128,6 +1134,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    /**
     * Загрузка стилей и тем контрола
     * @param themeName имя темы (по-умолчанию тема приложения)
+    * @param themes массив доп тем для скачивания
+    * @param styles массив доп стилей для скачивания
     * @static
     * @method
     * @example
@@ -1136,8 +1144,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     *         .then((InfoboxTemplate) => InfoboxTemplate.loadCSS('saby__dark'))
     * </pre>
     */
-   static loadCSS(themeName?: string): Promise<void> {
-      return Promise.all([this.loadStyles(), this.loadThemes(themeName)]).then(() => void 0);
+   static loadCSS(themeName?: string, themes: string[] = [], styles: string[] = [], ): Promise<void> {
+      return Promise.all([
+         this.loadStyles(styles),
+         this.loadThemes(themeName, themes)
+      ]).then(() => void 0);
    }
    /**
     * Загрузка стилей контрола
