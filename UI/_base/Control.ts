@@ -1193,6 +1193,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // Do
    }
 
+   protected _getMountedState(): boolean {
+      return this._mounted;
+   }
+
    static _styles: string[];
    static _theme: string[];
    static isWasaby: boolean = true;
