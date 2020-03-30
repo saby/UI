@@ -53,7 +53,7 @@ export class Controller {
    }
 
    /**
-    * Синхронное получение всех сохраненных Link'ов
+    * Получение всех сохраненных CssEntity
     */
    getAll(): ICssEntity[] {
       return this.store.getCssNames()
@@ -107,6 +107,9 @@ export class Controller {
       return this.store.remove(cssName, theme);
    }
 
+   clear(): void {
+      this.store.clear();
+   }
    /**
     * Сохранение css сущности в store
     * @param link

@@ -72,9 +72,8 @@ class Head extends Control {
         }
         return headDataStore.read('waitAppContent')().then(({ css }) =>
             collectCSS(options.theme, css.simpleCss, css.themedCss)
-                .then((html) => { this.stylesHtml = `${html}\n`; })
-                .catch(onerror)
-        );
+                .then((html) => { this.stylesHtml = `\n${html}\n`; })
+                .catch(onerror));
     }
 
     // @ts-ignore
@@ -89,15 +88,16 @@ class Head extends Control {
 
 export default Head;
 
-function collectCSS(theme: string, simpleCss: string[], themedCss: string[]): Promise<string> {
+function collectCSS(theme: string, styles: string[] = [], themes: string[] = []): Promise<string> {
     const tc = getThemeController();
-    return Promise.all([
-        ...simpleCss.map((name) => tc.get(name, EMPTY_THEME)),
-        ...themedCss.map((name) => tc.get(name, theme))
-    ]).then(() =>
-        tc.getAll()
-            .map((entity) => entity.outerHtml)
-            .join('\n'));
+    const gettingStyles = styles.map((name) => tc.get(name, EMPTY_THEME));
+    const gettingThemes = themes.map((name) => tc.get(name, theme));
+    return Promise.all(gettingStyles.concat(gettingThemes)).then(() => {
+        const markup = tc.getAll().map((entity) => entity.outerHtml).join('\n');
+        tc.clear();
+        return markup;
+    });
+
 }
 
 function onerror(e: Error): void {
