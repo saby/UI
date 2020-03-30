@@ -91,7 +91,7 @@ const WAIT_TIMEOUT = 20000;
 const WRAP_TIMEOUT = 30000;
 
 const stateNamesNoPurify = {
-    isDestroyed: true
+   isDestroyed: true
 };
 
 export const _private = {
@@ -126,9 +126,9 @@ export const _private = {
       }, time);
 
       return resultBeforeMount.finally(() => {
-            clearTimeout(asyncTimer);
-            _private._checkAsyncExecuteTime(startTime, customBLExecuteTime, moduleName);
-         }
+         clearTimeout(asyncTimer);
+         _private._checkAsyncExecuteTime(startTime, customBLExecuteTime, moduleName);
+      }
       );
    }
 };
@@ -703,7 +703,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                *  if execution was longer than 2 sec
                */
                const message = `Promise, который вернули из метода _beforeMount контрола ${this._moduleName} ` +
-                   `не завершился за ${time} миллисекунд. ` +
+                  `не завершился за ${time} миллисекунд. ` +
                    `Шаблон контрола не будет построен на сервере.`
                Logger.warn(message, this);
 
@@ -715,11 +715,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                   this._originTemplate = this._template;
                   // @ts-ignore
                   this._template = function (
-                      data: any,
-                      attr: any,
-                      context: any,
-                      isVdom: boolean,
-                      sets: any
+                     data: any,
+                     attr: any,
+                     context: any,
+                     isVdom: boolean,
+                     sets: any
                   ): any {
                      return template.apply(this, arguments);
                   };
@@ -752,13 +752,14 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       ReactiveObserver.observeProperties(this);
 
       let resultBeforeMount = this._beforeMount.apply(this, arguments);
-      this.loadCSS(opts.theme);
+      this.loadThemes(opts.theme);
+      this.loadStyles();
 
       // prevent start reactive properties if beforeMount return Promise.
       // Reactive properties will be started in Synchronizer
       if (resultBeforeMount && resultBeforeMount.callback) {
          //start server side render
-          // todo проверка на сервис представления
+         // todo проверка на сервис представления
          if (typeof process !== 'undefined' && !process.versions) {
             let time = WAIT_TIMEOUT;
             try {
@@ -786,13 +787,49 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return resultBeforeMount;
    }
 
-   private loadCSS(themeName?: string): Promise<void> {
-      return this.constructor['loadCSS'](
-         themeName,
+   //#region CSS private
+   private loadThemes(themeName?: string): void {
+      if (themeName === this._options.theme) { return; }
+      this.constructor['loadThemes'](themeName, this.extractOwnThemes()).catch(logError);
+   }
+   private loadStyles(): void {
+      this.constructor['loadStyles'](this.extractOwnStyles()).catch(logError);
+   }
+   private removeCSS(themeName?: string): void {
+      this.constructor['removeCSS'](themeName,
          this.extractOwnThemes(),
          this.extractOwnStyles()
       ).catch(logError);
    }
+   /**
+    * Стили должны перечисляться в статическом свойстве класса, 
+    * но у некоторых контролах хранятся в собственных
+    * Кидаем предупреждение в консоль
+    */
+   private extractOwnStyles(): string[] {
+      // @ts-ignore
+      if (this._style && this._style.length !== 0) {
+         // Logger.warn("Стили должны перечисляться в статическом свойстве класса " + this._moduleName);
+         // @ts-ignore
+         return this._style;
+      }
+      return [];
+   }
+   /**
+    * Темы должны перечисляться в статическом свойстве класса, 
+    * но у некоторых контролах хранятся в собственных
+    * Кидаем предупреждение в консоль
+    */
+   private extractOwnThemes(): string[] {
+      // @ts-ignore
+      if (this._theme && this._theme.length !== 0) {
+         // Logger.warn("Темы должны перечисляться в статическом свойстве класса " + this._moduleName);
+         // @ts-ignore
+         return this._theme;
+      }
+      return [];
+   }
+   //#endregion
    /**
     * Хук жизненного цикла контрола. Вызывается сразу после установки контрола в DOM-окружение.
     * @param {Object} options Опции контрола.
@@ -844,39 +881,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUpdate(newOptions: TOptions): void {
-      this.constructor['loadThemes'](newOptions.theme, this.extractOwnThemes()).catch(logError);
+      this.loadThemes(newOptions.theme);
       this._beforeUpdate.apply(this, arguments);
    }
-
-   /**
-    * Стили должны перечисляться в статическом свойстве класса, 
-    * но у некоторых контролах хранятся в собственных
-    * Кидаем предупреждение в консоль
-    */
-   private extractOwnStyles(): string[] {
-      // @ts-ignore
-      if (this._style && this._style.length !== 0) {
-         // Logger.warn("Стили должны перечисляться в статическом свойстве класса " + this._moduleName);
-         // @ts-ignore
-         return this._style;
-      }
-      return [];
-   }
-   /**
-    * Темы должны перечисляться в статическом свойстве класса, 
-    * но у некоторых контролах хранятся в собственных
-    * Кидаем предупреждение в консоль
-    */
-   private extractOwnThemes(): string[] {
-      // @ts-ignore
-      if (this._theme && this._theme.length !== 0) {
-         // Logger.warn("Темы должны перечисляться в статическом свойстве класса " + this._moduleName);
-         // @ts-ignore
-         return this._theme;
-      }
-      return [];
-   }
-
    /**
     * Хук жизненного цикла контрола. Вызывается перед обновлением контрола.
     *
@@ -1084,7 +1091,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUnmount(): void {
-      this.constructor['removeCSS'](this._options.theme, this.extractOwnThemes(), this.extractOwnStyles).catch(logError);
+      this.removeCSS(this._options.theme);
       this._beforeUnmount.apply(this, arguments);
    }
 
@@ -1127,10 +1134,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // Do
    }
 
-   static _styles: string[]= [];
+   static _styles: string[] = [];
    static _theme: string[] = [];
    static isWasaby: boolean = true;
 
+   //#region CSS static
    /**
     * Загрузка стилей и тем контрола
     * @param themeName имя темы (по-умолчанию тема приложения)
@@ -1151,23 +1159,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       ]).then(() => void 0);
    }
    /**
-    * Загрузка стилей контрола
-    * @param instStyles (опционально) дополнительные стили экземпляра
-    * @static
-    * @private
-    * @method
-    * @example
-    * <pre>
-    *     import('Controls/_popupTemplate/InfoBox')
-    *         .then((InfoboxTemplate) => InfoboxTemplate.loadStyles())
-    * </pre>
-    */
-   static loadStyles(instStyles: string[] = []): Promise<void> {
-      const styles = instStyles.concat(this._styles);
-      if (styles.length === 0) { return Promise.resolve(); }
-      return Promise.all(styles.map((name) => themeController.get(name, EMPTY_THEME))).then(() => void 0);
-   }
-   /**
     * Загрузка тем контрола
     * @param instStyles опционально дополнительные темы экземпляра
     * @param themeName имя темы (по-умолчанию тема приложения)
@@ -1185,7 +1176,23 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       if (themes.length === 0) { return Promise.resolve(); }
       return themeController.getThemes(themeName, themes).then(() => void 0);
    }
-
+   /**
+    * Загрузка стилей контрола
+    * @param instStyles (опционально) дополнительные стили экземпляра
+    * @static
+    * @private
+    * @method
+    * @example
+    * <pre>
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadStyles())
+    * </pre>
+    */
+   static loadStyles(instStyles: string[] = []): Promise<void> {
+      const styles = instStyles.concat(this._styles);
+      if (styles.length === 0) { return Promise.resolve(); }
+      return Promise.all(styles.map((name) => themeController.get(name, EMPTY_THEME))).then(() => void 0);
+   }
    /**
     * Удаление link элементов из DOM 
     * @param themeName имя темы (по-умолчанию тема приложения)
@@ -1204,7 +1211,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       const removingThemed = Promise.all(themes.map((name) => themeController.remove(name, themeName)));
       return Promise.all([removingStyles, removingThemed]).then(() => void 0);
    }
-
+   //#endregion
    static extend(mixinsList: any, classExtender: any): Function {
       // @ts-ignore
       if (!require.defined('Core/core-extend')) {
