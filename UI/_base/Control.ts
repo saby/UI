@@ -10,7 +10,7 @@ import { activate } from 'UI/Focus';
 import { Logger, Purifier } from 'UI/Utils';
 import { constants } from 'Env/Env';
 
-import { getThemeController, Controller, EMPTY_THEME, DEFAULT_THEME } from 'UI/theme/controller';
+import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
 // @ts-ignore
 import PromiseLib = require('Core/PromiseLib/PromiseLib');
 // @ts-ignore
@@ -348,7 +348,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       if (this._afterCreate) {
          this._afterCreate(cfg);
       }
-      this.loadCSS(cfg.theme);
    }
 
    /**
@@ -753,6 +752,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       ReactiveObserver.observeProperties(this);
 
       let resultBeforeMount = this._beforeMount.apply(this, arguments);
+      this.loadCSS(opts.theme);
 
       // prevent start reactive properties if beforeMount return Promise.
       // Reactive properties will be started in Synchronizer
@@ -1084,7 +1084,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUnmount(): void {
-      this.constructor['removeStyles'](this._options.theme).catch(logError);
+      this.constructor['removeCSS'](this._options.theme, this.extractOwnThemes(), this.extractOwnStyles).catch(logError);
       this._beforeUnmount.apply(this, arguments);
    }
 
@@ -1163,7 +1163,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * </pre>
     */
    static loadStyles(instStyles: string[] = []): Promise<void> {
-      const styles = [...this._styles, ...instStyles];
+      const styles = instStyles.concat(this._styles);
       if (styles.length === 0) { return Promise.resolve(); }
       return Promise.all(styles.map((name) => themeController.get(name, EMPTY_THEME))).then(() => void 0);
    }
@@ -1181,21 +1181,22 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * </pre>
     */
    static loadThemes(themeName?: string, instThemes: string[] = []): Promise<void> {
-      const themes = [...this._theme, ...instThemes];
+      const themes = instThemes.concat(this._theme);
       if (themes.length === 0) { return Promise.resolve(); }
-      return loadThemes(themeController, themeName, themes);
+      return themeController.getThemes(themeName, themes).then(() => void 0);
    }
 
    /**
     * Удаление link элементов из DOM 
     * @param themeName имя темы (по-умолчанию тема приложения)
-    * @param instStyles опционально дополнительные стили экземпляра
+    * @param instThemes опционально собственные темы экземпляра
+    * @param instStyles опционально собственные стили экземпляра
     * @static
     * @method
     */
-   static removeStyles(themeName?: string, instStyles: IControlStyles = { styles: [], themes: [] }): Promise<void> {
-      const styles = [...this._styles, ...instStyles.styles];
-      const themes = [...this._theme, ...instStyles.themes];
+   static removeCSS(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): Promise<void> {
+      const styles = instStyles.concat(this._styles);
+      const themes = instThemes.concat(this._theme);
       if (styles.length === 0 && themes.length === 0) {
          return Promise.resolve();
       }
@@ -1274,27 +1275,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    // </editor-fold>
 }
-interface IControlStyles {
-   styles: string[];
-   themes: string[];
-}
 // @ts-ignore
 Control.prototype._template = template;
 
 function logError(e: Error) {
    Logger.error(e.message);
-}
-/**
- * Получение тем контрола
- * @param tc 
- * @param themeName 
- * @param themes 
- */
-export function loadThemes(tc: Controller, themeName?: string, themes: string[] = []): Promise<void> {
-   return Promise.all(themes.map((name) =>
-      /** При отсутствии стилей в текущей теме, скачивается default */
-      tc.get(name, themeName).catch(() => tc.get(name, DEFAULT_THEME))
-   )).then(() => void 0);
 }
 /**
  * @name UI/_base/Control#readOnly

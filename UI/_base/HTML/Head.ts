@@ -72,7 +72,7 @@ class Head extends Control {
         }
         return headDataStore.read('waitAppContent')().then(({ css }) =>
             collectCSS(options.theme, css.simpleCss, css.themedCss)
-                .then((html) => { this.stylesHtml = html; })
+                .then((html) => { this.stylesHtml = `${html}\n`; })
                 .catch(onerror)
         );
     }
@@ -94,9 +94,10 @@ function collectCSS(theme: string, simpleCss: string[], themedCss: string[]): Pr
     return Promise.all([
         ...simpleCss.map((name) => tc.get(name, EMPTY_THEME)),
         ...themedCss.map((name) => tc.get(name, theme))
-    ]).then((enities) => enities
-        .map((entity) => entity.outerHtml)
-        .join('\n'));
+    ]).then(() =>
+        tc.getAll()
+            .map((entity) => entity.outerHtml)
+            .join('\n'));
 }
 
 function onerror(e: Error): void {
