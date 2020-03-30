@@ -5,7 +5,6 @@ import { THEME_TYPE, DEFAULT_THEME } from 'UI/theme/_controller/css/const';
 import Link from 'UI/theme/_controller/css/Link';
 import { ICssLoader } from 'UI/theme/_controller/Loader';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
-import { loadThemes } from 'UI/_base/Control';
 // import { assert } from 'chai';
 // import 'mocha';
 
@@ -50,7 +49,6 @@ class CssLoaderMock implements ICssLoader {
       );
    }
 }
-
 
 describe('UI/theme/_controller/Controller', () => {
    let controller: Controller;
@@ -150,6 +148,30 @@ describe('UI/theme/_controller/Controller', () => {
       });
    });
 
+   describe('getThemes', () => {
+
+      it('При отсутствии кастомной темы скачивается default тема', () => {
+         if (!constants.isBrowserPlatform) { return; }
+         const loader2 = new CssLoaderMock([createHref(cssName, themeName)]);
+         const controller2 = new Controller(loader2);
+         return controller2.getThemes(themeName, [cssName])
+            .then(() => {
+               assert.isFalse(controller2.has(cssName, themeName));
+               assert.isTrue(controller2.has(cssName, DEFAULT_THEME));
+               return controller2.remove(cssName, DEFAULT_THEME);
+            });
+      });
+
+      it('При отсутствии кастомной и default темы возвращается Rejected Promise', () => {
+         if (!constants.isBrowserPlatform) { return; }
+         const loader2 = new CssLoaderMock([createHref(cssName, themeName), createHref(cssName, DEFAULT_THEME)]);
+         const controller2 = new Controller(loader2);
+         return controller2.getThemes(themeName, [cssName])
+            .then(() => { assert.fail('При отсутствии кастомной и default темы возвращается Rejected Promise'); })
+            .catch((e) => { assert.instanceOf(e, Error); });
+      });
+   });
+
    describe('has', () => {
       setHooks();
 
@@ -214,32 +236,6 @@ describe('UI/theme/_controller/Controller', () => {
             .catch((e: Error) => {
                assert.fail(e, void 0, 'попытка удалить несуществующие стили не приводит к ошибке');
             });
-      });
-   });
-});
-
-describe('UI/_base/Control', () => {
-   describe('loadThemes', () => {
-
-      it('При отсутствии кастомной темы скачивается default тема', () => {
-         if (!constants.isBrowserPlatform) { return; }
-         const loader2 = new CssLoaderMock([createHref(cssName, themeName)]);
-         const controller2 = new Controller(loader2);
-         return loadThemes(controller2, themeName, [cssName])
-            .then(() => {
-               assert.isFalse(controller2.has(cssName, themeName));
-               assert.isTrue(controller2.has(cssName, DEFAULT_THEME));
-               return controller2.remove(cssName, DEFAULT_THEME);
-            });
-      });
-
-      it('При отсутствии кастомной и default темы возвращается Rejected Promise', () => {
-         if (!constants.isBrowserPlatform) { return; }
-         const loader2 = new CssLoaderMock([createHref(cssName, themeName), createHref(cssName, DEFAULT_THEME)]);
-         const controller2 = new Controller(loader2);
-         return loadThemes(controller2, themeName, [cssName])
-            .then(() => { assert.fail('При отсутствии кастомной и default темы возвращается Rejected Promise'); })
-            .catch((e) => { assert.instanceOf(e, Error); });
       });
    });
 });

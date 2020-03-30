@@ -11,7 +11,7 @@ export abstract class Base implements ICssEntity {
     * Скольким контролам требуется данная css
     * Если 0 - удаляем
     */
-   protected requirement: number = 1;
+   protected requirement: number = 0;
 
    constructor(
       public href: string,
@@ -31,7 +31,7 @@ export abstract class Base implements ICssEntity {
    remove(): Promise<boolean> {
       if (this.requirement === 0) { return Promise.resolve(true); }
       this.requirement--;
-      return Promise.resolve(this.requirement === 0);
+      return Promise.resolve(false);
    }
 
    abstract load(loader: ILoader): Promise<void>;

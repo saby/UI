@@ -24,10 +24,9 @@ export default class LinkPS extends Base implements ICssEntity {
 }
 
 function getLinkHtml(href: string, name: string, theme: string, themeType: THEME_TYPE): string {
-   return `<link rel="stylesheet" type="text/css" data-vdomignore="true"
-            ${ELEMENT_ATTR.THEME_TYPE}="${themeType}"
-            ${ELEMENT_ATTR.THEME}="${theme}"
-            ${ELEMENT_ATTR.NAME}="${name}"
-            ${ELEMENT_ATTR.HREF}="${href}"
-            />`;
+   return '<link rel="stylesheet" type="text/css" data-vdomignore="true" ' +
+      `${ELEMENT_ATTR.THEME_TYPE}="${themeType}" ` +
+      `${ELEMENT_ATTR.THEME}="${theme}" ` +
+      `${ELEMENT_ATTR.NAME}="${name}" ` +
+      `${ELEMENT_ATTR.HREF}="${href}"/>`;
 }

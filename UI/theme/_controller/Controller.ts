@@ -60,6 +60,19 @@ export class Controller {
          .map((name) => this.store.getEntitiesByName(name))
          .reduce((prev, cur) => prev.concat(cur), []);
    }
+
+   /**
+    * Получение темизированных стилей,
+    * в случае ошибки, возвращаются стили в default теме
+    * @param themeName
+    * @param themes
+    */
+   getThemes(themeName?: string, themes: string[] = []): Promise<ICssEntity[]> {
+      return Promise.all(themes.map((name) =>
+         /** При отсутствии css в текущей теме, скачивается default */
+         this.get(name, themeName).catch(() => this.get(name, DEFAULT_THEME))
+      ));
+   }
    /**
     * Проверка наличия темы `themeName` у контрола `name`
     */

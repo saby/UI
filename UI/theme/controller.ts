@@ -2,7 +2,7 @@
 /**
  * Библиотека контроллера тем
  * @remark
- * Контроллер управляет загрузкой/удалением темизированных стилей на wasaby-странице
+ * Контроллер управляет загрузкой/удалением стилей всех контроллов на wasaby-странице на клиенте и СП
  * {@link Темы https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/}
  * @library UI/theme/controller
  * @includes getThemeController UI/theme/_controller/Controller#getInstance
@@ -12,6 +12,5 @@
  * @author Ибрагимов А.А.
  */
 import { Controller } from 'UI/theme/_controller/Controller';
-const getThemeController = Controller.getInstance;
-export { Controller, getThemeController };
-export { THEME_TYPE, EMPTY_THEME, DEFAULT_THEME } from 'UI/theme/_controller/css/const';
+export const getThemeController = Controller.getInstance;
+export { THEME_TYPE, EMPTY_THEME } from 'UI/theme/_controller/css/const';
