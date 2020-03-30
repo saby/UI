@@ -15,10 +15,11 @@ class LinkElementMock implements IHTMLElement {
    __removed = false;
    outerHTML = 'test css';
    constructor(
-      _href: string,
+      href: string,
       name: string,
       theme: string,
       themeType: THEME_TYPE) {
+      this[ELEMENT_ATTR.HREF] = href;
       this[ELEMENT_ATTR.NAME] = name;
       this[ELEMENT_ATTR.THEME] = theme;
       this[ELEMENT_ATTR.THEME_TYPE] = themeType;
