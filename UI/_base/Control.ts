@@ -752,8 +752,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       ReactiveObserver.observeProperties(this);
 
       let resultBeforeMount = this._beforeMount.apply(this, arguments);
-      this.loadThemes(opts.theme);
-      this.loadStyles();
 
       // prevent start reactive properties if beforeMount return Promise.
       // Reactive properties will be started in Synchronizer
@@ -783,17 +781,16 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          // _reactiveStart means starting of monitor change in properties
          this._reactiveStart = true;
       }
-      this._$resultBeforeMount = resultBeforeMount;
-      return resultBeforeMount;
+      this._$resultBeforeMount = Promise.all([this.loadThemes(opts.theme), this.loadStyles()]).then(() => resultBeforeMount);
+      return this._$resultBeforeMount;
    }
 
    //#region CSS private
-   private loadThemes(themeName?: string): void {
-      if (themeName === this._options.theme) { return; }
-      this.constructor['loadThemes'](themeName, this.extractOwnThemes()).catch(logError);
+   private loadThemes(themeName?: string): Promise<void> {
+      return this.constructor['loadThemes'](themeName, this.extractOwnThemes()).catch(logError);
    }
-   private loadStyles(): void {
-      this.constructor['loadStyles'](this.extractOwnStyles()).catch(logError);
+   private loadStyles(): Promise<void> {
+      return this.constructor['loadStyles'](this.extractOwnStyles()).catch(logError);
    }
    private removeCSS(themeName?: string): void {
       this.constructor['removeCSS'](themeName,
@@ -809,7 +806,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private extractOwnStyles(): string[] {
       // @ts-ignore
       if (this._style && this._style.length !== 0) {
-         // Logger.warn("Стили должны перечисляться в статическом свойстве класса " + this._moduleName);
+         Logger.warn("Стили должны перечисляться в статическом свойстве класса " + this._moduleName);
          // @ts-ignore
          return this._style;
       }
@@ -823,7 +820,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private extractOwnThemes(): string[] {
       // @ts-ignore
       if (this._theme && this._theme.length !== 0) {
-         // Logger.warn("Темы должны перечисляться в статическом свойстве класса " + this._moduleName);
+         Logger.warn("Темы должны перечисляться в статическом свойстве класса " + this._moduleName);
          // @ts-ignore
          return this._theme;
       }
@@ -881,7 +878,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUpdate(newOptions: TOptions): void {
-      this.loadThemes(newOptions.theme);
+      if (newOptions.theme !== this._options.theme) {
+         this.loadThemes(newOptions.theme);
+      }
       this._beforeUpdate.apply(this, arguments);
    }
    /**

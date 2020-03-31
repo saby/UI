@@ -53,9 +53,7 @@ export default class Store<T extends ICssEntity = ICssEntity> {
    }
 
    clear(): void {
-      this.getCssNames().forEach((cssName) => {
-         delete this.store[cssName];
-      });
+      this.store = {};
    }
    /**
     * Возвращает массив имен css в store
