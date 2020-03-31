@@ -782,10 +782,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._reactiveStart = true;
       }
       const cssLoading = Promise.all([this.loadThemes(opts.theme), this.loadStyles()]);
-      if (constants.isBrowserPlatform && !this.isDeprecatedCSS()) {
-         return this._$resultBeforeMount = cssLoading.then(() => resultBeforeMount);
+      if (constants.isServerSide() || this.isDeprecatedCSS()) {
+         return this._$resultBeforeMount = resultBeforeMount;
       }
-      return this._$resultBeforeMount = resultBeforeMount;
+      return this._$resultBeforeMount = cssLoading.then(() => resultBeforeMount);
    }
 
    //#region CSS private
@@ -812,7 +812,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private extractOwnStyles(): string[] {
       // @ts-ignore
       if (this._style && this._style.length !== 0) {
-         // Logger.warn("Стили должны перечисляться в статическом свойстве класса " + this._moduleName);
+         Logger.warn("Стили должны перечисляться в статическом свойстве класса " + this._moduleName);
          // @ts-ignore
          return this._style;
       }
@@ -825,7 +825,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private extractOwnThemes(): string[] {
       // @ts-ignore
       if (this._theme && this._theme.length !== 0) {
-         // Logger.warn("Темы должны перечисляться в статическом свойстве класса " + this._moduleName);
+         Logger.warn("Темы должны перечисляться в статическом свойстве класса " + this._moduleName);
          // @ts-ignore
          return this._theme;
       }
