@@ -81,6 +81,12 @@ export class Controller {
       return this.store.has(cssName, theme);
    }
 
+   isMounted(cssName: string, themeName?: string): boolean {
+      const theme = themeName || this.appTheme;
+      if (!this.store.has(cssName, theme)) { return false; }
+      return this.store.get(cssName, theme).isMounted;
+   }
+
    /**
     * Установить тему приложения
     * @param {string} themeName

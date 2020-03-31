@@ -782,7 +782,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._reactiveStart = true;
       }
       const cssLoading = Promise.all([this.loadThemes(opts.theme), this.loadStyles()]);
-      if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded) {
+      if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded()) {
          return this._$resultBeforeMount = resultBeforeMount;
       }
       return this._$resultBeforeMount = cssLoading.then(() => {
@@ -796,7 +796,12 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // @ts-ignore
       return this._theme && !(this._theme instanceof Array) || this._styles && !(this._styles instanceof Array);
    }
-   private isCSSLoaded: boolean = false;
+   private isCSSLoaded(themeName?: string): boolean {
+      return this.constructor['isCSSLoaded'](themeName,
+         this.extractOwnThemes(),
+         this.extractOwnStyles()
+      ).catch(logError);
+   }
    private loadThemes(themeName?: string): Promise<void> {
       return this.constructor['loadThemes'](themeName, this.extractOwnThemes()).catch(logError);
    }
@@ -807,7 +812,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       this.constructor['removeCSS'](themeName,
          this.extractOwnThemes(),
          this.extractOwnStyles()
-      ).then(() => { this.isCSSLoaded = false; }, logError);
+      ).catch(logError);
    }
    /**
     * Стили должны перечисляться в статическом свойстве класса, 
@@ -1222,10 +1227,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    static isCSSLoaded(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): boolean {
       const themes = instThemes.concat(this._theme);
       const styles = instStyles.concat(this._styles);
-      return themes.every((cssName) => themeController.has(cssName, themeName)) &&
-         styles.every((cssName) => themeController.has(cssName, EMPTY_THEME));
+      return themes.every((cssName) => themeController.isMounted(cssName, themeName)) &&
+         styles.every((cssName) => themeController.isMounted(cssName, EMPTY_THEME));
    }
    //#endregion
+   
    static extend(mixinsList: any, classExtender: any): Function {
       // @ts-ignore
       if (!require.defined('Core/core-extend')) {

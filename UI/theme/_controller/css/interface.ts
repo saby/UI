@@ -4,6 +4,8 @@
  * Используется для подключения внешних тем в head
  */
 export interface ICssEntity {
+   /** Вмонтирована ли CssEntity в разметку */
+   isMounted: boolean;
    /**
     * HTML- разметка сущности
     * @example
