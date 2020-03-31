@@ -781,11 +781,18 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          // _reactiveStart means starting of monitor change in properties
          this._reactiveStart = true;
       }
-      this._$resultBeforeMount = Promise.all([this.loadThemes(opts.theme), this.loadStyles()]).then(() => resultBeforeMount);
-      return this._$resultBeforeMount;
+      const cssLoading = Promise.all([this.loadThemes(opts.theme), this.loadStyles()]);
+      if (constants.isBrowserPlatform && !this.isDeprecatedCSS()) {
+         return this._$resultBeforeMount = cssLoading.then(() => resultBeforeMount);
+      }
+      return this._$resultBeforeMount = resultBeforeMount;
    }
 
    //#region CSS private
+   private isDeprecatedCSS(): boolean {
+      // @ts-ignore
+      return this._theme && !(this._theme instanceof Array) || this._styles && !(this._styles instanceof Array);
+   }
    private loadThemes(themeName?: string): Promise<void> {
       return this.constructor['loadThemes'](themeName, this.extractOwnThemes()).catch(logError);
    }
