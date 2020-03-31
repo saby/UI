@@ -131,7 +131,7 @@ export const _private = {
             _private._checkAsyncExecuteTime(startTime, customBLExecuteTime, moduleName);
          }
       );
-   }
+   },
 };
 
 
@@ -1191,10 +1191,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     */
    protected _beforeUnmount(): void {
       // Do
-   }
-
-   protected _getMountedState(): boolean {
-      return this._mounted;
    }
 
    static _styles: string[];

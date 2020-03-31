@@ -27,7 +27,7 @@ function isHidden(container: HTMLElement, mounted: boolean): boolean {
    if (!mounted && !!container) {
       return false;
    }
-   return !container || !container.offsetParent;
+   return !container || !document.body.contains(container);
 }
 interface IControlKeyHookOptions extends IControlOptions {
    defaultActions: Record<string, []>;
