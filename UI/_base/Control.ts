@@ -782,7 +782,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._reactiveStart = true;
       }
       const cssLoading = Promise.all([this.loadThemes(opts.theme), this.loadStyles()]);
-      if (this.isDeprecatedCSS() || constants.isServerSide) {
+      if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded(opts.theme)) {
          return this._$resultBeforeMount = resultBeforeMount;
       }
       return this._$resultBeforeMount = cssLoading.then(() => resultBeforeMount);
@@ -792,6 +792,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private isDeprecatedCSS(): boolean {
       // @ts-ignore
       return this._theme && !(this._theme instanceof Array) || this._styles && !(this._styles instanceof Array);
+   }
+   private isCSSLoaded(themeName?: string): boolean {
+      return this.constructor['isCSSLoaded'](themeName, this.extractOwnThemes(), this.extractOwnStyles());
    }
    private loadThemes(themeName?: string): Promise<void> {
       return this.constructor['loadThemes'](themeName, this.extractOwnThemes()).catch(logError);
@@ -1156,7 +1159,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     *         .then((InfoboxTemplate) => InfoboxTemplate.loadCSS('saby__dark'))
     * </pre>
     */
-   static loadCSS(themeName?: string, themes: string[] = [], styles: string[] = [], ): Promise<void> {
+   static loadCSS(themeName?: string, themes: string[] = [], styles: string[] = []): Promise<void> {
       return Promise.all([
          this.loadStyles(styles),
          this.loadThemes(themeName, themes)
@@ -1214,6 +1217,12 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       const removingStyles = Promise.all(styles.map((name) => themeController.remove(name, EMPTY_THEME)));
       const removingThemed = Promise.all(themes.map((name) => themeController.remove(name, themeName)));
       return Promise.all([removingStyles, removingThemed]).then(() => void 0);
+   }
+   static isCSSLoaded(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): boolean {
+      const themes = instThemes.concat(this._theme);
+      const styles = instStyles.concat(this._styles);
+      return themes.every((cssName) => themeController.has(cssName, themeName)) &&
+         styles.every((cssName) => themeController.has(cssName, EMPTY_THEME));
    }
    //#endregion
    static extend(mixinsList: any, classExtender: any): Function {
