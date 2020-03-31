@@ -782,10 +782,13 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._reactiveStart = true;
       }
       const cssLoading = Promise.all([this.loadThemes(opts.theme), this.loadStyles()]);
-      if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded(opts.theme)) {
+      if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded) {
          return this._$resultBeforeMount = resultBeforeMount;
       }
-      return this._$resultBeforeMount = cssLoading.then(() => resultBeforeMount);
+      return this._$resultBeforeMount = cssLoading.then(() => {
+         this.isCSSLoaded = true;
+         return resultBeforeMount;
+      });
    }
 
    //#region CSS private
@@ -793,9 +796,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // @ts-ignore
       return this._theme && !(this._theme instanceof Array) || this._styles && !(this._styles instanceof Array);
    }
-   private isCSSLoaded(themeName?: string): boolean {
-      return this.constructor['isCSSLoaded'](themeName, this.extractOwnThemes(), this.extractOwnStyles());
-   }
+   private isCSSLoaded: boolean = false;
    private loadThemes(themeName?: string): Promise<void> {
       return this.constructor['loadThemes'](themeName, this.extractOwnThemes()).catch(logError);
    }
@@ -806,7 +807,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       this.constructor['removeCSS'](themeName,
          this.extractOwnThemes(),
          this.extractOwnStyles()
-      ).catch(logError);
+      ).then(() => { this.isCSSLoaded = false; }, logError);
    }
    /**
     * Стили должны перечисляться в статическом свойстве класса, 
