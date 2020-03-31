@@ -131,7 +131,7 @@ export const _private = {
             _private._checkAsyncExecuteTime(startTime, customBLExecuteTime, moduleName);
          }
       );
-   },
+   }
 };
 
 

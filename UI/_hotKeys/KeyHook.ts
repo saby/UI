@@ -1,4 +1,4 @@
-import {Control, IControlOptions} from 'UI/Base';
+import { Control } from 'UI/Base';
 import template = require('wml!UI/_hotKeys/KeyHook');
 import { goUpByControlTree } from 'UI/Focus';
 import Dispatcher from './Dispatcher';
@@ -23,20 +23,17 @@ function createEvent(key: string): object {
 /**
  * проверка элемента на видимость
  */
-function isHidden(container: HTMLElement, mounted: boolean): boolean {
-   if (!mounted && !!container) {
-      return false;
-   }
+function isHidden(container: HTMLElement): boolean {
    return !container || !document.body.contains(container);
 }
-interface IControlKeyHookOptions extends IControlOptions {
-   defaultActions: Record<string, []>;
-}
+
 /**
  * Контрол KeyHook - контрол, который указывает клавиши, нажатие на которые будет обработано по умолчанию дочерним
- * контролом. Он регистрирует клавиши по умолчанию для всextends IControlOptions
+ * контролом. Он регистрирует клавиши по умолчанию для всех предков, у которых еще нет зарегистрированного действия на
+ * эту клавишу, и, в случае необработанного нажатия этих клавиш, в дочерний контрол будет перенаправлено событие о
+ * нажатии на клавишу, и там будет обработано.
  */
-class KeyHook extends Control<IControlKeyHookOptions> {
+class KeyHook extends Control {
     // набор действий по умолчанию, зарегистрированных на определенные клавиши
     private _actions: object = {};
 
@@ -56,7 +53,7 @@ class KeyHook extends Control<IControlKeyHookOptions> {
        // опция defaultActions хранит набор клавиш, которые будут обработаны по умолчанию
        if (this._options.defaultActions) {
           // не регистрируем для скрытых контролов
-          if (isHidden(this._container, this._getMountedState())) {
+          if (isHidden(this._container)) {
              return;
           }
 
