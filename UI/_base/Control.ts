@@ -791,7 +791,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    //#region CSS private
    private isDeprecatedCSS(): boolean {
       // @ts-ignore
-      return this._theme && !(this._theme instanceof Array) || this._styles && !(this._styles instanceof Array);
+      return !!(this._theme && !(this._theme instanceof Array) || this._styles && !(this._styles instanceof Array));
    }
    private isCSSLoaded(themeName?: string): boolean {
       return this.constructor['isCSSLoaded'](themeName,
