@@ -9,6 +9,7 @@ export default class SingleLinkPS extends LinkPS implements ISingleCssEntity {
    protected readonly themeType: THEME_TYPE = THEME_TYPE.SINGLE;
 
    removeForce(): Promise<void> {
+      this.isMounted = false;
       this.requirement = 0;
       return Promise.resolve();
    }

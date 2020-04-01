@@ -791,51 +791,27 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    //#region CSS private
    private isDeprecatedCSS(): boolean {
       // @ts-ignore
-      return !!(this._theme && !(this._theme instanceof Array) || this._styles && !(this._styles instanceof Array));
+      const isDeprecatedCSS = !!(this._theme && !(this._theme instanceof Array) || this._styles && !(this._styles instanceof Array));
+      if (isDeprecatedCSS) {
+         Logger.warn("Стили должны перечисляться в статическом свойстве класса " + this._moduleName);
+      }
+      return isDeprecatedCSS;
    }
    private isCSSLoaded(themeName?: string): boolean {
-      return this.constructor['isCSSLoaded'](themeName,
-         this.extractOwnThemes(),
-         this.extractOwnStyles()
-      );
+      // @ts-ignore
+      return this.constructor['isCSSLoaded'](themeName, this._theme, this._style);
    }
    private loadThemes(themeName?: string): Promise<void> {
-      return this.constructor['loadThemes'](themeName, this.extractOwnThemes()).catch(logError);
+      // @ts-ignore
+      return this.constructor['loadThemes'](themeName, this._theme).catch(logError);
    }
    private loadStyles(): Promise<void> {
-      return this.constructor['loadStyles'](this.extractOwnStyles()).catch(logError);
+      // @ts-ignore
+      return this.constructor['loadStyles'](this._style).catch(logError);
    }
    private removeCSS(themeName?: string): void {
-      this.constructor['removeCSS'](themeName,
-         this.extractOwnThemes(),
-         this.extractOwnStyles()
-      ).catch(logError);
-   }
-   /**
-    * Стили должны перечисляться в статическом свойстве класса, 
-    * но у некоторых контролах хранятся в собственных
-    */
-   private extractOwnStyles(): string[] {
       // @ts-ignore
-      if (this._style && this._style.length !== 0) {
-         // Logger.warn("Стили должны перечисляться в статическом свойстве класса " + this._moduleName);
-         // @ts-ignore
-         return this._style;
-      }
-      return [];
-   }
-   /**
-    * Темы должны перечисляться в статическом свойстве класса, 
-    * но у некоторых контролах хранятся в собственных
-    */
-   private extractOwnThemes(): string[] {
-      // @ts-ignore
-      if (this._theme && this._theme.length !== 0) {
-         // Logger.warn("Темы должны перечисляться в статическом свойстве класса " + this._moduleName);
-         // @ts-ignore
-         return this._theme;
-      }
-      return [];
+      this.constructor['removeCSS'](themeName, this._theme, this._style).catch(logError);
    }
    //#endregion
    /**
@@ -1144,7 +1120,23 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // Do
    }
 
+    /**
+    * Массив имен нетемизированных стилей, необходимых контролу.
+    * Все стили будут запрошены при создании и удалены при unmount
+    * @example
+    * <pre>
+    *   static _styles: string[] = ['Controls/Utils/getWidth'];
+    * </pre>
+    */
    static _styles: string[] = [];
+   /**
+    * Массив имен темизированных стилей, необходимых контролу.
+    * Все стили будут запрошены при создании и удалены при unmount
+    * @example
+    * <pre>
+    *   static _theme: string[] = ['Controls/popupConfirmation'];
+    * </pre>
+    */
    static _theme: string[] = [];
    static isWasaby: boolean = true;
 
@@ -1183,7 +1175,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     */
    static loadThemes(themeName?: string, instThemes: string[] = []): Promise<void> {
       const themes = instThemes.concat(this._theme);
-      if (themes.length === 0) { return Promise.resolve(); }
+      if (themes.length === 0) {
+         return Promise.resolve();
+      }
       return themeController.getThemes(themeName, themes).then(() => void 0);
    }
    /**
@@ -1200,7 +1194,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     */
    static loadStyles(instStyles: string[] = []): Promise<void> {
       const styles = instStyles.concat(this._styles);
-      if (styles.length === 0) { return Promise.resolve(); }
+      if (styles.length === 0) {
+         return Promise.resolve();
+      }
       return Promise.all(styles.map((name) => themeController.get(name, EMPTY_THEME))).then(() => void 0);
    }
    /**
@@ -1224,6 +1220,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    static isCSSLoaded(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): boolean {
       const themes = instThemes.concat(this._theme);
       const styles = instStyles.concat(this._styles);
+      if (styles.length === 0 && themes.length === 0) {
+         return true;
+      }
       return themes.every((cssName) => themeController.isMounted(cssName, themeName)) &&
          styles.every((cssName) => themeController.isMounted(cssName, EMPTY_THEME));
    }

@@ -35,7 +35,9 @@ export function restoreEntity(element: IHTMLElement): IRestoredEntity {
       return restoreDeprecatedEntity(element);
    }
    const LinkClass = (themeType === THEME_TYPE.SINGLE) ? SingleLink : Link;
-   return new LinkClass(href, name, theme, element);
+   const link = new LinkClass(href, name, theme, element);
+   link.isMounted = true;
+   return link;
 }
 /*
  * Устаревшие ссылки вставляются через Controls.decorator:Markup
@@ -53,7 +55,9 @@ export function restoreDeprecatedEntity(element: IHTMLElement): IRestoredEntity 
       return null;
    }
    const LinkClass = (themeType === THEME_TYPE.SINGLE) ? SingleLink : Link;
-   return new LinkClass(href, name, theme, element);
+   const link = new LinkClass(href, name, theme, element);
+   link.isMounted = true;
+   return link;
 }
 
 export const isLinkEntity = (entity: IRestoredEntity) => entity instanceof Link;
