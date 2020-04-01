@@ -785,10 +785,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded()) {
          return this._$resultBeforeMount = resultBeforeMount;
       }
-      return this._$resultBeforeMount = cssLoading.then(() => {
-         this.isCSSLoaded = true;
-         return resultBeforeMount;
-      });
+      return this._$resultBeforeMount = cssLoading.then(() => resultBeforeMount);
    }
 
    //#region CSS private
@@ -800,7 +797,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return this.constructor['isCSSLoaded'](themeName,
          this.extractOwnThemes(),
          this.extractOwnStyles()
-      ).catch(logError);
+      );
    }
    private loadThemes(themeName?: string): Promise<void> {
       return this.constructor['loadThemes'](themeName, this.extractOwnThemes()).catch(logError);
