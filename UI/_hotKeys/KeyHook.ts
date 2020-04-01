@@ -24,7 +24,7 @@ function createEvent(key: string): object {
  * проверка элемента на видимость
  */
 function isHidden(container: HTMLElement): boolean {
-    return !container || !container.offsetParent;
+   return !container || !document.body.contains(container);
 }
 
 /**
