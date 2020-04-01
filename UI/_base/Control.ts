@@ -799,19 +799,19 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
    private isCSSLoaded(themeName?: string): boolean {
       // @ts-ignore
-      return this.constructor['isCSSLoaded'](themeName, this._theme, this._style);
+      return this.constructor['isCSSLoaded'](themeName, this._theme || [], this._styles || []);
    }
    private loadThemes(themeName?: string): Promise<void> {
       // @ts-ignore
-      return this.constructor['loadThemes'](themeName, this._theme).catch(logError);
+      return this.constructor['loadThemes'](themeName, this._theme || []).catch(logError);
    }
    private loadStyles(): Promise<void> {
       // @ts-ignore
-      return this.constructor['loadStyles'](this._style).catch(logError);
+      return this.constructor['loadStyles'](this._styles || []).catch(logError);
    }
    private removeCSS(themeName?: string): void {
       // @ts-ignore
-      this.constructor['removeCSS'](themeName, this._theme, this._style).catch(logError);
+      this.constructor['removeCSS'](themeName, this._theme || [], this._styles || []).catch(logError);
    }
    //#endregion
    /**
