@@ -782,7 +782,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._reactiveStart = true;
       }
       const cssLoading = Promise.all([this.loadThemes(opts.theme), this.loadStyles()]);
-      if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded()) {
+      if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded(opts.theme)) {
          return this._$resultBeforeMount = resultBeforeMount;
       }
       return this._$resultBeforeMount = cssLoading.then(() => resultBeforeMount);
