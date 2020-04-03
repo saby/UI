@@ -61,9 +61,9 @@ function createElement(href: string, cssName: string, themeName: string, themeTy
    return element;
 }
 
+const TIMEOUT = 30000;
 /**
  * Монтирование link-элемента со стилями в head,
- * сохрание css/Style в Store
  */
 function mountElement(el: IHTMLElement): Promise<void> {
    return new Promise((resolve, reject) => {
@@ -71,6 +71,7 @@ function mountElement(el: IHTMLElement): Promise<void> {
          document.head.appendChild(el as HTMLLinkElement);
          (el as HTMLLinkElement).addEventListener('load', resolve.bind(null));
          (el as HTMLLinkElement).addEventListener('error', reject.bind(null));
+         setTimeout(() => { reject(new Error(`CSS не загрузилась за ${TIMEOUT}ms`)); }, TIMEOUT);
       } catch (e) {
          reject(e);
       }
