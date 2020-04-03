@@ -1,4 +1,7 @@
 /// <amd-module name="UI/_base/HTML/_meta/interface" />
+type ISerializedMetaStack = string;
+type ISerializedMetaState = string;
+
 /**
  * Хранилище состояний meta-тегов
  */
@@ -14,17 +17,28 @@ export interface IMetaStack {
     */
    remove(state: IMetaState): void;
 }
+export interface ISerializableMetaStack extends IMetaStack {
+   serialize(): ISerializedMetaStack;
+}
+export type IDeserializeStack = (s: ISerializedMetaStack) => IMetaStack;
+
 /**
  * Хранилище состояний meta-тегов представляет собой HashMap вида { id : IMetaState }
  * Для сохранения очередности при сериализации, возможности удалять промежуточные состояния
- * каждый state содержит id предыдущего и последующего state
+ * каждый state содержит id предыдущего и последующего MetaState
  */
 interface IMetaState {
-   /** Уникальный id состояния */
-   readonly id: string;
+   /**
+    * Сравнивает экземпляры IMetaState на равенство
+    * В виде метода, т.к ссылочная целостность теряется при сериализации
+    * @param state
+    */
+   equal(state: IMetaState): boolean;
+   serialize(): ISerializedMetaState;
    setPrevState(state: IMetaState): void;
    setNextState(state: IMetaState): void;
 }
+export type IDeserializeMeta = (s: ISerializedMetaState) => IMetaState;
 
 interface IMeta {
    /** Title страницы */
