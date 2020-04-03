@@ -26,7 +26,7 @@ export default class Link extends Base implements ICssEntity {
        * Браузер кэширует запрошенные через fetch стили, повторной загрузки не будет, а ошибки загрузки перехватываются.
        */
       return loader.load(this.href)
-         .then(() => { mountElement(this.element); })
+         .then(() => mountElement(this.element))
          .then(() => { this.isMounted = true; });
    }
 
@@ -65,6 +65,14 @@ function createElement(href: string, cssName: string, themeName: string, themeTy
  * Монтирование link-элемента со стилями в head,
  * сохрание css/Style в Store
  */
-function mountElement(el: IHTMLElement): void {
-   document.head.appendChild(el as HTMLLinkElement);
+function mountElement(el: IHTMLElement): Promise<void> {
+   return new Promise((resolve, reject) => {
+      try {
+         document.head.appendChild(el as HTMLLinkElement);
+         (el as HTMLLinkElement).addEventListener('load', resolve.bind(null));
+         (el as HTMLLinkElement).addEventListener('error', reject.bind(null));
+      } catch (e) {
+         reject(e);
+      }
+   });
 }

@@ -8,6 +8,8 @@ import Link from 'UI/theme/_controller/css/Link';
 // @ts-ignore
 import { constants } from 'Env/Env';
 
+const isNull = (prop: string) => prop === null || typeof prop === 'undefined';
+
 export function createEntity(href: string, cssName: string, themeName: string, themeType: THEME_TYPE): ICssEntity {
    if (themeType === THEME_TYPE.MULTI) {
       const LinkClass = constants.isServerSide ? LinkPS : Link;
@@ -30,7 +32,6 @@ export function restoreEntity(element: IHTMLElement): IRestoredEntity {
    const name = element.getAttribute(ELEMENT_ATTR.NAME);
    const theme = element.getAttribute(ELEMENT_ATTR.THEME);
    const themeType = element.getAttribute(ELEMENT_ATTR.THEME_TYPE) as THEME_TYPE;
-   const isNull = (prop) => Object.is(prop, null);
    if ([name, href, theme, themeType].some(isNull)) {
       return restoreDeprecatedEntity(element);
    }
@@ -50,7 +51,6 @@ export function restoreDeprecatedEntity(element: IHTMLElement): IRestoredEntity 
    const themeType =
       element.getAttribute(DEPRECATED_ELEMENT_ATTR.THEME_TYPE) === DEPRECATED_THEME_TYPE.MULTI
          ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
-   const isNull = (prop) => Object.is(prop, null);
    if ([name, href, theme, themeType].some(isNull)) {
       return null;
    }
