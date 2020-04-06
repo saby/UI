@@ -337,8 +337,14 @@ const error = (msg: string = '', errorPoint?: object | Node | any, errorInfo?: o
       // если нет сообщения - создадим по точке входа (берется последняя функция)
       data = 'IN ' + _getCurrentFunctionInfo(errorInfo);
    }
-
-   logger().error(typeError, data, errorInfo);
+   let needConsoleLog = true;
+   if (errorPoint && errorPoint._moduleName === 'UIDemo/DemoErrors') {
+      errorPoint._renderError(`${typeError} : ${data}`, errorInfo);
+      needConsoleLog = false;
+   }
+   if (needConsoleLog) {
+      logger().error(typeError, data, errorInfo);
+   }
    data = `${typeError}: ${data}`;
    return {msg, data, errorInfo};
 };

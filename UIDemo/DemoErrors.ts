@@ -20,6 +20,9 @@ class DemoErrors extends Control {
    public _notFoundTemplate: String = '';
    public _badTemplateName: String = '';
 
+   public _errorData: String = '';
+   public _errorInfo: String = '';
+
    /**
     * несуществующая переменная для генерации ошибки в _systemError
     */
@@ -39,20 +42,29 @@ class DemoErrors extends Control {
    };
 
    /**
+    * Для данного демо перехватываются ошибки и не выводятся в консоль
+    * сделано для автотестов
+    */
+   public _renderError(errorData: string, errorInfo: string): void {
+      this._errorData = errorData;
+      this._errorInfo = errorInfo;
+   };
+
+   /**
     * Генерация ошибки хука
     */
    public _lifeError(): void {
       this._hookError = true;
 
       // @ts-ignore
-      this._forceUpdate(); 
+      this._forceUpdate();
    };
 
    /**
     * Генерация ошибки по throw
     */
-   public _notFoundHandler2(): void{
-      let message = 'Ошибка по клику внутри обработчика. Произвольный текст';
+   public _notFoundHandler2(): void {
+      const message = 'Ошибка по клику внутри обработчика. Произвольный текст';
       throw new Error(message);
    };
 
@@ -69,9 +81,9 @@ class DemoErrors extends Control {
     * @param {EventObject} e
     * @param {String} typeError - признак типа ошибки
     */
-   public _loadPartial(e, typeError): void {
-      let badTemplateName = 'wml!UIDemo/resources/badTemplate';
-      let foundTemplateName = 'wml!UIDemo/resources/found';
+   public _loadPartial(e: Event, typeError: string): void {
+      const badTemplateName = 'wml!UIDemo/resources/badTemplate';
+      const foundTemplateName = 'wml!UIDemo/resources/found';
       switch (typeError) {
          case 'found':
             // первый клик не грузит контрол
@@ -103,12 +115,13 @@ class DemoErrors extends Control {
    public _requireModule(link, fieldState): void {
       var self = this;
 
-      // @ts-ignore
-      require([link], () => {
+      import(link).then((link) => {
          self[fieldState] = link;
 
          // @ts-ignore
-         self._forceUpdate(); 
+         self._forceUpdate();
+      }).catch ((err) => {
+        alert(1);
       });
    };
 };
