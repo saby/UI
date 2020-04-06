@@ -53,7 +53,7 @@ export class Controller {
    }
 
    /**
-    * Синхронное получение всех сохраненных Link'ов
+    * Получение всех сохраненных CssEntity
     */
    getAll(): ICssEntity[] {
       return this.store.getCssNames()
@@ -79,6 +79,12 @@ export class Controller {
    has(cssName: string, themeName?: string): boolean {
       const theme = themeName || this.appTheme;
       return this.store.has(cssName, theme);
+   }
+
+   isMounted(cssName: string, themeName?: string): boolean {
+      const theme = themeName || this.appTheme;
+      if (!this.store.has(cssName, theme)) { return false; }
+      return this.store.get(cssName, theme).isMounted;
    }
 
    /**
@@ -107,6 +113,9 @@ export class Controller {
       return this.store.remove(cssName, theme);
    }
 
+   clear(): void {
+      this.store.clear();
+   }
    /**
     * Сохранение css сущности в store
     * @param link

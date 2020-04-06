@@ -43,7 +43,10 @@ describe('UI/theme/_controller/css/SingleLinkPS', () => {
          link.require();
          return link.removeForce()
             .then(link.remove)
-            .then((isRemoved) => { assert.isTrue(isRemoved); });
+            .then((isRemoved) => {
+               assert.isFalse(link.isMounted);
+               assert.isTrue(isRemoved);
+            });
       });
    });
 });
