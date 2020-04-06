@@ -86,7 +86,7 @@ const _createFakeError = (): Error => {
  * @return {String}
  */
 const prepareStack = (stackNode: {[key: string]: any}): string => {
-   if (!!stackNode) {
+   if (!stackNode) {
       return '';
    }
 
