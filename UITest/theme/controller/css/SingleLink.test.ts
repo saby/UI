@@ -64,6 +64,7 @@ describe('UI/theme/_controller/css/SingleLink', () => {
       setHooks();
       it('при удалении экземпляр SingleLink также удаляется элемент из DOM', () => {
          return link.removeForce().then(() => {
+            assert.isFalse(link.isMounted);
             assert.isTrue(element.__removed);
          });
       });
@@ -73,6 +74,7 @@ describe('UI/theme/_controller/css/SingleLink', () => {
          link.require();
          link.require();
          return link.removeForce().then(() => {
+            assert.isFalse(link.isMounted);
             assert.isTrue(element.__removed);
          });
       });
