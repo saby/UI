@@ -1195,13 +1195,13 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    /**
-    * Для данного демо перехватываются ошибки и не выводятся в консоль
-    * сделано для автотестов
+    * Если необходимо перехватить ВСЕ ошибки до того, как они упали в консоль,
+    * необходимо установить флаг _ignoreConsole в true
+    * и переопредить метод _renderError
     */
    protected _renderError(errorData?: string, errorInfo?: string): void {
       // Do
    };
-
 
    static _styles: string[];
    static _theme: string[];

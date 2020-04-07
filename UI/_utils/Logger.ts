@@ -86,7 +86,7 @@ const _createFakeError = (): Error => {
  * @return {String}
  */
 const prepareStack = (stackNode: {[key: string]: any}): string => {
-   if (!stackNode) {
+   if (!!stackNode) {
       return '';
    }
 
@@ -301,7 +301,6 @@ const warn = (msg: string = '', errorPoint?): object => {
  * @param {String} msg - текстовое сообщение об ошибки, расширяется в зависимости от errorPoint
  * @param {Object|DOM|WCN|any} errorPoint - точка возникновения ошибки, может быть Control, DOM элементом или WCN
  * @param {Object} errorInfo - нативный объект ERROR с информацией по ошибке
- * @param {boolean} ignoreConsole - игнорировать вывод в консоль (для автотестов)
  * @public
  * @return {Object}
  */
@@ -338,7 +337,7 @@ const error = (msg: string = '', errorPoint?: object | Node | any, errorInfo?: o
       // если нет сообщения - создадим по точке входа (берется последняя функция)
       data = 'IN ' + _getCurrentFunctionInfo(errorInfo);
    }
-   if (errorPoint && errorPoint._ignoreConsole ) {
+   if (errorPoint && errorPoint._ignoreConsole) {
       data = `${typeError}: ${data}`;
       return errorPoint._renderError(data, errorInfo);
    }
@@ -386,6 +385,5 @@ export {
    warn,
    error,
    lifeError,
-   templateError,
-   error1
+   templateError
 };
