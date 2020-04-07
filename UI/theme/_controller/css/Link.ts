@@ -25,9 +25,10 @@ export default class Link extends Base implements ICssEntity {
        * На клиенте делаем fetch для новых стилей и игнориуем результат т.к монтируем в head стили как link элемент.
        * Браузер кэширует запрошенные через fetch стили, повторной загрузки не будет, а ошибки загрузки перехватываются.
        */
-      return loader.load(this.href)
+      this.loading = loader.load(this.href)
          .then(() => mountElement(this.element))
          .then(() => { this.isMounted = true; });
+      return this.loading;
    }
 
    /**

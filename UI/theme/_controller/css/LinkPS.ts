@@ -20,7 +20,7 @@ export default class LinkPS extends Base implements ICssEntity {
 
    load(_: ILoader): Promise<void> {
       this.isMounted = true;
-      return Promise.resolve();
+      return this.loading;
    }
 }
 

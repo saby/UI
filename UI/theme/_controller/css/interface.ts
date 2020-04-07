@@ -6,6 +6,8 @@
 export interface ICssEntity {
    /** Вмонтирована ли CssEntity в разметку */
    isMounted: boolean;
+   /** Процесс загрузки css */
+   loading: Promise<void>;
    /**
     * HTML- разметка сущности
     * @example
