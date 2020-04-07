@@ -3,8 +3,6 @@
 // @ts-ignore
 import {Control, TemplateFunction} from 'UI/Base';
 
-import { Logger } from 'UI/Utils';
-import { SyntheticEvent, DOMEnvironment } from 'Vdom/Vdom';
 // @ts-ignore
 import template = require('wml!UIDemo/DemoErrors');
 
@@ -13,7 +11,6 @@ import 'css!UIDemo/DemoErrors';
 
 class DemoErrors extends Control {
    protected _template: TemplateFunction = template;
-
    protected  _ignoreConsole: boolean = true;
 
    public _caption: String = 'create error';
@@ -35,7 +32,7 @@ class DemoErrors extends Control {
    /**
     * Пустой обработчик
     */
-   public _notFoundHandler1(e): any;
+   public _notFoundHandler1: any;
    public _beforeUpdate(): void {
       if (this._hookError) {
          // после ошибки внутри хука - страница теряет реактивность, нужно перезагрузить
@@ -45,8 +42,7 @@ class DemoErrors extends Control {
    };
 
    /**
-    * Для данного демо перехватываются ошибки и не выводятся в консоль
-    * сделано для автотестов
+    * Перехватываем ошибки до того, как они упали в консоль
     */
    protected _renderError(errorData: string, errorInfo: string): void {
       this._errorData = errorData;
