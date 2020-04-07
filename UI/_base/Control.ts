@@ -171,6 +171,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    protected _notify: (eventName: string, args?: unknown[], options?: { bubbling?: boolean }) => unknown = null;
    protected _template: TemplateFunction;
+   protected _ignoreConsole: boolean = false;
    protected _clientTimeout: number = null;
 
    // protected for compatibility, should be private
@@ -1192,6 +1193,15 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    protected _beforeUnmount(): void {
       // Do
    }
+
+   /**
+    * Для данного демо перехватываются ошибки и не выводятся в консоль
+    * сделано для автотестов
+    */
+   protected _renderError(errorData?: string, errorInfo?: string): void {
+      // Do
+   };
+
 
    static _styles: string[];
    static _theme: string[];
