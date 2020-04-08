@@ -342,7 +342,10 @@ const error = (msg: string = '', errorPoint?: object | Node | any, errorInfo?: o
       // если нет сообщения - создадим по точке входа (берется последняя функция)
       data = 'IN ' + _getCurrentFunctionInfo(errorInfo);
    }
-
+   if (errorPoint && errorPoint._ignoreConsole) {
+      data = `${typeError}: ${data}`;
+      return errorPoint._renderError(data, errorInfo);
+   }
    logger().error(typeError, data, errorInfo);
    data = `${typeError}: ${data}`;
    return {msg, data, errorInfo};

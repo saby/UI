@@ -171,6 +171,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    protected _notify: (eventName: string, args?: unknown[], options?: { bubbling?: boolean }) => unknown = null;
    protected _template: TemplateFunction;
+   protected _ignoreConsole: boolean = false;
    protected _clientTimeout: number = null;
 
    // protected for compatibility, should be private
@@ -1192,6 +1193,15 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    protected _beforeUnmount(): void {
       // Do
    }
+
+   /**
+    * Если необходимо перехватить ВСЕ ошибки до того, как они упали в консоль,
+    * необходимо установить флаг _ignoreConsole в true
+    * и переопредить метод _renderError
+    */
+   protected _renderError(errorData?: string, errorInfo?: string): void {
+      // Do
+   };
 
    static _styles: string[];
    static _theme: string[];
