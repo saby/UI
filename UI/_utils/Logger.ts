@@ -86,8 +86,13 @@ const _createFakeError = (): Error => {
  * @return {String}
  */
 const prepareStack = (stackNode: {[key: string]: any}): string => {
-   if (!!stackNode) {
+   if (!stackNode) {
       return '';
+   }
+
+   if (typeof(stackNode) === 'string') {
+      return `${stackNode}
+         \u21B1 В качество точки входа была передана строка, восстановление стека невозможно.`;
    }
 
    let message = '';
