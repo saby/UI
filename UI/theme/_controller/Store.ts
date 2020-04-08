@@ -24,7 +24,7 @@ export default class Store<T extends ICssEntity = ICssEntity> {
     * Проверка наличия темы `theme` у контрола `name`
     */
    has(cssName: string, themeName: string): boolean {
-      return !Object.is(this.store[cssName]?.[themeName], undefined);
+      return typeof this.store[cssName]?.[themeName] !== 'undefined';
    }
 
    /**
@@ -52,6 +52,9 @@ export default class Store<T extends ICssEntity = ICssEntity> {
       });
    }
 
+   clear(): void {
+      this.store = {};
+   }
    /**
     * Возвращает массив имен css в store
     */

@@ -25,7 +25,10 @@ export default class Link extends Base implements ICssEntity {
        * На клиенте делаем fetch для новых стилей и игнориуем результат т.к монтируем в head стили как link элемент.
        * Браузер кэширует запрошенные через fetch стили, повторной загрузки не будет, а ошибки загрузки перехватываются.
        */
-      return loader.load(this.href).then(() => { mountElement(this.element); });
+      this.loading = loader.load(this.href)
+         .then(() => mountElement(this.element))
+         .then(() => { this.isMounted = true; });
+      return this.loading;
    }
 
    /**
@@ -59,10 +62,19 @@ function createElement(href: string, cssName: string, themeName: string, themeTy
    return element;
 }
 
+const TIMEOUT = 30000;
 /**
  * Монтирование link-элемента со стилями в head,
- * сохрание css/Style в Store
  */
-function mountElement(el: IHTMLElement): void {
-   document.head.appendChild(el as HTMLLinkElement);
+function mountElement(el: IHTMLElement): Promise<void> {
+   return new Promise((resolve, reject) => {
+      try {
+         document.head.appendChild(el as HTMLLinkElement);
+         (el as HTMLLinkElement).addEventListener('load', resolve.bind(null));
+         (el as HTMLLinkElement).addEventListener('error', reject.bind(null));
+         setTimeout(() => { reject(new Error(`CSS не загрузилась за ${TIMEOUT}ms`)); }, TIMEOUT);
+      } catch (e) {
+         reject(e);
+      }
+   });
 }

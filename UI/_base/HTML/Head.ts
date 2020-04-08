@@ -4,9 +4,9 @@ import Control from '../Control';
 
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Head');
-
+import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
+// @ts-ignore
 import { constants } from 'Env/Env';
-import ThemesControllerNew = require('Core/Themes/ThemesControllerNew');
 import { headDataStore } from 'UI/_base/HeadData';
 
 class Head extends Control {
@@ -29,6 +29,9 @@ class Head extends Control {
     isSSR: boolean;
 
     staticDomainsstringified: string = '[]';
+
+    /** html разметка подключенных на СП стилей */
+    protected stylesHtml: string = '';
 
     _beforeMount(options: any): Promise<any> {
         // tslint:disable-next-line:only-arrow-functions
@@ -67,22 +70,10 @@ class Head extends Control {
             this.simpleCss = [];
             return;
         }
-        const def = headDataStore.read('waitAppContent')();
-        // @ts-ignore
-        this.cssLinks = [];
-        return new Promise((resolve, reject) => {
-            def.then((res) => {
-                // @ts-ignore
-                this.newSimple = ThemesControllerNew.getInstance().getSimpleCssList();
-                // @ts-ignore
-                this.newThemed = ThemesControllerNew.getInstance().getThemedCssList();
-
-                this.themedCss = res.css.themedCss;
-                this.simpleCss = res.css.simpleCss;
-                resolve();
-
-            });
-        });
+        return headDataStore.read('waitAppContent')().then(({ css }) =>
+            collectCSS(options.theme, css.simpleCss, css.themedCss)
+                .then((html) => { this.stylesHtml = `\n${html}\n`; })
+                .catch(onerror));
     }
 
     // @ts-ignore
@@ -93,14 +84,22 @@ class Head extends Control {
     isArray(obj: any): Boolean {
         return Array.isArray(obj);
     }
-
-    isMultiThemes(): Boolean {
-        return Array.isArray(this._options.theme);
-    }
-
-    getCssWithTheme(value: string, theme: string): string {
-        return value.replace('.css', '') + '_' + theme + '.css';
-    }
 }
 
 export default Head;
+
+function collectCSS(theme: string, styles: string[] = [], themes: string[] = []): Promise<string> {
+    const tc = getThemeController();
+    const gettingStyles = styles.map((name) => tc.get(name, EMPTY_THEME));
+    const gettingThemes = themes.map((name) => tc.get(name, theme));
+    return Promise.all(gettingStyles.concat(gettingThemes)).then(() => {
+        const markup = tc.getAll().map((entity) => entity.outerHtml).join('\n');
+        tc.clear();
+        return markup;
+    });
+
+}
+
+function onerror(e: Error): void {
+    import('UI/Utils').then(({ Logger }) => { Logger.error(e.message); });
+}

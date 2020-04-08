@@ -34,18 +34,19 @@ export class Controller {
    get(cssName: string, themeName?: string): Promise<ICssEntity> {
       const theme = themeName || this.appTheme;
       if (this.has(cssName, theme)) {
-         const entity = this.store.get(cssName, theme);
-         entity.require();
-         return Promise.resolve(entity);
+         const storedEntity = this.store.get(cssName, theme);
+         storedEntity.require();
+         /** Еще нескаченные css уже имеются в store, необходимо дождаться окончания монтирования в DOM */
+         return storedEntity.loading.then(() => storedEntity);
       }
       const { href, themeType } = this.cssLoader.getInfo(cssName, theme);
-      const link = createEntity(href, cssName, theme, themeType);
+      const entity = createEntity(href, cssName, theme, themeType);
       /** Еще нескаченный link сохраняется в store, чтобы избежать повторного fetch */
-      this.set(link);
-      return link.load(this.cssLoader).then(() => {
+      this.set(entity);
+      return entity.load(this.cssLoader).then(() => {
          /** Если link успешно скачан и вмонтирован в DOM, удаляем немультитемные стили */
-         this.removeSingleEntities(link);
-         return link;
+         this.removeSingleEntities(entity);
+         return entity;
       }).catch((e: HTTP) =>
          /** Если стилей нет, удаляем link из Store */
          this.remove(cssName, theme).then(() => { throw decorateError(e); })
@@ -53,7 +54,7 @@ export class Controller {
    }
 
    /**
-    * Синхронное получение всех сохраненных Link'ов
+    * Получение всех сохраненных CssEntity
     */
    getAll(): ICssEntity[] {
       return this.store.getCssNames()
@@ -79,6 +80,12 @@ export class Controller {
    has(cssName: string, themeName?: string): boolean {
       const theme = themeName || this.appTheme;
       return this.store.has(cssName, theme);
+   }
+
+   isMounted(cssName: string, themeName?: string): boolean {
+      const theme = themeName || this.appTheme;
+      if (!this.store.has(cssName, theme)) { return false; }
+      return this.store.get(cssName, theme).isMounted;
    }
 
    /**
@@ -107,6 +114,9 @@ export class Controller {
       return this.store.remove(cssName, theme);
    }
 
+   clear(): void {
+      this.store.clear();
+   }
    /**
     * Сохранение css сущности в store
     * @param link

@@ -1,13 +1,25 @@
 /// <amd-module name='UI/_base/PageDeps' />
 import { cookie, constants } from 'Env/Env';
 import { DepsCollector, ICollectedFiles, IDeps } from 'UI/_base/DepsCollector';
-const root = 'resources';
+
+/**
+ * constants.resourceRoot указан путь до корневой директории сервиса,
+ * а нужен путь до продукта, который 'resources'
+ * но в инт.тестах корень не 'resources', а именно constants.resourceRoot
+ */
+let root = 'resources';
 let contents: Partial<IContents> = {};
 try {
    // @ts-ignore tslint:disable-next-line:no-var-requires
    contents = require(`json!${root}/contents`) || {};
 } catch {
-   contents = {};
+   try {
+      root = constants.resourceRoot;
+      // @ts-ignore tslint:disable-next-line:no-var-requires
+      contents = require(`json!${root}contents`) || {};
+   } catch {
+      contents = {};
+   }
 }
 
 const noDescription: IModulesDescription = {
@@ -57,7 +69,7 @@ function getRealeseDeps(deps: IDeps, unpack: IDeps): ICollectedFiles {
       css: {
          simpleCss: prevCss.simpleCss,
          themedCss: prevCss.themedCss.concat(newThemes)
-      },
+      }
    };
 }
 

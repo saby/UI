@@ -8,50 +8,49 @@ import LinkPS from 'UI/theme/_controller/css/LinkPS';
 // import { assert } from 'chai';
 // import 'mocha';
 
-describe('UI/theme/_controller/Controller', () => {
+const cssName = 'Some/Control';
+const themeName = 'Some/Theme';
 
-   const cssName = 'Some/Control';
-   const themeName = 'Some/Theme';
+/** добавляем # в начало href, чтобы не сыпались ошибки о ненайденных стилях */
+const sharp = '#';
+const createHref = (name: string, theme: string) => [sharp, name, theme].join('-');
+class CssLoaderMock implements ICssLoader {
+   loads: object = {};
 
-   /** добавляем # в начало href, чтобы не сыпались ошибки о ненайденных стилях */
-   const sharp = '#';
-   const createHref = (name: string, theme: string) => [sharp, name, theme].join('-');
-   class CssLoaderMock implements ICssLoader {
-      loads: object = {};
+   constructor(private forbidden: string[] = []) { }
 
-      constructor(private forbidden: string[] = []) { }
-
-      load(href: string): Promise<void> {
-         if (this.forbidden.includes(href)) {
-            return Promise.reject(new Error('theme is not exists'));
-         }
-         const [sharp, name, theme]: string[] = href.split('-');
-         if (!this.loads[name]) {
-            this.loads[name] = {};
-         }
-         this.loads[name][theme] = this.loads[name][theme] ? this.loads[name][theme] + 1 : 1;
-         return Promise.resolve(void 0);
+   load(href: string): Promise<void> {
+      if (this.forbidden.includes(href)) {
+         return Promise.reject(new Error('theme is not exists'));
       }
-
-      getInfo(name: string, theme: string) {
-         return {
-            themeType: THEME_TYPE.MULTI,
-            href: createHref(name, theme)
-         };
+      const [sharp, name, theme]: string[] = href.split('-');
+      if (!this.loads[name]) {
+         this.loads[name] = {};
       }
-      /**
-       * Загрузчик использовался правильно, если для каждой темы
-       * стили загружались только 1 раз
-       */
-      isValid(): boolean {
-         if (!constants.isBrowserPlatform) { return true; }
-         return Object.keys(this.loads).every((name) =>
-            Object.keys(this.loads[name]).every((theme) =>
-               this.loads[name][theme] === 1)
-         );
-      }
+      this.loads[name][theme] = this.loads[name][theme] ? this.loads[name][theme] + 1 : 1;
+      return Promise.resolve(void 0);
    }
 
+   getInfo(name: string, theme: string) {
+      return {
+         themeType: THEME_TYPE.MULTI,
+         href: createHref(name, theme)
+      };
+   }
+   /**
+    * Загрузчик использовался правильно, если для каждой темы
+    * стили загружались только 1 раз
+    */
+   isValid(): boolean {
+      if (!constants.isBrowserPlatform) { return true; }
+      return Object.keys(this.loads).every((name) =>
+         Object.keys(this.loads[name]).every((theme) =>
+            this.loads[name][theme] === 1)
+      );
+   }
+}
+
+describe('UI/theme/_controller/Controller', () => {
    let controller: Controller;
    let loader: CssLoaderMock;
 

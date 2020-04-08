@@ -32,6 +32,12 @@ describe('UI/theme/_controller/css/LinkPS', () => {
       it('load returns Promise<void>', () => {
          assert.instanceOf(link.load(loader), Promise);
       });
+
+      it('isMounted true after load', () => {
+         return link.load(loader)
+            .then(() => { assert.isTrue(link.isMounted); })
+            .then(() => link.remove());
+      });
    });
 
    describe('outerHtml', () => {
@@ -45,6 +51,7 @@ describe('UI/theme/_controller/css/LinkPS', () => {
       setHooks();
       it('невостребованный экземпляр LinkPS удаляется', () => {
          return link.remove().then((isRemoved) => {
+            assert.isFalse(link.isMounted);
             assert.isTrue(isRemoved);
          });
       });

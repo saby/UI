@@ -6,6 +6,8 @@ export abstract class Base implements ICssEntity {
    /** Тип темы */
    protected abstract themeType: THEME_TYPE;
    outerHtml: string = '';
+   isMounted: boolean = false;
+   loading: Promise<void> = Promise.resolve();
 
    /**
     * Скольким контролам требуется данная css
@@ -29,7 +31,10 @@ export abstract class Base implements ICssEntity {
    }
 
    remove(): Promise<boolean> {
-      if (this.requirement === 0) { return Promise.resolve(true); }
+      if (this.requirement === 0) {
+         this.isMounted = false;
+         return Promise.resolve(true);
+      }
       this.requirement--;
       return Promise.resolve(false);
    }
