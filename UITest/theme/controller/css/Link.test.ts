@@ -75,6 +75,13 @@ describe('UI/theme/_controller/css/Link', () => {
             .then(() => { assert.isTrue(href in loader.loads); })
             .then(() => link.remove());
       });
+
+      it('isMounted true after load', () => {
+         const link = new Link(href, name, theme);
+         return link.load(loader)
+            .then(() => { assert.isTrue(link.isMounted); })
+            .then(() => link.remove());
+      });
    });
 
    describe('outerHtml', () => {
@@ -97,6 +104,7 @@ describe('UI/theme/_controller/css/Link', () => {
       setHooks();
       it('при удалении экземпляр Link также удаляется элемент из DOM', () => {
          return link.remove().then((isRemoved) => {
+            assert.isFalse(link.isMounted);
             assert.isTrue(isRemoved);
             assert.isTrue(element.__removed);
          });
