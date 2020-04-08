@@ -7,6 +7,7 @@ export abstract class Base implements ICssEntity {
    protected abstract themeType: THEME_TYPE;
    outerHtml: string = '';
    isMounted: boolean = false;
+   loading: Promise<void> = Promise.resolve();
 
    /**
     * Скольким контролам требуется данная css
