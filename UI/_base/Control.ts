@@ -473,6 +473,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
             (this as any).unmountCallback && (this as any).unmountCallback();
             Synchronizer.cleanControlDomLink(this._container, this);
          }
+         this.removeCSS(this._options.theme);
          // Избегаем утечки контролов по замыканию
          //this.saveFullContext = EMPTY_FUNC;
          //this._saveContextObject = EMPTY_FUNC;
@@ -1085,7 +1086,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUnmount(): void {
-      this.removeCSS(this._options.theme);
       this._beforeUnmount.apply(this, arguments);
    }
 
