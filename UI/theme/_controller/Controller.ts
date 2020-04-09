@@ -162,7 +162,7 @@ export class Controller {
 }
 function decorateError(e: HTTP): Error {
    return new Error(
-      `UI/theme/controller:\tCouldn't load: ${e.url}
+      `UI/theme/controller:\n\tCouldn't load: ${e.url}
       It's probably an error with internet connection or CORS settings.`
    );
 }
