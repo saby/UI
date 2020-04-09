@@ -793,25 +793,33 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // @ts-ignore
       const isDeprecatedCSS = !!(this._theme && !(this._theme instanceof Array) || this._styles && !(this._styles instanceof Array));
       if (isDeprecatedCSS) {
-         Logger.warn("Стили должны перечисляться в статическом свойстве класса " + this._moduleName);
+         Logger.error("Стили и темы должны перечисляться в статическом свойстве класса " + this._moduleName);
       }
       return isDeprecatedCSS;
    }
    private isCSSLoaded(themeName?: string): boolean {
       // @ts-ignore
-      return this.constructor['isCSSLoaded'](themeName, this._theme || [], this._styles || []);
+      const themes = this._theme instanceof Array ? this._theme : [];
+      // @ts-ignore
+      const styles = this._styles instanceof Array ? this._styles : [];
+      return this.constructor['isCSSLoaded'](themeName, themes, styles);
    }
    private loadThemes(themeName?: string): Promise<void> {
       // @ts-ignore
-      return this.constructor['loadThemes'](themeName, this._theme || []).catch(logError);
+      const themes = this._theme instanceof Array ? this._theme : [];
+      return this.constructor['loadThemes'](themeName, themes).catch(logError);
    }
    private loadStyles(): Promise<void> {
-      // @ts-ignore
-      return this.constructor['loadStyles'](this._styles || []).catch(logError);
+       // @ts-ignore
+       const styles = this._styles instanceof Array ? this._styles : [];
+      return this.constructor['loadStyles'](styles).catch(logError);
    }
    private removeCSS(themeName?: string): void {
       // @ts-ignore
-      this.constructor['removeCSS'](themeName, this._theme || [], this._styles || []).catch(logError);
+      const themes = this._theme instanceof Array ? this._theme : [];
+      // @ts-ignore
+      const styles = this._styles instanceof Array ? this._styles : [];
+      this.constructor['removeCSS'](themeName, themes, styles).catch(logError);
    }
    //#endregion
    /**
