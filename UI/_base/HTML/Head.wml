@@ -34,7 +34,7 @@
    <ws:if data="{{ !wasServerSide }}">
       <ws:if data="{{!_options.compat}}">
          <script data-vdomignore="true">
-            window.themesActive = true;
+            window.themeName = '{{ _options.theme }}';
          </script>
       </ws:if>
    </ws:if>
