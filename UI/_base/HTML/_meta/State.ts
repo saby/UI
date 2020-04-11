@@ -31,7 +31,7 @@ export default class State implements IMetaStateInternal {
    }
 
    mount(): void {
-      if (!document) { return; }
+      if (typeof document === 'undefined') { return; }
       const setAttrs = (el: HTMLElement) => setGuid(el, this._guid);
       const { title, og } = this.getMeta();
       const titleEl = createTitleElement(title);
@@ -41,7 +41,7 @@ export default class State implements IMetaStateInternal {
    }
 
    unmount(): void {
-      if (!document) { return; }
+      if (typeof document === 'undefined') { return; }
       const elements = document.querySelectorAll(`.${this._guid}`);
       Array.prototype.forEach.call(elements, (el: HTMLElement) => { el.remove(); });
    }
