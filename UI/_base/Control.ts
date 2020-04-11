@@ -10,8 +10,7 @@ import { activate } from 'UI/Focus';
 import { Logger, Purifier } from 'UI/Utils';
 import { constants } from 'Env/Env';
 
-// @ts-ignore
-import ThemesController = require('Core/Themes/ThemesControllerNew');
+import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
 // @ts-ignore
 import PromiseLib = require('Core/PromiseLib/PromiseLib');
 // @ts-ignore
@@ -134,6 +133,7 @@ export const _private = {
    }
 };
 
+const themeController = getThemeController();
 
 export interface IControlOptions {
    readOnly?: boolean;
@@ -451,105 +451,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       }
    }
 
-   _manageStyles(theme: string, oldTheme?: string): boolean | Promise<boolean | boolean[]> {
-      if (!this._checkNewStyles()) {
-         return true;
-      }
-      const themesController = ThemesController.getInstance();
-      // @ts-ignore
-      const styles = this._styles || this.constructor._styles || [];
-      // @ts-ignore
-      const themedStyles = this._theme || this.constructor._theme || [];
-
-      if (oldTheme) {
-         this._removeOldStyles(themesController, oldTheme, themedStyles, []);
-      }
-      return this._loadNewStyles(themesController, theme, themedStyles, styles);
-   }
-
-   _checkNewStyles(): boolean {
-      return !((this._theme && !this._theme.forEach) || (this._styles && !this._styles.forEach));
-   }
-
-   _loadNewStyles(
-      themesController: any,
-      theme: string,
-      themedStyles: any[],
-      styles: any[]
-   ): Promise<boolean | boolean[]> | boolean {
-      const self = this;
-      const promiseArray = [];
-      if (typeof window === 'undefined') {
-         styles.forEach((name) => {
-            themesController.pushCss(name);
-         });
-         themedStyles.forEach((name) => {
-            themesController.pushThemedCss(name, theme);
-         });
-      } else {
-         styles.forEach((name) => {
-            if (themesController.isCssLoaded(name)) {
-               themesController.pushCssLoaded(name);
-            } else {
-               const loadPromise = PromiseLib.reflect(
-                  PromiseLib.wrapTimeout(themesController.pushCssAsync(name), WRAP_TIMEOUT)
-               );
-               loadPromise.then((res) => {
-                  if (res.status === 'rejected') {
-                     const message = '[UI/_base/Control:_loadNewStyles] Styles loading error ' +
-                        `Could not load style ${name} for "${self._moduleName}\n${res.error?.stack || res.error }`;
-                     Logger.error(message, self);
-                  }
-               });
-               promiseArray.push(loadPromise);
-            }
-         });
-         themedStyles.forEach((name) => {
-            if (themesController.isThemedCssLoaded(name, theme)) {
-               themesController.pushCssThemedLoaded(name, theme);
-            } else {
-               const loadPromise = PromiseLib.reflect(
-                  PromiseLib.wrapTimeout(themesController.pushCssThemedAsync(name, theme), WRAP_TIMEOUT)
-               );
-               loadPromise.then((res) => {
-                  if (res.status === 'rejected') {
-                     const message = '[UI/_base/Control:_loadNewStyles] Styles loading error ' +
-                        `Could not load style ${name} for "${self._moduleName} with theme ${theme}\n${res.error?.stack || res.error}`;
-                     Logger.error(message, self);
-                  }
-               });
-               promiseArray.push(loadPromise);
-            }
-         });
-         if (promiseArray.length) {
-            return Promise.all(promiseArray);
-         }
-      }
-      return true;
-   }
-
-   _removeOldStyles(themesController: any, theme: string, themedStyles: any[], styles: any[]): void {
-      styles.forEach(
-         (name): void => {
-            themesController.removeCss(name);
-         }
-      );
-      themedStyles.forEach(
-         (name): void => {
-            themesController.removeCssThemed(name, theme);
-         }
-      );
-   }
-
-   _removeStyles(theme: string): boolean {
-      if (!this._checkNewStyles()) {
-         return true;
-      }
-      const themesController = ThemesController.getInstance();
-      const styles = this._styles || [];
-      const themedStyles = this._theme || [];
-      this._removeOldStyles(themesController, theme, themedStyles, styles);
-   }
 
    destroy(): void {
       this._destroyed = true;
@@ -572,6 +473,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
             (this as any).unmountCallback && (this as any).unmountCallback();
             Synchronizer.cleanControlDomLink(this._container, this);
          }
+         this.removeCSS(this._options.theme);
          // Избегаем утечки контролов по замыканию
          //this.saveFullContext = EMPTY_FUNC;
          //this._saveContextObject = EMPTY_FUNC;
@@ -802,7 +704,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                *  if execution was longer than 2 sec
                */
                const message = `Promise, который вернули из метода _beforeMount контрола ${this._moduleName} ` +
-                   `не завершился за ${time} миллисекунд. ` +
+                  `не завершился за ${time} миллисекунд. ` +
                    `Шаблон контрола не будет построен на сервере.`
                Logger.warn(message, this);
 
@@ -835,6 +737,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       });
    }
 
+   /**
+    * хук должен ограничивать асинхронное построение 20-ю секундами (устанавливается в HeadData).
+    * вызывается он в процессе генерации верстки
+    * @author Тэн В.А.
+    */
    _beforeMountLimited(opts: TOptions): Promise<TState> | Promise<void> | void {
       if (this._$resultBeforeMount) {
          return this._$resultBeforeMount;
@@ -875,16 +782,47 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          // _reactiveStart means starting of monitor change in properties
          this._reactiveStart = true;
       }
-
-      const cssResult = this._manageStyles(opts.theme);
-      if (cssResult.then) {
-         resultBeforeMount = Promise.all([cssResult, resultBeforeMount]);
+      const cssLoading = Promise.all([this.loadThemes(opts.theme), this.loadStyles()]);
+      if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded(opts.theme)) {
+         return this._$resultBeforeMount = resultBeforeMount;
       }
-
-      this._$resultBeforeMount = resultBeforeMount;
-      return resultBeforeMount;
+      return this._$resultBeforeMount = cssLoading.then(() => resultBeforeMount);
    }
 
+   //#region CSS private
+   private isDeprecatedCSS(): boolean {
+      // @ts-ignore
+      const isDeprecatedCSS = !!(this._theme && !(this._theme instanceof Array) || this._styles && !(this._styles instanceof Array));
+      if (isDeprecatedCSS) {
+         Logger.error("Стили и темы должны перечисляться в статическом свойстве класса " + this._moduleName);
+      }
+      return isDeprecatedCSS;
+   }
+   private isCSSLoaded(themeName?: string): boolean {
+      // @ts-ignore
+      const themes = this._theme instanceof Array ? this._theme : [];
+      // @ts-ignore
+      const styles = this._styles instanceof Array ? this._styles : [];
+      return this.constructor['isCSSLoaded'](themeName, themes, styles);
+   }
+   private loadThemes(themeName?: string): Promise<void> {
+      // @ts-ignore
+      const themes = this._theme instanceof Array ? this._theme : [];
+      return this.constructor['loadThemes'](themeName, themes).catch(logError);
+   }
+   private loadStyles(): Promise<void> {
+       // @ts-ignore
+       const styles = this._styles instanceof Array ? this._styles : [];
+      return this.constructor['loadStyles'](styles).catch(logError);
+   }
+   private removeCSS(themeName?: string): void {
+      // @ts-ignore
+      const themes = this._theme instanceof Array ? this._theme : [];
+      // @ts-ignore
+      const styles = this._styles instanceof Array ? this._styles : [];
+      this.constructor['removeCSS'](themeName, themes, styles).catch(logError);
+   }
+   //#endregion
    /**
     * Хук жизненного цикла контрола. Вызывается сразу после установки контрола в DOM-окружение.
     * @param {Object} options Опции контрола.
@@ -937,12 +875,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    __beforeUpdate(newOptions: TOptions): void {
       if (newOptions.theme !== this._options.theme) {
-         this._manageStyles(newOptions.theme, this._options.theme);
+         this.loadThemes(newOptions.theme);
       }
       this._beforeUpdate.apply(this, arguments);
    }
-
-
    /**
     * Хук жизненного цикла контрола. Вызывается перед обновлением контрола.
     *
@@ -1150,7 +1086,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    __beforeUnmount(): void {
-      this._removeStyles(this._options.theme);
       this._beforeUnmount.apply(this, arguments);
    }
 
@@ -1193,10 +1128,114 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // Do
    }
 
-   static _styles: string[];
-   static _theme: string[];
+    /**
+    * Массив имен нетемизированных стилей, необходимых контролу.
+    * Все стили будут запрошены при создании и удалены при unmount
+    * @example
+    * <pre>
+    *   static _styles: string[] = ['Controls/Utils/getWidth'];
+    * </pre>
+    */
+   static _styles: string[] = [];
+   /**
+    * Массив имен темизированных стилей, необходимых контролу.
+    * Все стили будут запрошены при создании и удалены при unmount
+    * @example
+    * <pre>
+    *   static _theme: string[] = ['Controls/popupConfirmation'];
+    * </pre>
+    */
+   static _theme: string[] = [];
    static isWasaby: boolean = true;
 
+   //#region CSS static
+   /**
+    * Загрузка стилей и тем контрола
+    * @param themeName имя темы (по-умолчанию тема приложения)
+    * @param themes массив доп тем для скачивания
+    * @param styles массив доп стилей для скачивания
+    * @static
+    * @method
+    * @example
+    * <pre>
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadCSS('saby__dark'))
+    * </pre>
+    */
+   static loadCSS(themeName?: string, themes: string[] = [], styles: string[] = []): Promise<void> {
+      return Promise.all([
+         this.loadStyles(styles),
+         this.loadThemes(themeName, themes)
+      ]).then(() => void 0);
+   }
+   /**
+    * Загрузка тем контрола
+    * @param instStyles опционально дополнительные темы экземпляра
+    * @param themeName имя темы (по-умолчанию тема приложения)
+    * @static
+    * @private
+    * @method
+    * @example
+    * <pre>
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadThemes('saby__dark'))
+    * </pre>
+    */
+   static loadThemes(themeName?: string, instThemes: string[] = []): Promise<void> {
+      const themes = instThemes.concat(this._theme);
+      if (themes.length === 0) {
+         return Promise.resolve();
+      }
+      return themeController.getThemes(themeName, themes).then(() => void 0);
+   }
+   /**
+    * Загрузка стилей контрола
+    * @param instStyles (опционально) дополнительные стили экземпляра
+    * @static
+    * @private
+    * @method
+    * @example
+    * <pre>
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadStyles())
+    * </pre>
+    */
+   static loadStyles(instStyles: string[] = []): Promise<void> {
+      const styles = instStyles.concat(this._styles);
+      if (styles.length === 0) {
+         return Promise.resolve();
+      }
+      return Promise.all(styles.map((name) => themeController.get(name, EMPTY_THEME))).then(() => void 0);
+   }
+   /**
+    * Удаление link элементов из DOM 
+    * @param themeName имя темы (по-умолчанию тема приложения)
+    * @param instThemes опционально собственные темы экземпляра
+    * @param instStyles опционально собственные стили экземпляра
+    * @static
+    * @method
+    */
+   static removeCSS(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): Promise<void> {
+      const styles = instStyles.concat(this._styles);
+      const themes = instThemes.concat(this._theme);
+      if (styles.length === 0 && themes.length === 0) {
+         return Promise.resolve();
+      }
+      const removingStyles = Promise.all(styles.map((name) => themeController.remove(name, EMPTY_THEME)));
+      const removingThemed = Promise.all(themes.map((name) => themeController.remove(name, themeName)));
+      return Promise.all([removingStyles, removingThemed]).then(() => void 0);
+   }
+   static isCSSLoaded(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): boolean {
+      const themes = instThemes.concat(this._theme);
+      const styles = instStyles.concat(this._styles);
+      if (styles.length === 0 && themes.length === 0) {
+         return true;
+      }
+      return themes.every((cssName) => themeController.isMounted(cssName, themeName)) &&
+         styles.every((cssName) => themeController.isMounted(cssName, EMPTY_THEME));
+   }
+   //#endregion
+   
    static extend(mixinsList: any, classExtender: any): Function {
       // @ts-ignore
       if (!require.defined('Core/core-extend')) {
@@ -1271,6 +1310,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 // @ts-ignore
 Control.prototype._template = template;
 
+function logError(e: Error) {
+   Logger.error(e.message);
+}
 /**
  * @name UI/_base/Control#readOnly
  * @cfg {Boolean} Определяет, может ли пользователь изменить значение контрола.

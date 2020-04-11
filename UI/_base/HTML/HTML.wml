@@ -30,6 +30,8 @@
               src="/cdn/RequireJS/2.3.5-p5/require-min.js"></script>
       <script key="contents" type="text/javascript"
               src="{{getResourceUrl(resourceRoot + 'contents.js')}}"></script>
+      <script key="router" type="text/javascript"
+              src="{{getResourceUrl(resourceRoot + 'router.js')}}"></script>
       <ws:if data="{{ _options.builder }}">
          <script key="config" type="text/javascript"
                  src="{{getResourceUrl(resourceRoot + 'WS.Core/ext/requirejs/config.js')}}"></script>

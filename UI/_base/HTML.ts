@@ -8,8 +8,6 @@ import template = require('wml!UI/_base/HTML/HTML');
 // @ts-ignore
 import {constants, detection} from 'Env/Env';
 // @ts-ignore
-import ThemesController = require('Core/Themes/ThemesController');
-// @ts-ignore
 import LinkResolver = require('Core/LinkResolver/LinkResolver');
 // @ts-ignore
 import getResourceUrl = require('Core/helpers/getResourceUrl');
@@ -104,10 +102,6 @@ class HTML extends Control {
             cfg.servicesPath || appData.servicesPath || constants.defaultServiceUrl || '/service/';
         this.application = appData.application;
 
-        if (typeof window === 'undefined' && cfg.theme !== 'default') {
-            ThemesController.getInstance().themes = {};
-            ThemesController.getInstance().setTheme(cfg.theme);
-        }
         this.linkResolver = new LinkResolver(
             headDataStore.read('pageDeps').isDebug,
             this.buildnumber,
@@ -119,14 +113,6 @@ class HTML extends Control {
         // LinkResolver.getInstance().init(context.headData.isDebug, self.buildnumber, self.appRoot, self.resourceRoot);
 
         headDataStore.read('pushDepComponent')(this.application, false);
-
-        if (receivedState.csses && !headDataStore.read('pageDeps').isDebug) {
-            ThemesController.getInstance().initCss({
-                themedCss: receivedState.csses.themedCss,
-                simpleCss: receivedState.csses.simpleCss
-            });
-        }
-
         /**
          * Этот перфоманс нужен, для сохранения состояния с сервера, то есть,
          * cfg - это конфиг, который нам прийдет из файла роутинга и с ним же надо
@@ -140,7 +126,6 @@ class HTML extends Control {
             return new Promise((resolve) => {
                 resolve({
                     buildnumber: this.buildnumber,
-                    csses: ThemesController.getInstance().getCss(),
                     metaStackSer: this.metaStack.serialize(),
                     appRoot: this.appRoot,
                     staticDomains: this.staticDomains,
