@@ -8,10 +8,13 @@ import template = require('wml!UI/_base/HTML/Head');
 import { constants } from 'Env/Env';
 import ThemesControllerNew = require('Core/Themes/ThemesControllerNew');
 import { headDataStore } from 'UI/_base/HeadData';
+import { Stack } from 'UI/_base/HTML/meta';
 
 class Head extends Control {
     // @ts-ignore
     _template: Function = template;
+
+    metaMarkup: string = Stack.getInstance().lastState.outerHTML;
 
     head: Function[] = null;
     headContent: Function[] = null;

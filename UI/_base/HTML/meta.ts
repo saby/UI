@@ -9,7 +9,8 @@
  * @public
  * @author Ибрагимов А.А.
  */
+export { default as State } from 'UI/_base/HTML/_meta/State';
 import Stack from 'UI/_base/HTML/_meta/Stack';
-export const metaStack = Stack.getInstance();
-export { IMeta } from 'UI/_base/HTML/_meta/interface';
-export { default as State, deserializeState } from 'UI/_base/HTML/_meta/State';
+import { IMetaStack, IMeta, IOpenGraph, IMetaStackInternal } from 'UI/_base/HTML/_meta/interface';
+export { Stack, IMetaStack, IMeta, IOpenGraph, IMetaStackInternal };
+export const getMetaStack: () => IMetaStack = Stack.getInstance;

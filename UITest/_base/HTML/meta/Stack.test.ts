@@ -1,8 +1,8 @@
-import { State, IMeta, deserializeState } from 'UI/_base/HTML/meta';
-import { assert } from 'chai';
-import 'mocha';
-import Stack, { deserializeStack } from 'UI/_base/HTML/_meta/Stack';
-
+// import { assert } from 'chai';
+// import 'mocha';
+import { IMeta } from 'UI/_base/HTML/meta';
+import Stack from 'UI/_base/HTML/_meta/Stack';
+import State from 'UI/_base/HTML/_meta/State';
 const meta: IMeta = {
    title: 'Page title',
    og: {
@@ -25,13 +25,13 @@ describe('UI/_base/HTML/_meta/Stack', () => {
       });
    });
 
-   describe('last', () => {
+   describe('lastState', () => {
       it('returns last state', () => {
          const stack = new Stack();
          stack.push(meta);
          stack.push(meta);
          const lastState = stack.push(meta);
-         assert.isTrue(stack.last().equal(lastState));
+         assert.isTrue(stack.lastState.equal(lastState));
       });
 
       it('returns last state after removing', () => {
@@ -41,19 +41,23 @@ describe('UI/_base/HTML/_meta/Stack', () => {
          const lastState = stack.push(meta);
          stack.remove(middleState);
          stack.remove(lastState);
-         assert.isTrue(stack.last().equal(firstState));
-         assert.isUndefined(stack.last().getPrevStateId(), firstState.getId());
+         assert.isTrue(stack.lastState.equal(firstState));
+         assert.isUndefined(stack.lastState.getPrevStateId(), firstState.getId());
       });
 
-      it('returns null if no state exist', () => {
+      it('throw Error if remove last state', () => {
          const stack = new Stack();
          const firstState = stack.push(meta);
          const middleState = stack.push(meta);
          const lastState = stack.push(meta);
          stack.remove(middleState);
          stack.remove(lastState);
-         stack.remove(firstState);
-         assert.isNull(stack.last());
+         try {
+            stack.remove(firstState);
+            assert.fail('doesnt throw Error!');
+         } catch {
+            assert.isTrue(stack.lastState.equal(firstState));
+         }
       });
    });
 
@@ -64,7 +68,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
          const prevState = stack.push(meta);
          const lastState = stack.push(meta);
          stack.remove(lastState);
-         assert.isTrue(stack.last().equal(prevState));
+         assert.isTrue(stack.lastState.equal(prevState));
       });
 
       it('removes middle state', () => {
@@ -73,9 +77,8 @@ describe('UI/_base/HTML/_meta/Stack', () => {
          const middleState = stack.push(meta);
          const lastState = stack.push(meta);
          stack.remove(middleState);
-         assert.isTrue(stack.last().equal(lastState));
-         assert.equal(stack.last().getPrevStateId(), firstState.getId());
-         assert.equal(stack.last().getId(), firstState.getNextStateId());
+         assert.isTrue(stack.lastState.equal(lastState));
+         assert.equal(stack.lastState.getPrevStateId(), firstState.getId());
       });
 
       it('removes middle states', () => {
@@ -86,9 +89,8 @@ describe('UI/_base/HTML/_meta/Stack', () => {
          const lastState = stack.push(meta);
          stack.remove(middleState1);
          stack.remove(middleState2);
-         assert.isTrue(stack.last().equal(lastState));
-         assert.equal(stack.last().getPrevStateId(), firstState.getId());
-         assert.equal(stack.last().getId(), firstState.getNextStateId());
+         assert.isTrue(stack.lastState.equal(lastState));
+         assert.equal(stack.lastState.getPrevStateId(), firstState.getId());
       });
 
       it('removes first state', () => {
@@ -97,9 +99,8 @@ describe('UI/_base/HTML/_meta/Stack', () => {
          const middleState = stack.push(meta);
          const lastState = stack.push(meta);
          stack.remove(firstState);
-         assert.isTrue(stack.last().equal(lastState));
-         assert.equal(stack.last().getPrevStateId(), middleState.getId());
-         assert.equal(stack.last().getId(), middleState.getNextStateId());
+         assert.isTrue(stack.lastState.equal(lastState));
+         assert.equal(stack.lastState.getPrevStateId(), middleState.getId());
       });
 
    });
@@ -110,13 +111,13 @@ describe('UI/_base/HTML/_meta/Stack', () => {
          const state1 = stack.push(meta);
          const state2 = stack.push(meta);
          const state3 = stack.push(meta);
-         const stackRestored = deserializeStack(stack.serialize());
+         const stackRestored = Stack.deserialize(stack.serialize());
 
-         assert.isTrue(stackRestored.last().equal(state3));
+         assert.isTrue(stackRestored.lastState.equal(state3));
          stackRestored.remove(state2);
-         assert.isTrue(stackRestored.last().equal(state3));
+         assert.isTrue(stackRestored.lastState.equal(state3));
          stackRestored.remove(state3);
-         assert.isTrue(stackRestored.last().equal(state1));
+         assert.isTrue(stackRestored.lastState.equal(state1));
       });
    });
 });

@@ -1,6 +1,6 @@
 <head>
    <ws:if data="{{ !wasServerSide }}">
-      <title class="head-title-tag head-server-block" data-vdomignore="true">{{ _options.title }}</title>
+      {{ __setHTMLUnsafe(metaMarkup) }}
       <ws:if data="{{_options.noscript}}">
          <noscript>
             <meta http-equiv="refresh" data-vdomignore="true" content="2; URL={{_options.noscript}}"/>
@@ -8,7 +8,7 @@
       </ws:if>
       <meta data-vdomignore="true" http-equiv="X-UA-Compatible" content="IE=edge"/>
       <meta name="viewport" data-vdomignore="true" content="{{_options.viewport || 'width=1024'}}"/>
-      <meta charset="utf-8" data-vdomignore="true"/>
+      <meta charset="utf-8" class="head-server-block" data-vdomignore="true"/>
    </ws:if>
    <!--   wsConfig нет смысла рендерить на клиенте. -->
    <!--   Он обязательно должен прийти с сервера.-->

@@ -1,6 +1,7 @@
-import { State, IMeta, deserializeState } from 'UI/_base/HTML/meta';
-import { assert } from 'chai';
-import 'mocha';
+// import { assert } from 'chai';
+// import 'mocha';
+import { IMeta } from 'UI/_base/HTML/meta';
+import State from 'UI/_base/HTML/_meta/State';
 
 describe('UI/_base/HTML/_meta/State', () => {
    const meta: IMeta = {
@@ -36,12 +37,12 @@ describe('UI/_base/HTML/_meta/State', () => {
 
       it('deserialize() returns State', () => {
          const str = new State(meta).serialize();
-         assert.instanceOf(deserializeState(str), State);
+         assert.instanceOf(State.deserialize(str), State);
       });
 
       it('instance is equal self after serailization', () => {
          const state = new State(meta);
-         const state2 = deserializeState(state.serialize());
+         const state2 = State.deserialize(state.serialize());
          assert.isTrue(state.equal(state2));
       });
 
@@ -51,7 +52,7 @@ describe('UI/_base/HTML/_meta/State', () => {
 
       it('Instances with same meta are not equal after serailization', () => {
          const state = new State(meta);
-         const state2 = deserializeState(new State(meta).serialize());
+         const state2 = State.deserialize(new State(meta).serialize());
          assert.isFalse(state.equal(state2));
       });
    });
@@ -72,8 +73,8 @@ describe('UI/_base/HTML/_meta/State', () => {
          const state = new State(meta);
          const state2 = new State(meta);
          state.setNextState(state2);
-         const stateRestored = deserializeState(state.serialize());
-         const state2Restored = deserializeState(state2.serialize());
+         const stateRestored = State.deserialize(state.serialize());
+         const state2Restored = State.deserialize(state2.serialize());
          assert.equal(stateRestored.getNextStateId(), state2Restored.getId());
       });
    });

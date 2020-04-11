@@ -1,40 +1,60 @@
 /// <amd-module name="UI/_base/HTML/_meta/Stack" />
 
-import { IMetaState, IMeta, ISerializableMetaStack, ISerializedMetaState, IDeserializeStack } from 'UI/_base/HTML/_meta/interface';
-import State, { deserializeState } from 'UI/_base/HTML/_meta/State';
+import { IMeta, IMetaState, IMetaStackInternal, ISerializedMetaStack, ISerializedMetaState, IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
+import State from 'UI/_base/HTML/_meta/State';
+import { getMetaStore, IStates, setMetaStore } from 'UI/_base/HTML/_meta/Store';
 
-export default class Stack implements ISerializableMetaStack {
+/**
+ * Хранилище meta-данных страницы
+ * @class UI/_base/HTML/_meta/Stack
+ * @public
+ * @author Ибрагимов А.А.
+ * @implements UI/_base/HTML/_meta/interface#IMetaStack
+ */
+export default class Stack implements IMetaStackInternal {
+   private _lastState: IMetaStateInternal;
 
-   constructor(
-      private states: Record<string, IMetaState> = {},
-      private lastState: IMetaState | null = null
-   ) { }
+   get lastState(): IMetaStateInternal {
+      return this._lastState;
+   }
 
+   set lastState(state: IMetaStateInternal) {
+      state.mount();
+      this._lastState?.unmount();
+      this._lastState = state;
+   }
+
+   constructor(states: IStates = {}, lastState?: IMetaStateInternal) {
+      setMetaStore(states);
+      if (lastState) {
+         this._lastState = lastState;
+      }
+   }
+
+   //#region API
    push(meta: IMeta): IMetaState {
       const state = new State(meta);
       this.linkState(state);
-      this.states[state.getId()] = state;
+      this.storeState(state);
       this.lastState = state;
       return state;
    }
 
-   remove(exState: IMetaState): void {
-      if (!(exState.getId() in this.states)) { return; }
-      const state = this.states[exState.getId()];
+   remove(externalState: IMetaState): void {
+      const state = this.getStateById(externalState.getId());
+      if (!state) { return; }
       this.unlinkState(state);
-      delete this.states[state.getId()];
+      this.removeState(state);
    }
-
-   last(): IMetaState | null {
-      return this.lastState;
-   }
+   //#endregion
 
    serialize(): string {
-      const ser = this.getStates().map((state) => state.serialize());
+      const ser = getMetaStore().getKeys()
+         .map((id) => this.getStateById(id).serialize());
       return JSON.stringify(ser);
    }
 
-   private linkState(state: IMetaState): void {
+   private linkState(state: IMetaStateInternal): void {
       state.setPrevState(this.lastState);
       if (!this.lastState) {
          this.lastState = state;
@@ -42,36 +62,51 @@ export default class Stack implements ISerializableMetaStack {
       }
       this.lastState.setNextState(state);
    }
-
-   private unlinkState(state: IMetaState): void {
-      const prev = this.getState(state.getPrevStateId());
-      const next = this.getState(state.getNextStateId());
-      prev?.setNextState(next); // предыдущего state нет у начального state
+   private unlinkState(state: IMetaStateInternal): void {
+      const prev = this.getStateById(state.getPrevStateId());
+      const next = this.getStateById(state.getNextStateId());
+      if (!prev && !next) { throw new Error('Удаление последнего state!'); }
+      // у начального state нет предыдущего state
+      prev?.setNextState(next);
       if (!next) { // если удаляется крайний state
          this.lastState = prev;
          return;
       }
       next.setPrevState(prev);
    }
-
-   private getState(id: string): IMetaState | null {
-      return this.states[id] || null;
+   private getStateById(id: string): IMetaStateInternal | null {
+      return getMetaStore().get(id) || null;
    }
-
-   private getStates(): IMetaState[] {
-      return Object.keys(this.states).map((id) => this.states[id]);
+   private removeState(state: IMetaStateInternal): void {
+      getMetaStore().remove(state.getId());
+   }
+   private storeState(state: IMetaStateInternal): void {
+      getMetaStore().set(state.getId(), state);
    }
 
    private static instance: Stack;
-
    static getInstance(): Stack {
       if (Stack.instance) { return Stack.instance; }
       return Stack.instance = new Stack();
    }
+
+   /**
+    * Десериализация stack'a
+    * @param {ISerializedMetaStack} str сериализованный стек
+    * @returns {IMetaStack}
+    * @private
+    */
+   static deserialize(str: ISerializedMetaStack): IMetaStackInternal {
+      if (!str) { return null; }
+      const states: IStates = {};
+      try {
+         const statesArr = (JSON.parse(str) as ISerializedMetaState[])
+            .map((stateSer) => State.deserialize(stateSer))
+            .filter((state) => state !== null);
+         statesArr.forEach((state) => { states[state.getId()] = state; });
+         return Stack.instance = new Stack(states, statesArr[statesArr.length - 1]);
+      } catch {
+         return null;
+      }
+   }
 }
-export const deserializeStack: IDeserializeStack = (str) => {
-   const states: Record<string, IMetaState> = {};
-   const statesArr = (JSON.parse(str) as ISerializedMetaState[]).map((stateSer) => deserializeState(stateSer));
-   statesArr.forEach((state) => { states[state.getId()] = state; });
-   return new Stack(states, statesArr[statesArr.length - 1]);
-};

@@ -23,6 +23,10 @@ import {IRootTemplateOptions, IRootTemplate} from './_base/interface/IRootTempla
 import Creator, { async as AsyncCreator } from './_base/Creator';
 export { default as startApplication } from 'UI/_base/startApplication';
 
+//#region meta data
+export { getMetaStack, IMeta } from 'UI/_base/HTML/meta';
+//#endregion
+
 export {
     Control,
     IControlOptions,
