@@ -33,15 +33,9 @@ export class Controller {
     */
    get(cssName: string, themeName?: string): Promise<ICssEntity> {
       const theme = themeName || this.appTheme;
-      if (this.store.has(cssName, theme)) {
+      if (this.has(cssName, theme)) {
          const storedEntity = this.store.get(cssName, theme);
          storedEntity.require();
-         /** Еще нескаченные css уже имеются в store, необходимо дождаться окончания монтирования в DOM */
-         return storedEntity.loading.then(() => storedEntity);
-      }
-      /** Если css нетемизированная, возвращаем при любой теме, чтобы не скачать при переключении темы */
-      if (this.store.has(cssName, EMPTY_THEME)) {
-         const storedEntity = this.store.get(cssName, EMPTY_THEME);
          /** Еще нескаченные css уже имеются в store, необходимо дождаться окончания монтирования в DOM */
          return storedEntity.loading.then(() => storedEntity);
       }
@@ -104,6 +98,8 @@ export class Controller {
       }
       this.appTheme = themeName;
       const themeLoading = this.store.getCssNames()
+         /** Скачиваем тему только темизированным css */
+         .filter((name) => this.store.getThemeNames(name).indexOf(EMPTY_THEME) === -1)
          .map((name) => this.get(name, themeName));
       return Promise.all(themeLoading).then(() => void 0);
    }
