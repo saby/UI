@@ -4,7 +4,7 @@ import { HTTP } from 'Browser/_Transport/fetch/Errors';
 // @ts-ignore
 import { cookie } from 'Env/Env';
 import { createEntity, restoreEntity, isLinkEntity, isSingleEntity } from 'UI/theme/_controller/CSS';
-import { DEFAULT_THEME } from 'UI/theme/_controller/css/const';
+import { DEFAULT_THEME, EMPTY_THEME } from 'UI/theme/_controller/css/const';
 import { ICssEntity } from 'UI/theme/_controller/css/interface';
 import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
 import Store from 'UI/theme/_controller/Store';
@@ -33,9 +33,15 @@ export class Controller {
     */
    get(cssName: string, themeName?: string): Promise<ICssEntity> {
       const theme = themeName || this.appTheme;
-      if (this.has(cssName, theme)) {
+      if (this.store.has(cssName, theme)) {
          const storedEntity = this.store.get(cssName, theme);
          storedEntity.require();
+         /** Еще нескаченные css уже имеются в store, необходимо дождаться окончания монтирования в DOM */
+         return storedEntity.loading.then(() => storedEntity);
+      }
+      /** Если css нетемизированная, возвращаем при любой теме, чтобы не скачать при переключении темы */
+      if (this.store.has(cssName, EMPTY_THEME)) {
+         const storedEntity = this.store.get(cssName, EMPTY_THEME);
          /** Еще нескаченные css уже имеются в store, необходимо дождаться окончания монтирования в DOM */
          return storedEntity.loading.then(() => storedEntity);
       }

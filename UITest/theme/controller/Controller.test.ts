@@ -1,7 +1,7 @@
 import { Controller } from 'UI/theme/_controller/Controller';
 // @ts-ignore
 import { constants } from 'Env/Env';
-import { THEME_TYPE, DEFAULT_THEME } from 'UI/theme/_controller/css/const';
+import { THEME_TYPE, DEFAULT_THEME, EMPTY_THEME } from 'UI/theme/_controller/css/const';
 import Link from 'UI/theme/_controller/css/Link';
 import { ICssLoader } from 'UI/theme/_controller/Loader';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
@@ -201,6 +201,16 @@ describe('UI/theme/_controller/Controller', () => {
                assert.isTrue(controller.has(name2, themeName));
                assert.isTrue(controller.has(cssName, theme2));
                assert.isTrue(controller.has(name2, theme2));
+               assert.isTrue(loader.isValid());
+            });
+      });
+
+      it('При установке темы не запрашиваются нетемизированные стили', () => {
+         return controller.get(cssName, EMPTY_THEME)
+            .then(() => controller.setTheme(themeName))
+            .then(() => {
+               assert.isTrue(controller.has(cssName, EMPTY_THEME));
+               assert.isFalse(controller.has(cssName, themeName));
                assert.isTrue(loader.isValid());
             });
       });
