@@ -3,7 +3,7 @@
  * Библиотека контроллера тем
  * @remark
  * Контроллер управляет загрузкой/удалением стилей всех контроллов на wasaby-странице на клиенте и СП
- * {@link Темы https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/}
+ * Подробнее о работе с темами оформления читайте {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/ здесь}.
  * @library UI/theme/controller
  * @includes getThemeController UI/theme/_controller/Controller#getInstance
  * @includes THEME_TYPE UI/theme/_controller/css/Base#THEME_TYPE
