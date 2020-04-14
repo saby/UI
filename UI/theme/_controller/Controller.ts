@@ -4,7 +4,7 @@ import { HTTP } from 'Browser/_Transport/fetch/Errors';
 // @ts-ignore
 import { cookie } from 'Env/Env';
 import { createEntity, restoreEntity, isLinkEntity, isSingleEntity } from 'UI/theme/_controller/CSS';
-import { DEFAULT_THEME } from 'UI/theme/_controller/css/const';
+import { DEFAULT_THEME, EMPTY_THEME } from 'UI/theme/_controller/css/const';
 import { ICssEntity } from 'UI/theme/_controller/css/interface';
 import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
 import Store from 'UI/theme/_controller/Store';
@@ -98,6 +98,8 @@ export class Controller {
       }
       this.appTheme = themeName;
       const themeLoading = this.store.getCssNames()
+         /** Скачиваем тему только темизированным css */
+         .filter((name) => this.store.getThemeNames(name).indexOf(EMPTY_THEME) === -1)
          .map((name) => this.get(name, themeName));
       return Promise.all(themeLoading).then(() => void 0);
    }

@@ -473,7 +473,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
             (this as any).unmountCallback && (this as any).unmountCallback();
             Synchronizer.cleanControlDomLink(this._container, this);
          }
-         this.removeCSS(this._options.theme);
          // Избегаем утечки контролов по замыканию
          //this.saveFullContext = EMPTY_FUNC;
          //this._saveContextObject = EMPTY_FUNC;
@@ -815,13 +814,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
        const styles = this._styles instanceof Array ? this._styles : [];
       return this.constructor['loadStyles'](styles).catch(logError);
    }
-   private removeCSS(themeName?: string): void {
-      // @ts-ignore
-      const themes = this._theme instanceof Array ? this._theme : [];
-      // @ts-ignore
-      const styles = this._styles instanceof Array ? this._styles : [];
-      this.constructor['removeCSS'](themeName, themes, styles).catch(logError);
-   }
    //#endregion
    /**
     * Хук жизненного цикла контрола. Вызывается сразу после установки контрола в DOM-окружение.
@@ -1128,9 +1120,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // Do
    }
 
-    /**
+   /**
     * Массив имен нетемизированных стилей, необходимых контролу.
-    * Все стили будут запрошены при создании и удалены при unmount
+    * Все стили будут скачаны при создании
+    * @public
+    * @static
     * @example
     * <pre>
     *   static _styles: string[] = ['Controls/Utils/getWidth'];
@@ -1139,7 +1133,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    static _styles: string[] = [];
    /**
     * Массив имен темизированных стилей, необходимых контролу.
-    * Все стили будут запрошены при создании и удалены при unmount
+    * Все стили будут скачаны при создании
+    * @public
+    * @static
     * @example
     * <pre>
     *   static _theme: string[] = ['Controls/popupConfirmation'];
