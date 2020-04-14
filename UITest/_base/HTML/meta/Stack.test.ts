@@ -104,6 +104,18 @@ describe('UI/_base/HTML/_meta/Stack', () => {
          assert.equal(stack.lastState.getPrevStateId(), middleState.getId());
       });
 
+      it('removing null doesnt crash ', () => {
+         const stack = new Stack(createStatesStore());
+         try {
+            stack.remove(null);
+            const lastState = stack.push(meta);
+            stack.remove(null);
+            assert.isTrue(stack.lastState.equal(lastState));
+         } catch (e) {
+            assert.fail('removing null is crashing Stack', e.message);
+         }
+      });
+
    });
 
    describe('serialize', () => {

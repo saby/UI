@@ -33,6 +33,8 @@ export default class Stack implements IMetaStackInternal {
       if (lastState) {
          this._lastState = lastState;
       }
+      this.push = this.push.bind(this);
+      this.remove = this.remove.bind(this);
    }
 
    //#region API
@@ -45,6 +47,7 @@ export default class Stack implements IMetaStackInternal {
    }
 
    remove(externalState: IMetaState): void {
+      if (!externalState) { return; }
       const state = this.getStateById(externalState.getId());
       if (!state) { return; }
       this.unlinkState(state);
