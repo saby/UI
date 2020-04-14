@@ -2,7 +2,7 @@
  * Интерфейс для контролов, поддерживающих конфигурацию <a href="/doc/platform/developmentapl/middleware/preprocessor/">сервиса представления</a> приложения.
  * @interface UI/_base/interface/IRootTemplate
  * @public
- * @author Шипин А.А.
+ * @author Санников К.А.
  */
 
 /**

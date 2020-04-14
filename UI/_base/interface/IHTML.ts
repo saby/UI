@@ -3,8 +3,8 @@ import {IControlOptions} from "../Control";
 /**
  * Интерфейс для контролов, поддерживающих конфигурацию HTML-документа.
  * @interface UI/_base/interface/IHTML
- * @public
- * @author Шипин А.А.
+ * @private
+ * @author Санников К.А.
  */
 export interface IHTML {
     readonly '[UI/_base/interface/IHTML]': boolean
