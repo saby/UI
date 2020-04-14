@@ -7,49 +7,39 @@ import { IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
 
 export type IStates = Record<string, IMetaStateInternal>;
 
-class StateStore<T = IStates> implements IStore<T> {
+class StateStore implements IStore<IStates> {
    constructor(
-      private data: T = Object.create(null)
+      private data: IStates = Object.create(null)
    ) { }
-   get<K extends keyof T>(id: K): T[K] {
+   get<K extends keyof IStates>(id: K): IStates[K] {
       return this.data[id];
    }
-   set<K extends keyof T>(id: K, state: T[K]): boolean {
+   set<K extends keyof IStates>(id: K, state: IStates[K]): boolean {
       this.data[id] = state;
       return true;
    }
-   remove(id: keyof T): void {
+   remove(id: keyof IStates): void {
       delete this.data[id];
    }
-   getKeys(): Array<keyof T & string> {
-      return Object.keys(this.data) as Array<keyof T & string>;
+   getKeys(): Array<keyof IStates & string> {
+      return Object.keys(this.data) as Array<keyof IStates & string>;
    }
-   toObject(): { [key in keyof T]: T[key] } {
+   toObject(): { [key in keyof IStates]: IStates[key] } {
       return this.data;
    }
 
    static label: string = 'UI/_base/HTML/_meta/Stack#MetaStore';
 }
 
-const createDefaultStore = (states?: IStates): StateStore => new StateStore(states);
-
-/**
- * Для случаев, когда приложение не инициализированно (unit-тесты)
- * используется локальный Store
- */
-let stateStore = new StateStore();
-
-export function getMetaStore(): IStore<IStates> {
+export function createStatesStore(states?: IStates): IStore<IStates> {
    if (!isInit()) {
-      return stateStore;
+      /**
+       * Для случаев, когда приложение не инициализированно (unit-тесты)
+       * используется локальный Store
+       */
+      return new StateStore(states);
    }
-   return getStore<IStates>(StateStore.label, createDefaultStore);
-}
-
-export function setMetaStore(states: IStates): void {
-   if (!isInit()) {
-      stateStore = new StateStore(states);
-      return;
-   }
+   const createDefaultStore = (s?: IStates): StateStore => new StateStore(s);
    setStore<IStates>(StateStore.label, createDefaultStore(states));
+   return getStore<IStates>(StateStore.label, createDefaultStore);
 }

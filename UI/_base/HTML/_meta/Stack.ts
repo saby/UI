@@ -1,8 +1,13 @@
 /// <amd-module name="UI/_base/HTML/_meta/Stack" />
 
-import { IMeta, IMetaState, IMetaStackInternal, ISerializedMetaStack, ISerializedMetaState, IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
+import {
+   IMeta, IMetaState, IMetaStackInternal,
+   ISerializedMetaStack, ISerializedMetaState, IMetaStateInternal
+} from 'UI/_base/HTML/_meta/interface';
+import { mountState, unmountState } from 'UI/_base/HTML/_meta/DOMmanipulator';
 import State from 'UI/_base/HTML/_meta/State';
-import { getMetaStore, IStates, setMetaStore } from 'UI/_base/HTML/_meta/Store';
+import { createStatesStore, IStates } from 'UI/_base/HTML/_meta/Store';
+import { IStore } from 'Application/Interface';
 
 /**
  * Хранилище meta-данных страницы
@@ -19,13 +24,12 @@ export default class Stack implements IMetaStackInternal {
    }
 
    set lastState(state: IMetaStateInternal) {
-      state.mount();
-      this._lastState?.unmount();
+      mountState(state);
+      unmountState(this._lastState);
       this._lastState = state;
    }
 
-   constructor(states: IStates = {}, lastState?: IMetaStateInternal) {
-      setMetaStore(states);
+   constructor(private store: IStore<IStates>, lastState?: IMetaStateInternal) {
       if (lastState) {
          this._lastState = lastState;
       }
@@ -49,7 +53,7 @@ export default class Stack implements IMetaStackInternal {
    //#endregion
 
    serialize(): string {
-      const ser = getMetaStore().getKeys()
+      const ser = this.store.getKeys()
          .map((id) => this.getStateById(id).serialize());
       return JSON.stringify(ser);
    }
@@ -75,19 +79,19 @@ export default class Stack implements IMetaStackInternal {
       next.setPrevState(prev);
    }
    private getStateById(id: string): IMetaStateInternal | null {
-      return getMetaStore().get(id) || null;
+      return this.store.get(id) || null;
    }
    private removeState(state: IMetaStateInternal): void {
-      getMetaStore().remove(state.getId());
+      this.store.remove(state.getId());
    }
    private storeState(state: IMetaStateInternal): void {
-      getMetaStore().set(state.getId(), state);
+      this.store.set(state.getId(), state);
    }
 
    private static instance: Stack;
    static getInstance(): Stack {
       if (Stack.instance) { return Stack.instance; }
-      return Stack.instance = new Stack();
+      return Stack.instance = new Stack(createStatesStore());
    }
 
    /**
@@ -104,7 +108,7 @@ export default class Stack implements IMetaStackInternal {
             .map((stateSer) => State.deserialize(stateSer))
             .filter((state) => state !== null);
          statesArr.forEach((state) => { states[state.getId()] = state; });
-         return Stack.instance = new Stack(states, statesArr[statesArr.length - 1]);
+         return Stack.instance = new Stack(createStatesStore(states), statesArr[statesArr.length - 1]);
       } catch {
          return null;
       }

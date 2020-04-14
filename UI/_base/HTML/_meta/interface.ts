@@ -86,10 +86,6 @@ export interface IMetaStateInternal extends IMetaState {
 
    getNextStateId(): string;
    setNextState(state: IMetaState): void;
-
-   /** монтирование тегов в head */
-   mount(): void;
-   unmount(): void;
 }
 export type IDeserializeMeta = (s: ISerializedMetaState) => IMetaStateInternal;
 

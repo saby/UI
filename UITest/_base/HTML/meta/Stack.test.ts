@@ -3,6 +3,7 @@
 import { IMeta } from 'UI/_base/HTML/meta';
 import Stack from 'UI/_base/HTML/_meta/Stack';
 import State from 'UI/_base/HTML/_meta/State';
+import { createStatesStore } from 'UI/_base/HTML/_meta/Store';
 const meta: IMeta = {
    title: 'Page title',
    og: {
@@ -15,19 +16,19 @@ describe('UI/_base/HTML/_meta/Stack', () => {
 
    describe('constructor', () => {
       it('creates Stack instance', () => {
-         assert.instanceOf(new Stack(), Stack);
+         assert.instanceOf(new Stack(createStatesStore()), Stack);
       });
    });
 
    describe('push', () => {
       it('returns State instance', () => {
-         assert.instanceOf(new Stack().push(meta), State);
+         assert.instanceOf(new Stack(createStatesStore()).push(meta), State);
       });
    });
 
    describe('lastState', () => {
       it('returns last state', () => {
-         const stack = new Stack();
+         const stack = new Stack(createStatesStore());
          stack.push(meta);
          stack.push(meta);
          const lastState = stack.push(meta);
@@ -35,7 +36,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
       });
 
       it('returns last state after removing', () => {
-         const stack = new Stack();
+         const stack = new Stack(createStatesStore());
          const firstState = stack.push(meta);
          const middleState = stack.push(meta);
          const lastState = stack.push(meta);
@@ -46,7 +47,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
       });
 
       it('throw Error if remove last state', () => {
-         const stack = new Stack();
+         const stack = new Stack(createStatesStore());
          const firstState = stack.push(meta);
          const middleState = stack.push(meta);
          const lastState = stack.push(meta);
@@ -63,7 +64,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
 
    describe('remove', () => {
       it('removes last state', () => {
-         const stack = new Stack();
+         const stack = new Stack(createStatesStore());
          stack.push(meta);
          const prevState = stack.push(meta);
          const lastState = stack.push(meta);
@@ -72,7 +73,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
       });
 
       it('removes middle state', () => {
-         const stack = new Stack();
+         const stack = new Stack(createStatesStore());
          const firstState = stack.push(meta);
          const middleState = stack.push(meta);
          const lastState = stack.push(meta);
@@ -82,7 +83,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
       });
 
       it('removes middle states', () => {
-         const stack = new Stack();
+         const stack = new Stack(createStatesStore());
          const firstState = stack.push(meta);
          const middleState1 = stack.push(meta);
          const middleState2 = stack.push(meta);
@@ -94,7 +95,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
       });
 
       it('removes first state', () => {
-         const stack = new Stack();
+         const stack = new Stack(createStatesStore());
          const firstState = stack.push(meta);
          const middleState = stack.push(meta);
          const lastState = stack.push(meta);
@@ -107,7 +108,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
 
    describe('serialize', () => {
       it('Restore states after serialization', () => {
-         const stack = new Stack();
+         const stack = new Stack(createStatesStore());
          const state1 = stack.push(meta);
          const state2 = stack.push(meta);
          const state3 = stack.push(meta);

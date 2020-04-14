@@ -1,15 +1,12 @@
 /// <amd-module name="UI/_base/HTML/_meta/State" />
 
 import { IMetaState, IMeta, ISerializedMetaState, IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
-// @ts-ignore
-import { Guid } from 'Types/entity';
 
 export default class State implements IMetaStateInternal {
    outerHTML: string = '';
-   elements: HTMLElement[] = [];
    constructor(
       private _meta: IMeta,
-      private readonly _guid: string = 'state-' + Guid.create(),
+      private readonly _guid: string = 'state-' + generateGuid(),
       private _nextStateId: string = void 0,
       private _prevStateId: string = void 0
    ) {
@@ -28,22 +25,6 @@ export default class State implements IMetaStateInternal {
    serialize(): string {
       const { _meta, _guid, _nextStateId, _prevStateId } = this;
       return JSON.stringify({ _meta, _guid, _nextStateId, _prevStateId });
-   }
-
-   mount(): void {
-      if (typeof document === 'undefined') { return; }
-      const setAttrs = (el: HTMLElement) => setGuid(el, this._guid);
-      const { title, og } = this.getMeta();
-      const titleEl = createTitleElement(title);
-      const ogTags = Object.keys(og || []).map((tag) => createOpenGraphTag(tag, og[tag]));
-      this.elements = ogTags.concat([titleEl]).map(setAttrs);
-      this.elements.forEach((el) => document.head.prepend(el));
-   }
-
-   unmount(): void {
-      if (typeof document === 'undefined') { return; }
-      const elements = document.querySelectorAll(`.${this._guid}`);
-      Array.prototype.forEach.call(elements, (el: HTMLElement) => { el.remove(); });
    }
 
    getMeta(): IMeta {
@@ -97,19 +78,6 @@ function getTagMargkup(type: string, val: string, guid: string): string {
       ' data-vdomignore="true" />';
 }
 
-function createTitleElement(val: string): HTMLElement {
-   const el = document.createElement('title');
-   el.innerHTML = val;
-   return el;
-}
-function createOpenGraphTag(type: string, val: string): HTMLElement {
-   const el = document.createElement('meta');
-   el.setAttribute('property', `og:${type}`);
-   el.setAttribute('content', val);
-   return el;
-}
-function setGuid(el: HTMLElement, guid: string): HTMLElement {
-   el.setAttribute('data-vdomignore', 'true');
-   el.setAttribute('class', guid);
-   return el;
+function generateGuid(): string {
+   return Math.random().toFixed(9).slice(2);
 }
