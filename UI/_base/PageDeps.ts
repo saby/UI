@@ -62,15 +62,7 @@ function getDebugDeps(): ICollectedFiles {
 }
 
 function getRealeseDeps(deps: IDeps, unpack: IDeps): ICollectedFiles {
-   const { js, css: prevCss, wml, tmpl } = depsCollector.collectDependencies(deps, unpack);
-   const newThemes = getModulesThemes(contents.modules, js);
-   return {
-      js, wml, tmpl,
-      css: {
-         simpleCss: prevCss.simpleCss,
-         themedCss: prevCss.themedCss.concat(newThemes)
-      }
-   };
+   return depsCollector.collectDependencies(deps, unpack);
 }
 
 /**
@@ -89,23 +81,6 @@ function getModulesDeps(modules: IModules = {}): IModulesDescription {
    return [root, ...externalPaths]
       .map(requireModuleDeps)
       .reduce(collect);
-}
-/**
- * Коллекция тем подключенных через static _theme
- * @param {IModules} modules описание modules из contents.json
- * @param {IDeps} deps подключенные зависимости
- */
-export function getModulesThemes(modules: IModules = {}, deps: IDeps): IDeps {
-   return Object.keys(modules)
-      .filter((name) => 'newThemes' in modules[name])
-      .filter((name) => deps.some((dep) => dep.startsWith(name))) // сбор тем только для подключенных зависимостей
-      .map((name) => modules[name].newThemes)
-      .reduce(collectThemes, []);
-
-   function collectThemes(prev: IDeps, themes: IThemes): IDeps {
-      const depThemes = Object.keys(themes).filter((theme) => deps.includes(theme));
-      return Array.prototype.concat(prev, depThemes);
-   }
 }
 
 function collect(prev: IModulesDescription, next: IModulesDescription): IModulesDescription {
@@ -141,12 +116,7 @@ interface IContents {
 export interface IModules {
    [mod: string]: {
       path?: string;
-      newThemes?: IThemes;
    };
-}
-
-interface IThemes {
-   [name: string]: IDeps;
 }
 interface IModulesDeps {
    nodes: Record<string, { path: string, amd: boolean; }>;
