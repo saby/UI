@@ -1,15 +1,18 @@
 import {IControlOptions} from "../Control";
 
 /**
+ * Интерфейс для контролов, поддерживающих конфигурацию HTML-документа.
  * @interface UI/_base/interface/IHTML
-*/
+ * @private
+ * @author Санников К.А.
+ */
 export interface IHTML {
     readonly '[UI/_base/interface/IHTML]': boolean
 };
 
 /**
  * @name UI/_base/interface/IHTML#head
- * @deprecated Используйте {@link headJson} из интерфейса {@link UI/_base/interface/IHeadBase}.
+ * @deprecated Используйте {@link UI/_base/interface/IHeadBase#headJson headJson}.
  * @cfg {Array} Дополнительное содержимое тега HEAD. Может принимать более одного корневого узла.
 */
 
@@ -64,20 +67,20 @@ export interface IHTML {
 
 /**
  * @name UI/_base/interface/IHTML#compat
- * @deprecated Способы вставки старых контролов внутри нового окружения описаны в этой статье: {@link https://wi.sbis.ru/doc/platform/developmentapl/ws3/compound-wasaby/}
+ * @deprecated Способы вставки старых контролов внутри нового окружения описаны в этой статье: {@link /doc/platform/developmentapl/ws3/compound-wasaby/}
  * @cfg {Boolean} В значении true создаётся "слой совместимости" для работы с контролами из пространства имён SBIS3.CONTROLS и Lib.
 */
 
 /**
  * @name UI/_base/interface/IHTML#compat
- * @deprecated There are several ways to use old controls in new environment: {@link https://wi.sbis.ru/doc/platform/developmentapl/ws3/compound-wasaby/}.
+ * @deprecated There are several ways to use old controls in new environment: {@link /doc/platform/developmentapl/ws3/compound-wasaby/}.
  * @cfg {Boolean} If it's true, compatible layer will be loaded
 */
 
 /**
  * @name UI/_base/interface/IHTML#builder
- * @cfg {Boolean} В значении true разрешено создание статической html-страницы через <a href="https://wi.sbis.ru/doc/platform/developmentapl/development-tools/builder/#html_1">билдер</a>.
- * Необходимое условие создание таких страниц описано <a href="https://wi.sbis.ru/doc/platform/developmentapl/interface-development/controls/controls-application/#static-html">здесь</a>.
+ * @cfg {Boolean} В значении true разрешено создание статической html-страницы через <a href="/doc/platform/developmentapl/development-tools/builder/#html_1">билдер</a>.
+ * Необходимое условие создание таких страниц описано <a href="/doc/platform/developmentapl/interface-development/controls/controls-application/#static-html">здесь</a>.
  * @default false
 */
 
