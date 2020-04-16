@@ -1,30 +1,20 @@
 <div key="scripts">
    <ws:if data="{{!_options.compat && _options.onServer}}">
       <script key="init_script">
-         require(['Core/polyfill', 'UI/Base', 'Application/Initializer', 'Application/Env', 'Core/constants', 'Core/app-init'],
-            function(polyfill, UI, AppInit, AppEnv, constants, appInit){
-               function StartApplication() {
-                  var StateReceiver = UI.StateReceiver;
-                  AppInit.default({}, undefined, new StateReceiver());
-
+         require(['Core/polyfill', 'Application/Initializer', 'Application/Env', 'Core/constants', 'Core/app-init'], function (polyfill, AppInit, AppEnv, constants, appInit) {
+            require(['UI/Base'], function (UI) {
+               window.startContextData = { AppData: new UI.AppData({}) };
+               appInit();
+               require( {{ __setHTMLUnsafe(getDeps()) }}, function () {
+                  AppInit.default({}, undefined, new UI.StateReceiver());
                   var wsCfg = window.wsConfig || {};
                   for (var key in wsCfg) {
                      constants[key] = wsCfg[key];
                   }
-                  var domElement = document.getElementById('root');
-                  UI.Start({}, domElement);
-               }
-               var AppData = UI.AppData;
-
-               window.startContextData = {AppData: new AppData({})};
-               var deps ={{ __setHTMLUnsafe(getDeps()) }};
-                  appInit();
-                  require(deps, function(){
-                     StartApplication();
-
+                  UI.Start({}, document.getElementById('root'));
+               });
             });
          });
-
       </script>
    </ws:if>
    <ws:if data="{{ _options.compat }}">
