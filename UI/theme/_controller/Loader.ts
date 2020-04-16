@@ -23,7 +23,7 @@ export default class Loader implements ICssLoader {
    }
 
    load(url: string): Promise<void> {
-      return fetch.fetch({ url }).then(() => void 0);
+      return fetch.fetch({ url, credentials: 'same-origin' }).then(() => void 0);
    }
 }
 export interface ICssLoader {
