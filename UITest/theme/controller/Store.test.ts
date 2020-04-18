@@ -1,4 +1,4 @@
-import Store from "UI/theme/_controller/Store";
+import Storage from "UI/theme/_controller/Storage";
 import { ICssEntity } from "UI/theme/_controller/css/interface";
 import { DEFAULT_THEME, DEFAULT_THEME_TYPE } from "UI/theme/_controller/css/const";
 // import { assert } from 'chai';
@@ -32,14 +32,14 @@ class LinkMock implements ICssEntity {
 }
 
 let link: LinkMock;
-let store: Store;
+let store: Storage;
 
 describe('UI/theme/_controller/Store', () => {
 
    const setHooks = () => {
       beforeEach(() => {
          link = new LinkMock(name, theme);
-         store = new Store();
+         store = new Storage();
       });
 
       afterEach(() => {

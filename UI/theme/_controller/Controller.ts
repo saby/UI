@@ -7,14 +7,14 @@ import { createEntity, restoreEntity, isLinkEntity, isSingleEntity } from 'UI/th
 import { DEFAULT_THEME, EMPTY_THEME } from 'UI/theme/_controller/css/const';
 import { ICssEntity } from 'UI/theme/_controller/css/interface';
 import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
-import Store from 'UI/theme/_controller/Store';
+import Storage from 'UI/theme/_controller/Storage';
 /**
  * Контроллер тем, необходим для скачивания/удаления/коллекции/переключения тем на странице
  * @class UI/theme/_controller/Controller
  * @singleton
  */
 export class Controller {
-   private store: Store<ICssEntity> = new Store<ICssEntity>();
+   private storage: Storage = new Storage();
    /** Имя темы приложения */
    appTheme: string = DEFAULT_THEME;
 
@@ -34,7 +34,7 @@ export class Controller {
    get(cssName: string, themeName?: string): Promise<ICssEntity> {
       const theme = themeName || this.appTheme;
       if (this.has(cssName, theme)) {
-         const storedEntity = this.store.get(cssName, theme);
+         const storedEntity = this.storage.get(cssName, theme);
          storedEntity.require();
          /** Еще нескаченные css уже имеются в store, необходимо дождаться окончания монтирования в DOM */
          return storedEntity.loading.then(() => storedEntity);
@@ -57,8 +57,8 @@ export class Controller {
     * Получение всех сохраненных CssEntity
     */
    getAll(): ICssEntity[] {
-      return this.store.getCssNames()
-         .map((name) => this.store.getEntitiesByName(name))
+      return this.storage.getCssNames()
+         .map((name) => this.storage.getEntitiesByName(name))
          .reduce((prev, cur) => prev.concat(cur), []);
    }
 
@@ -79,13 +79,13 @@ export class Controller {
     */
    has(cssName: string, themeName?: string): boolean {
       const theme = themeName || this.appTheme;
-      return this.store.has(cssName, theme);
+      return this.storage.has(cssName, theme);
    }
 
    isMounted(cssName: string, themeName?: string): boolean {
       const theme = themeName || this.appTheme;
-      if (!this.store.has(cssName, theme)) { return false; }
-      return this.store.get(cssName, theme).isMounted;
+      if (!this.storage.has(cssName, theme)) { return false; }
+      return this.storage.get(cssName, theme).isMounted;
    }
 
    /**
@@ -97,9 +97,9 @@ export class Controller {
          return Promise.resolve();
       }
       this.appTheme = themeName;
-      const themeLoading = this.store.getCssNames()
+      const themeLoading = this.storage.getCssNames()
          /** Скачиваем тему только темизированным css */
-         .filter((name) => this.store.getThemeNames(name).indexOf(EMPTY_THEME) === -1)
+         .filter((name) => this.storage.getThemeNames(name).indexOf(EMPTY_THEME) === -1)
          .map((name) => this.get(name, themeName));
       return Promise.all(themeLoading).then(() => void 0);
    }
@@ -113,25 +113,25 @@ export class Controller {
       if (!this.has(cssName, theme)) {
          return Promise.resolve(true);
       }
-      return this.store.remove(cssName, theme);
+      return this.storage.remove(cssName, theme);
    }
 
    clear(): void {
-      this.store.clear();
+      this.storage.clear();
    }
    /**
     * Сохранение css сущности в store
     * @param link
     */
    private set(link: ICssEntity): void {
-      this.store.set(link);
+      this.storage.set(link);
    }
    /**
     * при добавлении темы, немультитемные темы должны удаляться,
     * т.к возникают конфликты селекторов (они одинаковые)
     */
    private removeSingleEntities(link: ICssEntity): void {
-      this.store.getEntitiesByName(link.cssName)
+      this.storage.getEntitiesByName(link.cssName)
          .filter(isSingleEntity)
          .filter((entity) => entity.themeName !== link.themeName)
          .forEach((singleLink) => singleLink.removeForce());
