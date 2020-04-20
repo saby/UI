@@ -31,7 +31,7 @@ export default class Loader implements ICssLoader {
 
    private getThemeType(name: string, theme: string): THEME_TYPE {
       const themeType = this.lr.isNewTheme(name) ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
-      if (theme === EMPTY_THEME) {
+      if (theme === EMPTY_THEME || themeType === THEME_TYPE.SINGLE) {
          return themeType;
       }
       return this.lr.isThemeExists(name, theme) ? themeType : THEME_TYPE.UNDEFINED;

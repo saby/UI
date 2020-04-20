@@ -70,11 +70,10 @@ export class Controller {
     * в случае ошибки, возвращаются стили в default теме
     * @param themeName
     * @param themes
-    * @returns имя темы, в которой скачаны все темы
+    * @returns имя темы, в которой скачаны все темизированные стили
     */
    getThemes(themeName?: string, themes: string[] = []): Promise<string> {
-      return Promise
-         .all(themes.map((name) => this.get(name, themeName)))
+      return Promise.all(themes.map((name) => this.get(name, themeName)))
          .then(() => themeName)
          .catch((e: Error) => {
             if (!themeName || themeName === DEFAULT_THEME) { throw e; }
