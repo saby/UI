@@ -807,7 +807,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private loadThemes(themeName?: string): Promise<void> {
       // @ts-ignore
       const themes = this._theme instanceof Array ? this._theme : [];
-      return this.constructor['loadThemes'](themeName, themes).catch(logError);
+      return this.constructor['loadThemes'](themeName, themes)
+         .then((themeNameLoaded: string) => { this._options.theme = themeNameLoaded; })
+         .catch(logError);
    }
    private loadStyles(): Promise<void> {
        // @ts-ignore
@@ -1166,8 +1168,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
    /**
     * Загрузка тем контрола
+    * В случае остсутствия темы скачивается default тема
     * @param instStyles опционально дополнительные темы экземпляра
     * @param themeName имя темы (по-умолчанию тема приложения)
+    * @returns имя скаченной темы
     * @static
     * @private
     * @method
@@ -1177,12 +1181,12 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     *         .then((InfoboxTemplate) => InfoboxTemplate.loadThemes('saby__dark'))
     * </pre>
     */
-   static loadThemes(themeName?: string, instThemes: string[] = []): Promise<void> {
+   static loadThemes(themeName?: string, instThemes: string[] = []): Promise<string> {
       const themes = instThemes.concat(this._theme);
       if (themes.length === 0) {
-         return Promise.resolve();
+         return Promise.resolve(themeName);
       }
-      return themeController.getThemes(themeName, themes).then(() => void 0);
+      return themeController.getThemes(themeName, themes);
    }
    /**
     * Загрузка стилей контрола

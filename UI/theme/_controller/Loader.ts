@@ -15,15 +15,26 @@ export default class Loader implements ICssLoader {
    }
 
    getInfo(name: string, theme: string): IThemeInfo {
-      const themeType = this.lr.isNewTheme(name, theme) ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
+      const themeType = this.getThemeType(name, theme);
+      if (name.indexOf('.css') !== -1) {
+         return { themeType, href: name };
+      }
       const href: string = (theme === EMPTY_THEME) ?
          this.lr.resolveLink(name, { ext: 'css' }) :
          this.lr.resolveCssWithTheme(name, theme);
-      return { href, themeType };
+      return { themeType, href };
    }
 
    load(url: string): Promise<void> {
       return fetch.fetch({ url, credentials: 'same-origin' }).then(() => void 0);
+   }
+
+   private getThemeType(name: string, theme: string): THEME_TYPE {
+      const themeType = this.lr.isNewTheme(name) ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
+      if (theme === EMPTY_THEME) {
+         return themeType;
+      }
+      return this.lr.isThemeExists(name, theme) ? themeType : THEME_TYPE.UNDEFINED;
    }
 }
 export interface ICssLoader {

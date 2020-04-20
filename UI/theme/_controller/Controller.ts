@@ -4,7 +4,7 @@ import { HTTP } from 'Browser/_Transport/fetch/Errors';
 // @ts-ignore
 import { cookie } from 'Env/Env';
 import { createEntity, restoreEntity, isLinkEntity, isSingleEntity } from 'UI/theme/_controller/CSS';
-import { DEFAULT_THEME, EMPTY_THEME } from 'UI/theme/_controller/css/const';
+import { DEFAULT_THEME, EMPTY_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
 import { ICssEntity } from 'UI/theme/_controller/css/interface';
 import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
 import Storage from 'UI/theme/_controller/Storage';
@@ -40,6 +40,9 @@ export class Controller {
          return storedEntity.loading.then(() => storedEntity);
       }
       const { href, themeType } = this.cssLoader.getInfo(cssName, theme);
+      if (themeType === THEME_TYPE.UNDEFINED) {
+         return Promise.reject(new Error(`Нет ${cssName} css для темы ${theme}`));
+      }
       const entity = createEntity(href, cssName, theme, themeType);
       /** Еще нескаченный link сохраняется в store, чтобы избежать повторного fetch */
       this.set(entity);
@@ -67,12 +70,16 @@ export class Controller {
     * в случае ошибки, возвращаются стили в default теме
     * @param themeName
     * @param themes
+    * @returns имя темы, в которой скачаны все темы
     */
-   getThemes(themeName?: string, themes: string[] = []): Promise<ICssEntity[]> {
-      return Promise.all(themes.map((name) =>
-         /** При отсутствии css в текущей теме, скачивается default */
-         this.get(name, themeName).catch(() => this.get(name, DEFAULT_THEME))
-      ));
+   getThemes(themeName?: string, themes: string[] = []): Promise<string> {
+      return Promise
+         .all(themes.map((name) => this.get(name, themeName)))
+         .then(() => themeName)
+         .catch((e: Error) => {
+            if (!themeName || themeName === DEFAULT_THEME) { throw e; }
+            return this.getThemes(DEFAULT_THEME, themes);
+         });
    }
    /**
     * Проверка наличия темы `themeName` у контрола `name`
