@@ -103,7 +103,7 @@ export function getElementProps(element: Element): IFocusElementProps {
          tabStop:
          (validTabIndex && tabIndex >= 0) ||
          (tabIndexAttr === null && FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase())) ||
-         (tabIndex !== -1 && element.hasAttribute('contenteditable')),
+         (tabIndex !== -1 && element.getAttribute('contenteditable') === 'true'),
          createsContext: (flags & CLASS_CREATES_CONTEXT) !== 0,
          tabIndex: tabIndex || 0, // обязательно хоть 0
          delegateFocusToChildren: (flags & CLASS_DELEGATES_TAB_FLAG) !== 0,
