@@ -808,7 +808,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // @ts-ignore
       const themes = this._theme instanceof Array ? this._theme : [];
       return this.constructor['loadThemes'](themeName, themes)
-         .then((themeNameLoaded: string) => { this._options.theme = themeNameLoaded; })
+         .then((themeNameLoaded: string) => {
+            if (themeName === themeNameLoaded) { return; }
+            Object.defineProperty(this._options, 'theme', { value: themeNameLoaded });
+         })
          .catch(logError);
    }
    private loadStyles(): Promise<void> {
