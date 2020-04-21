@@ -33,9 +33,7 @@ export enum THEME_TYPE {
     * немультитемные css, при переключении темы остальные темы должны удаляться,
     * т.к возникают конфликты селекторов (они одинаковые)
     */
-   SINGLE = 'signletheme',
-   /** неопределенная в constants тема */
-   UNDEFINED = 'undefinedtheme'
+   SINGLE = 'signletheme'
 }
 /**
  * Устаревшие наименование типов темы

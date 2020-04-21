@@ -1177,10 +1177,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     *         .then((InfoboxTemplate) => InfoboxTemplate.loadThemes('saby__dark'))
     * </pre>
     */
-   static loadThemes(themeName?: string, instThemes: string[] = []): Promise<string> {
+   static loadThemes(themeName?: string, instThemes: string[] = []): Promise<void> {
       const themes = instThemes.concat(this._theme);
       if (themes.length === 0) {
-         return Promise.resolve(themeName);
+         return Promise.resolve();
       }
       return Promise.all(themes.map((name) => themeController.get(name, themeName))).then(() => void 0);
    }
