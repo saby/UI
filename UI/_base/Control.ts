@@ -807,12 +807,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private loadThemes(themeName?: string): Promise<void> {
       // @ts-ignore
       const themes = this._theme instanceof Array ? this._theme : [];
-      return this.constructor['loadThemes'](themeName, themes)
-         .then((themeNameLoaded: string) => {
-            if (themeName === themeNameLoaded) { return; }
-            Object.defineProperty(this._options, 'theme', { value: themeNameLoaded });
-         })
-         .catch(logError);
+      return this.constructor['loadThemes'](themeName, themes).catch(logError);
    }
    private loadStyles(): Promise<void> {
        // @ts-ignore
@@ -1171,10 +1166,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
    /**
     * Загрузка тем контрола
-    * В случае остсутствия темы скачивается default тема
     * @param instStyles опционально дополнительные темы экземпляра
     * @param themeName имя темы (по-умолчанию тема приложения)
-    * @returns имя скаченной темы
     * @static
     * @private
     * @method
@@ -1189,7 +1182,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       if (themes.length === 0) {
          return Promise.resolve(themeName);
       }
-      return themeController.getThemes(themeName, themes);
+      return Promise.all(themes.map((name) => themeController.get(name, themeName))).then(() => void 0);
    }
    /**
     * Загрузка стилей контрола

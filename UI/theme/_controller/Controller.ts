@@ -31,7 +31,7 @@ export class Controller {
     *  - на клиенте `Link` содержит HTMLLinkElement, который монтируется в head
     * При повторном запросе востребованность темы возрастает
     */
-   get(cssName: string, themeName?: string): Promise<ICssEntity> {
+   get(cssName: string, themeName?: string, themeType: THEME_TYPE = THEME_TYPE.MULTI): Promise<ICssEntity> {
       const theme = themeName || this.appTheme;
       if (this.has(cssName, theme)) {
          const storedEntity = this.storage.get(cssName, theme);
@@ -39,10 +39,7 @@ export class Controller {
          /** Еще нескаченные css уже имеются в store, необходимо дождаться окончания монтирования в DOM */
          return storedEntity.loading.then(() => storedEntity);
       }
-      const { href, themeType } = this.cssLoader.getInfo(cssName, theme);
-      if (themeType === THEME_TYPE.UNDEFINED) {
-         return Promise.reject(new Error(`Нет ${cssName} css для темы ${theme}`));
-      }
+      const href = this.cssLoader.getHref(cssName, theme);
       const entity = createEntity(href, cssName, theme, themeType);
       /** Еще нескаченный link сохраняется в store, чтобы избежать повторного fetch */
       this.set(entity);
@@ -63,22 +60,6 @@ export class Controller {
       return this.storage.getCssNames()
          .map((name) => this.storage.getEntitiesByName(name))
          .reduce((prev, cur) => prev.concat(cur), []);
-   }
-
-   /**
-    * Получение темизированных стилей,
-    * в случае ошибки, возвращаются стили в default теме
-    * @param themeName
-    * @param themes
-    * @returns имя темы, в которой скачаны все темизированные стили
-    */
-   getThemes(themeName?: string, themes: string[] = []): Promise<string> {
-      return Promise.all(themes.map((name) => this.get(name, themeName)))
-         .then(() => themeName)
-         .catch((e: Error) => {
-            if (!themeName || themeName === DEFAULT_THEME) { throw e; }
-            return this.getThemes(DEFAULT_THEME, themes);
-         });
    }
    /**
     * Проверка наличия темы `themeName` у контрола `name`

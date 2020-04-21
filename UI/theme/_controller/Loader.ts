@@ -3,7 +3,7 @@
 import * as LinkResolver from 'Core/LinkResolver/LinkResolver';
 // @ts-ignore
 import { constants } from 'Env/Env';
-import { EMPTY_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
+import { EMPTY_THEME } from 'UI/theme/_controller/css/const';
 // @ts-ignore
 import { fetch } from 'Browser/Transport';
 export default class Loader implements ICssLoader {
@@ -14,35 +14,21 @@ export default class Loader implements ICssLoader {
       this.lr = new LinkResolver(isDebug, buildnumber, wsRoot, appRoot, resourceRoot);
    }
 
-   getInfo(name: string, theme: string): IThemeInfo {
-      const themeType = this.getThemeType(name, theme);
+   getHref(name: string, theme: string): string {
       if (name.indexOf('.css') !== -1) {
-         return { themeType, href: name };
+         return name;
       }
-      const href: string = (theme === EMPTY_THEME) ?
-         this.lr.resolveLink(name, { ext: 'css' }) :
-         this.lr.resolveCssWithTheme(name, theme);
-      return { themeType, href };
+      if (theme === EMPTY_THEME) {
+         return this.lr.resolveLink(name, { ext: 'css' });
+      }
+      return this.lr.resolveCssWithTheme(name, theme);
    }
 
    load(url: string): Promise<void> {
       return fetch.fetch({ url, credentials: 'same-origin' }).then(() => void 0);
    }
-
-   private getThemeType(name: string, theme: string): THEME_TYPE {
-      const themeType = this.lr.isNewTheme(name) ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
-      if (theme === EMPTY_THEME || themeType === THEME_TYPE.SINGLE) {
-         return themeType;
-      }
-      return this.lr.isThemeExists(name, theme) ? themeType : THEME_TYPE.UNDEFINED;
-   }
 }
 export interface ICssLoader {
-   getInfo(name: string, theme?: string): IThemeInfo;
+   getHref(name: string, theme?: string): string;
    load(href: string): Promise<void>;
-}
-
-interface IThemeInfo {
-   themeType: THEME_TYPE;
-   href: string;
 }
