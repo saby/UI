@@ -17,6 +17,7 @@ import { IHTMLOptions } from './interface/IHTML';
 import { IRootTemplateOptions } from './interface/IRootTemplate';
 import { headDataStore } from 'UI/_base/HeadData';
 import mountChecker from 'UI/_base/MountChecker';
+import { Stack as MetaStack, IMetaStackInternal } from 'UI/_base/HTML/meta';
 
 // Бывают ситуации, когда страницу открыли и сразу перешли на другую вкладку или перевели компьютер в режим сна.
 // У открытой страницы в фоновом режиме начинают по таймауту отваливаться запросы и страница в итоге не оживает.
@@ -41,7 +42,7 @@ class HTML extends Control {
     private RUMEnabled: Boolean = false;
     private pageName: string = '';
 
-    private title: string = '';
+    private metaStack: IMetaStackInternal;
     private templateConfig: any = null;
     private buildnumber: string = '';
     private appRoot: string = '';
@@ -55,7 +56,6 @@ class HTML extends Control {
     private getResourceUrl: Function = getResourceUrl;
 
     private initState(cfg: any): void {
-        this.title = cfg.title;
         this.templateConfig = cfg.templateConfig;
         this.compat = cfg.compat || false;
     }
@@ -72,7 +72,11 @@ class HTML extends Control {
         if (!receivedState) {
             receivedState = {};
         }
-
+        this.metaStack = MetaStack.deserialize(receivedState.metaStackSer);
+        if (!this.metaStack) {
+            this.metaStack = MetaStack.getInstance();
+            this.metaStack.push({ title: cfg.title });
+        }
         let appData = AppData.getAppData();
 
         this.buildnumber = cfg.buildnumber || constants.buildnumber;
@@ -122,7 +126,7 @@ class HTML extends Control {
             return new Promise((resolve) => {
                 resolve({
                     buildnumber: this.buildnumber,
-                    title: this.title,
+                    metaStackSer: this.metaStack.serialize(),
                     appRoot: this.appRoot,
                     staticDomains: this.staticDomains,
                     RUMEnabled: this.RUMEnabled,
