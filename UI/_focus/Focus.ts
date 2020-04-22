@@ -267,7 +267,7 @@ function focusInner(
    const result = tryMoveFocus(fixedElement, cfg);
    checkFocused(fixedElement);
 
-   if (result) {
+   if (!result) {
       fixScrollingEffect(undoScrolling);
    }
 
