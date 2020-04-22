@@ -4,7 +4,7 @@ import { HTTP } from 'Browser/_Transport/fetch/Errors';
 // @ts-ignore
 import { cookie } from 'Env/Env';
 import { createEntity, restoreEntity, isLinkEntity, isSingleEntity } from 'UI/theme/_controller/CSS';
-import { DEFAULT_THEME, EMPTY_THEME } from 'UI/theme/_controller/css/const';
+import { DEFAULT_THEME, EMPTY_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
 import { ICssEntity } from 'UI/theme/_controller/css/interface';
 import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
 import Storage from 'UI/theme/_controller/Storage';
@@ -31,7 +31,7 @@ export class Controller {
     *  - на клиенте `Link` содержит HTMLLinkElement, который монтируется в head
     * При повторном запросе востребованность темы возрастает
     */
-   get(cssName: string, themeName?: string): Promise<ICssEntity> {
+   get(cssName: string, themeName?: string, themeType: THEME_TYPE = THEME_TYPE.MULTI): Promise<ICssEntity> {
       const theme = themeName || this.appTheme;
       if (this.has(cssName, theme)) {
          const storedEntity = this.storage.get(cssName, theme);
@@ -39,7 +39,7 @@ export class Controller {
          /** Еще нескаченные css уже имеются в store, необходимо дождаться окончания монтирования в DOM */
          return storedEntity.loading.then(() => storedEntity);
       }
-      const { href, themeType } = this.cssLoader.getInfo(cssName, theme);
+      const href = this.cssLoader.getHref(cssName, theme);
       const entity = createEntity(href, cssName, theme, themeType);
       /** Еще нескаченный link сохраняется в store, чтобы избежать повторного fetch */
       this.set(entity);
@@ -60,19 +60,6 @@ export class Controller {
       return this.storage.getCssNames()
          .map((name) => this.storage.getEntitiesByName(name))
          .reduce((prev, cur) => prev.concat(cur), []);
-   }
-
-   /**
-    * Получение темизированных стилей,
-    * в случае ошибки, возвращаются стили в default теме
-    * @param themeName
-    * @param themes
-    */
-   getThemes(themeName?: string, themes: string[] = []): Promise<ICssEntity[]> {
-      return Promise.all(themes.map((name) =>
-         /** При отсутствии css в текущей теме, скачивается default */
-         this.get(name, themeName).catch(() => this.get(name, DEFAULT_THEME))
-      ));
    }
    /**
     * Проверка наличия темы `themeName` у контрола `name`

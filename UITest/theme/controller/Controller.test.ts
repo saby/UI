@@ -31,11 +31,8 @@ class CssLoaderMock implements ICssLoader {
       return Promise.resolve(void 0);
    }
 
-   getInfo(name: string, theme: string) {
-      return {
-         themeType: THEME_TYPE.MULTI,
-         href: createHref(name, theme)
-      };
+   getHref(name: string, theme: string) {
+      return createHref(name, theme);
    }
    /**
     * Загрузчик использовался правильно, если для каждой темы
@@ -145,30 +142,6 @@ describe('UI/theme/_controller/Controller', () => {
                controller.getAll()
                   .forEach((entity) => { assert.instanceOf(entity, LinkPS); });
             });
-      });
-   });
-
-   describe('getThemes', () => {
-
-      it('При отсутствии кастомной темы скачивается default тема', () => {
-         if (!constants.isBrowserPlatform) { return; }
-         const loader2 = new CssLoaderMock([createHref(cssName, themeName)]);
-         const controller2 = new Controller(loader2);
-         return controller2.getThemes(themeName, [cssName])
-            .then(() => {
-               assert.isFalse(controller2.has(cssName, themeName));
-               assert.isTrue(controller2.has(cssName, DEFAULT_THEME));
-               return controller2.remove(cssName, DEFAULT_THEME);
-            });
-      });
-
-      it('При отсутствии кастомной и default темы возвращается Rejected Promise', () => {
-         if (!constants.isBrowserPlatform) { return; }
-         const loader2 = new CssLoaderMock([createHref(cssName, themeName), createHref(cssName, DEFAULT_THEME)]);
-         const controller2 = new Controller(loader2);
-         return controller2.getThemes(themeName, [cssName])
-            .then(() => { assert.fail('При отсутствии кастомной и default темы возвращается Rejected Promise'); })
-            .catch((e) => { assert.instanceOf(e, Error); });
       });
    });
 
