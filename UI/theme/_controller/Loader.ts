@@ -3,7 +3,7 @@
 import * as LinkResolver from 'Core/LinkResolver/LinkResolver';
 // @ts-ignore
 import { constants } from 'Env/Env';
-import { EMPTY_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
+import { EMPTY_THEME } from 'UI/theme/_controller/css/const';
 // @ts-ignore
 import { fetch } from 'Browser/Transport';
 export default class Loader implements ICssLoader {
@@ -14,12 +14,14 @@ export default class Loader implements ICssLoader {
       this.lr = new LinkResolver(isDebug, buildnumber, wsRoot, appRoot, resourceRoot);
    }
 
-   getInfo(name: string, theme: string): IThemeInfo {
-      const themeType = this.lr.isNewTheme(name, theme) ? THEME_TYPE.MULTI : THEME_TYPE.SINGLE;
-      const href: string = (theme === EMPTY_THEME) ?
-         this.lr.resolveLink(name, { ext: 'css' }) :
-         this.lr.resolveCssWithTheme(name, theme);
-      return { href, themeType };
+   getHref(name: string, theme: string): string {
+      if (name.indexOf('.css') !== -1) {
+         return name;
+      }
+      if (theme === EMPTY_THEME) {
+         return this.lr.resolveLink(name, { ext: 'css' });
+      }
+      return this.lr.resolveCssWithTheme(name, theme);
    }
 
    load(url: string): Promise<void> {
@@ -27,11 +29,6 @@ export default class Loader implements ICssLoader {
    }
 }
 export interface ICssLoader {
-   getInfo(name: string, theme?: string): IThemeInfo;
+   getHref(name: string, theme?: string): string;
    load(href: string): Promise<void>;
-}
-
-interface IThemeInfo {
-   themeType: THEME_TYPE;
-   href: string;
 }

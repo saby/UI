@@ -1182,7 +1182,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       if (themes.length === 0) {
          return Promise.resolve();
       }
-      return themeController.getThemes(themeName, themes).then(() => void 0);
+      return Promise.all(themes.map((name) => themeController.get(name, themeName))).then(() => void 0);
    }
    /**
     * Загрузка стилей контрола
