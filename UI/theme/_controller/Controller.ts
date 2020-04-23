@@ -43,13 +43,14 @@ export class Controller {
       const entity = createEntity(href, cssName, theme, themeType);
       /** Еще нескаченный link сохраняется в store, чтобы избежать повторного fetch */
       this.set(entity);
+      const timestamp = Date.now();
       return entity.load(this.cssLoader).then(() => {
          /** Если link успешно скачан и вмонтирован в DOM, удаляем немультитемные стили */
          this.removeSingleEntities(entity);
          return entity;
       }).catch((e: HTTP) =>
          /** Если стилей нет, удаляем link из Store */
-         this.remove(cssName, theme).then(() => { throw decorateError(e); })
+         this.remove(cssName, theme).then(() => { throw decorateError(e, timestamp); })
       );
    }
 
@@ -149,9 +150,13 @@ export class Controller {
       return Controller.instance;
    }
 }
-function decorateError(e: HTTP): Error {
+function decorateError(e: HTTP, timestamp: number): Error {
+   /** в payload html странцы ошибки, stack известен, поэтому не выводим это в консоль */
+   const error = { ...e, payload: void 0, stack: void 0, execution_time_ms: Date.now() - timestamp };
    return new Error(
-      `UI/theme/controller:\n\tCouldn't load: ${e.url}
-      It's probably an error with internet connection or CORS settings.`
+      `UI/theme/controller
+   Couldn't load: ${e.url}
+   It's probably an error with internet connection or CORS settings.
+${JSON.stringify(error, null, 2)}`
    );
 }
