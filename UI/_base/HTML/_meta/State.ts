@@ -1,6 +1,8 @@
 /// <amd-module name="UI/_base/HTML/_meta/State" />
 
 import { IMetaState, IMeta, ISerializedMetaState, IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
+let id = 1;
+const generateGuid = () => id++;
 
 export default class State implements IMetaStateInternal {
    outerHTML: string = '';
@@ -78,6 +80,3 @@ function getTagMargkup(type: string, val: string, guid: string): string {
       ' data-vdomignore="true" />';
 }
 
-function generateGuid(): string {
-   return Math.random().toFixed(9).slice(2);
-}
