@@ -2,6 +2,9 @@
  * Библиотека базового контрола
  * @library UI/Base
  * @includes Control UI/_base/Control
+ * @includes getMetaStack UI/_base/HTML/meta#getMetaStack
+ * @includes IMeta UI/_base/HTML/meta#IMeta
+ * @includes IMetaState UI/_base/HTML/meta#IMetaState
  * @public
  * @author Шипин А.А.
  */
