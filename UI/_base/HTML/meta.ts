@@ -3,9 +3,9 @@
  * Библиотека контроллера meta тегов страницы
  * @remark
  * @library UI/_base/HTML/meta
- * @includes State UI/_base/HTML/_meta/State
- * @includes Stack UI/_base/HTML/_meta/Stack
- * @includes deserializeState UI/_base/HTML/_meta/State#deserializeState
+ * @includes getMetaStack UI/_base/HTML/_meta/Stack
+ * @includes IMeta UI/_base/HTML/_meta/interface#IMeta
+ * @includes IMetaState UI/_base/HTML/_meta/interface#IMetaState
  * @public
  * @author Ибрагимов А.А.
  */

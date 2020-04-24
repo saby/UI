@@ -38,6 +38,14 @@ export default class Stack implements IMetaStackInternal {
    }
 
    //#region API
+   /**
+    * Добавить состояние
+    * @param {IMeta} meta
+    * @example
+    * import { getMetaStack } from 'UI/Base';
+    * const meta: IMeta = { title: 'Page title' }
+    * const state: IMetaState = getMetaStack().push(meta);
+    */
    push(meta: IMeta): IMetaState {
       const state = new State(meta);
       this.linkState(state);
@@ -45,7 +53,17 @@ export default class Stack implements IMetaStackInternal {
       this.lastState = state;
       return state;
    }
-
+   /**
+    * Удалить состояние
+    * @param {IMetaState} state
+    * @example
+    * import { getMetaStack } from 'UI/Base';
+    * const meta: IMeta = { title: 'Page title' }
+    * const stack: IMetaStack = getMetaStack();
+    * const state: IMetaState = stack.push(meta);
+    *  ...
+    * stack.remove(state);
+    */
    remove(externalState: IMetaState): void {
       if (!externalState) { return; }
       const state = this.getStateById(externalState.getId());
