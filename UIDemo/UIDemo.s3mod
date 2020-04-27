@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<ui_module id="85db6f66-683e-4ab1-9531-cfa9a718f696" name="UIDemo" responsible="Белотелов Н.В." version="1.00">
+<ui_module for_cdn="0" id="85db6f66-683e-4ab1-9531-cfa9a718f696" name="UIDemo" package="Платформа" required="0" responsible="Санников К.А." responsible_uuid="eaa71514-f494-4ba4-9655-83ec59b449ef" version="1.00">
 
-  <description/>
+  <description>Демо модулей UI</description>
 
   <depends>
-      <module id="981002dc-65bb-40bc-8489-a18683d011fc" name="UIDemo-default-theme"/>
+    <module id="981002dc-65bb-40bc-8489-a18683d011fc" name="UIDemo-default-theme"/>
+    <module id="f27abe12-19df-4c9f-b886-634bd20a0011" name="UI"/>
   </depends>
 
   <load_after/>
