@@ -14,7 +14,7 @@ import { IStore } from 'Application/Interface';
  * @class UI/_base/HTML/_meta/Stack
  * @public
  * @author Ибрагимов А.А.
- * @implements {IMetaStack}
+ * @implements {UI/_base/HTML/_meta/IMetaStack}
  */
 export default class Stack implements IMetaStackInternal {
    private _lastState: IMetaStateInternal;

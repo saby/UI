@@ -5,7 +5,8 @@ let id = 1;
 const generateGuid = () => id++;
 /**
  * @class UI/_base/HTML/_meta/State
- * @implements {IMetaState}
+ * @implements {UI/_base/HTML/_meta/IMetaState}
+ * @author Ибрагимов А.А.
  */
 export default class State implements IMetaStateInternal {
    outerHTML: string = '';
