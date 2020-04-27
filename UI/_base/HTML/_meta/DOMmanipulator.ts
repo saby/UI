@@ -9,7 +9,7 @@ export function mountState(state: IMetaStateInternal): void {
       .map((tag) => createOpenGraphTag(tag, og[tag]))
       .concat([createTitleElement(title)])
       .map(setAttrs)
-      .forEach((el) => document.head.prepend(el));
+      .forEach((el) => document.head.insertBefore(el, document.head.firstChild));
 }
 
 export function unmountState(state?: IMetaState): void {
