@@ -94,6 +94,10 @@ export default class Stack implements IMetaStackInternal {
    private static instance: Stack;
    static getInstance(): Stack {
       if (Stack.instance) { return Stack.instance; }
+      return Stack.newInstance();
+   }
+
+   static newInstance(): Stack {
       return Stack.instance = new Stack(createStatesStore());
    }
 
@@ -103,7 +107,7 @@ export default class Stack implements IMetaStackInternal {
     * @returns {IMetaStack}
     * @private
     */
-   static deserialize(str: ISerializedMetaStack): IMetaStackInternal {
+   static restore(str: ISerializedMetaStack): IMetaStackInternal {
       if (!str) { return null; }
       const states: IStates = {};
       try {
