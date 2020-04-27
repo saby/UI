@@ -4,14 +4,15 @@ export type ISerializedMetaState = string;
 
 /**
  * Хранилище состояний meta-тегов
- * @interface IMetaStack
+ * @interface UI/_base/HTML/_meta/IMetaStack
  * @public
+ * @author Ибрагимов А.А.
  */
 export interface IMetaStack {
    /**
     * Добавить состояние
-    * @param {IMeta} meta
-    * @returns {IMetaState}
+    * @param {UI/_base/HTML/_meta/IMeta} meta
+    * @returns {UI/_base/HTML/_meta/IMetaState}
     * @example
     * import { getMetaStack } from 'UI/Base';
     * const meta: IMeta = { title: 'Page title' }
@@ -20,7 +21,7 @@ export interface IMetaStack {
    push(meta: IMeta): IMetaState;
    /**
     * Удалить состояние
-    * @param {IMetaState} state
+    * @param {UI/_base/HTML/_meta/IMetaState} state
     * @example
     * import { getMetaStack } from 'UI/Base';
     * const meta: IMeta = { title: 'Page title' }
@@ -44,8 +45,9 @@ export type IDeserializeStack = (s: ISerializedMetaStack) => IMetaStackInternal;
 
 /**
  * Состояние meta-тегов
- * @interface IMetaState
+ * @interface UI/_base/HTML/_meta/IMetaState
  * @public
+ * @author Ибрагимов А.А.
  */
 export interface IMetaState {
    /**
@@ -91,10 +93,9 @@ export interface IMetaStateInternal extends IMetaState {
 export type IDeserializeMeta = (s: ISerializedMetaState) => IMetaStateInternal;
 
 /**
- * @typedef IMeta
+ * @typedef UI/_base/HTML/_meta/IMeta
  * @property {string} title Title страницы
- * @property {IOpenGraph} [og] OpenGraph тэги страницы
- * @interface IMeta
+ * @property {UI/_base/HTML/_meta/IOpenGraph} [og] OpenGraph тэги страницы
  */
 export interface IMeta {
    /** Title страницы */
@@ -102,13 +103,12 @@ export interface IMeta {
    og?: Partial<IOpenGraph>;
 }
 /**
- * @typedef IOpenGraph
+ * @typedef UI/_base/HTML/_meta/IOpenGraph
  * @property {string} description
  * @property {string} title
  * @property {string} image
  * @property {string} type
  * @property {string} url
- * @interface IOpenGraph
  */
 export interface IOpenGraph {
    description: string;

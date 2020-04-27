@@ -15,6 +15,6 @@ export { Stack, IMetaStack, IMeta, IOpenGraph, IMetaState };
  * Возвращает MetaStack (singleton)
  * @name UI/_base/HTML/meta#getMetaStack
  * @function
- * @returns {IMetaStack}
+ * @returns {UI/_base/HTML/_meta/IMetaStack}
  */
 export const getMetaStack: () => IMetaStack = Stack.getInstance;
