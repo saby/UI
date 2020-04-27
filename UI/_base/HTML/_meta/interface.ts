@@ -4,15 +4,14 @@ export type ISerializedMetaState = string;
 
 /**
  * Хранилище состояний meta-тегов
- * @typedef UI/_base/HTML/_meta/interface#IMetaStack
  * @interface IMetaStack
  * @public
  */
 export interface IMetaStack {
    /**
     * Добавить состояние
-    * @param {UI/_base/HTML/_meta/interface#IMeta} meta
-    * @returns {UI/_base/HTML/_meta/interface#IMetaState}
+    * @param {IMeta} meta
+    * @returns {IMetaState}
     * @example
     * import { getMetaStack } from 'UI/Base';
     * const meta: IMeta = { title: 'Page title' }
@@ -21,7 +20,7 @@ export interface IMetaStack {
    push(meta: IMeta): IMetaState;
    /**
     * Удалить состояние
-    * @param {UI/_base/HTML/_meta/interface#IMetaState} state
+    * @param {IMetaState} state
     * @example
     * import { getMetaStack } from 'UI/Base';
     * const meta: IMeta = { title: 'Page title' }
@@ -44,10 +43,7 @@ export interface IMetaStackInternal extends IMetaStack {
 export type IDeserializeStack = (s: ISerializedMetaStack) => IMetaStackInternal;
 
 /**
- * Хранилище состояний meta-тегов представляет собой HashMap вида { id : IMetaState }
- * Для сохранения очередности при сериализации, возможности удалять промежуточные состояния
- * каждый state содержит id предыдущего и последующего MetaState
- * @typedef UI/_base/HTML/_meta/interface#IMetaState
+ * Состояние meta-тегов
  * @interface IMetaState
  * @public
  */
@@ -63,7 +59,7 @@ export interface IMetaState {
     * В виде метода, т.к ссылочная целостность теряется при сериализации
     * @public
     * @method
-    * @param {UI/_base/HTML/_meta/interface#IMetaState} state
+    * @param {IMetaState} state
     * @returns {boolean}
     */
    equal(state: IMetaState): boolean;
@@ -95,9 +91,9 @@ export interface IMetaStateInternal extends IMetaState {
 export type IDeserializeMeta = (s: ISerializedMetaState) => IMetaStateInternal;
 
 /**
- * @typedef UI/_base/HTML/_meta/interface#IMeta
+ * @typedef IMeta
  * @property {string} title Title страницы
- * @property {UI/_base/HTML/_meta/interface#IOpenGraph} [og] OpenGraph тэги страницы
+ * @property {IOpenGraph} [og] OpenGraph тэги страницы
  * @interface IMeta
  */
 export interface IMeta {
@@ -106,7 +102,7 @@ export interface IMeta {
    og?: Partial<IOpenGraph>;
 }
 /**
- * @typedef UI/_base/HTML/_meta/interface#IOpenGraph
+ * @typedef IOpenGraph
  * @property {string} description
  * @property {string} title
  * @property {string} image

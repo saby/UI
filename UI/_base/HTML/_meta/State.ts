@@ -3,7 +3,10 @@
 import { IMetaState, IMeta, ISerializedMetaState, IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
 let id = 1;
 const generateGuid = () => id++;
-
+/**
+ * @class UI/_base/HTML/_meta/State
+ * @implements {IMetaState}
+ */
 export default class State implements IMetaStateInternal {
    outerHTML: string = '';
    constructor(
@@ -79,4 +82,3 @@ function getTagMargkup(type: string, val: string, guid: string): string {
       ` content="${val}" class="${guid}"` +
       ' data-vdomignore="true" />';
 }
-
