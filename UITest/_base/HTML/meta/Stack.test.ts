@@ -3,7 +3,6 @@
 import { IMeta } from 'UI/_base/HTML/meta';
 import Stack from 'UI/_base/HTML/_meta/Stack';
 import State from 'UI/_base/HTML/_meta/State';
-import { createStatesStore } from 'UI/_base/HTML/_meta/Store';
 const meta: IMeta = {
    title: 'Page title',
    og: {
@@ -16,19 +15,19 @@ describe('UI/_base/HTML/_meta/Stack', () => {
 
    describe('constructor', () => {
       it('creates Stack instance', () => {
-         assert.instanceOf(new Stack(createStatesStore()), Stack);
+         assert.instanceOf(Stack.newInstance(), Stack);
       });
    });
 
    describe('push', () => {
       it('returns State instance', () => {
-         assert.instanceOf(new Stack(createStatesStore()).push(meta), State);
+         assert.instanceOf(Stack.newInstance().push(meta), State);
       });
    });
 
    describe('lastState', () => {
       it('returns last state', () => {
-         const stack = new Stack(createStatesStore());
+         const stack = Stack.newInstance();
          stack.push(meta);
          stack.push(meta);
          const lastState = stack.push(meta);
@@ -36,7 +35,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
       });
 
       it('returns last state after removing', () => {
-         const stack = new Stack(createStatesStore());
+         const stack = Stack.newInstance();
          const firstState = stack.push(meta);
          const middleState = stack.push(meta);
          const lastState = stack.push(meta);
@@ -47,7 +46,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
       });
 
       it('throw Error if remove last state', () => {
-         const stack = new Stack(createStatesStore());
+         const stack = Stack.newInstance();
          const firstState = stack.push(meta);
          const middleState = stack.push(meta);
          const lastState = stack.push(meta);
@@ -64,7 +63,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
 
    describe('remove', () => {
       it('removes last state', () => {
-         const stack = new Stack(createStatesStore());
+         const stack = Stack.newInstance();
          stack.push(meta);
          const prevState = stack.push(meta);
          const lastState = stack.push(meta);
@@ -73,7 +72,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
       });
 
       it('removes middle state', () => {
-         const stack = new Stack(createStatesStore());
+         const stack = Stack.newInstance();
          const firstState = stack.push(meta);
          const middleState = stack.push(meta);
          const lastState = stack.push(meta);
@@ -83,7 +82,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
       });
 
       it('removes middle states', () => {
-         const stack = new Stack(createStatesStore());
+         const stack = Stack.newInstance();
          const firstState = stack.push(meta);
          const middleState1 = stack.push(meta);
          const middleState2 = stack.push(meta);
@@ -95,7 +94,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
       });
 
       it('removes first state', () => {
-         const stack = new Stack(createStatesStore());
+         const stack = Stack.newInstance();
          const firstState = stack.push(meta);
          const middleState = stack.push(meta);
          const lastState = stack.push(meta);
@@ -105,7 +104,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
       });
 
       it('removing null doesnt crash ', () => {
-         const stack = new Stack(createStatesStore());
+         const stack = Stack.newInstance();
          try {
             stack.remove(null);
             const lastState = stack.push(meta);
@@ -120,11 +119,11 @@ describe('UI/_base/HTML/_meta/Stack', () => {
 
    describe('serialize', () => {
       it('Restore states after serialization', () => {
-         const stack = new Stack(createStatesStore());
+         const stack = Stack.newInstance();
          const state1 = stack.push(meta);
          const state2 = stack.push(meta);
          const state3 = stack.push(meta);
-         const stackRestored = Stack.deserialize(stack.serialize());
+         const stackRestored = Stack.restore(stack.serialize());
 
          assert.isTrue(stackRestored.lastState.equal(state3));
          stackRestored.remove(state2);
