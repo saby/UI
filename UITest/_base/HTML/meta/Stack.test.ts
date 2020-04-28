@@ -124,7 +124,7 @@ describe('UI/_base/HTML/_meta/Stack', () => {
          const state1 = stack.push(meta);
          const state2 = stack.push(meta);
          const state3 = stack.push(meta);
-         const stackRestored = Stack.deserialize(stack.serialize());
+         const stackRestored = Stack.restore(stack.serialize());
 
          assert.isTrue(stackRestored.lastState.equal(state3));
          stackRestored.remove(state2);
