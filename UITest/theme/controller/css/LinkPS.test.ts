@@ -1,7 +1,7 @@
-import LinkPS from 'UI/theme/_controller/css/LinkPS';
-import { ILoader } from 'UI/theme/_controller/css/interface';
 // import { assert } from 'chai';
 // import 'mocha';
+import LinkPS from 'UI/theme/_controller/css/LinkPS';
+import { ILoader } from 'UI/theme/_controller/css/interface';
 const href = '#Some/href';
 const name = 'Some/Control';
 const theme = 'Some-theme';

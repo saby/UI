@@ -1,11 +1,11 @@
+// import { assert } from 'chai';
+// import 'mocha';
 // @ts-ignore
 import { constants } from 'Env/Env';
 import Link from 'UI/theme/_controller/css/Link';
 import { THEME_TYPE } from 'UI/theme/controller';
 import { IHTMLElement, ILoader } from 'UI/theme/_controller/css/interface';
 import { ELEMENT_ATTR } from 'UI/theme/_controller/css/const';
-// import { assert } from 'chai';
-// import 'mocha';
 const href = '#Some/href';
 const name = 'Some/Control';
 const theme = 'Some-theme';
@@ -65,20 +65,13 @@ describe('UI/theme/_controller/css/Link', () => {
 
       it('load returns Promise<void>', () => {
          const link = new Link(href, name, theme);
-         assert.instanceOf(link.load(loader), Promise);
+         assert.instanceOf(link.load(), Promise);
          link.remove();
-      });
-
-      it('load fetch css by href', () => {
-         const link = new Link(href, name, theme);
-         return link.load(loader)
-            .then(() => { assert.isTrue(href in loader.loads); })
-            .then(() => link.remove());
       });
 
       it('isMounted true after load', () => {
          const link = new Link(href, name, theme);
-         return link.load(loader)
+         return link.load()
             .then(() => { assert.isTrue(link.isMounted); })
             .then(() => link.remove());
       });
