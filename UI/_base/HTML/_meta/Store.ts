@@ -31,15 +31,16 @@ class StateStore implements IStore<IStates> {
    static label: string = 'UI/_base/HTML/_meta/Stack#MetaStore';
 }
 
-export function createStatesStore(states?: IStates): IStore<IStates> {
+export function createStatesStore(states?: IStates): () => IStore<IStates> {
    if (!isInit()) {
       /**
        * Для случаев, когда приложение не инициализированно (unit-тесты)
        * используется локальный Store
        */
-      return new StateStore(states);
+      const store: IStore<IStates> = new StateStore(states);
+      return () => store;
    }
    const createDefaultStore = (s?: IStates): StateStore => new StateStore(s);
    setStore<IStates>(StateStore.label, createDefaultStore(states));
-   return getStore<IStates>(StateStore.label, createDefaultStore);
+   return () => getStore<IStates>(StateStore.label, createDefaultStore);
 }

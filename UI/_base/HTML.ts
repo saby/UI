@@ -72,7 +72,7 @@ class HTML extends Control {
         if (!receivedState) {
             receivedState = {};
         }
-        this.metaStack = MetaStack.deserialize(receivedState.metaStackSer);
+        this.metaStack = MetaStack.restore(receivedState.metaStackSer);
         if (!this.metaStack) {
             this.metaStack = MetaStack.getInstance();
             this.metaStack.push({ title: cfg.title });
