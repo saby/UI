@@ -29,7 +29,7 @@ export default class Stack implements IMetaStackInternal {
       this._lastState = state;
    }
 
-   constructor(private store: IStore<IStates>, lastState?: IMetaStateInternal) {
+   constructor(private getStore: () => IStore<IStates>, lastState?: IMetaStateInternal) {
       if (lastState) {
          this._lastState = lastState;
       }
@@ -56,7 +56,7 @@ export default class Stack implements IMetaStackInternal {
    //#endregion
 
    serialize(): string {
-      const ser = this.store.getKeys()
+      const ser = this.getStore().getKeys()
          .map((id) => this.getStateById(id).serialize());
       return JSON.stringify(ser);
    }
@@ -82,13 +82,13 @@ export default class Stack implements IMetaStackInternal {
       next.setPrevState(prev);
    }
    private getStateById(id: string): IMetaStateInternal | null {
-      return this.store.get(id) || null;
+      return this.getStore().get(id) || null;
    }
    private removeState(state: IMetaStateInternal): void {
-      this.store.remove(state.getId());
+      this.getStore().remove(state.getId());
    }
    private storeState(state: IMetaStateInternal): void {
-      this.store.set(state.getId(), state);
+      this.getStore().set(state.getId(), state);
    }
 
    private static instance: Stack;
@@ -103,7 +103,7 @@ export default class Stack implements IMetaStackInternal {
     * @returns {IMetaStack}
     * @private
     */
-   static deserialize(str: ISerializedMetaStack): IMetaStackInternal {
+   static restore(str: ISerializedMetaStack): IMetaStackInternal {
       if (!str) { return null; }
       const states: IStates = {};
       try {
