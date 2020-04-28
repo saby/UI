@@ -1,8 +1,8 @@
+// import { assert } from 'chai';
+// import 'mocha';
 import Storage from "UI/theme/_controller/Storage";
 import { ICssEntity } from "UI/theme/_controller/css/interface";
 import { DEFAULT_THEME, DEFAULT_THEME_TYPE } from "UI/theme/_controller/css/const";
-// import { assert } from 'chai';
-// import 'mocha';
 const name = 'Some/Control';
 const theme = 'Some-theme';
 

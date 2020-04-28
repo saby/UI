@@ -39,5 +39,5 @@ export abstract class Base implements ICssEntity {
       return Promise.resolve(false);
    }
 
-   abstract load(loader: ILoader): Promise<void>;
+   abstract load(): Promise<void>;
 }

@@ -18,7 +18,7 @@ export default class LinkPS extends Base implements ICssEntity {
       this.outerHtml = getLinkHtml(href, cssName, themeName, this.themeType);
    }
 
-   load(_: ILoader): Promise<void> {
+   load(): Promise<void> {
       this.isMounted = true;
       return this.loading;
    }

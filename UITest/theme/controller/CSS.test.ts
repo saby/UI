@@ -1,15 +1,15 @@
-import { createEntity, restoreEntity, restoreDeprecatedEntity } from 'UI/theme/_controller/CSS';
-// @ts-ignore
-import { constants } from 'Env/Env';
 // import { assert } from 'chai';
 // import 'mocha';
-import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
-import SingleLink from 'UI/theme/_controller/css/SingleLink';
-import LinkPS from 'UI/theme/_controller/css/LinkPS';
-import Link from 'UI/theme/_controller/css/Link';
+// @ts-ignore
+import { constants } from 'Env/Env';
 import { THEME_TYPE } from 'UI/theme/controller';
+import { createEntity, restoreDeprecatedEntity, restoreEntity } from 'UI/theme/_controller/CSS';
+import { DEPRECATED_ELEMENT_ATTR, DEPRECATED_THEME_TYPE, ELEMENT_ATTR, EMPTY_THEME } from 'UI/theme/_controller/css/const';
 import { IHTMLElement } from 'UI/theme/_controller/css/interface';
-import { ELEMENT_ATTR, DEPRECATED_ELEMENT_ATTR, DEPRECATED_THEME_TYPE, EMPTY_THEME } from 'UI/theme/_controller/css/const';
+import Link from 'UI/theme/_controller/css/Link';
+import LinkPS from 'UI/theme/_controller/css/LinkPS';
+import SingleLink from 'UI/theme/_controller/css/SingleLink';
+import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
 
 class LinkMock implements IHTMLElement {
    __removed = false;

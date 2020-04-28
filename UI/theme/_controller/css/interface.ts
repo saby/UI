@@ -51,7 +51,7 @@ export interface ICssEntity {
     * Скачивание стилей
     * @param loader
     */
-   load(loader: ILoader): Promise<void>;
+   load(): Promise<void>;
 }
 /**
  * Сущность, представляющая собой ссылку на таблицу _немультитемных_ стилей

@@ -44,7 +44,7 @@ export class Controller {
       /** Еще нескаченный link сохраняется в store, чтобы избежать повторного fetch */
       this.set(entity);
       const timestamp = Date.now();
-      return entity.load(this.cssLoader).then(() => {
+      return entity.load().then(() => {
          /** Если link успешно скачан и вмонтирован в DOM, удаляем немультитемные стили */
          this.removeSingleEntities(entity);
          return entity;
