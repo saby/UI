@@ -12,7 +12,7 @@ import SingleLink from 'UI/theme/_controller/css/SingleLink';
 import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
 
 class LinkMock implements IHTMLElement {
-   __removed = false;
+   __removed: boolean = false;
    outerHTML = 'test css';
    getAttribute(attr) {
       return this[attr] || null;

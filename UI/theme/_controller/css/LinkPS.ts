@@ -1,6 +1,6 @@
 /// <amd-module name='UI/theme/_controller/css/LinkPS' />
 import { Base } from 'UI/theme/_controller/css/Base';
-import { ICssEntity, ILoader } from 'UI/theme/_controller/css/interface';
+import { ICssEntity } from 'UI/theme/_controller/css/interface';
 import { THEME_TYPE, ELEMENT_ATTR } from 'UI/theme/_controller/css/const';
 
 /**

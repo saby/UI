@@ -65,6 +65,3 @@ export interface IHTMLElement {
    remove(): void;
    getAttribute(a: string): string;
 }
-export interface ILoader {
-   load(href: string): Promise<void>;
-}

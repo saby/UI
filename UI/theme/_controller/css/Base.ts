@@ -1,5 +1,5 @@
 /// <amd-module name='UI/theme/_controller/css/Base' />
-import { ILoader, ICssEntity } from 'UI/theme/_controller/css/interface';
+import { ICssEntity } from 'UI/theme/_controller/css/interface';
 import { DEFAULT_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
 
 export abstract class Base implements ICssEntity {
