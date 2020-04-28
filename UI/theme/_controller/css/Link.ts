@@ -20,13 +20,12 @@ export default class Link extends Base implements ICssEntity {
       this.outerHtml = this.element.outerHTML;
    }
 
-   load(loader: ILoader): Promise<void> {
+   load(_loader: ILoader): Promise<void> {
       /**
        * На клиенте делаем fetch для новых стилей и игнориуем результат т.к монтируем в head стили как link элемент.
        * Браузер кэширует запрошенные через fetch стили, повторной загрузки не будет, а ошибки загрузки перехватываются.
        */
-      this.loading = loader.load(this.href)
-         .then(() => mountElement(this.element))
+      this.loading = mountElement(this.element)
          .then(() => { this.isMounted = true; });
       return this.loading;
    }
