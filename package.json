@@ -15,60 +15,30 @@
    ],
    "scripts": {
       "build": "npm run build:typescript && npm run build:app",
-      "build:typescript": "saby-typescript --install --mode=development",
-      "build:app": "node node_modules/gulp/bin/gulp.js --gulpfile=node_modules/sbis3-builder/gulpfile.js build --config=../../buildTemplate.json",
+      "build:typescript": "wasaby-cli --tasks=prepare",
+      "build:app": "wasaby-cli --tasks=build",
       "compile": "saby-typescript --compiler",
-      "start": "node app --applicationRoot=application",
-      "start:units": "node node_modules/saby-units/cli/server",
-      "test": "saby-units %NODE_DEBUG_OPTION% --isolated",
-      "test:coverage": "saby-units --isolated --report --coverage",
+      "start": "wasaby-cli --tasks=app",
+      "start:units": "wasaby-cli --tasks=startTest --server",
+      "test": "wasaby-cli --tasks=startTest --node --report=console",
+      "test:coverage": "wasaby-cli --tasks=startTest --node --coverage",
       "lint": "node ./node_modules/eslint/bin/eslint --color --no-eslintrc -c=.eslintrc -f=stylish .",
-      "lintless": "stylelint \"Controls/**/*.less\""
+      "lintless": "stylelint \"Controls/**/*.less\"",
+      "prepare": "npm run update-cli-store && npm run build:typescript",
+      "update-cli-store": "wasaby-cli --tasks=initStore"
    },
-   "saby-units": {
-      "moduleType": "amd",
-      "root": "application",
-      "tests": "UITest",
-      "report": "./application/artifacts/xunit-report.xml",
-      "htmlCoverageReport": "./application/artifacts/coverage/index.html",
-      "jsonCoverageReport": "./application/artifacts/coverage.json",
-      "url": {
-         "port": 1023
-      }
-   },
-   "nyc": {
-      "include": [
-         "application/UI/**/*.js"
-      ],
-      "reporter": [
-         "text",
-         "html"
-      ],
-      "cache": false,
-      "eager": true,
-      "report-dir": "./application/artifacts/coverage"
+   "wasaby-cli": {
+      "port": 777
    },
    "dependencies": {},
    "devDependencies": {
-      "sbis3controls": "git+https://git.sbis.ru/sbis/sbis3controls.git#rc-20.4000",
-      "wasaby-controls": "git+https://platform-git.sbis.ru/saby/wasaby-controls.git#rc-20.4000",
       "@tensor-corp/eslint-config": "^2.0.3",
-      "Router": "git+https://platform-git.sbis.ru/saby/Router.git#rc-20.4000",
       "body-parser": "^1.18.3",
-      "cdn": "git+https://platform-git.sbis.ru/saby/wasaby-cdn.git#rc-20.4000",
       "cookie-parser": "^1.4.3",
       "eslint": "^5.6.1",
       "express": "^4.16.3",
       "requirejs": "2.1.18",
-      "rmi": "git+https://git.sbis.ru/sbis/rmi.git#rc-20.4000",
-      "saby-i18n": "git+https://platform-git.sbis.ru/saby/i18n.git#rc-20.4000",
-      "saby-types": "git+https://platform-git.sbis.ru/saby/Types.git#rc-20.4000",
-      "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-20.4000",
-      "saby-units": "git+https://platform-git.sbis.ru/saby/Units.git#rc-20.4000",
-      "saby-inferno": "git+https://platform-git.sbis.ru/saby/inferno.git#rc-20.4000",
-      "sbis3-builder": "git+https://platform-git.sbis.ru/saby/Builder.git#rc-20.4000",
-      "sbis3-ws": "git+https://git.sbis.ru/sbis/ws.git#rc-20.4000",
       "serve-static": "1.11.x",
-      "wasaby-app": "git+https://platform-git.sbis.ru/saby/wasaby-app.git#rc-20.4000"
+      "wasaby-cli": "git+https://platform-git.sbis.ru/saby/wasaby-cli.git#rc-20.4000"
    }
 }
