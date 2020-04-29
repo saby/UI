@@ -133,7 +133,7 @@ export const _private = {
    },
 
    _checkBeforeUnmount: function(control): void {
-      if (control.hasCompatible() && control.isDestroyed()) {
+      if (control.hasCompatible && control.hasCompatible() && control.isDestroyed()) {
          Logger.warn('Флаг _isDestroyed был изменен до разрушения контрола', control);
       }
    }
