@@ -6,6 +6,8 @@
   <depends>
     <module id="981002dc-65bb-40bc-8489-a18683d011fc" name="UIDemo-default-theme"/>
     <module id="f27abe12-19df-4c9f-b886-634bd20a0011" name="UI"/>
+    <module id="f27abe12-19df-4c9f-b886-634bd20a0011" name="Controls"/>
+    <module id="a857d050-c754-4d39-90ec-fca5e2ddf022" name="Router"/>
   </depends>
 
   <load_after/>
