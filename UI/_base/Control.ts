@@ -802,17 +802,20 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       const themes = this._theme instanceof Array ? this._theme : [];
       // @ts-ignore
       const styles = this._styles instanceof Array ? this._styles : [];
-      return this.constructor['isCSSLoaded'](themeName, themes, styles);
+      // в случаях наследования контрола через core-extends, конструктор будет без методов загрузки css
+      return this.constructor['isCSSLoaded']?.(themeName, themes, styles) || true;
    }
    private loadThemes(themeName?: string): Promise<void> {
       // @ts-ignore
       const themes = this._theme instanceof Array ? this._theme : [];
-      return this.constructor['loadThemes'](themeName, themes).catch(logError);
+      // в случаях наследования контрола через core-extends, конструктор будет без методов загрузки css
+      return this.constructor['loadThemes']?.(themeName, themes).catch(logError) || Promise.resolve();
    }
    private loadStyles(): Promise<void> {
        // @ts-ignore
        const styles = this._styles instanceof Array ? this._styles : [];
-      return this.constructor['loadStyles'](styles).catch(logError);
+       // в случаях наследования контрола через core-extends, конструктор будет без методов загрузки css
+      return this.constructor['loadStyles']?.(styles).catch(logError) || Promise.resolve();;
    }
    //#endregion
    /**
@@ -1204,11 +1207,12 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return Promise.all(styles.map((name) => themeController.get(name, EMPTY_THEME))).then(() => void 0);
    }
    /**
-    * Удаление link элементов из DOM 
+    * Удаление стилей и тем контрола
     * @param themeName имя темы (по-умолчанию тема приложения)
     * @param instThemes опционально собственные темы экземпляра
     * @param instStyles опционально собственные стили экземпляра
     * @static
+    * @private
     * @method
     */
    static removeCSS(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): Promise<void> {
