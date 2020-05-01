@@ -4,8 +4,7 @@ import * as LinkResolver from 'Core/LinkResolver/LinkResolver';
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { EMPTY_THEME } from 'UI/theme/_controller/css/const';
-// @ts-ignore
-import { fetch } from 'Browser/Transport';
+
 export default class Loader implements ICssLoader {
    lr: LinkResolver;
 
@@ -23,12 +22,7 @@ export default class Loader implements ICssLoader {
       }
       return this.lr.resolveCssWithTheme(name, theme);
    }
-
-   load(url: string): Promise<void> {
-      return fetch.fetch({ url, credentials: 'same-origin' }).then(() => void 0);
-   }
 }
 export interface ICssLoader {
    getHref(name: string, theme?: string): string;
-   load(href: string): Promise<void>;
 }

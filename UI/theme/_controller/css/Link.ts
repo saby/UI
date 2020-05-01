@@ -1,6 +1,6 @@
 /// <amd-module name='UI/theme/_controller/css/Link' />
 import { Base } from 'UI/theme/_controller/css/Base';
-import { IHTMLElement, ICssEntity, ILoader } from 'UI/theme/_controller/css/interface';
+import { IHTMLElement, ICssEntity } from 'UI/theme/_controller/css/interface';
 import { THEME_TYPE, ELEMENT_ATTR } from 'UI/theme/_controller/css/const';
 /**
  * Мультитемная ссылка на клиенте
@@ -20,14 +20,14 @@ export default class Link extends Base implements ICssEntity {
       this.outerHtml = this.element.outerHTML;
    }
 
-   load(loader: ILoader): Promise<void> {
+   load(): Promise<void> {
       /**
        * На клиенте делаем fetch для новых стилей и игнориуем результат т.к монтируем в head стили как link элемент.
        * Браузер кэширует запрошенные через fetch стили, повторной загрузки не будет, а ошибки загрузки перехватываются.
        */
-      this.loading = loader.load(this.href)
-         .then(() => mountElement(this.element))
-         .then(() => { this.isMounted = true; });
+      this.loading = mountElement(this.element)
+         .then(() => { this.isMounted = true; })
+         .catch((e) => { this.element.remove(); throw e; });
       return this.loading;
    }
 

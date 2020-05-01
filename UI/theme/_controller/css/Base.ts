@@ -1,5 +1,5 @@
 /// <amd-module name='UI/theme/_controller/css/Base' />
-import { ILoader, ICssEntity } from 'UI/theme/_controller/css/interface';
+import { ICssEntity } from 'UI/theme/_controller/css/interface';
 import { DEFAULT_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
 
 export abstract class Base implements ICssEntity {
@@ -39,5 +39,5 @@ export abstract class Base implements ICssEntity {
       return Promise.resolve(false);
    }
 
-   abstract load(loader: ILoader): Promise<void>;
+   abstract load(): Promise<void>;
 }
