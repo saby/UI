@@ -1,38 +1,29 @@
-import { Controller } from 'UI/theme/_controller/Controller';
-// @ts-ignore
-import { constants } from 'Env/Env';
-import { THEME_TYPE, DEFAULT_THEME, EMPTY_THEME } from 'UI/theme/_controller/css/const';
-import Link from 'UI/theme/_controller/css/Link';
-import { ICssLoader } from 'UI/theme/_controller/Loader';
-import LinkPS from 'UI/theme/_controller/css/LinkPS';
 // import { assert } from 'chai';
 // import 'mocha';
+// @ts-ignore
+import { constants } from 'Env/Env';
+import { Controller } from 'UI/theme/_controller/Controller';
+import { EMPTY_THEME } from 'UI/theme/_controller/css/const';
+import Link from 'UI/theme/_controller/css/Link';
+import LinkPS from 'UI/theme/_controller/css/LinkPS';
+import { ICssLoader } from 'UI/theme/_controller/Loader';
 
 const cssName = 'Some/Control';
 const themeName = 'Some/Theme';
 
 /** добавляем # в начало href, чтобы не сыпались ошибки о ненайденных стилях */
 const sharp = '#';
-const createHref = (name: string, theme: string) => [sharp, name, theme].join('-');
+const createValidHref = (name: string, theme: string) => [sharp, name, theme].join('-');
+const createBrokenHref = (name: string, theme: string) => [name, theme].join('-');
 class CssLoaderMock implements ICssLoader {
    loads: object = {};
 
-   constructor(private forbidden: string[] = []) { }
-
-   load(href: string): Promise<void> {
-      if (this.forbidden.includes(href)) {
-         return Promise.reject(new Error('theme is not exists'));
-      }
-      const [sharp, name, theme]: string[] = href.split('-');
-      if (!this.loads[name]) {
-         this.loads[name] = {};
-      }
-      this.loads[name][theme] = this.loads[name][theme] ? this.loads[name][theme] + 1 : 1;
-      return Promise.resolve(void 0);
+   constructor(private createHref = createValidHref) {
+      this.getHref = this.getHref.bind(this);
    }
 
-   getHref(name: string, theme: string) {
-      return createHref(name, theme);
+   getHref(name: string, theme: string): string {
+      return this.createHref(name, theme);
    }
    /**
     * Загрузчик использовался правильно, если для каждой темы
@@ -108,7 +99,7 @@ describe('UI/theme/_controller/Controller', () => {
 
       it('При ошибке скачивания стилей, link не сохраняется в Store', () => {
          if (!constants.isBrowserPlatform) { return; }
-         const loader2 = new CssLoaderMock([createHref(cssName, themeName)]);
+         const loader2 = new CssLoaderMock(createBrokenHref);
          const controller2 = new Controller(loader2);
          return controller2.get(cssName, themeName)
             .then(() => { assert.fail('При ошибке скачивания стилей должен возвращаться Rejected Promise'); })

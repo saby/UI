@@ -51,7 +51,7 @@ export interface ICssEntity {
     * Скачивание стилей
     * @param loader
     */
-   load(loader: ILoader): Promise<void>;
+   load(): Promise<void>;
 }
 /**
  * Сущность, представляющая собой ссылку на таблицу _немультитемных_ стилей
@@ -64,7 +64,4 @@ export interface IHTMLElement {
    outerHTML: string;
    remove(): void;
    getAttribute(a: string): string;
-}
-export interface ILoader {
-   load(href: string): Promise<void>;
 }
