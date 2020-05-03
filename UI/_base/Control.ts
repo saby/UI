@@ -130,6 +130,12 @@ export const _private = {
             _private._checkAsyncExecuteTime(startTime, customBLExecuteTime, moduleName);
          }
       );
+   },
+
+   _checkBeforeUnmount: function(control): void {
+      if (control.hasCompatible && control.hasCompatible() && control.isDestroyed()) {
+         Logger.warn('Флаг _isDestroyed был изменен до разрушения контрола', control);
+      }
    }
 };
 
@@ -1079,6 +1085,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    __beforeUnmount(): void {
       this._beforeUnmount.apply(this, arguments);
+      _private._checkBeforeUnmount(this);
    }
 
    /**
@@ -1134,7 +1141,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    /**
     * Массив имен темизированных стилей, необходимых контролу.
     * Все стили будут скачаны при создании
-    * 
+    *
     * @static
     * @example
     * <pre>
@@ -1204,7 +1211,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return Promise.all(styles.map((name) => themeController.get(name, EMPTY_THEME))).then(() => void 0);
    }
    /**
-    * Удаление link элементов из DOM 
+    * Удаление link элементов из DOM
     * @param themeName имя темы (по-умолчанию тема приложения)
     * @param instThemes опционально собственные темы экземпляра
     * @param instStyles опционально собственные стили экземпляра
@@ -1231,7 +1238,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          styles.every((cssName) => themeController.isMounted(cssName, EMPTY_THEME));
    }
    //#endregion
-   
+
    static extend(mixinsList: any, classExtender: any): Function {
       // @ts-ignore
       if (!require.defined('Core/core-extend')) {
