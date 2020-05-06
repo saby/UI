@@ -1,7 +1,5 @@
 /// <amd-module name='UI/theme/_controller/Controller' />
 // @ts-ignore
-import { HTTP } from 'Browser/_Transport/fetch/Errors';
-// @ts-ignore
 import { cookie } from 'Env/Env';
 import { createEntity, restoreEntity, isLinkEntity, isSingleEntity } from 'UI/theme/_controller/CSS';
 import { DEFAULT_THEME, EMPTY_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
@@ -47,7 +45,7 @@ export class Controller {
          /** Если link успешно скачан и вмонтирован в DOM, удаляем немультитемные стили */
          this.removeSingleEntities(entity);
          return entity;
-      }).catch((e: HTTP) =>
+      }).catch((e: Error) =>
          /** Если стилей нет, удаляем link из Store */
          this.remove(cssName, theme).then(() => { throw decorateError(e); })
       );
@@ -149,10 +147,10 @@ export class Controller {
       return Controller.instance;
    }
 }
-function decorateError(e: HTTP): Error {
+function decorateError(e: Error): Error {
    return new Error(
       `UI/theme/controller
-   Couldn't load: ${e.url}
+   Couldn't load: ${e.message}
    It's probably an error with internet connection or CORS settings.`
    );
 }
