@@ -29,11 +29,12 @@ mountChecker.start();
 
 interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
     // Добавим здесь поля для RUM-статистики Потому что их нам нужно сериализовать в wsConfig, чтобы потом получить на клиенте.
-    RUMEnabled: boolean,
-    pageName: string
+    RUMEnabled: boolean;
+    pageName: string;
+    title: string;
 }
 
-class HTML extends Control {
+class HTML extends Control<IHTMLCombinedOptions> {
     _template: Function = template;
 
     private onServer: Boolean = false;
@@ -142,6 +143,11 @@ class HTML extends Control {
         }
     }
 
+    _beforeUpdate(options: IHTMLCombinedOptions): void {
+        if (options.title !== this._options.title) {
+            this.metaStack.push({ title: options.title });
+        }
+    }
     _afterMount(): void {
         mountChecker.stop();
         function inIframe() {
