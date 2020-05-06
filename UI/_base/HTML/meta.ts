@@ -9,8 +9,8 @@
  */
 export { default as State } from 'UI/_base/HTML/_meta/State';
 import Stack from 'UI/_base/HTML/_meta/Stack';
-import { IMetaStack, IMeta, IOpenGraph, IMetaState } from 'UI/_base/HTML/_meta/interface';
-export { Stack, IMetaStack, IMeta, IOpenGraph, IMetaState };
+import { IMetaStack, IMetaStackInternal, IMeta, IOpenGraph, IMetaState } from 'UI/_base/HTML/_meta/interface';
+export { Stack, IMetaStack, IMetaStackInternal, IMeta, IOpenGraph, IMetaState };
 /**
  * Возвращает MetaStack (singleton)
  * @name UI/_base/HTML/meta#getMetaStack
