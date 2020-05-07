@@ -791,9 +791,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    //#region CSS private
    private isDeprecatedCSS(): boolean {
       // @ts-ignore
-      const isDeprecatedCSS = !!(this._theme && !(this._theme instanceof Array) || this._styles && !(this._styles instanceof Array));
+      const isDeprecatedCSS = this._theme instanceof Array || this._styles instanceof Array;
       if (isDeprecatedCSS) {
-         Logger.error("Стили и темы должны перечисляться в статическом свойстве класса " + this._moduleName);
+         Logger.warn("Стили и темы должны перечисляться в статическом свойстве класса " + this._moduleName);
       }
       return isDeprecatedCSS;
    }
