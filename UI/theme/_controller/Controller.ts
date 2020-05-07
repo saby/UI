@@ -43,7 +43,8 @@ export class Controller {
       this.set(entity);
       return entity.load().then(() => {
          /** Если link успешно скачан и вмонтирован в DOM, удаляем немультитемные стили */
-         return this.removeSingleEntities(entity.cssName, entity.themeName).then(() => entity);
+         this.removeSingleEntities(entity.cssName, entity.themeName);
+         return entity;
       }).catch((e: Error) =>
          /** Если стилей нет, удаляем link из Store */
          this.remove(cssName, theme).then(() => { throw decorateError(e); })
@@ -122,14 +123,13 @@ export class Controller {
     * при добавлении темы, немультитемные темы должны удаляться,
     * т.к возникают конфликты селекторов (они одинаковые)
     */
-   private removeSingleEntities(cssName: string, themeName: string): Promise<void> {
-      const removing = this.storage.getEntitiesBy(cssName)
+   private removeSingleEntities(cssName: string, themeName: string): void {
+      this.storage.getEntitiesBy(cssName)
          .filter(isSingleEntity)
          .filter((entity) => entity.themeName !== themeName)
          .map((singleLink) => this.storage
             .remove(singleLink.cssName, singleLink.themeName)
             .then(() => singleLink.removeForce()));
-      return Promise.all(removing).then(() => void 0);
    }
 
    /**
