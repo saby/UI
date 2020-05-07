@@ -145,7 +145,9 @@ class HTML extends Control<IHTMLCombinedOptions> {
 
     _beforeUpdate(options: IHTMLCombinedOptions): void {
         if (options.title !== this._options.title) {
+            const prevState = this.metaStack.lastState;
             this.metaStack.push({ title: options.title });
+            this.metaStack.remove(prevState);
         }
     }
     _afterMount(): void {
