@@ -4,6 +4,7 @@ import { IMeta } from 'UI/_base/HTML/meta';
 import Stack from 'UI/_base/HTML/_meta/Stack';
 import State from 'UI/_base/HTML/_meta/State';
 import { createStatesStore } from 'UI/_base/HTML/_meta/Store';
+import { IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
 const meta: IMeta = {
    title: 'Page title',
    og: {
@@ -35,6 +36,17 @@ describe('UI/_base/HTML/_meta/Stack', () => {
          assert.isTrue(stack.lastState.equal(lastState));
       });
 
+      it('link states after middle state removing', () => {
+         const stack = new Stack(createStatesStore());
+         const firstState = stack.push(meta) as IMetaStateInternal;
+         const middleState = stack.push(meta);
+         const lastState = stack.push(meta);
+         stack.remove(middleState);
+         assert.isTrue(stack.lastState.equal(lastState));
+         assert.strictEqual(stack.lastState.getPrevStateId(), firstState.getId());
+         assert.strictEqual(firstState.getNextStateId(), lastState.getId());
+      });
+
       it('returns last state after removing', () => {
          const stack = new Stack(createStatesStore());
          const firstState = stack.push(meta);
@@ -43,7 +55,6 @@ describe('UI/_base/HTML/_meta/Stack', () => {
          stack.remove(middleState);
          stack.remove(lastState);
          assert.isTrue(stack.lastState.equal(firstState));
-         assert.isUndefined(stack.lastState.getPrevStateId(), firstState.getId());
       });
 
       it('throw Error if remove last state', () => {
