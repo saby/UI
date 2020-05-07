@@ -43,8 +43,7 @@ export class Controller {
       this.set(entity);
       return entity.load().then(() => {
          /** Если link успешно скачан и вмонтирован в DOM, удаляем немультитемные стили */
-         this.removeSingleEntities(entity);
-         return entity;
+         return this.removeSingleEntities(entity.cssName, entity.themeName).then(() => entity);
       }).catch((e: Error) =>
          /** Если стилей нет, удаляем link из Store */
          this.remove(cssName, theme).then(() => { throw decorateError(e); })
@@ -55,8 +54,8 @@ export class Controller {
     * Получение всех сохраненных CssEntity
     */
    getAll(): ICssEntity[] {
-      return this.storage.getCssNames()
-         .map((name) => this.storage.getEntitiesByName(name))
+      return this.storage.getAllCssNames()
+         .map((name) => this.storage.getEntitiesBy(name))
          .reduce((prev, cur) => prev.concat(cur), []);
    }
    /**
@@ -82,10 +81,18 @@ export class Controller {
          return Promise.resolve();
       }
       this.appTheme = themeName;
-      const themeLoading = this.storage.getCssNames()
-         /** Скачиваем тему только темизированным css */
-         .filter((name) => this.storage.getThemeNames(name).indexOf(EMPTY_THEME) === -1)
-         .map((name) => this.get(name, themeName));
+      const themeLoading = this.storage
+         .getAllCssNames()
+         .map((cssName) => {
+            const themes = this.storage.getThemeNamesFor(cssName);
+            /** Скачиваем тему только темизированным css */
+            if (themes.indexOf(EMPTY_THEME) !== -1 || themes.indexOf(themeName) !== -1) {
+               return Promise.resolve(null);
+            }
+            const entity = this.storage.get(cssName, themes[0]);
+            const themeType = isSingleEntity(entity) ? THEME_TYPE.SINGLE : THEME_TYPE.MULTI;
+            return this.get(cssName, themeName, themeType);
+         });
       return Promise.all(themeLoading).then(() => void 0);
    }
 
@@ -115,11 +122,14 @@ export class Controller {
     * при добавлении темы, немультитемные темы должны удаляться,
     * т.к возникают конфликты селекторов (они одинаковые)
     */
-   private removeSingleEntities(link: ICssEntity): void {
-      this.storage.getEntitiesByName(link.cssName)
+   private removeSingleEntities(cssName: string, themeName: string): Promise<void> {
+      const removing = this.storage.getEntitiesBy(cssName)
          .filter(isSingleEntity)
-         .filter((entity) => entity.themeName !== link.themeName)
-         .forEach((singleLink) => singleLink.removeForce());
+         .filter((entity) => entity.themeName !== themeName)
+         .map((singleLink) => this.storage
+            .remove(singleLink.cssName, singleLink.themeName)
+            .then(() => singleLink.removeForce()));
+      return Promise.all(removing).then(() => void 0);
    }
 
    /**
