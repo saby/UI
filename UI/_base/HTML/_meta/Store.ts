@@ -4,6 +4,7 @@ import { getStore, setStore } from 'Application/Env';
 import { isInit } from 'Application/Initializer';
 import { IStore } from 'Application/Interface';
 import { IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
+import { constants } from 'Env/Env';
 
 export type IStates = Record<string, IMetaStateInternal>;
 
@@ -32,7 +33,7 @@ class StateStore implements IStore<IStates> {
 }
 
 export function createStatesStore(states?: IStates): () => IStore<IStates> {
-   if (!isInit()) {
+   if (constants.isBrowserPlatform || !isInit()) {
       /**
        * Для случаев, когда приложение не инициализированно (unit-тесты)
        * используется локальный Store
