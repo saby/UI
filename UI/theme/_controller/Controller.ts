@@ -127,9 +127,9 @@ export class Controller {
       this.storage.getEntitiesBy(cssName)
          .filter(isSingleEntity)
          .filter((entity) => entity.themeName !== themeName)
-         .map((singleLink) => this.storage
-            .remove(singleLink.cssName, singleLink.themeName)
-            .then(() => singleLink.removeForce()));
+         .forEach((singleLink) => singleLink.removeForce().then(() =>
+            this.storage.remove(singleLink.cssName, singleLink.themeName))
+         );
    }
 
    /**
