@@ -82,18 +82,18 @@ export class Controller {
          return Promise.resolve();
       }
       this.appTheme = themeName;
-      const themeLoading = this.storage
-         .getAllCssNames()
-         .map((cssName) => {
+      const themeLoading: Array<Promise<ICssEntity>> = this.storage.getAllCssNames()
+         .map((cssName): Promise<ICssEntity> | null => {
             const themes = this.storage.getThemeNamesFor(cssName);
             /** Скачиваем тему только темизированным css */
             if (themes.indexOf(EMPTY_THEME) !== -1 || themes.indexOf(themeName) !== -1) {
-               return Promise.resolve(null);
+               return null;
             }
             const entity = this.storage.get(cssName, themes[0]);
             const themeType = isSingleEntity(entity) ? THEME_TYPE.SINGLE : THEME_TYPE.MULTI;
             return this.get(cssName, themeName, themeType);
-         });
+         })
+         .filter((loading): loading is Promise<ICssEntity> => loading instanceof Promise);
       return Promise.all(themeLoading).then(() => void 0);
    }
 
