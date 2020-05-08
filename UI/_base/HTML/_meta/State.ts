@@ -1,8 +1,9 @@
 /// <amd-module name="UI/_base/HTML/_meta/State" />
 
 import { IMetaState, IMeta, ISerializedMetaState, IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
+const prefix = typeof window === 'undefined' ? 'ps-' : '';
 let id = 1;
-const generateGuid = () => id++;
+const generateGuid = () => `state-${prefix}${id++}`;
 /**
  * @class UI/_base/HTML/_meta/State
  * @implements {UI/_base/HTML/_meta/IMetaState}
@@ -12,7 +13,7 @@ export default class State implements IMetaStateInternal {
    outerHTML: string = '';
    constructor(
       private _meta: IMeta,
-      private readonly _guid: string = 'state-' + generateGuid(),
+      private readonly _guid: string = generateGuid(),
       private _nextStateId: string = void 0,
       private _prevStateId: string = void 0
    ) {
