@@ -30,31 +30,25 @@ export class Controller {
     * При повторном запросе востребованность темы возрастает
     */
    get(cssName: string, themeName?: string, themeType: THEME_TYPE = THEME_TYPE.MULTI): Promise<ICssEntity> {
-      try {
-         const theme = themeName || this.appTheme;
-         if (this.has(cssName, theme)) {
-            const storedEntity = this.storage.get(cssName, theme);
-            storedEntity.require();
-            /** Еще нескаченные css уже имеются в store, необходимо дождаться окончания монтирования в DOM */
-            return storedEntity.loading.then(() => storedEntity);
-         }
-         const href = this.cssLoader.getHref(cssName, theme);
-         const entity = createEntity(href, cssName, theme, themeType);
-         /** Еще нескаченный link сохраняется в store, чтобы избежать повторного fetch */
-         this.set(entity);
-         return entity.load().then(() => {
-            /** Если link успешно скачан и вмонтирован в DOM, удаляем немультитемные стили */
-            this.removeSingleEntities(entity.cssName, entity.themeName);
-            return entity;
-         }).catch((e: Error) =>
-            /** Если стилей нет, удаляем link из Store */
-            this.remove(cssName, theme).then(() => { throw decorateError(e); })
-         );
-      } catch (e) {
-         import('UI/Utils').then(({ Logger }) => {
-            Logger.error(JSON.stringify(e, null, 2));
-         });
+      const theme = themeName || this.appTheme;
+      if (this.has(cssName, theme)) {
+         const storedEntity = this.storage.get(cssName, theme);
+         storedEntity.require();
+         /** Еще нескаченные css уже имеются в store, необходимо дождаться окончания монтирования в DOM */
+         return storedEntity.loading.then(() => storedEntity);
       }
+      const href = this.cssLoader.getHref(cssName, theme);
+      const entity = createEntity(href, cssName, theme, themeType);
+      /** Еще нескаченный link сохраняется в store, чтобы избежать повторного fetch */
+      this.set(entity);
+      return entity.load().then(() => {
+         /** Если link успешно скачан и вмонтирован в DOM, удаляем немультитемные стили */
+         this.removeSingleEntities(entity.cssName, entity.themeName);
+         return entity;
+      }).catch((e: Error) =>
+         /** Если стилей нет, удаляем link из Store */
+         this.remove(cssName, theme).then(() => { throw decorateError(e); })
+      );
    }
 
    /**
@@ -84,29 +78,23 @@ export class Controller {
     * @param {string} themeName
     */
    setTheme(themeName: string): Promise<void> {
-      try {
-         if (!themeName || themeName === this.appTheme) {
-            return Promise.resolve();
-         }
-         this.appTheme = themeName;
-         const themeLoading: Array<Promise<ICssEntity>> = this.storage.getAllCssNames()
-            .map((cssName): Promise<ICssEntity> | null => {
-               const themes = this.storage.getThemeNamesFor(cssName);
-               /** Скачиваем тему только темизированным css */
-               if (themes.indexOf(EMPTY_THEME) !== -1 || themes.indexOf(themeName) !== -1) {
-                  return null;
-               }
-               const entity = this.storage.get(cssName, themes[0]);
-               const themeType = isSingleEntity(entity) ? THEME_TYPE.SINGLE : THEME_TYPE.MULTI;
-               return this.get(cssName, themeName, themeType);
-            })
-            .filter((loading): loading is Promise<ICssEntity> => loading instanceof Promise);
-         return Promise.all(themeLoading).then(() => void 0);
-      } catch (e) {
-         import('UI/Utils').then(({ Logger }) => {
-            Logger.error(JSON.stringify(e, null, 2));
-         });
+      if (!themeName || themeName === this.appTheme) {
+         return Promise.resolve();
       }
+      this.appTheme = themeName;
+      const themeLoading: Array<Promise<ICssEntity>> = this.storage.getAllCssNames()
+         .map((cssName): Promise<ICssEntity> | null => {
+            const themes = this.storage.getThemeNamesFor(cssName);
+            /** Скачиваем тему только темизированным css */
+            if (themes.indexOf(EMPTY_THEME) !== -1 || themes.indexOf(themeName) !== -1) {
+               return null;
+            }
+            const entity = this.storage.get(cssName, themes[0]);
+            const themeType = isSingleEntity(entity) ? THEME_TYPE.SINGLE : THEME_TYPE.MULTI;
+            return this.get(cssName, themeName, themeType);
+         })
+         .filter((loading): loading is Promise<ICssEntity> => loading instanceof Promise);
+      return Promise.all(themeLoading).then(() => void 0);
    }
 
    /**
@@ -172,7 +160,7 @@ export class Controller {
 function decorateError(e: Error): Error {
    return new Error(
       `UI/theme/controller
-   Couldn't load: ${JSON.stringify(e)}
+   Couldn't load: ${e.message}
    It's probably an error with internet connection or CORS settings.`
    );
 }
