@@ -1,6 +1,7 @@
 /// <amd-module name='UI/theme/_controller/Controller' />
 // @ts-ignore
 import { cookie } from 'Env/Env';
+import { Logger } from 'UI/Utils';
 import { createEntity, restoreEntity, isLinkEntity, isSingleEntity } from 'UI/theme/_controller/CSS';
 import { DEFAULT_THEME, EMPTY_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
 import { ICssEntity } from 'UI/theme/_controller/css/interface';
@@ -42,6 +43,7 @@ export class Controller {
       /** Еще нескаченный link сохраняется в store, чтобы избежать повторного fetch */
       this.set(entity);
       return entity.load().then(() => {
+         if (theme === EMPTY_THEME) { return entity; }
          /** Если link успешно скачан и вмонтирован в DOM, удаляем немультитемные стили */
          this.removeSingleEntities(entity.cssName, entity.themeName);
          return entity;
@@ -127,8 +129,10 @@ export class Controller {
       this.storage.getEntitiesBy(cssName)
          .filter(isSingleEntity)
          .filter((entity) => entity.themeName !== themeName)
-         .forEach((singleLink) => singleLink.removeForce().then(() =>
-            this.storage.remove(singleLink.cssName, singleLink.themeName))
+         .forEach((singleLink) =>
+            singleLink.removeForce()
+               .then(() => this.storage.remove(singleLink.cssName, singleLink.themeName))
+               .catch((e: Error) => { Logger.error(JSON.stringify(e)); })
          );
    }
 
@@ -160,7 +164,7 @@ export class Controller {
 function decorateError(e: Error): Error {
    return new Error(
       `UI/theme/controller
-   Couldn't load: ${e.message}
+   ${e.message}
    It's probably an error with internet connection or CORS settings.`
    );
 }
