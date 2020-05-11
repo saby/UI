@@ -132,7 +132,7 @@ export class Controller {
          .forEach((singleLink) =>
             singleLink.removeForce()
                .then(() => this.storage.remove(singleLink.cssName, singleLink.themeName))
-               .catch((e: Error) => { Logger.error(JSON.stringify(e)); })
+               .catch((e: Error) => { Logger.error(e.stack); })
          );
    }
 
