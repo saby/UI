@@ -12,25 +12,10 @@ import { constants } from 'Env/Env';
 
 import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
 // @ts-ignore
-import PromiseLib = require('Core/PromiseLib/PromiseLib');
-// @ts-ignore
 import ReactiveObserver = require('Core/ReactiveObserver');
 
-import * as Expressions from 'View/Executor/Expressions';
-import * as Utils from 'View/Executor/Utils';
-import * as Markup from 'View/Executor/Markup';
-import * as Vdom from 'Vdom/Vdom';
-import * as DevtoolsHook from 'Vdom/DevtoolsHook';
-import * as FocusLib from 'UI/Focus';
 import startApplication from 'UI/_base/startApplication';
 import { headDataStore } from 'UI/_base/HeadData';
-
-// @ts-ignore
-import * as Hydrate from 'Inferno/third-party/hydrate';
-
-if (Hydrate.initInferno) {
-   Hydrate.initInferno(Expressions, Utils, Markup, Vdom, FocusLib, DevtoolsHook);
-}
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
 
@@ -1134,7 +1119,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    /**
     * Массив имен темизированных стилей, необходимых контролу.
     * Все стили будут скачаны при создании
-    * 
+    *
     * @static
     * @example
     * <pre>
@@ -1204,7 +1189,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return Promise.all(styles.map((name) => themeController.get(name, EMPTY_THEME))).then(() => void 0);
    }
    /**
-    * Удаление link элементов из DOM 
+    * Удаление link элементов из DOM
     * @param themeName имя темы (по-умолчанию тема приложения)
     * @param instThemes опционально собственные темы экземпляра
     * @param instStyles опционально собственные стили экземпляра
@@ -1231,7 +1216,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          styles.every((cssName) => themeController.isMounted(cssName, EMPTY_THEME));
    }
    //#endregion
-   
+
    static extend(mixinsList: any, classExtender: any): Function {
       // @ts-ignore
       if (!require.defined('Core/core-extend')) {
