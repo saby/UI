@@ -3,9 +3,11 @@ import { ICssEntity } from 'UI/theme/_controller/css/interface';
 import { getStore as getAppStore, setStore as setAppStore } from 'Application/Env';
 import { isInit } from 'Application/Initializer';
 import { IStore } from 'Application/Interface';
+// @ts-ignore
 import { constants } from 'Env/Env';
 
-type IThemesDescripion<T> = Partial<{ [theme: string]: T; }>;
+type IThemesDescripion = Partial<{ [theme: string]: ICssEntity; }>;
+interface IEntities { [name: string]: IThemesDescripion; }
 
 /**
  * Хранилище тем
@@ -85,8 +87,6 @@ export default class Storage {
       return this.getThemeNamesFor(cssName).map((theme) => this.get(cssName, theme));
    }
 }
-
-interface IEntities { [name: string]: IThemesDescripion<ICssEntity>; }
 
 class EntityStore implements IStore<IEntities> {
    private data: IEntities = Object.create(null);
