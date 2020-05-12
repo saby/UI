@@ -1,8 +1,7 @@
 /// <amd-module name='UI/theme/_controller/Controller' />
 // @ts-ignore
-import { HTTP } from 'Browser/_Transport/fetch/Errors';
-// @ts-ignore
 import { cookie } from 'Env/Env';
+import { Logger } from 'UI/Utils';
 import { createEntity, restoreEntity, isLinkEntity, isSingleEntity } from 'UI/theme/_controller/CSS';
 import { DEFAULT_THEME, EMPTY_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
 import { ICssEntity } from 'UI/theme/_controller/css/interface';
@@ -44,10 +43,11 @@ export class Controller {
       /** Еще нескаченный link сохраняется в store, чтобы избежать повторного fetch */
       this.set(entity);
       return entity.load().then(() => {
+         if (theme === EMPTY_THEME) { return entity; }
          /** Если link успешно скачан и вмонтирован в DOM, удаляем немультитемные стили */
-         this.removeSingleEntities(entity);
+         this.removeSingleEntities(entity.cssName, entity.themeName);
          return entity;
-      }).catch((e: HTTP) =>
+      }).catch((e: Error) =>
          /** Если стилей нет, удаляем link из Store */
          this.remove(cssName, theme).then(() => { throw decorateError(e); })
       );
@@ -57,8 +57,8 @@ export class Controller {
     * Получение всех сохраненных CssEntity
     */
    getAll(): ICssEntity[] {
-      return this.storage.getCssNames()
-         .map((name) => this.storage.getEntitiesByName(name))
+      return this.storage.getAllCssNames()
+         .map((name) => this.storage.getEntitiesBy(name))
          .reduce((prev, cur) => prev.concat(cur), []);
    }
    /**
@@ -84,10 +84,18 @@ export class Controller {
          return Promise.resolve();
       }
       this.appTheme = themeName;
-      const themeLoading = this.storage.getCssNames()
-         /** Скачиваем тему только темизированным css */
-         .filter((name) => this.storage.getThemeNames(name).indexOf(EMPTY_THEME) === -1)
-         .map((name) => this.get(name, themeName));
+      const themeLoading: Array<Promise<ICssEntity>> = this.storage.getAllCssNames()
+         .map((cssName): Promise<ICssEntity> | null => {
+            const themes = this.storage.getThemeNamesFor(cssName);
+            /** Скачиваем тему только темизированным css */
+            if (themes.indexOf(EMPTY_THEME) !== -1 || themes.indexOf(themeName) !== -1) {
+               return null;
+            }
+            const entity = this.storage.get(cssName, themes[0]);
+            const themeType = isSingleEntity(entity) ? THEME_TYPE.SINGLE : THEME_TYPE.MULTI;
+            return this.get(cssName, themeName, themeType);
+         })
+         .filter((loading): loading is Promise<ICssEntity> => loading instanceof Promise);
       return Promise.all(themeLoading).then(() => void 0);
    }
 
@@ -117,11 +125,15 @@ export class Controller {
     * при добавлении темы, немультитемные темы должны удаляться,
     * т.к возникают конфликты селекторов (они одинаковые)
     */
-   private removeSingleEntities(link: ICssEntity): void {
-      this.storage.getEntitiesByName(link.cssName)
+   private removeSingleEntities(cssName: string, themeName: string): void {
+      this.storage.getEntitiesBy(cssName)
          .filter(isSingleEntity)
-         .filter((entity) => entity.themeName !== link.themeName)
-         .forEach((singleLink) => singleLink.removeForce());
+         .filter((entity) => entity.themeName !== themeName)
+         .forEach((singleLink) =>
+            singleLink.removeForce()
+               .then(() => this.storage.remove(singleLink.cssName, singleLink.themeName))
+               .catch((e: Error) => { Logger.error(e.stack); })
+         );
    }
 
    /**
@@ -149,10 +161,10 @@ export class Controller {
       return Controller.instance;
    }
 }
-function decorateError(e: HTTP): Error {
+function decorateError(e: Error): Error {
    return new Error(
       `UI/theme/controller
-   Couldn't load: ${e.url}
+   ${e.message}
    It's probably an error with internet connection or CORS settings.`
    );
 }
