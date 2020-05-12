@@ -68,13 +68,22 @@ const TIMEOUT = 30000;
  */
 function mountElement(el: IHTMLElement): Promise<void> {
    return new Promise((resolve, reject) => {
+      const timestamp = Date.now();
+      const onerror = () => {
+         reject(new Error(
+            'Couldn\'t load ' + el.getAttribute(ELEMENT_ATTR.HREF) + ' in ' + (Date.now() - timestamp) + ' ms.\n\t' +
+            el.getAttribute(ELEMENT_ATTR.THEME_TYPE) + ' css ' +
+            el.getAttribute(ELEMENT_ATTR.NAME) + ' for ' +
+            el.getAttribute(ELEMENT_ATTR.THEME) + ' theme.')
+         );
+      };
       try {
          document.head.appendChild(el as HTMLLinkElement);
          (el as HTMLLinkElement).addEventListener('load', resolve.bind(null));
-         (el as HTMLLinkElement).addEventListener('error', reject.bind(null));
-         setTimeout(() => { reject(new Error(`CSS не загрузилась за ${TIMEOUT}ms`)); }, TIMEOUT);
-      } catch (e) {
-         reject(e);
+         (el as HTMLLinkElement).addEventListener('error', onerror);
+         setTimeout(onerror, TIMEOUT);
+      } catch (_) {
+         onerror();
       }
    });
 }
