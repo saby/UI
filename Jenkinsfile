@@ -1,4 +1,4 @@
-@Library('pipeline@bugfix/logs_ps') _
+@Library('pipeline') _
 
 def version = '20.3100'
 
