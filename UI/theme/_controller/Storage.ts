@@ -3,9 +3,11 @@ import { ICssEntity } from 'UI/theme/_controller/css/interface';
 import { getStore as getAppStore, setStore as setAppStore } from 'Application/Env';
 import { isInit } from 'Application/Initializer';
 import { IStore } from 'Application/Interface';
+// @ts-ignore
 import { constants } from 'Env/Env';
 
-type IThemesDescripion<T> = Partial<{ [theme: string]: T; }>;
+type IThemesDescripion = Partial<{ [theme: string]: ICssEntity; }>;
+interface IEntities { [name: string]: IThemesDescripion; }
 
 /**
  * Хранилище тем
@@ -86,8 +88,6 @@ export default class Storage {
    }
 }
 
-interface IEntities { [name: string]: IThemesDescripion<ICssEntity>; }
-
 class EntityStore implements IStore<IEntities> {
    private data: IEntities = Object.create(null);
 
@@ -111,12 +111,12 @@ class EntityStore implements IStore<IEntities> {
    static label: string = 'UI/theme/_controller/Storage#CssEntityStore';
 }
 function createEntityStore(): () => IStore<IEntities> {
+   const store = new EntityStore();
    if (constants.isBrowserPlatform || !isInit()) {
       /**
        * Для случаев, когда приложение не инициализированно (unit-тесты)
        * используется локальный EntityStore
        */
-      const store = new EntityStore();
       return () => store;
    }
    /**
@@ -125,5 +125,5 @@ function createEntityStore(): () => IStore<IEntities> {
     */
    const createDefaultStore = (): EntityStore => new EntityStore();
    setAppStore<IEntities>(EntityStore.label, createDefaultStore());
-   return () => getAppStore<IEntities>(EntityStore.label, createDefaultStore);
+   return () => isInit() ? getAppStore<IEntities>(EntityStore.label, createDefaultStore) : store;
 }
