@@ -111,12 +111,12 @@ class EntityStore implements IStore<IEntities> {
    static label: string = 'UI/theme/_controller/Storage#CssEntityStore';
 }
 function createEntityStore(): () => IStore<IEntities> {
+   const store = new EntityStore();
    if (constants.isBrowserPlatform || !isInit()) {
       /**
        * Для случаев, когда приложение не инициализированно (unit-тесты)
        * используется локальный EntityStore
        */
-      const store = new EntityStore();
       return () => store;
    }
    /**
@@ -125,5 +125,5 @@ function createEntityStore(): () => IStore<IEntities> {
     */
    const createDefaultStore = (): EntityStore => new EntityStore();
    setAppStore<IEntities>(EntityStore.label, createDefaultStore());
-   return () => getAppStore<IEntities>(EntityStore.label, createDefaultStore);
+   return () => isInit() ? getAppStore<IEntities>(EntityStore.label, createDefaultStore) : store;
 }
