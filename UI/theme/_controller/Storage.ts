@@ -1,35 +1,38 @@
 /// <amd-module name='UI/theme/_controller/Storage' />
 import { ICssEntity } from 'UI/theme/_controller/css/interface';
-import { getStore, setStore } from 'Application/Env';
+import { getStore as getAppStore, setStore as setAppStore } from 'Application/Env';
 import { isInit } from 'Application/Initializer';
 import { IStore } from 'Application/Interface';
+// @ts-ignore
 import { constants } from 'Env/Env';
 
-type IThemesDescripion<T> = Partial<{ [theme: string]: T; }>;
+type IThemesDescripion = Partial<{ [theme: string]: ICssEntity; }>;
+interface IEntities { [name: string]: IThemesDescripion; }
 
 /**
  * Хранилище тем
  */
 export default class Storage {
    constructor(
-      private store: IStore<IEntities> = createEntityStore()
+      private getStore: () => IStore<IEntities> = createEntityStore()
    ) { }
    /**
     * Сохранить `entity` в Store
     */
    set(entity: ICssEntity): void {
-      if (this.getThemeNames(entity.cssName).length === 0) {
-         this.store.set(entity.cssName, { [entity.themeName]: entity });
+      const store = this.getStore();
+      if (this.getThemeNamesFor(entity.cssName).length === 0) {
+         store.set(entity.cssName, { [entity.themeName]: entity });
          return;
       }
-      this.store.set(entity.cssName, { ...this.store.get(entity.cssName), [entity.themeName]: entity });
+      store.set(entity.cssName, { ...store.get(entity.cssName), [entity.themeName]: entity });
    }
 
    /**
     * Проверка наличия темы `theme` у контрола `name`
     */
    has(cssName: string, themeName: string): boolean {
-      return typeof this.store.get(cssName)?.[themeName] !== 'undefined';
+      return typeof this.getStore().get(cssName)?.[themeName] !== 'undefined';
    }
 
    /**
@@ -41,7 +44,7 @@ export default class Storage {
       if (!this.has(cssName, themeName)) {
          throw new Error(`CSS ${cssName} for ${themeName} theme is not exists!`);
       }
-      return this.store.get(cssName)[themeName];
+      return this.getStore().get(cssName)[themeName];
    }
 
    /**
@@ -51,39 +54,39 @@ export default class Storage {
    remove(cssName: string, themeName: string): Promise<boolean> {
       return this.get(cssName, themeName).remove().then((isRemoved) => {
          if (isRemoved) {
-            const themes = this.store.get(cssName);
+            const themes = this.getStore().get(cssName);
             delete themes[themeName];
-            this.store.set(cssName, themes);
+            this.getStore().set(cssName, themes);
          }
          return isRemoved;
       });
    }
 
    clear(): void {
-      this.store = createEntityStore();
+      this.getStore = createEntityStore();
    }
+
    /**
     * Возвращает массив имен css в store
     */
-   getCssNames(): string[] {
-      return this.store.getKeys();
-   }
-   /**
-    * Возвращает массив ICssEntity всех сохраненных тем по имени
-    */
-   getEntitiesByName(cssName: string): ICssEntity[] {
-      return this.getThemeNames(cssName).map((theme) => this.get(cssName, theme));
+   getAllCssNames(): string[] {
+      return this.getStore().getKeys();
    }
 
    /**
     * Возвращает массив имен тем для cssName
     */
-   getThemeNames(cssName: string): string[] {
-      return Object.keys(this.store.get(cssName) || []);
+   getThemeNamesFor(cssName: string): string[] {
+      return Object.keys(this.getStore().get(cssName) || []);
+   }
+
+   /**
+    * Возвращает массив ICssEntity всех сохраненных тем по имени
+    */
+   getEntitiesBy(cssName: string): ICssEntity[] {
+      return this.getThemeNamesFor(cssName).map((theme) => this.get(cssName, theme));
    }
 }
-
-interface IEntities { [name: string]: IThemesDescripion<ICssEntity>; }
 
 class EntityStore implements IStore<IEntities> {
    private data: IEntities = Object.create(null);
@@ -107,20 +110,20 @@ class EntityStore implements IStore<IEntities> {
 
    static label: string = 'UI/theme/_controller/Storage#CssEntityStore';
 }
-
-function createEntityStore(): IStore<IEntities> {
+function createEntityStore(): () => IStore<IEntities> {
+   const store = new EntityStore();
    if (constants.isBrowserPlatform || !isInit()) {
       /**
        * Для случаев, когда приложение не инициализированно (unit-тесты)
        * используется локальный EntityStore
        */
-      return new EntityStore();
+      return () => store;
    }
    /**
     * на СП используется Application Store, чтобы css разных потоков не перемешивались,
     * т.к theme/controller является singleton'ом
     */
    const createDefaultStore = (): EntityStore => new EntityStore();
-   setStore<IEntities>(EntityStore.label, createDefaultStore());
-   return getStore<IEntities>(EntityStore.label, createDefaultStore);
+   setAppStore<IEntities>(EntityStore.label, createDefaultStore());
+   return () => isInit() ? getAppStore<IEntities>(EntityStore.label, createDefaultStore) : store;
 }
