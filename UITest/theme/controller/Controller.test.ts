@@ -3,7 +3,7 @@
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { Controller } from 'UI/theme/_controller/Controller';
-import { EMPTY_THEME } from 'UI/theme/_controller/css/const';
+import { EMPTY_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
 import Link from 'UI/theme/_controller/css/Link';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
 import { ICssLoader } from 'UI/theme/_controller/Loader';
@@ -18,23 +18,12 @@ const createBrokenHref = (name: string, theme: string) => [name, theme].join('-'
 class CssLoaderMock implements ICssLoader {
    loads: object = {};
 
-   constructor(private createHref = createValidHref) {
+   constructor(private createHref: (name: string, theme: string) => string = createValidHref) {
       this.getHref = this.getHref.bind(this);
    }
 
    getHref(name: string, theme: string): string {
       return this.createHref(name, theme);
-   }
-   /**
-    * Загрузчик использовался правильно, если для каждой темы
-    * стили загружались только 1 раз
-    */
-   isValid(): boolean {
-      if (!constants.isBrowserPlatform) { return true; }
-      return Object.keys(this.loads).every((name) =>
-         Object.keys(this.loads[name]).every((theme) =>
-            this.loads[name][theme] === 1)
-      );
    }
 }
 
@@ -84,7 +73,6 @@ describe('UI/theme/_controller/Controller', () => {
          return controller.get(cssName, themeName)
             .then(() => controller.get(cssName, themeName))
             .then(() => controller.get(cssName, themeName))
-            .then(() => { assert.isTrue(loader.isValid()); })
             .then(() => controller.remove(cssName, themeName))
             .then(() => controller.remove(cssName, themeName));
       });
@@ -93,8 +81,7 @@ describe('UI/theme/_controller/Controller', () => {
          if (!constants.isBrowserPlatform) { return; }
          const theme2 = 'Another/Theme';
          return controller.get(cssName, themeName)
-            .then(() => controller.get(cssName, theme2))
-            .then(() => { assert.isTrue(loader.isValid()); });
+            .then(() => controller.get(cssName, theme2));
       });
 
       it('При ошибке скачивания стилей, link не сохраняется в Store', () => {
@@ -103,7 +90,7 @@ describe('UI/theme/_controller/Controller', () => {
          const controller2 = new Controller(loader2);
          return controller2.get(cssName, themeName)
             .then(() => { assert.fail('При ошибке скачивания стилей должен возвращаться Rejected Promise'); })
-            .catch((e) => {
+            .catch((_e) => {
                assert.isFalse(controller2.has(cssName, themeName));
             });
       });
@@ -153,19 +140,18 @@ describe('UI/theme/_controller/Controller', () => {
    describe('setTheme', () => {
       setHooks();
 
-      const name2 = 'Another/Control';
-      const theme2 = 'Another/Theme';
+      const cssName2 = 'Another/Control';
+      const themeName2 = 'Another/Theme';
 
       it('При установке темы запрашиваются стили для всех контролов', () => {
          return controller.get(cssName, themeName)
-            .then(() => controller.get(name2, themeName))
-            .then(() => controller.setTheme(theme2))
+            .then(() => controller.get(cssName2, themeName))
+            .then(() => controller.setTheme(themeName2))
             .then(() => {
                assert.isTrue(controller.has(cssName, themeName));
-               assert.isTrue(controller.has(name2, themeName));
-               assert.isTrue(controller.has(cssName, theme2));
-               assert.isTrue(controller.has(name2, theme2));
-               assert.isTrue(loader.isValid());
+               assert.isTrue(controller.has(cssName2, themeName));
+               assert.isTrue(controller.has(cssName, themeName2));
+               assert.isTrue(controller.has(cssName2, themeName2));
             });
       });
 
@@ -175,7 +161,14 @@ describe('UI/theme/_controller/Controller', () => {
             .then(() => {
                assert.isTrue(controller.has(cssName, EMPTY_THEME));
                assert.isFalse(controller.has(cssName, themeName));
-               assert.isTrue(loader.isValid());
+            });
+      });
+      it('Немультитемы удаляются при переключении темы', () => {
+         return controller.get(cssName, themeName, THEME_TYPE.SINGLE)
+            .then(() => controller.setTheme(themeName2))
+            .then(() => {
+               assert.isFalse(controller.has(cssName, themeName));
+               assert.isTrue(controller.has(cssName, themeName2));
             });
       });
    });

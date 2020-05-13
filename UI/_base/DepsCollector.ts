@@ -132,6 +132,7 @@ function getPacksNames(allDeps = {}, isUnpackModule: (key: string) => boolean, b
    Object.keys(allDeps).forEach((moduleName) => {
       const bundleName = bundlesRoute[moduleName];
       if (!bundleName) { return; }
+      Logger.info(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${moduleName} in bundle ${bundleName}`);
       delete allDeps[moduleName];
       const ext = getExt(bundleName);
       const packageName = getPackageName(bundleName);
@@ -169,6 +170,7 @@ function getCssPackages(allDeps: any, isUnpackModule: (key: string) => boolean, 
          let noParamsName = removeThemeParam(key);
          const bundleName = bundlesRoute[noParamsName];
          if (bundleName) {
+            Logger.info(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${key} in bundle ${bundleName}`);
             delete allDeps[key];
             const packageName = getPackageName(bundleName);
             if (unpackBundles.indexOf(packageName) !== -1) { continue; }
