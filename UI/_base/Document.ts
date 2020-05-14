@@ -8,7 +8,6 @@ import { getThemeController } from 'UI/theme/controller';
 import * as AppEnv from 'Application/Env';
 import { headDataStore } from 'UI/_base/HeadData';
 import AppData from './AppData';
-import startApplication from 'UI/_base/startApplication';
 
 class Document extends Control {
     _template = template;
@@ -32,7 +31,6 @@ class Document extends Control {
         } catch (e) {
         }
 
-        startApplication(cfg);
         // Временно положим это в HeadData, потом это переедет в константы реквеста
         // Если запуск страницы начинается с UI/Base:Document, значит мы находимся в новом окружении
         headDataStore.write('isNewEnvironment', true);
