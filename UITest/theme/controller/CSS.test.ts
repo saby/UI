@@ -10,10 +10,14 @@ import Link from 'UI/theme/_controller/css/Link';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
 import SingleLink from 'UI/theme/_controller/css/SingleLink';
 import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
+import { getHtmlMarkup } from 'UI/theme/_controller/css/Base';
 
 class LinkMock implements IHTMLElement {
    __removed: boolean = false;
-   outerHTML = 'test css';
+   outerHTML: string = '';
+   constructor (href, name, theme, themeType) {
+      this.outerHTML = getHtmlMarkup(href, name, theme, themeType);
+   }
    getAttribute(attr) {
       return this[attr] || null;
    }
@@ -23,12 +27,12 @@ class LinkMock implements IHTMLElement {
 }
 
 class LinkElementMock extends LinkMock {
-   constructor(
+   constructor (
       href: string,
       name: string,
       theme: string,
       themeType: THEME_TYPE) {
-      super();
+      super(href, name, theme, themeType);
       this[ELEMENT_ATTR.HREF] = href;
       this[ELEMENT_ATTR.NAME] = name;
       this[ELEMENT_ATTR.THEME] = theme;
@@ -37,12 +41,12 @@ class LinkElementMock extends LinkMock {
 }
 
 class DeprecatedLinkElementMock extends LinkMock {
-   constructor(
+   constructor (
       href: string,
       name: string,
       theme: string,
       themeType: DEPRECATED_THEME_TYPE) {
-      super();
+      super(href, name, theme, themeType);
       this[DEPRECATED_ELEMENT_ATTR.HREF] = href;
       this[DEPRECATED_ELEMENT_ATTR.NAME] = name;
       this[DEPRECATED_ELEMENT_ATTR.THEME] = theme;

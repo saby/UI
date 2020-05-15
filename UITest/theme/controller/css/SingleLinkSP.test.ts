@@ -1,5 +1,5 @@
 import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
-import { ILoader } from 'UI/theme/_controller/css/interface';
+import { THEME_TYPE } from 'UI/theme/controller';
 // import { assert } from 'chai';
 // import 'mocha';
 
@@ -7,27 +7,25 @@ const href = '#Some/href';
 const name = 'Some/Control';
 const theme = 'Some-theme';
 
-class LoaderMock implements ILoader {
-   load(_: string): Promise<void> {
-      return Promise.resolve(void 0);
-   }
-}
 
 let link: SingleLinkPS;
-let loader: LoaderMock;
 
 describe('UI/theme/_controller/css/SingleLinkPS', () => {
 
    const setHooks = () => {
-      beforeEach(() => {
-         link = new SingleLinkPS(href, name, theme);
-         loader = new LoaderMock();
-      });
-      afterEach(() => {
-         link = null;
-         loader = null;
-      });
+      beforeEach(() => { link = new SingleLinkPS(href, name, theme); });
+      afterEach(() => { link = null; });
    };
+
+   describe('outerHtml', () => {
+      setHooks();
+      it('outerHtml непустая строка', () => {
+         assert.isString(link.outerHtml);
+      });
+      [href, name, theme, THEME_TYPE.SINGLE].forEach((attr) => {
+         it('Разметка содержит ' + attr, () => { assert.include(link.outerHtml, attr, 'Разметка не содержит ' + attr); });
+      });
+   });
 
    describe('removeForce', () => {
       setHooks();

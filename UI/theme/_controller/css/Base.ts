@@ -1,10 +1,8 @@
 /// <amd-module name='UI/theme/_controller/css/Base' />
 import { ICssEntity } from 'UI/theme/_controller/css/interface';
-import { DEFAULT_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
+import { DEFAULT_THEME, THEME_TYPE, ELEMENT_ATTR } from 'UI/theme/_controller/css/const';
 
 export abstract class Base implements ICssEntity {
-   /** Тип темы */
-   protected abstract themeType: THEME_TYPE;
    outerHtml: string = '';
    isMounted: boolean = false;
    loading: Promise<void> = Promise.resolve();
@@ -18,12 +16,14 @@ export abstract class Base implements ICssEntity {
    constructor(
       public href: string,
       public cssName: string,
-      public themeName: string = DEFAULT_THEME
+      public themeName: string = DEFAULT_THEME,
+      public themeType: THEME_TYPE = THEME_TYPE.MULTI
    ) {
       if (!href || !cssName) {
          throw new Error(`Invalid arguments href - ${href} or cssName - ${cssName}`);
       }
       this.remove = this.remove.bind(this);
+      this.outerHtml = getHtmlMarkup(href, cssName, themeName, themeType);
    }
 
    require(): void {
@@ -40,4 +40,12 @@ export abstract class Base implements ICssEntity {
    }
 
    abstract load(): Promise<void>;
+}
+
+export function getHtmlMarkup(href: string, name: string, theme: string, themeType: THEME_TYPE): string {
+   return '<link rel="stylesheet" type="text/css" data-vdomignore="true" ' +
+      `${ELEMENT_ATTR.THEME_TYPE}="${themeType}" ` +
+      `${ELEMENT_ATTR.THEME}="${theme}" ` +
+      `${ELEMENT_ATTR.NAME}="${name}" ` +
+      `${ELEMENT_ATTR.HREF}="${href}"/>`;
 }
