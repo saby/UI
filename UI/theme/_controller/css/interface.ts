@@ -1,9 +1,11 @@
 /// <amd-module name='UI/theme/_controller/css/interface' />
+import { THEME_TYPE } from 'UI/theme/_controller/css/const';
 /**
  * Сущность, представляющая собой ссылку на таблицу _мультитемных_ стилей
  * Используется для подключения внешних тем в head
  */
 export interface ICssEntity {
+   themeType: THEME_TYPE;
    /** Вмонтирована ли CssEntity в разметку */
    isMounted: boolean;
    /** Процесс загрузки css */

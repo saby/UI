@@ -1,40 +1,29 @@
 // import { assert } from 'chai';
 // import 'mocha';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
-import { ILoader } from 'UI/theme/_controller/css/interface';
+import { THEME_TYPE } from 'UI/theme/controller';
+import { getHtmlMarkup } from 'UI/theme/_controller/css/Base';
 const href = '#Some/href';
 const name = 'Some/Control';
 const theme = 'Some-theme';
 
-class LoaderMock implements ILoader {
-   load(_: string): Promise<void> {
-      return Promise.resolve(void 0);
-   }
-}
 
 let link: LinkPS;
-let loader: LoaderMock;
 
 describe('UI/theme/_controller/css/LinkPS', () => {
 
    const setHooks = () => {
-      beforeEach(() => {
-         link = new LinkPS(href, name, theme);
-         loader = new LoaderMock();
-      });
-      afterEach(() => {
-         link = null;
-         loader = null;
-      });
+      beforeEach(() => { link = new LinkPS(href, name, theme); });
+      afterEach(() => { link = null; });
    };
    describe('load', () => {
       setHooks();
       it('load returns Promise<void>', () => {
-         assert.instanceOf(link.load(loader), Promise);
+         assert.instanceOf(link.load(), Promise);
       });
 
       it('isMounted true after load', () => {
-         return link.load(loader)
+         return link.load()
             .then(() => { assert.isTrue(link.isMounted); })
             .then(() => link.remove());
       });
@@ -44,6 +33,14 @@ describe('UI/theme/_controller/css/LinkPS', () => {
       setHooks();
       it('outerHtml непустая строка', () => {
          assert.isString(link.outerHtml);
+      });
+
+      it('outerHtml возвращает html разметку', () => {
+         const html = getHtmlMarkup(href, name, theme, THEME_TYPE.MULTI);
+         assert.strictEqual(link.outerHtml, html);
+      });
+      [href, name, theme, THEME_TYPE.MULTI].forEach((attr) => {
+         it('Разметка содержит ' + attr, () => { assert.include(link.outerHtml, attr, 'Разметка не содержит ' + attr); });
       });
    });
 
