@@ -1263,7 +1263,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       if (constants.compat) {
          cfg.iWantBeWS3 = true;
          cfg.element = domElement;
-         cfg.parent = cfg.parent || goUpByControlTree(domElement);
+         cfg.parent = cfg.parent || goUpByControlTree(domElement)[0];
       }
       cfg._$createdFromCode = true;
 
