@@ -1,36 +1,7 @@
 import { warn } from '../Logger';
 import needLog from './needLog';
 
-// TODO: по задаче
-// https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
-const asyncPurifyTimeout = 10000;
-
 const typesToPurify: string[] = ['object', 'function'];
-
-const queue: [Record<string, any>, string, Record<string, boolean>, number][] = [];
-let isQueueStarted: boolean = false;
-
-function releaseQueue(): void {
-    const currentTimestamp: number = Date.now();
-    while (queue.length) {
-        const [instance, instanceName, stateNamesNoPurify, timestamp] = queue[0];
-        if (currentTimestamp - timestamp < asyncPurifyTimeout) {
-            setTimeout(releaseQueue, asyncPurifyTimeout);
-            return;
-        }
-        queue.shift();
-        purifyInstanceSync(instance, instanceName, stateNamesNoPurify);
-    }
-    isQueueStarted = false;
-}
-
-/*function addToQueue(instance: Record<string, any>, instanceName: string, stateNamesNoPurify: Record<string, boolean> = {}): void {
-    queue.push([instance, instanceName, stateNamesNoPurify, Date.now()]);
-    if (!isQueueStarted) {
-        isQueueStarted = true;
-        setTimeout(releaseQueue, asyncPurifyTimeout);
-    }
-}*/
 
 function createUseAfterPurifyErrorFunction(stateName: string, instanceName: string): () => void {
     return function useAfterPurify() {
