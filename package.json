@@ -30,7 +30,9 @@
    "wasaby-cli": {
       "port": 777
    },
-   "dependencies": {},
+   "dependencies": {
+      "saby-typescript": "git+https://platform-git.sbis.ru/saby/TypeScript.git#rc-20.4000"
+   },
    "devDependencies": {
       "@tensor-corp/eslint-config": "^2.0.3",
       "body-parser": "^1.18.3",
