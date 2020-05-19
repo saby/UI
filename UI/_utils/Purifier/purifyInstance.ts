@@ -24,13 +24,13 @@ function releaseQueue(): void {
     isQueueStarted = false;
 }
 
-function addToQueue(instance: Record<string, any>, instanceName: string, stateNamesNoPurify: Record<string, boolean> = {}): void {
+/*function addToQueue(instance: Record<string, any>, instanceName: string, stateNamesNoPurify: Record<string, boolean> = {}): void {
     queue.push([instance, instanceName, stateNamesNoPurify, Date.now()]);
     if (!isQueueStarted) {
         isQueueStarted = true;
         setTimeout(releaseQueue, asyncPurifyTimeout);
     }
-}
+}*/
 
 function createUseAfterPurifyErrorFunction(stateName: string, instanceName: string): () => void {
     return function useAfterPurify() {
