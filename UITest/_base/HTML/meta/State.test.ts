@@ -19,6 +19,25 @@ describe('UI/_base/HTML/_meta/State', () => {
 
    });
 
+   describe('outerHTML', () => {
+      const og = {
+         title: 'OG title',
+         description: 'OG description',
+         image: 'OG Image'
+      };
+      const markup = new State({ title: void 0, og }).outerHTML;
+      Object.keys(og).forEach((tag) => {
+         it(`State's markup includes ${tag}-tag`, () => {
+            assert.include(markup, tag, `Markup doesn't include ${tag}-tag`);
+            assert.include(markup, og[tag], `Markup doesn't include ${tag}-tag's value`);
+         });
+      });
+
+      it('If meta.title is undefined, title will be empty string', () => {
+         assert.notInclude(new State({ title: void 0 }).outerHTML, 'undefined');
+      });
+   });
+
    describe('equal', () => {
       it('instance equal self', () => {
          const state = new State(meta);
