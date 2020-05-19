@@ -71,7 +71,7 @@ export default class State implements IMetaStateInternal {
 }
 
 function createMarkup(meta: IMeta, guid: string): string {
-   const title = `<title data-vdomignore="true" class="${guid}">${meta.title}</title>`;
+   const title = `<title data-vdomignore="true" class="${guid}">${meta.title || ''}</title>`;
    const ogTagsMarkup = Object.keys(meta.og || [])
       .map((type) => getTagMargkup(type, meta.og[type], guid))
       .join('');
