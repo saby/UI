@@ -1,37 +1,36 @@
 define([
    'UI/Utils',
-   'Env/Env'
+   'UI/_utils/Purifier/needLog'
 ], function(Utils,
-            Env
+            needLog
    ) {
 
    describe('UI/_utils/Purifier', () => {
       const Purifier = Utils.Purifier;
       const Logger = Utils.Logger;
-      const cookie = Env.cookie;
       describe('purifyInstance', () => {
          let instance;
          let errorMessage;
          let warnStub;
-         let cookieStub;
+         let isDebugStub;
          const purifyInstance = Purifier.purifyInstance;
          const loggerErrorMock = (msg) => {
             errorMessage += msg;
          };
-         const cookieGetMock = (name) => name === 's3debug';
+         const isDebugMock = () => true;
 
          before(() => {
             instance = {};
             errorMessage = '';
             warnStub = sinon.stub(Logger, 'warn').callsFake(loggerErrorMock);
-            cookieStub = sinon.stub(cookie, 'get').callsFake(cookieGetMock);
+            isDebugStub = sinon.stub(needLog, 'default').callsFake(isDebugMock);
          });
 
          after(() => {
             instance = {};
             errorMessage = '';
             warnStub.restore();
-            cookieStub.restore();
+            isDebugStub.restore();
          });
 
          beforeEach(() => {

@@ -6,18 +6,17 @@ import { THEME_TYPE, ELEMENT_ATTR } from 'UI/theme/_controller/css/const';
  * Мультитемная ссылка на клиенте
  */
 export default class Link extends Base implements ICssEntity {
-   protected readonly themeType: THEME_TYPE = THEME_TYPE.MULTI;
    element: IHTMLElement;
 
    constructor(
       href: string,
       cssName: string,
       themeName: string,
-      element?: IHTMLElement
+      element?: IHTMLElement,
+      public themeType:THEME_TYPE = THEME_TYPE.MULTI
    ) {
-      super(href, cssName, themeName);
-      this.element = element || createElement(href, cssName, themeName, this.themeType);
-      this.outerHtml = this.element.outerHTML;
+      super(href, cssName, themeName, themeType);
+      this.element = element || createElement(href, cssName, themeName, themeType);
    }
 
    load(): Promise<void> {

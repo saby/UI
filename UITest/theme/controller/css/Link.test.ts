@@ -4,8 +4,9 @@
 import { constants } from 'Env/Env';
 import Link from 'UI/theme/_controller/css/Link';
 import { THEME_TYPE } from 'UI/theme/controller';
-import { IHTMLElement, ILoader } from 'UI/theme/_controller/css/interface';
+import { IHTMLElement } from 'UI/theme/_controller/css/interface';
 import { ELEMENT_ATTR } from 'UI/theme/_controller/css/const';
+import { getHtmlMarkup } from 'UI/theme/_controller/css/Base';
 const href = '#Some/href';
 const name = 'Some/Control';
 const theme = 'Some-theme';
@@ -13,12 +14,13 @@ const themeType = THEME_TYPE.MULTI;
 
 class LinkElementMock implements IHTMLElement {
    __removed = false;
-   outerHTML = 'test css';
-   constructor(
+   outerHTML: string = '';
+   constructor (
       href: string,
       name: string,
       theme: string,
       themeType: THEME_TYPE) {
+      this.outerHTML = getHtmlMarkup(href, name, theme, themeType);
       this[ELEMENT_ATTR.HREF] = href;
       this[ELEMENT_ATTR.NAME] = name;
       this[ELEMENT_ATTR.THEME] = theme;
@@ -33,15 +35,7 @@ class LinkElementMock implements IHTMLElement {
 }
 
 let element: LinkElementMock;
-let loader: LoaderMock;
 let link: Link;
-class LoaderMock implements ILoader {
-   loads: object = {};
-   load(href: string): Promise<void> {
-      this.loads[href] = this.loads[href] ? this.loads[href] + 1 : 1;
-      return Promise.resolve(void 0);
-   }
-};
 
 describe('UI/theme/_controller/css/Link', () => {
 
@@ -49,13 +43,11 @@ describe('UI/theme/_controller/css/Link', () => {
       beforeEach(() => {
          element = new LinkElementMock(href, name, theme, themeType);
          link = new Link(href, name, theme, element);
-         loader = new LoaderMock();
       });
       afterEach(() => {
          link.remove();
          element = null;
          link = null;
-         loader = null;
       });
    };
 
@@ -81,6 +73,12 @@ describe('UI/theme/_controller/css/Link', () => {
       setHooks();
       it('outerHtml непустая строка', () => {
          assert.isString(link.outerHtml);
+      });
+
+      [href, name, theme, THEME_TYPE.MULTI].forEach((attr) => {
+         it('Разметка содержит ' + attr, () => {
+            assert.include(link.outerHtml, attr, 'Разметка не содержит ' + attr);
+         });
       });
    });
 
