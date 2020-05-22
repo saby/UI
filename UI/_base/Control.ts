@@ -95,7 +95,7 @@ const stateNamesNoPurify = {
 };
 
 export const _private = {
-   _checkAsyncExecuteTime: function (startTime: number, customBLExecuteTime: number, moduleName: string): void {
+   _checkAsyncExecuteTime: function<TState, TOptions>(startTime: number, customBLExecuteTime: number, moduleName: string, instance: Control<TOptions, TState>): void {
       let executeTime = Date.now() - startTime;
       customBLExecuteTime = customBLExecuteTime ? customBLExecuteTime : BL_MAX_EXECUTE_TIME;
       if (executeTime > customBLExecuteTime) {
@@ -107,11 +107,11 @@ export const _private = {
             - перенести работу в _afterMount контрола ${moduleName} или
             - увеличить константу ожидания по согласованию с Бегуновым А. ` +
             `прикреплять согласование комментарием к константе, чтобы проект прошел ревью`;
-         Logger.warn(message, this);
+         Logger.warn(message, instance);
       }
    },
 
-   _asyncClientBeforeMount: function<TState>(resultBeforeMount: Promise<void | TState>, time: number, customBLExecuteTime: number, moduleName: string): Promise<void | TState> | boolean {
+   _asyncClientBeforeMount: function<TState, TOptions>(resultBeforeMount: Promise<void | TState>, time: number, customBLExecuteTime: number, moduleName: string, instance: Control<TOptions, TState>): Promise<void | TState> | boolean {
       let startTime = Date.now();
 
       let asyncTimer = setTimeout(() => {
@@ -122,12 +122,12 @@ export const _private = {
             Возможные причины:
             - Promise не вернул результат/причину отказа
             - Метод БЛ выполняется более 20 секунд`;
-         Logger.error(message, this);
+         Logger.error(message, instance);
       }, time);
 
       return resultBeforeMount.finally(() => {
             clearTimeout(asyncTimer);
-            _private._checkAsyncExecuteTime(startTime, customBLExecuteTime, moduleName);
+            _private._checkAsyncExecuteTime(startTime, customBLExecuteTime, moduleName, instance);
          }
       );
    }
@@ -775,7 +775,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          //start client render
          if (typeof window !== 'undefined') {
             let clientTimeout = this._clientTimeout ? (this._clientTimeout > CONTROL_WAIT_TIMEOUT ? this._clientTimeout : CONTROL_WAIT_TIMEOUT) : CONTROL_WAIT_TIMEOUT;
-            _private._asyncClientBeforeMount(resultBeforeMount, clientTimeout, this._clientTimeout, this._moduleName);
+            _private._asyncClientBeforeMount(resultBeforeMount, clientTimeout, this._clientTimeout, this._moduleName, this);
          }
       } else {
          // _reactiveStart means starting of monitor change in properties
@@ -1134,7 +1134,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    /**
     * Массив имен темизированных стилей, необходимых контролу.
     * Все стили будут скачаны при создании
-    * 
+    *
     * @static
     * @example
     * <pre>
@@ -1204,7 +1204,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return Promise.all(styles.map((name) => themeController.get(name, EMPTY_THEME))).then(() => void 0);
    }
    /**
-    * Удаление link элементов из DOM 
+    * Удаление link элементов из DOM
     * @param themeName имя темы (по-умолчанию тема приложения)
     * @param instThemes опционально собственные темы экземпляра
     * @param instStyles опционально собственные стили экземпляра
@@ -1231,7 +1231,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          styles.every((cssName) => themeController.isMounted(cssName, EMPTY_THEME));
    }
    //#endregion
-   
+
    static extend(mixinsList: any, classExtender: any): Function {
       // @ts-ignore
       if (!require.defined('Core/core-extend')) {
