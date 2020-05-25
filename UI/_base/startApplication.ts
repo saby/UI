@@ -1,5 +1,6 @@
 /// <amd-module name="UI/_base/startApplication" />
 import { default as AppInit, isInit } from 'Application/Initializer';
+import PresentationService from 'SbisEnv/PresentationService';
 import StateReceiver from 'UI/_base/StateReceiver';
 
 /**
@@ -13,9 +14,15 @@ export default function startApplication(cfg?: Record<string, any>) {
 
     let config = cfg || window && window['wsConfig'];
 
+    let env;
+    if (typeof window === 'undefined') {
+        env = new PresentationService();
+    }
+
     const stateReceiverInst = new StateReceiver();
+    AppInit(config, env, stateReceiverInst);
+
     if (typeof window !== 'undefined' && window['receivedStates']) {
         stateReceiverInst.deserialize(window['receivedStates']);
     }
-    AppInit(config, void 0, stateReceiverInst);
 }
