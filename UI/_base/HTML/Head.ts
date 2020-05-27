@@ -4,7 +4,7 @@ import Control from '../Control';
 
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Head');
-import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
+import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller';
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { headDataStore } from 'UI/_base/HeadData';
@@ -94,7 +94,7 @@ export default Head;
 function collectCSS(theme: string, styles: string[] = [], themes: string[] = []): Promise<string> {
     const tc = getThemeController();
     const gettingStyles = styles.map((name) => tc.get(name, EMPTY_THEME));
-    const gettingThemes = themes.map((name) => tc.get(name, theme));
+    const gettingThemes = themes.map((name) => tc.get(name, theme, THEME_TYPE.SINGLE));
     return Promise.all(gettingStyles.concat(gettingThemes)).then(() => {
         const markup = tc.getAll().map((entity) => entity.outerHtml).join('\n');
         tc.clear();
