@@ -22,10 +22,17 @@ interface IFocusConfig {
 
 let isTouchInterface = false;
 if (typeof window !== 'undefined') {
-   window.addEventListener('touchstart', function onFirstTouch() {
+   let moveInRow = 1;
+   window.addEventListener('touchstart', () => {
       isTouchInterface = true;
-      window.removeEventListener('touchstart', onFirstTouch, false);
-   }, false);
+      moveInRow = 0;
+   });
+   window.addEventListener('mousedown', () => {
+      if (moveInRow) {
+         isTouchInterface = false;
+      }
+      moveInRow++;
+   });
 }
 
 /**
