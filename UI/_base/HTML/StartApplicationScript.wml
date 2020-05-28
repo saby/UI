@@ -1,7 +1,7 @@
 <div key="scripts">
    <ws:if data="{{!_options.compat && _options.onServer}}">
       <script key="init_script">
-         require(['Core/polyfill', 'Env/Env', 'Application/Initializer', 'Application/Env', 'Core/constants'], function (polyfill, Env, AppInit, AppEnv, constants) {
+         require(['Core/polyfill', 'Env/Env', 'Application/Initializer', 'Application/Env', 'Core/constants', 'Core/app-init'], function (polyfill, Env, AppInit, AppEnv, constants) {
             require(['UI/Base'], function (UI) {
                window.startContextData = { AppData: new UI.AppData({}) };
                Object.assign(constants, window.wsConfig);
