@@ -14,7 +14,7 @@ export default function startApplication(cfg?: Record<string, any>) {
     let config = cfg || window && window['wsConfig'];
 
     const stateReceiverInst = new StateReceiver();
-    AppInit(config, stateReceiverInst);
+    AppInit(config, void 0, stateReceiverInst);
 
     if (typeof window !== 'undefined' && window['receivedStates']) {
         stateReceiverInst.deserialize(window['receivedStates']);
