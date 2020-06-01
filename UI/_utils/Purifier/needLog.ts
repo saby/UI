@@ -1,7 +1,7 @@
-import { cookie } from 'Env/Env';
+import { constants } from 'Env/Env';
 
-const isDebug = !!cookie.get('s3debug');
+const isNotProduction = !constants.isProduction;
 
 export default function needLog(): boolean {
-    return isDebug;
+    return isNotProduction;
 }
