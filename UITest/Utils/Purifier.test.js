@@ -11,7 +11,7 @@ define([
       describe('purifyInstance', () => {
          let instance;
          let errorMessage;
-         let warnStub;
+         let errorStub;
          let isDebugStub;
          const purifyInstance = Purifier.purifyInstance;
          const loggerErrorMock = (msg) => {
@@ -22,14 +22,14 @@ define([
          before(() => {
             instance = {};
             errorMessage = '';
-            warnStub = sinon.stub(Logger, 'warn').callsFake(loggerErrorMock);
+            errorStub = sinon.stub(Logger, 'error').callsFake(loggerErrorMock);
             isDebugStub = sinon.stub(needLog, 'default').callsFake(isDebugMock);
          });
 
          after(() => {
             instance = {};
             errorMessage = '';
-            warnStub.restore();
+            errorStub.restore();
             isDebugStub.restore();
          });
 
