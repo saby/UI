@@ -22,7 +22,7 @@ define([
          before(() => {
             instance = {};
             errorMessage = '';
-            errorStub = sinon.stub(Logger, 'warn').callsFake(loggerErrorMock);
+            errorStub = sinon.stub(Logger, 'error').callsFake(loggerErrorMock);
             isDebugStub = sinon.stub(needLog, 'default').callsFake(isDebugMock);
          });
 
