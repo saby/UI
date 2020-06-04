@@ -4,4 +4,4 @@
  * @author Тэн В.А.
  */
 
-export { register, unregister } from './HotKeys/dispatcher';
+export { keyDownHandler } from './HotKeys/dispatcher';

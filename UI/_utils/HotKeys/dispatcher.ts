@@ -1,7 +1,23 @@
-import {goUpByControlTree} from 'UI/Utils';
-import {constants} from 'Env/Env';
+import { goUpByControlTree } from 'UI/Utils';
+import { constants } from 'Env/Env';
 
-export default function keyDownHandler(event: Event): void {
+interface IExtendEvent extends Event {
+   keyCode: number;
+   handledByDispatcher: boolean;
+   which?: number;
+}
+
+interface ISyntheticEvent {
+   currentTarget: Element;
+   nativeEvent: IExtendEvent;
+   stopped: boolean;
+   target: Element;
+   type: string;
+   _bubbling: boolean;
+   stopPropagation: Function;
+}
+
+export function keyDownHandler(event: ISyntheticEvent): void {
    const nativeEvent = event.nativeEvent;
    if (nativeEvent.handledByDispatcher) {
       // TODO https://online.sbis.ru/opendoc.html?guid=0de5f15f-70eb-40da-b3f0-8b99d4eb1c85
