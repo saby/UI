@@ -11,12 +11,13 @@
 
 import * as Logger from './_utils/Logger';
 import * as Purifier from './_utils/Purifier';
-import * as HotKeysDispatcher from './_utils/HotKeys';
+import { keyDownHandler as dispatcherHandler, ISyntheticEvent } from './_utils/HotKeys';
 import { default as goUpByControlTree }  from './_utils/goUpByControlTree';
 
 export {
     Logger,
     Purifier,
-    HotKeysDispatcher,
+    dispatcherHandler,
+    ISyntheticEvent,
     goUpByControlTree
 };

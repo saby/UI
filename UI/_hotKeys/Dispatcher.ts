@@ -1,5 +1,5 @@
 import { Control } from 'UI/Base';
-import { HotKeysDispatcher } from 'UI/Utils';
+import { dispatcherHandler, ISyntheticEvent } from 'UI/Utils';
 import template = require('wml!UI/_hotKeys/Dispatcher');
 
 /**
@@ -8,8 +8,8 @@ import template = require('wml!UI/_hotKeys/Dispatcher');
  * Облатсь содержимого body также выделена контролом UI/HotKeys:Dispatcher
  */
 class Dispatcher extends Control {
-   keyDownHandler(event: HotKeysDispatcher.ISyntheticEvent): void {
-      return HotKeysDispatcher.keyDownHandler(event);
+   keyDownHandler(event: ISyntheticEvent): void {
+      return dispatcherHandler(event);
    }
 }
 
