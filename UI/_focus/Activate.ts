@@ -9,7 +9,7 @@
 import { detection } from 'Env/Env';
 import * as ElementFinder from './ElementFinder';
 import { focus } from './Focus';
-import { goUpByControlTree } from './goUpByControlTree';
+import { goUpByControlTree } from 'UI/Utils';
 
 // @ts-ignore
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
