@@ -7,14 +7,13 @@ interface IExtendEvent extends Event {
    which?: number;
 }
 
-interface ISyntheticEvent {
+export interface ISyntheticEvent extends Event {
    currentTarget: Element;
    nativeEvent: IExtendEvent;
    stopped: boolean;
    target: Element;
    type: string;
    _bubbling: boolean;
-   stopPropagation: Function;
 }
 
 export function keyDownHandler(event: ISyntheticEvent): void {
