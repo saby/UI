@@ -6,7 +6,7 @@
 *.log
 /node_modules
 /application
-/builder-ui
+/build-ui
 /builderCfg.json
 /package-lock.json
 /artifacts

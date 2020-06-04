@@ -1,7 +1,6 @@
 /// <amd-module name='UI/theme/_controller/Storage' />
 import { ICssEntity } from 'UI/theme/_controller/css/interface';
 import { getStore as getAppStore, setStore as setAppStore } from 'Application/Env';
-import { isInit } from 'Application/Initializer';
 import { IStore } from 'Application/Interface';
 // @ts-ignore
 import { constants } from 'Env/Env';
@@ -112,7 +111,7 @@ class EntityStore implements IStore<IEntities> {
 }
 function createEntityStore(): () => IStore<IEntities> {
    const store = new EntityStore();
-   if (constants.isBrowserPlatform || !isInit()) {
+   if (constants.isBrowserPlatform) {
       /**
        * Для случаев, когда приложение не инициализированно (unit-тесты)
        * используется локальный EntityStore
@@ -125,5 +124,5 @@ function createEntityStore(): () => IStore<IEntities> {
     */
    const createDefaultStore = (): EntityStore => new EntityStore();
    setAppStore<IEntities>(EntityStore.label, createDefaultStore());
-   return () => isInit() ? getAppStore<IEntities>(EntityStore.label, createDefaultStore) : store;
+   return () => getAppStore<IEntities>(EntityStore.label, createDefaultStore);
 }
