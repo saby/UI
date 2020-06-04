@@ -1,4 +1,4 @@
-import { goUpByControlTree } from 'UI/Utils';
+import { goUpByControlTree } from './Utils';
 import { constants } from 'Env/Env';
 
 interface IExtendEvent extends Event {
