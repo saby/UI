@@ -33,10 +33,9 @@ Controls/Popup/Opener/Sticky
 */
 // @ts-ignore
 import * as cInstance from 'Core/core-instance';
-import { goUpByControlTree } from './goUpByControlTree';
 
 //@ts-ignore
-import { Logger } from 'UI/Utils';
+import { Logger, goUpByControlTree } from 'UI/Utils';
 
 export function find(control) {
    let container;

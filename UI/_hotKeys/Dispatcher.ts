@@ -1,5 +1,5 @@
 import {Control} from 'UI/Base';
-import {goUpByControlTree} from 'UI/Focus';
+import { goUpByControlTree } from 'UI/Utils';
 import {constants} from 'Env/Env';
 import template = require('wml!UI/_hotKeys/Dispatcher');
 

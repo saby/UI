@@ -1,10 +1,10 @@
 define([
-   'UI/Focus',
+   'UI/Utils',
    'Env/Env'
-], function(Focus, Env) {
+], function(Utils, Env) {
    'use strict';
 
-   var goUpByControlTree = Focus.goUpByControlTree;
+   var goUpByControlTree = Utils.goUpByControlTree;
    var tests = {
       'Null target': {
          target: null,
