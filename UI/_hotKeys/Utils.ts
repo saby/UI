@@ -4,4 +4,4 @@
  * @author Тэн В.А.
  */
 
-export { keyDownHandler, ISyntheticEvent } from './HotKeys/dispatcher';
+export { keyDownHandler as dispatcherHandler, ISyntheticEvent } from './Utils/dispatcher';
