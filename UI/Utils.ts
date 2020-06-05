@@ -5,15 +5,12 @@
  * @library UI/Utils
  * @includes Logger UI/_utils/Logger
  * @includes Purifier UI/_utils/Purifier
- * @includes goUpByControlTree UI/_utils/goUpByControlTree
  */
 
 import * as Logger from './_utils/Logger';
 import * as Purifier from './_utils/Purifier';
-import { default as goUpByControlTree }  from './_utils/goUpByControlTree';
 
 export {
     Logger,
-    Purifier,
-    goUpByControlTree
+    Purifier
 };

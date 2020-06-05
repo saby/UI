@@ -1,5 +1,5 @@
 import { Control } from 'UI/Base';
-import { dispatcherHandler, ISyntheticEvent } from './Utils';
+import { dispatcherHandler, ISyntheticEvent } from './dispatcherHandler';
 import template = require('wml!UI/_hotKeys/Dispatcher');
 
 /**

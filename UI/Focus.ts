@@ -8,7 +8,6 @@ import { activate } from './_focus/Activate';
 import { preventFocus, hasNoFocus } from './_focus/PreventFocus';
 import { restoreFocus } from './_focus/RestoreFocus';
 
-import { goUpByControlTree } from 'UI/Utils';
 import * as DefaultOpenerFinder from './_focus/DefaultOpenerFinder';
 
 export {
@@ -21,6 +20,5 @@ export {
    preventFocus,
    hasNoFocus,
    restoreFocus,
-   goUpByControlTree,
    DefaultOpenerFinder
 };

@@ -2,6 +2,7 @@
 
 // @ts-ignore
 import { IoC } from 'Env/Env';
+import { goUpByControlTree } from 'UI/NodeCollector';
 // tslint:disable: no-any
 
 /**
@@ -216,7 +217,7 @@ const prepareStack = (stackNode: {[key: string]: any}): string => {
       let arrayControls = [];
       if (Focus) {
          // на клиенте используем функционал из модуля Focus
-         arrayControls = Focus.goUpByControlTree(data._container);
+         arrayControls = goUpByControlTree(data._container);
       }
 
       if (arrayControls && arrayControls.length) {

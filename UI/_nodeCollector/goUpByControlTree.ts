@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_utils/goUpByControlTree" />
+/// <amd-module name="UI/_nodeCollector/goUpByControlTree" />
 /* tslint:disable */
 
 /**
@@ -9,7 +9,7 @@
 //@ts-ignore
 import { constants } from 'Env/Env';
 //@ts-ignore
-import * as Logger from './Logger';
+import * as Logger from './../Logger';
 
 export default function goUpByControlTree(target, array?) {
    array = array || [];
@@ -63,7 +63,7 @@ function checkOpener(opener) {
    }
 
    if (error) {
-      const message = `[UI/_utils/goUpByControlTree:checkOpener] DOMEnvironment - Incorrect opener or parent is found! It seems that anybody set wrong opener option! ${error}`;
+      const message = `[UI/_nodeCollector/goUpByControlTree:checkOpener] DOMEnvironment - Incorrect opener or parent is found! It seems that anybody set wrong opener option! ${error}`;
       Logger.error(message, opener);
    }
 }

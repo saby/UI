@@ -1,4 +1,4 @@
-import { goUpByControlTree } from 'UI/Utils';
+import { goUpByControlTree } from 'UI/NodeCollector';
 import { constants } from 'Env/Env';
 
 interface IExtendEvent extends Event {
@@ -16,7 +16,7 @@ export interface ISyntheticEvent extends Event {
    _bubbling: boolean;
 }
 
-export function keyDownHandler(event: ISyntheticEvent): void {
+export function dispatcherHandler(event: ISyntheticEvent): void {
    const nativeEvent = event.nativeEvent;
    if (nativeEvent.handledByDispatcher) {
       // TODO https://online.sbis.ru/opendoc.html?guid=0de5f15f-70eb-40da-b3f0-8b99d4eb1c85
