@@ -157,6 +157,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    protected _notify: (eventName: string, args?: unknown[], options?: { bubbling?: boolean }) => unknown = null;
    protected _template: TemplateFunction;
    protected _clientTimeout: number = null;
+   protected _allowNativeEvent: boolean = false;
 
    // protected for compatibility, should be private
    protected _container: HTMLElement = null;
