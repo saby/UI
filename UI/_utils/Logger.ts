@@ -209,14 +209,14 @@ const prepareStack = (stackNode: {[key: string]: any}): string => {
 
    if (window && data && data._container) {
       // @ts-ignore
-      const Focus = requirejs('UI/Focus');
+      const NodeCollector = requirejs('UI/NodeCollector');
       // TODO: допущение, что библиотеке фокусов загружена до ошибок, подумать как сделать лучше
-      // явно тащить нельзя, цикл - UI/Focus -> UI/_utils/Logger -> UI/Focus
+      // явно тащить нельзя, цикл - UI/NodeCollector -> UI/_utils/Logger -> UI/NodeCollector
 
       let arrayControls = [];
-      if (Focus) {
-         // на клиенте используем функционал из модуля Focus
-         arrayControls = Focus.goUpByControlTree(data._container);
+      if (NodeCollector) {
+         // на клиенте используем функционал из модуля NodeCollector
+         arrayControls = NodeCollector.goUpByControlTree(data._container);
       }
 
       if (arrayControls && arrayControls.length) {
