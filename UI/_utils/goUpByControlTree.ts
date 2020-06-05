@@ -81,7 +81,7 @@ function getFocusParent(control) {
       (control.getOpener && control.getOpener()) ||
       (control._options && control._options.parent) ||
       (control.getParent && control.getParent());
-   if(!result || result.__purified) {
+   if (!result || result.__purified) {
       return null;
    } else {
       return result;
