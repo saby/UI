@@ -9,7 +9,7 @@
 //@ts-ignore
 import { constants } from 'Env/Env';
 //@ts-ignore
-import * as Logger from './../Logger';
+import { Logger } from 'UI/Utils';
 
 export default function goUpByControlTree(target, array?) {
    array = array || [];
