@@ -6,8 +6,9 @@ import template = require('wml!UI/_base/Control');
 import { Synchronizer } from 'Vdom/Vdom';
 import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
-import {activate, goUpByControlTree} from 'UI/Focus';
+import { activate } from 'UI/Focus';
 import { Logger, Purifier } from 'UI/Utils';
+import { goUpByControlTree } from 'UI/NodeCollector';
 import { constants } from 'Env/Env';
 
 import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
