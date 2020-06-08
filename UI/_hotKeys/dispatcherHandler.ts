@@ -4,8 +4,14 @@ import { ISyntheticEvent } from 'Vdom/_private/Synchronizer/resources/SyntheticE
 
 export { ISyntheticEvent } from 'Vdom/_private/Synchronizer/resources/SyntheticEvent';
 
+interface IExtendEvent extends Event {
+   keyCode: number;
+   handledByDispatcher: boolean;
+   which?: number;
+}
+
 export function dispatcherHandler(event: ISyntheticEvent): void {
-   const nativeEvent = event.nativeEvent;
+   const nativeEvent = event.nativeEvent as IExtendEvent;
    if (nativeEvent.handledByDispatcher) {
       // TODO https://online.sbis.ru/opendoc.html?guid=0de5f15f-70eb-40da-b3f0-8b99d4eb1c85
       // It's probably not the right way to fix a problem.
