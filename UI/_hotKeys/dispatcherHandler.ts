@@ -1,20 +1,8 @@
 import { goUpByControlTree } from 'UI/NodeCollector';
 import { constants } from 'Env/Env';
+import { ISyntheticEvent } from 'Vdom/_private/Synchronizer/resources/SyntheticEvent';
 
-interface IExtendEvent extends Event {
-   keyCode: number;
-   handledByDispatcher: boolean;
-   which?: number;
-}
-
-export interface ISyntheticEvent extends Event {
-   currentTarget: Element;
-   nativeEvent: IExtendEvent;
-   stopped: boolean;
-   target: Element;
-   type: string;
-   _bubbling: boolean;
-}
+export { ISyntheticEvent } from 'Vdom/_private/Synchronizer/resources/SyntheticEvent';
 
 export function dispatcherHandler(event: ISyntheticEvent): void {
    const nativeEvent = event.nativeEvent;
