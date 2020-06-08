@@ -1,8 +1,5 @@
 import { goUpByControlTree } from 'UI/NodeCollector';
 import { constants } from 'Env/Env';
-import { ISyntheticEvent } from 'Vdom/_private/Synchronizer/resources/SyntheticEvent';
-
-export { ISyntheticEvent } from 'Vdom/_private/Synchronizer/resources/SyntheticEvent';
 
 interface IExtendEvent extends Event {
    keyCode: number;
@@ -10,8 +7,17 @@ interface IExtendEvent extends Event {
    which?: number;
 }
 
+export interface ISyntheticEvent extends Event {
+   currentTarget: Element;
+   nativeEvent: IExtendEvent;
+   stopped: boolean;
+   target: Element;
+   type: string;
+   _bubbling: boolean;
+}
+
 export function dispatcherHandler(event: ISyntheticEvent): void {
-   const nativeEvent = event.nativeEvent as IExtendEvent;
+   const nativeEvent = event.nativeEvent;
    if (nativeEvent.handledByDispatcher) {
       // TODO https://online.sbis.ru/opendoc.html?guid=0de5f15f-70eb-40da-b3f0-8b99d4eb1c85
       // It's probably not the right way to fix a problem.
