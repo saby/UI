@@ -3,8 +3,9 @@ import KeyHook from './_hotKeys/KeyHook';
 import Dispatcher from './_hotKeys/Dispatcher';
 import KeyStop from './_hotKeys/KeyStop';
 import { dispatcherHandler } from './_hotKeys/dispatcherHandler';
+export { ISyntheticEvent } from './_hotKeys/dispatcherHandler';
 
-export = {
+export {
    KeyHook,
    Dispatcher,
    KeyStop,
