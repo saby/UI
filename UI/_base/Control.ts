@@ -1247,7 +1247,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          // если пришел jquery, вытащим оттуда элемент
          domElement = domElement[0] || domElement;
       }
-      if (constants.compat) {
+      if (constants.compat && cfg.iWantBeWS3 !== false) {
          cfg.iWantBeWS3 = true;
          cfg.element = domElement;
          cfg.parent = cfg.parent || goUpByControlTree(domElement)[0];
