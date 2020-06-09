@@ -807,10 +807,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @param {Object} options Опции контрола.
     * @param {Object} context Поле контекста, запрошенное контролом.
     * @example
-    * <pre>
+    * <pre class="brush: js">
     *    Control.extend({
     *       ...
-    *       _beforeMount(options, context) {
+    *       _afterMount(options, context) {
     *          this.subscribeToServerEvents();
     *          this.buttonHeight = this._children.myButton.offsetHeight;
     *       }
