@@ -1251,7 +1251,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          // вычисляем родителя физически - ближайший к элементу родительский контрол
          const parent = cfg.parent || goUpByControlTree(domElement)[0];
          // создаем контрол совместимым только если родитель - ws3-контрол или совместимый wasaby-контрол
-         if (parent._dotTplFn || typeof parent.hasCompatible === 'function' && parent.hasCompatible()) {
+         if (parent && (parent._dotTplFn || typeof parent.hasCompatible === 'function' && parent.hasCompatible())) {
             cfg.iWantBeWS3 = true;
             cfg.element = domElement;
             cfg.parent = parent;
