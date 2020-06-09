@@ -1247,10 +1247,15 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          // если пришел jquery, вытащим оттуда элемент
          domElement = domElement[0] || domElement;
       }
-      if (constants.compat && cfg.iWantBeWS3 !== false) {
-         cfg.iWantBeWS3 = true;
-         cfg.element = domElement;
-         cfg.parent = cfg.parent || goUpByControlTree(domElement)[0];
+      if (constants.compat) {
+         // вычисляем родителя физически - ближайший к элементу родительский контрол
+         const parent = cfg.parent || goUpByControlTree(domElement)[0];
+         // создаем контрол совместимым только если родитель - ws3-контрол или совместимый wasaby-контрол
+         if (parent._dotTplFn || typeof parent.hasCompatible === 'function' && parent.hasCompatible()) {
+            cfg.iWantBeWS3 = true;
+            cfg.element = domElement;
+            cfg.parent = parent;
+         }
       }
       cfg._$createdFromCode = true;
 
