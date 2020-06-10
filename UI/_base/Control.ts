@@ -140,6 +140,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private _destroyed: boolean = false;
    private _$active: boolean = false;
    private _reactiveStart: boolean = false;
+   private _$waitReactive: boolean = false;
 
    private readonly _instId: string;
    protected _options: TOptions = null;
