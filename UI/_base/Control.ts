@@ -1265,7 +1265,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          const message = '[UI/_base/Control:createControl] domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.';
          Logger.error(message, ctor.prototype);
       }
-      if (!document.body.contains(domElement)) {
+      if (!document.documentElement.contains(domElement)) {
          const message = '[UI/_base/Control:createControl] domElement parameter is not contained in document. You should pass the correct dom element to control creation function.';
          Logger.error(message, ctor.prototype);
       }
