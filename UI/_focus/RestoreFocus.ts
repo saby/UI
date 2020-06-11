@@ -16,9 +16,38 @@ import { notifyActivationEvents } from "UI/_focus/Events";
 
 import { focus } from './Focus';
 
+function getControlContainer(control: any): Element {
+   // совместимость. среди контролов могут встретиться ws3
+   return control._template ? control._container : control.getContainer()[0];
+}
+
+function isBodyContainer(control: any): boolean {
+   const container = getControlContainer(control);
+   return container === document.body;
+}
+
+function isBodyFocused(): boolean {
+   return document.activeElement === document.body || document.activeElement === null;
+}
+
 function checkActiveElement(savedActiveElement: Element): boolean {
-   const isBody = document.activeElement === document.body || document.activeElement === null;
+   const isBody = isBodyFocused();
    return isBody && document.activeElement !== savedActiveElement;
+}
+
+function findContainerForFocus(control: any): boolean {
+   if (!control._template && !control._container) {
+      // СОВМЕСТИМОСТЬ: у старых невизуальных контролов может не быть контейнера
+      // (например, SBIS3.CONTROLS/Action/OpenDialog)
+      return false;
+   }
+   const container = getControlContainer(control);
+   // @ts-ignore
+   focus.__restoreFocusPhase = true;
+   const result = isElementVisible(container) && focus(container);
+   // @ts-ignore
+   delete focus.__restoreFocusPhase;
+   return result;
 }
 
 export function restoreFocus(control: any, action: Function): void {
@@ -36,21 +65,7 @@ export function restoreFocus(control: any, action: Function): void {
    // если сразу после изменения DOM-дерева фокус слетел в body, пытаемся восстановить фокус на ближайший элемент от
    // предыдущего активного, чтобы сохранить контекст фокуса и дать возможность управлять с клавиатуры
    if (checkActiveElement(savedActiveElement)) {
-      prevControls.find((control) => {
-         if (!control._template && !control._container) {
-            // СОВМЕСТИМОСТЬ: у старых невизуальных контролов может не быть контейнера
-            // (например, SBIS3.CONTROLS/Action/OpenDialog)
-            return false;
-         }
-         // совместимость. среди контролов могут встретиться ws3
-         const container = control._template ? control._container : control.getContainer()[0];
-         // @ts-ignore
-         focus.__restoreFocusPhase = true;
-         let result = isElementVisible(container) && focus(container);
-         // @ts-ignore
-         delete focus.__restoreFocusPhase;
-         return result;
-      });
+      prevControls.find(findContainerForFocus);
       // следим за состоянием _savedFocusedElement. хотелось бы делать это в environment в обработчике
       // на focus, но как минимум в IE на вызов фокуса туда не попадеам
       // @ts-ignore
@@ -70,6 +85,11 @@ export function restoreFocus(control: any, action: Function): void {
          // https://online.sbis.ru/opendoc.html?guid=e46d87cc-5dc2-4f67-b39c-5eeea973b2cc
          control.__$focusing = false;
       }
+   }
+   // если фокус все же ушел в body, пытаемся сфокусировать контенер переданного контрола. 
+   // @ts-ignore
+   if (isBodyFocused() && !isBodyContainer(control) && focus.__restoreFocusPhase) {
+      findContainerForFocus(control);
    }
    environment._restoreFocusState = false;
 }
