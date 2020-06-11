@@ -20,23 +20,13 @@ function checkActiveElement(savedActiveElement: Element): boolean {
    const isBody = document.activeElement === document.body || document.activeElement === null;
    return isBody && document.activeElement !== savedActiveElement;
 }
-
-export function restoreFocus(control: any, action: Function, synchronizer?: {prevControls: []}): void {
-   const savedActiveElement = document.activeElement;
-   // нужно вычислять родительские контролы заранее, во время перерисовки эти контролы могут быть
-   // разрушены и мы потеряем реальную иерархию, и не сможем восстановить фокус куда надо.
-   // метод должен отрабатывать супер быстро, не должно влиять на скорость
-   let prevControls = goUpByControlTree(savedActiveElement);
-
-   if (synchronizer) {
-      if (savedActiveElement !== document.body) {
-         // Если фокус не улетел в Body, сохраним список родительских контролов на синхронизаторе
-         synchronizer.prevControls = prevControls;
-      } else {
-         // Если фокус улетел в Body, то goUpByControlTree() выше вычислит не верный список контролов
-         // возьмем список с синхронизитора до потери фокуса
-         prevControls = synchronizer.prevControls;
-      }
+let prevControls;
+let savedActiveElement;
+export function restoreFocus(control: any, action: Function): void {
+   if ( document.activeElement !== document.body ) {
+      // Если фокус не улетел в Body, сохраним контрол, который был в фокусе и список контролов
+      savedActiveElement = document.activeElement;
+      prevControls = goUpByControlTree(savedActiveElement);
    }
 
    action();
@@ -46,7 +36,7 @@ export function restoreFocus(control: any, action: Function, synchronizer?: {pre
    environment._restoreFocusState = true;
    // если сразу после изменения DOM-дерева фокус слетел в body, пытаемся восстановить фокус на ближайший элемент от
    // предыдущего активного, чтобы сохранить контекст фокуса и дать возможность управлять с клавиатуры
-   if (checkActiveElement(savedActiveElement)) {
+   if (prevControls && checkActiveElement(savedActiveElement)) {
       prevControls.find((control) => {
          if (!control._template && !control._container) {
             // СОВМЕСТИМОСТЬ: у старых невизуальных контролов может не быть контейнера
