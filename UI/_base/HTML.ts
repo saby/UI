@@ -70,10 +70,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
         this.onServer = typeof window === 'undefined';
         this.isCompatible = cfg.compat;
         this.initState(receivedState || cfg);
-        if (!receivedState) {
-            receivedState = {};
-        }
-        this.metaStack = MetaStack.restore(receivedState.metaStackSer);
+        this.metaStack = MetaStack.restore(receivedState?.metaStackSer);
         if (!this.metaStack) {
             this.metaStack = MetaStack.getInstance();
             this.metaStack.push({ title: cfg.title });
@@ -123,24 +120,25 @@ class HTML extends Control<IHTMLCombinedOptions> {
         // Он вставляет конфиги сразу после контрола, а не через StateReceiver. По-другому сейчас не сделать, т.к.
         // функция generatorCompatible решает, какой генератор вернуть? только по константам, а не по аргументам.
         // https://git.sbis.ru/sbis/ws/blob/rc-20.1000/View/Executor/TClosure.ts#L296
-        if(!cfg.builder && !cfg.builderCompatible) {
-            return new Promise((resolve) => {
-                resolve({
-                    buildnumber: this.buildnumber,
-                    metaStackSer: this.metaStack.serialize(),
-                    appRoot: this.appRoot,
-                    staticDomains: this.staticDomains,
-                    RUMEnabled: this.RUMEnabled,
-                    pageName: this.pageName,
-                    wsRoot: this.wsRoot,
-                    resourceRoot: this.resourceRoot,
-                    templateConfig: this.templateConfig,
-                    servicesPath: this.servicesPath,
-                    compat: this.compat,
-                    product: this.product
-                });
-            });
+        if (receivedState || cfg.builder || cfg.builderCompatible) {
+            return;
         }
+        return new Promise((resolve) => {
+            resolve({
+                buildnumber: this.buildnumber,
+                metaStackSer: this.metaStack.serialize(),
+                appRoot: this.appRoot,
+                staticDomains: this.staticDomains,
+                RUMEnabled: this.RUMEnabled,
+                pageName: this.pageName,
+                wsRoot: this.wsRoot,
+                resourceRoot: this.resourceRoot,
+                templateConfig: this.templateConfig,
+                servicesPath: this.servicesPath,
+                compat: this.compat,
+                product: this.product
+            });
+        });
     }
 
     _beforeUpdate(options: IHTMLCombinedOptions): void {
