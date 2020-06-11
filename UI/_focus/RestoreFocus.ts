@@ -21,12 +21,22 @@ function checkActiveElement(savedActiveElement: Element): boolean {
    return isBody && document.activeElement !== savedActiveElement;
 }
 
-export function restoreFocus(control: any, action: Function): void {
+export function restoreFocus(control: any, action: Function, synchronizer?: {prevControls: []}): void {
    const savedActiveElement = document.activeElement;
+   // Если фокус не улетел в Body, сохраним список родительских контролов на синхронизаторе
+   if (synchronizer && savedActiveElement !== document.body) {
+      synchronizer.prevControls = goUpByControlTree(savedActiveElement);
+   }
    // нужно вычислять родительские контролы заранее, во время перерисовки эти контролы могут быть
    // разрушены и мы потеряем реальную иерархию, и не сможем восстановить фокус куда надо.
    // метод должен отрабатывать супер быстро, не должно влиять на скорость
-   const prevControls = goUpByControlTree(savedActiveElement);
+   let prevControls = goUpByControlTree(savedActiveElement);
+
+   // Если фокус улетел в Body, то goUpByControlTree() выше вычислит не верный список контролов
+   // возьмем список с синхронизитора до потери фокуса
+   if (synchronizer && synchronizer.prevControls && savedActiveElement === document.body) {
+      prevControls = synchronizer.prevControls;
+   }
 
    action();
 
