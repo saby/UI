@@ -20,7 +20,7 @@ function checkActiveElement(savedActiveElement: Element): boolean {
    const isBody = document.activeElement === document.body || document.activeElement === null;
    return isBody && document.activeElement !== savedActiveElement;
 }
-let prevControls;
+let prevControls = [];
 let savedActiveElement;
 export function restoreFocus(control: any, action: Function): void {
    if ( document.activeElement !== document.body ) {
@@ -36,7 +36,7 @@ export function restoreFocus(control: any, action: Function): void {
    environment._restoreFocusState = true;
    // если сразу после изменения DOM-дерева фокус слетел в body, пытаемся восстановить фокус на ближайший элемент от
    // предыдущего активного, чтобы сохранить контекст фокуса и дать возможность управлять с клавиатуры
-   if (prevControls && checkActiveElement(savedActiveElement)) {
+   if (checkActiveElement(savedActiveElement)) {
       prevControls.find((control) => {
          if (!control._template && !control._container) {
             // СОВМЕСТИМОСТЬ: у старых невизуальных контролов может не быть контейнера
