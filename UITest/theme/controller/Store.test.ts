@@ -1,4 +1,4 @@
-// import { assert } from 'chai';
+import { assert } from 'chai';
 // import 'mocha';
 import Storage from "UI/theme/_controller/Storage";
 import { ICssEntity } from "UI/theme/_controller/css/interface";
