@@ -117,9 +117,9 @@ export const _private = {
          }
       );
    },
-   needCompatibility(domElement): boolean {
+   configureCompatibility(domElement: HTMLElement, cfg: any): void {
       if (!constants.compat) {
-         return false;
+         return;
       }
 
       // вычисляем родителя физически - ближайший к элементу родительский контрол
@@ -146,9 +146,9 @@ export const _private = {
 
       // создаем контрол совместимым только если родитель - ws3-контрол или совместимый wasaby-контрол
       if (isWs3 || parentHasCompat) {
-         return true;
-      } else {
-         return false;
+         cfg.iWantBeWS3 = true;
+         cfg.element = domElement;
+         cfg.parent = parent;
       }
    }
 };
@@ -1282,16 +1282,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          // если пришел jquery, вытащим оттуда элемент
          domElement = domElement[0] || domElement;
       }
-
-      if (_private.needCompatibility(domElement)) {
-         cfg.iWantBeWS3 = true;
-         cfg.element = domElement;
-         cfg.parent = parent;
-      }
-      cfg._$createdFromCode = true;
-
-      startApplication();
-      // @ts-ignore
       if (!(domElement instanceof HTMLElement)) {
          const message = '[UI/_base/Control:createControl] domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.';
          Logger.error(message, ctor.prototype);
@@ -1300,6 +1290,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          const message = '[UI/_base/Control:createControl] domElement parameter is not contained in document. You should pass the correct dom element to control creation function.';
          Logger.error(message, ctor.prototype);
       }
+
+      _private.configureCompatibility(domElement, cfg);
+      cfg._$createdFromCode = true;
+
+      startApplication();
       const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
       // @ts-ignore
       OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
