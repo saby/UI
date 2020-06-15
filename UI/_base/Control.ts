@@ -126,7 +126,7 @@ export const _private = {
       const parent = goUpByControlTree(domElement)[0];
 
       let isWs3;
-      const ControlCnstr = defined('Lib/Control/Control') ?
+      const ControlCnstr = require.defined('Lib/Control/Control') ?
          require('Lib/Control/Control') :
          null;
       if (ControlCnstr) {
