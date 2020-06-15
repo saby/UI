@@ -20,14 +20,17 @@ function checkActiveElement(savedActiveElement: Element): boolean {
    const isBody = document.activeElement === document.body || document.activeElement === null;
    return isBody && document.activeElement !== savedActiveElement;
 }
-// let prevControls = [];
-// let savedActiveElement;
+let prevControls = [];
+let savedActiveElement;
 export function restoreFocus(control: any, action: Function): void {
-   const savedActiveElement = document.activeElement;
-   // нужно вычислять родительские контролы заранее, во время перерисовки эти контролы могут быть
-   // разрушены и мы потеряем реальную иерархию, и не сможем восстановить фокус куда надо.
-   // метод должен отрабатывать супер быстро, не должно влиять на скорость
-   const prevControls = goUpByControlTree(savedActiveElement);
+   if ( document.activeElement !== document.body ) {
+      // Если фокус не улетел в Body, сохраним контрол, который был в фокусе и список контролов
+      savedActiveElement = document.activeElement;
+      // нужно вычислять родительские контролы заранее, во время перерисовки эти контролы могут быть
+      // разрушены и мы потеряем реальную иерархию, и не сможем восстановить фокус куда надо.
+      // метод должен отрабатывать супер быстро, не должно влиять на скорость
+      prevControls = goUpByControlTree(savedActiveElement);
+   }
 
    action();
 
