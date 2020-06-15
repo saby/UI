@@ -116,6 +116,40 @@ export const _private = {
             _private._checkAsyncExecuteTime(startTime, customBLExecuteTime, moduleName, instance);
          }
       );
+   },
+   needCompatibility(domElement): boolean {
+      if (!constants.compat) {
+         return false;
+      }
+
+      // вычисляем родителя физически - ближайший к элементу родительский контрол
+      const parent = goUpByControlTree(domElement)[0];
+
+      let isWs3;
+      const ControlCnstr = defined('Lib/Control/Control') ?
+         require('Lib/Control/Control') :
+         null;
+      if (ControlCnstr) {
+         isWs3 = parent && parent instanceof ControlCnstr.Control;
+      } else {
+         // сейчас в случае юнитов совместимость всегда есть (compat = compatible !== false), так что не поддержим старую логику
+         // todo отключить совместимость в юнитах и удалить здесь defined и этот блок
+         isWs3 = true;
+      }
+
+      let parentHasCompat;
+      if (parent && typeof parent.hasCompatible === 'function' && parent.hasCompatible()) {
+         parentHasCompat = true;
+      } else {
+         parentHasCompat = false;
+      }
+
+      // создаем контрол совместимым только если родитель - ws3-контрол или совместимый wasaby-контрол
+      if (isWs3 || parentHasCompat) {
+         return true;
+      } else {
+         return false;
+      }
    }
 };
 
@@ -1242,21 +1276,17 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
       return inherit;
    }
+
    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
       if (domElement) {
          // если пришел jquery, вытащим оттуда элемент
          domElement = domElement[0] || domElement;
       }
-      if (constants.compat) {
-         const ControlCnstr = require('Lib/Control/Control');
-         // вычисляем родителя физически - ближайший к элементу родительский контрол
-         const parent = cfg.parent || goUpByControlTree(domElement)[0];
-         // создаем контрол совместимым только если родитель - ws3-контрол или совместимый wasaby-контрол
-         if (parent && (parent instanceof ControlCnstr.Control || typeof parent.hasCompatible === 'function' && parent.hasCompatible())) {
-            cfg.iWantBeWS3 = true;
-            cfg.element = domElement;
-            cfg.parent = parent;
-         }
+
+      if (_private.needCompatibility(domElement)) {
+         cfg.iWantBeWS3 = true;
+         cfg.element = domElement;
+         cfg.parent = parent;
       }
       cfg._$createdFromCode = true;
 
