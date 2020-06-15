@@ -13,11 +13,12 @@ import Storage from 'UI/theme/_controller/Storage';
  * @singleton
  */
 export class Controller {
-   private storage: Storage = new Storage();
+   private storage: Storage;
    /** Имя темы приложения */
    appTheme: string = DEFAULT_THEME;
 
    constructor(private cssLoader: ICssLoader) {
+      this.storage = new Storage();
       this.set = this.set.bind(this);
       this.has = this.has.bind(this);
       this.collectCssLinks();
