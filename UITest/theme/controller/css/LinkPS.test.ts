@@ -1,4 +1,4 @@
-// import { assert } from 'chai';
+import { assert } from 'chai';
 // import 'mocha';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
 import { THEME_TYPE } from 'UI/theme/controller';
