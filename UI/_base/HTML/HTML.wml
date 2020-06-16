@@ -27,7 +27,7 @@
       <script key="bundles" type="text/javascript"
               src="{{getResourceUrl(resourceRoot + 'bundles.js')}}"></script>
       <script key="require" type="text/javascript"
-              src="/cdn/RequireJS/2.3.5-p5/require-min.js"></script>
+              src="{{getResourceUrl('/cdn/RequireJS/2.3.5-p5/require-min.js')}}"></script>
       <script key="contents" type="text/javascript"
               src="{{getResourceUrl(resourceRoot + 'contents.js')}}"></script>
       <script key="router" type="text/javascript"
