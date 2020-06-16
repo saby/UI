@@ -110,7 +110,13 @@ class HeadDataStore {
 export const headDataStore = new HeadDataStore('HeadData');
 
 function getSerializedData(): ISerializedData {
-    return AppEnv.getStateReceiver().serialize();
+    const serialized = AppEnv.getStateReceiver().serialize();
+    // serialize() должен возвращать строку (как Application/_Env/Browser/StateReceiver), 
+    // но UI/_base/StateReceiver::serialize() возвращает объект
+    if (typeof serialized === 'object'){
+        return serialized as ISerializedData;
+    }
+    return { serialized, additionalDeps: [] }
 }
 
 interface ISerializedData {
