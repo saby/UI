@@ -10,7 +10,10 @@ class LinkMock implements ICssEntity {
    private requirement = 1;
    outerHtml = '';
    href = '';
+   isMounted = false;
+   loading = Promise.resolve();
    load() {
+      this.isMounted = true;
       return Promise.resolve();
    }
    element = null;
