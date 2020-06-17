@@ -117,7 +117,7 @@ export const _private = {
          }
       );
    },
-   configureCompatibility(domElement: HTMLElement, cfg: any): void {
+   configureCompatibility(domElement: HTMLElement, cfg: any, ctor: any): void {
       if (!constants.compat) {
          return;
       }
@@ -148,6 +148,14 @@ export const _private = {
       if (isWs3 || parentHasCompat) {
          cfg.iWantBeWS3 = true;
          cfg.element = domElement;
+
+         if (parent && parent._options === cfg) {
+            Logger.error('Для создания контрола ' + ctor.prototype._moduleName +
+               ' в качестве конфига был передан объект с опциями его родителя ' + parent._moduleName +
+               '. Не нужно передавать чужие опции для создания контрола, потому что они могут ' +
+               'изменяться в процессе создания!', this);
+            return;
+         }
          cfg.parent = parent;
       }
    }
@@ -1291,7 +1299,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          Logger.error(message, ctor.prototype);
       }
 
-      _private.configureCompatibility(domElement, cfg);
+      _private.configureCompatibility(domElement, cfg, ctor);
       cfg._$createdFromCode = true;
 
       startApplication();
