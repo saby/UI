@@ -32,6 +32,12 @@ interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
     RUMEnabled: boolean;
     pageName: string;
     title: string;
+    /** Require зависимости, определенные в rt-пакетах */
+    rtpackCssModuleNames: string[];
+    rtpackJsModuleNames: string[];
+    /** Ссылки подключенных ресурсов */
+    scripts: string;
+    links: string[];
 }
 
 class HTML extends Control<IHTMLCombinedOptions> {
@@ -111,6 +117,10 @@ class HTML extends Control<IHTMLCombinedOptions> {
         // LinkResolver.getInstance().init(context.headData.isDebug, self.buildnumber, self.appRoot, self.resourceRoot);
 
         headDataStore.read('pushDepComponent')(this.application, false);
+        /** Список require-зависимостей, уже подключенных в rt-пакетах */
+        const unpackDeps = cfg.rtpackJsModuleNames.concat(cfg.rtpackCssModuleNames);
+        headDataStore.read('setUnpackDeps')(unpackDeps);
+        headDataStore.read('setIncludedResources')({ links: cfg.links, scripts: cfg.scripts});
         /**
          * Этот перфоманс нужен, для сохранения состояния с сервера, то есть,
          * cfg - это конфиг, который нам прийдет из файла роутинга и с ним же надо
@@ -170,6 +180,15 @@ class HTML extends Control<IHTMLCombinedOptions> {
     static contextTypes(): { AppData: any } {
         return {
             AppData
+        };
+    }
+
+    static getDefaultOptions() {
+        return {
+            rtpackJsModuleNames: [],
+            rtpackCssModuleNames: [],
+            links: [],
+            scripts: []
         };
     }
 }
