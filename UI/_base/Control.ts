@@ -156,7 +156,7 @@ export const _private = {
                'изменяться в процессе создания!', this);
             return;
          }
-         cfg.parent = parent;
+         cfg.parent = cfg.parent || parent;
       }
    }
 };
