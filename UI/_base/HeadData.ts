@@ -1,5 +1,5 @@
 /// <amd-module name="UI/_base/HeadData" />
-import { IDeps } from 'UI/_base/DepsCollector';
+import { IDeps, ICollectedFiles } from 'UI/_base/DepsCollector';
 import PageDeps from 'UI/_base/PageDeps';
 // @ts-ignore
 import * as AppEnv from 'Application/Env';
@@ -16,6 +16,15 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     private resolve: Function = null;
     private renderPromise: Promise<any> = null;
     private _ssrTimeout: number = 0;
+    /**
+     * Непакуемые require-зависимости
+     */
+    private unpackDeps: IDeps = [];
+
+    /**
+     * Уже подключенные через rt-пакеты, статические бандлы ресурсы
+     */
+    private includedResources: { links: string[], scripts: string[]; } = { links: [], scripts: [] };
 
     constructor() {
         this.get = this.get.bind(this);
@@ -23,9 +32,11 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
         this.getKeys = this.getKeys.bind(this);
         this.toObject = this.toObject.bind(this);
         this.collectDeps = this.collectDeps.bind(this);
+        this.setUnpackDeps = this.setUnpackDeps.bind(this);
         this.waitAppContent = this.waitAppContent.bind(this);
         this.pushDepComponent = this.pushDepComponent.bind(this);
         this.resetRenderDeferred = this.resetRenderDeferred.bind(this);
+        this.setIncludedResources = this.setIncludedResources.bind(this);
 
         this.pageDeps = new PageDeps();
         this.resetRenderDeferred();
@@ -40,6 +51,16 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
         }
     }
 
+    setUnpackDeps(unpack: IDeps) {
+        this.unpackDeps = unpack;
+    }
+
+    setIncludedResources(resources: { links: { href: string; }[], scripts: { src: string; }[]; }) {
+        const scripts = resources.scripts.map((l) => l.src);
+        const links = resources.links.map((l) => l.href);
+        this.includedResources = { links, scripts };
+    }
+
     get ssrTimeout(): number {
         return (Date.now() < this._ssrTimeout) ? this._ssrTimeout - Date.now() : 0;
     }
@@ -51,11 +72,17 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             }
             const { additionalDeps: rsDeps, serialized: rsSerialized } = getSerializedData();
             const prevDeps = Object.keys(rsDeps);
-            const files = this.pageDeps.collect([...prevDeps, ...this.initDeps]);
+            const files = this.pageDeps.collect(prevDeps.concat(this.initDeps), this.unpackDeps);
             this.resolve({
-                ...files,
+                js: files.js.filter(filterIncludedLinks(this.includedResources.scripts)),
+                css: {
+                    simpleCss: files.css.simpleCss.filter(filterIncludedLinks(this.includedResources.links)),
+                    themedCss: files.css.themedCss,
+                },
+                tmpl: files.tmpl,
+                wml: files.wml,
                 rsSerialized,
-                additionalDeps: [...prevDeps, ...this.requireInitDeps]
+                additionalDeps: prevDeps.concat(this.requireInitDeps)
             });
             this.resolve = null;
         });
@@ -116,4 +143,11 @@ function getSerializedData(): ISerializedData {
 interface ISerializedData {
     additionalDeps: IDeps;
     serialized: string;
+}
+
+/**
+ * Фильтрация зависимостей с учетом подключенных
+ */
+function filterIncludedLinks(included: string[]) {
+    return (dep: string) => !included.some((link) => link.includes(dep));
 }
