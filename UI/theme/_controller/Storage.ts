@@ -9,9 +9,10 @@ import { constants } from 'Env/Env';
 type IThemesDescripion = Partial<{ [theme: string]: ICssEntity; }>;
 interface IEntities { [name: string]: IThemesDescripion; }
 
-const createEntityStore = () => createStore<IEntities>(EntityStore);
+const createDefaultEntityStore = () => new EntityStore();
+const createEntityStore = () => createStore<IEntities>(createDefaultEntityStore, EntityStore.label);
 class EntityStore implements IStore<IEntities> {
-   constructor (
+   constructor(
       private data: IEntities = Object.create(null)
    ) { }
 
@@ -39,7 +40,7 @@ class EntityStore implements IStore<IEntities> {
  * Хранилище тем
  */
 export class EntityStorage {
-   constructor (
+   constructor(
       private getStore: () => IStore<IEntities> = createEntityStore()
    ) { }
    /**
@@ -116,10 +117,10 @@ export class EntityStorage {
 
 
 export interface IAliases { [alias: string]: string; };
-
-const createAliasStore = (data: IAliases) => createStore<IAliases>(AliasStore, data);
+const createDefaultAliasStore = (data: IAliases) => new AliasStore(data);
+const createAliasStore = (data: IAliases) => createStore<IAliases>(createDefaultAliasStore, AliasStore.label, data);
 class AliasStore implements IStore<IAliases>{
-   constructor (
+   constructor(
       private data: IAliases = Object.create(null)
    ) { }
 
@@ -156,12 +157,12 @@ export class AliasStorage {
     */
    get(alias: string): string {
       if (!this.getStore) { return alias; }
-      return this.getStore().get(alias);
+      return this.getStore().get(alias) || alias;
    }
 }
 
-function createStore<T>(Store: IStore<T>, data?: T): () => IStore<T> {
-   const store = new Store(data);
+function createStore<T>(createDefaultStore: (data?: T) => IStore<T>, label: string, data?: T): () => IStore<T> {
+   const store = createDefaultStore(data);
    if (constants.isBrowserPlatform || !isInit()) {
       /**
        * Для случаев, когда приложение не инициализированно (unit-тесты)
@@ -173,7 +174,6 @@ function createStore<T>(Store: IStore<T>, data?: T): () => IStore<T> {
     * на СП используется Application Store, чтобы css разных потоков не перемешивались,
     * т.к theme/controller является singleton'ом
     */
-   const createDefaultStore = (): typeof Store => new Store(data);
-   setAppStore<T>(Store.label, createDefaultStore());
-   return () => isInit() ? getAppStore<T>(Store.label, createDefaultStore) : store;
+   setAppStore<T>(label, createDefaultStore(data));
+   return () => isInit() ? getAppStore<T>(label, () => createDefaultStore(data)) : store;
 }
