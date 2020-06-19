@@ -247,9 +247,9 @@ describe('UI/theme/_controller/Controller', () => {
          return controller.get(originalName)
             .then(() => controller.remove(aliasName))
             .then((isRemoved) => {
-               assert.isTrue(isRemoved);
-               assert.isFalse(controller.has(aliasName));
-               assert.isFalse(controller.has(originalName));
+               assert.isTrue(isRemoved, 'не удалось удалить css сущность' + new Error().stack);
+               assert.isFalse(controller.has(aliasName), 'Алиас остался в хранилище');
+               assert.isFalse(controller.has(originalName), 'Оригинал остался в хранилище');
             });
       });
    });
