@@ -1,10 +1,10 @@
 <div key="scripts">
    <ws:if data="{{!_options.compat && _options.onServer}}">
       <script key="init_script">
-         require(['Core/polyfill', 'Env/Env', 'Application/Initializer', 'Application/Env', 'Core/constants', 'Core/app-init'], function (polyfill, Env, AppInit, AppEnv, constants) {
+         require(['Core/polyfill', 'Env/Env', 'Application/Initializer', 'Application/Env', 'Core/app-init'], function (polyfill, Env, AppInit, AppEnv) {
             require(['UI/Base'], function (UI) {
                window.startContextData = { AppData: new UI.AppData({}) };
-               Object.assign(constants, window.wsConfig);
+               Object.assign(Env.constants, window.wsConfig);
                require( {{ __setHTMLUnsafe(getDeps()) }}, function () {
                   var sr = new UI.StateReceiver();
                   sr.deserialize(window.receivedStates);

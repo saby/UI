@@ -1,8 +1,8 @@
 <div>
    <script key="init_script">
-      require(['Core/app-init', 'Core/constants', 'is!browser?jquery'], function(appinit, constants, rights){
-         constants.$body = $(document.body);
-         constants.$window = $(window);
+      require(['Core/app-init', 'Env/Env', 'is!browser?jquery'], function(appinit, Env, rights){
+         Env.constants.$body = $(document.body);
+         Env.constants.$window = $(window);
          appinit();
          require(['bootup-min',
           'Core/nativeExtensions',
