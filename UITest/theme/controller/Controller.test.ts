@@ -42,6 +42,7 @@ describe('UI/theme/_controller/Controller', () => {
          return Promise.all(
             controller.getAll().map((link) => { link.remove(); })
          ).then(() => {
+            controller.clear();
             controller = null;
             loader = null;
          });
@@ -247,7 +248,7 @@ describe('UI/theme/_controller/Controller', () => {
          return controller.get(originalName)
             .then(() => controller.remove(aliasName))
             .then((isRemoved) => {
-               assert.isTrue(isRemoved, 'не удалось удалить css сущность' + new Error().stack);
+               assert.isTrue(isRemoved, 'не удалось удалить css сущность');
                assert.isFalse(controller.has(aliasName), 'Алиас остался в хранилище');
                assert.isFalse(controller.has(originalName), 'Оригинал остался в хранилище');
             });
