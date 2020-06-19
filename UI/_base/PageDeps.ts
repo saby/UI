@@ -39,12 +39,16 @@ export default class PageDeps {
       this.isDebug = cookie.get('s3debug') === 'true' || contents.buildMode === 'debug';
    }
 
-   collect(initDeps: IDeps = []): ICollectedFiles {
-      return this.isDebug ? getDebugDeps() : getRealeseDeps(initDeps, getUnpackDeps());
+   collect(initDeps: IDeps = [], unpackRtPackDeps: IDeps): ICollectedFiles {
+      if (this.isDebug){
+         return getDebugDeps();
+      }
+      const unpack = getUnpackDepsFromCookie().concat(unpackRtPackDeps);
+      return getRealeseDeps(initDeps, unpack);
    }
 }
 
-function getUnpackDeps(): IDeps {
+function getUnpackDepsFromCookie(): IDeps {
    /**
     * в s3debug может быть true или строка-перечисление имен непакуемых ресурсов
     * https://online.sbis.ru/opendoc.html?guid=1d5ab888-6f9e-4ee0-b0bd-12e788e60ed9
