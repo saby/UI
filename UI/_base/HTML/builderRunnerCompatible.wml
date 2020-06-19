@@ -4,14 +4,14 @@
       require(['Core/patchRequireJS',
          'Core/load-contents',
          'Core/app-init',
-         'Core/constants',
+         'Env/Env',
          'Vdom/Vdom',
          'Lib/Control/BaseCompatible/BaseCompatible',
          'Core/nativeExtensions',
          'is!browser?jquery'
-      ], function(path, lc, appinit, constants) {
-         constants.$body = body;
-         constants.$window = window;
+      ], function(path, lc, appinit, Env) {
+         Env.constants.$body = body;
+         Env.constants.$window = window;
          appinit();
          require(['UI/Base', 'Core/app-start', 'View/Executor/TClosure',
             'Core/helpers/Hcontrol/makeInstanceCompatible',
