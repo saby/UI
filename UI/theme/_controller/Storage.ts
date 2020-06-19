@@ -9,11 +9,37 @@ import { constants } from 'Env/Env';
 type IThemesDescripion = Partial<{ [theme: string]: ICssEntity; }>;
 interface IEntities { [name: string]: IThemesDescripion; }
 
+const createEntityStore = () => createStore<IEntities>(EntityStore);
+class EntityStore implements IStore<IEntities> {
+   constructor (
+      private data: IEntities = Object.create(null)
+   ) { }
+
+   get<K extends keyof IEntities>(id: K): IEntities[K] {
+      return this.data[id];
+   }
+   set<K extends keyof IEntities>(id: K, state: IEntities[K]): boolean {
+      this.data[id] = state;
+      return true;
+   }
+   remove(id: keyof IEntities): void {
+      delete this.data[id];
+   }
+   getKeys(): Array<keyof IEntities & string> {
+      return Object.keys(this.data) as Array<keyof IEntities & string>;
+   }
+   toObject(): { [key in keyof IEntities]: IEntities[key] } {
+      return this.data;
+   }
+
+   static label: string = 'UI/theme/_controller/Storage#CssEntityStore';
+}
+
 /**
  * Хранилище тем
  */
-export default class Storage {
-   constructor(
+export class EntityStorage {
+   constructor (
       private getStore: () => IStore<IEntities> = createEntityStore()
    ) { }
    /**
@@ -88,34 +114,58 @@ export default class Storage {
    }
 }
 
-class EntityStore implements IStore<IEntities> {
-   private data: IEntities = Object.create(null);
 
-   get<K extends keyof IEntities>(id: K): IEntities[K] {
-      return this.data[id];
+export interface IAliases { [alias: string]: string; };
+
+const createAliasStore = (data: IAliases) => createStore<IAliases>(AliasStore, data);
+class AliasStore implements IStore<IAliases>{
+   constructor (
+      private data: IAliases = Object.create(null)
+   ) { }
+
+   get<K extends keyof IAliases>(alias: K): IAliases[K] {
+      return this.data[alias];
    }
-   set<K extends keyof IEntities>(id: K, state: IEntities[K]): boolean {
-      this.data[id] = state;
+   set<K extends keyof IAliases>(alias: K, originalName: IAliases[K]): boolean {
+      this.data[alias] = originalName;
       return true;
    }
-   remove(id: keyof IEntities): void {
-      delete this.data[id];
+   remove(alias: keyof IAliases): void {
+      delete this.data[alias];
    }
-   getKeys(): Array<keyof IEntities & string> {
-      return Object.keys(this.data) as Array<keyof IEntities & string>;
+   getKeys(): Array<keyof IAliases & string> {
+      return Object.keys(this.data) as Array<keyof IAliases & string>;
    }
-   toObject(): { [key in keyof IEntities]: IEntities[key] } {
+   toObject(): { [key in keyof IAliases]: IAliases[key] } {
       return this.data;
    }
 
-   static label: string = 'UI/theme/_controller/Storage#CssEntityStore';
+   static label: string = 'UI/theme/_controller/Storage#AliasStore';
 }
-function createEntityStore(): () => IStore<IEntities> {
-   const store = new EntityStore();
+
+export class AliasStorage {
+   private getStore: () => IStore<IAliases>;
+
+   set(data: IAliases): void {
+      this.getStore = createAliasStore(data);
+   }
+
+   /**
+    * Возвращает оригинальное название, если зарегистрирован алиас, иначе алиас
+    * @param alias 
+    */
+   get(alias: string): string {
+      if (!this.getStore) { return alias; }
+      return this.getStore().get(alias);
+   }
+}
+
+function createStore<T>(Store: IStore<T>, data?: T): () => IStore<T> {
+   const store = new Store(data);
    if (constants.isBrowserPlatform || !isInit()) {
       /**
        * Для случаев, когда приложение не инициализированно (unit-тесты)
-       * используется локальный EntityStore
+       * используется локальный Store
        */
       return () => store;
    }
@@ -123,7 +173,7 @@ function createEntityStore(): () => IStore<IEntities> {
     * на СП используется Application Store, чтобы css разных потоков не перемешивались,
     * т.к theme/controller является singleton'ом
     */
-   const createDefaultStore = (): EntityStore => new EntityStore();
-   setAppStore<IEntities>(EntityStore.label, createDefaultStore());
-   return () => isInit() ? getAppStore<IEntities>(EntityStore.label, createDefaultStore) : store;
+   const createDefaultStore = (): typeof Store => new Store(data);
+   setAppStore<T>(Store.label, createDefaultStore());
+   return () => isInit() ? getAppStore<T>(Store.label, createDefaultStore) : store;
 }

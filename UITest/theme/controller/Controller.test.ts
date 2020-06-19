@@ -205,4 +205,52 @@ describe('UI/theme/_controller/Controller', () => {
             });
       });
    });
+
+   describe('define', () => {
+      setHooks();
+      const aliasName = 'alias_name_1';
+      const originalName = 'original_name_1';
+      const aliasName2 = 'alias_name_2';
+      const originalName2 = 'original_name_2';
+      const aliases = {
+         [aliasName]: originalName,
+         [aliasName2]: originalName2
+      };
+
+      it('Метод get при запросе алиаса возвращает css-сущность с оригинальным именем', () => {
+         controller.define(aliases);
+         return controller.get(aliasName).then((entity) => {
+            assert.strictEqual(entity.cssName, originalName);
+         });
+      });
+
+      it('Метод has возвращает true для алиаса и оригинального имени', () => {
+         controller.define(aliases);
+         return controller.get(aliasName).then(() => {
+            assert.isTrue(controller.has(originalName));
+            assert.isTrue(controller.has(aliasName));
+         });
+      });
+
+      it('Метод getAll возвращает те же css-сущности при запросе алиасов и оригинальных имен', () => {
+         controller.define(aliases);
+         return Promise.all([
+            Promise.all([controller.get(aliasName), controller.get(aliasName2)]),
+            Promise.all([controller.get(originalName), controller.get(originalName2)])
+         ]).then(([aliasEntities, originalEntities]) => {
+            assert.sameDeepMembers(aliasEntities, originalEntities);
+         });
+      });
+
+      it('Метод remove удаляет по алиасу', () => {
+         controller.define(aliases);
+         return controller.get(originalName)
+            .then(() => controller.remove(aliasName))
+            .then((isRemoved) => {
+               assert.isTrue(isRemoved);
+               assert.isFalse(controller.has(aliasName));
+               assert.isFalse(controller.has(originalName));
+            });
+      });
+   });
 });
