@@ -21,6 +21,7 @@ export class Controller {
    constructor(private cssLoader: ICssLoader) {
       this.set = this.set.bind(this);
       this.has = this.has.bind(this);
+      this.clear = this.clear.bind(this);
       this.collectCssLinks();
    }
 
@@ -110,7 +111,7 @@ export class Controller {
    remove(cssName: string, themeName?: string): Promise<boolean> {
       const name = this.aliases.get(cssName);
       const theme = themeName || this.appTheme;
-      if (!this.has(name, theme)) {
+      if (!this.storage.has(name, theme)) {
          return Promise.resolve(true);
       }
       return this.storage.remove(name, theme);

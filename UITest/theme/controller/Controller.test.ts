@@ -28,24 +28,16 @@ class CssLoaderMock implements ICssLoader {
 }
 
 describe('UI/theme/_controller/Controller', () => {
-   let controller: Controller;
-   let loader: CssLoaderMock;
+   const loader: CssLoaderMock = new CssLoaderMock();
+   const controller: Controller = new Controller(loader);
 
    const setHooks = () => {
-
-      beforeEach(() => {
-         loader = new CssLoaderMock();
-         controller = new Controller(loader);
-      });
-
-      afterEach(() => {
+      // не использую стрелку чтобы переключить funciton context
+      afterEach(function () {
+         const testTitle = this.currentTest.title;
          return Promise.all(
-            controller.getAll().map((link) => { link.remove(); })
-         ).then(() => {
-            controller.clear();
-            controller = null;
-            loader = null;
-         });
+            controller.getAll().map((link) => link.remove())
+         ).then(controller.clear);
       });
    };
 
