@@ -124,6 +124,15 @@ export class Controller {
    /**
     * Определение алиасов имен css
     * @param {IAliases} aliases
+    * @example
+    * <pre class="brush: js">
+    *  it('Метод get при запросе алиаса возвращает css-сущность с оригинальным именем', () => {
+    *    controller.define({'aliasName':'originalName'});
+    *    return controller.get('aliasName').then((entity) => {
+    *       assert.strictEqual(entity.cssName, 'originalName');
+    *     });
+    *  });
+    * </pre>
     */
    define(aliases: IAliases): void {
       this.aliases.set(aliases);
