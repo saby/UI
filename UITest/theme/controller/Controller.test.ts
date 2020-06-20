@@ -32,13 +32,11 @@ describe('UI/theme/_controller/Controller', () => {
    const controller: Controller = new Controller(loader);
 
    const setHooks = () => {
-      // не использую стрелку чтобы переключить funciton context
-      afterEach(function () {
-         const testTitle = this.currentTest.title;
-         return Promise.all(
-            controller.getAll().map((link) => link.remove())
-         ).then(controller.clear);
-      });
+      afterEach(() =>
+         Promise
+            .all(controller.getAll().map((link) => link.remove()))
+            .then(controller.clear)
+      );
    };
 
    describe('get', () => {
