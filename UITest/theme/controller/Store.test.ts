@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 // import 'mocha';
-import Storage from "UI/theme/_controller/Storage";
+import { EntityStorage } from "UI/theme/_controller/Storage";
 import { ICssEntity } from "UI/theme/_controller/css/interface";
 import { DEFAULT_THEME, DEFAULT_THEME_TYPE } from "UI/theme/_controller/css/const";
 const name = 'Some/Control';
@@ -35,14 +35,14 @@ class LinkMock implements ICssEntity {
 }
 
 let link: LinkMock;
-let store: Storage;
+let store: EntityStorage;
 
 describe('UI/theme/_controller/Store', () => {
 
    const setHooks = () => {
       beforeEach(() => {
          link = new LinkMock(name, theme);
-         store = new Storage();
+         store = new EntityStorage();
       });
 
       afterEach(() => {
