@@ -161,7 +161,6 @@ export const _private = {
    }
 };
 
-const themeController = getThemeController();
 
 export interface IControlOptions {
    readOnly?: boolean;
@@ -1176,13 +1175,15 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    //#region CSS static
    /**
     * Загрузка стилей и тем контрола
-    * @param themeName имя темы (по-умолчанию тема приложения)
-    * @param themes массив доп тем для скачивания
-    * @param styles массив доп стилей для скачивания
+    * @param {String} themeName имя темы (по-умолчанию тема приложения)
+    * @param {Array<String>} themes массив доп тем для скачивания
+    * @param {Array<String>} styles массив доп стилей для скачивания
+    * @returns {Promise<void>}
     * @static
+    * @public
     * @method
     * @example
-    * <pre>
+    * <pre class="brush: js">
     *     import('Controls/_popupTemplate/InfoBox')
     *         .then((InfoboxTemplate) => InfoboxTemplate.loadCSS('saby__dark'))
     * </pre>
@@ -1207,6 +1208,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * </pre>
     */
    static loadThemes(themeName?: string, instThemes: string[] = []): Promise<void> {
+      const themeController = getThemeController();
       const themes = instThemes.concat(this._theme);
       if (themes.length === 0) {
          return Promise.resolve();
@@ -1226,6 +1228,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * </pre>
     */
    static loadStyles(instStyles: string[] = []): Promise<void> {
+      const themeController = getThemeController();
       const styles = instStyles.concat(this._styles);
       if (styles.length === 0) {
          return Promise.resolve();
@@ -1241,6 +1244,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @method
     */
    static removeCSS(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): Promise<void> {
+      const themeController = getThemeController();
       const styles = instStyles.concat(this._styles);
       const themes = instThemes.concat(this._theme);
       if (styles.length === 0 && themes.length === 0) {
@@ -1250,7 +1254,18 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       const removingThemed = Promise.all(themes.map((name) => themeController.remove(name, themeName)));
       return Promise.all([removingStyles, removingThemed]).then(() => void 0);
    }
+   /**
+    * Проверка загрузки стилей и тем контрола
+    * @param {String} themeName имя темы (по-умолчанию тема приложения)
+    * @param {Array<String>} themes массив доп тем для скачивания
+    * @param {Array<String>} styles массив доп стилей для скачивания
+    * @returns {Boolean}
+    * @static
+    * @public
+    * @method
+    */
    static isCSSLoaded(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): boolean {
+      const themeController = getThemeController();
       const themes = instThemes.concat(this._theme);
       const styles = instStyles.concat(this._styles);
       if (styles.length === 0 && themes.length === 0) {
