@@ -315,7 +315,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          rootKey?: string,
          isRoot?: boolean,
          attributes?: object,
-         isVdom: boolean = true
+         isVdom: boolean = true,
+         isCompatible: boolean = false
       ): any {
          if (!this._template.stable) {
             Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
@@ -360,7 +361,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       };
 
       this.render = function (empty?: any, attributes?: any): any {
-         const markup = this._getMarkup(null, true, attributes, false);
+         const markup = this._getMarkup(null, true, attributes, false, true);
          this._isRendered = true;
          return markup;
       };
