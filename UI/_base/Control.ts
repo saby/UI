@@ -1243,6 +1243,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return inherit;
    }
    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
+      let compatible;
       if (domElement) {
          // если пришел jquery, вытащим оттуда элемент
          domElement = domElement[0] || domElement;
@@ -1252,7 +1253,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          const parent = cfg.parent || goUpByControlTree(domElement)[0];
          // создаем контрол совместимым только если родитель - ws3-контрол или совместимый wasaby-контрол
          if (parent && (parent._dotTplFn || typeof parent.hasCompatible === 'function' && parent.hasCompatible())) {
-            cfg.iWantBeWS3 = true;
+            compatible = true;
             cfg.element = domElement;
             cfg.parent = parent;
          }
@@ -1286,7 +1287,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       Focus.patchDom(domElement, cfg);
       ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
 
-      if (cfg.iWantBeWS3) {
+      if (compatible) {
          if (require.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
             const makeInstanceCompatible = require('Core/helpers/Hcontrol/makeInstanceCompatible');
             makeInstanceCompatible(ctr, cfg);
