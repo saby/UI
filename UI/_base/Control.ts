@@ -168,6 +168,8 @@ export interface IControlOptions {
    theme?: string;
 }
 /**
+ * Базовый контрол, от которого наследуются все интерфейсные контролы фреймворка Wasaby.
+ * Подробнее о работе с классом читайте <a href="/doc/platform/developmentapl/interface-development/ui-library/control/">здесь</a>.
  * @class UI/_base/Control
  * @author Шипин А.А.
  * @remark {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator Asynchronous creation of Core/Creator component}
