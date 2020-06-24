@@ -117,9 +117,9 @@ export const _private = {
          }
       );
    },
-   configureCompatibility(domElement: HTMLElement, cfg: any, ctor: any): void {
+   configureCompatibility(domElement: HTMLElement, cfg: any, ctor: any): boolean {
       if (!constants.compat) {
-         return;
+         return false;
       }
 
       // вычисляем родителя физически - ближайший к элементу родительский контрол
@@ -154,9 +154,12 @@ export const _private = {
                ' в качестве конфига был передан объект с опциями его родителя ' + parent._moduleName +
                '. Не нужно передавать чужие опции для создания контрола, потому что они могут ' +
                'изменяться в процессе создания!', this);
-            return;
+         } else {
+            cfg.parent = cfg.parent || parent;
          }
-         cfg.parent = cfg.parent || parent;
+         return true;
+      } else {
+         return false;
       }
    }
 };
@@ -1299,7 +1302,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          Logger.error(message, ctor.prototype);
       }
 
-      _private.configureCompatibility(domElement, cfg, ctor);
+      const compatible = _private.configureCompatibility(domElement, cfg, ctor);
       cfg._$createdFromCode = true;
 
       startApplication();
@@ -1320,7 +1323,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       Focus.patchDom(domElement, cfg);
       ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
 
-      if (cfg.iWantBeWS3) {
+      if (compatible) {
          if (require.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
             const makeInstanceCompatible = require('Core/helpers/Hcontrol/makeInstanceCompatible');
             makeInstanceCompatible(ctr, cfg);
