@@ -17,4 +17,7 @@
    <ws:if data="{{ rsSerialized }}">
       <script data-vdomignore="true">window['receivedStates']='{{__setHTMLUnsafe(rsSerialized)}}';</script>
    </ws:if>
+   <ws:if data="{{ rtpackModuleNames }}">
+      <script data-vdomignore="true">window['rtpackModuleNames'] = '{{__setHTMLUnsafe(rtpackModuleNames)}}';</script>
+   </ws:if>
 </div>

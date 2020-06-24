@@ -36,8 +36,8 @@ interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
     rtpackCssModuleNames: string[];
     rtpackJsModuleNames: string[];
     /** Ссылки подключенных ресурсов */
-    scripts: string;
-    links: string[];
+    scripts: { src: string; }[];
+    links: { href: string; }[];
 }
 
 class HTML extends Control<IHTMLCombinedOptions> {
