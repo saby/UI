@@ -82,6 +82,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
                 tmpl: files.tmpl,
                 wml: files.wml,
                 rsSerialized,
+                rtpackModuleNames: this.unpackDeps,
                 additionalDeps: prevDeps.concat(this.requireInitDeps)
             });
             this.resolve = null;
