@@ -11,7 +11,7 @@
       "TextMarkup/*",
       "VirtualTreeMarkup/*",
       "VirtualDom/*",
-      "WmlBuilder/*"
+      "Compiler/*"
    ],
    "scripts": {
       "build": "npm run build:typescript && npm run build:app",
