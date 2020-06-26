@@ -125,19 +125,15 @@ export const _private = {
       // вычисляем родителя физически - ближайший к элементу родительский контрол
       const parent = goUpByControlTree(domElement)[0];
 
-
-      const isWs3 = parent && !!parent.setActive;
-
-      let parentHasCompat;
-      if (parent && typeof parent.hasCompatible === 'function' && parent.hasCompatible()) {
-         parentHasCompat = true;
-      } else {
-         parentHasCompat = false;
+      let makeInstanceCompatible;
+      try {
+         // @ts-ignore
+         makeInstanceCompatible = require('Core/helpers/Hcontrol/makeInstanceCompatible');
+      } catch (e) {
+         Logger.error('WS3WS4 - Please require Core/helpers/Hcontrol/makeInstanceCompatible manual', inst, e);
       }
 
-      // создаем контрол совместимым только если родитель - ws3-контрол или совместимый wasaby-контрол
-      if (isWs3 || parentHasCompat) {
-         cfg.iWantBeWS3 = true;
+      if (makeInstanceCompatible && makeInstanceCompatible.needToBeCompatible(parent)) {
          cfg.element = domElement;
 
          if (parent && parent._options === cfg) {
