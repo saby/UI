@@ -126,11 +126,8 @@ export const _private = {
       const parent = goUpByControlTree(domElement)[0];
 
       let makeInstanceCompatible;
-      try {
-         // @ts-ignore
+      if (require.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
          makeInstanceCompatible = require('Core/helpers/Hcontrol/makeInstanceCompatible');
-      } catch (e) {
-         Logger.error('WS3WS4 - Please require Core/helpers/Hcontrol/makeInstanceCompatible manual', inst, e);
       }
 
       if (makeInstanceCompatible && makeInstanceCompatible.needToBeCompatible(parent)) {
