@@ -125,17 +125,8 @@ export const _private = {
       // вычисляем родителя физически - ближайший к элементу родительский контрол
       const parent = goUpByControlTree(domElement)[0];
 
-      let isWs3;
-      const ControlCnstr = require.defined('Lib/Control/Control') ?
-         require('Lib/Control/Control') :
-         null;
-      if (ControlCnstr) {
-         isWs3 = parent && parent instanceof ControlCnstr.Control;
-      } else {
-         // сейчас в случае юнитов совместимость всегда есть (compat = compatible !== false), так что не поддержим старую логику
-         // todo отключить совместимость в юнитах и удалить здесь defined и этот блок
-         isWs3 = true;
-      }
+
+      const isWs3 = parent && !!parent.setActive;
 
       let parentHasCompat;
       if (parent && typeof parent.hasCompatible === 'function' && parent.hasCompatible()) {
