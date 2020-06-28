@@ -125,12 +125,12 @@ export const _private = {
       // вычисляем родителя физически - ближайший к элементу родительский контрол
       const parent = goUpByControlTree(domElement)[0];
 
-      let makeInstanceCompatible;
-      if (require.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
-         makeInstanceCompatible = require('Core/helpers/Hcontrol/makeInstanceCompatible');
+      let needToBeCompatible;
+      if (require.defined('Core/helpers/Hcontrol/needToBeCompatible')) {
+         needToBeCompatible = require('Core/helpers/Hcontrol/needToBeCompatible');
       }
 
-      if (makeInstanceCompatible && makeInstanceCompatible.needToBeCompatible(parent)) {
+      if (needToBeCompatible(parent)) {
          cfg.element = domElement;
 
          if (parent && parent._options === cfg) {
