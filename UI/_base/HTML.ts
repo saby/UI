@@ -13,7 +13,6 @@ import LinkResolver = require('Core/LinkResolver/LinkResolver');
 import getResourceUrl = require('Core/helpers/getResourceUrl');
 
 import AppData from './AppData';
-import {logger} from 'Application/Env';
 import { IHTMLOptions } from './interface/IHTML';
 import { IRootTemplateOptions } from './interface/IRootTemplate';
 import { headDataStore } from 'UI/_base/HeadData';
@@ -74,7 +73,6 @@ class HTML extends Control<IHTMLCombinedOptions> {
      */
 
     _beforeMount(cfg: IHTMLCombinedOptions, context: any, receivedState: any): Promise<any> {
-        logger.error('HTML options ', JSON.stringify(cfg, null, 2));
         this.onServer = typeof window === 'undefined';
         this.isCompatible = cfg.compat;
         this.initState(receivedState || cfg);
