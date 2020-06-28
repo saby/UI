@@ -104,5 +104,5 @@ function collectCSS(theme: string, styles: string[] = [], themes: string[] = [])
 }
 
 function onerror(e: Error): void {
-    import('UI/Utils').then(({ Logger }) => { Logger.error(e.message); });
+    import('Application/Env').then(({ logger }) => { logger.error(e.message); });
 }

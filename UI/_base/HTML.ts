@@ -74,7 +74,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
      */
 
     _beforeMount(cfg: IHTMLCombinedOptions, context: any, receivedState: any): Promise<any> {
-        logger.warn('HTML options ', JSON.stringify(cfg, null, 2));
+        logger.warn('HTML options ', Object.keys(cfg));
         this.onServer = typeof window === 'undefined';
         this.isCompatible = cfg.compat;
         this.initState(receivedState || cfg);
