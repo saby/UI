@@ -1,7 +1,6 @@
 /// <amd-module name="UI/_base/HeadData" />
 import { IDeps, ICollectedFiles } from 'UI/_base/DepsCollector';
 import PageDeps from 'UI/_base/PageDeps';
-import { logger } from 'Application/Env';
 // @ts-ignore
 import * as AppEnv from 'Application/Env';
 import { IStore } from 'Application/Interface';
@@ -71,27 +70,21 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             if (!this.resolve) {
                 return;
             }
-            try {
-                const { additionalDeps: rsDeps, serialized: rsSerialized } = getSerializedData();
-                const prevDeps = Object.keys(rsDeps);
-                const files = this.pageDeps.collect(prevDeps.concat(this.initDeps), this.unpackDeps);
-                const js = files.js.filter(filterIncludedLinks(this.includedResources.scripts));
-                const simpleCss = files.css.simpleCss.filter(filterIncludedLinks(this.includedResources.links));
-                this.resolve({
-                    js,
-                    css: {
-                        simpleCss,
-                        themedCss: files.css.themedCss,
-                    },
-                    tmpl: files.tmpl,
-                    wml: files.wml,
-                    rsSerialized,
-                    rtpackModuleNames: this.unpackDeps,
-                    additionalDeps: prevDeps.concat(this.requireInitDeps)
-                });
-            } catch (e) {
-                logger.error(e);
-            }
+            const { additionalDeps: rsDeps, serialized: rsSerialized } = getSerializedData();
+            const prevDeps = Object.keys(rsDeps);
+            const files = this.pageDeps.collect(prevDeps.concat(this.initDeps), this.unpackDeps);
+            this.resolve({
+                js: files.js.filter(filterIncludedLinks(this.includedResources.scripts)),
+                css: {
+                    simpleCss: files.css.simpleCss.filter(filterIncludedLinks(this.includedResources.links)),
+                    themedCss: files.css.themedCss,
+                },
+                tmpl: files.tmpl,
+                wml: files.wml,
+                rsSerialized,
+                rtpackModuleNames: this.unpackDeps,
+                additionalDeps: prevDeps.concat(this.requireInitDeps)
+            });
             this.resolve = null;
         });
     }
@@ -129,7 +122,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
 }
 
 class HeadDataStore {
-    constructor(private readonly storageKey: string) { }
+    constructor (private readonly storageKey: string) { }
 
     read<K extends keyof HeadData>(key: K): HeadData[K] {
         return AppEnv.getStore<HeadData>(this.storageKey, () => new HeadData()).get(key);
