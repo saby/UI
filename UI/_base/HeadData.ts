@@ -67,27 +67,33 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     }
 
     collectDeps(tempLoading: Promise<void>): void {
-        tempLoading
-            .catch(logger.error)
-            .then(() => {
-                if (!this.resolve) { return; }
+        tempLoading.then(() => {
+            if (!this.resolve) {
+                return;
+            }
+            try {
                 const { additionalDeps: rsDeps, serialized: rsSerialized } = getSerializedData();
                 const prevDeps = Object.keys(rsDeps);
-                const rtpackModuleNames = this.unpackDeps;
-                const files = this.pageDeps.collect(prevDeps.concat(this.initDeps), rtpackModuleNames);
+                const files = this.pageDeps.collect(prevDeps.concat(this.initDeps), this.unpackDeps);
                 const js = files.js.filter(filterIncludedLinks(this.includedResources.scripts));
                 const simpleCss = files.css.simpleCss.filter(filterIncludedLinks(this.includedResources.links));
                 this.resolve({
-                    css: { simpleCss, themedCss: files.css.themedCss },
+                    js,
+                    css: {
+                        simpleCss,
+                        themedCss: files.css.themedCss,
+                    },
                     tmpl: files.tmpl,
                     wml: files.wml,
-                    js,
                     rsSerialized,
-                    rtpackModuleNames,
+                    rtpackModuleNames: this.unpackDeps,
                     additionalDeps: prevDeps.concat(this.requireInitDeps)
                 });
-                this.resolve = null;
-            }).catch(logger.error);
+            } catch (e) {
+                logger.error(e);
+            }
+            this.resolve = null;
+        });
     }
 
     waitAppContent(): Promise<any> {
