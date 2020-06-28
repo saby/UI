@@ -117,36 +117,20 @@ export const _private = {
          }
       );
    },
-   configureCompatibility(domElement: HTMLElement, cfg: any, ctor: any): void {
+   configureCompatibility(domElement: HTMLElement, cfg: any, ctor: any): boolean {
       if (!constants.compat) {
-         return;
+         return false;
       }
 
       // вычисляем родителя физически - ближайший к элементу родительский контрол
       const parent = goUpByControlTree(domElement)[0];
 
-      let isWs3;
-      const ControlCnstr = require.defined('Lib/Control/Control') ?
-         require('Lib/Control/Control') :
-         null;
-      if (ControlCnstr) {
-         isWs3 = parent && parent instanceof ControlCnstr.Control;
-      } else {
-         // сейчас в случае юнитов совместимость всегда есть (compat = compatible !== false), так что не поддержим старую логику
-         // todo отключить совместимость в юнитах и удалить здесь defined и этот блок
-         isWs3 = true;
+      let needToBeCompatible;
+      if (require.defined('Core/helpers/Hcontrol/needToBeCompatible')) {
+         needToBeCompatible = require('Core/helpers/Hcontrol/needToBeCompatible');
       }
 
-      let parentHasCompat;
-      if (parent && typeof parent.hasCompatible === 'function' && parent.hasCompatible()) {
-         parentHasCompat = true;
-      } else {
-         parentHasCompat = false;
-      }
-
-      // создаем контрол совместимым только если родитель - ws3-контрол или совместимый wasaby-контрол
-      if (isWs3 || parentHasCompat) {
-         cfg.iWantBeWS3 = true;
+      if (needToBeCompatible(parent)) {
          cfg.element = domElement;
 
          if (parent && parent._options === cfg) {
@@ -154,9 +138,12 @@ export const _private = {
                ' в качестве конфига был передан объект с опциями его родителя ' + parent._moduleName +
                '. Не нужно передавать чужие опции для создания контрола, потому что они могут ' +
                'изменяться в процессе создания!', this);
-            return;
+         } else {
+            cfg.parent = cfg.parent || parent;
          }
-         cfg.parent = cfg.parent || parent;
+         return true;
+      } else {
+         return false;
       }
    }
 };
@@ -1301,7 +1288,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          Logger.error(message, ctor.prototype);
       }
 
-      _private.configureCompatibility(domElement, cfg, ctor);
+      const compatible = _private.configureCompatibility(domElement, cfg, ctor);
       cfg._$createdFromCode = true;
 
       startApplication();
@@ -1322,7 +1309,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       Focus.patchDom(domElement, cfg);
       ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
 
-      if (cfg.iWantBeWS3) {
+      if (compatible) {
          if (require.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
             const makeInstanceCompatible = require('Core/helpers/Hcontrol/makeInstanceCompatible');
             makeInstanceCompatible(ctr, cfg);
