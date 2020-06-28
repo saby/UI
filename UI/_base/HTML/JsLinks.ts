@@ -18,7 +18,7 @@ class JsLinks extends Control {
    rsSerialized: string = '';
    rtpackModuleNames: string = '';
    _beforeMount() {
-      if (typeof window !== 'undefined' && typeof process === 'undefined') {
+      if (typeof window !== 'undefined') {
          return;
       }
       return headDataStore.read('waitAppContent')().then((res) => {
