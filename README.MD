@@ -4,7 +4,7 @@ Saby/UI includes modules:
  * Markup
  * TextMarkup
  * VirtualTreeMarkup
- * WmlBuilder
+ * Compiler
  * UITest
  * UIDemo
 
@@ -33,8 +33,8 @@ UI module includes one library: UI/Base.
 ```
 Go to [http://localhost:777](http://localhost:777) in your browser to execute Demo.
 
-For example: 
+For example:
 - `http://localhost:777/UIDemo/app/DemoErrors`
 - `http://localhost:777/UIDemo/app/ThemesDemo%2FPage`
 
-`Warning!` For correct work of the stand, you need to activate debug mode. 
+`Warning!` For correct work of the stand, you need to activate debug mode.
