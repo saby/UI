@@ -320,17 +320,11 @@ export class DepsCollector {
       }
       for (const key in packages.css.themedCss) {
          if (packages.css.themedCss.hasOwnProperty(key)) {
-            if (!packages.js[key] && packages.css.themedCss[key] === DEPTYPES.BUNDLE) {
-               files.js.push(key);
-            }
             files.css.themedCss.push(key);
          }
       }
       for (const key in packages.css.simpleCss) {
          if (packages.css.simpleCss.hasOwnProperty(key)) {
-            if (!packages.js[key] && packages.css.simpleCss[key] === DEPTYPES.BUNDLE) {
-               files.js.push(key);
-            }
             files.css.simpleCss.push(key);
          }
       }
