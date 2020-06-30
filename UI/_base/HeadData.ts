@@ -76,7 +76,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             this.resolve({
                 js: files.js.filter(filterIncludedLinks(this.includedResources.scripts)),
                 css: {
-                    simpleCss: files.css.simpleCss.filter(filterIncludedLinks(this.includedResources.links)),
+                    simpleCss: files.css.simpleCss.concat(this.includedResources.links),
                     themedCss: files.css.themedCss,
                 },
                 tmpl: files.tmpl,
