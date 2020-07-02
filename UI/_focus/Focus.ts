@@ -292,6 +292,7 @@ function focus(element: Element, {enableScreenKeyboard = false, enableScrollToEl
    let res;
    const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard};
    const lastFocused: Element = document.activeElement;
+   element =  fixElementForMobileInputs(element, cfg);
    if (focusingState) {
       nativeFocus.call(element);
    } else {
