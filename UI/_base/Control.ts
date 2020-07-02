@@ -110,10 +110,10 @@ export const _private = {
       let executeTime = Date.now() - startTime;
       customBLExecuteTime = customBLExecuteTime ? customBLExecuteTime : BL_MAX_EXECUTE_TIME;
       if (executeTime > customBLExecuteTime) {
-         const message = `Долгое выполнение _beforeMount на клиенте! 
+         const message = `Долгое выполнение _beforeMount на клиенте!
             Promise, который вернули из метода _beforeMount контрола ${moduleName} ` +
-            `завершился за ${executeTime} миллисекунд. 
-            Необходимо: 
+            `завершился за ${executeTime} миллисекунд.
+            Необходимо:
             - ускорить работу БЛ или
             - перенести работу в _afterMount контрола ${moduleName} или
             - увеличить константу ожидания по согласованию с Бегуновым А. ` +
@@ -126,9 +126,9 @@ export const _private = {
       let startTime = Date.now();
 
       let asyncTimer = setTimeout(() => {
-         const message = `Ошибка построения на клиенте! 
+         const message = `Ошибка построения на клиенте!
             Promise, который вернули из метода _beforeMount контрола ${moduleName} ` +
-            `не завершился за ${time} миллисекунд. 
+            `не завершился за ${time} миллисекунд.
             Необходимо проверить правильность написания асинхронных вызовов в _beforeMount контрола ${moduleName}.
             Возможные причины:
             - Promise не вернул результат/причину отказа
@@ -248,7 +248,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    protected _children: IControlChildren = {};
 
    private _savedInheritOptions: unknown = null;
-   
+
    private _controlNode: any = null;
 
    private _environment: any = null;
@@ -304,7 +304,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return this._environment;
    }
 
-   private _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): unknown {
+   protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): unknown {
       return this._environment && this._environment.startEvent(this._controlNode, arguments);
    }
 
