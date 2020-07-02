@@ -73,12 +73,11 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             const { additionalDeps: rsDeps, serialized: rsSerialized } = getSerializedData();
             const prevDeps = Object.keys(rsDeps);
             const files = this.pageDeps.collect(prevDeps.concat(this.initDeps), this.unpackDeps);
+            const simpleCss = files.css.simpleCss.concat(this.includedResources.links);
+            const js = files.js.concat(this.includedResources.scripts);
             this.resolve({
-                js: files.js.filter(filterIncludedLinks(this.includedResources.scripts)),
-                css: {
-                    simpleCss: files.css.simpleCss.concat(this.includedResources.links),
-                    themedCss: files.css.themedCss,
-                },
+                js,
+                css: { simpleCss, themedCss: files.css.themedCss },
                 tmpl: files.tmpl,
                 wml: files.wml,
                 rsSerialized,
@@ -144,11 +143,4 @@ function getSerializedData(): ISerializedData {
 interface ISerializedData {
     additionalDeps: IDeps;
     serialized: string;
-}
-
-/**
- * Фильтрация зависимостей с учетом подключенных
- */
-function filterIncludedLinks(included: string[]) {
-    return (dep: string) => !included.some((link) => link.includes(dep));
 }
