@@ -80,6 +80,31 @@ const stateNamesNoPurify = {
     isDestroyed: true
 };
 
+interface IContext {
+   scope: unknown;
+   get(field: string): Record<string, unknown>;
+   set(): void
+   has(): boolean;
+}
+
+function createContext(): IContext {
+   return {
+      scope: null,
+      get(field: string): Record<string, unknown> {
+         if (this.scope && this.scope.hasOwnProperty(field)) {
+            return this.scope[field];
+         }
+         return null;
+      },
+      set(): void {
+         throw new Error("Can't set data to context. Context is readonly!");
+      },
+      has(): boolean {
+         return true;
+      }
+   };
+}
+
 export const _private = {
    _checkAsyncExecuteTime: function<TState, TOptions>(startTime: number, customBLExecuteTime: number, moduleName: string, instance: Control<TOptions, TState>): void {
       let executeTime = Date.now() - startTime;
@@ -183,21 +208,32 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private _$active: boolean = false;
    private _reactiveStart: boolean = false;
 
-   private readonly _instId: string;
-   protected _options: TOptions = null;
-   private _internalOptions: Record<string, unknown> = null;
+   private readonly _instId: string = 'inst_' + countInst++;
+   protected _options: TOptions = {} as TOptions;
+   private _internalOptions: Record<string, unknown> = {};
+
+   /**
+    * TODO: delete it
+    */
+
+   private _fullContext: unknown = null;
+
+   private _evaluatedContext: IContext;
+
+   private get context(): IContext {
+      if (!this._evaluatedContext) {
+         this._evaluatedContext = createContext();
+      }
+      return this._evaluatedContext;
+   }
+
+   /**
+    * end todo
+    */
 
    private _context: any = null;
-   private context: any = null;
-   private saveFullContext: any = null;
-   private _saveContextObject: any = null;
    private _$resultBeforeMount: any = null;
 
-   private _saveEnvironment: Function = null;
-   private saveInheritOptions: Function = null;
-   private _getEnvironment: Function = null;
-
-   protected _notify: (eventName: string, args?: unknown[], options?: { bubbling?: boolean }) => unknown = null;
    protected _template: TemplateFunction;
    protected _clientTimeout: number = null;
    protected _allowNativeEvent: boolean = false;
@@ -209,174 +245,128 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    // Ссылка: https://online.sbis.ru/opendoc.html?guid=5f576e21-6606-4a55-94fd-6979c6bfcb53.
    private _logicParent: Control<TOptions, void> = null;
 
-   // Render function for virtual dom
-   _getMarkup: Function = null;
-   // Render function for text generator
-   render: Function = null;
+   protected _children: IControlChildren = {};
 
-   protected _children: IControlChildren = null;
+   private _savedInheritOptions: unknown = null;
+   
+   private _controlNode: any = null;
+
+   private _environment: any = null;
+
+   private _isRendered: boolean;
 
    constructor(cfg: any) {
       if (!cfg) {
          cfg = {};
       }
 
-      /**
-       * TODO: delete it
-       */
-      let fullContext = null;
-      let _contextObj = null;
+      // Why? See comment within _forceUpdate implementation.
+      this._forceUpdate = this._forceUpdate.bind(this);
 
-      this.saveFullContext = (ctx) => {
-         fullContext = ctx;
-      };
-
-      this._saveContextObject = (ctx) => {
-         _contextObj = ctx;
-         this._context = ctx;
-      };
-      this.context = {
-         get(field: string): Record<string, unknown> {
-            if (_contextObj && _contextObj.hasOwnProperty(field)) {
-               return _contextObj[field];
-            }
-            return null;
-         },
-         set(): void {
-            throw new Error("Can't set data to context. Context is readonly!");
-         },
-         has(): boolean {
-            return true;
-         }
-      };
-
-      /**
-       * end todo
-       */
-
-      let controlNode = null;
-      let savedInheritOptions = null;
-      let environment = null;
-
-      this.saveInheritOptions = (opts: any) => {
-         savedInheritOptions = opts;
-      };
-
-      this._saveEnvironment = (env, cntNode) => {
-         controlNode = cntNode;
-         environment = env;
-      };
-
-      // сделано так чтобы были доступны замыкания
-      this._getEnvironment = () => {
-         return environment;
-      };
-
-      // tslint:disable-next-line:only-arrow-functions
-      this._notify = function (): any {
-         return environment && environment.startEvent(controlNode, arguments);
-      };
-
-      // @ts-ignore
-      this._notify._isVdomNotify = true;
-
-      // сделано так чтобы были доступны замыкания
-      this._forceUpdate = () => {
-         const control = this || (controlNode && controlNode.control);
-         if (control && !control._mounted) {
-            // _forceUpdate was called asynchronous from _beforeMount before control was mounted to DOM
-            // So we need to delay _forceUpdate till the moment component will be mounted to DOM
-            control._$needForceUpdate = true;
-         } else {
-            if (environment) {
-               // This is fix for specific case. When environment has _haveRebuildRequest and after that
-               // we creating another one. We don't have to do that, it's better to delay rebuild, after current
-               // sync cycle.
-               // after 410 condition "control._moduleName === 'FED2/UI/DocumentCompatible'" will be deleted.
-               if (environment._haveRebuildRequest && control._moduleName === 'FED2/UI/DocumentCompatible') {
-                  control._$needForceUpdate = true;
-               } else {
-                  environment.forceRebuild(controlNode.id);
-               }
-
-            }
-         }
-      };
-
-      /**
-       * Метод, который возвращает разметку для компонента
-       * @param rootKey
-       * @param isRoot
-       * @param attributes
-       * @param isVdom
-       * @returns {*}
-       */
-      this._getMarkup = function _getMarkup(
-         rootKey?: string,
-         isRoot?: boolean,
-         attributes?: object,
-         isVdom: boolean = true
-      ): any {
-         if (!this._template.stable) {
-            Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
-            return '';
-         }
-         let res;
-
-         if (!attributes) {
-            attributes = {};
-         }
-         attributes.context = fullContext;
-         attributes.inheritOptions = savedInheritOptions;
-         for (const i in attributes.events) {
-            if (attributes.events.hasOwnProperty(i)) {
-               for (let handl = 0; handl < attributes.events[i].length; handl++) {
-                  if (
-                     attributes.events[i][handl].fn.isControlEvent &&
-                     !attributes.events[i][handl].fn.controlDestination
-                  ) {
-                     attributes.events[i][handl].fn.controlDestination = this;
-                  }
-               }
-            }
-         }
-         res = this._template(this, attributes, rootKey, isVdom);
-         if (res) {
-            if (isVdom) {
-               if (res.length !== 1) {
-                  const message = `There should be only one root element in control markup. Got ${res.length} root(s).`;
-                  Logger.error(message, this);
-               }
-               for (let k = 0; k < res.length; k++) {
-                  if (res[k]) {
-                     return res[k];
-                  }
-               }
-            }
-         } else {
-            res = '';
-         }
-         return res;
-      };
-
-      this.render = function (empty?: any, attributes?: any): any {
-         const markup = this._getMarkup(null, true, attributes, false);
-         this._isRendered = true;
-         return markup;
-      };
       if (cfg._logicParent && !(cfg._logicParent instanceof Control)) {
          Logger.error('Option "_logicParent" is not instance of "Control"', this);
       }
       this._logicParent = cfg._logicParent;
-      this._options = {};
-      this._internalOptions = {};
-      this._children = {};
-      this._instId = 'inst_' + countInst++;
 
       /*dont use this*/
       if (this._afterCreate) {
          this._afterCreate(cfg);
       }
+   }
+
+   /**
+    * TODO: delete it
+    */
+
+   private saveFullContext(ctx: unknown): void {
+      this._fullContext = ctx;
+   }
+
+   private _saveContextObject(ctx: unknown):void {
+      this.context.scope = ctx;
+      this._context = ctx;
+   }
+
+   /**
+    * end todo
+    */
+
+   private saveInheritOptions(opts: any): void {
+      this._savedInheritOptions = opts;
+   }
+
+   private _saveEnvironment(env: unknown, cntNode: unknown): void {
+      this._controlNode = cntNode;
+      this._environment = env;
+   }
+
+   private _getEnvironment(): any {
+      return this._environment;
+   }
+
+   private _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): unknown {
+      return this._environment && this._environment.startEvent(this._controlNode, arguments);
+   }
+
+   /**
+    * Метод, который возвращает разметку для компонента
+    * @param rootKey
+    * @param isRoot
+    * @param attributes
+    * @param isVdom
+    */
+   _getMarkup(
+      rootKey?: string,
+      isRoot?: boolean,
+      attributes?: object,
+      isVdom: boolean = true
+   ): any {
+      if (!(this._template as any).stable) {
+         Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
+         return '';
+      }
+      let res;
+
+      if (!attributes) {
+         attributes = {};
+      }
+      attributes.context = this._fullContext;
+      attributes.inheritOptions = this._savedInheritOptions;
+      for (const i in attributes.events) {
+         if (attributes.events.hasOwnProperty(i)) {
+            for (let handl = 0; handl < attributes.events[i].length; handl++) {
+               if (
+                  attributes.events[i][handl].fn.isControlEvent &&
+                  !attributes.events[i][handl].fn.controlDestination
+               ) {
+                  attributes.events[i][handl].fn.controlDestination = this;
+               }
+            }
+         }
+      }
+      res = this._template(this, attributes, rootKey, isVdom);
+      if (res) {
+         if (isVdom) {
+            if (res.length !== 1) {
+               const message = `There should be only one root element in control markup. Got ${res.length} root(s).`;
+               Logger.error(message, this);
+            }
+            for (let k = 0; k < res.length; k++) {
+               if (res[k]) {
+                  return res[k];
+               }
+            }
+         }
+      } else {
+         res = '';
+      }
+      return res;
+   }
+
+   render(empty?: any, attributes?: any): any {
+      const markup = this._getMarkup(null, true, attributes, false);
+      this._isRendered = true;
+      return markup;
    }
 
    /**
@@ -426,7 +416,32 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @private
     */
    _forceUpdate(): void {
-      // будет переопределено в конструкторе, чтобы был доступ к замыканиям
+      /**
+       * FIXME: I have no idea what code below this comment means. Originally it was:
+       * this._forceUpdate = () => {
+       *    const control = this || (controlNode && controlNode.control);
+       * Could this method being called apart from instance context?
+       */
+      const control = this || (this._controlNode && this._controlNode.control);
+
+      if (control && !control._mounted) {
+         // _forceUpdate was called asynchronous from _beforeMount before control was mounted to DOM
+         // So we need to delay _forceUpdate till the moment component will be mounted to DOM
+         control._$needForceUpdate = true;
+      } else {
+         if (this._environment) {
+            // This is fix for specific case. When environment has _haveRebuildRequest and after that
+            // we creating another one. We don't have to do that, it's better to delay rebuild, after current
+            // sync cycle.
+            // after 410 condition "control._moduleName === 'FED2/UI/DocumentCompatible'" will be deleted.
+            if (this._environment._haveRebuildRequest && control._moduleName === 'FED2/UI/DocumentCompatible') {
+               control._$needForceUpdate = true;
+            } else {
+               this._environment.forceRebuild(this._controlNode.id);
+            }
+
+         }
+      }
    }
 
    getInstanceId(): string {
@@ -1334,8 +1349,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    // </editor-fold>
 }
 
-// @ts-ignore
-Control.prototype._template = template;
+Object.assign(Control.prototype, {
+   _template: template
+});
+((Control.prototype as any)._notify as any)._isVdomNotify = true;
 
 function logError(e: Error) {
    Logger.error(e.message);
