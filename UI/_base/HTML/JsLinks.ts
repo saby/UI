@@ -10,19 +10,21 @@ class JsLinks extends Control {
    // @ts-ignore
    _template: Function = template;
 
-   js: string[] = [];
+   js: Record<string, number> = {};
    tmpl: string[] = [];
    wml: string[] = [];
    themedCss: string[] = [];
    simpleCss: string[] = [];
    rsSerialized: string = '';
    rtpackModuleNames: string = '';
-   _beforeMount() {
+   _beforeMount(options) {
       if (typeof window !== 'undefined') {
          return;
       }
+      const resolveJsLink = (js: string) => options.linkResolver.resolveLink(js, 'js');
       return headDataStore.read('waitAppContent')().then((res) => {
-         this.js = res.js;
+         const jsLinks: string[] = res.js.map(resolveJsLink).concat(res.scripts);
+         this.js = arrayToObject(jsLinks); // конвертируем в hashmap чтобы избавиться от дублей
          this.tmpl = res.tmpl;
          this.wml = res.wml;
          this.rsSerialized = res.rsSerialized;
@@ -43,8 +45,9 @@ export default JsLinks;
 /** Конвертируем в hashmap для быстрого поиска имени модуля */
 function arrayToObject(arr: string[]) {
    const obj: Record<string, number> = {};
+   let index = 0;
    for (let key of arr) {
-      obj[key] = 1;
+      obj[key] = index++;
    }
    return obj;
 }
