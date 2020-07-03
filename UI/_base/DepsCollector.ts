@@ -9,7 +9,7 @@ import i18n = require('Core/i18n');
 
 export type IDeps = string[];
 export interface ICollectedFiles {
-   js: Record<string, boolean>;
+   js: string[];
    css: {
       themedCss: string[];
       simpleCss: string[];
@@ -289,7 +289,7 @@ export class DepsCollector {
          .filter((d, i) => depends.indexOf(d) === i);
          
       const files: ICollectedFiles = {
-         js: {},
+         js: [],
          css: { themedCss: [], simpleCss: [] },
          tmpl: [],
          wml: []
@@ -305,7 +305,7 @@ export class DepsCollector {
 
       for (const key in packages.js) {
          if (packages.js.hasOwnProperty(key)) {
-            files.js[key] = true;
+            files.js.push(key);
          }
       }
       for (const key in packages.tmpl) {
@@ -321,7 +321,7 @@ export class DepsCollector {
       for (const key in packages.css.themedCss) {
          if (packages.css.themedCss.hasOwnProperty(key)) {
             if (!packages.js[key] && packages.css.themedCss[key] === DEPTYPES.BUNDLE) {
-               files.js[key] = true;
+               files.js.push(key);
             }
             files.css.themedCss.push(key);
          }
@@ -329,7 +329,7 @@ export class DepsCollector {
       for (const key in packages.css.simpleCss) {
          if (packages.css.simpleCss.hasOwnProperty(key)) {
             if (!packages.js[key] && packages.css.simpleCss[key] === DEPTYPES.BUNDLE) {
-               files.js[key] = true;
+               files.js.push(key);
             }
             files.css.simpleCss.push(key);
          }
@@ -348,7 +348,7 @@ export class DepsCollector {
    getModules() {
       return constants.modules;
    }
-   collectI18n(files: ICollectedFiles, packages) {
+   collectI18n(files, packages) {
       let collectedDictList = {};
       const langLocale = this.getLang();
       const langNoLocale = this.getLangNoLocale(langLocale);
@@ -374,7 +374,7 @@ export class DepsCollector {
          if (collectedDictList.hasOwnProperty(key)) {
             let currentDicts = collectedDictList[key];
             for (let i = 0; i < currentDicts.length; i++) {
-               files.js[currentDicts[i].moduleLang + '.json'] = true;
+               files.js.push(currentDicts[i].moduleLang + '.json');
                if (modules[key].dict && modules[key].dict && ~modules[key].dict.indexOf(currentDicts[i].lang + '.css')) {
                   files.css.simpleCss.push(currentDicts[i].moduleLang);
                }
