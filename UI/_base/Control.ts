@@ -83,7 +83,7 @@ const stateNamesNoPurify = {
 interface IContext {
    scope: unknown;
    get(field: string): Record<string, unknown>;
-   set(): void
+   set(): void;
    has(): boolean;
 }
 
@@ -523,6 +523,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._forceUpdate = EMPTY_FUNC;
          this._beforeUnmount = EMPTY_FUNC;
          //this._getMarkup = EMPTY_FUNC;
+         this._evaluatedContext = null;
       } catch (error) {
          Logger.lifeError('_beforeUnmount', this, error);
       }
