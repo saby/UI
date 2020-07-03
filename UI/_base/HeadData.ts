@@ -74,7 +74,8 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             const prevDeps = Object.keys(rsDeps);
             const files = this.pageDeps.collect(prevDeps.concat(this.initDeps), this.unpackDeps);
             const simpleCss = files.css.simpleCss.concat(this.includedResources.links);
-            const js = files.js.concat(this.includedResources.scripts);
+            this.includedResources.scripts.forEach((key) => { files.js[key] = true; });
+            const js = Object.keys(files.js);
             this.resolve({
                 js,
                 css: { simpleCss, themedCss: files.css.themedCss },

@@ -58,7 +58,7 @@ function getUnpackDepsFromCookie(): IDeps {
 
 function getDebugDeps(): ICollectedFiles {
    return {
-      js: [],
+      js: {},
       css: { themedCss: [], simpleCss: [] },
       tmpl: [],
       wml: []
