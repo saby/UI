@@ -88,11 +88,14 @@ interface IContext {
 }
 
 function createContext(): IContext {
+   let _scope: unknown = null;
    return {
-      scope: null,
+      set scope(value: unknown) {
+         _scope = value;
+      },
       get(field: string): Record<string, unknown> {
-         if (this.scope && this.scope.hasOwnProperty(field)) {
-            return this.scope[field];
+         if (_scope && _scope.hasOwnProperty(field)) {
+            return _scope[field];
          }
          return null;
       },
@@ -214,6 +217,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._evaluatedContext = createContext();
       }
       return this._evaluatedContext;
+   }
+
+   private set context(value: IContext) {
+      this._evaluatedContext = value;
    }
 
    /**
