@@ -199,6 +199,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private _destroyed: boolean = false;
    private _$active: boolean = false;
    private _reactiveStart: boolean = false;
+   private _$needForceUpdate: boolean;
 
    private readonly _instId: string = 'inst_' + countInst++;
    protected _options: TOptions = {} as TOptions;
@@ -255,9 +256,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       if (!cfg) {
          cfg = {};
       }
-
-      // Why? See comment within _forceUpdate implementation.
-      this._forceUpdate = this._forceUpdate.bind(this);
 
       if (cfg._logicParent && !(cfg._logicParent instanceof Control)) {
          Logger.error('Option "_logicParent" is not instance of "Control"', this);
@@ -412,26 +410,18 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @private
     */
    _forceUpdate(): void {
-      /**
-       * FIXME: I have no idea what code below this comment means. Originally it was:
-       * this._forceUpdate = () => {
-       *    const control = this || (controlNode && controlNode.control);
-       * Could this method being called apart from instance context?
-       */
-      const control = this || (this._controlNode && this._controlNode.control);
-
-      if (control && !control._mounted) {
+      if (!this._mounted) {
          // _forceUpdate was called asynchronous from _beforeMount before control was mounted to DOM
          // So we need to delay _forceUpdate till the moment component will be mounted to DOM
-         control._$needForceUpdate = true;
+         this._$needForceUpdate = true;
       } else {
          if (this._environment) {
             // This is fix for specific case. When environment has _haveRebuildRequest and after that
             // we creating another one. We don't have to do that, it's better to delay rebuild, after current
             // sync cycle.
-            // after 410 condition "control._moduleName === 'FED2/UI/DocumentCompatible'" will be deleted.
-            if (this._environment._haveRebuildRequest && control._moduleName === 'FED2/UI/DocumentCompatible') {
-               control._$needForceUpdate = true;
+            // after 410 condition "this._moduleName === 'FED2/UI/DocumentCompatible'" will be deleted.
+            if (this._environment._haveRebuildRequest && this._moduleName === 'FED2/UI/DocumentCompatible') {
+               this._$needForceUpdate = true;
             } else {
                this._environment.forceRebuild(this._controlNode.id);
             }
