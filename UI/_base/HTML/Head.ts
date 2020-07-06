@@ -93,8 +93,8 @@ export default Head;
 
 function collectCSS(theme: string, styles: string[] = [], themes: string[] = []): Promise<string> {
     const tc = getThemeController();
-    const gettingStyles = styles.map((name) => tc.get(name, EMPTY_THEME));
-    const gettingThemes = themes.map((name) => tc.get(name, theme, THEME_TYPE.SINGLE));
+    const gettingStyles = styles.filter((name) => !!name).map((name) => tc.get(name, EMPTY_THEME));
+    const gettingThemes = themes.filter((name) => !!name).map((name) => tc.get(name, theme, THEME_TYPE.SINGLE));
     return Promise.all(gettingStyles.concat(gettingThemes)).then(() => {
         const markup = tc.getAll().map((entity) => entity.outerHtml).join('\n');
         tc.clear();
