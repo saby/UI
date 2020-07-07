@@ -265,11 +265,10 @@ function focusInner(
    element: Element,
    cfg: IFocusConfig
 ): boolean {
-   const fixedElement: Element = element;
    // Заполняем cfg значениями по умолчанию, если другие не переданы
-   const undoScrolling = makeResetScrollFunction(fixedElement, cfg.enableScrollToElement);
-   const result = tryMoveFocus(fixedElement, cfg);
-   checkFocused(fixedElement);
+   const undoScrolling = makeResetScrollFunction(element, cfg.enableScrollToElement);
+   const result = tryMoveFocus(element, cfg);
+   checkFocused(element);
 
    if (result) {
       fixScrollingEffect(undoScrolling);
