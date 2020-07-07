@@ -329,4 +329,4 @@ function _initFocus(): void {
 }
 _initFocus();
 
-export { focus, _initFocus, IFocusConfig };
+export { focus, _initFocus, IFocusConfig, nativeFocus };
