@@ -97,6 +97,11 @@ define([
          assert.deepStrictEqual(deps.js, ["bdl/tmplpckd.package"]);
          assert.deepStrictEqual(deps.tmpl, []);
       });
+
+      describe('localization', function() {
+
+      })
+
       it('Localization enabled', function() {
          var depsCollectorWithLocalization = new DepsCollector(modDeps, modInfo, bundlesRoute);
          depsCollectorWithLocalization.getLang = function() {
