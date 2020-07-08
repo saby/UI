@@ -82,10 +82,10 @@ function purifyInstanceSync(
 
     const isDebug = needLog();
 
-    const instanceKeys = Object.keys(instance);
-    for (let i = 0; i < instanceKeys.length; i++) {
-        const stateName = instanceKeys[i];
-        const stateValue = instance[instanceName];
+    // @ts-ignore У нас подмешивается полифилл Object.entries, о котором не знает ts
+    const instanceEntries = Object.entries(instance);
+    for (let i = 0; i < instanceEntries.length; i++) {
+        const [stateName, stateValue]: [string, TInstanceValue] = instanceEntries[i];
 
         if (isValueToPurify(stateValue) && !stateNamesNoPurify[stateName]) {
             const getterFunction = isDebug && createUseAfterPurifyErrorFunction(stateName, instanceName);
