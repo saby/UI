@@ -73,12 +73,13 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             const { additionalDeps: rsDeps, serialized: rsSerialized } = getSerializedData();
             const prevDeps = Object.keys(rsDeps);
             const files = this.pageDeps.collect(prevDeps.concat(this.initDeps), this.unpackDeps);
+            const simpleCss = files.css.simpleCss.concat(this.includedResources.links);
+            // TODO нельзя слить ссылки и имена модулей т.к LinkResolver портит готовые ссылки
+            // TODO временно прокидываю их раздельно
             this.resolve({
-                js: files.js.filter(filterIncludedLinks(this.includedResources.scripts)),
-                css: {
-                    simpleCss: files.css.simpleCss.filter(filterIncludedLinks(this.includedResources.links)),
-                    themedCss: files.css.themedCss,
-                },
+                scripts: this.includedResources.scripts, // готовые ссылки на js
+                js: files.js, // названия js модулей
+                css: { simpleCss, themedCss: files.css.themedCss },
                 tmpl: files.tmpl,
                 wml: files.wml,
                 rsSerialized,
@@ -144,11 +145,4 @@ function getSerializedData(): ISerializedData {
 interface ISerializedData {
     additionalDeps: IDeps;
     serialized: string;
-}
-
-/**
- * Фильтрация зависимостей с учетом подключенных
- */
-function filterIncludedLinks(included: string[]) {
-    return (dep: string) => !included.some((link) => link.includes(dep));
 }
