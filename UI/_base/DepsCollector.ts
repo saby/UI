@@ -1,8 +1,6 @@
-/// <amd-module name="UI/_base/DepsCollector" />
-
 //@ts-ignore
 import { Logger } from 'UI/Utils';
-import {controller} from 'I18n/i18n';
+import { controller } from 'I18n/i18n';
 
 export type IDeps = string[];
 export interface ICollectedFiles {
@@ -363,6 +361,12 @@ export class DepsCollector {
       }
       return files;
    }
+
+   /**
+    * Добавляет ресурсы локализации, которые надо подключить в вёрстку.
+    * @param files {ICollectedFiles} - набор файлов для добавления в вёрстку
+    * @param deps {ICollectedDeps} - набор зависимостей, которые участвовали в построение страницы.
+    */
    collectI18n(files: ICollectedFiles, deps: ICollectedDeps): void {
       const loadedContexts = controller.loadingsHistory.contexts;
       const localeCode = controller.currentLocale;
