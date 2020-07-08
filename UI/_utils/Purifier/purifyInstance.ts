@@ -39,7 +39,7 @@ function createUseAfterPurifyErrorFunction(stateName: string, instanceName: stri
     return function useAfterPurify(): void {
         // TODO: по задаче
         // https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
-        error('Попытка получить поле ' + stateName + 'в очищенном ' + instanceName);
+        error('Попытка получить поле ' + stateName + ' в очищенном ' + instanceName);
     };
 }
 

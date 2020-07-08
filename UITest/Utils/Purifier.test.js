@@ -101,12 +101,6 @@ define([
             assert.equal(errorMessage, 'Попытка получить поле functionValue в очищенном test_instance');
          });
 
-         it('no enumerable properties', () => {
-            instance.newValue = 'Expelliarmus!';
-            assert.equal(errorMessage, '');
-            assert.equal(Object.keys(instance).length, 0);
-         });
-
          it('purify instance more than once', () => {
             purifyInstance(instance);
             assert.equal(errorMessage, '');
