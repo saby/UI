@@ -200,6 +200,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private _$active: boolean = false;
    private _reactiveStart: boolean = false;
    private _$needForceUpdate: boolean;
+   private __$focusing: boolean = false;
 
    private readonly _instId: string = 'inst_' + countInst++;
    protected _options: TOptions = {} as TOptions;
@@ -1157,6 +1158,18 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    public getEnvironment(): any {
       return this._environment;
+   }
+
+   public isDestroyed(): boolean {
+      return this._destroyed;
+   }
+
+   public getFocusing(): boolean {
+      return this.__$focusing;
+   }
+
+   public setFocusing(value): void {
+      this.__$focusing = value;
    }
 
    /**

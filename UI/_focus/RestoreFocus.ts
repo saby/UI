@@ -16,18 +16,13 @@ import { Control } from 'UI/Base';
 
 import { focus } from './Focus';
 
-interface IControlExtended extends Control {
-   __$focusing: boolean;
-   isDestroyed: Function;
-}
-
 function checkActiveElement(savedActiveElement: Element): boolean {
    const isBody = document.activeElement === document.body || document.activeElement === null;
    return isBody && document.activeElement !== savedActiveElement;
 }
 let prevControls = [];
 let savedActiveElement;
-export function restoreFocus(control: IControlExtended, action: Function): void {
+export function restoreFocus(control: Control, action: Function): void {
    if ( document.activeElement !== document.body ) {
       // Если фокус не улетел в Body, сохраним контрол, который был в фокусе и список контролов
       savedActiveElement = document.activeElement;
@@ -70,14 +65,14 @@ export function restoreFocus(control: IControlExtended, action: Function): void 
       // нужно восстановить фокус после _rebuild
       // проверяю на control._mounted, _rebuild сейчас не синхронный, он не гарантирует что асинхронные ветки
       // перерисовались
-      if (control.__$focusing && !control.isDestroyed() && control.getMountedState()) {
+      if (control.getFocusing() && !control.isDestroyed() && control.getMountedState()) {
          control.activate();
          // до синхронизации мы сохранили __$focusing - фокусируемый элемент,
          // а после синхронизации здесь фокусируем его.
          // если не нашли фокусируемый элемент - значит в доме не оказалось этого элемента.
          // но мы все равно отменяем скинем флаг, чтобы он не сфокусировался позже когда уже не надо
          // https://online.sbis.ru/opendoc.html?guid=e46d87cc-5dc2-4f67-b39c-5eeea973b2cc
-         control.__$focusing = false;
+         control.setFocusing(false);
       }
    }
    environment._restoreFocusState = false;
