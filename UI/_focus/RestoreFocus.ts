@@ -16,13 +16,18 @@ import { Control } from 'UI/Base';
 
 import { focus } from './Focus';
 
+interface IControlExtended extends Control {
+   __$focusing: boolean;
+   isDestroyed: Function;
+}
+
 function checkActiveElement(savedActiveElement: Element): boolean {
    const isBody = document.activeElement === document.body || document.activeElement === null;
    return isBody && document.activeElement !== savedActiveElement;
 }
 let prevControls = [];
 let savedActiveElement;
-export function restoreFocus(control: Control, action: Function): void {
+export function restoreFocus(control: IControlExtended, action: Function): void {
    if ( document.activeElement !== document.body ) {
       // Если фокус не улетел в Body, сохраним контрол, который был в фокусе и список контролов
       savedActiveElement = document.activeElement;
@@ -34,7 +39,7 @@ export function restoreFocus(control: Control, action: Function): void {
 
    action();
 
-   const environment = control._getEnvironment();
+   const environment = control.getEnvironment();
 
    environment._restoreFocusState = true;
    // если сразу после изменения DOM-дерева фокус слетел в body, пытаемся восстановить фокус на ближайший элемент от
@@ -50,7 +55,7 @@ export function restoreFocus(control: Control, action: Function): void {
          const container = control._template ? control._container : control.getContainer()[0];
          // @ts-ignore
          focus.__restoreFocusPhase = true;
-         let result = isElementVisible(container) && focus(container);
+         const result = isElementVisible(container) && focus(container);
          // @ts-ignore
          delete focus.__restoreFocusPhase;
          return result;
@@ -65,7 +70,7 @@ export function restoreFocus(control: Control, action: Function): void {
       // нужно восстановить фокус после _rebuild
       // проверяю на control._mounted, _rebuild сейчас не синхронный, он не гарантирует что асинхронные ветки
       // перерисовались
-      if (control.__$focusing && !control.isDestroyed() && control._mounted) {
+      if (control.__$focusing && !control.isDestroyed() && control.getMountedState()) {
          control.activate();
          // до синхронизации мы сохранили __$focusing - фокусируемый элемент,
          // а после синхронизации здесь фокусируем его.

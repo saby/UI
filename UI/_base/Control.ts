@@ -1151,6 +1151,14 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // Do
    }
 
+   public getMountedState(): boolean {
+      return this._mounted;
+   }
+
+   public getEnvironment(): any {
+      return this._environment;
+   }
+
    /**
     * Массив имен нетемизированных стилей, необходимых контролу.
     * Все стили будут скачаны при создании
