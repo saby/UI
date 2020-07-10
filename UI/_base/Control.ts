@@ -1152,19 +1152,19 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // Do
    }
 
-   public getMountedState(): boolean {
+   public isMounted(): boolean {
       return this._mounted;
+   }
+
+   public isDestroyed() {
+
    }
 
    public getEnvironment(): any {
       return this._environment;
    }
 
-   public isDestroyed(): boolean {
-      return this._destroyed;
-   }
-
-   public getFocusing(): boolean {
+   public isFocusing(): boolean {
       return this.__$focusing;
    }
 
