@@ -75,6 +75,12 @@ class HTML extends Control<IHTMLCombinedOptions> {
                     bodyChildren[i].setAttribute('data-vdomignore', 'true');
                 }
             }
+            const htmlChildren: HTMLCollection = document.documentElement.children;
+            for (let i = 0; i < htmlChildren.length; i++) {
+                if (htmlChildren[i] !== document.head && htmlChildren[i] !== document.body) {
+                    htmlChildren[i].setAttribute('data-vdomignore', 'true');
+                }
+            }
         }
     }
 
