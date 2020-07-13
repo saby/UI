@@ -67,6 +67,23 @@ class HTML extends Control<IHTMLCombinedOptions> {
         this.compat = cfg.compat || false;
     }
 
+    private markForeignContent(): void {
+        if (!this.onServer) {
+            const bodyChildren: HTMLCollection = document.body.children;
+            for (let i = 0; i < bodyChildren.length; i++) {
+                if (bodyChildren[i].id !== 'wasaby-content') {
+                    bodyChildren[i].setAttribute('data-vdomignore', 'true');
+                }
+            }
+            const htmlChildren: HTMLCollection = document.documentElement.children;
+            for (let i = 0; i < htmlChildren.length; i++) {
+                if (htmlChildren[i] !== document.head && htmlChildren[i] !== document.body) {
+                    htmlChildren[i].setAttribute('data-vdomignore', 'true');
+                }
+            }
+        }
+    }
+
     /**
      * @mixes UI/_base/HTML/IHTML
      * @mixes UI/_base/HTML/IRootTemplate
@@ -82,6 +99,8 @@ class HTML extends Control<IHTMLCombinedOptions> {
             this.metaStack.push({ title: cfg.title });
         }
         let appData = AppData.getAppData();
+
+        this.markForeignContent();
 
         this.buildnumber = cfg.buildnumber || constants.buildnumber;
 
@@ -152,6 +171,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
     }
 
     _beforeUpdate(options: IHTMLCombinedOptions): void {
+        this.markForeignContent();
         if (options.title !== this._options.title) {
             const prevState = this.metaStack.lastState;
             this.metaStack.push({ title: options.title });
