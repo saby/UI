@@ -55,9 +55,9 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
         this.unpackDeps = unpack;
     }
 
-    setIncludedResources(resources: { links: { href: string; type: string; }[], scripts: { src: string; }[]; }) {
+    setIncludedResources(resources: { links: { href: string; }[], scripts: { src: string; }[]; }) {
         const scripts = resources.scripts.map((l) => l.src);
-        const links = resources.links.filter((obj) => obj.type === "text/css").map((l) => l.href);
+        const links = resources.links.map((l) => l.href);
         this.includedResources = { links, scripts };
     }
 
