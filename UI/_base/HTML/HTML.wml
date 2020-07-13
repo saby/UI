@@ -4,72 +4,74 @@
 
 <ws:template name="bodyTemplate">
    <body id="body" key="body-el">
-      <ws:if data="{{isCompatible}}">
-         <div class="ws-focus-in"></div>
-      </ws:if>
-      <ws:if data="{{ bodyContent }}">
-         <UI._base.HTML.Wait>
-            <ws:partial
-               template="{{ bodyContent }}"
-               scope="{{ templateConfig }}" />
-         </UI._base.HTML.Wait>
-      </ws:if>
-      <ws:else>
-         <UI._base.HTML.Wait content="">
-         </UI._base.HTML.Wait>
-      </ws:else>
+      <div id="wasaby-content" style="width: inherit; height: inherit;">
+         <ws:if data="{{isCompatible}}">
+            <div class="ws-focus-in"></div>
+         </ws:if>
+         <ws:if data="{{ bodyContent }}">
+            <UI._base.HTML.Wait>
+               <ws:partial
+                     template="{{ bodyContent }}"
+                     scope="{{ templateConfig }}" />
+            </UI._base.HTML.Wait>
+         </ws:if>
+         <ws:else>
+            <UI._base.HTML.Wait content="">
+            </UI._base.HTML.Wait>
+         </ws:else>
 
-      <ws:if data="{{ scripts && _options.beforeScripts}}">
-         <ws:for data="i in scripts">
-            <ws:partial template="{{ i }}"/>
-         </ws:for>
-      </ws:if>
-      <script key="bundles" type="text/javascript"
-              src="{{getResourceUrl(resourceRoot + 'bundles.js')}}"></script>
-      <script key="require" type="text/javascript"
-              src="{{getResourceUrl('/cdn/RequireJS/2.3.5-p5/require-min.js')}}"></script>
-      <script key="contents" type="text/javascript"
-              src="{{getResourceUrl(resourceRoot + 'contents.js')}}"></script>
-      <script key="router" type="text/javascript"
-              src="{{getResourceUrl(resourceRoot + 'router.js')}}"></script>
-      <ws:if data="{{ _options.builder }}">
-         <script key="config" type="text/javascript"
-                 src="{{getResourceUrl(resourceRoot + 'WS.Core/ext/requirejs/config.js')}}"></script>
-      </ws:if>
-      <ws:else>
-         <script key="config" type="text/javascript"
-                 src="{{ linkResolver.resolveLink('WS.Core/ext/requirejs/config', 'js') }}"></script>
-      </ws:else>
+         <ws:if data="{{ scripts && _options.beforeScripts}}">
+            <ws:for data="i in scripts">
+               <ws:partial template="{{ i }}"/>
+            </ws:for>
+         </ws:if>
+         <script key="bundles" type="text/javascript"
+                 src="{{getResourceUrl(resourceRoot + 'bundles.js')}}"></script>
+         <script key="require" type="text/javascript"
+                 src="{{getResourceUrl('/cdn/RequireJS/2.3.5-p5/require-min.js')}}"></script>
+         <script key="contents" type="text/javascript"
+                 src="{{getResourceUrl(resourceRoot + 'contents.js')}}"></script>
+         <script key="router" type="text/javascript"
+                 src="{{getResourceUrl(resourceRoot + 'router.js')}}"></script>
+         <ws:if data="{{ _options.builder }}">
+            <script key="config" type="text/javascript"
+                    src="{{getResourceUrl(resourceRoot + 'WS.Core/ext/requirejs/config.js')}}"></script>
+         </ws:if>
+         <ws:else>
+            <script key="config" type="text/javascript"
+                    src="{{ linkResolver.resolveLink('WS.Core/ext/requirejs/config', 'js') }}"></script>
+         </ws:else>
 
 
-      <ws:if data="{{_options.builder && _options.builderCompatible}}">
-         <ws:partial template="wml!UI/_base/HTML/builderRunnerCompatible"
-                     _options="{{_options}}"/>
-      </ws:if>
-      <ws:if data="{{_options.builder && !_options.builderCompatible}}">
-         <ws:partial template="wml!UI/_base/HTML/builderRunner"
-                     _options="{{_options}}"/>
-      </ws:if>
-      <ws:else data="{{!_options.builderCompatible}}">
-         <div>
-            <UI._base.HTML.JsLinks attr:tabindex="-1"
-                                           appRoot="{{ appRoot }}"
-                                           linkResolver="{{ linkResolver }}"/>
-            <ws:if data="{{ scripts && !_options.beforeScripts }}">
-               <ws:for data="i in scripts">
-                  <ws:partial template="{{ i }}"/>
-               </ws:for>
-            </ws:if>
-            <UI._base.HTML.StartApplicationScript compat="{{compat}}" appRoot="{{ appRoot }}" onServer="{{ onServer }}"/>
-         </div>
-      </ws:else>
+         <ws:if data="{{_options.builder && _options.builderCompatible}}">
+            <ws:partial template="wml!UI/_base/HTML/builderRunnerCompatible"
+                        _options="{{_options}}"/>
+         </ws:if>
+         <ws:if data="{{_options.builder && !_options.builderCompatible}}">
+            <ws:partial template="wml!UI/_base/HTML/builderRunner"
+                        _options="{{_options}}"/>
+         </ws:if>
+         <ws:else data="{{!_options.builderCompatible}}">
+            <div>
+               <UI._base.HTML.JsLinks attr:tabindex="-1"
+                                      appRoot="{{ appRoot }}"
+                                      linkResolver="{{ linkResolver }}"/>
+               <ws:if data="{{ scripts && !_options.beforeScripts }}">
+                  <ws:for data="i in scripts">
+                     <ws:partial template="{{ i }}"/>
+                  </ws:for>
+               </ws:if>
+               <UI._base.HTML.StartApplicationScript compat="{{compat}}" appRoot="{{ appRoot }}" onServer="{{ onServer }}"/>
+            </div>
+         </ws:else>
 
-      <ws:if data="{{ themeChanging }}">
-         <div id="theme-changing-overlay"></div>
-      </ws:if>
-      <ws:if data="{{ body }}">
-         <ws:partial template="{{ body }}" />
-      </ws:if>
+         <ws:if data="{{ themeChanging }}">
+            <div id="theme-changing-overlay"></div>
+         </ws:if>
+         <ws:if data="{{ body }}">
+            <ws:partial template="{{ body }}" />
+         </ws:if>
+      </div>
    </body>
 </ws:template>
 
