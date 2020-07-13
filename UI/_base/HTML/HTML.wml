@@ -4,7 +4,7 @@
 
 <ws:template name="bodyTemplate">
    <body id="body" key="body-el">
-      <div id="wasaby-content">
+      <div id="wasaby-content" style="width: inherit; height: inherit;">
          <ws:if data="{{isCompatible}}">
             <div class="ws-focus-in"></div>
          </ws:if>
