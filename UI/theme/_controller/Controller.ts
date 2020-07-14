@@ -32,13 +32,15 @@ export class Controller {
     */
    get(cssName: string, themeName?: string, themeType: THEME_TYPE = THEME_TYPE.MULTI): Promise<ICssEntity> {
       const theme = themeName || this.appTheme;
-      if (this.has(cssName, theme)) {
-         const storedEntity = this.storage.get(cssName, theme);
+      const href = this.cssLoader.getHref(cssName, theme);
+      // в случаях дополнительных безымянных css, cssName равно href, см. UI/theme/_controller/CSS:49
+      const registeredName = this.has(cssName, theme) && cssName || this.has(href, theme) && href || null;
+      if (registeredName) {
+         const storedEntity = this.storage.get(registeredName, theme);
          storedEntity.require();
          /** Еще нескаченные css уже имеются в store, необходимо дождаться окончания монтирования в DOM */
          return storedEntity.loading.then(() => storedEntity);
       }
-      const href = this.cssLoader.getHref(cssName, theme);
       const entity = createEntity(href, cssName, theme, themeType);
       /** Еще нескаченный link сохраняется в store, чтобы избежать повторного fetch */
       this.set(entity);
