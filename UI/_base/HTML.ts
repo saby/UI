@@ -37,7 +37,7 @@ interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
     rtpackJsModuleNames: string[];
     /** Ссылки подключенных ресурсов */
     scripts: { src: string; }[];
-    links: { href: string; }[];
+    links: { href: string; type: string; }[];
 }
 
 class HTML extends Control<IHTMLCombinedOptions> {
@@ -120,7 +120,10 @@ class HTML extends Control<IHTMLCombinedOptions> {
         /** Список require-зависимостей, уже подключенных в rt-пакетах */
         const unpackDeps = cfg.rtpackJsModuleNames.concat(cfg.rtpackCssModuleNames);
         headDataStore.read('setUnpackDeps')(unpackDeps);
-        headDataStore.read('setIncludedResources')({ links: cfg.links, scripts: cfg.scripts});
+        headDataStore.read('setIncludedResources')({
+            links: cfg.links.filter((obj) => obj.type === "text/css"),
+            scripts: cfg.scripts
+        });
         /**
          * Этот перфоманс нужен, для сохранения состояния с сервера, то есть,
          * cfg - это конфиг, который нам прийдет из файла роутинга и с ним же надо
