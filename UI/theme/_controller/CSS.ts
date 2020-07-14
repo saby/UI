@@ -48,7 +48,7 @@ export function restoreDeprecatedEntity(element: IHTMLElement): IRestoredEntity 
    const href = element.getAttribute(DEPRECATED_ELEMENT_ATTR.HREF);
    // в случаях дополнительных безымянных css, cssName равно href,
    // у href вырезаем cdn приставку, чтобы href полученный LinkResolver совпадал
-   const name = element.getAttribute(DEPRECATED_ELEMENT_ATTR.NAME) || href?.slice(href.indexOf(constants.resourceRoot));
+   const name = element.getAttribute(DEPRECATED_ELEMENT_ATTR.NAME) || cutFromResourсePrefix(href);
    const theme = element.getAttribute(DEPRECATED_ELEMENT_ATTR.THEME) || EMPTY_THEME;
    const themeType =
       element.getAttribute(DEPRECATED_ELEMENT_ATTR.THEME_TYPE) === DEPRECATED_THEME_TYPE.MULTI
@@ -71,3 +71,10 @@ export const isSingleEntity = (link: ICssEntity): link is SingleLink | SingleLin
    link instanceof SingleLink || link instanceof SingleLinkPS;
 
 type IRestoredEntity = Link | SingleLink | null;
+
+function cutFromResourсePrefix(href: string): string {
+   if (!href) { return null; }
+   const index = href.indexOf(constants.resourceRoot);
+   if (index === -1) { return href; }
+   return href.slice(index);
+}
