@@ -46,7 +46,9 @@ export function restoreEntity(element: IHTMLElement): IRestoredEntity {
 // TODO https://online.sbis.ru/opendoc.html?guid=af492da0-f245-4a20-b567-8a789038fc39
 export function restoreDeprecatedEntity(element: IHTMLElement): IRestoredEntity {
    const href = element.getAttribute(DEPRECATED_ELEMENT_ATTR.HREF);
-   const name = element.getAttribute(DEPRECATED_ELEMENT_ATTR.NAME);
+   // в случаях дополнительных безымянных css, cssName равно href,
+   // у href вырезаем cdn приставку, чтобы href полученный LinkResolver совпадал
+   const name = element.getAttribute(DEPRECATED_ELEMENT_ATTR.NAME) || href?.slice(href.indexOf(constants.resourceRoot));
    const theme = element.getAttribute(DEPRECATED_ELEMENT_ATTR.THEME) || EMPTY_THEME;
    const themeType =
       element.getAttribute(DEPRECATED_ELEMENT_ATTR.THEME_TYPE) === DEPRECATED_THEME_TYPE.MULTI
