@@ -28,7 +28,7 @@ type IControlChildren = Record<string, Element | Control>;
  * @param {Boolean} isShiftKey Указывает, был ли активирован контрол нажатием Tab+Shift.
  * @remark Контрол активируется, когда на один из его DOM-элементов переходит фокус.
  * Подробное описание и примеры использования события читайте
- * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ здесь}.
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ здесь}.
  * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/
  * @see deactivated
  */
@@ -38,7 +38,7 @@ type IControlChildren = Record<string, Element | Control>;
  * @param {Boolean} isTabPressed Indicates whether control was activated by Tab press.
  * @remark Control is activated when one of its DOM elements becomes focused. Detailed description and u
  * se cases of the event can be found
- * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ here}.
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ here}.
  * @see Documentation: Activation system
  * @see deactivated
  */
@@ -57,7 +57,7 @@ type IControlChildren = Record<string, Element | Control>;
  * @param {Boolean} isTabPressed Indicates whether control was deactivated by Tab press.
  * @remark Control is deactivated when all of its child component lose focus.
  * Detailed description and use cases of the event can be found
- * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ here}.
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ here}.
  * @see Documentation: Activation system
  * @see activated
  */
@@ -187,7 +187,7 @@ export interface IControlOptions {
  * Подробнее о работе с классом читайте <a href="/doc/platform/developmentapl/interface-development/ui-library/control/">здесь</a>.
  * @class UI/_base/Control
  * @author Шипин А.А.
- * @remark {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator Asynchronous creation of Core/Creator component}
+ * @remark {@link /doc/platform/developmentapl/interface-development/ui-library/asynchronous-control-building/ Asynchronous creation of Core/Creator component}
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
@@ -613,7 +613,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * sets focus on it. Returns true if focus was set successfully and false if nothing was focused.
     * When control becomes active, all of its child controls become active too. When control activates,
     * it fires activated event. Detailed description of the activation algorithm can be found
-    * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ here}.
+    * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ here}.
     * @see Documentation: Activation system
     * @see activated
     * @see deactivated
