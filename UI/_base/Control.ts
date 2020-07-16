@@ -3,7 +3,7 @@
 // @ts-ignore
 import template = require('wml!UI/_base/Control');
 
-import { Synchronizer } from 'Vdom/Vdom';
+import { Synchronizer } from 'UI/Vdom';
 import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
 import { activate } from 'UI/Focus';

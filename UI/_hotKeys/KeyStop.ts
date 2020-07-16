@@ -1,6 +1,6 @@
 import { Control, IControlOptions, TemplateFunction } from 'UI/Base';
 import * as template from 'wml!UI/_hotKeys/KeyStop';
-import { SyntheticEvent } from 'Vdom/Vdom';
+import { SyntheticEvent } from 'UI/Vdom';
 
 interface IKeyStopItem {
    keyCode: number;
