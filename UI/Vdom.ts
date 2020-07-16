@@ -25,5 +25,6 @@ export { Hooks };
 export { SwipeController };
 export { default as SyntheticEvent } from './_vdom/Synchronizer/resources/SyntheticEvent';
 export { VdomMarkup };
+export * from './_vdom/Synchronizer/interfaces';
 
 export { Functional, Monad };
