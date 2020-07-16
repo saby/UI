@@ -5,6 +5,7 @@
          'Core/load-contents',
          'Core/app-init',
          'Env/Env',
+         'UI/Vdom',
          'Vdom/Vdom',
          'Lib/Control/BaseCompatible/BaseCompatible',
          'Core/nativeExtensions',
