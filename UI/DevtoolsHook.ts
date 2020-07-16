@@ -1,5 +1,6 @@
 import { TemplateFunction } from 'UI/Base';
 import { IControlNode } from './_vdom/Synchronizer/interfaces';
+import {IOptions} from "./_vdom/Synchronizer/resources/Options";
 
 let onStartCommitFunc;
 let onEndCommitFunc;
@@ -22,7 +23,7 @@ interface ITemplateChanges {
    logicParent: IControlNode['control'] | null;
    changedOptions?: object;
    attributes: Record<string, string | number>;
-   changedAttributes?: Record<string, string | number>;
+   changedAttributes?: IOptions;
    state: object;
 
    instance?: IControlNode['control'];

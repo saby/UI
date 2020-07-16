@@ -14,6 +14,7 @@ import * as Serializer from 'Core/Serializer';
 // @ts-ignore
 import { Logger } from 'UI/Utils';
 import * as _dcc from './DirtyCheckingCompatible';
+// @ts-ignore
 import * as ReactiveObserver from 'Core/ReactiveObserver';
 import {
    onEndCommit,
