@@ -24,7 +24,7 @@ import {
    onStartSync,
    OperationType,
    getNodeName
-} from 'Vdom/DevtoolsHook';
+} from 'UI/DevtoolsHook';
 // @ts-ignore
 import { restoreFocus } from 'UI/Focus';
 

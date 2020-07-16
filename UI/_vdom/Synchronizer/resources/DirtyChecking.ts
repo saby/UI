@@ -21,7 +21,7 @@ import {
    saveChildren,
    OperationType,
    getNodeName
-} from 'Vdom/DevtoolsHook';
+} from 'UI/DevtoolsHook';
 import { IControlNode } from '../interfaces';
 import { collectObjectVersions, getChangedOptions } from "./Options";
 

@@ -26,7 +26,7 @@ import * as SwipeController from './SwipeController';
 import {
    onStartSync,
    onEndSync
-} from 'Vdom/DevtoolsHook';
+} from 'UI/DevtoolsHook';
 import { VNode, render } from 'Inferno/third-party/index';
 import { hydrate } from 'Inferno/third-party/hydrate';
 
