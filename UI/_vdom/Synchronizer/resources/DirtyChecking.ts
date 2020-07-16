@@ -473,7 +473,6 @@ export function rebuildNode(environment, node, force, isRoot) {
       childrenNodes,
       createdStartIdx,
       changedNodes,
-      changedTemplateNodes,
       parentNodeContext,
       resolvedContext;
 
@@ -737,7 +736,6 @@ export function rebuildNode(environment, node, force, isRoot) {
             });
 
             changedNodes = new Array(diff.create.length + diff.update.length);
-            changedTemplateNodes = new Array(diff.createTemplates.length + diff.updateTemplates.length);
 
             createdStartIdx = diff.update.length;
 
