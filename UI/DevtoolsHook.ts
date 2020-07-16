@@ -24,10 +24,13 @@ interface ITemplateChanges {
    attributes: Record<string, string | number>;
    changedAttributes?: Record<string, string | number>;
    state: object;
+
+   instance?: IControlNode['control'];
+   changedReactiveProps?: string[];
 }
 
 interface IControlChanges extends ITemplateChanges {
-   instance: object;
+   instance: IControlNode['control'];
    context?: object;
    changedContext?: object;
    changedReactiveProps?: string[];
@@ -45,11 +48,14 @@ export enum OperationType {
 function injectHook(): boolean {
    if (
       typeof window === 'undefined' ||
+      // @ts-ignore
       typeof window.__WASABY_DEV_HOOK__ === 'undefined'
    ) {
       return false;
    }
+   // @ts-ignore
    const hook = window.__WASABY_DEV_HOOK__;
+   // @ts-ignore
    window.__WASABY_DEV_HOOK__.init({});
    onStartCommitFunc = (...args) => {
       hook.onStartCommit.apply(hook, args);
