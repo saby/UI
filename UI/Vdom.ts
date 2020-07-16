@@ -11,6 +11,9 @@ import * as VdomMarkup from './_vdom/Synchronizer/resources/VdomMarkup';
 import * as Functional from './_vdom/Utils/Functional';
 import * as Monad from './_vdom/Utils/Monad';
 
+import * as _Options from './_vdom/Synchronizer/resources/Options';
+import * as _MountMethodsCaller from './_vdom/Synchronizer/resources/MountMethodsCaller';
+
 // @ts-ignore
 import { Logger } from 'UI/Utils';
 
@@ -25,8 +28,8 @@ export { Hooks };
 export { SwipeController };
 export { default as SyntheticEvent } from './_vdom/Synchronizer/resources/SyntheticEvent';
 export { VdomMarkup };
-export * as _Options from 'UI/_vdom/Synchronizer/resources/Options';
-export * as _MountMethodsCaller from 'UI/_vdom/Synchronizer/resources/MountMethodsCaller';
+export { _Options };
+export { _MountMethodsCaller };
 export * from './_vdom/Synchronizer/interfaces';
 
 export { Functional, Monad };
