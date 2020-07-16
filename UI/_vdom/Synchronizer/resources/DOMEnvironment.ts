@@ -1173,7 +1173,14 @@ function isMyDOMEnvironment(env: any, event: any): any {
 function checkSameEnvironment(env: any, element: any): boolean {
    // todo костыльное решение, в случае CompatibleTemplate нужно всегда работать с верхним окружением (которое на html)
    if (requirejs.defined('OnlineSbisRu/CompatibleTemplate')) {
-      return env._rootDOMNode.tagName.toLowerCase() === 'html';
+      const htmlEnv = env._rootDOMNode.tagName.toLowerCase() === 'html';
+      if (element.controlNodes[0].environment === env && !htmlEnv) {
+         // FIXME: проблема в том, что события input ломают обратный биндинг если событие вызвается с верхнего окружения
+         if (event.type === 'input') {
+            return true;
+         }
+      }
+      return htmlEnv;
    }
 
    return element.controlNodes[0].environment === env;
