@@ -9,18 +9,17 @@ import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller
 import { constants } from 'Env/Env';
 import { headDataStore } from 'UI/_base/HeadData';
 import { Stack } from 'UI/_base/HTML/meta';
+import { TemplateFunction, IControlOptions } from 'UI/Base';
+import TagMarkup from './_meta/TagMarkup';
+import { ITagDescription } from './_meta/interface';
 
-class Head extends Control {
-    // @ts-ignore
-    _template: Function = template;
+class Head extends Control<IHeadOptions> {
+    _template: TemplateFunction = template;
 
     metaMarkup: string = Stack.getInstance().lastState.outerHTML;
 
     head: Function[] = null;
-    headContent: Function[] = null;
-
-    themedCss: string[] = [];
-    simpleCss: string[] = [];
+    headAdditiveTagsMarkup: string = '';
 
     // Содержит информацию о том, был ли серверный рендеринг
     // Будет true, если мы строимся на клиенте и серверная верстка есть.
@@ -36,7 +35,7 @@ class Head extends Control {
     /** html разметка подключенных на СП стилей */
     protected stylesHtml: string = '';
 
-    _beforeMount(options: any): Promise<any> {
+    _beforeMount(options: IHeadOptions): Promise<void> {
         // tslint:disable-next-line:only-arrow-functions
         this._forceUpdate = function (): void {
             // do nothing
@@ -49,7 +48,11 @@ class Head extends Control {
         }
 
         this.head = options.head;
-        this.headContent = options.headContent;
+        const tagDescriptions = options.headJson
+            .map(([tagName, attrs]): ITagDescription => ({ tagName, attrs }))
+            // не вставляем переданные link css, это обязанность theme_controller'a
+            .filter(({ attrs }) => attrs.rel !== "stylesheet" && attrs.type !== "text/css");
+        this.headAdditiveTagsMarkup = new TagMarkup(tagDescriptions).outerHTML;
 
         this.wasServerSide = false;
         this.isSSR = !constants.isBrowserPlatform;
@@ -67,10 +70,7 @@ class Head extends Control {
 
             if (document.getElementsByClassName('head-custom-block').length > 0) {
                 this.head = undefined;
-                this.headContent = undefined;
             }
-            this.themedCss = [];
-            this.simpleCss = [];
             return;
         }
         return headDataStore.read('waitAppContent')().then(({ css }) =>
@@ -86,6 +86,27 @@ class Head extends Control {
 
     isArray(obj: any): Boolean {
         return Array.isArray(obj);
+    }
+
+    static getDefaultOptions(): IHeadOptions {
+        return {
+            wsRoot: 'no_ws_root',
+            resourceRoot: 'no_resource_root',
+            appRoot: 'no_app_root',
+            RUMEnabled: false,
+            pageName: 'no_page_name',
+            compat: false,
+            head: [],
+            headJson: [],
+            staticDomains: [],
+            buildnumber: 'no_build_number',
+            noscript: '',
+            viewport: '',
+            preInitScript: '',
+            builder: false,
+            servicesPath: 'no_service_path',
+            product: 'no_product',
+        };
     }
 }
 
@@ -106,3 +127,24 @@ function collectCSS(theme: string, styles: string[] = [], themes: string[] = [])
 function onerror(e: Error): void {
     import('UI/Utils').then(({ Logger }) => { Logger.error(e.message); });
 }
+
+interface IHeadOptions extends IControlOptions {
+    wsRoot: string;
+    resourceRoot: string;
+    appRoot: string;
+    RUMEnabled: boolean;
+    pageName: string;
+    compat: boolean;
+    head: TemplateFunction[];
+    headJson: JML[];
+    staticDomains: string | string[];
+    buildnumber: string;
+    noscript: string;
+    viewport: string;
+    preInitScript: string;
+    builder: boolean;
+    servicesPath: string;
+    product: string;
+}
+
+type JML = [string, Record<string,string>]

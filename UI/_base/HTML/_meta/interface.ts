@@ -117,3 +117,9 @@ export interface IOpenGraph {
    type: string;
    url: string;
 }
+
+export interface IAttrsDescription extends Record<string, string> { }
+export interface ITagDescription {
+   tagName: string,
+   attrs?: IAttrsDescription;
+}
