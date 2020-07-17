@@ -3,7 +3,7 @@
 // @ts-ignore
 import template = require('wml!UI/_base/Control');
 
-import { Synchronizer } from 'Vdom/Vdom';
+import { Synchronizer } from 'UI/Vdom';
 import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
 import { activate } from 'UI/Focus';
@@ -28,7 +28,7 @@ type IControlChildren = Record<string, Element | Control>;
  * @param {Boolean} isShiftKey Указывает, был ли активирован контрол нажатием Tab+Shift.
  * @remark Контрол активируется, когда на один из его DOM-элементов переходит фокус.
  * Подробное описание и примеры использования события читайте
- * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ здесь}.
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ здесь}.
  * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/
  * @see deactivated
  */
@@ -38,7 +38,7 @@ type IControlChildren = Record<string, Element | Control>;
  * @param {Boolean} isTabPressed Indicates whether control was activated by Tab press.
  * @remark Control is activated when one of its DOM elements becomes focused. Detailed description and u
  * se cases of the event can be found
- * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ here}.
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ here}.
  * @see Documentation: Activation system
  * @see deactivated
  */
@@ -57,7 +57,7 @@ type IControlChildren = Record<string, Element | Control>;
  * @param {Boolean} isTabPressed Indicates whether control was deactivated by Tab press.
  * @remark Control is deactivated when all of its child component lose focus.
  * Detailed description and use cases of the event can be found
- * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ here}.
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ here}.
  * @see Documentation: Activation system
  * @see activated
  */
@@ -176,7 +176,6 @@ export const _private = {
    }
 };
 
-const themeController = getThemeController();
 
 export interface IControlOptions {
    readOnly?: boolean;
@@ -187,7 +186,7 @@ export interface IControlOptions {
  * Подробнее о работе с классом читайте <a href="/doc/platform/developmentapl/interface-development/ui-library/control/">здесь</a>.
  * @class UI/_base/Control
  * @author Шипин А.А.
- * @remark {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator Asynchronous creation of Core/Creator component}
+ * @remark {@link /doc/platform/developmentapl/interface-development/ui-library/asynchronous-control-building/ Asynchronous creation of Core/Creator component}
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
@@ -614,7 +613,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * sets focus on it. Returns true if focus was set successfully and false if nothing was focused.
     * When control becomes active, all of its child controls become active too. When control activates,
     * it fires activated event. Detailed description of the activation algorithm can be found
-    * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ here}.
+    * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ here}.
     * @see Documentation: Activation system
     * @see activated
     * @see deactivated
@@ -1199,13 +1198,15 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    //#region CSS static
    /**
     * Загрузка стилей и тем контрола
-    * @param themeName имя темы (по-умолчанию тема приложения)
-    * @param themes массив доп тем для скачивания
-    * @param styles массив доп стилей для скачивания
+    * @param {String} themeName имя темы (по-умолчанию тема приложения)
+    * @param {Array<String>} themes массив доп тем для скачивания
+    * @param {Array<String>} styles массив доп стилей для скачивания
+    * @returns {Promise<void>}
     * @static
+    * @public
     * @method
     * @example
-    * <pre>
+    * <pre class="brush: js">
     *     import('Controls/_popupTemplate/InfoBox')
     *         .then((InfoboxTemplate) => InfoboxTemplate.loadCSS('saby__dark'))
     * </pre>
@@ -1230,6 +1231,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * </pre>
     */
    static loadThemes(themeName?: string, instThemes: string[] = []): Promise<void> {
+      const themeController = getThemeController();
       const themes = instThemes.concat(this._theme);
       if (themes.length === 0) {
          return Promise.resolve();
@@ -1249,6 +1251,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * </pre>
     */
    static loadStyles(instStyles: string[] = []): Promise<void> {
+      const themeController = getThemeController();
       const styles = instStyles.concat(this._styles);
       if (styles.length === 0) {
          return Promise.resolve();
@@ -1264,6 +1267,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @method
     */
    static removeCSS(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): Promise<void> {
+      const themeController = getThemeController();
       const styles = instStyles.concat(this._styles);
       const themes = instThemes.concat(this._theme);
       if (styles.length === 0 && themes.length === 0) {
@@ -1273,7 +1277,18 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       const removingThemed = Promise.all(themes.map((name) => themeController.remove(name, themeName)));
       return Promise.all([removingStyles, removingThemed]).then(() => void 0);
    }
+   /**
+    * Проверка загрузки стилей и тем контрола
+    * @param {String} themeName имя темы (по-умолчанию тема приложения)
+    * @param {Array<String>} themes массив доп тем для скачивания
+    * @param {Array<String>} styles массив доп стилей для скачивания
+    * @returns {Boolean}
+    * @static
+    * @public
+    * @method
+    */
    static isCSSLoaded(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): boolean {
+      const themeController = getThemeController();
       const themes = instThemes.concat(this._theme);
       const styles = instStyles.concat(this._styles);
       if (styles.length === 0 && themes.length === 0) {

@@ -120,10 +120,11 @@ describe('UI/theme/_controller/CSS', () => {
          assert.isNull(entity);
       });
 
-      it('Возвращает null при отсутствии аттрибута cssName', () => {
+      it('Возвращает SingleLink при отсутствии аттрибута cssName', () => {
          const element = new LinkElementMock(href, undefined, themeName, THEME_TYPE.SINGLE);
          const entity = restoreEntity(element);
-         assert.isNull(entity);
+         assert.instanceOf(entity, SingleLink);
+         assert.equal(entity.cssName, href);
       });
    });
 
@@ -148,10 +149,11 @@ describe('UI/theme/_controller/CSS', () => {
          assert.isNull(entity);
       });
 
-      it('Возвращает null при отсутствии аттрибута cssName', () => {
+      it('Возвращает SingleLink при отсутствии аттрибута cssName', () => {
          const element = new DeprecatedLinkElementMock(href, undefined, themeName, DEPRECATED_THEME_TYPE.SINGLE);
          const entity = restoreDeprecatedEntity(element);
-         assert.isNull(entity);
+         assert.instanceOf(entity, SingleLink);
+         assert.equal(entity.cssName, href);
       });
 
       it('Возвращает SingleLink EMPTY_THEME при отсутствии темы', () => {

@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_focus/Events" />
 /* tslint:disable */
 
-import { IDOMEnvironment } from 'Vdom/Vdom';
+import { IDOMEnvironment } from 'UI/Vdom';
 
 /**
  * @author Белотелов Н.В.
