@@ -13,7 +13,7 @@ import Control from './Control';
  * При вызове метода инициализируется инфраструктура веб-фреймворка Wasaby.
  * Метод выполняется синхронно.
  * Для асинхронного создания контрола используйте метод
- * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/asynchronous-control-building/
  * Core/Creator}.
  */
 /**
@@ -22,7 +22,7 @@ import Control from './Control';
  * When you call this method, you create the entire
  * Wasaby infrastructure.
  * For asynchronous item creation you can use
- * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/asynchronous-control-building/
  * Core/Creator}.
  */
 export default Control.createControl;
