@@ -52,7 +52,7 @@ function doFocus(container: any,
 export function activate(
    container: Element,
    cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } =
-      {enableScreenKeyboard: false, enableScrollToElement: false}
+      { enableScreenKeyboard: false, enableScrollToElement: false }
    ): boolean {
 
    let res = false;
