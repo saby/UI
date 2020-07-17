@@ -9,6 +9,8 @@ Saby/UI includes modules:
  * UITest
  * UIDemo
 
+(тестовая доброска, не мержить в RC!)
+
 ## Running the Tests
 
 To start the unit testing server, run the following commands:
