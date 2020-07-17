@@ -73,7 +73,8 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             const { additionalDeps: rsDeps, serialized: rsSerialized } = getSerializedData();
             const prevDeps = Object.keys(rsDeps);
             const files = this.pageDeps.collect(prevDeps.concat(this.initDeps), this.unpackDeps);
-            const simpleCss = files.css.simpleCss.concat(this.includedResources.links);
+            // некоторые разработчики завязываются на порядок css, поэтому сначала css переданные через links
+            const simpleCss = this.includedResources.links.concat(files.css.simpleCss);
             // TODO нельзя слить ссылки и имена модулей т.к LinkResolver портит готовые ссылки
             // TODO временно прокидываю их раздельно
             this.resolve({
