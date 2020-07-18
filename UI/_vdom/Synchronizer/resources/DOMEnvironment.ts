@@ -1172,7 +1172,9 @@ function isMyDOMEnvironment(env: any, event: any): any {
 
 function checkSameEnvironment(env: any, element: any): boolean {
    // todo костыльное решение, в случае CompatibleTemplate нужно всегда работать с верхним окружением (которое на html)
-   if (requirejs.defined('OnlineSbisRu/CompatibleTemplate')) {
+   // на ws3 страницах, переведенных на wasaby-окружение при быстром открытие/закртые окон не успевается полностью
+   // задестроится окружение (очищается пурификатором через 10 сек), поэтому следует проверить env на destroy
+   if (requirejs.defined('OnlineSbisRu/CompatibleTemplate') && !env._destroyed) {
       const htmlEnv = env._rootDOMNode.tagName.toLowerCase() === 'html';
       if (element.controlNodes[0].environment === env && !htmlEnv) {
          // FIXME: проблема в том, что события input ломают обратный биндинг если событие вызвается с верхнего окружения
