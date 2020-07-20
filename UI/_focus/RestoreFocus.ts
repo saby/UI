@@ -65,7 +65,8 @@ export function restoreFocus(control: Control, action: Function): void {
       // нужно восстановить фокус после _rebuild
       // проверяю на control._mounted, _rebuild сейчас не синхронный, он не гарантирует что асинхронные ветки
       // перерисовались
-      if (control.isFocusing() && !control.isDestroyed() && control.isMounted()) {
+      // @ts-ignore
+      if (control.isFocusing() && !control._destroyed && control.isMounted()) {
          control.activate();
          // до синхронизации мы сохранили __$focusing - фокусируемый элемент,
          // а после синхронизации здесь фокусируем его.

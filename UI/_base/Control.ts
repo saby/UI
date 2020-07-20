@@ -1155,10 +1155,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return this._mounted;
    }
 
-   public isDestroyed(): boolean | void {
-
-   }
-
    public getEnvironment(): any {
       return this._environment;
    }
