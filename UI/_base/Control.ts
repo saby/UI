@@ -11,7 +11,7 @@ import { Logger, Purifier } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
 import { constants } from 'Env/Env';
 
-import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
+import { getThemeController, EMPTY_THEME, DEFAULT_THEME } from 'UI/theme/controller';
 // @ts-ignore
 import ReactiveObserver = require('Core/ReactiveObserver');
 
@@ -1211,7 +1211,12 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       if (themes.length === 0) {
          return Promise.resolve();
       }
-      return Promise.all(themes.map((name) => themeController.get(name, themeName))).then(() => void 0);
+      const loading = themes.map((name) => themeController
+         .get(name, themeName)
+         // Если для контрола не определены стили темы оформления, скачиваются стили из темы default.
+         .catch(() => themeController.get(name, DEFAULT_THEME))
+      );
+      return Promise.all(loading).then(() => void 0);
    }
    /**
     * Загрузка стилей контрола
