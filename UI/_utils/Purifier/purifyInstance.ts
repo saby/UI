@@ -1,19 +1,22 @@
-import { warn } from '../Logger';
+import { error } from '../Logger';
 import needLog from './needLog';
+
+type TInstanceValue = any;
+type TInstance = Record<string, TInstanceValue>;
+type TQueueElement = [TInstance, string, Record<string, boolean>, number];
 
 // TODO: по задаче
 // https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
 const asyncPurifyTimeout = 10000;
 
 const typesToPurify: string[] = ['object', 'function'];
-
-const queue: [Record<string, any>, string, Record<string, boolean>, number][] = [];
+const queue: TQueueElement[] = [];
 let isQueueStarted: boolean = false;
 
 function releaseQueue(): void {
     const currentTimestamp: number = Date.now();
     while (queue.length) {
-        const [instance, instanceName, stateNamesNoPurify, timestamp] = queue[0];
+        const [instance, instanceName, stateNamesNoPurify, timestamp]: TQueueElement = queue[0];
         if (currentTimestamp - timestamp < asyncPurifyTimeout) {
             setTimeout(releaseQueue, asyncPurifyTimeout);
             return;
@@ -24,7 +27,7 @@ function releaseQueue(): void {
     isQueueStarted = false;
 }
 
-function addToQueue(instance: Record<string, any>, instanceName: string, stateNamesNoPurify: Record<string, boolean> = {}): void {
+function addToQueue(instance: TInstance, instanceName: string, stateNamesNoPurify: Record<string, boolean> = {}): void {
     queue.push([instance, instanceName, stateNamesNoPurify, Date.now()]);
     if (!isQueueStarted) {
         isQueueStarted = true;
@@ -33,20 +36,46 @@ function addToQueue(instance: Record<string, any>, instanceName: string, stateNa
 }
 
 function createUseAfterPurifyErrorFunction(stateName: string, instanceName: string): () => void {
-    return function useAfterPurify() {
+    return function useAfterPurify(): void {
         // TODO: по задаче
         // https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
-        warn(`Попытка получить поле ${stateName} в очищенном ${instanceName}`);
+        error('Попытка получить поле ' + stateName + ' в очищенном ' + instanceName);
     };
 }
 
 function emptyFunction() {}
 
-function isValueToPurify(stateValue: any): boolean {
-    return !!(stateValue && ~typesToPurify.indexOf(typeof stateValue));
+function isValueToPurify(stateValue: TInstanceValue): boolean {
+    return !!stateValue && typesToPurify.indexOf(typeof stateValue) !== -1;
 }
 
-function purifyInstanceSync(instance: Record<string, any>, instanceName: string, stateNamesNoPurify: Record<string, boolean> = {}) {
+function purifyState(instance: TInstance, stateName: string, getterFunction: () => void, isDebug: boolean): void {
+    if (stateName === 'destroy') {
+        // TODO: убрать костыль в https://online.sbis.ru/opendoc.html?guid=1c91dd41-5adf-4fd7-b2a4-ff8f103a8084
+        instance.destroy = emptyFunction;
+        return;
+    }
+    if (isDebug) {
+        Object.defineProperty(instance, stateName, {
+            enumerable: false,
+            configurable: false,
+            get: getterFunction
+        });
+        return;
+    }
+    try {
+        instance[stateName] = undefined;
+    } catch (e) {
+        // Может быть только getter, не переприсвоить.
+        delete instance[stateName];
+    }
+}
+
+function purifyInstanceSync(
+    instance: TInstance,
+    instanceName: string,
+    stateNamesNoPurify: Record<string, boolean> = {}
+): void {
     if (instance.__purified) {
         return;
     }
@@ -55,49 +84,16 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string,
 
     // @ts-ignore У нас подмешивается полифилл Object.entries, о котором не знает ts
     const instanceEntries = Object.entries(instance);
-    while (instanceEntries.length) {
-        const [stateName, stateValue] = instanceEntries.pop();
+    for (let i = 0; i < instanceEntries.length; i++) {
+        const [stateName, stateValue]: [string, TInstanceValue] = instanceEntries[i];
 
-        const haveToPurify = isValueToPurify(stateValue) && !stateNamesNoPurify[stateName];
-
-        if (isDebug) {
-            const getterFunction = haveToPurify ?
-                createUseAfterPurifyErrorFunction(stateName, instanceName) :
-                () => stateValue;
-
-            // TODO: убрать костыль в https://online.sbis.ru/opendoc.html?guid=1c91dd41-5adf-4fd7-b2a4-ff8f103a8084
-            // возможно, нужно не удалять объекты и функции, а заменять на пустые функции и объекты соответственно
-            Object.defineProperty(instance, stateName, {
-                enumerable: false,
-                configurable: false,
-                set: emptyFunction,
-                get: stateName === 'destroy' ? () => emptyFunction : getterFunction
-            });
-        } else {
-            if (haveToPurify) {
-                if (stateName === 'destroy') {
-                    instance[stateName] = emptyFunction;
-                } else {
-                    try {
-                        instance[stateName] = undefined;
-                    } catch (e) {
-                        // Может быть только getter, не переприсвоить.
-                        delete instance[stateName];
-                    }
-                }
-            }
+        if (isValueToPurify(stateValue) && !stateNamesNoPurify[stateName]) {
+            const getterFunction = isDebug && createUseAfterPurifyErrorFunction(stateName, instanceName);
+            purifyState(instance, stateName, getterFunction, isDebug);
         }
     }
 
-    if (isDebug) {
-        Object.defineProperty(instance, '__purified', {
-            enumerable: false,
-            configurable: false,
-            get: () => true
-        });
-    } else {
-        instance.__purified = true;
-    }
+    instance.__purified = true;
     Object.freeze(instance);
 }
 
@@ -111,13 +107,15 @@ function purifyInstanceSync(instance: Record<string, any>, instanceName: string,
  * @class UI/_utils/Purifier/purifyInstance
  * @author Кондаков Р.Н.
  */
-export default function purifyInstance(instance: Record<string, any>,
-                                       instanceName: string = 'instance',
-                                       async: boolean = false,
-                                       stateNamesNoPurify?: Record<string, boolean>): void {
+export default function purifyInstance(
+    instance: TInstance,
+    instanceName: string = 'instance',
+    async: boolean = false,
+    stateNamesNoPurify?: Record<string, boolean>
+): void {
     if (async) {
         addToQueue(instance, instanceName, stateNamesNoPurify);
     } else {
         purifyInstanceSync(instance, instanceName, stateNamesNoPurify);
     }
-};
+}

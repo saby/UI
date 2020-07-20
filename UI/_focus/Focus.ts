@@ -267,14 +267,10 @@ function focusInner(
    element: Element,
    cfg: IFocusConfig
 ): boolean {
-   let fixedElement: Element = element;
    // Заполняем cfg значениями по умолчанию, если другие не переданы
-
-   fixedElement = fixElementForMobileInputs(element, cfg);
-
-   const undoScrolling = makeResetScrollFunction(fixedElement, cfg.enableScrollToElement);
-   const result = tryMoveFocus(fixedElement, cfg);
-   checkFocused(fixedElement);
+   const undoScrolling = makeResetScrollFunction(element, cfg.enableScrollToElement);
+   const result = tryMoveFocus(element, cfg);
+   checkFocused(element);
 
    if (result) {
       fixScrollingEffect(undoScrolling);
@@ -294,7 +290,7 @@ function focus(element: Element, {enableScreenKeyboard = false, enableScrollToEl
    let res;
    const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard};
    const lastFocused: Element = document.activeElement;
-   element =  fixElementForMobileInputs(element, cfg);
+   element = fixElementForMobileInputs(element, cfg);
    if (focusingState) {
       nativeFocus.call(element);
    } else {

@@ -1,7 +1,9 @@
 {
   "include": [
     "UI/Base",
-    "UI/HotKeys"
+    "UI/HotKeys",
+    "UI/Vdom",
+    "UI/DevtoolsHook"
   ],
-  "extendsTo": "vdom-superbundle.package.js"
+  "extendsTo": "online-superbundle.package.js"
 }

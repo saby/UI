@@ -1,6 +1,6 @@
 import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
 import { THEME_TYPE } from 'UI/theme/controller';
-// import { assert } from 'chai';
+import { assert } from 'chai';
 // import 'mocha';
 
 const href = '#Some/href';

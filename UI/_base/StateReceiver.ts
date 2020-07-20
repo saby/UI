@@ -75,7 +75,8 @@ class StateReceiver implements IStateReceiver {
       };
    }
 
-   deserialize(str: string): void {
+   deserialize(str: string | undefined): void {
+      if (!str) { return; }
       const slr = new Serializer();
       try {
          this.deserialized = JSON.parse(str, slr.deserialize);

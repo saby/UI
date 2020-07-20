@@ -6,6 +6,7 @@
         "VirtualDom",
         "VirtualTreeMarkup",
         "WmlBuilder",
+        "Compiler",
         "UI"
     ]
 }
