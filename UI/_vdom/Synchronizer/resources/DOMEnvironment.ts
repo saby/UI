@@ -241,6 +241,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       this.__captureEventHandlers = {};
       delete this.__captureEventHandler;
       this._handleTabKey = undefined;
+      this._haveRebuildRequest = false;
       super.destroy();
    }
 
