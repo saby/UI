@@ -73,9 +73,11 @@ function focusSvgForeignObjectHack(element: SVGElement): boolean {
    element.removeChild(foreignObject);
    return true;
 }
+
 /**
  * Trying all possible ways to focus element. Return true if successfully focused.
  * @param element
+ * @param cfg
  */
 function tryMoveFocus(element: Element, cfg: IFocusConfig): boolean {
    let result = false;
