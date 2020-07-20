@@ -9,7 +9,7 @@
 import { detection } from 'Env/Env';
 import * as ElementFinder from './ElementFinder';
 import { focus } from './Focus';
-import { goUpByControlTree } from './goUpByControlTree';
+import { goUpByControlTree } from 'UI/NodeCollector';
 
 // @ts-ignore
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
@@ -51,7 +51,8 @@ function doFocus(container: any,
 
 export function activate(
    container: Element,
-   cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}
+   cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } =
+      { enableScreenKeyboard: false, enableScrollToElement: false }
    ): boolean {
 
    let res = false;

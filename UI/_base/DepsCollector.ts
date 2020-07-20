@@ -1,11 +1,6 @@
-/// <amd-module name="UI/_base/DepsCollector" />
-
 //@ts-ignore
 import { Logger } from 'UI/Utils';
-//@ts-ignore
-import { constants } from 'Env/Env';
-//@ts-ignore
-import i18n = require('Core/i18n');
+import { controller } from 'I18n/i18n';
 
 export type IDeps = string[];
 export interface ICollectedFiles {
@@ -17,6 +12,30 @@ export interface ICollectedFiles {
    tmpl: string[];
    wml: string[];
 }
+
+interface ICollectedDeps {
+   js?: {[depName: string]: IModuleInfo};
+   i18n?: {[depName: string]: IModuleInfo};
+   css?: {[depName: string]: IModuleInfo};
+   wml?: {[depName: string]: IModuleInfo};
+   tmpl?: {[depName: string]: IModuleInfo};
+}
+
+interface IModuleInfo {
+   moduleName: string;
+   fullName: string;
+   typeInfo: IPlugin;
+}
+
+interface IPlugin {
+   type: string;
+   plugin: string;
+   hasDeps: boolean;
+   hasPacket: boolean;
+   packOwnDeps: boolean;
+   canBePackedInParent?: boolean;
+}
+
 const DEPTYPES = {
    BUNDLE: 1,
    SINGLE: 2
@@ -43,6 +62,13 @@ const TYPES = {
       hasPacket: false,
       canBePackedInParent: true
    },
+   i18n: {
+      type: 'i18n',
+      plugin: 'i18n',
+      hasDeps: false,
+      hasPacket: false,
+      canBePackedInParent: false
+   },
    css: {
       type: 'css',
       plugin: 'css',
@@ -63,7 +89,7 @@ function getPlugin(name: string): string {
    return res;
 }
 
-function getType(name: string): any {
+function getType(name: string): IPlugin | null {
    const plugin = getPlugin(name);
    for (const key in TYPES) {
       if (TYPES[key].plugin === plugin) {
@@ -96,7 +122,7 @@ function removeThemeParam(name) {
    return name.replace('theme?', '');
 }
 
-function parseModuleName(name: string): any {
+function parseModuleName(name: string): IModuleInfo | null {
    const typeInfo = getType(name);
    if (typeInfo === null) {
       // TODO Change to error after https://online.sbis.ru/opendoc.html?guid=5de9d9bd-be4a-483a-bece-b41983e916e4
@@ -200,7 +226,7 @@ function getCssPackages(allDeps: any, isUnpackModule: (key: string) => boolean, 
    return packages;
 }
 
-function getAllPackagesNames(all: any, unpack:IDeps, bRoute: any): any {
+function getAllPackagesNames(all: ICollectedDeps, unpack:IDeps, bRoute: any): any {
    const packs = getEmptyPackages();
    const isUnpackModule = (key: string) => unpack.some((moduleName) => key.indexOf(moduleName) !== -1);
    mergePacks(packs, getPacksNames(all.js, isUnpackModule, bRoute));
@@ -233,7 +259,7 @@ function mergePacks(result: any, addedPackages: any): void {
  * @param curNodeDeps
  * @param modDeps
  */
-function recursiveWalker(allDeps: any, curNodeDeps: any, modDeps: any, modInfo: any, skipDep?: any): void {
+function recursiveWalker(allDeps: ICollectedDeps, curNodeDeps: any, modDeps: any, modInfo: any, skipDep?: any): void {
    if (curNodeDeps && curNodeDeps.length) {
       for (let i = 0; i < curNodeDeps.length; i++) {
          let node = curNodeDeps[i];
@@ -287,7 +313,7 @@ export class DepsCollector {
       const deps = depends
          .filter((d) => !!d && unpack.indexOf(d) === -1)
          .filter((d, i) => depends.indexOf(d) === i);
-         
+
       const files: ICollectedFiles = {
          js: [],
          css: { themedCss: [], simpleCss: [] },
@@ -297,11 +323,10 @@ export class DepsCollector {
       const allDeps = {};
       recursiveWalker(allDeps, deps, this.modDeps, this.modInfo);
 
+      // Add i18n dependencies
+      this.collectI18n(files, allDeps);
       // Find all bundles, and removes dependencies that are included in bundles
       const packages = getAllPackagesNames(allDeps, unpack, this.bundlesRoute);
-
-      // Add i18n dependencies
-      this.collectI18n(files, packages);
 
       for (const key in packages.js) {
          if (packages.js.hasOwnProperty(key)) {
@@ -336,48 +361,34 @@ export class DepsCollector {
       }
       return files;
    }
-   getLang() {
-      return i18n.getLang();
-   }
-   getLangNoLocale(lang) {
-      return lang.split('-')[0];
-   }
-   getAvailableDictList(lang) {
-      return i18n._dictNames[lang] || {};
-   }
-   getModules() {
-      return constants.modules;
-   }
-   collectI18n(files, packages) {
-      let collectedDictList = {};
-      const langLocale = this.getLang();
-      const langNoLocale = this.getLangNoLocale(langLocale);
-      const availableDictList = this.getAvailableDictList(langLocale);
-      const modules = this.getModules();
-      for (var key in packages.js) {
-         let module = key.split('/')[0];
-         let moduleLangNoLocale = module + '/lang/' + langNoLocale + '/' + langNoLocale;
-         let moduleLangWithLocale = module + '/lang/' + langLocale + '/' + langLocale;
-         let isAvailableWithLocale = !!availableDictList[moduleLangWithLocale + '.json'],
-            isAvailableNoLocale = !!availableDictList[moduleLangNoLocale + '.json'];
-         if (isAvailableWithLocale || isAvailableNoLocale) {
-            collectedDictList[module] = [];
-            if (isAvailableWithLocale) {
-               collectedDictList[module].push({ moduleLang: moduleLangWithLocale, lang: langLocale });
-            }
-            if (isAvailableNoLocale) {
-               collectedDictList[module].push({ moduleLang: moduleLangNoLocale, lang: langNoLocale });
-            }
+
+   /**
+    * Добавляет ресурсы локализации, которые надо подключить в вёрстку.
+    * @param files {ICollectedFiles} - набор файлов для добавления в вёрстку
+    * @param deps {ICollectedDeps} - набор зависимостей, которые участвовали в построение страницы.
+    */
+   collectI18n(files: ICollectedFiles, deps: ICollectedDeps): void {
+      const loadedContexts = controller.loadingsHistory.contexts;
+      const localeCode = controller.currentLocale;
+      const processedContexts = [];
+
+      for (const moduleModule in deps.i18n) {
+         const module = deps.i18n[moduleModule];
+         const UIModuleName = module.moduleName.split('/')[0];
+
+         if (processedContexts.includes(UIModuleName)) {
+            break;
          }
-      }
-      for (var key in collectedDictList) {
-         if (collectedDictList.hasOwnProperty(key)) {
-            let currentDicts = collectedDictList[key];
-            for (let i = 0; i < currentDicts.length; i++) {
-               files.js.push(currentDicts[i].moduleLang + '.json');
-               if (modules[key].dict && modules[key].dict && ~modules[key].dict.indexOf(currentDicts[i].lang + '.css')) {
-                  files.css.simpleCss.push(currentDicts[i].moduleLang);
-               }
+
+         if (loadedContexts.hasOwnProperty(UIModuleName) && loadedContexts[UIModuleName].hasOwnProperty(localeCode)) {
+            const context = loadedContexts[UIModuleName][localeCode];
+
+            if (context.dictionary) {
+               files.js.push(context.dictionary);
+            }
+
+            if (context.style) {
+               files.css.simpleCss.push(context.style);
             }
          }
       }

@@ -3,11 +3,12 @@
 // @ts-ignore
 import template = require('wml!UI/_base/Control');
 
-import { Synchronizer } from 'Vdom/Vdom';
+import { Synchronizer } from 'UI/Vdom';
 import { OptionsResolver } from 'View/Executor/Utils';
 import { Focus, ContextResolver } from 'View/Executor/Expressions';
-import {activate, goUpByControlTree} from 'UI/Focus';
+import { activate } from 'UI/Focus';
 import { Logger, Purifier } from 'UI/Utils';
+import { goUpByControlTree } from 'UI/NodeCollector';
 import { constants } from 'Env/Env';
 
 import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
@@ -27,7 +28,7 @@ type IControlChildren = Record<string, Element | Control>;
  * @param {Boolean} isShiftKey Указывает, был ли активирован контрол нажатием Tab+Shift.
  * @remark Контрол активируется, когда на один из его DOM-элементов переходит фокус.
  * Подробное описание и примеры использования события читайте
- * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ здесь}.
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ здесь}.
  * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/
  * @see deactivated
  */
@@ -37,7 +38,7 @@ type IControlChildren = Record<string, Element | Control>;
  * @param {Boolean} isTabPressed Indicates whether control was activated by Tab press.
  * @remark Control is activated when one of its DOM elements becomes focused. Detailed description and u
  * se cases of the event can be found
- * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ here}.
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ here}.
  * @see Documentation: Activation system
  * @see deactivated
  */
@@ -56,7 +57,7 @@ type IControlChildren = Record<string, Element | Control>;
  * @param {Boolean} isTabPressed Indicates whether control was deactivated by Tab press.
  * @remark Control is deactivated when all of its child component lose focus.
  * Detailed description and use cases of the event can be found
- * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ here}.
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ here}.
  * @see Documentation: Activation system
  * @see activated
  */
@@ -79,15 +80,43 @@ const stateNamesNoPurify = {
     isDestroyed: true
 };
 
+interface IContext {
+   scope: unknown;
+   get(field: string): Record<string, unknown>;
+   set(): void;
+   has(): boolean;
+}
+
+function createContext(): IContext {
+   let _scope: unknown = null;
+   return {
+      set scope(value: unknown) {
+         _scope = value;
+      },
+      get(field: string): Record<string, unknown> {
+         if (_scope && _scope.hasOwnProperty(field)) {
+            return _scope[field];
+         }
+         return null;
+      },
+      set(): void {
+         throw new Error("Can't set data to context. Context is readonly!");
+      },
+      has(): boolean {
+         return true;
+      }
+   };
+}
+
 export const _private = {
    _checkAsyncExecuteTime: function<TState, TOptions>(startTime: number, customBLExecuteTime: number, moduleName: string, instance: Control<TOptions, TState>): void {
       let executeTime = Date.now() - startTime;
       customBLExecuteTime = customBLExecuteTime ? customBLExecuteTime : BL_MAX_EXECUTE_TIME;
       if (executeTime > customBLExecuteTime) {
-         const message = `Долгое выполнение _beforeMount на клиенте! 
+         const message = `Долгое выполнение _beforeMount на клиенте!
             Promise, который вернули из метода _beforeMount контрола ${moduleName} ` +
-            `завершился за ${executeTime} миллисекунд. 
-            Необходимо: 
+            `завершился за ${executeTime} миллисекунд.
+            Необходимо:
             - ускорить работу БЛ или
             - перенести работу в _afterMount контрола ${moduleName} или
             - увеличить константу ожидания по согласованию с Бегуновым А. ` +
@@ -100,9 +129,9 @@ export const _private = {
       let startTime = Date.now();
 
       let asyncTimer = setTimeout(() => {
-         const message = `Ошибка построения на клиенте! 
+         const message = `Ошибка построения на клиенте!
             Promise, который вернули из метода _beforeMount контрола ${moduleName} ` +
-            `не завершился за ${time} миллисекунд. 
+            `не завершился за ${time} миллисекунд.
             Необходимо проверить правильность написания асинхронных вызовов в _beforeMount контрола ${moduleName}.
             Возможные причины:
             - Promise не вернул результат/причину отказа
@@ -115,19 +144,49 @@ export const _private = {
             _private._checkAsyncExecuteTime(startTime, customBLExecuteTime, moduleName, instance);
          }
       );
+   },
+   configureCompatibility(domElement: HTMLElement, cfg: any, ctor: any): boolean {
+      if (!constants.compat) {
+         return false;
+      }
+
+      // вычисляем родителя физически - ближайший к элементу родительский контрол
+      const parent = goUpByControlTree(domElement)[0];
+
+      let needToBeCompatible;
+      if (require.defined('Core/helpers/Hcontrol/needToBeCompatible')) {
+         needToBeCompatible = require('Core/helpers/Hcontrol/needToBeCompatible');
+      }
+
+      if (needToBeCompatible(parent)) {
+         cfg.element = domElement;
+
+         if (parent && parent._options === cfg) {
+            Logger.error('Для создания контрола ' + ctor.prototype._moduleName +
+               ' в качестве конфига был передан объект с опциями его родителя ' + parent._moduleName +
+               '. Не нужно передавать чужие опции для создания контрола, потому что они могут ' +
+               'изменяться в процессе создания!', this);
+         } else {
+            cfg.parent = cfg.parent || parent;
+         }
+         return true;
+      } else {
+         return false;
+      }
    }
 };
 
-const themeController = getThemeController();
 
 export interface IControlOptions {
    readOnly?: boolean;
    theme?: string;
 }
 /**
+ * Базовый контрол, от которого наследуются все интерфейсные контролы фреймворка Wasaby.
+ * Подробнее о работе с классом читайте <a href="/doc/platform/developmentapl/interface-development/ui-library/control/">здесь</a>.
  * @class UI/_base/Control
  * @author Шипин А.А.
- * @remark {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/compound-wasaby/#corecreator Asynchronous creation of Core/Creator component}
+ * @remark {@link /doc/platform/developmentapl/interface-development/ui-library/asynchronous-control-building/ Asynchronous creation of Core/Creator component}
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
@@ -139,24 +198,41 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private _destroyed: boolean = false;
    private _$active: boolean = false;
    private _reactiveStart: boolean = false;
+   private _$needForceUpdate: boolean;
 
-   private readonly _instId: string;
-   protected _options: TOptions = null;
-   private _internalOptions: Record<string, unknown> = null;
+   private readonly _instId: string = 'inst_' + countInst++;
+   protected _options: TOptions = {} as TOptions;
+   private _internalOptions: Record<string, unknown> = {};
+
+   /**
+    * TODO: delete it
+    */
+
+   private _fullContext: unknown = null;
+
+   private _evaluatedContext: IContext;
+
+   private get context(): IContext {
+      if (!this._evaluatedContext) {
+         this._evaluatedContext = createContext();
+      }
+      return this._evaluatedContext;
+   }
+
+   private set context(value: IContext) {
+      this._evaluatedContext = value;
+   }
+
+   /**
+    * end todo
+    */
 
    private _context: any = null;
-   private context: any = null;
-   private saveFullContext: any = null;
-   private _saveContextObject: any = null;
    private _$resultBeforeMount: any = null;
 
-   private _saveEnvironment: Function = null;
-   private saveInheritOptions: Function = null;
-   private _getEnvironment: Function = null;
-
-   protected _notify: (eventName: string, args?: unknown[], options?: { bubbling?: boolean }) => unknown = null;
    protected _template: TemplateFunction;
    protected _clientTimeout: number = null;
+   protected _allowNativeEvent: boolean = false;
 
    // protected for compatibility, should be private
    protected _container: HTMLElement = null;
@@ -165,174 +241,125 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    // Ссылка: https://online.sbis.ru/opendoc.html?guid=5f576e21-6606-4a55-94fd-6979c6bfcb53.
    private _logicParent: Control<TOptions, void> = null;
 
-   // Render function for virtual dom
-   _getMarkup: Function = null;
-   // Render function for text generator
-   render: Function = null;
+   protected _children: IControlChildren = {};
 
-   protected _children: IControlChildren = null;
+   private _savedInheritOptions: unknown = null;
+
+   private _controlNode: any = null;
+
+   private _environment: any = null;
+
+   private _isRendered: boolean;
 
    constructor(cfg: any) {
       if (!cfg) {
          cfg = {};
       }
 
-      /**
-       * TODO: delete it
-       */
-      let fullContext = null;
-      let _contextObj = null;
-
-      this.saveFullContext = (ctx) => {
-         fullContext = ctx;
-      };
-
-      this._saveContextObject = (ctx) => {
-         _contextObj = ctx;
-         this._context = ctx;
-      };
-      this.context = {
-         get(field: string): Record<string, unknown> {
-            if (_contextObj && _contextObj.hasOwnProperty(field)) {
-               return _contextObj[field];
-            }
-            return null;
-         },
-         set(): void {
-            throw new Error("Can't set data to context. Context is readonly!");
-         },
-         has(): boolean {
-            return true;
-         }
-      };
-
-      /**
-       * end todo
-       */
-
-      let controlNode = null;
-      let savedInheritOptions = null;
-      let environment = null;
-
-      this.saveInheritOptions = (opts: any) => {
-         savedInheritOptions = opts;
-      };
-
-      this._saveEnvironment = (env, cntNode) => {
-         controlNode = cntNode;
-         environment = env;
-      };
-
-      // сделано так чтобы были доступны замыкания
-      this._getEnvironment = () => {
-         return environment;
-      };
-
-      // tslint:disable-next-line:only-arrow-functions
-      this._notify = function (): any {
-         return environment && environment.startEvent(controlNode, arguments);
-      };
-
-      // @ts-ignore
-      this._notify._isVdomNotify = true;
-
-      // сделано так чтобы были доступны замыкания
-      this._forceUpdate = () => {
-         const control = this || (controlNode && controlNode.control);
-         if (control && !control._mounted) {
-            // _forceUpdate was called asynchronous from _beforeMount before control was mounted to DOM
-            // So we need to delay _forceUpdate till the moment component will be mounted to DOM
-            control._$needForceUpdate = true;
-         } else {
-            if (environment) {
-               // This is fix for specific case. When environment has _haveRebuildRequest and after that
-               // we creating another one. We don't have to do that, it's better to delay rebuild, after current
-               // sync cycle.
-               // after 410 condition "control._moduleName === 'FED2/UI/DocumentCompatible'" will be deleted.
-               if (environment._haveRebuildRequest && control._moduleName === 'FED2/UI/DocumentCompatible') {
-                  control._$needForceUpdate = true;
-               } else {
-                  environment.forceRebuild(controlNode.id);
-               }
-
-            }
-         }
-      };
-
-      /**
-       * Метод, который возвращает разметку для компонента
-       * @param rootKey
-       * @param isRoot
-       * @param attributes
-       * @param isVdom
-       * @returns {*}
-       */
-      this._getMarkup = function _getMarkup(
-         rootKey?: string,
-         isRoot?: boolean,
-         attributes?: object,
-         isVdom: boolean = true
-      ): any {
-         if (!this._template.stable) {
-            Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
-            return '';
-         }
-         let res;
-
-         if (!attributes) {
-            attributes = {};
-         }
-         attributes.context = fullContext;
-         attributes.inheritOptions = savedInheritOptions;
-         for (const i in attributes.events) {
-            if (attributes.events.hasOwnProperty(i)) {
-               for (let handl = 0; handl < attributes.events[i].length; handl++) {
-                  if (
-                     attributes.events[i][handl].fn.isControlEvent &&
-                     !attributes.events[i][handl].fn.controlDestination
-                  ) {
-                     attributes.events[i][handl].fn.controlDestination = this;
-                  }
-               }
-            }
-         }
-         res = this._template(this, attributes, rootKey, isVdom);
-         if (res) {
-            if (isVdom) {
-               if (res.length !== 1) {
-                  const message = `There should be only one root element in control markup. Got ${res.length} root(s).`;
-                  Logger.error(message, this);
-               }
-               for (let k = 0; k < res.length; k++) {
-                  if (res[k]) {
-                     return res[k];
-                  }
-               }
-            }
-         } else {
-            res = '';
-         }
-         return res;
-      };
-
-      this.render = function (empty?: any, attributes?: any): any {
-         const markup = this._getMarkup(null, true, attributes, false);
-         this._isRendered = true;
-         return markup;
-      };
       if (cfg._logicParent && !(cfg._logicParent instanceof Control)) {
          Logger.error('Option "_logicParent" is not instance of "Control"', this);
       }
       this._logicParent = cfg._logicParent;
-      this._options = {};
-      this._internalOptions = {};
-      this._children = {};
-      this._instId = 'inst_' + countInst++;
 
       /*dont use this*/
       if (this._afterCreate) {
          this._afterCreate(cfg);
       }
+   }
+
+   /**
+    * TODO: delete it
+    */
+
+   private saveFullContext(ctx: unknown): void {
+      this._fullContext = ctx;
+   }
+
+   private _saveContextObject(ctx: unknown):void {
+      this.context.scope = ctx;
+      this._context = ctx;
+   }
+
+   /**
+    * end todo
+    */
+
+   private saveInheritOptions(opts: any): void {
+      this._savedInheritOptions = opts;
+   }
+
+   private _saveEnvironment(env: unknown, cntNode: unknown): void {
+      this._controlNode = cntNode;
+      this._environment = env;
+   }
+
+   private _getEnvironment(): any {
+      return this._environment;
+   }
+
+   protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): unknown {
+      return this._environment && this._environment.startEvent(this._controlNode, arguments);
+   }
+
+   /**
+    * Метод, который возвращает разметку для компонента
+    * @param rootKey
+    * @param isRoot
+    * @param attributes
+    * @param isVdom
+    */
+   _getMarkup(
+      rootKey?: string,
+      isRoot?: boolean,
+      attributes?: object,
+      isVdom: boolean = true
+   ): any {
+      if (!(this._template as any).stable) {
+         Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
+         return '';
+      }
+      let res;
+
+      if (!attributes) {
+         attributes = {};
+      }
+      attributes.context = this._fullContext;
+      attributes.inheritOptions = this._savedInheritOptions;
+      for (const i in attributes.events) {
+         if (attributes.events.hasOwnProperty(i)) {
+            for (let handl = 0; handl < attributes.events[i].length; handl++) {
+               if (
+                  attributes.events[i][handl].fn.isControlEvent &&
+                  !attributes.events[i][handl].fn.controlDestination
+               ) {
+                  attributes.events[i][handl].fn.controlDestination = this;
+               }
+            }
+         }
+      }
+      res = this._template(this, attributes, rootKey, isVdom);
+      if (res) {
+         if (isVdom) {
+            if (res.length !== 1) {
+               const message = `There should be only one root element in control markup. Got ${res.length} root(s).`;
+               Logger.error(message, this);
+            }
+            for (let k = 0; k < res.length; k++) {
+               if (res[k]) {
+                  return res[k];
+               }
+            }
+         }
+      } else {
+         res = '';
+      }
+      return res;
+   }
+
+   render(empty?: any, attributes?: any): any {
+      const markup = this._getMarkup(null, true, attributes, false);
+      this._isRendered = true;
+      return markup;
    }
 
    /**
@@ -382,7 +409,24 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @private
     */
    _forceUpdate(): void {
-      // будет переопределено в конструкторе, чтобы был доступ к замыканиям
+      if (!this._mounted) {
+         // _forceUpdate was called asynchronous from _beforeMount before control was mounted to DOM
+         // So we need to delay _forceUpdate till the moment component will be mounted to DOM
+         this._$needForceUpdate = true;
+      } else {
+         if (this._environment) {
+            // This is fix for specific case. When environment has _haveRebuildRequest and after that
+            // we creating another one. We don't have to do that, it's better to delay rebuild, after current
+            // sync cycle.
+            // after 410 condition "this._moduleName === 'FED2/UI/DocumentCompatible'" will be deleted.
+            if (this._environment._haveRebuildRequest && this._moduleName === 'FED2/UI/DocumentCompatible') {
+               this._$needForceUpdate = true;
+            } else {
+               this._environment.forceRebuild(this._controlNode.id);
+            }
+
+         }
+      }
    }
 
    getInstanceId(): string {
@@ -468,6 +512,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          this._forceUpdate = EMPTY_FUNC;
          this._beforeUnmount = EMPTY_FUNC;
          //this._getMarkup = EMPTY_FUNC;
+         this._evaluatedContext = null;
       } catch (error) {
          Logger.lifeError('_beforeUnmount', this, error);
       }
@@ -567,7 +612,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * sets focus on it. Returns true if focus was set successfully and false if nothing was focused.
     * When control becomes active, all of its child controls become active too. When control activates,
     * it fires activated event. Detailed description of the activation algorithm can be found
-    * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/wasaby/focus/ here}.
+    * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/focus/ here}.
     * @see Documentation: Activation system
     * @see activated
     * @see deactivated
@@ -805,10 +850,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @param {Object} options Опции контрола.
     * @param {Object} context Поле контекста, запрошенное контролом.
     * @example
-    * <pre>
+    * <pre class="brush: js">
     *    Control.extend({
     *       ...
-    *       _beforeMount(options, context) {
+    *       _afterMount(options, context) {
     *          this.subscribeToServerEvents();
     *          this.buttonHeight = this._children.myButton.offsetHeight;
     *       }
@@ -1132,13 +1177,15 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    //#region CSS static
    /**
     * Загрузка стилей и тем контрола
-    * @param themeName имя темы (по-умолчанию тема приложения)
-    * @param themes массив доп тем для скачивания
-    * @param styles массив доп стилей для скачивания
+    * @param {String} themeName имя темы (по-умолчанию тема приложения)
+    * @param {Array<String>} themes массив доп тем для скачивания
+    * @param {Array<String>} styles массив доп стилей для скачивания
+    * @returns {Promise<void>}
     * @static
+    * @public
     * @method
     * @example
-    * <pre>
+    * <pre class="brush: js">
     *     import('Controls/_popupTemplate/InfoBox')
     *         .then((InfoboxTemplate) => InfoboxTemplate.loadCSS('saby__dark'))
     * </pre>
@@ -1163,6 +1210,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * </pre>
     */
    static loadThemes(themeName?: string, instThemes: string[] = []): Promise<void> {
+      const themeController = getThemeController();
       const themes = instThemes.concat(this._theme);
       if (themes.length === 0) {
          return Promise.resolve();
@@ -1182,6 +1230,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * </pre>
     */
    static loadStyles(instStyles: string[] = []): Promise<void> {
+      const themeController = getThemeController();
       const styles = instStyles.concat(this._styles);
       if (styles.length === 0) {
          return Promise.resolve();
@@ -1197,6 +1246,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @method
     */
    static removeCSS(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): Promise<void> {
+      const themeController = getThemeController();
       const styles = instStyles.concat(this._styles);
       const themes = instThemes.concat(this._theme);
       if (styles.length === 0 && themes.length === 0) {
@@ -1206,7 +1256,18 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       const removingThemed = Promise.all(themes.map((name) => themeController.remove(name, themeName)));
       return Promise.all([removingStyles, removingThemed]).then(() => void 0);
    }
+   /**
+    * Проверка загрузки стилей и тем контрола
+    * @param {String} themeName имя темы (по-умолчанию тема приложения)
+    * @param {Array<String>} themes массив доп тем для скачивания
+    * @param {Array<String>} styles массив доп стилей для скачивания
+    * @returns {Boolean}
+    * @static
+    * @public
+    * @method
+    */
    static isCSSLoaded(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): boolean {
+      const themeController = getThemeController();
       const themes = instThemes.concat(this._theme);
       const styles = instStyles.concat(this._styles);
       if (styles.length === 0 && themes.length === 0) {
@@ -1240,24 +1301,25 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
       return inherit;
    }
+
    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
       if (domElement) {
          // если пришел jquery, вытащим оттуда элемент
          domElement = domElement[0] || domElement;
       }
-      if (constants.compat) {
-         cfg.iWantBeWS3 = true;
-         cfg.element = domElement;
-         cfg.parent = cfg.parent || goUpByControlTree(domElement)[0];
-      }
-      cfg._$createdFromCode = true;
-
-      startApplication();
-      // @ts-ignore
       if (!(domElement instanceof HTMLElement)) {
          const message = '[UI/_base/Control:createControl] domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.';
          Logger.error(message, ctor.prototype);
       }
+      if (!document.documentElement.contains(domElement)) {
+         const message = '[UI/_base/Control:createControl] domElement parameter is not contained in document. You should pass the correct dom element to control creation function.';
+         Logger.error(message, ctor.prototype);
+      }
+
+      const compatible = _private.configureCompatibility(domElement, cfg, ctor);
+      cfg._$createdFromCode = true;
+
+      startApplication();
       const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
       // @ts-ignore
       OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
@@ -1275,7 +1337,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       Focus.patchDom(domElement, cfg);
       ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
 
-      if (cfg.iWantBeWS3) {
+      if (compatible) {
          if (require.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
             const makeInstanceCompatible = require('Core/helpers/Hcontrol/makeInstanceCompatible');
             makeInstanceCompatible(ctr, cfg);
@@ -1289,8 +1351,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    // </editor-fold>
 }
 
-// @ts-ignore
-Control.prototype._template = template;
+Object.assign(Control.prototype, {
+   _template: template
+});
+((Control.prototype as any)._notify as any)._isVdomNotify = true;
 
 function logError(e: Error) {
    Logger.error(e.message);

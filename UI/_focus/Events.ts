@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_focus/Events" />
 /* tslint:disable */
 
-import { IDOMEnvironment } from 'Vdom/Vdom';
+import { IDOMEnvironment } from 'UI/Vdom';
 
 /**
  * @author Белотелов Н.В.
@@ -9,11 +9,10 @@ import { IDOMEnvironment } from 'Vdom/Vdom';
  */
 
 // @ts-ignore
-import { goUpByControlTree } from './goUpByControlTree';
-// @ts-ignore
 import { constants, detection } from 'Env/Env';
 //@ts-ignore
 import { Logger } from 'UI/Utils';
+import { goUpByControlTree } from 'UI/NodeCollector';
 
 // иногда фокус уходит на какой-то фейковый элемент в боди. и наша система реагирует по делу что фокус улетел.
 // например, когда нужно скопировать текст в буфер обмена, текст вставляется в фейковое поле ввода на боди.

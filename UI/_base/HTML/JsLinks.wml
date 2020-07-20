@@ -1,7 +1,7 @@
 <div>
    <ws:if data="{{ js }}">
-      <ws:for data="index, value in js">
-         <script type="text/javascript" src="{{ _options.linkResolver.resolveLink(value, 'js') }}" defer="defer" key="{{ 'scripts_' + index }}" data-vdomignore="true"></script>
+      <ws:for data="link, index in js">
+         <script type="text/javascript" src="{{ link }}" defer="defer" key="{{ 'scripts_' + index }}" data-vdomignore="true"></script>
       </ws:for>
    </ws:if>
    <ws:if data="{{ tmpl }}">
@@ -16,5 +16,8 @@
    </ws:if>
    <ws:if data="{{ rsSerialized }}">
       <script data-vdomignore="true">window['receivedStates']='{{__setHTMLUnsafe(rsSerialized)}}';</script>
+   </ws:if>
+   <ws:if data="{{ rtpackModuleNames }}">
+      <script data-vdomignore="true">window['rtpackModuleNames'] = '{{__setHTMLUnsafe(rtpackModuleNames)}}';</script>
    </ws:if>
 </div>

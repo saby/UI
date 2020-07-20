@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_focus/goUpByControlTree" />
+/// <amd-module name="UI/_nodeCollector/goUpByControlTree" />
 /* tslint:disable */
 
 /**
@@ -11,7 +11,7 @@ import { constants } from 'Env/Env';
 //@ts-ignore
 import { Logger } from 'UI/Utils';
 
-export function goUpByControlTree(target, array?) {
+export default function goUpByControlTree(target, array?) {
    array = array || [];
    if (target && target.jquery) {
       // Unwrap jQuery element if it is present
@@ -63,7 +63,7 @@ function checkOpener(opener) {
    }
 
    if (error) {
-      const message = `[UI/_focus/goUpByControlTree:checkOpener] DOMEnvironment - Incorrect opener or parent is found! It seems that anybody set wrong opener option! ${error}`;
+      const message = `[UI/_nodeCollector/goUpByControlTree:checkOpener] DOMEnvironment - Incorrect opener or parent is found! It seems that anybody set wrong opener option! ${error}`;
       Logger.error(message, opener);
    }
 }
@@ -78,14 +78,14 @@ function checkOpener(opener) {
 function getFocusParent(control) {
    // ищем предка текущего контрола, сначала смотрим есть ли opener, если нет - берем parent
    var result = (control._options && control._options.opener) ||
-       (control.getOpener && control.getOpener()) ||
-       (control._options && control._options.parent) ||
-       (control.getParent && control.getParent());
-       if(!result || result.__purified) {
-           return null;
-       } else {
-           return result;
-       }
+      (control.getOpener && control.getOpener()) ||
+      (control._options && control._options.parent) ||
+      (control.getParent && control.getParent());
+   if (!result || result.__purified) {
+      return null;
+   } else {
+      return result;
+   }
 }
 
 /**

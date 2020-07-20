@@ -32,6 +32,12 @@ interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
     RUMEnabled: boolean;
     pageName: string;
     title: string;
+    /** Require зависимости, определенные в rt-пакетах */
+    rtpackCssModuleNames: string[];
+    rtpackJsModuleNames: string[];
+    /** Ссылки подключенных ресурсов */
+    scripts: { src: string; }[];
+    links: { href: string; type: string; }[];
 }
 
 class HTML extends Control<IHTMLCombinedOptions> {
@@ -61,6 +67,23 @@ class HTML extends Control<IHTMLCombinedOptions> {
         this.compat = cfg.compat || false;
     }
 
+    private markForeignContent(): void {
+        if (!this.onServer) {
+            const bodyChildren: HTMLCollection = document.body.children;
+            for (let i = 0; i < bodyChildren.length; i++) {
+                if (bodyChildren[i].id !== 'wasaby-content') {
+                    bodyChildren[i].setAttribute('data-vdomignore', 'true');
+                }
+            }
+            const htmlChildren: HTMLCollection = document.documentElement.children;
+            for (let i = 0; i < htmlChildren.length; i++) {
+                if (htmlChildren[i] !== document.head && htmlChildren[i] !== document.body) {
+                    htmlChildren[i].setAttribute('data-vdomignore', 'true');
+                }
+            }
+        }
+    }
+
     /**
      * @mixes UI/_base/HTML/IHTML
      * @mixes UI/_base/HTML/IRootTemplate
@@ -70,15 +93,14 @@ class HTML extends Control<IHTMLCombinedOptions> {
         this.onServer = typeof window === 'undefined';
         this.isCompatible = cfg.compat;
         this.initState(receivedState || cfg);
-        if (!receivedState) {
-            receivedState = {};
-        }
-        this.metaStack = MetaStack.restore(receivedState.metaStackSer);
+        this.metaStack = MetaStack.restore(receivedState?.metaStackSer);
         if (!this.metaStack) {
             this.metaStack = MetaStack.getInstance();
             this.metaStack.push({ title: cfg.title });
         }
         let appData = AppData.getAppData();
+
+        this.markForeignContent();
 
         this.buildnumber = cfg.buildnumber || constants.buildnumber;
 
@@ -114,6 +136,13 @@ class HTML extends Control<IHTMLCombinedOptions> {
         // LinkResolver.getInstance().init(context.headData.isDebug, self.buildnumber, self.appRoot, self.resourceRoot);
 
         headDataStore.read('pushDepComponent')(this.application, false);
+        /** Список require-зависимостей, уже подключенных в rt-пакетах */
+        const unpackDeps = cfg.rtpackJsModuleNames.concat(cfg.rtpackCssModuleNames);
+        headDataStore.read('setUnpackDeps')(unpackDeps);
+        headDataStore.read('setIncludedResources')({
+            links: cfg.links.filter((obj) => obj.type === "text/css"),
+            scripts: cfg.scripts
+        });
         /**
          * Этот перфоманс нужен, для сохранения состояния с сервера, то есть,
          * cfg - это конфиг, который нам прийдет из файла роутинга и с ним же надо
@@ -123,27 +152,29 @@ class HTML extends Control<IHTMLCombinedOptions> {
         // Он вставляет конфиги сразу после контрола, а не через StateReceiver. По-другому сейчас не сделать, т.к.
         // функция generatorCompatible решает, какой генератор вернуть? только по константам, а не по аргументам.
         // https://git.sbis.ru/sbis/ws/blob/rc-20.1000/View/Executor/TClosure.ts#L296
-        if(!cfg.builder && !cfg.builderCompatible) {
-            return new Promise((resolve) => {
-                resolve({
-                    buildnumber: this.buildnumber,
-                    metaStackSer: this.metaStack.serialize(),
-                    appRoot: this.appRoot,
-                    staticDomains: this.staticDomains,
-                    RUMEnabled: this.RUMEnabled,
-                    pageName: this.pageName,
-                    wsRoot: this.wsRoot,
-                    resourceRoot: this.resourceRoot,
-                    templateConfig: this.templateConfig,
-                    servicesPath: this.servicesPath,
-                    compat: this.compat,
-                    product: this.product
-                });
-            });
+        if (receivedState || cfg.builder || cfg.builderCompatible) {
+            return;
         }
+        return new Promise((resolve) => {
+            resolve({
+                buildnumber: this.buildnumber,
+                metaStackSer: this.metaStack.serialize(),
+                appRoot: this.appRoot,
+                staticDomains: this.staticDomains,
+                RUMEnabled: this.RUMEnabled,
+                pageName: this.pageName,
+                wsRoot: this.wsRoot,
+                resourceRoot: this.resourceRoot,
+                templateConfig: this.templateConfig,
+                servicesPath: this.servicesPath,
+                compat: this.compat,
+                product: this.product
+            });
+        });
     }
 
     _beforeUpdate(options: IHTMLCombinedOptions): void {
+        this.markForeignContent();
         if (options.title !== this._options.title) {
             const prevState = this.metaStack.lastState;
             this.metaStack.push({ title: options.title });
@@ -172,6 +203,15 @@ class HTML extends Control<IHTMLCombinedOptions> {
     static contextTypes(): { AppData: any } {
         return {
             AppData
+        };
+    }
+
+    static getDefaultOptions() {
+        return {
+            rtpackJsModuleNames: [],
+            rtpackCssModuleNames: [],
+            links: [],
+            scripts: []
         };
     }
 }

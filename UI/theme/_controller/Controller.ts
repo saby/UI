@@ -6,20 +6,22 @@ import { createEntity, restoreEntity, isLinkEntity, isSingleEntity } from 'UI/th
 import { DEFAULT_THEME, EMPTY_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
 import { ICssEntity } from 'UI/theme/_controller/css/interface';
 import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
-import Storage from 'UI/theme/_controller/Storage';
+import { EntityStorage, AliasStorage, IAliases } from 'UI/theme/_controller/Storage';
 /**
  * Контроллер тем, необходим для скачивания/удаления/коллекции/переключения тем на странице
  * @class UI/theme/_controller/Controller
  * @singleton
  */
 export class Controller {
-   private storage: Storage = new Storage();
+   private storage: EntityStorage = new EntityStorage();
+   private aliases: AliasStorage = new AliasStorage();
    /** Имя темы приложения */
    appTheme: string = DEFAULT_THEME;
 
    constructor(private cssLoader: ICssLoader) {
       this.set = this.set.bind(this);
       this.has = this.has.bind(this);
+      this.clear = this.clear.bind(this);
       this.collectCssLinks();
    }
 
@@ -31,15 +33,18 @@ export class Controller {
     * При повторном запросе востребованность темы возрастает
     */
    get(cssName: string, themeName?: string, themeType: THEME_TYPE = THEME_TYPE.MULTI): Promise<ICssEntity> {
+      const name = this.aliases.get(cssName);
       const theme = themeName || this.appTheme;
-      if (this.has(cssName, theme)) {
-         const storedEntity = this.storage.get(cssName, theme);
+      const href = this.cssLoader.getHref(name, theme);
+      // в случаях дополнительных безымянных css, cssName равно href, см. UI/theme/_controller/CSS:49
+      const registeredName = this.has(name, theme) && name || this.has(href, theme) && href || null;
+      if (registeredName) {
+         const storedEntity = this.storage.get(registeredName, theme);
          storedEntity.require();
          /** Еще нескаченные css уже имеются в store, необходимо дождаться окончания монтирования в DOM */
          return storedEntity.loading.then(() => storedEntity);
       }
-      const href = this.cssLoader.getHref(cssName, theme);
-      const entity = createEntity(href, cssName, theme, themeType);
+      const entity = createEntity(href, name, theme, themeType);
       /** Еще нескаченный link сохраняется в store, чтобы избежать повторного fetch */
       this.set(entity);
       return entity.load().then(() => {
@@ -49,7 +54,7 @@ export class Controller {
          return entity;
       }).catch((e: Error) =>
          /** Если стилей нет, удаляем link из Store */
-         this.remove(cssName, theme).then(() => { throw decorateError(e); })
+         this.remove(name, theme).then(() => { throw decorateError(e); })
       );
    }
 
@@ -65,14 +70,16 @@ export class Controller {
     * Проверка наличия темы `themeName` у контрола `name`
     */
    has(cssName: string, themeName?: string): boolean {
+      const name = this.aliases.get(cssName);
       const theme = themeName || this.appTheme;
-      return this.storage.has(cssName, theme);
+      return this.storage.has(name, theme);
    }
 
    isMounted(cssName: string, themeName?: string): boolean {
+      const name = this.aliases.get(cssName);
       const theme = themeName || this.appTheme;
-      if (!this.storage.has(cssName, theme)) { return false; }
-      return this.storage.get(cssName, theme).isMounted;
+      if (!this.storage.has(name, theme)) { return false; }
+      return this.storage.get(name, theme).isMounted;
    }
 
    /**
@@ -104,16 +111,35 @@ export class Controller {
     * т.е контрол `cssName` удаляется и, если больше нет зависимостей, css также удаляется из DOM
     */
    remove(cssName: string, themeName?: string): Promise<boolean> {
+      const name = this.aliases.get(cssName);
       const theme = themeName || this.appTheme;
-      if (!this.has(cssName, theme)) {
+      if (!this.storage.has(name, theme)) {
          return Promise.resolve(true);
       }
-      return this.storage.remove(cssName, theme);
+      return this.storage.remove(name, theme);
    }
 
    clear(): void {
       this.storage.clear();
    }
+
+   /**
+    * Определение алиасов имен css
+    * @param {IAliases} aliases
+    * @example
+    * <pre class="brush: js">
+    *  it('Метод get при запросе алиаса возвращает css-сущность с оригинальным именем', () => {
+    *    controller.define({'aliasName':'originalName'});
+    *    return controller.get('aliasName').then((entity) => {
+    *       assert.strictEqual(entity.cssName, 'originalName');
+    *     });
+    *  });
+    * </pre>
+    */
+   define(aliases: IAliases): void {
+      this.aliases.set(aliases);
+   }
+
    /**
     * Сохранение css сущности в store
     * @param link
