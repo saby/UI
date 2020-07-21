@@ -225,6 +225,8 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
    destroy(): any {
       this.runQueue();
 
+      // @ts-ignore FIXME: Property '_haveRebuildRequest' does not exist
+      this._haveRebuildRequest = false;
       this.removeTabListener();
       // TODO раскомментить после https://online.sbis.ru/opendoc.html?guid=450170bd-6322-4c3c-b6bd-3520ce3cba8a
       // this.removeProcessiingEventHandler('focus');
