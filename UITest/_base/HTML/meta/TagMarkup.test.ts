@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-import { JML } from 'UI/_base/HTML/_meta/interface';
 import { generateTagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 
 const tagName = 'tag';
