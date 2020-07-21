@@ -4,7 +4,6 @@ import { generateTagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 
 const tagName = 'tag';
 const attrs = { attr1: 'val1', attr2: 'val2' };
-const children: JML = [tagName, attrs];
 
 describe('generateTagMarkup', () => {
    it('tag without attrs', () => {
