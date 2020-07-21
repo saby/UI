@@ -122,4 +122,6 @@ export interface IAttrsDescription extends Record<string, string> { }
 export interface ITagDescription {
    tagName: string,
    attrs?: IAttrsDescription;
+   children?: ITagDescription;
 }
+export type JML = [string, (Record<string, string> | JML)?, JML?];

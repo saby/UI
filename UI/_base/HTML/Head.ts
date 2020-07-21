@@ -10,8 +10,8 @@ import { constants } from 'Env/Env';
 import { headDataStore } from 'UI/_base/HeadData';
 import { Stack } from 'UI/_base/HTML/meta';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
-import TagMarkup from './_meta/TagMarkup';
-import { ITagDescription } from './_meta/interface';
+import TagMarkup, { fromJML } from 'UI/_base/HTML/_meta/TagMarkup';
+import { JML } from 'UI/_base/HTML/_meta/interface';
 
 class Head extends Control<IHeadOptions> {
     _template: TemplateFunction = template;
@@ -49,7 +49,7 @@ class Head extends Control<IHeadOptions> {
 
         this.head = options.head;
         const tagDescriptions = options.headJson
-            .map(([tagName, attrs]): ITagDescription => ({ tagName, attrs }))
+            .map(fromJML)
             // не вставляем переданные link css, это обязанность theme_controller'a
             .filter(({ attrs }) => attrs.rel !== "stylesheet" && attrs.type !== "text/css");
         this.headAdditiveTagsMarkup = new TagMarkup(tagDescriptions).outerHTML;
@@ -146,5 +146,3 @@ interface IHeadOptions extends IControlOptions {
     servicesPath: string;
     product: string;
 }
-
-type JML = [string, Record<string,string>]
