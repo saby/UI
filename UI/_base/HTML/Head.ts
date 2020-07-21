@@ -10,8 +10,9 @@ import { constants } from 'Env/Env';
 import { headDataStore } from 'UI/_base/HeadData';
 import { Stack } from 'UI/_base/HTML/meta';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
-import TagMarkup, { fromJML } from 'UI/_base/HTML/_meta/TagMarkup';
-import { JML } from 'UI/_base/HTML/_meta/interface';
+import TagMarkup from 'UI/_base/HTML/_meta/TagMarkup';
+import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
+import { JML, ITagDescription } from 'UI/_base/HTML/_meta/interface';
 
 class Head extends Control<IHeadOptions> {
     _template: TemplateFunction = template;
