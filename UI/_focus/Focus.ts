@@ -282,7 +282,8 @@ function focusInner(element: Element, cfg: IFocusConfig): boolean {
 }
 
 function fireActivationEvents(target: Element, relatedTarget: Element): void {
-   notifyActivationEvents(null, target, relatedTarget, false);
+   // @ts-ignore
+   notifyActivationEvents(target, relatedTarget, false);
 }
 
 let focusingState;
