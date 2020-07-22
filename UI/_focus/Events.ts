@@ -13,6 +13,11 @@ import { constants, detection } from 'Env/Env';
 import { Logger } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
 
+interface ITabPressed {
+   isShiftKey: boolean
+   tabTarget: HTMLElement
+}
+type TTabPressesd = null | ITabPressed;
 // иногда фокус уходит на какой-то фейковый элемент в боди. и наша система реагирует по делу что фокус улетел.
 // например, когда нужно скопировать текст в буфер обмена, текст вставляется в фейковое поле ввода на боди.
 // пытаюсь исправить ситуацию, угадывая странный элемент и не обращая внимание на то что он фокусируется.
@@ -88,7 +93,7 @@ function findClosestEnvironment(sourceElement: Element): IDOMEnvironment | null 
 function fixNotifyArguments(env: IDOMEnvironment,
                             target: Element,
                             relatedTarget: Element,
-                            isTabPressed: boolean): [any, any, any] {
+                            isTabPressed: TTabPressesd): [any, any, any] {
    // Пока не смержили правку в ws, не можем поменять сигнатуру функции.
    // Поэтому будем менять в три доброски, с совместимостью в ui
    if (env && env.__captureEventHandler) {
@@ -106,10 +111,11 @@ function fixNotifyArguments(env: IDOMEnvironment,
  * @param relatedTarget - откуда ушел фокус
  * @param isTabPressed - true, если фокус перешел по нажатию tab
  */
-export function notifyActivationEvents(env: IDOMEnvironment,
+// FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
+export function notifyActivationEvents(env: any,
                                        target: Element,
                                        relatedTarget: Element,
-                                       isTabPressed: boolean): boolean | void {
+                                       isTabPressed: TTabPressesd): boolean | void {
    [target, relatedTarget, isTabPressed] = fixNotifyArguments(env, target, relatedTarget, isTabPressed);
    if (detectStrangeElement(target)) {
       return;

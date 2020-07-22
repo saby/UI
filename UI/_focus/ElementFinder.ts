@@ -1,8 +1,6 @@
 /// <amd-module name="UI/_focus/ElementFinder" />
 /* tslint:disable */
 
-import Func = Mocha.Func;
-
 /**
  * @author Белотелов Н.В.
  * Модуль содержит логику нахождения следующего элемента для фокусировки
