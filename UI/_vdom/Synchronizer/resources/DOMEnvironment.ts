@@ -1179,16 +1179,27 @@ function checkSameEnvironment(env: any, element: any): boolean {
    if (requirejs.defined('OnlineSbisRu/CompatibleTemplate') && !env._destroyed) {
       const htmlEnv = env._rootDOMNode.tagName.toLowerCase() === 'html';
       if (element.controlNodes[0].environment === env && !htmlEnv) {
-         // FIXME: проблема в том, что события input ломают обратный биндинг если событие вызвается с верхнего окружения
-         if (event.type === 'input') {
-            return true;
+         // FIXME: проблема в том, что обработчики событий могут быть только на внутреннем окружении,
+         // в таком случае мы должны вызвать его с внутреннего откружения.
+         let _element = element;
+         while (_element !== document.body) {
+            _element = _element.parentNode;
+            // проверяем на наличие controlNodes на dom-элементе
+            if (_element.controlNodes && _element.controlNodes[0]) {
+               // нашли самое верхнее окружение
+               if (_element.controlNodes[0].environment._rootDOMNode.tagName.toLowerCase() === 'html') {
+                  // проверяем, что такого обработчика нет
+                  if (typeof _element.controlNodes[0].environment.__captureEventHandlers[event.type] === 'undefined') {
+                     // стреляем с внутерннего окружения
+                     return true;
+                  }
+               }
+            }
          }
       }
       return htmlEnv;
    }
-
    return element.controlNodes[0].environment === env;
-
 }
 
 /**
