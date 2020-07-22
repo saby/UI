@@ -6,8 +6,17 @@
  * В этом модуле содержится логика работы с элементами vdom-focus-in и vdom-focus-out
  */
 
-// @ts-ignore
-import * as Inferno from 'Inferno/third-party/index';
+
+import { VNode, createVNode, getFlagsForElementVnode } from 'Inferno/third-party/index';
+
+interface IExtendedEvent extends Event {
+   relatedTarget: Element | null;
+   target: IExtendedEventTarget | null
+}
+
+interface IExtendedEventTarget extends EventTarget {
+   className: string | null;
+}
 
 /**
  * check if container contains element strictly (container and element are not equal)
@@ -16,7 +25,7 @@ function isContainsStrict(container: Element, element: Element): boolean {
    return container.contains(element) && container !== element;
 }
 
-function findFirstVNode(arr: Array<any>): any {
+function findFirstVNode(arr: VNode[]): VNode | null {
    if (!Array.isArray(arr)) {
       return null;
    }
@@ -25,7 +34,7 @@ function findFirstVNode(arr: Array<any>): any {
    });
 }
 
-function fireEvent(e) {
+function fireEvent(e: IExtendedEvent): void {
    if (!this._rootDOMNode) {
       return;
    }
@@ -70,7 +79,7 @@ function fireEvent(e) {
    target.dispatchEvent(evt);
 }
 
-function appendFocusesElements(environment, vnode) {
+function appendFocusesElements(environment: any, vnode: VNode): void {
    const firstChild = findFirstVNode(vnode.children),
       fireTab = function(e) {
          fireEvent.call(environment, e);
@@ -82,11 +91,11 @@ function appendFocusesElements(environment, vnode) {
       };
    // добавляем ноды vdom-focus-in и vdom-focus-out тольео если есть какие-то внутренние ноды
    if (firstChild && firstChild.key !== 'vdom-focus-in') {
-      const focusInNode = Inferno.createVNode(Inferno.getFlagsForElementVnode('a'), 'a', 'vdom-focus-in', [], 0, {
+      const focusInNode = createVNode(getFlagsForElementVnode('a'), 'a', 'vdom-focus-in', [], 0, {
          class: 'vdom-focus-in',
          tabindex: '1'
       }, 'vdom-focus-in', hookOut);
-      const focusOutNode = Inferno.createVNode(Inferno.getFlagsForElementVnode('a'), 'a', 'vdom-focus-out', [], 0, {
+      const focusOutNode = createVNode(getFlagsForElementVnode('a'), 'a', 'vdom-focus-out', [], 0, {
          class: 'vdom-focus-out',
          tabindex: '0'
       }, 'vdom-focus-out', hookOut);
@@ -95,7 +104,7 @@ function appendFocusesElements(environment, vnode) {
    }
 }
 
-export function insertBoundaryElements(environment, vnode) {
+export function insertBoundaryElements(environment: any, vnode: VNode): void {
    const dom = vnode.dom || environment._rootDOMNode;
    if (dom === environment._rootDOMNode && environment._rootDOMNode.tagName !== 'HTML' || vnode.type === 'body') {
       appendFocusesElements(environment, vnode);

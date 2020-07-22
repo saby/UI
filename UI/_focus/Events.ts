@@ -10,14 +10,13 @@ import { IDOMEnvironment } from 'UI/Vdom';
 
 // @ts-ignore
 import { constants, detection } from 'Env/Env';
-//@ts-ignore
 import { Logger } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
 
 // иногда фокус уходит на какой-то фейковый элемент в боди. и наша система реагирует по делу что фокус улетел.
 // например, когда нужно скопировать текст в буфер обмена, текст вставляется в фейковое поле ввода на боди.
 // пытаюсь исправить ситуацию, угадывая странный элемент и не обращая внимание на то что он фокусируется.
-function detectStrangeElement(element) {
+function detectStrangeElement(element: Element): boolean {
    if (!element) {
       return false;
    }
@@ -39,7 +38,7 @@ function detectStrangeElement(element) {
    );
 }
 
-function compatibleActivationEvents(environment: IDOMEnvironment, arrayMaker: any) {
+function compatibleActivationEvents(environment: IDOMEnvironment, arrayMaker: any[]): void {
    // todo обратная совместимость
    if (constants.compat && environment._rootDOMNode && environment._rootDOMNode.controlNodes) {
       if (environment._rootDOMNode.controlNodes[0] && environment._rootDOMNode.controlNodes[0].control.isActive) {
@@ -69,11 +68,11 @@ function compatibleActivationEvents(environment: IDOMEnvironment, arrayMaker: an
    }
 }
 
-function getEnvironment(element: Element) {
+function getEnvironment(element: Element): IDOMEnvironment | null {
    // @ts-ignore
    return element.controlNodes && element.controlNodes.length > 0 && element.controlNodes[0].environment || null;
 }
-function findClosestEnvironment(sourceElement: Element): any {
+function findClosestEnvironment(sourceElement: Element): IDOMEnvironment | null {
    let currentElement = sourceElement;
    while(currentElement.parentElement) {
       let env = getEnvironment(currentElement);
@@ -86,7 +85,10 @@ function findClosestEnvironment(sourceElement: Element): any {
    return null;
 }
 
-function fixNotifyArguments(env: IDOMEnvironment, target: any, relatedTarget: any, isTabPressed: any): [any, any, any] {
+function fixNotifyArguments(env: IDOMEnvironment,
+                            target: Element,
+                            relatedTarget: Element,
+                            isTabPressed: boolean): [any, any, any] {
    // Пока не смержили правку в ws, не можем поменять сигнатуру функции.
    // Поэтому будем менять в три доброски, с совместимостью в ui
    if (env && env.__captureEventHandler) {
@@ -99,11 +101,15 @@ function fixNotifyArguments(env: IDOMEnvironment, target: any, relatedTarget: an
 /**
  * Вычисляем состояние активности компонентов, и стреляем событием активности у тех компонентов,
  * что поменяли свое состояние
+ * @param env
  * @param target - куда пришел фокус
  * @param relatedTarget - откуда ушел фокус
  * @param isTabPressed - true, если фокус перешел по нажатию tab
  */
-export function notifyActivationEvents(env: any, target, relatedTarget, isTabPressed) {
+export function notifyActivationEvents(env: IDOMEnvironment,
+                                       target: Element,
+                                       relatedTarget: Element,
+                                       isTabPressed: boolean): boolean | void {
    [target, relatedTarget, isTabPressed] = fixNotifyArguments(env, target, relatedTarget, isTabPressed);
    if (detectStrangeElement(target)) {
       return;
@@ -169,6 +175,7 @@ export function notifyActivationEvents(env: any, target, relatedTarget, isTabPre
                      // to: arrayMaker[0],
                      // from: relatedArrayMaker[0],
                      isTabPressed: !!isTabPressed,
+                     // @ts-ignore
                      isShiftKey: isTabPressed && isTabPressed.isShiftKey
                   }
                ]);
@@ -199,6 +206,7 @@ export function notifyActivationEvents(env: any, target, relatedTarget, isTabPre
                   _$to: arrayMaker[0],
                   // from: relatedArrayMaker[0],
                   isTabPressed: !!isTabPressed,
+                  // @ts-ignore
                   isShiftKey: isTabPressed && isTabPressed.isShiftKey
                }
             ]);
