@@ -7,13 +7,25 @@ import { IProperties } from 'UI/_vdom/Synchronizer/resources/DOMEnvironment';
 import { Hooks } from 'UI/Vdom';
 import { constants } from 'Env/Env';
 
+const globalEnvironment = {
+    addCaptureEventHandler: fake(),
+    removeCaptureEventHandler: fake()
+};
+
 describe('UI/_vdom/Synchronizer/resources/Hooks', () => {
     before(() => {
         replace(constants, 'compat', false);
     });
+
     after(() => {
         restore();
     });
+
+    afterEach(() => {
+        globalEnvironment.addCaptureEventHandler = fake();
+        globalEnvironment.removeCaptureEventHandler = fake();
+    })
+
     describe('setControlNodeHook', () => {
         it('basic', () => {
             const tagName = 'div';
@@ -34,7 +46,7 @@ describe('UI/_vdom/Synchronizer/resources/Hooks', () => {
             const controlNodeRef = setControlNodeHookResult[4];
             controlNodeRef(element);
             assert.strictEqual(element.controlNodes[0], controlNode, 'mountRef не добавил controlNode в массив controlNodes элемента');
-            assert.strictEqual(controlNode.control._container, element, 'mountRef не записал element в _container контрола');
+            assert.strictEqual((controlNode.control as any)._container, element, 'mountRef не записал element в _container контрола');
             assert.ok(ref.calledOnce, 'mountRef не вызвал оригинальный ref или вызвал его дважды');
             assert.strictEqual(ref.firstCall.args[0], element, 'mountRef не передал element в оригинальный ref');
 
@@ -74,13 +86,13 @@ describe('UI/_vdom/Synchronizer/resources/Hooks', () => {
                 element.eventProperties['on:event'][0] &&
                 element.eventProperties['on:event'][0] === props.events['on:event'][0],
                 'mountRef добавил что-то не то в eventProperties элемента');
-            assert.ok(controlNode.environment.addCaptureEventHandler.calledOnce, 'mountRef не вызвал метод addCaptureEventHandler');
+            assert.ok(globalEnvironment.addCaptureEventHandler.calledOnce, 'mountRef не вызвал метод addCaptureEventHandler');
             assert.ok(ref.calledOnce, 'mountRef не вызвал оригинальный ref или вызвал его дважды');
             assert.strictEqual(ref.firstCall.args[0], element, 'mountRef не передал element в оригинальный ref');
 
             eventRef();
             assert.ok(element.eventProperties === undefined && element.eventPropertiesCnt === undefined, 'unmountRef не очистил eventProperties элемента');
-            assert.ok(controlNode.environment.removeCaptureEventHandler.calledOnce, 'mountRef не вызвал метод removeCaptureEventHandler');
+            assert.ok(globalEnvironment.removeCaptureEventHandler.calledOnce, 'mountRef не вызвал метод removeCaptureEventHandler');
             assert.ok(ref.calledTwice, 'unmountRef не вызвал оригинальный ref или вызвал его дважды');
             assert.strictEqual(ref.secondCall.args[0], undefined, 'unmountRef передал неправильный аргумент в оригинальный ref');
         });
@@ -89,10 +101,7 @@ describe('UI/_vdom/Synchronizer/resources/Hooks', () => {
 
 class ControlNodeMock {
     control = {};
-    environment = {
-        addCaptureEventHandler: fake(),
-        removeCaptureEventHandler: fake()
-    };
+    environment = globalEnvironment;
 }
 
 class HTMLMockElement {
