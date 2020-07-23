@@ -341,7 +341,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       if (res) {
          if (isVdom) {
             if (res.length !== 1) {
-               const message = `There should be only one root element in control markup. Got ${res.length} root(s).`;
+               const message = `В шаблоне может быть только один корневой элемент. Найдено ${res.length} корня(ей).`;
                Logger.error(message, this);
             }
             for (let k = 0; k < res.length; k++) {
