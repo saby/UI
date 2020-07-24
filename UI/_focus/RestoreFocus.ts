@@ -7,7 +7,7 @@ import { notifyActivationEvents } from "UI/_focus/Events";
 // TODO подумать как решить проблему циклических зависимостей при импорте интерфейсов
 // В качестве временного решения отключен импорт и указан тип `any` в restoreFocus()
 // https://online.sbis.ru/opendoc.html?guid=918b22a9-fbd5-4122-ab51-75a88f01bbbc
-// import { Control } from 'UI/Base';
+import { Control } from 'UI/Base';
 
 /**
  * @author Белотелов Н.В.
@@ -22,7 +22,7 @@ function checkActiveElement(savedActiveElement: Element): boolean {
 }
 let prevControls = [];
 let savedActiveElement;
-export function restoreFocus(control: any, action: Function): void {
+export function restoreFocus(control: Control, action: Function): void {
    if ( document.activeElement !== document.body ) {
       // Если фокус не улетел в Body, сохраним контрол, который был в фокусе и список контролов
       savedActiveElement = document.activeElement;
@@ -34,7 +34,7 @@ export function restoreFocus(control: any, action: Function): void {
 
    action();
 
-   const environment = control._getEnvironment();
+   const environment = control.getEnvironment();
 
    environment._restoreFocusState = true;
    // если сразу после изменения DOM-дерева фокус слетел в body, пытаемся восстановить фокус на ближайший элемент от
@@ -50,7 +50,7 @@ export function restoreFocus(control: any, action: Function): void {
          const container = control._template ? control._container : control.getContainer()[0];
          // @ts-ignore
          focus.__restoreFocusPhase = true;
-         let result = isElementVisible(container) && focus(container);
+         const result = isElementVisible(container) && focus(container);
          // @ts-ignore
          delete focus.__restoreFocusPhase;
          return result;
@@ -65,14 +65,15 @@ export function restoreFocus(control: any, action: Function): void {
       // нужно восстановить фокус после _rebuild
       // проверяю на control._mounted, _rebuild сейчас не синхронный, он не гарантирует что асинхронные ветки
       // перерисовались
-      if (control.__$focusing && !control.isDestroyed() && control._mounted) {
+      // @ts-ignore _destroyed - private props
+      if (control.isFocusing() && !control._destroyed && control.isMounted()) {
          control.activate();
          // до синхронизации мы сохранили __$focusing - фокусируемый элемент,
          // а после синхронизации здесь фокусируем его.
          // если не нашли фокусируемый элемент - значит в доме не оказалось этого элемента.
          // но мы все равно отменяем скинем флаг, чтобы он не сфокусировался позже когда уже не надо
          // https://online.sbis.ru/opendoc.html?guid=e46d87cc-5dc2-4f67-b39c-5eeea973b2cc
-         control.__$focusing = false;
+         control.setFocusing(false);
       }
    }
    environment._restoreFocusState = false;
