@@ -1179,8 +1179,26 @@ function checkSameEnvironment(env: any, element: any): boolean {
    if (requirejs.defined('OnlineSbisRu/CompatibleTemplate') && !env._destroyed) {
       const htmlEnv = env._rootDOMNode.tagName.toLowerCase() === 'html';
       if (element.controlNodes[0].environment === env && !htmlEnv) {
-         // FIXME: проблема в том, что обработчики событий могут быть только на внутреннем окружении,
-         // в таком случае мы должны вызвать его с внутреннего откружения.
+         // FIXME: 1. проблема в том, что обработчики событий могут быть только на внутреннем окружении,
+         // в таком случае мы должны вызвать его с внутреннего окружения.
+         // FIXME: 2. обработчик может быть на двух окружениях, будем определять где он есть и стрелять
+         // с внутреннего окружения, если обработчика нет на внешнем
+         let hasHandlerOnEnv = false;
+         let eventIndex;
+         // проверяем обработчики на внутреннем окружении
+         // если processingHandler === false, значит подписка была через on:event
+         let currentCaptureEvent = env.__captureEventHandlers[event.type];
+         for (eventIndex = 0; eventIndex < currentCaptureEvent.length; eventIndex++) {
+            // нашли подписку через on:, пометим, что что на внутреннем окружении есть подходящий обработчик
+            if (!currentCaptureEvent[eventIndex].processingHandler) {
+               hasHandlerOnEnv = true;
+            }
+         }
+         // Если обработчика на внутреннем окружении то ничего дальше не делаем
+         if (!hasHandlerOnEnv) {
+            return hasHandlerOnEnv;
+         }
+         // Следует определить есть ли обработчики на внешнем окружении
          let _element = element;
          while (_element !== document.body) {
             _element = _element.parentNode;
@@ -1188,11 +1206,22 @@ function checkSameEnvironment(env: any, element: any): boolean {
             if (_element.controlNodes && _element.controlNodes[0]) {
                // нашли самое верхнее окружение
                if (_element.controlNodes[0].environment._rootDOMNode.tagName.toLowerCase() === 'html') {
-                  // проверяем, что такого обработчика нет
-                  if (typeof _element.controlNodes[0].environment.__captureEventHandlers[event.type] === 'undefined') {
-                     // стреляем с внутерннего окружения
-                     return true;
+                  // проверяем, что такой обработчик есть
+                  if (typeof _element.controlNodes[0].environment.__captureEventHandlers[event.type] !== 'undefined') {
+                     // обработчик есть на двух окружениях. Следует проанализировать обработчики на обоих окружениях
+                     currentCaptureEvent = _element.controlNodes[0].environment.__captureEventHandlers[event.type];
+                     let hasHandlerOnTopEnv = false;
+                     // проверяем обработчики на внешнем окружении
+                     for (eventIndex = 0; eventIndex < currentCaptureEvent.length; eventIndex++) {
+                        // нашли подписку через on:, пометим, что что на внешнем окружении есть подходящий обработчик
+                        if (!currentCaptureEvent[eventIndex].processingHandler) {
+                           hasHandlerOnTopEnv = true;
+                        }
+                     }
+                     // если обработчик есть на двух окружениях, то ничего не делаем
+                     return !hasHandlerOnTopEnv && hasHandlerOnEnv;
                   }
+                  return hasHandlerOnEnv;
                }
             }
          }
