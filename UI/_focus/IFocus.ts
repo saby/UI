@@ -10,6 +10,7 @@ export interface IMatchesElement extends Element {
    oMatchesSelector?: Function;
 }
 
+// FIXME: после переезда View - wsControl: IControlCompatible, controlNodes: IGeneratorControlNode
 export interface IControlElement extends Element {
    wsControl?: any;
    controlNodes?: any;

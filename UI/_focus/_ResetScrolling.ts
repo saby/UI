@@ -5,10 +5,11 @@
  * @author Белотелов Н.В.
  * Модуль, в котором находится логика по отмене скролла, который произошел в результате фокусировки
  */
+type TInput = Record<string, unknown>;
 
 // input may be undefined, selector-tring, Node, NodeList, HTMLCollection, array of Nodes
 // yes, to some extent this is a bad replica of jQuery's constructor function
-function nodeArray(input: any) {
+function nodeArray(input: TInput) {
    if (!input) {
       return [];
    }
@@ -39,7 +40,7 @@ function contextToElement({
                              resolveDocument,
                              defaultToDocument
                           }: {
-   context: any,
+   context: Element,
    label: string,
    resolveDocument: boolean,
    defaultToDocument: boolean
@@ -67,7 +68,7 @@ function contextToElement({
 
 // [elem, elem.parent, elem.parent.parent, �, html]
 // will not contain the shadowRoot (DOCUMENT_FRAGMENT_NODE) and shadowHost
-function getParents({ context }: any) {
+function getParents({ context }: {context: Element}) {
    const list = [];
    let element = contextToElement({
       label: 'get/parents',

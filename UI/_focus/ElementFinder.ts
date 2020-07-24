@@ -19,7 +19,7 @@ interface IFocusElementProps {
 
 interface IProps {
    enabled: boolean;
-   createsContext: any;
+   createsContext: Record<string, unknown>;
 }
 
 let FOCUSABLE_ELEMENTS = {

@@ -42,7 +42,7 @@ function detectStrangeElement(element: Element): boolean {
       (element.parentElement === document.body && !element.firstChild) || (detection.isIE && element === document.body)
    );
 }
-
+// FIXME: arrayMaker: wsControlType[]
 function compatibleActivationEvents(environment: IDOMEnvironment, arrayMaker: any[]): void {
    // todo обратная совместимость
    if (constants.compat && environment._rootDOMNode && environment._rootDOMNode.controlNodes) {
@@ -93,12 +93,14 @@ function findClosestEnvironment(sourceElement: Element): IDOMEnvironment | null 
 function fixNotifyArguments(env: IDOMEnvironment,
                             target: Element,
                             relatedTarget: Element,
-                            isTabPressed: TTabPressesd): [any, any, any] {
+                            isTabPressed: TTabPressesd): [Element, Element, TTabPressesd] {
    // Пока не смержили правку в ws, не можем поменять сигнатуру функции.
    // Поэтому будем менять в три доброски, с совместимостью в ui
    if (env && env.__captureEventHandler) {
       return [target, relatedTarget, isTabPressed];
    } else {
+      // @ts-ignore
+      // FIXME: по проекту изменния системы событий
       return [env, target, relatedTarget];
    }
 }
@@ -111,8 +113,8 @@ function fixNotifyArguments(env: IDOMEnvironment,
  * @param relatedTarget - откуда ушел фокус
  * @param isTabPressed - true, если фокус перешел по нажатию tab
  */
-// FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
-export function notifyActivationEvents(env: any,
+
+export function notifyActivationEvents(env: IDOMEnvironment,
                                        target: Element,
                                        relatedTarget: Element,
                                        isTabPressed: TTabPressesd): boolean | void {

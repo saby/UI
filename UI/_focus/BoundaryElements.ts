@@ -8,6 +8,7 @@
 
 
 import { VNode, createVNode, getFlagsForElementVnode } from 'Inferno/third-party/index';
+import { IDOMEnvironment } from 'UI/Vdom';
 
 interface IExtendedEvent extends Event {
    relatedTarget: Element | null;
@@ -79,7 +80,7 @@ function fireEvent(e: IExtendedEvent): void {
    target.dispatchEvent(evt);
 }
 
-function appendFocusesElements(environment: any, vnode: VNode): void {
+function appendFocusesElements(environment: IDOMEnvironment, vnode: VNode): void {
    const firstChild = findFirstVNode(vnode.children),
       fireTab = function(e) {
          fireEvent.call(environment, e);
@@ -104,7 +105,7 @@ function appendFocusesElements(environment: any, vnode: VNode): void {
    }
 }
 
-export function insertBoundaryElements(environment: any, vnode: VNode): void {
+export function insertBoundaryElements(environment: IDOMEnvironment, vnode: VNode): void {
    const dom = vnode.dom || environment._rootDOMNode;
    if (dom === environment._rootDOMNode && environment._rootDOMNode.tagName !== 'HTML' || vnode.type === 'body') {
       appendFocusesElements(environment, vnode);
