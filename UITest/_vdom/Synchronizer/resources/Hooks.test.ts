@@ -1,8 +1,10 @@
 import { assert } from 'chai';
 import { replace, restore, fake } from 'sinon';
 
-import { IControlNode, IWasabyHTMLElement, TEventsObject } from 'UI/_vdom/Synchronizer/interfaces';
+import { IControlNode, IWasabyHTMLElement, TEventsObject, IEvent } from 'UI/_vdom/Synchronizer/interfaces';
 import { IProperties } from 'UI/_vdom/Synchronizer/resources/DOMEnvironment';
+import { invisibleNodeTypename } from 'UI/_vdom/Synchronizer/resources/InvisibleNodeChecker';
+import { TWasabyInputElement, TRef } from 'UI/_vdom/Synchronizer/resources/Hooks';
 
 import { Hooks } from 'UI/Vdom';
 import { constants } from 'Env/Env';
@@ -24,24 +26,24 @@ describe('UI/_vdom/Synchronizer/resources/Hooks', () => {
     afterEach(() => {
         globalEnvironment.addCaptureEventHandler = fake();
         globalEnvironment.removeCaptureEventHandler = fake();
-    })
+    });
 
     describe('setControlNodeHook', () => {
         it('basic', () => {
             const tagName = 'div';
             const element = createMockElement(tagName);
-            const controlNode = createMockControlNode();
+            const id = 'inst_1';
+            const controlNode = createMockControlNode(id);
             const props = {} as IProperties;
             const children = [];
-            const id = 'inst_1';
             const ref = fake();
 
             const setControlNodeHookResult = Hooks.setControlNodeHook(tagName, props, children, id, controlNode, ref);
 
-            assert.strictEqual(tagName, setControlNodeHookResult[0], 'вернулся другой tagName');
-            assert.strictEqual(props, setControlNodeHookResult[1], 'вернулись другие props');
-            assert.strictEqual(children, setControlNodeHookResult[2], 'вернулись другие children');
-            assert.strictEqual(id, setControlNodeHookResult[3], 'вернулся другой id');
+            assert.strictEqual(setControlNodeHookResult[0], tagName, 'вернулся другой tagName');
+            assert.strictEqual(setControlNodeHookResult[1], props, 'вернулись другие props');
+            assert.strictEqual(setControlNodeHookResult[2], children, 'вернулись другие children');
+            assert.strictEqual(setControlNodeHookResult[3], id, 'вернулся другой id');
 
             const controlNodeRef = setControlNodeHookResult[4];
             controlNodeRef(element);
@@ -55,28 +57,90 @@ describe('UI/_vdom/Synchronizer/resources/Hooks', () => {
             assert.ok(ref.calledTwice, 'unmountRef не вызвал оригинальный ref или вызвал его дважды');
             assert.strictEqual(ref.secondCall.args[0], undefined, 'unmountRef передал неправильный аргумент в оригинальный ref');
         });
+
+        it('invisible node with events', () => {
+            const tagName = 'div';
+            const element = createMockElement(tagName);
+            const events: TEventsObject = {
+                'on:event': [{} as IEvent]
+            }
+            const id = 'inst_1';
+            const controlNode = createMockControlNode(id, invisibleNodeTypename, events);
+            const props = {} as IProperties;
+            const children = [];
+
+            const controlNodeRef = Hooks.setControlNodeHook(tagName, props, children, id, controlNode)[4];
+            controlNodeRef(element);
+            assert.ok(element.eventProperties &&
+                element.eventProperties['on:event'] &&
+                element.eventProperties['on:event'][0] &&
+                element.eventProperties['on:event'][0] === events['on:event'][0],
+                'mountRef добавил что-то не то в eventProperties элемента');
+            assert.ok(globalEnvironment.addCaptureEventHandler.calledOnce, 'mountRef не вызвал метод addCaptureEventHandler');
+
+            controlNodeRef();
+            assert.ok(element.eventProperties === undefined && element.eventPropertiesCnt === undefined, 'unmountRef не очистил eventProperties элемента');
+            assert.ok(globalEnvironment.removeCaptureEventHandler.calledOnce, 'unmountRef не вызвал метод removeCaptureEventHandler');
+        });
+
+        it('invisible node without events', () => {
+            const tagName = 'div';
+            const element = createMockElement(tagName);
+            const controlNode = createMockControlNode(invisibleNodeTypename);
+            const props = {} as IProperties;
+            const children = [];
+            const id = 'inst_1';
+
+            const controlNodeRef = Hooks.setControlNodeHook(tagName, props, children, id, controlNode)[4];
+            controlNodeRef(element);
+            assert.ok(globalEnvironment.addCaptureEventHandler.notCalled, 'mountRef вызвал метод addCaptureEventHandler несмотря на отсутствие событий');
+
+            controlNodeRef();
+            assert.ok(globalEnvironment.removeCaptureEventHandler.notCalled, 'unmountRef вызвал метод removeCaptureEventHandler несмотря на отсутствие событий');
+        });
+
+        it('add control nodes sorted', () => {
+            const tagName = 'div';
+            const element = createMockElement(tagName);
+            const ids = ['inst_10', 'inst_11', 'inst_9', 'inst_3', 'inst_27'];
+            const controlNodes = ids.map(id => createMockControlNode(id));
+            const propsArray = ids.map(() => ({} as IProperties));
+            let ref: TRef;
+            for (let i = 0; i < ids.length; i++) {
+                ref = Hooks.setControlNodeHook(tagName, propsArray[i], [], ids[i], controlNodes[i], ref)[4]; 
+            }
+            ref(element);
+
+            const resultControlNodes = element.controlNodes;
+            const expectedOrder = ['inst_27', 'inst_11', 'inst_10', 'inst_9', 'inst_3'];
+
+            assert.equal(resultControlNodes.length, expectedOrder.length, 'после вызова mountRef неверное количество нод на элементе');
+            for (let i = 0; i < resultControlNodes.length; i++) {
+                assert.equal(resultControlNodes[i].id, expectedOrder[i], 'после вызова mountRef неверный порядок нод на элементе');
+            }
+        });
     });
 
     describe('setEventHook', () => {
         it('basic', () => {
             const tagName = 'div';
             const element = createMockElement(tagName);
-            const controlNode = createMockControlNode();
+            const id = 'inst_1';
+            const controlNode = createMockControlNode(id);
             const props = {
                 events: {
                     'on:event': [{}]
-                },
+                }
             } as unknown as IProperties;
             const children = [];
-            const id = 'inst_1';
             const ref = fake();
 
             const setEventHookResult = Hooks.setEventHook(tagName, props, children, id, controlNode, ref);
 
-            assert.strictEqual(tagName, setEventHookResult[0], 'вернулся другой tagName');
-            assert.strictEqual(props, setEventHookResult[1], 'вернулись другие props');
-            assert.strictEqual(children, setEventHookResult[2], 'вернулись другие children');
-            assert.strictEqual(id, setEventHookResult[3], 'вернулся другой id');
+            assert.strictEqual(setEventHookResult[0], tagName, 'вернулся другой tagName');
+            assert.strictEqual(setEventHookResult[1], props, 'вернулись другие props');
+            assert.strictEqual(setEventHookResult[2], children, 'вернулись другие children');
+            assert.strictEqual(setEventHookResult[3], id, 'вернулся другой id');
 
             const eventRef = setEventHookResult[4];
             eventRef(element);
@@ -92,16 +156,59 @@ describe('UI/_vdom/Synchronizer/resources/Hooks', () => {
 
             eventRef();
             assert.ok(element.eventProperties === undefined && element.eventPropertiesCnt === undefined, 'unmountRef не очистил eventProperties элемента');
-            assert.ok(globalEnvironment.removeCaptureEventHandler.calledOnce, 'mountRef не вызвал метод removeCaptureEventHandler');
+            assert.ok(globalEnvironment.removeCaptureEventHandler.calledOnce, 'unmountRef не вызвал метод removeCaptureEventHandler');
             assert.ok(ref.calledTwice, 'unmountRef не вызвал оригинальный ref или вызвал его дважды');
             assert.strictEqual(ref.secondCall.args[0], undefined, 'unmountRef передал неправильный аргумент в оригинальный ref');
+        });
+
+        it('without events', () => {
+            const tagName = 'div';
+            const id = 'inst_1';
+            const controlNode = createMockControlNode(id);
+            const propsWithoutEvents = {
+                events: {}
+            } as unknown as IProperties;
+            const children = [];
+            const ref = fake();
+
+            const eventRef = Hooks.setEventHook(tagName, propsWithoutEvents, children, id, controlNode, ref)[4];
+            assert.strictEqual(eventRef, ref, 'вернулся другой ref несмотря на отсутствие событий');
+        });
+
+        it('unmountRef clears input', () => {
+            const tagName = 'input';
+            const element = createMockElement(tagName) as TWasabyInputElement;
+            const id = 'inst_1';
+            const controlNode = createMockControlNode(id);
+            const props = {
+                events: {
+                    'on:event': [{}]
+                }
+            } as unknown as IProperties;
+            const children = [];
+
+            const eventRef = Hooks.setEventHook(tagName, props, children, id, controlNode)[4];
+            eventRef(element);
+            assert.ok(globalEnvironment.addCaptureEventHandler.calledOnce, 'mountRef не вызвал метод addCaptureEventHandler');
+
+            element.value = 'some value';
+            controlNode.markup = undefined;
+            eventRef();
+            assert.equal(element.value, '')
         });
     });
 });
 
 class ControlNodeMock {
     control = {};
+    markup = {
+        type: ''
+    };
     environment = globalEnvironment;
+
+    constructor(public id: string, markupType: string = '', public events: TEventsObject = {}) {
+        this.markup.type = markupType;
+    };
 }
 
 class HTMLMockElement {
@@ -109,17 +216,17 @@ class HTMLMockElement {
     eventProperties: TEventsObject = {};
     eventPropertiesCnt: number = 0;
 
-    readonly type: string;
+    readonly tagName: string;
 
-    constructor(type: string) {
-        this.type = type.toUpperCase();
+    constructor(tagName: string) {
+        this.tagName = tagName.toUpperCase();
     }
 }
 
-function createMockControlNode(): IControlNode {
-    return new ControlNodeMock() as unknown as IControlNode;
+function createMockControlNode(id: string, markupType?: string, events?: TEventsObject): IControlNode {
+    return new ControlNodeMock(id, markupType, events) as unknown as IControlNode;
 }
 
-function createMockElement(type: string): IWasabyHTMLElement {
-    return new HTMLMockElement(type) as unknown as IWasabyHTMLElement;
+function createMockElement(tagName: string): IWasabyHTMLElement {
+    return new HTMLMockElement(tagName) as unknown as IWasabyHTMLElement;
 }

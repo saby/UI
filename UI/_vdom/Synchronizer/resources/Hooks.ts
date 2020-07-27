@@ -9,8 +9,8 @@ import { Set } from 'Types/shim';
  * @author Кондаков Р.Н.
  */
 
-type TRef = (element?: IWasabyHTMLElement) => void;
-type TWasabyInputElement = HTMLInputElement & IWasabyHTMLElement;
+export type TRef = (element?: IWasabyHTMLElement) => void;
+export type TWasabyInputElement = HTMLInputElement & IWasabyHTMLElement;
 const inputTagNames = new Set([
     'input',
     'INPUT',
