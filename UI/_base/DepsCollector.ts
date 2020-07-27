@@ -1,4 +1,5 @@
-//@ts-ignore
+// tslint:disable-next-line:ban-ts-ignore
+// @ts-ignore
 import { Logger } from 'UI/Utils';
 import { controller } from 'I18n/i18n';
 
@@ -8,7 +9,7 @@ export interface ICollectedFiles {
    css: {
       themedCss: string[];
       simpleCss: string[];
-   },
+   };
    tmpl: string[];
    wml: string[];
 }
@@ -35,12 +36,21 @@ interface IPlugin {
    packOwnDeps: boolean;
    canBePackedInParent?: boolean;
 }
+type RequireJSPlugin = 'js' | 'wml' | 'tmpl' | 'i18n' | 'default';
+type IDepPack = Record<string, DEPTYPES>;
+interface IDepCSSPack {
+   themedCss: IDepPack; simpleCss: IDepPack;
+}
+interface IDepPackages extends Record<RequireJSPlugin, IDepPack> {
+   css: IDepCSSPack;
+}
 
-const DEPTYPES = {
-   BUNDLE: 1,
-   SINGLE: 2
-};
-const TYPES = {
+enum DEPTYPES {
+   BUNDLE = 1,
+   SINGLE = 2
+}
+
+const TYPES: Record<RequireJSPlugin | 'css', object> = {
    tmpl: {
       type: 'tmpl',
       plugin: 'tmpl',
@@ -118,7 +128,7 @@ function isThemedCss(key: string): boolean {
    return key.indexOf('theme?') >= 0;
 }
 
-function removeThemeParam(name) {
+function removeThemeParam(name: string): string {
    return name.replace('theme?', '');
 }
 
@@ -142,17 +152,21 @@ function parseModuleName(name: string): IModuleInfo | null {
    };
 }
 
-function getEmptyPackages(): any {
+function getEmptyPackages(): IDepPackages {
    const packages = {};
    for (const key in TYPES) {
       if (TYPES.hasOwnProperty(key)) {
-         packages[key] = {};
+         packages[key as RequireJSPlugin] = {};
       }
    }
-   return packages;
+   return packages as IDepPackages;
 }
 
-function getPacksNames(allDeps = {}, isUnpackModule: (key: string) => boolean, bundlesRoute = {}): any {
+function getPacksNames(
+   allDeps: ICollectedDeps = {},
+   isUnpackModule: (key: string) => boolean,
+   bundlesRoute: Record<string, string> = {}
+): IDepPackages {
    const unpackBundles: string[] = [];
    const packages = getEmptyPackages();
    Object.keys(allDeps).forEach((moduleName) => {
@@ -185,7 +199,11 @@ function getPacksNames(allDeps = {}, isUnpackModule: (key: string) => boolean, b
    return packages;
 }
 
-function getCssPackages(allDeps: any, isUnpackModule: (key: string) => boolean, bundlesRoute: any): any {
+function getCssPackages(
+   allDeps: ICollectedDeps,
+   isUnpackModule: (key: string) => boolean,
+   bundlesRoute: Record<string, string>
+): IDepCSSPack {
    const packages = {
       themedCss: {},
       simpleCss: {}
@@ -193,7 +211,7 @@ function getCssPackages(allDeps: any, isUnpackModule: (key: string) => boolean, 
    const unpackBundles: string[] = [];
    for (const key in allDeps) {
       if (allDeps.hasOwnProperty(key)) {
-         let noParamsName = removeThemeParam(key);
+         const noParamsName = removeThemeParam(key);
          const bundleName = bundlesRoute[noParamsName];
          if (bundleName) {
             Logger.info(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${key} in bundle ${bundleName}`);
@@ -226,7 +244,7 @@ function getCssPackages(allDeps: any, isUnpackModule: (key: string) => boolean, 
    return packages;
 }
 
-function getAllPackagesNames(all: ICollectedDeps, unpack:IDeps, bRoute: any): any {
+function getAllPackagesNames(all: ICollectedDeps, unpack: IDeps, bRoute: Record<string, string>): IDepPackages {
    const packs = getEmptyPackages();
    const isUnpackModule = (key: string) => unpack.some((moduleName) => key.indexOf(moduleName) !== -1);
    mergePacks(packs, getPacksNames(all.js, isUnpackModule, bRoute));
@@ -237,7 +255,7 @@ function getAllPackagesNames(all: ICollectedDeps, unpack:IDeps, bRoute: any): an
    return packs;
 }
 
-function mergePacks(result: any, addedPackages: any): void {
+function mergePacks(result: IDepPackages, addedPackages: Partial<IDepPackages>): void {
    for (const pack in addedPackages) {
       if (addedPackages.hasOwnProperty(pack)) {
          if (result[pack] === undefined) {
@@ -259,7 +277,13 @@ function mergePacks(result: any, addedPackages: any): void {
  * @param curNodeDeps
  * @param modDeps
  */
-function recursiveWalker(allDeps: ICollectedDeps, curNodeDeps: any, modDeps: any, modInfo: any, skipDep?: any): void {
+function recursiveWalker(
+   allDeps: ICollectedDeps,
+   curNodeDeps: IDeps,
+   modDeps: Record<string, IDeps>,
+   modInfo: object,
+   skipDep: boolean = false
+): void {
    if (curNodeDeps && curNodeDeps.length) {
       for (let i = 0; i < curNodeDeps.length; i++) {
          let node = curNodeDeps[i];
@@ -293,16 +317,16 @@ function recursiveWalker(allDeps: ICollectedDeps, curNodeDeps: any, modDeps: any
 }
 
 export class DepsCollector {
-   modDeps: any;
-   modInfo: any;
-   bundlesRoute: any;
+   modDeps: Record<string, IDeps>;
+   modInfo: object;
+   bundlesRoute: Record<string, string>;
 
    /**
     * @param modDeps - object, contains all nodes of dependency tree
     * @param modInfo - contains info about path to module files
     * @param bundlesRoute - contains info about custom packets with modules
     */
-   constructor(modDeps: any, modInfo: any, bundlesRoute: any) {
+   constructor(modDeps: Record<string, IDeps>, modInfo: object, bundlesRoute: Record<string, string>) {
       this.modDeps = modDeps;
       this.modInfo = modInfo;
       this.bundlesRoute = bundlesRoute;
@@ -373,6 +397,7 @@ export class DepsCollector {
       const processedContexts = [];
 
       for (const moduleModule in deps.i18n) {
+         if (!deps.i18n.hasOwnProperty(moduleModule)) { continue; }
          const module = deps.i18n[moduleModule];
          const UIModuleName = module.moduleName.split('/')[0];
 
@@ -394,4 +419,3 @@ export class DepsCollector {
       }
    }
 }
-
