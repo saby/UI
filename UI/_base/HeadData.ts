@@ -1,12 +1,11 @@
 /// <amd-module name="UI/_base/HeadData" />
-import { IDeps, ICollectedFiles } from 'UI/_base/DepsCollector';
+import { IDeps } from 'UI/_base/DepsCollector';
 import PageDeps from 'UI/_base/PageDeps';
-// @ts-ignore
 import * as AppEnv from 'Application/Env';
 import { IStore } from 'Application/Interface';
 
+// tslint:disable-next-line:no-any
 export default class HeadData implements IStore<Record<keyof HeadData, any>> {
-    static readonly SSR_DELAY = 20000;
     // переедет в константы реквеста, изменяется в Controls/Application
     isNewEnvironment: boolean = false;
     pageDeps: PageDeps;
@@ -14,7 +13,8 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     private requireInitDeps: string[] = [];
     private themesActive: boolean = true;
     private resolve: Function = null;
-    private renderPromise: Promise<any> = null;
+    // tslint:disable-next-line:no-any
+    private renderPromise: Promise<ICollectedDeps> = null;
     private _ssrTimeout: number = 0;
     /**
      * Непакуемые require-зависимости
@@ -24,8 +24,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     /**
      * Уже подключенные через rt-пакеты, статические бандлы ресурсы
      */
-    private includedResources: { links: string[], scripts: string[]; } = { links: [], scripts: [] };
-
+    private includedResources: { links: IDeps, scripts: IDeps; } = { links: [], scripts: [] };
     constructor() {
         this.get = this.get.bind(this);
         this.set = this.set.bind(this);
@@ -51,11 +50,11 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
         }
     }
 
-    setUnpackDeps(unpack: IDeps) {
+    setUnpackDeps(unpack: IDeps): void {
         this.unpackDeps = unpack;
     }
 
-    setIncludedResources(resources: { links: { href: string; }[], scripts: { src: string; }[]; }) {
+    setIncludedResources(resources: IResources): void {
         const scripts = resources.scripts.map((l) => l.src);
         const links = resources.links.map((l) => l.href);
         this.includedResources = { links, scripts };
@@ -91,7 +90,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
         });
     }
 
-    waitAppContent(): Promise<any> {
+    waitAppContent(): Promise<ICollectedDeps> {
         return this.renderPromise;
     }
 
@@ -100,7 +99,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             this.resolve = resolve;
         });
     }
-    
+
     // #region IStore
     get<K extends keyof HeadData>(key: K): HeadData[K] {
         return this[key];
@@ -113,24 +112,28 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             return false;
         }
     }
-    remove() { }
-    getKeys(): (keyof HeadData)[] {
-        return <(keyof HeadData)[]> Object.keys(this);
-    };
-    toObject() {
+    // tslint:disable-next-line:no-empty
+    remove(): void { }
+    getKeys(): Array<keyof HeadData> {
+        return Object.keys(this) as Array<keyof HeadData>;
+    }
+    // tslint:disable-next-line:no-any
+    toObject(): Record<keyof HeadData, any> {
         return Object.assign({}, this);
     }
     // #endregion
+
+    static readonly SSR_DELAY: number = 20000;
 }
 
 class HeadDataStore {
-    constructor (private readonly storageKey: string) { }
+    constructor(private readonly storageKey: string) { }
 
     read<K extends keyof HeadData>(key: K): HeadData[K] {
         return AppEnv.getStore<HeadData>(this.storageKey, () => new HeadData()).get(key);
     }
 
-    write<K extends keyof HeadData>(key: K, value: HeadData[K]) {
+    write<K extends keyof HeadData>(key: K, value: HeadData[K]): boolean {
         return AppEnv.getStore<HeadData>(this.storageKey, () => new HeadData()).set(key, value);
     }
 }
@@ -146,4 +149,25 @@ function getSerializedData(): ISerializedData {
 interface ISerializedData {
     additionalDeps: IDeps;
     serialized: string;
+}
+
+interface IResources {
+    links: Array<{ href: string; }>;
+    scripts: Array<{ src: string; }>;
+}
+
+interface ICollectedDeps {
+    // готовые ссылки на js
+    scripts: IDeps;
+    // названия js модулей
+    js: IDeps;
+    css: {
+        simpleCss: IDeps;
+        themedCss: IDeps;
+    };
+    tmpl: IDeps;
+    wml: IDeps;
+    rsSerialized: string;
+    rtpackModuleNames: IDeps;
+    additionalDeps: IDeps;
 }
