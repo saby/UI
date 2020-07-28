@@ -117,3 +117,12 @@ export interface IOpenGraph {
    type: string;
    url: string;
 }
+
+export interface IAttrsDescription extends Record<string, string> { }
+export interface ITagDescription {
+   tagName: string,
+   attrs?: IAttrsDescription;
+   children?: ITagDescription | string;
+}
+export type JML = [string, (Record<string, string> | JML | string)?, (JML | string)?];
+export type FullJML = [string, Record<string, string>, (JML | string)?];
