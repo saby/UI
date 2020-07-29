@@ -201,7 +201,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private _$needForceUpdate: boolean;
    private __$focusing: boolean = false;
 
-
    private readonly _instId: string = 'inst_' + countInst++;
    protected _options: TOptions = {} as TOptions;
    private _internalOptions: Record<string, unknown> = {};
@@ -1148,25 +1147,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: Options
     * @see Documentation: Context
     */
-   protected _beforeUnmount(): void {
-      // Do
-   }
-
-   public isMounted(): boolean {
-      return this._mounted;
-   }
-
-   public getEnvironment(): any {
-      return this._environment;
-   }
-
-   public isFocusing(): boolean {
-      return this.__$focusing;
-   }
-
-   public setFocusing(value): void {
-      this.__$focusing = value;
-   }
 
    /**
     * Массив имен нетемизированных стилей, необходимых контролу.

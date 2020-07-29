@@ -33,8 +33,8 @@ export function restoreFocus(control: Control, action: Function): void {
    }
 
    action();
-
-   const environment = control.getEnvironment();
+   // @ts-ignore _getEnvironment - private method
+   const environment = control._getEnvironment();
 
    environment._restoreFocusState = true;
    // если сразу после изменения DOM-дерева фокус слетел в body, пытаемся восстановить фокус на ближайший элемент от
@@ -65,15 +65,16 @@ export function restoreFocus(control: Control, action: Function): void {
       // нужно восстановить фокус после _rebuild
       // проверяю на control._mounted, _rebuild сейчас не синхронный, он не гарантирует что асинхронные ветки
       // перерисовались
-      // @ts-ignore _destroyed - private props
-      if (control.isFocusing() && !control._destroyed && control.isMounted()) {
+      // @ts-ignore __$focusing, _destroyed, _mounted - private props
+      if (control.__$focusing && !control._destroyed && control._mounted) {
          control.activate();
          // до синхронизации мы сохранили __$focusing - фокусируемый элемент,
          // а после синхронизации здесь фокусируем его.
          // если не нашли фокусируемый элемент - значит в доме не оказалось этого элемента.
          // но мы все равно отменяем скинем флаг, чтобы он не сфокусировался позже когда уже не надо
          // https://online.sbis.ru/opendoc.html?guid=e46d87cc-5dc2-4f67-b39c-5eeea973b2cc
-         control.setFocusing(false);
+         // @ts-ignore __$focusing - private props
+         control.__$focusing = false;
       }
    }
    environment._restoreFocusState = false;
