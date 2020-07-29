@@ -11,10 +11,6 @@ import * as RequireHelper from './RequireHelper';
 import * as ReactiveObserver from 'Core/ReactiveObserver';
 
 var
-   isProtoSupported = function isProtoSupproted() {
-      // @ts-ignore
-      return Object.__proto__;
-   },
    requireIfDefined = function requireIfDefined(tpl) {
       return RequireHelper.defined(tpl) && RequireHelper.require(tpl, true);
    },
