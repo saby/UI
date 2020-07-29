@@ -1147,7 +1147,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * @see Documentation: Options
     * @see Documentation: Context
     */
-
+   protected _beforeUnmount(): void {
+      // Do
+   }
+   
    /**
     * Массив имен нетемизированных стилей, необходимых контролу.
     * Все стили будут скачаны при создании
