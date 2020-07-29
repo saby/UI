@@ -1,9 +1,9 @@
-import { warn } from '../Logger';
-import needLog from './needLog';
-
 /**
  * @author Кондаков Р.Н.
  */
+
+import { warn } from '../Logger';
+import needLog from './needLog';
 
 // TODO: по задаче
 // https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
