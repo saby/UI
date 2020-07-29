@@ -5,7 +5,7 @@
  * @author Белотелов Н.В.
  * Модуль, в котором находится логика по отмене скролла, который произошел в результате фокусировки
  */
-type TInput = Record<string, unknown>;
+type TInput = NodeList | Element | HTMLCollection | Node[] | string | void;
 
 // input may be undefined, selector-tring, Node, NodeList, HTMLCollection, array of Nodes
 // yes, to some extent this is a bad replica of jQuery's constructor function
@@ -19,7 +19,7 @@ function nodeArray(input: TInput) {
    }
 
    // instanceof Node - does not work with iframes
-   if (input.nodeType !== undefined) {
+   if ((input as Node).nodeType !== undefined) {
       return [input];
    }
 
@@ -27,7 +27,7 @@ function nodeArray(input: TInput) {
       input = document.querySelectorAll(input);
    }
 
-   if (input.length !== undefined) {
+   if ((input as HTMLCollection).length !== undefined) {
       return [].slice.call(input, 0);
    }
 

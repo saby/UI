@@ -342,6 +342,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
 
       // запускаем обработчик только для правильного DOMEnvironment, в который прилетел фокус
       if (this._rootDOMNode && this._rootDOMNode.contains(e.target)) {
+         // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
          Events.notifyActivationEvents(this, e.target, e.relatedTarget, this._isTabPressed);
       }
    }
@@ -380,6 +381,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          // иначе мы уходим непонятно куда и нужно пострелять deactivated
          const isVdom = isVdomEnvironment(relatedTarget);
          if (!isVdom) {
+            // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
             Events.notifyActivationEvents(this, relatedTarget, target, this._isTabPressed);
          }
       }
@@ -542,6 +544,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       const newRootDOMNode = undefined;
 
       // добавляем vdom-focus-in и vdom-focus-out
+      // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
       BoundaryElements.insertBoundaryElements(this, vnode);
 
       // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
