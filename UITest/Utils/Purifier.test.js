@@ -1,8 +1,6 @@
 define([
-   'UI/Utils',
-   'UI/_utils/Purifier/needLog'
-], function(Utils,
-            needLog
+   'UI/Utils'
+], function(Utils
    ) {
 
    describe('UI/_utils/Purifier', () => {
@@ -12,25 +10,21 @@ define([
          let instance;
          let errorMessage;
          let errorStub;
-         let isDebugStub;
          const purifyInstance = Purifier.purifyInstance;
          const loggerErrorMock = (msg) => {
             errorMessage += msg;
          };
-         const isDebugMock = () => true;
 
          before(() => {
             instance = {};
             errorMessage = '';
             errorStub = sinon.stub(Logger, 'error').callsFake(loggerErrorMock);
-            isDebugStub = sinon.stub(needLog, 'default').callsFake(isDebugMock);
          });
 
          after(() => {
             instance = {};
             errorMessage = '';
             errorStub.restore();
-            isDebugStub.restore();
          });
 
          beforeEach(() => {
