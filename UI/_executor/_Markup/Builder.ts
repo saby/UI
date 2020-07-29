@@ -4,7 +4,6 @@
 import { Logger } from 'UI/Utils';
 import { Subscriber } from 'UI/Events';
 import { ContextResolver } from 'UI/Contexts';
-import * as Common from '../_Utils/Common';
 import * as OptionsResolver from '../_Utils/OptionsResolver';
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';

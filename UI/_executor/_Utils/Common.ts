@@ -15,11 +15,6 @@ var
       // @ts-ignore
       return Object.__proto__;
    },
-   // Если есть prototype будем идти как для всех
-   // При отсутствии поддержки __proto__ отдаем ссылку
-   isNewObject = function isNewObject(scope) {
-      return (scope && scope.prototype) || isProtoSupported();
-   },
    requireIfDefined = function requireIfDefined(tpl) {
       return RequireHelper.defined(tpl) && RequireHelper.require(tpl, true);
    },
