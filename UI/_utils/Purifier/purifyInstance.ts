@@ -1,3 +1,7 @@
+/**
+ * @author Кондаков Р.Н.
+ */
+
 import { error } from '../Logger';
 import needLog from './needLog';
 
