@@ -4,10 +4,18 @@
 // @ts-ignore
 import { constants as isJs } from 'Env/Env';
 import { composeWithResultApply } from '../../Utils/Functional';
-import { Subscriber } from 'View/Executor/Expressions';
-import * as VdomMarkup from './VdomMarkup';
-import { Compatible, Vdom, Common, OptionsResolver } from 'View/Executor/Utils';
-import { ContextResolver } from 'View/Executor/Expressions';
+import { Subscriber } from 'UI/Events';
+import {
+   getFullMarkup,
+   mapVNode,
+   getDecoratedMarkup,
+   getMarkupDiff,
+   isVNodeType,
+   isControlVNodeType,
+   isTemplateVNodeType
+} from './VdomMarkup';
+import { textNode, Compatible, OptionsResolver } from "UI/Executor";
+import { ContextResolver } from 'UI/Contexts';
 import { delay } from 'Types/function';
 // @ts-ignore
 import * as Serializer from 'Core/Serializer';
@@ -25,6 +33,9 @@ import {
 } from 'UI/DevtoolsHook';
 import { IControlNode } from '../interfaces';
 import { collectObjectVersions, getChangedOptions } from "./Options";
+
+import * as AppEnv from 'Application/Env';
+import * as AppInit from 'Application/Initializer';
 
 /**
  * @author Кондаков Р.Н.
@@ -54,6 +65,126 @@ export class MemoForNode {
 export interface IMemoNode {
     memo: MemoForNode
     value: IControlNode
+}
+
+interface ISomeData {
+   controlProperties: any;
+   controlClass: Function;
+}
+
+const configName = 'cfg-';
+
+/**
+ * Для того чтобы всегда брать верхний компонент из конфига
+ * @param configId
+ * @returns {*}
+ */
+function findTopConfig(configId: string): string {
+   return (configId + '').replace(configName, '').split(',')[0];
+}
+
+function fillCtx(control: any, vnode: any, resolvedCtx: any): void {
+   control._saveContextObject(resolvedCtx);
+   control.saveFullContext(ContextResolver.wrapContext(control, vnode.context || {}));
+}
+
+/**
+ * Получаем state из сгенерированного script
+ * @param controlNode TODO: Describe
+ * @param vnodeP TODO: Describe
+ * @param serializer TODO: Describe
+ * @returns {*} TODO: Describe
+ */
+export function getReceivedState(controlNode: IControlNode, vnodeP: ISomeData, serializer: any): any {
+   const control = controlNode.control;
+   const stateVar = controlNode.key ? findTopConfig(controlNode.key) : '';
+   if (!control._beforeMountLimited) {
+      // TODO https://online.sbis.ru/opendoc.html?guid=4936d2f7-38c1-43c6-b64c-3ae650e0e612
+      // There is a _beforeMount function call inside of getStateReadyOrCall
+      // So we need to pass options processed by optionsResolver.
+      // Options on vnode are not processed by optionsResolver(it isn't validated and initialized with default values)
+      // That's why we should pass options from controlNode
+      // Also getStateReadyOrCall has side-effect on vnode. It saves inherit options.
+      // So we need to save inherit options outside of the getStateReadyOrCall.
+      return;
+   }
+
+   OptionsResolver.resolveInheritOptions(vnodeP.controlClass, vnodeP, vnodeP.controlProperties);
+   //@ts-ignore private
+   control.saveInheritOptions(vnodeP.inheritOptions);
+
+   let data;
+   let srec;
+   const vnode = {
+      controlProperties: controlNode.options,
+      context: controlNode.context
+   };
+
+   if (AppInit.isInit()) {
+      srec = AppEnv.getStateReceiver();
+   }
+
+   if (srec && srec.register) {
+      if (srec && srec.unregister) {
+         srec.unregister(stateVar);
+      }
+      srec.register(stateVar, {
+         setState: (rState: any): any => {
+            data = rState;
+         },
+         getState: () => ({})
+      });
+      if (srec && srec.unregister) {
+         srec.unregister(stateVar);
+      }
+   }
+
+   /* Compat layer. For page without Controls.Application */
+   if (!data && window['inline' + stateVar]) {
+      data = JSON.parse(window['inline' + stateVar], serializer.deserialize);
+      if (window['inline' + stateVar]) {
+         window['inline' + stateVar] = undefined;
+      }
+   }
+
+   const ctx = ContextResolver.resolveContext(control.constructor, vnode.context || {}, control);
+   let res;
+
+   // Freeze options if control doesn't have compatible layer
+   //@ts-ignore hasCompatible добавляет Core/helpers/Hcontrol/makeInstanceCompatible
+   if (Object.freeze && !(control.hasCompatible && control.hasCompatible())) {
+      //@ts-ignore private
+      Object.freeze(control._options);
+   }
+
+   try {
+      res = data ? control._beforeMountLimited(
+         vnode.controlProperties,
+         //@ts-ignore TODO разобраться
+         ctx,
+         data
+         ) :
+         //@ts-ignore TODO разобраться
+         control._beforeMountLimited(vnode.controlProperties, ctx);
+   } catch (error) {
+      Logger.lifeError('_beforeMount', control, error);
+   }
+
+   if (res && res.then) {
+      res.then((resultDef: any): any => {
+         fillCtx(control, vnode, ctx);
+         return resultDef;
+      });
+   } else {
+      fillCtx(control, vnode, ctx);
+   }
+
+   //@ts-ignore TODO разобраться
+   if (!vnode.inheritOptions) {
+      //@ts-ignore TODO разобраться
+      vnode.inheritOptions = {};
+   }
+   return res;
 }
 
 function subscribeToEvent(node) {
@@ -165,11 +296,11 @@ function getMarkupForTemplatedNode(vnode, controlNodes, environment) {
       /*return controlNodes "as is" without inner full markup
         it must be controlNode for dirty cheking
         */
-      var markup = VdomMarkup.getFullMarkup(controlNodes, result[k], true);
+      var markup = getFullMarkup(controlNodes, result[k], true);
       resultsFromTemplate = resultsFromTemplate.concat(Array.isArray(markup) ? markup : [markup]);
    }
    for (k = 0; k < resultsFromTemplate.length; k++) {
-      resultsFromTemplate[k] = VdomMarkup.mapVNode(
+      resultsFromTemplate[k] = mapVNode(
          environment.getMarkupNodeDecorator(),
          controlNodes,
          resultsFromTemplate[k]
@@ -318,7 +449,7 @@ export function createNode(controlClass_, options, key, environment, parentNode,
          parent: parentNode,
          key: key,
          defaultOptions: defaultOptions,
-         markup: invisible ? Vdom.textNode('') : undefined,
+         markup: invisible ? textNode('') : undefined,
          fullMarkup: undefined,
          childrenNodes: ARR_EMPTY,
          markupDecorator: params && params.markupDecorator,
@@ -349,7 +480,7 @@ function rebuildNodeWriter(environment, node, force, isRoot?) {
             return rebuildNode(environment, node, force, isRoot);
          },
          function (err) {
-            Common.asyncRenderErrorLog(err, node);
+            Logger.asyncRenderErrorLog(err, node);
             /*_beforeMount can return errback
              * send error and create control
              */
@@ -438,9 +569,9 @@ function setChangedForNode(node) {
 function addTemplateChildrenRecursive(node, result) {
    if (node.children) {
       for (var i = 0; i < node.children.length; i++) {
-         if (Vdom.isControlVNodeType(node.children[i])) {
+         if (isControlVNodeType(node.children[i])) {
             result.push(node.children[i]);
-         } else if (Vdom.isTemplateVNodeType(node.children[i]) || Vdom.isVNodeType(node.children[i])) {
+         } else if (isTemplateVNodeType(node.children[i]) || isVNodeType(node.children[i])) {
             addTemplateChildrenRecursive(node.children[i], result);
          }
       }
@@ -549,10 +680,10 @@ export function rebuildNode(environment, node, force, isRoot) {
             OptionsResolver.resolveInheritOptions(newNode.controlClass, newNode, newNode.options);
             newNode.control.saveInheritOptions(newNode.inheritOptions);
 
-            newNode.markup = VdomMarkup.getDecoratedMarkup(newNode, isRoot);
+            newNode.markup = getDecoratedMarkup(newNode, isRoot);
             saveChildren(node.markup);
 
-            diff = VdomMarkup.getMarkupDiff(oldMarkup, newNode.markup, false, false);
+            diff = getMarkupDiff(oldMarkup, newNode.markup, false, false);
             Logger.debug('DirtyChecking (diff)', diff);
 
             if (diff.destroy.length || diff.vnodeChanged) {
@@ -580,7 +711,7 @@ export function rebuildNode(environment, node, force, isRoot) {
                   vnode.children = getMarkupForTemplatedNode(vnode, newNode, environment);
                   saveChildren(vnode.children);
                   for (var i = 0; i < vnode.children.length; i++) {
-                     var diffTmplOneNode = VdomMarkup.getMarkupDiff(null, vnode.children[i]);
+                     var diffTmplOneNode = getMarkupDiff(null, vnode.children[i]);
                      diffTmpl.create = diffTmpl.create.concat(diffTmplOneNode.create);
                      diffTmpl.createTemplates = diffTmpl.createTemplates.concat(diffTmplOneNode.createTemplates);
                      diffTmpl.update = diffTmpl.update.concat(diffTmplOneNode.update);
@@ -629,7 +760,7 @@ export function rebuildNode(environment, node, force, isRoot) {
                      newTemplateNode.children = getMarkupForTemplatedNode(newTemplateNode, newNode, environment);
                      saveChildren(newTemplateNode.children);
                      // We have to find diff between template nodes children to improve perfomance of rendering updated markup
-                     let templateNodeDiff = VdomMarkup.getMarkupDiff(oldTemplateNode, newTemplateNode, true, true);
+                     let templateNodeDiff = getMarkupDiff(oldTemplateNode, newTemplateNode, true, true);
                      let updatedTemplateNodesSimple = [];
                      let createdTemplateNodesSimple = [];
                      let destroyedTemplateNodesSimple = [];
@@ -641,7 +772,7 @@ export function rebuildNode(environment, node, force, isRoot) {
                         let oldChild = oldChildren[childrenMap[i].prev];
                         let newChild = newTemplateNode.children[childrenMap[i].next];
                         if (newChild) {
-                           diffTmplOneNode = VdomMarkup.getMarkupDiff(oldChild, newChild, true, false);
+                           diffTmplOneNode = getMarkupDiff(oldChild, newChild, true, false);
                            createdNodesSimple = createdNodesSimple.concat(diffTmplOneNode.create);
                            createdTemplateNodesSimple = createdTemplateNodesSimple.concat(diffTmplOneNode.createTemplates);
                            updatedNodesSimple = updatedNodesSimple.concat(diffTmplOneNode.update);
@@ -650,9 +781,9 @@ export function rebuildNode(environment, node, force, isRoot) {
                            destroyedTemplateNodesSimple = destroyedTemplateNodesSimple.concat(diffTmplOneNode.destroyTemplates)
                         } else if (oldChild) {
                            // В этой ветке находим ноды, которые были задестроены, чтобы вызвать _beforeUnmount у контролов
-                           if (Vdom.isControlVNodeType(oldChild)) {
+                           if (isControlVNodeType(oldChild)) {
                               diffTmpl.destroy.push(oldChild);
-                           } else if (Vdom.isTemplateVNodeType(oldChild) || Vdom.isVNodeType(oldChild)) {
+                           } else if (isTemplateVNodeType(oldChild) || isVNodeType(oldChild)) {
                               addTemplateChildrenRecursive(oldChild, diffTmpl.destroy);
                            }
                         }
@@ -680,7 +811,7 @@ export function rebuildNode(environment, node, force, isRoot) {
                         /*template can contains controlNodes and we try find all of them
                          * all controlNodes must be in array "childrenNodes"
                          */
-                        diffTmplOneNode = VdomMarkup.getMarkupDiff(
+                        diffTmplOneNode = getMarkupDiff(
                            oldTemplateNode.children[i],
                            newTemplateNode.children[i],
                            true
@@ -771,7 +902,7 @@ export function rebuildNode(environment, node, force, isRoot) {
                      vnode
                   );
                   if (!controlNode.control._mounted && !controlNode.control._unmounted) {
-                     carrier = Vdom.getReceivedState(controlNode, vnode, Slr);
+                     carrier = getReceivedState(controlNode, vnode, Slr);
                      if (carrier) {
                         controlNode.receivedState = carrier;
                      }
@@ -1127,7 +1258,7 @@ export function rebuildNode(environment, node, force, isRoot) {
                if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
                   var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
                   newNode.fullMarkup = environment.decorateFullMarkup(
-                     VdomMarkup.getFullMarkup(
+                     getFullMarkup(
                         newNode.childrenNodes,
                         newNode.markup,
                         undefined,
@@ -1148,7 +1279,7 @@ export function rebuildNode(environment, node, force, isRoot) {
                   memo: concatMemo(currentMemo, childrenRebuild.memo)
                };
             }, (err) => {
-               Common.asyncRenderErrorLog(err);
+               Logger.asyncRenderErrorLog(err);
                return err;
             }
          );
@@ -1159,7 +1290,7 @@ export function rebuildNode(environment, node, force, isRoot) {
       if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
          var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
             newNode.fullMarkup = environment.decorateFullMarkup(
-               VdomMarkup.getFullMarkup(
+               getFullMarkup(
                   newNode.childrenNodes,
                   newNode.markup,
                   undefined,

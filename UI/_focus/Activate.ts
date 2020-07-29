@@ -6,7 +6,6 @@
  */
 
 // @ts-ignore
-import { detection } from 'Env/Env';
 import * as ElementFinder from './ElementFinder';
 import { focus } from './Focus';
 import { goUpByControlTree } from 'UI/NodeCollector';

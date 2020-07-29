@@ -2,8 +2,8 @@
    <script>
       window.receivedStates = '{"ThemesController": { "themes" : {"' + (window.defaultStaticTheme || 'default') + '": true}}}';
 
-      require(['UI/Base', 'Core/app-start',  'Core/app-init', 'View/Executor/TClosure'],
-      function(UI, AppStart, appInit, Core) {
+      require(['UI/Base', 'Core/app-start',  'Core/app-init', 'UI/Executor'],
+      function(UI, AppStart, appInit, UIExecutor) {
          var AppData = UI.AppData,
             headDataStore = UI.headDataStore,
             Core = UI.Control;

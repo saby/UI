@@ -6,6 +6,8 @@
 // @ts-ignore
 import * as findIndex from 'Core/helpers/Array/findIndex';
 
+import { _IDOMEnvironment } from 'UI/Focus';
+
 // @ts-ignore FIXME: Cannot find this module
 import * as isNewEnvironment from 'Core/helpers/isNewEnvironment';
 
@@ -20,7 +22,8 @@ import { mapVNode } from './VdomMarkup';
 import { setControlNodeHook, setEventHook } from './Hooks';
 import SyntheticEvent from './SyntheticEvent';
 import { TComponentAttrs } from '../interfaces';
-import {Event as EventExpression, RawMarkupNode} from 'View/Executor/Expressions';
+import { EventUtils } from 'UI/Events';
+import { RawMarkupNode } from 'UI/Executor';
 import Environment from './Environment';
 import * as SwipeController from './SwipeController';
 import {
@@ -725,14 +728,14 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
    addHandler(eventName: any, isBodyElement: boolean, handler: Function, processingHandler: boolean): any {
       let elementToSubscribe;
       let bodyEvent;
-      if (isBodyElement && EventExpression.isSpecialBodyEvent(eventName)) {
+      if (isBodyElement && EventUtils.isSpecialBodyEvent(eventName)) {
          elementToSubscribe = this.__getWindowObject();
          bodyEvent = true;
       } else {
          elementToSubscribe = this._rootDOMNode.parentNode;
          bodyEvent = false;
       }
-      const nativeEventName = EventExpression.fixUppercaseDOMEventName(eventName);
+      const nativeEventName = EventUtils.fixUppercaseDOMEventName(eventName);
       const handlers = this.__captureEventHandlers;
       const handlerInfo = this.getHandlerInfo(eventName, processingHandler, bodyEvent);
       if (handlerInfo === null) {
@@ -771,14 +774,14 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
    removeHandler(eventName: string, isBodyElement: boolean, processingHandler: boolean = false): any {
       let elementToSubscribe;
       let bodyEvent;
-      if (isBodyElement && EventExpression.isSpecialBodyEvent(eventName)) {
+      if (isBodyElement && EventUtils.isSpecialBodyEvent(eventName)) {
          elementToSubscribe = this.__getWindowObject();
          bodyEvent = true;
       } else {
          elementToSubscribe = this._rootDOMNode.parentNode;
          bodyEvent = false;
       }
-      const nativeEventName = EventExpression.fixUppercaseDOMEventName(eventName);
+      const nativeEventName = EventUtils.fixUppercaseDOMEventName(eventName);
       const handlers = this.__captureEventHandlers;
       const handlerInfo = this.getHandlerInfo(eventName, processingHandler, bodyEvent);
       if (handlerInfo !== null) {
@@ -1258,10 +1261,10 @@ function isBodyElement(element: HTMLElement): boolean {
  * @returns {any}
  */
 function fixPassiveEventConfig(eventName: string, config: any): any {
-   if (EventExpression.checkPassiveFalseEvents(eventName)) {
+   if (EventUtils.checkPassiveFalseEvents(eventName)) {
       config.passive = false;
    }
-   if (EventExpression.checkPassiveTrueEvents(eventName)) {
+   if (EventUtils.checkPassiveTrueEvents(eventName)) {
       config.passive = true;
    }
    return config;
@@ -1313,7 +1316,7 @@ type TMarkupNodeDecoratorFn = (
    ref: any
 ) => VNode[];
 
-export interface IDOMEnvironment {
+export interface IDOMEnvironment extends _IDOMEnvironment {
    addTabListener(e?: any): void;
    removeTabListener(e: any): void;
    destroy(): void;

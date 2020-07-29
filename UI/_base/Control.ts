@@ -4,8 +4,9 @@
 import template = require('wml!UI/_base/Control');
 
 import { Synchronizer } from 'UI/Vdom';
-import { OptionsResolver } from 'View/Executor/Utils';
-import { Focus, ContextResolver } from 'View/Executor/Expressions';
+import { OptionsResolver } from 'UI/Executor';
+import { ContextResolver } from 'UI/Contexts';
+import { _FocusAttrs } from 'UI/Focus';
 import { activate } from 'UI/Focus';
 import { Logger, Purifier } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
@@ -740,7 +741,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                timeout = 1;
                resolve(false);
                // @ts-ignore
-               require(['View/Executor/TClosure'], (thelpers) => {
+               require(['UI/Executor'], () => {
                   // @ts-ignore
                   this._originTemplate = this._template;
                   // @ts-ignore
@@ -1334,7 +1335,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       }
       ctr.saveInheritOptions(attrs.inheritOptions);
       ctr._container = domElement;
-      Focus.patchDom(domElement, cfg);
+      _FocusAttrs.patchDom(domElement, cfg);
       ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
 
       if (compatible) {
