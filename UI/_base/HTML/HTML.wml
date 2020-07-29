@@ -77,22 +77,19 @@
 
    <UI._base.HTML.Head
       wsRoot="{{ wsRoot }}"
-      linkResolver="{{ linkResolver }}"
       resourceRoot="{{ resourceRoot }}"
       appRoot="{{ appRoot }}"
-      lite="{{lite}}"
       RUMEnabled="{{ RUMEnabled }}"
       pageName="{{ pageName }}"
       compat="{{ compat }}"
-      headContent="{{ _options.headContent }}"
-      head="{{ _options.head }}"
-      title="{{ title }}"
       staticDomains="{{ staticDomains }}"
       buildnumber="{{ buildnumber }}"
+      head="{{ _options.head }}"
+      headJson="{{ _options.headJson }}"
       noscript="{{ _options.noscript }}"
       viewport="{{ _options.viewport }}"
       preInitScript="{{ _options.preInitScript }}"
-      preLoadCss="{{ !_options.builder }}"
+      builder="{{ !!_options.builder }}"
       servicesPath="{{ servicesPath }}"
       product="{{ product }}">
    </UI._base.HTML.Head>
