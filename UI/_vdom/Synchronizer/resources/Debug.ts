@@ -1,11 +1,17 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/Debug" />
 /* tslint:disable */
 
-import { getVNodeChidlren } from './VdomMarkup';
-import { Vdom } from 'View/Executor/Utils';
+import {
+   getVNodeChidlren,
+   isVNodeType,
+   isTextNodeType,
+   isControlVNodeType,
+   isTemplateVNodeType
+} from './VdomMarkup';
+
 import { DirtyKind } from './DirtyChecking';
 // @ts-ignore
-import * as tclosure from 'View/Executor/TClosure';
+import { TClosure } from 'UI/Executor';
 // @ts-ignore
 import * as ObjIsEmpty from 'Core/helpers/Object/isEmpty';
 
@@ -131,9 +137,9 @@ export function vdomToHTML(vdom, context) {
          return '';
       }
 
-      if (Vdom.isControlVNodeType(node)) {
+      if (isControlVNodeType(node)) {
          return new Promise((resolve, reject) => {
-            const result = tclosure.getMarkupGenerator(false).createWsControl(
+            const result = TClosure.createGenerator(false).createWsControl(
                node.controlClass,
                node.controlProperties,
                {
@@ -156,11 +162,11 @@ export function vdomToHTML(vdom, context) {
             }
          });
       }
-      if (Vdom.isTemplateVNodeType(node)) {
-         return tclosure
-            .getMarkupGenerator(false)
+      if (isTemplateVNodeType(node)) {
+         return TClosure
+            .createGenerator(false)
             .createTemplate(node.template, node.attributes && node.controlProperties, node.attributes, context);
-      } else if (Vdom.isVNodeType(node)) {
+      } else if (isVNodeType(node)) {
          const result = tagContent(node);
          if (result instanceof Promise) {
             return new Promise((resolve, reject) => {
@@ -171,7 +177,7 @@ export function vdomToHTML(vdom, context) {
          } else {
             return openTag(node) + result + closeTag(node);
          }
-      } else if (Vdom.isTextNodeType(node)) {
+      } else if (isTextNodeType(node)) {
          return String(node.children);
       } else if (Array.isArray(node) && node.length) {
          return new Promise((resolve, reject) => {
@@ -292,16 +298,16 @@ export function logVNode(recursive, vnode) {
    let titleArr;
    let arr = [];
 
-   if (Vdom.isControlVNodeType(vnode)) {
+   if (isControlVNodeType(vnode)) {
       logControlNode(vnode.controlNode);
    } else {
-      titleArr = [Vdom.isVNodeType(vnode) ? vnode.tagName : Vdom.isTextNodeType(vnode) ? vnode.text : '???'];
+      titleArr = [isVNodeType(vnode) ? vnode.tagName : isTextNodeType(vnode) ? vnode.text : '???'];
       if (vnode.key !== undefined) {
          titleArr.push[vnode.key];
       }
 
       arr = [titleArr.join('/')];
-      if (Vdom.isVNodeType(vnode)) {
+      if (isVNodeType(vnode)) {
          arr.push(ObjIsEmpty(vnode.properties) ? '' : vnode.properties);
       }
 

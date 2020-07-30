@@ -8,8 +8,8 @@
             'Application/Env',
             'Core/app-start',
             'Core/app-init',
-            'View/Executor/TClosure'
-         ], function (UI, AppInit, AppEnv, startCore, initCore, Core) {
+            'UI/Executor'
+         ], function (UI, AppInit, AppEnv, startCore, initCore, UIExecutor) {
          var AppData = UI.AppData,
             headDataStore = UI.headDataStore,
             Core = UI.Control;
