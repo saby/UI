@@ -354,7 +354,9 @@ export class DepsCollector {
       recursiveWalker(allDeps, deps, this.modDeps, this.modInfo);
 
       // Add i18n dependencies
-      this.collectI18n(files, allDeps);
+      if (allDeps.hasOwnProperty('i18n')) {
+         this.collectI18n(files, allDeps);
+      }
       // Find all bundles, and removes dependencies that are included in bundles
       const packages = getAllPackagesNames(allDeps, unpack, this.bundlesRoute);
 
