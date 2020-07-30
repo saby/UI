@@ -162,10 +162,22 @@ describe('getType', () => {
    it('i18n!Types/_formatter/numberWords ', () => {
       assert.deepEqual(getType('i18n!Types/_formatter/numberWords '), TYPES.i18n);
    });
+   it('browser!Types/_formatter/numberWords ', () => {
+      assert.deepEqual(getType('browser!Types/_formatter/numberWords '), TYPES.browser);
+   });
+   it('is!Types/_formatter/numberWords ', () => {
+      assert.deepEqual(getType('is!Types/_formatter/numberWords '), TYPES.is);
+   });
 });
 
 describe('parseModuleName', () => {
    it('i18n!Types/_formatter/numberWords ', () => {
       assert.isNotNull(parseModuleName('i18n!Types/_formatter/numberWords '));
+   });
+   it('browser!Types/_formatter/numberWords ', () => {
+      assert.isNotNull(parseModuleName('browser!Types/_formatter/numberWords '));
+   });
+   it('is!Types/_formatter/numberWords ', () => {
+      assert.isNotNull(parseModuleName('is!Types/_formatter/numberWords '));
    });
 });
