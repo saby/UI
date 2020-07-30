@@ -349,7 +349,8 @@ function rebuildNodeWriter(environment, node, force, isRoot?) {
             return rebuildNode(environment, node, force, isRoot);
          },
          function (err) {
-            Common.asyncRenderErrorLog(err, node);
+            const error = new Error('Promise со состоянием rejected был возвращен из _beforeMount. Перед возвратом promise из _beforeMount всегда добавлять catch обработчик.');
+            Common.asyncRenderErrorLog(error, node);
             /*_beforeMount can return errback
              * send error and create control
              */
