@@ -36,6 +36,12 @@ interface IPlugin {
    packOwnDeps: boolean;
    canBePackedInParent?: boolean;
 }
+
+interface ILocalizationResources {
+   dictionary?: string;
+   style?: string
+}
+
 type RequireJSPlugin = 'js' | 'wml' | 'tmpl' | 'i18n' | 'default' | 'is' | 'browser';
 type IDepPack = Record<string, DEPTYPES>;
 interface IDepCSSPack {
@@ -361,7 +367,9 @@ export class DepsCollector {
       recursiveWalker(allDeps, deps, this.modDeps, this.modInfo);
 
       // Add i18n dependencies
-      this.collectI18n(files, allDeps);
+      if (allDeps.hasOwnProperty('i18n')) {
+         this.collectI18n(files, allDeps);
+      }
       // Find all bundles, and removes dependencies that are included in bundles
       const packages = getAllPackagesNames(allDeps, unpack, this.bundlesRoute);
 
@@ -401,28 +409,44 @@ export class DepsCollector {
    collectI18n(files: ICollectedFiles, deps: ICollectedDeps): void {
       const loadedContexts = controller.loadingsHistory.contexts;
       const localeCode = controller.currentLocale;
+      const langCode = controller.currentLang;
       const processedContexts = [];
 
-      for (const moduleModule in deps.i18n) {
-         if (!deps.i18n.hasOwnProperty(moduleModule)) { continue; }
-         const module = deps.i18n[moduleModule];
-         const UIModuleName = module.moduleName.split('/')[0];
+      for (const moduleModule of Object.keys(deps.i18n)) {
+         const UIModuleName = deps.i18n[moduleModule].moduleName.split('/')[0];
 
          if (processedContexts.includes(UIModuleName)) {
-            break;
+            continue;
          }
 
-         if (loadedContexts.hasOwnProperty(UIModuleName) && loadedContexts[UIModuleName].hasOwnProperty(localeCode)) {
-            const context = loadedContexts[UIModuleName][localeCode];
+         processedContexts.push(UIModuleName);
 
-            if (context.dictionary) {
-               files.js.push(context.dictionary);
-            }
-
-            if (context.style) {
-               files.css.simpleCss.push(context.style);
-            }
+         if (!loadedContexts.hasOwnProperty(UIModuleName)) {
+            continue;
          }
+
+         const loadedResources = loadedContexts[UIModuleName]
+
+         if (loadedResources.hasOwnProperty(localeCode)) {
+            this.addLocalizationResource(files, loadedResources[localeCode]);
+
+            continue;
+         }
+
+
+         if (loadedResources.hasOwnProperty(langCode)) {
+            this.addLocalizationResource(files, loadedResources[langCode]);
+         }
+      }
+   }
+
+   private addLocalizationResource(files: ICollectedFiles, availableResources: ILocalizationResources) {
+      if (availableResources.dictionary) {
+         files.js.push(availableResources.dictionary);
+      }
+
+      if (availableResources.style) {
+         files.css.simpleCss.push(availableResources.style);
       }
    }
 }
