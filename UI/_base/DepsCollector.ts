@@ -149,14 +149,7 @@ function removeThemeParam(name: string): string {
 export function parseModuleName(name: string): IModuleInfo | null {
    const typeInfo = getType(name);
    if (typeInfo === null) {
-      /**
-       * ! FIXME
-       * getType не определяет тип для require плагинов i18n, json, is, browser,
-       * их поддержка будет добвлена в 20.5000
-       * Временно отключил логгирование
-       */
-      // TODO Change to error after https://online.sbis.ru/opendoc.html?guid=5de9d9bd-be4a-483a-bece-b41983e916e4
-      // Logger.info(`[UI/_base/DepsCollector:parseModuleName] Wrong type Can not process module: ${name}`);
+      Logger.warn(`[UI/_base/DepsCollector:parseModuleName] Wrong type Can not process module: ${name}`);
       return null;
    }
    let nameWithoutPlugin;
