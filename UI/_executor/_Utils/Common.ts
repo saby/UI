@@ -58,124 +58,12 @@ var
       }
    };
 
-
-
-
-export function mapForLoop(array, mapFunction) {
-   var arrayLen = array.length,
-      newArray = new Array(arrayLen),
-      i;
-   for (i = 0; i < arrayLen; i++) {
-      newArray[i] = mapFunction(array[i], i, array);
-   }
-   return newArray;
-}
-
-export function eachObject(object, modifier) {
-   var value;
-   for (value in object) {
-      if (object.hasOwnProperty(value)) {
-         object[value] = modifier(object[value], value);
-      }
-   }
-   return object;
-}
-
-export function inArray(array, needle) {
-   var i;
-   for (i = 0; i < array.length; i++) {
-      if (array[i] === needle) {
-         return true;
-      }
-   }
-   return false;
-}
-
-export function isNode() {
-   // @ts-ignore
-   return (typeof global !== 'undefined' && Object.prototype.toString.call(global.process) === '[object process]');
-}
-
-export function isNumber(string) {
-   return /^((?=\.\d|\d)(?:\d+)?(?:\.?\d*)(?:[eE][+-]?\d+)?)$/.test(string.trim());
-}
-
 export function isString(string) {
    return (Object.prototype.toString.call(string) === '[object String]');
 }
 
-export function isObject(string) {
-   return (Object.prototype.toString.call(string) === '[object Object]');
-}
-
-export function isFunction(fn) {
-   return (Object.prototype.toString.call(fn) === '[object Function]');
-}
-
 export function isArray(array) {
    return (Object.prototype.toString.call(array) === '[object Array]');
-}
-
-export function removeAllSpaces(string) {
-   return string.replace(/\s/g, "");
-}
-
-export function notUndefOrNull(value) {
-   return value || value === 0 || value === '' || value === false;
-}
-
-export function checkProp(object, prop) {
-   return object && object[prop] !== undefined;
-}
-
-export function isEmpty(obj) {
-   for (var prop in obj) {
-      if (obj.hasOwnProperty(prop))
-         return false;
-   }
-   return true;
-}
-
-export function clone(src) {
-   function mixin(dest, source, copyFunc) {
-      var name, s, empty = {};
-      for (name in source) {
-         s = source[name];
-         if (!(name in dest) || (dest[name] !== s && (!(name in empty) || empty[name] !== s))) {
-            dest[name] = copyFunc ? copyFunc(s) : s;
-         }
-      }
-      return dest;
-   }
-
-   if (!src || typeof src != "object" || Object.prototype.toString.call(src) === "[object Function]") {
-      return src;
-   }
-   if (src.nodeType && "cloneNode" in src) {
-      return src.cloneNode(true);
-   }
-   if (src instanceof Date) {
-      return new Date(src.getTime());
-   }
-   if (src instanceof RegExp) {
-      return new RegExp(src);
-   }
-   var r, i, l;
-   if (src instanceof Array) {
-      r = [];
-      for (i = 0, l = src.length; i < l; ++i) {
-         if (i in src) {
-            r.push(clone(src[i]));
-         }
-      }
-   } else {
-      r = src.constructor ? new src.constructor() : {};
-   }
-   return mixin(r, src, clone);
-}
-
-export function plainMergeAttrs(inner, attrs) {
-   return plainMerge(inner, attrs);
 }
 
 export function escape(entity) {
@@ -211,22 +99,6 @@ export function escapeParenthesis(entity) {
       });
    }
    return entity;
-}
-
-export function createNewScope(object) {
-   return { __rootScope: object };
-}
-
-export function bindingArrayHolder(bindings, value) {
-   if (!bindings) {
-      bindings = [];
-   }
-   bindings.push(value);
-   return bindings;
-}
-
-export function toEqual(eq, to) {
-   return eq === to;
 }
 
 /**
@@ -348,34 +220,6 @@ export function plainMergeContext(inner, object) {
    };
 }
 
-export function addArgument(value, args) {
-   var argArr = Array.prototype.slice.call(args);
-   if (argArr[0] === undefined) {
-      argArr[0] = undefined;
-   }
-   if (argArr[1] === undefined) {
-      argArr[1] = undefined;
-   }
-   if (argArr[2] === undefined) {
-      argArr[2] = undefined;
-   }
-
-   // опция isVdom. если true - будет строить vdom.
-   // если ПП, то в любом случае false
-   argArr[3] = argArr[3] && !constants.isServerSide;
-
-   argArr.push(value);
-   return argArr;
-}
-
-export function capitalize(string) {
-   return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-}
-
-export function findInArray(needle, arr) {
-   return arr && ~arr.indexOf(needle);
-}
-
 export function isTemplateString(str) {
    return str.indexOf('wml!') === 0 || str.indexOf('tmpl!') === 0 || str.indexOf('html!') === 0 || str.indexOf('optional!tmpl!') === 0;
 }
@@ -456,12 +300,6 @@ export function splitOptional(string) {
    return ws[1];
 }
 
-export function splitJs(string) {
-   var ws;
-   ws = string.split('js!');
-   return ws[1];
-}
-
 export function splitWs(string) {
    var ws;
    if (string !== undefined && string.indexOf('ws:') === 0) {
@@ -469,32 +307,6 @@ export function splitWs(string) {
       return ws[1];
    }
    return undefined;
-}
-
-export function correctName(name) {
-   var newName = splitWs(name);
-   if (newName) {
-      return newName;
-   }
-   return name;
-}
-
-export function getConstructor(_deps, name) {
-   const jsname = 'js!' + name;
-   // @ts-ignore
-   var res = _deps && (_deps[jsname] && _deps[jsname].default || _deps[jsname]) ||
-   RequireHelper.defined(jsname) ?
-      RequireHelper.require(jsname) :
-      RequireHelper.require(name);
-
-   if (!res && /optional!/.test(name)) {
-      var optionalRequireName = name.split('optional!')[1];
-      if (RequireHelper.defined(optionalRequireName)) {
-         // @ts-ignore
-         res = RequireHelper.require(optionalRequireName);
-      }
-   }
-   return res;
 }
 
 export function isCompound(ctor) {
@@ -522,11 +334,6 @@ export function depsTemplateResolver(tpl, includedTemplates, _deps, config) {
    return result;
 }
 
-export function getNamespace(attributes) {
-   var nsName = attributes.xmlns || 'http://www.w3.org/1999/xhtml';
-   return nsName;
-}
-
 export function isCompat() {
    if (constants.isServerSide && typeof process !== 'undefined') {
       // @ts-ignore
@@ -534,10 +341,6 @@ export function isCompat() {
    } else {
       return constants.compat;
    }
-}
-
-export function isOptionsExpression(expr) {
-   return expr && expr.name && expr.name.string === '_options';
 }
 //todo перенести в Serializer
 export const componentOptsReArray = [
