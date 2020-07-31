@@ -10,6 +10,7 @@ export default class RawMarkupNode {
    public dom;
    public key;
    public nodeProperties;
+   public moduleName: string = 'UI/_executor/_Expressions/RawMarkupNode';
 
    constructor(markup, attributes, moduleName, key) {
       var nodeProperties = {};
