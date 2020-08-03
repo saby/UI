@@ -9,9 +9,10 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     // переедет в константы реквеста, изменяется в Controls/Application
     isNewEnvironment: boolean = false;
     pageDeps: PageDeps;
-    private initDeps: string[] = [];
-    private requireInitDeps: string[] = [];
-    private themesActive: boolean = true;
+    /** Дополнительные модули, для которых следует собрать зависимости */
+    private initDeps: Record<string, boolean> = {};
+    /** Дополнительные модули, которые следует грузить отложенно */
+    private lazyInitDeps: Record<string, boolean> = {};
     private resolve: Function = null;
     // tslint:disable-next-line:no-any
     private renderPromise: Promise<ICollectedDeps> = null;
@@ -43,11 +44,12 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     }
 
     /* toDO: StateRec.register */
-    pushDepComponent(componentName: string, needRequire: boolean = false): void {
-        this.initDeps.push(componentName);
-        if (needRequire) {
-            this.requireInitDeps.push(componentName);
+    pushDepComponent(componentName: string, lazyLoading: boolean = false): void {
+        if (lazyLoading) {
+            this.lazyInitDeps[componentName] = true;
+            return;
         }
+        this.initDeps[componentName] = true;
     }
 
     setUnpackDeps(unpack: IDeps): void {
@@ -71,7 +73,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             }
             const { additionalDeps: rsDeps, serialized: rsSerialized } = getSerializedData();
             const prevDeps = Object.keys(rsDeps);
-            const files = this.pageDeps.collect(prevDeps.concat(this.initDeps), this.unpackDeps);
+            const files = this.pageDeps.collect(prevDeps.concat(Object.keys(this.initDeps)), this.unpackDeps);
             // некоторые разработчики завязываются на порядок css, поэтому сначала css переданные через links
             const simpleCss = this.includedResources.links.concat(files.css.simpleCss);
             // TODO нельзя слить ссылки и имена модулей т.к LinkResolver портит готовые ссылки
@@ -84,7 +86,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
                 wml: files.wml,
                 rsSerialized,
                 rtpackModuleNames: this.unpackDeps,
-                additionalDeps: prevDeps.concat(this.requireInitDeps)
+                additionalDeps: prevDeps.concat(Object.keys(this.lazyInitDeps))
             });
             this.resolve = null;
         });
