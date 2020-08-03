@@ -11,8 +11,6 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     pageDeps: PageDeps;
     /** Дополнительные модули, для которых следует собрать зависимости */
     private initDeps: Record<string, boolean> = {};
-    /** Дополнительные модули, которые следует грузить отложенно */
-    private lazyInitDeps: Record<string, boolean> = {};
     private resolve: Function = null;
     // tslint:disable-next-line:no-any
     private renderPromise: Promise<ICollectedDeps> = null;
@@ -44,11 +42,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     }
 
     /* toDO: StateRec.register */
-    pushDepComponent(componentName: string, lazyLoading: boolean = false): void {
-        if (lazyLoading) {
-            this.lazyInitDeps[componentName] = true;
-            return;
-        }
+    pushDepComponent(componentName: string): void {
         this.initDeps[componentName] = true;
     }
 
@@ -85,8 +79,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
                 tmpl: files.tmpl,
                 wml: files.wml,
                 rsSerialized,
-                rtpackModuleNames: this.unpackDeps,
-                additionalDeps: prevDeps.concat(Object.keys(this.lazyInitDeps))
+                rtpackModuleNames: this.unpackDeps
             });
             this.resolve = null;
         });

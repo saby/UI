@@ -7,16 +7,17 @@
             'Application/Initializer', 
             'Application/Env', 
             'UI/Base', 
-            'Core/app-init'
+            'Core/app-init',
+            'Types/entity',
+            'Types/collection',
+            'Types/source'
          ], function (polyfill, Env, AppInit, AppEnv, UI) {
             window.startContextData = { AppData: new UI.AppData({}) };
             Object.assign(Env.constants, window.wsConfig);
             var sr = new UI.StateReceiver();
             sr.deserialize(window.receivedStates);
             AppInit.default(window.wsConfig, void 0, sr);
-            require({{ __setHTMLUnsafe(getDeps()) }}, function () {
-               UI.Start({}, document.getElementById('root'));
-            });
+            UI.Start({}, document.getElementById('root'));
          });
       </script>
    </ws:if>
