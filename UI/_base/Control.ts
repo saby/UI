@@ -200,6 +200,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    private _$active: boolean = false;
    private _reactiveStart: boolean = false;
    private _$needForceUpdate: boolean;
+   private __$focusing: boolean = false;
 
    private readonly _instId: string = 'inst_' + countInst++;
    protected _options: TOptions = {} as TOptions;
@@ -1150,7 +1151,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    protected _beforeUnmount(): void {
       // Do
    }
-
+   
    /**
     * Массив имен нетемизированных стилей, необходимых контролу.
     * Все стили будут скачаны при создании
