@@ -112,7 +112,7 @@ class VDomSynchronizer {
    constructor() {
    }
 
-   private __rebuildRoots(rootRebuildVal: IMemoNode): void {
+   private __rebuildRoots(rootRebuildVal: IMemoNode): Promise<void> {
       // In the case of asynchronous controls we have to check
       // is parent of those destroyed or not. If it is, that means, that we don't have a place
       // to mount our rootNodes
@@ -168,63 +168,43 @@ class VDomSynchronizer {
       rebuildChanges.destroyedNodes.forEach((node: IControlNode) => {
          delete this._controlNodes[node.id];
       });
-
-      /* Запускать генерацию можно только у нод, которых эта генерация запущена
-            * через rebuildRequest
-            * Все случайно попавшие ноды игнорируются до следующего тика*/
-      // Для того чтобы соблюдался порядок вызова applyNewVNode всех корневая нод. Нам нужно вызывать данный метод
-      // на конкретном окружении, с которым связана конкретная корневая нода.
-      if (newRoot.environment
-         && newRoot.environment._haveRebuildRequest
-         && newRoot.fullMarkup) {
-         newRoot.environment.applyNewVNode(newRoot.fullMarkup, rebuildChangesIds, newRoot);
-      }
-
-      return;
-   }
-
-   private __rebuildOneRootNode(node: IControlNode): IMemoNode | PromiseLike<IMemoNode> {
-      onStartSync(node.rootId);
-      updateCurrentDirties(node.environment);
-
-      let rebuildedNode: Promise<IMemoNode> = rebuildNode(node.environment, node, undefined, true);
-      if (!node.environment._haveRebuildRequest) {
-         onEndSync(node.rootId);
-      }
-      return rebuildedNode;
-   }
-
-   private __doRebuild(currentRoot: IControlNode) {
-      let rootsRebuild = this.__rebuildOneRootNode(currentRoot);
-
-      if ('then' in rootsRebuild) {
-         rootsRebuild.then((val) => {
-            // Костыль из-за compatible
-            // TODO удалить
-            // Проверим наличие environment
-            // Он мог быть удален, если среди контролов будет BaseCompatible. Потому что у него в destroy
-            // вызывается UnmountControlFromDom
-            //@ts-ignore
-            currentRoot.environment._asyncOngoing = true;
-            this.__rebuildRoots(val);
-         },
-            function (err: any) {
-               Common.asyncRenderErrorLog(err);
-               return err;
-            }
-         );
-
+      if (!newRoot.environment._haveRebuildRequest || !newRoot.fullMarkup) {
          return;
       }
 
-      this.__rebuildRoots(rootsRebuild);
+      return newRoot.environment.applyNewVNode(newRoot.fullMarkup, rebuildChangesIds, newRoot);
+   }
+
+   private __doRebuild(currentRoot: IControlNode): PromiseLike<void | Error> {
+      let rootId = currentRoot.rootId;
+      onStartSync(rootId);
+
+      updateCurrentDirties(currentRoot.environment);
+      let rootsRebuild: IMemoNode | PromiseLike<IMemoNode> = rebuildNode(currentRoot.environment, currentRoot, undefined, true);
+
+      if ('then' in rootsRebuild) {
+         return rootsRebuild.then((val) => this.__rebuildRoots(val),
+            (err: any) => {
+               Common.asyncRenderErrorLog(err);
+               return err;
+            }).then((res) => {
+               onEndSync(rootId);
+               return res;
+            });
+      }
+
+      return this.__rebuildRoots(rootsRebuild);
    }
 
    private __rebuild(controlNode: IControlNode) {
       let self = this;
 
+      /**
+       * Такое происходит, когда слой совмместимости удаляет корневую ноду wasaby
+       * Мы ничего сделать не можем и не должны.
+       */
       if (self._rootNodes.length === 0 || !controlNode.environment) {
-         throw new Error("Ошибка в логике перестройки. Как я сюда попал?");
+         return;
       }
 
       let currentRoot = self._rootNodes[0];
@@ -516,7 +496,6 @@ class VDomSynchronizer {
             controlNode.environment._nextDirties[parent.id] |= DirtyKind.CHILD_DIRTY;
          });
 
-         if (!controlNode.environment._haveRebuildRequest) {
             controlNode.environment._haveRebuildRequest = true;
             const requestRebuildDelayed = () => {
                if (!controlNode.environment._haveRebuildRequest) {
@@ -537,7 +516,6 @@ class VDomSynchronizer {
                controlNode.environment.addTabListener();
             };
             delay(requestRebuildDelayed);
-         }
 
          return;
       }

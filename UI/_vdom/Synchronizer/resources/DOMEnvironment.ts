@@ -1,5 +1,5 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DOMEnvironment" />
-// tslint:disable:variable-name
+// tslint:disable:variable-name, ban-ts-ignore
 
 // FIXME: This module can only be referenced with ECMAScript imports/exports
 // by turning on the 'esModuleInterop' flag and referencing its default export.
@@ -529,16 +529,14 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       );
    }
 
-   applyNewVNode(newVNnode: IControlNode, rebuildChanges: any, newRootCntNode: IControlNode): any {
+   applyNewVNode(newVNnode: IControlNode, rebuildChanges: any, newRootCntNode: IControlNode): Promise<void> {
       if (!this._rootDOMNode) {
          return;
       }
       onStartSync(newRootCntNode.rootId);
 
       const vnode = this.decorateRootNode(newVNnode);
-      let hasCompound;
       let control;
-      let patch;
       const newRootDOMNode = undefined;
 
       // добавляем vdom-focus-in и vdom-focus-out
@@ -551,90 +549,45 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       try {
          // Свойство $V вешает движок inferno. Если его нет, значит пришли с сервера.
          if (this._rootDOMNode.hasOwnProperty('$V') || !this._rootDOMNode.firstChild) {
-            patch = render(vnode, this._rootDOMNode, undefined, undefined, true);
+            const patch = render(vnode, this._rootDOMNode, undefined, undefined, true);
          } else {
-            patch = hydrate(vnode, this._rootDOMNode, undefined, true);
+            const patch = hydrate(vnode, this._rootDOMNode, undefined, true);
          }
       } catch (e) {
          Logger.error('Ошибка оживления Inferno', undefined, e);
       }
 
-      hasCompound = isControlNodesCompound([newRootCntNode]);
+      // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
+      mountMethodsCaller.afterRender(newRootCntNode, rebuildChanges);
+      // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
+      mountMethodsCaller.beforePaint(newRootCntNode, rebuildChanges);
 
-      if (hasCompound) {
-         control = atLeasOneControl([newRootCntNode]);
-         if (newRootDOMNode) {
-            // @ts-ignore FIXME: Unknown $
-            control._container = window.$ ? $(newRootDOMNode) : newRootDOMNode;
+      return new Promise((resolve) => {
+         /**
+          * Пока что совместимость тут проверялась жестко.
+          * Когда начнем строить от конкретной ноды,
+          * нужно будет проверять у нее. Wasaby она или со слоем совместимости.
+          */
+         const IS_COMPATIBILITY = true;
+         if (IS_COMPATIBILITY) {
+            control = atLeasOneControl([newRootCntNode]);
+            if (newRootDOMNode) {
+               // @ts-ignore FIXME: Unknown $
+               control._container = window.$ ? $(newRootDOMNode) : newRootDOMNode;
+            }
          }
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.afterRender(newRootCntNode, rebuildChanges);
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.beforePaint(newRootCntNode, rebuildChanges);
-         delay(() => {
-            //останавливать должны, только если запущено, иначе получается так,
-            // что это предыдущая фаза синхронизации и она прерывает следующую
-            //то есть, если  _haveRebuildRequest=true а _rebuildRequestStarted=false
-            //это значит, что мы запланировали перерисовку, но она еще не началась
-            // В случае если мы ждем завершения асинхронных детей и перестроение уже закончены
-            // нужно убрать запрос на реквест, чтобы дети рутовой ноды могли перерисовываться независимо
-            if (
-               // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-               newRootCntNode.environment._rebuildRequestStarted ||
-               // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-               newRootCntNode.environment._asyncOngoing === false
-            ) {
-               // @ts-ignore FIXME: Property '_haveRebuildRequest' does not exist
-               newRootCntNode.environment._haveRebuildRequest = false;
-            }
-            // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-            if (newRootCntNode.environment._asyncOngoing === false) {
-               // we have to delete property from environment, cause if we don't we'll be at the same point
-               // even if async request didn't happen. So we have to make sure every time, that async request
-               // really did happen
-               // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-               delete newRootCntNode.environment._asyncOngoing;
-            }
 
-            if (!control._destroyed) {
-               if (typeof control.reviveSuperOldControls === 'function') {
-                  control.reviveSuperOldControls();
-               }
+         if (IS_COMPATIBILITY && !control._destroyed) {
+            if (typeof control.reviveSuperOldControls === 'function') {
+               control.reviveSuperOldControls();
             }
-            mountMethodsCaller.afterUpdate(newRootCntNode, rebuildChanges);
-            // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-            newRootCntNode.environment._rebuildRequestStarted = false;
-            // @ts-ignore FIXME: Property 'runQueue' does not exist
-            newRootCntNode.environment.runQueue();
-            onEndSync(newRootCntNode.rootId);
-         });
-      } else {
-         // @ts-ignore FIXME: Properties '_haveRebuildRequest' and '_asyncOngoing' do not exist
-         if (newRootCntNode.environment._rebuildRequestStarted || newRootCntNode.environment._asyncOngoing === false) {
-            // @ts-ignore FIXME: Property '_haveRebuildRequest' does not exist
-            newRootCntNode.environment._haveRebuildRequest = false;
          }
-         // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-         if (newRootCntNode.environment._asyncOngoing === false) {
-            // we have to delete property from environment, cause if we don't we'll be at the same point
-            // even if async request didn't happen. So we have to make sure every time, that async request
-            // really did happen
-            // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-            delete newRootCntNode.environment._asyncOngoing;
-         }
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.afterRender(newRootCntNode, rebuildChanges);
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.beforePaint(newRootCntNode, rebuildChanges);
+
          mountMethodsCaller.afterUpdate(newRootCntNode, rebuildChanges);
-         // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-         newRootCntNode.environment._rebuildRequestStarted = false;
-         // @ts-ignore FIXME: Property 'runQueue' does not exist
-         newRootCntNode.environment.runQueue();
-         onEndSync(newRootCntNode.rootId);
-      }
 
-      return patch;
+         resolve();
+         onEndSync(newRootCntNode.rootId);
+      });
    }
 
    decorateFullMarkup(vnode: any, controlNode: any): any {
@@ -1327,7 +1280,7 @@ export interface IDOMEnvironment {
    _handleTouchend(event: any): void;
    _shouldUseClickByTap(): boolean;
 
-   applyNewVNode(newVNnode: any, rebuildChanges: any, newRootCntNode: any): void;
+   applyNewVNode(newVNnode: any, rebuildChanges: any, newRootCntNode: any): Promise<void>;
    decorateFullMarkup(vnode: VNode, controlNode: any): VNode;
    getMarkupNodeDecorator(): TMarkupNodeDecoratorFn;
    getDOMNode(): HTMLElement;
