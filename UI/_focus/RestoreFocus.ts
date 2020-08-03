@@ -3,12 +3,6 @@ import { goUpByControlTree } from 'UI/NodeCollector';
 // @ts-ignore
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
 import { notifyActivationEvents } from "UI/_focus/Events";
-import { Control } from 'UI/Base';
-
-// TODO подумать как решить проблему циклических зависимостей при импорте интерфейсов
-// В качестве временного решения отключен импорт и указан тип `any` в restoreFocus()
-// https://online.sbis.ru/opendoc.html?guid=918b22a9-fbd5-4122-ab51-75a88f01bbbc
-// import { Control } from 'UI/Base';
 
 /**
  * @author Белотелов Н.В.
@@ -16,6 +10,7 @@ import { Control } from 'UI/Base';
  */
 
 import { focus } from './Focus';
+import { IControl } from './IControl';
 
 function checkActiveElement(savedActiveElement: Element): boolean {
    const isBody = document.activeElement === document.body || document.activeElement === null;
@@ -23,7 +18,7 @@ function checkActiveElement(savedActiveElement: Element): boolean {
 }
 let prevControls = [];
 let savedActiveElement;
-export function restoreFocus(control: Control, action: Function): void {
+export function restoreFocus(control: IControl, action: Function): void {
    if ( document.activeElement !== document.body ) {
       // Если фокус не улетел в Body, сохраним контрол, который был в фокусе и список контролов
       savedActiveElement = document.activeElement;
