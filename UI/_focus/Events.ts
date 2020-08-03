@@ -1,7 +1,11 @@
 /// <amd-module name="UI/_focus/Events" />
 /* tslint:disable */
 
-import { IDOMEnvironment } from 'UI/Vdom';
+type TModifyHTMLNode = HTMLElement & Record<string, any>;
+export interface IDOMEnvironment {
+   _rootDOMNode: TModifyHTMLNode;
+   __captureEventHandler: Function;
+}
 
 /**
  * @author Белотелов Н.В.

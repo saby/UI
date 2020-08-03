@@ -1,9 +1,8 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DirtyCheckingCompatible" />
 /* tslint:disable */
 
-import { Compatible } from 'View/Executor/Utils';
-// @ts-ignore
-import * as tclosure from 'View/Executor/TClosure';
+import { Compatible } from 'UI/Executor';
+import { TClosure } from 'UI/Executor';
 
 /**
  * @author Кондаков Р.Н.
@@ -27,7 +26,7 @@ export function createCompoundControlNode(
       key,
       parentNode,
       vnode,
-      tclosure.getMarkupGenerator(false)
+      TClosure.createGenerator(false)
    );
 }
 export function clearNotChangedOptions(options, actualChanges) {

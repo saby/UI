@@ -5,6 +5,7 @@
  * Модуль, в котором находится логика по активации контролов
  */
 
+// @ts-ignore
 import * as ElementFinder from './ElementFinder';
 import { focus } from './Focus';
 import { goUpByControlTree } from 'UI/NodeCollector';

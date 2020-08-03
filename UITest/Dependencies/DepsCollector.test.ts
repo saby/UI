@@ -2,6 +2,7 @@ import { DepsCollector } from 'UI/Base';
 import { controller } from 'I18n/i18n';
 import { assert } from 'chai';
 import * as sinon from 'sinon';
+import { getType, parseModuleName, TYPES } from 'UI/_base/DepsCollector';
 
 const modDeps = {
    'aaa/aaa': [],
@@ -49,16 +50,6 @@ describe('DepsCollector', () => {
    it('several in bundle', () => {
       const deps = dc.collectDependencies(['vvv/aaa', 'vvv/bbb']);
       assert.deepStrictEqual(deps.js, ['bdl/ccc.package']);
-   });
-   it('css-bundle hook js simple', () => {
-      const deps = dc.collectDependencies(['css!aaa/bbb']);
-      assert.deepStrictEqual(deps.js, ['bdl/aaa.package']);
-      assert.deepStrictEqual(deps.css.simpleCss, ['bdl/aaa.package']);
-   });
-   it('css-bundle hook js themed', () => {
-      const deps = dc.collectDependencies(['css!theme?aaat/bbbt']);
-      assert.deepStrictEqual(deps.js, ['bdl/aaat.package']);
-      assert.deepStrictEqual(deps.css.themedCss, ['bdl/aaat.package']);
    });
    it('single css not hooks js simple', () => {
       const deps = dc.collectDependencies(['css!aaa/ddd']);
@@ -164,5 +155,29 @@ describe('DepsCollector', () => {
       const deps = dc.collectDependencies(['optional!nosuchdep', 'tmpl!ppp/ppp']);
       assert.deepStrictEqual(deps.js, ['bdl/tmplpckd.package']);
       assert.deepStrictEqual(deps.tmpl, []);
+   });
+});
+
+describe('getType', () => {
+   it('i18n!Types/_formatter/numberWords ', () => {
+      assert.deepEqual(getType('i18n!Types/_formatter/numberWords '), TYPES.i18n);
+   });
+   it('browser!Types/_formatter/numberWords ', () => {
+      assert.deepEqual(getType('browser!Types/_formatter/numberWords '), TYPES.browser);
+   });
+   it('is!Types/_formatter/numberWords ', () => {
+      assert.deepEqual(getType('is!Types/_formatter/numberWords '), TYPES.is);
+   });
+});
+
+describe('parseModuleName', () => {
+   it('i18n!Types/_formatter/numberWords ', () => {
+      assert.isNotNull(parseModuleName('i18n!Types/_formatter/numberWords '));
+   });
+   it('browser!Types/_formatter/numberWords ', () => {
+      assert.isNotNull(parseModuleName('browser!Types/_formatter/numberWords '));
+   });
+   it('is!Types/_formatter/numberWords ', () => {
+      assert.isNotNull(parseModuleName('is!Types/_formatter/numberWords '));
    });
 });

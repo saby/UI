@@ -7,7 +7,7 @@
          </noscript>
       </ws:if>
       <meta data-vdomignore="true" http-equiv="X-UA-Compatible" content="IE=edge"/>
-      <meta name="viewport" data-vdomignore="true" content="{{_options.viewport || 'width=1024'}}"/>
+      <meta name="viewport" data-vdomignore="true" content="{{_options.viewport || 'width=1024, height=device-height'}}"/>
       <meta charset="utf-8" class="head-server-block" data-vdomignore="true"/>
    </ws:if>
    <!--   wsConfig нет смысла рендерить на клиенте. -->
@@ -49,18 +49,13 @@
          <ws:partial template="{{ head }}"  attr:data-vdomignore="true" attr:class="head-custom-block"/>
       </ws:else>
    </ws:if>
-   <ws:if data="{{ headContent }}">
-      <ws:if data="{{ isArray(headContent) }}">
-         <ws:for data="i in headContent">
-            <ws:partial template="{{ i }}"  attr:data-vdomignore="true" attr:class="head-custom-block"/>
-         </ws:for>
-      </ws:if>
-      <ws:else>
-         <ws:partial template="{{ headContent }}"  attr:data-vdomignore="true" attr:class="head-custom-block"/>
-      </ws:else>
-   </ws:if>
 
-   <ws:if data="{{ _options.preLoadCss }}">
+   <!-- #region headAdditiveTagsMarkup -->
+   <ws:if data="{{ headAdditiveTagsMarkup }}">
+      {{ __setHTMLUnsafe( headAdditiveTagsMarkup ) }}
+   </ws:if>
+   <!-- #endregion -->
+   <ws:if data="{{ !_options.builder }}">
       {{ __setHTMLUnsafe( stylesHtml ) }}
    </ws:if>
 </head>

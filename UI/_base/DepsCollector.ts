@@ -1,4 +1,5 @@
-//@ts-ignore
+// tslint:disable-next-line:ban-ts-ignore
+// @ts-ignore
 import { Logger } from 'UI/Utils';
 import { controller } from 'I18n/i18n';
 
@@ -8,7 +9,7 @@ export interface ICollectedFiles {
    css: {
       themedCss: string[];
       simpleCss: string[];
-   },
+   };
    tmpl: string[];
    wml: string[];
 }
@@ -36,11 +37,26 @@ interface IPlugin {
    canBePackedInParent?: boolean;
 }
 
-const DEPTYPES = {
-   BUNDLE: 1,
-   SINGLE: 2
-};
-const TYPES = {
+interface ILocalizationResources {
+   dictionary?: string;
+   style?: string
+}
+
+type RequireJSPlugin = 'js' | 'wml' | 'tmpl' | 'i18n' | 'default' | 'is' | 'browser';
+type IDepPack = Record<string, DEPTYPES>;
+interface IDepCSSPack {
+   themedCss: IDepPack; simpleCss: IDepPack;
+}
+interface IDepPackages extends Record<RequireJSPlugin, IDepPack> {
+   css: IDepCSSPack;
+}
+
+enum DEPTYPES {
+   BUNDLE = 1,
+   SINGLE = 2
+}
+
+export const TYPES: Record<RequireJSPlugin | 'css', object> = {
    tmpl: {
       type: 'tmpl',
       plugin: 'tmpl',
@@ -69,6 +85,20 @@ const TYPES = {
       hasPacket: false,
       canBePackedInParent: false
    },
+   is: {
+      type: 'is',
+      plugin: 'is',
+      hasDeps: false,
+      hasPacket: false,
+      canBePackedInParent: false
+   },
+   browser: {
+      type: 'browser',
+      plugin: 'browser',
+      hasDeps: true,
+      hasPacket: true,
+      packOwnDeps: true
+   },
    css: {
       type: 'css',
       plugin: 'css',
@@ -89,7 +119,7 @@ function getPlugin(name: string): string {
    return res;
 }
 
-function getType(name: string): IPlugin | null {
+export function getType(name: string): IPlugin | null {
    const plugin = getPlugin(name);
    for (const key in TYPES) {
       if (TYPES[key].plugin === plugin) {
@@ -118,15 +148,14 @@ function isThemedCss(key: string): boolean {
    return key.indexOf('theme?') >= 0;
 }
 
-function removeThemeParam(name) {
+function removeThemeParam(name: string): string {
    return name.replace('theme?', '');
 }
 
-function parseModuleName(name: string): IModuleInfo | null {
+export function parseModuleName(name: string): IModuleInfo | null {
    const typeInfo = getType(name);
    if (typeInfo === null) {
-      // TODO Change to error after https://online.sbis.ru/opendoc.html?guid=5de9d9bd-be4a-483a-bece-b41983e916e4
-      Logger.info(`[UI/_base/DepsCollector:parseModuleName] Wrong type Can not process module: ${name}`);
+      Logger.warn(`[UI/_base/DepsCollector:parseModuleName] Wrong type Can not process module: ${name}`);
       return null;
    }
    let nameWithoutPlugin;
@@ -142,17 +171,21 @@ function parseModuleName(name: string): IModuleInfo | null {
    };
 }
 
-function getEmptyPackages(): any {
+function getEmptyPackages(): IDepPackages {
    const packages = {};
    for (const key in TYPES) {
       if (TYPES.hasOwnProperty(key)) {
-         packages[key] = {};
+         packages[key as RequireJSPlugin] = {};
       }
    }
-   return packages;
+   return packages as IDepPackages;
 }
 
-function getPacksNames(allDeps = {}, isUnpackModule: (key: string) => boolean, bundlesRoute = {}): any {
+function getPacksNames(
+   allDeps: ICollectedDeps = {},
+   isUnpackModule: (key: string) => boolean,
+   bundlesRoute: Record<string, string> = {}
+): IDepPackages {
    const unpackBundles: string[] = [];
    const packages = getEmptyPackages();
    Object.keys(allDeps).forEach((moduleName) => {
@@ -185,7 +218,11 @@ function getPacksNames(allDeps = {}, isUnpackModule: (key: string) => boolean, b
    return packages;
 }
 
-function getCssPackages(allDeps: any, isUnpackModule: (key: string) => boolean, bundlesRoute: any): any {
+function getCssPackages(
+   allDeps: ICollectedDeps,
+   isUnpackModule: (key: string) => boolean,
+   bundlesRoute: Record<string, string>
+): IDepCSSPack {
    const packages = {
       themedCss: {},
       simpleCss: {}
@@ -193,7 +230,7 @@ function getCssPackages(allDeps: any, isUnpackModule: (key: string) => boolean, 
    const unpackBundles: string[] = [];
    for (const key in allDeps) {
       if (allDeps.hasOwnProperty(key)) {
-         let noParamsName = removeThemeParam(key);
+         const noParamsName = removeThemeParam(key);
          const bundleName = bundlesRoute[noParamsName];
          if (bundleName) {
             Logger.info(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${key} in bundle ${bundleName}`);
@@ -226,7 +263,7 @@ function getCssPackages(allDeps: any, isUnpackModule: (key: string) => boolean, 
    return packages;
 }
 
-function getAllPackagesNames(all: ICollectedDeps, unpack:IDeps, bRoute: any): any {
+function getAllPackagesNames(all: ICollectedDeps, unpack: IDeps, bRoute: Record<string, string>): IDepPackages {
    const packs = getEmptyPackages();
    const isUnpackModule = (key: string) => unpack.some((moduleName) => key.indexOf(moduleName) !== -1);
    mergePacks(packs, getPacksNames(all.js, isUnpackModule, bRoute));
@@ -237,7 +274,7 @@ function getAllPackagesNames(all: ICollectedDeps, unpack:IDeps, bRoute: any): an
    return packs;
 }
 
-function mergePacks(result: any, addedPackages: any): void {
+function mergePacks(result: IDepPackages, addedPackages: Partial<IDepPackages>): void {
    for (const pack in addedPackages) {
       if (addedPackages.hasOwnProperty(pack)) {
          if (result[pack] === undefined) {
@@ -259,7 +296,13 @@ function mergePacks(result: any, addedPackages: any): void {
  * @param curNodeDeps
  * @param modDeps
  */
-function recursiveWalker(allDeps: ICollectedDeps, curNodeDeps: any, modDeps: any, modInfo: any, skipDep?: any): void {
+function recursiveWalker(
+   allDeps: ICollectedDeps,
+   curNodeDeps: IDeps,
+   modDeps: Record<string, IDeps>,
+   modInfo: object,
+   skipDep: boolean = false
+): void {
    if (curNodeDeps && curNodeDeps.length) {
       for (let i = 0; i < curNodeDeps.length; i++) {
          let node = curNodeDeps[i];
@@ -293,16 +336,16 @@ function recursiveWalker(allDeps: ICollectedDeps, curNodeDeps: any, modDeps: any
 }
 
 export class DepsCollector {
-   modDeps: any;
-   modInfo: any;
-   bundlesRoute: any;
+   modDeps: Record<string, IDeps>;
+   modInfo: object;
+   bundlesRoute: Record<string, string>;
 
    /**
     * @param modDeps - object, contains all nodes of dependency tree
     * @param modInfo - contains info about path to module files
     * @param bundlesRoute - contains info about custom packets with modules
     */
-   constructor(modDeps: any, modInfo: any, bundlesRoute: any) {
+   constructor(modDeps: Record<string, IDeps>, modInfo: object, bundlesRoute: Record<string, string>) {
       this.modDeps = modDeps;
       this.modInfo = modInfo;
       this.bundlesRoute = bundlesRoute;
@@ -324,7 +367,9 @@ export class DepsCollector {
       recursiveWalker(allDeps, deps, this.modDeps, this.modInfo);
 
       // Add i18n dependencies
-      this.collectI18n(files, allDeps);
+      if (allDeps.hasOwnProperty('i18n')) {
+         this.collectI18n(files, allDeps);
+      }
       // Find all bundles, and removes dependencies that are included in bundles
       const packages = getAllPackagesNames(allDeps, unpack, this.bundlesRoute);
 
@@ -345,17 +390,11 @@ export class DepsCollector {
       }
       for (const key in packages.css.themedCss) {
          if (packages.css.themedCss.hasOwnProperty(key)) {
-            if (!packages.js[key] && packages.css.themedCss[key] === DEPTYPES.BUNDLE) {
-               files.js.push(key);
-            }
             files.css.themedCss.push(key);
          }
       }
       for (const key in packages.css.simpleCss) {
          if (packages.css.simpleCss.hasOwnProperty(key)) {
-            if (!packages.js[key] && packages.css.simpleCss[key] === DEPTYPES.BUNDLE) {
-               files.js.push(key);
-            }
             files.css.simpleCss.push(key);
          }
       }
@@ -370,28 +409,44 @@ export class DepsCollector {
    collectI18n(files: ICollectedFiles, deps: ICollectedDeps): void {
       const loadedContexts = controller.loadingsHistory.contexts;
       const localeCode = controller.currentLocale;
+      const langCode = controller.currentLang;
       const processedContexts = [];
 
-      for (const moduleModule in deps.i18n) {
-         const module = deps.i18n[moduleModule];
-         const UIModuleName = module.moduleName.split('/')[0];
+      for (const moduleModule of Object.keys(deps.i18n)) {
+         const UIModuleName = deps.i18n[moduleModule].moduleName.split('/')[0];
 
          if (processedContexts.includes(UIModuleName)) {
-            break;
+            continue;
          }
 
-         if (loadedContexts.hasOwnProperty(UIModuleName) && loadedContexts[UIModuleName].hasOwnProperty(localeCode)) {
-            const context = loadedContexts[UIModuleName][localeCode];
+         processedContexts.push(UIModuleName);
 
-            if (context.dictionary) {
-               files.js.push(context.dictionary);
-            }
+         if (!loadedContexts.hasOwnProperty(UIModuleName)) {
+            continue;
+         }
 
-            if (context.style) {
-               files.css.simpleCss.push(context.style);
-            }
+         const loadedResources = loadedContexts[UIModuleName]
+
+         if (loadedResources.hasOwnProperty(localeCode)) {
+            this.addLocalizationResource(files, loadedResources[localeCode]);
+
+            continue;
+         }
+
+
+         if (loadedResources.hasOwnProperty(langCode)) {
+            this.addLocalizationResource(files, loadedResources[langCode]);
          }
       }
    }
-}
 
+   private addLocalizationResource(files: ICollectedFiles, availableResources: ILocalizationResources) {
+      if (availableResources.dictionary) {
+         files.js.push(availableResources.dictionary);
+      }
+
+      if (availableResources.style) {
+         files.css.simpleCss.push(availableResources.style);
+      }
+   }
+}

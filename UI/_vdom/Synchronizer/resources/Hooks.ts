@@ -1,4 +1,4 @@
-import { Event } from 'View/Executor/Expressions';
+import { EventUtils } from 'UI/Events';
 import { IWasabyHTMLElement, IControlNode, IEvent, TEventsObject, TControlId } from '../interfaces';
 import { IDOMEnvironment, IProperties } from './DOMEnvironment';
 import isInvisibleNode from './InvisibleNodeChecker';
@@ -9,8 +9,8 @@ import { Set } from 'Types/shim';
  * @author Кондаков Р.Н.
  */
 
-type TRef = (element?: IWasabyHTMLElement) => void;
-type TWasabyInputElement = HTMLInputElement & IWasabyHTMLElement;
+export type TRef = (element?: IWasabyHTMLElement) => void;
+export type TWasabyInputElement = HTMLInputElement & IWasabyHTMLElement;
 const inputTagNames = new Set([
     'input',
     'INPUT',
@@ -118,7 +118,7 @@ function addEventsToElement(
     for (let i = 0; i < eventFullNamesNames.length; i++) {
         const eventFullName: string = eventFullNamesNames[i];
         const eventValue: IEvent[] = events[eventFullName];
-        const eventName = Event.getEventName(eventFullName);
+        const eventName = EventUtils.getEventName(eventFullName);
         let eventDescrArray: IEvent[] = eventValue.map((event: IEvent): IEvent => {
             event.controlNode = controlNode;
             return event;
@@ -147,7 +147,7 @@ function removeEventsFromElement(
     const eventFullNamesNames: string[] = Object.keys(events);
     for (let i = 0; i < eventFullNamesNames.length; i++) {
         const eventFullName: string = eventFullNamesNames[i];
-        const eventName = Event.getEventName(eventFullName);
+        const eventName = EventUtils.getEventName(eventFullName);
         environment.removeCaptureEventHandler(eventName, element);
         if (eventProperties) {
             delete eventProperties[eventFullName];
