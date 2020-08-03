@@ -1,3 +1,3 @@
 export interface IControl {
-   // will extend needed Control
+   activate: Function;
 }
