@@ -6,8 +6,7 @@ import template = require('wml!UI/_base/Control');
 import { Synchronizer } from 'UI/Vdom';
 import { OptionsResolver } from 'UI/Executor';
 import { ContextResolver } from 'UI/Contexts';
-import { _FocusAttrs } from 'UI/Focus';
-import { activate } from 'UI/Focus';
+import { _FocusAttrs, _IControl, activate } from 'UI/Focus';
 import { Logger, Purifier } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
 import { constants } from 'Env/Env';
@@ -191,7 +190,7 @@ export interface IControlOptions {
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
-export default class Control<TOptions extends IControlOptions = {}, TState = void> {
+export default class Control<TOptions extends IControlOptions = {}, TState = void> implements _IControl {
    protected _moduleName: string;
 
    private _mounted: boolean = false;

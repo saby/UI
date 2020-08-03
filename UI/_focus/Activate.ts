@@ -10,6 +10,8 @@ import * as ElementFinder from './ElementFinder';
 import { focus } from './Focus';
 import { goUpByControlTree } from 'UI/NodeCollector';
 
+import { IControlElement } from './IFocus';
+
 // @ts-ignore
 import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
 
@@ -17,7 +19,7 @@ function findAutofocusForVDOM(findContainer: Element): NodeListOf<Element> {
    return findContainer.querySelectorAll('[ws-autofocus="true"]');
 }
 
-function doFocus(container: any,
+function doFocus(container: IControlElement,
                  cfg: { enableScreenKeyboard?: boolean,
                         enableScrollToElement?: boolean } = {}): boolean {
 

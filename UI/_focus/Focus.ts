@@ -8,12 +8,13 @@
 // @ts-ignore
 import { detection } from 'Env/Env';
 
-// @ts-ignore
 import { Logger } from 'UI/Utils';
 
 import { collectScrollPositions } from './_ResetScrolling';
 import * as ElementFinder from './ElementFinder';
 import { notifyActivationEvents } from 'UI/_focus/Events';
+
+import { IFocusElement, IMatchesElement, IControlElement } from './IFocus';
 
 interface IFocusConfig {
    enableScreenKeyboard?: boolean;
@@ -79,14 +80,14 @@ function focusSvgForeignObjectHack(element: SVGElement): boolean {
  * @param element
  * @param cfg
  */
-function tryMoveFocus(element: Element, cfg: IFocusConfig): boolean {
+function tryMoveFocus(element: IFocusElement, cfg: IFocusConfig): boolean {
    let result = false;
    if (!cfg.enableScrollToElement && detection.isIE && element.setActive) {
          // In IE, calling `focus` scrolls the focused element into view,
          // which is not the desired behavior. Built-in `setActive` method
          // makes the element active without scrolling to it
          try {
-            // @ts-ignore метод позовется только в ie, где он поддерживается
+            // метод позовется только в ie, где он поддерживается
             element.setActive();
          } catch (e) {
             // Обернули в try/catch, потому что вызов setActive у элемента с visibility:hidden в ie падает с ошибкой
@@ -190,7 +191,7 @@ function makeResetScrollFunction(element: Element, enableScrollToElement: boolea
    return collectScrollPositions(element);
 }
 
-function matches(el: Element, selector: string): boolean {
+function matches(el: IMatchesElement, selector: string): boolean {
    return (
       el.matches ||
       el.matchesSelector ||
@@ -200,12 +201,16 @@ function matches(el: Element, selector: string): boolean {
       el.oMatchesSelector
    ).call(el, selector);
 }
+
 function checkInput(el: Element): boolean {
    return matches(el, 'input[type="text"], textarea, *[contentEditable=true]');
 }
-function hasControl(element) {
+
+// FIXME: после переезда View - IGeneratorControlNode
+function hasControl(element: IControlElement): any {
    return element.controlNodes || element.wsControl;
 }
+
 function getContainerWithControlNode(element: Element): Element {
    while (element) {
       // ищем ближайший элемент, который может быть сфокусирован и не является полем ввода
@@ -263,10 +268,7 @@ function fixElementForMobileInputs(element: Element, cfg: IFocusConfig): Element
 /**
  * Moves focus to a specific HTML or SVG element
  */
-function focusInner(
-   element: Element,
-   cfg: IFocusConfig
-): boolean {
+function focusInner(element: Element, cfg: IFocusConfig): boolean {
    // Заполняем cfg значениями по умолчанию, если другие не переданы
    const undoScrolling = makeResetScrollFunction(element, cfg.enableScrollToElement);
    const result = tryMoveFocus(element, cfg);
@@ -280,6 +282,7 @@ function focusInner(
 }
 
 function fireActivationEvents(target: Element, relatedTarget: Element): void {
+   // @ts-ignore
    notifyActivationEvents(target, relatedTarget, false);
 }
 
