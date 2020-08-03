@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_base/HTML/Wait" />
 
-import Control from '../Control';
-
+import Control, { TemplateFunction } from 'UI/_base/Control';
+// tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Wait');
 import { headDataStore } from 'UI/_base/HeadData';
@@ -20,12 +20,13 @@ const asyncTemplate: TemplateFunction = function() {
 };
 
 // Template functions should have true "stable" flag to send error on using, for example, some control instead it.
+// tslint:disable-next-line:no-string-literal
 asyncTemplate['stable'] = template['stable'];
 
 class Wait extends Control {
-   _template = asyncTemplate;
+   _template: TemplateFunction = asyncTemplate;
 
-   waitDef: Promise<any>;
+   waitDef: Promise<void>;
 
    private resolvePromise: Function = null;
    private resolvePromiseFn(): void {
