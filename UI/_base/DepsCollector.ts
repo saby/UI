@@ -4,16 +4,19 @@ import { Logger } from 'UI/Utils';
 import { controller } from 'I18n/i18n';
 
 export type IDeps = string[];
-export interface ICollectedFiles {
+export interface ICollectedFiles extends ICollectedCSS, ICollectedTemplates {
    js: string[];
+}
+export interface ICollectedCSS {
    css: {
       themedCss: string[];
       simpleCss: string[];
    };
+}
+export interface ICollectedTemplates {
    tmpl: string[];
    wml: string[];
 }
-
 interface ICollectedDeps {
    js?: {[depName: string]: IModuleInfo};
    i18n?: {[depName: string]: IModuleInfo};
