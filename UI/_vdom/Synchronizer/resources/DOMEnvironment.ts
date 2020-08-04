@@ -1,5 +1,5 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DOMEnvironment" />
-// tslint:disable:variable-name, ban-ts-ignore
+// tslint:disable:variable-name ban-ts-ignore no-any
 
 // FIXME: This module can only be referenced with ECMAScript imports/exports
 // by turning on the 'esModuleInterop' flag and referencing its default export.
@@ -15,7 +15,6 @@ import { Control } from 'UI/Base';
 import { ElementFinder, Events, BoundaryElements, focus, preventFocus, hasNoFocus, goUpByControlTree } from 'UI/Focus';
 import { TControlId, TControlStateCollback, IControlNode, IWasabyHTMLElement, TEventsObject } from '../interfaces';
 
-import { delay } from 'Types/function';
 import { mapVNode } from './VdomMarkup';
 import { setControlNodeHook, setEventHook } from './Hooks';
 import SyntheticEvent from './SyntheticEvent';
@@ -148,25 +147,6 @@ function generateClickEventFromTouchend(event: TouchEvent): any {
 
 const clickStateTarget: Array<{ target: HTMLElement, touchId: number }> = [];
 
-class QueueMixin extends Environment {
-   private queue: string[] = null;
-
-   /**
-    * Кейс: в панели идет перерисовка. Панель что-то сообщает опенеру
-    * опенер передает данные в контрол, который лежит вне панели
-    * контрол дергает _forceUpdate и попадает в очередь перерисовки панели
-    * затем панель разрушается и заказанной перерисовки контрола вне панели не случается
-    */
-   runQueue(): void {
-      if (this.queue) {
-         for (let i = 0; i < this.queue.length; i++) {
-            this.forceRebuild(this.queue[i]);
-         }
-      }
-      this.queue = null;
-   }
-}
-
 type TModifyHTMLNode = HTMLElement & Record<string, any>;
 
 interface IDires {
@@ -174,7 +154,7 @@ interface IDires {
 }
 
 // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
-export default class DOMEnvironment extends QueueMixin implements IDOMEnvironment {
+export default class DOMEnvironment extends Environment implements IDOMEnvironment {
    // FIXME: костыль для Synchronizer и DirtyChecking
    _currentDirties: IDires;
    // FIXME: костыль для UI\_focus\RestoreFocus.ts
@@ -223,10 +203,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
    }
 
    destroy(): any {
-      this.runQueue();
-
-      // @ts-ignore FIXME: Property '_haveRebuildRequest' does not exist
-      this._haveRebuildRequest = false;
+      this.forceRebuild(this._rootDOMNode.id);
       this.removeTabListener();
       // TODO раскомментить после https://online.sbis.ru/opendoc.html?guid=450170bd-6322-4c3c-b6bd-3520ce3cba8a
       // this.removeProcessiingEventHandler('focus');
@@ -551,7 +528,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          if (this._rootDOMNode.hasOwnProperty('$V') || !this._rootDOMNode.firstChild) {
             const patch = render(vnode, this._rootDOMNode, undefined, undefined, true);
          } else {
-            const patch = hydrate(vnode, this._rootDOMNode, undefined, true);
+            hydrate(vnode, this._rootDOMNode, undefined, true);
          }
       } catch (e) {
          Logger.error('Ошибка оживления Inferno', undefined, e);
@@ -1313,6 +1290,5 @@ export interface IDOMEnvironment {
    // FIXME это не должно быть публичным. Найти все ссылки и разобраться
    _rootDOMNode: TModifyHTMLNode;
    __captureEventHandler: Function;
-   _rebuildRequestStarted?: boolean;
    _haveRebuildRequest?: boolean;
 }
