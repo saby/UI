@@ -10,7 +10,12 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     isNewEnvironment: boolean = false;
     pageDeps: PageDeps;
     /** Дополнительные модули, для которых следует собрать зависимости */
-    private initDeps: Record<string, boolean> = {};
+    private initDeps: Record<string, boolean> = {
+        'Types/collection': true,
+        'Types/entity': true,
+        'Types/source': true,
+        'Types/di': true
+    };
     private resolve: Function = null;
     // tslint:disable-next-line:no-any
     private renderPromise: Promise<ICollectedDeps> = null;
