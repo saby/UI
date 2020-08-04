@@ -134,7 +134,6 @@ define([
             {
                control: FocusTestControls.ConditionContent,
                name: 'restore focus after remove',
-               async: true,
                checkFn: function(done) {
                   try {
                      control.afterUpdateCallback = function() {
