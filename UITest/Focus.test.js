@@ -138,8 +138,10 @@ define([
                checkFn: function(done) {
                   try {
                      control.afterUpdateCallback = function() {
-                        assert.strictEqual(document.activeElement, div);
-                        done();
+                        setTimeout(function() {
+                           assert.strictEqual(document.activeElement, div);
+                           done();
+                        }, 0);
                      };
                      var container = document.getElementById('start');
                      assert.ok(Focus.activate(container));
