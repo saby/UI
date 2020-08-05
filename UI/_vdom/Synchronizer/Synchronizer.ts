@@ -465,38 +465,42 @@ class VDomSynchronizer {
          }
       }
 
-      // If control's environment was found, destroy it and the control itself.
-      // Do this after loop, because destroying the control will destroy its children, that
-      // could also call unMountControlFromDOM, which would change the _rootNodes array length
-      // and lead to errors. For example, after control.destroy(), `i` could be out of bounds,
-      // because child control environments were removed
-      if (foundControlEnvironment) {
-         //@ts-ignore private
-         if (!control._destroyed) {
-            let vnode;
-            if (foundControlNode) {
-               vnode = foundControlNode.vnode || foundControlNode;
-               //@ts-ignore используется runtime hack
-               onStartCommit(OperationType.DESTROY, control._moduleName, vnode);
-            }
+      if (!foundControlEnvironment) {
+         return;
+      }
+
+      //@ts-ignore private
+      const isControlDestroyed = control._destroyed;
+      if (!foundControlNode) {
+         if (!isControlDestroyed) {
             control.destroy();
-            if (foundControlNode) {
-               onEndCommit(vnode);
-            }
-         }
-         if (foundControlNode) {
-            // We have to make sure that all of the child controls are destroyed, in case
-            // synchronizer didn't run against this environment when destroy() was called
-            // for the root control
-            destroyReqursive(foundControlNode, foundControlEnvironment);
-            onEndSync(foundControlNode.rootId)
          }
          //@ts-ignore используется runtime hack
          control._mounted = false;
          //@ts-ignore используется runtime hack
          control._unmounted = true;
          foundControlEnvironment.destroy();
+         return;
       }
+
+      const vnode = foundControlNode.vnode || foundControlNode;
+      if (!isControlDestroyed) {
+         //@ts-ignore используется runtime hack
+         onStartCommit(OperationType.DESTROY, control._moduleName, vnode);
+      }
+      //@ts-ignore DirtyChecking ставит флаг, которого нет в API контрола.
+      if (!control.__$destroyFromDirtyChecking) {
+         destroyReqursive(foundControlNode, foundControlEnvironment);
+      }
+      if (!isControlDestroyed) {
+         onEndCommit(vnode);
+      }
+      onEndSync(foundControlNode.rootId);
+      //@ts-ignore используется runtime hack
+      control._mounted = false;
+      //@ts-ignore используется runtime hack
+      control._unmounted = true;
+      foundControlEnvironment.destroy();
    }
 
    private __requestRebuild(controlId: string): void {
