@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/codegen/Compatible" />
+/// <amd-module name="UI/_builder/Tmpl/codegen/Compatible" />
 
 /**
  * @author Крылов М.А.

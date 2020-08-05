@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/codegen/TClosure" />
+/// <amd-module name="UI/_builder/Tmpl/codegen/TClosure" />
 
 /**
  * @author Крылов М.А.

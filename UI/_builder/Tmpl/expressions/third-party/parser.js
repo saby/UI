@@ -71,7 +71,7 @@
     recoverable: (boolean: TRUE when the parser has a error recovery rule available for this particular error)
   }
 */
-define('View/Builder/Tmpl/expressions/third-party/parser', function() {
+define('UI/_builder/Tmpl/expressions/third-party/parser', function() {
    /**
     * @author Крылов М.А.
     */

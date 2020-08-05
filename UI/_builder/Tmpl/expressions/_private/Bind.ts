@@ -1,20 +1,20 @@
-/// <amd-module name="View/Builder/Tmpl/expressions/_private/Bind" />
+/// <amd-module name="UI/_builder/Tmpl/expressions/_private/Bind" />
 
 /**
  * @author Крылов М.А.
  */
 
-import { processExpressions } from 'View/Builder/Tmpl/expressions/_private/Process';
+import { processExpressions } from 'UI/_builder/Tmpl/expressions/_private/Process';
 import {
    EventChain,
    EventNode,
    IAttributeValue,
    prepareEventChain
-} from 'View/Builder/Tmpl/expressions/_private/Event';
+} from 'UI/_builder/Tmpl/expressions/_private/Event';
 import { BindExpressionVisitor } from './Nodes';
 
-import * as FSC from 'View/Builder/Tmpl/modules/data/utils/functionStringCreator';
-import * as templates from 'View/Builder/Tmpl/codegen/templates';
+import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
+import * as templates from 'UI/_builder/Tmpl/codegen/templates';
 
 // TODO: Убрать после тестирования
 const USE_VISITORS = true;

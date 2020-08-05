@@ -1,10 +1,10 @@
-define('View/Builder/Tmpl/htmlparser', [
-   'View/Builder/Tmpl/html/Parser',
-   'View/Builder/Tmpl/utils/ErrorHandler',
-   'View/Builder/Tmpl/core/Tags',
+define('UI/_builder/Tmpl/htmlparser', [
+   'UI/_builder/Tmpl/html/Parser',
+   'UI/_builder/Tmpl/utils/ErrorHandler',
+   'UI/_builder/Tmpl/core/Tags',
    'Core/htmlparser2',
-   'View/Builder/Tmpl/handlers/third-party/dom',
-   'View/Builder/Tmpl/checkDomHandler',
+   'UI/_builder/Tmpl/handlers/third-party/dom',
+   'UI/_builder/Tmpl/checkDomHandler',
    'UI/Utils',
 ], function(
    Parser,

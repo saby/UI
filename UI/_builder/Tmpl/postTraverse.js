@@ -1,5 +1,5 @@
-define('View/Builder/Tmpl/postTraverse', [
-   'View/Builder/Tmpl/expressions/_private/DirtyCheckingPatch',
+define('UI/_builder/Tmpl/postTraverse', [
+   'UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch',
    'Core/helpers/Array/uniq'
 ], function(
    dirtyCheckingPatch,

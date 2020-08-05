@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/html/MarkupVisitor" />
+/// <amd-module name="UI/_builder/Tmpl/html/MarkupVisitor" />
 
 /**
  * @author Крылов М.А.

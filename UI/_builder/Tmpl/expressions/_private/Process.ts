@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/expressions/_private/Process" />
+/// <amd-module name="UI/_builder/Tmpl/expressions/_private/Process" />
 
 /**
  * @author Крылов М.А.
@@ -7,11 +7,11 @@
 import { Logger } from 'UI/Utils';
 import { LocalizationNode, TextNode, VariableNode } from './Statement';
 import { ProgramNode, ExpressionVisitor } from './Nodes';
-import { genEscape } from 'View/Builder/Tmpl/codegen/Generator';
-import { genSanitize } from 'View/Builder/Tmpl/codegen/TClosure';
+import { genEscape } from 'UI/_builder/Tmpl/codegen/Generator';
+import { genSanitize } from 'UI/_builder/Tmpl/codegen/TClosure';
 
-import * as common from 'View/Builder/Tmpl/modules/utils/common';
-import * as FSC from 'View/Builder/Tmpl/modules/data/utils/functionStringCreator';
+import * as common from 'UI/_builder/Tmpl/modules/utils/common';
+import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
 const EMPTY_STRING = '';
 

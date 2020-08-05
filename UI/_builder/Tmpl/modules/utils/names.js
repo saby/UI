@@ -1,5 +1,5 @@
 define('UI//Tmpl/modules/utils/names', [
-   'View/Builder/Tmpl/modules/utils/common'
+   'UI/_builder/Tmpl/modules/utils/common'
 ], function(common) {
    'use strict';
 

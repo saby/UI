@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/expressions/_private/Nodes" />
+/// <amd-module name="UI/_builder/Tmpl/expressions/_private/Nodes" />
 
 /**
  * @author Крылов М.А.
@@ -6,11 +6,11 @@
 
 import { Logger } from 'UI/Utils';
 
-import * as FSC from 'View/Builder/Tmpl/modules/data/utils/functionStringCreator';
-import * as common from 'View/Builder/Tmpl/modules/utils/common';
+import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
+import * as common from 'UI/_builder/Tmpl/modules/utils/common';
 import * as decorators from './Decorators';
-import { getDotsScopeSubstitution } from 'View/Builder/Tmpl/codegen/Compatible';
-import { genGetter, genSetter, genDecorate } from 'View/Builder/Tmpl/codegen/TClosure';
+import { getDotsScopeSubstitution } from 'UI/_builder/Tmpl/codegen/Compatible';
+import { genGetter, genSetter, genDecorate } from 'UI/_builder/Tmpl/codegen/TClosure';
 
 // tslint:disable:max-classes-per-file
 // Намеренно отключаю правило max-classes-per-file,

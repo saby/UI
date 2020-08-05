@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/expressions/_private/Statement" />
+/// <amd-module name="UI/_builder/Tmpl/expressions/_private/Statement" />
 
 /**
  * @author Крылов М.А.

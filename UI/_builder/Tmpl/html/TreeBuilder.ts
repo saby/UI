@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/html/TreeBuilder" />
+/// <amd-module name="UI/_builder/Tmpl/html/TreeBuilder" />
 
 /**
  * @author Крылов М.А.

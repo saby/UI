@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/html/ContentModel" />
+/// <amd-module name="UI/_builder/Tmpl/html/ContentModel" />
 
 /**
  * HTML Element content model.

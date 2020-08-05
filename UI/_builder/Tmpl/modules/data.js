@@ -1,11 +1,11 @@
-define('View/Builder/Tmpl/modules/data', [
-   'View/Builder/Tmpl/modules/data/string',
-   'View/Builder/Tmpl/modules/data/array',
-   'View/Builder/Tmpl/modules/data/object',
-   'View/Builder/Tmpl/modules/data/number',
-   'View/Builder/Tmpl/modules/data/boolean',
-   'View/Builder/Tmpl/modules/data/function',
-   'View/Builder/Tmpl/modules/data/value'
+define('UI/_builder/Tmpl/modules/data', [
+   'UI/_builder/Tmpl/modules/data/string',
+   'UI/_builder/Tmpl/modules/data/array',
+   'UI/_builder/Tmpl/modules/data/object',
+   'UI/_builder/Tmpl/modules/data/number',
+   'UI/_builder/Tmpl/modules/data/boolean',
+   'UI/_builder/Tmpl/modules/data/function',
+   'UI/_builder/Tmpl/modules/data/value'
 ], function injectedDataForceLoader(str, arr, obj, num, bool, func, value) {
    'use strict';
 

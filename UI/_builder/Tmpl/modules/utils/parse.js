@@ -1,10 +1,10 @@
-define('View/Builder/Tmpl/modules/utils/parse', [
-   'View/Builder/Tmpl/modules/data/utils/functionStringCreator',
-   'View/Builder/Tmpl/modules/utils/common',
-   'View/Builder/Tmpl/expressions/_private/Process',
-   'View/Builder/Tmpl/expressions/_private/Bind',
-   'View/Builder/Tmpl/expressions/_private/Event',
-   'View/Builder/Tmpl/codegen/TClosure',
+define('UI/_builder/Tmpl/modules/utils/parse', [
+   'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
+   'UI/_builder/Tmpl/modules/utils/common',
+   'UI/_builder/Tmpl/expressions/_private/Process',
+   'UI/_builder/Tmpl/expressions/_private/Bind',
+   'UI/_builder/Tmpl/expressions/_private/Event',
+   'UI/_builder/Tmpl/codegen/TClosure',
    'UI/Utils'
 ], function straightFromFileLoader(
    FSC,

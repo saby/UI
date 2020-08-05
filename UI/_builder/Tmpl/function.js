@@ -1,20 +1,20 @@
 define('UI/_builder/Tmpl/function', [
    'UI/_builder/Tmpl/expressions/_private/Process',
-   'View/Builder/Tmpl/expressions/_private/Event',
-   'View/Builder/Tmpl/modules/utils/common',
-   'View/Builder/Tmpl/modules/if',
-   'View/Builder/Tmpl/modules/for',
-   'View/Builder/Tmpl/modules/else',
-   'View/Builder/Tmpl/modules/partial',
-   'View/Builder/Tmpl/modules/template',
-   'View/Builder/Tmpl/modules/utils/tag',
-   'View/Builder/Tmpl/modules/data/utils/functionStringCreator',
+   'UI/_builder/Tmpl/expressions/_private/Event',
+   'UI/_builder/Tmpl/modules/utils/common',
+   'UI/_builder/Tmpl/modules/if',
+   'UI/_builder/Tmpl/modules/for',
+   'UI/_builder/Tmpl/modules/else',
+   'UI/_builder/Tmpl/modules/partial',
+   'UI/_builder/Tmpl/modules/template',
+   'UI/_builder/Tmpl/modules/utils/tag',
+   'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
    'UI/Utils',
-   'View/Builder/Tmpl/modules/utils/parse',
+   'UI/_builder/Tmpl/modules/utils/parse',
    'Core/helpers/Function/shallowClone',
-   'View/Builder/Tmpl/codegen/templates',
-   'View/Builder/Tmpl/codegen/Generator',
-   'View/Builder/Tmpl/codegen/TClosure'
+   'UI/_builder/Tmpl/codegen/templates',
+   'UI/_builder/Tmpl/codegen/Generator',
+   'UI/_builder/Tmpl/codegen/TClosure'
 ], function processingModule(
    Process,
    eventExpressions,
@@ -253,7 +253,7 @@ define('UI/_builder/Tmpl/function', [
             func.includedFn = this.includedFn;
             func.functionNames = this.functionNames;
          } catch (error) {
-            uiUtils.Logger.info('[View/Builder/Tmpl/function:getFunction()] generating function: \n' + str);
+            uiUtils.Logger.info('[UI/_builder/Tmpl/function:getFunction()] generating function: \n' + str);
             throw error;
          }
          this.setFunctionName(func, undefined, this.fileName);

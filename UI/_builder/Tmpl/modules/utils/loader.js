@@ -1,9 +1,9 @@
-define('View/Builder/Tmpl/modules/utils/loader', [
+define('UI/_builder/Tmpl/modules/utils/loader', [
    'require',
    'UI/Utils',
    'Core/Deferred',
-   'View/Builder/Tmpl/modules/utils/common',
-   'View/Builder/Tmpl/modules/utils/names',
+   'UI/_builder/Tmpl/modules/utils/common',
+   'UI/_builder/Tmpl/modules/utils/names',
 ], function straightFromFileLoader(require, UIUtils, Deferred, common, names) {
    'use strict';
 

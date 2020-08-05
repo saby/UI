@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/expressions/_private/Parser" />
+/// <amd-module name="UI/_builder/Tmpl/expressions/_private/Parser" />
 
 /**
  * @author Крылов М.А.

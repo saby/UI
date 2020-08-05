@@ -1,6 +1,6 @@
-define('View/Builder/Tmpl/modules/data/utils/dataTypesCreator', [
-   'View/Builder/Tmpl/modules/data/utils/functionStringCreator',
-   'View/Builder/Tmpl/codegen/TClosure'
+define('UI/_builder/Tmpl/modules/data/utils/dataTypesCreator', [
+   'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
+   'UI/_builder/Tmpl/codegen/TClosure'
 ], function(FSC, TClosure) {
    'use strict';
 

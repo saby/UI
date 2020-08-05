@@ -1,4 +1,4 @@
-define('View/Builder/Tmpl/modules/data/boolean', function() {
+define('UI/_builder/Tmpl/modules/data/boolean', function() {
    'use strict';
 
    /**

@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/expressions/_private/DirtyCheckingPatch" />
+/// <amd-module name="UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch" />
 
 /**
  * @author Крылов М.А.
@@ -9,9 +9,9 @@ import { isEvent } from './Event';
 import { LocalizationNode, processProperty, TextNode, VariableNode } from './Statement';
 import { IdentifierNode, Walker } from './Nodes';
 
-import * as dataTypesCreator from 'View/Builder/Tmpl/modules/data/utils/dataTypesCreator';
-import * as tagUtils from 'View/Builder/Tmpl/modules/utils/tag';
-import * as FSC from 'View/Builder/Tmpl/modules/data/utils/functionStringCreator';
+import * as dataTypesCreator from 'UI/_builder/Tmpl/modules/data/utils/dataTypesCreator';
+import * as tagUtils from 'UI/_builder/Tmpl/modules/utils/tag';
+import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
 // This module can only be referenced with ECMAScript imports/exports
 // by turning on the 'esModuleInterop' flag and referencing its default export.

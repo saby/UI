@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/expressions/_private/i18n" />
+/// <amd-module name="UI/_builder/Tmpl/expressions/_private/i18n" />
 
 /**
  * @author Крылов М.А.

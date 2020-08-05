@@ -1,5 +1,5 @@
-define('View/Builder/Tmpl/modules/data/utils/functionStringCreator', [
-   'View/Builder/Tmpl/codegen/TClosure'
+define('UI/_builder/Tmpl/modules/data/utils/functionStringCreator', [
+   'UI/_builder/Tmpl/codegen/TClosure'
 ], function(TClosure) {
    'use strict';
 
