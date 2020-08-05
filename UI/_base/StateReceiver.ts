@@ -41,21 +41,21 @@ class StateReceiver implements IStateReceiver {
    private deserialized: any = {};
 
    serialize(): ISerializedType {
-      let slr;
+      const slr = new Serializer();
       const serializedMap = {};
       const allAdditionalDeps = {};
       const allRecStates = this.receivedStateObjectsArray;
-      for (const key in allRecStates) {
-         if (allRecStates.hasOwnProperty(key)) {
-            const receivedState = allRecStates[key].getState();
-            if (receivedState) {
-               serializedMap[key] = receivedState;
-            }
+      Object.keys(allRecStates).forEach((key) => {
+         const { receivedState, moduleName } = allRecStates[key].getState();
+         if (!receivedState) { return; }
+         try {
+            serializedMap[key] = JSON.stringify(receivedState, slr.serialize);
+         } catch (e) {
+            Logger.error(`Ошибка сериализации состояния экземпляра ${moduleName || key}`);
+            delete serializedMap[key];
          }
-      }
-
-      slr = new Serializer();
-      let serializedState = JSON.stringify(serializedMap, slr.serialize);
+      });
+      let serializedState = JSON.stringify(serializedMap);
       Common.componentOptsReArray.forEach(
          (re): void => {
             serializedState = serializedState.replace(re.toFind, re.toReplace);
