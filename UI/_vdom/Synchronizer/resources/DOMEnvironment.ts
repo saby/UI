@@ -32,7 +32,7 @@ import * as SwipeController from './SwipeController';
 import {
    onStartSync,
    onEndSync
-} from 'UI/DevtoolsHook';
+} from './DevToolsController';
 import { VNode, render } from 'Inferno/third-party/index';
 import { hydrate } from 'Inferno/third-party/hydrate';
 
