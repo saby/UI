@@ -10,9 +10,12 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     isNewEnvironment: boolean = false;
     pageDeps: PageDeps;
     /** Дополнительные модули, для которых следует собрать зависимости */
-    private initDeps: Record<string, boolean> = {};
-    /** Дополнительные модули, которые следует грузить отложенно */
-    private lazyInitDeps: Record<string, boolean> = {};
+    private initDeps: Record<string, boolean> = {
+        'Types/collection': true,
+        'Types/entity': true,
+        'Types/source': true,
+        'Types/di': true
+    };
     private resolve: Function = null;
     // tslint:disable-next-line:no-any
     private renderPromise: Promise<ICollectedDeps> = null;
@@ -44,11 +47,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     }
 
     /* toDO: StateRec.register */
-    pushDepComponent(componentName: string, lazyLoading: boolean = false): void {
-        if (lazyLoading) {
-            this.lazyInitDeps[componentName] = true;
-            return;
-        }
+    pushDepComponent(componentName: string): void {
         this.initDeps[componentName] = true;
     }
 
@@ -71,22 +70,22 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             if (!this.resolve) {
                 return;
             }
-            const { additionalDeps: rsDeps, serialized: rsSerialized } = getSerializedData();
-            const prevDeps = Object.keys(rsDeps);
-            const files = this.pageDeps.collect(prevDeps.concat(Object.keys(this.initDeps)), this.unpackDeps);
+            const { additionalDeps, serialized: rsSerialized } = getSerializedData();
+            // tslint:disable-next-line:prefer-object-spread не создаем новый объект производительности ради
+            const deps = Object.keys(Object.assign(additionalDeps, this.initDeps));
+            const { js, css, wml, tmpl } = this.pageDeps.collect(deps, this.unpackDeps);
             // некоторые разработчики завязываются на порядок css, поэтому сначала css переданные через links
-            const simpleCss = this.includedResources.links.concat(files.css.simpleCss);
+            const simpleCss = this.includedResources.links.concat(css.simpleCss);
             // TODO нельзя слить ссылки и имена модулей т.к LinkResolver портит готовые ссылки
             // TODO временно прокидываю их раздельно
             this.resolve({
                 scripts: this.includedResources.scripts, // готовые ссылки на js
-                js: files.js, // названия js модулей
-                css: { simpleCss, themedCss: files.css.themedCss },
-                tmpl: files.tmpl,
-                wml: files.wml,
+                js, // названия js модулей
+                css: { simpleCss, themedCss: css.themedCss },
+                tmpl,
+                wml,
                 rsSerialized,
-                rtpackModuleNames: this.unpackDeps,
-                additionalDeps: prevDeps.concat(Object.keys(this.lazyInitDeps))
+                rtpackModuleNames: this.unpackDeps
             });
             this.resolve = null;
         });
