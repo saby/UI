@@ -630,9 +630,9 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
 
          // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
          newRootCntNode.environment._rebuildRequestStarted = false;
-         // @ts-ignore FIXME: Property 'runQueue' does not exist
-         newRootCntNode.environment.runQueue();
          delay(() => {
+            // @ts-ignore FIXME: Property 'runQueue' does not exist
+            newRootCntNode.environment.runQueue();
             onEndSync(newRootCntNode.rootId);
          });
       }
