@@ -4,7 +4,6 @@
 import { logger } from "Application/Env";
 import { DirtyKind, rebuildNode, createNode, destroyReqursive, IMemoNode } from './resources/DirtyChecking';
 import DOMEnvironment, { IDOMEnvironment } from './resources/DOMEnvironment';
-import { delay } from 'Types/function';
 // @ts-ignore
 import * as isEmptyObject from 'Core/helpers/Object/isEmpty';
 // @ts-ignore
@@ -12,10 +11,7 @@ import * as Serializer from 'Core/Serializer';
 import { Set } from 'Types/shim';
 import { Control } from 'UI/Base';
 import { Common, Vdom } from 'View/Executor/Utils';
-
-// @ts-ignore
-import { Logger } from 'UI/Utils';
-import { IControlNodeOptions, IControlNode, IWasabyHTMLElement } from './interfaces';
+import { IControlNodeOptions, IControlNode, TControlId, IWasabyHTMLElement } from './interfaces';
 
 import {
    injectHook,
@@ -36,11 +32,6 @@ import { restoreFocus } from 'UI/Focus';
    // A number of rebuild iterations we can run, before we assume that
    // it's stuck in an infinite loop
 const MAX_REBUILD = 50;
-   // A number of rebuild iterations to run with view logs enabled if it is
-   // stuck in an infinite loop, before throwing an error. We should do
-   // multiple iterations to see if the components rebuild are different
-   // each time or the same
-const MAX_REBUILD_LOGGED_ITERS = 2;
 
 injectHook();
 
@@ -52,11 +43,6 @@ function forEachNodeParents(node: IControlNode, fn: (node:IControlNode) => void)
    }
 }
 
-function updateCurrentDirties(environment: IDOMEnvironment) {
-   environment._currentDirties = environment._nextDirties;
-   environment._nextDirties = {};
-}
-
 function checkIsControlNodesParentDestroyed(controlNode: any) {
    return (
       controlNode.control &&
@@ -66,28 +52,31 @@ function checkIsControlNodesParentDestroyed(controlNode: any) {
    );
 }
 
-// class RebuildQueue {
-//    private nodes: IControlNode[];
+class RebuildQueue {
+   private ids: TControlId[];
+   private setIds: Set<TControlId> = new Set();
 
-//    constructor(private env: DOMEnvironment) {
-//    }
+   constructor(private sync: (node: TControlId) => Promise<void>) {
+      this.run = this.run.bind(this);
+   }
 
-//    add(node: IControlNode) {
-//       // @ts-ignore
-//       if (node.control._destroyed ||
-//          node.environment !== this.env) {
-//          return;
-//       }
-//       this.nodes.push(node);
-//    }
+   add(node: IControlNode) {
+      if (this.setIds.has(node.id)) {
+         return;
+      }
+      this.ids.push(node.id);
+   }
 
-//    run() {
-//       while (this.nodes.length > 0) {
-//          let rebuild = new Rebuild(this.nodes.shift());
-//          rebuild.run().then()
-//       }
-//    }
-// }
+   run() {
+      const id = this.ids.shift();
+      this.setIds.delete(id);
+      // @ts-ignore
+      if (node.control._destroyed || node.environment !== this.env) {
+         return this.run();
+      }
+      this.sync(id).then(this.run);
+   }
+}
 
 // Идентификатор для корней, который используется в девтулзах.
 // Нельзя использовать inst_id, т.к. замеры начинаются раньше, чем создаётся корень
@@ -109,8 +98,11 @@ type TRequredControl = Control & {
 class VDomSynchronizer {
    private _rootNodes: IControlNode[] = [];
    _controlNodes: Record<string, IControlNode> = {};
+   private __queue: RebuildQueue;
 
    constructor() {
+      this.__requestRebuild = this.__requestRebuild.bind(this);
+      this.__queue = new RebuildQueue(this.__requestRebuild);
    }
 
    private __rebuildRoots(rootRebuildVal: IMemoNode): Promise<void> {
@@ -171,7 +163,8 @@ class VDomSynchronizer {
       let rootId = currentRoot.rootId;
       onStartSync(rootId);
 
-      updateCurrentDirties(currentRoot.environment);
+      currentRoot.environment._currentDirties = currentRoot.environment._nextDirties;
+      currentRoot.environment._nextDirties = {};
       let rootsRebuild: IMemoNode | PromiseLike<IMemoNode> = rebuildNode(currentRoot.environment, currentRoot, undefined, true);
 
       if ('then' in rootsRebuild) {
@@ -468,32 +461,33 @@ class VDomSynchronizer {
       }
    }
 
-   private __requestRebuild(controlId: string): void {
-      /* TODO нужно при каждом запросе постройки добавлять Task в цепочку promise */
+   private __requestRebuild(controlId: string): Promise<void> {
+      return new Promise((resolve) => {
+         //контрол здесь точно должен найтись, или быть корневым - 2 варианта попадания сюда:
+         //    из конструктора компонента (тогда его нет, но тогда синхронизация активна) - тогда не нужно с ним ничего делать
+         //    из внутреннего события компонента, меняющего его состояние, и вызывающего requestRebuild
+         let controlNode = this._controlNodes[controlId];
 
+         if (!controlNode) {
+            console.debug('try rebuild deleted control', controlId);
+            return;
+         }
 
-      //контрол здесь точно должен найтись, или быть корневым - 2 варианта попадания сюда:
-      //    из конструктора компонента (тогда его нет, но тогда синхронизация активна) - тогда не нужно с ним ничего делать
-      //    из внутреннего события компонента, меняющего его состояние, и вызывающего requestRebuild
-      let controlNode = this._controlNodes[controlId];
+         controlNode.environment._haveRebuildRequest = true;
+         controlNode.environment._nextDirties[controlId] |= DirtyKind.DIRTY;
 
-      if (!controlNode) {
-         console.debug('try rebuild deleted control', controlId);
-         return;
-      }
+         forEachNodeParents(controlNode, function (parent: IControlNode) {
+            controlNode.environment._nextDirties[parent.id] |= DirtyKind.CHILD_DIRTY;
+         });
 
-      controlNode.environment._nextDirties[controlId] |= DirtyKind.DIRTY;
-
-      forEachNodeParents(controlNode, function (parent: IControlNode) {
-         controlNode.environment._nextDirties[parent.id] |= DirtyKind.CHILD_DIRTY;
-      });
-      delay(() => {
-         restoreFocus(controlNode.control, () => {
-            controlNode.environment._haveRebuildRequest = true;
+         // TODO необходимо разделить restoreFocus разделить на storeFocuse/restoreFocus и убрать callback
+         const syncRebuild = () => {
             this.__rebuild(controlNode).then(() => {
                controlNode.environment._haveRebuildRequest = false;
+               resolve();
             });
-         });
+         };
+         restoreFocus(controlNode.control, syncRebuild);
          controlNode.environment.addTabListener();
       });
    }
