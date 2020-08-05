@@ -8,7 +8,11 @@
                'Application/Initializer',
                'Application/Env',
                'UI/Base',
-               'Core/app-init'
+               'Core/app-init',
+               'Types/collection',
+               'Types/entity',
+               'Types/source',
+               'Types/di'
             ], function (polyfill, Env, AppInit, AppEnv, UI) {
                window.startContextData = { AppData: new UI.AppData({}) };
                Object.assign(Env.constants, window.wsConfig);
