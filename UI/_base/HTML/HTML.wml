@@ -35,11 +35,11 @@
                  src="{{getResourceUrl(resourceRoot + 'router.js')}}"></script>
          <ws:if data="{{ _options.builder }}">
             <script key="config" type="text/javascript"
-                    src="{{getResourceUrl(resourceRoot + 'WS.Core/ext/requirejs/config.js')}}"></script>
+                    src="{{getResourceUrl(resourceRoot + 'RequireJsLoader/config.js')}}"></script>
          </ws:if>
          <ws:else>
             <script key="config" type="text/javascript"
-                    src="{{ linkResolver.resolveLink('WS.Core/ext/requirejs/config', 'js') }}"></script>
+                    src="{{ linkResolver.resolveLink('RequireJsLoader/config', 'js') }}"></script>
          </ws:else>
 
 
