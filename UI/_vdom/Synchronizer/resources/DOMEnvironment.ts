@@ -11,6 +11,9 @@ import { _IDOMEnvironment } from 'UI/Focus';
 // @ts-ignore FIXME: Cannot find this module
 import * as isNewEnvironment from 'Core/helpers/isNewEnvironment';
 
+// @ts-ignore FIXME: Cannot find this module
+import * as needToBeCompatible from 'Core/helpers/Hcontrol/needToBeCompatible';
+
 import { constants, detection } from 'Env/Env';
 import { Logger } from 'UI/Utils';
 import { Control } from 'UI/Base';
@@ -87,16 +90,8 @@ function createRecursiveVNodeMapper(fn: any): any {
    };
 }
 
-function controlNodesCompoundReduce(prev: any, next: any): any {
-   return !(prev && next);
-}
-
 function atLeastOneControlReduce(prev: any, next: any): any {
    return next.control;
-}
-
-function isControlNodesCompound(controlNodes: any): any {
-   return !controlNodes.reduce(controlNodesCompoundReduce, true);
 }
 
 function atLeasOneControl(controlNodes: any): any {
@@ -541,7 +536,6 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       onStartSync(newRootCntNode.rootId);
 
       const vnode = this.decorateRootNode(newVNnode);
-      let hasCompound;
       let control;
       let patch;
       const newRootDOMNode = undefined;
@@ -565,7 +559,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          Logger.error('Ошибка оживления Inferno', undefined, e);
       }
 
-      hasCompound = isControlNodesCompound([newRootCntNode]);
+      const hasCompound = needToBeCompatible(newRootCntNode.control);
 
       if (hasCompound) {
          control = atLeasOneControl([newRootCntNode]);
@@ -608,6 +602,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
                }
             }
             mountMethodsCaller.afterUpdate(newRootCntNode, rebuildChanges);
+
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
             newRootCntNode.environment._rebuildRequestStarted = false;
             // @ts-ignore FIXME: Property 'runQueue' does not exist
@@ -633,11 +628,14 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
          mountMethodsCaller.beforePaint(newRootCntNode, rebuildChanges);
          mountMethodsCaller.afterUpdate(newRootCntNode, rebuildChanges);
-         // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-         newRootCntNode.environment._rebuildRequestStarted = false;
-         // @ts-ignore FIXME: Property 'runQueue' does not exist
-         newRootCntNode.environment.runQueue();
-         onEndSync(newRootCntNode.rootId);
+
+         delay(() => {
+            // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
+            newRootCntNode.environment._rebuildRequestStarted = false;
+            // @ts-ignore FIXME: Property 'runQueue' does not exist
+            newRootCntNode.environment.runQueue();
+            onEndSync(newRootCntNode.rootId);
+         });
       }
 
       return patch;
