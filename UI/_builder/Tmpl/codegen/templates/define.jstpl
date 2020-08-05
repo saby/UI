@@ -1,0 +1,34 @@
+define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEPENDENCIES#*/, function(Executor, rk) {
+   function debug() {
+      debugger;
+   }
+   var thelpers = Executor.TClosure;
+   var deps = Array.prototype.slice.call(arguments);
+   var depsLocal = { };
+   var includedTemplates = { };
+
+   /*#DELETE IT START#*/
+   var tclosure=deps[0].TClosure;
+   var rk=deps[1];
+   var _deps = { };
+   /*#DELETE IT END#*/
+
+   /*#LOCAL_DEPENDENCIES#*/
+   /*#PRIVATE_TEMPLATES#*/
+   /*#INCLUDED_TEMPLATES#*/
+
+   var templateFunction = /*#TEMPLATE#*/;
+   templateFunction.stable = true;
+   templateFunction.reactiveProps = /*#REACTIVE_PROPERTIES#*/;
+
+   /*#DELETE IT START#*/
+   templateFunction.toJSON = function() {
+      return {
+         $serialized$: 'func',
+         module: '/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/'
+      };
+   };
+   /*#DELETE IT END#*/
+
+   return templateFunction;
+});

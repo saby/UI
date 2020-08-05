@@ -1,0 +1,9 @@
+(function f2(data, attr) {
+  var key = thelpers.validateNodeKey(attr && attr.key);
+  thelpers.prepareAttrsForFocus(attr && attr.attributes, data);
+  var defCollection = {
+    id: [],
+    def: undefined
+  };
+  /*#BODY#*/
+})

@@ -1,0 +1,13 @@
+(function (self) {
+   var f = (function () {
+      var event = arguments[0];
+      var res = /*#HANDLER#*/ .apply( /*#OBJECT_LINK#*/ , arguments);
+      if(res !== undefined) {
+         event.result = res;
+      }
+   });
+   f = f.bind(self);
+   f.control = self;
+   f.isControlEvent = /*#IS_CONTROL#*/ ;
+   return f;
+})(viewController)

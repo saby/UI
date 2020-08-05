@@ -1,0 +1,7 @@
+(new(function () {
+   var scope = Object.create(data);
+   scope.viewController = viewController;
+   var func = ( /*#TEMPLATE#*/ );
+   this.func = thelpers.makeFunctionSerializable(func, scope);
+   /*#INTERNAL#*/
+})).func
