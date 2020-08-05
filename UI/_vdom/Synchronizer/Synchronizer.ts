@@ -473,6 +473,7 @@ class VDomSynchronizer {
       const isControlDestroyed = control._destroyed;
       if (!foundControlNode) {
          if (!isControlDestroyed) {
+            (control as any)._isDestroyedFromCore = true;
             control.destroy();
          }
          //@ts-ignore используется runtime hack

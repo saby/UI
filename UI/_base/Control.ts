@@ -484,6 +484,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    destroy(): void {
       this._destroyed = true;
 
+      if (!(this as any)._isDestroyedFromCore) {
+         Logger.error('Вызывать destroy вне ядра запрещено. Используйте UI/Vdom:Synchroniser.unMountControlFromDOM для уничтожения контрола', this);
+     }
+
       // освобождаем сложные реактивные свойства, чтобы их вновь можно было регистрировать как реактивные
       // для других экземпляров
       ReactiveObserver.releaseProperties(this);

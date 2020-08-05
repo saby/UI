@@ -515,6 +515,7 @@ export function destroyReqursive(childControlNode, environment) {
             if (instanceCtr) {
                delay(function () {
                   if (!instanceCtr._destroyed) {
+                     instanceCtr._isDestroyedFromCore = true;
                      instanceCtr.destroy();
                   }
                });
@@ -535,6 +536,7 @@ export function destroyReqursive(childControlNode, environment) {
          // этого не должно произойти, иначе синхронизатор упадет
          if (!childControlNode.control._destroyed) {
             childControlNode.control.__$destroyFromDirtyChecking = true;
+            childControlNode.control._isDestroyedFromCore = true;
             childControlNode.control.destroy();
          }
 

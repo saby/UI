@@ -23,6 +23,7 @@
 
             var templCtr = new Control({});
             makeInstanceCompatible(templCtr);
+            templCtr._isDestroyedFromCore = true;
             templCtr.destroy();
             window.startContextData = {AppData: new AppData({})};
             var templateFn = {{ __setHTMLUnsafe(_options.builder) }};
