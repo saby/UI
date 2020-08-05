@@ -83,12 +83,14 @@ class StateReceiver implements IStateReceiver {
    deserialize(str: string | undefined): void {
       if (!str) { return; }
       const slr = new Serializer();
-      try {
-         this.deserialized = JSON.parse(str, slr.deserialize);
-      } catch (error) {
-         const message = `[UI/_base/StateReceiver:deserialize] - Deserialize, сant't deserialize ${str}`;
-         Logger.error(message, null, error);
-      }
+      Object.entries(JSON.parse(str))
+         .forEach(([key, value]: [string, string]) => {
+            try {
+               this.deserialized[key] = JSON.parse(value, slr.deserialize);
+            } catch (error) {
+               Logger.error(`Ошибка десериализации ${key} - ${value}`, null, error);
+            }
+         });
    }
 
    register(key: string, inst: any): void {
