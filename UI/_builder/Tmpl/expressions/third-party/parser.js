@@ -5059,7 +5059,7 @@ define('UI/_builder/Tmpl/expressions/third-party/parser', function() {
                this.parseError = Object.getPrototypeOf(this).parseError;
             }
 
-            function popStack(n) {
+            var popStack = function (n) {
                stack.length = stack.length - 2 * n;
                vstack.length = vstack.length - n;
                lstack.length = lstack.length - n;
@@ -5112,7 +5112,7 @@ define('UI/_builder/Tmpl/expressions/third-party/parser', function() {
 
                   // Return the rule stack depth where the nearest error rule can be found.
                   // Return FALSE when no error recovery rule was found.
-                  function locateNearestErrorRecoveryRule(state) {
+                  var locateNearestErrorRecoveryRule = function (state) {
                      var stack_probe = stack.length - 1;
                      var depth = 0;
 
