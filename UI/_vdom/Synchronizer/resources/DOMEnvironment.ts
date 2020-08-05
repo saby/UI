@@ -83,16 +83,8 @@ function createRecursiveVNodeMapper(fn: any): any {
    };
 }
 
-function controlNodesCompoundReduce(prev: any, next: any): any {
-   return !(prev && next);
-}
-
 function atLeastOneControlReduce(prev: any, next: any): any {
    return next.control;
-}
-
-function isControlNodesCompound(controlNodes: any): any {
-   return !controlNodes.reduce(controlNodesCompoundReduce, true);
 }
 
 function atLeasOneControl(controlNodes: any): any {
@@ -526,7 +518,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
       try {
          // Свойство $V вешает движок inferno. Если его нет, значит пришли с сервера.
          if (this._rootDOMNode.hasOwnProperty('$V') || !this._rootDOMNode.firstChild) {
-            const patch = render(vnode, this._rootDOMNode, undefined, undefined, true);
+            render(vnode, this._rootDOMNode, undefined, undefined, true);
          } else {
             hydrate(vnode, this._rootDOMNode, undefined, true);
          }
@@ -1290,5 +1282,6 @@ export interface IDOMEnvironment {
    // FIXME это не должно быть публичным. Найти все ссылки и разобраться
    _rootDOMNode: TModifyHTMLNode;
    __captureEventHandler: Function;
+   // FIXME флаг необходимый для системы фокусов
    _haveRebuildRequest?: boolean;
 }
