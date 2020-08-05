@@ -1,7 +1,0 @@
-(function () {
-  includedTemplates["/*#NAME#*/"] = (function (data, attr, context, isVdom) {
-    /*#BODY#*/
-  }.bind({
-    includedTemplates: includedTemplates
-  }));
-})(),

@@ -1,3 +1,0 @@
-var rk = typeof rk !== 'undefined' ? rk : (function () {
-   return this || (0, eval)('this')
-})().requirejs("i18n!/*#LOCALIZATION_MODULE#*/");

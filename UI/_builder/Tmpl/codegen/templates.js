@@ -1,24 +1,6 @@
 define('UI/_builder/Tmpl/codegen/templates', [
-   'text!UI/_builder/Tmpl/codegen/templates/define.jstpl',
-   'text!UI/_builder/Tmpl/codegen/templates/for.jstpl',
-   'text!UI/_builder/Tmpl/codegen/templates/foreach.jstpl',
-   'text!UI/_builder/Tmpl/codegen/templates/bind.jstpl',
-   'text!UI/_builder/Tmpl/codegen/templates/event.jstpl',
-   'text!UI/_builder/Tmpl/codegen/templates/head.jstpl',
-   'text!UI/_builder/Tmpl/codegen/templates/body.jstpl',
-   'text!UI/_builder/Tmpl/codegen/templates/localization.jstpl',
-   'text!UI/_builder/Tmpl/codegen/templates/stringTemplate.jstpl',
-   'text!UI/_builder/Tmpl/codegen/templates/functionTemplate.jstpl',
-   'text!UI/_builder/Tmpl/codegen/templates/objectTemplate.jstpl',
-   'text!UI/_builder/Tmpl/codegen/templates/includedTemplate.jstpl',
-   'text!UI/_builder/Tmpl/codegen/templates/privateTemplate.jstpl',
-   'text!UI/_builder/Tmpl/codegen/templates/privateTemplateHeader.jstpl',
-   'text!UI/_builder/Tmpl/codegen/templates/partialTemplate.jstpl'
-], function(
-   rawDefine, rawFor, rawForeach, rawBind, rawEvent, rawHead, rawBody, rawLocalization,
-   rawStringTemplate, rawFunctionTemplate, rawObjectTemplate, rawIncludedTemplate, rawPrivateTemplate,
-   rawPrivateTemplateHeader, rawPartialTemplate
-) {
+   'UI/_builder/Tmpl/codegen/jstpl'
+], function(jstpl) {
    'use strict';
 
    /**
@@ -38,21 +20,21 @@ define('UI/_builder/Tmpl/codegen/templates', [
    }
 
    // Предобработанные шаблоны
-   var defineTemplate = preprocessRawTemplate(rawDefine);
-   var forTemplate = preprocessRawTemplate(rawFor);
-   var foreachTemplate = preprocessRawTemplate(rawForeach);
-   var bindTemplate = preprocessRawTemplate(rawBind);
-   var eventTemplate = preprocessRawTemplate(rawEvent);
-   var headTemplate = preprocessRawTemplate(rawHead);
-   var bodyTemplate = preprocessRawTemplate(rawBody);
-   var localizationTemplate = preprocessRawTemplate(rawLocalization);
-   var stringTemplate = preprocessRawTemplate(rawStringTemplate);
-   var functionTemplate = preprocessRawTemplate(rawFunctionTemplate);
-   var objectTemplate = preprocessRawTemplate(rawObjectTemplate);
-   var includedTemplate = preprocessRawTemplate(rawIncludedTemplate);
-   var privateTemplate = preprocessRawTemplate(rawPrivateTemplate);
-   var privateTemplateHeader = preprocessRawTemplate(rawPrivateTemplateHeader);
-   var partialTemplate = preprocessRawTemplate(rawPartialTemplate);
+   var defineTemplate = preprocessRawTemplate(jstpl.DEFINE);
+   var forTemplate = preprocessRawTemplate(jstpl.FOR);
+   var foreachTemplate = preprocessRawTemplate(jstpl.FOREACH);
+   var bindTemplate = preprocessRawTemplate(jstpl.BIND);
+   var eventTemplate = preprocessRawTemplate(jstpl.EVENT);
+   var headTemplate = preprocessRawTemplate(jstpl.HEAD);
+   var bodyTemplate = preprocessRawTemplate(jstpl.BODY);
+   var localizationTemplate = preprocessRawTemplate(jstpl.LOCALIZATION);
+   var stringTemplate = preprocessRawTemplate(jstpl.STRING_TEMPLATE);
+   var functionTemplate = preprocessRawTemplate(jstpl.FUNCTION_TEMPLATE);
+   var objectTemplate = preprocessRawTemplate(jstpl.OBJECT_TEMPLATE);
+   var includedTemplate = preprocessRawTemplate(jstpl.INCLUDED_TEMPLATE);
+   var privateTemplate = preprocessRawTemplate(jstpl.PRIVATE_TEMPLATE);
+   var privateTemplateHeader = preprocessRawTemplate(jstpl.PRIVATE_TEMPLATE_HEADER);
+   var partialTemplate = preprocessRawTemplate(jstpl.PARTIAL_TEMPLATE);
 
    /**
     * Очистить сгенерированный текст шаблона от deprecated-блоков.
