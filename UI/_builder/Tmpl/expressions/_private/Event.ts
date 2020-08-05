@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/expressions/_private/Event" />
+/// <amd-module name="UI/_builder/Tmpl/expressions/_private/Event" />
 
 /**
  * @author Крылов М.А.
@@ -7,8 +7,8 @@
 import { VariableNode } from './Statement';
 import { EventExpressionVisitor } from './Nodes';
 
-import * as FSC from 'View/Builder/Tmpl/modules/data/utils/functionStringCreator';
-import * as templates from 'View/Builder/Tmpl/codegen/templates';
+import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
+import * as templates from 'UI/_builder/Tmpl/codegen/templates';
 
 /**
  * Паттерн обработчика события для имени атрибута.

@@ -1,12 +1,12 @@
-define('View/Builder/Tmpl', [
-   'View/Builder/Tmpl/traverse',
+define('UI/_builder/Tmpl', [
+   'UI/_builder/Tmpl/traverse',
    'UI/Utils',
-   'View/Builder/Tmpl/modules/utils/common',
-   'View/Builder/Tmpl/function',
-   'View/Builder/Tmpl/codegen/templates',
-   'View/Builder/utils/ModulePath',
-   'View/Builder/Tmpl/htmlparser',
-   'View/Builder/Tmpl/ComponentCollector'
+   'UI/_builder/Tmpl/modules/utils/common',
+   'UI/_builder/Tmpl/function',
+   'UI/_builder/Tmpl/codegen/templates',
+   'UI/_builder/utils/ModulePath',
+   'UI/_builder/Tmpl/htmlparser',
+   'UI/_builder/Tmpl/ComponentCollector'
 ], function(
    traversing,
    uiUtils,

@@ -1,4 +1,4 @@
-define('View/Builder/Tmpl/handlers/third-party/dom', function () {
+define('UI/_builder/Tmpl/handlers/third-party/dom', function () {
    /**
     * @author Крылов М.А.
     * @deprecated Реализован новый html-парсер

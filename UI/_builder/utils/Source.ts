@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/utils/Source" />
+/// <amd-module name="UI/_builder/utils/Source" />
 
 /**
  * @author Крылов М.А.

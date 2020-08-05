@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/codegen/_feature/Partial" />
+/// <amd-module name="UI/_builder/Tmpl/codegen/_feature/Partial" />
 
 /**
  * @author Крылов М.А.

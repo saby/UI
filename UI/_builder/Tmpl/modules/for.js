@@ -1,7 +1,7 @@
-define('View/Builder/Tmpl/modules/for', [
-   'View/Builder/Tmpl/expressions/_private/Process',
-   'View/Builder/Tmpl/codegen/templates',
-   'View/Builder/Tmpl/expressions/_private/Statement'
+define('UI/_builder/Tmpl/modules/for', [
+   'UI/_builder/Tmpl/expressions/_private/Process',
+   'UI/_builder/Tmpl/codegen/templates',
+   'UI/_builder/Tmpl/expressions/_private/Statement'
 ], function(Process, templates, Statement) {
    'use strict';
 

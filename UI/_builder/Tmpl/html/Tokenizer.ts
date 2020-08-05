@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/html/Tokenizer" />
+/// <amd-module name="UI/_builder/Tmpl/html/Tokenizer" />
 
 /**
  * @author Крылов М.А.

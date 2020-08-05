@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/utils/ModulePath" />
+/// <amd-module name="UI/_builder/utils/ModulePath" />
 
 const P_EXTENSION: RegExp = /\.(wml|tmpl|xhtml)$/i;
 const EMPTY_STRING: string = '';

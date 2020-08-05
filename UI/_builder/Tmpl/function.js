@@ -1,5 +1,5 @@
-define('View/Builder/Tmpl/function', [
-   'View/Builder/Tmpl/expressions/_private/Process',
+define('UI/_builder/Tmpl/function', [
+   'UI/_builder/Tmpl/expressions/_private/Process',
    'View/Builder/Tmpl/expressions/_private/Event',
    'View/Builder/Tmpl/modules/utils/common',
    'View/Builder/Tmpl/modules/if',

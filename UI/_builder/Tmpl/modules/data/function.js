@@ -1,6 +1,6 @@
-define('View/Builder/Tmpl/modules/data/function', [
-   'View/Builder/Tmpl/modules/data/utils/functionStringCreator',
-   'View/Builder/Tmpl/modules/utils/parse'
+define('UI/_builder/Tmpl/modules/data/function', [
+   'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
+   'UI/_builder/Tmpl/modules/utils/parse'
 ], function(FSC, parseUtils) {
    'use strict';
 

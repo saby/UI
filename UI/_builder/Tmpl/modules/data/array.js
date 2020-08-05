@@ -1,11 +1,11 @@
-define('View/Builder/Tmpl/modules/data/array', [
+define('UI/_builder/Tmpl/modules/data/array', [
    'UI/Utils',
-   'View/Builder/Tmpl/modules/utils/parse',
-   'View/Builder/Tmpl/modules/utils/tag',
-   'View/Builder/Tmpl/modules/data/utils/dataTypesCreator',
-   'View/Builder/Tmpl/modules/data/utils/functionStringCreator',
-   'View/Builder/Tmpl/expressions/_private/DirtyCheckingPatch',
-   'View/Builder/Tmpl/codegen/templates'
+   'UI/_builder/Tmpl/modules/utils/parse',
+   'UI/_builder/Tmpl/modules/utils/tag',
+   'UI/_builder/Tmpl/modules/data/utils/dataTypesCreator',
+   'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
+   'UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch',
+   'UI/_builder/Tmpl/codegen/templates'
 ], function arrayLoader(uiUtils, parseUtils, tagUtils, DTC, FSC, dirtyCheckingPatch, templates) {
    'use strict';
 

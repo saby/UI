@@ -1,14 +1,14 @@
-/// <amd-module name="View/Builder/Compiler" />
+/// <amd-module name="UI/_builder/Compiler" />
 
 /**
  * @author Крылов М.А.
  */
 
-import * as ComponentCollector from 'View/Builder/Tmpl/ComponentCollector';
-import * as htmlparser from 'View/Builder/Tmpl/htmlparser';
-import * as traversing from 'View/Builder/Tmpl/traverse';
-import * as processingToFunction from 'View/Builder/Tmpl/function';
-import * as templates from 'View/Builder/Tmpl/codegen/templates';
+import * as ComponentCollector from 'UI/_builder/Tmpl/ComponentCollector';
+import * as htmlparser from 'UI/_builder/Tmpl/htmlparser';
+import * as traversing from 'UI/_builder/Tmpl/traverse';
+import * as processingToFunction from 'UI/_builder/Tmpl/function';
+import * as templates from 'UI/_builder/Tmpl/codegen/templates';
 import * as DoT from 'Core/js-template-doT';
 import { ISource, Source } from './utils/Source';
 import { IOptions, Options } from './utils/Options';

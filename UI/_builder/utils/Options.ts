@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/utils/Options" />
+/// <amd-module name="UI/_builder/utils/Options" />
 
 /**
  * @author Крылов М.А.

@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/expressions/_private/Decorators" />
+/// <amd-module name="UI/_builder/Tmpl/expressions/_private/Decorators" />
 
 /**
  * Decorators used by pipe notation in template expressions. For example: value|trim|toUpperCase
@@ -7,7 +7,7 @@
  */
 
 import { Logger } from 'UI/Utils';
-import * as FSC from 'View/Builder/Tmpl/modules/data/utils/functionStringCreator';
+import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
 const DIR_FROM_CONTEXT = 'fromContext';
 const SEPARATOR = '/';

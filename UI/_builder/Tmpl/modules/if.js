@@ -1,7 +1,7 @@
-define('View/Builder/Tmpl/modules/if', [
-   'View/Builder/Tmpl/expressions/_private/Process',
+define('UI/_builder/Tmpl/modules/if', [
+   'UI/_builder/Tmpl/expressions/_private/Process',
    'UI/Utils',
-   'View/Builder/Tmpl/codegen/Generator'
+   'UI/_builder/Tmpl/codegen/Generator'
 ], function ifLoader(Process, uiUtils, Generator) {
    'use strict';
 

@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/html/Parser" />
+/// <amd-module name="UI/_builder/Tmpl/html/Parser" />
 
 /**
  * @author Крылов М.А.

@@ -1,8 +1,8 @@
-define('View/Builder/Tmpl/ComponentCollector', [
-   'View/Builder/Tmpl/modules/utils/tag',
-   'View/Builder/Tmpl/modules/utils/common',
-   'View/Builder/Tmpl/expressions/_private/Statement',
-   'View/Builder/Tmpl/modules/data/utils/dataTypesCreator'
+define('UI/_builder/Tmpl/ComponentCollector', [
+   'UI/_builder/Tmpl/modules/utils/tag',
+   'UI/_builder/Tmpl/modules/utils/common',
+   'UI/_builder/Tmpl/expressions/_private/Statement',
+   'UI/_builder/Tmpl/modules/data/utils/dataTypesCreator'
 ], function(
    tagUtils,
    utils,

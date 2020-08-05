@@ -1,4 +1,4 @@
-define('View/Builder/Tmpl/checkDomHandler', function () {
+define('UI/_builder/Tmpl/checkDomHandler', function () {
    'use strict';
 
    /**

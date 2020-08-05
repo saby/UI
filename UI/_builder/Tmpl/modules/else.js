@@ -1,7 +1,7 @@
-define('View/Builder/Tmpl/modules/else', [
-   'View/Builder/Tmpl/expressions/_private/Process',
+define('UI/_builder/Tmpl/modules/else', [
+   'UI/_builder/Tmpl/expressions/_private/Process',
    'UI/Utils',
-   'View/Builder/Tmpl/codegen/Generator'
+   'UI/_builder/Tmpl/codegen/Generator'
 ], function elseLoader(Process, uiUtils, Generator) {
    'use strict';
 

@@ -1,4 +1,4 @@
-define('View/Builder/Tmpl/modules/utils/names', [
+define('UI//Tmpl/modules/utils/names', [
    'View/Builder/Tmpl/modules/utils/common'
 ], function(common) {
    'use strict';

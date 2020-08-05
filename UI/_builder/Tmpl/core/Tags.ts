@@ -1,6 +1,6 @@
-/// <amd-module name="View/Builder/Tmpl/core/Tags" />
+/// <amd-module name="UI/_builder/Tmpl/core/Tags" />
 
-import getTagDescription, { TagDescription, ITagsDescription } from 'View/Builder/Tmpl/html/Tags';
+import getTagDescription, { TagDescription, ITagsDescription } from 'UI/_builder/Tmpl/html/Tags';
 
 /**
  * @author Крылов М.А.

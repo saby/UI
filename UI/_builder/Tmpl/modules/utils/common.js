@@ -1,4 +1,4 @@
-define('View/Builder/Tmpl/modules/utils/common', ['Env/Env'], function utilsLoader(Env) {
+define('UI/_builder/Tmpl/modules/utils/common', ['Env/Env'], function utilsLoader(Env) {
    /**
     * @author Крылов М.А.
     */

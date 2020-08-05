@@ -2,21 +2,21 @@
  * Parsing step
  * Traversing/parsing AST-html tree
  */
-define('View/Builder/Tmpl/traverse', [
+define('UI/_builder/Tmpl/traverse', [
    'UI/Utils',
    'Core/Deferred',
    'Core/ParallelDeferred',
    'Core/helpers/Object/isEmpty',
-   'View/Builder/Tmpl/expressions/_private/Statement',
-   'View/Builder/Tmpl/expressions/_private/Event',
-   'View/Builder/Tmpl/expressions/_private/Bind',
-   'View/Builder/Tmpl/expressions/_private/i18n',
-   'View/Builder/Tmpl/expressions/_private/Parser',
-   'View/Builder/Tmpl/modules/utils/names',
-   'View/Builder/Tmpl/modules/utils/common',
-   'View/Builder/Tmpl/modules/utils/tag',
-   'View/Builder/Tmpl/modules/utils/loader',
-   'View/Builder/Tmpl/postTraverse'
+   'UI/_builder/Tmpl/expressions/_private/Statement',
+   'UI/_builder/Tmpl/expressions/_private/Event',
+   'UI/_builder/Tmpl/expressions/_private/Bind',
+   'UI/_builder/Tmpl/expressions/_private/i18n',
+   'UI/_builder/Tmpl/expressions/_private/Parser',
+   'UI/_builder/Tmpl/modules/utils/names',
+   'UI/_builder/Tmpl/modules/utils/common',
+   'UI/_builder/Tmpl/modules/utils/tag',
+   'UI/_builder/Tmpl/modules/utils/loader',
+   'UI/_builder/Tmpl/postTraverse'
 ], function traverseLoader(
    uiUtils,
    Deferred,

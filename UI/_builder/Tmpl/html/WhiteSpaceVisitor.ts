@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/html/WhiteSpaceVisitor" />
+/// <amd-module name="UI/_builder/Tmpl/html/WhiteSpaceVisitor" />
 
 /**
  * @author Крылов М.А.

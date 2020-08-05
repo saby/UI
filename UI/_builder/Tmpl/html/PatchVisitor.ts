@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/html/PatchVisitor" />
+/// <amd-module name="UI/_builder/Tmpl/html/PatchVisitor" />
 
 /**
  * @author Крылов М.А.

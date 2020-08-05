@@ -1,4 +1,4 @@
-define('View/Builder/Tmpl/modules/data/value', function() {
+define('UI/_builder/Tmpl/modules/data/value', function() {
    'use strict';
 
    /**

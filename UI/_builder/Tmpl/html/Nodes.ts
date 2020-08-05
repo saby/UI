@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/html/Nodes" />
+/// <amd-module name="UI/_builder/Tmpl/html/Nodes" />
 // tslint:disable:max-classes-per-file
 
 /**

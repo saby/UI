@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/html/Characters" />
+/// <amd-module name="UI/_builder/Tmpl/html/Characters" />
 
 /**
  * String constants that predominantly used in tokenizer.

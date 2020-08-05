@@ -1,13 +1,13 @@
-define('View/Builder/Tmpl/modules/data/object', [
+define('UI/_builder/Tmpl/modules/data/object', [
    'UI/Utils',
-   'View/Builder/Tmpl/expressions/_private/DirtyCheckingPatch',
-   'View/Builder/Tmpl/modules/utils/tag',
-   'View/Builder/Tmpl/modules/data/utils/dataTypesCreator',
-   'View/Builder/Tmpl/modules/utils/common',
-   'View/Builder/Tmpl/modules/data/utils/functionStringCreator',
-   'View/Builder/Tmpl/modules/utils/parse',
-   'View/Builder/Tmpl/codegen/templates',
-   'View/Builder/Tmpl/codegen/TClosure'
+   'UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch',
+   'UI/_builder/Tmpl/modules/utils/tag',
+   'UI/_builder/Tmpl/modules/data/utils/dataTypesCreator',
+   'UI/_builder/Tmpl/modules/utils/common',
+   'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
+   'UI/_builder/Tmpl/modules/utils/parse',
+   'UI/_builder/Tmpl/codegen/templates',
+   'UI/_builder/Tmpl/codegen/TClosure'
 ], function objectLoader(uiUtils, dirtyCheckingPatch, tagUtils, DTC, common, FSC, parseUtils, templates, TClosure) {
    'use strict';
 

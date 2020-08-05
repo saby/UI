@@ -1,14 +1,14 @@
-define('View/Builder/Tmpl/modules/partial', [
-   'View/Builder/Tmpl/modules/data',
-   'View/Builder/Tmpl/modules/utils/names',
-   'View/Builder/Tmpl/expressions/_private/Process',
-   'View/Builder/Tmpl/modules/utils/parse',
-   'View/Builder/Tmpl/modules/data/utils/functionStringCreator',
+define('UI/_builder/Tmpl/modules/partial', [
+   'UI/_builder/Tmpl/modules/data',
+   'UI/_builder/Tmpl/modules/utils/names',
+   'UI/_builder/Tmpl/expressions/_private/Process',
+   'UI/_builder/Tmpl/modules/utils/parse',
+   'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
    'UI/Utils',
-   'View/Builder/Tmpl/codegen/Generator',
-   'View/Builder/Tmpl/codegen/templates',
-   'View/Builder/Tmpl/codegen/TClosure',
-   'View/Builder/Tmpl/codegen/_feature/Partial'
+   'UI/_builder/Tmpl/codegen/Generator',
+   'UI/_builder/Tmpl/codegen/templates',
+   'UI/_builder/Tmpl/codegen/TClosure',
+   'UI/_builder/Tmpl/codegen/_feature/Partial'
 ], function partialLoader(
    injectedDataForce, names, Process, parse, FSC, uiUtils,
    Generator, templates, TClosure, FeaturePartial

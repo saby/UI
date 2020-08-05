@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/codegen/Generator" />
+/// <amd-module name="UI/_builder/Tmpl/codegen/Generator" />
 
 /**
  * @author Крылов М.А.

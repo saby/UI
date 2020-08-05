@@ -1,4 +1,4 @@
-/// <amd-module name="View/Builder/Tmpl/html/Tags" />
+/// <amd-module name="UI/_builder/Tmpl/html/Tags" />
 
 /**
  * @author Крылов М.А.
