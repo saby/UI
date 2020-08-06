@@ -13,6 +13,9 @@ interface IJsLinksOptions extends IControlOptions {
       resolveLink(l: string, ext: string): string;
    };
 }
+/**
+ * Компонент для вставки ссылок на ресурсы страницы
+ */
 class JsLinks extends Control<IJsLinksOptions> {
    _template: TemplateFunction = template;
 
