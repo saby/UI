@@ -16,11 +16,13 @@ import { Logger } from 'UI/Utils';
 import { IControlNodeOptions, IControlNode, IWasabyHTMLElement } from './interfaces';
 
 import {
+   onStartSync,
+   onEndSync
+} from './resources/DevToolsController';
+import {
    injectHook,
    onEndCommit,
-   onEndSync,
    onStartCommit,
-   onStartSync,
    OperationType,
    getNodeName
 } from 'UI/DevtoolsHook';
