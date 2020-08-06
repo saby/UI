@@ -45,11 +45,10 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
 
     /* toDO: StateRec.register */
     pushDepComponent(componentName: string, lazyLoading: boolean = false): void {
+        this.initDeps[componentName] = true;
         if (lazyLoading) {
             this.lazyInitDeps[componentName] = true;
-            return;
         }
-        this.initDeps[componentName] = true;
     }
 
     setUnpackDeps(unpack: IDeps): void {
