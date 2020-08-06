@@ -1,7 +1,7 @@
 define('UI/_builder/Tmpl/modules/template', [
    'UI/Utils',
    'Core/Deferred',
-   'View/config',
+   'UI/_builder/config',
    'UI/_builder/Tmpl/codegen/templates'
 ], function templateLoader(uiUtils, Deferred, config, templates) {
    'use strict';

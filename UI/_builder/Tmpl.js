@@ -201,7 +201,7 @@ define('UI/_builder/Tmpl', [
    /**
     * Получить функцию шаблона (для тестирования).
     * @param html Исходный текст шаблона.
-    * @param configModule Внутренняя конфигурация сборки (View/config).
+    * @param configModule Внутренняя конфигурация сборки (UI/Builder:Config).
     * @param runner Исполнитель шаблонов (TClosure, как правило).
     * @returns {function} Совместимая с wml функция шаблона.
     */

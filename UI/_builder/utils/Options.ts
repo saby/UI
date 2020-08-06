@@ -4,7 +4,7 @@
  * @author Крылов М.А.
  */
 
-import * as ViewConfig from 'View/config';
+import {Config as ViewConfig} from 'UI/Builder';
 import { ModulePath } from './ModulePath';
 
 /**
