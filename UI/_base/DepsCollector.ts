@@ -36,6 +36,12 @@ interface IPlugin {
    packOwnDeps: boolean;
    canBePackedInParent?: boolean;
 }
+
+interface ILocalizationResources {
+   dictionary?: string;
+   style?: string
+}
+
 type RequireJSPlugin = 'js' | 'wml' | 'tmpl' | 'i18n' | 'default';
 type IDepPack = Record<string, DEPTYPES>;
 interface IDepCSSPack {
@@ -135,8 +141,14 @@ function removeThemeParam(name: string): string {
 function parseModuleName(name: string): IModuleInfo | null {
    const typeInfo = getType(name);
    if (typeInfo === null) {
+      /**
+       * ! FIXME
+       * getType не определяет тип для require плагинов i18n, json, is, browser,
+       * их поддержка будет добвлена в 20.5000
+       * Временно отключил логгирование
+       */
       // TODO Change to error after https://online.sbis.ru/opendoc.html?guid=5de9d9bd-be4a-483a-bece-b41983e916e4
-      Logger.info(`[UI/_base/DepsCollector:parseModuleName] Wrong type Can not process module: ${name}`);
+      // Logger.info(`[UI/_base/DepsCollector:parseModuleName] Wrong type Can not process module: ${name}`);
       return null;
    }
    let nameWithoutPlugin;
@@ -315,7 +327,9 @@ function recursiveWalker(
       }
    }
 }
-
+/**
+ * Модуль для коллекции зависимостей на СП
+ */
 export class DepsCollector {
    modDeps: Record<string, IDeps>;
    modInfo: object;
@@ -348,7 +362,9 @@ export class DepsCollector {
       recursiveWalker(allDeps, deps, this.modDeps, this.modInfo);
 
       // Add i18n dependencies
-      this.collectI18n(files, allDeps);
+      if (allDeps.hasOwnProperty('i18n')) {
+         this.collectI18n(files, allDeps);
+      }
       // Find all bundles, and removes dependencies that are included in bundles
       const packages = getAllPackagesNames(allDeps, unpack, this.bundlesRoute);
 
@@ -369,17 +385,11 @@ export class DepsCollector {
       }
       for (const key in packages.css.themedCss) {
          if (packages.css.themedCss.hasOwnProperty(key)) {
-            if (!packages.js[key] && packages.css.themedCss[key] === DEPTYPES.BUNDLE) {
-               files.js.push(key);
-            }
             files.css.themedCss.push(key);
          }
       }
       for (const key in packages.css.simpleCss) {
          if (packages.css.simpleCss.hasOwnProperty(key)) {
-            if (!packages.js[key] && packages.css.simpleCss[key] === DEPTYPES.BUNDLE) {
-               files.js.push(key);
-            }
             files.css.simpleCss.push(key);
          }
       }
@@ -394,28 +404,44 @@ export class DepsCollector {
    collectI18n(files: ICollectedFiles, deps: ICollectedDeps): void {
       const loadedContexts = controller.loadingsHistory.contexts;
       const localeCode = controller.currentLocale;
+      const langCode = controller.currentLang;
       const processedContexts = [];
 
-      for (const moduleModule in deps.i18n) {
-         if (!deps.i18n.hasOwnProperty(moduleModule)) { continue; }
-         const module = deps.i18n[moduleModule];
-         const UIModuleName = module.moduleName.split('/')[0];
+      for (const moduleModule of Object.keys(deps.i18n)) {
+         const UIModuleName = deps.i18n[moduleModule].moduleName.split('/')[0];
 
          if (processedContexts.includes(UIModuleName)) {
-            break;
+            continue;
          }
 
-         if (loadedContexts.hasOwnProperty(UIModuleName) && loadedContexts[UIModuleName].hasOwnProperty(localeCode)) {
-            const context = loadedContexts[UIModuleName][localeCode];
+         processedContexts.push(UIModuleName);
 
-            if (context.dictionary) {
-               files.js.push(context.dictionary);
-            }
-
-            if (context.style) {
-               files.css.simpleCss.push(context.style);
-            }
+         if (!loadedContexts.hasOwnProperty(UIModuleName)) {
+            continue;
          }
+
+         const loadedResources = loadedContexts[UIModuleName]
+
+         if (loadedResources.hasOwnProperty(localeCode)) {
+            this.addLocalizationResource(files, loadedResources[localeCode]);
+
+            continue;
+         }
+
+
+         if (loadedResources.hasOwnProperty(langCode)) {
+            this.addLocalizationResource(files, loadedResources[langCode]);
+         }
+      }
+   }
+
+   private addLocalizationResource(files: ICollectedFiles, availableResources: ILocalizationResources) {
+      if (availableResources.dictionary) {
+         files.js.push(availableResources.dictionary);
+      }
+
+      if (availableResources.style) {
+         files.css.simpleCss.push(availableResources.style);
       }
    }
 }

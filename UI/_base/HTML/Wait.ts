@@ -21,7 +21,10 @@ const asyncTemplate: TemplateFunction = function() {
 
 // Template functions should have true "stable" flag to send error on using, for example, some control instead it.
 asyncTemplate['stable'] = template['stable'];
-
+/**
+ * Компонент используется как маркер построения верстки,
+ * экспортрует Promise в headDataStore
+ */
 class Wait extends Control {
    _template = asyncTemplate;
 

@@ -50,16 +50,6 @@ describe('DepsCollector', () => {
       const deps = dc.collectDependencies(['vvv/aaa', 'vvv/bbb']);
       assert.deepStrictEqual(deps.js, ['bdl/ccc.package']);
    });
-   it('css-bundle hook js simple', () => {
-      const deps = dc.collectDependencies(['css!aaa/bbb']);
-      assert.deepStrictEqual(deps.js, ['bdl/aaa.package']);
-      assert.deepStrictEqual(deps.css.simpleCss, ['bdl/aaa.package']);
-   });
-   it('css-bundle hook js themed', () => {
-      const deps = dc.collectDependencies(['css!theme?aaat/bbbt']);
-      assert.deepStrictEqual(deps.js, ['bdl/aaat.package']);
-      assert.deepStrictEqual(deps.css.themedCss, ['bdl/aaat.package']);
-   });
    it('single css not hooks js simple', () => {
       const deps = dc.collectDependencies(['css!aaa/ddd']);
       assert.deepStrictEqual(deps.css.simpleCss, ['aaa/ddd']);
