@@ -327,7 +327,9 @@ function recursiveWalker(
       }
    }
 }
-
+/**
+ * Модуль для коллекции зависимостей на СП
+ */
 export class DepsCollector {
    modDeps: Record<string, IDeps>;
    modInfo: object;
