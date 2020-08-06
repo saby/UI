@@ -49,7 +49,7 @@ class StateReceiver implements IStateReceiver {
          const { receivedState, moduleName } = allRecStates[key].getState();
          if (!receivedState) { return; }
          try {
-            serializedMap[key] = JSON.stringify(receivedState, slr.serialize);
+            serializedMap[key] = JSON.stringify(receivedState, slr.serializeStrict);
          } catch (e) {
             // TODO переключить на error, warn чтобы добросить
             Logger.warn(`Ошибка сериализации состояния экземпляра ${moduleName || key}`);
