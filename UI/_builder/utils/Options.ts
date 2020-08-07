@@ -4,7 +4,7 @@
  * @author Крылов М.А.
  */
 
-import {Config as ViewConfig} from 'UI/Builder';
+import * as Config from '../config';
 import { ModulePath } from './ModulePath';
 
 /**
@@ -105,6 +105,6 @@ export class Options implements IOptions {
       this.fromBuilderTmpl = !!options.fromBuilderTmpl;
       this.createResultDictionary = !!options.createResultDictionary;
       this.componentsProperties = options.componentsProperties || { };
-      this.config = options.config || ViewConfig as ITraverseOptions;
+      this.config = options.config || Config as ITraverseOptions;
    }
 }
