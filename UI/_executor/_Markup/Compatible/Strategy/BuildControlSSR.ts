@@ -26,7 +26,7 @@ export class BuildControlSSR extends BuildControl {
       let sr = AppEnv.getStateReceiver();
       sr && sr.register(key, {
          getState: function () {
-            return receivedState;
+            return  { receivedState, moduleName: key };
          },
          setState: function () {
          }
