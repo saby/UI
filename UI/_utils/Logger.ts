@@ -379,7 +379,7 @@ const templateError = (
       return error(`TEMPLATE ERROR: ${message} IN "${templateName}"`, errorPoint, errorInfo);
 };
 
-function asyncRenderErrorLog(error: any, errorPoint: any) {
+function asyncRenderErrorLog(error: any, errorPoint?: any) {
    const message = `Async function was rejected ${error ? `with message "${error.message || error}"` : ''}`;
    logger().error(message, errorPoint, error);
 }
