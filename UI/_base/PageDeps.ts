@@ -1,6 +1,6 @@
 /// <amd-module name='UI/_base/PageDeps' />
 import { cookie, constants } from 'Env/Env';
-import { DepsCollector, ICollectedFiles, IDeps } from 'UI/_base/DepsCollector';
+import { DepsCollector, ICollectedFiles, IDeps, ICollectedTemplates } from 'UI/_base/DepsCollector';
 
 /**
  * constants.resourceRoot указан путь до корневой директории сервиса,
@@ -41,7 +41,7 @@ export default class PageDeps {
 
    collect(initDeps: IDeps = [], unpackRtPackDeps: IDeps): ICollectedFiles {
       if (this.isDebug){
-         return getDebugDeps();
+         return getDebugDeps(initDeps);
       }
       const unpack = getUnpackDepsFromCookie().concat(unpackRtPackDeps);
       return getRealeseDeps(initDeps, unpack);
@@ -56,13 +56,22 @@ function getUnpackDepsFromCookie(): IDeps {
    return cookie.get('s3debug')?.split?.(',') || [];
 }
 
-function getDebugDeps(): ICollectedFiles {
-   return {
+function getDebugDeps(initDeps: IDeps): ICollectedFiles {
+   const files: ICollectedFiles = {
       js: [],
       css: { themedCss: [], simpleCss: [] },
       tmpl: [],
       wml: []
    };
+   for (const dep of initDeps) {
+      if (!dep.includes('!')) {
+         files.js.push(dep);
+         continue;
+      }
+      const [plugin, name] = dep.split('!') as [keyof ICollectedTemplates, string];
+      files[plugin]?.push(name);
+   }
+   return files;
 }
 
 function getRealeseDeps(deps: IDeps, unpack: IDeps): ICollectedFiles {
