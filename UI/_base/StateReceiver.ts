@@ -57,8 +57,8 @@ class StateReceiver implements IStateReceiver {
       });
       /**
        * Здесь дополнительная сериализация: сериализуется словарь уже сериализованных receivedStates
-       * ОТдельная сериализация каждого receivedState позволяет его валидировать
-       * Не ломается десериализация, т.к есть постобработка регуляркой - удаление двойных кавычек
+       * Отдельная сериализация каждого receivedState позволяет его валидировать
+       * Десериализвация также двухэтапная
        */
       let serializedState = JSON.stringify(serializedMap);
       Common.componentOptsReArray.forEach(
