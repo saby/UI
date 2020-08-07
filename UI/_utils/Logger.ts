@@ -379,10 +379,9 @@ const templateError = (
       return error(`TEMPLATE ERROR: ${message} IN "${templateName}"`, errorPoint, errorInfo);
 };
 
-function asyncRenderErrorLog(err: any, inst?) {
-   const error =  err ? `with message "${err.message || err}"` : ``;
-   const message = `Async function was rejected ${error}`;
-   inst ?  logger().error(message, inst) : logger().error(message);
+function asyncRenderErrorLog(error: any, errorPoint: any) {
+   const message = `Async function was rejected ${error ? `with message "${error.message || error}"` : ''}`;
+   logger().error(message, errorPoint, error);
 }
 
 export {
