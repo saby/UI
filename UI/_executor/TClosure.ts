@@ -8,7 +8,7 @@ import { IoC } from 'Env/Env';
 // @ts-ignore
 import { Logger } from 'UI/Utils';
 // @ts-ignore
-import * as config from 'View/config';
+import {Config as config} from 'UI/Builder';
 // @ts-ignore
 import * as isPlainObject from 'Core/helpers/Object/isPlainObject';
 
