@@ -104,7 +104,7 @@ export class Builder implements IBuilder {
                      let sr = AppEnv.getStateReceiver();
                      sr && sr.register(scope.key, {
                         getState: function () {
-                           return receivedState;
+                           return { receivedState, moduleName: inst._moduleName };
                         },
                         setState: function () {
                         }
