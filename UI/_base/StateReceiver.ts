@@ -41,21 +41,26 @@ class StateReceiver implements IStateReceiver {
    private deserialized: any = {};
 
    serialize(): ISerializedType {
-      let slr;
+      const slr = new Serializer();
       const serializedMap = {};
       const allAdditionalDeps = {};
       const allRecStates = this.receivedStateObjectsArray;
-      for (const key in allRecStates) {
-         if (allRecStates.hasOwnProperty(key)) {
-            const receivedState = allRecStates[key].getState();
-            if (receivedState) {
-               serializedMap[key] = receivedState;
-            }
+      Object.keys(allRecStates).forEach((key) => {
+         const { receivedState, moduleName } = allRecStates[key].getState();
+         if (!receivedState) { return; }
+         try {
+            serializedMap[key] = JSON.stringify(receivedState, slr.serializeStrict);
+         } catch (e) {
+            Logger.error(`Ошибка сериализации состояния экземпляра ${moduleName || key}`);
+            delete serializedMap[key];
          }
-      }
-
-      slr = new Serializer();
-      let serializedState = JSON.stringify(serializedMap, slr.serialize);
+      });
+      /**
+       * Здесь дополнительная сериализация: сериализуется словарь уже сериализованных receivedStates
+       * Отдельная сериализация каждого receivedState позволяет его валидировать
+       * Десериализвация также двухэтапная
+       */
+      let serializedState = JSON.stringify(serializedMap);
       Common.componentOptsReArray.forEach(
          (re): void => {
             serializedState = serializedState.replace(re.toFind, re.toReplace);
@@ -78,12 +83,14 @@ class StateReceiver implements IStateReceiver {
    deserialize(str: string | undefined): void {
       if (!str) { return; }
       const slr = new Serializer();
-      try {
-         this.deserialized = JSON.parse(str, slr.deserialize);
-      } catch (error) {
-         const message = `[UI/_base/StateReceiver:deserialize] - Deserialize, сant't deserialize ${str}`;
-         Logger.error(message, null, error);
-      }
+      Object.entries(JSON.parse(str))
+         .forEach(([key, value]: [string, string]) => {
+            try {
+               this.deserialized[key] = JSON.parse(value, slr.deserialize);
+            } catch (error) {
+               Logger.error(`Ошибка десериализации ${key} - ${value}`, null, error);
+            }
+         });
    }
 
    register(key: string, inst: any): void {
