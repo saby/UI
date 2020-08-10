@@ -123,7 +123,7 @@ export abstract class BuildControl implements IBuildControl {
           */
          if (dfd && this.isInstOfPromise(dfd)) {
             // FIXME: В 6100 заменить на ошибку
-            Logger.warn(`Ошибка построения разметки. Обнаружен асинхронный _beforeMount в ws3-окружении`, inst);
+            // Logger.warn(`Ошибка построения разметки. Обнаружен асинхронный _beforeMount в ws3-окружении`, inst);
             // FIXME: удалить асинхронную ветку в 7100
             let _self = this;
             return new Promise(function(resolve) {
