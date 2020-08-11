@@ -40,7 +40,7 @@ export default class PageDeps {
    }
 
    collect(initDeps: IDeps = [], unpackRtPackDeps: IDeps): ICollectedFiles {
-      if (this.isDebug){
+      if (this.isDebug) {
          return getDebugDeps(initDeps);
       }
       const unpack = getUnpackDepsFromCookie().concat(unpackRtPackDeps);
@@ -57,21 +57,12 @@ function getUnpackDepsFromCookie(): IDeps {
 }
 
 function getDebugDeps(initDeps: IDeps): ICollectedFiles {
-   const files: ICollectedFiles = {
+   return {
       js: [],
       css: { themedCss: [], simpleCss: [] },
       tmpl: [],
       wml: []
    };
-   for (const dep of initDeps) {
-      if (!dep.includes('!')) {
-         files.js.push(dep);
-         continue;
-      }
-      const [plugin, name] = dep.split('!') as [keyof ICollectedTemplates, string];
-      files[plugin]?.push(name);
-   }
-   return files;
 }
 
 function getRealeseDeps(deps: IDeps, unpack: IDeps): ICollectedFiles {
