@@ -35,8 +35,8 @@ function getGeneratorCompatible() {
       return generatorCompatible;
    } else {
       //@ts-ignore
-      if (require.defined('View/Executor/GeneratorCompatible')) {
-         generatorCompatible = require('View/Executor/GeneratorCompatible').default;
+      if (require.defined('UI/_executor/GeneratorCompatible')) {
+         generatorCompatible = require('UI/_executor/GeneratorCompatible').default;
          return generatorCompatible;
       } else {
          // FIXME: сейчас на СП всегда стоит флаг совместимости
