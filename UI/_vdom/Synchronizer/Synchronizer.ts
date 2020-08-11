@@ -52,31 +52,31 @@ function checkIsControlNodesParentDestroyed(controlNode: any) {
    );
 }
 
-class RebuildQueue {
-   private ids: TControlId[];
-   private setIds: Set<TControlId> = new Set();
+// class RebuildQueue {
+//    private ids: TControlId[];
+//    private setIds: Set<TControlId> = new Set();
 
-   constructor(private sync: (node: TControlId) => Promise<void>) {
-      this.run = this.run.bind(this);
-   }
+//    constructor(private sync: (node: TControlId) => Promise<void>) {
+//       this.run = this.run.bind(this);
+//    }
 
-   add(node: IControlNode) {
-      if (this.setIds.has(node.id)) {
-         return;
-      }
-      this.ids.push(node.id);
-   }
+//    add(node: IControlNode) {
+//       if (this.setIds.has(node.id)) {
+//          return;
+//       }
+//       this.ids.push(node.id);
+//    }
 
-   run() {
-      const id = this.ids.shift();
-      this.setIds.delete(id);
-      // @ts-ignore
-      if (node.control._destroyed || node.environment !== this.env) {
-         return this.run();
-      }
-      this.sync(id).then(this.run);
-   }
-}
+//    run() {
+//       const id = this.ids.shift();
+//       this.setIds.delete(id);
+//       // @ts-ignore
+//       if (node.control._destroyed || node.environment !== this.env) {
+//          return this.run();
+//       }
+//       this.sync(id).then(this.run);
+//    }
+// }
 
 // Идентификатор для корней, который используется в девтулзах.
 // Нельзя использовать inst_id, т.к. замеры начинаются раньше, чем создаётся корень
@@ -98,11 +98,11 @@ type TRequredControl = Control & {
 class VDomSynchronizer {
    private _rootNodes: IControlNode[] = [];
    _controlNodes: Record<string, IControlNode> = {};
-   private __queue: RebuildQueue;
+   //private __queue: RebuildQueue;
 
    constructor() {
       this.__requestRebuild = this.__requestRebuild.bind(this);
-      this.__queue = new RebuildQueue(this.__requestRebuild);
+      //this.__queue = new RebuildQueue(this.__requestRebuild);
    }
 
    private __rebuildRoots(rootRebuildVal: IMemoNode): Promise<void> {
