@@ -6,7 +6,7 @@ import Control, { TemplateFunction } from 'UI/_base/Control';
 import template = require('wml!UI/_base/HTML/Wait');
 import { headDataStore } from 'UI/_base/HeadData';
 
-const asyncTemplate: TemplateFunction = function() {
+const asyncTemplate: TemplateFunction = function(): string {
    const res = template.apply(this, arguments);
    if (res.then) {
       res.then((result) => {
