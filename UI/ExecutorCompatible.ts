@@ -1,5 +1,3 @@
-import { default as Compatible } from './_executorCompatible/GeneratorCompatible';
+import { Compatible } from './_executorCompatible/GeneratorCompatible';
 
-export {
-   Compatible
-};
+export { Compatible };

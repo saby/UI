@@ -254,7 +254,7 @@ var
       if (Common.isCompat()) {
          const Compatible = getGeneratorCompatible();
          if (Compatible) {
-            return Compatible;
+            return new Compatible();
          }
       }
       return new Text();
