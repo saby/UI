@@ -1,0 +1,4 @@
+<li>
+    Async item {{ _options.delay }} <br />
+    <UIDemo.RenderFlow.AsyncItemChildren delay="{{ _options.delay }}" />
+</li>
