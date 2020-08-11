@@ -7,13 +7,13 @@ export type IDeps = string[];
 export interface ICollectedFiles extends ICollectedCSS, ICollectedTemplates {
    js: string[];
 }
-export interface ICollectedCSS{
+export interface ICollectedCSS {
    css: {
       themedCss: string[];
       simpleCss: string[];
    };
 }
-export interface ICollectedTemplates{
+export interface ICollectedTemplates {
    tmpl: string[];
    wml: string[];
 }
@@ -42,7 +42,7 @@ interface IPlugin {
 
 interface ILocalizationResources {
    dictionary?: string;
-   style?: string
+   style?: string;
 }
 
 type RequireJSPlugin = 'js' | 'wml' | 'tmpl' | 'i18n' | 'default' | 'is' | 'browser';
@@ -430,14 +430,13 @@ export class DepsCollector {
             continue;
          }
 
-         const loadedResources = loadedContexts[UIModuleName]
+         const loadedResources = loadedContexts[UIModuleName];
 
          if (loadedResources.hasOwnProperty(localeCode)) {
             this.addLocalizationResource(files, loadedResources[localeCode]);
 
             continue;
          }
-
 
          if (loadedResources.hasOwnProperty(langCode)) {
             this.addLocalizationResource(files, loadedResources[langCode]);
