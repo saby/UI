@@ -12,7 +12,7 @@ import {Config as config} from 'UI/Builder';
 // @ts-ignore
 import * as isPlainObject from 'Core/helpers/Object/isPlainObject';
 
-import { Text, Vdom, Compatible } from './Markup';
+import { Text, Vdom } from './Markup';
 import { _FocusAttrs } from 'UI/Focus';
 import * as Scope from './_Expressions/Scope';
 import * as Attr from './_Expressions/Attr';
@@ -28,6 +28,24 @@ function getDecorators() {
       return decorators;
    }
 }
+
+let generatorCompatible;
+function getGeneratorCompatible() {
+   if (generatorCompatible) {
+      return generatorCompatible;
+   } else {
+      //@ts-ignore
+      if (require.defined('View/Executor/GeneratorCompatible')) {
+         generatorCompatible = require('View/Executor/GeneratorCompatible').default;
+         return generatorCompatible;
+      } else {
+         // FIXME: сейчас на СП всегда стоит флаг совместимости
+         // Logger.warn('GeneratorCompatible не загружен. Проверьте загрузку слоя совместимости.');
+         return false;
+      }
+   }
+}
+
 
 const ITERATORS = [
    {
@@ -234,7 +252,10 @@ var
          return new Vdom();
       }
       if (Common.isCompat()) {
-         return new Compatible();
+         const Compatible = getGeneratorCompatible();
+         if (Compatible) {
+            return Compatible;
+         }
       }
       return new Text();
    },
