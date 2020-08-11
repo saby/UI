@@ -11,7 +11,7 @@ import * as Serializer from 'Core/Serializer';
 import { Set } from 'Types/shim';
 import { Control } from 'UI/Base';
 import { Common, Vdom } from 'View/Executor/Utils';
-import { IControlNodeOptions, IControlNode, TControlId, IWasabyHTMLElement } from './interfaces';
+import { IControlNodeOptions, IControlNode, IWasabyHTMLElement } from './interfaces';
 
 import {
    injectHook,
