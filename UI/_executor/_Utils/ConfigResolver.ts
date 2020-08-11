@@ -5,7 +5,7 @@
 // @ts-ignore
 import * as cMerge from 'Core/core-merge';
 
-import { constants as cConstants, cookie } from 'Env/Env';
+import { constants, cookie } from 'Env/Env';
 import { plainMerge } from './Common';
 import * as Scope from '../_Expressions/Scope';
 
@@ -46,7 +46,7 @@ function detectObjectAsParent(obj: any): object | null {
 function isParentEnabled(parent: any, obj: any, currentPropertyName: any, data: any, attrs: any): boolean {
    // По умолчанию считаем enabled true
    const defaultValue = true;
-   if (!cConstants.compat) {
+   if (!constants.compat) {
       return defaultValue;
    }
    if (parent) {
@@ -128,6 +128,8 @@ export function calcParent(obj: any, currentPropertyName: any, data: any): any {
 }
 
 const mergeRegExp = /(^on:|^content$)/ig;
+let fixScopeMergingInContent;
+
 /**
  * todo: describe method
  * @param data
@@ -162,7 +164,11 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
          if (!insertedData.hasOwnProperty('parent') &&
             (!insertedData.hasOwnProperty('element') || !insertedData.element || insertedData.element.length === 0)) {
 
-            if (!templateCfg.isRootTag && cookie.get('fixScopeMergingInContent') === 'true') {
+            // @ts-ignore
+            if (!fixScopeMergingInContent && !constants.isProduction) {
+               fixScopeMergingInContent = cookie.get('fixScopeMergingInContent');
+            }
+            if (!templateCfg.isRootTag && fixScopeMergingInContent === 'true') {
                const lostHere = name !== 'Controls/Container/Async' ?
                   `${name}` :
                   `${name} (${data.templateName})`;
@@ -215,7 +221,7 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
    // видимость и активированность родителя
    internal.logicParent = templateCfg.viewController;
 
-   if (cConstants.compat) {
+   if (constants.compat) {
       internal.parent = calcParent(templateCfg.ctx, templateCfg.pName, templateCfg.data);
       internal.parentEnabled = (enabledFromContent === undefined ? true : enabledFromContent)
          && isParentEnabled(
