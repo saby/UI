@@ -4,9 +4,9 @@
 import template = require('wml!UI/_base/Control');
 
 import { Synchronizer } from 'UI/Vdom';
-import { OptionsResolver } from 'View/Executor/Utils';
-import { Focus, ContextResolver } from 'View/Executor/Expressions';
-import { activate } from 'UI/Focus';
+import { OptionsResolver } from 'UI/Executor';
+import { ContextResolver } from 'UI/Contexts';
+import { _FocusAttrs, _IControl, activate } from 'UI/Focus';
 import { Logger, Purifier } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
 import { constants } from 'Env/Env';
@@ -190,7 +190,7 @@ export interface IControlOptions {
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
-export default class Control<TOptions extends IControlOptions = {}, TState = void> {
+export default class Control<TOptions extends IControlOptions = {}, TState = void> implements _IControl {
    protected _moduleName: string;
 
    private _mounted: boolean = false;
@@ -341,7 +341,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       if (res) {
          if (isVdom) {
             if (res.length !== 1) {
-               const message = `There should be only one root element in control markup. Got ${res.length} root(s).`;
+               const message = `В шаблоне может быть только один корневой элемент. Найдено ${res.length} корня(ей).`;
                Logger.error(message, this);
             }
             for (let k = 0; k < res.length; k++) {
@@ -740,7 +740,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
                timeout = 1;
                resolve(false);
                // @ts-ignore
-               require(['View/Executor/TClosure'], (thelpers) => {
+               require(['UI/Executor'], () => {
                   // @ts-ignore
                   this._originTemplate = this._template;
                   // @ts-ignore
@@ -1334,7 +1334,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       }
       ctr.saveInheritOptions(attrs.inheritOptions);
       ctr._container = domElement;
-      Focus.patchDom(domElement, cfg);
+      _FocusAttrs.patchDom(domElement, cfg);
       ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
 
       if (compatible) {

@@ -6,22 +6,54 @@
 import * as flatten from 'Core/helpers/Array/flatten';
 
 import { coreDebug } from 'Env/Env';
-import { Vdom } from 'View/Executor/Utils';
 import { ListMonad } from '../../Utils/Monad';
 import { setControlNodeHook } from './Hooks';
 import { Logger } from 'UI/Utils';
 import { WasabyProperties } from 'Inferno/third-party/index';
 import { Map, Set } from 'Types/shim';
 
+import {htmlNode, textNode} from "UI/Executor";
+
 /**
  * @author Кондаков Р.Н.
  */
+
+function isString(string) {
+   return (Object.prototype.toString.call(string) === '[object String]');
+}
+
+// TODO: Release type flag on virtual nodes to distinguish virtual nodes.
+export function isVNodeType(vnode: any): any {
+   return vnode && (!isString(vnode.children) && typeof vnode.children !== 'number') && vnode.hasOwnProperty('dom');
+   // return vnode && typeof vnode === 'object' && vnode.type === 'VirtualNode';
+}
+
+// TODO: Release type flag on virtual nodes to distinguish virtual nodes.
+export function isTextNodeType(vnode: any): any {
+   return vnode && (isString(vnode.children) || typeof vnode.children === 'number') && vnode.hasOwnProperty('dom');
+   // return vnode && typeof vnode === 'object' && vnode.type === 'VirtualText';
+}
+
+// TODO: Release type flag on virtual nodes to distinguish virtual nodes.
+export function isControlVNodeType(vnode: any): any {
+   return vnode && typeof vnode === 'object' && 'controlClass' in vnode;
+}
+
+// TODO: Release type flag on virtual nodes to distinguish virtual nodes.
+export function isTemplateVNodeType(vnode: any): any {
+   return vnode && typeof vnode === 'object' && vnode.type === 'TemplateNode';
+}
+
+// TODO: Release type flag on virtual nodes to distinguish virtual nodes.
+export function isInvisibleNodeType(vnode: any): any {
+   return vnode && typeof vnode === 'object' && vnode.type && vnode.type === 'invisible-node';
+}
 
 export function getVNodeChidlren(vnode: any, getFromTemplateNodes?: any): any {
    if (getFromTemplateNodes) {
       return vnode.children || [];
    } else {
-      return Vdom.isVNodeType(vnode) ? (vnode.children === null ? [] : vnode.children) : [];
+      return isVNodeType(vnode) ? (vnode.children === null ? [] : vnode.children) : [];
    }
 }
 
@@ -40,11 +72,11 @@ export function mapVNode(
       return vnode;
    }
    //Template node doesn't have properties, and we must set controlNodeHook to first child element
-   if (setHookToVNode && Vdom.isTemplateVNodeType(vnode) && vnode.children && vnode.children[0]) {
+   if (setHookToVNode && isTemplateVNodeType(vnode) && vnode.children && vnode.children[0]) {
       vnode.children[0] = mapVNode(fn, controlNode, vnode.children[0], setHookToVNode);
       return vnode;
    }
-   if (Vdom.isControlVNodeType(vnode) && setHookToVNode) {
+   if (isControlVNodeType(vnode) && setHookToVNode) {
       const controlNodeRef = setControlNodeHook(
          vnode.type,
          vnode.props,
@@ -58,7 +90,7 @@ export function mapVNode(
    // Markup Decorator builds tree of outer correspondence with too many root nodes.
    // This kills browser, so mapping should be stopped.
    // Will be removed in project https://online.sbis.ru/opendoc.html?guid=11776bc8-39b7-4c55-b5b5-5cc2ea8d9fbe.
-   if (Vdom.isVNodeType(vnode)) {
+   if (isVNodeType(vnode)) {
       if (controlNode.control && controlNode.control._moduleName === 'Controls/decorator:Markup') {
          if (vnode.children && vnode.children[0]) {
             // Not only the first child can overgrow, stop them all.
@@ -93,7 +125,7 @@ export function mapVNode(
             }
          }
       } else {
-         return sameNode ? vnode : Vdom.htmlNode.apply(Vdom, newNodeArgs);
+         return sameNode ? vnode : htmlNode.apply(undefined, newNodeArgs);
       }
    } else {
       return vnode;
@@ -112,11 +144,11 @@ function identity(v: any): any {
    return v;
 }
 function collectChildControlVNodes(vnode: any, getFromTemplateNodes?: any): any {
-   return mapVNodeChildren(true, vnode, identity, Vdom.isControlVNodeType, getFromTemplateNodes);
+   return mapVNodeChildren(true, vnode, identity, isControlVNodeType, getFromTemplateNodes);
 }
 
 function collectChildTemplateVNodes(vnode: any): any {
-   return mapVNodeChildren(true, vnode, identity, Vdom.isTemplateVNodeType);
+   return mapVNodeChildren(true, vnode, identity, isTemplateVNodeType);
 }
 
 export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any, goin?: any): any {
@@ -232,10 +264,10 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
    }
 
    function isEqualNode(n1: any, n2: any): any {
-      const isControl1 = n1 && Vdom.isControlVNodeType(n1);
-      const isControl2 = n2 && Vdom.isControlVNodeType(n2);
-      const isTemplate1 = n1 && Vdom.isTemplateVNodeType(n1);
-      const isTemplate2 = n2 && Vdom.isTemplateVNodeType(n2);
+      const isControl1 = n1 && isControlVNodeType(n1);
+      const isControl2 = n2 && isControlVNodeType(n2);
+      const isTemplate1 = n1 && isTemplateVNodeType(n1);
+      const isTemplate2 = n2 && isTemplateVNodeType(n2);
       const resultTemplate = isTemplate1 === isTemplate2;
       let result = isControl1 === isControl2;
 
@@ -244,7 +276,7 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
             result = n1.controlClass === n2.controlClass && n1.key === n2.key;
          } else {
             result = n1.type === n2.type;
-            if (result && Vdom.isVNodeType(n1)) {
+            if (result && isVNodeType(n1)) {
                result = n1.tagName === n2.tagName && n1.namespace === n2.namespace && n1.key === n2.key;
             }
          }
@@ -254,7 +286,7 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
          } else {
             result = n1.type === n2.type && n1.compound === n2.compound;
 
-            if (result && Vdom.isVNodeType(n1)) {
+            if (result && isVNodeType(n1)) {
                result = n1.tagName === n2.tagName && n1.namespace === n2.namespace && n1.key === n2.key;
             }
          }
@@ -297,9 +329,9 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
             concatResults(result.destroyTemplates, childrenResult.destroyTemplates);
             concatResults(result.updateTemplates, childrenResult.updateTemplates);
          } else if (oldChild) {
-            if (Vdom.isControlVNodeType(oldChild)) {
+            if (isControlVNodeType(oldChild)) {
                result.destroy.push(oldChild);
-            } else if (Vdom.isTemplateVNodeType(oldChild)) {
+            } else if (isTemplateVNodeType(oldChild)) {
                concatResults(result.destroy, collectChildControlVNodes(oldChild, true));
                result.destroyTemplates.push(oldChild);
             } else {
@@ -307,9 +339,9 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
                concatResults(result.destroyTemplates, collectChildTemplateVNodes(oldChild));
             }
          } else {
-            if (Vdom.isControlVNodeType(newChild)) {
+            if (isControlVNodeType(newChild)) {
                result.create.push(newChild);
-            } else if (Vdom.isTemplateVNodeType(newChild)) {
+            } else if (isTemplateVNodeType(newChild)) {
                result.createTemplates.push(newChild);
             } else {
                concatResults(result.create, collectChildControlVNodes(newChild));
@@ -323,7 +355,7 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
       coreDebug.checkAssertion(!!newNode, 'newNode !== null');
 
       if (isEqualNode(oldNode, newNode)) {
-         if (Vdom.isControlVNodeType(newNode)) {
+         if (isControlVNodeType(newNode)) {
             if (oldNode.controlNodeIdx === -1) {
                result.create.push(newNode);
             } else {
@@ -332,7 +364,7 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
                   newNode
                });
             }
-         } else if (Vdom.isTemplateVNodeType(newNode)) {
+         } else if (isTemplateVNodeType(newNode)) {
             if (!newNode.children && newNode === oldNode) {
                // Раньше здесь newNode добавлялся в createTemplates, но вроде
                // бы это не нужно. Если newNode === oldNode и мы попали сюда,
@@ -362,9 +394,9 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
       } else {
          result.vnodeChanged = true;
 
-         if (Vdom.isControlVNodeType(newNode)) {
+         if (isControlVNodeType(newNode)) {
             result.create.push(newNode);
-         } else if (Vdom.isTemplateVNodeType(newNode)) {
+         } else if (isTemplateVNodeType(newNode)) {
             result.createTemplates.push(newNode);
          } else {
             concatResults(result.create, collectChildControlVNodes(newNode));
@@ -372,9 +404,9 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
          }
 
          if (oldNode) {
-            if (Vdom.isControlVNodeType(oldNode)) {
+            if (isControlVNodeType(oldNode)) {
                result.destroy.push(oldNode);
-            } else if (Vdom.isTemplateVNodeType(oldNode)) {
+            } else if (isTemplateVNodeType(oldNode)) {
                concatResults(result.destroy, collectChildControlVNodes(oldNode, true));
             } else {
                concatResults(result.destroy, collectChildControlVNodes(oldNode, true));
@@ -455,7 +487,7 @@ export function getFullMarkup(
    let childrenAfter;
    let changed = false;
 
-   if (Vdom.isControlVNodeType(vnode)) {
+   if (isControlVNodeType(vnode)) {
       if (ignoreInnerComponent) {
          return vnode;
       }
@@ -463,7 +495,7 @@ export function getFullMarkup(
       /**
        * In case of invisible node we have to hold on to parent dom node
        */
-      if (Vdom.isInvisibleNodeType(result)) {
+      if (isInvisibleNodeType(result)) {
          if (parentNode && parentNode.type) {
             // Invisible control node is attached to a parent vnode, which
             // should keep track of every invisible control attached to it
@@ -479,19 +511,19 @@ export function getFullMarkup(
                true
             );
          }
-         result = Vdom.textNode('', controlNodes[vnode.controlNodeIdx].key);
+         result = textNode('', controlNodes[vnode.controlNodeIdx].key);
       }
-   } else if (Vdom.isTemplateVNodeType(vnode) && !vnode.children) {
+   } else if (isTemplateVNodeType(vnode) && !vnode.children) {
       result = vnode;
    } else if (
-      (!Vdom.isTemplateVNodeType(vnode) && !Vdom.isVNodeType(vnode)) ||
+      (!isTemplateVNodeType(vnode) && !isVNodeType(vnode)) ||
       !vnode.children ||
       vnode.children.length === 0
    ) {
       result = vnode;
    } else {
       i = 0;
-      children = Vdom.isTemplateVNodeType(vnode) ? vnode.children : getVNodeChidlren(vnode);
+      children = isTemplateVNodeType(vnode) ? vnode.children : getVNodeChidlren(vnode);
 
       ln = children.length;
 
@@ -543,7 +575,7 @@ export function getFullMarkup(
             .concat(Array.isArray(childMarkup) ? childMarkup : [childMarkup])
             .concat(childrenAfter);
 
-         if (Vdom.isTemplateVNodeType(vnode)) {
+         if (isTemplateVNodeType(vnode)) {
             validateKeys(newChildren);
             return newChildren;
          }
@@ -572,22 +604,22 @@ export function getFullMarkup(
             }
 
             if (changed) {
-               result = Vdom.htmlNode(vnode.type, vnode.hprops, newChildren, vnode.key, vnode.ref);
+               result = htmlNode(vnode.type, vnode.hprops, newChildren, vnode.key, vnode.ref);
                result.changed = true;
             } else {
                result = currentFullMarkup;
             }
          } else {
-            result = Vdom.htmlNode(vnode.type, vnode.hprops, newChildren, vnode.key, vnode.ref);
+            result = htmlNode(vnode.type, vnode.hprops, newChildren, vnode.key, vnode.ref);
             result.changed = true;
          }
       }
    }
-   if (Vdom.isTemplateVNodeType(result)) {
+   if (isTemplateVNodeType(result)) {
       if (result.children) {
          result = result.children;
       } else {
-         Vdom.textNode('', result.attributes.key);
+         textNode('', result.attributes.key);
       }
    }
 
@@ -601,10 +633,10 @@ export function getFullMarkup(
 }
 
 function createErrVNode(err: any, key: any): any {
-   return Vdom.htmlNode(
+   return htmlNode(
       'span',
       { } as WasabyProperties,
-      [Vdom.textNode(err, (key || 'err_' + Math.trunc(Math.random() * 1000)) + '_inner_text')],
+      [textNode(err, (key || 'err_' + Math.trunc(Math.random() * 1000)) + '_inner_text')],
       key || 'err_' + Math.trunc(Math.random() * 1000)
    );
 }
@@ -623,7 +655,7 @@ export function getDecoratedMarkup(controlNode: any, isRoot: any): any {
    });
    let result;
 
-   if (Vdom.isVNodeType(markupRes)) {
+   if (isVNodeType(markupRes)) {
       result = mapVNode(controlNode.markupDecorator, controlNode, markupRes);
    } else {
       result = markupRes;
@@ -633,9 +665,9 @@ export function getDecoratedMarkup(controlNode: any, isRoot: any): any {
       result.hasTemplateRootElement = true;
    }
    if (
-      !Vdom.isControlVNodeType(result) &&
-      !Vdom.isVNodeType(result) &&
-      !Vdom.isTemplateVNodeType(result)
+      !isControlVNodeType(result) &&
+      !isVNodeType(result) &&
+      !isTemplateVNodeType(result)
    ) {
       // если корневой элемент отсутствует при первой синхронизации создаем текстовую ноду с ошибкой
       // и кидаем предупреждение в консоль со стеком

@@ -34,13 +34,14 @@ Controls/Popup/Opener/Sticky
 // @ts-ignore
 import * as cInstance from 'Core/core-instance';
 
-//@ts-ignore
 import { Logger } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
+import { Control } from 'UI/Base';
 
-export function find(control) {
+export function find(control: Control): Control[] {
    let container;
    if (cInstance.instanceOfModule(control, 'UI/Base:Control')) {
+      // @ts-ignore
       container = control._container;
    } else if (control instanceof Element) {
       container = control;

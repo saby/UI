@@ -1,10 +1,45 @@
 /// <amd-module name="UI/_base/StateReceiver" />
 import { IStateReceiver } from 'Application/Interface';
 import Serializer = require('Core/Serializer');
-import { Common } from 'View/Executor/Utils';
 
 //@ts-ignore
 import { Logger } from 'UI/Utils';
+
+//todo перенести в Serializer
+const componentOptsReArray = [
+   {
+      toFind: /\\/g, // экранируем слеш первым
+      toReplace: '\\\\'
+   },
+   {
+      toFind: /<\/(script)/gi,
+      toReplace: '<\\/$1'
+   },
+   {
+      toFind: /'/g,
+      toReplace: '\\u0027'
+   },
+   {
+      toFind: /\u2028/g,
+      toReplace: '\\u000a'
+   },
+   {
+      toFind: /\u2029/g,
+      toReplace: '\\u000a'
+   },
+   {
+      toFind: /\n/g,
+      toReplace: '\\u000a'
+   },
+   {
+      toFind: /\r/g,
+      toReplace: '\\u000d'
+   },
+   {
+      toFind: /[^\\]\\u000a/g,
+      toReplace: '\\\\u000a'
+   }
+];
 
 interface ISerializedType {
    serialized: string;
@@ -61,7 +96,7 @@ class StateReceiver implements IStateReceiver {
        * Десериализвация также двухэтапная
        */
       let serializedState = JSON.stringify(serializedMap);
-      Common.componentOptsReArray.forEach(
+      componentOptsReArray.forEach(
          (re): void => {
             serializedState = serializedState.replace(re.toFind, re.toReplace);
          }

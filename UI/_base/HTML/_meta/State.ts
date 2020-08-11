@@ -1,6 +1,8 @@
 /// <amd-module name="UI/_base/HTML/_meta/State" />
 
-import { IMetaState, IMeta, ISerializedMetaState, IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
+import { IMetaState, IMeta, ISerializedMetaState, IMetaStateInternal, ITagDescription } from 'UI/_base/HTML/_meta/interface';
+import TagMarkup from './TagMarkup';
+import { IOpenGraph } from '../meta';
 const prefix = typeof window === 'undefined' ? 'ps-' : '';
 let id = 1;
 const generateGuid = () => `state-${prefix}${id++}`;
@@ -9,15 +11,15 @@ const generateGuid = () => `state-${prefix}${id++}`;
  * @implements {UI/_base/HTML/_meta/IMetaState}
  * @author Ибрагимов А.А.
  */
-export default class State implements IMetaStateInternal {
-   outerHTML: string = '';
+export default class State extends TagMarkup implements IMetaStateInternal {
    constructor(
       private _meta: IMeta,
       private readonly _guid: string = generateGuid(),
       private _nextStateId: string = void 0,
       private _prevStateId: string = void 0
    ) {
-      this.outerHTML = createMarkup(_meta, _guid);
+      super(getOgTagDescriptions(_meta.og, _guid));
+      this.outerHTML = `${getTitleMarkup(_meta.title, _guid)}${this.outerHTML}`;
    }
 
    //#region API
@@ -71,16 +73,24 @@ export default class State implements IMetaStateInternal {
    }
 }
 
-function createMarkup(meta: IMeta, guid: string): string {
-   const title = `<title data-vdomignore="true" class="${guid}">${meta.title || ''}</title>`;
-   const ogTagsMarkup = Object.keys(meta.og || [])
-      .map((type) => getTagMargkup(type, meta.og[type], guid))
-      .join('');
-   return `${title}${ogTagsMarkup}`;
+function getTitleMarkup(title: string, className: string) {
+   if (!title) { return ''; }
+   return `<title data-vdomignore="true" class="${className}">${title}</title>`;
 }
 
-function getTagMargkup(type: string, val: string, guid: string): string {
-   return `<meta property="og:${type}"` +
-      ` content="${val}" class="${guid}"` +
-      ' data-vdomignore="true" />';
+function getOgTagDescriptions(og: Partial<IOpenGraph> = {}, guid: string): ITagDescription[] {
+   return Object
+      .entries(og)
+      .map(([type, content]) => getOgTagDescription(type, content, guid));
+}
+
+function getOgTagDescription(type: string, content: string, guid: string): ITagDescription {
+   return {
+      tagName: 'meta',
+      attrs: {
+         property: `og:${type}`,
+         class: guid,
+         content,
+      }
+   };
 }

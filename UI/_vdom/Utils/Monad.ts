@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_vdom/Utils/Monad" />
 /* tslint:disable */
 
-import { Common } from 'View/Executor/Utils';
+import { Logger } from 'UI/Utils';
 
 function reduce(obj, callback, initialMemo, thisArg?) {
    var memo = initialMemo;
@@ -20,7 +20,7 @@ function reduce(obj, callback, initialMemo, thisArg?) {
 }
 
 function memoErrback(err) {
-   Common.asyncRenderErrorLog(err);
+   Logger.asyncRenderErrorLog(err);
    return err;
 }
 

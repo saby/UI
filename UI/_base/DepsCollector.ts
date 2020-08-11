@@ -45,7 +45,7 @@ interface ILocalizationResources {
    style?: string
 }
 
-type RequireJSPlugin = 'js' | 'wml' | 'tmpl' | 'i18n' | 'default';
+type RequireJSPlugin = 'js' | 'wml' | 'tmpl' | 'i18n' | 'default' | 'is' | 'browser';
 type IDepPack = Record<string, DEPTYPES>;
 interface IDepCSSPack {
    themedCss: IDepPack; simpleCss: IDepPack;
@@ -59,7 +59,7 @@ enum DEPTYPES {
    SINGLE = 2
 }
 
-const TYPES: Record<RequireJSPlugin | 'css', object> = {
+export const TYPES: Record<RequireJSPlugin | 'css', object> = {
    tmpl: {
       type: 'tmpl',
       plugin: 'tmpl',
@@ -88,6 +88,20 @@ const TYPES: Record<RequireJSPlugin | 'css', object> = {
       hasPacket: false,
       canBePackedInParent: false
    },
+   is: {
+      type: 'is',
+      plugin: 'is',
+      hasDeps: false,
+      hasPacket: false,
+      canBePackedInParent: false
+   },
+   browser: {
+      type: 'browser',
+      plugin: 'browser',
+      hasDeps: true,
+      hasPacket: true,
+      packOwnDeps: true
+   },
    css: {
       type: 'css',
       plugin: 'css',
@@ -108,7 +122,7 @@ function getPlugin(name: string): string {
    return res;
 }
 
-function getType(name: string): IPlugin | null {
+export function getType(name: string): IPlugin | null {
    const plugin = getPlugin(name);
    for (const key in TYPES) {
       if (TYPES[key].plugin === plugin) {
@@ -141,17 +155,10 @@ function removeThemeParam(name: string): string {
    return name.replace('theme?', '');
 }
 
-function parseModuleName(name: string): IModuleInfo | null {
+export function parseModuleName(name: string): IModuleInfo | null {
    const typeInfo = getType(name);
    if (typeInfo === null) {
-      /**
-       * ! FIXME
-       * getType не определяет тип для require плагинов i18n, json, is, browser,
-       * их поддержка будет добвлена в 20.5000
-       * Временно отключил логгирование
-       */
-      // TODO Change to error after https://online.sbis.ru/opendoc.html?guid=5de9d9bd-be4a-483a-bece-b41983e916e4
-      // Logger.info(`[UI/_base/DepsCollector:parseModuleName] Wrong type Can not process module: ${name}`);
+      Logger.warn(`[UI/_base/DepsCollector:parseModuleName] Wrong type Can not process module: ${name}`);
       return null;
    }
    let nameWithoutPlugin;
@@ -330,7 +337,9 @@ function recursiveWalker(
       }
    }
 }
-
+/**
+ * Модуль для коллекции зависимостей на СП
+ */
 export class DepsCollector {
    modDeps: Record<string, IDeps>;
    modInfo: object;
