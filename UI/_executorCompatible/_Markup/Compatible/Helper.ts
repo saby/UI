@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/_Markup/Compatible/Helper" />
+/// <amd-module name="UI/_executorCompatible/_Markup/Compatible/Helper" />
 /* tslint:disable */
 
 // @ts-ignore

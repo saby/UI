@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/_Markup/Compatible/Strategy/BuildControlSSR" />
+/// <amd-module name="UI/_executorCompatible_Markup/Compatible/Strategy/BuildControlSSR" />
 /* tslint:disable */
 
 import { BuildControl } from './BuildControl';

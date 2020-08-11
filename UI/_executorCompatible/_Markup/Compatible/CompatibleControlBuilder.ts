@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/_Markup/Compatible/CompatibleControlBuilder" />
+/// <amd-module name="UI/_executorCompatible/_Markup/Compatible/CompatibleControlBuilder" />
 /* tslint:disable */
 
 // @ts-ignore

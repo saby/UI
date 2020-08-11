@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/_Markup/Compatible/FabricBuildControl />
+/// <amd-module name="UI/_executorCompatible/_Markup/Compatible/FabricBuildControl />
 /* tslint:disable */
 
 // @ts-ignore

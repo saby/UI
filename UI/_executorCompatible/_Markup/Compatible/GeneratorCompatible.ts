@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/_Markup/Compatible/GeneratorCompatible" />
+/// <amd-module name="UI/_executorCompatible/_Markup/Compatible/GeneratorCompatible" />
 /* tslint:disable */
 
 import { Generator } from 'UI/_executor/_Markup/Generator';
