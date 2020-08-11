@@ -1,12 +1,12 @@
 /// <amd-module name="UI/_executor/_Markup/Compatible/GeneratorCompatible" />
 /* tslint:disable */
 
-import { Generator } from '../Generator';
+import { Generator } from 'UI/_executor/_Markup/Generator';
 import { CompatibleControlBuilder } from './CompatibleControlBuilder';
-import { IGenerator } from '../IGenerator';
+import { IGenerator } from 'UI/_executor/_Markup/IGenerator';
 import { Logger } from 'UI/Utils';
-import * as Common from '../../_Utils/Common';
-import * as RequireHelper from '../../_Utils/RequireHelper';
+import * as Common from 'UI/_executor/_Utils/Common';
+import * as RequireHelper from 'UI/_executor/_Utils/RequireHelper';
 import {
    resultingFnAction,
    notOptionalControlCompatible,
@@ -28,9 +28,9 @@ import {
    IGeneratorDefCollection,
    TDeps,
    TIncludedTemplate, TObject
-} from '../IGeneratorType';
-import { stringTemplateResolver, joinElements, createTagDefault } from '../Utils';
-import * as Scope from '../../_Expressions/Scope';
+} from 'UI/_executor/_Markup/IGeneratorType';
+import { stringTemplateResolver, joinElements, createTagDefault } from 'UI/_executor/_Markup/Utils';
+import * as Scope from 'UI/_executor/_Expressions/Scope';
 
 const markupBuilder = new CompatibleControlBuilder();
 

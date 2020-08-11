@@ -3,7 +3,7 @@
 
 // @ts-ignore
 import * as coreInitializer from 'Core/core-extend-initializer';
-import * as Common from '../../_Utils/Common';
+import * as Common from 'UI/_executor/_Utils/Common';
 import {
    prepareMarkupForClassCompatible,
    fixEnabledOptionCompatible,
@@ -11,7 +11,7 @@ import {
    buildForOldControl,
    buildForSuperOldControls
 } from './Helper';
-import { ResolveControlName } from '../ResolveControlName';
+import { ResolveControlName } from 'UI/_executor/_Markup/ResolveControlName';
 import { BuildControlSSR } from './Strategy/BuildControlSSR';
 import { BuildControlBrowser } from './Strategy/BuildControlBrowser';
 import { IBuilder } from './IBuilder';
@@ -23,7 +23,7 @@ import {
    IInternalCompatible,
    IOptionsCompatible
 } from './ICompatibleType';
-import { IBuilderScope, TObject } from '../IGeneratorType';
+import { IBuilderScope, TObject } from 'UI/_executor/_Markup/IGeneratorType';
 import {constants} from "Env/Env";
 
 /**

@@ -7,11 +7,11 @@ import * as randomId from 'Core/helpers/Number/randomId';
 import * as ParserUtilities from 'Core/markup/ParserUtilities';
 import { Logger } from 'UI/Utils';
 import { _FocusAttrs } from 'UI/Focus';
-import * as Decorate from '../../_Expressions/Decorate';
-import * as Rights from '../../_Expressions/Rights';
-import * as Common from '../../_Utils/Common';
+import * as Decorate from 'UI/_executor/_Expressions/Decorate';
+import * as Rights from 'UI/_executor/_Expressions/Rights';
+import * as Common from 'UI/_executor/_Utils/Common';
 import { fillNonExistentValues, generateIdWithParent, hasMarkupConfig } from './Helper';
-import { ResolveControlName } from '../ResolveControlName';
+import { ResolveControlName } from 'UI/_executor/_Markup/ResolveControlName';
 import { IBuilder } from './IBuilder';
 import { FabricBuildControl } from './FabricBuildControl';
 

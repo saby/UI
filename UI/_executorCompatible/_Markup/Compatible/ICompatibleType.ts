@@ -4,7 +4,7 @@ import {
    TAttributes,
    TOptions,
    IGeneratorInternalProperties
-} from '../IGeneratorType';
+} from 'UI/_executor/_Markup/IGeneratorType';
 
 /**
  * @author Тэн В.А.

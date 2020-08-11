@@ -8,9 +8,9 @@ import * as randomId from 'Core/helpers/Number/randomId';
 // @ts-ignore
 import * as coreInitializer from 'Core/core-extend-initializer';
 import { Logger } from 'UI/Utils';
-import * as Attr from '../../_Expressions/Attr';
-import * as Common from '../../_Utils/Common';
-import * as Class from '../../_Utils/Class';
+import * as Attr from 'UI/_executor/_Expressions/Attr';
+import * as Common from 'UI/_executor/_Utils/Common';
+import * as Class from 'UI/_executor/_Utils/Class';
 // @ts-ignore
 import * as ContextBinder from 'Core/ContextBinder';
 // @ts-ignore
@@ -27,7 +27,7 @@ import {
    TObject,
    TOptions,
    TScope
-} from '../IGeneratorType';
+} from 'UI/_executor/_Markup/IGeneratorType';
 import {
    INodeAttribute,
    IOptionsCompatibleFixed,
