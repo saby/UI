@@ -40,8 +40,8 @@ export default class PageDeps {
    }
 
    collect(initDeps: IDeps = [], unpackRtPackDeps: IDeps): ICollectedFiles {
-      if (this.isDebug){
-         return getDebugDeps();
+      if (this.isDebug) {
+         return getDebugDeps(initDeps);
       }
       const unpack = getUnpackDepsFromCookie().concat(unpackRtPackDeps);
       return getRealeseDeps(initDeps, unpack);
@@ -56,7 +56,7 @@ function getUnpackDepsFromCookie(): IDeps {
    return cookie.get('s3debug')?.split?.(',') || [];
 }
 
-function getDebugDeps(): ICollectedFiles {
+function getDebugDeps(initDeps: IDeps): ICollectedFiles {
    return {
       js: [],
       css: { themedCss: [], simpleCss: [] },

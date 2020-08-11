@@ -45,11 +45,10 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
 
     /* toDO: StateRec.register */
     pushDepComponent(componentName: string, lazyLoading: boolean = false): void {
+        this.initDeps[componentName] = true;
         if (lazyLoading) {
             this.lazyInitDeps[componentName] = true;
-            return;
         }
-        this.initDeps[componentName] = true;
     }
 
     setUnpackDeps(unpack: IDeps): void {
@@ -71,9 +70,9 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             if (!this.resolve) {
                 return;
             }
-            const { additionalDeps: rsDeps, serialized: rsSerialized } = getSerializedData();
-            const prevDeps = Object.keys(rsDeps);
-            const files = this.pageDeps.collect(prevDeps.concat(Object.keys(this.initDeps)), this.unpackDeps);
+            const { additionalDeps, serialized: rsSerialized } = getSerializedData();
+            const deps = Object.keys(Object.assign(additionalDeps, this.initDeps));
+            const files = this.pageDeps.collect(deps, this.unpackDeps);
             // некоторые разработчики завязываются на порядок css, поэтому сначала css переданные через links
             const simpleCss = this.includedResources.links.concat(files.css.simpleCss);
             // TODO нельзя слить ссылки и имена модулей т.к LinkResolver портит готовые ссылки
@@ -86,7 +85,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
                 wml: files.wml,
                 rsSerialized,
                 rtpackModuleNames: this.unpackDeps,
-                additionalDeps: prevDeps.concat(Object.keys(this.lazyInitDeps))
+                additionalDeps: deps
             });
             this.resolve = null;
         });
