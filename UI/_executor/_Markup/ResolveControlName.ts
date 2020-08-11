@@ -2,7 +2,7 @@
 /* tslint:disable */
 
 import { TAttributes } from './IGeneratorType';
-import { INodeAttribute } from './Compatible/ICompatibleType';
+import { INodeAttribute } from './IGeneratorType';
 
 interface IControlData {
    name?: unknown;

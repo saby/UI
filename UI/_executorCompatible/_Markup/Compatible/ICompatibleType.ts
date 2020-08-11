@@ -3,7 +3,8 @@ import {
    TObject,
    TAttributes,
    TOptions,
-   IGeneratorInternalProperties
+   IGeneratorInternalProperties,
+   INodeAttribute
 } from 'UI/_executor/_Markup/IGeneratorType';
 
 /**
@@ -33,15 +34,6 @@ export interface IOptionsCompatibleBase {
    tabindex: number;
    __$config: string;
    allowChangeEnable: boolean | string;
-}
-
-// Опции для ноды в слое совместимости
-export interface INodeAttribute extends IOptionsCompatibleBase {
-   config: string;
-   hasMarkup: string;
-   __config: string;
-   __wasOldControl: boolean;
-   class?: string;
 }
 
 // Опции для V-ноды в слое совместимости

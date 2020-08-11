@@ -17,13 +17,12 @@ import { BuildControlBrowser } from './Strategy/BuildControlBrowser';
 import { IBuilder } from './IBuilder';
 import {
    IControlCompatible,
-   INodeAttribute,
    IDefaultInstanceData,
    TResultingFunction,
    IInternalCompatible,
    IOptionsCompatible
 } from './ICompatibleType';
-import { IBuilderScope, TObject } from 'UI/_executor/_Markup/IGeneratorType';
+import { IBuilderScope, TObject, INodeAttribute } from 'UI/_executor/_Markup/IGeneratorType';
 import {constants} from "Env/Env";
 
 /**

@@ -15,7 +15,7 @@ import * as Class from 'UI/_executor/_Utils/Class';
 import * as ContextBinder from 'Core/ContextBinder';
 // @ts-ignore
 import * as Context from 'Core/Context';
-import * as Compatible from '../../_Utils/Compatible';
+import * as Compatible from 'UI/_executor/_Utils/Compatible';
 // @ts-ignore
 import * as confStorage from 'Core/helpers/Hcontrol/configStorage';
 import {
@@ -24,12 +24,12 @@ import {
    IGeneratorAttrs,
    IGeneratorInternalProperties,
    IControlProperties,
+   INodeAttribute,
    TObject,
    TOptions,
    TScope
 } from 'UI/_executor/_Markup/IGeneratorType';
 import {
-   INodeAttribute,
    IOptionsCompatibleFixed,
    IControlDataCompatible,
    IOptionsCompatibleBase,

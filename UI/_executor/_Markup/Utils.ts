@@ -16,7 +16,7 @@ import * as Common from '../_Utils/Common';
 import voidElements from '../_Utils/VoidTags';
 // @ts-ignore
 import * as randomId from 'Core/helpers/Number/randomId';
-import { INodeAttribute } from './Compatible/ICompatibleType';
+import { INodeAttribute } from './IGeneratorType';
 import {IAttributes} from "../_Expressions/Attr";
 
 /**

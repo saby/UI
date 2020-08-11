@@ -1,7 +1,6 @@
 import { IBuilder as IBuilderExtend } from 'UI/_executor/_Markup/IBuilder';
-import { TObject, TScope, TAttributes, IBuilderScope } from 'UI/_executor/_Markup/IGeneratorType';
+import { TObject, TScope, TAttributes, IBuilderScope, INodeAttribute } from 'UI/_executor/_Markup/IGeneratorType';
 import {
-   INodeAttribute,
    IOptionsCompatibleBase,
    IControlCompatible,
    IBuilderData
