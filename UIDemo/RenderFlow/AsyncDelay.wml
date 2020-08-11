@@ -1,0 +1,4 @@
+<ul>
+   <UIDemo.RenderFlow.AsyncItem delay="4500" />
+   <UIDemo.RenderFlow.AsyncItem delay="1000" />
+</ul>
