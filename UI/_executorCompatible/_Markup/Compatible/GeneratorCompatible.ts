@@ -3,19 +3,8 @@
 
 import {
    _ForExecutorCompatible,
-   IGenerator,
-   GeneratorEmptyObject,
-   GeneratorObject,
-   GeneratorTemplateOrigin,
-   IControl,
-   IControlData,
-   ICreateControlTemplateCfg,
-   IGeneratorAttrs,
-   IGeneratorConfig,
-   IGeneratorDefCollection,
-   TDeps,
-   TIncludedTemplate,
-   TObject
+   _IGenerator,
+   _IGeneratorType
 } from 'UI/Executor';
 import { CompatibleControlBuilder } from './CompatibleControlBuilder';
 import { Logger } from 'UI/Utils';
@@ -36,15 +25,14 @@ const RequireHelper = _ForExecutorCompatible.RequireHelper;
 const Scope = _ForExecutorCompatible.Scope;
 const MarkupUtils = _ForExecutorCompatible.MarkupUtils;
 const Common = _ForExecutorCompatible.Common;
-
 /**
  * @author Тэн В.А.
  */
-export class GeneratorCompatible implements IGenerator {
+export class GeneratorCompatible implements _IGenerator.IGenerator {
    // Повышаем производиительность путем дублирования кода для совместимости
    // Проверка условий в оригинальном методе замедляет выполнение на ~60% https://jsperf.com/if-compat-speed
    // TODO: удалить после отказа от слоя совместимости
-   cacheModules: TObject;
+   cacheModules: _IGeneratorType.TObject;
    generatorBase: typeof Generator;
 
    constructor() {
@@ -58,21 +46,21 @@ export class GeneratorCompatible implements IGenerator {
       return this.generatorBase.prepareDataForCreate.call(this, tplOrigin, scope, attrs, deps, includedTemplates);
    }
 
-   chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string|void> | string | Error {
+   chain(out: string, defCollection: _IGeneratorType.IGeneratorDefCollection, inst?: _IGeneratorType.IControl): Promise<string|void> | string | Error {
       return this.generatorBase.chain.call(this, out, defCollection, inst);
    }
 
    createControl(type: string,
-                 name: GeneratorTemplateOrigin,
-                 data: IControlData,
-                 attrs: IGeneratorAttrs,
-                 templateCfg: ICreateControlTemplateCfg,
+                 name: _IGeneratorType.GeneratorTemplateOrigin,
+                 data: _IGeneratorType.IControlData,
+                 attrs: _IGeneratorType.IGeneratorAttrs,
+                 templateCfg: _IGeneratorType.ICreateControlTemplateCfg,
                  context: string,
-                 deps: TDeps,
-                 includedTemplates: TIncludedTemplate,
-                 config: IGeneratorConfig,
-                 contextObj?: GeneratorEmptyObject,
-                 defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error {
+                 deps: _IGeneratorType.TDeps,
+                 includedTemplates: _IGeneratorType.TIncludedTemplate,
+                 config: _IGeneratorType.IGeneratorConfig,
+                 contextObj?: _IGeneratorType.GeneratorEmptyObject,
+                 defCollection?: _IGeneratorType.IGeneratorDefCollection | void): _IGeneratorType.GeneratorObject | Promise<unknown> | Error {
       return this.generatorBase.createControl.call(this, type, name, data, attrs, templateCfg, context, deps, includedTemplates,
          config, contextObj, defCollection);
    }

@@ -15,10 +15,7 @@ import { Subscriber } from 'UI/Events';
 import { ContextResolver } from 'UI/Contexts';
 import {
    _ForExecutorCompatible,
-   IBuilderScope,
-   TAttributes,
-   TObject,
-
+   _IGeneratorType
 } from 'UI/Executor';
 import { _FocusAttrs } from 'UI/Focus';
 // @ts-ignore
@@ -35,9 +32,9 @@ import {
 } from '../ICompatibleType';
 
 interface IBuildControl {
-   buildForNewControl(scope: IBuilderScope,
+   buildForNewControl(scope: _IGeneratorType.IBuilderScope,
                       cnstr: Function,
-                      decOptions: TAttributes): TObject | string;
+                      decOptions: _IGeneratorType.TAttributes): _IGeneratorType.TObject | string;
 }
 
 const Common = _ForExecutorCompatible.Common;
@@ -53,7 +50,7 @@ export abstract class BuildControl implements IBuildControl {
 
    abstract saveContextFix(options, inst: IInstanceExtendetCompatible): void;
 
-   abstract checkAsyncResult(result: Promise<unknown> | TObject, inst: IInstanceExtendetCompatible): void;
+   abstract checkAsyncResult(result: Promise<unknown> | _IGeneratorType.TObject, inst: IInstanceExtendetCompatible): void;
 
    abstract prepareStateReceiver(key: string, receivedState: TReceivedState): void;
 
@@ -199,7 +196,7 @@ export abstract class BuildControl implements IBuildControl {
    };
 
    // FIXME: удалить асинхронную ветку в 7100
-   private makeInlineConfigs(res: TObject, optionsConfig: string, receivedState: TObject): unknown {
+   private makeInlineConfigs(res: _IGeneratorType.TObject, optionsConfig: string, receivedState: _IGeneratorType.TObject): unknown {
       const ser = this.serializeReceivedState(receivedState);
       return res +
          '<script type="text/javascript" data-vdomignore="true">window.inline' +
@@ -211,7 +208,7 @@ export abstract class BuildControl implements IBuildControl {
    };
 
    // FIXME: удалить асинхронную ветку в 7100
-   private serializeReceivedState(receivedState: TObject): unknown {
+   private serializeReceivedState(receivedState: _IGeneratorType.TObject): unknown {
       const slr = new Serializer();
       let ser = JSON.stringify(receivedState, slr.serialize);
 

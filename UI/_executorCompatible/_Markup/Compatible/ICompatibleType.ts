@@ -1,10 +1,5 @@
 import {
-   IBuilderScope,
-   TObject,
-   TAttributes,
-   TOptions,
-   IGeneratorInternalProperties,
-   INodeAttribute
+   _IGeneratorType
 } from 'UI/Executor';
 
 /**
@@ -17,12 +12,12 @@ export interface INode {
    closeTag: string;
    nodeType: number;
    nodeName: string;
-   attributes: INodeAttribute;
-   childNodes: TObject[];
+   attributes: _IGeneratorType.INodeAttribute;
+   childNodes: _IGeneratorType.TObject[];
    parentNode: undefined;
-   sequence: TObject[];
+   sequence: _IGeneratorType.TObject[];
    text: string;
-   _junk: TObject[];
+   _junk: _IGeneratorType.TObject[];
 }
 
 // Базовые опции для слоя совместимости
@@ -43,7 +38,7 @@ export interface IOptionsCompatible extends IOptionsCompatibleBase {
    element: INode[];
    linkedContext: IContextCompatible;
    context: IContextCompatible;
-   internal: IGeneratorInternalProperties;
+   internal: _IGeneratorType.IGeneratorInternalProperties;
    user: IOptionsCompatible;
    source: unknown[];
    itemTemplate: Function;
@@ -56,13 +51,13 @@ export interface IOptionsCompatible extends IOptionsCompatibleBase {
 
 // Опции для ноды с фиксом
 export interface IOptionsCompatibleFixed extends IOptionsCompatible {
-   __$fixDecOptions: INodeAttribute;
+   __$fixDecOptions: _IGeneratorType.INodeAttribute;
 }
 
 // Биндинги в слое совместимости
 export interface IBindingCompatible {
    _options: IOptionsCompatible;
-   scope: IBuilderScope;
+   scope: _IGeneratorType.IBuilderScope;
 }
 
 // Базовые данные инстанса
@@ -73,7 +68,7 @@ export interface IDefaultInstanceData {
    _validating: boolean;
    _prevValidationResult: boolean;
    _errorMessage: string;
-   _dataBind: TObject;
+   _dataBind: _IGeneratorType.TObject;
    _iconTemplate: Function;
    _checkClickByTap: boolean;
    _maxTouchCount: number;
@@ -88,7 +83,7 @@ export interface IMarkupForCompatible extends IBindingCompatible {
 // Базовый контекс в слое совместимости
 export interface IContextCompatible {
    _goUp: number;
-   _options: TOptions;
+   _options: _IGeneratorType.TOptions;
    _isEmpty: boolean;
    _contextObject: TContext;
    _isInitialized: boolean;
@@ -116,27 +111,27 @@ export interface IControlCompatible extends IContextCompatible {
    _parentContextFieldUpdateHandler: Function;
    _updateLockCnt: number;
    _updatedEventsCnt: number;
-   _fieldSubscriptions: TObject;
-   _handlers: TObject;
+   _fieldSubscriptions: _IGeneratorType.TObject;
+   _handlers: _IGeneratorType.TObject;
    _subscriptions: IEvent[];
    _subDestroyControls: IContolHandler[];
    _parentContextFieldsChangedHandler: Function;
    _parentContextFieldRemovedHandler: Function;
    _isAbstractInitialized: boolean;
-   _eventBusChannel: TObject;
+   _eventBusChannel: _IGeneratorType.TObject;
 }
 
 // Совместимый инстанс (используется для корректной работы биндингов)
 export interface IInstanceCompatible {
    instance: IInstanceExtendetCompatible;
-   resolvedOptions: TOptions;
-   defaultOptions: TOptions;
+   resolvedOptions: _IGeneratorType.TOptions;
+   defaultOptions: _IGeneratorType.TOptions;
 }
 
 export interface IInstanceExtendetCompatible {
    _template: string;
    saveOptions: Function;
-   _options: TOptions;
+   _options: _IGeneratorType.TOptions;
    hasCompatible: Function;
    _beforeMountLimited: Function;
    _beforeMountCalled: boolean;
@@ -160,7 +155,7 @@ export interface IInternalCompatible {
 
 // Данные для подготовки к построению контрола
 export interface IBuilderData {
-   attrs: TAttributes;
+   attrs: _IGeneratorType.TAttributes;
    controlProperties: IOptionsCompatibleBase;
    dataComponent: string;
    internal: IInternalCompatible;
@@ -170,7 +165,7 @@ export interface IBuilderData {
 
 export interface IControlDataCompatible {
    user: IOptionsCompatible;
-   internal: IGeneratorInternalProperties;
+   internal: _IGeneratorType.IGeneratorInternalProperties;
    bindings?: IBindingData[];
    tabindex?: number;
    __$config?: string;

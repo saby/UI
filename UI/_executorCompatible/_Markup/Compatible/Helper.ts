@@ -11,15 +11,7 @@ import { Logger } from 'UI/Utils';
 import {
    _ForExecutorCompatible,
    Compatible,
-   GeneratorFn,
-   IBuilderScope,
-   IGeneratorAttrs,
-   IGeneratorInternalProperties,
-   IControlProperties,
-   INodeAttribute,
-   TObject,
-   TOptions,
-   TScope
+   _IGeneratorType
 } from 'UI/Executor';
 // @ts-ignore
 import * as ContextBinder from 'Core/ContextBinder';
@@ -61,8 +53,8 @@ const Class = _ForExecutorCompatible.Class;
  * @param _options
  * @return {IOptionsCompatibleFixed}
  */
-export function tabIndexFixCompatible(scope: IBuilderScope,
-                               decOptions: INodeAttribute,
+export function tabIndexFixCompatible(scope: _IGeneratorType.IBuilderScope,
+                               decOptions: _IGeneratorType.INodeAttribute,
                                _options: IOptionsCompatibleFixed): IOptionsCompatibleFixed {
    // if new control is inside of a CompoundControl it has to have the 'tabindex' option
    // to be revived correctly
@@ -109,12 +101,12 @@ function generateNodeCompatible(decOptions) {
  * @param cnstr
  * @return {IBindingCompatible}
  */
-export function setBindingCompatible(scope: IBuilderScope ,
+export function setBindingCompatible(scope: _IGeneratorType.IBuilderScope ,
                                      _options: IOptionsCompatible,
                                      cnstr: Function): IBindingCompatible {
    // применяю биндинги
    _options = bindOptionsCompatible(_options.linkedContext, _options, cnstr);
-   scope.internal = scope.internal || <IGeneratorInternalProperties> {};
+   scope.internal = scope.internal || <_IGeneratorType.IGeneratorInternalProperties> {};
 
    scope.internal.iWantBeWS3 = true;
 
@@ -152,7 +144,7 @@ function bindOptionsCompatible(context, _options, cnstr, defaultInstanceData?) {
  * @param cnstr
  * @return {IInstanceCompatible}
  */
-export function mergeCompatible(scope: IBuilderScope,
+export function mergeCompatible(scope: _IGeneratorType.IBuilderScope,
                                 _options: IOptionsCompatible,
                                 cnstr: Function): IInstanceCompatible {
    // Мержим служебные и пользовательские опции для BaseCompatible
@@ -183,9 +175,9 @@ export function saveContextCompatible(_options: IOptionsCompatible,
  * @param scope
  * @return {TObject}
  */
-export function dataComponentFixCompatible(decOptions: INodeAttribute,
-                                           scope: IBuilderScope): INodeAttribute {
-   let decAttrs = <INodeAttribute> {};
+export function dataComponentFixCompatible(decOptions: _IGeneratorType.INodeAttribute,
+                                           scope: _IGeneratorType.IBuilderScope): _IGeneratorType.INodeAttribute {
+   let decAttrs = <_IGeneratorType.INodeAttribute> {};
    if (!Attr.checkAttr(decOptions) && !decOptions.__wasOldControl) {
       for (let i in decOptions) {
          if ((i === 'data-component' ||
@@ -243,8 +235,8 @@ export function dataComponentFixCompatible(decOptions: INodeAttribute,
  * @return {void}
  */
 export function fixCompatible(inst: IInstanceExtendetCompatible,
-                              decOptions: INodeAttribute,
-                              scope: IBuilderScope,
+                              decOptions: _IGeneratorType.INodeAttribute,
+                              scope: _IGeneratorType.IBuilderScope,
                               _options: IOptionsCompatible): void {
    // По задаче https://online.sbis.ru/opendoc.html?guid=d7ec8126-a368-4afc-ba10-881fccd54b0e
    mergeDecOptionsCompatible(inst._decOptions, decOptions);
@@ -266,7 +258,7 @@ export function fixCompatible(inst: IInstanceExtendetCompatible,
  * @param source
  * @return {void}
  */
-function mergeDecOptionsCompatible(target: {}, source: INodeAttribute): void {
+function mergeDecOptionsCompatible(target: {}, source: _IGeneratorType.INodeAttribute): void {
    if (!target || !source) {
       return;
    }
@@ -323,7 +315,7 @@ function getTemplate(cnstr: Function): TResultingFunction {
  * @param name
  * @return {boolean}
  */
-export function notOptionalControlCompatible(name: GeneratorFn): boolean {
+export function notOptionalControlCompatible(name: _IGeneratorType.GeneratorFn): boolean {
    return !(Common.isString(name) && Common.isOptionalString(Common.splitWs(name)));
 }
 
@@ -333,7 +325,7 @@ export function notOptionalControlCompatible(name: GeneratorFn): boolean {
  * @param options
  * @return {boolean}
  */
-export function fixTabindexUsingAttributeCompatible(decOptions: INodeAttribute,
+export function fixTabindexUsingAttributeCompatible(decOptions: _IGeneratorType.INodeAttribute,
                                                     options: IControlDataCompatible): boolean {
    let tabNeedMerge = true;
 
@@ -420,9 +412,9 @@ export function hasMarkupConfig(controlData: IControlDataCompatible, external: b
  * @return {IMarkupForCompatible}
  */
 export function prepareMarkupForClassCompatible(cnstr: Function,
-                                                scope: IBuilderScope,
+                                                scope: _IGeneratorType.IBuilderScope,
                                                 context: IContextCompatible,
-                                                decOptions: INodeAttribute): IMarkupForCompatible {
+                                                decOptions: _IGeneratorType.INodeAttribute): IMarkupForCompatible {
    let resultingFn = getTemplate(cnstr),
       _options;
 
@@ -452,9 +444,9 @@ export function prepareMarkupForClassCompatible(cnstr: Function,
  * @param newCtr
  * @return {IBuilderScope}
  */
-function saveParsedOptionsCompatible(scope: IBuilderScope,
+function saveParsedOptionsCompatible(scope: _IGeneratorType.IBuilderScope,
                                      cnstr: Function,
-                                     newCtr: boolean): IBuilderScope{
+                                     newCtr: boolean): _IGeneratorType.IBuilderScope{
    const id = scope.user.__$config;
 
    /**
@@ -531,7 +523,7 @@ export function fixEnabledOptionCompatible(_options: IOptionsCompatibleBase,
 export function buildForOldControl(scope: IControlDataCompatible,
                                    cnstr: Function,
                                    resultingFn: TResultingFunction,
-                                   decOptions: INodeAttribute,
+                                   decOptions: _IGeneratorType.INodeAttribute,
                                    controlData: IOptionsCompatibleBase): string {
    var
       modOptions = cnstr.prototype._modifyOptions,
@@ -596,8 +588,8 @@ export function buildForOldControl(scope: IControlDataCompatible,
 export function buildForSuperOldControls(scope: IControlDataCompatible,
                                          cnstr: Function,
                                          context: IContextCompatible,
-                                         varStorage: TObject,
-                                         decOptions: INodeAttribute): string {
+                                         varStorage: _IGeneratorType.TObject,
+                                         decOptions: _IGeneratorType.INodeAttribute): string {
    //нужно ли создавать инстансы(xhtml)
    if (scope.internal && scope.internal.parent && scope.internal.parent._template && window && scope.user.element.length > 0) {
       let _options;
@@ -622,9 +614,9 @@ export function buildForSuperOldControls(scope: IControlDataCompatible,
  * @param controlData
  * @returns {TOptions}
  */
-function resolveDecOptionsClassMerge(decOptions: INodeAttribute,
-                                     options: TOptions,
-                                     controlData: IOptionsCompatibleBase): INodeAttribute {
+function resolveDecOptionsClassMerge(decOptions: _IGeneratorType.INodeAttribute,
+                                     options: _IGeneratorType.TOptions,
+                                     controlData: IOptionsCompatibleBase): _IGeneratorType.INodeAttribute {
    var
       classStr = (decOptions['attr:class'] ? decOptions['attr:class'] + ' ' : '') +
          (decOptions['class'] ? decOptions['class'] + ' ' : '') +
@@ -687,7 +679,7 @@ function mergeEnabled(classStr: string, enabled: boolean): string {
  * @returns {string}
  * @param scope
  */
-export function tabIndexRemoveCompatible(scope: TScope): void {
+export function tabIndexRemoveCompatible(scope: _IGeneratorType.TScope): void {
    if (scope.tabindex === -1 && !scope.hasOwnProperty('_moduleName')) {
       delete scope.tabindex;
    }
@@ -704,8 +696,8 @@ export function tabIndexRemoveCompatible(scope: TScope): void {
  */
 export function notModuleStringCompatible(tpl: string,
                                           isTplString: boolean,
-                                          resolvedScope: IControlProperties,
-                                          decorAttribs: IGeneratorAttrs,
+                                          resolvedScope: _IGeneratorType.IControlProperties,
+                                          decorAttribs: _IGeneratorType.IGeneratorAttrs,
                                           context: IContextCompatible): string {
    if (!(isTplString && Common.isStringModules(tpl))) {
       /*Логический родитель может быть только у VDOM*/
