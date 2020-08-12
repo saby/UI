@@ -20,6 +20,11 @@ function checkActiveElement(savedActiveElement: Element): boolean {
    const isBody = document.activeElement === document.body || document.activeElement === null;
    return isBody && document.activeElement !== savedActiveElement;
 }
+
+function isDestroyedControl(control: any): boolean {
+   return control.isDestroyed && control.isDestroyed() || control._destroyed;
+}
+
 let prevControls = [];
 let savedActiveElement;
 export function restoreFocus(control: any, action: Function): void {
@@ -43,7 +48,7 @@ export function restoreFocus(control: any, action: Function): void {
       prevControls.find((control) => {
          // в списке контролов может остаться очищенный контрол, делать в NodeCollector'е не можем,
          // т.к.замедлит выполнение goUpByControlTree
-         if (control._destroyed) {
+         if (isDestroyedControl(control)) {
             return false;
          }
          if (!control._template && !control._container) {
