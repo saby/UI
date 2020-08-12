@@ -9,7 +9,6 @@ import * as htmlparser from 'UI/_builder/Tmpl/htmlparser';
 import * as traversing from 'UI/_builder/Tmpl/traverse';
 import * as processingToFunction from 'UI/_builder/Tmpl/function';
 import * as templates from 'UI/_builder/Tmpl/codegen/templates';
-import * as DoT from 'Core/js-template-doT';
 import { ISource, Source } from './utils/Source';
 import { IOptions, Options } from './utils/Options';
 import { ModulePath } from './utils/ModulePath';
@@ -372,6 +371,8 @@ class CompilerWml extends BaseCompiler {
    }
 }
 
+let DoT;
+
 /**
  * This class represents methods to compile xhtml files.
  */
@@ -400,6 +401,9 @@ class CompilerXHTML implements ICompiler {
    compile(text: string, options: IOptions): Promise<IArtifact> {
       return new Promise((resolve: any, reject: any) => {
          let artifact: IArtifact = createArtifact(options);
+         if (!DoT) {
+            DoT = requirejs.defined('Core/js-template-doT') && requirejs('Core/js-template-doT');
+         }
          try {
             // tslint:disable:prefer-const
             let config = DoT.getSettings();

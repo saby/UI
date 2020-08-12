@@ -12,7 +12,7 @@ import { Logger } from 'UI/Utils';
 import { WasabyProperties } from 'Inferno/third-party/index';
 import { Map, Set } from 'Types/shim';
 
-import {htmlNode, textNode} from "UI/Executor";
+import {htmlNode, textNode} from 'UI/Executor';
 
 /**
  * @author Кондаков Р.Н.

@@ -14,7 +14,7 @@ import {
    isControlVNodeType,
    isTemplateVNodeType
 } from './VdomMarkup';
-import { textNode, Compatible, OptionsResolver } from "UI/Executor";
+import { textNode, Compatible, OptionsResolver } from 'UI/Executor';
 import { ContextResolver } from 'UI/Contexts';
 import { delay } from 'Types/function';
 // @ts-ignore
@@ -32,7 +32,7 @@ import {
    getNodeName
 } from 'UI/DevtoolsHook';
 import { IControlNode } from '../interfaces';
-import { collectObjectVersions, getChangedOptions } from "./Options";
+import { collectObjectVersions, getChangedOptions } from './Options';
 
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
@@ -41,7 +41,7 @@ import * as AppInit from 'Application/Initializer';
  * @author Кондаков Р.Н.
  */
 
-export { getChangedOptions } from "./Options";
+export { getChangedOptions } from './Options';
 
 var Slr = new Serializer();
 

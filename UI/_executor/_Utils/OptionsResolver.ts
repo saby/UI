@@ -5,7 +5,7 @@
 import { constants } from 'Env/Env';
 // @ts-ignore
 import { Logger } from 'UI/Utils';
-import {UseAutoProxiedOptionError} from "./ConfigResolver";
+import {UseAutoProxiedOptionError} from './ConfigResolver';
 
 /**
  * Применить дефолтные опции конструктора

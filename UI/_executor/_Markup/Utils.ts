@@ -17,7 +17,7 @@ import voidElements from '../_Utils/VoidTags';
 // @ts-ignore
 import * as randomId from 'Core/helpers/Number/randomId';
 import { INodeAttribute } from './IGeneratorType';
-import {IAttributes} from "../_Expressions/Attr";
+import {IAttributes} from '../_Expressions/Attr';
 
 /**
  * @author Тэн В.А.
