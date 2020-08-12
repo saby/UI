@@ -21,7 +21,7 @@ import {
    IInternalCompatible,
    IOptionsCompatible
 } from './ICompatibleType';
-import { constants } from "Env/Env";
+import { constants } from 'Env/Env';
 
 const Common = _ForExecutorCompatible.Common;
 const ResolveControlName = _ForExecutorCompatible.ResolveControlName;

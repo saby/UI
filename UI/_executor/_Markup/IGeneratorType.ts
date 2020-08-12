@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_executor/_Markup/IGeneratorType" />
 /* tslint:disable */
 
-import {IOptionsCompatibleBase} from "../../_executorCompatible/_Markup/Compatible/ICompatibleType";
+import {IOptionsCompatibleBase} from '../../_executorCompatible/_Markup/Compatible/ICompatibleType';
 
 /**
  * @author Тэн В.А.
