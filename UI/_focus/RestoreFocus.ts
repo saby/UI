@@ -20,6 +20,11 @@ function checkActiveElement(savedActiveElement: Element): boolean {
    const isBody = document.activeElement === document.body || document.activeElement === null;
    return isBody && document.activeElement !== savedActiveElement;
 }
+
+function isDestroyedControl(control: any): boolean {
+   return control.isDestroyed && control.isDestroyed() || control._destroyed;
+}
+
 let prevControls = [];
 let savedActiveElement;
 export function restoreFocus(control: any, action: Function): void {
@@ -41,6 +46,11 @@ export function restoreFocus(control: any, action: Function): void {
    // предыдущего активного, чтобы сохранить контекст фокуса и дать возможность управлять с клавиатуры
    if (checkActiveElement(savedActiveElement)) {
       prevControls.find((control) => {
+         // в списке контролов может остаться очищенный контрол, делать в NodeCollector'е не можем,
+         // т.к.замедлит выполнение goUpByControlTree
+         if (isDestroyedControl(control)) {
+            return false;
+         }
          if (!control._template && !control._container) {
             // СОВМЕСТИМОСТЬ: у старых невизуальных контролов может не быть контейнера
             // (например, SBIS3.CONTROLS/Action/OpenDialog)
@@ -50,7 +60,7 @@ export function restoreFocus(control: any, action: Function): void {
          const container = control._template ? control._container : control.getContainer()[0];
          // @ts-ignore
          focus.__restoreFocusPhase = true;
-         let result = isElementVisible(container) && focus(container);
+         const result = isElementVisible(container) && focus(container);
          // @ts-ignore
          delete focus.__restoreFocusPhase;
          return result;
