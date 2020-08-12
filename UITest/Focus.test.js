@@ -30,6 +30,8 @@ define([
       let purifierStub;
 
       before(function() {
+         this.compat = require('Env/Env').constants.compat;
+         require('Env/Env').constants.compat = false;
          purifierStub = sinon.stub(Utils.Purifier, 'purifyInstance').callsFake(() => {});
          if (fromNode) {
             var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
@@ -45,6 +47,7 @@ define([
       });
 
       after(function() {
+         require('Env/Env').constants.compat = this.compat;
          purifierStub.restore();
          if (fromNode) {
             delete global.window;

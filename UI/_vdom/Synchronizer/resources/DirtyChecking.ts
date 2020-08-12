@@ -2,7 +2,7 @@
 /* tslint:disable */
 
 // @ts-ignore
-import { constants as isJs } from 'Env/Env';
+import { constants } from 'Env/Env';
 import { composeWithResultApply } from '../../Utils/Functional';
 import { Subscriber } from 'UI/Events';
 import {
@@ -46,7 +46,7 @@ export { getChangedOptions } from './Options';
 var Slr = new Serializer();
 
 var DirtyCheckingCompatible;
-if (isJs.compat) {
+if (constants.compat) {
    DirtyCheckingCompatible = _dcc;
 }
 
@@ -360,6 +360,40 @@ function collectChildrenKeys(next: { key }[], prev: { key }[]): { prev, next }[]
    return Object.values(keysMap);
 }
 
+function createInstance(cnstr, userOptions, internalOptions) {
+   internalOptions = internalOptions || {};
+   userOptions._logicParent = internalOptions.logicParent;
+   userOptions._isSeparatedOptions = true;
+   var actualOptions = userOptions,
+      inst,
+      coreControl,
+      parentName = internalOptions.logicParent && internalOptions.logicParent._moduleName;
+   var defaultOpts = OptionsResolver.getDefaultOptions(cnstr);
+   OptionsResolver.resolveOptions(cnstr, defaultOpts, actualOptions, parentName);
+   try {
+      inst = new cnstr(actualOptions);
+   }
+   catch (error) {
+      // @ts-ignore
+      coreControl = require('Core/Control');
+      inst = new coreControl();
+      Logger.lifeError('constructor', cnstr.prototype, error);
+   }
+   if (internalOptions.logicParent && internalOptions.logicParent._children && userOptions.name) {
+      internalOptions.logicParent._children[userOptions.name] = inst;
+   }
+   //Если вдруг опции не установлены - надо туда установить объект, чтобы в логах было что-то человекопонятное
+   if (!inst._options) {
+      inst._options = actualOptions;
+   }
+
+   return {
+      instance: inst,
+      resolvedOptions: actualOptions,
+      defaultOptions: defaultOpts
+   };
+}
+
 export function createNode(controlClass_, options, key, environment, parentNode, serialized, vnode?): IControlNode {
    var
       controlCnstr = getModuleDefaultCtor(controlClass_), // получаем конструктор из модуля
@@ -417,7 +451,11 @@ export function createNode(controlClass_, options, key, environment, parentNode,
 
       if (typeof controlClass_ === 'function') {
          // создаем инстанс компонента
-         instCompat = getCompatibleUtils().createInstanceCompatible(controlCnstr, optionsWithState, internalOptions);
+         if (constants.compat) {
+            instCompat = getCompatibleUtils().createInstanceCompatible(controlCnstr, optionsWithState, internalOptions);
+         } else {
+            instCompat = createInstance(controlCnstr, optionsWithState, internalOptions);
+         }
          control = instCompat.instance;
          optionsWithState = instCompat.resolvedOptions;
          defaultOptions = instCompat.defaultOptions;
@@ -425,7 +463,7 @@ export function createNode(controlClass_, options, key, environment, parentNode,
          // инстанс уже есть, работаем с его опциями
          control = controlClass_;
          defaultOptions = OptionsResolver.getDefaultOptions(controlClass_);
-         if (isJs.compat) {
+         if (constants.compat) {
             optionsWithState = getCompatibleUtils().combineOptionsIfCompatible(
                controlCnstr.prototype,
                optionsWithState,
@@ -929,7 +967,7 @@ export function rebuildNode(environment, node, force, isRoot) {
                         controlNode.control._container = controlNode.element;
                         controlNode.control._setInternalOptions(vnode.controlInternalProperties || {});
 
-                        if (isJs.compat) {
+                        if (constants.compat) {
                            // @ts-ignore
                            controlNode.control._container = $(controlNode.element);
                         }
@@ -938,7 +976,7 @@ export function rebuildNode(environment, node, force, isRoot) {
 
                   // Only subscribe to event: from options if the environment is compatible AND control
                   // has compatible behavior mixed into it
-                  if (isJs.compat && (!controlNode.control.hasCompatible || controlNode.control.hasCompatible())) {
+                  if (constants.compat && (!controlNode.control.hasCompatible || controlNode.control.hasCompatible())) {
                      subscribeToEvent(controlNode); //TODO Кусок слоя совместимости https://online.sbis.ru/opendoc.html?guid=95e5b595-f9ea-45a2-9a4d-97a714d384af
                   }
                } else {
