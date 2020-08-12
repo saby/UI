@@ -43,7 +43,7 @@ export function restoreFocus(control: any, action: Function): void {
       prevControls.find((control) => {
          // в списке контролов может остаться очищенный контрол, делать в NodeCollector'е не можем,
          // т.к.замедлит выполнение goUpByControlTree
-         if (control.isDestroyed()) {
+         if (control._destroyed) {
             return false;
          }
          if (!control._template && !control._container) {
@@ -55,7 +55,7 @@ export function restoreFocus(control: any, action: Function): void {
          const container = control._template ? control._container : control.getContainer()[0];
          // @ts-ignore
          focus.__restoreFocusPhase = true;
-         let result = isElementVisible(container) && focus(container);
+         const result = isElementVisible(container) && focus(container);
          // @ts-ignore
          delete focus.__restoreFocusPhase;
          return result;
