@@ -14,7 +14,7 @@ import {
    isControlVNodeType,
    isTemplateVNodeType
 } from './VdomMarkup';
-import { textNode, Compatible, OptionsResolver } from 'UI/Executor';
+import { textNode, OptionsResolver } from 'UI/Executor';
 import { ContextResolver } from 'UI/Contexts';
 import { delay } from 'Types/function';
 // @ts-ignore
@@ -48,6 +48,18 @@ var Slr = new Serializer();
 var DirtyCheckingCompatible;
 if (isJs.compat) {
    DirtyCheckingCompatible = _dcc;
+}
+
+let compatibleUtils;
+function getCompatibleUtils() {
+   if (!compatibleUtils) {
+      if (requirejs.defined('View/ExecutorCompatible')) {
+         compatibleUtils = requirejs('View/ExecutorCompatible').CompatibleUtils;
+      } else {
+         Logger.error('View/ExecutorCompatible не загружен. Проверьте загрузку слоя совместимости');
+      }
+   }
+   return compatibleUtils;
 }
 
 export class MemoForNode {
@@ -405,7 +417,7 @@ export function createNode(controlClass_, options, key, environment, parentNode,
 
       if (typeof controlClass_ === 'function') {
          // создаем инстанс компонента
-         instCompat = Compatible.createInstanceCompatible(controlCnstr, optionsWithState, internalOptions);
+         instCompat = getCompatibleUtils().createInstanceCompatible(controlCnstr, optionsWithState, internalOptions);
          control = instCompat.instance;
          optionsWithState = instCompat.resolvedOptions;
          defaultOptions = instCompat.defaultOptions;
@@ -414,7 +426,7 @@ export function createNode(controlClass_, options, key, environment, parentNode,
          control = controlClass_;
          defaultOptions = OptionsResolver.getDefaultOptions(controlClass_);
          if (isJs.compat) {
-            optionsWithState = Compatible.combineOptionsIfCompatible(
+            optionsWithState = getCompatibleUtils().combineOptionsIfCompatible(
                controlCnstr.prototype,
                optionsWithState,
                internalOptions
@@ -973,7 +985,7 @@ export function rebuildNode(environment, node, force, isRoot) {
                   childControl = childControlNode.control,
                   shouldUpdate = true,
                   newOptions = OptionsResolver.resolveDefaultOptions(newVNode.compound
-                     ? Compatible.createCombinedOptions(
+                     ? getCompatibleUtils().createCombinedOptions(
                         newVNode.controlProperties,
                         newVNode.controlInternalProperties
                      )

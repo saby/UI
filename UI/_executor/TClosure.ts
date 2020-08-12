@@ -35,12 +35,12 @@ function getGeneratorCompatible() {
       return generatorCompatible;
    } else {
       //@ts-ignore
-      if (require.defined('UI/ExecutorCompatible')) {
-         generatorCompatible = require('UI/ExecutorCompatible').Compatible;
+      if (require.defined('View/ExecutorCompatible')) {
+         generatorCompatible = require('View/ExecutorCompatible').GeneratorCompatible;
          return generatorCompatible;
       } else {
          // FIXME: сейчас на СП всегда стоит флаг совместимости
-         // Logger.warn('GeneratorCompatible не загружен. Проверьте загрузку слоя совместимости.');
+         // Logger.warn('View/ExecutorCompatible не загружен. Проверьте загрузку слоя совместимости.');
          return false;
       }
    }
