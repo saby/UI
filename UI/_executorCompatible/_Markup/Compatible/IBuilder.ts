@@ -1,7 +1,5 @@
-import { IBuilder as IBuilderExtend } from '../../_Markup/IBuilder';
-import { TObject, TScope, TAttributes, IBuilderScope } from '../IGeneratorType';
+import { _IBuilder, _IGeneratorType } from 'UI/Executor';
 import {
-   INodeAttribute,
    IOptionsCompatibleBase,
    IControlCompatible,
    IBuilderData
@@ -10,14 +8,14 @@ import {
 /**
  * @author Тэн В.А.
  */
-export interface IBuilder extends IBuilderExtend {
+export interface IBuilder extends _IBuilder.IBuilder {
    /**
     * Вывод ошибки в случае асинхронности в слое совместимости
     * @param result
     * @param inst
     * @returns {TObject | string}
     */
-   checkAsyncResult(result: Promise<unknown> | TObject,
+   checkAsyncResult(result: Promise<unknown> | _IGeneratorType.TObject,
                     inst: IControlCompatible): void;
 
    /**
@@ -27,15 +25,15 @@ export interface IBuilder extends IBuilderExtend {
     * @param receivedState
     * @returns {string}
     */
-   makeInlineConfigs(res: TObject,
+   makeInlineConfigs(res: _IGeneratorType.TObject,
                      optionsConfig: string,
-                     receivedState: TObject): string;
+                     receivedState: _IGeneratorType.TObject): string;
    /**
     * Создаем сериализованное состояние
     * @param receivedState
     * @returns {string}
     */
-   serializeReceivedState(receivedState: TObject): string;
+   serializeReceivedState(receivedState: _IGeneratorType.TObject): string;
 
    /**
     * Создаем совместимый контрол без шаблона
@@ -48,8 +46,8 @@ export interface IBuilder extends IBuilderExtend {
     * @returns {string}
     */
    createCompatibleController(tpl: Function,
-                              scope: TScope,
-                              attributes: TAttributes,
+                              scope: _IGeneratorType.TScope,
+                              attributes: _IGeneratorType.TAttributes,
                               context: IControlCompatible | void,
                               _deps: unknown,
                               data: IBuilderData): string;
@@ -69,14 +67,14 @@ export interface IBuilder extends IBuilderExtend {
     * @returns {string}
     */
    buildWsControlCompatible(_options: IOptionsCompatibleBase,
-                            scope: IBuilderScope,
+                            scope: _IGeneratorType.IBuilderScope,
                             cnstr: Function,
                             data: IBuilderData,
                             id: unknown,
                             resultingFn: Function,
-                            decOptions: INodeAttribute | void,
+                            decOptions: _IGeneratorType.INodeAttribute | void,
                             dataComponent: string,
-                            attributes: TAttributes,
+                            attributes: _IGeneratorType.TAttributes,
                             context: IControlCompatible | void,
-                            varStorage: TObject | void): string;
+                            varStorage: _IGeneratorType.TObject | void): string;
 }

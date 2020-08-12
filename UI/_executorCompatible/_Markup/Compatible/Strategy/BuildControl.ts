@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/_Markup/Compatible/Strategy/BuildControl" />
+/// <amd-module name="UI/_executorCompatible/_Markup/Compatible/Strategy/BuildControl" />
 /* tslint:disable */
 
 import {
@@ -13,19 +13,17 @@ import {
 import { Logger } from 'UI/Utils';
 import { Subscriber } from 'UI/Events';
 import { ContextResolver } from 'UI/Contexts';
-import * as Decorate from '../../../_Expressions/Decorate';
-import * as Attr from '../../../_Expressions/Attr';
+import {
+   _ForExecutorCompatible,
+   _IGeneratorType
+} from 'UI/Executor';
 import { _FocusAttrs } from 'UI/Focus';
-import * as Common from '../../../_Utils/Common';
 // @ts-ignore
 import * as Serializer from 'Core/Serializer';
 import * as AppInit from 'Application/Initializer';
 
 // @ts-ignore
 import * as randomId from 'Core/helpers/Number/randomId';
-import voidElements from '../../../_Utils/VoidTags';
-
-import { IBuilderScope, TAttributes, TObject } from '../../IGeneratorType';
 import {
    IControlCompatible,
    IEvent,
@@ -34,10 +32,15 @@ import {
 } from '../ICompatibleType';
 
 interface IBuildControl {
-   buildForNewControl(scope: IBuilderScope,
+   buildForNewControl(scope: _IGeneratorType.IBuilderScope,
                       cnstr: Function,
-                      decOptions: TAttributes): TObject | string;
+                      decOptions: _IGeneratorType.TAttributes): _IGeneratorType.TObject | string;
 }
+
+const Common = _ForExecutorCompatible.Common;
+const Attr = _ForExecutorCompatible.Attr;
+const Decorate = _ForExecutorCompatible.Decorate;
+const voidElements = _ForExecutorCompatible.voidElements;
 
 /**
  * @author Тэн В.А.
@@ -47,7 +50,7 @@ export abstract class BuildControl implements IBuildControl {
 
    abstract saveContextFix(options, inst: IInstanceExtendetCompatible): void;
 
-   abstract checkAsyncResult(result: Promise<unknown> | TObject, inst: IInstanceExtendetCompatible): void;
+   abstract checkAsyncResult(result: Promise<unknown> | _IGeneratorType.TObject, inst: IInstanceExtendetCompatible): void;
 
    abstract prepareStateReceiver(key: string, receivedState: TReceivedState): void;
 
@@ -193,7 +196,7 @@ export abstract class BuildControl implements IBuildControl {
    };
 
    // FIXME: удалить асинхронную ветку в 7100
-   private makeInlineConfigs(res: TObject, optionsConfig: string, receivedState: TObject): unknown {
+   private makeInlineConfigs(res: _IGeneratorType.TObject, optionsConfig: string, receivedState: _IGeneratorType.TObject): unknown {
       const ser = this.serializeReceivedState(receivedState);
       return res +
          '<script type="text/javascript" data-vdomignore="true">window.inline' +
@@ -205,7 +208,7 @@ export abstract class BuildControl implements IBuildControl {
    };
 
    // FIXME: удалить асинхронную ветку в 7100
-   private serializeReceivedState(receivedState: TObject): unknown {
+   private serializeReceivedState(receivedState: _IGeneratorType.TObject): unknown {
       const slr = new Serializer();
       let ser = JSON.stringify(receivedState, slr.serialize);
 

@@ -1,9 +1,9 @@
-/// <amd-module name="UI/_executor/_Markup/Compatible/FabricBuildControl />
+/// <amd-module name="UI/_executorCompatible/_Markup/Compatible/FabricBuildControl />
 /* tslint:disable */
 
 // @ts-ignore
 import * as coreInitializer from 'Core/core-extend-initializer';
-import * as Common from '../../_Utils/Common';
+import { _ForExecutorCompatible, _IGeneratorType } from 'UI/Executor';
 import {
    prepareMarkupForClassCompatible,
    fixEnabledOptionCompatible,
@@ -11,20 +11,20 @@ import {
    buildForOldControl,
    buildForSuperOldControls
 } from './Helper';
-import { ResolveControlName } from '../ResolveControlName';
 import { BuildControlSSR } from './Strategy/BuildControlSSR';
 import { BuildControlBrowser } from './Strategy/BuildControlBrowser';
 import { IBuilder } from './IBuilder';
 import {
    IControlCompatible,
-   INodeAttribute,
    IDefaultInstanceData,
    TResultingFunction,
    IInternalCompatible,
    IOptionsCompatible
 } from './ICompatibleType';
-import { IBuilderScope, TObject } from '../IGeneratorType';
-import {constants} from "Env/Env";
+import { constants } from "Env/Env";
+
+const Common = _ForExecutorCompatible.Common;
+const ResolveControlName = _ForExecutorCompatible.ResolveControlName;
 
 /**
  * @author Тэн В.А.
@@ -32,10 +32,10 @@ import {constants} from "Env/Env";
 // @ts-ignore
 export class FabricBuildControl implements IBuilder {
    static create(cnstr: Function,
-                 scope: IBuilderScope,
+                 scope: _IGeneratorType.IBuilderScope,
                  context: IControlCompatible,
-                 varStorage: TObject,
-                 decOptions: INodeAttribute): string {
+                 varStorage: _IGeneratorType.TObject,
+                 decOptions: _IGeneratorType.INodeAttribute): string {
       const callback = prepareMarkupForClassCompatible(cnstr, scope, context, decOptions);
       const resultingFn = callback.resultingFn;
       const _options = callback._options;
@@ -79,10 +79,10 @@ export class FabricBuildControl implements IBuilder {
    private static buildMarkupForClassCompatible(
       cnstr: Function,
       _options: IOptionsCompatible,
-      scope: IBuilderScope,
+      scope: _IGeneratorType.IBuilderScope,
       context: IControlCompatible,
-      varStorage: TObject,
-      decOptions: INodeAttribute,
+      varStorage: _IGeneratorType.TObject,
+      decOptions: _IGeneratorType.INodeAttribute,
       resultingFn: TResultingFunction,
       defaultInstanceData: IDefaultInstanceData,
       result: string): string {
@@ -95,7 +95,7 @@ export class FabricBuildControl implements IBuilder {
 
          const options = defaultInstanceData ?
             coreInitializer.getInstanceOptionsByDefaults(cnstr, _options, defaultInstanceData) : _options;
-         decOptions = <INodeAttribute> ResolveControlName.resolveControlName(options, decOptions);
+         decOptions = <_IGeneratorType.INodeAttribute> ResolveControlName.resolveControlName(options, decOptions);
          if (Common.isNewControl(cnstr)) {//Новые контролы
             const builder = this.getBuildForNewControl();
             result = builder.buildForNewControl({
@@ -134,7 +134,7 @@ export class FabricBuildControl implements IBuilder {
          // ! не вырезаем фокусные атрибуты, для совместимости. чтобы старые компоненты могли работать в новом окружении
          // textMarkupGenerator.cutFocusAttributes(decOptions);
 
-         decOptions = <INodeAttribute> ResolveControlName.resolveControlName(_options, decOptions);
+         decOptions = <_IGeneratorType.INodeAttribute> ResolveControlName.resolveControlName(_options, decOptions);
          fixTabindexUsingAttributeCompatible(decOptions, _options);
          result = buildForSuperOldControls({ user: _options, internal: scope.internal },
             cnstr,

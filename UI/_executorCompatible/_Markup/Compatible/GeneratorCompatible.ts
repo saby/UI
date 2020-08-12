@@ -1,12 +1,13 @@
-/// <amd-module name="UI/_executor/_Markup/Compatible/GeneratorCompatible" />
+/// <amd-module name="UI/_executorCompatible/_Markup/Compatible/GeneratorCompatible" />
 /* tslint:disable */
 
-import { Generator } from '../Generator';
+import {
+   _ForExecutorCompatible,
+   _IGenerator,
+   _IGeneratorType
+} from 'UI/Executor';
 import { CompatibleControlBuilder } from './CompatibleControlBuilder';
-import { IGenerator } from '../IGenerator';
 import { Logger } from 'UI/Utils';
-import * as Common from '../../_Utils/Common';
-import * as RequireHelper from '../../_Utils/RequireHelper';
 import {
    resultingFnAction,
    notOptionalControlCompatible,
@@ -16,37 +17,27 @@ import {
 } from './Helper';
 // @ts-ignore
 import * as shallowClone from 'Core/helpers/Function/shallowClone';
-import {
-   GeneratorEmptyObject,
-   GeneratorObject,
-   GeneratorTemplateOrigin,
-   IControl,
-   IControlData,
-   ICreateControlTemplateCfg,
-   IGeneratorAttrs,
-   IGeneratorConfig,
-   IGeneratorDefCollection,
-   TDeps,
-   TIncludedTemplate, TObject
-} from '../IGeneratorType';
-import { stringTemplateResolver, joinElements, createTagDefault } from '../Utils';
-import * as Scope from '../../_Expressions/Scope';
 
 const markupBuilder = new CompatibleControlBuilder();
 
+const Generator = new _ForExecutorCompatible.Generator();
+const RequireHelper = _ForExecutorCompatible.RequireHelper;
+const Scope = _ForExecutorCompatible.Scope;
+const MarkupUtils = _ForExecutorCompatible.MarkupUtils;
+const Common = _ForExecutorCompatible.Common;
 /**
  * @author Тэн В.А.
  */
-export class GeneratorCompatible implements IGenerator {
+export class GeneratorCompatible implements _IGenerator.IGenerator {
    // Повышаем производиительность путем дублирования кода для совместимости
    // Проверка условий в оригинальном методе замедляет выполнение на ~60% https://jsperf.com/if-compat-speed
    // TODO: удалить после отказа от слоя совместимости
-   cacheModules: TObject;
-   generatorBase: Generator;
+   cacheModules: _IGeneratorType.TObject;
+   generatorBase: typeof Generator;
 
    constructor() {
       this.cacheModules = {};
-      this.generatorBase = new Generator();
+      this.generatorBase = Generator;
       this.generatorBase.bindGeneratorFunction(this.createEmptyText, this.createWsControl, this.createTemplate,
          this.createController, this.resolver, this)
    }
@@ -55,21 +46,21 @@ export class GeneratorCompatible implements IGenerator {
       return this.generatorBase.prepareDataForCreate.call(this, tplOrigin, scope, attrs, deps, includedTemplates);
    }
 
-   chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string|void> | string | Error {
+   chain(out: string, defCollection: _IGeneratorType.IGeneratorDefCollection, inst?: _IGeneratorType.IControl): Promise<string|void> | string | Error {
       return this.generatorBase.chain.call(this, out, defCollection, inst);
    }
 
    createControl(type: string,
-                 name: GeneratorTemplateOrigin,
-                 data: IControlData,
-                 attrs: IGeneratorAttrs,
-                 templateCfg: ICreateControlTemplateCfg,
+                 name: _IGeneratorType.GeneratorTemplateOrigin,
+                 data: _IGeneratorType.IControlData,
+                 attrs: _IGeneratorType.IGeneratorAttrs,
+                 templateCfg: _IGeneratorType.ICreateControlTemplateCfg,
                  context: string,
-                 deps: TDeps,
-                 includedTemplates: TIncludedTemplate,
-                 config: IGeneratorConfig,
-                 contextObj?: GeneratorEmptyObject,
-                 defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error {
+                 deps: _IGeneratorType.TDeps,
+                 includedTemplates: _IGeneratorType.TIncludedTemplate,
+                 config: _IGeneratorType.IGeneratorConfig,
+                 contextObj?: _IGeneratorType.GeneratorEmptyObject,
+                 defCollection?: _IGeneratorType.IGeneratorDefCollection | void): _IGeneratorType.GeneratorObject | Promise<unknown> | Error {
       return this.generatorBase.createControl.call(this, type, name, data, attrs, templateCfg, context, deps, includedTemplates,
          config, contextObj, defCollection);
    }
@@ -174,7 +165,7 @@ export class GeneratorCompatible implements IGenerator {
          fn;
 
       if (isTplString) {
-         fn = stringTemplateResolver(tpl, includedTemplates, _deps, config);
+         fn = MarkupUtils.stringTemplateResolver(tpl, includedTemplates, _deps, config);
       } else if (isTplModule) {
          fn = data.controlClass;
       } else {
@@ -245,11 +236,11 @@ export class GeneratorCompatible implements IGenerator {
    };
 
    joinElements(elements, key?, defCollection?) {
-      return joinElements(elements, key, defCollection);
+      return MarkupUtils.joinElements(elements, key, defCollection);
    };
 
    createTag(tag, attrs, children, attrToDecorate?, defCollection?): string {
-      return createTagDefault(tag, attrs, children, attrToDecorate, defCollection);
+      return MarkupUtils.createTagDefault(tag, attrs, children, attrToDecorate, defCollection);
    }
 
    createEmptyText(){

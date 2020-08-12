@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/_Markup/Compatible/CompatibleControlBuilder" />
+/// <amd-module name="UI/_executorCompatible/_Markup/Compatible/CompatibleControlBuilder" />
 /* tslint:disable */
 
 // @ts-ignore
@@ -7,13 +7,15 @@ import * as randomId from 'Core/helpers/Number/randomId';
 import * as ParserUtilities from 'Core/markup/ParserUtilities';
 import { Logger } from 'UI/Utils';
 import { _FocusAttrs } from 'UI/Focus';
-import * as Decorate from '../../_Expressions/Decorate';
-import * as Rights from '../../_Expressions/Rights';
-import * as Common from '../../_Utils/Common';
+import { _ForExecutorCompatible } from 'UI/Executor';
 import { fillNonExistentValues, generateIdWithParent, hasMarkupConfig } from './Helper';
-import { ResolveControlName } from '../ResolveControlName';
 import { IBuilder } from './IBuilder';
 import { FabricBuildControl } from './FabricBuildControl';
+
+const Decorate = _ForExecutorCompatible.Decorate;
+const Rights = _ForExecutorCompatible.Rights;
+const Common = _ForExecutorCompatible.Common;
+const ResolveControlName = _ForExecutorCompatible.ResolveControlName;
 
 /**
  * @author Тэн В.А.
@@ -22,7 +24,7 @@ import { FabricBuildControl } from './FabricBuildControl';
 export class CompatibleControlBuilder implements IBuilder {
    createCompatibleController(tpl, scope, attributes, context, _deps, data) {
 
-      const point = '[UI/_executor/_Markup/SuperDuperBuilder:createCompatibleController()]';
+      const point = '[UI/_executor/_Markup/Builder:createCompatibleController()]';
       Logger.debug(`${point} dataComponent - "${data.dataComponent}"`, data.controlProperties);
 
       let id = randomId('cfg-');
