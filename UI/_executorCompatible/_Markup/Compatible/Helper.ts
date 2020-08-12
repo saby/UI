@@ -9,9 +9,7 @@ import * as randomId from 'Core/helpers/Number/randomId';
 import * as coreInitializer from 'Core/core-extend-initializer';
 import { Logger } from 'UI/Utils';
 import {
-   Common,
-   Attr,
-   Class,
+   _ForExecutorCompatible,
    Compatible,
    GeneratorFn,
    IBuilderScope,
@@ -47,6 +45,10 @@ import {
    TContextConstructor,
    TResultingFunction,
 } from './ICompatibleType';
+
+const Common = _ForExecutorCompatible.Common;
+const Attr = _ForExecutorCompatible.Attr;
+const Class = _ForExecutorCompatible.Class;
 
 /**
  * @author Тэн В.А.

@@ -3,7 +3,7 @@
 
 // @ts-ignore
 import * as coreInitializer from 'Core/core-extend-initializer';
-import { Common, ResolveControlName, IBuilderScope, TObject, INodeAttribute } from 'UI/Executor';
+import { _ForExecutorCompatible, IBuilderScope, TObject, INodeAttribute } from 'UI/Executor';
 import {
    prepareMarkupForClassCompatible,
    fixEnabledOptionCompatible,
@@ -22,6 +22,9 @@ import {
    IOptionsCompatible
 } from './ICompatibleType';
 import { constants } from "Env/Env";
+
+const Common = _ForExecutorCompatible.Common;
+const ResolveControlName = _ForExecutorCompatible.ResolveControlName;
 
 /**
  * @author Тэн В.А.

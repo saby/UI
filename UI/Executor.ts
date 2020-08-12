@@ -16,7 +16,7 @@ import * as MarkupUtils from './_executor/_Markup/Utils';
 import * as Attr from './_executor/_Expressions/Attr';
 import * as Class from './_executor/_Utils/Class';
 import voidElements from './_executor/_Utils/VoidTags';
-import {
+export {
    IBuilderScope,
    IControl,
    IControlData,
@@ -38,8 +38,22 @@ import {
    TOptions,
    TScope
 } from './_executor/_Markup/IGeneratorType';
-import { IGenerator } from './_executor/_Markup/IGenerator';
-import { IBuilder } from './_executor/_Markup/IBuilder';
+export { IGenerator } from './_executor/_Markup/IGenerator';
+export { IBuilder } from './_executor/_Markup/IBuilder';
+
+const _ForExecutorCompatible = {
+   Decorate,
+   Rights,
+   Common,
+   ResolveControlName,
+   Generator,
+   RequireHelper,
+   Scope,
+   MarkupUtils,
+   Attr,
+   Class,
+   voidElements
+};
 
 export {
    htmlNode,
@@ -52,37 +66,5 @@ export {
    RawMarkupNode, // ???
 
    // TODO: для работы executorCompatible
-   Decorate,
-   Rights,
-   Common,
-   ResolveControlName,
-   Generator,
-   RequireHelper,
-   Scope,
-   MarkupUtils,
-   Attr,
-   Class,
-   voidElements,
-   IBuilderScope,
-   IControl,
-   IControlData,
-   IControlProperties,
-   ICreateControlTemplateCfg,
-   IGeneratorAttrs,
-   IGeneratorConfig,
-   IGeneratorDefCollection,
-   IGeneratorInternalProperties,
-   INodeAttribute,
-   GeneratorFn,
-   GeneratorObject,
-   GeneratorEmptyObject,
-   GeneratorTemplateOrigin,
-   TAttributes,
-   TDeps,
-   TIncludedTemplate,
-   TObject,
-   TOptions,
-   TScope,
-   IGenerator,
-   IBuilder
+   _ForExecutorCompatible
 };

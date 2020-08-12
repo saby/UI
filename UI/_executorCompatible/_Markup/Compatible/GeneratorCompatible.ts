@@ -2,11 +2,7 @@
 /* tslint:disable */
 
 import {
-   Generator,
-   Common,
-   RequireHelper,
-   Scope,
-   MarkupUtils,
+   _ForExecutorCompatible,
    IGenerator,
    GeneratorEmptyObject,
    GeneratorObject,
@@ -34,6 +30,11 @@ import {
 import * as shallowClone from 'Core/helpers/Function/shallowClone';
 
 const markupBuilder = new CompatibleControlBuilder();
+
+const Generator = _ForExecutorCompatible.Generator;
+const RequireHelper = _ForExecutorCompatible.RequireHelper;
+const Scope = _ForExecutorCompatible.Scope;
+const MarkupUtils = _ForExecutorCompatible.MarkupUtils;
 
 /**
  * @author Тэн В.А.

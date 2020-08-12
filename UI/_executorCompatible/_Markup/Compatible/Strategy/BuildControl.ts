@@ -13,7 +13,13 @@ import {
 import { Logger } from 'UI/Utils';
 import { Subscriber } from 'UI/Events';
 import { ContextResolver } from 'UI/Contexts';
-import { Decorate, Common, Attr, voidElements, IBuilderScope, TAttributes, TObject } from 'UI/Executor';
+import {
+   _ForExecutorCompatible,
+   IBuilderScope,
+   TAttributes,
+   TObject,
+
+} from 'UI/Executor';
 import { _FocusAttrs } from 'UI/Focus';
 // @ts-ignore
 import * as Serializer from 'Core/Serializer';
@@ -33,6 +39,11 @@ interface IBuildControl {
                       cnstr: Function,
                       decOptions: TAttributes): TObject | string;
 }
+
+const Common = _ForExecutorCompatible.Common;
+const Attr = _ForExecutorCompatible.Attr;
+const Decorate = _ForExecutorCompatible.Decorate;
+const voidElements = _ForExecutorCompatible.voidElements;
 
 /**
  * @author Тэн В.А.

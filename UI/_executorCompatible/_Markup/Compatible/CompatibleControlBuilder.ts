@@ -7,10 +7,15 @@ import * as randomId from 'Core/helpers/Number/randomId';
 import * as ParserUtilities from 'Core/markup/ParserUtilities';
 import { Logger } from 'UI/Utils';
 import { _FocusAttrs } from 'UI/Focus';
-import { Decorate, Rights, Common, ResolveControlName } from 'UI/Executor';
+import { _ForExecutorCompatible } from 'UI/Executor';
 import { fillNonExistentValues, generateIdWithParent, hasMarkupConfig } from './Helper';
 import { IBuilder } from './IBuilder';
 import { FabricBuildControl } from './FabricBuildControl';
+
+const Decorate = _ForExecutorCompatible.Decorate;
+const Rights = _ForExecutorCompatible.Rights;
+const Common = _ForExecutorCompatible.Common;
+const ResolveControlName = _ForExecutorCompatible.ResolveControlName;
 
 /**
  * @author Тэн В.А.
