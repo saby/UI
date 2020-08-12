@@ -1,22 +1,13 @@
 /// <amd-module name="UI/_executorCompatible/_Markup/Compatible/GeneratorCompatible" />
 /* tslint:disable */
 
-import { Generator } from 'UI/_executor/_Markup/Generator';
-import { CompatibleControlBuilder } from './CompatibleControlBuilder';
-import { IGenerator } from 'UI/_executor/_Markup/IGenerator';
-import { Logger } from 'UI/Utils';
-import * as Common from 'UI/_executor/_Utils/Common';
-import * as RequireHelper from 'UI/_executor/_Utils/RequireHelper';
 import {
-   resultingFnAction,
-   notOptionalControlCompatible,
-   fixTabindexUsingAttributeCompatible,
-   notModuleStringCompatible,
-   tabIndexRemoveCompatible
-} from './Helper';
-// @ts-ignore
-import * as shallowClone from 'Core/helpers/Function/shallowClone';
-import {
+   Generator,
+   Common,
+   RequireHelper,
+   Scope,
+   MarkupUtils,
+   IGenerator,
    GeneratorEmptyObject,
    GeneratorObject,
    GeneratorTemplateOrigin,
@@ -27,10 +18,20 @@ import {
    IGeneratorConfig,
    IGeneratorDefCollection,
    TDeps,
-   TIncludedTemplate, TObject
-} from 'UI/_executor/_Markup/IGeneratorType';
-import { stringTemplateResolver, joinElements, createTagDefault } from 'UI/_executor/_Markup/Utils';
-import * as Scope from 'UI/_executor/_Expressions/Scope';
+   TIncludedTemplate,
+   TObject
+} from 'UI/Executor';
+import { CompatibleControlBuilder } from './CompatibleControlBuilder';
+import { Logger } from 'UI/Utils';
+import {
+   resultingFnAction,
+   notOptionalControlCompatible,
+   fixTabindexUsingAttributeCompatible,
+   notModuleStringCompatible,
+   tabIndexRemoveCompatible
+} from './Helper';
+// @ts-ignore
+import * as shallowClone from 'Core/helpers/Function/shallowClone';
 
 const markupBuilder = new CompatibleControlBuilder();
 
@@ -174,7 +175,7 @@ export class GeneratorCompatible implements IGenerator {
          fn;
 
       if (isTplString) {
-         fn = stringTemplateResolver(tpl, includedTemplates, _deps, config);
+         fn = MarkupUtils.stringTemplateResolver(tpl, includedTemplates, _deps, config);
       } else if (isTplModule) {
          fn = data.controlClass;
       } else {
@@ -245,11 +246,11 @@ export class GeneratorCompatible implements IGenerator {
    };
 
    joinElements(elements, key?, defCollection?) {
-      return joinElements(elements, key, defCollection);
+      return MarkupUtils.joinElements(elements, key, defCollection);
    };
 
    createTag(tag, attrs, children, attrToDecorate?, defCollection?): string {
-      return createTagDefault(tag, attrs, children, attrToDecorate, defCollection);
+      return MarkupUtils.createTagDefault(tag, attrs, children, attrToDecorate, defCollection);
    }
 
    createEmptyText(){

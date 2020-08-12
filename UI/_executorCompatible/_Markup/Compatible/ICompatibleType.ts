@@ -5,7 +5,7 @@ import {
    TOptions,
    IGeneratorInternalProperties,
    INodeAttribute
-} from 'UI/_executor/_Markup/IGeneratorType';
+} from 'UI/Executor';
 
 /**
  * @author Тэн В.А.

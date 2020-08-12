@@ -7,11 +7,8 @@ import * as randomId from 'Core/helpers/Number/randomId';
 import * as ParserUtilities from 'Core/markup/ParserUtilities';
 import { Logger } from 'UI/Utils';
 import { _FocusAttrs } from 'UI/Focus';
-import * as Decorate from 'UI/_executor/_Expressions/Decorate';
-import * as Rights from 'UI/_executor/_Expressions/Rights';
-import * as Common from 'UI/_executor/_Utils/Common';
+import { Decorate, Rights, Common, ResolveControlName } from 'UI/Executor';
 import { fillNonExistentValues, generateIdWithParent, hasMarkupConfig } from './Helper';
-import { ResolveControlName } from 'UI/_executor/_Markup/ResolveControlName';
 import { IBuilder } from './IBuilder';
 import { FabricBuildControl } from './FabricBuildControl';
 
@@ -22,7 +19,7 @@ import { FabricBuildControl } from './FabricBuildControl';
 export class CompatibleControlBuilder implements IBuilder {
    createCompatibleController(tpl, scope, attributes, context, _deps, data) {
 
-      const point = '[UI/_executor/_Markup/SuperDuperBuilder:createCompatibleController()]';
+      const point = '[UI/_executor/_Markup/Builder:createCompatibleController()]';
       Logger.debug(`${point} dataComponent - "${data.dataComponent}"`, data.controlProperties);
 
       let id = randomId('cfg-');

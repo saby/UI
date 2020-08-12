@@ -8,17 +8,11 @@ import * as randomId from 'Core/helpers/Number/randomId';
 // @ts-ignore
 import * as coreInitializer from 'Core/core-extend-initializer';
 import { Logger } from 'UI/Utils';
-import * as Attr from 'UI/_executor/_Expressions/Attr';
-import * as Common from 'UI/_executor/_Utils/Common';
-import * as Class from 'UI/_executor/_Utils/Class';
-// @ts-ignore
-import * as ContextBinder from 'Core/ContextBinder';
-// @ts-ignore
-import * as Context from 'Core/Context';
-import * as Compatible from 'UI/_executor/_Utils/Compatible';
-// @ts-ignore
-import * as confStorage from 'Core/helpers/Hcontrol/configStorage';
 import {
+   Common,
+   Attr,
+   Class,
+   Compatible,
    GeneratorFn,
    IBuilderScope,
    IGeneratorAttrs,
@@ -28,7 +22,13 @@ import {
    TObject,
    TOptions,
    TScope
-} from 'UI/_executor/_Markup/IGeneratorType';
+} from 'UI/Executor';
+// @ts-ignore
+import * as ContextBinder from 'Core/ContextBinder';
+// @ts-ignore
+import * as Context from 'Core/Context';
+// @ts-ignore
+import * as confStorage from 'Core/helpers/Hcontrol/configStorage';
 import {
    IOptionsCompatibleFixed,
    IControlDataCompatible,

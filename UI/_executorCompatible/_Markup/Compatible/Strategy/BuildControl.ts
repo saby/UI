@@ -13,19 +13,14 @@ import {
 import { Logger } from 'UI/Utils';
 import { Subscriber } from 'UI/Events';
 import { ContextResolver } from 'UI/Contexts';
-import * as Decorate from 'UI/_executor/_Expressions/Decorate';
-import * as Attr from 'UI/_executor/_Expressions/Attr';
+import { Decorate, Common, Attr, voidElements, IBuilderScope, TAttributes, TObject } from 'UI/Executor';
 import { _FocusAttrs } from 'UI/Focus';
-import * as Common from 'UI/_executor/_Utils/Common';
 // @ts-ignore
 import * as Serializer from 'Core/Serializer';
 import * as AppInit from 'Application/Initializer';
 
 // @ts-ignore
 import * as randomId from 'Core/helpers/Number/randomId';
-import voidElements from 'UI/_executor/_Utils/VoidTags';
-
-import { IBuilderScope, TAttributes, TObject } from 'UI/_executor/_Markup/IGeneratorType';
 import {
    IControlCompatible,
    IEvent,
