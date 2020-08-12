@@ -31,10 +31,11 @@ import * as shallowClone from 'Core/helpers/Function/shallowClone';
 
 const markupBuilder = new CompatibleControlBuilder();
 
-const Generator = _ForExecutorCompatible.Generator;
+const Generator = new _ForExecutorCompatible.Generator();
 const RequireHelper = _ForExecutorCompatible.RequireHelper;
 const Scope = _ForExecutorCompatible.Scope;
 const MarkupUtils = _ForExecutorCompatible.MarkupUtils;
+const Common = _ForExecutorCompatible.Common;
 
 /**
  * @author Тэн В.А.
@@ -44,11 +45,11 @@ export class GeneratorCompatible implements IGenerator {
    // Проверка условий в оригинальном методе замедляет выполнение на ~60% https://jsperf.com/if-compat-speed
    // TODO: удалить после отказа от слоя совместимости
    cacheModules: TObject;
-   generatorBase: Generator;
+   generatorBase: typeof Generator;
 
    constructor() {
       this.cacheModules = {};
-      this.generatorBase = new Generator();
+      this.generatorBase = Generator;
       this.generatorBase.bindGeneratorFunction(this.createEmptyText, this.createWsControl, this.createTemplate,
          this.createController, this.resolver, this)
    }
