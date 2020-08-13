@@ -1,4 +1,4 @@
-define('UI/_builder/config', [], function() {
+define('UI/_builder/Config', [], function() {
 
    /**
     * @author Крылов М.А.
