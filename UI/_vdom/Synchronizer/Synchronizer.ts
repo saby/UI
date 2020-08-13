@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_vdom/Synchronizer/Synchronizer" />
 /* tslint:disable */
 
-import { DirtyKind, rebuildNode, createNode, destroyReqursive, IMemoNode } from './resources/DirtyChecking';
+import { DirtyKind, rebuildNode, createNode, destroyReqursive, IMemoNode, getReceivedState } from './resources/DirtyChecking';
 import DOMEnvironment, { IDOMEnvironment } from './resources/DOMEnvironment';
 import { delay } from 'Types/function';
 // @ts-ignore
@@ -10,7 +10,6 @@ import * as isEmptyObject from 'Core/helpers/Object/isEmpty';
 import * as Serializer from 'Core/Serializer';
 import { Set } from 'Types/shim';
 import { Control } from 'UI/Base';
-import { Common, Vdom } from 'View/Executor/Utils';
 
 // @ts-ignore
 import { Logger } from 'UI/Utils';
@@ -209,7 +208,7 @@ class VDomSynchronizer {
             this.__rebuildRoots(val);
          },
             function (err: any) {
-               Common.asyncRenderErrorLog(err);
+               Logger.asyncRenderErrorLog(err);
                return err;
             }
          );
@@ -337,7 +336,7 @@ class VDomSynchronizer {
       // Эти флаги создаются в GeneratorDefault
       //@ts-ignore
       if (!control._mounted && !control._unmounted && !control._beforeMountCalled) {
-         carrier = Vdom.getReceivedState(
+         carrier = getReceivedState(
             controlNode,
             {
                controlProperties: options,
@@ -387,7 +386,7 @@ class VDomSynchronizer {
                return receivedState;
             },
             function asyncRenderErrback(error: any) {
-               Common.asyncRenderErrorLog(error, controlNode);
+               Logger.asyncRenderErrorLog(error, controlNode);
                return error;
             }
          );

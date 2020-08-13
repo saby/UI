@@ -17,6 +17,11 @@ interface IFocusElementProps {
    tabCycling: boolean
 }
 
+interface IProps {
+   enabled: boolean;
+   createsContext: Record<string, unknown>;
+}
+
 let FOCUSABLE_ELEMENTS = {
       a: true,
       link: true,
@@ -38,7 +43,7 @@ let FOCUSABLE_ELEMENTS = {
       'tab-cycling': CLASS_TAB_CYCLING
    };
 
-function assert(cond, msg?) {
+function assert(cond: boolean, msg?: Function): void {
    let message;
    if (!cond) {
       message = typeof msg === 'function' ? msg() : msg;
@@ -46,14 +51,14 @@ function assert(cond, msg?) {
    }
 }
 
-function getStyle(element, style) {
+function getStyle(element: Element, style: string): string {
    return window.getComputedStyle(element)[style];
 }
 
 // Determines if the passed element can accept focus themselves instead of
 // delegating it to children. These are the usual interactive controls
 // (buttons, links, inputs) and containers with 'contenteditable'
-function canAcceptSelfFocus(element: HTMLElement) {
+function canAcceptSelfFocus(element: HTMLElement): boolean {
    const tabIndexAttr = element.getAttribute('tabindex');
    const tabIndex = parseInt(tabIndexAttr, 10);
 
@@ -123,19 +128,19 @@ export function getElementProps(element: Element): IFocusElementProps {
    return result;
 }
 
-function firstElementChild(element) {
+function firstElementChild(element: Element): Element | null {
    return element.firstElementChild ? element.firstElementChild : null;
 }
 
-function lastElementChild(element) {
+function lastElementChild(element: Element): Element | null {
    return element.lastElementChild ? element.lastElementChild : null;
 }
 
-function previousElementSibling(element) {
+function previousElementSibling(element: Element): Element | null {
    return element.previousElementSibling ? element.previousElementSibling : null;
 }
 
-function nextElementSibling(element) {
+function nextElementSibling(element: Element): Element | null {
    return element.nextElementSibling ? element.nextElementSibling : null;
 }
 
@@ -146,7 +151,7 @@ function nextElementSibling(element) {
  * @returns {number}
  * @param reverse
  */
-function compareIndexes(i1, i2, reverse) {
+function compareIndexes(i1: number, i2: number, reverse: boolean): number {
    let res;
    assert(typeof i1 === 'number' && typeof i2 === 'number');
 
@@ -171,7 +176,7 @@ function compareIndexes(i1, i2, reverse) {
    return res;
 }
 
-function findNextElement(element, props, reverse, contextElement) {
+function findNextElement(element: Element, props: IProps, reverse: boolean, contextElement: Element): Element {
    let
       stepInto = props.enabled && !props.createsContext,
       next,
@@ -197,7 +202,7 @@ function findNextElement(element, props, reverse, contextElement) {
    return next || contextElement;
 }
 
-function findInner(elem, reverse, propsGetter) {
+function findInner(elem: Element, reverse: boolean, propsGetter: (Element) => IFocusElementProps) {
    return find(elem, undefined, reverse ? 0 : 1, reverse, propsGetter);
 }
 
@@ -209,7 +214,11 @@ function startChildElement(parent, reverse) {
  * Обходит DOM, обход осуществляется в пределах rootElement. При этом если находит элемент, в который может провалиться,
  * проваливается и ищет там.
  */
-function find(contextElement, fromElement, fromElementTabIndex, reverse, propsGetter:(Element) => IFocusElementProps) {
+function find(contextElement: Element,
+              fromElement: Element | null,
+              fromElementTabIndex: number,
+              reverse: boolean,
+              propsGetter:(Element) => IFocusElementProps): Element {
    assert(
       contextElement &&
       (fromElement || fromElementTabIndex !== undefined) &&
@@ -350,11 +359,15 @@ function find(contextElement, fromElement, fromElementTabIndex, reverse, propsGe
    return result;
 }
 
-export function findFirstInContext(contextElement, reverse, propsGetter:(Element) => IFocusElementProps = getElementProps) {
+export function findFirstInContext(contextElement: Element,
+                                   reverse: boolean,
+                                   propsGetter:(Element) => IFocusElementProps = getElementProps): Element {
    return find(contextElement, undefined, reverse ? 0 : 1, reverse, propsGetter);
 }
 
-function getValidatedWithContext(element, rootElement, propsGetter) {
+function getValidatedWithContext(element: Element,
+                                 rootElement: Element,
+                                 propsGetter: (Element) => IFocusElementProps): {element: Element, context: Element} {
    let
       context,
       lastInvalid = null,
@@ -390,7 +403,7 @@ function getValidatedWithContext(element, rootElement, propsGetter) {
 }
 
 
-function checkElement(element, paramName) {
+function checkElement(element: Element, paramName: string): void {
    // разрешаются только рутовые элементы, у которых есть parentElement или они являются  documentElement
    let hasParentElement = element === document.documentElement || !!element.parentElement;
    if (!element || !element.ownerDocument || !hasParentElement || element.nodeType !== NODE_NODE_TYPE) {
@@ -401,7 +414,10 @@ function checkElement(element, paramName) {
 /**
  * ищем следующий элемент в обходе, с учетом того, что у некоторых элементов может быть свой контекст табиндексов
  */
-export function findWithContexts(rootElement, fromElement, reverse, propsGetter:(Element) => IFocusElementProps = getElementProps) {
+export function findWithContexts(rootElement: Element,
+                                 fromElement: Element,
+                                 reverse: boolean,
+                                 propsGetter:(Element) => IFocusElementProps = getElementProps): Element {
 
    checkElement(fromElement, 'fromElement');
    checkElement(rootElement, 'rootElement');

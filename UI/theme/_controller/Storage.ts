@@ -1,7 +1,6 @@
 /// <amd-module name='UI/theme/_controller/Storage' />
 import { ICssEntity } from 'UI/theme/_controller/css/interface';
 import { getStore as getAppStore, setStore as setAppStore } from 'Application/Env';
-import { isInit } from 'Application/Initializer';
 import { IStore } from 'Application/Interface';
 // @ts-ignore
 import { constants } from 'Env/Env';
@@ -163,11 +162,7 @@ export class AliasStorage {
 
 function createStore<T>(createDefaultStore: (data?: T) => IStore<T>, label: string, data?: T): () => IStore<T> {
    const store = createDefaultStore(data);
-   if (constants.isBrowserPlatform || !isInit()) {
-      /**
-       * Для случаев, когда приложение не инициализированно (unit-тесты)
-       * используется локальный Store
-       */
+   if (constants.isBrowserPlatform) {
       return () => store;
    }
    /**
@@ -175,5 +170,5 @@ function createStore<T>(createDefaultStore: (data?: T) => IStore<T>, label: stri
     * т.к theme/controller является singleton'ом
     */
    setAppStore<T>(label, createDefaultStore(data));
-   return () => isInit() ? getAppStore<T>(label, () => createDefaultStore(data)) : store;
+   return () => getAppStore<T>(label, () => createDefaultStore(data));
 }

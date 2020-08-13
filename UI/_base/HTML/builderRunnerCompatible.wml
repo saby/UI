@@ -14,9 +14,9 @@
          Env.constants.$body = body;
          Env.constants.$window = window;
          appinit();
-         require(['UI/Base', 'Core/app-start', 'View/Executor/TClosure',
+         require(['UI/Base', 'Core/app-start', 'UI/Executor',
             'Core/helpers/Hcontrol/makeInstanceCompatible',
-            {{ __setHTMLUnsafe(_options.dependencies) }}], function(UI, AppStart, tclosure, makeInstanceCompatible) {
+            {{ __setHTMLUnsafe(_options.dependencies) }}], function(UI, AppStart, UIExecutor, makeInstanceCompatible) {
             var AppData = UI.AppData,
                Control = UI.Control,
                Core = UI.Document;

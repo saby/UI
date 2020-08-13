@@ -2,6 +2,7 @@ import { DepsCollector } from 'UI/Base';
 import { controller } from 'I18n/i18n';
 import { assert } from 'chai';
 import * as sinon from 'sinon';
+import { getType, parseModuleName, TYPES } from 'UI/_base/DepsCollector';
 
 const modDeps = {
    'aaa/aaa': [],
@@ -154,5 +155,29 @@ describe('DepsCollector', () => {
       const deps = dc.collectDependencies(['optional!nosuchdep', 'tmpl!ppp/ppp']);
       assert.deepStrictEqual(deps.js, ['bdl/tmplpckd.package']);
       assert.deepStrictEqual(deps.tmpl, []);
+   });
+});
+
+describe('getType', () => {
+   it('i18n!Types/_formatter/numberWords ', () => {
+      assert.deepEqual(getType('i18n!Types/_formatter/numberWords '), TYPES.i18n);
+   });
+   it('browser!Types/_formatter/numberWords ', () => {
+      assert.deepEqual(getType('browser!Types/_formatter/numberWords '), TYPES.browser);
+   });
+   it('is!Types/_formatter/numberWords ', () => {
+      assert.deepEqual(getType('is!Types/_formatter/numberWords '), TYPES.is);
+   });
+});
+
+describe('parseModuleName', () => {
+   it('i18n!Types/_formatter/numberWords ', () => {
+      assert.isNotNull(parseModuleName('i18n!Types/_formatter/numberWords '));
+   });
+   it('browser!Types/_formatter/numberWords ', () => {
+      assert.isNotNull(parseModuleName('browser!Types/_formatter/numberWords '));
+   });
+   it('is!Types/_formatter/numberWords ', () => {
+      assert.isNotNull(parseModuleName('is!Types/_formatter/numberWords '));
    });
 });

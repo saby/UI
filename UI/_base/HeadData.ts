@@ -3,7 +3,10 @@ import { IDeps } from 'UI/_base/DepsCollector';
 import PageDeps from 'UI/_base/PageDeps';
 import * as AppEnv from 'Application/Env';
 import { IStore } from 'Application/Interface';
-
+/**
+ * Компонент-состояние head страницы
+ * Собирает ресурсы страницы,
+ */
 // tslint:disable-next-line:no-any
 export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     // переедет в константы реквеста, изменяется в Controls/Application
@@ -44,6 +47,9 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     }
 
     /* toDO: StateRec.register */
+    /**
+     * добавить зависимость страницы
+     */
     pushDepComponent(componentName: string, lazyLoading: boolean = false): void {
         this.initDeps[componentName] = true;
         if (lazyLoading) {
@@ -51,27 +57,42 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
         }
     }
 
+    /**
+     * Установка непакуемых зависимостей
+     * @param unpack
+     */
     setUnpackDeps(unpack: IDeps): void {
         this.unpackDeps = unpack;
     }
 
+    /**
+     * Установка дополнительных ресурсов
+     * @param resources
+     */
     setIncludedResources(resources: IResources): void {
         const scripts = resources.scripts.map((l) => l.src);
         const links = resources.links.map((l) => l.href);
         this.includedResources = { links, scripts };
     }
 
+    /**
+     * Таймаут построения на сп
+     */
     get ssrTimeout(): number {
         return (Date.now() < this._ssrTimeout) ? this._ssrTimeout - Date.now() : 0;
     }
 
+    /**
+     * Коллекция зависимостей
+     * @param tempLoading
+     */
     collectDeps(tempLoading: Promise<void>): void {
         tempLoading.then(() => {
             if (!this.resolve) {
                 return;
             }
             const { additionalDeps, serialized: rsSerialized } = getSerializedData();
-            const deps = Object.keys(Object.assign(additionalDeps, this.initDeps));
+            const deps = Object.keys({ ...additionalDeps, ...this.initDeps });
             const files = this.pageDeps.collect(deps, this.unpackDeps);
             // некоторые разработчики завязываются на порядок css, поэтому сначала css переданные через links
             const simpleCss = this.includedResources.links.concat(files.css.simpleCss);

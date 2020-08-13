@@ -4,8 +4,10 @@ import { IControlNode } from '../interfaces';
  * @author Кондаков Р.Н.
  */
 
+export const invisibleNodeTypename: string = 'invisible-node';
+
 function isInvisibleType(typename?: string): boolean {
-    return typename === 'invisible-node';
+    return typename === invisibleNodeTypename;
 }
 
 export default function isInvisibleNode(controlNode: IControlNode, checkChildren: boolean = false): boolean {

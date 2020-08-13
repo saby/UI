@@ -6,8 +6,13 @@
 // @ts-ignore
 import * as findIndex from 'Core/helpers/Array/findIndex';
 
+import { _IDOMEnvironment } from 'UI/Focus';
+
 // @ts-ignore FIXME: Cannot find this module
 import * as isNewEnvironment from 'Core/helpers/isNewEnvironment';
+
+// @ts-ignore FIXME: Cannot find this module
+import * as needToBeCompatible from 'Core/helpers/Hcontrol/needToBeCompatible';
 
 import { constants, detection } from 'Env/Env';
 import { Logger } from 'UI/Utils';
@@ -20,7 +25,8 @@ import { mapVNode } from './VdomMarkup';
 import { setControlNodeHook, setEventHook } from './Hooks';
 import SyntheticEvent from './SyntheticEvent';
 import { TComponentAttrs } from '../interfaces';
-import {Event as EventExpression, RawMarkupNode} from 'View/Executor/Expressions';
+import { EventUtils } from 'UI/Events';
+import { RawMarkupNode } from 'UI/Executor';
 import Environment from './Environment';
 import * as SwipeController from './SwipeController';
 import {
@@ -84,16 +90,8 @@ function createRecursiveVNodeMapper(fn: any): any {
    };
 }
 
-function controlNodesCompoundReduce(prev: any, next: any): any {
-   return !(prev && next);
-}
-
 function atLeastOneControlReduce(prev: any, next: any): any {
    return next.control;
-}
-
-function isControlNodesCompound(controlNodes: any): any {
-   return !controlNodes.reduce(controlNodesCompoundReduce, true);
 }
 
 function atLeasOneControl(controlNodes: any): any {
@@ -342,6 +340,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
 
       // запускаем обработчик только для правильного DOMEnvironment, в который прилетел фокус
       if (this._rootDOMNode && this._rootDOMNode.contains(e.target)) {
+         // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
          Events.notifyActivationEvents(this, e.target, e.relatedTarget, this._isTabPressed);
       }
    }
@@ -380,6 +379,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          // иначе мы уходим непонятно куда и нужно пострелять deactivated
          const isVdom = isVdomEnvironment(relatedTarget);
          if (!isVdom) {
+            // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
             Events.notifyActivationEvents(this, relatedTarget, target, this._isTabPressed);
          }
       }
@@ -536,12 +536,12 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       onStartSync(newRootCntNode.rootId);
 
       const vnode = this.decorateRootNode(newVNnode);
-      let hasCompound;
       let control;
       let patch;
       const newRootDOMNode = undefined;
 
       // добавляем vdom-focus-in и vdom-focus-out
+      // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
       BoundaryElements.insertBoundaryElements(this, vnode);
 
       // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
@@ -559,7 +559,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          Logger.error('Ошибка оживления Inferno', undefined, e);
       }
 
-      hasCompound = isControlNodesCompound([newRootCntNode]);
+      const hasCompound = needToBeCompatible(newRootCntNode.control);
 
       if (hasCompound) {
          control = atLeasOneControl([newRootCntNode]);
@@ -602,6 +602,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
                }
             }
             mountMethodsCaller.afterUpdate(newRootCntNode, rebuildChanges);
+
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
             newRootCntNode.environment._rebuildRequestStarted = false;
             // @ts-ignore FIXME: Property 'runQueue' does not exist
@@ -627,11 +628,14 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
          mountMethodsCaller.beforePaint(newRootCntNode, rebuildChanges);
          mountMethodsCaller.afterUpdate(newRootCntNode, rebuildChanges);
-         // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-         newRootCntNode.environment._rebuildRequestStarted = false;
-         // @ts-ignore FIXME: Property 'runQueue' does not exist
-         newRootCntNode.environment.runQueue();
-         onEndSync(newRootCntNode.rootId);
+
+         delay(() => {
+            // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
+            newRootCntNode.environment._rebuildRequestStarted = false;
+            // @ts-ignore FIXME: Property 'runQueue' does not exist
+            newRootCntNode.environment.runQueue();
+            onEndSync(newRootCntNode.rootId);
+         });
       }
 
       return patch;
@@ -725,14 +729,14 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
    addHandler(eventName: any, isBodyElement: boolean, handler: Function, processingHandler: boolean): any {
       let elementToSubscribe;
       let bodyEvent;
-      if (isBodyElement && EventExpression.isSpecialBodyEvent(eventName)) {
+      if (isBodyElement && EventUtils.isSpecialBodyEvent(eventName)) {
          elementToSubscribe = this.__getWindowObject();
          bodyEvent = true;
       } else {
          elementToSubscribe = this._rootDOMNode.parentNode;
          bodyEvent = false;
       }
-      const nativeEventName = EventExpression.fixUppercaseDOMEventName(eventName);
+      const nativeEventName = EventUtils.fixUppercaseDOMEventName(eventName);
       const handlers = this.__captureEventHandlers;
       const handlerInfo = this.getHandlerInfo(eventName, processingHandler, bodyEvent);
       if (handlerInfo === null) {
@@ -771,14 +775,14 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
    removeHandler(eventName: string, isBodyElement: boolean, processingHandler: boolean = false): any {
       let elementToSubscribe;
       let bodyEvent;
-      if (isBodyElement && EventExpression.isSpecialBodyEvent(eventName)) {
+      if (isBodyElement && EventUtils.isSpecialBodyEvent(eventName)) {
          elementToSubscribe = this.__getWindowObject();
          bodyEvent = true;
       } else {
          elementToSubscribe = this._rootDOMNode.parentNode;
          bodyEvent = false;
       }
-      const nativeEventName = EventExpression.fixUppercaseDOMEventName(eventName);
+      const nativeEventName = EventUtils.fixUppercaseDOMEventName(eventName);
       const handlers = this.__captureEventHandlers;
       const handlerInfo = this.getHandlerInfo(eventName, processingHandler, bodyEvent);
       if (handlerInfo !== null) {
@@ -1258,10 +1262,10 @@ function isBodyElement(element: HTMLElement): boolean {
  * @returns {any}
  */
 function fixPassiveEventConfig(eventName: string, config: any): any {
-   if (EventExpression.checkPassiveFalseEvents(eventName)) {
+   if (EventUtils.checkPassiveFalseEvents(eventName)) {
       config.passive = false;
    }
-   if (EventExpression.checkPassiveTrueEvents(eventName)) {
+   if (EventUtils.checkPassiveTrueEvents(eventName)) {
       config.passive = true;
    }
    return config;
@@ -1313,7 +1317,7 @@ type TMarkupNodeDecoratorFn = (
    ref: any
 ) => VNode[];
 
-export interface IDOMEnvironment {
+export interface IDOMEnvironment extends _IDOMEnvironment {
    addTabListener(e?: any): void;
    removeTabListener(e: any): void;
    destroy(): void;
