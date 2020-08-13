@@ -6,7 +6,7 @@
 
 import * as Tmpl from './_builder/Tmpl';
 import { Compiler } from './_builder/Compiler';
-import * as Config from './_builder/config';
+import * as Config from './_builder/Config';
 
 export {
    Tmpl,
