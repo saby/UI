@@ -86,7 +86,7 @@ class StateReceiver implements IStateReceiver {
          try {
             serializedMap[key] = JSON.stringify(receivedState, slr.serializeStrict);
          } catch (e) {
-            Logger.error(`Ошибка сериализации состояния экземпляра ${moduleName || key}`);
+            Logger.error(`${moduleName || key} _beforeMount вернул несериализуемое состояние: ${e}` );
             delete serializedMap[key];
          }
       });
