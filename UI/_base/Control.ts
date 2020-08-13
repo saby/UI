@@ -10,6 +10,8 @@ import { activate } from 'UI/Focus';
 import { Logger, Purifier } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
 import { constants } from 'Env/Env';
+import { IControl, IControlChildren, IControlOptions } from './interface/IControl';
+import { IContext } from "./interface/IContext";
 
 import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
 // @ts-ignore
@@ -19,8 +21,6 @@ import startApplication from 'UI/_base/startApplication';
 import { headDataStore } from 'UI/_base/HeadData';
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
-
-type IControlChildren = Record<string, Element | Control>;
 
 /**
  * @event UI/_base/Control#activated Происходит при активации контрола.
@@ -79,13 +79,6 @@ const WRAP_TIMEOUT = 30000;
 const stateNamesNoPurify = {
     isDestroyed: true
 };
-
-interface IContext {
-   scope: unknown;
-   get(field: string): Record<string, unknown>;
-   set(): void;
-   has(): boolean;
-}
 
 function createContext(): IContext {
    let _scope: unknown = null;
@@ -176,11 +169,6 @@ export const _private = {
    }
 };
 
-
-export interface IControlOptions {
-   readOnly?: boolean;
-   theme?: string;
-}
 /**
  * Базовый контрол, от которого наследуются все интерфейсные контролы фреймворка Wasaby.
  * Подробнее о работе с классом читайте <a href="/doc/platform/developmentapl/interface-development/ui-library/control/">здесь</a>.
@@ -190,7 +178,7 @@ export interface IControlOptions {
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
-export default class Control<TOptions extends IControlOptions = {}, TState = void> {
+export default class Control<TOptions extends IControlOptions = {}, TState = void, TChildren = IControlChildren> implements IControl<IControlChildren> {
    protected _moduleName: string;
 
    private _mounted: boolean = false;
@@ -241,7 +229,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    // Ссылка: https://online.sbis.ru/opendoc.html?guid=5f576e21-6606-4a55-94fd-6979c6bfcb53.
    private _logicParent: Control<TOptions, void> = null;
 
-   protected _children: IControlChildren = {};
+   protected _children: TChildren = null;
 
    private _savedInheritOptions: unknown = null;
 
