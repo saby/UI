@@ -194,7 +194,7 @@ describe('UI/_vdom/Synchronizer/resources/Hooks', () => {
             element.value = 'some value';
             controlNode.markup = undefined;
             eventRef();
-            assert.equal(element.value, '')
+            assert.notOk(element.hasOwnProperty('value'), 'Ожидалось, что value элемента удалится, чтобы подставился defautValue');
         });
     });
 });
