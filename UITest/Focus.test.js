@@ -182,6 +182,22 @@ define([
                   assert.ok(Focus.activate(document.getElementById('contentEditableTrue')));
                   assert.strictEqual(document.activeElement, div);
                }
+            },
+            {
+               control: FocusTestControls.ContentEditableDiv,
+               name: 'focus contentEditable div',
+               checkFn: function() {
+                  assert.ok(Focus.activate(document.getElementById('editableNormalContainer')));
+                  assert.strictEqual(document.activeElement, div);
+               }
+            },
+            {
+               control: FocusTestControls.ContentEditableDiv,
+               name: 'focus contentEditable div with link',
+               checkFn: function() {
+                  assert.ok(Focus.activate(document.getElementById('editableWithLinkContainer')));
+                  assert.strictEqual(document.activeElement, div);
+               }
             }
          ];
 
@@ -530,5 +546,5 @@ define([
          })
          assert.isOk(focusPrevented);
       });
-   })
+   });
 });
