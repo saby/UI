@@ -1,9 +1,7 @@
-import { _IControl } from 'UI/Focus';
-
 /**
  * Basic interface for all controls
  */
-export interface IControl<IControlOptions={}> extends _IControl {
+export interface IControl<IControlOptions={}> {
 }
 
 /**
