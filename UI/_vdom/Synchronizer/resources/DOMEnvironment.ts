@@ -84,21 +84,6 @@ function createRecursiveVNodeMapper(fn: any): any {
    };
 }
 
-function controlNodesCompoundReduce(prev: any, next: any): any {
-   return !(prev && next);
-}
-
-function atLeastOneControlReduce(prev: any, next: any): any {
-   return next.control;
-}
-
-function isControlNodesCompound(controlNodes: any): any {
-   return !controlNodes.reduce(controlNodesCompoundReduce, true);
-}
-
-function atLeasOneControl(controlNodes: any): any {
-   return controlNodes.reduce(atLeastOneControlReduce, true);
-}
 
 function generateClickEventFromTouchend(event: TouchEvent): any {
    let touch: any = event.changedTouches && event.changedTouches[0];
@@ -536,9 +521,6 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       onStartSync(newRootCntNode.rootId);
 
       const vnode = this.decorateRootNode(newVNnode);
-      let hasCompound;
-      let control;
-      let patch;
       const newRootDOMNode = undefined;
 
       // добавляем vdom-focus-in и vdom-focus-out
@@ -551,90 +533,63 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       try {
          // Свойство $V вешает движок inferno. Если его нет, значит пришли с сервера.
          if (this._rootDOMNode.hasOwnProperty('$V') || !this._rootDOMNode.firstChild) {
-            patch = render(vnode, this._rootDOMNode, undefined, undefined, true);
+            render(vnode, this._rootDOMNode, undefined, undefined, true);
          } else {
-            patch = hydrate(vnode, this._rootDOMNode, undefined, true);
+            hydrate(vnode, this._rootDOMNode, undefined, true);
          }
       } catch (e) {
          Logger.error('Ошибка оживления Inferno', undefined, e);
       }
 
-      hasCompound = isControlNodesCompound([newRootCntNode]);
-
-      if (hasCompound) {
-         control = atLeasOneControl([newRootCntNode]);
-         if (newRootDOMNode) {
-            // @ts-ignore FIXME: Unknown $
-            control._container = window.$ ? $(newRootDOMNode) : newRootDOMNode;
-         }
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.afterRender(newRootCntNode, rebuildChanges);
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.beforePaint(newRootCntNode, rebuildChanges);
-         delay(() => {
-            //останавливать должны, только если запущено, иначе получается так,
-            // что это предыдущая фаза синхронизации и она прерывает следующую
-            //то есть, если  _haveRebuildRequest=true а _rebuildRequestStarted=false
-            //это значит, что мы запланировали перерисовку, но она еще не началась
-            // В случае если мы ждем завершения асинхронных детей и перестроение уже закончены
-            // нужно убрать запрос на реквест, чтобы дети рутовой ноды могли перерисовываться независимо
-            if (
-               // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-               newRootCntNode.environment._rebuildRequestStarted ||
-               // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-               newRootCntNode.environment._asyncOngoing === false
-            ) {
-               // @ts-ignore FIXME: Property '_haveRebuildRequest' does not exist
-               newRootCntNode.environment._haveRebuildRequest = false;
-            }
-            // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-            if (newRootCntNode.environment._asyncOngoing === false) {
-               // we have to delete property from environment, cause if we don't we'll be at the same point
-               // even if async request didn't happen. So we have to make sure every time, that async request
-               // really did happen
-               // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-               delete newRootCntNode.environment._asyncOngoing;
-            }
-
-            if (!control._destroyed) {
-               if (typeof control.reviveSuperOldControls === 'function') {
-                  control.reviveSuperOldControls();
-               }
-            }
-            mountMethodsCaller.afterUpdate(newRootCntNode, rebuildChanges);
+      if (newRootDOMNode) {
+         // @ts-ignore FIXME: Unknown $
+         newRootCntNode._container = window.$ ? $(newRootDOMNode) : newRootDOMNode;
+      }
+      // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
+      mountMethodsCaller.afterRender(newRootCntNode, rebuildChanges);
+      // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
+      mountMethodsCaller.beforePaint(newRootCntNode, rebuildChanges);
+      const env = newRootCntNode.environment;
+      delay(() => {
+         //останавливать должны, только если запущено, иначе получается так,
+         // что это предыдущая фаза синхронизации и она прерывает следующую
+         //то есть, если  _haveRebuildRequest=true а _rebuildRequestStarted=false
+         //это значит, что мы запланировали перерисовку, но она еще не началась
+         // В случае если мы ждем завершения асинхронных детей и перестроение уже закончены
+         // нужно убрать запрос на реквест, чтобы дети рутовой ноды могли перерисовываться независимо
+         if (
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-            newRootCntNode.environment._rebuildRequestStarted = false;
-            // @ts-ignore FIXME: Property 'runQueue' does not exist
-            newRootCntNode.environment.runQueue();
-            onEndSync(newRootCntNode.rootId);
-         });
-      } else {
-         // @ts-ignore FIXME: Properties '_haveRebuildRequest' and '_asyncOngoing' do not exist
-         if (newRootCntNode.environment._rebuildRequestStarted || newRootCntNode.environment._asyncOngoing === false) {
+            env._rebuildRequestStarted ||
+            // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
+            env._asyncOngoing === false
+         ) {
             // @ts-ignore FIXME: Property '_haveRebuildRequest' does not exist
-            newRootCntNode.environment._haveRebuildRequest = false;
+            env._haveRebuildRequest = false;
          }
          // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-         if (newRootCntNode.environment._asyncOngoing === false) {
+         if (env._asyncOngoing === false) {
             // we have to delete property from environment, cause if we don't we'll be at the same point
             // even if async request didn't happen. So we have to make sure every time, that async request
             // really did happen
             // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-            delete newRootCntNode.environment._asyncOngoing;
+            delete env._asyncOngoing;
          }
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.afterRender(newRootCntNode, rebuildChanges);
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.beforePaint(newRootCntNode, rebuildChanges);
+
+         // @ts-ignore
+         if (!newRootCntNode._destroyed) {
+            // @ts-ignore
+            if (typeof newRootCntNode.reviveSuperOldControls === 'function') {
+               // @ts-ignore
+               newRootCntNode.reviveSuperOldControls();
+            }
+         }
          mountMethodsCaller.afterUpdate(newRootCntNode, rebuildChanges);
          // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-         newRootCntNode.environment._rebuildRequestStarted = false;
+         env._rebuildRequestStarted = false;
          // @ts-ignore FIXME: Property 'runQueue' does not exist
-         newRootCntNode.environment.runQueue();
+         env.runQueue();
          onEndSync(newRootCntNode.rootId);
-      }
-
-      return patch;
+      });
    }
 
    decorateFullMarkup(vnode: any, controlNode: any): any {
