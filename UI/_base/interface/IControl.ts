@@ -3,7 +3,7 @@ import { _IControl } from 'UI/Focus';
 /**
  * Basic interface for all controls
  */
-export interface IControl<IControlOptions> extends _IControl {
+export interface IControl<IControlOptions={}> extends _IControl {
 }
 
 /**
@@ -23,5 +23,5 @@ export interface IControlOptions {
 /**
  * Basic interface for child controls
  */
-export interface IControlChildren extends Record<string, IControl<IControlOptions> | HTMLElement> {
+export interface IControlChildren extends Record<string, IControl<IControlOptions|void> | HTMLElement> {
 }
