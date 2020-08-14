@@ -521,7 +521,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       // It occurs on the TV and the Windows tablet. Presto Offline uses limited version of WebKit
       // therefore the browser does not always generate clicks on the tap event.
       return (
-         constants.browser.retailOffline ||
+         constants.browser.isDesktop ||
          (constants.compatibility.touch &&
             constants.browser.chrome &&
             navigator &&
