@@ -3,11 +3,7 @@ import { _IControl } from 'UI/Focus';
 /**
  * Basic interface for all controls
  */
-export interface IControl<TChildren> extends _IControl {
-   /**
-    * {IControlChildren} property containing current control children
-    */
-   _children: TChildren;
+export interface IControl<IControlOptions> extends _IControl {
 }
 
 /**
@@ -27,5 +23,5 @@ export interface IControlOptions {
 /**
  * Basic interface for child controls
  */
-export interface IControlChildren extends Record<string, IControl<IControlChildren> | HTMLElement> {
+export interface IControlChildren extends Record<string, IControl<IControlOptions> | HTMLElement> {
 }
