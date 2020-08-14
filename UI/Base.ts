@@ -6,7 +6,9 @@
  * @public
  * @author Шипин А.А.
  */
-import {default as Control, IControlOptions, TemplateFunction} from './_base/Control';
+import {default as Control, TemplateFunction} from './_base/Control';
+import {IControl, IControlOptions, IControlChildren} from './_base/interface/IControl';
+
 import HTML from './_base/HTML';
 import Document from './_base/Document';
 import StateReceiver from './_base/StateReceiver';
@@ -29,8 +31,10 @@ export { getMetaStack, IMeta, IMetaState } from 'UI/_base/HTML/meta';
 //#endregion
 
 export {
+    IControl,
     Control,
     IControlOptions,
+    IControlChildren,
     HTML,
     Document,
     StateReceiver,
