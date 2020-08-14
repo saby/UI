@@ -23,5 +23,5 @@ export interface IControlOptions {
 /**
  * Basic interface for child controls
  */
-export interface IControlChildren extends Record<string, IControl<IControlOptions|void> | HTMLElement> {
+export interface IControlChildren extends Record<string, IControl | IControl<IControlOptions> | HTMLElement> {
 }
