@@ -178,7 +178,7 @@ export const _private = {
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
-export default class Control<TOptions extends IControlOptions = {}, TState = void> implements IControl<IControlOptions> {
+export default class Control<TOptions extends IControlOptions = {}, TState = void> implements IControl {
    protected _moduleName: string;
 
    private _mounted: boolean = false;
