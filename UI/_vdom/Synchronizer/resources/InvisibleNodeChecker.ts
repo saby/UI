@@ -18,5 +18,5 @@ export default function isInvisibleNode(controlNode: IControlNode, checkChildren
     const fullMarkupType = controlNode.fullMarkup && controlNode.fullMarkup.type;
     const childControlNode = controlNode.childrenNodes && controlNode.childrenNodes[0];
     return isInvisibleType(markupType) || isInvisibleType(fullMarkupType) ||
-        (checkChildren && isInvisibleNode(childControlNode));
+        (checkChildren && isInvisibleNode(childControlNode, checkChildren));
 }
