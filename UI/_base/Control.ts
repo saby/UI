@@ -178,7 +178,7 @@ export const _private = {
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
-export default class Control<TOptions extends IControlOptions = {}, TState = void, TChildren = IControlChildren> implements IControl<IControlChildren> {
+export default class Control<TOptions extends IControlOptions = {}, TState = void> implements IControl<IControlOptions> {
    protected _moduleName: string;
 
    private _mounted: boolean = false;
@@ -229,7 +229,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    // Ссылка: https://online.sbis.ru/opendoc.html?guid=5f576e21-6606-4a55-94fd-6979c6bfcb53.
    private _logicParent: Control<TOptions, void> = null;
 
-   protected _children: TChildren = null;
+   protected _children: IControlChildren = null;
 
    private _savedInheritOptions: unknown = null;
 
