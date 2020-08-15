@@ -247,11 +247,11 @@ var
          Logger.error('Использование функции в качестве строковой переменной! Необходимо обернуть в тег ws:partial', null, err);
       }
    },
-   createGenerator = function (isVdom) {
+   createGenerator = function (isVdom, forceCompatible) {
       if (isVdom) {
          return new Vdom();
       }
-      if (Common.isCompat()) {
+      if (Common.isCompat() || forceCompatible) {
          const Compatible = getGeneratorCompatible();
          if (Compatible) {
             return new Compatible();
