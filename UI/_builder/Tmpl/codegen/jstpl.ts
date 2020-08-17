@@ -64,6 +64,7 @@ export const DEFINE = `define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEP
    var templateFunction = /*#TEMPLATE#*/;
    templateFunction.stable = true;
    templateFunction.reactiveProps = /*#REACTIVE_PROPERTIES#*/;
+   templateFunction.isWasabyTemplate = /*#IS_WASABY_TEMPLATE#*/;
 
    /*#DELETE IT START#*/
    templateFunction.toJSON = function() {
@@ -216,10 +217,12 @@ export const INCLUDED_TEMPLATE = `{
          return "TEMPLATEFUNCTOJSON=" + /*#TEMPLATE_JSON#*/.toString();
       };
       /*#DELETE IT END#*/
+      bindFn.isWasabyTemplate = /*#IS_WASABY_TEMPLATE#*/;
 
       return bindFn;
    })(),
-   internal: /*#INTERNAL#*/
+   internal: /*#INTERNAL#*/,
+   isWasabyTemplate: /*#IS_WASABY_TEMPLATE#*/
 }
 `;
 
@@ -233,7 +236,8 @@ export const OBJECT_TEMPLATE = `(new(function () {
    scope.viewController = viewController;
    var func = ( /*#TEMPLATE#*/ );
    this.func = thelpers.makeFunctionSerializable(func, scope);
-   /*#INTERNAL#*/
+   /*#INTERNAL#*/;
+   this.func.isWasabyTemplate = /*#IS_WASABY_TEMPLATE#*/;
 })).func
 `;
 

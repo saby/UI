@@ -57,10 +57,12 @@ define('UI/_builder/Tmpl/modules/data/array', [
       }
       if (this.includedFn) {
          generatedString = templates.generateIncludedTemplate(
-            functionToWrap, dirtyCh ? ('isVdom?' + dirtyCh + ':{}') : '{}', postfixCall
+            functionToWrap, dirtyCh ? ('isVdom?' + dirtyCh + ':{}') : '{}', postfixCall, this.isWasabyTemplate
          );
       } else {
-         generatedString = templates.generateObjectTemplate(functionToWrap, dirtyCh, postfixCall);
+         generatedString = templates.generateObjectTemplate(
+            functionToWrap, dirtyCh, postfixCall, this.isWasabyTemplat
+         );
       }
 
       // eslint-disable-next-line no-new-wrappers

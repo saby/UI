@@ -224,6 +224,7 @@ define('UI/_builder/Tmpl/function', [
             this.handlers = handlers;
             this.fileName = handlers.fileName;
             this.config = handlers.config;
+            this.isWasabyTemplate = handlers.isWasabyTemplate;
          }
          var str = '' + this._process(ast, null, decor);
          if (str) {

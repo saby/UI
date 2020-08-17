@@ -450,6 +450,7 @@ define('UI/_builder/Tmpl/traverse', [
             this.resolver = resolver;
             if (config) {
                this.fileName = config.fileName;
+               this.isWasabyTemplate = config.isWasabyTemplate;
                this.config = config.config;
                this.fromBuilderTmpl = config.fromBuilderTmpl;
 

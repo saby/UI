@@ -56,11 +56,12 @@ define('UI/_builder/Tmpl/modules/data/utils/dataTypesCreator', [
     * @param fileName
     * @returns {*}
     */
-   function createArrayDataRepresentation(str, fileName) {
+   function createArrayDataRepresentation(str, fileName, isWasabyTemplate) {
       return FSC.wrapAroundExec(
          TClosure.genCreateDataArray(
             FSC.prepareStringForExec(JSON.stringify(str)),
-            FSC.wrapAroundQuotes(fileName)
+            FSC.wrapAroundQuotes(fileName),
+            isWasabyTemplate
          )
       );
    }
@@ -139,7 +140,7 @@ define('UI/_builder/Tmpl/modules/data/utils/dataTypesCreator', [
             return createNumberDataRepresentation(res, children);
          }
          if (dataType === 'Array') {
-            return createArrayDataRepresentation(res, this.fileName || '');
+            return createArrayDataRepresentation(res, this.fileName || '', this.isWasabyTemplate);
          }
          return createTypeDataRepresentation(dataType, res);
       }
