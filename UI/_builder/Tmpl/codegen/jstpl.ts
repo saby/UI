@@ -120,6 +120,7 @@ export const FOREACH = `(function forTemplate() {
       }
    }
    var out = [];
+   data.viewController = viewController;
    (function forTemplateScope() {
       var data = thelpers.createScope(this);
       if (iterator) {
