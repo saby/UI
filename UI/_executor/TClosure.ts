@@ -283,9 +283,15 @@ var
    },
    // Пока не избавимся от всех использований concat для массивных опций
    // нужно вещать toString на них
-   createDataArray = function createDataArray(array, templateName) {
+   createDataArray = function createDataArray(array, templateName, isWasabyTemplate) {
       Object.defineProperty(array, 'isDataArray', {
          value: true,
+         configurable: true,
+         enumerable: false,
+         writable: true
+      });
+      Object.defineProperty(array, 'isWasabyTemplate', {
+         value: !!isWasabyTemplate,
          configurable: true,
          enumerable: false,
          writable: true

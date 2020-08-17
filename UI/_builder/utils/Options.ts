@@ -67,6 +67,10 @@ export interface IOptions {
     * FIXME: Do refactor (traverseOptions).
     */
    config: ITraverseOptions;
+   /**
+    *
+    */
+   isWasabyTemplate: boolean;
 }
 
 /**
@@ -97,6 +101,10 @@ export class Options implements IOptions {
     * Traverse options.
     */
    config: ITraverseOptions;
+   /**
+    *
+    */
+   isWasabyTemplate: boolean;
 
    constructor(options: IOptions) {
       this.modulePath = new ModulePath(options.fileName);
@@ -106,5 +114,6 @@ export class Options implements IOptions {
       this.createResultDictionary = !!options.createResultDictionary;
       this.componentsProperties = options.componentsProperties || { };
       this.config = options.config || Config as ITraverseOptions;
+      this.isWasabyTemplate = this.modulePath.extension === 'wml';
    }
 }
