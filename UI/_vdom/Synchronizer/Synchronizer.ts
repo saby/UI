@@ -307,7 +307,7 @@ class VDomSynchronizer {
       if (foundEnvironment) {
          environment = foundEnvironment;
       } else {
-         environment = new DOMEnvironment(mountPoint, (nodeId) => this.__requestRebuild(nodeId), rootAttrs);
+         environment = new DOMEnvironment(mountPoint, (nodeId) => setTimeout(()=>this.__requestRebuild(nodeId), 0), rootAttrs);
          _environments.push(environment);
       }
 
@@ -509,51 +509,48 @@ class VDomSynchronizer {
       //    из конструктора компонента (тогда его нет, но тогда синхронизация активна) - тогда не нужно с ним ничего делать
       //    из внутреннего события компонента, меняющего его состояние, и вызывающего requestRebuild
       let controlNode = this._controlNodes[controlId];
-
-      //@ts-ignore используется runtime hack
-      let canUpdate = controlNode && !controlNode.environment._rebuildRequestStarted;
-
-      if (canUpdate) {
-         controlNode.environment._nextDirties[controlId] |= DirtyKind.DIRTY;
-
-         forEachNodeParents(controlNode, function (parent: IControlNode) {
-            controlNode.environment._nextDirties[parent.id] |= DirtyKind.CHILD_DIRTY;
-         });
-
-         if (!controlNode.environment._haveRebuildRequest) {
-            controlNode.environment._haveRebuildRequest = true;
-            const requestRebuildDelayed = () => {
-               if (!controlNode.environment._haveRebuildRequest) {
-
-                  /*Если _haveRebuildRequest=false значит
-                  * циклы синхронизации смешались и в предыдущем тике у
-                  * всех контролов был вызван _afterUpdate
-                  * Такое может случиться только в слое совместимости,
-                  * когда динамически удаляются и добавляются контрол ноды
-                  * */
-                  return;
-               }
-               //@ts-ignore используется runtime hack
-               controlNode.environment._rebuildRequestStarted = true;
-
-               restoreFocus(controlNode.control, () => this.__rebuild(controlNode));
-
-               controlNode.environment.addTabListener();
-            };
-            delay(requestRebuildDelayed);
-         }
-
+      if (!controlNode) {
          return;
       }
 
-      if (controlNode && controlNode.environment) {
+      //@ts-ignore используется runtime hack
+      if (controlNode.environment._rebuildRequestStarted) {
          if (!controlNode.environment.queue) {
             controlNode.environment.queue = [];
          }
          if (!controlNode.environment.queue.includes(controlId)) {
             controlNode.environment.queue.push(controlId);
          }
+
+         return;
       }
+
+      controlNode.environment._nextDirties[controlNode.id] |= DirtyKind.DIRTY;
+
+      forEachNodeParents(controlNode, function (parent: IControlNode) {
+         controlNode.environment._nextDirties[parent.id] |= DirtyKind.CHILD_DIRTY;
+      });
+
+      controlNode.environment._haveRebuildRequest = true;
+      const requestRebuildDelayed = () => {
+         if (!controlNode.environment._haveRebuildRequest) {
+
+            /*Если _haveRebuildRequest=false значит
+            * циклы синхронизации смешались и в предыдущем тике у
+            * всех контролов был вызван _afterUpdate
+            * Такое может случиться только в слое совместимости,
+            * когда динамически удаляются и добавляются контрол ноды
+            * */
+            return;
+         }
+         //@ts-ignore используется runtime hack
+         controlNode.environment._rebuildRequestStarted = true;
+
+         restoreFocus(controlNode.control, () => this.__rebuild(controlNode));
+
+         controlNode.environment.addTabListener();
+      };
+      delay(requestRebuildDelayed);
    }
 }
 
