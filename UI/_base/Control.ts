@@ -20,7 +20,7 @@ import { headDataStore } from 'UI/_base/HeadData';
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
 
-type IControlChildren = Record<string, Element | Control>;
+type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
 /**
  * @event UI/_base/Control#activated Происходит при активации контрола.
