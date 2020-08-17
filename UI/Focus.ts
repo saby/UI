@@ -10,7 +10,7 @@ import { restoreFocus } from './_focus/RestoreFocus';
 
 import { goUpByControlTree } from 'UI/NodeCollector';
 import * as DefaultOpenerFinder from './_focus/DefaultOpenerFinder';
-import { IDOMEnvironment } from "./_focus/Events";
+import { IDOMEnvironment } from './_focus/Events';
 import * as FocusAttrs from './_focus/FocusAttrs';
 import { IControl } from './_focus/IControl';
 

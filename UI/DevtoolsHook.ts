@@ -1,6 +1,6 @@
 import { TemplateFunction } from 'UI/Base';
 import { IControlNode } from './_vdom/Synchronizer/interfaces';
-import {IOptions} from "./_vdom/Synchronizer/resources/Options";
+import {IOptions} from './_vdom/Synchronizer/resources/Options';
 
 let onStartCommitFunc;
 let onEndCommitFunc;

@@ -1,8 +1,6 @@
 /// <amd-module name="UI/_executor/_Markup/IGeneratorType" />
 /* tslint:disable */
 
-import {IOptionsCompatibleBase} from "../../_executorCompatible/_Markup/Compatible/ICompatibleType";
-
 /**
  * @author Тэн В.А.
  */
@@ -206,12 +204,8 @@ interface ITplFunction {
 }
 
 // Опции для ноды в слое совместимости
-interface INodeAttribute extends IOptionsCompatibleBase {
-   config: string;
-   hasMarkup: string;
-   __config: string;
-   __wasOldControl: boolean;
-   class?: string;
+interface INodeAttribute {
+   name: string;
 }
 
 // Тип для контролов в слое совместимости

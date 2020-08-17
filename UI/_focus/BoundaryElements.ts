@@ -8,7 +8,7 @@
 
 
 import { VNode, createVNode, getFlagsForElementVnode } from 'Inferno/third-party/index';
-import { IDOMEnvironment } from "./Events";
+import { IDOMEnvironment } from './Events';
 
 interface IExtendedEvent extends Event {
    relatedTarget: Element | null;

@@ -1,8 +1,18 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DirtyCheckingCompatible" />
 /* tslint:disable */
 
-import { Compatible } from 'UI/Executor';
 import { TClosure } from 'UI/Executor';
+import { Logger } from "UI/Utils";
+
+let compatibleUtils;
+function getCompatibleUtils() {
+   if (requirejs.defined('View/ExecutorCompatible')) {
+      compatibleUtils = requirejs('View/ExecutorCompatible').CompatibleUtils;
+   } else {
+      Logger.error('View/ExecutorCompatible не загружен. Проверьте загрузку слоя совместимости');
+   }
+   return compatibleUtils;
+}
 
 /**
  * @author Кондаков Р.Н.
@@ -17,7 +27,7 @@ export function createCompoundControlNode(
    parentNode,
    vnode
 ) {
-   return Compatible.createCompoundControlNode(
+   return getCompatibleUtils().createCompoundControlNode(
       controlClass_,
       controlCnstr,
       [], // вложенные v-ноды (их нет у только что созданного контрола)
