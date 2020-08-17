@@ -105,6 +105,7 @@ define('UI/_builder/Tmpl/codegen/templates', [
          .replace(/\/\*#MODULE_EXTENSION#\*\//g, moduleExtension)
          .replace(/\/\*#PRIVATE_TEMPLATES#\*\//g, privateTemplates)
          .replace(/\/\*#INCLUDED_TEMPLATES#\*\//g, includedTemplates)
+         .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, 'true')
          .replace(/\/\*#MODULE_NAME#\*\//g, moduleName)
          .replace(/\/\*#LOCAL_DEPENDENCIES#\*\//g, dependenciesList + localDependenciesList)
          .replace(/\/\*#DEPENDENCIES#\*\//g, JSON.stringify(finalDependencies))
@@ -132,6 +133,7 @@ define('UI/_builder/Tmpl/codegen/templates', [
          .replace(/\/\*#MODULE_EXTENSION#\*\//g, moduleExtension)
          .replace(/\/\*#PRIVATE_TEMPLATES#\*\//g, EMPTY_STRING)
          .replace(/\/\*#INCLUDED_TEMPLATES#\*\//g, EMPTY_STRING)
+         .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, 'false')
          .replace(/\/\*#MODULE_NAME#\*\//g, moduleName)
          .replace(/\/\*#LOCAL_DEPENDENCIES#\*\//g, dependenciesList)
          .replace(/\/\*#DEPENDENCIES#\*\//g, JSON.stringify(finalDependencies))
@@ -259,12 +261,14 @@ define('UI/_builder/Tmpl/codegen/templates', [
     * @param template Шаблон.
     * @param internal Набор internal выражений.
     * @param postfix Строка, которую необходимо добавить в конце сгенерированного блока.
+    * @param isWasabyTemplate Флаг wml шаблона.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generateObjectTemplate(template, internal, postfix) {
+   function generateObjectTemplate(template, internal, postfix, isWasabyTemplate) {
       var postfixCall = postfix || '';
       return objectTemplate
          .replace('/*#TEMPLATE#*/', template)
+         .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, isWasabyTemplate)
          .replace('/*#INTERNAL#*/', internal) + postfixCall;
    }
 
@@ -275,13 +279,15 @@ define('UI/_builder/Tmpl/codegen/templates', [
     * @param template Шаблон.
     * @param internal Набор internal выражений.
     * @param postfix Строка, которую необходимо добавить в конце сгенерированного блока.
+    * @param isWasabyTemplate Флаг wml шаблона.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generateIncludedTemplate(template, internal, postfix) {
+   function generateIncludedTemplate(template, internal, postfix, isWasabyTemplate) {
       var postfixCall = postfix || '';
       return includedTemplate
          .replace('/*#TEMPLATE#*/', template)
          .replace('/*#TEMPLATE_JSON#*/', template)
+         .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, isWasabyTemplate)
          .replace('/*#INTERNAL#*/', internal) + postfixCall;
    }
 

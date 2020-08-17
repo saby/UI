@@ -41,11 +41,11 @@ define('UI/_builder/Tmpl', [
     * FIXME: почему-то здесь удаляются пробелы и переходы на новую строку.
     *  Этого быть не должно здесь - мешает анализу.
     * @param html Исходный текст шаблона.
-    * @param config Конфигурация сборки шаблона, содержащая fileName и itIsWml.
+    * @param config Конфигурация сборки шаблона, содержащая fileName и isWasabyTemplate.
     * @returns {string} Предобработанный текст шаблона.
     */
    function preprocessHtml(html, config) {
-      if (isWml(config.fileName) || config.itIsWml) {
+      if (isWml(config.fileName) || config.isWasabyTemplate) {
          // FIXME: очень плохая и неадекватная предобработка шаблона.
          //  Обработкой \n, \t, \r, \s должен заниматься парсер, тк он владеет контекстом.
          return html
@@ -74,7 +74,7 @@ define('UI/_builder/Tmpl', [
       config.fileName = config.fileName || config.filename;
       try {
          currentHtml = preprocessHtml(html, config);
-         parsed = htmlparser(currentHtml, undefined, true, config.fileName, !!config.itIsWml);
+         parsed = htmlparser(currentHtml, undefined, true, config.fileName, !!config.isWasabyTemplate);
       } catch (error) {
          parsingError = error;
       }
@@ -140,7 +140,7 @@ define('UI/_builder/Tmpl', [
       var currentExt = ext || 'tmpl';
       var currentErrback = failureCallback || defaultErrorback;
       var tmplFunc = null;
-      config.itIsWml = 'wml' === currentExt;
+      config.isWasabyTemplate = 'wml' === currentExt;
 
       // FIXME: удалить, когда точно будут известны клиенты шаблонизатора.
       config.fileName = config.fileName || config.filename;
@@ -177,7 +177,13 @@ define('UI/_builder/Tmpl', [
     * @returns {*}
     */
    function getComponents(html, config) {
-      var parsed = htmlparser(html, undefined, true, (config && config.fileName), !!(config && config.itIsWml));
+      var parsed = htmlparser(
+         html,
+         undefined,
+         true,
+         (config && config.fileName),
+         !!(config && config.isWasabyTemplate)
+      );
       if (config) {
          // FIXME: плохо так передавать конфиг
          traversing.config = config;
@@ -210,7 +216,7 @@ define('UI/_builder/Tmpl', [
       var currentConfig = {
          config: configModule,
          fileName: 'userTemplate',
-         itIsWml: false
+         isWasabyTemplate: false
       };
       template(html, getResolverControls('tmpl'), currentConfig).handle(function(traversed) {
          var templateFunction;

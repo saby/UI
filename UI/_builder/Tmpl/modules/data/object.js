@@ -291,11 +291,18 @@ define('UI/_builder/Tmpl/modules/data/object', [
          }
          if (this.includedFn) {
             templateObject.html = FSC.wrapAroundObject(
-               templates.generateIncludedTemplate(fAsString, dirtyCh ? ('isVdom?' + dirtyCh + ':{}') : '{}')
+               templates.generateIncludedTemplate(
+                  fAsString,
+                  dirtyCh ? ('isVdom?' + dirtyCh + ':{}') : '{}',
+                  undefined,
+                  this.isWasabyTemplate
+               )
             );
          } else {
             templateObject.html = FSC.wrapAroundObject(
-               templates.generateObjectTemplate(fAsString, 'this.func.internal = ' + dirtyCh)
+               templates.generateObjectTemplate(
+                  fAsString, 'this.func.internal = ' + dirtyCh, undefined, this.isWasabyTemplate
+               )
             );
          }
          if (root) {
