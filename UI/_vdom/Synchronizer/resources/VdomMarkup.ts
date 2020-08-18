@@ -587,7 +587,7 @@ export function getFullMarkup(
       if (result.children) {
          result = result.children;
       } else {
-         Vdom.textNode('', result.attributes.key);
+         result = Vdom.textNode('', result.attributes.key);
       }
    }
 
