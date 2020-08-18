@@ -465,26 +465,6 @@ function addIgnoredForeachVars(ast: IWasabyNode, ignoredIdentifiers: IStorage): 
 }
 
 /**
- * Добавить в ignoredNames все внутренние переменные цикла aka for(;;).
- * @param ast AST-узел дерева.
- * @param ignoredIdentifiers Набор имен игнорируемых переменных.
- */
-function addIgnoredForVars(ast: IWasabyNode, ignoredIdentifiers: IStorage): void {
-   for (let idx = 1; idx < FOR_ATTRIBUTES.length; ++idx) {
-      // FIXME: Вот тут лежат Program Node. Нужно вытащить переменные.
-      //  Привести к единому интерфейсу.
-      // @ts-ignore FIXME: описать тип
-      const rawValue = ast.attribs[FOR_ATTRIBUTES[idx]].data[0];
-      if (rawValue) {
-         const vars = collectIdentifiers(rawValue as VariableNode);
-         for (let i = 0; i < vars.length; ++i) {
-            ignoredIdentifiers[vars[i]] = true;
-         }
-      }
-   }
-}
-
-/**
  * Выполнить фильтрацию набора выражений: исключить все те выражения,
  * которые содержат хотя бы одну игнорируемую переменную.
  * @param expressions Набор выражений.
@@ -542,6 +522,9 @@ function patchInternalAndGatherReactive(
       }
    }
 
+   // Дополнительные переменные, необходимые для прокидывания. Влияют на перерисовки и набор internal.
+   const additionalIdentifiers = [];
+
    // Пополняем наборы игнорирумых и неигнорируемых идентификаторов
    if (isForeach) {
       addIgnoredForeachVars(ast, ignoredIdentifiers);
@@ -550,11 +533,17 @@ function patchInternalAndGatherReactive(
       );
       expressions.push(new VariableNode(ast.forSource[FOREACH_ATTRIBUTES[0]], false, undefined));
    } else if (isFor) {
-      addIgnoredForVars(ast, ignoredIdentifiers);
-      identifiers = identifiers.concat(
-         collectIdentifiers(ast.attribs[FOR_ATTRIBUTES[0]].data[0] as VariableNode)
-      );
-      expressions.push(ast.attribs[FOR_ATTRIBUTES[0]]);
+      // <ws:for data="init; test; update">
+      for (let index = 0; index < FOR_ATTRIBUTES.length; ++index) {
+         const forIdentifiers = collectIdentifiers(ast.attribs[FOR_ATTRIBUTES[index]].data[0] as VariableNode);
+         for (let index2 = 0; index2 < forIdentifiers.length; ++index2) {
+            const forIdentifier = forIdentifiers[index2];
+            if (additionalIdentifiers.indexOf(forIdentifier) === -1) {
+               ignoredIdentifiers[forIdentifier] = true;
+               additionalIdentifiers.push(forIdentifier);
+            }
+         }
+      }
    } else if (isContentOption) {
       ignoredIdentifiers[tagUtils.splitWs(ast.name)] = true;
    }
@@ -678,6 +667,13 @@ function patchInternalAndGatherReactive(
 
    // Исключим все выражения, которые содержат игнорируемые переменные
    expressions = excludeIgnoredExpressions(expressions, ignoredIdentifiers);
+
+   // Добавим дополнительные переменные, которые также должны быть учтены в наборе internal
+   if (isFor) {
+      for (let index = 0; index < additionalIdentifiers.length; ++index) {
+         expressions.push(processProperty(additionalIdentifiers[index]));
+      }
+   }
 
    // Обновим хранилище реактивных переменных
    applyIdentifiers(identifiersStore, identifiers, ignoredIdentifiers);
