@@ -583,13 +583,6 @@ export function getFullMarkup(
          }
       }
    }
-   if (Vdom.isTemplateVNodeType(result)) {
-      if (result.children) {
-         result = result.children;
-      } else {
-         result = Vdom.textNode('', result.attributes.key);
-      }
-   }
 
    if (changed) {
       result.changed = true;
