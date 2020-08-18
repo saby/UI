@@ -192,7 +192,7 @@ define([
                }
             },
             {
-               control: FocusTestControls.ContentEditableDiv,
+               control: FocusTestControls.ContentEditableDivWithLink,
                name: 'focus contentEditable div with link',
                checkFn: function() {
                   assert.ok(Focus.activate(document.getElementById('editableWithLinkContainer')));

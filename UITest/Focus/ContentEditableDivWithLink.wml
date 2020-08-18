@@ -1,0 +1,3 @@
+<div id="editableWithLinkContainer" tabindex="0">
+    <div id="editableWithLink" contenteditable="true" tabindex="0">Content <a href = "#">editable</a> element</div>
+</div>

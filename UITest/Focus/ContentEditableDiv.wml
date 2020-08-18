@@ -1,8 +1,3 @@
-<div>
-    <div id="editableNormalContainer" class="c1">
-        <div id="editableNormal" class="c1-1" contenteditable="true">Content editable element</div>
-    </div>
-    <div id="editableWithLinkContainer" class="c2">
-        <div id="editableWithLink" contenteditable="true" class="c2-1">Content <a href = "#">editable</a> element</div>
-    </div>
+<div id="editableNormalContainer" tabindex="0">
+    <div id="editableNormal" contenteditable="true" tabindex="0">Content editable element</div>
 </div>

@@ -7,5 +7,6 @@ export {default as SvgWithNoFocus} from './Focus/SvgWithNoFocus';
 export {default as Deactivate} from './Focus/Deactivate';
 export {default as WithInputFakeMobile} from './Focus/WithInputFakeMobile';
 export {default as ContentEditableDiv} from './Focus/ContentEditableDiv';
+export {default as ContentEditableDivWithLink} from './Focus/ContentEditableDivWithLink';
 export {default as ConditionContent} from './Focus/ConditionContent';
 export {default as Input} from './Focus/Input';
