@@ -111,7 +111,8 @@ export function getElementProps(element: Element): IFocusElementProps {
          (tabIndex !== -1 && element.getAttribute('contenteditable') === 'true'),
          createsContext: (flags & CLASS_CREATES_CONTEXT) !== 0,
          tabIndex: tabIndex || 0, // обязательно хоть 0
-         delegateFocusToChildren: (flags & CLASS_DELEGATES_TAB_FLAG) !== 0,
+         delegateFocusToChildren: ((flags & CLASS_DELEGATES_TAB_FLAG) !== 0 &&
+            element.getAttribute('contenteditable') !== 'true'),
          tabCycling: (flags & CLASS_TAB_CYCLING) !== 0
       };
    } else {
