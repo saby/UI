@@ -1,3 +1,1 @@
-<div id="editableNormalContainer" tabindex="0">
-    <div id="editableNormal" contenteditable="true" tabindex="0">Content editable element</div>
-</div>
+<div id="editableNormal" contenteditable="true" tabindex="0">Content editable element</div>

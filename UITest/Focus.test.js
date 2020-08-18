@@ -4,6 +4,7 @@ define([
    'UI/Base',
    'UI/Utils',
    'Env/Env',
+   'UI/_focus/ElementFinder',
    'UI/_focus/_ResetScrolling',
    'UITest/Focus'
 ], function(
@@ -11,6 +12,7 @@ define([
    Base,
    Utils,
    Env,
+   ElementFinder,
    _ResetScrolling,
    FocusTestControls
 ) {
@@ -187,7 +189,7 @@ define([
                control: FocusTestControls.ContentEditableDiv,
                name: 'focus contentEditable div',
                checkFn: function() {
-                  assert.ok(Focus.activate(document.getElementById('editableNormalContainer')));
+                  assert.ok(Focus.activate(document.getElementById('editableNormal')));
                   assert.strictEqual(document.activeElement, div);
                }
             },
@@ -195,8 +197,8 @@ define([
                control: FocusTestControls.ContentEditableDivWithLink,
                name: 'focus contentEditable div with link',
                checkFn: function() {
-                  assert.ok(Focus.activate(document.getElementById('editableWithLinkContainer')));
-                  assert.strictEqual(document.activeElement, div);
+                  var findElement = ElementFinder.getElementProps(document.getElementById('editableWithLink'))
+                  assert.equal(findElement.delegateFocusToChildren, false);
                }
             }
          ];
