@@ -1,6 +1,6 @@
 define('UI/_builder/Tmpl', [
    'UI/_builder/Tmpl/traverse',
-   'UI/Utils',
+   'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/modules/utils/common',
    'UI/_builder/Tmpl/function',
    'UI/_builder/Tmpl/codegen/templates',
@@ -9,7 +9,7 @@ define('UI/_builder/Tmpl', [
    'UI/_builder/Tmpl/ComponentCollector'
 ], function(
    traversing,
-   uiUtils,
+   ErrorHandlerLib,
    utils,
    processingToFunction,
    templates,
@@ -23,7 +23,7 @@ define('UI/_builder/Tmpl', [
     * @author Крылов М.А.
     */
 
-   var Logger = uiUtils.Logger;
+   var errorHandler = new ErrorHandlerLib.default();
    var ModulePath = ModulePathLib.ModulePath;
    var EMPTY_STRING = '';
 
@@ -49,12 +49,12 @@ define('UI/_builder/Tmpl', [
          // FIXME: очень плохая и неадекватная предобработка шаблона.
          //  Обработкой \n, \t, \r, \s должен заниматься парсер, тк он владеет контекстом.
          return html
-            .replace(/\>[\s]*[\n\r][\s]*/ig, '>')
-            .replace(/[\s]*[\n\r][\s]*\</ig, '<')
-            .replace(/[\n\r]\</ig, '<')
-            .replace(/[\n\r]\</ig, '<')
-            .replace(/\>[\n\r]/ig, '>')
-            .replace(/\>[\n\r]/ig, '>');
+            .replace(/>[\s]*[\n\r][\s]*/ig, '>')
+            .replace(/[\s]*[\n\r][\s]*</ig, '<')
+            .replace(/[\n\r]</ig, '<')
+            .replace(/[\n\r]</ig, '<')
+            .replace(/>[\n\r]/ig, '>')
+            .replace(/>[\n\r]/ig, '>');
       }
       return html;
    }
@@ -114,7 +114,12 @@ define('UI/_builder/Tmpl', [
     * @param error Объект ошибки.
     */
    function defaultErrorback(error) {
-      Logger.templateError('Ошибка при парсинге шаблона', error.message, null, error);
+      errorHandler.error(
+         'Ошибка при парсинге шаблона: ' + error.message,
+         {
+            fileName: null
+         }
+      );
    }
 
    /**
@@ -152,7 +157,12 @@ define('UI/_builder/Tmpl', [
             processingToFunction.functionNames = {};
             tmplFunc = func(traversed, config);
             if (!tmplFunc) {
-               Logger.templateError('Шаблон не может быть построен. Не загружены зависимости.', html);
+               errorHandler.error(
+                  'Шаблон не может быть построен. Не загружены зависимости.',
+                  {
+                     fileName: config.fileName
+                  }
+               );
             }
             var moduleName = ModulePath.replaceWsModule(config.fileName).replace(/\.(wml|tmpl)$/gi, EMPTY_STRING);
             var deps = getComponents(html);
@@ -234,7 +244,12 @@ define('UI/_builder/Tmpl', [
             defaultErrorback(error);
          }
          if (!compatibleFunction) {
-            Logger.templateError('Шаблон не может быть построен. Не загружены зависимости.', html);
+            errorHandler.error(
+               'Шаблон не может быть построен. Не загружены зависимости.',
+               {
+                  fileName: '<userTemplate>'
+               }
+            );
          }
       }, defaultErrorback);
       return compatibleFunction;

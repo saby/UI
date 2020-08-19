@@ -1,17 +1,17 @@
 define('UI/_builder/Tmpl/modules/utils/loader', [
    'require',
-   'UI/Utils',
+   'UI/_builder/Tmpl/utils/ErrorHandler',
    'Core/Deferred',
    'UI/_builder/Tmpl/modules/utils/common',
    'UI/_builder/Tmpl/modules/utils/names',
-], function straightFromFileLoader(require, UIUtils, Deferred, common, names) {
+], function straightFromFileLoader(require, ErrorHandlerLib, Deferred, common, names) {
    'use strict';
 
    /**
     * @author Крылов М.А.
     */
 
-   var Logger = UIUtils.Logger;
+   var errorHandler = new ErrorHandlerLib.default();
 
    /**
     * Создать служебный узел для контрола.
@@ -218,7 +218,12 @@ define('UI/_builder/Tmpl/modules/utils/loader', [
             deferred.callback([node]);
          }, function(error) {
             deferred.errback(error);
-            Logger.templateError(error, fileName, null, error);
+            errorHandler.error(
+               error.message,
+               {
+                  fileName: fileName
+               }
+            );
          }
       );
       return deferred;

@@ -4,8 +4,7 @@
  * @author Крылов М.А.
  */
 
-import { Logger } from 'UI/Utils';
-
+import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 import * as common from 'UI/_builder/Tmpl/modules/utils/common';
 import * as decorators from './Decorators';
@@ -17,6 +16,8 @@ import { genGetter, genSetter, genDecorate } from 'UI/_builder/Tmpl/codegen/TClo
 // потому что в этом файле содержатся определения
 // классов узлов Mustache-выражений и
 // реализации паттерна "Посетитель" для этих узлов.
+
+const errorHandler = new ErrorHandler();
 
 export interface IPosition {
    line: number;
@@ -212,9 +213,11 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
       const callee = node.callee.accept(this, context);
       if (callee) {
          if (callee === 'debug') {
-            Logger.warn(
+            errorHandler.warn(
                'В тексте шаблона обнаружено debug-выражение. Необходимо убрать его в production!',
-               context.fileName
+               {
+                  fileName: context.fileName
+               }
             );
          }
          if (callee === SET_HTML_UNSAFE) {
@@ -234,10 +237,12 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
          }
          return callee + '.apply(data, ' + this.buildArgumentsArray(node.arguments, context) + ')';
       }
-      Logger.templateError(
+      errorHandler.error(
          'Обшибка при обработке выражения вызова функции. Object to call on is "'
          + node.callee.string + '" equals to ' + callee,
-         context.fileName
+         {
+            fileName: context.fileName
+         }
       );
    }
 
