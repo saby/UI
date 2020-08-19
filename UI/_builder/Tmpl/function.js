@@ -9,7 +9,7 @@ define('UI/_builder/Tmpl/function', [
    'UI/_builder/Tmpl/modules/template',
    'UI/_builder/Tmpl/modules/utils/tag',
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
-   'UI/Utils',
+   'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/modules/utils/parse',
    'Core/helpers/Function/shallowClone',
    'UI/_builder/Tmpl/codegen/templates',
@@ -26,7 +26,7 @@ define('UI/_builder/Tmpl/function', [
    templateModule,
    tagUtils,
    FSC,
-   uiUtils,
+   ErrorHandlerLib,
    parseUtils,
    shallowClone,
    templates,
@@ -40,6 +40,8 @@ define('UI/_builder/Tmpl/function', [
     */
 
    var EMPTY_STRING = '';
+
+   var errorHandler = new ErrorHandlerLib.default();
 
    function createAttrObject(val) {
       return {
@@ -254,7 +256,12 @@ define('UI/_builder/Tmpl/function', [
             func.includedFn = this.includedFn;
             func.functionNames = this.functionNames;
          } catch (error) {
-            uiUtils.Logger.info('[UI/_builder/Tmpl/function:getFunction()] generating function: \n' + str);
+            errorHandler.info(
+               '[UI/_builder/Tmpl/function:getFunction()] generating function: \n' + str,
+               {
+                  fileName: handlers.fileName
+               }
+            );
             throw error;
          }
          this.setFunctionName(func, undefined, this.fileName);

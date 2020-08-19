@@ -4,13 +4,13 @@ define('UI/_builder/Tmpl/modules/partial', [
    'UI/_builder/Tmpl/expressions/_private/Process',
    'UI/_builder/Tmpl/modules/utils/parse',
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
-   'UI/Utils',
+   'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/codegen/Generator',
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/Tmpl/codegen/TClosure',
    'UI/_builder/Tmpl/codegen/_feature/Partial'
 ], function partialLoader(
-   injectedDataForce, names, Process, parse, FSC, uiUtils,
+   injectedDataForce, names, Process, parse, FSC, ErrorHandlerLib,
    Generator, templates, TClosure, FeaturePartial
 ) {
    'use strict';
@@ -18,6 +18,8 @@ define('UI/_builder/Tmpl/modules/partial', [
    /**
     * @author Крылов М.А.
     */
+
+   var errorHandler = new ErrorHandlerLib.default();
 
    function calculateData(sequence) {
       var string = '', attrData = sequence.data, i;
@@ -120,8 +122,13 @@ define('UI/_builder/Tmpl/modules/partial', [
 
                // Генерируем внедрённый шаблон с рутовой областью видимости
                if (!injectedTemplate) {
-                  uiUtils.Logger.templateError('Your template variable by the name of "' +
-                     tag.injectedTemplate.name.string + '" is empty', this.fileName);
+                  errorHandler.error(
+                     'Your template variable by the name of "' +
+                     tag.injectedTemplate.name.string + '" is empty',
+                     {
+                        fileName: this.fileName
+                     }
+                  );
                }
                assignModuleVar = injectedTemplate.html || injectedTemplate;
                if (injectedTemplate.data) {
@@ -140,8 +147,13 @@ define('UI/_builder/Tmpl/modules/partial', [
                         tag);
                   }
                }
-               uiUtils.Logger.templateError('Your template variable by the name of "' +
-                  tag.injectedTemplate.name.string + '" is empty', this.fileName);
+               errorHandler.error(
+                  'Your template variable by the name of "' +
+                  tag.injectedTemplate.name.string + '" is empty',
+                  {
+                     fileName: this.fileName
+                  }
+               );
             }
 
             var createAttribs;
