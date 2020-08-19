@@ -428,16 +428,20 @@ class VDomSynchronizer {
       let foundControlNode: IControlNode;
 
       for (var i = this._rootNodes.length - 1; i >= 0; i--) {
+         var environment = this._rootNodes[i].environment;
          //@ts-ignore TODO - убрать использование
-         var rootDOMNode = this._rootNodes[i].environment._rootDOMNode;
+         var rootDOMNode = environment._rootDOMNode;
 
          // We only have one root dom node on vdom page, others are created inside of
          // compound controls. Compound control could be destroyed incorrectly, which would
          // leave an environment with undefined _rootDOMNode. We have to clean up these
          // environments as well.
-         if ((domElement === rootDOMNode && this._rootNodes[i].environment._canDestroy(control)) || !rootDOMNode) {
-            var nodeId = this._rootNodes[i].id,
-               env = _environments.splice(i, 1)[0];
+         if ((domElement === rootDOMNode && environment._canDestroy(control)) || !rootDOMNode) {
+            var nodeId = this._rootNodes[i].id;
+            var environmentIndex = _environments.indexOf(environment);
+            if (environmentIndex !== -1) {
+               _environments.splice(environmentIndex, 1);
+            }
 
             if (this._controlNodes[nodeId]) {
                foundControlNode = this._controlNodes[nodeId];
@@ -459,9 +463,9 @@ class VDomSynchronizer {
 
             // Control's environment was found, remember it to destroy after loop
             if (domElement === rootDOMNode) {
-               foundControlEnvironment = env;
+               foundControlEnvironment = environment;
             } else {
-               env.destroy();
+               environment.destroy();
             }
          }
       }
