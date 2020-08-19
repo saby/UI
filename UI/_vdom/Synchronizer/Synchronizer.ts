@@ -484,17 +484,9 @@ class VDomSynchronizer {
          return;
       }
 
-      const vnode = foundControlNode.vnode || foundControlNode;
-      if (!isControlDestroyed) {
-         //@ts-ignore используется runtime hack
-         onStartCommit(OperationType.DESTROY, control._moduleName, vnode);
-      }
       //@ts-ignore DirtyChecking ставит флаг, которого нет в API контрола.
       if (!control.__$destroyFromDirtyChecking) {
          destroyReqursive(foundControlNode, foundControlEnvironment);
-      }
-      if (!isControlDestroyed) {
-         onEndCommit(vnode);
       }
       onEndSync(foundControlNode.rootId);
       //@ts-ignore используется runtime hack
