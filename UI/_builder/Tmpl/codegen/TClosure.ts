@@ -10,8 +10,8 @@ export function genSanitize(data: string): string {
    return `${VAR_MODULE_NAME}.Sanitize.apply(undefined, [${data}])`;
 }
 
-export function genCreateDataArray(array: string, fileName: string): string {
-   return `${VAR_MODULE_NAME}.createDataArray(${array}, ${fileName})`;
+export function genCreateDataArray(array: string, fileName: string, isWasabyTemplate: boolean): string {
+   return `${VAR_MODULE_NAME}.createDataArray(${array}, ${fileName}, ${!!isWasabyTemplate})`;
 }
 
 export function genWrapUndef(expression: string): string {
