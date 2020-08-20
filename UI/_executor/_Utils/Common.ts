@@ -66,36 +66,41 @@ export function isArray(array) {
    return (Object.prototype.toString.call(array) === '[object Array]');
 }
 
+const tagsToReplace = {
+   '<': '&lt;',
+   '>': '&gt;',
+   "'": '&apos;',
+   "\"": '&quot;',
+   '{{': '&lcub;&lcub;',
+   '}}': '&rcub;&rcub;'
+};
+const ampRegExp = /&([^#])/g;
+const otherEscapeRegExp = /({{)|(}})|([<>'"])/g;
+
 export function escape(entity) {
    if (entity && typeof entity === 'string') {
-      var tagsToReplace = {
-         '<': '&lt;',
-         '>': '&gt;',
-         "'": '&apos;',
-         "\"": '&quot;',
-         '{{': '&lcub;&lcub;',
-         '}}': '&rcub;&rcub;'
-      };
-      entity = entity.replace(/&([^#])/g, function escapeReplace(tag, suffix) {
+      entity = entity.replace(ampRegExp, function escapeReplace(tag, suffix) {
          return '&amp;' + suffix;
       });
 
-      return entity.replace(/({{)|(}})|([<>'"])/g, function escapeReplace(tag) {
+      return entity.replace(otherEscapeRegExp, function escapeReplace(tag) {
          return tagsToReplace[tag] || tag;
       });
    }
    return entity;
 }
 
+const tagsToParenthesisReplace = {
+   '{{': '&lcub;&lcub;',
+   '}}': '&rcub;&rcub;'
+};
+const regExpToParenthesisReplace = /({{)|(}})/g;
+
 // Для того чтобы при прогоне второй раз в dot, все конструкции эскейпились
 export function escapeParenthesis(entity) {
    if (entity && typeof entity === 'string') {
-      var tagsToReplace = {
-         '{{': '&lcub;&lcub;',
-         '}}': '&rcub;&rcub;'
-      };
-      return entity.replace(/({{)|(}})/g, function escapeReplace(tag) {
-         return tagsToReplace[tag] || tag;
+      return entity.replace(regExpToParenthesisReplace, function escapeReplace(tag) {
+         return tagsToParenthesisReplace[tag] || tag;
       });
    }
    return entity;
