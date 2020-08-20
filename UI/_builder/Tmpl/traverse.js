@@ -4,8 +4,6 @@
  */
 define('UI/_builder/Tmpl/traverse', [
    'UI/_builder/Tmpl/utils/ErrorHandler',
-   'Core/Deferred',
-   'Core/ParallelDeferred',
    'Core/helpers/Object/isEmpty',
    'UI/_builder/Tmpl/expressions/_private/Statement',
    'UI/_builder/Tmpl/expressions/_private/Event',
@@ -19,8 +17,6 @@ define('UI/_builder/Tmpl/traverse', [
    'UI/_builder/Tmpl/postTraverse'
 ], function traverseLoader(
    ErrorHandlerLib,
-   Deferred,
-   ParallelDeferred,
    isEmptyObject,
    processStatement,
    event,
@@ -169,9 +165,7 @@ define('UI/_builder/Tmpl/traverse', [
    }
 
    function _traverseDirective(directive) {
-      var deferred = new Deferred();
-      deferred.callback(directive);
-      return deferred;
+      return Promise.resolve(directive);
    }
 
    /**
@@ -378,8 +372,8 @@ define('UI/_builder/Tmpl/traverse', [
        * @return {Array}    array of State promises
        */
       traversingAST: function traversingAST(ast, prefix, injectedData) {
+         var arrayOfPromises = [];
          var traverseMethod;
-         var pDeferred = new ParallelDeferred();
          var keyIndex = 0;
          var collect;
          var parentKey = '';
@@ -424,19 +418,11 @@ define('UI/_builder/Tmpl/traverse', [
                   }
                }
                if (collect !== undefined) {
-                  pDeferred.push(collect);
+                  arrayOfPromises.push(collect);
                }
             }
          }
-         return pDeferred.done().getResult().addCallbacks(
-            function resolveNodesToArray(data) {
-               return Object.keys(data).map(function(key) {
-                  return data[key];
-               });
-            }, function failedTraverse(error) {
-               return error;
-            }
-         );
+         return Promise.all(arrayOfPromises);
       },
 
       /**
@@ -447,39 +433,42 @@ define('UI/_builder/Tmpl/traverse', [
        * @return {Object}       State promise
        */
       traverse: function traverse(ast, resolver, config) {
-         var deferred = new Deferred();
-         if (resolver) {
-            this.resolver = resolver;
-            if (config) {
-               this.fileName = config.fileName;
-               this.isWasabyTemplate = config.isWasabyTemplate;
-               this.config = config.config;
-               this.fromBuilderTmpl = config.fromBuilderTmpl;
+         var self = this;
+         return new Promise(function(resolve, reject) {
+            if (resolver) {
+               self.resolver = resolver;
+               if (config) {
+                  self.fileName = config.fileName;
+                  self.isWasabyTemplate = config.isWasabyTemplate;
+                  self.config = config.config;
+                  self.fromBuilderTmpl = config.fromBuilderTmpl;
 
-               // опция говорит о том, что нужно собирать словарь локализуемых слов
-               this.createResultDictionary = config.createResultDictionary;
+                  // опция говорит о том, что нужно собирать словарь локализуемых слов
+                  self.createResultDictionary = config.createResultDictionary;
 
-               // информация о компонентах, полученная из билдера модулем jsDoc,
-               // используется для проверки, локализуемы ли опции
-               this.componentsProperties = config.componentsProperties;
-               if (this.createResultDictionary) {
-                  this.words = [];
+                  // информация о компонентах, полученная из билдера модулем jsDoc,
+                  // используется для проверки, локализуемы ли опции
+                  self.componentsProperties = config.componentsProperties;
+                  if (self.createResultDictionary) {
+                     self.words = [];
+                  }
                }
             }
-         }
-         this.traversingAST(ast).addCallbacks(
-            postTraverse.bind(this, deferred),
-            function broken(fileName, error) {
-               deferred.errback(error);
-               errorHandler.error(
-                  error.message,
-                  {
-                     fileName: fileName
-                  }
-               );
-            }.bind(null, this.fileName)
-         );
-         return deferred;
+            self.traversingAST(ast)
+               .then(function(result) {
+                  var postTraversed = postTraverse.call(self, result);
+                  resolve(postTraversed);
+               })
+               .catch(function(error) {
+                  errorHandler.error(
+                     error.message,
+                     {
+                        fileName: self.fileName
+                     }
+                  );
+                  reject(error);
+               });
+         });
       },
 
       /**
@@ -489,24 +478,24 @@ define('UI/_builder/Tmpl/traverse', [
        * @return {Object}         State promise
        */
       traverseTagWithChildren: function traverseTagWithChildren(tag, injectedData) {
-         var deferred = new Deferred();
-         var fileName = this.fileName;
-         this.traversingAST(tag.children, tag.prefix, injectedData).addCallbacks(
-            function traverseTagSuccess(ast) {
-               var result = _generatorFunctionForTags(tag, ast);
-               deferred.callback(result);
-            },
-            function brokenTagTraversing(error) {
-               deferred.errback(error);
-               errorHandler.error(
-                  error.message,
-                  {
-                     fileName: fileName
-                  }
-               );
-            }
-         );
-         return deferred;
+         var self = this;
+         return new Promise(function(resolve, reject) {
+            var fileName = self.fileName;
+            self.traversingAST(tag.children, tag.prefix, injectedData)
+               .then(function(ast) {
+                  var processedResult = _generatorFunctionForTags(tag, ast);
+                  resolve(processedResult);
+               })
+               .catch(function(error) {
+                  errorHandler.error(
+                     error.message,
+                     {
+                        fileName: fileName
+                     }
+                  );
+                  reject(error);
+               });
+         });
       },
 
       /**
@@ -571,52 +560,53 @@ define('UI/_builder/Tmpl/traverse', [
        * @returns {*}
        */
       _generateTag: function generateTag(tag, injectedData) {
-         var deferred = new Deferred();
-         var attribs;
-         var takeTag;
-         var result;
-         try {
-            attribs = this._traverseTagAttributes(tag.attribs);
-            takeTag = _acceptTag(tag, attribs);
-            if (takeTag.children && takeTag.children.length > 0) {
-               this._oldComponentInside = this._oldComponentInside || 0;
-               this._scriptInside = this._scriptInside || 0;
-               this._styleInside = this._styleInside || 0;
-               if (takeTag.name === 'component') {
-                  this._oldComponentInside++;
-               }
-               if (takeTag.name === 'script') {
-                  this._scriptInside++;
-               }
-               if (takeTag.name === 'style') {
-                  this._styleInside++;
-               }
-               try {
-                  result = this.traverseTagWithChildren(takeTag, injectedData);
-               } finally {
+         var self = this;
+         return new Promise(function(resolve, reject) {
+            var attribs;
+            var takeTag;
+            var result;
+            try {
+               attribs = self._traverseTagAttributes(tag.attribs);
+               takeTag = _acceptTag(tag, attribs);
+               if (takeTag.children && takeTag.children.length > 0) {
+                  self._oldComponentInside = self._oldComponentInside || 0;
+                  self._scriptInside = self._scriptInside || 0;
+                  self._styleInside = self._styleInside || 0;
                   if (takeTag.name === 'component') {
-                     this._oldComponentInside--;
+                     self._oldComponentInside++;
                   }
                   if (takeTag.name === 'script') {
-                     this._scriptInside--;
+                     self._scriptInside++;
                   }
                   if (takeTag.name === 'style') {
-                     this._styleInside--;
+                     self._styleInside++;
                   }
+                  try {
+                     result = self.traverseTagWithChildren(takeTag, injectedData);
+                  } finally {
+                     if (takeTag.name === 'component') {
+                        self._oldComponentInside--;
+                     }
+                     if (takeTag.name === 'script') {
+                        self._scriptInside--;
+                     }
+                     if (takeTag.name === 'style') {
+                        self._styleInside--;
+                     }
+                  }
+                  resolve(result);
                }
-               return result;
+               resolve(_generatorFunctionForTags(takeTag));
+            } catch (error) {
+               errorHandler.error(
+                  'Ошибка разбора шаблона: ' + error.message,
+                  {
+                     fileName: self.fileName
+                  }
+               );
+               reject(error);
             }
-            deferred.callback(_generatorFunctionForTags(takeTag));
-         } catch (error) {
-            errorHandler.error(
-               'Ошибка разбора шаблона: ' + error.message,
-               {
-                  fileName: this.fileName
-               }
-            );
-            deferred.errback(error);
-         }
-         return deferred;
+         });
       },
 
       /**
@@ -751,171 +741,163 @@ define('UI/_builder/Tmpl/traverse', [
       },
 
       _resolveTemplateProcess: function(tag, tagData, template) {
-         var def = new Deferred();
-         if (this.includeStack[template] === undefined) {
-            errorHandler.error(
-               'Requiring tag for "' + template + '" is not found!',
-               {
-                  fileName: this.fileName
-               }
-            );
-            def.errback(new Error('Requiring tag for "' + template + '" is not found!'));
-         } else {
-            var self = this;
-            this.includeStack[template]
-               .then(function partialInclude(modAST) {
-                  if (modAST) {
-                     tag.children = modAST;
-                     if (tagData && isDataInjected(tagData)) {
-                        self.traversingAST(tagData, tag.key, true).addCallbacks(
-                           function dataTraversing(tagDataAst) {
-                              if (tagDataAst) {
-                                 tag.injectedData = tagDataAst;
-                                 def.callback(tag);
-                              } else {
-                                 def.errback(innerTemplateErrorLog(self.fileName, template, tagDataAst));
-                              }
-                           },
-                           function resolveInjectedDataErr(reason) {
-                              def.errback(reason);
-                           }
-                        );
-                     } else {
-                        def.callback(tag);
-                     }
-                  } else {
-                     def.errback(innerTemplateErrorLog(self.fileName, template, modAST));
+         var self = this;
+         return new Promise(function(resolve, reject) {
+            if (self.includeStack[template] === undefined) {
+               errorHandler.error(
+                  'Requiring tag for "' + template + '" is not found!',
+                  {
+                     fileName: self.fileName
                   }
-                  return modAST;
+               );
+               reject(new Error('Requiring tag for "' + template + '" is not found!'));
+            } else {
+               self.includeStack[template]
+                  .then(function partialInclude(modAST) {
+                     if (modAST) {
+                        tag.children = modAST;
+                        if (tagData && isDataInjected(tagData)) {
+                           self.traversingAST(tagData, tag.key, true)
+                              .then(function(tagDataAst) {
+                                 if (tagDataAst) {
+                                    tag.injectedData = tagDataAst;
+                                    resolve(tag);
+                                 } else {
+                                    reject(innerTemplateErrorLog(self.fileName, template, tagDataAst));
+                                 }
+                              })
+                              .catch(function(error) {
+                                 reject(error);
+                              });
+                        } else {
+                           resolve(tag);
+                        }
+                     } else {
+                        reject(innerTemplateErrorLog(self.fileName, template, modAST));
+                     }
+                     resolve(modAST);
+                  })
+                  .catch(function(reason) {
+                     reject(reason);
+                     errorHandler.error(
+                        reason.message,
+                        {
+                           fileName: self.fileName
+                        }
+                     );
+                  });
+            }
+         });
+      },
+
+      _resolveInjectedTemplate: function(tag, tagData) {
+         var self = this;
+         return new Promise(function(resolve, reject) {
+            var template = tag.attribs._wstemplatename.data;
+            tag.injectedTemplate = template[0];
+            if (tagData && isDataInjected(tagData)) {
+               self.traversingAST(tagData, tag.key, true)
+                  .then(function(tagDataAst) {
+                     if (tagDataAst) {
+                        tag.injectedData = tagDataAst;
+                        resolve(tag);
+                     } else {
+                        reject(new Error('Something wrong with template ' + self.fileName + '.'));
+                     }
+                  })
+                  .catch(function(error) {
+                     reject(error);
+                  });
+            } else {
+               resolve(tag);
+            }
+         });
+      },
+
+      _templateParse: function(tag) {
+         var self = this;
+         return new Promise(function(resolve, reject) {
+            var name;
+            try {
+               name = tag.attribs.name.trim();
+            } catch (e) {
+               errorHandler.error(
+                  'Something wrong with name attribute in ws:template tag: ' + e.message,
+                  {
+                     fileName: self.fileName
+                  }
+               );
+            }
+            if (tag.children === undefined || tag.children.length === 0) {
+               errorHandler.error(
+                  'There is got to be a children in ws:template tag',
+                  {
+                     fileName: self.fileName
+                  }
+               );
+            }
+            self.traversingAST(tag.children)
+               .then(function(modAST) {
+                  self.includeStack[name] = Promise.resolve(modAST);
+                  tag.children = modAST;
+                  resolve(tag);
                })
-               .catch(function brokenPartial(reason) {
-                  def.errback(reason);
+               .catch(function(error) {
                   errorHandler.error(
-                     reason.message,
+                     error.message,
                      {
                         fileName: self.fileName
                      }
                   );
+                  self.includeStack[name] = Promise.reject(error);
+                  reject(error);
                });
-         }
-         return def;
-      },
-
-      _resolveInjectedTemplate: function(tag, tagData) {
-         var def = new Deferred();
-         var template = tag.attribs._wstemplatename.data;
-         tag.injectedTemplate = template[0];
-         if (tagData && isDataInjected(tagData)) {
-            this.traversingAST(tagData, tag.key, true).addCallbacks(
-               function dataTraversing(tagDataAst) {
-                  if (tagDataAst) {
-                     tag.injectedData = tagDataAst;
-                     def.callback(tag);
-                  } else {
-                     def.errback('Something wrong with template ' + this.fileName + '.');
-                  }
-               }.bind(this),
-               function resolveInjectedDataErr(reason) {
-                  def.errback(reason);
-               }
-            );
-         } else {
-            def.callback(tag);
-         }
-         return def;
-      },
-
-      _templateParse: function(tag) {
-         var tagStates, name;
-         try {
-            name = tag.attribs.name.trim();
-         } catch (e) {
-            errorHandler.error(
-               'Something wrong with name attribute in ws:template tag: ' + e.message,
-               {
-                  fileName: this.fileName
-               }
-            );
-         }
-         if (tag.children === undefined || tag.children.length === 0) {
-            errorHandler.error(
-               'There is got to be a children in ws:template tag',
-               {
-                  fileName: this.fileName
-               }
-            );
-         }
-         tagStates = this._continueTemplateParse(tag);
-         this.includeStack[name] = tagStates.fake;
-         return tagStates.real;
-      },
-
-      _continueTemplateParse: function(tag) {
-         var fakeDeferred = new Deferred(), realDeferred = new Deferred();
-         this.traversingAST(tag.children).addCallbacks(
-            function partialTraversing(modAST) {
-               fakeDeferred.callback(modAST);
-               tag.children = modAST;
-               realDeferred.callback(tag);
-            }, function brokenTraverse(reason) {
-               realDeferred.errback(reason);
-               errorHandler.error(
-                  reason.message,
-                  {
-                     fileName: this.fileName
-                  }
-               );
-            }.bind(this)
-         );
-         return {
-            fake: fakeDeferred,
-            real: realDeferred
-         };
+         });
       },
 
       _forParse: function(tag) {
-         var def = new Deferred(),
-            forStampArguments,
-            source = '',
-            fromAttr = tag.attribs.hasOwnProperty('for');
-         try {
-            if (fromAttr) {
-               source = utils.clone(tag.attribs.for);
-            } else {
-               source = tag.attribs.data;
-            }
-
-            if (source.indexOf(';') > -1) {
-               var forArgs = source.split(';');
-               tag.attribs.START_FROM = '{{' + forArgs[0] + '}}';
-               tag.attribs.CUSTOM_CONDITION = '{{' + forArgs[1] + '}}';
-               tag.attribs.CUSTOM_ITERATOR = '{{' + forArgs[2] + '}}';
-               delete tag.attribs.data;
-            } else {
-               forStampArguments = source.split(concreteSourceStrings.splittingKey);
-               tag.forSource = findForAllArguments(forStampArguments[0], parser.parse(forStampArguments[1]));
-            }
-            tag.attribs = this._traverseTagAttributes(tag.attribs);
-         } catch (err) {
-            var message = getErrorMessage(err);
-            errorHandler.error(
-               'Wrong arguments in for statement ' +
-               tag.name + ': ' + message,
-               {
-                  fileName: this.fileName
+         var self = this;
+         return new Promise(function(resolve, reject) {
+            var forStampArguments;
+            var source = '';
+            var fromAttr = tag.attribs.hasOwnProperty('for');
+            try {
+               if (fromAttr) {
+                  source = utils.clone(tag.attribs.for);
+               } else {
+                  source = tag.attribs.data;
                }
-            );
-         }
-         this.traversingAST(tag.children).addCallbacks(
-            function dataTraversing(tagDataAst) {
-               tag.children = tagDataAst;
-               def.callback(tag);
-            },
-            function dataTraversingFailed(reason) {
-               def.errback(reason);
+
+               if (source.indexOf(';') > -1) {
+                  var forArgs = source.split(';');
+                  tag.attribs.START_FROM = '{{' + forArgs[0] + '}}';
+                  tag.attribs.CUSTOM_CONDITION = '{{' + forArgs[1] + '}}';
+                  tag.attribs.CUSTOM_ITERATOR = '{{' + forArgs[2] + '}}';
+                  delete tag.attribs.data;
+               } else {
+                  forStampArguments = source.split(concreteSourceStrings.splittingKey);
+                  tag.forSource = findForAllArguments(forStampArguments[0], parser.parse(forStampArguments[1]));
+               }
+               tag.attribs = self._traverseTagAttributes(tag.attribs);
+            } catch (err) {
+               var message = getErrorMessage(err);
+               errorHandler.error(
+                  'Wrong arguments in for statement ' +
+                  tag.name + ': ' + message,
+                  {
+                     fileName: self.fileName
+                  }
+               );
             }
-         );
-         return def;
+            self.traversingAST(tag.children)
+               .then(function(tagDataAst) {
+                  tag.children = tagDataAst;
+                  resolve(tag);
+               })
+               .catch(function(error) {
+                  reject(error);
+               });
+         });
       },
 
       /**
@@ -924,63 +906,71 @@ define('UI/_builder/Tmpl/traverse', [
        * @return {Object}       promise or text
        */
       _traverseText: function traverseText(text) {
-         var deferred = new Deferred();
-         var statements;
-         var choppedText = {
-            data: text.data,
-            type: 'text',
-            key: text.key
-         };
+         var self = this;
+         return new Promise(function(resolve, reject) {
+            var statements;
+            var choppedText = {
+               data: text.data,
+               type: 'text',
+               key: text.key
+            };
 
-         // WARNING: конфиг выше не поднять, тк группа traverse-методов не вызывается явно
-         var config = {
-            _oldComponentInside: this._oldComponentInside || 0,
-            _scriptInside: this._scriptInside || 0,
-            _styleInside: this._styleInside || 0,
-            createResultDictionary: this.createResultDictionary,
-            _currentPartialName: this._currentPartialName,
-            _optionName: this._optionName,
-            words: this.words,
-            fileName: this.fileName,
-            componentsProperties: this.componentsProperties
-         };
-         if (text.hasOwnProperty('type')) {
-            text.data = _replaceAllUncertainStuff(choppedText.data);
+            // WARNING: конфиг выше не поднять, тк группа traverse-методов не вызывается явно
+            var config = {
+               _oldComponentInside: self._oldComponentInside || 0,
+               _scriptInside: self._scriptInside || 0,
+               _styleInside: self._styleInside || 0,
+               createResultDictionary: self.createResultDictionary,
+               _currentPartialName: self._currentPartialName,
+               _optionName: self._optionName,
+               words: self.words,
+               fileName: self.fileName,
+               componentsProperties: self.componentsProperties
+            };
+            if (text.hasOwnProperty('type')) {
+               text.data = _replaceAllUncertainStuff(choppedText.data);
+            }
             try {
                statements = _lookForStatements(choppedText, config);
-               deferred.callback(statements);
+               resolve(statements);
             } catch (error) {
                errorHandler.error(
                   error.message,
                   {
-                     fileName: this.fileName
+                     fileName: self.fileName
                   }
                );
-               deferred.errback(error);
+               reject(error);
             }
-            return deferred;
-         }
-         return _lookForStatements(choppedText, config);
+         });
       },
       _traverseDirective: _traverseDirective,
       _traverseComment: function _traverseComment(comment) {
-         var deferred = new Deferred();
-         if (comment.data) {
-            // WARNING: конфиг выше не поднять, тк группа traverse-методов не вызывается явно
-            var config = {
-               _oldComponentInside: this._oldComponentInside || 0,
-               _scriptInside: this._scriptInside || 0,
-               _styleInside: this._styleInside || 0,
-               createResultDictionary: this.createResultDictionary,
-               _currentPartialName: this._currentPartialName,
-               _optionName: this._optionName,
-               words: this.words,
-               fileName: this.fileName,
-               componentsProperties: this.componentsProperties
-            };
-            deferred.callback(_lookForStatements(comment, config));
-         }
-         return deferred;
+         var self = this;
+         return new Promise(function(resolve, reject) {
+            if (comment.data) {
+               // WARNING: конфиг выше не поднять, тк группа traverse-методов не вызывается явно
+               var config = {
+                  _oldComponentInside: self._oldComponentInside || 0,
+                  _scriptInside: self._scriptInside || 0,
+                  _styleInside: self._styleInside || 0,
+                  createResultDictionary: self.createResultDictionary,
+                  _currentPartialName: self._currentPartialName,
+                  _optionName: self._optionName,
+                  words: self.words,
+                  fileName: self.fileName,
+                  componentsProperties: self.componentsProperties
+               };
+               var statements;
+               try {
+                  statements = _lookForStatements(comment, config);
+                  resolve(statements);
+               } catch (error) {
+                  reject(error);
+               }
+            }
+            resolve(undefined);
+         });
       },
 
       /**

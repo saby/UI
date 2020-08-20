@@ -132,7 +132,7 @@ define('UI/_builder/Tmpl/postTraverse', [
       return modAST;
    }
 
-   return function resulting(deferred, data) {
+   return function resulting(data) {
       if (data) {
          var astResult = actionOnMainArray([], data);
          var dataComposite = compositeProcessing(astResult);
@@ -182,10 +182,9 @@ define('UI/_builder/Tmpl/postTraverse', [
                foundVars = foundVars.concat(dirtyCheckingPatch.gatherReactive(astResult[travI]));
                foundChildren = foundChildren.concat(astResult[travI].childrenStorage || []);
             } catch (error) {
-               deferred.errback(new Error(
+               throw new Error(
                   'Something wrong with ' + this.fileName + ' template. ' + error.message
-               ));
-               return undefined;
+               );
             }
          }
 
@@ -199,12 +198,10 @@ define('UI/_builder/Tmpl/postTraverse', [
          // в случае сбора словаря локализуемых слов отдаем объект
          // { astResult - ast-дерево, words - словарь локализуемых слов }
          if (this.createResultDictionary) {
-            deferred.callback({
+            return {
                astResult: astResult,
                words: this.words
-            });
-         } else {
-            deferred.callback(astResult);
+            };
          }
          return astResult;
       }
