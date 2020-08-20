@@ -5,7 +5,9 @@
  */
 
 import * as ComponentCollector from 'UI/_builder/Tmpl/ComponentCollector';
-import * as htmlparser from 'UI/_builder/Tmpl/htmlparser';
+import { parse } from 'UI/_builder/Tmpl/html/Parser';
+import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
+import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';
 import * as traversing from 'UI/_builder/Tmpl/traverse';
 import * as processingToFunction from 'UI/_builder/Tmpl/function';
 import * as templates from 'UI/_builder/Tmpl/codegen/templates';
@@ -211,7 +213,18 @@ abstract class BaseCompiler implements ICompiler {
             const needPreprocess = options.modulePath.extension === 'wml';
             const resolver = getResolverControls(options.modulePath.extension);
             // tslint:disable:prefer-const
-            let parsed = htmlparser(source.text, undefined, true, options.fileName, needPreprocess);
+            let parsed = parse(source.text, options.fileName, {
+               xml: true,
+               allowComments: true,
+               allowCDATA: true,
+               compatibleTreeStructure: true,
+               rudeWhiteSpaceCleaning: true,
+               normalizeLineFeed: true,
+               cleanWhiteSpaces: true,
+               needPreprocess: needPreprocess,
+               tagDescriptor: getWasabyTagDescription,
+               errorHandler: new ErrorHandler()
+            });
             const dependencies = ComponentCollector.getComponents(parsed);
             // tslint:disable:prefer-const
             let traversed = traversing.traverse(parsed, resolver, options);
