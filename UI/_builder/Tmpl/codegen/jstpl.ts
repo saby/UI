@@ -23,7 +23,10 @@ export const BIND = `(function (self, _data) {
 })(viewController, data)
 `;
 
-export const BODY = `var markupGenerator = thelpers.createGenerator(isVdom);
+export const BODY = `if (typeof forceCompatible === 'undefined') {
+    forceCompatible = false;
+}
+var markupGenerator = thelpers.createGenerator(isVdom, forceCompatible);
 /*#DELETE IT START#*/
 if (typeof includedTemplates === "undefined") {
    eval("var includedTemplates = undefined;");

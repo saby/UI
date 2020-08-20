@@ -262,7 +262,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
          var funcText = templates.generateTemplate(htmlPropertyName, generatedTemplate, this.handlers.fileName, false);
 
          // eslint-disable-next-line no-new-func
-         var func = new Function('data, attr, context, isVdom, sets', funcText);
+         var func = new Function('data, attr, context, isVdom, sets, forceCompatible', funcText);
          this.setFunctionName(func, undefined, undefined, htmlPropertyName);
          this.includedFunctions[htmlPropertyName] = func;
          if (this.privateFn) {
