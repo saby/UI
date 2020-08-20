@@ -2,7 +2,7 @@
 /* tslint:disable */
 
 // @ts-ignore
-import { Object } from 'UI/Utils';
+import { Object as UtilsObject } from 'UI/Utils';
 // @ts-ignore
 import { Logger } from 'UI/Utils';
 import { defined } from '../_Utils/RequireHelper';
@@ -153,7 +153,7 @@ export function applyRightsToEntity(entity, minAccessLevel) {
 
    if (Array.isArray(entity)) {
       typeHandler = entityRightsHandlers.array;
-   } else if (Object.isPlainObject(entity)) {
+   } else if (UtilsObject.isPlainObject(entity)) {
       typeHandler = entityRightsHandlers.object;
    } else {
       return entity;
@@ -169,7 +169,7 @@ export function applyRightsToEntity(entity, minAccessLevel) {
          return;
       }
 
-      if (Object.isPlainObject(value)) {
+      if (UtilsObject.isPlainObject(value)) {
          /**
           * Патчим объект "незаметно" для других.
           * Методы перебора не заметят нового свойства, а по прямому прозвону мы его увидим

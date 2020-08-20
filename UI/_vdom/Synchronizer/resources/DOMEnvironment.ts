@@ -1,11 +1,7 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DOMEnvironment" />
 // tslint:disable:variable-name
 
-// FIXME: This module can only be referenced with ECMAScript imports/exports
-// by turning on the 'esModuleInterop' flag and referencing its default export.
-// @ts-ignore
-import { Array } from 'UI/Utils';
-
+import { Array as UtilsArray } from 'UI/Utils';
 import { _IDOMEnvironment } from 'UI/Focus';
 import { needToBeCompatible } from 'UI/Utils';
 
@@ -70,7 +66,7 @@ function createRecursiveVNodeMapper(fn: any): any {
       let fnRes = fn(tagName, properties, children, key, controlNode, ref);
       let newChildren = fnRes[2];
 
-      i = Array.findIndex(newChildren, (child: any): any => {
+      i = UtilsArray.findIndex(newChildren, (child: any): any => {
          const newChild = mapVNode(recursiveVNodeMapperFn, controlNode, child);
          return child !== newChild;
       });

@@ -38,6 +38,7 @@ interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
 }
 
 class HTML extends Control<IHTMLCombinedOptions> {
+    // @ts-ignore
     _template: Function = template;
 
     private onServer: Boolean = false;

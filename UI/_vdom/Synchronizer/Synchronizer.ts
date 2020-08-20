@@ -408,6 +408,7 @@ class VDomSynchronizer {
 
    cleanControlDomLink(node: any[], control?: { _instId: string | number; }) {
       if (control) {
+         // @ts-ignore
          delete this._controlNodes[control._instId];
       }
       if (!node) {

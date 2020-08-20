@@ -1,5 +1,8 @@
 import { Control, IControlOptions, TemplateFunction } from 'UI/Base';
+
+// @ts-ignore
 import * as template from 'wml!UI/_hotKeys/KeyStop';
+
 import { SyntheticEvent } from 'UI/Vdom';
 
 interface IKeyStopItem {

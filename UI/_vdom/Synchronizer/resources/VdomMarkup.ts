@@ -3,7 +3,7 @@
 // This module can only be referenced with ECMAScript imports/exports
 // by turning on the 'esModuleInterop' flag and referencing its default export.
 // @ts-ignore
-import { Array } from 'UI/Utils';
+import { Array as UtilsArray } from 'UI/Utils';
 
 import { coreDebug } from 'Env/Env';
 import { ListMonad } from '../../Utils/Monad';
@@ -539,7 +539,7 @@ export function getFullMarkup(
          i++;
       }
 
-      //    childMarkup = Array.flatten(childMarkup, true);
+      //    childMarkup = UtilsArray.flatten(childMarkup, true);
 
       if (i === ln) {
          result = vnode;
@@ -569,7 +569,7 @@ export function getFullMarkup(
             }
             return fullMarkup;
          });
-         childrenAfter = Array.flatten(childrenAfter, true);
+         childrenAfter = UtilsArray.flatten(childrenAfter, true);
          newChildren = children
             .slice(0, i)
             .concat(Array.isArray(childMarkup) ? childMarkup : [childMarkup])

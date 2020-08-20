@@ -36,14 +36,14 @@ import { Logger } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
 import { Control } from 'UI/Base';
 
-export function find(control: Control): Control[] {
+export function find(control: Control|Element|Array<Element>): Control[] {
    let container;
    if (control instanceof Control) {
       // @ts-ignore
       container = control._container;
    } else if (control instanceof Element) {
       container = control;
-   } else if (control && control[0] instanceof Element) {
+   } else if (control && (control[0] instanceof Element)) {
       // для совместимости, если пришел jquery
       container = control[0];
    } else {

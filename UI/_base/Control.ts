@@ -699,7 +699,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return undefined;
    }
 
-   private _resultBeforeMount(resultBeforeMount: Promise<void | TState>, time: number): Promise<void | TState> | Promise<void> | void {
+   private _resultBeforeMount(resultBeforeMount: Promise<void | boolean | TState>, time: number): Promise<void | boolean | TState> | void {
       return new Promise((resolve, reject) => {
          let timeout = 0;
          resultBeforeMount.then(
@@ -1332,8 +1332,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
 
       if (compatible) {
-         if (require.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
-            const makeInstanceCompatible = require('Core/helpers/Hcontrol/makeInstanceCompatible');
+         if (requirejs.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
+            const makeInstanceCompatible = requirejs('Core/helpers/Hcontrol/makeInstanceCompatible');
             makeInstanceCompatible(ctr, cfg);
          }
       }
