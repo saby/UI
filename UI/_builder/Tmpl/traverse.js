@@ -907,42 +907,38 @@ define('UI/_builder/Tmpl/traverse', [
        */
       _traverseText: function traverseText(text) {
          var self = this;
-         return new Promise(function(resolve, reject) {
-            var statements;
-            var choppedText = {
-               data: text.data,
-               type: 'text',
-               key: text.key
-            };
+         var choppedText = {
+            data: text.data,
+            type: 'text',
+            key: text.key
+         };
 
-            // WARNING: конфиг выше не поднять, тк группа traverse-методов не вызывается явно
-            var config = {
-               _oldComponentInside: self._oldComponentInside || 0,
-               _scriptInside: self._scriptInside || 0,
-               _styleInside: self._styleInside || 0,
-               createResultDictionary: self.createResultDictionary,
-               _currentPartialName: self._currentPartialName,
-               _optionName: self._optionName,
-               words: self.words,
-               fileName: self.fileName,
-               componentsProperties: self.componentsProperties
-            };
-            if (text.hasOwnProperty('type')) {
-               text.data = _replaceAllUncertainStuff(choppedText.data);
-            }
-            try {
-               statements = _lookForStatements(choppedText, config);
-               resolve(statements);
-            } catch (error) {
-               errorHandler.error(
-                  error.message,
-                  {
-                     fileName: self.fileName
-                  }
-               );
-               reject(error);
-            }
-         });
+         // WARNING: конфиг выше не поднять, тк группа traverse-методов не вызывается явно
+         var config = {
+            _oldComponentInside: self._oldComponentInside || 0,
+            _scriptInside: self._scriptInside || 0,
+            _styleInside: self._styleInside || 0,
+            createResultDictionary: self.createResultDictionary,
+            _currentPartialName: self._currentPartialName,
+            _optionName: self._optionName,
+            words: self.words,
+            fileName: self.fileName,
+            componentsProperties: self.componentsProperties
+         };
+         if (text.hasOwnProperty('type')) {
+            text.data = _replaceAllUncertainStuff(choppedText.data);
+         }
+         try {
+            return _lookForStatements(choppedText, config);
+         } catch (error) {
+            errorHandler.error(
+               error.message,
+               {
+                  fileName: self.fileName
+               }
+            );
+            throw error;
+         }
       },
       _traverseDirective: _traverseDirective,
       _traverseComment: function _traverseComment(comment) {
