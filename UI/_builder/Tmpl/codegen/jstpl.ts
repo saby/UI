@@ -26,7 +26,7 @@ export const BIND = `(function (self, _data) {
 export const BODY = `if (typeof forceCompatible === 'undefined') {
     forceCompatible = false;
 }
-var markupGenerator = thelpers.getMarkupGenerator(isVdom, forceCompatible);
+var markupGenerator = thelpers.createGenerator(isVdom, forceCompatible);
 /*#DELETE IT START#*/
 if (typeof includedTemplates === "undefined") {
    eval("var includedTemplates = undefined;");
