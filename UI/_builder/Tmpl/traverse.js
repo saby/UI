@@ -761,8 +761,8 @@ define('UI/_builder/Tmpl/traverse', [
             );
             def.errback(new Error('Requiring tag for "' + template + '" is not found!'));
          } else {
-            this.includeStack[template].addCallbacks(
-               function partialInclude(modAST) {
+            this.includeStack[template]
+               .then(function partialInclude(modAST) {
                   if (modAST) {
                      tag.children = modAST;
                      if (tagData && isDataInjected(tagData)) {
@@ -786,8 +786,8 @@ define('UI/_builder/Tmpl/traverse', [
                      def.errback(innerTemplateErrorLog(this.fileName, template, modAST));
                   }
                   return modAST;
-               }.bind(this),
-               function brokenPartial(reason) {
+               })
+               .catch(function brokenPartial(reason) {
                   def.errback(reason);
                   errorHandler.error(
                      reason.message,
@@ -795,8 +795,7 @@ define('UI/_builder/Tmpl/traverse', [
                         fileName: this.fileName
                      }
                   );
-               }.bind(this)
-            );
+               }.bind(this));
          }
          return def;
       },
