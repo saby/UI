@@ -5,7 +5,8 @@ define('UI/_builder/Tmpl', [
    'UI/_builder/Tmpl/function',
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/utils/ModulePath',
-   'UI/_builder/Tmpl/htmlparser',
+   'UI/_builder/Tmpl/html/Parser',
+   'UI/_builder/Tmpl/core/Tags',
    'UI/_builder/Tmpl/ComponentCollector'
 ], function(
    traversing,
@@ -14,7 +15,8 @@ define('UI/_builder/Tmpl', [
    processingToFunction,
    templates,
    ModulePathLib,
-   htmlparser,
+   Parser,
+   Tags,
    ComponentCollector
 ) {
    'use strict';
@@ -74,7 +76,18 @@ define('UI/_builder/Tmpl', [
       config.fileName = config.fileName || config.filename;
       try {
          currentHtml = preprocessHtml(html, config);
-         parsed = htmlparser(currentHtml, undefined, true, config.fileName, !!config.isWasabyTemplate);
+         parsed = Parser.parse(currentHtml, config.fileName, {
+            xml: true,
+            allowComments: true,
+            allowCDATA: true,
+            compatibleTreeStructure: true,
+            rudeWhiteSpaceCleaning: true,
+            normalizeLineFeed: true,
+            cleanWhiteSpaces: true,
+            needPreprocess: !!config.isWasabyTemplate,
+            tagDescriptor: Tags.default,
+            errorHandler: errorHandler
+         });
       } catch (error) {
          parsingError = error;
       }
@@ -187,13 +200,18 @@ define('UI/_builder/Tmpl', [
     * @returns {*}
     */
    function getComponents(html, config) {
-      var parsed = htmlparser(
-         html,
-         undefined,
-         true,
-         (config && config.fileName),
-         !!(config && config.isWasabyTemplate)
-      );
+      var parsed = Parser.parse(html, (config && config.fileName), {
+         xml: true,
+         allowComments: true,
+         allowCDATA: true,
+         compatibleTreeStructure: true,
+         rudeWhiteSpaceCleaning: true,
+         normalizeLineFeed: true,
+         cleanWhiteSpaces: true,
+         needPreprocess: !!(config && config.isWasabyTemplate),
+         tagDescriptor: Tags.default,
+         errorHandler: errorHandler
+      });
       if (config) {
          // FIXME: плохо так передавать конфиг
          traversing.config = config;
