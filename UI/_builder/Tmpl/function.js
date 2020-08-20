@@ -11,7 +11,6 @@ define('UI/_builder/Tmpl/function', [
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
    'UI/Utils',
    'UI/_builder/Tmpl/modules/utils/parse',
-   'Core/helpers/Function/shallowClone',
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/Tmpl/codegen/Generator',
    'UI/_builder/Tmpl/codegen/TClosure'
@@ -28,7 +27,6 @@ define('UI/_builder/Tmpl/function', [
    FSC,
    uiUtils,
    parseUtils,
-   shallowClone,
    templates,
    Generator,
    TClosure
@@ -169,7 +167,7 @@ define('UI/_builder/Tmpl/function', [
       decorate: function decorate(attributes) {
          return function decorateRoot(rootAttribs) {
             var currentRootAttribs = rootAttribs || { };
-            var attrs = shallowClone(currentRootAttribs);
+            var attrs = uiUtils.Function.shallowClone(currentRootAttribs);
             if (attributes) {
                for (var name in attributes) {
                   if (attrs[name]) {

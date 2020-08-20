@@ -4,18 +4,13 @@
 // FIXME: This module can only be referenced with ECMAScript imports/exports
 // by turning on the 'esModuleInterop' flag and referencing its default export.
 // @ts-ignore
-import * as findIndex from 'Core/helpers/Array/findIndex';
+import { Array } from 'UI/Utils';
 
 import { _IDOMEnvironment } from 'UI/Focus';
-
-// @ts-ignore FIXME: Cannot find this module
-import * as isNewEnvironment from 'Core/helpers/isNewEnvironment';
-
-// @ts-ignore FIXME: Cannot find this module
-import * as needToBeCompatible from 'Core/helpers/Hcontrol/needToBeCompatible';
+import { needToBeCompatible } from 'UI/Utils';
 
 import { constants, detection } from 'Env/Env';
-import { Logger } from 'UI/Utils';
+import { Logger, isNewEnvironment } from 'UI/Utils';
 import { Control } from 'UI/Base';
 import { ElementFinder, Events, BoundaryElements, focus, preventFocus, hasNoFocus, goUpByControlTree } from 'UI/Focus';
 import { TControlId, TControlStateCollback, IControlNode, IWasabyHTMLElement, TEventsObject } from '../interfaces';
@@ -75,7 +70,7 @@ function createRecursiveVNodeMapper(fn: any): any {
       let fnRes = fn(tagName, properties, children, key, controlNode, ref);
       let newChildren = fnRes[2];
 
-      i = findIndex(newChildren, (child: any): any => {
+      i = Array.findIndex(newChildren, (child: any): any => {
          const newChild = mapVNode(recursiveVNodeMapperFn, controlNode, child);
          return child !== newChild;
       });

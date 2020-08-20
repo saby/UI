@@ -6,7 +6,6 @@ define('UI/_builder/Tmpl/traverse', [
    'UI/Utils',
    'Core/Deferred',
    'Core/ParallelDeferred',
-   'Core/helpers/Object/isEmpty',
    'UI/_builder/Tmpl/expressions/_private/Statement',
    'UI/_builder/Tmpl/expressions/_private/Event',
    'UI/_builder/Tmpl/expressions/_private/Bind',
@@ -21,7 +20,6 @@ define('UI/_builder/Tmpl/traverse', [
    uiUtils,
    Deferred,
    ParallelDeferred,
-   isEmptyObject,
    processStatement,
    event,
    bindUtils,
@@ -63,7 +61,7 @@ define('UI/_builder/Tmpl/traverse', [
     * @returns {*}
     */
    function checkForAttributes(entity) {
-      if (entity.attribs && isEmptyObject(entity.attribs)) {
+      if (entity.attribs && uiUtils.Object.isEmpty(entity.attribs)) {
          entity.attribs = undefined;
    }
       return entity;

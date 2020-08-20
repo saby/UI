@@ -1,10 +1,6 @@
 /// <amd-module name="UI/_executor/_Markup/Generator" />
 /* tslint:disable */
 
-// @ts-ignore
-import Deferred = require('Core/Deferred');
-// @ts-ignore
-
 import { coreDebug as timing } from 'Env/Env';
 import { Logger } from 'UI/Utils';
 import * as Common from '../_Utils/Common';
@@ -102,6 +98,7 @@ export class Generator {
          });
       }
 
+      const Deferred = require('Core/Deferred');
       return Promise.all(defCollection.def).then(Deferred.skipLogExecutionTime(chainTrace), function(err) {
          Logger.asyncRenderErrorLog(err);
       });

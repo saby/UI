@@ -1,45 +1,7 @@
-/// <amd-module name="UI/_base/StateReceiver" />
+/// <amd-module name="UI/_state/StateReceiver" />
 import { IStateReceiver } from 'Application/Interface';
-import Serializer = require('Core/Serializer');
-
-//@ts-ignore
+import Serializer = require('UI/_state/Serializer');
 import { Logger } from 'UI/Utils';
-
-//todo перенести в Serializer
-const componentOptsReArray = [
-   {
-      toFind: /\\/g, // экранируем слеш первым
-      toReplace: '\\\\'
-   },
-   {
-      toFind: /<\/(script)/gi,
-      toReplace: '<\\/$1'
-   },
-   {
-      toFind: /'/g,
-      toReplace: '\\u0027'
-   },
-   {
-      toFind: /\u2028/g,
-      toReplace: '\\u000a'
-   },
-   {
-      toFind: /\u2029/g,
-      toReplace: '\\u000a'
-   },
-   {
-      toFind: /\n/g,
-      toReplace: '\\u000a'
-   },
-   {
-      toFind: /\r/g,
-      toReplace: '\\u000d'
-   },
-   {
-      toFind: /[^\\]\\u000a/g,
-      toReplace: '\\\\u000a'
-   }
-];
 
 interface ISerializedType {
    serialized: string;
@@ -96,7 +58,7 @@ class StateReceiver implements IStateReceiver {
        * Десериализвация также двухэтапная
        */
       let serializedState = JSON.stringify(serializedMap);
-      componentOptsReArray.forEach(
+      Serializer.componentOptsReArray.forEach(
          (re): void => {
             serializedState = serializedState.replace(re.toFind, re.toReplace);
          }
@@ -136,7 +98,7 @@ class StateReceiver implements IStateReceiver {
       // todo проверка на сервис представления
       if (typeof process !== 'undefined' && !process.versions) {
          if (typeof this.receivedStateObjectsArray[key] !== 'undefined') {
-            const message = '[UI/_base/StateReceiver:register] - Try to register instance more than once ' +
+            const message = '[UI/_state/StateReceiver:register] - Try to register instance more than once ' +
                             `or duplication of keys happened; current key is ${key}`;
             Logger.warn(message, inst);
          }

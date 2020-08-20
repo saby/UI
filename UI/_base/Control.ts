@@ -7,13 +7,12 @@ import { Synchronizer } from 'UI/Vdom';
 import { OptionsResolver } from 'UI/Executor';
 import { ContextResolver } from 'UI/Contexts';
 import { _FocusAttrs, _IControl, activate } from 'UI/Focus';
-import { Logger, Purifier } from 'UI/Utils';
+import { Logger, Purifier, needToBeCompatible } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
 import { constants } from 'Env/Env';
 
 import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
-// @ts-ignore
-import ReactiveObserver = require('Core/ReactiveObserver');
+import { ReactiveObserver } from 'UI/Reactivity';
 
 import startApplication from 'UI/_base/startApplication';
 import { headDataStore } from 'UI/_base/HeadData';
@@ -152,11 +151,6 @@ export const _private = {
 
       // вычисляем родителя физически - ближайший к элементу родительский контрол
       const parent = goUpByControlTree(domElement)[0];
-
-      let needToBeCompatible;
-      if (require.defined('Core/helpers/Hcontrol/needToBeCompatible')) {
-         needToBeCompatible = require('Core/helpers/Hcontrol/needToBeCompatible');
-      }
 
       if (needToBeCompatible(parent)) {
          cfg.element = domElement;

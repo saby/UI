@@ -7,11 +7,8 @@ import Control from './Control';
 import template = require('wml!UI/_base/HTML/HTML');
 // @ts-ignore
 import {constants, detection} from 'Env/Env';
-// @ts-ignore
-import LinkResolver = require('Core/LinkResolver/LinkResolver');
-// @ts-ignore
-import getResourceUrl = require('Core/helpers/getResourceUrl');
-
+import { LinkResolver } from 'UI/theme/controller';
+import { getResourceUrl } from 'UI/Utils';
 import AppData from './AppData';
 import { IHTMLOptions } from './interface/IHTML';
 import { IRootTemplateOptions } from './interface/IRootTemplate';

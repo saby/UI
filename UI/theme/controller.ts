@@ -12,5 +12,7 @@
  * @author Ибрагимов А.А.
  */
 import { Controller } from 'UI/theme/_controller/Controller';
+import LinkResolver from "./_controller/LinkResolver";
 export const getThemeController = Controller.getInstance;
 export { THEME_TYPE, EMPTY_THEME, DEFAULT_THEME } from 'UI/theme/_controller/css/const';
+export { LinkResolver }
