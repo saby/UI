@@ -111,8 +111,11 @@ function onEndCommit(
 ): void {
    if (foundDevtools) {
       if (data && data.instance) {
-         data.changedReactiveProps = changedReactiveProps.get(data.instance);
-         changedReactiveProps.delete(data.instance);
+         const changedData = changedReactiveProps.get(data.instance);
+         if (changedData) {
+            data.changedReactiveProps = changedData;
+            changedReactiveProps.delete(data.instance);
+         }
       }
       onEndCommitFunc(node, data);
    }
