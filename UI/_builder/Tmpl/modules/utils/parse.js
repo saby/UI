@@ -5,7 +5,7 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
    'UI/_builder/Tmpl/expressions/_private/Bind',
    'UI/_builder/Tmpl/expressions/_private/Event',
    'UI/_builder/Tmpl/codegen/TClosure',
-   'UI/Utils'
+   'UI/_builder/Tmpl/utils/ErrorHandler'
 ], function straightFromFileLoader(
    FSC,
    utils,
@@ -13,7 +13,7 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
    bindExpressions,
    eventExpressions,
    TClosure,
-   UIUtils
+   ErrorHandlerLib
 ) {
    'use strict';
 
@@ -21,7 +21,7 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
     * @author Крылов М.А.
     */
 
-   var Logger = UIUtils.Logger;
+   var errorHandler = new ErrorHandlerLib.default();
 
    function isAttr(string) {
       return string.startsWith('attr:');
@@ -187,13 +187,15 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
                      attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage, eventChain
                   );
                } catch (error) {
-                  Logger.templateError(
+                  errorHandler.error(
                      'На теге "' + tag.originName + '" значение атрибута "' + attr + '" некорректно "' +
                      attribs[attr].data[0].name.string + '": ' + error.message +
                      '. Данный атрибут будет обработан как опция. ' +
                      'Строка ' + (tag.attributes[attr].position.line + 1) + ', ' +
                      'столбец ' + (tag.attributes[attr].position.column + 1),
-                     this.fileName
+                     {
+                        fileName: this.fileName
+                     }
                   );
                } finally {
                   // Create attribute object
@@ -213,13 +215,15 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
                      result.events[eventName].push(eventObject[0]);
                   }
                } catch (error) {
-                  Logger.templateError(
+                  errorHandler.error(
                      'На теге "' + tag.originName + '" значение атрибута "' + attr + '" некорректно "' +
                      attribs[attr].data[0].name.string + '": ' + error.message +
                      '. Игнорирую данное выражение. ' +
                      'Строка ' + (tag.attributes[attr].position.line + 1) + ', ' +
                      'столбец ' + (tag.attributes[attr].position.column + 1),
-                     this.fileName
+                     {
+                        fileName: this.fileName
+                     }
                   );
                } finally {
                   delete attribs[attr];

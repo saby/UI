@@ -3,7 +3,7 @@
  * Traversing/parsing AST-html tree
  */
 define('UI/_builder/Tmpl/traverse', [
-   'UI/Utils',
+   'UI/_builder/Tmpl/utils/ErrorHandler',
    'Core/Deferred',
    'Core/ParallelDeferred',
    'UI/_builder/Tmpl/expressions/_private/Statement',
@@ -17,7 +17,7 @@ define('UI/_builder/Tmpl/traverse', [
    'UI/_builder/Tmpl/modules/utils/loader',
    'UI/_builder/Tmpl/postTraverse'
 ], function traverseLoader(
-   uiUtils,
+   ErrorHandlerLib,
    Deferred,
    ParallelDeferred,
    processStatement,
@@ -36,6 +36,8 @@ define('UI/_builder/Tmpl/traverse', [
    /**
     * @author Крылов М.А.
     */
+
+   var errorHandler = new ErrorHandlerLib.default();
 
    var DATA_TYPE_NODES = [
       'ws:array',
@@ -467,7 +469,12 @@ define('UI/_builder/Tmpl/traverse', [
             postTraverse.bind(this, deferred),
             function broken(fileName, error) {
                deferred.errback(error);
-               uiUtils.Logger.templateError(error.message, fileName, null, error);
+               errorHandler.error(
+                  error.message,
+                  {
+                     fileName: fileName
+                  }
+               );
             }.bind(null, this.fileName)
          );
          return deferred;
@@ -489,7 +496,12 @@ define('UI/_builder/Tmpl/traverse', [
             },
             function brokenTagTraversing(error) {
                deferred.errback(error);
-               uiUtils.Logger.templateError(error.message, fileName, null, error);
+               errorHandler.error(
+                  error.message,
+                  {
+                     fileName: fileName
+                  }
+               );
             }
          );
          return deferred;
@@ -594,8 +606,12 @@ define('UI/_builder/Tmpl/traverse', [
             }
             deferred.callback(_generatorFunctionForTags(takeTag));
          } catch (error) {
-            uiUtils.Logger.error('Ошибка разбора шаблона', takeTag || tag, error);
-            uiUtils.Logger.templateError(error.message, this.fileName, null, error);
+            errorHandler.error(
+               'Ошибка разбора шаблона: ' + error.message,
+               {
+                  fileName: this.fileName
+               }
+            );
             deferred.errback(error);
          }
          return deferred;
@@ -674,7 +690,12 @@ define('UI/_builder/Tmpl/traverse', [
          }
          var res, name, attribs;
          if (tag.attribs._wstemplatename === undefined) {
-            uiUtils.Logger.templateError('No template tag for partial ' + tag.name, this.fileName);
+            errorHandler.error(
+               'No template tag for partial ' + tag.name,
+               {
+                  fileName: this.fileName
+               }
+            );
          }
 
          // храню в состоянии название компонента, используется в traverse
@@ -730,7 +751,12 @@ define('UI/_builder/Tmpl/traverse', [
       _resolveTemplateProcess: function(tag, tagData, template) {
          var def = new Deferred();
          if (this.includeStack[template] === undefined) {
-            uiUtils.Logger.templateError('Requiring tag for "' + template + '" is not found!', this.fileName);
+            errorHandler.error(
+               'Requiring tag for "' + template + '" is not found!',
+               {
+                  fileName: this.fileName
+               }
+            );
             def.errback(new Error('Requiring tag for "' + template + '" is not found!'));
          } else {
             this.includeStack[template].addCallbacks(
@@ -761,7 +787,12 @@ define('UI/_builder/Tmpl/traverse', [
                }.bind(this),
                function brokenPartial(reason) {
                   def.errback(reason);
-                  uiUtils.Logger.templateError(reason, this.fileName, null, reason);
+                  errorHandler.error(
+                     reason.message,
+                     {
+                        fileName: this.fileName
+                     }
+                  );
                }.bind(this)
             );
          }
@@ -797,10 +828,20 @@ define('UI/_builder/Tmpl/traverse', [
          try {
             name = tag.attribs.name.trim();
          } catch (e) {
-            uiUtils.Logger.templateError('Something wrong with name attribute in ws:template tag', this.fileName, null, e);
+            errorHandler.error(
+               'Something wrong with name attribute in ws:template tag: ' + e.message,
+               {
+                  fileName: this.fileName
+               }
+            );
          }
          if (tag.children === undefined || tag.children.length === 0) {
-            uiUtils.Logger.templateError('There is got to be a children in ws:template tag', this.fileName);
+            errorHandler.error(
+               'There is got to be a children in ws:template tag',
+               {
+                  fileName: this.fileName
+               }
+            );
          }
          tagStates = this._continueTemplateParse(tag);
          this.includeStack[name] = tagStates.fake;
@@ -816,7 +857,12 @@ define('UI/_builder/Tmpl/traverse', [
                realDeferred.callback(tag);
             }, function brokenTraverse(reason) {
                realDeferred.errback(reason);
-               uiUtils.Logger.templateError(reason, this.fileName, null, reason);
+               errorHandler.error(
+                  reason.message,
+                  {
+                     fileName: this.fileName
+                  }
+               );
             }.bind(this)
          );
          return {
@@ -850,8 +896,13 @@ define('UI/_builder/Tmpl/traverse', [
             tag.attribs = this._traverseTagAttributes(tag.attribs);
          } catch (err) {
             var message = getErrorMessage(err);
-            uiUtils.Logger.templateError('Wrong arguments in for statement ' +
-               tag.name + '\n' + message, this.fileName, null, err);
+            errorHandler.error(
+               'Wrong arguments in for statement ' +
+               tag.name + ': ' + message,
+               {
+                  fileName: this.fileName
+               }
+            );
          }
          this.traversingAST(tag.children).addCallbacks(
             function dataTraversing(tagDataAst) {
@@ -897,7 +948,12 @@ define('UI/_builder/Tmpl/traverse', [
                statements = _lookForStatements(choppedText, config);
                deferred.callback(statements);
             } catch (error) {
-               uiUtils.Logger.templateError(error.message, this.fileName, null, error);
+               errorHandler.error(
+                  error.message,
+                  {
+                     fileName: this.fileName
+                  }
+               );
                deferred.errback(error);
             }
             return deferred;
@@ -932,7 +988,12 @@ define('UI/_builder/Tmpl/traverse', [
        */
       defaultHandler: function defaultHandler(error) {
          if (error) {
-            uiUtils.Logger.templateError(error.message, this.fileName, null, error);
+            errorHandler.error(
+               error.message,
+               {
+                  fileName: this.fileName
+               }
+            );
          }
       }
    };

@@ -1,17 +1,19 @@
 define('UI/_builder/Tmpl/modules/data/array', [
-   'UI/Utils',
+   'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/modules/utils/parse',
    'UI/_builder/Tmpl/modules/utils/tag',
    'UI/_builder/Tmpl/modules/data/utils/dataTypesCreator',
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
    'UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch',
    'UI/_builder/Tmpl/codegen/templates'
-], function arrayLoader(uiUtils, parseUtils, tagUtils, DTC, FSC, dirtyCheckingPatch, templates) {
+], function arrayLoader(ErrorHandlerLib, parseUtils, tagUtils, DTC, FSC, dirtyCheckingPatch, templates) {
    'use strict';
 
    /**
     * @author Крылов М.А.
     */
+
+   var errorHandler = new ErrorHandlerLib.default();
 
    function clearPropertyName(propertyName) {
       return propertyName ? propertyName.split('/').pop() : propertyName;
@@ -43,7 +45,7 @@ define('UI/_builder/Tmpl/modules/data/array', [
       }
 
       // eslint-disable-next-line no-new-func
-      var func = new Function('data, attr, context, isVdom, sets', funcText);
+      var func = new Function('data, attr, context, isVdom, sets, forceCompatible', funcText);
       this.setFunctionName(func, wsTemplateName, undefined, cleanPropertyName);
       this.includedFunctions[cleanPropertyName] = func;
       if (this.privateFn) {
@@ -131,11 +133,17 @@ define('UI/_builder/Tmpl/modules/data/array', [
                      // Если была опечатка в имени типа (например, value вместо Value),
                      // то необходимо вывести соответствующую ошибку
                      if (types[typeName]) {
-                        uiUtils.Logger.templateError('Typo in the type name. Use ws:' +
-                           typeName + ' instead of ws:' + nameExists, this.fileName);
+                        errorHandler.error(
+                           'Typo in the type name. Use ws:' + typeName + ' instead of ws:', {
+                              fileName: this.fileName
+                           }
+                        );
                      } else {
-                        uiUtils.Logger.templateError(children[index].name +
-                           ' property can\'t be in the root of ws:array tag', this.fileName);
+                        errorHandler.error(
+                           children[index].name + ' property can\'t be in the root of ws:array tag', {
+                              fileName: this.fileName
+                           }
+                        );
                      }
                   }
                }

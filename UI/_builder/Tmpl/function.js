@@ -9,7 +9,7 @@ define('UI/_builder/Tmpl/function', [
    'UI/_builder/Tmpl/modules/template',
    'UI/_builder/Tmpl/modules/utils/tag',
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
-   'UI/Utils',
+   'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/modules/utils/parse',
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/Tmpl/codegen/Generator',
@@ -25,7 +25,7 @@ define('UI/_builder/Tmpl/function', [
    templateModule,
    tagUtils,
    FSC,
-   uiUtils,
+   ErrorHandlerLib,
    parseUtils,
    templates,
    Generator,
@@ -39,6 +39,8 @@ define('UI/_builder/Tmpl/function', [
 
    var EMPTY_STRING = '';
 
+   var errorHandler = new ErrorHandlerLib.default();
+
    function createAttrObject(val) {
       return {
          type: 'text',
@@ -46,14 +48,16 @@ define('UI/_builder/Tmpl/function', [
       };
    }
 
+   var tagsToReplace = {
+      "'": "\\'",
+      '"': '\\"',
+      '\\': '\\\\'
+   };
+   var regExpToReplace = /['"\\]/g;
+
    function escape(entity) {
       if (entity && entity.replace) {
-         var tagsToReplace = {
-            "'": "\\'",
-            '"': '\\"',
-            '\\': '\\\\'
-         };
-         return entity.replace(/['"\\]/g, function escapeReplace(tag) {
+         return entity.replace(regExpToReplace, function escapeReplace(tag) {
             return tagsToReplace[tag] || tag;
          });
       }
@@ -246,13 +250,18 @@ define('UI/_builder/Tmpl/function', [
 
             str = this.getString(ast, data, handlers, attributes, internal);
             // eslint-disable-next-line no-new-func
-            func = new Function('data, attr, context, isVdom, sets', str);
+            func = new Function('data, attr, context, isVdom, sets, forceCompatible', str);
             func.includedFunctions = this.includedFunctions;
             func.privateFn = this.privateFn;
             func.includedFn = this.includedFn;
             func.functionNames = this.functionNames;
          } catch (error) {
-            uiUtils.Logger.info('[UI/_builder/Tmpl/function:getFunction()] generating function: \n' + str);
+            errorHandler.info(
+               '[UI/_builder/Tmpl/function:getFunction()] generating function: \n' + str,
+               {
+                  fileName: handlers.fileName
+               }
+            );
             throw error;
          }
          this.setFunctionName(func, undefined, this.fileName);

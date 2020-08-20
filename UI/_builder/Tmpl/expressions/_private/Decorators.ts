@@ -6,23 +6,24 @@
  * @author Крылов М.А.
  */
 
-import { Logger } from 'UI/Utils';
+import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
 const DIR_FROM_CONTEXT = 'fromContext';
 const SEPARATOR = '/';
+const errorHandler = new ErrorHandler();
 
 function splitControlPropName(name: any, separator: any, fieldName: any): any {
    let resultArr;
    try {
       resultArr = name.split(separator);
    } catch (error) {
-      Logger.templateError(
+      errorHandler.error(
          'There\'s no control property name to use. You should use binding decorator ' +
          'only in control config. Context field name: ' + fieldName,
-         this.fileName,
-         null,
-         error
+         {
+            fileName: this.fileName
+         }
       );
       throw new Error('В качестве имени опции контрола был передан undefined');
    }

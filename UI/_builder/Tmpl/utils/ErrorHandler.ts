@@ -1,3 +1,5 @@
+/// <amd-module name="UI/_builder/Tmpl/utils/ErrorHandler" />
+
 // @ts-ignore
 import { IoC } from 'Env/Env';
 import { SourcePosition } from '../html/Reader';
