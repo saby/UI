@@ -761,20 +761,21 @@ define('UI/_builder/Tmpl/traverse', [
             );
             def.errback(new Error('Requiring tag for "' + template + '" is not found!'));
          } else {
+            var self = this;
             this.includeStack[template]
                .then(function partialInclude(modAST) {
                   if (modAST) {
                      tag.children = modAST;
                      if (tagData && isDataInjected(tagData)) {
-                        this.traversingAST(tagData, tag.key, true).addCallbacks(
+                        self.traversingAST(tagData, tag.key, true).addCallbacks(
                            function dataTraversing(tagDataAst) {
                               if (tagDataAst) {
                                  tag.injectedData = tagDataAst;
                                  def.callback(tag);
                               } else {
-                                 def.errback(innerTemplateErrorLog(this.fileName, template, tagDataAst));
+                                 def.errback(innerTemplateErrorLog(self.fileName, template, tagDataAst));
                               }
-                           }.bind(this),
+                           },
                            function resolveInjectedDataErr(reason) {
                               def.errback(reason);
                            }
@@ -783,7 +784,7 @@ define('UI/_builder/Tmpl/traverse', [
                         def.callback(tag);
                      }
                   } else {
-                     def.errback(innerTemplateErrorLog(this.fileName, template, modAST));
+                     def.errback(innerTemplateErrorLog(self.fileName, template, modAST));
                   }
                   return modAST;
                })
@@ -792,10 +793,10 @@ define('UI/_builder/Tmpl/traverse', [
                   errorHandler.error(
                      reason.message,
                      {
-                        fileName: this.fileName
+                        fileName: self.fileName
                      }
                   );
-               }.bind(this));
+               });
          }
          return def;
       },
