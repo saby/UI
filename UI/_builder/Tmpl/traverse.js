@@ -816,31 +816,30 @@ define('UI/_builder/Tmpl/traverse', [
 
       _templateParse: function(tag) {
          var self = this;
-         return new Promise(function(resolve, reject) {
-            var name;
-            try {
-               name = tag.attribs.name.trim();
-            } catch (e) {
-               errorHandler.error(
-                  'Something wrong with name attribute in ws:template tag: ' + e.message,
-                  {
-                     fileName: self.fileName
-                  }
-               );
-            }
-            if (tag.children === undefined || tag.children.length === 0) {
-               errorHandler.error(
-                  'There is got to be a children in ws:template tag',
-                  {
-                     fileName: self.fileName
-                  }
-               );
-            }
+         var name;
+         try {
+            name = tag.attribs.name.trim();
+         } catch (e) {
+            errorHandler.error(
+               'Something wrong with name attribute in ws:template tag: ' + e.message,
+               {
+                  fileName: self.fileName
+               }
+            );
+         }
+         if (tag.children === undefined || tag.children.length === 0) {
+            errorHandler.error(
+               'There is got to be a children in ws:template tag',
+               {
+                  fileName: self.fileName
+               }
+            );
+         }
+         self.includeStack[name] = new Promise(function(resolve, reject) {
             self.traversingAST(tag.children)
                .then(function(modAST) {
-                  self.includeStack[name] = Promise.resolve(modAST);
                   tag.children = modAST;
-                  resolve(tag);
+                  resolve(modAST);
                })
                .catch(function(error) {
                   errorHandler.error(
@@ -849,10 +848,10 @@ define('UI/_builder/Tmpl/traverse', [
                         fileName: self.fileName
                      }
                   );
-                  self.includeStack[name] = Promise.reject(error);
                   reject(error);
                });
          });
+         return Promise.resolve(tag);
       },
 
       _forParse: function(tag) {
