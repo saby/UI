@@ -45,7 +45,7 @@ define('UI/_builder/Tmpl/modules/data/array', [
       }
 
       // eslint-disable-next-line no-new-func
-      var func = new Function('data, attr, context, isVdom, sets', funcText);
+      var func = new Function('data, attr, context, isVdom, sets, forceCompatible', funcText);
       this.setFunctionName(func, wsTemplateName, undefined, cleanPropertyName);
       this.includedFunctions[cleanPropertyName] = func;
       if (this.privateFn) {

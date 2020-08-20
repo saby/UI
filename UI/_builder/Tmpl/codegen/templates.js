@@ -81,7 +81,7 @@ define('UI/_builder/Tmpl/codegen/templates', [
       if (templateFunction.includedFn) {
          for (functionName in templateFunction.includedFn) {
             if (templateFunction.includedFn.hasOwnProperty(functionName)) {
-               includedTemplates += 'function ' + functionName + '(data, attr, context, isVdom)' + templateFunction.includedFn[functionName];
+               includedTemplates += 'function ' + functionName + '(data, attr, context, isVdom, sets, forceCompatible)' + templateFunction.includedFn[functionName];
                localDependenciesList += 'depsLocal["' + functionName + '"] = ' + functionName + ';';
             }
          }
