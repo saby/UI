@@ -100,21 +100,25 @@ define('UI/_builder/Tmpl/modules/utils/common', ['Env/Env'], function utilsLoade
       bindings.push(value);
       return bindings;
    }
+
+   var tagsToReplace = {
+      '<': '&lt;',
+      '>': '&gt;',
+      "'": '&apos;',
+      "\"": '&quot;',
+      '{{': '&lcub;&lcub;',
+      '}}': '&rcub;&rcub;'
+   };
+   var ampRegExp = /&([^#])/g;
+   var otherEscapeRegExp = /({{)|(}})|([<>'"])/g;
+
    function escape(entity) {
       if (entity && typeof entity === 'string') {
-         var tagsToReplace = {
-            '<': '&lt;',
-            '>': '&gt;',
-            "'": '&apos;',
-            "\"": '&quot;',
-            '{{': '&lcub;&lcub;',
-            '}}': '&rcub;&rcub;'
-         };
-         entity = entity.replace(/&([^#])/g, function escapeReplace(tag, suffix) {
+         entity = entity.replace(ampRegExp, function escapeReplace(tag, suffix) {
             return '&amp;' + suffix;
          });
 
-         return entity.replace(/({{)|(}})|([<>'"])/g, function escapeReplace(tag) {
+         return entity.replace(otherEscapeRegExp, function escapeReplace(tag) {
             return tagsToReplace[tag] || tag;
          });
       }

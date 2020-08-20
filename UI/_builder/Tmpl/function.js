@@ -50,14 +50,16 @@ define('UI/_builder/Tmpl/function', [
       };
    }
 
+   var tagsToReplace = {
+      "'": "\\'",
+      '"': '\\"',
+      '\\': '\\\\'
+   };
+   var regExpToReplace = /['"\\]/g;
+
    function escape(entity) {
       if (entity && entity.replace) {
-         var tagsToReplace = {
-            "'": "\\'",
-            '"': '\\"',
-            '\\': '\\\\'
-         };
-         return entity.replace(/['"\\]/g, function escapeReplace(tag) {
+         return entity.replace(regExpToReplace, function escapeReplace(tag) {
             return tagsToReplace[tag] || tag;
          });
       }
