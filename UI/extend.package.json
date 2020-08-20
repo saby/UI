@@ -3,7 +3,11 @@
     "UI/Base",
     "UI/HotKeys",
     "UI/Vdom",
-    "UI/DevtoolsHook"
+    "UI/DevtoolsHook",
+    "UI/Focus",
+    "UI/Utils",
+    "UI/NodeCollector",
+    "UI/theme/controller"
   ],
   "extendsTo": "online-superbundle.package.js"
 }
