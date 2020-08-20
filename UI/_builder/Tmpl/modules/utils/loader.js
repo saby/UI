@@ -1,10 +1,9 @@
 define('UI/_builder/Tmpl/modules/utils/loader', [
    'require',
    'UI/_builder/Tmpl/utils/ErrorHandler',
-   'Core/Deferred',
    'UI/_builder/Tmpl/modules/utils/common',
    'UI/_builder/Tmpl/modules/utils/names',
-], function straightFromFileLoader(require, ErrorHandlerLib, Deferred, common, names) {
+], function straightFromFileLoader(require, ErrorHandlerLib, common, names) {
    'use strict';
 
    /**
@@ -81,27 +80,28 @@ define('UI/_builder/Tmpl/modules/utils/loader', [
     * @param configResolvers Хранилище резолверов из конфига.
     */
    function requireTemplateFile(moduleName, fromBuilderTmpl, configResolvers) {
-      var templateFn, deferred = new Deferred(),
-         resolver = common.hasResolver(moduleName, configResolvers);
-      if (resolver) {
-         deferred.callback(createTemplateNode(moduleName));
-      } else if (fromBuilderTmpl) {
-         deferred.callback(createTemplateNode(moduleName));
-      } else if (require.defined(moduleName)) {
-         templateFn = require(moduleName);
-         deferred.callback(createTemplateNode(moduleName, templateFn === null));
-      } else {
-         require([moduleName], function(requiredModule) {
-            if (requiredModule || requiredModule === null) {
-               deferred.callback(createTemplateNode(moduleName, requiredModule === null));
-            } else {
-               deferred.errback(new Error('Не удалось загрузить файл "' + moduleName + '"'));
-            }
-         }, function(error) {
-            deferred.errback(error);
-         });
-      }
-      return deferred;
+      return new Promise(function(resolve, reject) {
+         var templateFn;
+         var resolver = common.hasResolver(moduleName, configResolvers);
+         if (resolver) {
+            resolve(createTemplateNode(moduleName));
+         } else if (fromBuilderTmpl) {
+            resolve(createTemplateNode(moduleName));
+         } else if (require.defined(moduleName)) {
+            templateFn = require(moduleName);
+            resolve(createTemplateNode(moduleName, templateFn === null));
+         } else {
+            require([moduleName], function(requiredModule) {
+               if (requiredModule || requiredModule === null) {
+                  resolve(createTemplateNode(moduleName, requiredModule === null));
+               } else {
+                  reject(new Error('Не удалось загрузить файл "' + moduleName + '"'));
+               }
+            }, function(error) {
+               reject(error);
+            });
+         }
+      });
    }
 
    /**
@@ -110,21 +110,21 @@ define('UI/_builder/Tmpl/modules/utils/loader', [
     * @param fromBuilderTmpl Метка, что сборка производится из билдера.
     */
    function requireAmdFile(moduleName, fromBuilderTmpl) {
-      var deferred = new Deferred();
-      if (fromBuilderTmpl) {
-         deferred.callback(createControlNode(moduleName));
-      } else {
-         require([moduleName], function(requiredModule) {
-            if (requiredModule) {
-               deferred.callback(createControlNode(moduleName));
-            } else {
-               deferred.errback(new Error('Не удалось загрузить файл "' + moduleName + '"'));
-            }
-         }, function(error) {
-            deferred.errback(error);
-         });
-      }
-      return deferred;
+      return new Promise(function(resolve, reject) {
+         if (fromBuilderTmpl) {
+            resolve(createControlNode(moduleName));
+         } else {
+            require([moduleName], function(requiredModule) {
+               if (requiredModule) {
+                  resolve(createControlNode(moduleName));
+               } else {
+                  reject(new Error('Не удалось загрузить файл "' + moduleName + '"'));
+               }
+            }, function(error) {
+               reject(error);
+            });
+         }
+      });
    }
 
    /**
@@ -133,24 +133,25 @@ define('UI/_builder/Tmpl/modules/utils/loader', [
     * @param fromBuilderTmpl Метка, что сборка производится из билдера.
     */
    function requireWsControlFile(moduleName, fromBuilderTmpl) {
-      var deferred = new Deferred(), control;
-      if (fromBuilderTmpl) {
-         deferred.callback(createControlNode(moduleName, moduleName));
-      } else if (require.defined(moduleName)) {
-         control = require(moduleName);
-         deferred.callback(createControlNode(moduleName, moduleName, control === null));
-      } else {
-         require([moduleName], function(requiredModule) {
-            if (requiredModule || requiredModule === null) {
-               deferred.callback(createControlNode(moduleName, moduleName, requiredModule === null));
-            } else {
-               deferred.errback(new Error('Не удалось загрузить файл "' + moduleName + '"'));
-            }
-         }, function(error) {
-            deferred.errback(error);
-         });
-      }
-      return deferred;
+      return new Promise(function(resolve, reject) {
+         var control;
+         if (fromBuilderTmpl) {
+            resolve(createControlNode(moduleName, moduleName));
+         } else if (require.defined(moduleName)) {
+            control = require(moduleName);
+            resolve(createControlNode(moduleName, moduleName, control === null));
+         } else {
+            require([moduleName], function(requiredModule) {
+               if (requiredModule || requiredModule === null) {
+                  resolve(createControlNode(moduleName, moduleName, requiredModule === null));
+               } else {
+                  reject(new Error('Не удалось загрузить файл "' + moduleName + '"'));
+               }
+            }, function(error) {
+               reject(error);
+            });
+         }
+      });
    }
 
    /**
@@ -160,21 +161,21 @@ define('UI/_builder/Tmpl/modules/utils/loader', [
     * @param fromBuilderTmpl Метка, что сборка производится из билдера.
     */
    function requireWsModule(fullName, libraryPath, fromBuilderTmpl) {
-      var deferred = new Deferred();
-      if (fromBuilderTmpl || require.defined(libraryPath.library)) {
-         deferred.callback(createModuleNode(libraryPath, fullName));
-      } else {
-         require([libraryPath.library], function(requiredModule) {
-            if (requiredModule || requiredModule === null) {
-               deferred.callback(createModuleNode(libraryPath, fullName));
-            } else {
-               deferred.errback(new Error('Не удалось загрузить файл "' + libraryPath.library + '"'));
-            }
-         }, function(error) {
-            deferred.errback(error);
-         });
-      }
-      return deferred;
+      return new Promise(function(resolve, reject) {
+         if (fromBuilderTmpl || require.defined(libraryPath.library)) {
+            resolve(createModuleNode(libraryPath, fullName));
+         } else {
+            require([libraryPath.library], function(requiredModule) {
+               if (requiredModule || requiredModule === null) {
+                  resolve(createModuleNode(libraryPath, fullName));
+               } else {
+                  reject(new Error('Не удалось загрузить файл "' + libraryPath.library + '"'));
+               }
+            }, function(error) {
+               reject(error);
+            });
+         }
+      });
    }
 
    /**
@@ -205,7 +206,6 @@ define('UI/_builder/Tmpl/modules/utils/loader', [
     * @param url Данные о запрашиваемой сущности.
     */
    function straightFromFileAMD(url) {
-      var deferred = new Deferred();
 
       // FIXME: избавиться от .call(this, ...) по шаблонизатору
       var fromBuilderTmpl = this.fromBuilderTmpl;
@@ -213,20 +213,19 @@ define('UI/_builder/Tmpl/modules/utils/loader', [
       var configResolvers = this.config && this.config.resolvers;
       var fileName = this.fileName;
 
-      requireFile(url, fromBuilderTmpl, resolver, configResolvers).addCallbacks(
-         function(node) {
-            deferred.callback([node]);
-         }, function(error) {
-            deferred.errback(error);
+      return requireFile(url, fromBuilderTmpl, resolver, configResolvers)
+         .then(function(node) {
+            return [node];
+         })
+         .catch(function(error) {
             errorHandler.error(
                error.message,
                {
                   fileName: fileName
                }
             );
-         }
-      );
-      return deferred;
+            throw error;
+         });
    }
 
    return straightFromFileAMD;
