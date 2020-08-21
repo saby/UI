@@ -11,7 +11,7 @@ export interface IMatchesElement extends Element {
 }
 
 // FIXME: после переезда View - wsControl: IControlCompatible, controlNodes: IGeneratorControlNode
-export interface IControlElement extends Element {
+export interface IControlElement extends HTMLElement {
    wsControl?: any;
    controlNodes?: any;
 }

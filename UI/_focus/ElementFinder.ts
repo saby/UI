@@ -6,6 +6,8 @@
  * Модуль содержит логику нахождения следующего элемента для фокусировки
  */
 
+import { IControlElement } from './IFocus';
+
 let NODE_NODE_TYPE = 1;
 
 interface IFocusElementProps {
@@ -54,7 +56,7 @@ function assert(cond: boolean, msg?: Function): void {
 // Determines if the passed element can accept focus themselves instead of
 // delegating it to children. These are the usual interactive controls
 // (buttons, links, inputs) and containers with 'contenteditable'
-function canAcceptSelfFocus(element: HTMLElement): boolean {
+function canAcceptSelfFocus(element: IControlElement): boolean {
    const tabIndex = element.tabIndex;
 
    return FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase()) ||
