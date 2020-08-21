@@ -2,7 +2,7 @@
 /* tslint:disable */
 
 import { Logger } from 'UI/Utils';
-import { DataContext } from 'UI/Contexts';
+import DataContext from "./DataContext";
 
 const whiteList = {
    "UserActivity/ActivityContextField": true,

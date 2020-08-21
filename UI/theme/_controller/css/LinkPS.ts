@@ -1,7 +1,7 @@
 /// <amd-module name='UI/theme/_controller/css/LinkPS' />
-import { Base } from 'UI/theme/_controller/css/Base';
-import { THEME_TYPE } from 'UI/theme/_controller/css/const';
-import { ICssEntity } from 'UI/theme/_controller/css/interface';
+import { Base } from './Base';
+import { THEME_TYPE } from './const';
+import { ICssEntity } from './interface';
 
 /**
  * Мультитемная ссылка на СП

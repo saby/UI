@@ -1,7 +1,7 @@
 /// <amd-module name='UI/theme/_controller/css/SingleLinkPS' />
-import LinkPS from 'UI/theme/_controller/css/LinkPS';
-import { THEME_TYPE } from 'UI/theme/_controller/css/const';
-import { ISingleCssEntity } from 'UI/theme/_controller/css/interface';
+import LinkPS from './LinkPS';
+import { THEME_TYPE } from './const';
+import { ISingleCssEntity } from './interface';
 /**
  * Немультитемная ссылка на СП
  */

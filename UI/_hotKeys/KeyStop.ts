@@ -23,10 +23,12 @@ interface IKeyStopOptions extends IControlOptions {
 export default class KeyStop extends Control<IKeyStopOptions> {
    protected _template: TemplateFunction = template;
 
-   private _keydownHandler(event: SyntheticEvent<KeyboardEvent>): void {
+   // @ts-ignore
+   protected _keydownHandler(event: SyntheticEvent<KeyboardEvent>): void {
       const keys = this._options.stopKeys || [];
 
       if (keys.find((key) => key.keyCode === event.nativeEvent.keyCode)) {
+         // @ts-ignore
          event.stopped = true;
       }
    }

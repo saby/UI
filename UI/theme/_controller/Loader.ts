@@ -1,9 +1,9 @@
 /// <amd-module name='UI/theme/_controller/Loader' />
 // @ts-ignore
-import { LinkResolver } from 'UI/theme/controller';
+import LinkResolver from "./_controller/LinkResolver";
 // @ts-ignore
 import { constants } from 'Env/Env';
-import { EMPTY_THEME } from 'UI/theme/_controller/css/const';
+import { EMPTY_THEME } from './css/const';
 type IConfig = {
    buildnumber: string,
    wsRoot: string,
