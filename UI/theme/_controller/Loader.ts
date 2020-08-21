@@ -1,6 +1,6 @@
 /// <amd-module name='UI/theme/_controller/Loader' />
 // @ts-ignore
-import LinkResolver from "./_controller/LinkResolver";
+import LinkResolver from "./LinkResolver";
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { EMPTY_THEME } from './css/const';
