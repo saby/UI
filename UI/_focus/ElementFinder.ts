@@ -212,7 +212,7 @@ function find(contextElement: Element,
               fromElement: Element | null,
               fromElementTabIndex: number,
               reverse: boolean,
-              propsGetter:(Element) => IFocusElementProps): Element {
+              propsGetter:(Element) => IFocusElementProps): HTMLElement {
    assert(
       contextElement &&
       (fromElement || fromElementTabIndex !== undefined) &&
@@ -355,7 +355,7 @@ function find(contextElement: Element,
 
 export function findFirstInContext(contextElement: Element,
                                    reverse: boolean,
-                                   propsGetter:(Element) => IFocusElementProps = getElementProps): Element {
+                                   propsGetter:(Element) => IFocusElementProps = getElementProps): HTMLElement {
    return find(contextElement, undefined, reverse ? 0 : 1, reverse, propsGetter);
 }
 
