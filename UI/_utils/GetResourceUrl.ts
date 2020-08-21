@@ -12,7 +12,7 @@
  * @public
  * @author Мальцев А.А.
  */
-var global = this || (0, eval)('this');// eslint-disable-line no-eval
+var global = (0, eval)('this');// eslint-disable-line no-eval
 
 export default function getResourceUrl(url) {
    return global.wsConfig.getWithDomain(

@@ -34,11 +34,11 @@ Controls/Popup/Opener/Sticky
 
 import { Logger } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
-import { Control } from 'UI/Base';
+import { IControl } from './IControl';
 
-export function find(control: Control|Element|Array<Element>): Control[] {
+export function find(control: IControl|Element|Array<Element>): IControl[] {
    let container;
-   if (control instanceof Control) {
+   if (control.hasOwnProperty('_container')) {
       // @ts-ignore
       container = control._container;
    } else if (control instanceof Element) {
