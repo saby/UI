@@ -600,6 +600,7 @@ export function destroyReqursive(childControlNode, environment) {
          ) {
             delete logicParent._children[controlName];
          }
+         logicParent = undefined;
          onEndCommit(vnode);
          if (vnode.controlEvents) {
              vnode.controlEvents = undefined;
