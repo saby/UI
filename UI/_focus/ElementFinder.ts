@@ -411,7 +411,7 @@ function checkElement(element: Element, paramName: string): void {
 export function findWithContexts(rootElement: Element,
                                  fromElement: Element,
                                  reverse: boolean,
-                                 propsGetter:(Element) => IFocusElementProps = getElementProps): Element {
+                                 propsGetter:(Element) => IFocusElementProps = getElementProps): IControlElement {
 
    checkElement(fromElement, 'fromElement');
    checkElement(rootElement, 'rootElement');
@@ -446,6 +446,6 @@ export function findWithContexts(rootElement: Element,
       }
    }
 
-   return result;
+   return result as IControlElement;
 }
 
