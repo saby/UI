@@ -10,7 +10,7 @@ import { Logger } from 'UI/Utils';
 // @ts-ignore
 import {Config as config} from 'UI/Builder';
 // @ts-ignore
-import { Object as UtilsObject } from 'UI/Utils';
+import { ObjectUtils } from 'UI/Utils';
 
 import { Text, Vdom } from './Markup';
 import { _FocusAttrs } from 'UI/Focus';
@@ -72,7 +72,7 @@ const ITERATORS = [
    {
       type: 'object',
       is: function isObject(ent) {
-         return UtilsObject.isPlainObject(ent);
+         return ObjectUtils.isPlainObject(ent);
       },
       iterator: function objectIterator(object, callback) {
          for (var key in object) {

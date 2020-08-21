@@ -15,7 +15,7 @@ import {
 import * as Common from '../_Utils/Common';
 import voidElements from '../_Utils/VoidTags';
 // @ts-ignore
-import { Number } from 'UI/Utils';
+import { NumberUtils } from 'UI/Utils';
 import { INodeAttribute } from './IGeneratorType';
 import {IAttributes} from '../_Expressions/Attr';
 
@@ -193,7 +193,7 @@ export function joinElements(elements: Array<unknown>,
             element = joinElements(element, undefined, defCollection);
          }
          if (element && isInstOfPromise(element)) {
-            id = Number.randomId('def-');
+            id = NumberUtils.randomId('def-');
             if (!defCollection.def) {
                defCollection.def = [];
             }

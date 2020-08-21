@@ -5,7 +5,7 @@ import { DirtyKind, rebuildNode, createNode, destroyReqursive, IMemoNode, getRec
 import DOMEnvironment, { IDOMEnvironment } from './resources/DOMEnvironment';
 import { delay } from 'Types/function';
 // @ts-ignore
-import { Object } from 'UI/Utils';
+import { ObjectUtils } from 'UI/Utils';
 // @ts-ignore
 import { Serializer } from 'UI/State';
 import { Set } from 'Types/shim';
@@ -237,7 +237,7 @@ class VDomSynchronizer {
       let i: number;
       for (i = 0; i !== MAX_REBUILD; i++) {
          this.__doRebuild(currentRoot);
-         if (Object.isEmpty(currentRoot.environment._nextDirties)) {
+         if (ObjectUtils.isEmpty(currentRoot.environment._nextDirties)) {
             break;
          }
       }

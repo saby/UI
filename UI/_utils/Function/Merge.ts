@@ -87,7 +87,7 @@ function cloneOrCopy(hash: object, hashExtender: object, key: string, config: IC
  * <h2>Пример использования</h2>
  * <pre>
  *    require(['UI/Utils'], function(Utils) {
- *       var merge = Utils.Function.merge;
+ *       var merge = Utils.FunctionUtils.merge;
  *       var original = {one: 1, two: 2};
  *       var extender = {two: 'dos', three: 'tres'};
  *       var allTogether = merge(original, extender);

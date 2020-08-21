@@ -1,6 +1,6 @@
 /// <amd-module name="UI/_executor/_Utils/ConfigResolver" />
 
-import { Function } from 'UI/Utils';
+import { FunctionUtils } from 'UI/Utils';
 import { constants, cookie } from 'Env/Env';
 import { plainMerge } from './Common';
 import * as Scope from '../_Expressions/Scope';
@@ -194,7 +194,7 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
                insertedData = insertedDataCloned;
             }
 
-            data = Function.merge(data, insertedData, {
+            data = FunctionUtils.merge(data, insertedData, {
                rec: !(templateCfg.viewController && templateCfg.viewController._template),
 
                // для vdomных детей не клонируем объекты внутрь.

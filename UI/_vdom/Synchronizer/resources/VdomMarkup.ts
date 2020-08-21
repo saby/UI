@@ -1,9 +1,6 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/VdomMarkup" />
 
-// This module can only be referenced with ECMAScript imports/exports
-// by turning on the 'esModuleInterop' flag and referencing its default export.
-// @ts-ignore
-import { Array as UtilsArray } from 'UI/Utils';
+import { ArrayUtils } from 'UI/Utils';
 
 import { coreDebug } from 'Env/Env';
 import { ListMonad } from '../../Utils/Monad';
@@ -539,7 +536,7 @@ export function getFullMarkup(
          i++;
       }
 
-      //    childMarkup = UtilsArray.flatten(childMarkup, true);
+      //    childMarkup = ArrayUtils.flatten(childMarkup, true);
 
       if (i === ln) {
          result = vnode;
@@ -569,7 +566,7 @@ export function getFullMarkup(
             }
             return fullMarkup;
          });
-         childrenAfter = UtilsArray.flatten(childrenAfter, true);
+         childrenAfter = ArrayUtils.flatten(childrenAfter, true);
          newChildren = children
             .slice(0, i)
             .concat(Array.isArray(childMarkup) ? childMarkup : [childMarkup])

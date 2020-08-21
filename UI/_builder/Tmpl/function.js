@@ -1,4 +1,5 @@
 define('UI/_builder/Tmpl/function', [
+   'UI/Utils',
    'UI/_builder/Tmpl/expressions/_private/Process',
    'UI/_builder/Tmpl/expressions/_private/Event',
    'UI/_builder/Tmpl/modules/utils/common',
@@ -15,6 +16,7 @@ define('UI/_builder/Tmpl/function', [
    'UI/_builder/Tmpl/codegen/Generator',
    'UI/_builder/Tmpl/codegen/TClosure'
 ], function processingModule(
+   uiUtils,
    Process,
    eventExpressions,
    utils,
@@ -171,7 +173,7 @@ define('UI/_builder/Tmpl/function', [
       decorate: function decorate(attributes) {
          return function decorateRoot(rootAttribs) {
             var currentRootAttribs = rootAttribs || { };
-            var attrs = uiUtils.Function.shallowClone(currentRootAttribs);
+            var attrs = uiUtils.FunctionUtils.shallowClone(currentRootAttribs);
             if (attributes) {
                for (var name in attributes) {
                   if (attrs[name]) {

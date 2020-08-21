@@ -27,7 +27,7 @@
  *
  * <pre>
  * require(['UI/Utils'], function(Utils) {
- *    var findIndex = Utils.Array.findIndex;
+ *    var findIndex = Utils.ArrayUtils.findIndex;
  *
  *    //2
  *    console.log(findIndex([1, 2, 3, 4, 5], function(value) {

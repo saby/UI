@@ -182,14 +182,14 @@ define('UI/_state/Serializer', [
       return function (name, value) {
          var
             isObject = value && typeof value === 'object',
-            plainObject = isObject && Utils.Object.isPlainObject(value);
+            plainObject = isObject && Utils.ObjectUtils.isPlainObject(value);
 
          if (isObject && !Array.isArray(value) && !plainObject) {
             if (self._isServerSide) {
                return;
             }
 
-            var key = Utils.Number.randomId();
+            var key = Utils.NumberUtils.randomId();
             self._instanceStorage[key] = value;
             return {
                $serialized$: 'inst',

@@ -13,7 +13,7 @@
  *
  * <pre>
  *    require(['UI/Utils'], function(Utils) {
- *       var isPlainObject = Utils.Object.isPlainObject;
+ *       var isPlainObject = Utils.ObjectUtils.isPlainObject;
  *
  *       // true
  *       console.log(isPlainObject({}));

@@ -17,27 +17,27 @@ import isElementVisible from "./_utils/IsElementVisible";
 
 import merge from './_utils/Function/Merge';
 import shallowClone from './_utils/Function/ShallowClone';
-const Function = {
+const FunctionUtils = {
    merge,
    shallowClone
 };
 
 import isPlainObject from "./_utils/Object/IsPlainObject";
 import isEmpty from "./_utils/Object/IsEmpty";
-const Object = {
+const ObjectUtils = {
    isPlainObject,
    isEmpty
 };
 
 import randomId from "./_utils/Number/RandomId";
-const Number = {
+const NumberUtils = {
    randomId
 };
 
 import flatten from "./_utils/Array/Flatten";
 import findIndex from "./_utils/Array/FindIndex";
 import uniq from "./_utils/Array/Uniq";
-const Array = {
+const ArrayUtils = {
    flatten,
    findIndex,
    uniq
@@ -51,8 +51,8 @@ export {
    needToBeCompatible,
    getResourceUrl,
    isElementVisible,
-   Function,
-   Object,
-   Number,
-   Array
+   FunctionUtils,
+   ObjectUtils,
+   NumberUtils,
+   ArrayUtils
 };

@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DOMEnvironment" />
 // tslint:disable:variable-name
 
-import { Array as UtilsArray } from 'UI/Utils';
+import { ArrayUtils } from 'UI/Utils';
 import { _IDOMEnvironment } from 'UI/Focus';
 import { needToBeCompatible } from 'UI/Utils';
 
@@ -66,7 +66,7 @@ function createRecursiveVNodeMapper(fn: any): any {
       let fnRes = fn(tagName, properties, children, key, controlNode, ref);
       let newChildren = fnRes[2];
 
-      i = UtilsArray.findIndex(newChildren, (child: any): any => {
+      i = ArrayUtils.findIndex(newChildren, (child: any): any => {
          const newChild = mapVNode(recursiveVNodeMapperFn, controlNode, child);
          return child !== newChild;
       });

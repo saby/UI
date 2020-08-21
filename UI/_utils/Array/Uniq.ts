@@ -18,7 +18,7 @@
  * <h2>Пример использования</h2>
  * <pre>
  *    require(['UI/Utils'], function(Utils) {
- *       var uniqArray = Utils.Array.uniq;
+ *       var uniqArray = Utils.ArrayUtils.uniq;
  *
  *       // [1, 2, 3, 4, 5]
  *       console.log(uniqArray([1, 2, 3, 4, 3, 2, 5, 1]));

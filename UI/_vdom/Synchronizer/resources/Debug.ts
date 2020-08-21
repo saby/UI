@@ -13,7 +13,7 @@ import { DirtyKind } from './DirtyChecking';
 // @ts-ignore
 import { TClosure } from 'UI/Executor';
 // @ts-ignore
-import { Object } from 'UI/Utils';
+import { ObjectUtils } from 'UI/Utils';
 
 /**
  * @author Кондаков Р.Н.
@@ -308,7 +308,7 @@ export function logVNode(recursive, vnode) {
 
       arr = [titleArr.join('/')];
       if (isVNodeType(vnode)) {
-         arr.push(Object.isEmpty(vnode.properties) ? '' : vnode.properties);
+         arr.push(ObjectUtils.isEmpty(vnode.properties) ? '' : vnode.properties);
       }
 
       if (recursive) {

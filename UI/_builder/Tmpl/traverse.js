@@ -6,6 +6,7 @@ define('UI/_builder/Tmpl/traverse', [
    'UI/_builder/Tmpl/utils/ErrorHandler',
    'Core/Deferred',
    'Core/ParallelDeferred',
+   'UI/Utils',
    'UI/_builder/Tmpl/expressions/_private/Statement',
    'UI/_builder/Tmpl/expressions/_private/Event',
    'UI/_builder/Tmpl/expressions/_private/Bind',
@@ -20,6 +21,7 @@ define('UI/_builder/Tmpl/traverse', [
    ErrorHandlerLib,
    Deferred,
    ParallelDeferred,
+   uiUtils,
    processStatement,
    event,
    bindUtils,
@@ -63,9 +65,9 @@ define('UI/_builder/Tmpl/traverse', [
     * @returns {*}
     */
    function checkForAttributes(entity) {
-      if (entity.attribs && uiUtils.Object.isEmpty(entity.attribs)) {
+      if (entity.attribs && uiUtils.ObjectUtils.isEmpty(entity.attribs)) {
          entity.attribs = undefined;
-   }
+      }
       return entity;
    }
 

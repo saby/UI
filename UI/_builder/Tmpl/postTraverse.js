@@ -7,7 +7,7 @@ define('UI/_builder/Tmpl/postTraverse', [
 ) {
    'use string';
 
-   var uniqueArray = Utils.Array.uniq;
+   var uniqueArray = Utils.ArrayUtils.uniq;
 
    /**
     * @author Крылов М.А.
