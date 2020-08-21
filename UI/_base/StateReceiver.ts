@@ -46,12 +46,13 @@ class StateReceiver implements IStateReceiver {
       const allAdditionalDeps = {};
       const allRecStates = this.receivedStateObjectsArray;
       Object.keys(allRecStates).forEach((key) => {
-         const { receivedState, moduleName } = allRecStates[key].getState();
+         const state = allRecStates[key].getState();
+         const receivedState = state?.receivedState || state;
          if (!receivedState) { return; }
          try {
             serializedMap[key] = JSON.stringify(receivedState, slr.serializeStrict);
          } catch (e) {
-            Logger.error(`${moduleName || key} _beforeMount вернул несериализуемое состояние: ${e}` );
+            Logger.error(`${state?.moduleName || key} _beforeMount вернул несериализуемое состояние: ${e}` );
             delete serializedMap[key];
          }
       });
