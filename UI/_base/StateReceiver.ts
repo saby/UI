@@ -47,7 +47,7 @@ class StateReceiver implements IStateReceiver {
       const allRecStates = this.receivedStateObjectsArray;
       Object.keys(allRecStates).forEach((key) => {
          const state = allRecStates[key].getState();
-         const receivedState = state?.receivedState || state;
+         const receivedState = typeof state === 'object' && 'receivedState' in state ? state.receivedState : state;
          if (!receivedState) { return; }
          try {
             serializedMap[key] = JSON.stringify(receivedState, slr.serializeStrict);
