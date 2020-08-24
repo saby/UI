@@ -16,7 +16,8 @@ define('UI/_builder/Tmpl/traverse', [
    'UI/_builder/Tmpl/modules/utils/common',
    'UI/_builder/Tmpl/modules/utils/tag',
    'UI/_builder/Tmpl/modules/utils/loader',
-   'UI/_builder/Tmpl/postTraverse'
+   'UI/_builder/Tmpl/postTraverse',
+   'UI/_builder/Tmpl/core/Ast'
 ], function traverseLoader(
    ErrorHandlerLib,
    Deferred,
@@ -31,7 +32,8 @@ define('UI/_builder/Tmpl/traverse', [
    utils,
    tagUtils,
    straightFromFile,
-   postTraverse
+   postTraverse,
+   coreAst
 ) {
    'use strict';
 
@@ -52,12 +54,6 @@ define('UI/_builder/Tmpl/traverse', [
    ];
 
    var parser = new ParserLib.Parser();
-
-   var concreteSourceStrings = {
-      splittingKey: ' in ',
-      key: ' as ',
-      keyAlt: ','
-   };
 
    /**
     * Проверяем есть ли атрибуты, для упрощения разбора на этапе парсинга
@@ -142,31 +138,6 @@ define('UI/_builder/Tmpl/traverse', [
     * Safe placeholder
     */
    var safeReplaceCasePlace = '';
-
-   function createForConfig(key, value, main) {
-      return {
-         key: key,
-         value: value,
-         main: main
-      };
-      }
-
-   function findForAllArguments(value, main) {
-      var crStringArray = value.split(concreteSourceStrings.key),
-         entityWhichIterates = crStringArray[0],
-         key;
-      if (crStringArray.length > 1) {
-         entityWhichIterates = crStringArray[1];
-         key = crStringArray[0];
-      } else {
-         crStringArray = utils.removeAllSpaces(value).split(concreteSourceStrings.keyAlt);
-         if (crStringArray.length > 1) {
-            entityWhichIterates = crStringArray[1];
-            key = crStringArray[0];
-      }
-      }
-      return createForConfig(key, entityWhichIterates, main);
-   }
 
    function _traverseDirective(directive) {
       var deferred = new Deferred();
@@ -874,28 +845,39 @@ define('UI/_builder/Tmpl/traverse', [
       },
 
       _forParse: function(tag) {
-         var def = new Deferred(),
-            forStampArguments,
-            source = '',
-            fromAttr = tag.attribs.hasOwnProperty('for');
+         var def = new Deferred();
+         var fromAttr;
+         var source;
+         var cycleNode;
          try {
+            fromAttr = tag.attribs.hasOwnProperty('for');
             if (fromAttr) {
-               source = utils.clone(tag.attribs.for);
+               source = tag.attribs.for;
+               delete tag.attribs.for;
             } else {
                source = tag.attribs.data;
+               delete tag.attribs.data;
             }
 
-            if (source.indexOf(';') > -1) {
-               var forArgs = source.split(';');
-               tag.attribs.START_FROM = '{{' + forArgs[0] + '}}';
-               tag.attribs.CUSTOM_CONDITION = '{{' + forArgs[1] + '}}';
-               tag.attribs.CUSTOM_ITERATOR = '{{' + forArgs[2] + '}}';
-               delete tag.attribs.data;
-            } else {
-               forStampArguments = source.split(concreteSourceStrings.splittingKey);
-               tag.forSource = findForAllArguments(forStampArguments[0], parser.parse(forStampArguments[1]));
+            // TODO: Проверка атрибутов
+            cycleNode = coreAst.createCycleNode(
+               source,
+               parser
+            );
+
+            // FIXME: Подкинуть узел вверх не можем!!!
+            if (fromAttr) {
+               delete tag.attribs.for;
+               tag.attribs = this._traverseTagAttributes(tag.attribs);
             }
-            tag.attribs = this._traverseTagAttributes(tag.attribs);
+
+            if (cycleNode instanceof coreAst.ForNode) {
+               tag.attribs.START_FROM = cycleNode.forSource.START_FROM;
+               tag.attribs.CUSTOM_CONDITION = cycleNode.forSource.CUSTOM_CONDITION;
+               tag.attribs.CUSTOM_ITERATOR = cycleNode.forSource.CUSTOM_ITERATOR;
+            } else {
+               tag.forSource = cycleNode.forSource;
+            }
          } catch (err) {
             var message = getErrorMessage(err);
             errorHandler.error(
@@ -906,6 +888,8 @@ define('UI/_builder/Tmpl/traverse', [
                }
             );
          }
+
+         // FIXME: может отвалиться
          this.traversingAST(tag.children).addCallbacks(
             function dataTraversing(tagDataAst) {
                tag.children = tagDataAst;
