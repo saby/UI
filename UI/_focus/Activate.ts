@@ -21,7 +21,7 @@ function findAutofocusForVDOM(findContainer: Element): NodeListOf<Element> {
 
 function doFocus(container: IControlElement,
                  cfg: { enableScreenKeyboard?: boolean,
-                        enableScrollToElement?: boolean } = {}): boolean {
+                    enableScrollToElement?: boolean } = {}): boolean {
 
    let res = false;
    if (container.wsControl && container.wsControl.setActive) {
@@ -54,9 +54,7 @@ export function activate(
    container: IControlElement,
    cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } =
       { enableScreenKeyboard: false, enableScrollToElement: false }
-   ): boolean {
-
-   let res = false;
+): boolean {
 
    // сначала попробуем поискать по ws-autofocus, если найдем - позовем focus рекурсивно для найденного компонента
    const autofocusElems = findAutofocusForVDOM(container);
@@ -74,7 +72,7 @@ export function activate(
 
    // если не получилось найти по автофокусу, поищем первый элемент по табиндексам и сфокусируем его.
    // причем если это будет конейнер старого компонента, активируем его по старому тоже
-      // так ищем DOMEnvironment для текущего компонента. В нем сосредоточен код по работе с фокусами.
+   // так ищем DOMEnvironment для текущего компонента. В нем сосредоточен код по работе с фокусами.
    let next = ElementFinder.findFirstInContext(container, false);
    if (next) {
       // при поиске первого элемента игнорируем vdom-focus-in и vdom-focus-out
@@ -88,15 +86,11 @@ export function activate(
       }
    }
    if (next) {
-      res = doFocus(next, cfg);
-   } else {
-      if (isElementVisible(container)) {
-         res = doFocus(container, cfg);
-      } else {
-         // если элемент не видим - не можем его сфокусировать
-         res = false;
-      }
+      return doFocus(next, cfg);;
+   }
+   if (isElementVisible(container)) {
+     return doFocus(container, cfg);
    }
 
-   return res;
+   return false;
 }

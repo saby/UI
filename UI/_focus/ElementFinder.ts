@@ -53,6 +53,10 @@ function assert(cond: boolean, msg?: Function): void {
    }
 }
 
+function getStyle(element: Element, style: string): string {
+   return window.getComputedStyle(element)[style];
+}
+
 // Determines if the passed element can accept focus themselves instead of
 // delegating it to children. These are the usual interactive controls
 // (buttons, links, inputs) and containers with 'contenteditable'
@@ -68,6 +72,7 @@ export function getElementProps(element: HTMLElement): IFocusElementProps {
    let className = element.getAttribute('class');
    let classes;
    let tabIndex;
+   let tabIndexAttr;
    let validTabIndex;
    let isContentEditable;
    let flags;
@@ -92,17 +97,19 @@ export function getElementProps(element: HTMLElement): IFocusElementProps {
 
    enabled = (flags & (CLASS_HIDDEN_FLAG | CLASS_DISABLED_FLAG)) === 0;
    if (enabled) {
-      enabled = !!(element.offsetWidth || element.offsetHeight || element.getClientRects().length);
+      enabled = getStyle(element, 'display') !== 'none' && getStyle(element, 'visibility') !== 'invisible';
    }
    if (enabled) {
-      tabIndex = element.tabIndex;
+      tabIndexAttr = element.getAttribute('tabindex');
+      tabIndex = parseInt(tabIndexAttr, 10);
       validTabIndex = !isNaN(tabIndex);
       isContentEditable = element.getAttribute('contenteditable') === 'true';
       result = {
          enabled: true,
          tabStop:
-         (validTabIndex && (tabIndex >= 0 || FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase()))) ||
-         (tabIndex !== -1 && isContentEditable),
+            (validTabIndex && tabIndex >= 0) ||
+            (tabIndexAttr === null && FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase())) ||
+            (tabIndex !== -1 && isContentEditable),
          createsContext: (flags & CLASS_CREATES_CONTEXT) !== 0,
          tabIndex: tabIndex || 0, // обязательно хоть 0
          delegateFocusToChildren: ((flags & CLASS_DELEGATES_TAB_FLAG) !== 0 && !isContentEditable),
@@ -448,4 +455,3 @@ export function findWithContexts(rootElement: Element,
 
    return result as IControlElement;
 }
-
