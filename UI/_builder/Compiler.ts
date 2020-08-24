@@ -235,10 +235,10 @@ abstract class BaseCompiler implements ICompiler {
          let artifact: IArtifact = createArtifact(options);
          try {
             const source: ISource = this.createSource(text, options.fileName);
-            this.initWorkspace();
             this.traverse(source, options)
                .then((traversed) => {
                   try {
+                     this.initWorkspace();
                      artifact.text = this.generate(traversed, options);
                      artifact.localizedDictionary = traversed.localizedDictionary;
                      artifact.dependencies = traversed.dependencies;
@@ -257,7 +257,6 @@ abstract class BaseCompiler implements ICompiler {
                   reject(artifact);
                });
          } catch (error) {
-            this.cleanWorkspace();
             artifact.errors.push(error);
             reject(artifact);
          }
