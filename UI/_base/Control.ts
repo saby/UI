@@ -516,7 +516,12 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       } catch (error) {
          Logger.lifeError('_beforeUnmount', this, error);
       }
-      Purifier.purifyInstance(this, this._moduleName, true, stateNamesNoPurify);
+
+      // У чистого Wasaby контрола нет метода getParent, у совместимого - есть;
+      const isPureWasaby: boolean = !this.getParent;
+      if (isPureWasaby) {
+         Purifier.purifyInstance(this, this._moduleName, true, stateNamesNoPurify);
+      }
    }
 
    // <editor-fold desc="API">
