@@ -136,8 +136,11 @@ export class ElementNode extends BaseHtmlElement {
 }
 
 export class DoctypeNode extends Ast {
-   constructor() {
+   data: string;
+
+   constructor(data: string) {
       super();
+      this.data = data;
    }
 
    accept(visitor: IAstVisitor, context: any): any {
@@ -146,8 +149,11 @@ export class DoctypeNode extends Ast {
 }
 
 export class CDataNode extends Ast {
-   constructor() {
+   data: string;
+
+   constructor(data: string) {
       super();
+      this.data = data;
    }
 
    accept(visitor: IAstVisitor, context: any): any {
@@ -156,8 +162,11 @@ export class CDataNode extends Ast {
 }
 
 export class InstructionNode extends Ast {
-   constructor() {
+   data: string;
+
+   constructor(data: string) {
       super();
+      this.data = data;
    }
 
    accept(visitor: IAstVisitor, context: any): any {
@@ -166,8 +175,11 @@ export class InstructionNode extends Ast {
 }
 
 export class CommentNode extends Ast {
-   constructor() {
+   data: string;
+
+   constructor(data: string) {
       super();
+      this.data = data;
    }
 
    accept(visitor: IAstVisitor, context: any): any {
