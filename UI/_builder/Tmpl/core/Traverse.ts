@@ -112,10 +112,15 @@ class Traverse implements Nodes.INodeVisitor {
       const strictMarkup = this.getCurrentState() === TraverseState.MARKUP;
       switch (node.name) {
          case 'ws:if':
+            return this.processIf(node, context);
          case 'ws:else':
+            return this.processElse(node, context);
          case 'ws:for':
+            return this.processFor(node, context);
          case 'ws:template':
+            return this.processTemplate(node, context);
          case 'ws:partial':
+            return this.processPartial(node, context);
          case 'ws:Array':
          case 'ws:Boolean':
          case 'ws:Function':
@@ -123,22 +128,21 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:Object':
          case 'ws:String':
          case 'ws:Value':
+            throw new Error('Forbidden nodes');
          default:
             if (Names.isComponentOptionName(node.name)) {
-               // ws:*
                if (strictMarkup) {
                   throw new Error('Unexpected ws-prefixed node in markup');
                }
-               throw new Error('Not implemented');
+               return this.processComponentOption(node, context);
             }
             if (Names.isComponentName(node.name)) {
-               throw new Error('Not implemented');
+               return this.processComponent(node, context);
             }
             if (isElementNode(node.name)) {
-               throw new Error('Not implemented');
+               return this.processElement(node, context);
             }
-            // unknown node
-            throw new Error('Unknown node');
+            throw new Error('Unknown');
       }
    }
 
@@ -260,6 +264,50 @@ class Traverse implements Nodes.INodeVisitor {
             // unknown node
             throw new Error('Unknown node');
       }
+   }
+
+   private processIf(node: Nodes.Tag, context?: any): any {
+      throw new Error('Not implemented');
+      // TODO: в атрибутах только обязательный data
+      //  Создаем узел, парсим данные, переходим к детям
+   }
+
+   private processElse(node: Nodes.Tag, context?: any): any {
+      throw new Error('Not implemented');
+      // TODO: в атрибутах может быть необязательный data
+      //  Создаем узел, парсим данные, переходим к детям, проверяем соседний if
+   }
+
+   private processFor(node: Nodes.Tag, context?: any): any {
+      throw new Error('Not implemented');
+      // TODO: в атрибутах только обязательный data
+      //  Определяем тип, создаем узел, парсим данные, переходим к детям
+   }
+
+   private processTemplate(node: Nodes.Tag, context?: any): any {
+      throw new Error('Not implemented');
+      // TODO: в атрибутах только обязательный name
+      //  Создаем узел, парсим данные, переходим к детям
+   }
+
+   private processPartial(node: Nodes.Tag, context?: any): any {
+      throw new Error('Not implemented');
+      // TODO: в атрибутах есть обязательный template
+      //  Создаем узел, парсим данные, переходим к детям
+   }
+
+   private processComponentOption(node: Nodes.Tag, context?: any): any {
+      throw new Error('Not implemented');
+   }
+
+   private processComponent(node: Nodes.Tag, context?: any): any {
+      throw new Error('Not implemented');
+      // TODO: Создаем узел, парсим данные, переходим к детям
+   }
+
+   private processElement(node: Nodes.Tag, context?: any): any {
+      throw new Error('Not implemented');
+      // TODO: Создаем узел, парсим данные, переходим к детям
    }
 }
 
