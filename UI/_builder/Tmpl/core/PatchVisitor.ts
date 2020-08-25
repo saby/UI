@@ -52,7 +52,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.name = '!DOCTYPE';
       // @ts-ignore
-      node.data = `!DOCTYPE ${node.data}`;
+      node.data = `!DOCTYPE ${node.__$ws_data}`;
    }
 
    visitCData(node: Ast.CDataNode, context: INavigationContext): any {
@@ -61,7 +61,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.name = '![CDATA[';
       // @ts-ignore
-      node.data = `![CDATA[${node.data}]]`;
+      node.data = `![CDATA[${node.__$ws_data}]]`;
    }
 
    visitInstruction(node: Ast.InstructionNode, context: INavigationContext): any {

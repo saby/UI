@@ -4,6 +4,12 @@
  * @author Крылов М.А.
  */
 
+/**
+ * TODO: все новые поля на время разработки именуются с префиксом __$ws_.
+ *   Это делается для устранения коллизий при поддержании совместимости.
+ *   После окончания разработки привести имена в нормальный вид.
+ */
+
 export interface IAstVisitor {
    visitAttribute(node: AttributeNode, context: any): any;
    visitOption(node: OptionNode, context: any): any;
@@ -49,8 +55,8 @@ export abstract class Ast {
 }
 
 export abstract class BaseHtmlElement extends Ast {
-   attributes: IAttributes;
-   events: IEvents;
+   __$ws_attributes: IAttributes;
+   __$ws_events: IEvents;
 
    protected constructor() {
       super();
@@ -58,7 +64,7 @@ export abstract class BaseHtmlElement extends Ast {
 }
 
 export abstract class BaseWasabyElement extends BaseHtmlElement {
-   options: IOptions;
+   __$ws_options: IOptions;
 
    protected constructor() {
       super();
@@ -136,11 +142,11 @@ export class ElementNode extends BaseHtmlElement {
 }
 
 export class DoctypeNode extends Ast {
-   data: string;
+   __$ws_data: string;
 
    constructor(data: string) {
       super();
-      this.data = data;
+      this.__$ws_data = data;
    }
 
    accept(visitor: IAstVisitor, context: any): any {
@@ -149,11 +155,11 @@ export class DoctypeNode extends Ast {
 }
 
 export class CDataNode extends Ast {
-   data: string;
+   __$ws_data: string;
 
    constructor(data: string) {
       super();
-      this.data = data;
+      this.__$ws_data = data;
    }
 
    accept(visitor: IAstVisitor, context: any): any {
@@ -162,11 +168,11 @@ export class CDataNode extends Ast {
 }
 
 export class InstructionNode extends Ast {
-   data: string;
+   __$ws_data: string;
 
    constructor(data: string) {
       super();
-      this.data = data;
+      this.__$ws_data = data;
    }
 
    accept(visitor: IAstVisitor, context: any): any {
@@ -175,11 +181,11 @@ export class InstructionNode extends Ast {
 }
 
 export class CommentNode extends Ast {
-   data: string;
+   __$ws_data: string;
 
    constructor(data: string) {
       super();
-      this.data = data;
+      this.__$ws_data = data;
    }
 
    accept(visitor: IAstVisitor, context: any): any {
