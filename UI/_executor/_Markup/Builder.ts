@@ -7,8 +7,7 @@ import { ContextResolver } from 'UI/Contexts';
 import * as OptionsResolver from '../_Utils/OptionsResolver';
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
-// @ts-ignore
-import * as isNewEnvironment from 'Core/helpers/isNewEnvironment';
+import { isNewEnvironment } from 'UI/Utils';
 import { IBuilder } from './IBuilder';
 
 import { invisibleNodeCompat, isInstOfPromise, asyncRenderErrorTag } from './Utils'

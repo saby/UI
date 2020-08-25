@@ -2,11 +2,11 @@
 // @ts-ignore
 import { cookie } from 'Env/Env';
 import { Logger } from 'UI/Utils';
-import { createEntity, restoreEntity, isLinkEntity, isSingleEntity } from 'UI/theme/_controller/CSS';
-import { DEFAULT_THEME, EMPTY_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
-import { ICssEntity } from 'UI/theme/_controller/css/interface';
-import Loader, { ICssLoader } from 'UI/theme/_controller/Loader';
-import { EntityStorage, AliasStorage, IAliases } from 'UI/theme/_controller/Storage';
+import { createEntity, restoreEntity, isLinkEntity, isSingleEntity } from './CSS';
+import { DEFAULT_THEME, EMPTY_THEME, THEME_TYPE } from './css/const';
+import { ICssEntity } from './css/interface';
+import Loader, { ICssLoader } from './Loader';
+import { EntityStorage, AliasStorage, IAliases } from './Storage';
 /**
  * Контроллер тем, необходим для скачивания/удаления/коллекции/переключения тем на странице
  * @class UI/theme/_controller/Controller
