@@ -109,10 +109,12 @@ export abstract class BaseHtmlElement extends Ast {
 
 export abstract class BaseWasabyElement extends BaseHtmlElement {
    __$ws_options: IOptions;
+   __$ws_contents: IContents;
 
    protected constructor() {
       super();
       this.__$ws_options = { };
+      this.__$ws_contents = { };
    }
 }
 
@@ -200,7 +202,11 @@ export interface IAttributes {
 }
 
 export interface IOptions {
-   [attribute: string]: OptionNode | ContentOptionNode;
+   [attribute: string]: OptionNode;
+}
+
+export interface IContents {
+   [attribute: string]: ContentOptionNode;
 }
 
 export interface IEvents {
