@@ -100,8 +100,7 @@ class Traverse implements Nodes.INodeVisitor {
       const content = processTextData(node.data, this.expressionParser);
       this.keysGenerator.openChildren();
       for (let index = 0; index < content.length; ++index) {
-         content[index].__$ws_key = this.keysGenerator.getKey();
-         this.keysGenerator.incrementChild();
+         content[index].__$ws_key = this.keysGenerator.generate();
       }
       this.keysGenerator.closeChildren();
       return new Ast.TextNode(content);
@@ -118,9 +117,8 @@ class Traverse implements Nodes.INodeVisitor {
       for (let index = 0; index < nodes.length; ++index) {
          const child = <Ast.Ast>nodes[index].accept(this);
          if (child) {
-            child.__$ws_key = this.keysGenerator.getKey();
+            child.__$ws_key = this.keysGenerator.generate();
             children.push(child);
-            this.keysGenerator.incrementChild();
          }
       }
       this.keysGenerator.closeChildren();

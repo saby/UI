@@ -8,9 +8,8 @@
 
 export interface IKeysGenerator {
    openChildren(): void;
-   incrementChild(): void;
    closeChildren(): void;
-   getKey(): string;
+   generate(): string;
 }
 
 const KEY_SEPARATOR = '_';
@@ -26,18 +25,20 @@ class HierarchicalKeysGenerator implements IKeysGenerator {
       this.keys.push(0);
    }
 
-   incrementChild(): void {
-      const index = this.keys.length - 1;
-      const lastValue = this.keys[index];
-      this.keys[index] = lastValue + 1;
-   }
-
    closeChildren(): void {
       this.keys.pop();
    }
 
-   getKey(): string {
-      return this.keys.join(KEY_SEPARATOR) + KEY_SEPARATOR;
+   generate(): string {
+      const key = this.keys.join(KEY_SEPARATOR) + KEY_SEPARATOR;
+      this.increment();
+      return key;
+   }
+
+   private increment(): void {
+      const index = this.keys.length - 1;
+      const lastValue = this.keys[index];
+      this.keys[index] = lastValue + 1;
    }
 }
 
@@ -50,14 +51,10 @@ class FlatKeysGenerator implements IKeysGenerator {
 
    openChildren(): void { }
 
-   incrementChild(): void {
-      ++this.key;
-   }
-
    closeChildren(): void { }
 
-   getKey(): string {
-      return this.key.toString() + KEY_SEPARATOR;
+   generate(): string {
+      return (this.key++).toString() + KEY_SEPARATOR;
    }
 }
 
