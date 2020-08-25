@@ -5,10 +5,10 @@
  */
 
 const EMPTY_STRING = '';
-const ATTR_PREFIX_PATTERN = /attr:/i;
-const BIND_PREFIX_PATTERN = /bind:/i;
-const EVENT_PREFIX_PATTERN = /on:/i;
-const WS_PREFIX_PATTERN = /ws:/i;
+const ATTR_PREFIX_PATTERN = /^attr:/i;
+const BIND_PREFIX_PATTERN = /^bind:/i;
+const EVENT_PREFIX_PATTERN = /^on:/i;
+const WS_PREFIX_PATTERN = /^ws:/i;
 
 export function isAttribute(name: string): boolean {
    return ATTR_PREFIX_PATTERN.test(name);
