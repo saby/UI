@@ -4,41 +4,42 @@
  * @author Крылов М.А.
  */
 
-const ATTR_PREFIX = 'attr:';
-const BIND_PREFIX = 'bind:';
-const EVENT_PREFIX = 'on:';
-const WS_PREFIX = 'ws:';
+const EMPTY_STRING = '';
+const ATTR_PREFIX_PATTERN = /attr:/i;
+const BIND_PREFIX_PATTERN = /bind:/i;
+const EVENT_PREFIX_PATTERN = /on:/i;
+const WS_PREFIX_PATTERN = /ws:/i;
 
 export function isAttribute(name: string): boolean {
-   return name.startsWith(ATTR_PREFIX);
+   return ATTR_PREFIX_PATTERN.test(name);
 }
 
 export function getAttributeName(name: string): string {
-   return name.slice(ATTR_PREFIX.length);
+   return name.replace(ATTR_PREFIX_PATTERN, EMPTY_STRING);
 }
 
 export function isBind(name: string): boolean {
-   return name.startsWith(BIND_PREFIX);
+   return BIND_PREFIX_PATTERN.test(name);
 }
 
 export function getBindName(name: string): string {
-   return name.slice(BIND_PREFIX.length);
+   return name.replace(BIND_PREFIX_PATTERN, EMPTY_STRING);
 }
 
 export function isEvent(name: string): boolean {
-   return name.startsWith(EVENT_PREFIX);
+   return EVENT_PREFIX_PATTERN.test(name);
 }
 
 export function getEventName(name: string): string {
-   return name.slice(EVENT_PREFIX.length);
+   return name.replace(EVENT_PREFIX_PATTERN, EMPTY_STRING);
 }
 
 export function isComponentOptionName(name: string): boolean {
-   return name.startsWith(WS_PREFIX);
+   return WS_PREFIX_PATTERN.test(name);
 }
 
 export function getComponentOptionName(name: string): string {
-   return name.slice(WS_PREFIX.length);
+   return name.replace(WS_PREFIX_PATTERN, EMPTY_STRING);
 }
 
 export function isComponentName(name: string): boolean {

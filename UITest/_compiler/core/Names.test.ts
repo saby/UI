@@ -10,8 +10,11 @@ describe('Compiler/core/Names', () => {
    it('isAttribute() -> false', () => {
       assert.isFalse(Names.isAttribute('ws:attr:class'));
    });
-   it('getAttributeName()', () => {
+   it('getAttributeName() #1', () => {
       assert.strictEqual(Names.getAttributeName('attr:class'), 'class');
+   });
+   it('getAttributeName() #2', () => {
+      assert.strictEqual(Names.getAttributeName('class'), 'class');
    });
 
    it('isBind() -> true', () => {
@@ -20,8 +23,11 @@ describe('Compiler/core/Names', () => {
    it('isBind() -> false', () => {
       assert.isFalse(Names.isBind('ws:bind:value'));
    });
-   it('getBindName()', () => {
+   it('getBindName() #1', () => {
       assert.strictEqual(Names.getBindName('bind:value'), 'value');
+   });
+   it('getBindName() #2', () => {
+      assert.strictEqual(Names.getBindName('value'), 'value');
    });
 
    it('isEvent() -> true', () => {
@@ -30,8 +36,11 @@ describe('Compiler/core/Names', () => {
    it('isEvent() -> false', () => {
       assert.isFalse(Names.isEvent('ws:on:click'));
    });
-   it('getEventName()', () => {
+   it('getEventName() #1', () => {
       assert.strictEqual(Names.getEventName('on:click'), 'click');
+   });
+   it('getEventName() #2', () => {
+      assert.strictEqual(Names.getEventName('click'), 'click');
    });
 
    it('isComponentOptionName() -> true', () => {
@@ -40,8 +49,11 @@ describe('Compiler/core/Names', () => {
    it('isComponentOptionName() -> false', () => {
       assert.isFalse(Names.isComponentOptionName('option'));
    });
-   it('getComponentOptionName()', () => {
+   it('getComponentOptionName() #1', () => {
       assert.strictEqual(Names.getComponentOptionName('ws:option'), 'option');
+   });
+   it('getComponentOptionName() #2', () => {
+      assert.strictEqual(Names.getComponentOptionName('option'), 'option');
    });
 
    it('isComponentName() # 1', () => {
