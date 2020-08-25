@@ -45,3 +45,10 @@ export function getComponentOptionName(name: string): string {
 export function isComponentName(name: string): boolean {
    return /(\w+[\.:])+\w+/gi.test(name);
 }
+
+export function validateTemplateName(name: string): string {
+   if (!name.match(/^[a-zA-Z_]\w*$/g)) {
+      throw new Error(`Invalid template name "${name}"`);
+   }
+   return name;
+}

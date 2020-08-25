@@ -32,6 +32,36 @@ interface IAttributesCollection {
    events: Ast.IEvents;
 }
 
+interface IFilteredAttributes {
+   [name: string]: Nodes.Attribute;
+}
+
+function filterAttributes(node: Nodes.Tag, expected: string[]): IFilteredAttributes {
+   const collection: IFilteredAttributes = { };
+   for (const attributeName in node.attributes) {
+      if (node.attributes.hasOwnProperty(attributeName)) {
+         if (expected.indexOf(attributeName) > -1) {
+            collection[attributeName] = node.attributes[attributeName];
+         } else {
+            throw new Error(`Unexpected attribute "${attributeName}" on tag "${node.name}". Ignore this attribute`);
+         }
+      }
+   }
+   return collection;
+}
+
+function getDataNode(node: Nodes.Tag, name: string): string {
+   const attributes = filterAttributes(node, [name]);
+   const data = attributes[name];
+   if (data === undefined) {
+      throw new Error(`Expected attribute "${name}" on tag "${node.name}". Ignore this tag`);
+   }
+   if (data.value === null) {
+      throw new Error(`Expected attribute "${name}" on tag "${node.name}" has value. Ignore this tag`);
+   }
+   return data.value;
+}
+
 class Traverse implements Nodes.INodeVisitor {
    private stateStack: TraverseState[];
    private expressionParser: IParser;
@@ -312,9 +342,11 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private processTemplate(node: Nodes.Tag, context?: any): any {
-      throw new Error('Not implemented');
-      // TODO: в атрибутах только обязательный name
-      //  Создаем узел, парсим данные, переходим к детям
+      const templateName = getDataNode(node, 'name');
+      Names.validateTemplateName(templateName);
+      const ast = new Ast.TemplateNode(templateName);
+      ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
+      return ast;
    }
 
    private processPartial(node: Nodes.Tag, context?: any): any {
