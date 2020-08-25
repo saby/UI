@@ -1,4 +1,4 @@
-define('UI/_builder/Tmpl/postTraverse', [
+define('UI/_builder/Tmpl/core/_deprecated/postTraverse', [
    'UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch',
    'Core/helpers/Array/uniq'
 ], function(

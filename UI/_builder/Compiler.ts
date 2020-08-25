@@ -8,7 +8,7 @@ import * as ComponentCollector from 'UI/_builder/Tmpl/ComponentCollector';
 import { parse } from 'UI/_builder/Tmpl/html/Parser';
 import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';
-import * as traversing from 'UI/_builder/Tmpl/traverse';
+import * as traversing from 'UI/_builder/Tmpl/core/_deprecated/traverse';
 import * as processingToFunction from 'UI/_builder/Tmpl/function';
 import * as templates from 'UI/_builder/Tmpl/codegen/templates';
 import { ISource, Source } from './utils/Source';
