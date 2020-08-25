@@ -1,7 +1,7 @@
 /// <amd-module name='UI/theme/_controller/css/SingleLink' />
-import Link from 'UI/theme/_controller/css/Link';
-import { THEME_TYPE } from 'UI/theme/_controller/css/const';
-import { ISingleCssEntity, IHTMLElement } from 'UI/theme/_controller/css/interface';
+import Link from './Link';
+import { THEME_TYPE } from './const';
+import { ISingleCssEntity, IHTMLElement } from './interface';
 /**
  * Немультитемная ссылка на клиенте
  */

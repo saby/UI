@@ -2,7 +2,7 @@
 /* tslint:disable */
 
 // @ts-ignore
-import * as Serializer from 'Core/Serializer';
+import { Serializer } from 'UI/State';
 // @ts-ignore
 import { IoC } from 'Env/Env';
 // @ts-ignore
@@ -10,7 +10,7 @@ import { Logger } from 'UI/Utils';
 // @ts-ignore
 import {Config as config} from 'UI/Builder';
 // @ts-ignore
-import * as isPlainObject from 'Core/helpers/Object/isPlainObject';
+import { ObjectUtils } from 'UI/Utils';
 
 import { Text, Vdom } from './Markup';
 import { _FocusAttrs } from 'UI/Focus';
@@ -72,7 +72,7 @@ const ITERATORS = [
    {
       type: 'object',
       is: function isObject(ent) {
-         return isPlainObject(ent);
+         return ObjectUtils.isPlainObject(ent);
       },
       iterator: function objectIterator(object, callback) {
          for (var key in object) {

@@ -1,4 +1,5 @@
 define('UI/_builder/Tmpl/function', [
+   'UI/Utils',
    'UI/_builder/Tmpl/expressions/_private/Process',
    'UI/_builder/Tmpl/expressions/_private/Event',
    'UI/_builder/Tmpl/modules/utils/common',
@@ -11,11 +12,11 @@ define('UI/_builder/Tmpl/function', [
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
    'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/modules/utils/parse',
-   'Core/helpers/Function/shallowClone',
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/Tmpl/codegen/Generator',
    'UI/_builder/Tmpl/codegen/TClosure'
 ], function processingModule(
+   uiUtils,
    Process,
    eventExpressions,
    utils,
@@ -28,7 +29,6 @@ define('UI/_builder/Tmpl/function', [
    FSC,
    ErrorHandlerLib,
    parseUtils,
-   shallowClone,
    templates,
    Generator,
    TClosure
@@ -173,7 +173,7 @@ define('UI/_builder/Tmpl/function', [
       decorate: function decorate(attributes) {
          return function decorateRoot(rootAttribs) {
             var currentRootAttribs = rootAttribs || { };
-            var attrs = shallowClone(currentRootAttribs);
+            var attrs = uiUtils.FunctionUtils.shallowClone(currentRootAttribs);
             if (attributes) {
                for (var name in attributes) {
                   if (attrs[name]) {

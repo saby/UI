@@ -1,10 +1,8 @@
 /// <amd-module name="UI/_contexts/ContextResolver" />
 /* tslint:disable */
 
-// @ts-ignore
 import { Logger } from 'UI/Utils';
-// @ts-ignore
-import * as DataContext from 'Core/DataContext';
+import DataContext from "./DataContext";
 
 const whiteList = {
    "UserActivity/ActivityContextField": true,

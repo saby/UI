@@ -1,6 +1,6 @@
 /// <amd-module name="UI/_base/startApplication" />
 import { default as AppInit, isInit } from 'Application/Initializer';
-import StateReceiver from 'UI/_base/StateReceiver';
+import StateReceiver from 'UI/_state/StateReceiver';
 
 /**
  * Инициализация Application/Env для Sbis приложения

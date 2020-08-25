@@ -12,8 +12,7 @@ import { goUpByControlTree } from 'UI/NodeCollector';
 
 import { IControlElement } from './IFocus';
 
-// @ts-ignore
-import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
+import { isElementVisible } from 'UI/Utils';
 
 function findAutofocusForVDOM(findContainer: Element): NodeListOf<Element> {
    return findContainer.querySelectorAll('[ws-autofocus="true"]');
