@@ -5,6 +5,11 @@
  */
 
 export interface IAstVisitor {
+   visitAttribute(node: AttributeNode, context: any): any;
+   visitOption(node: OptionNode, context: any): any;
+   visitBind(node: BindNode, context: any): any;
+   visitEvent(node: EventNode, context: any): any;
+
    visitElement(node: ElementNode, context: any): any;
    visitDoctype(node: DoctypeNode, context: any): any;
    visitCData(node: CDataNode, context: any): any;
@@ -43,14 +48,6 @@ export abstract class Ast {
    abstract accept(visitor: IAstVisitor, context: any): any;
 }
 
-export interface IAttributes {
-   //
-}
-
-export interface IEvents {
-   //
-}
-
 export abstract class BaseHtmlElement extends Ast {
    attributes: IAttributes;
    events: IEvents;
@@ -58,6 +55,70 @@ export abstract class BaseHtmlElement extends Ast {
    protected constructor() {
       super();
    }
+}
+
+export abstract class BaseWasabyElement extends BaseHtmlElement {
+   options: IOptions;
+
+   protected constructor() {
+      super();
+   }
+}
+
+// </editor-fold>
+
+// <editor-fold desc="Attributes">
+
+export class AttributeNode extends Ast {
+   constructor() {
+      super();
+   }
+
+   accept(visitor: IAstVisitor, context: any): any {
+      return visitor.visitAttribute(this, context);
+   }
+}
+
+export class OptionNode extends Ast {
+   constructor() {
+      super();
+   }
+
+   accept(visitor: IAstVisitor, context: any): any {
+      return visitor.visitOption(this, context);
+   }
+}
+
+export class BindNode extends Ast {
+   constructor() {
+      super();
+   }
+
+   accept(visitor: IAstVisitor, context: any): any {
+      return visitor.visitBind(this, context);
+   }
+}
+
+export class EventNode extends Ast {
+   constructor() {
+      super();
+   }
+
+   accept(visitor: IAstVisitor, context: any): any {
+      return visitor.visitEvent(this, context);
+   }
+}
+
+export interface IAttributes {
+   [attribute: string]: AttributeNode;
+}
+
+export interface IOptions {
+   [attribute: string]: OptionNode;
+}
+
+export interface IEvents {
+   [attribute: string]: Array<EventNode | BindNode>;
 }
 
 // </editor-fold>
@@ -118,7 +179,7 @@ export class CommentNode extends Ast {
 
 // <editor-fold desc="WaSaby directives">
 
-export class ComponentNode extends BaseHtmlElement {
+export class ComponentNode extends BaseWasabyElement {
    constructor() {
       super();
    }
@@ -128,7 +189,7 @@ export class ComponentNode extends BaseHtmlElement {
    }
 }
 
-export class PartialNode extends BaseHtmlElement {
+export class PartialNode extends BaseWasabyElement {
    constructor() {
       super();
    }
