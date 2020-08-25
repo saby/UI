@@ -23,15 +23,8 @@ class Traverse implements Nodes.INodeVisitor {
       this.stateStack = [];
    }
 
-   visitAll(nodes: Nodes.Node[], context?: any): Ast.Ast[] {
-      const children: Ast.Ast[] = [];
-      for (let i = 0; i < nodes.length; ++i) {
-         const child = <Ast.Ast>nodes[i].accept(this);
-         if (child) {
-            children.push(child);
-         }
-      }
-      return children;
+   visitComment(node: Nodes.Comment, context?: any): Ast.CommentNode {
+      return new Ast.CommentNode(node.data);
    }
 
    visitCData(node: Nodes.CData, context?: any): Ast.CDataNode {
@@ -44,10 +37,6 @@ class Traverse implements Nodes.INodeVisitor {
          default:
             return undefined;
       }
-   }
-
-   visitComment(node: Nodes.Comment, context?: any): Ast.CommentNode {
-      return new Ast.CommentNode(node.data);
    }
 
    visitDoctype(node: Nodes.Doctype, context?: any): Ast.DoctypeNode {
@@ -85,6 +74,17 @@ class Traverse implements Nodes.INodeVisitor {
    transform(nodes: Nodes.Node[], context?: any): Ast.Ast[] {
       this.stateStack.push(TraverseState.MARKUP);
       return this.visitAll(nodes, context);
+   }
+
+   visitAll(nodes: Nodes.Node[], context?: any): Ast.Ast[] {
+      const children: Ast.Ast[] = [];
+      for (let i = 0; i < nodes.length; ++i) {
+         const child = <Ast.Ast>nodes[i].accept(this);
+         if (child) {
+            children.push(child);
+         }
+      }
+      return children;
    }
 
    private getCurrentState(): TraverseState {
