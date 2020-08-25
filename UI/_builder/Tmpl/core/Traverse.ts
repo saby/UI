@@ -26,6 +26,12 @@ export interface ITraverseOptions {
    hierarchicalKeys: boolean;
 }
 
+interface IAttributesCollection {
+   attributes: Ast.IAttributes;
+   options: Ast.IOptions;
+   events: Ast.IEvents;
+}
+
 class Traverse implements Nodes.INodeVisitor {
    private stateStack: TraverseState[];
    private expressionParser: IParser;
@@ -327,8 +333,50 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private processElement(node: Nodes.Tag, context?: any): any {
-      throw new Error('Not implemented');
-      // TODO: Создаем узел, парсим данные, переходим к детям
+      const attributes = this.visitAttributes(node.attributes, true);
+      const ast = new Ast.ElementNode(node.name);
+      ast.__$ws_attributes = attributes.attributes;
+      ast.__$ws_events = attributes.events;
+      ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
+      return ast;
+   }
+
+   private visitAttributes(attributes: Nodes.IAttributes, hasAttributesOnly: boolean): IAttributesCollection {
+      const collection: IAttributesCollection = {
+         attributes: { },
+         options: { },
+         events: { }
+      };
+      for (const attributeName in attributes) {
+         if (attributes.hasOwnProperty(attributeName)) {
+            const value = attributes[attributeName].value as string;
+            if (Names.isBind(attributeName)) {
+               const property = Names.getBindName(attributeName);
+               if (!collection.events.hasOwnProperty(property)) {
+                  collection.events[property] = [];
+               }
+               collection.events[property].push(
+                  new Ast.BindNode(property, this.expressionParser.parse(value))
+               );
+            } else if (Names.isEvent(attributeName)) {
+               const event = Names.getEventName(attributeName);
+               if (!collection.events.hasOwnProperty(event)) {
+                  collection.events[event] = [];
+               }
+               collection.events[event].push(
+                  new Ast.EventNode(event, this.expressionParser.parse(value))
+               );
+            } else if (Names.isAttribute(attributeName) || hasAttributesOnly) {
+               const attribute = Names.getAttributeName(attributeName);
+               const processedValue = processTextData(value, this.expressionParser);
+               collection.attributes[attribute] = new Ast.AttributeNode(attribute, processedValue);
+            } else {
+               const processedValue = processTextData(value, this.expressionParser);
+               collection.options[attributeName] = new Ast.OptionNode(attributeName, processedValue);
+            }
+         }
+      }
+      return collection;
    }
 }
 
