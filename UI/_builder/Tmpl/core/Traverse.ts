@@ -173,7 +173,7 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:else':
             return this.processElse(node, context);
          case 'ws:for':
-            return this.processFor(node, context);
+            return this.processCycle(node, context);
          case 'ws:template':
             return this.processTemplate(node, context);
          case 'ws:partial':
@@ -335,10 +335,35 @@ class Traverse implements Nodes.INodeVisitor {
       //  Создаем узел, парсим данные, переходим к детям, проверяем соседний if
    }
 
+   private processCycle(node: Nodes.Tag, context?: any): any {
+      const data = getDataNode(node, 'data');
+      if (data.indexOf(';') > -1) {
+         return this.processFor(node, context);
+      }
+      return this.processForeach(node, context);
+   }
+
    private processFor(node: Nodes.Tag, context?: any): any {
-      throw new Error('Not implemented');
-      // TODO: в атрибутах только обязательный data
-      //  Определяем тип, создаем узел, парсим данные, переходим к детям
+      const data = getDataNode(node, 'data');
+      const [initStr, testStr, updateStr] = data.split(';').map(s => s.trim());
+      const init = initStr ? this.expressionParser.parse(initStr) : null;
+      const test = this.expressionParser.parse(testStr);
+      const update = updateStr ? this.expressionParser.parse(updateStr) : null;
+      const ast = new Ast.ForNode(init, test, update);
+      ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
+      return ast;
+   }
+
+   private processForeach(node: Nodes.Tag, context?: any): any {
+      const data = getDataNode(node, 'data');
+      const [left, right] = data.split(' in ');
+      const collection = this.expressionParser.parse(right);
+      const variables = left.split(',').map(s => s.trim());
+      const iterator = variables.pop();
+      const index = variables.length == 1 ? variables.pop() : null;
+      const ast = new Ast.ForeachNode(index, iterator, collection);
+      ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
+      return ast;
    }
 
    private processTemplate(node: Nodes.Tag, context?: any): any {
