@@ -10,6 +10,7 @@ import * as Names from 'UI/_builder/Tmpl/core/Names';
 import { isElementNode } from 'UI/_builder/Tmpl/core/Html';
 import { IParser } from '../expressions/_private/Parser';
 import { processTextData } from './TextProcessor';
+import { IKeysGenerator, createKeysGenerator } from './KeysGenerator';
 
 const enum TraverseState {
    MARKUP,
@@ -22,15 +23,18 @@ const enum TraverseState {
 
 export interface ITraverseOptions {
    expressionParser: IParser;
+   hierarchicalKeys: boolean;
 }
 
 class Traverse implements Nodes.INodeVisitor {
    private stateStack: TraverseState[];
    private expressionParser: IParser;
+   private keysGenerator: IKeysGenerator;
 
    constructor(options: ITraverseOptions) {
       this.stateStack = [];
       this.expressionParser = options.expressionParser;
+      this.keysGenerator = createKeysGenerator(options.hierarchicalKeys);
    }
 
    visitComment(node: Nodes.Comment, context?: any): Ast.CommentNode {
@@ -94,6 +98,12 @@ class Traverse implements Nodes.INodeVisitor {
 
    visitText(node: Nodes.Text, context?: any): Ast.TextNode {
       const content = processTextData(node.data, this.expressionParser);
+      this.keysGenerator.openChildren();
+      for (let index = 0; index < content.length; ++index) {
+         content[index].__$ws_key = this.keysGenerator.getKey();
+         this.keysGenerator.incrementChild();
+      }
+      this.keysGenerator.closeChildren();
       return new Ast.TextNode(content);
    }
 
@@ -104,12 +114,16 @@ class Traverse implements Nodes.INodeVisitor {
 
    visitAll(nodes: Nodes.Node[], context?: any): Ast.Ast[] {
       const children: Ast.Ast[] = [];
-      for (let i = 0; i < nodes.length; ++i) {
-         const child = <Ast.Ast>nodes[i].accept(this);
+      this.keysGenerator.openChildren();
+      for (let index = 0; index < nodes.length; ++index) {
+         const child = <Ast.Ast>nodes[index].accept(this);
          if (child) {
+            child.__$ws_key = this.keysGenerator.getKey();
             children.push(child);
+            this.keysGenerator.incrementChild();
          }
       }
+      this.keysGenerator.closeChildren();
       return children;
    }
 
