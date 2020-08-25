@@ -35,7 +35,7 @@ class Traverse implements Nodes.INodeVisitor {
          case TraverseState.COMPONENT_OPTION:
             return new Ast.CDataNode(node.data);
          default:
-            return undefined;
+            throw new Error('Unexpected node');
       }
    }
 
@@ -47,7 +47,7 @@ class Traverse implements Nodes.INodeVisitor {
          case TraverseState.COMPONENT_OPTION:
             return new Ast.DoctypeNode(node.data);
          default:
-            return undefined;
+            throw new Error('Unexpected node');
       }
    }
 
@@ -59,12 +59,27 @@ class Traverse implements Nodes.INodeVisitor {
          case TraverseState.COMPONENT_OPTION:
             return new Ast.InstructionNode(node.data);
          default:
-            return undefined;
+            throw new Error('Unexpected node');
       }
    }
 
    visitTag(node: Nodes.Tag, context?: any): Ast.Ast {
-      throw new Error('Not implemented');
+      const state = this.getCurrentState();
+      switch (state) {
+         case TraverseState.MARKUP:
+         case TraverseState.COMPONENT:
+            throw new Error('Not implemented');
+         case TraverseState.COMPONENT_OPTION:
+            throw new Error('Not implemented');
+         case TraverseState.ARRAY_DATA:
+            throw new Error('Not implemented');
+         case TraverseState.PRIMITIVE_DATA:
+            throw new Error('Not implemented');
+         case TraverseState.OBJECT_DATA:
+            throw new Error('Not implemented');
+         default:
+            throw new Error('Not implemented');
+      }
    }
 
    visitText(node: Nodes.Text, context?: any): Ast.Ast {
@@ -90,4 +105,10 @@ class Traverse implements Nodes.INodeVisitor {
    private getCurrentState(): TraverseState {
       return this.stateStack[this.stateStack.length - 1];
    }
+}
+
+export default function traverse(nodes: Nodes.Node[]) {
+   return new Traverse().transform(
+      nodes
+   );
 }
