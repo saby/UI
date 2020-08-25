@@ -6,6 +6,8 @@
  * Модуль содержит логику нахождения следующего элемента для фокусировки
  */
 
+import { IControlElement } from './IFocus';
+
 let NODE_NODE_TYPE = 1;
 
 interface IFocusElementProps {
@@ -58,25 +60,24 @@ function getStyle(element: Element, style: string): string {
 // Determines if the passed element can accept focus themselves instead of
 // delegating it to children. These are the usual interactive controls
 // (buttons, links, inputs) and containers with 'contenteditable'
-function canAcceptSelfFocus(element: HTMLElement): boolean {
-   const tabIndexAttr = element.getAttribute('tabindex');
-   const tabIndex = parseInt(tabIndexAttr, 10);
+function canAcceptSelfFocus(element: IControlElement): boolean {
+   const tabIndex = element.tabIndex;
 
    return FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase()) ||
       (tabIndex !== -1 && element.hasAttribute('contenteditable'));
 }
 
-export function getElementProps(element: Element): IFocusElementProps {
-   let
-      elementPropsClassRe = /\bws-(hidden|disabled)\b/g,
-      className = element.getAttribute('class'),
-      classes,
-      tabIndex,
-      tabIndexAttr,
-      validTabIndex,
-      flags,
-      enabled,
-      result;
+export function getElementProps(element: HTMLElement): IFocusElementProps {
+   let elementPropsClassRe = /\bws-(hidden|disabled)\b/g;
+   let className = element.getAttribute('class');
+   let classes;
+   let tabIndex;
+   let tabIndexAttr;
+   let validTabIndex;
+   let isContentEditable;
+   let flags;
+   let enabled;
+   let result;
 
    flags = 0;
    while ((classes = className && elementPropsClassRe.exec(className))) {
@@ -102,17 +103,16 @@ export function getElementProps(element: Element): IFocusElementProps {
       tabIndexAttr = element.getAttribute('tabindex');
       tabIndex = parseInt(tabIndexAttr, 10);
       validTabIndex = !isNaN(tabIndex);
-
+      isContentEditable = element.getAttribute('contenteditable') === 'true';
       result = {
          enabled: true,
          tabStop:
-         (validTabIndex && tabIndex >= 0) ||
-         (tabIndexAttr === null && FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase())) ||
-         (tabIndex !== -1 && element.getAttribute('contenteditable') === 'true'),
+            (validTabIndex && tabIndex >= 0) ||
+            (tabIndexAttr === null && FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase())) ||
+            (tabIndex !== -1 && isContentEditable),
          createsContext: (flags & CLASS_CREATES_CONTEXT) !== 0,
          tabIndex: tabIndex || 0, // обязательно хоть 0
-         delegateFocusToChildren: ((flags & CLASS_DELEGATES_TAB_FLAG) !== 0 &&
-            element.getAttribute('contenteditable') !== 'true'),
+         delegateFocusToChildren: ((flags & CLASS_DELEGATES_TAB_FLAG) !== 0 && !isContentEditable),
          tabCycling: (flags & CLASS_TAB_CYCLING) !== 0
       };
    } else {
@@ -219,7 +219,7 @@ function find(contextElement: Element,
               fromElement: Element | null,
               fromElementTabIndex: number,
               reverse: boolean,
-              propsGetter:(Element) => IFocusElementProps): Element {
+              propsGetter:(Element) => IFocusElementProps): HTMLElement {
    assert(
       contextElement &&
       (fromElement || fromElementTabIndex !== undefined) &&
@@ -362,7 +362,7 @@ function find(contextElement: Element,
 
 export function findFirstInContext(contextElement: Element,
                                    reverse: boolean,
-                                   propsGetter:(Element) => IFocusElementProps = getElementProps): Element {
+                                   propsGetter:(Element) => IFocusElementProps = getElementProps): HTMLElement {
    return find(contextElement, undefined, reverse ? 0 : 1, reverse, propsGetter);
 }
 
@@ -418,7 +418,7 @@ function checkElement(element: Element, paramName: string): void {
 export function findWithContexts(rootElement: Element,
                                  fromElement: Element,
                                  reverse: boolean,
-                                 propsGetter:(Element) => IFocusElementProps = getElementProps): Element {
+                                 propsGetter:(Element) => IFocusElementProps = getElementProps): IControlElement {
 
    checkElement(fromElement, 'fromElement');
    checkElement(rootElement, 'rootElement');
@@ -453,6 +453,5 @@ export function findWithContexts(rootElement: Element,
       }
    }
 
-   return result;
+   return result as IControlElement;
 }
-
