@@ -326,6 +326,37 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.type = 'text';
    }
 
+   // done.
+   visitIf(node: Ast.IfNode, context: INavigationContext): any {
+      // @ts-ignore
+      node.attribs = {
+         data: {
+            data: [{
+               isBind: false,
+               isEvent: false,
+               localized: false,
+               name: node.__$ws_test,
+               noEscape: false,
+               type: 'var',
+               value: ''
+            }],
+            key: undefined,
+            type: 'text'
+         }
+      };
+      // @ts-ignore
+      node.children = node.__$ws_consequent;
+      // @ts-ignore
+      node.name = 'ws:if';
+      // @ts-ignore
+      node.originName = 'ws:if';
+      // @ts-ignore
+      node.key = node.__$ws_key;
+      // @ts-ignore
+      node.type = 'tag';
+      this.visitAll(node.__$ws_consequent, context);
+   }
+
    visitOption(node: Ast.OptionNode, context: INavigationContext): any {
       return node;
    }
@@ -342,13 +373,6 @@ class PatchVisitor implements Ast.IAstVisitor {
    }
 
    visitPartial(node: Ast.PartialNode, context: INavigationContext): any {
-      // @ts-ignore
-      node.type = 'tag';
-      // @ts-ignore
-      node.key = node.__$ws_key;
-   }
-
-   visitIf(node: Ast.IfNode, context: INavigationContext): any {
       // @ts-ignore
       node.type = 'tag';
       // @ts-ignore
