@@ -33,6 +33,10 @@ class PatchVisitor implements Ast.IAstVisitor {
       return node;
    }
 
+   visitContentOption(node: Ast.ContentOptionNode, context: INavigationContext): any {
+      return node;
+   }
+
    visitBind(node: Ast.BindNode, context: INavigationContext): any {
       return node;
    }
