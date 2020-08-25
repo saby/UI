@@ -503,8 +503,11 @@ export class ValueNode extends Ast {
 // <editor-fold desc="WaSaby text">
 
 export class TextNode extends Ast {
-   constructor() {
+   __$ws_content: TText[];
+
+   constructor(content: TText[] = []) {
       super();
+      this.__$ws_content = content;
    }
 
    accept(visitor: IAstVisitor, context: any): any {
@@ -513,8 +516,11 @@ export class TextNode extends Ast {
 }
 
 export class TextDataNode extends Ast {
-   constructor() {
+   __$ws_content: string;
+
+   constructor(content: string = '') {
       super();
+      this.__$ws_content = content;
    }
 
    accept(visitor: IAstVisitor, context: any): any {
@@ -523,8 +529,11 @@ export class TextDataNode extends Ast {
 }
 
 export class ExpressionNode extends Ast {
-   constructor() {
+   __$ws_program: ProgramNode;
+
+   constructor(program: ProgramNode) {
       super();
+      this.__$ws_program = program;
    }
 
    accept(visitor: IAstVisitor, context: any): any {
@@ -533,8 +542,13 @@ export class ExpressionNode extends Ast {
 }
 
 export class TranslationNode extends Ast {
-   constructor() {
+   __$ws_text: string;
+   __$ws_context: string;
+
+   constructor(text: string, context: string = '') {
       super();
+      this.__$ws_text = text;
+      this.__$ws_context = context;
    }
 
    accept(visitor: IAstVisitor, context: any): any {
