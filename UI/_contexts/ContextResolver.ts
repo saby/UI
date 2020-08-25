@@ -2,7 +2,6 @@
 /* tslint:disable */
 
 import { Logger } from 'UI/Utils';
-import DataContext from "./DataContext";
 
 const whiteList = {
    "UserActivity/ActivityContextField": true,
@@ -56,7 +55,7 @@ export function wrapContext(inst, currentCtx) {
                Logger.error(message, inst);
             }
             currentCtx[i] = ctx[i];
-            if (ctx[i] && ctx[i].getVersion === DataContext.prototype.getVersion) {
+            if (ctx[i] && ctx[i].getVersion !== compositeGetVersion) {
                for (var j in ctx[i]) {
                   if (ctx[i].hasOwnProperty(j) && ctx[i][j]) {
                      if (ctx[i][j].getVersion) {
