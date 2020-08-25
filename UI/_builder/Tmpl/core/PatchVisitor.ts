@@ -381,9 +381,32 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    visitElse(node: Ast.ElseNode, context: INavigationContext): any {
       // @ts-ignore
-      node.type = 'tag';
+      node.attribs = node.__$ws_test ? {
+         data: {
+            data: [{
+               isBind: false,
+               isEvent: false,
+               localized: false,
+               name: node.__$ws_test,
+               noEscape: false,
+               type: 'var',
+               value: ''
+            }],
+            key: undefined,
+            type: 'text'
+         }
+      } : { };
+      // @ts-ignore
+      node.children = node.__$ws_consequent;
+      // @ts-ignore
+      node.name = 'ws:else';
+      // @ts-ignore
+      node.originName = 'ws:else';
       // @ts-ignore
       node.key = node.__$ws_key;
+      // @ts-ignore
+      node.type = 'tag';
+      this.visitAll(node.__$ws_consequent, context);
    }
 
    visitArray(node: Ast.ArrayNode, context: INavigationContext): any {
