@@ -6,6 +6,8 @@
 
 import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
+import * as Names from 'UI/_builder/Tmpl/core/Names';
+import { isElementNode } from 'UI/_builder/Tmpl/core/Html';
 
 const enum TraverseState {
    MARKUP,
@@ -68,17 +70,17 @@ class Traverse implements Nodes.INodeVisitor {
       switch (state) {
          case TraverseState.MARKUP:
          case TraverseState.COMPONENT:
-            throw new Error('Not implemented');
+            return this.processTagInMarkup(node, context);
          case TraverseState.COMPONENT_OPTION:
-            throw new Error('Not implemented');
+            return this.processTagInComponentOption(node, context);
          case TraverseState.ARRAY_DATA:
-            throw new Error('Not implemented');
+            return this.processTagInArrayData(node, context);
          case TraverseState.PRIMITIVE_DATA:
-            throw new Error('Not implemented');
+            return this.processTagInPrimitiveData(node, context);
          case TraverseState.OBJECT_DATA:
-            throw new Error('Not implemented');
+            return this.processTagInObjectData(node, context);
          default:
-            throw new Error('Not implemented');
+            throw new Error('Unknown state');
       }
    }
 
@@ -104,6 +106,160 @@ class Traverse implements Nodes.INodeVisitor {
 
    private getCurrentState(): TraverseState {
       return this.stateStack[this.stateStack.length - 1];
+   }
+
+   private processTagInMarkup(node: Nodes.Tag, context?: any): any {
+      const strictMarkup = this.getCurrentState() === TraverseState.MARKUP;
+      switch (node.name) {
+         case 'ws:if':
+         case 'ws:else':
+         case 'ws:for':
+         case 'ws:template':
+         case 'ws:partial':
+         case 'ws:Array':
+         case 'ws:Boolean':
+         case 'ws:Function':
+         case 'ws:Number':
+         case 'ws:Object':
+         case 'ws:String':
+         case 'ws:Value':
+         default:
+            if (Names.isComponentOptionName(node.name)) {
+               // ws:*
+               if (strictMarkup) {
+                  throw new Error('Unexpected ws-prefixed node in markup');
+               }
+               throw new Error('Not implemented');
+            }
+            if (Names.isComponentName(node.name)) {
+               throw new Error('Not implemented');
+            }
+            if (isElementNode(node.name)) {
+               throw new Error('Not implemented');
+            }
+            // unknown node
+            throw new Error('Unknown node');
+      }
+   }
+
+   private processTagInComponentOption(node: Nodes.Tag, context?: any): any {
+      switch (node.name) {
+         case 'ws:if':
+         case 'ws:else':
+         case 'ws:for':
+         case 'ws:template':
+         case 'ws:partial':
+         case 'ws:Array':
+         case 'ws:Boolean':
+         case 'ws:Function':
+         case 'ws:Number':
+         case 'ws:Object':
+         case 'ws:String':
+         case 'ws:Value':
+         default:
+            if (Names.isComponentOptionName(node.name)) {
+               // ws:*
+               throw new Error('Not implemented');
+            }
+            if (Names.isComponentName(node.name)) {
+               throw new Error('Not implemented');
+            }
+            if (isElementNode(node.name)) {
+               throw new Error('Not implemented');
+            }
+            // unknown node
+            throw new Error('Unknown node');
+      }
+   }
+
+   private processTagInArrayData(node: Nodes.Tag, context?: any): any {
+      switch (node.name) {
+         case 'ws:if':
+         case 'ws:else':
+         case 'ws:for':
+         case 'ws:template':
+         case 'ws:partial':
+         case 'ws:Array':
+         case 'ws:Boolean':
+         case 'ws:Function':
+         case 'ws:Number':
+         case 'ws:Object':
+         case 'ws:String':
+         case 'ws:Value':
+         default:
+            if (Names.isComponentOptionName(node.name)) {
+               // ws:*
+               throw new Error('Not implemented');
+            }
+            if (Names.isComponentName(node.name)) {
+               throw new Error('Not implemented');
+            }
+            if (isElementNode(node.name)) {
+               throw new Error('Not implemented');
+            }
+            // unknown node
+            throw new Error('Unknown node');
+      }
+   }
+
+   private processTagInPrimitiveData(node: Nodes.Tag, context?: any): any {
+      switch (node.name) {
+         case 'ws:if':
+         case 'ws:else':
+         case 'ws:for':
+         case 'ws:template':
+         case 'ws:partial':
+         case 'ws:Array':
+         case 'ws:Boolean':
+         case 'ws:Function':
+         case 'ws:Number':
+         case 'ws:Object':
+         case 'ws:String':
+         case 'ws:Value':
+         default:
+            if (Names.isComponentOptionName(node.name)) {
+               // ws:*
+               throw new Error('Not implemented');
+            }
+            if (Names.isComponentName(node.name)) {
+               throw new Error('Not implemented');
+            }
+            if (isElementNode(node.name)) {
+               throw new Error('Not implemented');
+            }
+            // unknown node
+            throw new Error('Unknown node');
+      }
+   }
+
+   private processTagInObjectData(node: Nodes.Tag, context?: any): any {
+      switch (node.name) {
+         case 'ws:if':
+         case 'ws:else':
+         case 'ws:for':
+         case 'ws:template':
+         case 'ws:partial':
+         case 'ws:Array':
+         case 'ws:Boolean':
+         case 'ws:Function':
+         case 'ws:Number':
+         case 'ws:Object':
+         case 'ws:String':
+         case 'ws:Value':
+         default:
+            if (Names.isComponentOptionName(node.name)) {
+               // ws:*
+               throw new Error('Not implemented');
+            }
+            if (Names.isComponentName(node.name)) {
+               throw new Error('Not implemented');
+            }
+            if (isElementNode(node.name)) {
+               throw new Error('Not implemented');
+            }
+            // unknown node
+            throw new Error('Unknown node');
+      }
    }
 }
 
