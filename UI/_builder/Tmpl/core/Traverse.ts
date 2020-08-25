@@ -8,6 +8,8 @@ import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import * as Names from 'UI/_builder/Tmpl/core/Names';
 import { isElementNode } from 'UI/_builder/Tmpl/core/Html';
+import { IParser } from '../expressions/_private/Parser';
+import { processTextData } from './TextProcessor';
 
 const enum TraverseState {
    MARKUP,
@@ -18,11 +20,17 @@ const enum TraverseState {
    OBJECT_DATA
 }
 
+export interface ITraverseOptions {
+   expressionParser: IParser;
+}
+
 class Traverse implements Nodes.INodeVisitor {
    private stateStack: TraverseState[];
+   private expressionParser: IParser;
 
-   constructor() {
+   constructor(options: ITraverseOptions) {
       this.stateStack = [];
+      this.expressionParser = options.expressionParser;
    }
 
    visitComment(node: Nodes.Comment, context?: any): Ast.CommentNode {
@@ -84,8 +92,9 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   visitText(node: Nodes.Text, context?: any): Ast.Ast {
-      throw new Error('Not implemented');
+   visitText(node: Nodes.Text, context?: any): Ast.TextNode {
+      const content = processTextData(node.data, this.expressionParser);
+      return new Ast.TextNode(content);
    }
 
    transform(nodes: Nodes.Node[], context?: any): Ast.Ast[] {
@@ -311,8 +320,8 @@ class Traverse implements Nodes.INodeVisitor {
    }
 }
 
-export default function traverse(nodes: Nodes.Node[]) {
-   return new Traverse().transform(
+export default function traverse(nodes: Nodes.Node[], options: ITraverseOptions) {
+   return new Traverse(options).transform(
       nodes
    );
 }
