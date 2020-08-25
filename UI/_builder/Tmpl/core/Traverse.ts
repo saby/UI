@@ -409,24 +409,14 @@ class Traverse implements Nodes.INodeVisitor {
             const value = attributes[attributeName].value as string;
             if (Names.isBind(attributeName)) {
                const property = Names.getBindName(attributeName);
-               if (!collection.events.hasOwnProperty(property)) {
-                  collection.events[property] = [];
-               }
-               collection.events[property].push(
-                  new Ast.BindNode(property, this.expressionParser.parse(value))
-               );
+               collection.events[attributeName] = new Ast.BindNode(property, this.expressionParser.parse(value));
             } else if (Names.isEvent(attributeName)) {
                const event = Names.getEventName(attributeName);
-               if (!collection.events.hasOwnProperty(event)) {
-                  collection.events[event] = [];
-               }
-               collection.events[event].push(
-                  new Ast.EventNode(event, this.expressionParser.parse(value))
-               );
+               collection.events[attributeName] = new Ast.EventNode(event, this.expressionParser.parse(value));
             } else if (Names.isAttribute(attributeName) || hasAttributesOnly) {
                const attribute = Names.getAttributeName(attributeName);
                const processedValue = processTextData(value, this.expressionParser);
-               collection.attributes[attribute] = new Ast.AttributeNode(attribute, processedValue);
+               collection.attributes[`attr:${attribute}`] = new Ast.AttributeNode(attribute, processedValue);
             } else {
                const processedValue = processTextData(value, this.expressionParser);
                collection.options[attributeName] = new Ast.OptionNode(attributeName, processedValue);

@@ -204,7 +204,7 @@ export interface IOptions {
 }
 
 export interface IEvents {
-   [attribute: string]: Array<EventNode | BindNode>;
+   [attribute: string]: EventNode | BindNode;
 }
 
 // </editor-fold>

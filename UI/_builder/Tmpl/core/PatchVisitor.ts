@@ -253,26 +253,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.type = 'tag';
    }
 
-   visitAttribute(node: Ast.AttributeNode, context: INavigationContext): any {
-      return node;
-   }
-
-   visitOption(node: Ast.OptionNode, context: INavigationContext): any {
-      return node;
-   }
-
-   visitContentOption(node: Ast.ContentOptionNode, context: INavigationContext): any {
-      return node;
-   }
-
-   visitBind(node: Ast.BindNode, context: INavigationContext): any {
-      return node;
-   }
-
-   visitEvent(node: Ast.EventNode, context: INavigationContext): any {
-      return node;
-   }
-
+   // done.
    visitElement(node: Ast.ElementNode, context: INavigationContext): any {
       // @ts-ignore
       node.type = getTagType(node.__$ws_name);
@@ -285,8 +266,72 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.children = node.__$ws_content;
       // @ts-ignore
-      node.attribs = { };
+      node.attribs = this.collectAttributes(node, context);
       this.visitAll(node.__$ws_content, context);
+   }
+
+   // done.
+   visitAttribute(node: Ast.AttributeNode, context: INavigationContext): any {
+      const attributeContext = {
+         isBind: false,
+         isEvent: false,
+         localized: false,
+         noEscape: false,
+         ...(context || { })
+      };
+      node.__$ws_value.forEach((n) => {
+         n.accept(this, attributeContext);
+      });
+      // @ts-ignore
+      node.data = node.__$ws_value;
+      // @ts-ignore
+      node.key = undefined;
+      // @ts-ignore
+      node.type = 'text';
+   }
+
+   // done.
+   visitBind(node: Ast.BindNode, context: INavigationContext): any {
+      // @ts-ignore
+      node.data = [{
+         isBind: true,
+         isEvent: false,
+         localized: false,
+         name: node.__$ws_value,
+         noEscape: false,
+         type: 'var',
+         value: ''
+      }];
+      // @ts-ignore
+      node.property = true;
+      // @ts-ignore
+      node.type = 'text';
+   }
+
+   // done.
+   visitEvent(node: Ast.EventNode, context: INavigationContext): any {
+      // @ts-ignore
+      node.data = [{
+         isBind: false,
+         isEvent: true,
+         localized: false,
+         name: node.__$ws_handler,
+         noEscape: false,
+         type: 'var',
+         value: ''
+      }];
+      // @ts-ignore
+      node.property = true;
+      // @ts-ignore
+      node.type = 'text';
+   }
+
+   visitOption(node: Ast.OptionNode, context: INavigationContext): any {
+      return node;
+   }
+
+   visitContentOption(node: Ast.ContentOptionNode, context: INavigationContext): any {
+      return node;
    }
 
    visitComponent(node: Ast.ComponentNode, context: INavigationContext): any {
@@ -364,6 +409,20 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.type = getTagType(node.name);
       // @ts-ignore
       node.key = node.__$ws_key;
+   }
+
+   // done.
+   private collectAttributes(node: Ast.BaseHtmlElement, context: INavigationContext): any {
+      const attributes = { };
+      for (const attributeName in node.__$ws_attributes) {
+         node.__$ws_attributes[attributeName].accept(this, context);
+         attributes[attributeName] = node.__$ws_attributes[attributeName];
+      }
+      for (const eventName in node.__$ws_events) {
+         node.__$ws_events[eventName].accept(this, context);
+         attributes[eventName] = node.__$ws_events[eventName];
+      }
+      return attributes;
    }
 }
 
