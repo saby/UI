@@ -324,9 +324,14 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private processIf(node: Nodes.Tag, context?: any): any {
-      throw new Error('Not implemented');
-      // TODO: в атрибутах только обязательный data
-      //  Создаем узел, парсим данные, переходим к детям
+      // TODO: почистить от скобок нормально!
+      const data = getDataNode(node, 'data')
+         .replace(/^\s*{{\s*/i, '')
+         .replace(/\s*}}\s*$/i, '');
+      const test = this.expressionParser.parse(data);
+      const ast = new Ast.IfNode(test);
+      ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, context);
+      return ast;
    }
 
    private processElse(node: Nodes.Tag, context?: any): any {
