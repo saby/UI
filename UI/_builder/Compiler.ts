@@ -4,7 +4,7 @@
  * @author Крылов М.А.
  */
 
-import * as ComponentCollector from 'UI/_builder/Tmpl/ComponentCollector';
+import * as ComponentCollector from 'UI/_builder/Tmpl/core/_deprecated/ComponentCollector';
 import { parse } from 'UI/_builder/Tmpl/html/Parser';
 import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';

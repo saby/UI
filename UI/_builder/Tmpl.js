@@ -7,7 +7,7 @@ define('UI/_builder/Tmpl', [
    'UI/_builder/utils/ModulePath',
    'UI/_builder/Tmpl/html/Parser',
    'UI/_builder/Tmpl/core/Tags',
-   'UI/_builder/Tmpl/ComponentCollector'
+   'UI/_builder/Tmpl/core/_deprecated/ComponentCollector'
 ], function(
    traversing,
    ErrorHandlerLib,
