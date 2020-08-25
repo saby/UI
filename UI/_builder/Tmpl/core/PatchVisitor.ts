@@ -235,6 +235,24 @@ class PatchVisitor implements Ast.IAstVisitor {
       return nodes;
    }
 
+   // done.
+   visitTemplate(node: Ast.TemplateNode, context: INavigationContext): any {
+      // @ts-ignore
+      node.attribs = {
+         name: node.__$ws_name
+      };
+      // @ts-ignore
+      node.children = node.__$ws_content;
+      // @ts-ignore
+      node.key = node.__$ws_key;
+      // @ts-ignore
+      node.name = 'ws:template';
+      // @ts-ignore
+      node.originName = 'ws:template';
+      // @ts-ignore
+      node.type = 'tag';
+   }
+
    visitAttribute(node: Ast.AttributeNode, context: INavigationContext): any {
       return node;
    }
@@ -279,13 +297,6 @@ class PatchVisitor implements Ast.IAstVisitor {
    }
 
    visitPartial(node: Ast.PartialNode, context: INavigationContext): any {
-      // @ts-ignore
-      node.type = 'tag';
-      // @ts-ignore
-      node.key = node.__$ws_key;
-   }
-
-   visitTemplate(node: Ast.TemplateNode, context: INavigationContext): any {
       // @ts-ignore
       node.type = 'tag';
       // @ts-ignore
