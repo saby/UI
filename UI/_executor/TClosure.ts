@@ -11,6 +11,7 @@ import { Logger } from 'UI/Utils';
 import {Config as config} from 'UI/Builder';
 // @ts-ignore
 import { ObjectUtils } from 'UI/Utils';
+import {object} from 'Types/util';
 
 import { Text, Vdom } from './Markup';
 import { _FocusAttrs } from 'UI/Focus';
@@ -97,43 +98,19 @@ var lastGetterPath;
 var
    getter = function getter(obj, path, viewController) {
       lastGetterPath = path;
-      for (var i = 0; i < path.length; i++) {
-         var name = path[i];
-
-         if (obj != undefined) {
-            if (obj.has && obj.get && obj.has(name)) {
-               // Чтобы можно было звать дефолтные свойства модели
-               obj = obj.get(name);
-            } else {
-
-               /**
-                * if we want get "_options" field
-                * we maybe want all fields from current scope
-                * It is actual for stateless wml files
-                */
-               if (name !== '_options' || obj[name]) {
-
-                  const error = obj['_$' + name];
-                  if (error instanceof ConfigResolver.UseAutoProxiedOptionError) {
-                     if (!error.isDestroyed()) {
-                        Logger.error(`Попытка использовать опцию, которой не существует: ${path.slice(0, i+1).join('.')}
-                           При вставке контрола/шаблона эта опция не была явно передана, поэтому в текущем дочернем контроле ее использовать нельзя.
-                           Передача опции не произошла в шаблоне контрола: ${error.upperControlName}.
-                           Вставляемый контрол/шаблон, в котором должна явно передаваться опция: ${error.lostHere}.
-                           Попытка использовать опцию`, viewController);
-                        error.destroy();
-                     }
-                  }
-
-                  obj = obj[name];
-               }
+      return object.extractValue(obj, path, (name: string, scope: unknown, depth: number): void => {
+         const error = scope['_$' + name];
+         if (error instanceof ConfigResolver.UseAutoProxiedOptionError) {
+            if (!error.isDestroyed()) {
+               Logger.error(`Попытка использовать опцию, которой не существует: ${path.slice(0, depth + 1).join('.')}
+                  При вставке контрола/шаблона эта опция не была явно передана, поэтому в текущем дочернем контроле ее использовать нельзя.
+                  Передача опции не произошла в шаблоне контрола: ${error.upperControlName}.
+                  Вставляемый контрол/шаблон, в котором должна явно передаваться опция: ${error.lostHere}.
+                  Попытка использовать опцию`, viewController);
+               error.destroy();
             }
-         } else {
-            return undefined;
          }
-      }
-
-      return obj;
+      });
    },
 
    /**
@@ -144,19 +121,7 @@ var
     * @param value
     */
    setter = function setter(obj, path, viewController, value) {
-      var
-         lastPathPart = path.pop(),
-         lastObj = getter(obj, path, null);
-
-      if (lastObj) {
-         if (lastObj.set) {
-            lastObj.set(lastPathPart, value);
-         } else {
-            lastObj[lastPathPart] = value;
-         }
-         return true;
-      }
-      return false;
+      return object.implantValue(obj, path, value);
    },
    isFunction = function isFunction(fn) {
       return Object.prototype.toString.call(fn) === '[object Function]';
