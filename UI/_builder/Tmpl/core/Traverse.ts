@@ -12,6 +12,7 @@ import { IParser } from '../expressions/_private/Parser';
 import { processTextData } from './TextProcessor';
 import { IKeysGenerator, createKeysGenerator } from './KeysGenerator';
 import { resolveComponent } from 'UI/_builder/Tmpl/core/Resolvers';
+import { IErrorHandler } from "../utils/ErrorHandler";
 
 const enum TraverseState {
    MARKUP,
@@ -25,6 +26,7 @@ const enum TraverseState {
 export interface ITraverseOptions {
    expressionParser: IParser;
    hierarchicalKeys: boolean;
+   errorHandler: IErrorHandler;
 }
 
 interface IAttributesCollection {
@@ -44,6 +46,7 @@ function filterAttributes(node: Nodes.Tag, expected: string[]): IFilteredAttribu
          if (expected.indexOf(attributeName) > -1) {
             collection[attributeName] = node.attributes[attributeName];
          } else {
+            // TODO: неломающий вывод ошибки
             throw new Error(`Unexpected attribute "${attributeName}" on tag "${node.name}". Ignore this attribute`);
          }
       }
@@ -66,6 +69,7 @@ function getDataNode(node: Nodes.Tag, name: string): string {
 interface ITraverseContext {
    prev: Nodes.Tag | null;
    next: Nodes.Tag | null;
+   fileName: string;
 }
 
 function validateElseNode(node: Nodes.Tag, prev: Nodes.Tag | null) {
@@ -82,14 +86,16 @@ function validateElseNode(node: Nodes.Tag, prev: Nodes.Tag | null) {
 }
 
 class Traverse implements Nodes.INodeVisitor {
-   private stateStack: TraverseState[];
-   private expressionParser: IParser;
-   private keysGenerator: IKeysGenerator;
+   private readonly stateStack: TraverseState[];
+   private readonly expressionParser: IParser;
+   private readonly keysGenerator: IKeysGenerator;
+   private readonly errorHandler: IErrorHandler;
 
    constructor(options: ITraverseOptions) {
       this.stateStack = [];
       this.expressionParser = options.expressionParser;
       this.keysGenerator = createKeysGenerator(options.hierarchicalKeys);
+      this.errorHandler = options.errorHandler;
    }
 
    visitComment(node: Nodes.Comment, context: ITraverseContext): Ast.CommentNode {
@@ -104,7 +110,11 @@ class Traverse implements Nodes.INodeVisitor {
          case TraverseState.COMPONENT_OPTION:
             return new Ast.CDataNode(node.data);
          default:
-            throw new Error('Unexpected node');
+            this.errorHandler.error('Использование тега CData запрещено в данном контексте', {
+               fileName: context.fileName,
+               position: node.position
+            });
+            return null;
       }
    }
 
@@ -116,7 +126,11 @@ class Traverse implements Nodes.INodeVisitor {
          case TraverseState.COMPONENT_OPTION:
             return new Ast.DoctypeNode(node.data);
          default:
-            throw new Error('Unexpected node');
+            this.errorHandler.error('Использование тега Doctype запрещено в данном контексте', {
+               fileName: context.fileName,
+               position: node.position
+            });
+            return null;
       }
    }
 
@@ -128,7 +142,11 @@ class Traverse implements Nodes.INodeVisitor {
          case TraverseState.COMPONENT_OPTION:
             return new Ast.InstructionNode(node.data);
          default:
-            throw new Error('Unexpected node');
+            this.errorHandler.error('Использование тега Instruction запрещено в данном контексте', {
+               fileName: context.fileName,
+               position: node.position
+            });
+            return null;
       }
    }
 
@@ -147,24 +165,40 @@ class Traverse implements Nodes.INodeVisitor {
          case TraverseState.OBJECT_DATA:
             return this.processTagInObjectData(node, context);
          default:
-            throw new Error('Unknown state');
+            this.errorHandler.critical('Конечный автомат traverse находится в неизвестном состоянии', {
+               fileName: context.fileName,
+               position: node.position
+            });
+            return null;
       }
    }
 
    visitText(node: Nodes.Text, context: ITraverseContext): Ast.TextNode {
-      const content = processTextData(node.data, this.expressionParser);
-      this.keysGenerator.openChildren();
-      for (let index = 0; index < content.length; ++index) {
-         content[index].__$ws_key = this.keysGenerator.generate();
+      try {
+         const content = processTextData(node.data, this.expressionParser);
+         this.keysGenerator.openChildren();
+         for (let index = 0; index < content.length; ++index) {
+            content[index].__$ws_key = this.keysGenerator.generate();
+         }
+         this.keysGenerator.closeChildren();
+         return new Ast.TextNode(content);
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора текста "${node.data}": ${error.message}. Текст будет отброшен`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
       }
-      this.keysGenerator.closeChildren();
-      return new Ast.TextNode(content);
    }
 
-   transform(nodes: Nodes.Node[]): Ast.Ast[] {
+   transform(nodes: Nodes.Node[], fileName: string): Ast.Ast[] {
       const context: ITraverseContext = {
          prev: null,
-         next: null
+         next: null,
+         fileName
       };
       this.stateStack.push(TraverseState.MARKUP);
       return this.visitAll(nodes, context);
@@ -215,7 +249,14 @@ class Traverse implements Nodes.INodeVisitor {
          default:
             if (Names.isComponentOptionName(node.name)) {
                if (strictMarkup) {
-                  throw new Error('Unexpected ws-prefixed node in markup');
+                  this.errorHandler.error(
+                     `Обнаружена неизвестная директива ${node.name}. Директива будет отброшена`,
+                     {
+                        fileName: context.fileName,
+                        position: node.position
+                     }
+                  );
+                  return null;
                }
                return this.processComponentOption(node, context);
             }
@@ -225,7 +266,14 @@ class Traverse implements Nodes.INodeVisitor {
             if (isElementNode(node.name)) {
                return this.processElement(node, context);
             }
-            throw new Error('Unknown');
+            this.errorHandler.error(
+               `Обнаружен неизвестный HTML тег ${node.name}. Тег будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
       }
    }
 
@@ -350,66 +398,132 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private processIf(node: Nodes.Tag, context: ITraverseContext): any {
-      // TODO: почистить от скобок нормально!
-      const data = getDataNode(node, 'data')
-         .replace(/^\s*{{\s*/i, '')
-         .replace(/\s*}}\s*$/i, '');
-      const test = this.expressionParser.parse(data);
-      const ast = new Ast.IfNode(test);
-      ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, context);
-      return ast;
+      try {
+         // TODO: почистить от скобок нормально!
+         const data = getDataNode(node, 'data')
+            .replace(/^\s*{{\s*/i, '')
+            .replace(/\s*}}\s*$/i, '');
+         const test = this.expressionParser.parse(data);
+         const ast = new Ast.IfNode(test);
+         ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, context);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора директивы ws:if: ${error.message}. Директива будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
    }
 
    private processElse(node: Nodes.Tag, context: ITraverseContext): any {
-      const ast = new Ast.ElseNode();
-      validateElseNode(node, context.prev);
-      if (node.attributes.hasOwnProperty('data')) {
-         const dataStr = node.attributes.data.value
-            .replace(/^\s*{{\s*/i, '')
-            .replace(/\s*}}\s*$/i, '');
-         ast.__$ws_test = this.expressionParser.parse(dataStr);
+      try {
+         const ast = new Ast.ElseNode();
+         validateElseNode(node, context.prev);
+         if (node.attributes.hasOwnProperty('data')) {
+            const dataStr = node.attributes.data.value
+               .replace(/^\s*{{\s*/i, '')
+               .replace(/\s*}}\s*$/i, '');
+            ast.__$ws_test = this.expressionParser.parse(dataStr);
+         }
+         ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, context);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора директивы ws:else: ${error.message}. Директива будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
       }
-      ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, context);
-      return ast;
    }
 
    private processCycle(node: Nodes.Tag, context: ITraverseContext): any {
-      const data = getDataNode(node, 'data');
-      if (data.indexOf(';') > -1) {
-         return this.processFor(node, context);
+      try {
+         const data = getDataNode(node, 'data');
+         if (data.indexOf(';') > -1) {
+            return this.processFor(node, context);
+         }
+         return this.processForeach(node, context);
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора директивы ws:for: ${error.message}. Директива будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
       }
-      return this.processForeach(node, context);
    }
 
    private processFor(node: Nodes.Tag, context: ITraverseContext): any {
-      const data = getDataNode(node, 'data');
-      const [initStr, testStr, updateStr] = data.split(';').map(s => s.trim());
-      const init = initStr ? this.expressionParser.parse(initStr) : null;
-      const test = this.expressionParser.parse(testStr);
-      const update = updateStr ? this.expressionParser.parse(updateStr) : null;
-      const ast = new Ast.ForNode(init, test, update);
-      ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
-      return ast;
+      try {
+         const data = getDataNode(node, 'data');
+         const [initStr, testStr, updateStr] = data.split(';').map(s => s.trim());
+         const init = initStr ? this.expressionParser.parse(initStr) : null;
+         const test = this.expressionParser.parse(testStr);
+         const update = updateStr ? this.expressionParser.parse(updateStr) : null;
+         const ast = new Ast.ForNode(init, test, update);
+         ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора директивы ws:for: ${error.message}. Директива будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
    }
 
    private processForeach(node: Nodes.Tag, context: ITraverseContext): any {
-      const data = getDataNode(node, 'data');
-      const [left, right] = data.split(' in ');
-      const collection = this.expressionParser.parse(right);
-      const variables = left.split(',').map(s => s.trim());
-      const iterator = variables.pop();
-      const index = variables.length == 1 ? variables.pop() : null;
-      const ast = new Ast.ForeachNode(index, iterator, collection);
-      ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
-      return ast;
+      try {
+         const data = getDataNode(node, 'data');
+         const [left, right] = data.split(' in ');
+         const collection = this.expressionParser.parse(right);
+         const variables = left.split(',').map(s => s.trim());
+         const iterator = variables.pop();
+         const index = variables.length == 1 ? variables.pop() : null;
+         const ast = new Ast.ForeachNode(index, iterator, collection);
+         ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора директивы ws:for: ${error.message}. Директива будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
    }
 
    private processTemplate(node: Nodes.Tag, context: ITraverseContext): any {
-      const templateName = getDataNode(node, 'name');
-      Names.validateTemplateName(templateName);
-      const ast = new Ast.TemplateNode(templateName);
-      ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
-      return ast;
+      try {
+         const templateName = getDataNode(node, 'name');
+         Names.validateTemplateName(templateName);
+         const ast = new Ast.TemplateNode(templateName);
+         ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора директивы ws:template: ${error.message}. Директива будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
    }
 
    private processPartial(node: Nodes.Tag, context: ITraverseContext): any {
@@ -423,24 +537,46 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private processComponent(node: Nodes.Tag, context: ITraverseContext): any {
-      const { library, module } = resolveComponent(node.name);
-      const ast = new Ast.ComponentNode(library, module);
-      const attributes = this.visitAttributes(node.attributes, false);
-      ast.__$ws_attributes = attributes.attributes;
-      ast.__$ws_events = attributes.events;
-      ast.__$ws_options = attributes.options;
-      // @ts-ignore TODO: new state
-      ast.__$$content$$ = <Ast.TContent[]>this.visitAll(node.children, context);
-      return ast;
+      try {
+         const { library, module } = resolveComponent(node.name);
+         const ast = new Ast.ComponentNode(library, module);
+         const attributes = this.visitAttributes(node.attributes, false);
+         ast.__$ws_attributes = attributes.attributes;
+         ast.__$ws_events = attributes.events;
+         ast.__$ws_options = attributes.options;
+         // @ts-ignore TODO: new state
+         ast.__$$content$$ = <Ast.TContent[]>this.visitAll(node.children, context);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора компонента: ${error.message}. Компонент будет отброшен`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
    }
 
    private processElement(node: Nodes.Tag, context: ITraverseContext): any {
-      const attributes = this.visitAttributes(node.attributes, true);
-      const ast = new Ast.ElementNode(node.name);
-      ast.__$ws_attributes = attributes.attributes;
-      ast.__$ws_events = attributes.events;
-      ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
-      return ast;
+      try {
+         const attributes = this.visitAttributes(node.attributes, true);
+         const ast = new Ast.ElementNode(node.name);
+         ast.__$ws_attributes = attributes.attributes;
+         ast.__$ws_events = attributes.events;
+         ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора HTML тега: ${error.message}. Тег будет отброшен`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
    }
 
    private visitAttributes(attributes: Nodes.IAttributes, hasAttributesOnly: boolean): IAttributesCollection {
@@ -472,8 +608,9 @@ class Traverse implements Nodes.INodeVisitor {
    }
 }
 
-export default function traverse(nodes: Nodes.Node[], options: ITraverseOptions) {
+export default function traverse(nodes: Nodes.Node[], options: ITraverseOptions, fileName: string) {
    return new Traverse(options).transform(
-      nodes
+      nodes,
+      fileName
    );
 }
