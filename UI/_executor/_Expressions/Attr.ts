@@ -18,7 +18,7 @@ export interface IAttributes{
 function getClass(attr1: IAttributes, attr2: IAttributes): string {
    const attr1Class = attr1.class || attr1['attr:class'];
    const attr2Class = attr2.class || attr2['attr:class'];
-   return attr1Class ? (attr2Class + ' ' + attr1Class) : attr2Class;
+   return (attr1Class ? (attr2Class + ' ' + attr1Class) : attr2Class).trim();
 }
 
 function getStyle(attr1: IAttributes, attr2: IAttributes): string {
