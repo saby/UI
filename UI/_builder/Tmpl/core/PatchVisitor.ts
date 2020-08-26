@@ -357,28 +357,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       this.visitAll(node.__$ws_consequent, context);
    }
 
-   visitOption(node: Ast.OptionNode, context: INavigationContext): any {
-      return node;
-   }
-
-   visitContentOption(node: Ast.ContentOptionNode, context: INavigationContext): any {
-      return node;
-   }
-
-   visitComponent(node: Ast.ComponentNode, context: INavigationContext): any {
-      // @ts-ignore
-      node.type = 'tag';
-      // @ts-ignore
-      node.key = node.__$ws_key;
-   }
-
-   visitPartial(node: Ast.PartialNode, context: INavigationContext): any {
-      // @ts-ignore
-      node.type = 'tag';
-      // @ts-ignore
-      node.key = node.__$ws_key;
-   }
-
+   // done.
    visitElse(node: Ast.ElseNode, context: INavigationContext): any {
       // @ts-ignore
       node.attribs = node.__$ws_test ? {
@@ -407,6 +386,28 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.type = 'tag';
       this.visitAll(node.__$ws_consequent, context);
+   }
+
+   visitOption(node: Ast.OptionNode, context: INavigationContext): any {
+      return node;
+   }
+
+   visitContentOption(node: Ast.ContentOptionNode, context: INavigationContext): any {
+      return node;
+   }
+
+   visitComponent(node: Ast.ComponentNode, context: INavigationContext): any {
+      // @ts-ignore
+      node.type = 'tag';
+      // @ts-ignore
+      node.key = node.__$ws_key;
+   }
+
+   visitPartial(node: Ast.PartialNode, context: INavigationContext): any {
+      // @ts-ignore
+      node.type = 'tag';
+      // @ts-ignore
+      node.key = node.__$ws_key;
    }
 
    visitArray(node: Ast.ArrayNode, context: INavigationContext): any {
