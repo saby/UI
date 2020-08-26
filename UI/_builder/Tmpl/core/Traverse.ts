@@ -41,6 +41,7 @@ interface IFilteredAttributes {
 }
 
 interface ITraverseContext {
+   componentOptionName?: string;
    component?: Ast.ComponentNode | null;
    componentHasContentOnly?: boolean;
    componentContentForbidden?: boolean;
@@ -317,7 +318,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processComponentContent(node: Nodes.Tag, context: ITraverseContext): any {
+   private processComponentContent(node: Nodes.Tag, context: ITraverseContext, contentName: string = 'content'): any {
       if (context.componentContentForbidden) {
          this.errorHandler.error(
             `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег ${node.name}. ` +
@@ -339,7 +340,7 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
       }
-      context.component.appendToContent('content', ast);
+      context.component.appendToContent(contentName, ast);
       return ast;
    }
 
@@ -348,8 +349,10 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:if':
          case 'ws:else':
          case 'ws:for':
-         case 'ws:template':
          case 'ws:partial':
+            return this.processComponentContent(node, context, context.componentOptionName);
+         case 'ws:template':
+            // TODO: object property
          case 'ws:Array':
          case 'ws:Boolean':
          case 'ws:Function':
@@ -357,19 +360,23 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:Object':
          case 'ws:String':
          case 'ws:Value':
+            // TODO: data types
          default:
             if (Names.isComponentOptionName(node.name)) {
-               // ws:*
+               // TODO: object property
                throw new Error('Not implemented');
             }
-            if (Names.isComponentName(node.name)) {
-               throw new Error('Not implemented');
+            if (Names.isComponentName(node.name) || isElementNode(node.name)) {
+               return this.processComponentContent(node, context, context.componentOptionName);
             }
-            if (isElementNode(node.name)) {
-               throw new Error('Not implemented');
-            }
-            // unknown node
-            throw new Error('Unknown node');
+            this.errorHandler.error(
+               `Обнаружен неизвестный HTML тег ${node.name}. Тег будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
       }
    }
 
@@ -620,8 +627,13 @@ class Traverse implements Nodes.INodeVisitor {
       }
       try {
          this.stateStack.push(TraverseState.COMPONENT_OPTION);
-         // TODO: release
-         this.visitAll(node.children, context);
+         const optionContext = {
+            ...context,
+            componentHasContentOnly: false,
+            componentContentForbidden: false,
+            componentOptionName: Names.getComponentOptionName(node.name)
+         };
+         this.visitAll(node.children, optionContext);
          return null;
       } catch (error) {
          this.errorHandler.error(
