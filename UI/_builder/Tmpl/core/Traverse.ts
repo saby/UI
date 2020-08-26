@@ -292,7 +292,7 @@ class Traverse implements Nodes.INodeVisitor {
             return null;
          default:
             if (Names.isComponentOptionName(node.name)) {
-               return this.processComponentContent(node, context);
+               return this.processComponentOption(node, context);
             }
             if (Names.isComponentName(node.name)) {
                return this.processComponentContent(node, context);
