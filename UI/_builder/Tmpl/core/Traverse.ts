@@ -27,6 +27,7 @@ export interface ITraverseOptions {
    expressionParser: IParser;
    hierarchicalKeys: boolean;
    errorHandler: IErrorHandler;
+   allowComments: boolean;
 }
 
 interface IAttributesCollection {
@@ -67,16 +68,21 @@ class Traverse implements Nodes.INodeVisitor {
    private readonly expressionParser: IParser;
    private readonly keysGenerator: IKeysGenerator;
    private readonly errorHandler: IErrorHandler;
+   private readonly allowComments: boolean;
 
    constructor(options: ITraverseOptions) {
       this.stateStack = [];
       this.expressionParser = options.expressionParser;
       this.keysGenerator = createKeysGenerator(options.hierarchicalKeys);
       this.errorHandler = options.errorHandler;
+      this.allowComments = options.allowComments;
    }
 
    visitComment(node: Nodes.Comment, context: ITraverseContext): Ast.CommentNode {
-      return new Ast.CommentNode(node.data);
+      if (this.allowComments) {
+         return new Ast.CommentNode(node.data);
+      }
+      return null;
    }
 
    visitCData(node: Nodes.CData, context: ITraverseContext): Ast.CDataNode {
@@ -324,12 +330,7 @@ class Traverse implements Nodes.INodeVisitor {
          return null;
       }
       const ast = this.processTagInMarkup(node, context);
-      if (!(ast instanceof Ast.OptionNode || ast instanceof Ast.ContentOptionNode)) {
-         if (!context.component.__$ws_contents.hasOwnProperty('content')) {
-            context.component.__$ws_contents.content = new Ast.ContentOptionNode('content', []);
-         }
-         context.component.__$ws_contents.content.__$ws_content.push(ast);
-      } else {
+      if (ast instanceof Ast.OptionNode || ast instanceof Ast.ContentOptionNode) {
          this.errorHandler.critical(
             `Получен некорректный тип узла (OptionNode|ContentOptionNode) при обработке узла ${node.name}`,
             {
@@ -338,6 +339,7 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
       }
+      context.component.appendToContent('content', ast);
       return ast;
    }
 

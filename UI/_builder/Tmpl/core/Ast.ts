@@ -116,6 +116,17 @@ export abstract class BaseWasabyElement extends BaseHtmlElement {
       this.__$ws_options = { };
       this.__$ws_contents = { };
    }
+
+   public appendToContent(name: string, ast: TContent): void {
+      this.checkContentReady(name);
+      this.__$ws_contents[name].push(ast);
+   }
+
+   private checkContentReady(name: string): void {
+      if (!this.__$ws_contents.hasOwnProperty(name)) {
+         this.__$ws_contents[name] = new ContentOptionNode(name, []);
+      }
+   }
 }
 
 // </editor-fold>
@@ -166,6 +177,10 @@ export class ContentOptionNode extends Ast {
 
    accept(visitor: IAstVisitor, context: any): any {
       return visitor.visitContentOption(this, context);
+   }
+
+   public push(ast: TContent): void {
+      this.__$ws_content.push(ast);
    }
 }
 
