@@ -1,10 +1,8 @@
 /// <amd-module name="UI/_executor/_Expressions/Attr" />
 /* tslint:disable */
 
-import { isAttr, checkAttr } from './AttrHelper';
 import { _FocusAttrs } from 'UI/Focus';
-
-export { isAttr, checkAttr };
+export { isAttr, checkAttr } from './AttrHelper';
 
 const spacesRE = /\s+/g;
 const attrPrefix = 'attr:';
@@ -18,13 +16,9 @@ export interface IAttributes{
 }
 
 function getClass(attr1: IAttributes, attr2: IAttributes): string {
-   var attr1Class = attr1.class || attr1['attr:class'];
-   var attr2Class = attr2.class || attr2['attr:class'];
-   var result = attr1Class ? (attr2Class + ' ' + attr1Class) : attr2Class;
-   if (typeof result === 'string') {
-      result = result.replace(spacesRE, ' ').trim();
-   }
-   return result;
+   const attr1Class = attr1.class || attr1['attr:class'];
+   const attr2Class = attr2.class || attr2['attr:class'];
+   return attr1Class ? (attr2Class + ' ' + attr1Class) : attr2Class;
 }
 
 function getStyle(attr1: IAttributes, attr2: IAttributes): string {
