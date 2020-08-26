@@ -50,6 +50,9 @@ define([
          it('string value', () => {
             instance.stringValue = 'another string';
             assert.equal(errorMessage, '');
+            if (typeof window !== 'undefined') {
+               console.error(window.location.href);
+            }
 
             const stringValue = instance.stringValue;
             assert.equal(stringValue, 'some string');
