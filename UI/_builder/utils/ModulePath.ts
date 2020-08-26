@@ -17,8 +17,7 @@ const SUBSTITUTIONS = [
    ['WS.Core/core', 'Core'],
    ['WS.Core/transport', 'Transport'],
    ['WS.Core/css', 'WS/css'],
-   ['WS.Deprecated', 'Deprecated'],
-   ['WS.Core/ext/requirejs/plugins', EMPTY_STRING]
+   ['WS.Deprecated', 'Deprecated']
 ];
 
 function getPluginNameByExtension(extension: string): string {
