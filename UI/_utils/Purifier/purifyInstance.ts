@@ -3,7 +3,7 @@
  */
 
 import { error } from '../Logger';
-import needLog from './needLog';
+import { default as needLog, needPurify } from './needLog';
 
 type TInstanceValue = any;
 type TInstance = Record<string, TInstanceValue>;
@@ -117,6 +117,9 @@ export default function purifyInstance(
     async: boolean = false,
     stateNamesNoPurify?: Record<string, boolean>
 ): void {
+    if (!needPurify()) {
+        return;
+    }
     if (async) {
         addToQueue(instance, instanceName, stateNamesNoPurify);
     } else {

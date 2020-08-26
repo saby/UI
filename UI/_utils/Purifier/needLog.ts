@@ -3,9 +3,14 @@
  */
 
 const isNotProduction: boolean = isTestDomain();
+const isClientSide = typeof window !== 'undefined';
 
 export default function needLog(): boolean {
     return isNotProduction;
+}
+
+export function needPurify(): boolean {
+    return isClientSide;
 }
 
 // Возможно, это должно быть где-то отдельно.
