@@ -289,11 +289,13 @@ export class CommentNode extends Ast {
 // <editor-fold desc="WaSaby directives">
 
 export class ComponentNode extends BaseWasabyElement {
-   __$ws_name: string;
+   __$ws_library: string[];
+   __$ws_module: string[];
 
-   constructor(name: string) {
+   constructor(library: string[], module: string[]) {
       super();
-      this.__$ws_name = name;
+      this.__$ws_library = library;
+      this.__$ws_module = module;
    }
 
    accept(visitor: IAstVisitor, context: any): any {

@@ -11,6 +11,7 @@ import { isElementNode } from 'UI/_builder/Tmpl/core/Html';
 import { IParser } from '../expressions/_private/Parser';
 import { processTextData } from './TextProcessor';
 import { IKeysGenerator, createKeysGenerator } from './KeysGenerator';
+import { resolveComponent } from 'UI/_builder/Tmpl/core/Resolvers';
 
 const enum TraverseState {
    MARKUP,
@@ -422,8 +423,15 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private processComponent(node: Nodes.Tag, context: ITraverseContext): any {
-      throw new Error('Not implemented');
-      // TODO: Создаем узел, парсим данные, переходим к детям
+      const { library, module } = resolveComponent(node.name);
+      const ast = new Ast.ComponentNode(library, module);
+      const attributes = this.visitAttributes(node.attributes, false);
+      ast.__$ws_attributes = attributes.attributes;
+      ast.__$ws_events = attributes.events;
+      ast.__$ws_options = attributes.options;
+      // @ts-ignore TODO: new state
+      ast.__$$content$$ = <Ast.TContent[]>this.visitAll(node.children, context);
+      return ast;
    }
 
    private processElement(node: Nodes.Tag, context: ITraverseContext): any {

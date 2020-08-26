@@ -396,11 +396,55 @@ class PatchVisitor implements Ast.IAstVisitor {
       return node;
    }
 
+   // TODO: content options
    visitComponent(node: Ast.ComponentNode, context: INavigationContext): any {
+      let name;
+      let originName;
       // @ts-ignore
-      node.type = 'tag';
+      node.attribs = this.collectAttributes2(node, context);
+      if (node.__$ws_module.length > 0) {
+         // module
+         const library = node.__$ws_library.join('/');
+         const module = node.__$ws_module.join('.');
+         const constructor = [library, module].join(':');
+         // @ts-ignore
+         node.children = [{
+            constructor,
+            key: undefined,
+            library,
+            module: node.__$ws_module,
+            type: 'module'
+         }];
+         // @ts-ignore
+         node.attribs._wstemplatename = constructor;
+         name = `ws:${constructor}`;
+         originName = [node.__$ws_library.join('.'), module].join(':');
+      } else {
+         // control
+         const constructor = node.__$ws_library.join('/');
+         // @ts-ignore
+         node.children = [{
+            constructor,
+            fn: constructor,
+            key: undefined,
+            optional: undefined,
+            type: 'control'
+         }];
+         // @ts-ignore
+         node.attribs._wstemplatename = '';
+         name = `ws:${constructor}`;
+         originName = node.__$ws_library.join('.');
+      }
+      // @ts-ignore TODO: content options
+      node.injectedData = [];
       // @ts-ignore
       node.key = node.__$ws_key;
+      // @ts-ignore
+      node.name = name;
+      // @ts-ignore
+      node.originName = originName;
+      // @ts-ignore
+      node.type = 'tag';
    }
 
    visitPartial(node: Ast.PartialNode, context: INavigationContext): any {
@@ -469,6 +513,16 @@ class PatchVisitor implements Ast.IAstVisitor {
       for (const eventName in node.__$ws_events) {
          node.__$ws_events[eventName].accept(this, context);
          attributes[eventName] = node.__$ws_events[eventName];
+      }
+      return attributes;
+   }
+
+   // done.
+   private collectAttributes2(node: Ast.BaseWasabyElement, context: INavigationContext): any {
+      const attributes = this.collectAttributes(node, context);
+      for (const optionName in node.__$ws_options) {
+         node.__$ws_options[optionName].accept(this, context);
+         attributes[optionName] = node.__$ws_options[optionName];
       }
       return attributes;
    }
