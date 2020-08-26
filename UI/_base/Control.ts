@@ -294,7 +294,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): unknown {
-      return this._environment && this._environment.startEvent(this._controlNode, arguments);
+      return !this._destroyed && this._environment && this._environment.startEvent(this._controlNode, arguments);
    }
 
    /**
