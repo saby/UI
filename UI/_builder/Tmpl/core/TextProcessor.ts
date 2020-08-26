@@ -85,3 +85,9 @@ export function processTextData(text: string, expressionParser: IParser): TText[
       createTextNode
    );
 }
+
+export function cleanMustacheExpression(text: string): string {
+   return text
+      .replace(/^\s*{{\s*/i, '')
+      .replace(/\s*}}\s*$/i, '');
+}

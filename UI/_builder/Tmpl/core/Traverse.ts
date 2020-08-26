@@ -9,7 +9,7 @@ import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import * as Names from 'UI/_builder/Tmpl/core/Names';
 import { isElementNode } from 'UI/_builder/Tmpl/core/Html';
 import { IParser } from '../expressions/_private/Parser';
-import { processTextData } from './TextProcessor';
+import { processTextData, cleanMustacheExpression } from './TextProcessor';
 import { IKeysGenerator, createKeysGenerator } from './KeysGenerator';
 import { resolveComponent } from 'UI/_builder/Tmpl/core/Resolvers';
 import { IErrorHandler } from "../utils/ErrorHandler";
@@ -39,33 +39,6 @@ interface IFilteredAttributes {
    [name: string]: Nodes.Attribute;
 }
 
-function filterAttributes(node: Nodes.Tag, expected: string[]): IFilteredAttributes {
-   const collection: IFilteredAttributes = { };
-   for (const attributeName in node.attributes) {
-      if (node.attributes.hasOwnProperty(attributeName)) {
-         if (expected.indexOf(attributeName) > -1) {
-            collection[attributeName] = node.attributes[attributeName];
-         } else {
-            // TODO: неломающий вывод ошибки
-            throw new Error(`Unexpected attribute "${attributeName}" on tag "${node.name}". Ignore this attribute`);
-         }
-      }
-   }
-   return collection;
-}
-
-function getDataNode(node: Nodes.Tag, name: string): string {
-   const attributes = filterAttributes(node, [name]);
-   const data = attributes[name];
-   if (data === undefined) {
-      throw new Error(`Expected attribute "${name}" on tag "${node.name}". Ignore this tag`);
-   }
-   if (data.value === null) {
-      throw new Error(`Expected attribute "${name}" on tag "${node.name}" has value. Ignore this tag`);
-   }
-   return data.value;
-}
-
 interface ITraverseContext {
    prev: Nodes.Tag | null;
    next: Nodes.Tag | null;
@@ -74,14 +47,14 @@ interface ITraverseContext {
 
 function validateElseNode(node: Nodes.Tag, prev: Nodes.Tag | null) {
    if (!(prev instanceof Nodes.Tag)) {
-      throw new Error(`Unexpected tag "${node.name}" without tag "ws:if" before. Ignore this tag`);
+      throw new Error(`Ожидалось, что директива ws:else следует за директивной ws:if`);
    }
    if (prev.name === 'ws:else') {
       if (!prev.attributes.hasOwnProperty('data')) {
-         throw new Error(`Unexpected tag "${node.name}" before tag "ws:else" without attribute "data". Ignore this tag`);
+         throw new Error(`Ожидалось, что директива ws:else следует за директивной ws:else, на котором задан атрибут data`);
       }
    } else if (prev.name !== 'ws:if') {
-      throw new Error(`Unexpected tag "${node.name}" without tag "ws:if" before. Ignore this tag`);
+      throw new Error(`Ожидалось, что директива ws:else следует за директивной ws:if`);
    }
 }
 
@@ -210,7 +183,8 @@ class Traverse implements Nodes.INodeVisitor {
       for (let index = 0; index < nodes.length; ++index) {
          const child = <Ast.Ast>nodes[index].accept(this, {
             prev: nodes[index - 1] || null,
-            next: nodes[index + 1] || null
+            next: nodes[index + 1] || null,
+            fileName: context.fileName
          });
          if (child) {
             child.__$ws_key = this.keysGenerator.generate();
@@ -245,7 +219,14 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:Object':
          case 'ws:String':
          case 'ws:Value':
-            throw new Error('Forbidden nodes');
+            this.errorHandler.error(
+               `Использование директивы ${node.name} вне описания опции запрещено. Директива будет отброшена`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
          default:
             if (Names.isComponentOptionName(node.name)) {
                if (strictMarkup) {
@@ -399,10 +380,7 @@ class Traverse implements Nodes.INodeVisitor {
 
    private processIf(node: Nodes.Tag, context: ITraverseContext): any {
       try {
-         // TODO: почистить от скобок нормально!
-         const data = getDataNode(node, 'data')
-            .replace(/^\s*{{\s*/i, '')
-            .replace(/\s*}}\s*$/i, '');
+         const data = cleanMustacheExpression(this.getDataNode(node, 'data', context));
          const test = this.expressionParser.parse(data);
          const ast = new Ast.IfNode(test);
          ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, context);
@@ -424,9 +402,7 @@ class Traverse implements Nodes.INodeVisitor {
          const ast = new Ast.ElseNode();
          validateElseNode(node, context.prev);
          if (node.attributes.hasOwnProperty('data')) {
-            const dataStr = node.attributes.data.value
-               .replace(/^\s*{{\s*/i, '')
-               .replace(/\s*}}\s*$/i, '');
+            const dataStr = cleanMustacheExpression(node.attributes.data.value);
             ast.__$ws_test = this.expressionParser.parse(dataStr);
          }
          ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, context);
@@ -445,11 +421,11 @@ class Traverse implements Nodes.INodeVisitor {
 
    private processCycle(node: Nodes.Tag, context: ITraverseContext): any {
       try {
-         const data = getDataNode(node, 'data');
+         const data = this.getDataNode(node, 'data', context);
          if (data.indexOf(';') > -1) {
-            return this.processFor(node, context);
+            return this.processFor(node, context, data);
          }
-         return this.processForeach(node, context);
+         return this.processForeach(node, context, data);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы ws:for: ${error.message}. Директива будет отброшена`,
@@ -462,9 +438,8 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processFor(node: Nodes.Tag, context: ITraverseContext): any {
+   private processFor(node: Nodes.Tag, context: ITraverseContext, data: string): any {
       try {
-         const data = getDataNode(node, 'data');
          const [initStr, testStr, updateStr] = data.split(';').map(s => s.trim());
          const init = initStr ? this.expressionParser.parse(initStr) : null;
          const test = this.expressionParser.parse(testStr);
@@ -484,9 +459,8 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processForeach(node: Nodes.Tag, context: ITraverseContext): any {
+   private processForeach(node: Nodes.Tag, context: ITraverseContext, data: string): any {
       try {
-         const data = getDataNode(node, 'data');
          const [left, right] = data.split(' in ');
          const collection = this.expressionParser.parse(right);
          const variables = left.split(',').map(s => s.trim());
@@ -509,7 +483,7 @@ class Traverse implements Nodes.INodeVisitor {
 
    private processTemplate(node: Nodes.Tag, context: ITraverseContext): any {
       try {
-         const templateName = getDataNode(node, 'name');
+         const templateName = this.getDataNode(node, 'name', context);
          Names.validateTemplateName(templateName);
          const ast = new Ast.TemplateNode(templateName);
          ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
@@ -605,6 +579,39 @@ class Traverse implements Nodes.INodeVisitor {
          }
       }
       return collection;
+   }
+
+   private filterAttributes(node: Nodes.Tag, expected: string[], context: ITraverseContext): IFilteredAttributes {
+      const collection: IFilteredAttributes = { };
+      for (const attributeName in node.attributes) {
+         if (node.attributes.hasOwnProperty(attributeName)) {
+            if (expected.indexOf(attributeName) > -1) {
+               collection[attributeName] = node.attributes[attributeName];
+            } else {
+               this.errorHandler.error(
+                  `Обнаружен непредусмотренный тегом "${node.name}" атрибут "${attributeName}". ` +
+                  'Данный атрибут будет отброшен',
+                  {
+                     fileName: context.fileName,
+                     position: node.position
+                  }
+               );
+            }
+         }
+      }
+      return collection;
+   }
+
+   private getDataNode(node: Nodes.Tag, name: string, context: ITraverseContext): string {
+      const attributes = this.filterAttributes(node, [name], context);
+      const data = attributes[name];
+      if (data === undefined) {
+         throw new Error(`Ожидался обязательный атрибут "${name}" на теге "${node.name}"`);
+      }
+      if (data.value === null) {
+         throw new Error(`Ожидался обязательный атрибут "${name}" со значением на теге "${node.name}"`);
+      }
+      return data.value;
    }
 }
 
