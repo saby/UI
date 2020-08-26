@@ -13,17 +13,18 @@ define([
          let errorMessage;
          let errorStub;
          let isDebugStub;
+         let needPurifyStub;
          const purifyInstance = Purifier.purifyInstance;
          const loggerErrorMock = (msg) => {
             errorMessage += msg;
          };
-         const isDebugMock = () => true;
 
          before(() => {
             instance = {};
             errorMessage = '';
             errorStub = sinon.stub(Logger, 'error').callsFake(loggerErrorMock);
-            isDebugStub = sinon.stub(needLog, 'default').callsFake(isDebugMock);
+            isDebugStub = sinon.stub(needLog, 'default').returns(true);
+            needPurifyStub = sinon.stub(needLog, 'needPurify').returns(true);
          });
 
          after(() => {
@@ -31,6 +32,7 @@ define([
             errorMessage = '';
             errorStub.restore();
             isDebugStub.restore();
+            needPurifyStub.restore();
          });
 
          beforeEach(() => {
