@@ -19,6 +19,7 @@ import { IFocusElement, IMatchesElement, IControlElement } from './IFocus';
 interface IFocusConfig {
    enableScreenKeyboard?: boolean;
    enableScrollToElement?: boolean;
+   enableIEFix?: boolean;
 }
 
 let isTouchInterface = false;
@@ -82,7 +83,9 @@ function focusSvgForeignObjectHack(element: SVGElement): boolean {
  */
 function tryMoveFocus(element: IFocusElement, cfg: IFocusConfig): boolean {
    let result = false;
-   if (!cfg.enableScrollToElement && detection.isIE && element.setActive) {
+   // если в методе activate переадли флаг enableIEFix = true, то значит следует использовать
+   // стандартный focus() вместо setActive() в ie, актуально для editInPlace
+   if (!cfg.enableScrollToElement && !cfg.enableIEFix && detection.isIE && element.setActive) {
          // In IE, calling `focus` scrolls the focused element into view,
          // which is not the desired behavior. Built-in `setActive` method
          // makes the element active without scrolling to it
@@ -288,10 +291,10 @@ function fireActivationEvents(target: Element, relatedTarget: Element): void {
 
 let focusingState;
 let nativeFocus: Function;
-function focus(element: Element, {enableScreenKeyboard = false, enableScrollToElement = false}:
-   IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}): boolean {
+function focus(element: Element, {enableScreenKeyboard = false, enableScrollToElement = false, enableIEFix = false}:
+   IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false,  enableIEFix: false}): boolean {
    let res;
-   const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard};
+   const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard, enableIEFix};
    const lastFocused: Element = document.activeElement;
    element = fixElementForMobileInputs(element, cfg);
    if (focusingState) {
