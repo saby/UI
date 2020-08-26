@@ -1,5 +1,5 @@
 define('UI/_builder/Tmpl', [
-   'UI/_builder/Tmpl/core/_deprecated/traverse',
+   'UI/_builder/Tmpl/core/bridge',
    'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/modules/utils/common',
    'UI/_builder/Tmpl/function',
