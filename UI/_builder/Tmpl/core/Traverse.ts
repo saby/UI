@@ -40,7 +40,9 @@ interface IFilteredAttributes {
 }
 
 interface ITraverseContext {
-   component: Ast.ComponentNode | null;
+   component?: Ast.ComponentNode | null;
+   componentHasContentOnly?: boolean;
+   componentContentForbidden?: boolean;
    prev: Ast.Ast | null;
    fileName: string;
 }
@@ -172,7 +174,6 @@ class Traverse implements Nodes.INodeVisitor {
 
    transform(nodes: Nodes.Node[], fileName: string): Ast.Ast[] {
       const context: ITraverseContext = {
-         component: null,
          prev: null,
          fileName
       };
@@ -189,12 +190,13 @@ class Traverse implements Nodes.INodeVisitor {
 
    visitAll(nodes: Nodes.Node[], context: ITraverseContext): Ast.Ast[] {
       const children: Ast.Ast[] = [];
+      const childContext = {
+         ...context
+      };
       this.keysGenerator.openChildren();
       for (let index = 0; index < nodes.length; ++index) {
-         const child = <Ast.Ast>nodes[index].accept(this, {
-            ...context,
-            prev: children[children.length - 1] || null
-         });
+         childContext.prev = children[children.length - 1] || null;
+         const child = <Ast.Ast>nodes[index].accept(this, childContext);
          if (child) {
             child.__$ws_key = this.keysGenerator.generate();
             children.push(child);
@@ -266,15 +268,14 @@ class Traverse implements Nodes.INodeVisitor {
    private processTagInComponent(node: Nodes.Tag, context: ITraverseContext): any {
       switch (node.name) {
          case 'ws:if':
-            return this.processComponentContent(node, context);
          case 'ws:else':
-            return this.processComponentContent(node, context);
          case 'ws:for':
+         case 'ws:partial':
+            context.componentHasContentOnly = true;
             return this.processComponentContent(node, context);
          case 'ws:template':
+            context.componentContentForbidden = true;
             return this.processComponentOption(node, context);
-         case 'ws:partial':
-            return this.processComponentContent(node, context);
          case 'ws:Array':
          case 'ws:Boolean':
          case 'ws:Function':
@@ -292,12 +293,11 @@ class Traverse implements Nodes.INodeVisitor {
             return null;
          default:
             if (Names.isComponentOptionName(node.name)) {
+               context.componentContentForbidden = true;
                return this.processComponentOption(node, context);
             }
-            if (Names.isComponentName(node.name)) {
-               return this.processComponentContent(node, context);
-            }
-            if (isElementNode(node.name)) {
+            if (Names.isComponentName(node.name) || isElementNode(node.name)) {
+               context.componentHasContentOnly = true;
                return this.processComponentContent(node, context);
             }
             this.errorHandler.error(
@@ -312,6 +312,17 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private processComponentContent(node: Nodes.Tag, context: ITraverseContext): any {
+      if (context.componentContentForbidden) {
+         this.errorHandler.error(
+            `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег ${node.name}. ` +
+            'Необходимо явно задать контент в ws:content',
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
       const ast = this.processTagInMarkup(node, context);
       if (!(ast instanceof Ast.OptionNode || ast instanceof Ast.ContentOptionNode)) {
          if (!context.component.__$ws_contents.hasOwnProperty('content')) {
@@ -586,7 +597,18 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private processComponentOption(node: Nodes.Tag, context: ITraverseContext): any {
-      throw new Error('Not implemented');
+      if (context.componentHasContentOnly) {
+         this.errorHandler.error(
+            `Запрещено смешивать контент по умолчанию с опциями - встречена опция ${node.name}. ` +
+            'Необходимо явно задать контент в ws:content',
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+      //throw new Error('Not implemented');
    }
 
    private processComponent(node: Nodes.Tag, context: ITraverseContext): any {
@@ -600,7 +622,9 @@ class Traverse implements Nodes.INodeVisitor {
          ast.__$ws_options = attributes.options;
          this.visitAll(node.children, {
             ...context,
-            component: ast
+            component: ast,
+            componentHasContentOnly: false,
+            componentContentForbidden: false
          });
          return ast;
       } catch (error) {
