@@ -329,6 +329,14 @@ class Traverse implements Nodes.INodeVisitor {
             context.component.__$ws_contents.content = new Ast.ContentOptionNode('content', []);
          }
          context.component.__$ws_contents.content.__$ws_content.push(ast);
+      } else {
+         this.errorHandler.critical(
+            `Получен некорректный тип узла (OptionNode|ContentOptionNode) при обработке узла ${node.name}`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
       }
       return ast;
    }
@@ -608,7 +616,23 @@ class Traverse implements Nodes.INodeVisitor {
          );
          return null;
       }
-      //throw new Error('Not implemented');
+      try {
+         this.stateStack.push(TraverseState.COMPONENT_OPTION);
+         // TODO: release
+         this.visitAll(node.children, context);
+         return null;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора опции ${node.name}: ${error.message}. Опция будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      } finally {
+         this.stateStack.pop();
+      }
    }
 
    private processComponent(node: Nodes.Tag, context: ITraverseContext): any {
