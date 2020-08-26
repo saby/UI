@@ -595,6 +595,7 @@ export function destroyReqursive(childControlNode, environment) {
          delete childControlNode.markup;
          if (
             logicParent &&
+            !logicParent._destroyed &&
             logicParent._template &&
             controlName
          ) {
