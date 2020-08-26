@@ -299,6 +299,10 @@ const MATHML_NODES = [
    'semantics'
 ];
 
+const RESERVED = [
+   'invisible-node'
+];
+
 export const enum ElementNS {
    NS_UNKNOWN = 0,
    NS_HTML = 1,
@@ -321,5 +325,5 @@ export function isElementNode(name: string, elementNs: ElementNS = ElementNS.NS_
    if (MATHML_NODES.indexOf(name) > -1 && (elementNs === ElementNS.NS_MATHML || elementNs === ElementNS.NS_UNKNOWN)) {
       return true;
    }
-   return false;
+   return RESERVED.indexOf(name) > -1;
 }
