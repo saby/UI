@@ -9,7 +9,7 @@ const EMPTY_STRING = '';
 export function splitLocalizationText(text: string): { text: string, context: string } {
    const pair = text.split('@@');
    if (pair.length > 2) {
-      throw new Error(`Expected only one separator in localization expression. Got ${pair.length - 1}`);
+      throw new Error(`Обнаружено более одного @@-разделителя в конструкции локализации`);
    }
    return {
       text: (pair.pop() || EMPTY_STRING).trim(),
