@@ -40,22 +40,23 @@ interface IFilteredAttributes {
 }
 
 interface ITraverseContext {
-   prev: Nodes.Tag | null;
-   next: Nodes.Tag | null;
+   prev: Ast.Ast | null;
    fileName: string;
 }
 
-function validateElseNode(node: Nodes.Tag, prev: Nodes.Tag | null) {
-   if (!(prev instanceof Nodes.Tag)) {
-      throw new Error(`Ожидалось, что директива ws:else следует за директивной ws:if`);
+function validateElseNode(prev: Ast.Ast | null) {
+   if (prev instanceof Ast.IfNode) {
+      return;
    }
-   if (prev.name === 'ws:else') {
-      if (!prev.attributes.hasOwnProperty('data')) {
-         throw new Error(`Ожидалось, что директива ws:else следует за директивной ws:else, на котором задан атрибут data`);
+   if (prev instanceof Ast.ElseNode) {
+      if (prev.__$ws_test === null) {
+         throw new Error(
+            'Ожидалось, что директива ws:else следует за директивной ws:else, на котором задан атрибут data'
+         );
       }
-   } else if (prev.name !== 'ws:if') {
-      throw new Error(`Ожидалось, что директива ws:else следует за директивной ws:if`);
+      return;
    }
+   throw new Error('Ожидалось, что директива ws:else следует за директивной ws:if или ws:else с атрибутом data');
 }
 
 class Traverse implements Nodes.INodeVisitor {
@@ -170,7 +171,6 @@ class Traverse implements Nodes.INodeVisitor {
    transform(nodes: Nodes.Node[], fileName: string): Ast.Ast[] {
       const context: ITraverseContext = {
          prev: null,
-         next: null,
          fileName
       };
       this.stateStack.push(TraverseState.MARKUP);
@@ -182,8 +182,7 @@ class Traverse implements Nodes.INodeVisitor {
       this.keysGenerator.openChildren();
       for (let index = 0; index < nodes.length; ++index) {
          const child = <Ast.Ast>nodes[index].accept(this, {
-            prev: nodes[index - 1] || null,
-            next: nodes[index + 1] || null,
+            prev: children[children.length - 1] || null,
             fileName: context.fileName
          });
          if (child) {
@@ -400,7 +399,7 @@ class Traverse implements Nodes.INodeVisitor {
    private processElse(node: Nodes.Tag, context: ITraverseContext): any {
       try {
          const ast = new Ast.ElseNode();
-         validateElseNode(node, context.prev);
+         validateElseNode(context.prev);
          if (node.attributes.hasOwnProperty('data')) {
             const dataStr = cleanMustacheExpression(node.attributes.data.value);
             ast.__$ws_test = this.expressionParser.parse(dataStr);
@@ -588,7 +587,7 @@ class Traverse implements Nodes.INodeVisitor {
             if (expected.indexOf(attributeName) > -1) {
                collection[attributeName] = node.attributes[attributeName];
             } else {
-               this.errorHandler.error(
+               this.errorHandler.warn(
                   `Обнаружен непредусмотренный тегом "${node.name}" атрибут "${attributeName}". ` +
                   'Данный атрибут будет отброшен',
                   {
