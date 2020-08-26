@@ -392,11 +392,24 @@ class PatchVisitor implements Ast.IAstVisitor {
       return node;
    }
 
+   // done.
    visitContentOption(node: Ast.ContentOptionNode, context: INavigationContext): any {
-      return node;
+      // @ts-ignore
+      node.attribs = { };
+      // @ts-ignore
+      node.children = node.__$ws_content;
+      this.visitAll(node.__$ws_content, context);
+      // @ts-ignore
+      node.key = node.__$ws_key;
+      // @ts-ignore
+      node.name = `ws:${node.__$ws_name}`;
+      // @ts-ignore
+      node.originName = `ws:${node.__$ws_name}`;
+      // @ts-ignore
+      node.type = 'tag';
    }
 
-   // TODO: content options
+   // done.
    visitComponent(node: Ast.ComponentNode, context: INavigationContext): any {
       let name;
       let originName;
@@ -435,8 +448,8 @@ class PatchVisitor implements Ast.IAstVisitor {
          name = `ws:${constructor}`;
          originName = node.__$ws_library.join('.');
       }
-      // @ts-ignore TODO: content options
-      node.injectedData = [];
+      // @ts-ignore
+      node.injectedData = this.collectContents(node, context);
       // @ts-ignore
       node.key = node.__$ws_key;
       // @ts-ignore
@@ -521,10 +534,28 @@ class PatchVisitor implements Ast.IAstVisitor {
    private collectAttributes2(node: Ast.BaseWasabyElement, context: INavigationContext): any {
       const attributes = this.collectAttributes(node, context);
       for (const optionName in node.__$ws_options) {
-         node.__$ws_options[optionName].accept(this, context);
-         attributes[optionName] = node.__$ws_options[optionName];
+         if (node.__$ws_options[optionName].__$ws_isFromAttribute) {
+            node.__$ws_options[optionName].accept(this, context);
+            attributes[optionName] = node.__$ws_options[optionName];
+         }
       }
       return attributes;
+   }
+
+   // done.
+   private collectContents(node: Ast.BaseWasabyElement, context: INavigationContext): any {
+      const injectedData = [];
+      for (const optionName in node.__$ws_options) {
+         if (!node.__$ws_options[optionName].__$ws_isFromAttribute) {
+            node.__$ws_options[optionName].accept(this, context);
+            injectedData.push(node.__$ws_options[optionName]);
+         }
+      }
+      for (const optionName in node.__$ws_contents) {
+         node.__$ws_contents[optionName].accept(this, context);
+         injectedData.push(node.__$ws_contents[optionName]);
+      }
+      return injectedData;
    }
 }
 

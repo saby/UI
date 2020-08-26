@@ -129,8 +129,9 @@ class Traverse implements Nodes.INodeVisitor {
       const state = this.getCurrentState();
       switch (state) {
          case TraverseState.MARKUP:
-         case TraverseState.COMPONENT:
             return this.processTagInMarkup(node, context);
+         case TraverseState.COMPONENT:
+            return this.processTagInComponent(node, context);
          case TraverseState.COMPONENT_OPTION:
             return this.processTagInComponentOption(node, context);
          case TraverseState.ARRAY_DATA:
@@ -208,7 +209,6 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private processTagInMarkup(node: Nodes.Tag, context: ITraverseContext): any {
-      const strictMarkup = this.getCurrentState() === TraverseState.MARKUP;
       switch (node.name) {
          case 'ws:if':
             return this.processIf(node, context);
@@ -237,17 +237,14 @@ class Traverse implements Nodes.INodeVisitor {
             return null;
          default:
             if (Names.isComponentOptionName(node.name)) {
-               if (strictMarkup) {
-                  this.errorHandler.error(
-                     `Обнаружена неизвестная директива ${node.name}. Директива будет отброшена`,
-                     {
-                        fileName: context.fileName,
-                        position: node.position
-                     }
-                  );
-                  return null;
-               }
-               return this.processComponentOption(node, context);
+               this.errorHandler.error(
+                  `Обнаружена неизвестная директива ${node.name}. Директива будет отброшена`,
+                  {
+                     fileName: context.fileName,
+                     position: node.position
+                  }
+               );
+               return null;
             }
             if (Names.isComponentName(node.name)) {
                return this.processComponent(node, context);
@@ -264,6 +261,65 @@ class Traverse implements Nodes.INodeVisitor {
             );
             return null;
       }
+   }
+
+   private processTagInComponent(node: Nodes.Tag, context: ITraverseContext): any {
+      switch (node.name) {
+         case 'ws:if':
+            return this.processComponentContent(node, context);
+         case 'ws:else':
+            return this.processComponentContent(node, context);
+         case 'ws:for':
+            return this.processComponentContent(node, context);
+         case 'ws:template':
+            return this.processComponentOption(node, context);
+         case 'ws:partial':
+            return this.processComponentContent(node, context);
+         case 'ws:Array':
+         case 'ws:Boolean':
+         case 'ws:Function':
+         case 'ws:Number':
+         case 'ws:Object':
+         case 'ws:String':
+         case 'ws:Value':
+            this.errorHandler.error(
+               `Использование директивы ${node.name} вне описания опции запрещено. Директива будет отброшена`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
+         default:
+            if (Names.isComponentOptionName(node.name)) {
+               return this.processComponentContent(node, context);
+            }
+            if (Names.isComponentName(node.name)) {
+               return this.processComponentContent(node, context);
+            }
+            if (isElementNode(node.name)) {
+               return this.processComponentContent(node, context);
+            }
+            this.errorHandler.error(
+               `Обнаружен неизвестный HTML тег ${node.name}. Тег будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
+      }
+   }
+
+   private processComponentContent(node: Nodes.Tag, context: ITraverseContext): any {
+      const ast = this.processTagInMarkup(node, context);
+      if (!(ast instanceof Ast.OptionNode || ast instanceof Ast.ContentOptionNode)) {
+         if (!context.component.__$ws_contents.hasOwnProperty('content')) {
+            context.component.__$ws_contents.content = new Ast.ContentOptionNode('content', []);
+         }
+         context.component.__$ws_contents.content.__$ws_content.push(ast);
+      }
+      return ast;
    }
 
    private processTagInComponentOption(node: Nodes.Tag, context: ITraverseContext): any {
@@ -542,8 +598,7 @@ class Traverse implements Nodes.INodeVisitor {
          ast.__$ws_attributes = attributes.attributes;
          ast.__$ws_events = attributes.events;
          ast.__$ws_options = attributes.options;
-         // @ts-ignore TODO: new state
-         ast.__$$content$$ = <Ast.TContent[]>this.visitAll(node.children, {
+         this.visitAll(node.children, {
             ...context,
             component: ast
          });

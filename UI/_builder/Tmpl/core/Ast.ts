@@ -140,11 +140,13 @@ export class AttributeNode extends Ast {
 export class OptionNode extends Ast {
    __$ws_name: string;
    __$ws_value: TText[];
+   __$ws_isFromAttribute: boolean;
 
-   constructor(name: string, value: TText[]) {
+   constructor(name: string, value: TText[], isFromAttribute: boolean = true) {
       super();
       this.__$ws_name = name;
       this.__$ws_value = value;
+      this.__$ws_isFromAttribute = isFromAttribute;
    }
 
    accept(visitor: IAstVisitor, context: any): any {
