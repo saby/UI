@@ -10,8 +10,21 @@ const BIND_PREFIX_PATTERN = /^bind:/i;
 const EVENT_PREFIX_PATTERN = /^on:/i;
 const WS_PREFIX_PATTERN = /^ws:/i;
 
-export function isAttribute(name: string): boolean {
-   return ATTR_PREFIX_PATTERN.test(name);
+const ATTRIBUTES_ONLY = [
+   'ws-delegates-tabfocus',
+   'ws-creates-context',
+   'ws-tab-cycling',
+   'ws-autofocus',
+   'ws-no-focus',
+   'tabindex'
+];
+
+export function isAttribute(name: string, check: boolean = false): boolean {
+   return ATTR_PREFIX_PATTERN.test(name) || checkAttributesOnly(name, check);
+}
+
+function checkAttributesOnly(name: string, check: boolean): boolean {
+   return check && ATTRIBUTES_ONLY.indexOf(name) > -1;
 }
 
 export function getAttributeName(name: string): string {
@@ -48,7 +61,7 @@ export function isComponentName(name: string): boolean {
 
 export function validateTemplateName(name: string): string {
    if (!name.match(/^[a-zA-Z_]\w*$/g)) {
-      throw new Error(`Invalid template name "${name}"`);
+      throw new Error(`Некорректное имя шаблона "${name}"`);
    }
    return name;
 }
