@@ -56,6 +56,12 @@ export declare type TText = ExpressionNode
    | TextDataNode
    | TranslationNode;
 
+export function isTypeofText(value: Ast): boolean {
+   return value instanceof ExpressionNode ||
+      value instanceof TextDataNode ||
+      value instanceof TranslationNode;
+}
+
 export declare type TWasaby = TemplateNode
    | PartialNode
    | ComponentNode
@@ -64,6 +70,16 @@ export declare type TWasaby = TemplateNode
    | ForNode
    | ForeachNode;
 
+export function isTypeofWasaby(value: Ast): boolean {
+   return value instanceof TemplateNode ||
+      value instanceof PartialNode ||
+      value instanceof ComponentNode ||
+      value instanceof IfNode ||
+      value instanceof ElseNode ||
+      value instanceof ForNode ||
+      value instanceof ForeachNode;
+}
+
 export declare type THtml = ElementNode
    | DoctypeNode
    | CDataNode
@@ -71,8 +87,21 @@ export declare type THtml = ElementNode
    | CommentNode
    | TextNode;
 
+export function isTypeofHtml(value: Ast): boolean {
+   return value instanceof ElementNode ||
+      value instanceof DoctypeNode ||
+      value instanceof CDataNode ||
+      value instanceof InstructionNode ||
+      value instanceof CommentNode ||
+      value instanceof TextNode;
+}
+
 export declare type TContent = TWasaby
    | THtml;
+
+export function isTypeofContent(value: Ast): boolean {
+   return isTypeofWasaby(value) || isTypeofHtml(value);
+}
 
 export declare type TData = ArrayNode
    | BooleanNode
@@ -81,6 +110,16 @@ export declare type TData = ArrayNode
    | ObjectNode
    | StringNode
    | ValueNode;
+
+export function isTypeofData(value: Ast): boolean {
+   return value instanceof ArrayNode ||
+      value instanceof BooleanNode ||
+      value instanceof FunctionNode ||
+      value instanceof NumberNode ||
+      value instanceof ObjectNode ||
+      value instanceof StringNode ||
+      value instanceof ValueNode;
+}
 
 // </editor-fold>
 
