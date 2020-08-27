@@ -12,7 +12,8 @@ import { IParser } from '../expressions/_private/Parser';
 import { processTextData, cleanMustacheExpression } from './TextProcessor';
 import { IKeysGenerator, createKeysGenerator } from './KeysGenerator';
 import { resolveComponent } from 'UI/_builder/Tmpl/core/Resolvers';
-import { IErrorHandler } from "../utils/ErrorHandler";
+import { IErrorHandler } from '../utils/ErrorHandler';
+import Scope from './Scope';
 
 const enum TraverseState {
    MARKUP,
@@ -28,6 +29,7 @@ export interface ITraverseOptions {
    hierarchicalKeys: boolean;
    errorHandler: IErrorHandler;
    allowComments: boolean;
+   scope: Scope;
 }
 
 interface IAttributesCollection {
@@ -70,6 +72,7 @@ class Traverse implements Nodes.INodeVisitor {
    private readonly keysGenerator: IKeysGenerator;
    private readonly errorHandler: IErrorHandler;
    private readonly allowComments: boolean;
+   private readonly scope: Scope;
 
    constructor(options: ITraverseOptions) {
       this.stateStack = [];
@@ -77,6 +80,7 @@ class Traverse implements Nodes.INodeVisitor {
       this.keysGenerator = createKeysGenerator(options.hierarchicalKeys);
       this.errorHandler = options.errorHandler;
       this.allowComments = options.allowComments;
+      this.scope = options.scope;
    }
 
    visitComment(node: Nodes.Comment, context: ITraverseContext): Ast.CommentNode {
@@ -592,6 +596,7 @@ class Traverse implements Nodes.INodeVisitor {
          Names.validateTemplateName(templateName);
          const ast = new Ast.TemplateNode(templateName);
          ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
+         this.scope.registerTemplate(templateName, ast);
          return ast;
       } catch (error) {
          this.errorHandler.error(
