@@ -516,7 +516,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // У чистого Wasaby контрола нет метода getParent, у совместимого - есть;
       const isPureWasaby: boolean = !this.getParent;
       if (isPureWasaby) {
-         Purifier.purifyInstance(this, this._moduleName);
+         Purifier.exploreAfterDestroyInstance(this, this._moduleName);
       }
    }
 

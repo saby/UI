@@ -4,6 +4,7 @@
 
 import { error } from '../Logger';
 import { default as needLog, needPurify } from './needLog';
+import { Logger } from 'UI/Utils';
 
 type TInstanceValue = any;
 type TInstance = Record<string, TInstanceValue>;
@@ -125,4 +126,38 @@ export default function purifyInstance(
     } else {
         purifyInstanceSync(instance, instanceName, stateNamesNoPurify);
     }
+}
+
+function exploreState(instance: TInstance, stateName: string, stateValue: any, instanceName: string): void {
+    let currentValue = stateValue;
+    Object.defineProperty(instance, stateName, {
+        enumerable: false,
+        configurable: false,
+        get: () => {
+            Logger.warn('UseAfterDestroy$$$' + instanceName + '$$$' + stateName + '$$$');
+            return currentValue;
+        },
+        set: (newValue) => {
+            Logger.warn('UseAfterDestroy$$$' + instanceName + '$$$' + stateName + '$$$');
+            currentValue = newValue;
+        }
+    });
+}
+
+export function exploreAfterDestroyInstance(
+    instance: TInstance,
+    instanceName: string = 'instance'
+): void {
+    if (instance.__exploreStarted) {
+        return;
+    }
+    
+    const instanceEntries = Object.entries(instance);
+    for (let i = 0; i < instanceEntries.length; i++) {
+        const [stateName, stateValue]: [string, TInstanceValue] = instanceEntries[i];
+        exploreState(instance, stateName, stateValue, instanceName);
+    }
+
+    instance.__exploreStarted;
+    Object.freeze(instance);
 }

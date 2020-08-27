@@ -4,5 +4,5 @@
  * @author Кондаков Р.Н.
  */
 
-export { default as purifyInstance } from './Purifier/purifyInstance';
+export { default as purifyInstance, exploreAfterDestroyInstance } from './Purifier/purifyInstance';
 export { default as needLog } from './Purifier/needLog';
