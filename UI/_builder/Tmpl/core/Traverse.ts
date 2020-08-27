@@ -366,6 +366,7 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
       }
+      // TODO: убрать, делать возврат и обработку
       context.component.appendToContent(contentName, ast);
       return ast;
    }
@@ -671,7 +672,11 @@ class Traverse implements Nodes.INodeVisitor {
                }
             )
          }
-         this.visitAll(node.children, optionContext);
+         // TODO: добавить обработку полученных узлов
+         const children = this.visitAll(node.children, optionContext);
+         if (Ast.isTypeofContent(children[0])) {
+            return new Ast.ContentOptionNode(node.name, <Ast.TContent[]>children);
+         }
          return null;
       } catch (error) {
          this.errorHandler.error(
@@ -701,7 +706,23 @@ class Traverse implements Nodes.INodeVisitor {
             component: ast,
             contentComponentState: ContentTraverseState.UNKNOWN
          };
-         this.visitAll(node.children, childrenContext);
+         const children = this.visitAll(node.children, childrenContext);
+         for (let index = 0; index < children.length; ++index) {
+            const child = children[index];
+            if (child instanceof Ast.OptionNode) {
+               // TODO: 111
+            } else if (child instanceof Ast.ContentOptionNode) {
+               // TODO: 222
+            } else {
+               this.errorHandler.critical(
+                  `Получен некорректный узел (!=Option|ContentOption) внутри компонента ${node.name}`,
+                  {
+                     fileName: context.fileName,
+                     position: node.position
+                  }
+               );
+            }
+         }
          return ast;
       } catch (error) {
          this.errorHandler.error(
@@ -761,7 +782,11 @@ class Traverse implements Nodes.INodeVisitor {
                collection.attributes[`attr:${attribute}`] = new Ast.AttributeNode(attribute, processedValue);
             } else {
                const processedValue = processTextData(value, this.expressionParser);
-               collection.options[attributeName] = new Ast.OptionNode(attributeName, processedValue);
+               const valueNode = new Ast.ValueNode(processedValue);
+               collection.options[attributeName] = new Ast.OptionNode(
+                  attributeName,
+                  valueNode
+               );
             }
          }
       }

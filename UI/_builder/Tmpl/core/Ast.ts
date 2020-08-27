@@ -189,14 +189,12 @@ export class AttributeNode extends Ast {
 
 export class OptionNode extends Ast {
    __$ws_name: string;
-   __$ws_value: TText[];
-   __$ws_isFromAttribute: boolean;
+   __$ws_value: TData;
 
-   constructor(name: string, value: TText[], isFromAttribute: boolean = true) {
+   constructor(name: string, value: TData) {
       super();
       this.__$ws_name = name;
       this.__$ws_value = value;
-      this.__$ws_isFromAttribute = isFromAttribute;
    }
 
    accept(visitor: IAstVisitor, context: any): any {
@@ -477,9 +475,9 @@ export class ArrayNode extends Ast {
 }
 
 export class BooleanNode extends Ast {
-   __$ws_data: ProgramNode;
+   __$ws_data: TText[];
 
-   constructor(data: ProgramNode) {
+   constructor(data: TText[]) {
       super();
       this.__$ws_data = data;
    }
@@ -505,9 +503,9 @@ export class FunctionNode extends Ast {
 }
 
 export class NumberNode extends Ast {
-   __$ws_data: ProgramNode;
+   __$ws_data: TText[];
 
-   constructor(data: ProgramNode) {
+   constructor(data: TText[]) {
       super();
       this.__$ws_data = data;
    }
@@ -535,9 +533,9 @@ export class ObjectNode extends Ast {
 }
 
 export class StringNode extends Ast {
-   __$ws_data: ProgramNode;
+   __$ws_data: TText[];
 
-   constructor(data: ProgramNode) {
+   constructor(data: TText[]) {
       super();
       this.__$ws_data = data;
    }
@@ -548,11 +546,9 @@ export class StringNode extends Ast {
 }
 
 export class ValueNode extends Ast {
-   __$ws_data: string;
+   __$ws_data: TText[];
 
-   // TODO: уточнить!!!
-
-   constructor(data: string) {
+   constructor(data: TText[]) {
       super();
       this.__$ws_data = data;
    }

@@ -388,8 +388,23 @@ class PatchVisitor implements Ast.IAstVisitor {
       this.visitAll(node.__$ws_consequent, context);
    }
 
+   // done.
    visitOption(node: Ast.OptionNode, context: INavigationContext): any {
-      return node;
+      // @ts-ignore
+      node.attribs = { };
+      // @ts-ignore
+      node.children = [
+         node.__$ws_value
+      ];
+      node.__$ws_value.accept(this, context);
+      // @ts-ignore
+      node.key = node.__$ws_key;
+      // @ts-ignore
+      node.name = `ws:${node.__$ws_name}`;
+      // @ts-ignore
+      node.originName = `ws:${node.__$ws_name}`;
+      // @ts-ignore
+      node.type = 'tag';
    }
 
    // done.
@@ -414,7 +429,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       let name;
       let originName;
       // @ts-ignore
-      node.attribs = this.collectAttributes2(node, context);
+      node.attribs = this.collectAttributes(node, context);
       if (node.__$ws_module.length > 0) {
          // module
          const library = node.__$ws_library.join('/');
@@ -462,58 +477,124 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    visitPartial(node: Ast.PartialNode, context: INavigationContext): any {
       // @ts-ignore
-      node.type = 'tag';
+      node.attribs = { };
+      // @ts-ignore
+      node.children = [];
       // @ts-ignore
       node.key = node.__$ws_key;
+      // @ts-ignore
+      node.name = `ws:partial`;
+      // @ts-ignore
+      node.originName = `ws:partial`;
+      // @ts-ignore
+      node.type = 'tag';
    }
 
    visitArray(node: Ast.ArrayNode, context: INavigationContext): any {
       // @ts-ignore
-      node.type = 'tag';
+      node.attribs = { };
+      // @ts-ignore
+      node.children = [];
       // @ts-ignore
       node.key = node.__$ws_key;
+      // @ts-ignore
+      node.name = `ws:Array`;
+      // @ts-ignore
+      node.originName = `ws:Array`;
+      // @ts-ignore
+      node.type = 'tag';
    }
 
    visitBoolean(node: Ast.BooleanNode, context: INavigationContext): any {
       // @ts-ignore
-      node.type = 'tag';
+      node.attribs = { };
+      // @ts-ignore
+      node.children = [];
       // @ts-ignore
       node.key = node.__$ws_key;
+      // @ts-ignore
+      node.name = `ws:Boolean`;
+      // @ts-ignore
+      node.originName = `ws:Boolean`;
+      // @ts-ignore
+      node.type = 'tag';
    }
 
    visitFunction(node: Ast.FunctionNode, context: INavigationContext): any {
       // @ts-ignore
-      node.type = 'tag';
+      node.attribs = { };
+      // @ts-ignore
+      node.children = [];
       // @ts-ignore
       node.key = node.__$ws_key;
+      // @ts-ignore
+      node.name = `ws:Function`;
+      // @ts-ignore
+      node.originName = `ws:Function`;
+      // @ts-ignore
+      node.type = 'tag';
    }
 
    visitNumber(node: Ast.NumberNode, context: INavigationContext): any {
       // @ts-ignore
-      node.type = 'tag';
+      node.attribs = { };
+      // @ts-ignore
+      node.children = [];
       // @ts-ignore
       node.key = node.__$ws_key;
+      // @ts-ignore
+      node.name = `ws:Number`;
+      // @ts-ignore
+      node.originName = `ws:Number`;
+      // @ts-ignore
+      node.type = 'tag';
    }
 
    visitObject(node: Ast.ObjectNode, context: INavigationContext): any {
       // @ts-ignore
-      node.type = 'tag';
+      node.attribs = { };
+      // @ts-ignore
+      node.children = [];
       // @ts-ignore
       node.key = node.__$ws_key;
+      // @ts-ignore
+      node.name = `ws:Object`;
+      // @ts-ignore
+      node.originName = `ws:Object`;
+      // @ts-ignore
+      node.type = 'tag';
    }
 
    visitString(node: Ast.StringNode, context: INavigationContext): any {
       // @ts-ignore
-      node.type = 'tag';
+      node.attribs = { };
+      // @ts-ignore
+      node.children = [];
       // @ts-ignore
       node.key = node.__$ws_key;
+      // @ts-ignore
+      node.name = `ws:String`;
+      // @ts-ignore
+      node.originName = `ws:String`;
+      // @ts-ignore
+      node.type = 'tag';
    }
 
+   // done.
    visitValue(node: Ast.ValueNode, context: INavigationContext): any {
       // @ts-ignore
-      node.type = getTagType(node.name);
+      node.attribs = { };
+      // @ts-ignore
+      node.children = node.__$ws_data;
+      this.visitAll(node.__$ws_data, context);
       // @ts-ignore
       node.key = node.__$ws_key;
+      // @ts-ignore
+      node.name = `ws:Value`;
+      // @ts-ignore
+      node.originName = `ws:Value`;
+      // @ts-ignore
+      node.type = 'tag';
    }
 
    // done.
@@ -531,25 +612,11 @@ class PatchVisitor implements Ast.IAstVisitor {
    }
 
    // done.
-   private collectAttributes2(node: Ast.BaseWasabyElement, context: INavigationContext): any {
-      const attributes = this.collectAttributes(node, context);
-      for (const optionName in node.__$ws_options) {
-         if (node.__$ws_options[optionName].__$ws_isFromAttribute) {
-            node.__$ws_options[optionName].accept(this, context);
-            attributes[optionName] = node.__$ws_options[optionName];
-         }
-      }
-      return attributes;
-   }
-
-   // done.
    private collectContents(node: Ast.BaseWasabyElement, context: INavigationContext): any {
       const injectedData = [];
       for (const optionName in node.__$ws_options) {
-         if (!node.__$ws_options[optionName].__$ws_isFromAttribute) {
-            node.__$ws_options[optionName].accept(this, context);
-            injectedData.push(node.__$ws_options[optionName]);
-         }
+         node.__$ws_options[optionName].accept(this, context);
+         injectedData.push(node.__$ws_options[optionName]);
       }
       for (const optionName in node.__$ws_contents) {
          node.__$ws_contents[optionName].accept(this, context);
