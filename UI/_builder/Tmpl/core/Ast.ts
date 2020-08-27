@@ -355,6 +355,28 @@ export class ComponentNode extends BaseWasabyElement {
    accept(visitor: IAstVisitor, context: any): any {
       return visitor.visitComponent(this, context);
    }
+
+   setOption(option: OptionNode | ContentOptionNode): void {
+      const name = option.__$ws_name;
+      if (this.hasOption(name)) {
+         throw new Error(`Опция ${name} уже существует на компоненте`);
+      }
+      if (option instanceof OptionNode) {
+         this.__$ws_options[name] = option;
+         return;
+      }
+      if (option instanceof ContentOptionNode) {
+         this.__$ws_contents[name] = option;
+         return;
+      }
+      throw new Error(
+         `Произведена попытка установки опции ${name} недопустимого типа ${(<Ast>option).constructor.name}`
+      );
+   }
+
+   hasOption(name: string): boolean {
+      return this.__$ws_options.hasOwnProperty(name) || this.__$ws_contents.hasOwnProperty(name);
+   }
 }
 
 export class PartialNode extends BaseWasabyElement {

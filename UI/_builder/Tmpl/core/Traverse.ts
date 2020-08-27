@@ -852,8 +852,8 @@ class Traverse implements Nodes.INodeVisitor {
          const children = this.visitAll(node.children, childrenContext);
          for (let index = 0; index < children.length; ++index) {
             const child = children[index];
-            if (child instanceof Ast.OptionNode) {
-               if (ast.__$ws_options.hasOwnProperty(child.__$ws_name) || ast.__$ws_contents.hasOwnProperty(child.__$ws_name)) {
+            if (child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode) {
+               if (ast.hasOption(child.__$ws_name)) {
                   this.errorHandler.critical(
                      `Опция ${child.__$ws_name} уже определена на компоненте ${node.name}. Полученная опция будет отброшена`,
                      {
@@ -861,30 +861,18 @@ class Traverse implements Nodes.INodeVisitor {
                         position: node.position
                      }
                   );
-               } else {
-                  ast.__$ws_options[child.__$ws_name] = child;
+                  continue;
                }
-            } else if (child instanceof Ast.ContentOptionNode) {
-               if (ast.__$ws_options.hasOwnProperty(child.__$ws_name) || ast.__$ws_contents.hasOwnProperty(child.__$ws_name)) {
-                  this.errorHandler.critical(
-                     `Опция ${child.__$ws_name} уже определена на компоненте ${node.name}. Полученная опция будет отброшена`,
-                     {
-                        fileName: context.fileName,
-                        position: node.position
-                     }
-                  );
-               } else {
-                  ast.__$ws_contents[child.__$ws_name] = child;
-               }
-            } else {
-               this.errorHandler.critical(
-                  `Получен некорректный узел (!=Option|ContentOption) внутри компонента ${node.name}`,
-                  {
-                     fileName: context.fileName,
-                     position: node.position
-                  }
-               );
+               ast.setOption(child);
+               continue;
             }
+            this.errorHandler.critical(
+               `Получен некорректный узел (!=Option|ContentOption) внутри компонента ${node.name}`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
          }
          return ast;
       } catch (error) {
