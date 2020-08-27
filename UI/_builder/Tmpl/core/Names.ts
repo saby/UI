@@ -10,7 +10,7 @@ const BIND_PREFIX_PATTERN = /^bind:/i;
 const EVENT_PREFIX_PATTERN = /^on:/i;
 const WS_PREFIX_PATTERN = /^ws:/i;
 
-const ATTRIBUTES_ONLY = [
+const WASABY_ATTRIBUTES = [
    'ws-delegates-tabfocus',
    'ws-creates-context',
    'ws-tab-cycling',
@@ -24,7 +24,7 @@ export function isAttribute(name: string, check: boolean = false): boolean {
 }
 
 function checkAttributesOnly(name: string, check: boolean): boolean {
-   return check && ATTRIBUTES_ONLY.indexOf(name) > -1;
+   return check && WASABY_ATTRIBUTES.indexOf(name) > -1;
 }
 
 export function getAttributeName(name: string): string {
