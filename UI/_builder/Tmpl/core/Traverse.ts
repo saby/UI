@@ -444,10 +444,9 @@ class Traverse implements Nodes.INodeVisitor {
    private processBoolean(node: Nodes.Tag, context: ITraverseContext): any {
       try {
          this.stateStack.push(TraverseState.PRIMITIVE_DATA);
-         const ast = new Ast.BooleanNode([]);
-         // @ts-ignore TODO: выполнить разбор данных
-         const children = this.visitAll(node.children, context);
-         return ast;
+         // TODO: добавить валидацию содержимого
+         const children = <Ast.TText[]>this.visitAll(node.children, context);
+         return new Ast.BooleanNode(children);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Boolean: ${error.message}. Директива будет отброшена`,
@@ -486,10 +485,9 @@ class Traverse implements Nodes.INodeVisitor {
    private processNumber(node: Nodes.Tag, context: ITraverseContext): any {
       try {
          this.stateStack.push(TraverseState.PRIMITIVE_DATA);
-         const ast = new Ast.NumberNode([]);
-         // @ts-ignore TODO: выполнить разбор данных
-         const children = this.visitAll(node.children, context);
-         return ast;
+         // TODO: добавить валидацию содержимого
+         const children = <Ast.TText[]>this.visitAll(node.children, context);
+         return new Ast.NumberNode(children);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Number: ${error.message}. Директива будет отброшена`,
@@ -528,10 +526,9 @@ class Traverse implements Nodes.INodeVisitor {
    private processString(node: Nodes.Tag, context: ITraverseContext): any {
       try {
          this.stateStack.push(TraverseState.PRIMITIVE_DATA);
-         const ast = new Ast.StringNode([]);
-         // @ts-ignore TODO: выполнить разбор данных
-         const children = this.visitAll(node.children, context);
-         return ast;
+         // TODO: добавить валидацию содержимого
+         const children = <Ast.TText[]>this.visitAll(node.children, context);
+         return new Ast.StringNode(children);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:String: ${error.message}. Директива будет отброшена`,
@@ -549,10 +546,9 @@ class Traverse implements Nodes.INodeVisitor {
    private processValue(node: Nodes.Tag, context: ITraverseContext): any {
       try {
          this.stateStack.push(TraverseState.PRIMITIVE_DATA);
-         const ast = new Ast.ValueNode([]);
-         // @ts-ignore TODO: выполнить разбор данных
-         const children = this.visitAll(node.children, context);
-         return ast;
+         // TODO: добавить валидацию содержимого
+         const children = <Ast.TText[]>this.visitAll(node.children, context);
+         return new Ast.ValueNode(children);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Value: ${error.message}. Директива будет отброшена`,
@@ -614,7 +610,7 @@ class Traverse implements Nodes.INodeVisitor {
          throw new Error('Not implemented');
       }
       this.errorHandler.error(
-         `Обнаружен тег ${node.name} вместо ожидамого тега с префиксом ws: в имени, служащий свойством ws:Object`,
+         `Обнаружен тег ${node.name} вместо ожидаемого тега с префиксом ws: в имени, служащий свойством ws:Object`,
          {
             fileName: context.fileName,
             position: node.position
@@ -806,13 +802,24 @@ class Traverse implements Nodes.INodeVisitor {
                   fileName: context.fileName,
                   position: node.attributes[name].position
                }
-            )
+            );
          }
          // TODO: добавить обработку полученных узлов
          const children = this.visitAll(node.children, optionContext);
+         const optionName = Names.getComponentOptionName(node.name);
          if (Ast.isTypeofContent(children[0])) {
-            return new Ast.ContentOptionNode(node.name, <Ast.TContent[]>children);
+            return new Ast.ContentOptionNode(optionName, <Ast.TContent[]>children);
          }
+         if (Ast.isTypeofData(children[0])) {
+            return new Ast.OptionNode(optionName, <Ast.TData>children[0]);
+         }
+         this.errorHandler.critical(
+            `Получен неопределенный контент опции ${node.name}`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
          return null;
       } catch (error) {
          this.errorHandler.error(
@@ -846,9 +853,29 @@ class Traverse implements Nodes.INodeVisitor {
          for (let index = 0; index < children.length; ++index) {
             const child = children[index];
             if (child instanceof Ast.OptionNode) {
-               // TODO: 111
+               if (ast.__$ws_options.hasOwnProperty(child.__$ws_name) || ast.__$ws_contents.hasOwnProperty(child.__$ws_name)) {
+                  this.errorHandler.critical(
+                     `Опция ${child.__$ws_name} уже определена на компоненте ${node.name}. Полученная опция будет отброшена`,
+                     {
+                        fileName: context.fileName,
+                        position: node.position
+                     }
+                  );
+               } else {
+                  ast.__$ws_options[child.__$ws_name] = child;
+               }
             } else if (child instanceof Ast.ContentOptionNode) {
-               // TODO: 222
+               if (ast.__$ws_options.hasOwnProperty(child.__$ws_name) || ast.__$ws_contents.hasOwnProperty(child.__$ws_name)) {
+                  this.errorHandler.critical(
+                     `Опция ${child.__$ws_name} уже определена на компоненте ${node.name}. Полученная опция будет отброшена`,
+                     {
+                        fileName: context.fileName,
+                        position: node.position
+                     }
+                  );
+               } else {
+                  ast.__$ws_contents[child.__$ws_name] = child;
+               }
             } else {
                this.errorHandler.critical(
                   `Получен некорректный узел (!=Option|ContentOption) внутри компонента ${node.name}`,
