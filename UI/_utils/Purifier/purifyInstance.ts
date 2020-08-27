@@ -75,6 +75,23 @@ function purifyState(instance: TInstance, stateName: string, getterFunction: () 
     }
 }
 
+function exploreAfterDestroyState(instance: TInstance, stateName: string, instanceName: string, value: any) {
+    const errorF = createUseAfterPurifyErrorFunction(stateName, instanceName);
+    let currentValue = value;
+    Object.defineProperty(instance, stateName, {
+        enumerable: false,
+        configurable: false,
+        get: () => {
+            errorF();
+            return currentValue;
+        },
+        set: (v) => {
+            errorF();
+            currentValue = v;
+        }
+    });
+}
+
 function purifyInstanceSync(
     instance: TInstance,
     instanceName: string,
@@ -91,10 +108,7 @@ function purifyInstanceSync(
     for (let i = 0; i < instanceEntries.length; i++) {
         const [stateName, stateValue]: [string, TInstanceValue] = instanceEntries[i];
 
-        if (isValueToPurify(stateValue) && !stateNamesNoPurify[stateName]) {
-            const getterFunction = isDebug && createUseAfterPurifyErrorFunction(stateName, instanceName);
-            purifyState(instance, stateName, getterFunction, isDebug);
-        }
+        exploreAfterDestroyState(instance, stateName, instanceName, stateValue);
     }
 
     instance.__purified = true;
