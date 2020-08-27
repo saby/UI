@@ -439,6 +439,10 @@ export class ElseNode extends Ast {
    accept(visitor: IAstVisitor, context: any): any {
       return visitor.visitElse(this, context);
    }
+
+   isElif(): boolean {
+      return this.__$ws_test !== null;
+   }
 }
 
 export class ForNode extends Ast {

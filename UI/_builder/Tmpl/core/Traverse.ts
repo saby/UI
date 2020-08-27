@@ -61,7 +61,7 @@ function validateElseNode(prev: Ast.Ast | null) {
       return;
    }
    if (prev instanceof Ast.ElseNode) {
-      if (prev.__$ws_test === null) {
+      if (!prev.isElif()) {
          throw new Error(
             'Ожидалось, что директива ws:else следует за директивной ws:else, на котором задан атрибут data'
          );
