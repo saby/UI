@@ -24,6 +24,13 @@ const enum TraverseState {
    OBJECT_DATA
 }
 
+const enum ContentTraverseState {
+   UNKNOWN,
+   READY,
+   CONTENT,
+   OPTIONS
+}
+
 export interface ITraverseOptions {
    expressionParser: IParser;
    hierarchicalKeys: boolean;
@@ -45,8 +52,7 @@ interface IFilteredAttributes {
 interface ITraverseContext {
    componentOptionName?: string;
    component?: Ast.ComponentNode | null;
-   componentHasContentOnly?: boolean;
-   componentContentForbidden?: boolean;
+   contentComponentState?: ContentTraverseState;
    prev: Ast.Ast | null;
    fileName: string;
 }
@@ -202,7 +208,7 @@ class Traverse implements Nodes.INodeVisitor {
 
    visitAll(nodes: Nodes.Node[], context: ITraverseContext): Ast.Ast[] {
       const children: Ast.Ast[] = [];
-      const childContext = {
+      const childContext: ITraverseContext = {
          ...context
       };
       this.keysGenerator.openChildren();
@@ -300,10 +306,8 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:else':
          case 'ws:for':
          case 'ws:partial':
-            context.componentHasContentOnly = true;
             return this.processComponentContent(node, context);
          case 'ws:template':
-            context.componentContentForbidden = true;
             return this.processComponentOption(node, context);
          case 'ws:Array':
          case 'ws:Boolean':
@@ -322,11 +326,9 @@ class Traverse implements Nodes.INodeVisitor {
             return null;
          default:
             if (Names.isComponentOptionName(node.name)) {
-               context.componentContentForbidden = true;
                return this.processComponentOption(node, context);
             }
             if (Names.isComponentName(node.name) || isElementNode(node.name)) {
-               context.componentHasContentOnly = true;
                return this.processComponentContent(node, context);
             }
             this.errorHandler.error(
@@ -341,7 +343,10 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private processComponentContent(node: Nodes.Tag, context: ITraverseContext, contentName: string = 'content'): any {
-      if (context.componentContentForbidden) {
+      if (context.contentComponentState === ContentTraverseState.UNKNOWN) {
+         context.contentComponentState = ContentTraverseState.CONTENT;
+      }
+      if (context.contentComponentState !== ContentTraverseState.CONTENT) {
          this.errorHandler.error(
             `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег ${node.name}. ` +
             'Необходимо явно задать контент в ws:content',
@@ -637,7 +642,10 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private processComponentOption(node: Nodes.Tag, context: ITraverseContext): any {
-      if (context.componentHasContentOnly) {
+      if (context.contentComponentState === ContentTraverseState.UNKNOWN) {
+         context.contentComponentState = ContentTraverseState.OPTIONS;
+      }
+      if (context.contentComponentState !== ContentTraverseState.OPTIONS) {
          this.errorHandler.error(
             `Запрещено смешивать контент по умолчанию с опциями - встречена опция ${node.name}. ` +
             'Необходимо явно задать контент в ws:content',
@@ -650,11 +658,10 @@ class Traverse implements Nodes.INodeVisitor {
       }
       try {
          this.stateStack.push(TraverseState.COMPONENT_OPTION);
-         const optionContext = {
+         const optionContext: ITraverseContext = {
             ...context,
-            componentHasContentOnly: false,
-            componentContentForbidden: false,
-            componentOptionName: Names.getComponentOptionName(node.name)
+            componentOptionName: Names.getComponentOptionName(node.name),
+            contentComponentState: ContentTraverseState.UNKNOWN
          };
          for (const name in node.attributes) {
             this.errorHandler.warn(
@@ -690,12 +697,12 @@ class Traverse implements Nodes.INodeVisitor {
          ast.__$ws_attributes = attributes.attributes;
          ast.__$ws_events = attributes.events;
          ast.__$ws_options = attributes.options;
-         this.visitAll(node.children, {
+         const childrenContext: ITraverseContext = {
             ...context,
             component: ast,
-            componentHasContentOnly: false,
-            componentContentForbidden: false
-         });
+            contentComponentState: ContentTraverseState.UNKNOWN
+         };
+         this.visitAll(node.children, childrenContext);
          return ast;
       } catch (error) {
          this.errorHandler.error(
