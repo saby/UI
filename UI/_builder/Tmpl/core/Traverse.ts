@@ -656,6 +656,15 @@ class Traverse implements Nodes.INodeVisitor {
             componentContentForbidden: false,
             componentOptionName: Names.getComponentOptionName(node.name)
          };
+         for (const name in node.attributes) {
+            this.errorHandler.warn(
+               `Обнаружен непредусмотренный атрибут ${name} на контентной опции. Атрибут будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.attributes[name].position
+               }
+            )
+         }
          this.visitAll(node.children, optionContext);
          return null;
       } catch (error) {
