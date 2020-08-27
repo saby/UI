@@ -16,7 +16,7 @@ import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator'
 // This module can only be referenced with ECMAScript imports/exports
 // by turning on the 'esModuleInterop' flag and referencing its default export.
 // @ts-ignore
-import * as shallowClone from 'Core/helpers/Function/shallowClone';
+import {FunctionUtils} from 'UI/Utils';
 
 // TODO: Здесь происходит обход ast дерева. Необходимо реализовать узлы wasaby и посетителей к ним
 //  https://online.sbis.ru/opendoc.html?guid=8be16d5c-9155-4b43-981e-ac6dce062323
@@ -402,7 +402,7 @@ function appendInternalExpressions(attributes: IAttributes, internal: IInternal,
        * Поэтому здесь добавляем чистую копию описания переменной
        */
       internal[INTERNAL_NAME + (dirtyCheckingIndex++)] = {
-         data: [shallowClone(expressions[index])],
+         data: [FunctionUtils.shallowClone(expressions[index])],
          type: 'text'
       };
    }

@@ -18,12 +18,11 @@ import { textNode, OptionsResolver } from 'UI/Executor';
 import { ContextResolver } from 'UI/Contexts';
 import { delay } from 'Types/function';
 // @ts-ignore
-import * as Serializer from 'Core/Serializer';
+import { Serializer } from 'UI/State';
 // @ts-ignore
 import { Logger } from 'UI/Utils';
 import * as _dcc from './DirtyCheckingCompatible';
-// @ts-ignore
-import * as ReactiveObserver from 'Core/ReactiveObserver';
+import { ReactiveObserver } from 'UI/Reactivity';
 import {
    onEndCommit,
    onStartCommit,
@@ -375,7 +374,7 @@ function createInstance(cnstr, userOptions, internalOptions) {
    }
    catch (error) {
       // @ts-ignore
-      coreControl = require('Core/Control');
+      coreControl = require('UI/Base').Control;
       inst = new coreControl();
       Logger.lifeError('constructor', cnstr.prototype, error);
    }

@@ -1,5 +1,5 @@
 /// <amd-module name='UI/theme/_controller/css/interface' />
-import { THEME_TYPE } from 'UI/theme/_controller/css/const';
+import { THEME_TYPE } from './const';
 /**
  * Сущность, представляющая собой ссылку на таблицу _мультитемных_ стилей
  * Используется для подключения внешних тем в head

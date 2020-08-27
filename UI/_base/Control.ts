@@ -7,13 +7,12 @@ import { Synchronizer } from 'UI/Vdom';
 import { OptionsResolver } from 'UI/Executor';
 import { ContextResolver } from 'UI/Contexts';
 import { _FocusAttrs, _IControl, activate } from 'UI/Focus';
-import { Logger, Purifier } from 'UI/Utils';
+import { Logger, Purifier, needToBeCompatible } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
 import { constants } from 'Env/Env';
 
 import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
-// @ts-ignore
-import ReactiveObserver = require('Core/ReactiveObserver');
+import { ReactiveObserver } from 'UI/Reactivity';
 
 import startApplication from 'UI/_base/startApplication';
 import { headDataStore } from 'UI/_base/HeadData';
@@ -148,11 +147,6 @@ export const _private = {
 
       // вычисляем родителя физически - ближайший к элементу родительский контрол
       const parent = goUpByControlTree(domElement)[0];
-
-      let needToBeCompatible;
-      if (require.defined('Core/helpers/Hcontrol/needToBeCompatible')) {
-         needToBeCompatible = require('Core/helpers/Hcontrol/needToBeCompatible');
-      }
 
       if (needToBeCompatible(parent)) {
          cfg.element = domElement;
@@ -706,7 +700,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return undefined;
    }
 
-   private _resultBeforeMount(resultBeforeMount: Promise<void | TState>, time: number): Promise<void | TState> | Promise<void> | void {
+   private _resultBeforeMount(resultBeforeMount: Promise<void | boolean | TState>, time: number): Promise<void | boolean | TState> | void {
       return new Promise((resolve, reject) => {
          let timeout = 0;
          resultBeforeMount.then(
@@ -1339,8 +1333,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
 
       if (compatible) {
-         if (require.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
-            const makeInstanceCompatible = require('Core/helpers/Hcontrol/makeInstanceCompatible');
+         if (requirejs.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
+            const makeInstanceCompatible = requirejs('Core/helpers/Hcontrol/makeInstanceCompatible');
             makeInstanceCompatible(ctr, cfg);
          }
       }

@@ -49,7 +49,7 @@ function startFunction(config: any, domElement: HTMLElement): void {
         module = dcomp[1];
         dcomp = dcomp[0];
     }
-    require([dcomp || undefined, dom.attributes.application.value], (result: any): void => {
+    requirejs([dcomp || undefined, dom.attributes.application.value], (result: any): void => {
         if (result) {
             if (module) {
                 result = result[module];
@@ -57,6 +57,7 @@ function startFunction(config: any, domElement: HTMLElement): void {
             config = config || {};
             config.application = dom.attributes.application.value;
         }
+        //@ts-ignore
         config.buildnumber = window.buildnumber;
         createControl(result, config, dom);
     });

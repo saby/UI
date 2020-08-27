@@ -1,10 +1,6 @@
 /// <amd-module name="UI/_executor/_Markup/Vdom/Generator" />
 
-// This module can only be referenced with ECMAScript imports/exports
-// by turning on the 'esModuleInterop' flag and referencing its default export.
-// @ts-ignore
-import * as flatten from 'Core/helpers/Array/flatten';
-
+import { ArrayUtils } from 'UI/Utils';
 import { Logger } from 'UI/Utils';
 import { _FocusAttrs } from 'UI/Focus';
 import * as Attr from '../../_Expressions/Attr';
@@ -293,7 +289,7 @@ export class GeneratorVdom implements IGenerator {
       if (Array.isArray(elements)) {
          /* Partial может вернуть массив, в результате чего могут появиться вложенные массивы.
           Поэтому здесь необходимо выпрямить массив elements */
-         elements = flatten(elements, true);
+         elements = ArrayUtils.flatten(elements, true);
          return elements;
       } else {
          throw new Error('joinElements: elements is not array');
@@ -330,7 +326,7 @@ export class GeneratorVdom implements IGenerator {
       const key = isKeyAttr ? props.attributes.key : attrs.key;
 
       // выпрямляем массив детей, чтобы не было вложенных массивов (они образуются из-за for)
-      children = flatten(children, true);
+      children = ArrayUtils.flatten(children, true);
       return Vdom.htmlNode(tagName, props, children, key, function(node: any): any {
          if (node) {
             if (Common.isControl(this.control) && this.attrs && this.attrs.name) {
