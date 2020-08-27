@@ -133,7 +133,9 @@ function exploreState(instance: TInstance, stateName: string, stateValue: any, i
         enumerable: false,
         configurable: false,
         get: () => {
-            warn('UseAfterDestroy$$$' + instanceName + '$$$' + stateName + '$$$');
+            if (stateName !== '_destroyed') {
+                warn('UseAfterDestroy$$$' + instanceName + '$$$' + stateName + '$$$');
+            }
             return currentValue;
         },
         set: (newValue) => {
