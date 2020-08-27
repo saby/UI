@@ -26,9 +26,8 @@ const enum TraverseState {
 
 const enum ContentTraverseState {
    UNKNOWN,
-   READY,
    CONTENT,
-   OPTIONS
+   OPTION
 }
 
 export interface ITraverseOptions {
@@ -348,7 +347,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
       if (context.contentComponentState !== ContentTraverseState.CONTENT) {
          this.errorHandler.error(
-            `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег ${node.name}. ` +
+            `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег ${node.name}. Тег будет отброшен. ` +
             'Необходимо явно задать контент в ws:content',
             {
                fileName: context.fileName,
@@ -360,7 +359,7 @@ class Traverse implements Nodes.INodeVisitor {
       const ast = this.processTagInMarkup(node, context);
       if (ast instanceof Ast.OptionNode || ast instanceof Ast.ContentOptionNode) {
          this.errorHandler.critical(
-            `Получен некорректный тип узла (OptionNode|ContentOptionNode) при обработке узла ${node.name}`,
+            `Получен некорректный тип узла (Option|ContentOption) при обработке узла ${node.name}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -643,9 +642,9 @@ class Traverse implements Nodes.INodeVisitor {
 
    private processComponentOption(node: Nodes.Tag, context: ITraverseContext): any {
       if (context.contentComponentState === ContentTraverseState.UNKNOWN) {
-         context.contentComponentState = ContentTraverseState.OPTIONS;
+         context.contentComponentState = ContentTraverseState.OPTION;
       }
-      if (context.contentComponentState !== ContentTraverseState.OPTIONS) {
+      if (context.contentComponentState !== ContentTraverseState.OPTION) {
          this.errorHandler.error(
             `Запрещено смешивать контент по умолчанию с опциями - встречена опция ${node.name}. ` +
             'Необходимо явно задать контент в ws:content',
