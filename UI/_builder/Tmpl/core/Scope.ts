@@ -38,4 +38,19 @@ export default class Scope {
       }
       ++this.templates[name].usages;
    }
+
+   getTemplateNames(): string[] {
+      return Object.keys(this.templates);
+   }
+
+   getTemplate(name: string): ITemplate {
+      if (!this.templates.hasOwnProperty(name)) {
+         throw new Error(`Инлайн-шаблон с именем ${name} не был определен`);
+      }
+      return this.templates[name];
+   }
+
+   removeTemplate(name: string): void {
+      delete this.templates[name];
+   }
 }

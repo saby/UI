@@ -196,6 +196,7 @@ class Traverse implements Nodes.INodeVisitor {
             fileName
          });
       }
+      this.removeUnusedTemplates(context);
       return tree;
    }
 
@@ -215,6 +216,23 @@ class Traverse implements Nodes.INodeVisitor {
       }
       this.keysGenerator.closeChildren();
       return children;
+   }
+
+   private removeUnusedTemplates(context: ITraverseContext): void {
+      const templates = this.scope.getTemplateNames();
+      for (let index = 0; index < templates.length; ++index) {
+         const name = templates[index];
+         const template = this.scope.getTemplate(name);
+         if (template.usages === 0) {
+            this.errorHandler.warn(
+               `Шаблон с именем ${name} определен, но не был использован. Шаблон будет отброшен`,
+               {
+                  fileName: context.fileName
+               }
+            );
+            this.scope.removeTemplate(name);
+         }
+      }
    }
 
    private getCurrentState(): TraverseState {
