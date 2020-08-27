@@ -129,7 +129,7 @@ export default function purifyInstance(
 
 function exploreState(instance: TInstance, stateName: string, stateValue: any, instanceName: string): void {
     let currentValue = stateValue;
-    const f = typeof window === 'undefined' ? warn : error;
+    const f = typeof window === 'undefined' || instanceName.indexOf('UITest') === 0 ? warn : error;
     Object.defineProperty(instance, stateName, {
         enumerable: false,
         configurable: false,
