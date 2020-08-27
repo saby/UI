@@ -225,12 +225,6 @@ class PatchVisitor implements Ast.IAstVisitor {
    visitAll(nodes: Ast.Ast[], context?: INavigationContext): any {
       for (let i = 0; i < nodes.length; ++i) {
          nodes[i].accept(this, context);
-         // @ts-ignore
-         nodes[i].prev = nodes[i - 1] || null;
-         // @ts-ignore
-         nodes[i].next = nodes[i + 1] || null;
-         // @ts-ignore
-         nodes[i].parent = context && context.parent || null;
       }
       return nodes;
    }
