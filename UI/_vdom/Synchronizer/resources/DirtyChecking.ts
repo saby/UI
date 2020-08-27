@@ -579,12 +579,14 @@ export function destroyReqursive(childControlNode, environment) {
 
          const vnode = childControlNode.vnode || childControlNode;
          onStartCommit(OperationType.DESTROY, getNodeName(childControlNode), vnode);
-         let logicParent = childControlNode.control._logicParent;
-         const controlName = childControlNode.control._options.name;
+         let logicParent;
+         let controlName: string;
          // Пометим контрол, как разрушаемый из DirtyChecking
          // слой совместимости попытается удалить контрол из дома,
          // этого не должно произойти, иначе синхронизатор упадет
          if (!childControlNode.control._destroyed) {
+            logicParent = childControlNode.control._logicParent;
+            controlName = childControlNode.control._options.name;
             childControlNode.control.__$destroyFromDirtyChecking = true;
             childControlNode.control.destroy();
          }
@@ -594,6 +596,7 @@ export function destroyReqursive(childControlNode, environment) {
          delete childControlNode.markup;
          if (
             logicParent &&
+            !logicParent._destroyed &&
             logicParent._template &&
             controlName
          ) {

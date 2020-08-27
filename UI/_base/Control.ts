@@ -75,10 +75,6 @@ const WAIT_TIMEOUT = 20000;
 // IE browser only needs more than 5 sec to load so we increased timeout up to 30 sec.
 const WRAP_TIMEOUT = 30000;
 
-const stateNamesNoPurify = {
-    isDestroyed: true
-};
-
 interface IContext {
    scope: unknown;
    get(field: string): Record<string, unknown>;
@@ -292,7 +288,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): unknown {
-      return this._environment && this._environment.startEvent(this._controlNode, arguments);
+      return !this._destroyed && this._environment && this._environment.startEvent(this._controlNode, arguments);
    }
 
    /**
@@ -514,7 +510,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // У чистого Wasaby контрола нет метода getParent, у совместимого - есть;
       const isPureWasaby: boolean = !this.getParent;
       if (isPureWasaby) {
-         Purifier.purifyInstance(this, this._moduleName, true, stateNamesNoPurify);
+         Purifier.purifyInstance(this, this._moduleName, true);
       }
    }
 

@@ -102,6 +102,9 @@ function addControlsToFlatArray(controlNode, array) {
 
    // Поднимаемся по controlNode'ам, потому что у control'а нет доступа к родительскому контролу
    var next = control._options.opener || controlNode.parent;
+   if (next && next._destroyed) {
+      return;
+   }
    if (next && !next.control) {
       if (next._container) {
          checkOpener(next);
