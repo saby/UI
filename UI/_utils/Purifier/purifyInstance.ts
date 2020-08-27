@@ -129,17 +129,18 @@ export default function purifyInstance(
 
 function exploreState(instance: TInstance, stateName: string, stateValue: any, instanceName: string): void {
     let currentValue = stateValue;
+    const f = typeof window === 'undefined' ? warn : error;
     Object.defineProperty(instance, stateName, {
         enumerable: false,
         configurable: false,
         get: () => {
             if (stateName !== '_destroyed') {
-                warn('UseAfterDestroy$$$' + instanceName + '$$$' + stateName + '$$$');
+                f('UseAfterDestroy$$$' + instanceName + '$$$' + stateName + '$$$');
             }
             return currentValue;
         },
         set: (newValue) => {
-            warn('UseAfterDestroy$$$' + instanceName + '$$$' + stateName + '$$$');
+            f('UseAfterDestroy$$$' + instanceName + '$$$' + stateName + '$$$');
             currentValue = newValue;
         }
     });
