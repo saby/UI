@@ -5,7 +5,7 @@ define([
             needLog
    ) {
 
-   describe.skip('UI/_utils/Purifier', () => {
+   describe('UI/_utils/Purifier', () => {
       const Purifier = Utils.Purifier;
       const Logger = Utils.Logger;
       describe('purifyInstance', () => {
