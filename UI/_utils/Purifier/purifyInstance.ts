@@ -2,9 +2,8 @@
  * @author Кондаков Р.Н.
  */
 
-import { error } from '../Logger';
+import { error, warn } from '../Logger';
 import { default as needLog, needPurify } from './needLog';
-import { Logger } from 'UI/Utils';
 
 type TInstanceValue = any;
 type TInstance = Record<string, TInstanceValue>;
@@ -134,11 +133,11 @@ function exploreState(instance: TInstance, stateName: string, stateValue: any, i
         enumerable: false,
         configurable: false,
         get: () => {
-            Logger.warn('UseAfterDestroy$$$' + instanceName + '$$$' + stateName + '$$$');
+            warn('UseAfterDestroy$$$' + instanceName + '$$$' + stateName + '$$$');
             return currentValue;
         },
         set: (newValue) => {
-            Logger.warn('UseAfterDestroy$$$' + instanceName + '$$$' + stateName + '$$$');
+            warn('UseAfterDestroy$$$' + instanceName + '$$$' + stateName + '$$$');
             currentValue = newValue;
         }
     });
