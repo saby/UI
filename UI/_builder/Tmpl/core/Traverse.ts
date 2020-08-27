@@ -155,7 +155,14 @@ class Traverse implements Nodes.INodeVisitor {
          case TraverseState.ARRAY_DATA:
             return this.processTagInArrayData(node, context);
          case TraverseState.PRIMITIVE_DATA:
-            return this.processTagInPrimitiveData(node, context);
+            this.errorHandler.error(
+               `Обнаружен тег ${node.name}, когда ожидалось текстовое содержимое. Тег будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
          case TraverseState.OBJECT_DATA:
             return this.processTagInObjectData(node, context);
          default:
@@ -379,15 +386,21 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:partial':
             return this.processComponentContent(node, context, context.componentOptionName);
          case 'ws:template':
-            // TODO: object property
+            return this.processComponentOption(node, context);
          case 'ws:Array':
+            return this.processArray(node, context);
          case 'ws:Boolean':
+            return this.processBoolean(node, context);
          case 'ws:Function':
+            return this.processFunction(node, context);
          case 'ws:Number':
+            return this.processNumber(node, context);
          case 'ws:Object':
+            return this.processObject(node, context);
          case 'ws:String':
+            return this.processString(node, context);
          case 'ws:Value':
-            // TODO: data types
+            return this.processValue(node, context);
          default:
             if (Names.isComponentOptionName(node.name)) {
                // TODO: object property
@@ -407,6 +420,153 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
+   private processArray(node: Nodes.Tag, context: ITraverseContext): any {
+      try {
+         this.stateStack.push(TraverseState.ARRAY_DATA);
+         const ast = new Ast.ArrayNode();
+         // @ts-ignore TODO: выполнить разбор данных
+         const children = this.visitAll(node.children, context);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора директивы данных ws:Array: ${error.message}. Директива будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      } finally {
+         this.stateStack.pop();
+      }
+   }
+
+   private processBoolean(node: Nodes.Tag, context: ITraverseContext): any {
+      try {
+         this.stateStack.push(TraverseState.PRIMITIVE_DATA);
+         const ast = new Ast.BooleanNode([]);
+         // @ts-ignore TODO: выполнить разбор данных
+         const children = this.visitAll(node.children, context);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора директивы данных ws:Boolean: ${error.message}. Директива будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      } finally {
+         this.stateStack.pop();
+      }
+   }
+
+   private processFunction(node: Nodes.Tag, context: ITraverseContext): any {
+      try {
+         this.stateStack.push(TraverseState.PRIMITIVE_DATA);
+         const ast = new Ast.FunctionNode('');
+         // @ts-ignore TODO: выполнить разбор данных
+         const children = this.visitAll(node.children, context);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора директивы данных ws:Function: ${error.message}. Директива будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      } finally {
+         this.stateStack.pop();
+      }
+   }
+
+   private processNumber(node: Nodes.Tag, context: ITraverseContext): any {
+      try {
+         this.stateStack.push(TraverseState.PRIMITIVE_DATA);
+         const ast = new Ast.NumberNode([]);
+         // @ts-ignore TODO: выполнить разбор данных
+         const children = this.visitAll(node.children, context);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора директивы данных ws:Number: ${error.message}. Директива будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      } finally {
+         this.stateStack.pop();
+      }
+   }
+
+   private processObject(node: Nodes.Tag, context: ITraverseContext): any {
+      try {
+         this.stateStack.push(TraverseState.OBJECT_DATA);
+         const ast = new Ast.ObjectNode({});
+         // @ts-ignore TODO: выполнить разбор данных
+         const children = this.visitAll(node.children, context);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора директивы данных ws:Object: ${error.message}. Директива будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      } finally {
+         this.stateStack.pop();
+      }
+   }
+
+   private processString(node: Nodes.Tag, context: ITraverseContext): any {
+      try {
+         this.stateStack.push(TraverseState.PRIMITIVE_DATA);
+         const ast = new Ast.StringNode([]);
+         // @ts-ignore TODO: выполнить разбор данных
+         const children = this.visitAll(node.children, context);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора директивы данных ws:String: ${error.message}. Директива будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      } finally {
+         this.stateStack.pop();
+      }
+   }
+
+   private processValue(node: Nodes.Tag, context: ITraverseContext): any {
+      try {
+         this.stateStack.push(TraverseState.PRIMITIVE_DATA);
+         const ast = new Ast.ValueNode([]);
+         // @ts-ignore TODO: выполнить разбор данных
+         const children = this.visitAll(node.children, context);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора директивы данных ws:Value: ${error.message}. Директива будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      } finally {
+         this.stateStack.pop();
+      }
+   }
+
    private processTagInArrayData(node: Nodes.Tag, context: ITraverseContext): any {
       switch (node.name) {
          case 'ws:if':
@@ -414,87 +574,53 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:for':
          case 'ws:template':
          case 'ws:partial':
+            this.errorHandler.error(
+               `Обнаружен тег ${node.name} вместо ожидаемой директивы данных. Тег будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
          case 'ws:Array':
+            return this.processArray(node, context);
          case 'ws:Boolean':
+            return this.processBoolean(node, context);
          case 'ws:Function':
+            return this.processFunction(node, context);
          case 'ws:Number':
+            return this.processNumber(node, context);
          case 'ws:Object':
+            return this.processObject(node, context);
          case 'ws:String':
+            return this.processString(node, context);
          case 'ws:Value':
+            return this.processValue(node, context);
          default:
-            if (Names.isComponentOptionName(node.name)) {
-               // ws:*
-               throw new Error('Not implemented');
-            }
-            if (Names.isComponentName(node.name)) {
-               throw new Error('Not implemented');
-            }
-            if (isElementNode(node.name)) {
-               throw new Error('Not implemented');
-            }
-            // unknown node
-            throw new Error('Unknown node');
-      }
-   }
-
-   private processTagInPrimitiveData(node: Nodes.Tag, context: ITraverseContext): any {
-      switch (node.name) {
-         case 'ws:if':
-         case 'ws:else':
-         case 'ws:for':
-         case 'ws:template':
-         case 'ws:partial':
-         case 'ws:Array':
-         case 'ws:Boolean':
-         case 'ws:Function':
-         case 'ws:Number':
-         case 'ws:Object':
-         case 'ws:String':
-         case 'ws:Value':
-         default:
-            if (Names.isComponentOptionName(node.name)) {
-               // ws:*
-               throw new Error('Not implemented');
-            }
-            if (Names.isComponentName(node.name)) {
-               throw new Error('Not implemented');
-            }
-            if (isElementNode(node.name)) {
-               throw new Error('Not implemented');
-            }
-            // unknown node
-            throw new Error('Unknown node');
+            this.errorHandler.error(
+               `Обнаружен тег ${node.name} вместо ожидаемой директивы данных. Тег будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
       }
    }
 
    private processTagInObjectData(node: Nodes.Tag, context: ITraverseContext): any {
-      switch (node.name) {
-         case 'ws:if':
-         case 'ws:else':
-         case 'ws:for':
-         case 'ws:template':
-         case 'ws:partial':
-         case 'ws:Array':
-         case 'ws:Boolean':
-         case 'ws:Function':
-         case 'ws:Number':
-         case 'ws:Object':
-         case 'ws:String':
-         case 'ws:Value':
-         default:
-            if (Names.isComponentOptionName(node.name)) {
-               // ws:*
-               throw new Error('Not implemented');
-            }
-            if (Names.isComponentName(node.name)) {
-               throw new Error('Not implemented');
-            }
-            if (isElementNode(node.name)) {
-               throw new Error('Not implemented');
-            }
-            // unknown node
-            throw new Error('Unknown node');
+      if (Names.isComponentOptionName(node.name)) {
+         // ws:*
+         throw new Error('Not implemented');
       }
+      this.errorHandler.error(
+         `Обнаружен тег ${node.name} вместо ожидамого тега с префиксом ws: в имени, служащий свойством ws:Object`,
+         {
+            fileName: context.fileName,
+            position: node.position
+         }
+      );
+      return null;
    }
 
    private processIf(node: Nodes.Tag, context: ITraverseContext): any {
