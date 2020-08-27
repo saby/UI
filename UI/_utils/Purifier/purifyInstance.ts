@@ -158,5 +158,4 @@ export function exploreAfterDestroyInstance(
     }
 
     instance.__exploreStarted;
-    Object.freeze(instance);
 }
