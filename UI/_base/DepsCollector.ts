@@ -59,6 +59,15 @@ enum DEPTYPES {
    SINGLE = 2
 }
 
+/**
+ * Соответствие плагина i18n библиотеке I18n/i18n
+ * Плагин i18n requirejs по сути это то же самое, что и библиотека I18n/i18n
+ * но DepsCollector не знает об этом ничего.
+ */
+const SPECIAL_DEPS = {
+   'i18n': 'I18n/i18n'
+}
+
 export const TYPES: Record<RequireJSPlugin | 'css', object> = {
    tmpl: {
       type: 'tmpl',
@@ -192,7 +201,10 @@ function getPacksNames(
    const unpackBundles: string[] = [];
    const packages = getEmptyPackages();
    Object.keys(allDeps).forEach((moduleName) => {
-      const bundleName = bundlesRoute[moduleName];
+      let bundleName = bundlesRoute[moduleName];
+      if (!bundleName && SPECIAL_DEPS.hasOwnProperty(moduleName)) {
+         bundleName = bundlesRoute[SPECIAL_DEPS[moduleName]];
+      }
       if (!bundleName) { return; }
       Logger.info(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${moduleName} in bundle ${bundleName}`);
       delete allDeps[moduleName];
