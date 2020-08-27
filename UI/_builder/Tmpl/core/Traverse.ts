@@ -423,10 +423,8 @@ class Traverse implements Nodes.INodeVisitor {
    private processArray(node: Nodes.Tag, context: ITraverseContext): any {
       try {
          this.stateStack.push(TraverseState.ARRAY_DATA);
-         const ast = new Ast.ArrayNode();
-         // @ts-ignore TODO: выполнить разбор данных
-         const children = this.visitAll(node.children, context);
-         return ast;
+         const elements = <Ast.TData[]>this.visitAll(node.children, context);
+         return new Ast.ArrayNode(elements);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Array: ${error.message}. Директива будет отброшена`,
