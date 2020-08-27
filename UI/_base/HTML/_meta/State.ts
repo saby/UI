@@ -1,8 +1,7 @@
 /// <amd-module name="UI/_base/HTML/_meta/State" />
 
-import { IMetaState, IMeta, ISerializedMetaState, IMetaStateInternal, ITagDescription } from 'UI/_base/HTML/_meta/interface';
+import { IMetaState, IMeta, ISerializedMetaState, IMetaStateInternal, ITagDescription, IOpenGraph } from 'UI/_base/HTML/_meta/interface';
 import TagMarkup from './TagMarkup';
-import { IOpenGraph } from '../meta';
 const prefix = typeof window === 'undefined' ? 'ps-' : '';
 let id = 1;
 const generateGuid = () => `state-${prefix}${id++}`;
