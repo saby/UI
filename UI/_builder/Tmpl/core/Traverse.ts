@@ -618,7 +618,17 @@ class Traverse implements Nodes.INodeVisitor {
          const templateName = this.getDataNode(node, 'name', context);
          Names.validateTemplateName(templateName);
          const ast = new Ast.TemplateNode(templateName);
-         ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
+         const content = <Ast.TContent[]>this.visitAll(node.children, context);
+         if (content.length === 0) {
+            this.errorHandler.error(
+               `Содержимое директивы ws:template не должно быть пустым`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+         }
+         ast.__$ws_content = content;
          this.scope.registerTemplate(templateName, ast);
          return ast;
       } catch (error) {
