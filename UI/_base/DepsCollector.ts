@@ -444,7 +444,7 @@ export class DepsCollector {
       }
    }
 
-   private addLocalizationResource(files: ICollectedFiles, availableResources: ILocalizationResources) {
+   private addLocalizationResource(files: ICollectedFiles, availableResources: ILocalizationResources): void {
       if (availableResources.dictionary) {
          files.js.push(availableResources.dictionary);
       }
