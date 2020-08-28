@@ -767,6 +767,17 @@ class Traverse implements Nodes.INodeVisitor {
             contentComponentState: ContentTraverseState.UNKNOWN,
             state: TraverseState.COMPONENT_OPTION
          };
+         const optionName = Names.getComponentOptionName(node.name);
+         if (node.children.length === 0) {
+            this.errorHandler.warn(
+               `Not implemented`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return new Ast.OptionNode(optionName, new Ast.ObjectNode({}));
+         }
          for (const name in node.attributes) {
             this.errorHandler.warn(
                `Обнаружен непредусмотренный атрибут ${name} на контентной опции. Атрибут будет отброшен`,
@@ -777,7 +788,15 @@ class Traverse implements Nodes.INodeVisitor {
             );
          }
          const children = this.visitAll(node.children, optionContext);
-         const optionName = Names.getComponentOptionName(node.name);
+         if (children.length > 1) {
+            this.errorHandler.error(
+               `Некорректное содержимое опции ${node.name} (количество узлов внутри > 1). Будет использовано только первое из полученных содержимых`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            )
+         }
          if (Ast.isTypeofContent(children[0])) {
             return new Ast.ContentOptionNode(optionName, <Ast.TContent[]>children);
          }
@@ -785,7 +804,7 @@ class Traverse implements Nodes.INodeVisitor {
             return new Ast.OptionNode(optionName, <Ast.TData>children[0]);
          }
          this.errorHandler.critical(
-            `Получен неопределенный контент опции ${node.name}`,
+            `Получен неопределенный контент опции ${node.name}. Опция будет отброшена`,
             {
                fileName: context.fileName,
                position: node.position
@@ -845,7 +864,7 @@ class Traverse implements Nodes.INodeVisitor {
          return ast;
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора компонента: ${error.message}. Компонент будет отброшен`,
+            `Ошибка разбора компонента ${node.name}: ${error.message}. Компонент будет отброшен`,
             {
                fileName: context.fileName,
                position: node.position
