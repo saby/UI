@@ -251,7 +251,7 @@ class Traverse implements Nodes.INodeVisitor {
       return this.stateStack[this.stateStack.length - 1];
    }
 
-   private processTagInMarkup(node: Nodes.Tag, context: ITraverseContext): any {
+   private processTagInMarkup(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
       switch (node.name) {
          case 'ws:if':
             return this.processIf(node, context);
@@ -306,7 +306,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processTagInComponent(node: Nodes.Tag, context: ITraverseContext): any {
+   private processTagInComponent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent | Ast.ContentOptionNode | Ast.OptionNode {
       switch (node.name) {
          case 'ws:if':
          case 'ws:else':
@@ -348,7 +348,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processComponentContent(node: Nodes.Tag, context: ITraverseContext, contentName: string = 'content'): any {
+   private processComponentContent(node: Nodes.Tag, context: ITraverseContext, contentName: string = 'content'): Ast.TContent {
       if (context.contentComponentState === ContentTraverseState.UNKNOWN) {
          context.contentComponentState = ContentTraverseState.CONTENT;
       }
@@ -363,21 +363,10 @@ class Traverse implements Nodes.INodeVisitor {
          );
          return null;
       }
-      const ast = this.processTagInMarkup(node, context);
-      if (ast instanceof Ast.OptionNode || ast instanceof Ast.ContentOptionNode) {
-         // TODO: нужна ли эта проверка?!
-         this.errorHandler.critical(
-            `Получен некорректный тип узла (Option|ContentOption) при обработке узла ${node.name}`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-      }
-      return ast;
+      return this.processTagInMarkup(node, context);
    }
 
-   private processTagInComponentOption(node: Nodes.Tag, context: ITraverseContext): any {
+   private processTagInComponentOption(node: Nodes.Tag, context: ITraverseContext): Ast.TData | Ast.TContent | Ast.ContentOptionNode | Ast.OptionNode {
       switch (node.name) {
          case 'ws:if':
          case 'ws:else':
@@ -385,6 +374,7 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:partial':
             return this.processComponentContent(node, context, context.componentOptionName);
          case 'ws:template':
+            // TODO: object property
             return this.processComponentOption(node, context);
          case 'ws:Array':
             return this.processArray(node, context);
@@ -419,7 +409,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processArray(node: Nodes.Tag, context: ITraverseContext): any {
+   private processArray(node: Nodes.Tag, context: ITraverseContext): Ast.ArrayNode {
       try {
          this.stateStack.push(TraverseState.ARRAY_DATA);
          const elements = <Ast.TData[]>this.visitAll(node.children, context);
@@ -438,7 +428,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processBoolean(node: Nodes.Tag, context: ITraverseContext): any {
+   private processBoolean(node: Nodes.Tag, context: ITraverseContext): Ast.BooleanNode {
       try {
          this.stateStack.push(TraverseState.PRIMITIVE_DATA);
          // TODO: добавить валидацию содержимого
@@ -458,7 +448,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processFunction(node: Nodes.Tag, context: ITraverseContext): any {
+   private processFunction(node: Nodes.Tag, context: ITraverseContext): Ast.FunctionNode {
       try {
          this.stateStack.push(TraverseState.PRIMITIVE_DATA);
          const ast = new Ast.FunctionNode('');
@@ -479,7 +469,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processNumber(node: Nodes.Tag, context: ITraverseContext): any {
+   private processNumber(node: Nodes.Tag, context: ITraverseContext): Ast.NumberNode {
       try {
          this.stateStack.push(TraverseState.PRIMITIVE_DATA);
          // TODO: добавить валидацию содержимого
@@ -499,7 +489,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processObject(node: Nodes.Tag, context: ITraverseContext): any {
+   private processObject(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode {
       try {
          this.stateStack.push(TraverseState.OBJECT_DATA);
          const ast = new Ast.ObjectNode({});
@@ -520,7 +510,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processString(node: Nodes.Tag, context: ITraverseContext): any {
+   private processString(node: Nodes.Tag, context: ITraverseContext): Ast.StringNode {
       try {
          this.stateStack.push(TraverseState.PRIMITIVE_DATA);
          // TODO: добавить валидацию содержимого
@@ -540,7 +530,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processValue(node: Nodes.Tag, context: ITraverseContext): any {
+   private processValue(node: Nodes.Tag, context: ITraverseContext): Ast.ValueNode {
       try {
          this.stateStack.push(TraverseState.PRIMITIVE_DATA);
          // TODO: добавить валидацию содержимого
@@ -560,7 +550,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processTagInArrayData(node: Nodes.Tag, context: ITraverseContext): any {
+   private processTagInArrayData(node: Nodes.Tag, context: ITraverseContext): Ast.TData {
       switch (node.name) {
          case 'ws:Array':
             return this.processArray(node, context);
@@ -603,7 +593,7 @@ class Traverse implements Nodes.INodeVisitor {
       return null;
    }
 
-   private processIf(node: Nodes.Tag, context: ITraverseContext): any {
+   private processIf(node: Nodes.Tag, context: ITraverseContext): Ast.IfNode {
       try {
          this.stateStack.push(TraverseState.MARKUP);
          const data = cleanMustacheExpression(this.getDataNode(node, 'data', context));
@@ -625,7 +615,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processElse(node: Nodes.Tag, context: ITraverseContext): any {
+   private processElse(node: Nodes.Tag, context: ITraverseContext): Ast.ElseNode {
       try {
          this.stateStack.push(TraverseState.MARKUP);
          const ast = new Ast.ElseNode();
@@ -650,7 +640,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processCycle(node: Nodes.Tag, context: ITraverseContext): any {
+   private processCycle(node: Nodes.Tag, context: ITraverseContext): Ast.ForNode | Ast.ForeachNode {
       try {
          const data = this.getDataNode(node, 'data', context);
          if (data.indexOf(';') > -1) {
@@ -669,7 +659,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processFor(node: Nodes.Tag, context: ITraverseContext, data: string): any {
+   private processFor(node: Nodes.Tag, context: ITraverseContext, data: string): Ast.ForNode {
       try {
          this.stateStack.push(TraverseState.MARKUP);
          const [initStr, testStr, updateStr] = data.split(';').map(s => s.trim());
@@ -693,7 +683,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processForeach(node: Nodes.Tag, context: ITraverseContext, data: string): any {
+   private processForeach(node: Nodes.Tag, context: ITraverseContext, data: string): Ast.ForeachNode {
       try {
          this.stateStack.push(TraverseState.MARKUP);
          const [left, right] = data.split(' in ');
@@ -718,7 +708,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processTemplate(node: Nodes.Tag, context: ITraverseContext): any {
+   private processTemplate(node: Nodes.Tag, context: ITraverseContext): Ast.TemplateNode {
       try {
          this.stateStack.push(TraverseState.MARKUP);
          const templateName = this.getDataNode(node, 'name', context);
@@ -751,13 +741,13 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processPartial(node: Nodes.Tag, context: ITraverseContext): any {
+   private processPartial(node: Nodes.Tag, context: ITraverseContext): Ast.PartialNode {
       throw new Error('Not implemented');
       // TODO: в атрибутах есть обязательный template
       //  Создаем узел, парсим данные, переходим к детям
    }
 
-   private processComponentOption(node: Nodes.Tag, context: ITraverseContext): any {
+   private processComponentOption(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
       if (context.contentComponentState === ContentTraverseState.UNKNOWN) {
          context.contentComponentState = ContentTraverseState.OPTION;
       }
@@ -818,7 +808,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processComponent(node: Nodes.Tag, context: ITraverseContext): any {
+   private processComponent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       try {
          this.stateStack.push(TraverseState.COMPONENT);
          const { library, module } = resolveComponent(node.name);
@@ -872,7 +862,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processElement(node: Nodes.Tag, context: ITraverseContext): any {
+   private processElement(node: Nodes.Tag, context: ITraverseContext): Ast.ElementNode {
       try {
          this.stateStack.push(TraverseState.MARKUP);
          const attributes = this.visitAttributes(node.attributes, true);
