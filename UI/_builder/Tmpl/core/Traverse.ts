@@ -365,6 +365,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
       const ast = this.processTagInMarkup(node, context);
       if (ast instanceof Ast.OptionNode || ast instanceof Ast.ContentOptionNode) {
+         // TODO: нужна ли эта проверка?!
          this.errorHandler.critical(
             `Получен некорректный тип узла (Option|ContentOption) при обработке узла ${node.name}`,
             {
@@ -373,8 +374,6 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
       }
-      // TODO: убрать, делать возврат и обработку
-      context.component.appendToContent(contentName, ast);
       return ast;
    }
 
@@ -802,7 +801,6 @@ class Traverse implements Nodes.INodeVisitor {
                }
             );
          }
-         // TODO: добавить обработку полученных узлов
          const children = this.visitAll(node.children, optionContext);
          const optionName = Names.getComponentOptionName(node.name);
          if (Ast.isTypeofContent(children[0])) {
