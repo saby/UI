@@ -75,6 +75,48 @@ function validateElseNode(prev: Ast.Ast | null) {
    throw new Error('Ожидалось, что директива ws:else следует за директивной ws:if или ws:else с атрибутом data');
 }
 
+function validateBoolean(children: Ast.TextNode[]): void {
+   if (children.length === 0) {
+      throw new Error('не задано значение');
+   }
+   if (children.length !== 1) {
+      throw new Error('данные некорректного типа');
+   }
+   const data = children[0].__$ws_content;
+   for (let index = 0; index < data.length; ++index) {
+      const child = data[index];
+      if (child instanceof Ast.TextDataNode) {
+         if (child.__$ws_content !== 'true' && child.__$ws_content !== 'false') {
+            throw new Error('ожидалось одно из значений - true/false');
+         }
+      }
+      if (child instanceof Ast.TranslationNode) {
+         throw new Error('использование локализации недопустимо');
+      }
+   }
+}
+
+function validateNumber(children: Ast.TextNode[]): void {
+   if (children.length === 0) {
+      throw new Error('не задано значение');
+   }
+   if (children.length !== 1) {
+      throw new Error('данные некорректного типа');
+   }
+   const data = children[0].__$ws_content;
+   for (let index = 0; index < data.length; ++index) {
+      const child = data[index];
+      if (child instanceof Ast.TextDataNode) {
+         if (Number.isNaN(+child.__$ws_content)) {
+            throw new Error(`получено нечисловое значение -"${child.__$ws_content}"`);
+         }
+      }
+      if (child instanceof Ast.TranslationNode) {
+         throw new Error('использование локализации недопустимо');
+      }
+   }
+}
+
 class Traverse implements Nodes.INodeVisitor {
    private readonly expressionParser: IParser;
    private readonly keysGenerator: IKeysGenerator;
@@ -422,9 +464,9 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.PRIMITIVE_DATA
          };
-         // TODO: добавить валидацию содержимого
-         const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
-         return new Ast.BooleanNode(children);
+         const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
+         validateBoolean(children);
+         return new Ast.BooleanNode(children[0].__$ws_content);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Boolean: ${error.message}. Директива будет отброшена`,
@@ -465,9 +507,9 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.PRIMITIVE_DATA
          };
-         // TODO: добавить валидацию содержимого
-         const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
-         return new Ast.NumberNode(children);
+         const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
+         validateNumber(children);
+         return new Ast.NumberNode(children[0].__$ws_content);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Number: ${error.message}. Директива будет отброшена`,
@@ -508,7 +550,6 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.PRIMITIVE_DATA
          };
-         // TODO: добавить валидацию содержимого
          const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
          return new Ast.StringNode(children);
       } catch (error) {
@@ -529,7 +570,6 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.PRIMITIVE_DATA
          };
-         // TODO: добавить валидацию содержимого
          const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
          return new Ast.ValueNode(children);
       } catch (error) {
@@ -803,8 +843,8 @@ class Traverse implements Nodes.INodeVisitor {
          if (Ast.isTypeofData(children[0])) {
             return new Ast.OptionNode(optionName, <Ast.TData>children[0]);
          }
-         this.errorHandler.critical(
-            `Получен неопределенный контент опции ${node.name}. Опция будет отброшена`,
+         this.errorHandler.error(
+            `Содержимое опции ${node.name} некорректно. Опция будет отброшена`,
             {
                fileName: context.fileName,
                position: node.position
