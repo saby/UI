@@ -73,7 +73,6 @@ const libsAllowlistSync: Set<string> = new Set([
     'Controls/explorers',
     'Controls/filter',
     'Controls/filterPopup',
-    'Controls/grid',
     'Controls/heading',
     'Controls/history',
     'Controls/input',
