@@ -160,5 +160,5 @@ export function exploreAfterDestroyInstance(
         exploreState(instance, stateName, stateValue, instanceName);
     }
 
-    instance.__exploreStarted;
+    instance.__exploreStarted = true;
 }
