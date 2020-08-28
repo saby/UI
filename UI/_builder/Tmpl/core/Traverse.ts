@@ -528,10 +528,33 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.OBJECT_DATA
          };
-         const ast = new Ast.ObjectNode({});
-         // @ts-ignore TODO: выполнить разбор данных
+         const properties: Ast.IObjectProperties = { };
          const children = this.visitAll(node.children, childrenContext);
-         return ast;
+         for (let index = 0; index < children.length; ++index) {
+            const child = children[index];
+            if (child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode) {
+               if (properties.hasOwnProperty(child.__$ws_name)) {
+                  this.errorHandler.critical(
+                     `Опция ${child.__$ws_name} уже определена на директиве ws:Object. Полученная опция будет отброшена`,
+                     {
+                        fileName: context.fileName,
+                        position: node.position
+                     }
+                  );
+                  continue;
+               }
+               properties[child.__$ws_name] = child;
+               continue;
+            }
+            this.errorHandler.critical(
+               `Получен некорректный узел (!=Option|ContentOption) внутри компонента ${node.name}`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+         }
+         return new Ast.ObjectNode(properties);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Object: ${error.message}. Директива будет отброшена`,
@@ -612,10 +635,13 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processTagInObjectData(node: Nodes.Tag, context: ITraverseContext): any {
+   private processTagInObjectData(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
       if (Names.isComponentOptionName(node.name)) {
-         // ws:*
-         throw new Error('Not implemented');
+         const optionContext: ITraverseContext = {
+            ...context,
+            contentComponentState: ContentTraverseState.UNKNOWN
+         };
+         return this.processComponentOption(node, optionContext);
       }
       this.errorHandler.error(
          `Обнаружен тег ${node.name} вместо ожидаемого тега с префиксом ws: в имени, служащий свойством ws:Object`,

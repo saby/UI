@@ -554,6 +554,22 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.type = 'tag';
    }
 
+   // done.
+   visitObject(node: Ast.ObjectNode, context: INavigationContext): any {
+      // @ts-ignore
+      node.attribs = { };
+      // @ts-ignore
+      node.children = this.collectObjectProperties(node, context);
+      // @ts-ignore
+      node.key = node.__$ws_key;
+      // @ts-ignore
+      node.name = `ws:Object`;
+      // @ts-ignore
+      node.originName = `ws:Object`;
+      // @ts-ignore
+      node.type = 'tag';
+   }
+
    visitPartial(node: Ast.PartialNode, context: INavigationContext): any {
       // @ts-ignore
       node.attribs = { };
@@ -584,21 +600,6 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.type = 'tag';
    }
 
-   visitObject(node: Ast.ObjectNode, context: INavigationContext): any {
-      // @ts-ignore
-      node.attribs = { };
-      // @ts-ignore
-      node.children = [];
-      // @ts-ignore
-      node.key = node.__$ws_key;
-      // @ts-ignore
-      node.name = `ws:Object`;
-      // @ts-ignore
-      node.originName = `ws:Object`;
-      // @ts-ignore
-      node.type = 'tag';
-   }
-
    // done.
    private collectAttributes(node: Ast.BaseHtmlElement, context: INavigationContext): any {
       const attributes = { };
@@ -623,6 +624,16 @@ class PatchVisitor implements Ast.IAstVisitor {
       for (const optionName in node.__$ws_contents) {
          node.__$ws_contents[optionName].accept(this, context);
          injectedData.push(node.__$ws_contents[optionName]);
+      }
+      return injectedData;
+   }
+
+   // done.
+   private collectObjectProperties(node: Ast.ObjectNode): any {
+      const injectedData = [];
+      for (const optionName in node.__$ws_properties) {
+         node.__$ws_properties[optionName].accept(this, context);
+         injectedData.push(node.__$ws_properties[optionName]);
       }
       return injectedData;
    }

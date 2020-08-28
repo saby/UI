@@ -542,7 +542,7 @@ export class NumberNode extends Ast {
 }
 
 export interface IObjectProperties {
-   [name: string]: TData | TContent;
+   [name: string]: OptionNode | ContentOptionNode;
 }
 
 export class ObjectNode extends Ast {
