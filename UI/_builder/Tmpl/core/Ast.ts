@@ -352,7 +352,12 @@ export enum Flags {
    /**
     * Flag for type casted node that has been changed its view.
     */
-   TYPE_CASTED = 8
+   TYPE_CASTED = 8,
+
+   /**
+    * Flag for node that must be ignored in next processing.
+    */
+   IGNORE = 16
 }
 
 /**
