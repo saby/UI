@@ -5,19 +5,24 @@ define('UI/_builder/Tmpl/core/bridge', [
    'UI/_builder/Tmpl/expressions/_private/Parser',
    'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/core/PatchVisitor',
-   'Core/Deferred'
-], function(traversing, TraverseLib, postTraverse, ParserLib, ErrorHandlerLib, PatchVisitorLib, Deferred) {
+   'Core/Deferred',
+   'UI/_builder/Tmpl/core/Scope'
+], function(traversing, TraverseLib, postTraverse, ParserLib, ErrorHandlerLib, PatchVisitorLib, Deferred, ScopeLib) {
    'use strict';
    var USE_VISITOR = false;
 
    function traverseWithVisitors(htmlTree, options) {
       var deferred = new Deferred();
-      var config = {
+      var traverseConfig = {
          expressionParser: new ParserLib.Parser(),
          hierarchicalKeys: true,
          errorHandler: new ErrorHandlerLib.default()
       };
-      var traversed = TraverseLib.default(htmlTree, config, options.fileName);
+      var traverseOptions = {
+         fileName: options.fileName,
+         scope: new ScopeLib.default()
+      };
+      var traversed = TraverseLib.default(htmlTree, traverseConfig, traverseOptions);
       PatchVisitorLib.default(traversed);
       postTraverse.call({
          createResultDictionary: options.createResultDictionary,

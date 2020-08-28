@@ -30,11 +30,16 @@ const enum ContentTraverseState {
    OPTION
 }
 
-export interface ITraverseOptions {
+export interface ITraverseConfig {
    expressionParser: IParser;
    hierarchicalKeys: boolean;
    errorHandler: IErrorHandler;
    allowComments: boolean;
+}
+
+export interface ITraverseOptions {
+   fileName: string;
+   scope: Scope;
 }
 
 interface IAttributesCollection {
@@ -76,11 +81,11 @@ class Traverse implements Nodes.INodeVisitor {
    private readonly errorHandler: IErrorHandler;
    private readonly allowComments: boolean;
 
-   constructor(options: ITraverseOptions) {
-      this.expressionParser = options.expressionParser;
-      this.keysGenerator = createKeysGenerator(options.hierarchicalKeys);
-      this.errorHandler = options.errorHandler;
-      this.allowComments = options.allowComments;
+   constructor(config: ITraverseConfig) {
+      this.expressionParser = config.expressionParser;
+      this.keysGenerator = createKeysGenerator(config.hierarchicalKeys);
+      this.errorHandler = config.errorHandler;
+      this.allowComments = config.allowComments;
    }
 
    visitComment(node: Nodes.Comment, context: ITraverseContext): Ast.CommentNode {
@@ -186,12 +191,12 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   transform(nodes: Nodes.Node[], fileName: string, scope: Scope): Ast.Ast[] {
+   transform(nodes: Nodes.Node[], options: ITraverseOptions): Ast.Ast[] {
       const context: ITraverseContext = {
          prev: null,
          state: TraverseState.MARKUP,
-         fileName,
-         scope
+         fileName: options.fileName,
+         scope: options.scope
       };
       const tree = this.visitAll(nodes, context);
       this.removeUnusedTemplates(context);
@@ -940,10 +945,9 @@ class Traverse implements Nodes.INodeVisitor {
    }
 }
 
-export default function traverse(nodes: Nodes.Node[], options: ITraverseOptions, fileName: string, scope: Scope) {
-   return new Traverse(options).transform(
+export default function traverse(nodes: Nodes.Node[], config: ITraverseConfig, options: ITraverseOptions) {
+   return new Traverse(config).transform(
       nodes,
-      fileName,
-      scope
+      options
    );
 }
