@@ -444,6 +444,7 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.ARRAY_DATA
          };
+         this.warnUnexpectedAttributes(node, context);
          const elements = <Ast.TData[]>this.visitAll(node.children, childrenContext);
          return new Ast.ArrayNode(elements);
       } catch (error) {
@@ -464,6 +465,7 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.PRIMITIVE_DATA
          };
+         this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
          validateBoolean(children);
          return new Ast.BooleanNode(children[0].__$ws_content);
@@ -507,6 +509,7 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.PRIMITIVE_DATA
          };
+         this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
          validateNumber(children);
          return new Ast.NumberNode(children[0].__$ws_content);
@@ -573,6 +576,7 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.PRIMITIVE_DATA
          };
+         this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
          return new Ast.StringNode(children);
       } catch (error) {
@@ -593,6 +597,7 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.PRIMITIVE_DATA
          };
+         this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
          return new Ast.ValueNode(children);
       } catch (error) {
@@ -812,6 +817,18 @@ class Traverse implements Nodes.INodeVisitor {
       //  Создаем узел, парсим данные, переходим к детям
    }
 
+   private warnUnexpectedAttributes(node: Nodes.Tag, context: ITraverseContext): void {
+      for (const name in node.attributes) {
+         this.errorHandler.warn(
+            `Обнаружен непредусмотренный атрибут ${name} на теге ${node.name}. Атрибут будет отброшен`,
+            {
+               fileName: context.fileName,
+               position: node.attributes[name].position
+            }
+         );
+      }
+   }
+
    private processComponentOption(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
       if (context.contentComponentState === ContentTraverseState.UNKNOWN) {
          context.contentComponentState = ContentTraverseState.OPTION;
@@ -844,15 +861,7 @@ class Traverse implements Nodes.INodeVisitor {
             );
             return new Ast.OptionNode(optionName, new Ast.ObjectNode({}));
          }
-         for (const name in node.attributes) {
-            this.errorHandler.warn(
-               `Обнаружен непредусмотренный атрибут ${name} на контентной опции. Атрибут будет отброшен`,
-               {
-                  fileName: context.fileName,
-                  position: node.attributes[name].position
-               }
-            );
-         }
+         this.warnUnexpectedAttributes(node, context);
          const children = this.visitAll(node.children, optionContext);
          if (children.length > 1) {
             this.errorHandler.error(
