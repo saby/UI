@@ -49,8 +49,6 @@ interface IFilteredAttributes {
 }
 
 interface ITraverseContext {
-   componentOptionName?: string;
-   component?: Ast.ComponentNode | null;
    contentComponentState?: ContentTraverseState;
    prev: Ast.Ast | null;
    fileName: string;
@@ -348,7 +346,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processComponentContent(node: Nodes.Tag, context: ITraverseContext, contentName: string = 'content'): Ast.TContent {
+   private processComponentContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
       if (context.contentComponentState === ContentTraverseState.UNKNOWN) {
          context.contentComponentState = ContentTraverseState.CONTENT;
       }
@@ -372,7 +370,7 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:else':
          case 'ws:for':
          case 'ws:partial':
-            return this.processComponentContent(node, context, context.componentOptionName);
+            return this.processComponentContent(node, context);
          case 'ws:template':
             // TODO: object property
             return this.processComponentOption(node, context);
@@ -396,7 +394,7 @@ class Traverse implements Nodes.INodeVisitor {
                throw new Error('Not implemented');
             }
             if (Names.isComponentName(node.name) || isElementNode(node.name)) {
-               return this.processComponentContent(node, context, context.componentOptionName);
+               return this.processComponentContent(node, context);
             }
             this.errorHandler.error(
                `Обнаружен неизвестный HTML тег ${node.name}. Тег будет отброшен`,
@@ -766,7 +764,6 @@ class Traverse implements Nodes.INodeVisitor {
          this.stateStack.push(TraverseState.COMPONENT_OPTION);
          const optionContext: ITraverseContext = {
             ...context,
-            componentOptionName: Names.getComponentOptionName(node.name),
             contentComponentState: ContentTraverseState.UNKNOWN
          };
          for (const name in node.attributes) {
@@ -819,7 +816,6 @@ class Traverse implements Nodes.INodeVisitor {
          ast.__$ws_options = attributes.options;
          const childrenContext: ITraverseContext = {
             ...context,
-            component: ast,
             contentComponentState: ContentTraverseState.UNKNOWN
          };
          const children = this.visitAll(node.children, childrenContext);
