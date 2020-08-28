@@ -14,15 +14,12 @@ import * as Monad from './_vdom/Utils/Monad';
 import * as _Options from './_vdom/Synchronizer/resources/Options';
 import * as _MountMethodsCaller from './_vdom/Synchronizer/resources/MountMethodsCaller';
 
-// @ts-ignore
-import { Logger } from 'UI/Utils';
-
 export { default as Synchronizer } from './_vdom/Synchronizer/Synchronizer';
 export { Debug };
 export { getChangedOptions } from './_vdom/Synchronizer/resources/DirtyChecking';
 export { DirtyChecking };
 export { DirtyCheckingCompatible };
-export { default as DOMEnvironment, IDOMEnvironment } from './_vdom/Synchronizer/resources/DOMEnvironment';
+export { default as DOMEnvironment } from './_vdom/Synchronizer/resources/DOMEnvironment';
 export { default as Environment } from './_vdom/Synchronizer/resources/Environment';
 export { Hooks };
 export { SwipeController };
@@ -30,6 +27,5 @@ export { default as SyntheticEvent } from './_vdom/Synchronizer/resources/Synthe
 export { VdomMarkup };
 export { _Options };
 export { _MountMethodsCaller };
-export * from './_vdom/Synchronizer/interfaces';
 
 export { Functional, Monad };

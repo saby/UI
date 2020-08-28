@@ -1,8 +1,7 @@
 import { assert } from 'chai';
 import { replace, restore, fake } from 'sinon';
 
-import { IControlNode, IWasabyHTMLElement, TEventsObject, IEvent } from 'UI/_vdom/Synchronizer/interfaces';
-import { IProperties } from 'UI/_vdom/Synchronizer/resources/DOMEnvironment';
+import { IControlNode, IWasabyHTMLElement, TEventsObject, IEvent, IProperties } from 'UI/_vdom/Synchronizer/interfaces';
 import { invisibleNodeTypename } from 'UI/_vdom/Synchronizer/resources/InvisibleNodeChecker';
 import { TWasabyInputElement, TRef } from 'UI/_vdom/Synchronizer/resources/Hooks';
 
@@ -107,7 +106,7 @@ describe('UI/_vdom/Synchronizer/resources/Hooks', () => {
             const propsArray = ids.map(() => ({} as IProperties));
             let ref: TRef;
             for (let i = 0; i < ids.length; i++) {
-                ref = Hooks.setControlNodeHook(tagName, propsArray[i], [], ids[i], controlNodes[i], ref)[4]; 
+                ref = Hooks.setControlNodeHook(tagName, propsArray[i], [], ids[i], controlNodes[i], ref)[4];
             }
             ref(element);
 
