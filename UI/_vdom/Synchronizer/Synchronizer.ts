@@ -2,7 +2,7 @@
 /* tslint:disable */
 
 import { DirtyKind, rebuildNode, createNode, destroyReqursive, IMemoNode, getReceivedState } from './resources/DirtyChecking';
-import DOMEnvironment, { IDOMEnvironment } from './resources/DOMEnvironment';
+import DOMEnvironment from './resources/DOMEnvironment';
 import { delay } from 'Types/function';
 // @ts-ignore
 import { ObjectUtils } from 'UI/Utils';
@@ -13,7 +13,7 @@ import { Control } from 'UI/Base';
 
 // @ts-ignore
 import { Logger } from 'UI/Utils';
-import { IControlNodeOptions, IControlNode, IWasabyHTMLElement } from './interfaces';
+import { IControlNodeOptions, IControlNode, IWasabyHTMLElement, IDOMEnvironment } from './interfaces';
 
 import {
    injectHook,
