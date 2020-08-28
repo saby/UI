@@ -551,13 +551,28 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
+   private warnIncorrectProperties(collection: Ast.IAttributes | Ast.IEvents, parent: Nodes.Tag, context: ITraverseContext): void {
+      for (const name in collection) {
+         this.errorHandler.warn(
+            `Обнаружен непредусмотренный атрибут ${name} на теге ${parent.name}. Атрибут будет отброшен`,
+            {
+               fileName: context.fileName,
+               position: parent.position
+            }
+         );
+      }
+   }
+
    private processObject(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode {
       try {
          const childrenContext = {
             ...context,
             state: TraverseState.OBJECT_DATA
          };
-         const properties: Ast.IObjectProperties = { };
+         const attributes = this.visitAttributes(node.attributes, false);
+         this.warnIncorrectProperties(attributes.attributes, node, context);
+         this.warnIncorrectProperties(attributes.events, node, context);
+         const properties: Ast.IObjectProperties = attributes.options;
          const children = this.visitAll(node.children, childrenContext);
          for (let index = 0; index < children.length; ++index) {
             const child = children[index];
@@ -859,9 +874,8 @@ class Traverse implements Nodes.INodeVisitor {
          };
          const optionName = Names.getComponentOptionName(node.name);
          if (node.children.length === 0) {
-            // TODO: !!!
             this.errorHandler.warn(
-               `Not implemented`,
+               `Опция ${node.name} не содержит данных`,
                {
                   fileName: context.fileName,
                   position: node.position
