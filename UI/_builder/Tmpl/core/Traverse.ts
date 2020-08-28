@@ -35,7 +35,6 @@ export interface ITraverseOptions {
    hierarchicalKeys: boolean;
    errorHandler: IErrorHandler;
    allowComments: boolean;
-   scope: Scope;
 }
 
 interface IAttributesCollection {
@@ -49,9 +48,11 @@ interface IFilteredAttributes {
 }
 
 interface ITraverseContext {
-   contentComponentState?: ContentTraverseState;
-   prev: Ast.Ast | null;
+   scope: Scope;
    fileName: string;
+   prev: Ast.Ast | null;
+   state: TraverseState;
+   contentComponentState?: ContentTraverseState;
 }
 
 function validateElseNode(prev: Ast.Ast | null) {
@@ -70,20 +71,16 @@ function validateElseNode(prev: Ast.Ast | null) {
 }
 
 class Traverse implements Nodes.INodeVisitor {
-   private readonly stateStack: TraverseState[];
    private readonly expressionParser: IParser;
    private readonly keysGenerator: IKeysGenerator;
    private readonly errorHandler: IErrorHandler;
    private readonly allowComments: boolean;
-   private readonly scope: Scope;
 
    constructor(options: ITraverseOptions) {
-      this.stateStack = [];
       this.expressionParser = options.expressionParser;
       this.keysGenerator = createKeysGenerator(options.hierarchicalKeys);
       this.errorHandler = options.errorHandler;
       this.allowComments = options.allowComments;
-      this.scope = options.scope;
    }
 
    visitComment(node: Nodes.Comment, context: ITraverseContext): Ast.CommentNode {
@@ -94,8 +91,7 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    visitCData(node: Nodes.CData, context: ITraverseContext): Ast.CDataNode {
-      const state = this.getCurrentState();
-      switch (state) {
+      switch (context.state) {
          case TraverseState.MARKUP:
          case TraverseState.COMPONENT:
          case TraverseState.COMPONENT_OPTION:
@@ -110,8 +106,7 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    visitDoctype(node: Nodes.Doctype, context: ITraverseContext): Ast.DoctypeNode {
-      const state = this.getCurrentState();
-      switch (state) {
+      switch (context.state) {
          case TraverseState.MARKUP:
          case TraverseState.COMPONENT:
          case TraverseState.COMPONENT_OPTION:
@@ -126,8 +121,7 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    visitInstruction(node: Nodes.Instruction, context: ITraverseContext): Ast.InstructionNode {
-      const state = this.getCurrentState();
-      switch (state) {
+      switch (context.state) {
          case TraverseState.MARKUP:
          case TraverseState.COMPONENT:
          case TraverseState.COMPONENT_OPTION:
@@ -142,8 +136,7 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    visitTag(node: Nodes.Tag, context: ITraverseContext): Ast.Ast {
-      const state = this.getCurrentState();
-      switch (state) {
+      switch (context.state) {
          case TraverseState.MARKUP:
             return this.processTagInMarkup(node, context);
          case TraverseState.COMPONENT:
@@ -193,19 +186,14 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   transform(nodes: Nodes.Node[], fileName: string): Ast.Ast[] {
+   transform(nodes: Nodes.Node[], fileName: string, scope: Scope): Ast.Ast[] {
       const context: ITraverseContext = {
          prev: null,
-         fileName
+         state: TraverseState.MARKUP,
+         fileName,
+         scope
       };
-      this.stateStack.push(TraverseState.MARKUP);
       const tree = this.visitAll(nodes, context);
-      this.stateStack.pop();
-      if (this.stateStack.length !== 0) {
-         this.errorHandler.critical('Конечный автомат traverse не вернулся в начальное состояние', {
-            fileName
-         });
-      }
       this.removeUnusedTemplates(context);
       return tree;
    }
@@ -229,10 +217,10 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private removeUnusedTemplates(context: ITraverseContext): void {
-      const templates = this.scope.getTemplateNames();
+      const templates = context.scope.getTemplateNames();
       for (let index = 0; index < templates.length; ++index) {
          const name = templates[index];
-         const template = this.scope.getTemplate(name);
+         const template = context.scope.getTemplate(name);
          if (template.usages === 0) {
             this.errorHandler.warn(
                `Шаблон с именем ${name} определен, но не был использован. Шаблон будет отброшен`,
@@ -240,13 +228,9 @@ class Traverse implements Nodes.INodeVisitor {
                   fileName: context.fileName
                }
             );
-            this.scope.removeTemplate(name);
+            context.scope.removeTemplate(name);
          }
       }
-   }
-
-   private getCurrentState(): TraverseState {
-      return this.stateStack[this.stateStack.length - 1];
    }
 
    private processTagInMarkup(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
@@ -409,8 +393,11 @@ class Traverse implements Nodes.INodeVisitor {
 
    private processArray(node: Nodes.Tag, context: ITraverseContext): Ast.ArrayNode {
       try {
-         this.stateStack.push(TraverseState.ARRAY_DATA);
-         const elements = <Ast.TData[]>this.visitAll(node.children, context);
+         const childrenContext = {
+            ...context,
+            state: TraverseState.ARRAY_DATA
+         };
+         const elements = <Ast.TData[]>this.visitAll(node.children, childrenContext);
          return new Ast.ArrayNode(elements);
       } catch (error) {
          this.errorHandler.error(
@@ -421,16 +408,17 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      } finally {
-         this.stateStack.pop();
       }
    }
 
    private processBoolean(node: Nodes.Tag, context: ITraverseContext): Ast.BooleanNode {
       try {
-         this.stateStack.push(TraverseState.PRIMITIVE_DATA);
+         const childrenContext = {
+            ...context,
+            state: TraverseState.PRIMITIVE_DATA
+         };
          // TODO: добавить валидацию содержимого
-         const children = <Ast.TText[]>this.visitAll(node.children, context);
+         const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
          return new Ast.BooleanNode(children);
       } catch (error) {
          this.errorHandler.error(
@@ -441,17 +429,18 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      } finally {
-         this.stateStack.pop();
       }
    }
 
    private processFunction(node: Nodes.Tag, context: ITraverseContext): Ast.FunctionNode {
       try {
-         this.stateStack.push(TraverseState.PRIMITIVE_DATA);
+         const childrenContext = {
+            ...context,
+            state: TraverseState.PRIMITIVE_DATA
+         };
          const ast = new Ast.FunctionNode('');
          // @ts-ignore TODO: выполнить разбор данных
-         const children = this.visitAll(node.children, context);
+         const children = this.visitAll(node.children, childrenContext);
          return ast;
       } catch (error) {
          this.errorHandler.error(
@@ -462,16 +451,17 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      } finally {
-         this.stateStack.pop();
       }
    }
 
    private processNumber(node: Nodes.Tag, context: ITraverseContext): Ast.NumberNode {
       try {
-         this.stateStack.push(TraverseState.PRIMITIVE_DATA);
+         const childrenContext = {
+            ...context,
+            state: TraverseState.PRIMITIVE_DATA
+         };
          // TODO: добавить валидацию содержимого
-         const children = <Ast.TText[]>this.visitAll(node.children, context);
+         const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
          return new Ast.NumberNode(children);
       } catch (error) {
          this.errorHandler.error(
@@ -482,17 +472,18 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      } finally {
-         this.stateStack.pop();
       }
    }
 
    private processObject(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode {
       try {
-         this.stateStack.push(TraverseState.OBJECT_DATA);
+         const childrenContext = {
+            ...context,
+            state: TraverseState.OBJECT_DATA
+         };
          const ast = new Ast.ObjectNode({});
          // @ts-ignore TODO: выполнить разбор данных
-         const children = this.visitAll(node.children, context);
+         const children = this.visitAll(node.children, childrenContext);
          return ast;
       } catch (error) {
          this.errorHandler.error(
@@ -503,16 +494,17 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      } finally {
-         this.stateStack.pop();
       }
    }
 
    private processString(node: Nodes.Tag, context: ITraverseContext): Ast.StringNode {
       try {
-         this.stateStack.push(TraverseState.PRIMITIVE_DATA);
+         const childrenContext = {
+            ...context,
+            state: TraverseState.PRIMITIVE_DATA
+         };
          // TODO: добавить валидацию содержимого
-         const children = <Ast.TText[]>this.visitAll(node.children, context);
+         const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
          return new Ast.StringNode(children);
       } catch (error) {
          this.errorHandler.error(
@@ -523,16 +515,17 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      } finally {
-         this.stateStack.pop();
       }
    }
 
    private processValue(node: Nodes.Tag, context: ITraverseContext): Ast.ValueNode {
       try {
-         this.stateStack.push(TraverseState.PRIMITIVE_DATA);
+         const childrenContext = {
+            ...context,
+            state: TraverseState.PRIMITIVE_DATA
+         };
          // TODO: добавить валидацию содержимого
-         const children = <Ast.TText[]>this.visitAll(node.children, context);
+         const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
          return new Ast.ValueNode(children);
       } catch (error) {
          this.errorHandler.error(
@@ -543,8 +536,6 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      } finally {
-         this.stateStack.pop();
       }
    }
 
@@ -593,11 +584,14 @@ class Traverse implements Nodes.INodeVisitor {
 
    private processIf(node: Nodes.Tag, context: ITraverseContext): Ast.IfNode {
       try {
-         this.stateStack.push(TraverseState.MARKUP);
-         const data = cleanMustacheExpression(this.getDataNode(node, 'data', context));
+         const childrenContext = {
+            ...context,
+            state: TraverseState.MARKUP
+         };
+         const data = cleanMustacheExpression(this.getDataNode(node, 'data', childrenContext));
          const test = this.expressionParser.parse(data);
          const ast = new Ast.IfNode(test);
-         ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, context);
+         ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          return ast;
       } catch (error) {
          this.errorHandler.error(
@@ -608,21 +602,22 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      } finally {
-         this.stateStack.pop();
       }
    }
 
    private processElse(node: Nodes.Tag, context: ITraverseContext): Ast.ElseNode {
       try {
-         this.stateStack.push(TraverseState.MARKUP);
+         const childrenContext = {
+            ...context,
+            state: TraverseState.MARKUP
+         };
          const ast = new Ast.ElseNode();
-         validateElseNode(context.prev);
+         validateElseNode(childrenContext.prev);
          if (node.attributes.hasOwnProperty('data')) {
             const dataStr = cleanMustacheExpression(node.attributes.data.value);
             ast.__$ws_test = this.expressionParser.parse(dataStr);
          }
-         ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, context);
+         ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          return ast;
       } catch (error) {
          this.errorHandler.error(
@@ -633,8 +628,6 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      } finally {
-         this.stateStack.pop();
       }
    }
 
@@ -659,13 +652,16 @@ class Traverse implements Nodes.INodeVisitor {
 
    private processFor(node: Nodes.Tag, context: ITraverseContext, data: string): Ast.ForNode {
       try {
-         this.stateStack.push(TraverseState.MARKUP);
+         const childrenContext = {
+            ...context,
+            state: TraverseState.MARKUP
+         };
          const [initStr, testStr, updateStr] = data.split(';').map(s => s.trim());
          const init = initStr ? this.expressionParser.parse(initStr) : null;
          const test = this.expressionParser.parse(testStr);
          const update = updateStr ? this.expressionParser.parse(updateStr) : null;
          const ast = new Ast.ForNode(init, test, update);
-         ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
+         ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          return ast;
       } catch (error) {
          this.errorHandler.error(
@@ -676,21 +672,22 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      } finally {
-         this.stateStack.pop();
       }
    }
 
    private processForeach(node: Nodes.Tag, context: ITraverseContext, data: string): Ast.ForeachNode {
       try {
-         this.stateStack.push(TraverseState.MARKUP);
+         const childrenContext = {
+            ...context,
+            state: TraverseState.MARKUP
+         };
          const [left, right] = data.split(' in ');
          const collection = this.expressionParser.parse(right);
          const variables = left.split(',').map(s => s.trim());
          const iterator = variables.pop();
          const index = variables.length == 1 ? variables.pop() : null;
          const ast = new Ast.ForeachNode(index, iterator, collection);
-         ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
+         ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          return ast;
       } catch (error) {
          this.errorHandler.error(
@@ -701,29 +698,30 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      } finally {
-         this.stateStack.pop();
       }
    }
 
    private processTemplate(node: Nodes.Tag, context: ITraverseContext): Ast.TemplateNode {
       try {
-         this.stateStack.push(TraverseState.MARKUP);
-         const templateName = this.getDataNode(node, 'name', context);
+         const childrenContext = {
+            ...context,
+            state: TraverseState.MARKUP
+         };
+         const templateName = this.getDataNode(node, 'name', childrenContext);
          Names.validateTemplateName(templateName);
          const ast = new Ast.TemplateNode(templateName);
-         const content = <Ast.TContent[]>this.visitAll(node.children, context);
+         const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          if (content.length === 0) {
             this.errorHandler.error(
                `Содержимое директивы ws:template не должно быть пустым`,
                {
-                  fileName: context.fileName,
+                  fileName: childrenContext.fileName,
                   position: node.position
                }
             );
          }
          ast.__$ws_content = content;
-         this.scope.registerTemplate(templateName, ast);
+         context.scope.registerTemplate(templateName, ast);
          return ast;
       } catch (error) {
          this.errorHandler.error(
@@ -734,8 +732,6 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      } finally {
-         this.stateStack.pop();
       }
    }
 
@@ -761,10 +757,10 @@ class Traverse implements Nodes.INodeVisitor {
          return null;
       }
       try {
-         this.stateStack.push(TraverseState.COMPONENT_OPTION);
          const optionContext: ITraverseContext = {
             ...context,
-            contentComponentState: ContentTraverseState.UNKNOWN
+            contentComponentState: ContentTraverseState.UNKNOWN,
+            state: TraverseState.COMPONENT_OPTION
          };
          for (const name in node.attributes) {
             this.errorHandler.warn(
@@ -800,14 +796,11 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      } finally {
-         this.stateStack.pop();
       }
    }
 
    private processComponent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       try {
-         this.stateStack.push(TraverseState.COMPONENT);
          const { library, module } = resolveComponent(node.name);
          const ast = new Ast.ComponentNode(library, module);
          const attributes = this.visitAttributes(node.attributes, false);
@@ -816,7 +809,8 @@ class Traverse implements Nodes.INodeVisitor {
          ast.__$ws_options = attributes.options;
          const childrenContext: ITraverseContext = {
             ...context,
-            contentComponentState: ContentTraverseState.UNKNOWN
+            contentComponentState: ContentTraverseState.UNKNOWN,
+            state: TraverseState.COMPONENT
          };
          const children = this.visitAll(node.children, childrenContext);
          for (let index = 0; index < children.length; ++index) {
@@ -853,19 +847,20 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      } finally {
-         this.stateStack.pop();
       }
    }
 
    private processElement(node: Nodes.Tag, context: ITraverseContext): Ast.ElementNode {
       try {
-         this.stateStack.push(TraverseState.MARKUP);
+         const childrenContext = {
+            ...context,
+            state: TraverseState.MARKUP
+         };
          const attributes = this.visitAttributes(node.attributes, true);
          const ast = new Ast.ElementNode(node.name);
          ast.__$ws_attributes = attributes.attributes;
          ast.__$ws_events = attributes.events;
-         ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, context);
+         ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          return ast;
       } catch (error) {
          this.errorHandler.error(
@@ -876,8 +871,6 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      } finally {
-         this.stateStack.pop();
       }
    }
 
@@ -947,9 +940,10 @@ class Traverse implements Nodes.INodeVisitor {
    }
 }
 
-export default function traverse(nodes: Nodes.Node[], options: ITraverseOptions, fileName: string) {
+export default function traverse(nodes: Nodes.Node[], options: ITraverseOptions, fileName: string, scope: Scope) {
    return new Traverse(options).transform(
       nodes,
-      fileName
+      fileName,
+      scope
    );
 }
