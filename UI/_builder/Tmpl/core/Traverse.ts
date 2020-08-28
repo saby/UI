@@ -562,19 +562,6 @@ class Traverse implements Nodes.INodeVisitor {
 
    private processTagInArrayData(node: Nodes.Tag, context: ITraverseContext): any {
       switch (node.name) {
-         case 'ws:if':
-         case 'ws:else':
-         case 'ws:for':
-         case 'ws:template':
-         case 'ws:partial':
-            this.errorHandler.error(
-               `Обнаружен тег ${node.name} вместо ожидаемой директивы данных. Тег будет отброшен`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
          case 'ws:Array':
             return this.processArray(node, context);
          case 'ws:Boolean':
