@@ -688,12 +688,12 @@ class Traverse implements Nodes.INodeVisitor {
             state: TraverseState.MARKUP
          };
          const ast = new Ast.ElseNode();
-         validateElseNode(childrenContext.prev);
          if (node.attributes.hasOwnProperty('data')) {
             const dataStr = cleanMustacheExpression(node.attributes.data.value);
             ast.__$ws_test = this.expressionParser.parse(dataStr);
          }
          ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
+         validateElseNode(childrenContext.prev);
          return ast;
       } catch (error) {
          this.errorHandler.error(
@@ -732,12 +732,13 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.MARKUP
          };
+         const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          const [initStr, testStr, updateStr] = data.split(';').map(s => s.trim());
          const init = initStr ? this.expressionParser.parse(initStr) : null;
          const test = this.expressionParser.parse(testStr);
          const update = updateStr ? this.expressionParser.parse(updateStr) : null;
          const ast = new Ast.ForNode(init, test, update);
-         ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
+         ast.__$ws_content = content;
          return ast;
       } catch (error) {
          this.errorHandler.error(
@@ -757,13 +758,14 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.MARKUP
          };
+         const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          const [left, right] = data.split(' in ');
          const collection = this.expressionParser.parse(right);
          const variables = left.split(',').map(s => s.trim());
          const iterator = variables.pop();
          const index = variables.length == 1 ? variables.pop() : null;
          const ast = new Ast.ForeachNode(index, iterator, collection);
-         ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
+         ast.__$ws_content = content;
          return ast;
       } catch (error) {
          this.errorHandler.error(
@@ -783,10 +785,10 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.MARKUP
          };
+         const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          const templateName = this.getDataNode(node, 'name', childrenContext);
          Names.validateTemplateName(templateName);
          const ast = new Ast.TemplateNode(templateName);
-         const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          if (content.length === 0) {
             this.errorHandler.error(
                `Содержимое директивы ws:template не должно быть пустым`,
@@ -852,6 +854,7 @@ class Traverse implements Nodes.INodeVisitor {
          };
          const optionName = Names.getComponentOptionName(node.name);
          if (node.children.length === 0) {
+            // TODO: !!!
             this.errorHandler.warn(
                `Not implemented`,
                {
@@ -900,18 +903,18 @@ class Traverse implements Nodes.INodeVisitor {
 
    private processComponent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       try {
-         const { library, module } = resolveComponent(node.name);
-         const ast = new Ast.ComponentNode(library, module);
-         const attributes = this.visitAttributes(node.attributes, false);
-         ast.__$ws_attributes = attributes.attributes;
-         ast.__$ws_events = attributes.events;
-         ast.__$ws_options = attributes.options;
          const childrenContext: ITraverseContext = {
             ...context,
             contentComponentState: ContentTraverseState.UNKNOWN,
             state: TraverseState.COMPONENT
          };
          const children = this.visitAll(node.children, childrenContext);
+         const { library, module } = resolveComponent(node.name);
+         const ast = new Ast.ComponentNode(library, module);
+         const attributes = this.visitAttributes(node.attributes, false);
+         ast.__$ws_attributes = attributes.attributes;
+         ast.__$ws_events = attributes.events;
+         ast.__$ws_options = attributes.options;
          for (let index = 0; index < children.length; ++index) {
             const child = children[index];
             if (child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode) {
@@ -955,11 +958,12 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.MARKUP
          };
+         const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          const attributes = this.visitAttributes(node.attributes, true);
          const ast = new Ast.ElementNode(node.name);
          ast.__$ws_attributes = attributes.attributes;
          ast.__$ws_events = attributes.events;
-         ast.__$ws_content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
+         ast.__$ws_content = content;
          return ast;
       } catch (error) {
          this.errorHandler.error(
