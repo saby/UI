@@ -341,9 +341,9 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:else':
          case 'ws:for':
          case 'ws:partial':
-            return this.processComponentContent(node, context);
+            return this.processContentOption(node, context);
          case 'ws:template':
-            return this.processComponentOption(node, context);
+            return this.processOption(node, context);
          case 'ws:Array':
          case 'ws:Boolean':
          case 'ws:Function':
@@ -361,10 +361,10 @@ class Traverse implements Nodes.INodeVisitor {
             return null;
          default:
             if (Names.isComponentOptionName(node.name)) {
-               return this.processComponentOption(node, context);
+               return this.processOption(node, context);
             }
             if (Names.isComponentName(node.name) || isElementNode(node.name)) {
-               return this.processComponentContent(node, context);
+               return this.processContentOption(node, context);
             }
             this.errorHandler.error(
                `Обнаружен неизвестный HTML тег ${node.name}. Тег будет отброшен`,
@@ -377,34 +377,15 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processComponentContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
-      if (context.contentComponentState === ContentTraverseState.UNKNOWN) {
-         context.contentComponentState = ContentTraverseState.CONTENT;
-      }
-      if (context.contentComponentState !== ContentTraverseState.CONTENT) {
-         this.errorHandler.error(
-            `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег ${node.name}. Тег будет отброшен. ` +
-            'Необходимо явно задать контент в ws:content',
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
-      return this.processTagInMarkup(node, context);
-   }
-
    private processTagInComponentOption(node: Nodes.Tag, context: ITraverseContext): Ast.TData | Ast.TContent | Ast.ContentOptionNode | Ast.OptionNode {
       switch (node.name) {
          case 'ws:if':
          case 'ws:else':
          case 'ws:for':
          case 'ws:partial':
-            return this.processComponentContent(node, context);
+            return this.processContentOption(node, context);
          case 'ws:template':
-            // TODO: object property
-            return this.processComponentOption(node, context);
+            return this.processOption(node, context);
          case 'ws:Array':
             return this.processArray(node, context);
          case 'ws:Boolean':
@@ -421,11 +402,10 @@ class Traverse implements Nodes.INodeVisitor {
             return this.processValue(node, context);
          default:
             if (Names.isComponentOptionName(node.name)) {
-               // TODO: object property
-               throw new Error('Not implemented');
+               return this.processOption(node, context);
             }
             if (Names.isComponentName(node.name) || isElementNode(node.name)) {
-               return this.processComponentContent(node, context);
+               return this.processContentOption(node, context);
             }
             this.errorHandler.error(
                `Обнаружен неизвестный HTML тег ${node.name}. Тег будет отброшен`,
@@ -436,6 +416,52 @@ class Traverse implements Nodes.INodeVisitor {
             );
             return null;
       }
+   }
+
+   private processTagInArrayData(node: Nodes.Tag, context: ITraverseContext): Ast.TData {
+      switch (node.name) {
+         case 'ws:Array':
+            return this.processArray(node, context);
+         case 'ws:Boolean':
+            return this.processBoolean(node, context);
+         case 'ws:Function':
+            return this.processFunction(node, context);
+         case 'ws:Number':
+            return this.processNumber(node, context);
+         case 'ws:Object':
+            return this.processObject(node, context);
+         case 'ws:String':
+            return this.processString(node, context);
+         case 'ws:Value':
+            return this.processValue(node, context);
+         default:
+            this.errorHandler.error(
+               `Обнаружен тег ${node.name} вместо ожидаемой директивы данных. Тег будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
+      }
+   }
+
+   private processTagInObjectData(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
+      if (Names.isComponentOptionName(node.name)) {
+         const optionContext: ITraverseContext = {
+            ...context,
+            contentComponentState: ContentTraverseState.UNKNOWN
+         };
+         return this.processOption(node, optionContext);
+      }
+      this.errorHandler.error(
+         `Обнаружен тег ${node.name} вместо ожидаемого тега с префиксом ws: в имени, служащий свойством ws:Object`,
+         {
+            fileName: context.fileName,
+            position: node.position
+         }
+      );
+      return null;
    }
 
    private processArray(node: Nodes.Tag, context: ITraverseContext): Ast.ArrayNode {
@@ -612,52 +638,6 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processTagInArrayData(node: Nodes.Tag, context: ITraverseContext): Ast.TData {
-      switch (node.name) {
-         case 'ws:Array':
-            return this.processArray(node, context);
-         case 'ws:Boolean':
-            return this.processBoolean(node, context);
-         case 'ws:Function':
-            return this.processFunction(node, context);
-         case 'ws:Number':
-            return this.processNumber(node, context);
-         case 'ws:Object':
-            return this.processObject(node, context);
-         case 'ws:String':
-            return this.processString(node, context);
-         case 'ws:Value':
-            return this.processValue(node, context);
-         default:
-            this.errorHandler.error(
-               `Обнаружен тег ${node.name} вместо ожидаемой директивы данных. Тег будет отброшен`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
-      }
-   }
-
-   private processTagInObjectData(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
-      if (Names.isComponentOptionName(node.name)) {
-         const optionContext: ITraverseContext = {
-            ...context,
-            contentComponentState: ContentTraverseState.UNKNOWN
-         };
-         return this.processComponentOption(node, optionContext);
-      }
-      this.errorHandler.error(
-         `Обнаружен тег ${node.name} вместо ожидаемого тега с префиксом ws: в имени, служащий свойством ws:Object`,
-         {
-            fileName: context.fileName,
-            position: node.position
-         }
-      );
-      return null;
-   }
-
    private processIf(node: Nodes.Tag, context: ITraverseContext): Ast.IfNode {
       try {
          const childrenContext = {
@@ -814,9 +794,16 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private processPartial(node: Nodes.Tag, context: ITraverseContext): Ast.PartialNode {
-      throw new Error('Not implemented');
       // TODO: в атрибутах есть обязательный template
       //  Создаем узел, парсим данные, переходим к детям
+      this.errorHandler.error(
+         'Not implemented @ processPartial',
+         {
+            fileName: context.fileName,
+            position: node.position
+         }
+      );
+      return null;
    }
 
    private warnUnexpectedAttributes(node: Nodes.Tag, context: ITraverseContext): void {
@@ -831,7 +818,25 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processComponentOption(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
+   private processContentOption(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
+      if (context.contentComponentState === ContentTraverseState.UNKNOWN) {
+         context.contentComponentState = ContentTraverseState.CONTENT;
+      }
+      if (context.contentComponentState !== ContentTraverseState.CONTENT) {
+         this.errorHandler.error(
+            `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег ${node.name}. Тег будет отброшен. ` +
+            'Необходимо явно задать контент в ws:content',
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+      return this.processTagInMarkup(node, context);
+   }
+
+   private processOption(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
       if (context.contentComponentState === ContentTraverseState.UNKNOWN) {
          context.contentComponentState = ContentTraverseState.OPTION;
       }
