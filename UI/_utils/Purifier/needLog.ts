@@ -71,9 +71,7 @@ const libsAllowlistSync: Set<string> = new Set([
     'Controls/error',
     'Controls/explorer',
     'Controls/explorers',
-    'Controls/filter',
     'Controls/filterPopup',
-    'Controls/grid',
     'Controls/heading',
     'Controls/history',
     'Controls/input',
@@ -83,7 +81,6 @@ const libsAllowlistSync: Set<string> = new Set([
     'Controls/listDragNDrop',
     'Controls/listRender',
     'Controls/listTemplates',
-    'Controls/lookup',
     'Controls/lookupPopup',
     'Controls/marker',
     'Controls/masterDetail',
@@ -107,9 +104,7 @@ const libsAllowlistSync: Set<string> = new Set([
     'Controls/suggest',
     'Controls/switchableArea',
     'Controls/tabs',
-    'Controls/tile',
     'Controls/toggle',
-    'Controls/toolbars',
     'Controls/tree'
 ]);
 
