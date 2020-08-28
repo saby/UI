@@ -125,11 +125,28 @@ export function isTypeofData(value: Ast): boolean {
 
 // <editor-fold desc="Base interfaces and classes">
 
+export enum Flags {
+   CLEAN = 0,
+   BROKEN = 1,
+   UNPACKED = 4,
+   TYPE_CASTED = 8
+}
+
 export abstract class Ast {
    __$ws_key: string;
+   __$ws_flags: Flags;
 
-   protected constructor() {
-      this.__$ws_key = '';
+   protected constructor(key: string = '', flags: Flags = Flags.CLEAN) {
+      this.__$ws_key = key;
+      this.__$ws_flags = flags;
+   }
+
+   hasFlag(flag: Flags): boolean {
+      return (this.__$ws_flags & flag) !== 0;
+   }
+
+   setFlag(flag: Flags): void {
+      this.__$ws_flags = this.__$ws_flags | flag;
    }
 
    abstract accept(visitor: IAstVisitor, context: any): any;
