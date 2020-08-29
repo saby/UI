@@ -658,7 +658,7 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.MARKUP
          };
-         const dataValue = this.attributeProcessor.validateValue(node, 'data', {
+         const dataValue = this.attributeProcessor.validateValue(node.attributes, 'data', {
             fileName: context.fileName,
             hasAttributesOnly: true
          });
@@ -707,7 +707,7 @@ class Traverse implements Nodes.INodeVisitor {
 
    private processCycle(node: Nodes.Tag, context: ITraverseContext): Ast.ForNode | Ast.ForeachNode {
       try {
-         const data = this.attributeProcessor.validateValue(node, 'data', {
+         const data = this.attributeProcessor.validateValue(node.attributes, 'data', {
             fileName: context.fileName,
             hasAttributesOnly: true
          });
@@ -787,7 +787,7 @@ class Traverse implements Nodes.INodeVisitor {
             state: TraverseState.MARKUP
          };
          const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
-         const templateName = this.attributeProcessor.validateValue(node, 'name', {
+         const templateName = this.attributeProcessor.validateValue(node.attributes, 'name', {
             fileName: context.fileName,
             hasAttributesOnly: true
          });
