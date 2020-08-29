@@ -71,7 +71,7 @@ describe('Compiler/core/Traverse', () => {
          assert.strictEqual(elementNode.__$ws_name, 'div');
       });
       it('Element attributes', function() {
-         const html = '<div attr:class="div-class" id="content""></div>';
+         const html = '<div attr:class="div-class" id="content"></div>';
          const tree = traverseTemplate(html);
          const elementNode = <Ast.ElementNode>tree[0];
          assert.strictEqual(Object.keys(elementNode.__$ws_attributes).length, 2);

@@ -13,6 +13,7 @@ import { processTextData, cleanMustacheExpression } from './TextProcessor';
 import { IKeysGenerator, createKeysGenerator } from './KeysGenerator';
 import { resolveComponent } from 'UI/_builder/Tmpl/core/Resolvers';
 import { IErrorHandler } from '../utils/ErrorHandler';
+import { IAttributeProcessor, createAttributeProcessor } from 'UI/_builder/Tmpl/core/Attributes';
 import Scope from './Scope';
 
 const enum TraverseState {
@@ -40,12 +41,6 @@ export interface ITraverseConfig {
 export interface ITraverseOptions {
    fileName: string;
    scope: Scope;
-}
-
-interface IAttributesCollection {
-   attributes: Ast.IAttributes;
-   options: Ast.IOptions;
-   events: Ast.IEvents;
 }
 
 interface IFilteredAttributes {
@@ -122,12 +117,17 @@ class Traverse implements Nodes.INodeVisitor {
    private readonly keysGenerator: IKeysGenerator;
    private readonly errorHandler: IErrorHandler;
    private readonly allowComments: boolean;
+   private readonly attributeProcessor: IAttributeProcessor;
 
    constructor(config: ITraverseConfig) {
       this.expressionParser = config.expressionParser;
       this.keysGenerator = createKeysGenerator(config.hierarchicalKeys);
       this.errorHandler = config.errorHandler;
       this.allowComments = config.allowComments;
+      this.attributeProcessor = createAttributeProcessor({
+         expressionParser: config.expressionParser,
+         errorHandler: config.errorHandler
+      });
    }
 
    visitComment(node: Nodes.Comment, context: ITraverseContext): Ast.CommentNode {
@@ -569,7 +569,10 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.OBJECT_DATA
          };
-         const attributes = this.visitAttributes(node.attributes, false);
+         const attributes = this.attributeProcessor.process(node.attributes, {
+            fileName: context.fileName,
+            hasAttributesOnly: false
+         });
          this.warnIncorrectProperties(attributes.attributes, node, context);
          this.warnIncorrectProperties(attributes.events, node, context);
          const properties: Ast.IObjectProperties = attributes.options;
@@ -994,7 +997,10 @@ class Traverse implements Nodes.INodeVisitor {
          const children = this.visitAll(node.children, childrenContext);
          const { library, module } = resolveComponent(node.name);
          const ast = new Ast.ComponentNode(library, module);
-         const attributes = this.visitAttributes(node.attributes, false);
+         const attributes = this.attributeProcessor.process(node.attributes, {
+            fileName: context.fileName,
+            hasAttributesOnly: false
+         });
          ast.__$ws_attributes = attributes.attributes;
          ast.__$ws_events = attributes.events;
          ast.__$ws_options = attributes.options;
@@ -1042,7 +1048,10 @@ class Traverse implements Nodes.INodeVisitor {
             state: TraverseState.MARKUP
          };
          const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
-         const attributes = this.visitAttributes(node.attributes, true);
+         const attributes = this.attributeProcessor.process(node.attributes, {
+            fileName: context.fileName,
+            hasAttributesOnly: true
+         });
          const ast = new Ast.ElementNode(node.name);
          ast.__$ws_attributes = attributes.attributes;
          ast.__$ws_events = attributes.events;
@@ -1058,39 +1067,6 @@ class Traverse implements Nodes.INodeVisitor {
          );
          return null;
       }
-   }
-
-   private visitAttributes(attributes: Nodes.IAttributes, hasAttributesOnly: boolean): IAttributesCollection {
-      const collection: IAttributesCollection = {
-         attributes: { },
-         options: { },
-         events: { }
-      };
-      for (const attributeName in attributes) {
-         if (attributes.hasOwnProperty(attributeName)) {
-            const value = attributes[attributeName].value as string;
-            if (Names.isBind(attributeName)) {
-               const property = Names.getBindName(attributeName);
-               collection.events[attributeName] = new Ast.BindNode(property, this.expressionParser.parse(value));
-            } else if (Names.isEvent(attributeName)) {
-               const event = Names.getEventName(attributeName);
-               collection.events[attributeName] = new Ast.EventNode(event, this.expressionParser.parse(value));
-            } else if (Names.isAttribute(attributeName) || hasAttributesOnly) {
-               const attribute = Names.getAttributeName(attributeName);
-               const processedValue = processTextData(value, this.expressionParser);
-               collection.attributes[`attr:${attribute}`] = new Ast.AttributeNode(attribute, processedValue);
-            } else {
-               const processedValue = processTextData(value, this.expressionParser);
-               const valueNode = new Ast.ValueNode(processedValue);
-               valueNode.setFlag(Ast.Flags.TYPE_CASTED);
-               collection.options[attributeName] = new Ast.OptionNode(
-                  attributeName,
-                  valueNode
-               );
-            }
-         }
-      }
-      return collection;
    }
 
    private filterAttributes(node: Nodes.Tag, expected: string[], context: ITraverseContext): IFilteredAttributes {
