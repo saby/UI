@@ -145,8 +145,20 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.type = 'tag';
       // @ts-ignore
       node.key = node.__$ws_key;
+      const forSource = node.__$ws_index
+         ? `${node.__$ws_index}, ${node.__$ws_iterator} in ${node.__$ws_collection.string}`
+         : `${node.__$ws_iterator} in ${node.__$ws_collection.string}`;
       // @ts-ignore
-      node.attribs = { };
+      node.attribs = {
+         data: {
+            data: {
+               type: 'text',
+               value: forSource
+            },
+            key: undefined,
+            type: 'text'
+         }
+      };
       // @ts-ignore
       node.forSource = {
          key: node.__$ws_index,
