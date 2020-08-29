@@ -85,6 +85,18 @@ describe('Compiler/core/Traverse', () => {
          assert.instanceOf(elementNode.__$ws_attributes['attr:id'], Ast.AttributeNode);
          assert.instanceOf(elementNode.__$ws_events['on:click'], Ast.EventNode);
       });
+      it('Failure! Node', () => {
+         const html = '<unknown attr:class="div-class" id="content" on:click="handler()"></unknown>';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 0);
+      });
+      it('Failure! Attributes', () => {
+         const html = '<div attr:class="{{ 1 2 3 }}" on:click="{{ handler() }}"></div>';
+         const tree = traverseTemplate(html);
+         const elementNode = <Ast.ElementNode>tree[0];
+         assert.strictEqual(Object.keys(elementNode.__$ws_attributes).length, 0);
+         assert.strictEqual(Object.keys(elementNode.__$ws_events).length, 0);
+      });
    });
    describe('ComponentNode', () => {
       it('Node', () => {
@@ -180,6 +192,11 @@ describe('Compiler/core/Traverse', () => {
          assert.strictEqual(tree.length, 1);
          assert.instanceOf(tree[0], Ast.IfNode);
       });
+      it('Failure! IfNode (if only - no data)', () => {
+         const html = '<ws:if>Text</ws:if>';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 0);
+      });
       it('ElseNode (if-else)', () => {
          const html = '<ws:if data="{{ condition }}">Text</ws:if><ws:else>Text</ws:else>';
          const tree = traverseTemplate(html);
@@ -187,13 +204,17 @@ describe('Compiler/core/Traverse', () => {
          assert.instanceOf(tree[0], Ast.IfNode);
          assert.instanceOf(tree[1], Ast.ElseNode);
       });
-      it('ElseNode (if-elif-else)', () => {
-         const html = '<ws:if data="{{ condition }}">Text</ws:if><ws:else data="{{ otherCondition }}">Text</ws:else><ws:else>Text</ws:else>';
+      it('Failure! ElseNode (if-else - no data)', () => {
+         const html = '<ws:if>Text</ws:if><ws:else data="{{ otherCondition }}">Text</ws:else>';
          const tree = traverseTemplate(html);
-         assert.strictEqual(tree.length, 3);
+         assert.strictEqual(tree.length, 0);
+      });
+      it('Failure! ElseNode (if-elif-else)', () => {
+         const html = '<ws:if data="{{ otherCondition }}">Text</ws:if><ws:else>Text</ws:else><ws:else data="{{ otherCondition }}">Text</ws:else>';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 2);
          assert.instanceOf(tree[0], Ast.IfNode);
          assert.instanceOf(tree[1], Ast.ElseNode);
-         assert.instanceOf(tree[2], Ast.ElseNode);
       });
    });
    describe('Cycles', () => {
@@ -258,6 +279,11 @@ describe('Compiler/core/Traverse', () => {
       });
       it('without text', () => {
          const html = '';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 0);
+      });
+      it('Failure! TextNode', () => {
+         const html = '{{ 1 2 3 }}';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 0);
       });
