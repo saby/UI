@@ -385,7 +385,7 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:partial':
             return this.processContentOption(node, context);
          case 'ws:template':
-            return this.processOption(node, context);
+            return this.castAndProcessObjectProperty(node, context);
          case 'ws:Array':
             return this.processArray(node, context);
          case 'ws:Boolean':
@@ -402,7 +402,7 @@ class Traverse implements Nodes.INodeVisitor {
             return this.processValue(node, context);
          default:
             if (Names.isComponentOptionName(node.name)) {
-               return this.processOption(node, context);
+               return this.castAndProcessObjectProperty(node, context);
             }
             if (Names.isComponentName(node.name) || isElementNode(node.name)) {
                return this.processContentOption(node, context);
@@ -851,6 +851,53 @@ class Traverse implements Nodes.INodeVisitor {
       return this.processTagInMarkup(node, context);
    }
 
+   private castAndProcessObjectProperty(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode {
+      try {
+         const properties = { };
+         const childrenContext: ITraverseContext = {
+            ...context
+         };
+         const optionName = Names.getComponentOptionName(node.name);
+         const content = this.visitAll(node.children, childrenContext);
+         if (content.length !== 1) {
+            this.errorHandler.critical(
+               'Ожидался единственый узел в packAndProcessObjectProperty',
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+         }
+         const value = <Ast.TData>content[0];
+         if (value.hasFlag(Ast.Flags.TYPE_CASTED) && value instanceof Ast.ObjectNode) {
+            for (const attributeName in node.attributes) {
+               const processedValue = processTextData(node.attributes[attributeName].value, this.expressionParser);
+               const valueNode = new Ast.ValueNode(processedValue);
+               // TODO: attr valid
+               value.__$ws_properties[attributeName] = new Ast.OptionNode(
+                  attributeName,
+                  valueNode
+               );
+            }
+         } else {
+            this.warnUnexpectedAttributes(node, context);
+         }
+         properties[optionName] = content[0];
+         const ast = new Ast.ObjectNode(properties);
+         ast.setFlag(Ast.Flags.TYPE_CASTED);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора опции ${node.name}: ${error.message}. Опция будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+   }
+
    private processOption(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
       if (context.contentComponentState === ContentTraverseState.UNKNOWN) {
          context.contentComponentState = ContentTraverseState.OPTION;
@@ -873,35 +920,52 @@ class Traverse implements Nodes.INodeVisitor {
             state: TraverseState.COMPONENT_OPTION
          };
          const optionName = Names.getComponentOptionName(node.name);
-         if (node.children.length === 0) {
-            this.errorHandler.warn(
-               `Опция ${node.name} не содержит данных`,
+         if (node.isSelfClosing || node.children.length === 0) {
+            const properties = { };
+            for (const attributeName in node.attributes) {
+               const processedValue = processTextData(node.attributes[attributeName].value, this.expressionParser);
+               const valueNode = new Ast.ValueNode(processedValue);
+               // TODO: attr valid
+               properties[attributeName] = new Ast.OptionNode(
+                  attributeName,
+                  valueNode
+               );
+            }
+            return new Ast.OptionNode(optionName, new Ast.ObjectNode(properties));
+         }
+         // результат: контентная опция, узел с данными (возможно type casted)
+         const children = this.visitAll(node.children, optionContext);
+         if (children.length !== 1) {
+            this.errorHandler.error(
+               `Содержимое опции ${node.name} некорректно. Опция будет отброшена`,
                {
                   fileName: context.fileName,
                   position: node.position
                }
             );
-            return new Ast.OptionNode(optionName, new Ast.ObjectNode({}));
+            return null;
          }
-         this.warnUnexpectedAttributes(node, context);
-         const children = this.visitAll(node.children, optionContext);
-         if (children.length > 1) {
-            this.errorHandler.error(
-               `Некорректное содержимое опции ${node.name} (количество узлов внутри > 1). Будет использовано только первое из полученных содержимых`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            )
-         }
-         if (Ast.isTypeofContent(children[0])) {
+         const data = children[0];
+         if (data instanceof Ast.ContentOptionNode) {
+            this.warnUnexpectedAttributes(node, context);
             return new Ast.ContentOptionNode(optionName, <Ast.TContent[]>children);
          }
-         if (Ast.isTypeofData(children[0])) {
-            return new Ast.OptionNode(optionName, <Ast.TData>children[0]);
+         if (Ast.isTypeofData(data)) {
+            if (data instanceof Ast.ObjectNode) {
+               for (const attributeName in node.attributes) {
+                  const processedValue = processTextData(node.attributes[attributeName].value, this.expressionParser);
+                  const valueNode = new Ast.ValueNode(processedValue);
+                  // TODO: attr valid
+                  (<Ast.ObjectNode>data).__$ws_properties[attributeName] = new Ast.OptionNode(
+                     attributeName,
+                     valueNode
+                  );
+               }
+            }
+            return new Ast.OptionNode(optionName, <Ast.TData>data);
          }
-         this.errorHandler.error(
-            `Содержимое опции ${node.name} некорректно. Опция будет отброшена`,
+         this.errorHandler.critical(
+            `Результат разбора опции ${node.name} - неизвестного типа`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1018,6 +1082,7 @@ class Traverse implements Nodes.INodeVisitor {
             } else {
                const processedValue = processTextData(value, this.expressionParser);
                const valueNode = new Ast.ValueNode(processedValue);
+               valueNode.setFlag(Ast.Flags.TYPE_CASTED);
                collection.options[attributeName] = new Ast.OptionNode(
                   attributeName,
                   valueNode
