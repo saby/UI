@@ -199,23 +199,57 @@ class TextProcessor implements ITextProcessor {
     * @param position {SourcePosition} Position in source file for text node.
     */
    process(text: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TText[] {
-      const processedText = [
-         this.createTextNode(text, options, position)
+      const internalOptions: ITextProcessorOptions = {
+         ...options,
+         allowedContent: options.allowedContent | TextContentFlags.TEXT
+      };
+      const firstStage = [
+         this.createTextNode(text, internalOptions, position)
       ];
 
-      const processedExpressions = markDataByRegex(
-         processedText,
+      const secondStage = markDataByRegex(
+         firstStage,
          EXPRESSION_PATTERN,
-         (data: string) => this.createExpressionNode(data, options, position),
-         (data: string) => this.createTextNode(data, options, position)
+         (data: string) => this.createExpressionNode(data, internalOptions, position),
+         (data: string) => this.createTextNode(data, internalOptions, position)
       );
 
-      return markDataByRegex(
-         processedExpressions,
+      const thirdStage = markDataByRegex(
+         secondStage,
          TRANSLATION_PATTERN,
-         (data: string) => this.createTranslationNode(data, options, position),
-         (data: string) => this.createTextNode(data, options, position)
+         (data: string) => this.createTranslationNode(data, internalOptions, position),
+         (data: string) => this.createTextNode(data, internalOptions, position)
       );
+
+      return this.finalizeContentCheck(thirdStage, options, position);
+   }
+
+   /**
+    * Process final text node check.
+    * @param nodes {TText[]} Processed nodes.
+    * @param options {ITextProcessorOptions} Text processor options.
+    * @param position {SourcePosition} Position in source file for text node.
+    */
+   private finalizeContentCheck(nodes: Ast.TText[], options: ITextProcessorOptions, position: SourcePosition): Ast.TText[] {
+      if (options.allowedContent & TextContentFlags.TEXT) {
+         return nodes;
+      }
+      const collection = [];
+      for (let index = 0; index < nodes.length; ++index) {
+         if (nodes[index] instanceof Ast.TextDataNode) {
+            const textData = (<Ast.TextDataNode>nodes[index]).__$ws_content;
+            this.errorHandler.error(
+               `Использование текстовых данных запрещено в данном контексте. Текст "${textData}" будет отброшен`,
+               {
+                  fileName: options.fileName,
+                  position
+               }
+            );
+            continue;
+         }
+         collection.push(nodes[index]);
+      }
+      return collection;
    }
 
    /**
@@ -279,7 +313,7 @@ class TextProcessor implements ITextProcessor {
    private createExpressionNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.ExpressionNode {
       if ((options.allowedContent & TextContentFlags.EXPRESSION) === 0) {
          this.errorHandler.error(
-            `Использование Mustache-выражения запрещено в данном контексте. Выражение "${data}" будет отброшен`,
+            `Использование Mustache-выражения запрещено в данном контексте. Выражение "${data}" будет отброшено`,
             {
                fileName: options.fileName,
                position
