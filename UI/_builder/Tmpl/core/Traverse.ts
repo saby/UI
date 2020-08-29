@@ -666,6 +666,7 @@ class Traverse implements Nodes.INodeVisitor {
             hasAttributesOnly: true
          });
          const data = cleanMustacheExpression(dataValue);
+         // TODO: prepare text only content
          const test = this.expressionParser.parse(data);
          const ast = new Ast.IfNode(test);
          ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
@@ -691,6 +692,7 @@ class Traverse implements Nodes.INodeVisitor {
          const ast = new Ast.ElseNode();
          if (node.attributes.hasOwnProperty('data')) {
             const dataStr = cleanMustacheExpression(node.attributes.data.value);
+            // TODO: prepare text only content
             ast.__$ws_test = this.expressionParser.parse(dataStr);
          }
          ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
@@ -738,6 +740,7 @@ class Traverse implements Nodes.INodeVisitor {
          );
       }
       try {
+         // TODO: prepare text only content
          const [initStr, testStr, updateStr] = parameters;
          const init = initStr ? this.expressionParser.parse(initStr) : null;
          const test = this.expressionParser.parse(testStr);
@@ -778,6 +781,7 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private parseForeachData(data: string): { iterator: string; index: string | null; collection: ProgramNode; } {
+      // TODO: prepare text only content
       const [left, right] = data.split(' in ');
       if (!left || !right) {
          throw new Error(
