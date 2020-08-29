@@ -271,8 +271,9 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.key = node.__$ws_key;
       // @ts-ignore
       node.children = node.__$ws_content;
+      const attribs = this.collectAttributes(node, context);
       // @ts-ignore
-      node.attribs = this.collectAttributes(node, context);
+      node.attribs = Object.keys(attribs).length === 0 ? undefined : attribs;
       this.visitAll(node.__$ws_content, context);
    }
 
@@ -380,7 +381,7 @@ class PatchVisitor implements Ast.IAstVisitor {
             key: undefined,
             type: 'text'
          }
-      } : { };
+      } : undefined;
       // @ts-ignore
       node.children = node.__$ws_consequent;
       // @ts-ignore
@@ -434,8 +435,9 @@ class PatchVisitor implements Ast.IAstVisitor {
    visitComponent(node: Ast.ComponentNode, context: INavigationContext): any {
       let name;
       let originName;
+      const attribs = this.collectAttributes(node, context);
       // @ts-ignore
-      node.attribs = this.collectAttributes(node, context);
+      node.attribs = Object.keys(attribs).length === 0 ? undefined : attribs;
       if (node.__$ws_module.length > 0) {
          // module
          const library = node.__$ws_library.join('/');
