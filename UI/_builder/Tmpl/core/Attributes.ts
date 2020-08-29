@@ -16,7 +16,7 @@ const ATTR_PREFIX_PATTERN = /^attr:/i;
 const BIND_PREFIX_PATTERN = /^bind:/i;
 const EVENT_PREFIX_PATTERN = /^on:/i;
 
-const WASABY_ATTRIBUTES = [
+const SPECIAL_ATTRIBUTES_COLLECTION = [
    'ws-delegates-tabfocus',
    'ws-creates-context',
    'ws-tab-cycling',
@@ -30,7 +30,7 @@ export function isAttribute(name: string, check: boolean = false): boolean {
 }
 
 function checkAttributesOnly(name: string, check: boolean): boolean {
-   return check && WASABY_ATTRIBUTES.indexOf(name) > -1;
+   return check && SPECIAL_ATTRIBUTES_COLLECTION.indexOf(name) > -1;
 }
 
 export function getAttributeName(name: string): string {
@@ -71,6 +71,7 @@ export interface IAttributeProcessorOptions {
 export interface IAttributeProcessor {
    process(attributes: Nodes.IAttributes, options: IAttributeProcessorOptions): IAttributesCollection;
    filter(attributes: Nodes.IAttributes, expectedAttributeNames: string[], options: IAttributeProcessorOptions): IFilteredAttributes;
+   validateValue(node: Nodes.Tag, name: string, options: IAttributeProcessorOptions): string;
 }
 
 export interface IAttributeProcessorConfig {
@@ -144,6 +145,18 @@ class AttributeProcessor implements IAttributeProcessor {
          }
       }
       return collection;
+   }
+
+   validateValue(node: Nodes.Tag, name: string, options: IAttributeProcessorOptions): string {
+      const attributes = this.filter(node.attributes, [name], options);
+      const data = attributes[name];
+      if (data === undefined) {
+         throw new Error(`Ожидался обязательный атрибут "${name}" на теге "${node.name}"`);
+      }
+      if (data.value === null) {
+         throw new Error(`Ожидался обязательный атрибут "${name}" со значением на теге "${node.name}"`);
+      }
+      return data.value;
    }
 
    private processBind(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions): Ast.BindNode {

@@ -658,7 +658,11 @@ class Traverse implements Nodes.INodeVisitor {
             ...context,
             state: TraverseState.MARKUP
          };
-         const data = cleanMustacheExpression(this.getDataNode(node, 'data', childrenContext));
+         const dataValue = this.attributeProcessor.validateValue(node, 'data', {
+            fileName: context.fileName,
+            hasAttributesOnly: true
+         });
+         const data = cleanMustacheExpression(dataValue);
          const test = this.expressionParser.parse(data);
          const ast = new Ast.IfNode(test);
          ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
@@ -703,7 +707,10 @@ class Traverse implements Nodes.INodeVisitor {
 
    private processCycle(node: Nodes.Tag, context: ITraverseContext): Ast.ForNode | Ast.ForeachNode {
       try {
-         const data = this.getDataNode(node, 'data', context);
+         const data = this.attributeProcessor.validateValue(node, 'data', {
+            fileName: context.fileName,
+            hasAttributesOnly: true
+         });
          if (data.indexOf(';') > -1) {
             return this.processFor(node, context, data);
          }
@@ -780,7 +787,10 @@ class Traverse implements Nodes.INodeVisitor {
             state: TraverseState.MARKUP
          };
          const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
-         const templateName = this.getDataNode(node, 'name', childrenContext);
+         const templateName = this.attributeProcessor.validateValue(node, 'name', {
+            fileName: context.fileName,
+            hasAttributesOnly: true
+         });
          Names.validateTemplateName(templateName);
          const ast = new Ast.TemplateNode(templateName);
          if (content.length === 0) {
@@ -1063,21 +1073,6 @@ class Traverse implements Nodes.INodeVisitor {
          );
          return null;
       }
-   }
-
-   private getDataNode(node: Nodes.Tag, name: string, context: ITraverseContext): string {
-      const attributes = this.attributeProcessor.filter(node.attributes, [name], {
-         fileName: context.fileName,
-         hasAttributesOnly: true
-      });
-      const data = attributes[name];
-      if (data === undefined) {
-         throw new Error(`Ожидался обязательный атрибут "${name}" на теге "${node.name}"`);
-      }
-      if (data.value === null) {
-         throw new Error(`Ожидался обязательный атрибут "${name}" со значением на теге "${node.name}"`);
-      }
-      return data.value;
    }
 }
 
