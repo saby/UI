@@ -8,13 +8,13 @@ import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import * as Names from 'UI/_builder/Tmpl/core/Names';
 import { isElementNode } from 'UI/_builder/Tmpl/core/Html';
-import { IParser } from '../expressions/_private/Parser';
-import { processTextData, cleanMustacheExpression } from './TextProcessor';
-import { IKeysGenerator, createKeysGenerator } from './KeysGenerator';
+import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
+import { IKeysGenerator, createKeysGenerator } from 'UI/_builder/Tmpl/core/KeysGenerator';
 import { resolveComponent } from 'UI/_builder/Tmpl/core/Resolvers';
-import { IErrorHandler } from '../utils/ErrorHandler';
+import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { IAttributeProcessor, createAttributeProcessor } from 'UI/_builder/Tmpl/core/Attributes';
-import Scope from './Scope';
+import { ITextProcessor, cleanMustacheExpression, createTextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
+import Scope from 'UI/_builder/Tmpl/core/Scope';
 
 const enum TraverseState {
    MARKUP,
@@ -114,15 +114,21 @@ class Traverse implements Nodes.INodeVisitor {
    private readonly errorHandler: IErrorHandler;
    private readonly allowComments: boolean;
    private readonly attributeProcessor: IAttributeProcessor;
+   private readonly textProcessor: ITextProcessor;
 
    constructor(config: ITraverseConfig) {
       this.expressionParser = config.expressionParser;
       this.keysGenerator = createKeysGenerator(config.hierarchicalKeys);
       this.errorHandler = config.errorHandler;
       this.allowComments = config.allowComments;
-      this.attributeProcessor = createAttributeProcessor({
+      this.textProcessor = createTextProcessor({
          expressionParser: config.expressionParser,
          errorHandler: config.errorHandler
+      });
+      this.attributeProcessor = createAttributeProcessor({
+         expressionParser: config.expressionParser,
+         errorHandler: config.errorHandler,
+         textProcessor: this.textProcessor
       });
    }
 
@@ -209,24 +215,19 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    visitText(node: Nodes.Text, context: ITraverseContext): Ast.TextNode {
-      try {
-         const content = processTextData(node.data, this.expressionParser);
-         this.keysGenerator.openChildren();
-         for (let index = 0; index < content.length; ++index) {
-            content[index].__$ws_key = this.keysGenerator.generate();
-         }
-         this.keysGenerator.closeChildren();
-         return new Ast.TextNode(content);
-      } catch (error) {
-         this.errorHandler.error(
-            `Ошибка разбора текста "${node.data}": ${error.message}. Текст будет отброшен`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
+      const content = this.textProcessor.process(node.data, {
+         fileName: context.fileName,
+         allowedContent: TextContentFlags.FULL_TEXT
+      }, node.position);
+      if (content.length === 0) {
          return null;
       }
+      this.keysGenerator.openChildren();
+      for (let index = 0; index < content.length; ++index) {
+         content[index].__$ws_key = this.keysGenerator.generate();
+      }
+      this.keysGenerator.closeChildren();
+      return new Ast.TextNode(content);
    }
 
    transform(nodes: Nodes.Node[], options: ITraverseOptions): Ast.Ast[] {
@@ -880,7 +881,14 @@ class Traverse implements Nodes.INodeVisitor {
          const value = <Ast.TData>content[0];
          if (value.hasFlag(Ast.Flags.TYPE_CASTED) && value instanceof Ast.ObjectNode) {
             for (const attributeName in node.attributes) {
-               const processedValue = processTextData(node.attributes[attributeName].value, this.expressionParser);
+               const processedValue = this.textProcessor.process(
+                  node.attributes[attributeName].value,
+                  {
+                     fileName: context.fileName,
+                     allowedContent: TextContentFlags.FULL_TEXT
+                  },
+                  node.attributes[attributeName].position
+               );
                const valueNode = new Ast.ValueNode(processedValue);
                // TODO: attr valid
                value.__$ws_properties[attributeName] = new Ast.OptionNode(
@@ -932,7 +940,14 @@ class Traverse implements Nodes.INodeVisitor {
          if (node.isSelfClosing || node.children.length === 0) {
             const properties = { };
             for (const attributeName in node.attributes) {
-               const processedValue = processTextData(node.attributes[attributeName].value, this.expressionParser);
+               const processedValue = this.textProcessor.process(
+                  node.attributes[attributeName].value,
+                  {
+                     fileName: context.fileName,
+                     allowedContent: TextContentFlags.FULL_TEXT
+                  },
+                  node.attributes[attributeName].position
+               );
                const valueNode = new Ast.ValueNode(processedValue);
                // TODO: attr valid
                properties[attributeName] = new Ast.OptionNode(
@@ -962,7 +977,14 @@ class Traverse implements Nodes.INodeVisitor {
          if (Ast.isTypeofData(data)) {
             if (data instanceof Ast.ObjectNode) {
                for (const attributeName in node.attributes) {
-                  const processedValue = processTextData(node.attributes[attributeName].value, this.expressionParser);
+                  const processedValue = this.textProcessor.process(
+                     node.attributes[attributeName].value,
+                     {
+                        fileName: context.fileName,
+                        allowedContent: TextContentFlags.FULL_TEXT
+                     },
+                     node.attributes[attributeName].position
+                  );
                   const valueNode = new Ast.ValueNode(processedValue);
                   // TODO: attr valid
                   (<Ast.ObjectNode>data).__$ws_properties[attributeName] = new Ast.OptionNode(

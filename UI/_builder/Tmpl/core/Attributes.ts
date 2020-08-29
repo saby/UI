@@ -8,8 +8,8 @@
 import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
 import * as Ast from './Ast';
 import { IParser } from '../expressions/_private/Parser';
-import { processTextData } from './TextProcessor';
 import { IErrorHandler } from '../utils/ErrorHandler';
+import { ITextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
 
 /**
  * Empty string constant.
@@ -197,6 +197,11 @@ export interface IAttributeProcessorConfig {
     * Error handler.
     */
    errorHandler: IErrorHandler;
+
+   /**
+    * Text processor.
+    */
+   textProcessor: ITextProcessor;
 }
 
 /**
@@ -213,6 +218,11 @@ class AttributeProcessor implements IAttributeProcessor {
     * Error handler.
     */
    private readonly errorHandler: IErrorHandler;
+
+   /**
+    * Text processor.
+    */
+   private readonly textProcessor: ITextProcessor;
 
    /**
     * Initialize new instance of attribute processor.
@@ -373,7 +383,14 @@ class AttributeProcessor implements IAttributeProcessor {
    private processAttribute(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions): Ast.AttributeNode {
       try {
          const attribute = getAttributeName(attributeNode.name);
-         const value = processTextData(attributeNode.value, this.expressionParser);
+         const value = this.textProcessor.process(
+            attributeNode.value,
+            {
+               fileName: options.fileName,
+               allowedContent: TextContentFlags.FULL_TEXT
+            },
+            attributeNode.position
+         );
          if (value.length === 0) {
             throw new Error('значение атрибута не может быть пустым');
          }
@@ -399,7 +416,14 @@ class AttributeProcessor implements IAttributeProcessor {
     */
    private processOption(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions): Ast.OptionNode {
       try {
-         const value = processTextData(attributeNode.value, this.expressionParser);
+         const value = this.textProcessor.process(
+            attributeNode.value,
+            {
+               fileName: options.fileName,
+               allowedContent: TextContentFlags.FULL_TEXT
+            },
+            attributeNode.position
+         );
          if (value.length === 0) {
             throw new Error('значение атрибута не может быть пустым');
          }

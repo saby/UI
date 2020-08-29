@@ -4,6 +4,7 @@ import { parse } from 'UI/_builder/Tmpl/html/Parser';
 import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';
 import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
 import * as Attributes from 'UI/_builder/Tmpl/core/Attributes';
+import { createTextProcessor } from 'UI/_builder/Tmpl/core/Text';
 import { assert } from 'chai';
 
 // TODO: UI/_builder/Tmpl/* -> Compiler/*
@@ -24,9 +25,16 @@ const parseConfig = {
 const FILE_NAME = 'Compiler/core/Attributes/TestTemplate.wml';
 
 function createAttributeProcessorConfig() {
+   const expressionParser = new Parser();
+   const errorHandler = new ErrorHandler();
+   const textProcessor = createTextProcessor({
+      expressionParser,
+      errorHandler
+   });
    return {
-      expressionParser: new Parser(),
-      errorHandler: new ErrorHandler()
+      expressionParser,
+      errorHandler,
+      textProcessor
    };
 }
 
