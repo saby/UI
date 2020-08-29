@@ -2,10 +2,19 @@
 
 /**
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/core/i18n.ts
  */
 
+/**
+ * Empty string constant.
+ */
 const EMPTY_STRING = '';
 
+/**
+ * Split translation text into text and context.
+ * @param text {text} Translation text.
+ * @throws {Error} Throws error if translation text contains more than 1 @@-separators.
+ */
 export function splitLocalizationText(text: string): { text: string, context: string } {
    const pair = text.split('@@');
    if (pair.length > 2) {
@@ -17,19 +26,50 @@ export function splitLocalizationText(text: string): { text: string, context: st
    };
 }
 
-export interface IDictionaryItem {
+/**
+ * Interface for translation key.
+ */
+export interface ITranslationKey {
+
+   /**
+    * Template file where translation item was discovered.
+    */
    module: string;
+
+   /**
+    * Translation text.
+    */
    text: string;
+
+   /**
+    * Translation context.
+    */
    context: string;
 }
 
+/**
+ * Represents dictionary of translation keys.
+ */
 export class Dictionary {
-   private readonly items: IDictionaryItem[];
 
+   /**
+    * Collection of translation keys.
+    */
+   private readonly items: ITranslationKey[];
+
+   /**
+    * Initialize new instance of translation keys dictionary.
+    */
    constructor() {
       this.items = [];
    }
 
+   /**
+    * Push new data into dictionary.
+    * @param module {string} Template file where translation item was discovered.
+    * @param text {string} Translation text.
+    * @param context {string} Translation context.
+    */
    push(module: string, text: string, context: string = EMPTY_STRING): void {
       if (text.trim().length === 0) {
          return;
@@ -41,7 +81,10 @@ export class Dictionary {
       });
    }
 
-   getItems(): IDictionaryItem[] {
+   /**
+    * Get collection of translation keys.
+    */
+   getKeys(): ITranslationKey[] {
       return this.items;
    }
 }

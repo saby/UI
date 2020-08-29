@@ -2,6 +2,7 @@
 
 /**
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/core/Html.ts
  */
 
 /**
@@ -299,21 +300,43 @@ const MATHML_NODES = [
    'semantics'
 ];
 
+/**
+ * Reserved html names.
+ */
 const RESERVED = [
    'invisible-node'
 ];
 
+/**
+ * Namespace of processing element.
+ */
 export const enum ElementNS {
+
+   /**
+    * Unknown element namespace.
+    */
    NS_UNKNOWN = 0,
+
+   /**
+    * HTML elements namespace.
+    */
    NS_HTML = 1,
+
+   /**
+    * SVG elements namespace.
+    */
    NS_SVG = 2,
+
+   /**
+    * MathML elements namespace.
+    */
    NS_MATHML = 4
 }
 
 /**
  * Check node name is valid html element name and known for browsers.
- * @param name {string}
- * @param elementNs {ElementNS}
+ * @param name {string} Element name.
+ * @param elementNs {ElementNS} Current element namespace. Default value is NS_UNKNOWN.
  */
 export function isElementNode(name: string, elementNs: ElementNS = ElementNS.NS_UNKNOWN): boolean {
    if (HTML_NODES.indexOf(name) > -1 && (elementNs === ElementNS.NS_HTML || elementNs === ElementNS.NS_UNKNOWN)) {

@@ -2,6 +2,7 @@
 
 /**
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/core/Traverse.ts
  */
 
 import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
