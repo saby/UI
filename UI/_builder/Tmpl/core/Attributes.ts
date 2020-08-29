@@ -327,6 +327,27 @@ class AttributeProcessor implements IAttributeProcessor {
    }
 
    /**
+    * Parse attribute value and validate its text content.
+    * @param attributeNode {Attribute} Html attribute node.
+    * @param options {IAttributeProcessorOptions} Attribute processor options.
+    * @throws {Error} Throws error if attribute is invalid.
+    */
+   private validateTextValue(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions): string {
+      const processedText = this.textProcessor.process(
+         attributeNode.value,
+         {
+            fileName: options.fileName,
+            allowedContent: TextContentFlags.TEXT
+         },
+         attributeNode.position
+      );
+      if (processedText.length !== 1) {
+         throw new Error('некорректные данные');
+      }
+      return (<Ast.TextDataNode>processedText[0]).__$ws_content;
+   }
+
+   /**
     * Process binding construction node.
     * @private
     * @param attributeNode {Attribute} Html attribute node.
@@ -336,11 +357,12 @@ class AttributeProcessor implements IAttributeProcessor {
    private processBind(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions): Ast.BindNode {
       try {
          const property = getBindName(attributeNode.name);
-         const programNode = this.expressionParser.parse(attributeNode.value);
+         const value = this.validateTextValue(attributeNode, options);
+         const programNode = this.expressionParser.parse(value);
          return new Ast.BindNode(property, programNode);
       } catch (error) {
          this.errorHandler.error(
-            `В проссе разбора атрибута ${attributeNode.value} возникла ошибка: ${error.message}. Атрибут будет отброшен`,
+            `В процессе разбора атрибута ${attributeNode.name} возникла ошибка: ${error.message}. Атрибут будет отброшен`,
             {
                fileName: options.fileName,
                position: attributeNode.position
@@ -360,11 +382,12 @@ class AttributeProcessor implements IAttributeProcessor {
    private processEvent(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions): Ast.EventNode {
       try {
          const event = getEventName(attributeNode.name);
-         const programNode = this.expressionParser.parse(attributeNode.value);
+         const value = this.validateTextValue(attributeNode, options);
+         const programNode = this.expressionParser.parse(value);
          return new Ast.EventNode(event, programNode);
       } catch (error) {
          this.errorHandler.error(
-            `В проссе разбора атрибута ${attributeNode.value} возникла ошибка: ${error.message}. Атрибут будет отброшен`,
+            `В процессе разбора атрибута ${attributeNode.name} возникла ошибка: ${error.message}. Атрибут будет отброшен`,
             {
                fileName: options.fileName,
                position: attributeNode.position
@@ -398,7 +421,7 @@ class AttributeProcessor implements IAttributeProcessor {
          return new Ast.AttributeNode(attribute, value);
       } catch (error) {
          this.errorHandler.error(
-            `В проссе разбора атрибута ${attributeNode.value} возникла ошибка: ${error.message}. Атрибут будет отброшен`,
+            `В процессе разбора атрибута ${attributeNode.name} возникла ошибка: ${error.message}. Атрибут будет отброшен`,
             {
                fileName: options.fileName,
                position: attributeNode.position
@@ -436,7 +459,7 @@ class AttributeProcessor implements IAttributeProcessor {
          );
       } catch (error) {
          this.errorHandler.error(
-            `В проссе разбора атрибута ${attributeNode.value} возникла ошибка: ${error.message}. Атрибут будет отброшен`,
+            `В процессе разбора атрибута ${attributeNode.name} возникла ошибка: ${error.message}. Атрибут будет отброшен`,
             {
                fileName: options.fileName,
                position: attributeNode.position
