@@ -62,34 +62,32 @@ describe('Compiler/core/Traverse', () => {
       assert.instanceOf(tree[0], Ast.InstructionNode);
    });
    describe('ElementNode', () => {
-      it('Base', () => {
-         const html = '<div></div>';
+      it('Node', () => {
+         const html = '<div attr:class="div-class" id="content" on:click="handler()"></div>';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
          assert.instanceOf(tree[0], Ast.ElementNode);
          const elementNode = <Ast.ElementNode>tree[0];
          assert.strictEqual(elementNode.__$ws_name, 'div');
       });
-      it('Element attributes', () => {
-         const html = '<div attr:class="div-class" id="content"></div>';
+      it('Attributes', () => {
+         const html = '<div attr:class="div-class" id="content" on:click="handler()"></div>';
          const tree = traverseTemplate(html);
          const elementNode = <Ast.ElementNode>tree[0];
          assert.strictEqual(Object.keys(elementNode.__$ws_attributes).length, 2);
-         assert.strictEqual(Object.keys(elementNode.__$ws_events).length, 0);
+         assert.strictEqual(Object.keys(elementNode.__$ws_events).length, 1);
+
          assert.isTrue(elementNode.__$ws_attributes.hasOwnProperty('attr:class'));
          assert.isTrue(elementNode.__$ws_attributes.hasOwnProperty('attr:id'));
-      });
-      it('Element event handlers', () => {
-         const html = '<div on:click="handler()"></div>';
-         const tree = traverseTemplate(html);
-         const elementNode = <Ast.ElementNode>tree[0];
-         assert.strictEqual(Object.keys(elementNode.__$ws_attributes).length, 0);
-         assert.strictEqual(Object.keys(elementNode.__$ws_events).length, 1);
          assert.isTrue(elementNode.__$ws_events.hasOwnProperty('on:click'));
+
+         assert.instanceOf(elementNode.__$ws_attributes['attr:class'], Ast.AttributeNode);
+         assert.instanceOf(elementNode.__$ws_attributes['attr:id'], Ast.AttributeNode);
+         assert.instanceOf(elementNode.__$ws_events['on:click'], Ast.EventNode);
       });
    });
    describe('ComponentNode', () => {
-      it('Base', () => {
+      it('Node', () => {
          const html = '<UIModule.Component />';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
