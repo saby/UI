@@ -16,7 +16,8 @@ define('UI/_builder/Tmpl/core/bridge', [
       var traverseConfig = {
          expressionParser: new ParserLib.Parser(),
          hierarchicalKeys: true,
-         errorHandler: new ErrorHandlerLib.default()
+         errorHandler: new ErrorHandlerLib.default(),
+         allowComments: false
       };
       var traverseOptions = {
          fileName: options.fileName,
