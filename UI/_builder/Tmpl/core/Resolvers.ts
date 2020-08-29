@@ -4,6 +4,9 @@
  * @author Крылов М.А.
  */
 
+const EMPTY_STRING = '';
+const WS_PREFIX_PATTERN = /^ws:/i;
+
 /**
  * Resolve component name
  * TODO: spec!!! valid!!
@@ -50,4 +53,39 @@ export function resolveFunction(name: string): { module: string[]; path: string[
      module,
      path
    };
+}
+
+/**
+ * TODO: spec!!! valid!!
+ * @param name
+ */
+export function isComponentOptionName(name: string): boolean {
+   return WS_PREFIX_PATTERN.test(name);
+}
+
+/**
+ * TODO: spec!!! valid!!
+ * @param name
+ */
+export function getComponentOptionName(name: string): string {
+   return name.replace(WS_PREFIX_PATTERN, EMPTY_STRING);
+}
+
+/**
+ * TODO: spec!!! valid!!
+ * @param name
+ */
+export function isComponentName(name: string): boolean {
+   return /(\w+[\.:])+\w+/gi.test(name);
+}
+
+/**
+ * TODO: spec!!! valid!!
+ * @param name
+ */
+export function validateTemplateName(name: string): string {
+   if (!name.match(/^[a-zA-Z_]\w*$/g)) {
+      throw new Error(`Некорректное имя шаблона "${name}"`);
+   }
+   return name;
 }

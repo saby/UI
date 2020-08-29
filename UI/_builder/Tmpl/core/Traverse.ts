@@ -7,12 +7,11 @@
 
 import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
-import * as Names from 'UI/_builder/Tmpl/core/Names';
 import { isElementNode } from 'UI/_builder/Tmpl/core/Html';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { IKeysGenerator, createKeysGenerator } from 'UI/_builder/Tmpl/core/KeysGenerator';
-import { resolveComponent, resolveFunction } from 'UI/_builder/Tmpl/core/Resolvers';
+import * as Resolvers from 'UI/_builder/Tmpl/core/Resolvers';
 import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { IAttributeProcessor, createAttributeProcessor } from 'UI/_builder/Tmpl/core/Attributes';
 import { ITextProcessor, cleanMustacheExpression, createTextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
@@ -335,7 +334,7 @@ class Traverse implements Nodes.INodeVisitor {
             );
             return null;
          default:
-            if (Names.isComponentOptionName(node.name)) {
+            if (Resolvers.isComponentOptionName(node.name)) {
                this.errorHandler.error(
                   `Обнаружена неизвестная директива ${node.name}. Директива будет отброшена`,
                   {
@@ -345,7 +344,7 @@ class Traverse implements Nodes.INodeVisitor {
                );
                return null;
             }
-            if (Names.isComponentName(node.name)) {
+            if (Resolvers.isComponentName(node.name)) {
                return this.processComponent(node, context);
             }
             if (isElementNode(node.name)) {
@@ -387,10 +386,10 @@ class Traverse implements Nodes.INodeVisitor {
             );
             return null;
          default:
-            if (Names.isComponentOptionName(node.name)) {
+            if (Resolvers.isComponentOptionName(node.name)) {
                return this.processOption(node, context);
             }
-            if (Names.isComponentName(node.name) || isElementNode(node.name)) {
+            if (Resolvers.isComponentName(node.name) || isElementNode(node.name)) {
                return this.processContentOption(node, context);
             }
             this.errorHandler.error(
@@ -428,10 +427,10 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:Value':
             return this.processValue(node, context);
          default:
-            if (Names.isComponentOptionName(node.name)) {
+            if (Resolvers.isComponentOptionName(node.name)) {
                return this.castAndProcessObjectProperty(node, context);
             }
-            if (Names.isComponentName(node.name) || isElementNode(node.name)) {
+            if (Resolvers.isComponentName(node.name) || isElementNode(node.name)) {
                return this.processContentOption(node, context);
             }
             this.errorHandler.error(
@@ -474,7 +473,7 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private processTagInObjectData(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
-      if (Names.isComponentOptionName(node.name)) {
+      if (Resolvers.isComponentOptionName(node.name)) {
          const optionContext: ITraverseContext = {
             ...context,
             contentComponentState: ContentTraverseState.UNKNOWN
@@ -551,7 +550,7 @@ class Traverse implements Nodes.INodeVisitor {
             throw new Error('полученые некорректные данные');
          }
          const text = (<Ast.TextDataNode>textContent[0]).__$ws_content;
-         const { module, path }  = resolveFunction(text);
+         const { module, path }  = Resolvers.resolveFunction(text);
          const ast = new Ast.FunctionNode(module, path);
          const options = this.attributeProcessor.process(
             node.attributes,
@@ -893,7 +892,7 @@ class Traverse implements Nodes.INodeVisitor {
             fileName: context.fileName,
             hasAttributesOnly: true
          });
-         Names.validateTemplateName(templateName);
+         Resolvers.validateTemplateName(templateName);
          const ast = new Ast.TemplateNode(templateName);
          if (content.length === 0) {
             this.errorHandler.error(
@@ -968,7 +967,7 @@ class Traverse implements Nodes.INodeVisitor {
          const childrenContext: ITraverseContext = {
             ...context
          };
-         const optionName = Names.getComponentOptionName(node.name);
+         const optionName = Resolvers.getComponentOptionName(node.name);
          const content = this.visitAll(node.children, childrenContext);
          if (content.length !== 1) {
             this.errorHandler.critical(
@@ -1037,7 +1036,7 @@ class Traverse implements Nodes.INodeVisitor {
             contentComponentState: ContentTraverseState.UNKNOWN,
             state: TraverseState.COMPONENT_OPTION
          };
-         const optionName = Names.getComponentOptionName(node.name);
+         const optionName = Resolvers.getComponentOptionName(node.name);
          if (node.isSelfClosing || node.children.length === 0) {
             const properties = { };
             for (const attributeName in node.attributes) {
@@ -1124,7 +1123,7 @@ class Traverse implements Nodes.INodeVisitor {
             state: TraverseState.COMPONENT
          };
          const children = this.visitAll(node.children, childrenContext);
-         const { library, module } = resolveComponent(node.name);
+         const { library, module } = Resolvers.resolveComponent(node.name);
          const ast = new Ast.ComponentNode(library, module);
          const attributes = this.attributeProcessor.process(node.attributes, {
             fileName: context.fileName,
