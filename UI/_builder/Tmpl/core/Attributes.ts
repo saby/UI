@@ -231,6 +231,7 @@ class AttributeProcessor implements IAttributeProcessor {
    constructor(config: IAttributeProcessorConfig) {
       this.expressionParser = config.expressionParser;
       this.errorHandler = config.errorHandler;
+      this.textProcessor = config.textProcessor;
    }
 
    /**
