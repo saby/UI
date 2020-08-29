@@ -11,11 +11,11 @@ import { isElementNode } from 'UI/_builder/Tmpl/core/Html';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { IKeysGenerator, createKeysGenerator } from 'UI/_builder/Tmpl/core/KeysGenerator';
-import * as Resolvers from 'UI/_builder/Tmpl/core/Resolvers';
 import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { IAttributeProcessor, createAttributeProcessor } from 'UI/_builder/Tmpl/core/Attributes';
 import { ITextProcessor, cleanMustacheExpression, createTextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
 import Scope from 'UI/_builder/Tmpl/core/Scope';
+import { IResolver } from 'UI/_builder/Tmpl/core/Resolvers';
 
 const enum TraverseState {
    MARKUP,
@@ -37,6 +37,7 @@ export interface ITraverseConfig {
    hierarchicalKeys: boolean;
    errorHandler: IErrorHandler;
    allowComments: boolean;
+   resolver: IResolver;
 }
 
 export interface ITraverseOptions {
@@ -117,12 +118,14 @@ class Traverse implements Nodes.INodeVisitor {
    private readonly allowComments: boolean;
    private readonly attributeProcessor: IAttributeProcessor;
    private readonly textProcessor: ITextProcessor;
+   private readonly resolver: IResolver;
 
    constructor(config: ITraverseConfig) {
       this.expressionParser = config.expressionParser;
       this.keysGenerator = createKeysGenerator(config.hierarchicalKeys);
       this.errorHandler = config.errorHandler;
       this.allowComments = config.allowComments;
+      this.resolver = config.resolver;
       this.textProcessor = createTextProcessor({
          expressionParser: config.expressionParser,
          errorHandler: config.errorHandler
@@ -334,7 +337,7 @@ class Traverse implements Nodes.INodeVisitor {
             );
             return null;
          default:
-            if (Resolvers.isComponentOptionName(node.name)) {
+            if (this.resolver.isComponentOptionName(node.name)) {
                this.errorHandler.error(
                   `Обнаружена неизвестная директива ${node.name}. Директива будет отброшена`,
                   {
@@ -344,7 +347,7 @@ class Traverse implements Nodes.INodeVisitor {
                );
                return null;
             }
-            if (Resolvers.isComponentName(node.name)) {
+            if (this.resolver.isComponentName(node.name)) {
                return this.processComponent(node, context);
             }
             if (isElementNode(node.name)) {
@@ -386,10 +389,10 @@ class Traverse implements Nodes.INodeVisitor {
             );
             return null;
          default:
-            if (Resolvers.isComponentOptionName(node.name)) {
+            if (this.resolver.isComponentOptionName(node.name)) {
                return this.processOption(node, context);
             }
-            if (Resolvers.isComponentName(node.name) || isElementNode(node.name)) {
+            if (this.resolver.isComponentName(node.name) || isElementNode(node.name)) {
                return this.processContentOption(node, context);
             }
             this.errorHandler.error(
@@ -427,10 +430,10 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:Value':
             return this.processValue(node, context);
          default:
-            if (Resolvers.isComponentOptionName(node.name)) {
+            if (this.resolver.isComponentOptionName(node.name)) {
                return this.castAndProcessObjectProperty(node, context);
             }
-            if (Resolvers.isComponentName(node.name) || isElementNode(node.name)) {
+            if (this.resolver.isComponentName(node.name) || isElementNode(node.name)) {
                return this.processContentOption(node, context);
             }
             this.errorHandler.error(
@@ -473,7 +476,7 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    private processTagInObjectData(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
-      if (Resolvers.isComponentOptionName(node.name)) {
+      if (this.resolver.isComponentOptionName(node.name)) {
          const optionContext: ITraverseContext = {
             ...context,
             contentComponentState: ContentTraverseState.UNKNOWN
@@ -550,8 +553,8 @@ class Traverse implements Nodes.INodeVisitor {
             throw new Error('полученые некорректные данные');
          }
          const text = (<Ast.TextDataNode>textContent[0]).__$ws_content;
-         const { module, path }  = Resolvers.resolveFunction(text);
-         const ast = new Ast.FunctionNode(module, path);
+         const { physicalPath, logicalPath }  = this.resolver.resolveFunction(text);
+         const ast = new Ast.FunctionNode(physicalPath, logicalPath);
          const options = this.attributeProcessor.process(
             node.attributes,
             {
@@ -892,7 +895,7 @@ class Traverse implements Nodes.INodeVisitor {
             fileName: context.fileName,
             hasAttributesOnly: true
          });
-         Resolvers.validateTemplateName(templateName);
+         this.resolver.resolveTemplate(templateName);
          const ast = new Ast.TemplateNode(templateName);
          if (content.length === 0) {
             this.errorHandler.error(
@@ -967,7 +970,7 @@ class Traverse implements Nodes.INodeVisitor {
          const childrenContext: ITraverseContext = {
             ...context
          };
-         const optionName = Resolvers.getComponentOptionName(node.name);
+         const optionName = this.resolver.getComponentOptionName(node.name);
          const content = this.visitAll(node.children, childrenContext);
          if (content.length !== 1) {
             this.errorHandler.critical(
@@ -1036,7 +1039,7 @@ class Traverse implements Nodes.INodeVisitor {
             contentComponentState: ContentTraverseState.UNKNOWN,
             state: TraverseState.COMPONENT_OPTION
          };
-         const optionName = Resolvers.getComponentOptionName(node.name);
+         const optionName = this.resolver.getComponentOptionName(node.name);
          if (node.isSelfClosing || node.children.length === 0) {
             const properties = { };
             for (const attributeName in node.attributes) {
@@ -1123,8 +1126,8 @@ class Traverse implements Nodes.INodeVisitor {
             state: TraverseState.COMPONENT
          };
          const children = this.visitAll(node.children, childrenContext);
-         const { library, module } = Resolvers.resolveComponent(node.name);
-         const ast = new Ast.ComponentNode(library, module);
+         const { physicalPath, logicalPath } = this.resolver.resolveComponent(node.name);
+         const ast = new Ast.ComponentNode(physicalPath, logicalPath);
          const attributes = this.attributeProcessor.process(node.attributes, {
             fileName: context.fileName,
             hasAttributesOnly: false
