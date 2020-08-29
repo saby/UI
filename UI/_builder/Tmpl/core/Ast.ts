@@ -1381,27 +1381,39 @@ export class BooleanNode extends Ast {
  * Represents node for ws:Function tag.
  *
  * ```
- *    <ws:Function>
- *       content
+ *    <ws:Function option="value">
+ *       path
  *    </ws:Function>
  * ```
  */
 export class FunctionNode extends Ast {
 
    /**
-    * Data representation.
+    * Path to module that contains function.
     */
-   __$ws_data: string;
+   __ws_module: string[];
 
-   // TODO: describe!!!
+   /**
+    * Path to a function inside the module file.
+    */
+   __ws_path: string[];
+
+   /**
+    * Collection of function options.
+    */
+   __ws_options: IOptions;
 
    /**
     * Initialize new instance of function node.
-    * @param data {string} Data representation.
+    * @param module {string[]} Path to module that contains function.
+    * @param path {string[]} Path to a function inside the module file.
+    * @param options {IOptions} Collection of function options.
     */
-   constructor(data: string) {
+   constructor(module: string[], path: string[], options: IOptions = { }) {
       super();
-      this.__$ws_data = data;
+      this.__ws_module = module;
+      this.__ws_path = path;
+      this.__ws_options = options;
    }
 
    /**
