@@ -142,12 +142,36 @@ describe('Compiler/core/Attributes', () => {
             assert.strictEqual(Object.keys(attributes.events).length, 1);
             assert.isTrue(attributes.events.hasOwnProperty('bind:attribute'));
          });
+         it('Bind (invalid - expression)', () => {
+            const attributes = processAttributes('bind:attribute="{{ value }}"', true);
+            assert.strictEqual(Object.keys(attributes.attributes).length, 0);
+            assert.strictEqual(Object.keys(attributes.options).length, 0);
+            assert.strictEqual(Object.keys(attributes.events).length, 0);
+         });
+         it('Bind (invalid - translation)', () => {
+            const attributes = processAttributes('bind:attribute="{[ Text ]}"', true);
+            assert.strictEqual(Object.keys(attributes.attributes).length, 0);
+            assert.strictEqual(Object.keys(attributes.options).length, 0);
+            assert.strictEqual(Object.keys(attributes.events).length, 0);
+         });
          it('Event handler', () => {
             const attributes = processAttributes('on:event="handler()"', true);
             assert.strictEqual(Object.keys(attributes.attributes).length, 0);
             assert.strictEqual(Object.keys(attributes.options).length, 0);
             assert.strictEqual(Object.keys(attributes.events).length, 1);
             assert.isTrue(attributes.events.hasOwnProperty('on:event'));
+         });
+         it('Event handler (invalid - expression)', () => {
+            const attributes = processAttributes('on:event="{{ handler() }}"', true);
+            assert.strictEqual(Object.keys(attributes.attributes).length, 0);
+            assert.strictEqual(Object.keys(attributes.options).length, 0);
+            assert.strictEqual(Object.keys(attributes.events).length, 0);
+         });
+         it('Event handler (invalid - translation)', () => {
+            const attributes = processAttributes('on:event="{[ Text ]}"', true);
+            assert.strictEqual(Object.keys(attributes.attributes).length, 0);
+            assert.strictEqual(Object.keys(attributes.options).length, 0);
+            assert.strictEqual(Object.keys(attributes.events).length, 0);
          });
       });
       describe('.hasAttributesOnly = false', () => {
