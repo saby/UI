@@ -5,7 +5,6 @@
 import { Set } from 'Types/shim';
 
 const isNotProduction: boolean = isTestDomain();
-const isClientSide = typeof window !== 'undefined';
 
 /**
  * Отвечает на вопрос, нужно ли отслеживать обращения к полям после очистки.

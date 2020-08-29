@@ -117,9 +117,6 @@ export default function purifyInstance(
     async: boolean = false,
     stateNamesNoPurify?: Record<string, boolean>
 ): void {
-    if (!needPurify()) {
-        return;
-    }
     if (async) {
         addToQueue(instance, instanceName, stateNamesNoPurify);
     } else {
