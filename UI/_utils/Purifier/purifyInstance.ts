@@ -3,7 +3,7 @@
  */
 
 import { error, warn } from '../Logger';
-import { default as needLog, needPurify } from './needLog';
+import { default as needLog } from './needLog';
 
 type TInstanceValue = any;
 type TInstance = Record<string, TInstanceValue>;
