@@ -12,7 +12,7 @@ import { isElementNode } from 'UI/_builder/Tmpl/core/Html';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { IKeysGenerator, createKeysGenerator } from 'UI/_builder/Tmpl/core/KeysGenerator';
-import { resolveComponent } from 'UI/_builder/Tmpl/core/Resolvers';
+import { resolveComponent, resolveFunction } from 'UI/_builder/Tmpl/core/Resolvers';
 import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { IAttributeProcessor, createAttributeProcessor } from 'UI/_builder/Tmpl/core/Attributes';
 import { ITextProcessor, cleanMustacheExpression, createTextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
@@ -51,6 +51,7 @@ interface ITraverseContext {
    prev: Ast.Ast | null;
    state: TraverseState;
    contentComponentState?: ContentTraverseState;
+   textContent?: TextContentFlags;
 }
 
 function validateElseNode(prev: Ast.Ast | null) {
@@ -246,7 +247,7 @@ class Traverse implements Nodes.INodeVisitor {
    visitText(node: Nodes.Text, context: ITraverseContext): Ast.TextNode {
       const content = this.textProcessor.process(node.data, {
          fileName: context.fileName,
-         allowedContent: TextContentFlags.FULL_TEXT
+         allowedContent: context.textContent || TextContentFlags.FULL_TEXT
       }, node.position);
       if (content.length === 0) {
          return null;
@@ -515,7 +516,8 @@ class Traverse implements Nodes.INodeVisitor {
       try {
          const childrenContext = {
             ...context,
-            state: TraverseState.PRIMITIVE_DATA
+            state: TraverseState.PRIMITIVE_DATA,
+            textContent: TextContentFlags.TEXT_AND_EXPRESSION
          };
          this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
@@ -537,11 +539,30 @@ class Traverse implements Nodes.INodeVisitor {
       try {
          const childrenContext = {
             ...context,
-            state: TraverseState.PRIMITIVE_DATA
+            state: TraverseState.PRIMITIVE_DATA,
+            textContent: TextContentFlags.TEXT
          };
-         const ast = new Ast.FunctionNode('');
-         // @ts-ignore TODO: выполнить разбор данных
          const children = this.visitAll(node.children, childrenContext);
+         if (children.length !== 1) {
+            throw new Error('полученые некорректные данные');
+         }
+         const textContent = (<Ast.TextNode>children[0]).__$ws_content;
+         if (textContent.length !== 1) {
+            throw new Error('полученые некорректные данные');
+         }
+         const text = (<Ast.TextDataNode>textContent[0]).__$ws_content;
+         const { module, path }  = resolveFunction(text);
+         const ast = new Ast.FunctionNode(module, path);
+         const options = this.attributeProcessor.process(
+            node.attributes,
+            {
+               fileName: context.fileName,
+               hasAttributesOnly: false
+            }
+         );
+         this.warnIncorrectProperties(options.attributes, node, context);
+         this.warnIncorrectProperties(options.events, node, context);
+         ast.__ws_options = options.options;
          return ast;
       } catch (error) {
          this.errorHandler.error(
@@ -559,7 +580,8 @@ class Traverse implements Nodes.INodeVisitor {
       try {
          const childrenContext = {
             ...context,
-            state: TraverseState.PRIMITIVE_DATA
+            state: TraverseState.PRIMITIVE_DATA,
+            textContent: TextContentFlags.TEXT_AND_EXPRESSION
          };
          this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
