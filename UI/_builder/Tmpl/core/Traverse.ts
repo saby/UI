@@ -43,10 +43,6 @@ export interface ITraverseOptions {
    scope: Scope;
 }
 
-interface IFilteredAttributes {
-   [name: string]: Nodes.Attribute;
-}
-
 interface ITraverseContext {
    scope: Scope;
    fileName: string;
@@ -1069,29 +1065,11 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private filterAttributes(node: Nodes.Tag, expected: string[], context: ITraverseContext): IFilteredAttributes {
-      const collection: IFilteredAttributes = { };
-      for (const attributeName in node.attributes) {
-         if (node.attributes.hasOwnProperty(attributeName)) {
-            if (expected.indexOf(attributeName) > -1) {
-               collection[attributeName] = node.attributes[attributeName];
-            } else {
-               this.errorHandler.warn(
-                  `Обнаружен непредусмотренный тегом "${node.name}" атрибут "${attributeName}". ` +
-                  'Данный атрибут будет отброшен',
-                  {
-                     fileName: context.fileName,
-                     position: node.position
-                  }
-               );
-            }
-         }
-      }
-      return collection;
-   }
-
    private getDataNode(node: Nodes.Tag, name: string, context: ITraverseContext): string {
-      const attributes = this.filterAttributes(node, [name], context);
+      const attributes = this.attributeProcessor.filter(node.attributes, [name], {
+         fileName: context.fileName,
+         hasAttributesOnly: true
+      });
       const data = attributes[name];
       if (data === undefined) {
          throw new Error(`Ожидался обязательный атрибут "${name}" на теге "${node.name}"`);

@@ -4,45 +4,6 @@ import { assert } from 'chai';
 // TODO: UI/_builder/Tmpl/* -> Compiler/*
 
 describe('Compiler/core/Names', () => {
-   it('isAttribute() -> true', () => {
-      assert.isTrue(Names.isAttribute('attr:class'));
-   });
-   it('isAttribute() -> false', () => {
-      assert.isFalse(Names.isAttribute('ws:attr:class'));
-   });
-   it('getAttributeName() #1', () => {
-      assert.strictEqual(Names.getAttributeName('attr:class'), 'class');
-   });
-   it('getAttributeName() #2', () => {
-      assert.strictEqual(Names.getAttributeName('class'), 'class');
-   });
-
-   it('isBind() -> true', () => {
-      assert.isTrue(Names.isBind('bind:value'));
-   });
-   it('isBind() -> false', () => {
-      assert.isFalse(Names.isBind('ws:bind:value'));
-   });
-   it('getBindName() #1', () => {
-      assert.strictEqual(Names.getBindName('bind:value'), 'value');
-   });
-   it('getBindName() #2', () => {
-      assert.strictEqual(Names.getBindName('value'), 'value');
-   });
-
-   it('isEvent() -> true', () => {
-      assert.isTrue(Names.isEvent('on:click'));
-   });
-   it('isEvent() -> false', () => {
-      assert.isFalse(Names.isEvent('ws:on:click'));
-   });
-   it('getEventName() #1', () => {
-      assert.strictEqual(Names.getEventName('on:click'), 'click');
-   });
-   it('getEventName() #2', () => {
-      assert.strictEqual(Names.getEventName('click'), 'click');
-   });
-
    it('isComponentOptionName() -> true', () => {
       assert.isTrue(Names.isComponentOptionName('ws:option'));
    });
