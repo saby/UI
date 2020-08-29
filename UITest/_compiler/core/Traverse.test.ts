@@ -67,6 +67,8 @@ describe('Compiler/core/Traverse', () => {
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
          assert.isTrue(tree[0] instanceof Ast.ElementNode);
+         const elementNode = <Ast.ElementNode>tree[0];
+         assert.strictEqual(elementNode.__$ws_name, 'div');
       });
    });
    describe('ComponentNode', () => {
@@ -75,6 +77,27 @@ describe('Compiler/core/Traverse', () => {
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
          assert.isTrue(tree[0] instanceof Ast.ComponentNode);
+      });
+      it('Simple component', function() {
+         const html = `<UIModule.DirModule.Component />`;
+         const tree = traverseTemplate(html);
+         const componentNode = <Ast.ComponentNode>tree[0];
+         assert.strictEqual(componentNode.__$ws_library.length, 3);
+         assert.strictEqual(componentNode.__$ws_library[0], 'UIModule');
+         assert.strictEqual(componentNode.__$ws_library[1], 'DirModule');
+         assert.strictEqual(componentNode.__$ws_library[2], 'Component');
+         assert.strictEqual(componentNode.__$ws_module.length, 0);
+      });
+      it('Library component', function() {
+         const html = `<UIModule.Library:Space.Component />`;
+         const tree = traverseTemplate(html);
+         const componentNode = <Ast.ComponentNode>tree[0];
+         assert.strictEqual(componentNode.__$ws_library.length, 2);
+         assert.strictEqual(componentNode.__$ws_library[0], 'UIModule');
+         assert.strictEqual(componentNode.__$ws_library[1], 'Library');
+         assert.strictEqual(componentNode.__$ws_module.length, 2);
+         assert.strictEqual(componentNode.__$ws_module[0], 'Space');
+         assert.strictEqual(componentNode.__$ws_module[1], 'Component');
       });
    });
    describe('PartialNode', () => {
@@ -91,6 +114,8 @@ describe('Compiler/core/Traverse', () => {
       const tree = traverseTemplate(html);
       assert.strictEqual(tree.length, 1);
       assert.isTrue(tree[0] instanceof Ast.TemplateNode);
+      const templateNode = <Ast.TemplateNode>tree[0];
+      assert.strictEqual(templateNode.__$ws_name, 'tmpl');
    });
    describe('Conditionals', () => {
       it('IfNode (if only)', function() {
