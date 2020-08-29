@@ -958,22 +958,22 @@ export class ComponentNode extends BaseWasabyElement {
    /**
     * Path to component module or library.
     */
-   __$ws_library: string[];
+   __$ws_physicalPath: string[];
 
    /**
     * Path to component class inside library.
     */
-   __$ws_module: string[];
+   __$ws_logicalPath: string[];
 
    /**
     * Initialize new instance of component node.
-    * @param library {string[]} Path to component module or library.
-    * @param module {string[]} Path to component class inside library.
+    * @param physicalPath {string[]} Path to component module or library.
+    * @param logicalPath {string[]} Path to component class inside library.
     */
-   constructor(library: string[], module: string[]) {
+   constructor(physicalPath: string[], logicalPath: string[]) {
       super();
-      this.__$ws_library = library;
-      this.__$ws_module = module;
+      this.__$ws_physicalPath = physicalPath;
+      this.__$ws_logicalPath = logicalPath;
    }
 
    /**
@@ -1391,12 +1391,12 @@ export class FunctionNode extends Ast {
    /**
     * Path to module that contains function.
     */
-   __ws_module: string[];
+   __ws_physicalPath: string[];
 
    /**
     * Path to a function inside the module file.
     */
-   __ws_path: string[];
+   __ws_logicalPath: string[];
 
    /**
     * Collection of function options.
@@ -1405,14 +1405,14 @@ export class FunctionNode extends Ast {
 
    /**
     * Initialize new instance of function node.
-    * @param module {string[]} Path to module that contains function.
-    * @param path {string[]} Path to a function inside the module file.
+    * @param physicalPath {string[]} Path to module that contains function.
+    * @param logicalPath {string[]} Path to a function inside the module file.
     * @param options {IOptions} Collection of function options.
     */
-   constructor(module: string[], path: string[], options: IOptions = { }) {
+   constructor(physicalPath: string[], logicalPath: string[], options: IOptions = { }) {
       super();
-      this.__ws_module = module;
-      this.__ws_path = path;
+      this.__ws_physicalPath = physicalPath;
+      this.__ws_logicalPath = logicalPath;
       this.__ws_options = options;
    }
 

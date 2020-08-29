@@ -438,26 +438,26 @@ class PatchVisitor implements Ast.IAstVisitor {
       const attribs = this.collectAttributes(node, context);
       // @ts-ignore
       node.attribs = Object.keys(attribs).length === 0 ? undefined : attribs;
-      if (node.__$ws_module.length > 0) {
+      if (node.__$ws_logicalPath.length > 0) {
          // module
-         const library = node.__$ws_library.join('/');
-         const module = node.__$ws_module.join('.');
+         const library = node.__$ws_physicalPath.join('/');
+         const module = node.__$ws_logicalPath.join('.');
          const constructor = [library, module].join(':');
          // @ts-ignore
          node.children = [{
             constructor,
             key: undefined,
             library,
-            module: node.__$ws_module,
+            module: node.__$ws_logicalPath,
             type: 'module'
          }];
          // @ts-ignore
          node.attribs._wstemplatename = constructor;
          name = `ws:${constructor}`;
-         originName = [node.__$ws_library.join('.'), module].join(':');
+         originName = [node.__$ws_physicalPath.join('.'), module].join(':');
       } else {
          // control
-         const constructor = node.__$ws_library.join('/');
+         const constructor = node.__$ws_physicalPath.join('/');
          // @ts-ignore
          node.children = [{
             constructor,
@@ -469,7 +469,7 @@ class PatchVisitor implements Ast.IAstVisitor {
          // @ts-ignore
          node.attribs._wstemplatename = '';
          name = `ws:${constructor}`;
-         originName = node.__$ws_library.join('.');
+         originName = node.__$ws_physicalPath.join('.');
       }
       // @ts-ignore
       node.injectedData = this.collectContents(node, context);

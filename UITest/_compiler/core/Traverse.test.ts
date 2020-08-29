@@ -111,22 +111,22 @@ describe('Compiler/core/Traverse', () => {
          const html = '<UIModule.DirModule.Component />';
          const tree = traverseTemplate(html);
          const componentNode = <Ast.ComponentNode>tree[0];
-         assert.strictEqual(componentNode.__$ws_library.length, 3);
-         assert.strictEqual(componentNode.__$ws_library[0], 'UIModule');
-         assert.strictEqual(componentNode.__$ws_library[1], 'DirModule');
-         assert.strictEqual(componentNode.__$ws_library[2], 'Component');
-         assert.strictEqual(componentNode.__$ws_module.length, 0);
+         assert.strictEqual(componentNode.__$ws_physicalPath.length, 3);
+         assert.strictEqual(componentNode.__$ws_physicalPath[0], 'UIModule');
+         assert.strictEqual(componentNode.__$ws_physicalPath[1], 'DirModule');
+         assert.strictEqual(componentNode.__$ws_physicalPath[2], 'Component');
+         assert.strictEqual(componentNode.__$ws_logicalPath.length, 0);
       });
       it('Library component', () => {
          const html = '<UIModule.Library:Space.Component />';
          const tree = traverseTemplate(html);
          const componentNode = <Ast.ComponentNode>tree[0];
-         assert.strictEqual(componentNode.__$ws_library.length, 2);
-         assert.strictEqual(componentNode.__$ws_library[0], 'UIModule');
-         assert.strictEqual(componentNode.__$ws_library[1], 'Library');
-         assert.strictEqual(componentNode.__$ws_module.length, 2);
-         assert.strictEqual(componentNode.__$ws_module[0], 'Space');
-         assert.strictEqual(componentNode.__$ws_module[1], 'Component');
+         assert.strictEqual(componentNode.__$ws_physicalPath.length, 2);
+         assert.strictEqual(componentNode.__$ws_physicalPath[0], 'UIModule');
+         assert.strictEqual(componentNode.__$ws_physicalPath[1], 'Library');
+         assert.strictEqual(componentNode.__$ws_logicalPath.length, 2);
+         assert.strictEqual(componentNode.__$ws_logicalPath[0], 'Space');
+         assert.strictEqual(componentNode.__$ws_logicalPath[1], 'Component');
       });
       it('Component attributes and options', () => {
          const html = '<UIModule.DirModule.Component attr:class="div-class" id="content" />';
