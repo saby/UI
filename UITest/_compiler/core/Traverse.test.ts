@@ -43,34 +43,34 @@ function traverseTemplate(text: string) {
 }
 
 describe('Compiler/core/Traverse', () => {
-   it('DoctypeNode', function() {
+   it('DoctypeNode', () => {
       const html = '<!DOCTYPE html>';
       const tree = traverseTemplate(html);
       assert.strictEqual(tree.length, 1);
-      assert.isTrue(tree[0] instanceof Ast.DoctypeNode);
+      assert.instanceOf(tree[0], Ast.DoctypeNode);
    });
-   it('CDataNode', function() {
+   it('CDataNode', () => {
       const html = '<![CDATA[ value ]]>';
       const tree = traverseTemplate(html);
       assert.strictEqual(tree.length, 1);
-      assert.isTrue(tree[0] instanceof Ast.CDataNode);
+      assert.instanceOf(tree[0], Ast.CDataNode);
    });
-   it('InstructionNode', function() {
+   it('InstructionNode', () => {
       const html = '<? instruction ?>';
       const tree = traverseTemplate(html);
       assert.strictEqual(tree.length, 1);
-      assert.isTrue(tree[0] instanceof Ast.InstructionNode);
+      assert.instanceOf(tree[0], Ast.InstructionNode);
    });
-   describe('ElementNode', function () {
-      it('Base', function() {
+   describe('ElementNode', () => {
+      it('Base', () => {
          const html = '<div></div>';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
-         assert.isTrue(tree[0] instanceof Ast.ElementNode);
+         assert.instanceOf(tree[0], Ast.ElementNode);
          const elementNode = <Ast.ElementNode>tree[0];
          assert.strictEqual(elementNode.__$ws_name, 'div');
       });
-      it('Element attributes', function() {
+      it('Element attributes', () => {
          const html = '<div attr:class="div-class" id="content"></div>';
          const tree = traverseTemplate(html);
          const elementNode = <Ast.ElementNode>tree[0];
@@ -79,7 +79,7 @@ describe('Compiler/core/Traverse', () => {
          assert.isTrue(elementNode.__$ws_attributes.hasOwnProperty('attr:class'));
          assert.isTrue(elementNode.__$ws_attributes.hasOwnProperty('attr:id'));
       });
-      it('Element event handlers', function() {
+      it('Element event handlers', () => {
          const html = '<div on:click="handler()"></div>';
          const tree = traverseTemplate(html);
          const elementNode = <Ast.ElementNode>tree[0];
@@ -89,13 +89,13 @@ describe('Compiler/core/Traverse', () => {
       });
    });
    describe('ComponentNode', () => {
-      it('Base', function() {
+      it('Base', () => {
          const html = '<UIModule.Component />';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
-         assert.isTrue(tree[0] instanceof Ast.ComponentNode);
+         assert.instanceOf(tree[0], Ast.ComponentNode);
       });
-      it('Simple component', function() {
+      it('Simple component', () => {
          const html = '<UIModule.DirModule.Component />';
          const tree = traverseTemplate(html);
          const componentNode = <Ast.ComponentNode>tree[0];
@@ -105,7 +105,7 @@ describe('Compiler/core/Traverse', () => {
          assert.strictEqual(componentNode.__$ws_library[2], 'Component');
          assert.strictEqual(componentNode.__$ws_module.length, 0);
       });
-      it('Library component', function() {
+      it('Library component', () => {
          const html = '<UIModule.Library:Space.Component />';
          const tree = traverseTemplate(html);
          const componentNode = <Ast.ComponentNode>tree[0];
@@ -116,7 +116,7 @@ describe('Compiler/core/Traverse', () => {
          assert.strictEqual(componentNode.__$ws_module[0], 'Space');
          assert.strictEqual(componentNode.__$ws_module[1], 'Component');
       });
-      it('Component attributes and options', function() {
+      it('Component attributes and options', () => {
          const html = '<UIModule.DirModule.Component attr:class="div-class" id="content" />';
          const tree = traverseTemplate(html);
          const componentNode = <Ast.ComponentNode>tree[0];
@@ -127,7 +127,7 @@ describe('Compiler/core/Traverse', () => {
          assert.isTrue(componentNode.__$ws_attributes.hasOwnProperty('attr:class'));
          assert.isTrue(componentNode.__$ws_options.hasOwnProperty('id'));
       });
-      it('Component event handlers', function() {
+      it('Component event handlers', () => {
          const html = '<UIModule.DirModule.Component on:click="handler()" />';
          const tree = traverseTemplate(html);
          const componentNode = <Ast.ComponentNode>tree[0];
@@ -137,7 +137,7 @@ describe('Compiler/core/Traverse', () => {
          assert.strictEqual(Object.keys(componentNode.__$ws_contents).length, 0);
          assert.isTrue(componentNode.__$ws_events.hasOwnProperty('on:click'));
       });
-      it('Component contents', function() {
+      it('Component contents', () => {
 // TODO: In development
 //          const html = `
 // <UIModule.Component>
@@ -159,131 +159,94 @@ describe('Compiler/core/Traverse', () => {
       });
    });
    describe('PartialNode', () => {
-      it('Base', function() {
+      it('Base', () => {
          // TODO: In development...
          // const html = `<ws:partial template="...">`;
          // const tree = traverseTemplate(html);
          // assert.strictEqual(tree.length, 1);
-         // assert.isTrue(tree[0] instanceof Ast.PartialNode);
+         // assert.instanceOf(tree[0], Ast.PartialNode);
       });
    });
-   it('TemplateNode', function() {
+   it('TemplateNode', () => {
       const html = '<ws:template name="tmpl"><div></div></ws:template>';
       const tree = traverseTemplate(html);
       assert.strictEqual(tree.length, 1);
-      assert.isTrue(tree[0] instanceof Ast.TemplateNode);
+      assert.instanceOf(tree[0], Ast.TemplateNode);
       const templateNode = <Ast.TemplateNode>tree[0];
       assert.strictEqual(templateNode.__$ws_name, 'tmpl');
    });
    describe('Conditionals', () => {
-      it('IfNode (if only)', function() {
+      it('IfNode (if only)', () => {
          const html = '<ws:if data="{{ condition }}">Text</ws:if>';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
-         assert.isTrue(tree[0] instanceof Ast.IfNode);
+         assert.instanceOf(tree[0], Ast.IfNode);
       });
-      it('ElseNode (if-else)', function() {
+      it('ElseNode (if-else)', () => {
          const html = '<ws:if data="{{ condition }}">Text</ws:if><ws:else>Text</ws:else>';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 2);
-         assert.isTrue(tree[0] instanceof Ast.IfNode);
-         assert.isTrue(tree[1] instanceof Ast.ElseNode);
+         assert.instanceOf(tree[0], Ast.IfNode);
+         assert.instanceOf(tree[1], Ast.ElseNode);
       });
-      it('ElseNode (if-elif-else)', function() {
+      it('ElseNode (if-elif-else)', () => {
          const html = '<ws:if data="{{ condition }}">Text</ws:if><ws:else data="{{ otherCondition }}">Text</ws:else><ws:else>Text</ws:else>';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 3);
-         assert.isTrue(tree[0] instanceof Ast.IfNode);
-         assert.isTrue(tree[1] instanceof Ast.ElseNode);
-         assert.isTrue(tree[2] instanceof Ast.ElseNode);
+         assert.instanceOf(tree[0], Ast.IfNode);
+         assert.instanceOf(tree[1], Ast.ElseNode);
+         assert.instanceOf(tree[2], Ast.ElseNode);
       });
    });
    describe('Cycles', () => {
-      it('ForNode (init;test;update)', function() {
+      it('ForNode (init;test;update)', () => {
          const html = '<ws:for data="it.init(); it.test(); it.update()">Content</ws:for>';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
-         assert.isTrue(tree[0] instanceof Ast.ForNode);
+         assert.instanceOf(tree[0], Ast.ForNode);
       });
-      it('ForNode (init;test;)', function() {
+      it('ForNode (init;test;)', () => {
          const html = '<ws:for data="it.init(); it.test();">Content</ws:for>';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
-         assert.isTrue(tree[0] instanceof Ast.ForNode);
+         assert.instanceOf(tree[0], Ast.ForNode);
       });
-      it('ForNode (;test;update)', function() {
+      it('ForNode (;test;update)', () => {
          const html = '<ws:for data="; it.test(); it.update()">Content</ws:for>';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
-         assert.isTrue(tree[0] instanceof Ast.ForNode);
+         assert.instanceOf(tree[0], Ast.ForNode);
       });
-      it('ForNode (;test;)', function() {
+      it('ForNode (;test;)', () => {
          const html = '<ws:for data="; it.test();">Content</ws:for>';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
-         assert.isTrue(tree[0] instanceof Ast.ForNode);
+         assert.instanceOf(tree[0], Ast.ForNode);
       });
-      it('ForeachNode (iterator)', function() {
+      it('ForeachNode (iterator)', () => {
          const html = '<ws:for data="iterator in collection">Content</ws:for>';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
-         assert.isTrue(tree[0] instanceof Ast.ForeachNode);
+         assert.instanceOf(tree[0], Ast.ForeachNode);
       });
-      it('ForeachNode (index, iterator)', function() {
+      it('ForeachNode (index, iterator)', () => {
          const html = '<ws:for data="index, iterator in collection">Content</ws:for>';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
-         assert.isTrue(tree[0] instanceof Ast.ForeachNode);
+         assert.instanceOf(tree[0], Ast.ForeachNode);
       });
    });
    describe('TextNode', () => {
-      it('Base', function() {
+      it('with text', () => {
          const html = 'Text';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
-         assert.isTrue(tree[0] instanceof Ast.TextNode);
+         assert.instanceOf(tree[0], Ast.TextNode);
       });
-      it('TextDataNode', function() {
-         const html = 'Text';
+      it('without text', () => {
+         const html = '';
          const tree = traverseTemplate(html);
-         const textContent = (<Ast.TextNode>tree[0]).__$ws_content;
-         assert.strictEqual(textContent.length, 1);
-         const textDataNode = textContent[0];
-         assert.isTrue(textDataNode instanceof Ast.TextDataNode);
-         const textDataValue = (<Ast.TextDataNode>textDataNode).__$ws_content;
-         assert.strictEqual(textDataValue, 'Text');
-      });
-      it('ExpressionNode', function() {
-         const html = '{{ identifier }}';
-         const tree = traverseTemplate(html);
-         const textContent = (<Ast.TextNode>tree[0]).__$ws_content;
-         assert.strictEqual(textContent.length, 1);
-         const expressionNode = textContent[0];
-         assert.isTrue(expressionNode instanceof Ast.ExpressionNode);
-      });
-      it('TranslationNode (text and context)', function() {
-         const html = '{[ Context @@ Text ]}';
-         const tree = traverseTemplate(html);
-         const textContent = (<Ast.TextNode>tree[0]).__$ws_content;
-         assert.strictEqual(textContent.length, 1);
-         const translationNode = textContent[0];
-         assert.isTrue(translationNode instanceof Ast.TranslationNode);
-         const text = (<Ast.TranslationNode>translationNode).__$ws_text;
-         const context = (<Ast.TranslationNode>translationNode).__$ws_context;
-         assert.strictEqual(text, 'Text');
-         assert.strictEqual(context, 'Context');
-      });
-      it('TranslationNode (text only)', function() {
-         const html = '{[ Text ]}';
-         const tree = traverseTemplate(html);
-         const textContent = (<Ast.TextNode>tree[0]).__$ws_content;
-         assert.strictEqual(textContent.length, 1);
-         const translationNode = textContent[0];
-         assert.isTrue(translationNode instanceof Ast.TranslationNode);
-         const text = (<Ast.TranslationNode>translationNode).__$ws_text;
-         const context = (<Ast.TranslationNode>translationNode).__$ws_context;
-         assert.strictEqual(text, 'Text');
-         assert.strictEqual(context, '');
+         assert.strictEqual(tree.length, 0);
       });
    });
 });
