@@ -176,7 +176,7 @@ export interface IControlOptions {
  * Подробнее о работе с классом читайте <a href="/doc/platform/developmentapl/interface-development/ui-library/control/">здесь</a>.
  * @class UI/_base/Control
  * @author Шипин А.А.
- * @remark {@link /doc/platform/developmentapl/interface-development/ui-library/asynchronous-control-building/ Asynchronous creation of Core/Creator component}
+ * @remark <a href="/doc/platform/developmentapl/interface-development/ui-library/asynchronous-control-building/">Asynchronous creation of Core/Creator component</a>
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */

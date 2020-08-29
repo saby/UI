@@ -5,4 +5,4 @@
  */
 
 export { default as purifyInstance, exploreAfterDestroyInstance } from './Purifier/purifyInstance';
-export { default as needLog } from './Purifier/needLog';
+export { default as needLog, canPurifyInstanceSync } from './Purifier/needLog';
