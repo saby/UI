@@ -147,6 +147,15 @@ class Traverse implements Nodes.INodeVisitor {
          case TraverseState.COMPONENT:
          case TraverseState.COMPONENT_OPTION:
             return new Ast.CDataNode(node.data);
+         case TraverseState.PRIMITIVE_DATA:
+            this.errorHandler.error(
+               `Обнаружен тег CData, когда ожидалось текстовое содержимое. Тег будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
          default:
             this.errorHandler.error('Использование тега CData запрещено в данном контексте', {
                fileName: context.fileName,
@@ -162,6 +171,15 @@ class Traverse implements Nodes.INodeVisitor {
          case TraverseState.COMPONENT:
          case TraverseState.COMPONENT_OPTION:
             return new Ast.DoctypeNode(node.data);
+         case TraverseState.PRIMITIVE_DATA:
+            this.errorHandler.error(
+               `Обнаружен тег Doctype, когда ожидалось текстовое содержимое. Тег будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
          default:
             this.errorHandler.error('Использование тега Doctype запрещено в данном контексте', {
                fileName: context.fileName,
@@ -177,6 +195,15 @@ class Traverse implements Nodes.INodeVisitor {
          case TraverseState.COMPONENT:
          case TraverseState.COMPONENT_OPTION:
             return new Ast.InstructionNode(node.data);
+         case TraverseState.PRIMITIVE_DATA:
+            this.errorHandler.error(
+               `Обнаружен тег Instruction, когда ожидалось текстовое содержимое. Тег будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
          default:
             this.errorHandler.error('Использование тега Instruction запрещено в данном контексте', {
                fileName: context.fileName,
