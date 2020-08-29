@@ -9,6 +9,7 @@ import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import * as Names from 'UI/_builder/Tmpl/core/Names';
 import { isElementNode } from 'UI/_builder/Tmpl/core/Html';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
+import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { IKeysGenerator, createKeysGenerator } from 'UI/_builder/Tmpl/core/KeysGenerator';
 import { resolveComponent } from 'UI/_builder/Tmpl/core/Resolvers';
 import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
@@ -728,6 +729,30 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
+   private parseForData(data: string): { init: ProgramNode | null; test: ProgramNode; update: ProgramNode | null; } {
+      const parameters = data.split(';').map(s => s.trim());
+      if (parameters.length !== 3) {
+         throw new Error(
+            `цикл задан некорректно. Ожидалось соответствие шаблону "init; test; update". Получено: "${data}"`
+         );
+      }
+      try {
+         const [initStr, testStr, updateStr] = parameters;
+         const init = initStr ? this.expressionParser.parse(initStr) : null;
+         const test = this.expressionParser.parse(testStr);
+         const update = updateStr ? this.expressionParser.parse(updateStr) : null;
+         return {
+            init,
+            test,
+            update
+         };
+      } catch (error) {
+         throw new Error(
+            `цикл задан некорректно. Ожидалось соответствие шаблону "init; test; update". Получено: "${data}"`
+         );
+      }
+   }
+
    private processFor(node: Nodes.Tag, context: ITraverseContext, data: string): Ast.ForNode {
       try {
          const childrenContext = {
@@ -735,10 +760,7 @@ class Traverse implements Nodes.INodeVisitor {
             state: TraverseState.MARKUP
          };
          const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
-         const [initStr, testStr, updateStr] = data.split(';').map(s => s.trim());
-         const init = initStr ? this.expressionParser.parse(initStr) : null;
-         const test = this.expressionParser.parse(testStr);
-         const update = updateStr ? this.expressionParser.parse(updateStr) : null;
+         const { init, test, update } = this.parseForData(data);
          const ast = new Ast.ForNode(init, test, update);
          ast.__$ws_content = content;
          return ast;
@@ -754,6 +776,35 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
+   private parseForeachData(data: string): { iterator: string; index: string | null; collection: ProgramNode; } {
+      const [left, right] = data.split(' in ');
+      if (!left || !right) {
+         throw new Error(
+            `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
+         );
+      }
+      const variables = left.split(',').map(s => s.trim());
+      if (variables.length < 1 ||variables.length > 2) {
+         throw new Error(
+            `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
+         );
+      }
+      try {
+         const iterator = variables.pop();
+         const index = variables.length == 1 ? variables.pop() : null;
+         const collection = this.expressionParser.parse(right);
+         return {
+            iterator,
+            index,
+            collection
+         };
+      } catch (error) {
+         throw new Error(
+            `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
+         );
+      }
+   }
+
    private processForeach(node: Nodes.Tag, context: ITraverseContext, data: string): Ast.ForeachNode {
       try {
          const childrenContext = {
@@ -761,11 +812,7 @@ class Traverse implements Nodes.INodeVisitor {
             state: TraverseState.MARKUP
          };
          const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
-         const [left, right] = data.split(' in ');
-         const collection = this.expressionParser.parse(right);
-         const variables = left.split(',').map(s => s.trim());
-         const iterator = variables.pop();
-         const index = variables.length == 1 ? variables.pop() : null;
+         const { index, iterator, collection } = this.parseForeachData(data);
          const ast = new Ast.ForeachNode(index, iterator, collection);
          ast.__$ws_content = content;
          return ast;

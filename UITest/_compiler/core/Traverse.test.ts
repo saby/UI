@@ -221,6 +221,11 @@ describe('Compiler/core/Traverse', () => {
          assert.strictEqual(tree.length, 1);
          assert.instanceOf(tree[0], Ast.ForNode);
       });
+      it('Failure! ForNode (;;)', () => {
+         const html = '<ws:for data=";;">Content</ws:for>';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 0);
+      });
       it('ForeachNode (iterator)', () => {
          const html = '<ws:for data="iterator in collection">Content</ws:for>';
          const tree = traverseTemplate(html);
@@ -232,6 +237,16 @@ describe('Compiler/core/Traverse', () => {
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
          assert.instanceOf(tree[0], Ast.ForeachNode);
+      });
+      it('Failure! ForeachNode (no iterator)', () => {
+         const html = '<ws:for data="in collection">Content</ws:for>';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 0);
+      });
+      it('Failure! ForeachNode (no collection)', () => {
+         const html = '<ws:for data="collection">Content</ws:for>';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 0);
       });
    });
    describe('TextNode', () => {
