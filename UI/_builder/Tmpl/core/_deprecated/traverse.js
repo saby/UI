@@ -311,8 +311,9 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
                      property: true
                   };
                } else {
+                  // Включил поддержку boolean-атрибутов. У них значение - null
                   res = this._traverseText({
-                     data: attrib
+                     data: (attrib || '')
                   });
                }
             } catch (error) {
