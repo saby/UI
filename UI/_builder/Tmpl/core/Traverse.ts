@@ -200,7 +200,7 @@ class Traverse implements Nodes.INodeVisitor {
             return this.processTagInArrayData(node, context);
          case TraverseState.PRIMITIVE_DATA:
             this.errorHandler.error(
-               `Обнаружен тег ${node.name}, когда ожидалось текстовое содержимое. Тег будет отброшен`,
+               `Обнаружен тег "${node.name}", когда ожидалось текстовое содержимое. Тег будет отброшен`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -309,7 +309,7 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:String':
          case 'ws:Value':
             this.errorHandler.error(
-               `Использование директивы ${node.name} вне описания опции запрещено. Директива будет отброшена`,
+               `Использование директивы "${node.name}" вне описания опции запрещено. Директива будет отброшена`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -319,7 +319,7 @@ class Traverse implements Nodes.INodeVisitor {
          default:
             if (this.resolver.isComponentOptionName(node.name)) {
                this.errorHandler.error(
-                  `Обнаружена неизвестная директива ${node.name}. Директива будет отброшена`,
+                  `Обнаружена неизвестная директива "${node.name}". Директива будет отброшена`,
                   {
                      fileName: context.fileName,
                      position: node.position
@@ -334,7 +334,7 @@ class Traverse implements Nodes.INodeVisitor {
                return this.processElement(node, context);
             }
             this.errorHandler.error(
-               `Обнаружен неизвестный HTML тег ${node.name}. Тег будет отброшен`,
+               `Обнаружен неизвестный HTML тег "${node.name}". Тег будет отброшен`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -361,7 +361,7 @@ class Traverse implements Nodes.INodeVisitor {
          case 'ws:String':
          case 'ws:Value':
             this.errorHandler.error(
-               `Использование директивы ${node.name} вне описания опции запрещено. Директива будет отброшена`,
+               `Использование директивы "${node.name}" вне описания опции запрещено. Директива будет отброшена`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -376,7 +376,7 @@ class Traverse implements Nodes.INodeVisitor {
                return this.processContentOption(node, context);
             }
             this.errorHandler.error(
-               `Обнаружен неизвестный HTML тег ${node.name}. Тег будет отброшен`,
+               `Обнаружен неизвестный HTML тег "${node.name}". Тег будет отброшен`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -417,7 +417,7 @@ class Traverse implements Nodes.INodeVisitor {
                return this.processContentOption(node, context);
             }
             this.errorHandler.error(
-               `Обнаружен неизвестный HTML тег ${node.name}. Тег будет отброшен`,
+               `Обнаружен неизвестный HTML тег "${node.name}". Тег будет отброшен`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -445,7 +445,7 @@ class Traverse implements Nodes.INodeVisitor {
             return this.processValue(node, context);
          default:
             this.errorHandler.error(
-               `Обнаружен тег ${node.name} вместо ожидаемой директивы данных. Тег будет отброшен`,
+               `Обнаружен тег "${node.name}" вместо ожидаемой директивы данных. Тег будет отброшен`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -464,7 +464,7 @@ class Traverse implements Nodes.INodeVisitor {
          return this.processOption(node, optionContext);
       }
       this.errorHandler.error(
-         `Обнаружен тег ${node.name} вместо ожидаемого тега с префиксом ws: в имени, служащий свойством ws:Object`,
+         `Обнаружен тег "${node.name}" вместо ожидаемого тега с префиксом ws: в имени, служащий свойством ws:Object`,
          {
             fileName: context.fileName,
             position: node.position
@@ -541,7 +541,8 @@ class Traverse implements Nodes.INodeVisitor {
             node.attributes,
             {
                fileName: context.fileName,
-               hasAttributesOnly: false
+               hasAttributesOnly: false,
+               parentTagName: node.name
             }
          );
          this.warnIncorrectProperties(options.attributes, node, context);
@@ -587,7 +588,7 @@ class Traverse implements Nodes.INodeVisitor {
    private warnIncorrectProperties(collection: Ast.IAttributes | Ast.IEvents, parent: Nodes.Tag, context: ITraverseContext): void {
       for (const name in collection) {
          this.errorHandler.warn(
-            `Обнаружен непредусмотренный атрибут ${name} на теге ${parent.name}. Атрибут будет отброшен`,
+            `Обнаружен непредусмотренный атрибут "${name}" на теге "${parent.name}". Атрибут будет отброшен`,
             {
                fileName: context.fileName,
                position: parent.position
@@ -604,7 +605,8 @@ class Traverse implements Nodes.INodeVisitor {
          };
          const attributes = this.attributeProcessor.process(node.attributes, {
             fileName: context.fileName,
-            hasAttributesOnly: false
+            hasAttributesOnly: false,
+            parentTagName: node.name
          });
          this.warnIncorrectProperties(attributes.attributes, node, context);
          this.warnIncorrectProperties(attributes.events, node, context);
@@ -615,7 +617,7 @@ class Traverse implements Nodes.INodeVisitor {
             if (child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode) {
                if (properties.hasOwnProperty(child.__$ws_name)) {
                   this.errorHandler.critical(
-                     `Опция ${child.__$ws_name} уже определена на директиве ws:Object. Полученная опция будет отброшена`,
+                     `Опция "${child.__$ws_name}" уже определена на директиве ws:Object. Полученная опция будет отброшена`,
                      {
                         fileName: context.fileName,
                         position: node.position
@@ -627,7 +629,7 @@ class Traverse implements Nodes.INodeVisitor {
                continue;
             }
             this.errorHandler.critical(
-               `Получен некорректный узел (!=Option|ContentOption) внутри компонента ${node.name}`,
+               `Получен некорректный узел (!=Option|ContentOption) внутри компонента "${node.name}"`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -699,7 +701,8 @@ class Traverse implements Nodes.INodeVisitor {
          };
          const dataValue = this.attributeProcessor.validateValue(node.attributes, 'data', {
             fileName: context.fileName,
-            hasAttributesOnly: true
+            hasAttributesOnly: true,
+            parentTagName: node.name
          });
          const data = cleanMustacheExpression(dataValue);
          // TODO: prepare text only content
@@ -750,7 +753,8 @@ class Traverse implements Nodes.INodeVisitor {
       try {
          const data = this.attributeProcessor.validateValue(node.attributes, 'data', {
             fileName: context.fileName,
-            hasAttributesOnly: true
+            hasAttributesOnly: true,
+            parentTagName: node.name
          });
          if (data.indexOf(';') > -1) {
             return this.processFor(node, context, data);
@@ -878,7 +882,8 @@ class Traverse implements Nodes.INodeVisitor {
          const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          const templateName = this.attributeProcessor.validateValue(node.attributes, 'name', {
             fileName: context.fileName,
-            hasAttributesOnly: true
+            hasAttributesOnly: true,
+            parentTagName: node.name
          });
          this.resolver.resolveTemplate(templateName);
          const ast = new Ast.TemplateNode(templateName);
@@ -922,7 +927,7 @@ class Traverse implements Nodes.INodeVisitor {
    private warnUnexpectedAttributes(node: Nodes.Tag, context: ITraverseContext): void {
       for (const name in node.attributes) {
          this.errorHandler.warn(
-            `Обнаружен непредусмотренный атрибут ${name} на теге ${node.name}. Атрибут будет отброшен`,
+            `Обнаружен непредусмотренный атрибут "${name}" на теге "${node.name}". Атрибут будет отброшен`,
             {
                fileName: context.fileName,
                position: node.attributes[name].position
@@ -937,7 +942,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
       if (context.contentComponentState !== ContentTraverseState.CONTENT) {
          this.errorHandler.error(
-            `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег ${node.name}. Тег будет отброшен. ` +
+            `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег "${node.name}". Тег будет отброшен. ` +
             'Необходимо явно задать контент в ws:content',
             {
                fileName: context.fileName,
@@ -985,7 +990,7 @@ class Traverse implements Nodes.INodeVisitor {
                   );
                } catch (error) {
                   this.errorHandler.error(
-                     `Ошибка обработки атрибута: ${error.message}. Атрибут будет отброшен`,
+                     `Ошибка обработки атрибута "${attributeName}": ${error.message}. Атрибут будет отброшен`,
                      {
                         fileName: context.fileName,
                         position: node.attributes[attributeName].position
@@ -1002,7 +1007,7 @@ class Traverse implements Nodes.INodeVisitor {
          return ast;
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора опции ${node.name}: ${error.message}. Опция будет отброшена`,
+            `Ошибка разбора опции "${node.name}": ${error.message}. Опция будет отброшена`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1018,7 +1023,7 @@ class Traverse implements Nodes.INodeVisitor {
       }
       if (context.contentComponentState !== ContentTraverseState.OPTION) {
          this.errorHandler.error(
-            `Запрещено смешивать контент по умолчанию с опциями - встречена опция ${node.name}. ` +
+            `Запрещено смешивать контент по умолчанию с опциями - обнаружена опция "${node.name}". ` +
             'Необходимо явно задать контент в ws:content',
             {
                fileName: context.fileName,
@@ -1053,7 +1058,7 @@ class Traverse implements Nodes.INodeVisitor {
                   );
                } catch (error) {
                   this.errorHandler.error(
-                     `Ошибка обработки опции: ${error.message}. Опция будет отброшен`,
+                     `Ошибка обработки опции "${node.name}": ${error.message}. Опция будет отброшен`,
                      {
                         fileName: context.fileName,
                         position: node.attributes[attributeName].position
@@ -1067,7 +1072,7 @@ class Traverse implements Nodes.INodeVisitor {
          const children = this.visitAll(node.children, optionContext);
          if (children.length !== 1) {
             this.errorHandler.error(
-               `Содержимое опции ${node.name} некорректно. Опция будет отброшена`,
+               `Содержимое опции "${node.name}" некорректно. Опция будет отброшена`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -1099,7 +1104,7 @@ class Traverse implements Nodes.INodeVisitor {
                      );
                   } catch (error) {
                      this.errorHandler.error(
-                        `Ошибка обработки опции: ${error.message}. Опция будет отброшен`,
+                        `Ошибка обработки опции "${node.name}": ${error.message}. Опция будет отброшен`,
                         {
                            fileName: context.fileName,
                            position: node.attributes[attributeName].position
@@ -1111,7 +1116,7 @@ class Traverse implements Nodes.INodeVisitor {
             return new Ast.OptionNode(optionName, <Ast.TData>data);
          }
          this.errorHandler.critical(
-            `Результат разбора опции ${node.name} - неизвестного типа`,
+            `Результат разбора опции "${node.name}" - неизвестного типа`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1120,7 +1125,7 @@ class Traverse implements Nodes.INodeVisitor {
          return null;
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора опции ${node.name}: ${error.message}. Опция будет отброшена`,
+            `Ошибка разбора опции "${node.name}": ${error.message}. Опция будет отброшена`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1142,7 +1147,8 @@ class Traverse implements Nodes.INodeVisitor {
          const ast = new Ast.ComponentNode(physicalPath, logicalPath);
          const attributes = this.attributeProcessor.process(node.attributes, {
             fileName: context.fileName,
-            hasAttributesOnly: false
+            hasAttributesOnly: false,
+            parentTagName: node.name
          });
          ast.__$ws_attributes = attributes.attributes;
          ast.__$ws_events = attributes.events;
@@ -1152,7 +1158,7 @@ class Traverse implements Nodes.INodeVisitor {
             if (child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode) {
                if (ast.hasOption(child.__$ws_name)) {
                   this.errorHandler.critical(
-                     `Опция ${child.__$ws_name} уже определена на компоненте ${node.name}. Полученная опция будет отброшена`,
+                     `Опция "${child.__$ws_name}" уже определена на компоненте "${node.name}". Полученная опция будет отброшена`,
                      {
                         fileName: context.fileName,
                         position: node.position
@@ -1164,7 +1170,7 @@ class Traverse implements Nodes.INodeVisitor {
                continue;
             }
             this.errorHandler.critical(
-               `Получен некорректный узел (!=Option|ContentOption) внутри компонента ${node.name}`,
+               `Получен некорректный узел (!=Option|ContentOption) внутри компонента "${node.name}"`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -1174,7 +1180,7 @@ class Traverse implements Nodes.INodeVisitor {
          return ast;
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора компонента ${node.name}: ${error.message}. Компонент будет отброшен`,
+            `Ошибка разбора компонента "${node.name}": ${error.message}. Компонент будет отброшен`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1193,7 +1199,8 @@ class Traverse implements Nodes.INodeVisitor {
          const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          const attributes = this.attributeProcessor.process(node.attributes, {
             fileName: context.fileName,
-            hasAttributesOnly: true
+            hasAttributesOnly: true,
+            parentTagName: node.name
          });
          const ast = new Ast.ElementNode(node.name);
          ast.__$ws_attributes = attributes.attributes;
@@ -1202,7 +1209,7 @@ class Traverse implements Nodes.INodeVisitor {
          return ast;
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора HTML тега: ${error.message}. Тег будет отброшен`,
+            `Ошибка разбора HTML-элемента: ${error.message}. Тег будет отброшен`,
             {
                fileName: context.fileName,
                position: node.position

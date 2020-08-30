@@ -18,7 +18,7 @@ const EMPTY_STRING = '';
 export function splitLocalizationText(text: string): { text: string, context: string } {
    const pair = text.split('@@');
    if (pair.length > 2) {
-      throw new Error(`Обнаружено более одного @@-разделителя в конструкции локализации`);
+      throw new Error(`обнаружено более одного @@-разделителя в конструкции локализации`);
    }
    return {
       text: (pair.pop() || EMPTY_STRING).trim(),

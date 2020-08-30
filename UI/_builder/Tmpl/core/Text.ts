@@ -179,7 +179,7 @@ function finalizeContentCheck(nodes: Ast.TText[], options: ITextProcessorOptions
    const collection = [];
    for (let index = 0; index < nodes.length; ++index) {
       if (nodes[index] instanceof Ast.TextDataNode) {
-         throw new Error(`Использование текстовых данных запрещено в данном контексте`);
+         throw new Error(`в данном контексте использование текстовых данных запрещено`);
       }
       collection.push(nodes[index]);
    }
@@ -196,7 +196,7 @@ function finalizeContentCheck(nodes: Ast.TText[], options: ITextProcessorOptions
  */
 function createTextNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TextDataNode {
    if ((options.allowedContent & TextContentFlags.TEXT) === 0) {
-      throw new Error(`Использование текстовых данных запрещено в данном контексте`);
+      throw new Error(`в данном контексте использование текстовых данных запрещено`);
    }
    return new Ast.TextDataNode(data);
 }
@@ -211,14 +211,10 @@ function createTextNode(data: string, options: ITextProcessorOptions, position: 
  */
 function createTranslationNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TranslationNode {
    if ((options.allowedContent & TextContentFlags.TRANSLATION) === 0) {
-      throw new Error(`Использование конструкции локализации запрещено в данном контексте`);
+      throw new Error(`в данном контексте использование конструкции локализации запрещено`);
    }
-   try {
-      const { text, context } = splitLocalizationText(data);
-      return new Ast.TranslationNode(text, context);
-   } catch (error) {
-      throw new Error(`Ошибка разбора конструкции локализации: ${error.message}`);
-   }
+   const { text, context } = splitLocalizationText(data);
+   return new Ast.TranslationNode(text, context);
 }
 
 /**
@@ -283,13 +279,13 @@ class TextProcessor implements ITextProcessor {
     */
    private createExpressionNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.ExpressionNode {
       if ((options.allowedContent & TextContentFlags.EXPRESSION) === 0) {
-         throw new Error('Использование Mustache-выражения запрещено в данном контексте');
+         throw new Error('в данном контексте использование Mustache-выражения запрещено');
       }
       try {
          const programNode = this.expressionParser.parse(data);
          return new Ast.ExpressionNode(programNode);
       } catch (error) {
-         throw new Error(`Ошибка разбора Mustache-выражения: ${error.message}`);
+         throw new Error(`некорректное Mustache-выражение`);
       }
    }
 }

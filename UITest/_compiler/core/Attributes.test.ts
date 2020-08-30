@@ -41,7 +41,8 @@ function createAttributeProcessorConfig() {
 function createAttributeProcessorOptions(hasAttributesOnly: boolean) {
    return {
       fileName: FILE_NAME,
-      hasAttributesOnly
+      hasAttributesOnly,
+      parentTagName: 'tag-name'
    };
 }
 
@@ -180,6 +181,13 @@ describe('Compiler/core/Attributes', () => {
             const attributeNode = <Ast.AttributeNode>attributes.attributes['attr:allowfullscreen'];
             assert.strictEqual(attributeNode.__$ws_name, 'allowfullscreen');
             assert.strictEqual(attributeNode.__$ws_value.length, 1);
+         });
+         it('Duplicate attributes', () => {
+            const attributes = processAttributes('attr:value="1" value="2"', true);
+            assert.strictEqual(Object.keys(attributes.attributes).length, 1);
+            assert.strictEqual(Object.keys(attributes.options).length, 0);
+            assert.strictEqual(Object.keys(attributes.events).length, 0);
+            assert.isTrue(attributes.attributes.hasOwnProperty('attr:value'));
          });
          it('Bind', () => {
             const attributes = processAttributes('bind:attribute="value"', true);
