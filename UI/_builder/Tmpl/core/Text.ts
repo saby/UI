@@ -7,7 +7,6 @@
 
 import { splitLocalizationText } from './i18n';
 import * as Ast from './Ast';
-import { IErrorHandler } from '../utils/ErrorHandler';
 import { IParser } from '../expressions/_private/Parser';
 import { SourcePosition } from '../html/Reader';
 
@@ -20,11 +19,6 @@ interface ITextProcessorConfig {
     * Mustache expressions parser.
     */
    expressionParser: IParser;
-
-   /**
-    * Error handler.
-    */
-   errorHandler: IErrorHandler;
 }
 
 /**
@@ -77,11 +71,6 @@ export interface ITextProcessorOptions {
     * Flags for allowed text content.
     */
    allowedContent: TextContentFlags;
-
-   /**
-    * Flag for strict processing. If true then invalid parts of input text will not be ignored.
-    */
-   strictMode: boolean;
 }
 
 /**
@@ -173,6 +162,58 @@ function markDataByRegex(
    return data;
 }
 
+
+/**
+ * Process final text node check.
+ * @param nodes {TText[]} Processed nodes.
+ * @param options {ITextProcessorOptions} Text processor options.
+ * @param position {SourcePosition} Position in source file for text node.
+ */
+function finalizeContentCheck(nodes: Ast.TText[], options: ITextProcessorOptions, position: SourcePosition): Ast.TText[] {
+   if (options.allowedContent & TextContentFlags.TEXT) {
+      return nodes;
+   }
+   const collection = [];
+   for (let index = 0; index < nodes.length; ++index) {
+      if (nodes[index] instanceof Ast.TextDataNode) {
+         throw new Error(`Использование текстовых данных запрещено в данном контексте`);
+      }
+      collection.push(nodes[index]);
+   }
+   return collection;
+}
+
+/**
+ * Parse and create text node.
+ * @param data {string} Text content.
+ * @param options {ITextProcessorOptions} Text processor options.
+ * @param position {SourcePosition} Position in source file for text node.
+ */
+function createTextNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TextDataNode {
+   if ((options.allowedContent & TextContentFlags.TEXT) === 0) {
+      throw new Error(`Использование текстовых данных запрещено в данном контексте`);
+   }
+   return new Ast.TextDataNode(data);
+}
+
+/**
+ * Parse and create translation node.
+ * @param data {string} Text content.
+ * @param options {ITextProcessorOptions} Text processor options.
+ * @param position {SourcePosition} Position in source file for text node.
+ */
+function createTranslationNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TranslationNode {
+   if ((options.allowedContent & TextContentFlags.TRANSLATION) === 0) {
+      throw new Error(`Использование конструкции локализации запрещено в данном контексте`);
+   }
+   try {
+      const { text, context } = splitLocalizationText(data);
+      return new Ast.TranslationNode(text, context);
+   } catch (error) {
+      throw new Error(`Ошибка разбора конструкции локализации: ${error.message}`);
+   }
+}
+
 /**
  * Represents methods to process html text nodes.
  */
@@ -184,17 +225,11 @@ class TextProcessor implements ITextProcessor {
    private readonly expressionParser: IParser;
 
    /**
-    * Error handler.
-    */
-   private readonly errorHandler: IErrorHandler;
-
-   /**
     * Initialize new instance of text processor.
     * @param config {ITextProcessorConfig} Text processor config.
     */
    constructor(config: ITextProcessorConfig) {
       this.expressionParser = config.expressionParser;
-      this.errorHandler = config.errorHandler;
    }
 
    /**
@@ -209,100 +244,24 @@ class TextProcessor implements ITextProcessor {
          allowedContent: options.allowedContent | TextContentFlags.TEXT
       };
       const firstStage = [
-         this.createTextNode(text, internalOptions, position)
+         createTextNode(text, internalOptions, position)
       ];
 
       const secondStage = markDataByRegex(
          firstStage,
          EXPRESSION_PATTERN,
          (data: string) => this.createExpressionNode(data, internalOptions, position),
-         (data: string) => this.createTextNode(data, internalOptions, position)
+         (data: string) => createTextNode(data, internalOptions, position)
       );
 
       const thirdStage = markDataByRegex(
          secondStage,
          TRANSLATION_PATTERN,
-         (data: string) => this.createTranslationNode(data, internalOptions, position),
-         (data: string) => this.createTextNode(data, internalOptions, position)
+         (data: string) => createTranslationNode(data, internalOptions, position),
+         (data: string) => createTextNode(data, internalOptions, position)
       );
 
-      return this.finalizeContentCheck(thirdStage, options, position);
-   }
-
-   /**
-    * Process final text node check.
-    * @param nodes {TText[]} Processed nodes.
-    * @param options {ITextProcessorOptions} Text processor options.
-    * @param position {SourcePosition} Position in source file for text node.
-    */
-   private finalizeContentCheck(nodes: Ast.TText[], options: ITextProcessorOptions, position: SourcePosition): Ast.TText[] {
-      if (options.allowedContent & TextContentFlags.TEXT) {
-         return nodes;
-      }
-      const collection = [];
-      for (let index = 0; index < nodes.length; ++index) {
-         if (nodes[index] instanceof Ast.TextDataNode) {
-            const textData = (<Ast.TextDataNode>nodes[index]).__$ws_content;
-            this.handleError(
-               textData,
-               `Использование текстовых данных запрещено в данном контексте`,
-               options,
-               position
-            );
-            continue;
-         }
-         collection.push(nodes[index]);
-      }
-      return collection;
-   }
-
-   /**
-    * Parse and create text node.
-    * @param data {string} Text content.
-    * @param options {ITextProcessorOptions} Text processor options.
-    * @param position {SourcePosition} Position in source file for text node.
-    */
-   private createTextNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TextDataNode {
-      if ((options.allowedContent & TextContentFlags.TEXT) === 0) {
-         this.handleError(
-            data,
-            `Использование текстовых данных запрещено в данном контексте`,
-            options,
-            position
-         );
-         return null;
-      }
-      return new Ast.TextDataNode(data);
-   }
-
-   /**
-    * Parse and create translation node.
-    * @param data {string} Text content.
-    * @param options {ITextProcessorOptions} Text processor options.
-    * @param position {SourcePosition} Position in source file for text node.
-    */
-   private createTranslationNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TranslationNode {
-      if ((options.allowedContent & TextContentFlags.TRANSLATION) === 0) {
-         this.handleError(
-            data,
-            `Использование конструкции локализации запрещено в данном контексте`,
-            options,
-            position
-         );
-         return null;
-      }
-      try {
-         const { text, context } = splitLocalizationText(data);
-         return new Ast.TranslationNode(text, context);
-      } catch (error) {
-         this.handleError(
-            data,
-            `Ошибка разбора конструкции локализации: ${error.message}`,
-            options,
-            position
-         );
-         return null;
-      }
+      return finalizeContentCheck(thirdStage, options, position);
    }
 
    /**
@@ -313,46 +272,14 @@ class TextProcessor implements ITextProcessor {
     */
    private createExpressionNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.ExpressionNode {
       if ((options.allowedContent & TextContentFlags.EXPRESSION) === 0) {
-         this.handleError(
-            data,
-            `Использование Mustache-выражения запрещено в данном контексте`,
-            options,
-            position
-         );
-         return null;
+         throw new Error('Использование Mustache-выражения запрещено в данном контексте');
       }
       try {
          const programNode = this.expressionParser.parse(data);
          return new Ast.ExpressionNode(programNode);
       } catch (error) {
-         this.handleError(
-            data,
-            `Ошибка разбора Mustache-выражения: ${error.message}`,
-            options,
-            position
-         );
-         return null;
+         throw new Error(`Ошибка разбора Mustache-выражения: ${error.message}`);
       }
-   }
-
-   /**
-    * Handle error. Behaviour depends on flag strictMode.
-    * @param text {string} Processing text.
-    * @param message {string} Error message.
-    * @param options {ITextProcessorOptions} Text processor options.
-    * @param position {SourcePosition} Position in source file for text node.
-    */
-   private handleError(text: string, message: string, options: ITextProcessorOptions, position: SourcePosition): void {
-      if (options.strictMode) {
-         throw new Error(message);
-      }
-      this.errorHandler.error(
-         `${message}. Текст "${text}" будет отброшен`,
-         {
-            fileName: options.fileName,
-            position
-         }
-      );
    }
 }
 

@@ -29,8 +29,7 @@ function createAttributeProcessorConfig() {
    const expressionParser = new Parser();
    const errorHandler = new ErrorHandler();
    const textProcessor = createTextProcessor({
-      expressionParser,
-      errorHandler
+      expressionParser
    });
    return {
       expressionParser,

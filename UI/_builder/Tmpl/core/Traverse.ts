@@ -52,7 +52,6 @@ interface ITraverseContext {
    state: TraverseState;
    contentComponentState?: ContentTraverseState;
    textContent?: TextContentFlags;
-   textStrictMode?: boolean;
 }
 
 function validateElseNode(prev: Ast.Ast | null) {
@@ -128,8 +127,7 @@ class Traverse implements Nodes.INodeVisitor {
       this.allowComments = config.allowComments;
       this.resolver = config.resolver;
       this.textProcessor = createTextProcessor({
-         expressionParser: config.expressionParser,
-         errorHandler: config.errorHandler
+         expressionParser: config.expressionParser
       });
       this.attributeProcessor = createAttributeProcessor({
          expressionParser: config.expressionParser,
@@ -221,20 +219,27 @@ class Traverse implements Nodes.INodeVisitor {
    }
 
    visitText(node: Nodes.Text, context: ITraverseContext): Ast.TextNode {
-      const content = this.textProcessor.process(node.data, {
-         fileName: context.fileName,
-         allowedContent: context.textContent || TextContentFlags.FULL_TEXT,
-         strictMode: !!context.textStrictMode
-      }, node.position);
-      if (content.length === 0) {
+      try {
+         const content = this.textProcessor.process(node.data, {
+            fileName: context.fileName,
+            allowedContent: context.textContent || TextContentFlags.FULL_TEXT
+         }, node.position);
+         this.keysGenerator.openChildren();
+         for (let index = 0; index < content.length; ++index) {
+            content[index].__$ws_key = this.keysGenerator.generate();
+         }
+         this.keysGenerator.closeChildren();
+         return new Ast.TextNode(content);
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка обработки текста: ${error.message}. Текс будет отброшен`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
          return null;
       }
-      this.keysGenerator.openChildren();
-      for (let index = 0; index < content.length; ++index) {
-         content[index].__$ws_key = this.keysGenerator.generate();
-      }
-      this.keysGenerator.closeChildren();
-      return new Ast.TextNode(content);
    }
 
    transform(nodes: Nodes.Node[], options: ITraverseOptions): Ast.Ast[] {
@@ -964,21 +969,29 @@ class Traverse implements Nodes.INodeVisitor {
          const value = <Ast.TData>content[0];
          if (value.hasFlag(Ast.Flags.TYPE_CASTED) && value instanceof Ast.ObjectNode) {
             for (const attributeName in node.attributes) {
-               const processedValue = this.textProcessor.process(
-                  node.attributes[attributeName].value,
-                  {
-                     fileName: context.fileName,
-                     allowedContent: TextContentFlags.FULL_TEXT,
-                     strictMode: true
-                  },
-                  node.attributes[attributeName].position
-               );
-               const valueNode = new Ast.ValueNode(processedValue);
-               // TODO: attr valid
-               value.__$ws_properties[attributeName] = new Ast.OptionNode(
-                  attributeName,
-                  valueNode
-               );
+               try {
+                  const processedValue = this.textProcessor.process(
+                     node.attributes[attributeName].value,
+                     {
+                        fileName: context.fileName,
+                        allowedContent: TextContentFlags.FULL_TEXT
+                     },
+                     node.attributes[attributeName].position
+                  );
+                  const valueNode = new Ast.ValueNode(processedValue);
+                  value.__$ws_properties[attributeName] = new Ast.OptionNode(
+                     attributeName,
+                     valueNode
+                  );
+               } catch (error) {
+                  this.errorHandler.error(
+                     `Ошибка обработки атрибута: ${error.message}. Атрибут будет отброшен`,
+                     {
+                        fileName: context.fileName,
+                        position: node.attributes[attributeName].position
+                     }
+                  );
+               }
             }
          } else {
             this.warnUnexpectedAttributes(node, context);
@@ -1024,21 +1037,29 @@ class Traverse implements Nodes.INodeVisitor {
          if (node.isSelfClosing || node.children.length === 0) {
             const properties = { };
             for (const attributeName in node.attributes) {
-               const processedValue = this.textProcessor.process(
-                  node.attributes[attributeName].value,
-                  {
-                     fileName: context.fileName,
-                     allowedContent: TextContentFlags.FULL_TEXT,
-                     strictMode: true
-                  },
-                  node.attributes[attributeName].position
-               );
-               const valueNode = new Ast.ValueNode(processedValue);
-               // TODO: attr valid
-               properties[attributeName] = new Ast.OptionNode(
-                  attributeName,
-                  valueNode
-               );
+               try {
+                  const processedValue = this.textProcessor.process(
+                     node.attributes[attributeName].value,
+                     {
+                        fileName: context.fileName,
+                        allowedContent: TextContentFlags.FULL_TEXT
+                     },
+                     node.attributes[attributeName].position
+                  );
+                  const valueNode = new Ast.ValueNode(processedValue);
+                  properties[attributeName] = new Ast.OptionNode(
+                     attributeName,
+                     valueNode
+                  );
+               } catch (error) {
+                  this.errorHandler.error(
+                     `Ошибка обработки опции: ${error.message}. Опция будет отброшен`,
+                     {
+                        fileName: context.fileName,
+                        position: node.attributes[attributeName].position
+                     }
+                  );
+               }
             }
             return new Ast.OptionNode(optionName, new Ast.ObjectNode(properties));
          }
@@ -1062,21 +1083,29 @@ class Traverse implements Nodes.INodeVisitor {
          if (Ast.isTypeofData(data)) {
             if (data instanceof Ast.ObjectNode) {
                for (const attributeName in node.attributes) {
-                  const processedValue = this.textProcessor.process(
-                     node.attributes[attributeName].value,
-                     {
-                        fileName: context.fileName,
-                        allowedContent: TextContentFlags.FULL_TEXT,
-                        strictMode: true
-                     },
-                     node.attributes[attributeName].position
-                  );
-                  const valueNode = new Ast.ValueNode(processedValue);
-                  // TODO: attr valid
-                  (<Ast.ObjectNode>data).__$ws_properties[attributeName] = new Ast.OptionNode(
-                     attributeName,
-                     valueNode
-                  );
+                  try {
+                     const processedValue = this.textProcessor.process(
+                        node.attributes[attributeName].value,
+                        {
+                           fileName: context.fileName,
+                           allowedContent: TextContentFlags.FULL_TEXT
+                        },
+                        node.attributes[attributeName].position
+                     );
+                     const valueNode = new Ast.ValueNode(processedValue);
+                     (<Ast.ObjectNode>data).__$ws_properties[attributeName] = new Ast.OptionNode(
+                        attributeName,
+                        valueNode
+                     );
+                  } catch (error) {
+                     this.errorHandler.error(
+                        `Ошибка обработки опции: ${error.message}. Опция будет отброшен`,
+                        {
+                           fileName: context.fileName,
+                           position: node.attributes[attributeName].position
+                        }
+                     );
+                  }
                }
             }
             return new Ast.OptionNode(optionName, <Ast.TData>data);

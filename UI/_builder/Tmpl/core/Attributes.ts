@@ -385,14 +385,10 @@ class AttributeProcessor implements IAttributeProcessor {
          attributeNode.value,
          {
             fileName: options.fileName,
-            allowedContent: TextContentFlags.TEXT,
-            strictMode: true
+            allowedContent: TextContentFlags.TEXT
          },
          attributeNode.position
       );
-      if (processedText.length !== 1) {
-         throw new Error('значение содержит некорректные данные');
-      }
       return (<Ast.TextDataNode>processedText[0]).__$ws_content;
    }
 
@@ -471,14 +467,10 @@ class AttributeProcessor implements IAttributeProcessor {
             attributeValue,
             {
                fileName: options.fileName,
-               allowedContent: TextContentFlags.FULL_TEXT,
-               strictMode: true
+               allowedContent: TextContentFlags.FULL_TEXT
             },
             attributeNode.position
          );
-         if (value.length === 0) {
-            throw new Error('некорректные данные в значении');
-         }
          return new Ast.AttributeNode(attribute, value);
       } catch (error) {
          this.errorHandler.error(
@@ -516,14 +508,10 @@ class AttributeProcessor implements IAttributeProcessor {
             attributeValue,
             {
                fileName: options.fileName,
-               allowedContent: TextContentFlags.FULL_TEXT,
-               strictMode: true
+               allowedContent: TextContentFlags.FULL_TEXT
             },
             attributeNode.position
          );
-         if (value.length === 0) {
-            throw new Error('некорректные данные в значении');
-         }
          const valueNode = new Ast.ValueNode(value);
          valueNode.setFlag(Ast.Flags.TYPE_CASTED);
          return new Ast.OptionNode(
