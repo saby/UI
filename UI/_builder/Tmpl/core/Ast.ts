@@ -1127,12 +1127,14 @@ export class IfNode extends Ast {
    /**
     * Initialize new instance of conditional node.
     * @param test {ProgramNode} Test expression.
+    * @param consequent {TContent[]} Consequent content nodes.
+    * @param alternate {ElseNode | null} Alternate conditional node.
     */
-   constructor(test: ProgramNode) {
+   constructor(test: ProgramNode, consequent: TContent[], alternate: ElseNode | null = null) {
       super();
       this.__$ws_test = test;
-      this.__$ws_consequent = [];
-      this.__$ws_alternate = null;
+      this.__$ws_consequent = consequent;
+      this.__$ws_alternate = alternate;
    }
 
    /**
@@ -1173,12 +1175,15 @@ export class ElseNode extends Ast {
 
    /**
     * Initialize new instance of conditional node.
+    * @param consequent {TContent[]} Consequent content nodes.
+    * @param test {ProgramNode | null} Optional test expression.
+    * @param alternate {ElseNode | null} Alternate conditional node.
     */
-   constructor() {
+   constructor(consequent: TContent[], test: ProgramNode | null = null, alternate: ElseNode | null = null) {
       super();
-      this.__$ws_consequent = [];
-      this.__$ws_test = null;
-      this.__$ws_alternate = null;
+      this.__$ws_consequent = consequent;
+      this.__$ws_test = test;
+      this.__$ws_alternate = alternate;
    }
 
    /**

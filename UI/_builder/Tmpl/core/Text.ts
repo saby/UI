@@ -298,13 +298,3 @@ class TextProcessor implements ITextProcessor {
 export function createTextProcessor(config: ITextProcessorConfig): ITextProcessor {
    return new TextProcessor(config);
 }
-
-/**
- * Remove curly brackets from Mustache expression text.
- * @param text {string} Mustache expression text.
- */
-export function cleanMustacheExpression(text: string): string {
-   return text
-      .replace(/^\s*{{\s*/i, '')
-      .replace(/\s*}}\s*$/i, '');
-}

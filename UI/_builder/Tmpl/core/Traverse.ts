@@ -13,7 +13,7 @@ import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { IKeysGenerator, createKeysGenerator } from 'UI/_builder/Tmpl/core/KeysGenerator';
 import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { IAttributeProcessor, createAttributeProcessor } from 'UI/_builder/Tmpl/core/Attributes';
-import { ITextProcessor, cleanMustacheExpression, createTextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
+import { ITextProcessor, createTextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
 import Scope from 'UI/_builder/Tmpl/core/Scope';
 import { IResolver } from 'UI/_builder/Tmpl/core/Resolvers';
 
@@ -395,6 +395,8 @@ class Traverse implements ITraverse {
             if (this.resolver.isComponentName(node.name)) {
                return this.processComponent(node, context);
             }
+
+            // We need to check element node even if element node is broken.
             const elementNode = this.processElement(node, context);
             if (isElementNode(node.name)) {
                return elementNode;
@@ -848,23 +850,22 @@ class Traverse implements ITraverse {
 
    // <editor-fold desc="Processing directive nodes">
 
+   /**
+    * Process html element tag and create conditional node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {IfNode | null} Returns instance of IfNode ort null in case of broken content.
+    */
    private processIf(node: Nodes.Tag, context: ITraverseContext): Ast.IfNode {
       try {
          const childrenContext = {
             ...context,
             state: TraverseState.MARKUP
          };
-         const dataValue = this.attributeProcessor.validateValue(node.attributes, 'data', {
-            fileName: context.fileName,
-            hasAttributesOnly: true,
-            parentTagName: node.name
-         });
-         const data = cleanMustacheExpression(dataValue);
-         // TODO: prepare text only content
-         const test = this.expressionParser.parse(data);
-         const ast = new Ast.IfNode(test);
-         ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
-         return ast;
+         const consequent = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
+         const test = this.getProgramNodeFromAttribute(node, 'data', context);
+         return new Ast.IfNode(test, consequent);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы ws:if: ${error.message}. Директива будет отброшена`,
@@ -877,21 +878,26 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process html element tag and create conditional node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ElseNode | null} Returns instance of ElseNode ort null in case of broken content.
+    */
    private processElse(node: Nodes.Tag, context: ITraverseContext): Ast.ElseNode {
       try {
          const childrenContext = {
             ...context,
             state: TraverseState.MARKUP
          };
-         const ast = new Ast.ElseNode();
+         const consequent = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
+         let test = null;
          if (node.attributes.hasOwnProperty('data')) {
-            const dataStr = cleanMustacheExpression(node.attributes.data.value);
-            // TODO: prepare text only content
-            ast.__$ws_test = this.expressionParser.parse(dataStr);
+            test = this.getProgramNodeFromAttribute(node, 'data', context);
          }
-         ast.__$ws_consequent = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          validateElseNode(childrenContext.prev);
-         return ast;
+         return new Ast.ElseNode(consequent, test);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы ws:else: ${error.message}. Директива будет отброшена`,
@@ -1275,6 +1281,43 @@ class Traverse implements ITraverse {
    }
 
    // </editor-fold>
+
+   /**
+    * Get program node from tag node attribute value.
+    * @param node {Tag} Current tag node.
+    * @param attribute {string} Name of single required attribute.
+    * @param context {ITraverseContext}
+    * @throws {Error} Throws error if attribute value is invalid.
+    */
+   private getProgramNodeFromAttribute(node: Nodes.Tag, attribute: string, context: ITraverseContext): ProgramNode {
+      const expressionNode = <Ast.ExpressionNode>this.getAttributeValue(node, attribute, TextContentFlags.EXPRESSION, context);
+      return expressionNode.__$ws_program;
+   }
+
+   /**
+    * Get tag node attribute value processed.
+    * @param node {Tag} Current tag node.
+    * @param attribute {string} Name of single required attribute.
+    * @param allowedContent {TextContentFlags} Allowed attribute value content type.
+    * @param context {ITraverseContext}
+    * @throws {Error} Throws error if attribute value is invalid.
+    */
+   private getAttributeValue(node: Nodes.Tag, attribute: string, allowedContent: TextContentFlags, context: ITraverseContext): Ast.TText {
+      const dataValue = this.attributeProcessor.validateValue(node.attributes, attribute, {
+         fileName: context.fileName,
+         hasAttributesOnly: true,
+         parentTagName: node.name
+      });
+      const textValue = this.textProcessor.process(
+         dataValue,
+         {
+            fileName: context.fileName,
+            allowedContent
+         },
+         node.position
+      );
+      return textValue[0];
+   }
 
    private removeUnusedTemplates(context: ITraverseContext): void {
       const templates = context.scope.getTemplateNames();
