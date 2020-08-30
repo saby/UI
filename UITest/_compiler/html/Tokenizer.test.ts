@@ -241,77 +241,6 @@ describe('Compiler/html/Tokenizer', () => {
          tokenizer.tokenize(reader);
       });
    });
-   describe('Mustache expressions', () => {
-      it('In text', () => {
-         let reader = createSource('{{exp}}');
-         stack = [{
-            type: 'Text',
-            data: '{{exp}}',
-            selfClosing: false
-         }, {
-            type: 'EOF'
-         }];
-         let tokenizer = new Tokenizer(handler, TOKENIZER_OPTIONS);
-         tokenizer.tokenize(reader);
-      });
-      // it('In text 2', () => {
-      //    let reader = createSource('{{exp}');
-      //    stack = [{
-      //       type: 'Text',
-      //       data: '{{exp}',
-      //       selfClosing: false
-      //    }, {
-      //       type: 'EOF'
-      //    }];
-      //    let tokenizer = new Tokenizer(handler, TOKENIZER_OPTIONS);
-      //    tokenizer.tokenize(reader);
-      // });
-      it('In attribute 1', () => {
-         let reader = createSource('<tag a="{{a}}" />');
-         stack = [{
-            type: 'OpenTag',
-            name: 'tag',
-            attr: {
-               a: '{{a}}'
-            },
-            selfClosing: true
-         }, {
-            type: 'EOF'
-         }];
-         let tokenizer = new Tokenizer(handler, TOKENIZER_OPTIONS);
-         tokenizer.tokenize(reader);
-      });
-      // it('In attribute 2', () => {
-      //    let reader = createSource('<tag a="{{a}" />');
-      //    stack = [{
-      //       type: 'OpenTag',
-      //       name: 'tag',
-      //       attr: {
-      //          a: '{{a}'
-      //       },
-      //       selfClosing: true
-      //    }, {
-      //       type: 'EOF'
-      //    }];
-      //    let tokenizer = new Tokenizer(handler, TOKENIZER_OPTIONS);
-      //    tokenizer.tokenize(reader);
-      // });
-      // it('In attribute 3', () => {
-      //    let reader = createSource('<tag a="{{a" />');
-      //    stack = [{
-      //       type: 'OpenTag',
-      //       name: 'tag',
-      //       attr: {
-      //          a: '{{a'
-      //       },
-      //       selfClosing: true
-      //    }, {
-      //       type: 'EOF'
-      //    }];
-      //    let tokenizer = new Tokenizer(handler, TOKENIZER_OPTIONS);
-      //    tokenizer.tokenize(reader);
-      // });
-   });
    it('Escapable content model', () => {
       // For elements: <textarea>, <title>
       let reader = createSource('< 1\n2\n3 ></textarea>');
@@ -329,7 +258,7 @@ describe('Compiler/html/Tokenizer', () => {
       tokenizer.tokenize(reader);
    });
    it('Escapable content model 2', () => {
-      // FIXME: For elements: <textarea>, <title>
+      // For elements: <textarea>, <title>
       let reader = createSource('</ </textarea>');
       stack = [{
          type: 'Text',
