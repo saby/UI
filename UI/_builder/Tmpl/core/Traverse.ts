@@ -17,19 +17,10 @@ import { ITextProcessor, cleanMustacheExpression, createTextProcessor, TextConte
 import Scope from 'UI/_builder/Tmpl/core/Scope';
 import { IResolver } from 'UI/_builder/Tmpl/core/Resolvers';
 
-const enum TraverseState {
-   MARKUP,
-   COMPONENT,
-   COMPONENT_OPTION,
-   ARRAY_DATA,
-   PRIMITIVE_DATA,
-   OBJECT_DATA
-}
+// <editor-fold desc="Public interfaces and functions">
 
-const enum ContentTraverseState {
-   UNKNOWN,
-   CONTENT,
-   OPTION
+export interface ITraverse extends Nodes.INodeVisitor {
+   transform(nodes: Nodes.Node[], options: ITraverseOptions): Ast.Ast[];
 }
 
 export interface ITraverseConfig {
@@ -45,6 +36,32 @@ export interface ITraverseOptions {
    scope: Scope;
 }
 
+export default function traverse(nodes: Nodes.Node[], config: ITraverseConfig, options: ITraverseOptions): Ast.Ast[] {
+   return new Traverse(config).transform(
+      nodes,
+      options
+   );
+}
+
+// </editor-fold>
+
+// <editor-fold desc="Internal finite state machine states and interfaces">
+
+const enum TraverseState {
+   MARKUP,
+   COMPONENT,
+   COMPONENT_OPTION,
+   ARRAY_DATA,
+   PRIMITIVE_DATA,
+   OBJECT_DATA
+}
+
+const enum ContentTraverseState {
+   UNKNOWN,
+   CONTENT,
+   OPTION
+}
+
 interface ITraverseContext {
    scope: Scope;
    fileName: string;
@@ -53,6 +70,10 @@ interface ITraverseContext {
    contentComponentState?: ContentTraverseState;
    textContent?: TextContentFlags;
 }
+
+// </editor-fold>
+
+// <editor-fold desc="Internal finite state machine functions">
 
 function validateElseNode(prev: Ast.Ast | null) {
    if (prev instanceof Ast.IfNode) {
@@ -111,7 +132,12 @@ function validateNumber(children: Ast.TextNode[]): void {
    }
 }
 
-class Traverse implements Nodes.INodeVisitor {
+// </editor-fold>
+
+class Traverse implements ITraverse {
+
+   // <editor-fold desc="Traverse properties">
+
    private readonly expressionParser: IParser;
    private readonly keysGenerator: IKeysGenerator;
    private readonly errorHandler: IErrorHandler;
@@ -119,6 +145,8 @@ class Traverse implements Nodes.INodeVisitor {
    private readonly attributeProcessor: IAttributeProcessor;
    private readonly textProcessor: ITextProcessor;
    private readonly resolver: IResolver;
+
+   // </editor-fold>
 
    constructor(config: ITraverseConfig) {
       this.expressionParser = config.expressionParser;
@@ -135,6 +163,38 @@ class Traverse implements Nodes.INodeVisitor {
          textProcessor: this.textProcessor
       });
    }
+
+   transform(nodes: Nodes.Node[], options: ITraverseOptions): Ast.Ast[] {
+      const context: ITraverseContext = {
+         prev: null,
+         state: TraverseState.MARKUP,
+         fileName: options.fileName,
+         scope: options.scope
+      };
+      const tree = this.visitAll(nodes, context);
+      this.removeUnusedTemplates(context);
+      return tree;
+   }
+
+   visitAll(nodes: Nodes.Node[], context: ITraverseContext): Ast.Ast[] {
+      const children: Ast.Ast[] = [];
+      const childContext: ITraverseContext = {
+         ...context
+      };
+      this.keysGenerator.openChildren();
+      for (let index = 0; index < nodes.length; ++index) {
+         childContext.prev = children[children.length - 1] || null;
+         const child = <Ast.Ast>nodes[index].accept(this, childContext);
+         if (child) {
+            child.__$ws_key = this.keysGenerator.generate();
+            children.push(child);
+         }
+      }
+      this.keysGenerator.closeChildren();
+      return children;
+   }
+
+   // <editor-fold desc="Processing html nodes">
 
    visitComment(node: Nodes.Comment, context: ITraverseContext): Ast.CommentNode {
       if (this.allowComments) {
@@ -188,7 +248,37 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
+   visitText(node: Nodes.Text, context: ITraverseContext): Ast.TextNode {
+      try {
+         const content = this.textProcessor.process(node.data, {
+            fileName: context.fileName,
+            allowedContent: context.textContent || TextContentFlags.FULL_TEXT
+         }, node.position);
+         this.keysGenerator.openChildren();
+         for (let index = 0; index < content.length; ++index) {
+            content[index].__$ws_key = this.keysGenerator.generate();
+         }
+         this.keysGenerator.closeChildren();
+         return new Ast.TextNode(content);
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка обработки текста: ${error.message}. Текст будет отброшен`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+   }
+
    visitTag(node: Nodes.Tag, context: ITraverseContext): Ast.Ast {
+      return this.processTag(node, context);
+   }
+
+   // </editor-fold>
+
+   private processTag(node: Nodes.Tag, context: ITraverseContext): Ast.Ast {
       switch (context.state) {
          case TraverseState.MARKUP:
             return this.processTagInMarkup(node, context);
@@ -215,77 +305,6 @@ class Traverse implements Nodes.INodeVisitor {
                position: node.position
             });
             return null;
-      }
-   }
-
-   visitText(node: Nodes.Text, context: ITraverseContext): Ast.TextNode {
-      try {
-         const content = this.textProcessor.process(node.data, {
-            fileName: context.fileName,
-            allowedContent: context.textContent || TextContentFlags.FULL_TEXT
-         }, node.position);
-         this.keysGenerator.openChildren();
-         for (let index = 0; index < content.length; ++index) {
-            content[index].__$ws_key = this.keysGenerator.generate();
-         }
-         this.keysGenerator.closeChildren();
-         return new Ast.TextNode(content);
-      } catch (error) {
-         this.errorHandler.error(
-            `Ошибка обработки текста: ${error.message}. Текст будет отброшен`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
-   }
-
-   transform(nodes: Nodes.Node[], options: ITraverseOptions): Ast.Ast[] {
-      const context: ITraverseContext = {
-         prev: null,
-         state: TraverseState.MARKUP,
-         fileName: options.fileName,
-         scope: options.scope
-      };
-      const tree = this.visitAll(nodes, context);
-      this.removeUnusedTemplates(context);
-      return tree;
-   }
-
-   visitAll(nodes: Nodes.Node[], context: ITraverseContext): Ast.Ast[] {
-      const children: Ast.Ast[] = [];
-      const childContext: ITraverseContext = {
-         ...context
-      };
-      this.keysGenerator.openChildren();
-      for (let index = 0; index < nodes.length; ++index) {
-         childContext.prev = children[children.length - 1] || null;
-         const child = <Ast.Ast>nodes[index].accept(this, childContext);
-         if (child) {
-            child.__$ws_key = this.keysGenerator.generate();
-            children.push(child);
-         }
-      }
-      this.keysGenerator.closeChildren();
-      return children;
-   }
-
-   private removeUnusedTemplates(context: ITraverseContext): void {
-      const templates = context.scope.getTemplateNames();
-      for (let index = 0; index < templates.length; ++index) {
-         const name = templates[index];
-         const template = context.scope.getTemplate(name);
-         if (template.usages === 0) {
-            this.errorHandler.warn(
-               `Шаблон с именем ${name} определен, но не был использован. Шаблон будет отброшен`,
-               {
-                  fileName: context.fileName
-               }
-            );
-            context.scope.removeTemplate(name);
-         }
       }
    }
 
@@ -474,6 +493,37 @@ class Traverse implements Nodes.INodeVisitor {
       return null;
    }
 
+   private processElement(node: Nodes.Tag, context: ITraverseContext): Ast.ElementNode {
+      try {
+         const childrenContext = {
+            ...context,
+            state: TraverseState.MARKUP
+         };
+         const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
+         const attributes = this.attributeProcessor.process(node.attributes, {
+            fileName: context.fileName,
+            hasAttributesOnly: true,
+            parentTagName: node.name
+         });
+         const ast = new Ast.ElementNode(node.name);
+         ast.__$ws_attributes = attributes.attributes;
+         ast.__$ws_events = attributes.events;
+         ast.__$ws_content = content;
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора HTML-элемента: ${error.message}. Тег будет отброшен`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+   }
+
+   // <editor-fold desc="Processing data type nodes">
+
    private processArray(node: Nodes.Tag, context: ITraverseContext): Ast.ArrayNode {
       try {
          const childrenContext = {
@@ -586,18 +636,6 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private warnIncorrectProperties(collection: Ast.IAttributes | Ast.IEvents, parent: Nodes.Tag, context: ITraverseContext): void {
-      for (const name in collection) {
-         this.errorHandler.warn(
-            `Обнаружен непредусмотренный атрибут "${name}" на теге "${parent.name}". Атрибут будет отброшен`,
-            {
-               fileName: context.fileName,
-               position: parent.position
-            }
-         );
-      }
-   }
-
    private processObject(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode {
       try {
          const childrenContext = {
@@ -650,6 +688,69 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
+   private castAndProcessObjectProperty(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode {
+      try {
+         const properties = { };
+         const childrenContext: ITraverseContext = {
+            ...context
+         };
+         const optionName = this.resolver.getComponentOptionName(node.name);
+         const content = this.visitAll(node.children, childrenContext);
+         if (content.length !== 1) {
+            this.errorHandler.critical(
+               'Ожидался единственый узел в packAndProcessObjectProperty',
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+         }
+         const value = <Ast.TData>content[0];
+         if (value.hasFlag(Ast.Flags.TYPE_CASTED) && value instanceof Ast.ObjectNode) {
+            for (const attributeName in node.attributes) {
+               try {
+                  const processedValue = this.textProcessor.process(
+                     node.attributes[attributeName].value,
+                     {
+                        fileName: context.fileName,
+                        allowedContent: TextContentFlags.FULL_TEXT
+                     },
+                     node.attributes[attributeName].position
+                  );
+                  const valueNode = new Ast.ValueNode(processedValue);
+                  value.__$ws_properties[attributeName] = new Ast.OptionNode(
+                     attributeName,
+                     valueNode
+                  );
+               } catch (error) {
+                  this.errorHandler.error(
+                     `Ошибка обработки атрибута "${attributeName}": ${error.message}. Атрибут будет отброшен`,
+                     {
+                        fileName: context.fileName,
+                        position: node.attributes[attributeName].position
+                     }
+                  );
+               }
+            }
+         } else {
+            this.warnUnexpectedAttributes(node, context);
+         }
+         properties[optionName] = content[0];
+         const ast = new Ast.ObjectNode(properties);
+         ast.setFlag(Ast.Flags.TYPE_CASTED);
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора опции "${node.name}": ${error.message}. Опция будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+   }
+
    private processString(node: Nodes.Tag, context: ITraverseContext): Ast.StringNode {
       try {
          const childrenContext = {
@@ -693,6 +794,10 @@ class Traverse implements Nodes.INodeVisitor {
          return null;
       }
    }
+
+   // </editor-fold>
+
+   // <editor-fold desc="Processing directive nodes">
 
    private processIf(node: Nodes.Tag, context: ITraverseContext): Ast.IfNode {
       try {
@@ -773,31 +878,6 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private parseForData(data: string): { init: ProgramNode | null; test: ProgramNode; update: ProgramNode | null; } {
-      const parameters = data.split(';').map(s => s.trim());
-      if (parameters.length !== 3) {
-         throw new Error(
-            `цикл задан некорректно. Ожидалось соответствие шаблону "init; test; update". Получено: "${data}"`
-         );
-      }
-      try {
-         // TODO: prepare text only content
-         const [initStr, testStr, updateStr] = parameters;
-         const init = initStr ? this.expressionParser.parse(initStr) : null;
-         const test = this.expressionParser.parse(testStr);
-         const update = updateStr ? this.expressionParser.parse(updateStr) : null;
-         return {
-            init,
-            test,
-            update
-         };
-      } catch (error) {
-         throw new Error(
-            `цикл задан некорректно. Ожидалось соответствие шаблону "init; test; update". Получено: "${data}"`
-         );
-      }
-   }
-
    private processFor(node: Nodes.Tag, context: ITraverseContext, data: string): Ast.ForNode {
       try {
          const childrenContext = {
@@ -818,36 +898,6 @@ class Traverse implements Nodes.INodeVisitor {
             }
          );
          return null;
-      }
-   }
-
-   private parseForeachData(data: string): { iterator: string; index: string | null; collection: ProgramNode; } {
-      // TODO: prepare text only content
-      const [left, right] = data.split(' in ');
-      if (!left || !right) {
-         throw new Error(
-            `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
-         );
-      }
-      const variables = left.split(',').map(s => s.trim());
-      if (variables.length < 1 ||variables.length > 2) {
-         throw new Error(
-            `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
-         );
-      }
-      try {
-         const iterator = variables.pop();
-         const index = variables.length == 1 ? variables.pop() : null;
-         const collection = this.expressionParser.parse(right);
-         return {
-            iterator,
-            index,
-            collection
-         };
-      } catch (error) {
-         throw new Error(
-            `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
-         );
       }
    }
 
@@ -912,6 +962,65 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
+   private parseForData(data: string): { init: ProgramNode | null; test: ProgramNode; update: ProgramNode | null; } {
+      const parameters = data.split(';').map(s => s.trim());
+      if (parameters.length !== 3) {
+         throw new Error(
+            `цикл задан некорректно. Ожидалось соответствие шаблону "init; test; update". Получено: "${data}"`
+         );
+      }
+      try {
+         // TODO: prepare text only content
+         const [initStr, testStr, updateStr] = parameters;
+         const init = initStr ? this.expressionParser.parse(initStr) : null;
+         const test = this.expressionParser.parse(testStr);
+         const update = updateStr ? this.expressionParser.parse(updateStr) : null;
+         return {
+            init,
+            test,
+            update
+         };
+      } catch (error) {
+         throw new Error(
+            `цикл задан некорректно. Ожидалось соответствие шаблону "init; test; update". Получено: "${data}"`
+         );
+      }
+   }
+
+   private parseForeachData(data: string): { iterator: string; index: string | null; collection: ProgramNode; } {
+      // TODO: prepare text only content
+      const [left, right] = data.split(' in ');
+      if (!left || !right) {
+         throw new Error(
+            `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
+         );
+      }
+      const variables = left.split(',').map(s => s.trim());
+      if (variables.length < 1 ||variables.length > 2) {
+         throw new Error(
+            `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
+         );
+      }
+      try {
+         const iterator = variables.pop();
+         const index = variables.length == 1 ? variables.pop() : null;
+         const collection = this.expressionParser.parse(right);
+         return {
+            iterator,
+            index,
+            collection
+         };
+      } catch (error) {
+         throw new Error(
+            `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
+         );
+      }
+   }
+
+   // </editor-fold>
+
+   // <editor-fold desc="Processing component nodes">
+
    private processPartial(node: Nodes.Tag, context: ITraverseContext): Ast.PartialNode {
       // TODO: в атрибутах есть обязательный template
       //  Создаем узел, парсим данные, переходим к детям
@@ -925,90 +1034,52 @@ class Traverse implements Nodes.INodeVisitor {
       return null;
    }
 
-   private warnUnexpectedAttributes(node: Nodes.Tag, context: ITraverseContext): void {
-      for (const name in node.attributes) {
-         this.errorHandler.warn(
-            `Обнаружен непредусмотренный атрибут "${name}" на теге "${node.name}". Атрибут будет отброшен`,
-            {
-               fileName: context.fileName,
-               position: node.attributes[name].position
-            }
-         );
-      }
-   }
-
-   private processContentOption(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
-      if (context.contentComponentState === ContentTraverseState.UNKNOWN) {
-         context.contentComponentState = ContentTraverseState.CONTENT;
-      }
-      if (context.contentComponentState !== ContentTraverseState.CONTENT) {
-         this.errorHandler.error(
-            `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег "${node.name}". Тег будет отброшен. ` +
-            'Необходимо явно задать контент в ws:content',
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
-      return this.processTagInMarkup(node, context);
-   }
-
-   private castAndProcessObjectProperty(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode {
+   private processComponent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       try {
-         const properties = { };
          const childrenContext: ITraverseContext = {
-            ...context
+            ...context,
+            contentComponentState: ContentTraverseState.UNKNOWN,
+            state: TraverseState.COMPONENT
          };
-         const optionName = this.resolver.getComponentOptionName(node.name);
-         const content = this.visitAll(node.children, childrenContext);
-         if (content.length !== 1) {
+         const children = this.visitAll(node.children, childrenContext);
+         const { physicalPath, logicalPath } = this.resolver.resolveComponent(node.name);
+         const ast = new Ast.ComponentNode(physicalPath, logicalPath);
+         const attributes = this.attributeProcessor.process(node.attributes, {
+            fileName: context.fileName,
+            hasAttributesOnly: false,
+            parentTagName: node.name
+         });
+         ast.__$ws_attributes = attributes.attributes;
+         ast.__$ws_events = attributes.events;
+         ast.__$ws_options = attributes.options;
+         for (let index = 0; index < children.length; ++index) {
+            const child = children[index];
+            if (child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode) {
+               if (ast.hasOption(child.__$ws_name)) {
+                  this.errorHandler.critical(
+                     `Опция "${child.__$ws_name}" уже определена на компоненте "${node.name}". Полученная опция будет отброшена`,
+                     {
+                        fileName: context.fileName,
+                        position: node.position
+                     }
+                  );
+                  continue;
+               }
+               ast.setOption(child);
+               continue;
+            }
             this.errorHandler.critical(
-               'Ожидался единственый узел в packAndProcessObjectProperty',
+               `Получен некорректный узел (!=Option|ContentOption) внутри компонента "${node.name}"`,
                {
                   fileName: context.fileName,
                   position: node.position
                }
             );
          }
-         const value = <Ast.TData>content[0];
-         if (value.hasFlag(Ast.Flags.TYPE_CASTED) && value instanceof Ast.ObjectNode) {
-            for (const attributeName in node.attributes) {
-               try {
-                  const processedValue = this.textProcessor.process(
-                     node.attributes[attributeName].value,
-                     {
-                        fileName: context.fileName,
-                        allowedContent: TextContentFlags.FULL_TEXT
-                     },
-                     node.attributes[attributeName].position
-                  );
-                  const valueNode = new Ast.ValueNode(processedValue);
-                  value.__$ws_properties[attributeName] = new Ast.OptionNode(
-                     attributeName,
-                     valueNode
-                  );
-               } catch (error) {
-                  this.errorHandler.error(
-                     `Ошибка обработки атрибута "${attributeName}": ${error.message}. Атрибут будет отброшен`,
-                     {
-                        fileName: context.fileName,
-                        position: node.attributes[attributeName].position
-                     }
-                  );
-               }
-            }
-         } else {
-            this.warnUnexpectedAttributes(node, context);
-         }
-         properties[optionName] = content[0];
-         const ast = new Ast.ObjectNode(properties);
-         ast.setFlag(Ast.Flags.TYPE_CASTED);
          return ast;
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора опции "${node.name}": ${error.message}. Опция будет отброшена`,
+            `Ошибка разбора компонента "${node.name}": ${error.message}. Компонент будет отброшен`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1136,94 +1207,64 @@ class Traverse implements Nodes.INodeVisitor {
       }
    }
 
-   private processComponent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
-      try {
-         const childrenContext: ITraverseContext = {
-            ...context,
-            contentComponentState: ContentTraverseState.UNKNOWN,
-            state: TraverseState.COMPONENT
-         };
-         const children = this.visitAll(node.children, childrenContext);
-         const { physicalPath, logicalPath } = this.resolver.resolveComponent(node.name);
-         const ast = new Ast.ComponentNode(physicalPath, logicalPath);
-         const attributes = this.attributeProcessor.process(node.attributes, {
-            fileName: context.fileName,
-            hasAttributesOnly: false,
-            parentTagName: node.name
-         });
-         ast.__$ws_attributes = attributes.attributes;
-         ast.__$ws_events = attributes.events;
-         ast.__$ws_options = attributes.options;
-         for (let index = 0; index < children.length; ++index) {
-            const child = children[index];
-            if (child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode) {
-               if (ast.hasOption(child.__$ws_name)) {
-                  this.errorHandler.critical(
-                     `Опция "${child.__$ws_name}" уже определена на компоненте "${node.name}". Полученная опция будет отброшена`,
-                     {
-                        fileName: context.fileName,
-                        position: node.position
-                     }
-                  );
-                  continue;
-               }
-               ast.setOption(child);
-               continue;
+   private processContentOption(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
+      if (context.contentComponentState === ContentTraverseState.UNKNOWN) {
+         context.contentComponentState = ContentTraverseState.CONTENT;
+      }
+      if (context.contentComponentState !== ContentTraverseState.CONTENT) {
+         this.errorHandler.error(
+            `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег "${node.name}". Тег будет отброшен. ` +
+            'Необходимо явно задать контент в ws:content',
+            {
+               fileName: context.fileName,
+               position: node.position
             }
-            this.errorHandler.critical(
-               `Получен некорректный узел (!=Option|ContentOption) внутри компонента "${node.name}"`,
+         );
+         return null;
+      }
+      return this.processTagInMarkup(node, context);
+   }
+
+   // </editor-fold>
+
+   private removeUnusedTemplates(context: ITraverseContext): void {
+      const templates = context.scope.getTemplateNames();
+      for (let index = 0; index < templates.length; ++index) {
+         const name = templates[index];
+         const template = context.scope.getTemplate(name);
+         if (template.usages === 0) {
+            this.errorHandler.warn(
+               `Шаблон с именем ${name} определен, но не был использован. Шаблон будет отброшен`,
                {
-                  fileName: context.fileName,
-                  position: node.position
+                  fileName: context.fileName
                }
             );
+            context.scope.removeTemplate(name);
          }
-         return ast;
-      } catch (error) {
-         this.errorHandler.error(
-            `Ошибка разбора компонента "${node.name}": ${error.message}. Компонент будет отброшен`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
       }
    }
 
-   private processElement(node: Nodes.Tag, context: ITraverseContext): Ast.ElementNode {
-      try {
-         const childrenContext = {
-            ...context,
-            state: TraverseState.MARKUP
-         };
-         const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
-         const attributes = this.attributeProcessor.process(node.attributes, {
-            fileName: context.fileName,
-            hasAttributesOnly: true,
-            parentTagName: node.name
-         });
-         const ast = new Ast.ElementNode(node.name);
-         ast.__$ws_attributes = attributes.attributes;
-         ast.__$ws_events = attributes.events;
-         ast.__$ws_content = content;
-         return ast;
-      } catch (error) {
-         this.errorHandler.error(
-            `Ошибка разбора HTML-элемента: ${error.message}. Тег будет отброшен`,
+   private warnIncorrectProperties(collection: Ast.IAttributes | Ast.IEvents, parent: Nodes.Tag, context: ITraverseContext): void {
+      for (const name in collection) {
+         this.errorHandler.warn(
+            `Обнаружен непредусмотренный атрибут "${name}" на теге "${parent.name}". Атрибут будет отброшен`,
             {
                fileName: context.fileName,
-               position: node.position
+               position: parent.position
             }
          );
-         return null;
       }
    }
-}
 
-export default function traverse(nodes: Nodes.Node[], config: ITraverseConfig, options: ITraverseOptions) {
-   return new Traverse(config).transform(
-      nodes,
-      options
-   );
+   private warnUnexpectedAttributes(node: Nodes.Tag, context: ITraverseContext): void {
+      for (const name in node.attributes) {
+         this.errorHandler.warn(
+            `Обнаружен непредусмотренный атрибут "${name}" на теге "${node.name}". Атрибут будет отброшен`,
+            {
+               fileName: context.fileName,
+               position: node.attributes[name].position
+            }
+         );
+      }
+   }
 }
