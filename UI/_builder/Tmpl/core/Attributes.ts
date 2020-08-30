@@ -12,6 +12,26 @@ import { IErrorHandler } from '../utils/ErrorHandler';
 import { ITextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
 
 /**
+ * Empty string constant.
+ */
+const EMPTY_STRING = '';
+
+/**
+ * Regular expression pattern to determine if attribute name contains a special prefix for attributes.
+ */
+const ATTR_PREFIX_PATTERN = /^attr:/i;
+
+/**
+ * Regular expression pattern to determine if attribute name contains a special prefix for binding constructions.
+ */
+const BIND_PREFIX_PATTERN = /^bind:/i;
+
+/**
+ * Regular expression pattern to determine if attribute name contains a special prefix for event handler expressions.
+ */
+const EVENT_PREFIX_PATTERN = /^on:/i;
+
+/**
  * HTML boolean attributes that can have no value but 'true' is value by default.
  */
 const BOOLEAN_ATTRIBUTES = [
@@ -55,26 +75,6 @@ function validateAttribute(name: string, value: string | null): string | null {
    }
    return value;
 }
-
-/**
- * Empty string constant.
- */
-const EMPTY_STRING = '';
-
-/**
- * Regular expression pattern to determine if attribute name contains a special prefix for attributes.
- */
-const ATTR_PREFIX_PATTERN = /^attr:/i;
-
-/**
- * Regular expression pattern to determine if attribute name contains a special prefix for binding constructions.
- */
-const BIND_PREFIX_PATTERN = /^bind:/i;
-
-/**
- * Regular expression pattern to determine if attribute name contains a special prefix for event handler expressions.
- */
-const EVENT_PREFIX_PATTERN = /^on:/i;
 
 /**
  * Collection of special attribute names that are always attributes.
@@ -378,6 +378,9 @@ class AttributeProcessor implements IAttributeProcessor {
     * @throws {Error} Throws error if attribute is invalid.
     */
    private validateTextValue(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions): string {
+      if (attributeNode.value === null) {
+         throw new Error('отсуствует обязательное значение');
+      }
       const processedText = this.textProcessor.process(
          attributeNode.value,
          {
@@ -387,7 +390,7 @@ class AttributeProcessor implements IAttributeProcessor {
          attributeNode.position
       );
       if (processedText.length !== 1) {
-         throw new Error('некорректные данные');
+         throw new Error('значение содержит некорректные данные');
       }
       return (<Ast.TextDataNode>processedText[0]).__$ws_content;
    }
@@ -452,16 +455,16 @@ class AttributeProcessor implements IAttributeProcessor {
    private processAttribute(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions): Ast.AttributeNode {
       try {
          const attribute = getAttributeName(attributeNode.name);
-         let attributeValue = validateAttribute(attribute, attributeNode.value);
+         const attributeValue = validateAttribute(attribute, attributeNode.value);
          if (attributeValue === null) {
             this.errorHandler.warn(
-               `Обнаружен атрибут ${attributeNode.name}, которому не было задано значение. Будет использовано значение по умолчанию - true`,
+               `Обнаружен атрибут ${attributeNode.name}, которому не было задано значение. Атрибут будет отброшен`,
                {
                   fileName: options.fileName,
                   position: attributeNode.position
                }
             );
-            attributeValue = 'true';
+            return null;
          }
          const value = this.textProcessor.process(
             attributeValue,
@@ -472,8 +475,7 @@ class AttributeProcessor implements IAttributeProcessor {
             attributeNode.position
          );
          if (value.length === 0) {
-            // TODO: что тут такого должно случиться, чтобы это произошло?!
-            throw new Error('значение атрибута не может быть пустым');
+            throw new Error('некорректные данные в значении');
          }
          return new Ast.AttributeNode(attribute, value);
       } catch (error) {
@@ -497,16 +499,16 @@ class AttributeProcessor implements IAttributeProcessor {
     */
    private processOption(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions): Ast.OptionNode {
       try {
-         let attributeValue = attributeNode.value;
+         const attributeValue = attributeNode.value;
          if (attributeValue === null) {
             this.errorHandler.warn(
-               `Обнаружена опция ${attributeNode.name}, которой не было задано значение. Будет использовано значение по умолчанию - true`,
+               `Обнаружена опция ${attributeNode.name}, которой не было задано значение. Опция будет отброшена`,
                {
                   fileName: options.fileName,
                   position: attributeNode.position
                }
             );
-            attributeValue = 'true';
+            return null;
          }
          const value = this.textProcessor.process(
             attributeValue,
@@ -517,8 +519,7 @@ class AttributeProcessor implements IAttributeProcessor {
             attributeNode.position
          );
          if (value.length === 0) {
-            // TODO: что тут такого должно случиться, чтобы это произошло?!
-            throw new Error('значение атрибута не может быть пустым');
+            throw new Error('некорректные данные в значении');
          }
          const valueNode = new Ast.ValueNode(value);
          valueNode.setFlag(Ast.Flags.TYPE_CASTED);

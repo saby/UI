@@ -5,6 +5,7 @@ import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';
 import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
 import * as Attributes from 'UI/_builder/Tmpl/core/Attributes';
 import { createTextProcessor } from 'UI/_builder/Tmpl/core/Text';
+import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { assert } from 'chai';
 
 // TODO: UI/_builder/Tmpl/* -> Compiler/*
@@ -125,8 +126,31 @@ describe('Compiler/core/Attributes', () => {
             const attributes = processAttributes('attribute="value"', true);
             assert.strictEqual(Object.keys(attributes.attributes).length, 1);
             assert.strictEqual(Object.keys(attributes.options).length, 0);
-            assert.strictEqual(Object.keys(attributes.events).length, 0);
             assert.isTrue(attributes.attributes.hasOwnProperty('attr:attribute'));
+            assert.strictEqual(Object.keys(attributes.events).length, 0);
+
+            assert.instanceOf(attributes.attributes['attr:attribute'], Ast.AttributeNode);
+            const attributeNode = <Ast.AttributeNode>attributes.attributes['attr:attribute'];
+            assert.strictEqual(attributeNode.__$ws_name, 'attribute');
+            assert.strictEqual(attributeNode.__$ws_value.length, 1);
+         });
+         it('Attribute boolean (without prefix)', () => {
+            const attributes = processAttributes('allowfullscreen', true);
+            assert.strictEqual(Object.keys(attributes.attributes).length, 1);
+            assert.strictEqual(Object.keys(attributes.options).length, 0);
+            assert.strictEqual(Object.keys(attributes.events).length, 0);
+            assert.isTrue(attributes.attributes.hasOwnProperty('attr:allowfullscreen'));
+
+            assert.instanceOf(attributes.attributes['attr:allowfullscreen'], Ast.AttributeNode);
+            const attributeNode = <Ast.AttributeNode>attributes.attributes['attr:allowfullscreen'];
+            assert.strictEqual(attributeNode.__$ws_name, 'allowfullscreen');
+            assert.strictEqual(attributeNode.__$ws_value.length, 1);
+         });
+         it('Failure! Attribute boolean (without prefix)', () => {
+            const attributes = processAttributes('attribute', true);
+            assert.strictEqual(Object.keys(attributes.attributes).length, 0);
+            assert.strictEqual(Object.keys(attributes.options).length, 0);
+            assert.strictEqual(Object.keys(attributes.events).length, 0);
          });
          it('Attribute (with prefix)', () => {
             const attributes = processAttributes('attr:attribute="value"', true);
@@ -134,6 +158,29 @@ describe('Compiler/core/Attributes', () => {
             assert.strictEqual(Object.keys(attributes.options).length, 0);
             assert.strictEqual(Object.keys(attributes.events).length, 0);
             assert.isTrue(attributes.attributes.hasOwnProperty('attr:attribute'));
+
+            assert.instanceOf(attributes.attributes['attr:attribute'], Ast.AttributeNode);
+            const attributeNode = <Ast.AttributeNode>attributes.attributes['attr:attribute'];
+            assert.strictEqual(attributeNode.__$ws_name, 'attribute');
+            assert.strictEqual(attributeNode.__$ws_value.length, 1);
+         });
+         it('Failure! Attribute boolean (with prefix)', () => {
+            const attributes = processAttributes('attr:attribute', true);
+            assert.strictEqual(Object.keys(attributes.attributes).length, 0);
+            assert.strictEqual(Object.keys(attributes.options).length, 0);
+            assert.strictEqual(Object.keys(attributes.events).length, 0);
+         });
+         it('Attribute boolean (with prefix)', () => {
+            const attributes = processAttributes('attr:allowfullscreen', true);
+            assert.strictEqual(Object.keys(attributes.attributes).length, 1);
+            assert.strictEqual(Object.keys(attributes.options).length, 0);
+            assert.strictEqual(Object.keys(attributes.events).length, 0);
+            assert.isTrue(attributes.attributes.hasOwnProperty('attr:allowfullscreen'));
+
+            assert.instanceOf(attributes.attributes['attr:allowfullscreen'], Ast.AttributeNode);
+            const attributeNode = <Ast.AttributeNode>attributes.attributes['attr:allowfullscreen'];
+            assert.strictEqual(attributeNode.__$ws_name, 'allowfullscreen');
+            assert.strictEqual(attributeNode.__$ws_value.length, 1);
          });
          it('Bind', () => {
             const attributes = processAttributes('bind:attribute="value"', true);
@@ -141,6 +188,16 @@ describe('Compiler/core/Attributes', () => {
             assert.strictEqual(Object.keys(attributes.options).length, 0);
             assert.strictEqual(Object.keys(attributes.events).length, 1);
             assert.isTrue(attributes.events.hasOwnProperty('bind:attribute'));
+
+            assert.instanceOf(attributes.events['bind:attribute'], Ast.BindNode);
+            const bindNode = <Ast.BindNode>attributes.events['bind:attribute'];
+            assert.strictEqual(bindNode.__$ws_property, 'attribute');
+         });
+         it('Failure! Bind boolean', () => {
+            const attributes = processAttributes('bind:attribute', true);
+            assert.strictEqual(Object.keys(attributes.attributes).length, 0);
+            assert.strictEqual(Object.keys(attributes.options).length, 0);
+            assert.strictEqual(Object.keys(attributes.events).length, 0);
          });
          it('Bind (invalid - expression)', () => {
             const attributes = processAttributes('bind:attribute="{{ value }}"', true);
@@ -160,6 +217,10 @@ describe('Compiler/core/Attributes', () => {
             assert.strictEqual(Object.keys(attributes.options).length, 0);
             assert.strictEqual(Object.keys(attributes.events).length, 1);
             assert.isTrue(attributes.events.hasOwnProperty('on:event'));
+
+            assert.instanceOf(attributes.events['on:event'], Ast.EventNode);
+            const eventNode = <Ast.EventNode>attributes.events['on:event'];
+            assert.strictEqual(eventNode.__$ws_event, 'event');
          });
          it('Event handler (invalid - expression)', () => {
             const attributes = processAttributes('on:event="{{ handler() }}"', true);
@@ -169,6 +230,12 @@ describe('Compiler/core/Attributes', () => {
          });
          it('Event handler (invalid - translation)', () => {
             const attributes = processAttributes('on:event="{[ Text ]}"', true);
+            assert.strictEqual(Object.keys(attributes.attributes).length, 0);
+            assert.strictEqual(Object.keys(attributes.options).length, 0);
+            assert.strictEqual(Object.keys(attributes.events).length, 0);
+         });
+         it('Failure! Event handler boolean', () => {
+            const attributes = processAttributes('on:event', true);
             assert.strictEqual(Object.keys(attributes.attributes).length, 0);
             assert.strictEqual(Object.keys(attributes.options).length, 0);
             assert.strictEqual(Object.keys(attributes.events).length, 0);
