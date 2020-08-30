@@ -77,6 +77,11 @@ export interface ITextProcessorOptions {
     * Flags for allowed text content.
     */
    allowedContent: TextContentFlags;
+
+   /**
+    * Flag for strict processing. If true then invalid parts of input text will not be ignored.
+    */
+   strictMode: boolean;
 }
 
 /**
@@ -238,12 +243,11 @@ class TextProcessor implements ITextProcessor {
       for (let index = 0; index < nodes.length; ++index) {
          if (nodes[index] instanceof Ast.TextDataNode) {
             const textData = (<Ast.TextDataNode>nodes[index]).__$ws_content;
-            this.errorHandler.error(
-               `Использование текстовых данных запрещено в данном контексте. Текст "${textData}" будет отброшен`,
-               {
-                  fileName: options.fileName,
-                  position
-               }
+            this.handleError(
+               textData,
+               `Использование текстовых данных запрещено в данном контексте`,
+               options,
+               position
             );
             continue;
          }
@@ -260,12 +264,11 @@ class TextProcessor implements ITextProcessor {
     */
    private createTextNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TextDataNode {
       if ((options.allowedContent & TextContentFlags.TEXT) === 0) {
-         this.errorHandler.error(
-            `Использование текстовых данных запрещено в данном контексте. Текст "${data}" будет отброшен`,
-            {
-               fileName: options.fileName,
-               position
-            }
+         this.handleError(
+            data,
+            `Использование текстовых данных запрещено в данном контексте`,
+            options,
+            position
          );
          return null;
       }
@@ -280,12 +283,11 @@ class TextProcessor implements ITextProcessor {
     */
    private createTranslationNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TranslationNode {
       if ((options.allowedContent & TextContentFlags.TRANSLATION) === 0) {
-         this.errorHandler.error(
-            `Использование конструкции локализации запрещено в данном контексте. Текст "${data}" будет отброшен`,
-            {
-               fileName: options.fileName,
-               position
-            }
+         this.handleError(
+            data,
+            `Использование конструкции локализации запрещено в данном контексте`,
+            options,
+            position
          );
          return null;
       }
@@ -293,12 +295,11 @@ class TextProcessor implements ITextProcessor {
          const { text, context } = splitLocalizationText(data);
          return new Ast.TranslationNode(text, context);
       } catch (error) {
-         this.errorHandler.error(
-            `Ошибка разбора конструкции локализации: ${error.message}. Текст "${data}" будет отброшен`,
-            {
-               fileName: options.fileName,
-               position
-            }
+         this.handleError(
+            data,
+            `Ошибка разбора конструкции локализации: ${error.message}`,
+            options,
+            position
          );
          return null;
       }
@@ -312,12 +313,11 @@ class TextProcessor implements ITextProcessor {
     */
    private createExpressionNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.ExpressionNode {
       if ((options.allowedContent & TextContentFlags.EXPRESSION) === 0) {
-         this.errorHandler.error(
-            `Использование Mustache-выражения запрещено в данном контексте. Выражение "${data}" будет отброшено`,
-            {
-               fileName: options.fileName,
-               position
-            }
+         this.handleError(
+            data,
+            `Использование Mustache-выражения запрещено в данном контексте`,
+            options,
+            position
          );
          return null;
       }
@@ -325,15 +325,34 @@ class TextProcessor implements ITextProcessor {
          const programNode = this.expressionParser.parse(data);
          return new Ast.ExpressionNode(programNode);
       } catch (error) {
-         this.errorHandler.error(
-            `Ошибка разбора Mustache-выражения: ${error.message}. Текст "${data}" будет отброшен`,
-            {
-               fileName: options.fileName,
-               position
-            }
+         this.handleError(
+            data,
+            `Ошибка разбора Mustache-выражения: ${error.message}`,
+            options,
+            position
          );
          return null;
       }
+   }
+
+   /**
+    * Handle error. Behaviour depends on flag strictMode.
+    * @param text {string} Processing text.
+    * @param message {string} Error message.
+    * @param options {ITextProcessorOptions} Text processor options.
+    * @param position {SourcePosition} Position in source file for text node.
+    */
+   private handleError(text: string, message: string, options: ITextProcessorOptions, position: SourcePosition): void {
+      if (options.strictMode) {
+         throw new Error(message);
+      }
+      this.errorHandler.error(
+         `${message}. Текст "${text}" будет отброшен`,
+         {
+            fileName: options.fileName,
+            position
+         }
+      );
    }
 }
 

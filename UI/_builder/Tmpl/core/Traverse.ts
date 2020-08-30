@@ -52,6 +52,7 @@ interface ITraverseContext {
    state: TraverseState;
    contentComponentState?: ContentTraverseState;
    textContent?: TextContentFlags;
+   textStrictMode?: boolean;
 }
 
 function validateElseNode(prev: Ast.Ast | null) {
@@ -222,7 +223,8 @@ class Traverse implements Nodes.INodeVisitor {
    visitText(node: Nodes.Text, context: ITraverseContext): Ast.TextNode {
       const content = this.textProcessor.process(node.data, {
          fileName: context.fileName,
-         allowedContent: context.textContent || TextContentFlags.FULL_TEXT
+         allowedContent: context.textContent || TextContentFlags.FULL_TEXT,
+         strictMode: !!context.textStrictMode
       }, node.position);
       if (content.length === 0) {
          return null;
@@ -492,7 +494,8 @@ class Traverse implements Nodes.INodeVisitor {
          const childrenContext = {
             ...context,
             state: TraverseState.PRIMITIVE_DATA,
-            textContent: TextContentFlags.TEXT_AND_EXPRESSION
+            textContent: TextContentFlags.TEXT_AND_EXPRESSION,
+            textStrictMode: true
          };
          this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
@@ -515,7 +518,8 @@ class Traverse implements Nodes.INodeVisitor {
          const childrenContext = {
             ...context,
             state: TraverseState.PRIMITIVE_DATA,
-            textContent: TextContentFlags.TEXT
+            textContent: TextContentFlags.TEXT,
+            textStrictMode: true
          };
          const children = this.visitAll(node.children, childrenContext);
          if (children.length !== 1) {
@@ -556,7 +560,8 @@ class Traverse implements Nodes.INodeVisitor {
          const childrenContext = {
             ...context,
             state: TraverseState.PRIMITIVE_DATA,
-            textContent: TextContentFlags.TEXT_AND_EXPRESSION
+            textContent: TextContentFlags.TEXT_AND_EXPRESSION,
+            textStrictMode: true
          };
          this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
@@ -641,7 +646,8 @@ class Traverse implements Nodes.INodeVisitor {
       try {
          const childrenContext = {
             ...context,
-            state: TraverseState.PRIMITIVE_DATA
+            state: TraverseState.PRIMITIVE_DATA,
+            textStrictMode: true
          };
          this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
@@ -662,7 +668,8 @@ class Traverse implements Nodes.INodeVisitor {
       try {
          const childrenContext = {
             ...context,
-            state: TraverseState.PRIMITIVE_DATA
+            state: TraverseState.PRIMITIVE_DATA,
+            textStrictMode: true
          };
          this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
@@ -961,7 +968,8 @@ class Traverse implements Nodes.INodeVisitor {
                   node.attributes[attributeName].value,
                   {
                      fileName: context.fileName,
-                     allowedContent: TextContentFlags.FULL_TEXT
+                     allowedContent: TextContentFlags.FULL_TEXT,
+                     strictMode: true
                   },
                   node.attributes[attributeName].position
                );
@@ -1020,7 +1028,8 @@ class Traverse implements Nodes.INodeVisitor {
                   node.attributes[attributeName].value,
                   {
                      fileName: context.fileName,
-                     allowedContent: TextContentFlags.FULL_TEXT
+                     allowedContent: TextContentFlags.FULL_TEXT,
+                     strictMode: true
                   },
                   node.attributes[attributeName].position
                );
@@ -1057,7 +1066,8 @@ class Traverse implements Nodes.INodeVisitor {
                      node.attributes[attributeName].value,
                      {
                         fileName: context.fileName,
-                        allowedContent: TextContentFlags.FULL_TEXT
+                        allowedContent: TextContentFlags.FULL_TEXT,
+                        strictMode: true
                      },
                      node.attributes[attributeName].position
                   );

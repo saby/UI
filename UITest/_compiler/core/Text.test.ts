@@ -36,7 +36,8 @@ function createTextProcessorConfig() {
 function createTextProcessorOptions(allowedContent: Text.TextContentFlags) {
    return {
       fileName: FILE_NAME,
-      allowedContent
+      allowedContent,
+      strictMode: false
    }
 }
 
