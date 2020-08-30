@@ -1622,7 +1622,7 @@ export class TextDataNode extends Ast {
     * Initialize new instance of text node.
     * @param content {string} Text content.
     */
-   constructor(content: string = '') {
+   constructor(content: string) {
       super();
       this.__$ws_content = content;
    }
