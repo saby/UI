@@ -943,6 +943,13 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process html element tag and create template node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TemplateNode | null} Returns instance of TemplateNode or null in case of broken content.
+    */
    private processTemplate(node: Nodes.Tag, context: ITraverseContext): Ast.TemplateNode {
       try {
          const childrenContext = {
@@ -950,13 +957,9 @@ class Traverse implements ITraverse {
             state: TraverseState.MARKUP
          };
          const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
-         const templateName = this.attributeProcessor.validateValue(node.attributes, 'name', {
-            fileName: context.fileName,
-            hasAttributesOnly: true,
-            parentTagName: node.name
-         });
-         this.resolver.resolveTemplate(templateName);
-         const ast = new Ast.TemplateNode(templateName);
+         const name = this.getTextFromAttribute(node, 'name', context);
+         this.resolver.resolveTemplate(name);
+         const ast = new Ast.TemplateNode(name, content);
          if (content.length === 0) {
             this.errorHandler.error(
                `Содержимое директивы ws:template не должно быть пустым`,
@@ -966,8 +969,7 @@ class Traverse implements ITraverse {
                }
             );
          }
-         ast.__$ws_content = content;
-         context.scope.registerTemplate(templateName, ast);
+         context.scope.registerTemplate(name, ast);
          return ast;
       } catch (error) {
          this.errorHandler.error(
