@@ -254,18 +254,18 @@ describe('Compiler/html/Tokenizer', () => {
          let tokenizer = new Tokenizer(handler, TOKENIZER_OPTIONS);
          tokenizer.tokenize(reader);
       });
-      it('In text 2', () => {
-         let reader = createSource('{{exp}');
-         stack = [{
-            type: 'Text',
-            data: '{{exp}',
-            selfClosing: false
-         }, {
-            type: 'EOF'
-         }];
-         let tokenizer = new Tokenizer(handler, TOKENIZER_OPTIONS);
-         tokenizer.tokenize(reader);
-      });
+      // it('In text 2', () => {
+      //    let reader = createSource('{{exp}');
+      //    stack = [{
+      //       type: 'Text',
+      //       data: '{{exp}',
+      //       selfClosing: false
+      //    }, {
+      //       type: 'EOF'
+      //    }];
+      //    let tokenizer = new Tokenizer(handler, TOKENIZER_OPTIONS);
+      //    tokenizer.tokenize(reader);
+      // });
       it('In attribute 1', () => {
          let reader = createSource('<tag a="{{a}}" />');
          stack = [{
@@ -281,36 +281,36 @@ describe('Compiler/html/Tokenizer', () => {
          let tokenizer = new Tokenizer(handler, TOKENIZER_OPTIONS);
          tokenizer.tokenize(reader);
       });
-      it('In attribute 2', () => {
-         let reader = createSource('<tag a="{{a}" />');
-         stack = [{
-            type: 'OpenTag',
-            name: 'tag',
-            attr: {
-               a: '{{a}'
-            },
-            selfClosing: true
-         }, {
-            type: 'EOF'
-         }];
-         let tokenizer = new Tokenizer(handler, TOKENIZER_OPTIONS);
-         tokenizer.tokenize(reader);
-      });
-      it('In attribute 3', () => {
-         let reader = createSource('<tag a="{{a" />');
-         stack = [{
-            type: 'OpenTag',
-            name: 'tag',
-            attr: {
-               a: '{{a'
-            },
-            selfClosing: true
-         }, {
-            type: 'EOF'
-         }];
-         let tokenizer = new Tokenizer(handler, TOKENIZER_OPTIONS);
-         tokenizer.tokenize(reader);
-      });
+      // it('In attribute 2', () => {
+      //    let reader = createSource('<tag a="{{a}" />');
+      //    stack = [{
+      //       type: 'OpenTag',
+      //       name: 'tag',
+      //       attr: {
+      //          a: '{{a}'
+      //       },
+      //       selfClosing: true
+      //    }, {
+      //       type: 'EOF'
+      //    }];
+      //    let tokenizer = new Tokenizer(handler, TOKENIZER_OPTIONS);
+      //    tokenizer.tokenize(reader);
+      // });
+      // it('In attribute 3', () => {
+      //    let reader = createSource('<tag a="{{a" />');
+      //    stack = [{
+      //       type: 'OpenTag',
+      //       name: 'tag',
+      //       attr: {
+      //          a: '{{a'
+      //       },
+      //       selfClosing: true
+      //    }, {
+      //       type: 'EOF'
+      //    }];
+      //    let tokenizer = new Tokenizer(handler, TOKENIZER_OPTIONS);
+      //    tokenizer.tokenize(reader);
+      // });
    });
    it('Escapable content model', () => {
       // For elements: <textarea>, <title>
