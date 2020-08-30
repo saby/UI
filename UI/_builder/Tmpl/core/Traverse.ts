@@ -1308,6 +1308,12 @@ class Traverse implements ITraverse {
       return textValue[0];
    }
 
+   /**
+    * Remove all unused templates from scope.
+    * @private
+    * @param context {ITraverseContext} Processing context.
+    * @todo Move to scope optimizer.
+    */
    private removeUnusedTemplates(context: ITraverseContext): void {
       const templates = context.scope.getTemplateNames();
       for (let index = 0; index < templates.length; ++index) {
@@ -1325,6 +1331,12 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Warn all AST attributes in collection as unexpected.
+    * @param collection {IAttributes | IEvents} Collection of attributes or events.
+    * @param parent {Tag} Tag node that contains that collection of attributes or events.
+    * @param context {ITraverseContext} Processing context.
+    */
    private warnIncorrectProperties(collection: Ast.IAttributes | Ast.IEvents, parent: Nodes.Tag, context: ITraverseContext): void {
       for (const name in collection) {
          this.errorHandler.warn(
@@ -1337,6 +1349,11 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Warn all html attributes in html tag node as unexpected.
+    * @param node {Tag} Tag node that contains collection of attributes.
+    * @param context {ITraverseContext} Processing context.
+    */
    private warnUnexpectedAttributes(node: Nodes.Tag, context: ITraverseContext): void {
       for (const name in node.attributes) {
          this.errorHandler.warn(
