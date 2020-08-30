@@ -310,6 +310,11 @@ export class Tokenizer implements ITokenizer {
 
    /**
     *
+    */
+   private returnExpressionCharacter: string | null = null;
+
+   /**
+    *
     * @param tokenHandler {ITokenHandler}
     * @param options {ITokenizerOptions}
     */
@@ -384,17 +389,22 @@ export class Tokenizer implements ITokenizer {
                break;
             case State.IN_EXPRESSION:
                // Special Wasaby state. Consume the next input character.
+               if (char === this.returnExpressionCharacter) {
+                  this.state = this.returnState;
+                  this.returnExpressionCharacter = null;
+                  reader.reconsume();
+                  break;
+               }
                this.appendCharBuffer(char);
-               switch (char) {
-                  case Characters.RIGHT_CURLY_BRACKET:
-                     this.state = State.AFTER_EXPRESSION;
-                     break;
+               if (char === Characters.RIGHT_CURLY_BRACKET) {
+                  this.state = State.AFTER_EXPRESSION;
                }
                break;
             case State.AFTER_EXPRESSION:
                // Special Wasaby state. Consume the next input character.
                switch (char) {
                   case Characters.RIGHT_CURLY_BRACKET:
+                     this.returnExpressionCharacter = null;
                      this.state = this.returnState;
                      this.appendCharBuffer(char);
                      break;
@@ -746,6 +756,7 @@ export class Tokenizer implements ITokenizer {
                      // Switch to the special Wasaby state for mustache-expression.
                      // Emit the current input character as a character token.
                      this.returnState = this.state;
+                     this.returnExpressionCharacter = '"';
                      this.state = State.BEFORE_EXPRESSION;
                      this.appendCharBuffer(char);
                      break;
@@ -782,6 +793,7 @@ export class Tokenizer implements ITokenizer {
                      // Emit the current input character as a character token.
                      this.appendCharBuffer(char);
                      this.returnState = this.state;
+                     this.returnExpressionCharacter = "'";
                      this.state = State.BEFORE_EXPRESSION;
                      break;
                   default:
