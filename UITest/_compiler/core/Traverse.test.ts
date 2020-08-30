@@ -1,6 +1,6 @@
 import traverse from 'UI/_builder/Tmpl/core/Traverse';
 import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
-import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
+import createErrorHandler from '../NullLogger';
 import Scope from 'UI/_builder/Tmpl/core/Scope';
 import { parse } from 'UI/_builder/Tmpl/html/Parser';
 import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';
@@ -14,7 +14,7 @@ const traverseConfig = {
    allowComments: false,
    expressionParser: new Parser(),
    hierarchicalKeys: true,
-   errorHandler: new ErrorHandler(),
+   errorHandler: createErrorHandler(),
    resolver: createResolver()
 };
 
@@ -28,7 +28,7 @@ const parseConfig = {
    cleanWhiteSpaces: true,
    needPreprocess: true,
    tagDescriptor: getWasabyTagDescription,
-   errorHandler: new ErrorHandler()
+   errorHandler: createErrorHandler()
 };
 
 function createTraverseOptions() {

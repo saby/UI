@@ -1,5 +1,5 @@
 import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
-import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
+import createErrorHandler from '../NullLogger';
 import { parse } from 'UI/_builder/Tmpl/html/Parser';
 import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';
 import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
@@ -19,14 +19,14 @@ const parseConfig = {
    cleanWhiteSpaces: true,
    needPreprocess: true,
    tagDescriptor: getWasabyTagDescription,
-   errorHandler: new ErrorHandler()
+   errorHandler: createErrorHandler()
 };
 
 const FILE_NAME = 'Compiler/core/Text/TestTemplate.wml';
 
 function createTextProcessorConfig() {
    const expressionParser = new Parser();
-   const errorHandler = new ErrorHandler();
+   const errorHandler = createErrorHandler();
    return {
       expressionParser,
       errorHandler

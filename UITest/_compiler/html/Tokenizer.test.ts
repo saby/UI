@@ -1,5 +1,5 @@
 import { createSource as creteSourceObj } from 'UI/_builder/Tmpl/html/Source';
-import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
+import createErrorHandler from '../NullLogger';
 import { Tokenizer } from 'UI/_builder/Tmpl/html/Tokenizer';
 import { ContentModel } from 'UI/_builder/Tmpl/html/ContentModel';
 import { assert } from 'chai';
@@ -7,7 +7,7 @@ import { assert } from 'chai';
 const FILE_NAME = 'Compiler/html/Tokenizer/TestTemplate.wml';
 
 const TOKENIZER_OPTIONS = {
-   errorHandler: new ErrorHandler(),
+   errorHandler: createErrorHandler(),
    allowComments: false,
    allowCDATA: false,
    xml: false
