@@ -584,7 +584,37 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.type = 'tag';
    }
 
-   visitPartial(node: Ast.PartialNode, context: INavigationContext): any {
+   visitInlineTemplate(node: Ast.InlineTemplateNode, context: any): any {
+      // @ts-ignore
+      node.attribs = { };
+      // @ts-ignore
+      node.children = [];
+      // @ts-ignore
+      node.key = node.__$ws_key;
+      // @ts-ignore
+      node.name = `ws:partial`;
+      // @ts-ignore
+      node.originName = `ws:partial`;
+      // @ts-ignore
+      node.type = 'tag';
+   }
+
+   visitStaticPartial(node: Ast.StaticPartialNode, context: any): any {
+      // @ts-ignore
+      node.attribs = { };
+      // @ts-ignore
+      node.children = [];
+      // @ts-ignore
+      node.key = node.__$ws_key;
+      // @ts-ignore
+      node.name = `ws:partial`;
+      // @ts-ignore
+      node.originName = `ws:partial`;
+      // @ts-ignore
+      node.type = 'tag';
+   }
+
+   visitDynamicPartial(node: Ast.DynamicPartialNode, context: any): any {
       // @ts-ignore
       node.attribs = { };
       // @ts-ignore

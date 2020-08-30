@@ -99,11 +99,25 @@ export interface IAstVisitor {
    visitComponent(node: ComponentNode, context: any): any;
 
    /**
-    * Visit partial template node.
-    * @param node {PartialNode} Concrete partial template node.
+    * Visit inline template node.
+    * @param node {InlineTemplateNode} Concrete inline template node.
     * @param context {*} Concrete visitor context.
     */
-   visitPartial(node: PartialNode, context: any): any;
+   visitInlineTemplate(node: InlineTemplateNode, context: any): any;
+
+   /**
+    * Visit static template node.
+    * @param node {StaticPartialNode} Concrete static template node.
+    * @param context {*} Concrete visitor context.
+    */
+   visitStaticPartial(node: StaticPartialNode, context: any): any;
+
+   /**
+    * Visit dynamic partial node.
+    * @param node {DynamicPartialNode} Concrete dynamic partial node.
+    * @param context {*} Concrete visitor context.
+    */
+   visitDynamicPartial(node: DynamicPartialNode, context: any): any;
 
    /**
     * Visit template node.
@@ -241,7 +255,9 @@ export function isTypeofText(node: Ast): boolean {
  * Wasaby directives type.
  */
 export declare type TWasaby = TemplateNode
-   | PartialNode
+   | InlineTemplateNode
+   | StaticPartialNode
+   | DynamicPartialNode
    | ComponentNode
    | IfNode
    | ElseNode
@@ -254,7 +270,9 @@ export declare type TWasaby = TemplateNode
  */
 export function isTypeofWasaby(node: Ast): boolean {
    return node instanceof TemplateNode ||
-      node instanceof PartialNode ||
+      node instanceof InlineTemplateNode ||
+      node instanceof StaticPartialNode ||
+      node instanceof DynamicPartialNode ||
       node instanceof ComponentNode ||
       node instanceof IfNode ||
       node instanceof ElseNode ||
@@ -1046,6 +1064,7 @@ export class ComponentNode extends BaseWasabyElement {
 
 /**
  * Represents node for ws:partial tag.
+ * Used for resolving inline templates created with ws:template.
  *
  * ```
  *    <ws:partial template="name">
@@ -1053,24 +1072,104 @@ export class ComponentNode extends BaseWasabyElement {
  *    </ws:partial>
  * ```
  */
-export class PartialNode extends BaseWasabyElement {
+export class InlineTemplateNode extends BaseWasabyElement {
 
    /**
-    * Partial template name or expression.
+    * Inline template name.
     */
-   __$ws_name: string | ProgramNode;
+   __$ws_name: string;
 
    /**
-    * Initialize new instance of partial node.
-    * @param name {string | ProgramNode} Partial template name or expression.
+    * Initialize new instance of inline template node.
+    * @param name {string} Partial template name or expression.
     * @param attributes {IAttributes} Collection of abstract syntax node attributes.
     * @param events {IEvents} Collection of abstract syntax node event handlers.
     * @param options {IOptions} Collection of abstract syntax node options.
     * @param contents {IContents} Collection of abstract syntax node contents.
     */
-   constructor(name: string | ProgramNode, attributes: IAttributes, events: IEvents, options: IOptions, contents: IContents = { }) {
+   constructor(name: string, attributes: IAttributes, events: IEvents, options: IOptions, contents: IContents = { }) {
       super(attributes, events, options, contents);
       this.__$ws_name = name;
+   }
+
+   /**
+    * Accept visitor for inline template node.
+    * @param visitor {IAstVisitor} Concrete visitor.
+    * @param context {*} Concrete visitor context.
+    */
+   accept(visitor: IAstVisitor, context: any): any {
+      return visitor.visitInlineTemplate(this, context);
+   }
+}
+
+/**
+ * Represents node for ws:partial tag.
+ * Used for resolving physical templates.
+ *
+ * ```
+ *    <ws:partial template="plugin!physical-path">
+ *       content
+ *    </ws:partial>
+ * ```
+ */
+export class StaticPartialNode extends BaseWasabyElement {
+
+   /**
+    * Physical path to template file.
+    */
+   __$ws_physicalPath: string;
+
+   /**
+    * Initialize new instance of static partial node.
+    * @param physicalPath {string} Physical path to template file.
+    * @param attributes {IAttributes} Collection of abstract syntax node attributes.
+    * @param events {IEvents} Collection of abstract syntax node event handlers.
+    * @param options {IOptions} Collection of abstract syntax node options.
+    * @param contents {IContents} Collection of abstract syntax node contents.
+    */
+   constructor(physicalPath: string, attributes: IAttributes, events: IEvents, options: IOptions, contents: IContents = { }) {
+      super(attributes, events, options, contents);
+      this.__$ws_physicalPath = physicalPath;
+   }
+
+   /**
+    * Accept visitor for static partial node.
+    * @param visitor {IAstVisitor} Concrete visitor.
+    * @param context {*} Concrete visitor context.
+    */
+   accept(visitor: IAstVisitor, context: any): any {
+      return visitor.visitStaticPartial(this, context);
+   }
+}
+
+/**
+ * Represents node for ws:partial tag.
+ * Used for resolving template function from expression.
+ *
+ * ```
+ *    <ws:partial template="{{ templateFunction }}">
+ *       content
+ *    </ws:partial>
+ * ```
+ */
+export class DynamicPartialNode extends BaseWasabyElement {
+
+   /**
+    * Template function expression.
+    */
+   __$ws_expression: ProgramNode;
+
+   /**
+    * Initialize new instance of partial node.
+    * @param expression {ProgramNode} Template function expression.
+    * @param attributes {IAttributes} Collection of abstract syntax node attributes.
+    * @param events {IEvents} Collection of abstract syntax node event handlers.
+    * @param options {IOptions} Collection of abstract syntax node options.
+    * @param contents {IContents} Collection of abstract syntax node contents.
+    */
+   constructor(expression: ProgramNode, attributes: IAttributes, events: IEvents, options: IOptions, contents: IContents = { }) {
+      super(attributes, events, options, contents);
+      this.__$ws_expression = expression;
    }
 
    /**
@@ -1079,7 +1178,7 @@ export class PartialNode extends BaseWasabyElement {
     * @param context {*} Concrete visitor context.
     */
    accept(visitor: IAstVisitor, context: any): any {
-      return visitor.visitPartial(this, context);
+      return visitor.visitDynamicPartial(this, context);
    }
 }
 
