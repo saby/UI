@@ -232,7 +232,7 @@ class Traverse implements Nodes.INodeVisitor {
          return new Ast.TextNode(content);
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка обработки текста: ${error.message}. Текс будет отброшен`,
+            `Ошибка обработки текста: ${error.message}. Текст будет отброшен`,
             {
                fileName: context.fileName,
                position: node.position
@@ -330,8 +330,9 @@ class Traverse implements Nodes.INodeVisitor {
             if (this.resolver.isComponentName(node.name)) {
                return this.processComponent(node, context);
             }
+            const elementNode = this.processElement(node, context);
             if (isElementNode(node.name)) {
-               return this.processElement(node, context);
+               return elementNode;
             }
             this.errorHandler.error(
                `Обнаружен неизвестный HTML тег "${node.name}". Тег будет отброшен`,

@@ -326,7 +326,7 @@ class AttributeProcessor implements IAttributeProcessor {
                }
                if (attributeNode) {
                   if (collection.attributes.hasOwnProperty(`attr:${attributeNode.__$ws_name}`)) {
-                     this.errorHandler.warn(
+                     this.errorHandler.error(
                         `Атрибут с именем "${attributeName}" уже содержится на теге "${options.parentTagName}" ` +
                         'Данный атрибут будет отброшен',
                         {
@@ -479,7 +479,7 @@ class AttributeProcessor implements IAttributeProcessor {
          const attribute = getAttributeName(attributeNode.name);
          const attributeValue = validateAttribute(attribute, attributeNode.value);
          if (attributeValue === null) {
-            this.errorHandler.warn(
+            this.errorHandler.error(
                `Обнаружен атрибут "${attributeNode.name}" на теге "${options.parentTagName}", которому не было задано значение. Атрибут будет отброшен`,
                {
                   fileName: options.fileName,
@@ -520,7 +520,7 @@ class AttributeProcessor implements IAttributeProcessor {
       try {
          const attributeValue = attributeNode.value;
          if (attributeValue === null) {
-            this.errorHandler.warn(
+            this.errorHandler.error(
                `Обнаружена опция "${attributeNode.name}" на теге "${options.parentTagName}", которой не было задано значение. Опция будет отброшена`,
                {
                   fileName: options.fileName,

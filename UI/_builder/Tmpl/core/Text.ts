@@ -285,7 +285,7 @@ class TextProcessor implements ITextProcessor {
          const programNode = this.expressionParser.parse(data);
          return new Ast.ExpressionNode(programNode);
       } catch (error) {
-         throw new Error(`некорректное Mustache-выражение`);
+         throw new Error(`Mustache-выражение "${data}" некорректно`);
       }
    }
 }
