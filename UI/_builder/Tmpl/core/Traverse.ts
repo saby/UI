@@ -148,6 +148,10 @@ class Traverse implements ITraverse {
 
    // </editor-fold>
 
+   /**
+    * Initialize new instance of traverse machine.
+    * @param config {ITraverseConfig} Traverse machine configuration.
+    */
    constructor(config: ITraverseConfig) {
       this.expressionParser = config.expressionParser;
       this.keysGenerator = createKeysGenerator(config.hierarchicalKeys);
@@ -164,6 +168,11 @@ class Traverse implements ITraverse {
       });
    }
 
+   /**
+    * Transform html tree into abstract syntax tree.
+    * @param nodes {Node[]} Collection of html nodes.
+    * @param options {ITraverseOptions} Transform options.
+    */
    transform(nodes: Nodes.Node[], options: ITraverseOptions): Ast.Ast[] {
       const context: ITraverseContext = {
          prev: null,
@@ -176,6 +185,11 @@ class Traverse implements ITraverse {
       return tree;
    }
 
+   /**
+    * Visit all nodes in collection of html nodes.
+    * @param nodes {Node[]} Collection of html nodes.
+    * @param context {ITraverseContext} Processing context.
+    */
    visitAll(nodes: Nodes.Node[], context: ITraverseContext): Ast.Ast[] {
       const children: Ast.Ast[] = [];
       const childContext: ITraverseContext = {
@@ -186,7 +200,9 @@ class Traverse implements ITraverse {
          childContext.prev = children[children.length - 1] || null;
          const child = <Ast.Ast>nodes[index].accept(this, childContext);
          if (child) {
-            child.__$ws_key = this.keysGenerator.generate();
+            child.setKey(
+               this.keysGenerator.generate()
+            );
             children.push(child);
          }
       }
@@ -294,7 +310,9 @@ class Traverse implements ITraverse {
          // Set keys onto text content nodes.
          this.keysGenerator.openChildren();
          for (let index = 0; index < content.length; ++index) {
-            content[index].__$ws_key = this.keysGenerator.generate();
+            content[index].setKey(
+               this.keysGenerator.generate()
+            );
          }
          this.keysGenerator.closeChildren();
 
@@ -575,6 +593,13 @@ class Traverse implements ITraverse {
 
    // <editor-fold desc="Processing data type nodes">
 
+   /**
+    * Process html element tag and create array node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ArrayNode | null} Returns instance of ArrayNode or null in case of broken content.
+    */
    private processArray(node: Nodes.Tag, context: ITraverseContext): Ast.ArrayNode {
       try {
          const childrenContext = {
@@ -596,6 +621,13 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process html element tag and create boolean node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {BooleanNode | null} Returns instance of BooleanNode or null in case of broken content.
+    */
    private processBoolean(node: Nodes.Tag, context: ITraverseContext): Ast.BooleanNode {
       try {
          const childrenContext = {
@@ -663,6 +695,13 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process html element tag and create number node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {NumberNode | null} Returns instance of NumberNode or null in case of broken content.
+    */
    private processNumber(node: Nodes.Tag, context: ITraverseContext): Ast.NumberNode {
       try {
          const childrenContext = {
@@ -687,45 +726,53 @@ class Traverse implements ITraverse {
       }
    }
 
+   private prepareObjectProperties(node: Nodes.Tag, context: ITraverseContext): Ast.IObjectProperties {
+      const attributes = this.attributeProcessor.process(node.attributes, {
+         fileName: context.fileName,
+         hasAttributesOnly: false,
+         parentTagName: node.name
+      });
+      this.warnIncorrectProperties(attributes.attributes, node, context);
+      this.warnIncorrectProperties(attributes.events, node, context);
+      return attributes.options;
+   }
+
+   private mergeObjectProperties(source: Ast.Ast[], target: Ast.IObjectProperties, node: Nodes.Tag, context: ITraverseContext): void {
+      for (let index = 0; index < source.length; ++index) {
+         const child = source[index];
+         if (child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode) {
+            if (target.hasOwnProperty(child.__$ws_name)) {
+               this.errorHandler.critical(
+                  `Опция "${child.__$ws_name}" уже определена на директиве ws:Object. Полученная опция будет отброшена`,
+                  {
+                     fileName: context.fileName,
+                     position: node.position
+                  }
+               );
+               continue;
+            }
+            target[child.__$ws_name] = child;
+            continue;
+         }
+         this.errorHandler.critical(
+            `Получен некорректный узел (!=Option|ContentOption) внутри компонента "${node.name}"`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+      }
+   }
+
    private processObject(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode {
       try {
          const childrenContext = {
             ...context,
             state: TraverseState.OBJECT_DATA
          };
-         const attributes = this.attributeProcessor.process(node.attributes, {
-            fileName: context.fileName,
-            hasAttributesOnly: false,
-            parentTagName: node.name
-         });
-         this.warnIncorrectProperties(attributes.attributes, node, context);
-         this.warnIncorrectProperties(attributes.events, node, context);
-         const properties: Ast.IObjectProperties = attributes.options;
          const children = this.visitAll(node.children, childrenContext);
-         for (let index = 0; index < children.length; ++index) {
-            const child = children[index];
-            if (child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode) {
-               if (properties.hasOwnProperty(child.__$ws_name)) {
-                  this.errorHandler.critical(
-                     `Опция "${child.__$ws_name}" уже определена на директиве ws:Object. Полученная опция будет отброшена`,
-                     {
-                        fileName: context.fileName,
-                        position: node.position
-                     }
-                  );
-                  continue;
-               }
-               properties[child.__$ws_name] = child;
-               continue;
-            }
-            this.errorHandler.critical(
-               `Получен некорректный узел (!=Option|ContentOption) внутри компонента "${node.name}"`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-         }
+         const properties = this.prepareObjectProperties(node, context);
+         this.mergeObjectProperties(children, properties, node, context);
          return new Ast.ObjectNode(properties);
       } catch (error) {
          this.errorHandler.error(
@@ -802,6 +849,13 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process html element tag and create string node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {StringNode | null} Returns instance of StringNode or null in case of broken content.
+    */
    private processString(node: Nodes.Tag, context: ITraverseContext): Ast.StringNode {
       try {
          const childrenContext = {
@@ -824,6 +878,13 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process html element tag and create value node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ValueNode | null} Returns instance of ValueNode or null in case of broken content.
+    */
    private processValue(node: Nodes.Tag, context: ITraverseContext): Ast.ValueNode {
       try {
          const childrenContext = {

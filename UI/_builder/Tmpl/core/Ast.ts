@@ -400,6 +400,21 @@ export abstract class Ast {
    }
 
    /**
+    * Get internal node key.
+    */
+   getKey(): string {
+      return this.__$ws_key;
+   }
+
+   /**
+    * Set internal node key.
+    * @param key {string} Key value.
+    */
+   setKey(key: string): void {
+      this.__$ws_key = key;
+   }
+
+   /**
     * Accept visitor for abstract syntax node.
     * @param visitor {IAstVisitor} Concrete visitor.
     * @param context {*} Concrete visitor context.
