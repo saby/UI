@@ -200,7 +200,7 @@ class Traverse implements ITraverse {
     * Process html comment node and create comment node of abstract syntax tree.
     * @param node {Comment} Html comment node.
     * @param context {ITraverseContext} Processing context.
-    * @returns {CommentNode | null} Returns instance of CommentNode ort null in case of broken content.
+    * @returns {CommentNode | null} Returns instance of CommentNode or null in case of broken content.
     */
    visitComment(node: Nodes.Comment, context: ITraverseContext): Ast.CommentNode {
       if (this.allowComments) {
@@ -217,7 +217,7 @@ class Traverse implements ITraverse {
     * Process html CData node and create CData node of abstract syntax tree.
     * @param node {Text} Html CData node.
     * @param context {ITraverseContext} Processing context.
-    * @returns {CDataNode | null} Returns instance of CDataNode ort null in case of broken content.
+    * @returns {CDataNode | null} Returns instance of CDataNode or null in case of broken content.
     */
    visitCData(node: Nodes.CData, context: ITraverseContext): Ast.CDataNode {
       switch (context.state) {
@@ -238,7 +238,7 @@ class Traverse implements ITraverse {
     * Process html Doctype node and create Doctype node of abstract syntax tree.
     * @param node {Doctype} Html Doctype node.
     * @param context {ITraverseContext} Processing context.
-    * @returns {DoctypeNode | null} Returns instance of DoctypeNode ort null in case of broken content.
+    * @returns {DoctypeNode | null} Returns instance of DoctypeNode or null in case of broken content.
     */
    visitDoctype(node: Nodes.Doctype, context: ITraverseContext): Ast.DoctypeNode {
       switch (context.state) {
@@ -259,7 +259,7 @@ class Traverse implements ITraverse {
     * Process html instruction node and create instruction node of abstract syntax tree.
     * @param node {Instruction} Html instruction node.
     * @param context {ITraverseContext} Processing context.
-    * @returns {InstructionNode | null} Returns instance of InstructionNode ort null in case of broken content.
+    * @returns {InstructionNode | null} Returns instance of InstructionNode or null in case of broken content.
     */
    visitInstruction(node: Nodes.Instruction, context: ITraverseContext): Ast.InstructionNode {
       switch (context.state) {
@@ -280,7 +280,7 @@ class Traverse implements ITraverse {
     * Process html text node and create shared text node of abstract syntax tree.
     * @param node {Text} Html text node.
     * @param context {ITraverseContext} Processing context.
-    * @returns {TextNode | null} Returns instance of TextNode ort null in case of broken content.
+    * @returns {TextNode | null} Returns instance of TextNode or null in case of broken content.
     */
    visitText(node: Nodes.Text, context: ITraverseContext): Ast.TextNode {
       try {
@@ -361,7 +361,7 @@ class Traverse implements ITraverse {
          case 'ws:else':
             return this.processElse(node, context);
          case 'ws:for':
-            return this.processCycle(node, context);
+            return this.processFor(node, context);
          case 'ws:template':
             return this.processTemplate(node, context);
          case 'ws:partial':
@@ -546,7 +546,7 @@ class Traverse implements ITraverse {
     * @private
     * @param node {Tag} Html tag node.
     * @param context {ITraverseContext} Processing context.
-    * @returns {ElementNode | null} Returns instance of ElementNode ort null in case of broken content.
+    * @returns {ElementNode | null} Returns instance of ElementNode or null in case of broken content.
     */
    private processElement(node: Nodes.Tag, context: ITraverseContext): Ast.ElementNode {
       try {
@@ -855,7 +855,7 @@ class Traverse implements ITraverse {
     * @private
     * @param node {Tag} Html tag node.
     * @param context {ITraverseContext} Processing context.
-    * @returns {IfNode | null} Returns instance of IfNode ort null in case of broken content.
+    * @returns {IfNode | null} Returns instance of IfNode or null in case of broken content.
     */
    private processIf(node: Nodes.Tag, context: ITraverseContext): Ast.IfNode {
       try {
@@ -883,7 +883,7 @@ class Traverse implements ITraverse {
     * @private
     * @param node {Tag} Html tag node.
     * @param context {ITraverseContext} Processing context.
-    * @returns {ElseNode | null} Returns instance of ElseNode ort null in case of broken content.
+    * @returns {ElseNode | null} Returns instance of ElseNode or null in case of broken content.
     */
    private processElse(node: Nodes.Tag, context: ITraverseContext): Ast.ElseNode {
       try {
@@ -910,63 +910,27 @@ class Traverse implements ITraverse {
       }
    }
 
-   private processCycle(node: Nodes.Tag, context: ITraverseContext): Ast.ForNode | Ast.ForeachNode {
+   /**
+    * Process html element tag and create cycle node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ForNode | ForeachNode | null} Returns instance of ForNode or ForeachNode or null in case of broken content.
+    */
+   private processFor(node: Nodes.Tag, context: ITraverseContext): Ast.ForNode | Ast.ForeachNode {
       try {
-         const data = this.attributeProcessor.validateValue(node.attributes, 'data', {
-            fileName: context.fileName,
-            hasAttributesOnly: true,
-            parentTagName: node.name
-         });
+         const childrenContext = {
+            ...context,
+            state: TraverseState.MARKUP
+         };
+         const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
+         const data = this.getTextFromAttribute(node, 'data', context);
          if (data.indexOf(';') > -1) {
-            return this.processFor(node, context, data);
+            const { init, test, update } = this.parseForData(data);
+            return new Ast.ForNode(init, test, update, content);
          }
-         return this.processForeach(node, context, data);
-      } catch (error) {
-         this.errorHandler.error(
-            `Ошибка разбора директивы ws:for: ${error.message}. Директива будет отброшена`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
-   }
-
-   private processFor(node: Nodes.Tag, context: ITraverseContext, data: string): Ast.ForNode {
-      try {
-         const childrenContext = {
-            ...context,
-            state: TraverseState.MARKUP
-         };
-         const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
-         const { init, test, update } = this.parseForData(data);
-         const ast = new Ast.ForNode(init, test, update);
-         ast.__$ws_content = content;
-         return ast;
-      } catch (error) {
-         this.errorHandler.error(
-            `Ошибка разбора директивы ws:for: ${error.message}. Директива будет отброшена`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
-   }
-
-   private processForeach(node: Nodes.Tag, context: ITraverseContext, data: string): Ast.ForeachNode {
-      try {
-         const childrenContext = {
-            ...context,
-            state: TraverseState.MARKUP
-         };
-         const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          const { index, iterator, collection } = this.parseForeachData(data);
-         const ast = new Ast.ForeachNode(index, iterator, collection);
-         ast.__$ws_content = content;
-         return ast;
+         return new Ast.ForeachNode(index, iterator, collection, content);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы ws:for: ${error.message}. Директива будет отброшена`,
@@ -1017,19 +981,23 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Parse for-cycle parameters.
+    * @param data {string} For-cycle parameters.
+    * @throws {Error} Throws error if cycle parameters are invalid.
+    */
    private parseForData(data: string): { init: ProgramNode | null; test: ProgramNode; update: ProgramNode | null; } {
       const parameters = data.split(';').map(s => s.trim());
       if (parameters.length !== 3) {
          throw new Error(
-            `цикл задан некорректно. Ожидалось соответствие шаблону "init; test; update". Получено: "${data}"`
+            `цикл задан некорректно. Ожидалось соответствие шаблону "[init]; test; [update]". Получено: "${data}"`
          );
       }
       try {
-         // TODO: prepare text only content
-         const [initStr, testStr, updateStr] = parameters;
-         const init = initStr ? this.expressionParser.parse(initStr) : null;
-         const test = this.expressionParser.parse(testStr);
-         const update = updateStr ? this.expressionParser.parse(updateStr) : null;
+         const [initExpression, testExpression, updateExpression] = parameters;
+         const init = initExpression ? this.expressionParser.parse(initExpression) : null;
+         const test = this.expressionParser.parse(testExpression);
+         const update = updateExpression ? this.expressionParser.parse(updateExpression) : null;
          return {
             init,
             test,
@@ -1042,24 +1010,31 @@ class Traverse implements ITraverse {
       }
    }
 
-   private parseForeachData(data: string): { iterator: string; index: string | null; collection: ProgramNode; } {
-      // TODO: prepare text only content
-      const [left, right] = data.split(' in ');
-      if (!left || !right) {
+   /**
+    * Parse for-cycle parameters.
+    * @param data {string} For-cycle parameters.
+    * @throws {Error} Throws error if cycle parameters are invalid.
+    */
+   private parseForeachData(data: string): { iterator: ProgramNode; index: ProgramNode | null; collection: ProgramNode; } {
+      const params = data.split(' in ');
+      if (params.length !== 2) {
          throw new Error(
             `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
          );
       }
-      const variables = left.split(',').map(s => s.trim());
+      const [indexIteratorString, collectionExpression] = params;
+      const variables = indexIteratorString.split(',').map(s => s.trim());
       if (variables.length < 1 ||variables.length > 2) {
          throw new Error(
             `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
          );
       }
       try {
-         const iterator = variables.pop();
-         const index = variables.length == 1 ? variables.pop() : null;
-         const collection = this.expressionParser.parse(right);
+         const iteratorExpression = variables.pop();
+         const indexExpression = variables.length == 1 ? variables.pop() : null;
+         const iterator = this.expressionParser.parse(iteratorExpression);
+         const index = indexExpression ? this.expressionParser.parse(indexExpression) : null;
+         const collection = this.expressionParser.parse(collectionExpression);
          return {
             iterator,
             index,
@@ -1286,7 +1261,7 @@ class Traverse implements ITraverse {
     * Get program node from tag node attribute value.
     * @param node {Tag} Current tag node.
     * @param attribute {string} Name of single required attribute.
-    * @param context {ITraverseContext}
+    * @param context {ITraverseContext} Processing context.
     * @throws {Error} Throws error if attribute value is invalid.
     */
    private getProgramNodeFromAttribute(node: Nodes.Tag, attribute: string, context: ITraverseContext): ProgramNode {
@@ -1295,11 +1270,23 @@ class Traverse implements ITraverse {
    }
 
    /**
+    * Get text from tag node attribute value.
+    * @param node {Tag} Current tag node.
+    * @param attribute {string} Name of single required attribute.
+    * @param context {ITraverseContext} Processing context.
+    * @throws {Error} Throws error if attribute value is invalid.
+    */
+   private getTextFromAttribute(node: Nodes.Tag, attribute: string, context: ITraverseContext): string {
+      const textDataNode = <Ast.TextDataNode>this.getAttributeValue(node, attribute, TextContentFlags.TEXT, context);
+      return textDataNode.__$ws_content;
+   }
+
+   /**
     * Get tag node attribute value processed.
     * @param node {Tag} Current tag node.
     * @param attribute {string} Name of single required attribute.
     * @param allowedContent {TextContentFlags} Allowed attribute value content type.
-    * @param context {ITraverseContext}
+    * @param context {ITraverseContext} Processing context.
     * @throws {Error} Throws error if attribute value is invalid.
     */
    private getAttributeValue(node: Nodes.Tag, attribute: string, allowedContent: TextContentFlags, context: ITraverseContext): Ast.TText {

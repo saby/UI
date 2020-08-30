@@ -1239,13 +1239,14 @@ export class ForNode extends Ast {
     * @param init {ProgramNode | null} Initialize expression.
     * @param test {ProgramNode} Required test expression.
     * @param update {ProgramNode | null} Update expression.
+    * @param content {TContent[]} Content nodes.
     */
-   constructor(init: ProgramNode | null, test: ProgramNode, update: ProgramNode | null) {
+   constructor(init: ProgramNode | null, test: ProgramNode, update: ProgramNode | null, content: TContent[]) {
       super();
       this.__$ws_init = init;
       this.__$ws_test = test;
       this.__$ws_update = update;
-      this.__$ws_content = [];
+      this.__$ws_content = content;
    }
 
    /**
@@ -1272,12 +1273,12 @@ export class ForeachNode extends Ast {
    /**
     * Name of iterator indexer.
     */
-   __$ws_index: string | null;
+   __$ws_index: ProgramNode | null;
 
    /**
     * Name of iterator.
     */
-   __$ws_iterator: string;
+   __$ws_iterator: ProgramNode;
 
    /**
     * Collection expression.
@@ -1291,16 +1292,17 @@ export class ForeachNode extends Ast {
 
    /**
     * Initialize new instance of cycle node.
-    * @param index {string | null} Name of iterator.
-    * @param iterator {string} Collection expression.
+    * @param index {ProgramNode | null} Name of iterator.
+    * @param iterator {ProgramNode} Collection expression.
     * @param collection {ProgramNode} Collection expression.
+    * @param content {TContent[]} Content nodes.
     */
-   constructor(index: string | null, iterator: string, collection: ProgramNode) {
+   constructor(index: ProgramNode | null, iterator: ProgramNode, collection: ProgramNode, content: TContent[]) {
       super();
       this.__$ws_index = index;
       this.__$ws_iterator = iterator;
       this.__$ws_collection = collection;
-      this.__$ws_content = [];
+      this.__$ws_content = content;
    }
 
    /**
