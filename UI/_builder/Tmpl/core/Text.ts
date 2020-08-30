@@ -83,6 +83,8 @@ export interface ITextProcessor {
     * @param text {string} Text data.
     * @param options {ITextProcessorOptions} Text processor options.
     * @param position {SourcePosition} Position in source file for text node.
+    * @throws {Error} Throws error if text data contains disallowed content type.
+    * @returns {TText[]} Collection of text data nodes.
     */
    process(text: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TText[];
 }
@@ -162,12 +164,13 @@ function markDataByRegex(
    return data;
 }
 
-
 /**
  * Process final text node check.
  * @param nodes {TText[]} Processed nodes.
  * @param options {ITextProcessorOptions} Text processor options.
  * @param position {SourcePosition} Position in source file for text node.
+ * @throws {Error} Throws error if text data collection contains disallowed content type.
+ * @returns {TText[]} Collection of text data nodes.
  */
 function finalizeContentCheck(nodes: Ast.TText[], options: ITextProcessorOptions, position: SourcePosition): Ast.TText[] {
    if (options.allowedContent & TextContentFlags.TEXT) {
@@ -188,6 +191,8 @@ function finalizeContentCheck(nodes: Ast.TText[], options: ITextProcessorOptions
  * @param data {string} Text content.
  * @param options {ITextProcessorOptions} Text processor options.
  * @param position {SourcePosition} Position in source file for text node.
+ * @throws {Error} Throws error if text data contains disallowed content type.
+ * @returns {TextDataNode} Text data node.
  */
 function createTextNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TextDataNode {
    if ((options.allowedContent & TextContentFlags.TEXT) === 0) {
@@ -201,6 +206,8 @@ function createTextNode(data: string, options: ITextProcessorOptions, position: 
  * @param data {string} Text content.
  * @param options {ITextProcessorOptions} Text processor options.
  * @param position {SourcePosition} Position in source file for text node.
+ * @throws {Error} Throws error if text data contains disallowed content type.
+ * @returns {TextDataNode} Translation node.
  */
 function createTranslationNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TranslationNode {
    if ((options.allowedContent & TextContentFlags.TRANSLATION) === 0) {
@@ -237,6 +244,8 @@ class TextProcessor implements ITextProcessor {
     * @param text {string} Text data.
     * @param options {ITextProcessorOptions} Text processor options.
     * @param position {SourcePosition} Position in source file for text node.
+    * @throws {Error} Throws error if text data contains disallowed content type.
+    * @returns {TText[]} Collection of text data nodes.
     */
    process(text: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TText[] {
       const internalOptions: ITextProcessorOptions = {
@@ -269,6 +278,8 @@ class TextProcessor implements ITextProcessor {
     * @param data {string} Text content.
     * @param options {ITextProcessorOptions} Text processor options.
     * @param position {SourcePosition} Position in source file for text node.
+    * @throws {Error} Throws error if text data contains disallowed content type.
+    * @returns {ExpressionNode} Expression node.
     */
    private createExpressionNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.ExpressionNode {
       if ((options.allowedContent & TextContentFlags.EXPRESSION) === 0) {
