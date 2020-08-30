@@ -196,13 +196,29 @@ class Traverse implements ITraverse {
 
    // <editor-fold desc="Processing html nodes">
 
+   /**
+    * Process html comment node and create comment node of abstract syntax tree.
+    * @param node {Comment} Html comment node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {CommentNode | null} Returns instance of CommentNode ort null in case of broken content.
+    */
    visitComment(node: Nodes.Comment, context: ITraverseContext): Ast.CommentNode {
       if (this.allowComments) {
+
+         // TODO: right now creating comment nodes will break traverse machine.
+         //  In future we need to support creating ignorable comment nodes
+         //  in whole abstract syntax tree.
          return new Ast.CommentNode(node.data);
       }
       return null;
    }
 
+   /**
+    * Process html CData node and create CData node of abstract syntax tree.
+    * @param node {Text} Html CData node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {CDataNode | null} Returns instance of CDataNode ort null in case of broken content.
+    */
    visitCData(node: Nodes.CData, context: ITraverseContext): Ast.CDataNode {
       switch (context.state) {
          case TraverseState.MARKUP:
@@ -218,6 +234,12 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process html Doctype node and create Doctype node of abstract syntax tree.
+    * @param node {Doctype} Html Doctype node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {DoctypeNode | null} Returns instance of DoctypeNode ort null in case of broken content.
+    */
    visitDoctype(node: Nodes.Doctype, context: ITraverseContext): Ast.DoctypeNode {
       switch (context.state) {
          case TraverseState.MARKUP:
@@ -233,6 +255,12 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process html instruction node and create instruction node of abstract syntax tree.
+    * @param node {Instruction} Html instruction node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {InstructionNode | null} Returns instance of InstructionNode ort null in case of broken content.
+    */
    visitInstruction(node: Nodes.Instruction, context: ITraverseContext): Ast.InstructionNode {
       switch (context.state) {
          case TraverseState.MARKUP:
@@ -248,17 +276,29 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process html text node and create shared text node of abstract syntax tree.
+    * @param node {Text} Html text node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TextNode | null} Returns instance of TextNode ort null in case of broken content.
+    */
    visitText(node: Nodes.Text, context: ITraverseContext): Ast.TextNode {
       try {
+         // Process text node content.
+         // If text is invalid then an error will be thrown.
          const content = this.textProcessor.process(node.data, {
             fileName: context.fileName,
             allowedContent: context.textContent || TextContentFlags.FULL_TEXT
          }, node.position);
+
+         // Set keys onto text content nodes.
          this.keysGenerator.openChildren();
          for (let index = 0; index < content.length; ++index) {
             content[index].__$ws_key = this.keysGenerator.generate();
          }
          this.keysGenerator.closeChildren();
+
+         // Pack the processed data
          return new Ast.TextNode(content);
       } catch (error) {
          this.errorHandler.error(
@@ -272,6 +312,12 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process html tag node and create concrete node of abstract syntax tree.
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {Ast | null} Returns instance of concrete Ast or null in case of broken content.
+    */
    visitTag(node: Nodes.Tag, context: ITraverseContext): Ast.Ast {
       return this.processTag(node, context);
    }
@@ -493,6 +539,13 @@ class Traverse implements ITraverse {
       return null;
    }
 
+   /**
+    * Process html element tag and create element node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ElementNode | null} Returns instance of ElementNode ort null in case of broken content.
+    */
    private processElement(node: Nodes.Tag, context: ITraverseContext): Ast.ElementNode {
       try {
          const childrenContext = {
@@ -505,11 +558,7 @@ class Traverse implements ITraverse {
             hasAttributesOnly: true,
             parentTagName: node.name
          });
-         const ast = new Ast.ElementNode(node.name);
-         ast.__$ws_attributes = attributes.attributes;
-         ast.__$ws_events = attributes.events;
-         ast.__$ws_content = content;
-         return ast;
+         return new Ast.ElementNode(node.name, attributes.attributes, attributes.events, content);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора HTML-элемента: ${error.message}. Тег будет отброшен`,

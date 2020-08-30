@@ -425,11 +425,13 @@ export abstract class BaseHtmlElement extends Ast {
 
    /**
     * Initialize new instance of abstract syntax node.
+    * @param attributes {IAttributes} Collection of abstract syntax node attributes.
+    * @param events {IEvents} Collection of abstract syntax node event handlers.
     */
-   protected constructor() {
+   protected constructor(attributes: IAttributes = { }, events: IEvents = { }) {
       super();
-      this.__$ws_attributes = { };
-      this.__$ws_events = { };
+      this.__$ws_attributes = attributes;
+      this.__$ws_events = events;
    }
 }
 
@@ -791,11 +793,14 @@ export class ElementNode extends BaseHtmlElement {
    /**
     * Initialize new instance of element node.
     * @param name {string} Element name.
+    * @param attributes {IAttributes} Collection of abstract syntax node attributes.
+    * @param events {IEvents} Collection of abstract syntax node event handlers.
+    * @param content {TContent[]} Element content.
     */
-   constructor(name: string) {
-      super();
+   constructor(name: string, attributes: IAttributes, events: IEvents, content: TContent[]) {
+      super(attributes, events);
       this.__$ws_name = name;
-      this.__$ws_content = [];
+      this.__$ws_content = content;
    }
 
    /**
