@@ -443,7 +443,7 @@ export abstract class BaseHtmlElement extends Ast {
     * @param attributes {IAttributes} Collection of abstract syntax node attributes.
     * @param events {IEvents} Collection of abstract syntax node event handlers.
     */
-   protected constructor(attributes: IAttributes = { }, events: IEvents = { }) {
+   protected constructor(attributes: IAttributes, events: IEvents) {
       super();
       this.__$ws_attributes = attributes;
       this.__$ws_events = events;
@@ -468,11 +468,15 @@ export abstract class BaseWasabyElement extends BaseHtmlElement {
 
    /**
     * Initialize new instance of abstract syntax node.
+    * @param attributes {IAttributes} Collection of abstract syntax node attributes.
+    * @param events {IEvents} Collection of abstract syntax node event handlers.
+    * @param options {IOptions} Collection of abstract syntax node options.
+    * @param contents {IContents} Collection of abstract syntax node contents.
     */
-   protected constructor() {
-      super();
-      this.__$ws_options = { };
-      this.__$ws_contents = { };
+   protected constructor(attributes: IAttributes, events: IEvents, options: IOptions, contents: IContents) {
+      super(attributes, events);
+      this.__$ws_options = options;
+      this.__$ws_contents = contents;
    }
 
    /**
@@ -989,9 +993,13 @@ export class ComponentNode extends BaseWasabyElement {
     * Initialize new instance of component node.
     * @param physicalPath {string[]} Path to component module or library.
     * @param logicalPath {string[]} Path to component class inside library.
+    * @param attributes {IAttributes} Collection of abstract syntax node attributes.
+    * @param events {IEvents} Collection of abstract syntax node event handlers.
+    * @param options {IOptions} Collection of abstract syntax node options.
+    * @param contents {IContents} Collection of abstract syntax node contents.
     */
-   constructor(physicalPath: string[], logicalPath: string[]) {
-      super();
+   constructor(physicalPath: string[], logicalPath: string[], attributes: IAttributes, events: IEvents, options: IOptions, contents: IContents = { }) {
+      super(attributes, events, options, contents);
       this.__$ws_physicalPath = physicalPath;
       this.__$ws_logicalPath = logicalPath;
    }
@@ -1055,9 +1063,13 @@ export class PartialNode extends BaseWasabyElement {
    /**
     * Initialize new instance of partial node.
     * @param name {string | ProgramNode} Partial template name or expression.
+    * @param attributes {IAttributes} Collection of abstract syntax node attributes.
+    * @param events {IEvents} Collection of abstract syntax node event handlers.
+    * @param options {IOptions} Collection of abstract syntax node options.
+    * @param contents {IContents} Collection of abstract syntax node contents.
     */
-   constructor(name: string | ProgramNode) {
-      super();
+   constructor(name: string | ProgramNode, attributes: IAttributes, events: IEvents, options: IOptions, contents: IContents = { }) {
+      super(attributes, events, options, contents);
       this.__$ws_name = name;
    }
 

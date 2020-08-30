@@ -50,16 +50,12 @@ export default function traverse(nodes: Nodes.Node[], config: ITraverseConfig, o
 const enum TraverseState {
    MARKUP,
    COMPONENT,
+   COMPONENT_WITH_CONTENT,
+   COMPONENT_WITH_OPTION,
    COMPONENT_OPTION,
    ARRAY_DATA,
    PRIMITIVE_DATA,
    OBJECT_DATA
-}
-
-const enum ContentTraverseState {
-   UNKNOWN,
-   CONTENT,
-   OPTION
 }
 
 interface ITraverseContext {
@@ -67,7 +63,6 @@ interface ITraverseContext {
    fileName: string;
    prev: Ast.Ast | null;
    state: TraverseState;
-   contentComponentState?: ContentTraverseState;
    textContent?: TextContentFlags;
 }
 
@@ -544,8 +539,7 @@ class Traverse implements ITraverse {
    private processTagInObjectData(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
       if (this.resolver.isComponentOptionName(node.name)) {
          const optionContext: ITraverseContext = {
-            ...context,
-            contentComponentState: ContentTraverseState.UNKNOWN
+            ...context
          };
          return this.processOption(node, optionContext);
       }
@@ -1131,20 +1125,22 @@ class Traverse implements ITraverse {
       try {
          const childrenContext: ITraverseContext = {
             ...context,
-            contentComponentState: ContentTraverseState.UNKNOWN,
             state: TraverseState.COMPONENT
          };
          const children = this.visitAll(node.children, childrenContext);
          const { physicalPath, logicalPath } = this.resolver.resolveComponent(node.name);
-         const ast = new Ast.ComponentNode(physicalPath, logicalPath);
          const attributes = this.attributeProcessor.process(node.attributes, {
             fileName: context.fileName,
             hasAttributesOnly: false,
             parentTagName: node.name
          });
-         ast.__$ws_attributes = attributes.attributes;
-         ast.__$ws_events = attributes.events;
-         ast.__$ws_options = attributes.options;
+         const ast = new Ast.ComponentNode(
+            physicalPath,
+            logicalPath,
+            attributes.attributes,
+            attributes.events,
+            attributes.options
+         );
          for (let index = 0; index < children.length; ++index) {
             const child = children[index];
             if (child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode) {
@@ -1183,10 +1179,10 @@ class Traverse implements ITraverse {
    }
 
    private processOption(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
-      if (context.contentComponentState === ContentTraverseState.UNKNOWN) {
-         context.contentComponentState = ContentTraverseState.OPTION;
+      if (context.state === TraverseState.COMPONENT) {
+         context.state = TraverseState.COMPONENT_WITH_OPTION;
       }
-      if (context.contentComponentState !== ContentTraverseState.OPTION) {
+      if (context.state !== TraverseState.COMPONENT_WITH_OPTION) {
          this.errorHandler.error(
             `Запрещено смешивать контент по умолчанию с опциями - обнаружена опция "${node.name}". ` +
             'Необходимо явно задать контент в ws:content',
@@ -1200,7 +1196,6 @@ class Traverse implements ITraverse {
       try {
          const optionContext: ITraverseContext = {
             ...context,
-            contentComponentState: ContentTraverseState.UNKNOWN,
             state: TraverseState.COMPONENT_OPTION
          };
          const optionName = this.resolver.getComponentOptionName(node.name);
@@ -1301,10 +1296,10 @@ class Traverse implements ITraverse {
    }
 
    private processContentOption(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
-      if (context.contentComponentState === ContentTraverseState.UNKNOWN) {
-         context.contentComponentState = ContentTraverseState.CONTENT;
+      if (context.state === TraverseState.COMPONENT) {
+         context.state = TraverseState.COMPONENT_WITH_CONTENT;
       }
-      if (context.contentComponentState !== ContentTraverseState.CONTENT) {
+      if (context.state !== TraverseState.COMPONENT_WITH_CONTENT) {
          this.errorHandler.error(
             `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег "${node.name}". Тег будет отброшен. ` +
             'Необходимо явно задать контент в ws:content',
