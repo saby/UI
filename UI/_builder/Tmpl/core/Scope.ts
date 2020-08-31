@@ -24,7 +24,7 @@ export default class Scope {
 
    registerTemplate(name: string, ast: Ast.TemplateNode): void {
       if (this.templates.hasOwnProperty(name)) {
-         throw new Error(`Шаблон с именем ${name} уже был определен`);
+         throw new Error(`шаблон с именем "${name}" уже был определен`);
       }
       this.templates[name] = {
          template: ast,
@@ -34,7 +34,7 @@ export default class Scope {
 
    registerTemplateUsage(name: string): void {
       if (!this.templates.hasOwnProperty(name)) {
-         throw new Error(`Инлайн-шаблон с именем ${name} не был определен`);
+         throw new Error(`шаблон с именем "${name}" не был определен`);
       }
       ++this.templates[name].usages;
    }
@@ -45,7 +45,7 @@ export default class Scope {
 
    getTemplate(name: string): ITemplate {
       if (!this.templates.hasOwnProperty(name)) {
-         throw new Error(`Инлайн-шаблон с именем ${name} не был определен`);
+         throw new Error(`шаблон с именем "${name}" не был определен`);
       }
       return this.templates[name];
    }

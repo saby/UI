@@ -15,7 +15,7 @@ import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { IAttributeProcessor, createAttributeProcessor } from 'UI/_builder/Tmpl/core/Attributes';
 import { ITextProcessor, createTextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
 import Scope from 'UI/_builder/Tmpl/core/Scope';
-import { IResolver } from 'UI/_builder/Tmpl/core/Resolvers';
+import * as Resolvers from 'UI/_builder/Tmpl/core/Resolvers';
 
 // <editor-fold desc="Public interfaces and functions">
 
@@ -28,7 +28,6 @@ export interface ITraverseConfig {
    hierarchicalKeys: boolean;
    errorHandler: IErrorHandler;
    allowComments: boolean;
-   resolver: IResolver;
 }
 
 export interface ITraverseOptions {
@@ -127,6 +126,35 @@ function validateNumber(children: Ast.TextNode[]): void {
    }
 }
 
+function validatePartialTemplate(option: Ast.OptionNode | undefined, node: Nodes.Tag): ProgramNode | string {
+   if (option === undefined) {
+      throw new Error('не задана обязательная опция "template"');
+   }
+   const data = (<Ast.ValueNode>option.__$ws_value).__$ws_data;
+   let value: ProgramNode | string = null;
+   let current: ProgramNode | string;
+   for (let index = 0; index < data.length; ++index) {
+      current = null;
+      if (data[index] instanceof Ast.ExpressionNode) {
+         current = (<Ast.ExpressionNode>data[index]).__$ws_program;
+      }
+      if (data[index] instanceof Ast.TextDataNode) {
+         current = (<Ast.TextDataNode>data[index]).__$ws_content;
+      }
+      if (data[index] instanceof Ast.TranslationNode) {
+         throw new Error('не задана обязательная опция "template"');
+      }
+      if (current !== null && value !== null) {
+         throw new Error(`некорректно задана опция "template" - "${node.attributes.template.value}"`);
+      }
+      value = current;
+   }
+   if (value === null) {
+      throw new Error('не задано значение обязательной опции "template"');
+   }
+   return value;
+}
+
 // </editor-fold>
 
 class Traverse implements ITraverse {
@@ -139,7 +167,6 @@ class Traverse implements ITraverse {
    private readonly allowComments: boolean;
    private readonly attributeProcessor: IAttributeProcessor;
    private readonly textProcessor: ITextProcessor;
-   private readonly resolver: IResolver;
 
    // </editor-fold>
 
@@ -152,7 +179,6 @@ class Traverse implements ITraverse {
       this.keysGenerator = createKeysGenerator(config.hierarchicalKeys);
       this.errorHandler = config.errorHandler;
       this.allowComments = config.allowComments;
-      this.resolver = config.resolver;
       this.textProcessor = createTextProcessor({
          expressionParser: config.expressionParser
       });
@@ -395,7 +421,7 @@ class Traverse implements ITraverse {
             );
             return null;
          default:
-            if (this.resolver.isComponentOptionName(node.name)) {
+            if (Resolvers.isOption(node.name)) {
                this.errorHandler.error(
                   `Обнаружена неизвестная директива "${node.name}". Директива будет отброшена`,
                   {
@@ -405,7 +431,7 @@ class Traverse implements ITraverse {
                );
                return null;
             }
-            if (this.resolver.isComponentName(node.name)) {
+            if (Resolvers.isComponent(node.name)) {
                return this.processComponent(node, context);
             }
 
@@ -450,10 +476,10 @@ class Traverse implements ITraverse {
             );
             return null;
          default:
-            if (this.resolver.isComponentOptionName(node.name)) {
+            if (Resolvers.isOption(node.name)) {
                return this.processOption(node, context);
             }
-            if (this.resolver.isComponentName(node.name) || isElementNode(node.name)) {
+            if (Resolvers.isComponent(node.name) || isElementNode(node.name)) {
                return this.processContentOption(node, context);
             }
             this.errorHandler.error(
@@ -491,10 +517,10 @@ class Traverse implements ITraverse {
          case 'ws:Value':
             return this.processValue(node, context);
          default:
-            if (this.resolver.isComponentOptionName(node.name)) {
+            if (Resolvers.isOption(node.name)) {
                return this.castAndProcessObjectProperty(node, context);
             }
-            if (this.resolver.isComponentName(node.name) || isElementNode(node.name)) {
+            if (Resolvers.isComponent(node.name) || isElementNode(node.name)) {
                return this.processContentOption(node, context);
             }
             this.errorHandler.error(
@@ -537,7 +563,7 @@ class Traverse implements ITraverse {
    }
 
    private processTagInObjectData(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
-      if (this.resolver.isComponentOptionName(node.name)) {
+      if (Resolvers.isOption(node.name)) {
          const optionContext: ITraverseContext = {
             ...context
          };
@@ -663,7 +689,7 @@ class Traverse implements ITraverse {
             throw new Error('полученые некорректные данные');
          }
          const text = (<Ast.TextDataNode>textContent[0]).__$ws_content;
-         const { physicalPath, logicalPath }  = this.resolver.resolveFunction(text);
+         const { physicalPath, logicalPath } = Resolvers.resolveFunction(text);
          const ast = new Ast.FunctionNode(physicalPath, logicalPath);
          const options = this.attributeProcessor.process(
             node.attributes,
@@ -786,7 +812,7 @@ class Traverse implements ITraverse {
          const childrenContext: ITraverseContext = {
             ...context
          };
-         const optionName = this.resolver.getComponentOptionName(node.name);
+         const optionName = Resolvers.resolveOption(node.name);
          const content = this.visitAll(node.children, childrenContext);
          if (content.length !== 1) {
             this.errorHandler.critical(
@@ -1013,7 +1039,7 @@ class Traverse implements ITraverse {
          };
          const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          const name = this.getTextFromAttribute(node, 'name', context);
-         this.resolver.resolveTemplate(name);
+         Resolvers.resolveInlineTemplate(name);
          const ast = new Ast.TemplateNode(name, content);
          if (content.length === 0) {
             this.errorHandler.error(
@@ -1108,19 +1134,6 @@ class Traverse implements ITraverse {
 
    // <editor-fold desc="Processing component nodes">
 
-   private processPartial(node: Nodes.Tag, context: ITraverseContext): Ast.PartialNode {
-      // TODO: в атрибутах есть обязательный template
-      //  Создаем узел, парсим данные, переходим к детям
-      this.errorHandler.error(
-         'Not implemented @ processPartial',
-         {
-            fileName: context.fileName,
-            position: node.position
-         }
-      );
-      return null;
-   }
-
    private processComponent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       try {
          const childrenContext: ITraverseContext = {
@@ -1128,12 +1141,12 @@ class Traverse implements ITraverse {
             state: TraverseState.COMPONENT
          };
          const children = this.visitAll(node.children, childrenContext);
-         const { physicalPath, logicalPath } = this.resolver.resolveComponent(node.name);
          const attributes = this.attributeProcessor.process(node.attributes, {
             fileName: context.fileName,
             hasAttributesOnly: false,
             parentTagName: node.name
          });
+         const { physicalPath, logicalPath } = Resolvers.resolveComponent(node.name);
          const ast = new Ast.ComponentNode(
             physicalPath,
             logicalPath,
@@ -1141,30 +1154,7 @@ class Traverse implements ITraverse {
             attributes.events,
             attributes.options
          );
-         for (let index = 0; index < children.length; ++index) {
-            const child = children[index];
-            if (child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode) {
-               if (ast.hasOption(child.__$ws_name)) {
-                  this.errorHandler.critical(
-                     `Опция "${child.__$ws_name}" уже определена на компоненте "${node.name}". Полученная опция будет отброшена`,
-                     {
-                        fileName: context.fileName,
-                        position: node.position
-                     }
-                  );
-                  continue;
-               }
-               ast.setOption(child);
-               continue;
-            }
-            this.errorHandler.critical(
-               `Получен некорректный узел (!=Option|ContentOption) внутри компонента "${node.name}"`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-         }
+         this.applyOptions(ast, children, node, context);
          return ast;
       } catch (error) {
          this.errorHandler.error(
@@ -1175,6 +1165,89 @@ class Traverse implements ITraverse {
             }
          );
          return null;
+      }
+   }
+
+   private createPartialNode(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
+      const attributes = this.attributeProcessor.process(node.attributes, {
+         fileName: context.fileName,
+         hasAttributesOnly: false,
+         parentTagName: node.name
+      });
+      const template = validatePartialTemplate(attributes.options['template'], node);
+      if (template instanceof ProgramNode) {
+         return new Ast.DynamicPartialNode(
+            template,
+            attributes.attributes,
+            attributes.events,
+            attributes.options
+         );
+      }
+      if (Resolvers.isLogicalPath(template) || Resolvers.isPhysicalPath(template)) {
+         return new Ast.StaticPartialNode(
+            template,
+            attributes.attributes,
+            attributes.events,
+            attributes.options
+         );
+      }
+      return new Ast.InlineTemplateNode(
+         template,
+         attributes.attributes,
+         attributes.events,
+         attributes.options
+      );
+   }
+
+   private processPartial(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
+      try {
+         const childrenContext: ITraverseContext = {
+            ...context,
+            state: TraverseState.COMPONENT
+         };
+         const children = this.visitAll(node.children, childrenContext);
+         const ast = this.createPartialNode(node, context);
+         this.applyOptions(ast, children, node, context);
+         if (ast instanceof Ast.InlineTemplateNode) {
+            context.scope.registerTemplateUsage(ast.__$ws_name);
+         }
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора директивы ws:partial: ${error.message}. Директива будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+      }
+      return null;
+   }
+
+   private applyOptions(ast: Ast.BaseWasabyElement, children: Ast.Ast[], node: Nodes.Tag, context: ITraverseContext): void {
+      for (let index = 0; index < children.length; ++index) {
+         const child = children[index];
+         if (child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode) {
+            if (ast.hasOption(child.__$ws_name)) {
+               this.errorHandler.critical(
+                  `Опция "${child.__$ws_name}" уже определена на компоненте "${node.name}". Полученная опция будет отброшена`,
+                  {
+                     fileName: context.fileName,
+                     position: node.position
+                  }
+               );
+               continue;
+            }
+            ast.setOption(child);
+            continue;
+         }
+         this.errorHandler.critical(
+            `Получен некорректный узел (!=Option|ContentOption) внутри компонента "${node.name}"`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
       }
    }
 
@@ -1198,7 +1271,7 @@ class Traverse implements ITraverse {
             ...context,
             state: TraverseState.COMPONENT_OPTION
          };
-         const optionName = this.resolver.getComponentOptionName(node.name);
+         const optionName = Resolvers.resolveOption(node.name);
          if (node.isSelfClosing || node.children.length === 0) {
             const properties = { };
             for (const attributeName in node.attributes) {
@@ -1377,7 +1450,7 @@ class Traverse implements ITraverse {
          const template = context.scope.getTemplate(name);
          if (template.usages === 0) {
             this.errorHandler.warn(
-               `Шаблон с именем ${name} определен, но не был использован. Шаблон будет отброшен`,
+               `Шаблон с именем "${name}" определен, но не был использован. Шаблон будет отброшен`,
                {
                   fileName: context.fileName
                }

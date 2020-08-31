@@ -498,23 +498,33 @@ export abstract class BaseWasabyElement extends BaseHtmlElement {
    }
 
    /**
-    * Append content node to content option.
-    * @param name {string} Content option name.
-    * @param ast {TContent} Content node.
+    * Set option or content option on component.
+    * @param option {OptionNode | ContentOptionNode} Option or content option node.
     */
-   appendToContent(name: string, ast: TContent): void {
-      this.initializeContent(name);
-      this.__$ws_contents[name].push(ast);
+   setOption(option: OptionNode | ContentOptionNode): void {
+      const name = option.__$ws_name;
+      if (this.hasOption(name)) {
+         throw new Error(`Опция ${name} уже существует на компоненте`);
+      }
+      if (option instanceof OptionNode) {
+         this.__$ws_options[name] = option;
+         return;
+      }
+      if (option instanceof ContentOptionNode) {
+         this.__$ws_contents[name] = option;
+         return;
+      }
+      throw new Error(
+         `Произведена попытка установки опции ${name} недопустимого типа ${(<Ast>option).constructor.name}`
+      );
    }
 
    /**
-    * Initialize content option.
-    * @param name {string} Content option name.
+    * Check if component already has option or component option.
+    * @param name {string} Option or component option name.
     */
-   private initializeContent(name: string): void {
-      if (!this.__$ws_contents.hasOwnProperty(name)) {
-         this.__$ws_contents[name] = new ContentOptionNode(name, []);
-      }
+   hasOption(name: string): boolean {
+      return this.__$ws_options.hasOwnProperty(name) || this.__$ws_contents.hasOwnProperty(name);
    }
 }
 
@@ -1029,36 +1039,6 @@ export class ComponentNode extends BaseWasabyElement {
     */
    accept(visitor: IAstVisitor, context: any): any {
       return visitor.visitComponent(this, context);
-   }
-
-   /**
-    * Set option or content option on component.
-    * @param option {OptionNode | ContentOptionNode} Option or content option node.
-    */
-   setOption(option: OptionNode | ContentOptionNode): void {
-      const name = option.__$ws_name;
-      if (this.hasOption(name)) {
-         throw new Error(`Опция ${name} уже существует на компоненте`);
-      }
-      if (option instanceof OptionNode) {
-         this.__$ws_options[name] = option;
-         return;
-      }
-      if (option instanceof ContentOptionNode) {
-         this.__$ws_contents[name] = option;
-         return;
-      }
-      throw new Error(
-         `Произведена попытка установки опции ${name} недопустимого типа ${(<Ast>option).constructor.name}`
-      );
-   }
-
-   /**
-    * Check if component already has option or component option.
-    * @param name {string} Option or component option name.
-    */
-   hasOption(name: string): boolean {
-      return this.__$ws_options.hasOwnProperty(name) || this.__$ws_contents.hasOwnProperty(name);
    }
 }
 
