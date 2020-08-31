@@ -51,7 +51,11 @@ class StateReceiver implements IStateReceiver {
          } catch (e) {
             const serializedMapError = {};
             Object.keys(serializedMap).forEach((key) => {
-               serializedMapError[key] = typeof serializedMap[key] === 'object' ? typeof serializedMap[key] : serializedMap[key];
+               if (typeof(serializedMap[key]) === 'object') {
+                  serializedMapError[key] = typeof(serializedMap[key]);
+               } else {
+                  serializedMapError[key] = serializedMap[key];
+               }
             });
             const serializedMapErrorString = JSON.stringify(serializedMapError).substr(0, 1024);
             Logger.error(`${state?.moduleName || key} _beforeMount вернул несериализуемое состояние из ${serializedMapErrorString} : ${e}` );
