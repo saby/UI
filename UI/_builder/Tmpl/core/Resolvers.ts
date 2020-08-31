@@ -2,6 +2,7 @@
 
 /**
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/core/Resolvers.ts
  */
 
 /**
