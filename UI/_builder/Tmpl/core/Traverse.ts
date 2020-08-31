@@ -46,15 +46,47 @@ export default function traverse(nodes: Nodes.Node[], config: ITraverseConfig, o
 
 // <editor-fold desc="Internal finite state machine states and interfaces">
 
+/**
+ * Traverse machine states.
+ */
 const enum TraverseState {
+
+   /**
+    * In processing html elements and html directives.
+    */
    MARKUP,
+
+   /**
+    * In processing component or partial that contains either content or options.
+    */
    COMPONENT,
+
+   /**
+    * In processing component or partial where only content is allowed.
+    */
    COMPONENT_WITH_CONTENT,
+
+   /**
+    * In processing component or partial where only options are allowed.
+    */
    COMPONENT_WITH_OPTION,
-   COMPONENT_OPTION,
+
+   /**
+    * In processing array type node where only data types node are allowed.
+    */
    ARRAY_DATA,
+
+   /**
+    * In processing primitive type node content where only text is allowed.
+    */
    PRIMITIVE_DATA,
-   OBJECT_DATA
+
+   /**
+    * In processing object type node content where only options are allowed.
+    */
+   OBJECT_DATA,
+
+   COMPONENT_OPTION
 }
 
 interface ITraverseContext {
@@ -272,10 +304,13 @@ class Traverse implements ITraverse {
          case TraverseState.COMPONENT_OPTION:
             return new Ast.CDataNode(node.data);
          default:
-            this.errorHandler.error('Использование тега CData запрещено в данном контексте', {
-               fileName: context.fileName,
-               position: node.position
-            });
+            this.errorHandler.error(
+               'Использование тега CData запрещено в данном контексте',
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
             return null;
       }
    }
@@ -293,10 +328,13 @@ class Traverse implements ITraverse {
          case TraverseState.COMPONENT_OPTION:
             return new Ast.DoctypeNode(node.data);
          default:
-            this.errorHandler.error('Использование тега Doctype запрещено в данном контексте', {
-               fileName: context.fileName,
-               position: node.position
-            });
+            this.errorHandler.error(
+               'Использование тега Doctype запрещено в данном контексте',
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
             return null;
       }
    }
@@ -314,10 +352,13 @@ class Traverse implements ITraverse {
          case TraverseState.COMPONENT_OPTION:
             return new Ast.InstructionNode(node.data);
          default:
-            this.errorHandler.error('Использование тега Instruction запрещено в данном контексте', {
-               fileName: context.fileName,
-               position: node.position
-            });
+            this.errorHandler.error(
+               'Использование тега Instruction запрещено в данном контексте',
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
             return null;
       }
    }
@@ -372,6 +413,13 @@ class Traverse implements ITraverse {
 
    // </editor-fold>
 
+   /**
+    * Process tag node in concrete state.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {Ast | null} Returns concrete instance of Ast or null in case of broken tag node.
+    */
    private processTag(node: Nodes.Tag, context: ITraverseContext): Ast.Ast {
       switch (context.state) {
          case TraverseState.MARKUP:
@@ -402,6 +450,13 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process tag node in markup state.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TContent | null} Returns concrete instance of TContent type or null in case of broken tag node.
+    */
    private processTagInMarkup(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
       switch (node.name) {
          case 'ws:if':
@@ -460,6 +515,13 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process tag node in markup state.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TContent | ContentOptionNode | OptionNode | null} Returns concrete instance of TContent type or null in case of broken tag node.
+    */
    private processTagInComponent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent | Ast.ContentOptionNode | Ast.OptionNode {
       switch (node.name) {
          case 'ws:if':
@@ -1177,15 +1239,6 @@ class Traverse implements ITraverse {
     * @throws {Error} Throws error in case of broken node data.
     */
    private processComponentHead(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
-      if (!node.isSelfClosing && node.children.length === 0) {
-         this.errorHandler.warn(
-            `Для компонента "${node.name}" не задан контент и тег компонента не указан как самозакрывающийся`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-      }
       const attributes = this.attributeProcessor.process(node.attributes, {
          fileName: context.fileName,
          hasAttributesOnly: false,
@@ -1211,6 +1264,15 @@ class Traverse implements ITraverse {
    private processComponent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       try {
          if (node.isSelfClosing || node.children.length === 0) {
+            if (!node.isSelfClosing && node.children.length === 0) {
+               this.errorHandler.warn(
+                  `Для компонента "${node.name}" не задан контент и тег компонента не указан как самозакрывающийся`,
+                  {
+                     fileName: context.fileName,
+                     position: node.position
+                  }
+               );
+            }
             return this.processComponentHead(node, context);
          }
          const ast = this.processComponentHead(node, context);
