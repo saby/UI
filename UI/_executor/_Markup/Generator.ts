@@ -22,7 +22,8 @@ import {
    IGeneratorDefCollection,
    TDeps,
    TIncludedTemplate,
-   TObject
+   TObject,
+   IControlUserData
 } from 'UI/_executor/_Markup/IGeneratorType';
 
 const defRegExp = /(\[def-[\w\d]+\])/g;
@@ -103,6 +104,103 @@ export class Generator {
          Logger.asyncRenderErrorLog(err);
       });
    };
+
+   prepareWsControl(name: GeneratorTemplateOrigin,
+                    data: IControlData,
+                    attrs: IGeneratorAttrs,
+                    templateCfg: ICreateControlTemplateCfg,
+                    context: string,
+                    deps: TDeps): GeneratorObject | Promise<unknown> | Error {
+      let preparedData = this.dataResolver(data, templateCfg, attrs, name);
+      attrs = preparedData[2];
+      const userData = preparedData[1];
+      name = this.nameResolver(name);
+      let res;
+      const type = 'wsControl';
+      if (Common.isCompat()) {
+         res = timing.methodExecutionTime(this.createWsControl, this, [name, userData, attrs, context, deps]);
+      } else {
+         res = this.createWsControl(name, userData, attrs, context, deps);
+      }
+      return this.checkResult(res, type);
+   }
+
+   prepareTemplate(name: GeneratorTemplateOrigin,
+                   data: IControlData,
+                   attrs: IGeneratorAttrs,
+                   templateCfg: ICreateControlTemplateCfg,
+                   context: string,
+                   deps: TDeps,
+                   config: IGeneratorConfig): GeneratorObject | Promise<unknown> | Error {
+      let preparedData = this.dataResolver(data, templateCfg, attrs, name);
+      attrs = preparedData[2];
+      const userData = preparedData[1];
+      name = this.nameResolver(name);
+      let res;
+      const type = 'template';
+      if (Common.isCompat()) {
+         res = timing.methodExecutionTime(this.createTemplate, this, [name, userData, attrs, context, deps, config]);
+      } else {
+         res = this.createTemplate(name, userData, attrs, context, deps, config);
+      }
+      return this.checkResult(res, type);
+   }
+
+   prepareController(name: GeneratorTemplateOrigin,
+                     data: IControlData,
+                     attrs: IGeneratorAttrs,
+                     templateCfg: ICreateControlTemplateCfg,
+                     context: string,
+                     deps: TDeps): GeneratorObject | Promise<unknown> | Error {
+      let preparedData = this.dataResolver(data, templateCfg, attrs, name);
+      attrs = preparedData[2];
+      const userData = preparedData[1];
+      name = this.nameResolver(name);
+      let res;
+      const type = 'controller';
+      if (Common.isCompat()) {
+         res = timing.methodExecutionTime(this.createController, this, [name, userData, attrs, context, deps]);
+      } else {
+         res = this.createController(name, userData, attrs, context, deps);
+      }
+      return this.checkResult(res, type);
+   }
+
+   prepareResolver(name: GeneratorTemplateOrigin,
+                   data: IControlData,
+                   attrs: IGeneratorAttrs,
+                   templateCfg: ICreateControlTemplateCfg,
+                   context: string,
+                   deps: TDeps,
+                   includedTemplates: TIncludedTemplate,
+                   config: IGeneratorConfig,
+                   contextObj?: GeneratorEmptyObject,
+                   defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error {
+      let preparedData = this.dataResolver(data, templateCfg, attrs, name);
+      attrs = preparedData[2];
+      const userData = preparedData[1];
+      name = this.nameResolver(name);
+      let res;
+      const type = 'resolver';
+      let handl, i;
+      if (attrs.events) {
+         for (i in attrs.events) {
+            if (attrs.events.hasOwnProperty(i)) {
+               for (handl = 0; handl < attrs.events[i].length; handl++) {
+                  if (!attrs.events[i][handl].fn.isControlEvent) {
+                     attrs.events[i][handl].toPartial = true;
+                  }
+               }
+            }
+         }
+      }
+      if (Common.isCompat()) {
+         res = timing.methodExecutionTime(this.resolver, this, [name, userData, attrs, context, deps, includedTemplates, config, defCollection]);
+      } else {
+         res = this.resolver(name, userData, attrs, context, deps, includedTemplates, config, defCollection);
+      }
+      return this.checkResult(res, type);
+   }
 
    createControl(type: string,
                  name: GeneratorTemplateOrigin,
@@ -375,4 +473,57 @@ export class Generator {
       this.resolver = resolver;
       this.cacheModules = generatorContext.cacheModules;
    }
+
+   private dataResolver(data: IControlData,
+                        templateCfg: ICreateControlTemplateCfg,
+                        attrs: IGeneratorAttrs,
+                        name:GeneratorTemplateOrigin): [IControlData, IControlUserData, IGeneratorAttrs] {
+      data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs, calculateDataComponent(name));
+      data.internal.logicParent = data.internal.logicParent || templateCfg.viewController;
+      data.internal.parent = data.internal.parent || templateCfg.viewController;
+
+      attrs.internal = data.internal;
+      const userData = data.user;
+      return [data, userData, attrs];
+   };
+
+   private nameResolver(name: GeneratorTemplateOrigin): GeneratorTemplateOrigin {
+      // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
+      if (name === null) {
+         return this.createEmptyText();
+      }
+      // конвертирую объект строки в строку, чтобы везде провеять только на строку
+      // объект вместо строки вероятно приходит из-за интернационализации
+      if (name instanceof String) {
+         name = name.toString();
+      }
+      return name;
+   }
+
+   private checkResult(res: GeneratorObject | Promise<unknown> | Error,
+                       type: string): GeneratorObject | Promise<unknown> | Error {
+      if (res !== undefined) {
+         return res;
+      }
+      /**
+       * Если у нас есть имя и тип, значит мы выполнили код выше
+       * Функции шаблонизации возвращают undefined, когда работают на клиенте
+       * с уже построенной версткой
+       * А вот если нам не передали каких-то данных сюда, то мы ничего не строили,
+       * а значит это ошибка и нужно обругаться.
+       */
+      if ((typeof name !== 'undefined') && type) {
+         return this.createEmptyText();
+      }
+      if (typeof name === 'undefined') {
+         Logger.error('Попытка использовать компонент/шаблон, ' +
+            'но вместо компонента в шаблоне в опцию template был передан undefined! ' +
+            'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
+            'По стеку будет понятно, в каком шаблоне и в какую опцию передается undefined');
+         return this.createEmptyText();
+      }
+      throw new Error('MarkupGenerator: createControl type not resolved');
+   }
+
+
 }

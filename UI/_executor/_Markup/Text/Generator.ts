@@ -79,6 +79,56 @@ export class GeneratorText implements IGenerator {
          config, contextObj, defCollection);
    }
 
+   prepareWsControl(name: GeneratorTemplateOrigin,
+                    data: IControlData,
+                    attrs: IGeneratorAttrs,
+                    templateCfg: ICreateControlTemplateCfg,
+                    context: string,
+                    deps: TDeps): GeneratorObject | Promise<unknown> | Error {
+      return this.generatorBase.prepareWsControl(name, data, attrs, templateCfg, context, deps);
+   }
+
+   prepareTemplate(name: GeneratorTemplateOrigin,
+                   data: IControlData,
+                   attrs: IGeneratorAttrs,
+                   templateCfg: ICreateControlTemplateCfg,
+                   context: string,
+                   deps: TDeps,
+                   config: IGeneratorConfig): GeneratorObject | Promise<unknown> | Error {
+      return this.generatorBase.prepareTemplate(name, data, attrs, templateCfg, context, deps, config);
+   }
+
+   prepareController(name: GeneratorTemplateOrigin,
+                     data: IControlData,
+                     attrs: IGeneratorAttrs,
+                     templateCfg: ICreateControlTemplateCfg,
+                     context: string,
+                     deps: TDeps): GeneratorObject | Promise<unknown> | Error {
+      return this.generatorBase.prepareController(name, data, attrs, templateCfg, context, deps);
+   }
+
+   prepareResolver(name: GeneratorTemplateOrigin,
+                   data: IControlData,
+                   attrs: IGeneratorAttrs,
+                   templateCfg: ICreateControlTemplateCfg,
+                   context: string,
+                   deps: TDeps,
+                   includedTemplates: TIncludedTemplate,
+                   config: IGeneratorConfig,
+                   contextObj?: GeneratorEmptyObject,
+                   defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error {
+      return this.generatorBase.prepareResolver(name,
+         data,
+         attrs,
+         templateCfg,
+         context,
+         deps,
+         includedTemplates,
+         config,
+         contextObj,
+         defCollection);
+   }
+
    createText(text) {
       return text;
    };
