@@ -147,10 +147,13 @@ describe('Compiler/core/Attributes', () => {
             assert.strictEqual(attributeNode.__$ws_value.length, 1);
          });
          it('Failure! Attribute boolean (without prefix)', () => {
+            // TODO: сейчас определяется пустая строка. Есть предложение поддержать
+            //  boolean-атрибуты (когда 'true' по умолчанию). Пока на рассмотрении!
             const attributes = processAttributes('attribute', true);
-            assert.strictEqual(Object.keys(attributes.attributes).length, 0);
+            assert.strictEqual(Object.keys(attributes.attributes).length, 1);
             assert.strictEqual(Object.keys(attributes.options).length, 0);
             assert.strictEqual(Object.keys(attributes.events).length, 0);
+            assert.isTrue(attributes.attributes.hasOwnProperty('attr:attribute'));
          });
          it('Attribute (with prefix)', () => {
             const attributes = processAttributes('attr:attribute="value"', true);
@@ -165,10 +168,13 @@ describe('Compiler/core/Attributes', () => {
             assert.strictEqual(attributeNode.__$ws_value.length, 1);
          });
          it('Failure! Attribute boolean (with prefix)', () => {
+            // TODO: сейчас определяется пустая строка. Есть предложение поддержать
+            //  boolean-атрибуты (когда 'true' по умолчанию). Пока на рассмотрении!
             const attributes = processAttributes('attr:attribute', true);
-            assert.strictEqual(Object.keys(attributes.attributes).length, 0);
+            assert.strictEqual(Object.keys(attributes.attributes).length, 1);
             assert.strictEqual(Object.keys(attributes.options).length, 0);
             assert.strictEqual(Object.keys(attributes.events).length, 0);
+            assert.isTrue(attributes.attributes.hasOwnProperty('attr:attribute'));
          });
          it('Attribute boolean (with prefix)', () => {
             const attributes = processAttributes('attr:allowfullscreen', true);

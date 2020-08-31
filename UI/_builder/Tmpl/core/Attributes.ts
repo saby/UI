@@ -479,14 +479,21 @@ class AttributeProcessor implements IAttributeProcessor {
          const attribute = getAttributeName(attributeNode.name);
          const attributeValue = validateAttribute(attribute, attributeNode.value);
          if (attributeValue === null) {
-            this.errorHandler.error(
-               `Обнаружен атрибут "${attributeNode.name}" на теге "${options.parentTagName}", которому не было задано значение. Атрибут будет отброшен`,
-               {
-                  fileName: options.fileName,
-                  position: attributeNode.position
-               }
+            // TODO: сейчас определяется пустая строка. Есть предложение поддержать
+            //  boolean-атрибуты (когда 'true' по умолчанию). Пока на рассмотрении!
+            // this.errorHandler.error(
+            //    `Обнаружен атрибут "${attributeNode.name}" на теге "${options.parentTagName}", которому не было задано значение. Атрибут будет отброшен`,
+            //    {
+            //       fileName: options.fileName,
+            //       position: attributeNode.position
+            //    }
+            // );
+            return new Ast.AttributeNode(
+               attribute,
+               [
+                  new Ast.TextDataNode('')
+               ]
             );
-            return null;
          }
          const value = this.textProcessor.process(
             attributeValue,
@@ -520,14 +527,23 @@ class AttributeProcessor implements IAttributeProcessor {
       try {
          const attributeValue = attributeNode.value;
          if (attributeValue === null) {
-            this.errorHandler.error(
-               `Обнаружена опция "${attributeNode.name}" на теге "${options.parentTagName}", которой не было задано значение. Опция будет отброшена`,
-               {
-                  fileName: options.fileName,
-                  position: attributeNode.position
-               }
+            // TODO: сейчас определяется пустая строка. Есть предложение поддержать
+            //  boolean-атрибуты (когда 'true' по умолчанию). Пока на рассмотрении!
+            // this.errorHandler.error(
+            //    `Обнаружена опция "${attributeNode.name}" на теге "${options.parentTagName}", которой не было задано значение. Опция будет отброшена`,
+            //    {
+            //       fileName: options.fileName,
+            //       position: attributeNode.position
+            //    }
+            // );
+            return new Ast.OptionNode(
+               attributeNode.name,
+               new Ast.ValueNode(
+                  [
+                     new Ast.TextDataNode('')
+                  ]
+               )
             );
-            return null;
          }
          const value = this.textProcessor.process(
             attributeValue,
