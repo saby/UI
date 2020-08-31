@@ -49,7 +49,12 @@ class StateReceiver implements IStateReceiver {
          try {
             serializedMap[key] = JSON.stringify(receivedState, slr.serializeStrict);
          } catch (e) {
-            Logger.error(`${state?.moduleName || key} _beforeMount вернул несериализуемое состояние: ${e}` );
+            const serializedMapError = {};
+            Object.keys(serializedMap).forEach((key) => {
+               serializedMapError[key] = typeof serializedMap[key] === 'object' ? typeof serializedMap[key] : serializedMap[key];
+            });
+            const serializedMapErrorString = JSON.stringify(serializedMapError).substr(0, 1024);
+            Logger.error(`${state?.moduleName || key} _beforeMount вернул несериализуемое состояние из ${serializedMapErrorString} : ${e}` );
             delete serializedMap[key];
          }
       });
