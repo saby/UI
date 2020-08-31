@@ -516,19 +516,6 @@ class Traverse implements ITraverse {
     * @returns {Ast | null} Returns instance of concrete Ast or null in case of broken content.
     */
    visitTag(node: Nodes.Tag, context: ITraverseContext): Ast.Ast {
-      return this.processTag(node, context);
-   }
-
-   // </editor-fold>
-
-   /**
-    * Process tag node in concrete state.
-    * @private
-    * @param node {Tag} Html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {Ast | null} Returns concrete instance of Ast or null in case of broken tag node.
-    */
-   private processTag(node: Nodes.Tag, context: ITraverseContext): Ast.Ast {
       switch (context.state) {
          case TraverseState.MARKUP:
             return this.processTagInMarkup(node, context);
@@ -557,6 +544,8 @@ class Traverse implements ITraverse {
             return null;
       }
    }
+
+   // </editor-fold>
 
    /**
     * Process tag node in markup state.
