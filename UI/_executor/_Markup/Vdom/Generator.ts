@@ -87,7 +87,7 @@ export class GeneratorVdom implements IGenerator {
                     attrs: IGeneratorAttrs,
                     templateCfg: ICreateControlTemplateCfg,
                     context: string,
-                    deps: TDeps): WsControlOrController | GeneratorVoid {
+                    deps: TDeps): GeneratorObject | Promise<unknown> | Error {
       return this.generatorBase.prepareWsControl(name, data, attrs, templateCfg, context, deps);
    }
 
@@ -97,7 +97,7 @@ export class GeneratorVdom implements IGenerator {
                    templateCfg: ICreateControlTemplateCfg,
                    context: string,
                    deps: TDeps,
-                   config: IGeneratorConfig): WsControlOrController | GeneratorVoid {
+                   config: IGeneratorConfig): GeneratorObject | Promise<unknown> | Error {
       return this.generatorBase.prepareTemplate(name, data, attrs, templateCfg, context, deps, config);
    }
 
@@ -106,7 +106,7 @@ export class GeneratorVdom implements IGenerator {
                      attrs: IGeneratorAttrs,
                      templateCfg: ICreateControlTemplateCfg,
                      context: string,
-                     deps: TDeps): WsControlOrController | GeneratorVoid {
+                     deps: TDeps): GeneratorObject | Promise<unknown> | Error {
       return this.generatorBase.prepareController(name, data, attrs, templateCfg, context, deps);
    }
 
@@ -119,7 +119,7 @@ export class GeneratorVdom implements IGenerator {
                    includedTemplates: TIncludedTemplate,
                    config: IGeneratorConfig,
                    contextObj?: GeneratorEmptyObject,
-                   defCollection?: IGeneratorDefCollection | void): WsControlOrController | GeneratorVoid {
+                   defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error {
       return this.generatorBase.prepareResolver(name,
                                              data,
                                              attrs,

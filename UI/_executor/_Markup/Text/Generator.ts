@@ -12,7 +12,7 @@ import { ResolveControlName } from '../ResolveControlName';
 import {
    GeneratorEmptyObject,
    GeneratorObject,
-   GeneratorTemplateOrigin, GeneratorVoid,
+   GeneratorTemplateOrigin,
    IControl,
    IControlData,
    IControlProperties,
@@ -23,7 +23,7 @@ import {
    IPrepareDataForCreate,
    TDeps,
    TIncludedTemplate,
-   TObject, WsControlOrController
+   TObject
 } from '../IGeneratorType';
 import { createTagDefault, joinElements, stringTemplateResolver } from '../Utils'
 

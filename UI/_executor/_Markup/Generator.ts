@@ -13,7 +13,7 @@ import * as ConfigResolver from '../_Utils/ConfigResolver'
 import {
    GeneratorEmptyObject,
    GeneratorObject,
-   GeneratorTemplateOrigin, GeneratorVoid,
+   GeneratorTemplateOrigin,
    IControl,
    IControlData,
    ICreateControlTemplateCfg,
@@ -23,7 +23,6 @@ import {
    TDeps,
    TIncludedTemplate,
    TObject,
-   WsControlOrController,
    IControlUserData
 } from 'UI/_executor/_Markup/IGeneratorType';
 
