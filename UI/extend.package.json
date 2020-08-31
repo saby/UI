@@ -7,7 +7,13 @@
     "UI/Focus",
     "UI/Utils",
     "UI/NodeCollector",
-    "UI/theme/controller"
+    "UI/theme/controller",
+    "UI/Contexts",
+    "UI/Executor",
+    "UI/Reactivity",
+    "UI/Builder",
+    "UI/State",
+    "UI/Events"
   ],
   "extendsTo": "online-superbundle.package.js"
 }
