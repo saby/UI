@@ -653,8 +653,7 @@ class Traverse implements ITraverse {
          const childrenContext = {
             ...context,
             state: TraverseState.PRIMITIVE_DATA,
-            textContent: TextContentFlags.TEXT_AND_EXPRESSION,
-            textStrictMode: true
+            textContent: TextContentFlags.TEXT_AND_EXPRESSION
          };
          this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
@@ -677,8 +676,7 @@ class Traverse implements ITraverse {
          const childrenContext = {
             ...context,
             state: TraverseState.PRIMITIVE_DATA,
-            textContent: TextContentFlags.TEXT,
-            textStrictMode: true
+            textContent: TextContentFlags.TEXT
          };
          const children = this.visitAll(node.children, childrenContext);
          if (children.length !== 1) {
@@ -727,8 +725,7 @@ class Traverse implements ITraverse {
          const childrenContext = {
             ...context,
             state: TraverseState.PRIMITIVE_DATA,
-            textContent: TextContentFlags.TEXT_AND_EXPRESSION,
-            textStrictMode: true
+            textContent: TextContentFlags.TEXT_AND_EXPRESSION
          };
          this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
@@ -880,8 +877,7 @@ class Traverse implements ITraverse {
       try {
          const childrenContext = {
             ...context,
-            state: TraverseState.PRIMITIVE_DATA,
-            textStrictMode: true
+            state: TraverseState.PRIMITIVE_DATA
          };
          this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
@@ -909,8 +905,7 @@ class Traverse implements ITraverse {
       try {
          const childrenContext = {
             ...context,
-            state: TraverseState.PRIMITIVE_DATA,
-            textStrictMode: true
+            state: TraverseState.PRIMITIVE_DATA
          };
          this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
