@@ -501,7 +501,8 @@ export class Generator {
       return name;
    }
 
-   private checkResult(res: WsControlOrController | GeneratorVoid, type: string): WsControlOrController | GeneratorVoid {
+   private checkResult(res: GeneratorObject | Promise<unknown> | Error,
+                       type: string): GeneratorObject | Promise<unknown> | Error {
       if (res !== undefined) {
          return res;
       }

@@ -91,10 +91,7 @@ export interface IGenerator {
     * @param templateCfg
     * @param context
     * @param deps
-    * @param includedTemplates
     * @param config
-    * @param contextObj
-    * @param defCollection
     * @returns {string | object | Promise<unknown> | Error}
     */
    prepareTemplate(name: GeneratorTemplateOrigin,
