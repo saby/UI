@@ -19,22 +19,69 @@ import * as Resolvers from 'UI/_builder/Tmpl/core/Resolvers';
 
 // <editor-fold desc="Public interfaces and functions">
 
+/**
+ * Interface for traverse machine.
+ */
 export interface ITraverse extends Nodes.INodeVisitor {
+
+   /**
+    * Transform html tree into abstract syntax tree.
+    * @param nodes {Node[]} Collection of nodes of html tree.
+    * @param options {ITraverseOptions} Transform options.
+    * @returns {Ast[]} Collection of nodes of abstract syntax tree.
+    */
    transform(nodes: Nodes.Node[], options: ITraverseOptions): Ast.Ast[];
 }
 
+/**
+ * Interface for traverse machine configuration.
+ */
 export interface ITraverseConfig {
+
+   /**
+    * Mustache expression parser.
+    */
    expressionParser: IParser;
+
+   /**
+    * Flag for generating hierarchical keys on abstract syntax tree nodes.
+    */
    hierarchicalKeys: boolean;
+
+   /**
+    * Error handler.
+    */
    errorHandler: IErrorHandler;
+
+   /**
+    * Allow creating comment nodes in abstract syntax tree.
+    */
    allowComments: boolean;
 }
 
+/**
+ * Interface for traverse options.
+ */
 export interface ITraverseOptions {
+
+   /**
+    *
+    */
    fileName: string;
+
+   /**
+    *
+    */
    scope: Scope;
 }
 
+/**
+ * Transform html tree into abstract syntax tree.
+ * @param nodes {Node[]} Collection of nodes of html tree.
+ * @param config {ITraverseConfig} Traverse machine configuration.
+ * @param options {ITraverseOptions} Traverse machine options.
+ * @returns {Ast[]} Collection of nodes of abstract syntax tree.
+ */
 export default function traverse(nodes: Nodes.Node[], config: ITraverseConfig, options: ITraverseOptions): Ast.Ast[] {
    return new Traverse(config).transform(
       nodes,
@@ -89,19 +136,33 @@ const enum TraverseState {
    COMPONENT_OPTION
 }
 
-interface ITraverseContext {
-   scope: Scope;
-   fileName: string;
+/**
+ * Traverse context.
+ */
+interface ITraverseContext extends ITraverseOptions {
+
+   /**
+    * Previous processed node of abstract syntax tree.
+    */
    prev: Ast.Ast | null;
+
+   /**
+    * Current traverse machine state.
+    */
    state: TraverseState;
+
+   /**
+    * Allowed text content data.
+    */
    textContent?: TextContentFlags;
 }
 
-// </editor-fold>
-
-// <editor-fold desc="Internal finite state machine functions">
-
-function validateElseNode(prev: Ast.Ast | null) {
+/**
+ * Validate conditional else node.
+ * @param prev {Ast} Previous processed node of abstract syntax tree.
+ * @throws {Error} Throws Error in case of invalid conditional else semantics.
+ */
+function validateElseNode(prev: Ast.Ast | null): void {
    if (prev instanceof Ast.IfNode) {
       return;
    }
@@ -116,6 +177,11 @@ function validateElseNode(prev: Ast.Ast | null) {
    throw new Error('Ожидалось, что директива ws:else следует за директивной ws:if или ws:else с атрибутом data');
 }
 
+/**
+ * Validate processed boolean node content.
+ * @param children {TextNode[]} Processed boolean node content.
+ * @throws {Error} Throws Error in case of invalid boolean semantics.
+ */
 function validateBoolean(children: Ast.TextNode[]): void {
    if (children.length === 0) {
       throw new Error('не задано значение');
@@ -137,6 +203,11 @@ function validateBoolean(children: Ast.TextNode[]): void {
    }
 }
 
+/**
+ * Validate processed number node content.
+ * @param children {TextNode[]} Processed number node content.
+ * @throws {Error} Throws Error in case of invalid number semantics.
+ */
 function validateNumber(children: Ast.TextNode[]): void {
    if (children.length === 0) {
       throw new Error('не задано значение');
@@ -158,6 +229,13 @@ function validateNumber(children: Ast.TextNode[]): void {
    }
 }
 
+/**
+ * Validate processed option "template" for partial node and get its clean value.
+ * @param option {OptionNode} Processed option "template" for partial node.
+ * @param node {Tag} Origin node of html tree.
+ * @returns {ProgramNode | string} Returns string or instance of ProgramNode in case of dynamic partial.
+ * @throws {Error} Throws Error in case of invalid semantics template name of partial node.
+ */
 function validatePartialTemplate(option: Ast.OptionNode | undefined, node: Nodes.Tag): ProgramNode | string {
    if (option === undefined) {
       throw new Error('не задана обязательная опция "template"');
@@ -187,6 +265,10 @@ function validatePartialTemplate(option: Ast.OptionNode | undefined, node: Nodes
    return value;
 }
 
+/**
+ * Check if collection of nodes of abstract syntax tree contains only node types of content.
+ * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
+ */
 function containsContentOnly(nodes: Ast.Ast[]): boolean {
    for (let index = 0; index < nodes.length; ++index) {
       if (!Ast.isTypeofContent(nodes[index])) {
@@ -198,15 +280,41 @@ function containsContentOnly(nodes: Ast.Ast[]): boolean {
 
 // </editor-fold>
 
+/**
+ * Represents traverse finite state machine.
+ */
 class Traverse implements ITraverse {
 
    // <editor-fold desc="Traverse properties">
 
+   /**
+    * Mustache expression parser.
+    */
    private readonly expressionParser: IParser;
+
+   /**
+    * Keys generator for nodes of abstract syntax tree.
+    */
    private readonly keysGenerator: IKeysGenerator;
+
+   /**
+    * Error handler.
+    */
    private readonly errorHandler: IErrorHandler;
+
+   /**
+    * Allow creating comment nodes in abstract syntax tree.
+    */
    private readonly allowComments: boolean;
+
+   /**
+    * Attribute processor.
+    */
    private readonly attributeProcessor: IAttributeProcessor;
+
+   /**
+    * Text processor.
+    */
    private readonly textProcessor: ITextProcessor;
 
    // </editor-fold>
@@ -1597,7 +1705,6 @@ class Traverse implements ITraverse {
     * Remove all unused templates from scope.
     * @private
     * @param context {ITraverseContext} Processing context.
-    * @todo Move to scope optimizer.
     */
    private removeUnusedTemplates(context: ITraverseContext): void {
       const templates = context.scope.getTemplateNames();
