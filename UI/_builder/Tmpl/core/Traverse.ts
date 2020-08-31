@@ -575,6 +575,7 @@ class Traverse implements ITraverse {
    }
 
    private processTagInObjectData(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
+      // TODO: !!!
       if (Resolvers.isOption(node.name)) {
          const optionContext: ITraverseContext = {
             ...context
@@ -1451,6 +1452,13 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process component or partial content in context "content only".
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TContent | null} Returns content node or null in case of invalid content.
+    */
    private processComponentContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
       if (context.state === TraverseState.COMPONENT) {
          context.state = TraverseState.COMPONENT_WITH_CONTENT;

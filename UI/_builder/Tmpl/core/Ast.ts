@@ -365,17 +365,17 @@ export enum Flags {
    /**
     * Flag for unpacked node that has been changed its view.
     */
-   UNPACKED = 4,
+   UNPACKED = 2,
 
    /**
     * Flag for type casted node that has been changed its view.
     */
-   TYPE_CASTED = 8,
+   TYPE_CASTED = 4,
 
    /**
     * Flag for node that must be ignored in next processing.
     */
-   IGNORE = 16
+   IGNORE = 8
 }
 
 /**
