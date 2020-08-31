@@ -38,7 +38,7 @@ export interface IGenerator {
    chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string|void> | string | Error;
 
    /**
-    * Точка входа в создание контрола
+    * Точка входа в создание контрола/контроллера/шаблона
     * @param type
     * @param name
     * @param data
@@ -63,6 +63,88 @@ export interface IGenerator {
                  config: IGeneratorConfig,
                  contextObj?: GeneratorEmptyObject,
                  defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error
+
+   /**
+    * Точка входа в создание контрола (компонент с шаблоном)
+    * @param name
+    * @param data
+    * @param data
+    * @param attrs
+    * @param templateCfg
+    * @param context
+    * @param deps
+    * @returns {string | object | Promise<unknown> | Error}
+    */
+   prepareWsControl(name: GeneratorTemplateOrigin,
+                    data: IControlData,
+                    attrs: IGeneratorAttrs,
+                    templateCfg: ICreateControlTemplateCfg,
+                    context: string,
+                    deps: TDeps): GeneratorObject | Promise<unknown> | Error
+
+   /**
+    * Точка входа в создание шаблона
+    * @param name
+    * @param data
+    * @param data
+    * @param attrs
+    * @param templateCfg
+    * @param context
+    * @param deps
+    * @param config
+    * @returns {string | object | Promise<unknown> | Error}
+    */
+   prepareTemplate(name: GeneratorTemplateOrigin,
+                   data: IControlData,
+                   attrs: IGeneratorAttrs,
+                   templateCfg: ICreateControlTemplateCfg,
+                   context: string,
+                   deps: TDeps,
+                   config: IGeneratorConfig): GeneratorObject | Promise<unknown> | Error
+
+   /**
+    * Точка входа в создание контроллера (компонент без шаблона)
+    * @param name
+    * @param data
+    * @param data
+    * @param attrs
+    * @param templateCfg
+    * @param context
+    * @param deps
+    * @returns {string | object | Promise<unknown> | Error}
+    */
+   prepareController(name: GeneratorTemplateOrigin,
+                    data: IControlData,
+                    attrs: IGeneratorAttrs,
+                    templateCfg: ICreateControlTemplateCfg,
+                    context: string,
+                    deps: TDeps): GeneratorObject | Promise<unknown> | Error
+
+   /**
+    * Точка входа в создание резолвера (когда не знаем заранее что создаем)
+    * @param name
+    * @param data
+    * @param data
+    * @param attrs
+    * @param templateCfg
+    * @param context
+    * @param deps
+    * @param includedTemplates
+    * @param config
+    * @param contextObj
+    * @param defCollection
+    * @returns {string | object | Promise<unknown> | Error}
+    */
+   prepareResolver(name: GeneratorTemplateOrigin,
+                   data: IControlData,
+                   attrs: IGeneratorAttrs,
+                   templateCfg: ICreateControlTemplateCfg,
+                   context: string,
+                   deps: TDeps,
+                   includedTemplates: TIncludedTemplate,
+                   config: IGeneratorConfig,
+                   contextObj?: GeneratorEmptyObject,
+                   defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error
 
    /**
     * Создание текста
