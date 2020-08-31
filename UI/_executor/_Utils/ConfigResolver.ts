@@ -161,7 +161,7 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
             (!insertedData.hasOwnProperty('element') || !insertedData.element || insertedData.element.length === 0)) {
 
             // @ts-ignore
-            if (!fixScopeMergingInContent && !constants.isProduction) {
+            if (fixScopeMergingInContent === undefined && !constants.isProduction) {
                fixScopeMergingInContent = cookie.get('fixScopeMergingInContent');
             }
             if (!templateCfg.isRootTag && fixScopeMergingInContent === 'true') {
