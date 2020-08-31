@@ -1144,6 +1144,30 @@ class Traverse implements ITraverse {
    // <editor-fold desc="Processing component nodes">
 
    /**
+    * Process component or partial children and return collection of options.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {Array<ContentOptionNode | OptionNode>} Returns collection of options.
+    */
+   private processComponentChildren(node: Nodes.Tag, context: ITraverseContext): Array<Ast.ContentOptionNode | Ast.OptionNode> {
+      // TODO: ожидаю массив, состоящий:
+      //  1) из 1 контентной опции - дочернее состояние COMPONENT_WITH_CONTENT
+      //  2) из N опций - дочернее состояние COMPONENT_WITH_OPTION
+      const childrenContext: ITraverseContext = {
+         ...context,
+         state: TraverseState.COMPONENT
+      };
+      const componentContent = this.visitAll(node.children, childrenContext);
+      if (containsContentOnly(componentContent)) {
+         return [
+            new Ast.ContentOptionNode('content', <Ast.TContent[]>componentContent)
+         ];
+      }
+      return <Array<Ast.OptionNode>>componentContent;
+   }
+
+   /**
     * Only process html tag name and attributes and create component node of abstract syntax tree.
     * @private
     * @param node {Tag} Html tag node.
@@ -1188,20 +1212,8 @@ class Traverse implements ITraverse {
          if (node.isSelfClosing || node.children.length === 0) {
             return this.processComponentHead(node, context);
          }
-
-         // TODO: ожидаю массив, состоящий:
-         //  1) из 1 контентной опции - дочернее состояние COMPONENT_WITH_CONTENT
-         //  2) из N опций - дочернее состояние COMPONENT_WITH_OPTION
-         const childrenContext: ITraverseContext = {
-            ...context,
-            state: TraverseState.COMPONENT
-         };
-         const componentContent = this.visitAll(node.children, childrenContext);
          const ast = this.processComponentHead(node, context);
-         if (containsContentOnly(componentContent)) {
-            ast.setOption(new Ast.ContentOptionNode('content', <Ast.TContent[]>componentContent));
-            return ast;
-         }
+         const componentContent = this.processComponentChildren(node, context);
          this.applyOptions(ast, componentContent, node, context);
          return ast;
       } catch (error) {
@@ -1277,16 +1289,8 @@ class Traverse implements ITraverse {
          if (node.isSelfClosing || node.children.length === 0) {
             return this.processPartialHead(node, context);
          }
-
-         // TODO: ожидаю массив, состоящий:
-         //  1) из 1 контентной опции - дочернее состояние COMPONENT_WITH_CONTENT
-         //  2) из N опций - дочернее состояние COMPONENT_WITH_OPTION
-         const childrenContext: ITraverseContext = {
-            ...context,
-            state: TraverseState.COMPONENT
-         };
-         const partialContent = this.visitAll(node.children, childrenContext);
          const ast = this.processPartialHead(node, context);
+         const partialContent = this.processComponentChildren(node, context);
          if (containsContentOnly(partialContent)) {
             ast.setOption(new Ast.ContentOptionNode('content', <Ast.TContent[]>partialContent));
             return ast;
@@ -1308,13 +1312,21 @@ class Traverse implements ITraverse {
       return null;
    }
 
-   private applyOptions(ast: Ast.BaseWasabyElement, children: Ast.Ast[], node: Nodes.Tag, context: ITraverseContext): void {
+   /**
+    * Apply component or partial options.
+    * @private
+    * @param ast {BaseWasabyElement} Concrete instance of BaseWasabyElement - partial or component.
+    * @param children {Array<ContentOptionNode | OptionNode>} Collection of options and content options.
+    * @param node {Tag} Source html tag node.
+    * @param context {ITraverseContext} Processing context.
+    */
+   private applyOptions(ast: Ast.BaseWasabyElement, children: Array<Ast.ContentOptionNode | Ast.OptionNode>, node: Nodes.Tag, context: ITraverseContext): void {
       for (let index = 0; index < children.length; ++index) {
          const child = children[index];
          if (child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode) {
             if (ast.hasOption(child.__$ws_name)) {
-               this.errorHandler.critical(
-                  `Опция "${child.__$ws_name}" уже определена на компоненте "${node.name}". Полученная опция будет отброшена`,
+               this.errorHandler.error(
+                  `Опция "${child.__$ws_name}" уже определена на теге "${node.name}". Полученная опция будет отброшена`,
                   {
                      fileName: context.fileName,
                      position: node.position
@@ -1325,8 +1337,9 @@ class Traverse implements ITraverse {
             ast.setOption(child);
             continue;
          }
+         // TODO: remove after work
          this.errorHandler.critical(
-            `Получен некорректный узел (!=Option|ContentOption) внутри компонента "${node.name}"`,
+            `Получен некорректный узел (!=Option|ContentOption) внутри теге "${node.name}"`,
             {
                fileName: context.fileName,
                position: node.position

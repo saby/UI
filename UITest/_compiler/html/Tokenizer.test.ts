@@ -4,6 +4,8 @@ import { Tokenizer } from 'UI/_builder/Tmpl/html/Tokenizer';
 import { ContentModel } from 'UI/_builder/Tmpl/html/ContentModel';
 import { assert } from 'chai';
 
+// TODO: UI/_builder/Tmpl/* -> Compiler/*
+
 const FILE_NAME = 'Compiler/html/Tokenizer/TestTemplate.wml';
 
 const TOKENIZER_OPTIONS = {
