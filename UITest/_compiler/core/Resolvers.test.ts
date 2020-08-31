@@ -1,7 +1,35 @@
-// import * as Resolvers from 'UI/_builder/Tmpl/core/Resolvers';
-// import { assert } from 'chai';
+import * as Resolvers from 'UI/_builder/Tmpl/core/Resolvers';
+import { assert } from 'chai';
 
 // TODO: UI/_builder/Tmpl/* -> Compiler/*
+
+describe('Compiler/core/Resolvers', () => {
+   describe('getPhysicalPathDescription()', () => {
+      it('no plugins', () => {
+         const physicalPath = 'UIModule/Directory/File';
+         const description = Resolvers.getPhysicalPathDescription(physicalPath);
+         assert.strictEqual(description.physicalPath, physicalPath);
+         assert.isFalse(!!(description.plugins ^ Resolvers.RequireJSPlugins.NONE));
+      });
+      it('tmpl!', () => {
+         const physicalPath = 'UIModule/Directory/File';
+         const path = `tmpl!${physicalPath}`;
+         const description = Resolvers.getPhysicalPathDescription(path);
+         assert.strictEqual(description.physicalPath, physicalPath);
+         assert.isTrue(!!(description.plugins & Resolvers.RequireJSPlugins.TMPL));
+         assert.isFalse(!!(description.plugins ^ Resolvers.RequireJSPlugins.TMPL));
+      });
+      it('optional!tmpl!', () => {
+         const physicalPath = 'UIModule/Directory/File';
+         const path = `optional!tmpl!${physicalPath}`;
+         const description = Resolvers.getPhysicalPathDescription(path);
+         assert.strictEqual(description.physicalPath, physicalPath);
+         const plugins = Resolvers.RequireJSPlugins.TMPL | Resolvers.RequireJSPlugins.OPTIONAL;
+         assert.isTrue(!!(description.plugins & plugins));
+         assert.isFalse(!!(description.plugins ^ plugins));
+      });
+   });
+});
 
 // TODO: in development...
 // describe('Compiler/core/Resolvers', () => {
