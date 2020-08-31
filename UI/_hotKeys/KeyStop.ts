@@ -1,3 +1,6 @@
+/**
+ * @author Тэн В.А.
+ */
 import { Control, IControlOptions, TemplateFunction } from 'UI/Base';
 
 // @ts-ignore

@@ -1,3 +1,6 @@
+/**
+ * @author Тэн В.А.
+ */
 export default [
     'area',
     'base',

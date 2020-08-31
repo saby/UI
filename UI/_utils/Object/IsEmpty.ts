@@ -1,5 +1,7 @@
 /// <amd-module name="UI/_utils/Object/isEmpty" />
-
+/**
+ * @author Мальцев А.А.
+ */
 const nativeStringifier = Object.prototype.toString;
 const objectTag = '[object Object]';
 

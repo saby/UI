@@ -13,6 +13,9 @@ import * as DefaultOpenerFinder from './_focus/DefaultOpenerFinder';
 import * as FocusAttrs from './_focus/FocusAttrs';
 import { IControl } from './_focus/IControl';
 
+/**
+ * @author Тэн В.А.
+ */
 export {
    ElementFinder,
    Events,

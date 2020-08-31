@@ -1,6 +1,10 @@
 /// <amd-module name="UI/_executor/_Utils/RequireHelper" />
 /* tslint:disable */
 
+/**
+ * @author Тэн В.А.
+ */
+
 const myRequireHash = {};
 
 // require.defined returns current module if you call it with '.'

@@ -1,6 +1,8 @@
 /// <amd-module name="UI/_executor/_Expressions/Rights" />
 /* tslint:disable */
-
+/**
+ * @author Тэн В.А.
+ */
 // @ts-ignore
 import { ObjectUtils } from 'UI/Utils';
 // @ts-ignore

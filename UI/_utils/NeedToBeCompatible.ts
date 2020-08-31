@@ -1,3 +1,6 @@
+/**
+ * @author Санников К.
+ */
 function needToBeCompatible(parent) {
    if (typeof window === 'undefined') {
       return false;

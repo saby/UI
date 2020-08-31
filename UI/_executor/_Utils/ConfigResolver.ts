@@ -1,5 +1,9 @@
 /// <amd-module name="UI/_executor/_Utils/ConfigResolver" />
 
+/**
+ * @author Тэн В.А.
+ */
+
 import { FunctionUtils } from 'UI/Utils';
 import { constants, cookie } from 'Env/Env';
 import { plainMerge } from './Common';

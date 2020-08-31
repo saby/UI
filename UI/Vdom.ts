@@ -14,6 +14,9 @@ import * as Monad from './_vdom/Utils/Monad';
 import * as _Options from './_vdom/Synchronizer/resources/Options';
 import * as _MountMethodsCaller from './_vdom/Synchronizer/resources/MountMethodsCaller';
 
+/**
+ * @author Кондаков Р.Н.
+ */
 export { default as Synchronizer } from './_vdom/Synchronizer/Synchronizer';
 export { Debug };
 export { getChangedOptions } from './_vdom/Synchronizer/resources/DirtyChecking';

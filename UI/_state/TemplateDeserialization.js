@@ -1,4 +1,7 @@
 define('UI/_state/TemplateDeserialization', ['UI/_state/FunctionHeaderTemplate'], function(FunctionHeaderTemplate) {
+   /**
+    * @author Санников К.
+    */
    var objectFunctionHeaderTemplate;
 
    /**
