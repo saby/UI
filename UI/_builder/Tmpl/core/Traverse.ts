@@ -155,6 +155,15 @@ function validatePartialTemplate(option: Ast.OptionNode | undefined, node: Nodes
    return value;
 }
 
+function containsContentOnly(nodes: Ast.Ast[]): boolean {
+   for (let index = 0; index < nodes.length; ++index) {
+      if (!Ast.isTypeofContent(nodes[index])) {
+         return false;
+      }
+   }
+   return true;
+}
+
 // </editor-fold>
 
 class Traverse implements ITraverse {
@@ -457,9 +466,9 @@ class Traverse implements ITraverse {
          case 'ws:else':
          case 'ws:for':
          case 'ws:partial':
-            return this.processContentOption(node, context);
+            return this.processComponentContent(node, context);
          case 'ws:template':
-            return this.processOption(node, context);
+            return this.processComponentOption(node, context);
          case 'ws:Array':
          case 'ws:Boolean':
          case 'ws:Function':
@@ -477,10 +486,13 @@ class Traverse implements ITraverse {
             return null;
          default:
             if (Resolvers.isOption(node.name)) {
-               return this.processOption(node, context);
+               return this.processComponentOption(node, context);
             }
+
+            // We need to check component content node even if node is broken.
+            const componentContent = this.processComponentContent(node, context);
             if (Resolvers.isComponent(node.name) || isElementNode(node.name)) {
-               return this.processContentOption(node, context);
+               return componentContent;
             }
             this.errorHandler.error(
                `Обнаружен неизвестный HTML тег "${node.name}". Тег будет отброшен`,
@@ -499,7 +511,7 @@ class Traverse implements ITraverse {
          case 'ws:else':
          case 'ws:for':
          case 'ws:partial':
-            return this.processContentOption(node, context);
+            return this.processComponentContent(node, context);
          case 'ws:template':
             return this.castAndProcessObjectProperty(node, context);
          case 'ws:Array':
@@ -521,7 +533,7 @@ class Traverse implements ITraverse {
                return this.castAndProcessObjectProperty(node, context);
             }
             if (Resolvers.isComponent(node.name) || isElementNode(node.name)) {
-               return this.processContentOption(node, context);
+               return this.processComponentContent(node, context);
             }
             this.errorHandler.error(
                `Обнаружен неизвестный HTML тег "${node.name}". Тег будет отброшен`,
@@ -567,7 +579,7 @@ class Traverse implements ITraverse {
          const optionContext: ITraverseContext = {
             ...context
          };
-         return this.processOption(node, optionContext);
+         return this.processComponentOption(node, optionContext);
       }
       this.errorHandler.error(
          `Обнаружен тег "${node.name}" вместо ожидаемого тега с префиксом ws: в имени, служащий свойством ws:Object`,
@@ -1061,6 +1073,7 @@ class Traverse implements ITraverse {
 
    /**
     * Parse for-cycle parameters.
+    * @private
     * @param data {string} For-cycle parameters.
     * @throws {Error} Throws error if cycle parameters are invalid.
     */
@@ -1090,6 +1103,7 @@ class Traverse implements ITraverse {
 
    /**
     * Parse for-cycle parameters.
+    * @private
     * @param data {string} For-cycle parameters.
     * @throws {Error} Throws error if cycle parameters are invalid.
     */
@@ -1129,27 +1143,66 @@ class Traverse implements ITraverse {
 
    // <editor-fold desc="Processing component nodes">
 
+   /**
+    * Only process html tag name and attributes and create component node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ComponentNode} Returns instance of ComponentNode.
+    * @throws {Error} Throws error in case of broken node data.
+    */
+   private processComponentHead(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
+      if (!node.isSelfClosing && node.children.length === 0) {
+         this.errorHandler.warn(
+            `Для компонента "${node.name}" не задан контент и тег компонента не указан как самозакрывающийся`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+      }
+      const attributes = this.attributeProcessor.process(node.attributes, {
+         fileName: context.fileName,
+         hasAttributesOnly: false,
+         parentTagName: node.name
+      });
+      const { physicalPath, logicalPath } = Resolvers.resolveComponent(node.name);
+      return new Ast.ComponentNode(
+         physicalPath,
+         logicalPath,
+         attributes.attributes,
+         attributes.events,
+         attributes.options
+      );
+   }
+
+   /**
+    * Process html element tag and create component node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ComponentNode | null} Returns instance of ForNode or ForeachNode or null in case of broken content.
+    */
    private processComponent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       try {
+         if (node.isSelfClosing || node.children.length === 0) {
+            return this.processComponentHead(node, context);
+         }
+
+         // TODO: ожидаю массив, состоящий:
+         //  1) из 1 контентной опции - дочернее состояние COMPONENT_WITH_CONTENT
+         //  2) из N опций - дочернее состояние COMPONENT_WITH_OPTION
          const childrenContext: ITraverseContext = {
             ...context,
             state: TraverseState.COMPONENT
          };
-         const children = this.visitAll(node.children, childrenContext);
-         const attributes = this.attributeProcessor.process(node.attributes, {
-            fileName: context.fileName,
-            hasAttributesOnly: false,
-            parentTagName: node.name
-         });
-         const { physicalPath, logicalPath } = Resolvers.resolveComponent(node.name);
-         const ast = new Ast.ComponentNode(
-            physicalPath,
-            logicalPath,
-            attributes.attributes,
-            attributes.events,
-            attributes.options
-         );
-         this.applyOptions(ast, children, node, context);
+         const componentContent = this.visitAll(node.children, childrenContext);
+         const ast = this.processComponentHead(node, context);
+         if (containsContentOnly(componentContent)) {
+            ast.setOption(new Ast.ContentOptionNode('content', <Ast.TContent[]>componentContent));
+            return ast;
+         }
+         this.applyOptions(ast, componentContent, node, context);
          return ast;
       } catch (error) {
          this.errorHandler.error(
@@ -1163,7 +1216,25 @@ class Traverse implements ITraverse {
       }
    }
 
-   private createPartialNode(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
+   /**
+    * Only process html tag name and attributes and create
+    * concrete realisation of partial template node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {InlineTemplateNode | StaticPartialNode | DynamicPartialNode} Returns concrete instance of partial template.
+    * @throws {Error} Throws error in case of broken node data.
+    */
+   private processPartialHead(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
+      if (!node.isSelfClosing &&node.children.length === 0) {
+         this.errorHandler.warn(
+            `Для директивы ws:partial не задан контент и тег компонента не указан как самозакрывающийся`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+      }
       const attributes = this.attributeProcessor.process(node.attributes, {
          fileName: context.fileName,
          hasAttributesOnly: false,
@@ -1194,15 +1265,33 @@ class Traverse implements ITraverse {
       );
    }
 
+   /**
+    * Process html element tag and create concrete realisation of partial template node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {InlineTemplateNode | StaticPartialNode | DynamicPartialNode | null} Returns concrete instance of partial template or null in case of broken content.
+    */
    private processPartial(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
       try {
+         if (node.isSelfClosing || node.children.length === 0) {
+            return this.processPartialHead(node, context);
+         }
+
+         // TODO: ожидаю массив, состоящий:
+         //  1) из 1 контентной опции - дочернее состояние COMPONENT_WITH_CONTENT
+         //  2) из N опций - дочернее состояние COMPONENT_WITH_OPTION
          const childrenContext: ITraverseContext = {
             ...context,
             state: TraverseState.COMPONENT
          };
-         const children = this.visitAll(node.children, childrenContext);
-         const ast = this.createPartialNode(node, context);
-         this.applyOptions(ast, children, node, context);
+         const partialContent = this.visitAll(node.children, childrenContext);
+         const ast = this.processPartialHead(node, context);
+         if (containsContentOnly(partialContent)) {
+            ast.setOption(new Ast.ContentOptionNode('content', <Ast.TContent[]>partialContent));
+            return ast;
+         }
+         this.applyOptions(ast, partialContent, node, context);
          if (ast instanceof Ast.InlineTemplateNode) {
             context.scope.registerTemplateUsage(ast.__$ws_name);
          }
@@ -1246,7 +1335,7 @@ class Traverse implements ITraverse {
       }
    }
 
-   private processOption(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
+   private processComponentOption(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
       if (context.state === TraverseState.COMPONENT) {
          context.state = TraverseState.COMPONENT_WITH_OPTION;
       }
@@ -1363,7 +1452,7 @@ class Traverse implements ITraverse {
       }
    }
 
-   private processContentOption(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
+   private processComponentContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
       if (context.state === TraverseState.COMPONENT) {
          context.state = TraverseState.COMPONENT_WITH_CONTENT;
       }
@@ -1385,6 +1474,7 @@ class Traverse implements ITraverse {
 
    /**
     * Get program node from tag node attribute value.
+    * @private
     * @param node {Tag} Current tag node.
     * @param attribute {string} Name of single required attribute.
     * @param context {ITraverseContext} Processing context.
@@ -1397,6 +1487,7 @@ class Traverse implements ITraverse {
 
    /**
     * Get text from tag node attribute value.
+    * @private
     * @param node {Tag} Current tag node.
     * @param attribute {string} Name of single required attribute.
     * @param context {ITraverseContext} Processing context.
@@ -1409,6 +1500,7 @@ class Traverse implements ITraverse {
 
    /**
     * Get tag node attribute value processed.
+    * @private
     * @param node {Tag} Current tag node.
     * @param attribute {string} Name of single required attribute.
     * @param allowedContent {TextContentFlags} Allowed attribute value content type.
@@ -1457,6 +1549,7 @@ class Traverse implements ITraverse {
 
    /**
     * Warn all AST attributes in collection as unexpected.
+    * @private
     * @param collection {IAttributes | IEvents} Collection of attributes or events.
     * @param parent {Tag} Tag node that contains that collection of attributes or events.
     * @param context {ITraverseContext} Processing context.
@@ -1475,6 +1568,7 @@ class Traverse implements ITraverse {
 
    /**
     * Warn all html attributes in html tag node as unexpected.
+    * @private
     * @param node {Tag} Tag node that contains collection of attributes.
     * @param context {ITraverseContext} Processing context.
     */
