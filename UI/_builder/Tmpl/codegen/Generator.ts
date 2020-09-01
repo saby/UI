@@ -44,19 +44,19 @@ export function genGetScope(expression: string): string {
  *  <ws:partial template="{{ 'wml!path/to/template/file' }}" /> --> genCreateControlTemplate
  *  <ws:partial template="{{ 'Module/Control' }}" /> --> genCreateControl
  * @param name
- * @param scope
+ * @param data
  * @param attributes
- * @param config
+ * @param templateCfg
  */
 export function genCreateControlResolver(
    name: string,
-   scope: string,
+   data: string,
    attributes: string,
-   config: string
+   templateCfg: string
 ): string {
    // Каждый partial должен создавать свой контекст ключей,
    // поэтому добавляем part_%i текущий ключ
-   return `${VAR_MODULE_NAME}.createControl("resolver", ${name}, ${scope}, ${attributes}, ${config}`
+   return `${VAR_MODULE_NAME}.prepareResolver(${name}, ${data}, ${attributes}, ${templateCfg}`
       + ', (isVdom?context + "part_" + (templateCount++) : context), depsLocal'
       + `, includedTemplates, ${getConfig()}, {}, defCollection)`;
 }
@@ -65,17 +65,17 @@ export function genCreateControlResolver(
  * Для создания вызовов от конструкций:
  * <Module:Control />
  * @param name
- * @param scope
+ * @param data
  * @param attributes
- * @param config
+ * @param templateCfg
  */
 export function genCreateControlModule(
    name: string,
-   scope: string,
+   data: string,
    attributes: string,
-   config: string
+   templateCfg: string
 ): string {
-   return `${VAR_MODULE_NAME}.createControl("resolver", ${name}, ${scope}, ${attributes}, ${config}`
+   return `${VAR_MODULE_NAME}.prepareResolver(${name}, ${data}, ${attributes}, ${templateCfg}`
       + ', (isVdom?context + "part_" + (templateCount++) : context), depsLocal'
       + `, includedTemplates, ${getConfig()}, {}, defCollection)`;
 }
@@ -85,34 +85,34 @@ export function genCreateControlModule(
  * <Module.Control />
  * <ws:partial template="Module/Control" />
  * @param name
- * @param scope
+ * @param data
  * @param attributes
- * @param config
+ * @param templateCfg
  */
 export function genCreateControl(
    name: string,
-   scope: string,
+   data: string,
    attributes: string,
-   config: string
+   templateCfg: string
 ): string {
-   return `${VAR_MODULE_NAME}.createControl("wsControl", ${name}, ${scope}, ${attributes}, ${config}`
-      + `, context, depsLocal, includedTemplates, ${getConfig()})`;
+   return `${VAR_MODULE_NAME}.prepareWsControl(${name}, ${data}, ${attributes}, ${templateCfg}`
+      + `, context, depsLocal)`;
 }
 
 /**
  * Для создания вызовов от конструкций:
  * <ws:partial template="wml!path-to-template-file" />
  * @param name
- * @param scope
+ * @param data
  * @param attributes
- * @param config
+ * @param templateCfg
  */
 export function genCreateControlTemplate(
    name: string,
-   scope: string,
+   data: string,
    attributes: string,
-   config: string
+   templateCfg: string
 ): string {
-   return `${VAR_MODULE_NAME}.createControl("template", ${name}, ${scope}, ${attributes}, ${config}`
-      + `, context, depsLocal, includedTemplates, ${getConfig()})`;
+   return `${VAR_MODULE_NAME}.prepareTemplate(${name}, ${data}, ${attributes}, ${templateCfg}`
+      + `, context, depsLocal, ${getConfig()})`;
 }
