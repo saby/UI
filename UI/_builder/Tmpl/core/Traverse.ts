@@ -20,20 +20,6 @@ import * as Resolvers from 'UI/_builder/Tmpl/core/Resolvers';
 // <editor-fold desc="Public interfaces and functions">
 
 /**
- * Interface for traverse machine.
- */
-export interface ITraverse extends Nodes.INodeVisitor {
-
-   /**
-    * Transform html tree into abstract syntax tree.
-    * @param nodes {Node[]} Collection of nodes of html tree.
-    * @param options {ITraverseOptions} Transform options.
-    * @returns {Ast[]} Collection of nodes of abstract syntax tree.
-    */
-   transform(nodes: Nodes.Node[], options: ITraverseOptions): Ast.Ast[];
-}
-
-/**
  * Interface for traverse machine configuration.
  */
 export interface ITraverseConfig {
@@ -65,14 +51,28 @@ export interface ITraverseConfig {
 export interface ITraverseOptions {
 
    /**
-    *
+    * Source file name.
     */
    fileName: string;
 
    /**
-    *
+    * Processing scope object.
     */
    scope: Scope;
+}
+
+/**
+ * Interface for traverse machine.
+ */
+export interface ITraverse extends Nodes.INodeVisitor {
+
+   /**
+    * Transform html tree into abstract syntax tree.
+    * @param nodes {Node[]} Collection of nodes of html tree.
+    * @param options {ITraverseOptions} Transform options.
+    * @returns {Ast[]} Collection of nodes of abstract syntax tree.
+    */
+   transform(nodes: Nodes.Node[], options: ITraverseOptions): Ast.Ast[];
 }
 
 /**
@@ -154,7 +154,7 @@ interface ITraverseContext extends ITraverseOptions {
    /**
     * Allowed text content data.
     */
-   textContent?: TextContentFlags;
+   textContent: TextContentFlags;
 }
 
 /**
@@ -348,7 +348,8 @@ class Traverse implements ITraverse {
          prev: null,
          state: TraverseState.MARKUP,
          fileName: options.fileName,
-         scope: options.scope
+         scope: options.scope,
+         textContent: TextContentFlags.FULL_TEXT
       };
       const tree = this.visitAll(nodes, context);
       this.removeUnusedTemplates(context);
