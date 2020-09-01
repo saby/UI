@@ -6,7 +6,7 @@ import { IEventState, IMobileEvent, ITouchLocation, MobileEvent } from "./Mobile
 let swipeState;
 let handlerName;
 
-export default class SwipeController {
+export class SwipeController {
 
    public static resetState(): void {
       swipeState = {

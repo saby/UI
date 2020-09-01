@@ -6,7 +6,7 @@ import { IEventState, IMobileEvent, MobileEvent } from "./MobileEvents";
 let longTapState;
 let handlerName;
 
-export default class LongTapController {
+export class LongTapController {
    private static tapTimeout;
 
    public static resetState(): void {

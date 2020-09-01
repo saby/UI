@@ -20,8 +20,8 @@ import { TComponentAttrs } from '../interfaces';
 import { EventUtils } from 'UI/Events';
 import { RawMarkupNode } from 'UI/Executor';
 import Environment from './Environment';
-import SwipeController from './SwipeController';
-import LongTapController from './LongTapController';
+import { SwipeController } from './SwipeController';
+import { LongTapController } from './LongTapController';
 import {
    onStartSync,
    onEndSync
