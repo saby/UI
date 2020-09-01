@@ -1,6 +1,8 @@
 /// <amd-module name="UI/_executor/_Expressions/Scope" />
 /* tslint:disable */
-
+/**
+ * @author Тэн В.А.
+ */
 import { ReactiveObserver } from 'UI/Reactivity';
 
 /**

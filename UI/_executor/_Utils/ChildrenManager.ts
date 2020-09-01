@@ -1,5 +1,9 @@
 /// <amd-module name="UI/_executor/_Utils/ChildrenManager" />
 /* tslint:disable */
+
+/**
+ * @author Тэн В.А.
+ */
 // @ts-ignore
 import { delay } from 'Types/function';
 

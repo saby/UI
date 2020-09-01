@@ -1,6 +1,10 @@
 /// <amd-module name="UI/_focus/AttrHelper" />
 /* tslint:disable */
 
+/**
+ * @author Тэн В.А.
+ */
+
 export function isAttr(string) {
    return string.startsWith('attr:');
 }

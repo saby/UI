@@ -1,6 +1,10 @@
 /// <amd-module name="UI/_executor/_Utils/OptionsResolver" />
 /* tslint:disable */
 
+/**
+ * @author Тэн В.А.
+ */
+
 // @ts-ignore
 import { constants } from 'Env/Env';
 // @ts-ignore

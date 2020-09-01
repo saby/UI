@@ -1,3 +1,6 @@
+/**
+ * @author Тэн В.А.
+ */
 import { goUpByControlTree } from 'UI/NodeCollector';
 import { constants } from 'Env/Env';
 

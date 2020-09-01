@@ -1,6 +1,10 @@
 /// <amd-module name="UI/_executor/Utils" />
 /* tslint:disable */
 
+/**
+ * @author Тэн В.А.
+ */
+
 import * as Class from './_Utils/Class';
 import * as Common from './_Utils/Common';
 import * as ConfigResolver from './_Utils/ConfigResolver';

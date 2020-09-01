@@ -4,7 +4,7 @@ import { isElementVisible } from 'UI/Utils';
 import { notifyActivationEvents } from 'UI/_focus/Events';
 
 /**
- * @author Белотелов Н.В.
+ * @author Тэн В.А.
  * Содержит логику восстановление фокуса, если фокус слетает на body
  */
 

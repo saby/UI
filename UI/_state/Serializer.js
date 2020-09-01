@@ -9,6 +9,10 @@ define('UI/_state/Serializer', [
    Env,
    deserializeTemplate
 ) {
+   /**
+    * @author Санников К.
+    */
+
    var typesDi;
 
    function getTypesDi() {

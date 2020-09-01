@@ -5,6 +5,7 @@
  * @library UI/Utils
  * @includes Logger UI/_utils/Logger
  * @includes Purifier UI/_utils/Purifier
+ * @author Шипин А.А.
  */
 
 import * as Logger from './_utils/Logger';

@@ -1,6 +1,10 @@
 /// <amd-module name="UI/_focus/FocusAttrs   " />
 /* tslint:disable */
 
+/**
+ * @author Тэн В.А.
+ */
+
 import { checkAttr } from './AttrHelper';
 
 export function prepareAttrsForFocus(attributes, opts) {
