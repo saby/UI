@@ -1,6 +1,10 @@
 /// <amd-module name="UI/_contexts/ContextResolver" />
 /* tslint:disable */
 
+/**
+ * @author Тэн В.А.
+ */
+
 import { Logger } from 'UI/Utils';
 
 const whiteList = {

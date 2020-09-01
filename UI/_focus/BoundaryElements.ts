@@ -2,7 +2,7 @@
 /* tslint:disable */
 
 /**
- * @author Белотелов Н.В.
+ * @author Тэн В.А.
  * В этом модуле содержится логика работы с элементами vdom-focus-in и vdom-focus-out
  */
 

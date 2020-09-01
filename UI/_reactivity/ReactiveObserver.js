@@ -1,4 +1,7 @@
 define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], function(DevtoolsHook, TypesShim) {
+   /**
+    * @author Шипин А.А.
+    */
    var Map = TypesShim.Map;
 
    var arrayMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];

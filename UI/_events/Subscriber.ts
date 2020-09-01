@@ -2,6 +2,10 @@
 /* tslint:disable */
 
 /**
+ * @author Тэн В.А.
+ */
+
+/**
  * Create function for event binding.
  *
  * @param func - function for launch

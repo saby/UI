@@ -1,6 +1,10 @@
 /// <amd-module name="UI/_executor/TClosure" />
 /* tslint:disable */
 
+/**
+ * @author Тэн В.А.
+ */
+
 // @ts-ignore
 import { Serializer } from 'UI/State';
 // @ts-ignore

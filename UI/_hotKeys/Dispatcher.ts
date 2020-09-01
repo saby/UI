@@ -1,3 +1,7 @@
+/**
+ * @author Тэн В.А.
+ */
+
 import { Control } from 'UI/Base';
 import { dispatcherHandler, ISyntheticEvent } from './dispatcherHandler';
 

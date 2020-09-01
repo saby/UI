@@ -2,6 +2,10 @@
 
 /* tslint:disable:no-string-literal */
 
+/**
+ * @author Тэн В.А.
+ */
+
 import {
    InfernoText, VNode, ChildFlags, TKey,
    getFlagsForElementVnode, createVNode, createTextVNode

@@ -1,3 +1,6 @@
+/**
+ * @author Тэн В.А.
+ */
 import { Control } from 'UI/Base';
 
 // @ts-ignore
