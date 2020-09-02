@@ -96,10 +96,10 @@ export class GeneratorText implements IGenerator {
       let resultingFn = cnstr && cnstr.prototype && cnstr.prototype._template;
 
       if (!cnstr && !resultingFn) {
-         let message = 'Попытка создания контрола, у которого отсутствует конструктор и шаблон';
-         let e = new Error('createWsControl() - constructor not found');
+         let message = `Попытка создания контрола ${data.dataComponent}, у которого отсутствует конструктор и шаблон`;
+         let e = new Error(`Ошибка создания контрола (${data.dataComponent}) - конструктор не найден`);
          // TODO в аргументах функции createWsControl содержатся много вспомогательной информации, нужно изучить что можно передать в детализацию логера за место инстанса
-         Logger.error(message, data, e);
+         Logger.error(message, data.logicParent, e);
          this.createEmptyText();
       }
 
