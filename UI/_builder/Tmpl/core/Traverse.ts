@@ -960,7 +960,7 @@ class Traverse implements ITraverse {
     * @param context {ITraverseContext} Processing context.
     * @returns {OptionNode} Returns OptionNode or null in case of broken content.
     */
-   private processTagInObjectPropertyWithContentTypeCastedToObject(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode {
+   private processTagInObjectPropertyWithContentTypeCastedToObject(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode | Ast.ContentOptionNode {
       if (context.state === TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT) {
          context.state = TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_OBJECT;
       }
@@ -974,7 +974,7 @@ class Traverse implements ITraverse {
          );
          return null;
       }
-      return this.castPropertyContentToObject(node, context, node.attributes);
+      return this.processProperty(node, context);
    }
 
    /**
@@ -1007,14 +1007,35 @@ class Traverse implements ITraverse {
             <Ast.TData>content[0]
          );
       }
-      this.errorHandler.critical(
-         `Результат обработки опции "${node.name}" содержит некорректные данные. Все данные будут отброшены`,
-         {
-            fileName: context.fileName,
-            position: node.position
+      const properties: Ast.IObjectProperties = { };
+      for (let index = 0; index < content.length; ++index) {
+         const property = content[index];
+         if (!(property instanceof Ast.OptionNode || property instanceof Ast.ContentOptionNode)) {
+            this.errorHandler.critical(
+               `Результат обработки опции "${node.name}" был получен некорректный узел. Узел будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            continue;
          }
+         if (properties.hasOwnProperty(property.__$ws_name)) {
+            this.errorHandler.critical(
+               `Опция "${property.__$ws_name}" уже существует на объекте "${node.name}". Опция будет отброшена`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            continue;
+         }
+         properties[property.__$ws_name] = property;
+      }
+      return new Ast.OptionNode(
+         name,
+         new Ast.ObjectNode(properties)
       );
-      return null;
    }
 
    // <editor-fold desc="Properties type casting">
