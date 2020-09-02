@@ -779,67 +779,15 @@ class Traverse implements ITraverse {
       if (canBeTypeCasted(node)) {
          return this.castPropertyWithType(node, context);
       }
-      switch (node.name) {
-         case 'ws:if':
-         case 'ws:else':
-         case 'ws:for':
-         case 'ws:partial':
-            this.errorHandler.error(
-               `Использование директивы "${node.name}" в данном контексте запрещено. Ожидалась опция. Директива будет отброшена`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
-         case 'ws:Array':
-         case 'ws:Boolean':
-         case 'ws:Function':
-         case 'ws:Number':
-         case 'ws:Object':
-         case 'ws:String':
-         case 'ws:Value':
-            this.errorHandler.error(
-               `Использование директивы "${node.name}" вне описания опции запрещено. Ожидалась опция. Директива будет отброшена`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
-         default:
-            if (Resolvers.isOption(node.name)) {
-               return this.processTagInComplexObjectProperty(node, context);
-            }
-            if (Resolvers.isComponent(node.name)) {
-               this.errorHandler.error(
-                  `Использование компонента "${node.name}" в данном контексте запрещено. Ожидалась опция. Компонент будет отброшен`,
-                  {
-                     fileName: context.fileName,
-                     position: node.position
-                  }
-               );
-               return null;
-            }
-            if (Resolvers.isComponent(node.name) || isElementNode(node.name)) {
-               this.errorHandler.error(
-                  `Использование элемента "${node.name}" в данном контексте запрещено. Ожидалась опция. Элемент будет отброшен`,
-                  {
-                     fileName: context.fileName,
-                     position: node.position
-                  }
-               );
-               return null;
-            }
-            this.errorHandler.error(
-               `Обнаружен неизвестный HTML тег "${node.name}". Ожидалась опция. Тег будет отброшен`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
-      }
+      // TODO: process option content and create [content] option node
+      this.errorHandler.error(
+         `Not implemented yet to process property "${node.name}"`,
+         {
+            fileName: context.fileName,
+            position: node.position
+         }
+      );
+      return null;
    }
 
    // <editor-fold desc="Properties type casting">
