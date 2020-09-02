@@ -359,6 +359,7 @@ export {
    plainMergeContext,
    getTypeFunction as getTypeFunc,
    createGenerator,
+   getMarkupGenerator,
    bindProxy,
    isObject,
    prepareAttrsForFocus,
