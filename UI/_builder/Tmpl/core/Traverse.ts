@@ -263,6 +263,10 @@ function validatePartialTemplate(option: Ast.OptionNode | undefined, node: Nodes
    return value;
 }
 
+/**
+ * Check if first child in type consistent collection has type of content.
+ * @param children {Ast[]} Type consistent collection of nodes of abstract syntax tree.
+ */
 function isFirstChildContent(children: Ast.Ast[]): boolean {
    if (children.length === 0) {
       return false;
@@ -270,6 +274,9 @@ function isFirstChildContent(children: Ast.Ast[]): boolean {
    return Ast.isTypeofContent(children[0]);
 }
 
+/**
+ * Allowed type names for type casting.
+ */
 const CASTING_TYPES = {
    'array': true,
    'boolean': true,
@@ -280,6 +287,12 @@ const CASTING_TYPES = {
    'value': true
 };
 
+/**
+ * Check if html tag node (processing in context of property) has "type" attribute
+ * and its value is valid and allowed in casting types collection.
+ * @param node {Tag} Processing html tag node in context of property.
+ * @returns {boolean} Returns true if property tag can be type casted.
+ */
 function canBeTypeCasted(node: Nodes.Tag): boolean {
    if (!node.attributes.hasOwnProperty('type')) {
       return false;
@@ -737,6 +750,18 @@ class Traverse implements ITraverse {
 
    // <editor-fold desc="Properties type casting">
 
+   /**
+    * Process property and cast its content to concrete type.
+    * ```
+    *    <ws:property type="array|boolean|function|number|object|string|value">
+    *       ...
+    *    </ws:property>
+    * ```
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {OptionNode} Returns option node that contains value with concrete type.
+    */
    private castPropertyWithType(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode {
       const type = node.attributes.type.value;
       const attributes: Nodes.IAttributes = {
@@ -769,6 +794,24 @@ class Traverse implements ITraverse {
       return null;
    }
 
+   /**
+    * Process property and cast its content to array type.
+    * ```
+    *    <ws:property type="array">
+    *       ...
+    *       <ws:Type>
+    *          ...
+    *       </ws:Type>
+    *       ...
+    *    </ws:property>
+    * ```
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attributes {IAttributes} Attributes collection with removed "type" property.
+    * Attributes collection on html tag node will be ignored.
+    * @returns {OptionNode} Returns option node that contains value with type of array.
+    */
    private castPropertyContentToArray(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
       try {
          const name = Resolvers.resolveOption(node.name);
@@ -789,6 +832,20 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process property and cast its content to array type.
+    * ```
+    *    <ws:property type="boolean">
+    *       Mustache-expression or text with values "true" or "false".
+    *    </ws:property>
+    * ```
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attributes {IAttributes} Attributes collection with removed "type" property.
+    * Attributes collection on html tag node will be ignored.
+    * @returns {OptionNode} Returns option node that contains value with type of value.
+    */
    private castPropertyContentToBoolean(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
       try {
          const name = Resolvers.resolveOption(node.name);
@@ -809,6 +866,20 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process property and cast its content to function type.
+    * ```
+    *    <ws:property type="function">
+    *       Text with correct path to function
+    *    </ws:property>
+    * ```
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attributes {IAttributes} Attributes collection with removed "type" property.
+    * Attributes collection on html tag node will be ignored.
+    * @returns {OptionNode} Returns option node that contains value with type of function.
+    */
    private castPropertyContentToFunction(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
       try {
          const { physicalPath, logicalPath, options } = this.processFunctionContent(node, context, attributes);
@@ -828,6 +899,20 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process property and cast its content to number type.
+    * ```
+    *    <ws:property type="number">
+    *       Mustache-expression or text with valid number value.
+    *    </ws:property>
+    * ```
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attributes {IAttributes} Attributes collection with removed "type" property.
+    * Attributes collection on html tag node will be ignored.
+    * @returns {OptionNode} Returns option node that contains value with type of number.
+    */
    private castPropertyContentToNumber(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
       try {
          const name = Resolvers.resolveOption(node.name);
@@ -848,6 +933,24 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process property and cast its content to object type.
+    * ```
+    *    <ws:property type="object">
+    *       ...
+    *       <ws:property>
+    *          ...
+    *       </ws:property>
+    *       ...
+    *    </ws:property>
+    * ```
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attributes {IAttributes} Attributes collection with removed "type" property.
+    * Attributes collection on html tag node will be ignored.
+    * @returns {OptionNode} Returns option node that contains value with type of object.
+    */
    private castPropertyContentToObject(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
       try {
          const name = Resolvers.resolveOption(node.name);
@@ -868,6 +971,20 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process property and cast its content to string type.
+    * ```
+    *    <ws:property type="string">
+    *       Mustache-expression, text or translation.
+    *    </ws:property>
+    * ```
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attributes {IAttributes} Attributes collection with removed "type" property.
+    * Attributes collection on html tag node will be ignored.
+    * @returns {OptionNode} Returns option node that contains value with type of string.
+    */
    private castPropertyContentToString(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
       try {
          const name = Resolvers.resolveOption(node.name);
@@ -888,6 +1005,20 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process property and cast its content to value type.
+    * ```
+    *    <ws:property type="value">
+    *       Mustache-expression, translation or text
+    *    </ws:property>
+    * ```
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attributes {IAttributes} Attributes collection with removed "type" property.
+    * Attributes collection on html tag node will be ignored.
+    * @returns {OptionNode} Returns option node that contains value with type of value.
+    */
    private castPropertyContentToValue(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
       try {
          const name = Resolvers.resolveOption(node.name);
@@ -946,6 +1077,15 @@ class Traverse implements ITraverse {
 
    /**
     * Process html element tag and create array node of abstract syntax tree.
+    * ```
+    *    <ws:Array>
+    *       ...
+    *       <ws:Type>
+    *          ...
+    *       </ws:Type>
+    *       ...
+    *    </ws:Array>
+    * ```
     * @private
     * @param node {Tag} Html tag node.
     * @param context {ITraverseContext} Processing context.
@@ -979,6 +1119,11 @@ class Traverse implements ITraverse {
 
    /**
     * Process html element tag and create boolean node of abstract syntax tree.
+    * ```
+    *    <ws:Boolean>
+    *       Mustache-expression or text with values "true" or "false".
+    *    </ws:Boolean>
+    * ```
     * @private
     * @param node {Tag} Html tag node.
     * @param context {ITraverseContext} Processing context.
@@ -1013,6 +1158,18 @@ class Traverse implements ITraverse {
       return children[0].__$ws_content;
    }
 
+   /**
+    * Process html element tag and create function node of abstract syntax tree.
+    * ```
+    *    <ws:Function>
+    *       Text with correct path to function
+    *    </ws:Function>
+    * ```
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {FunctionNode | null} Returns instance of FunctionNode or null in case of broken content.
+    */
    private processFunction(node: Nodes.Tag, context: ITraverseContext): Ast.FunctionNode {
       try {
          const { physicalPath, logicalPath, options } = this.processFunctionContent(node, context, node.attributes);
@@ -1064,6 +1221,11 @@ class Traverse implements ITraverse {
 
    /**
     * Process html element tag and create number node of abstract syntax tree.
+    * ```
+    *    <ws:Number>
+    *       Mustache-expression or text with valid number value.
+    *    </ws:Number>
+    * ```
     * @private
     * @param node {Tag} Html tag node.
     * @param context {ITraverseContext} Processing context.
@@ -1098,6 +1260,22 @@ class Traverse implements ITraverse {
       return children[0].__$ws_content;
    }
 
+   /**
+    * Process html element tag and create object node of abstract syntax tree.
+    * ```
+    *    <ws:Object>
+    *       ...
+    *       <ws:property>
+    *          ...
+    *       </ws:property>
+    *       ...
+    *    </ws:Object>
+    * ```
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ObjectNode | null} Returns instance of ObjectNode or null in case of broken content.
+    */
    private processObject(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode {
       try {
          return new Ast.ObjectNode(
@@ -1116,11 +1294,17 @@ class Traverse implements ITraverse {
    }
 
    private processObjectContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.IObjectProperties {
+      // TODO: Release
       throw new Error('Not implemented yet');
    }
 
    /**
     * Process html element tag and create string node of abstract syntax tree.
+    * ```
+    *    <ws:String>
+    *       Mustache-expression, text or translation.
+    *    </ws:String>
+    * ```
     * @private
     * @param node {Tag} Html tag node.
     * @param context {ITraverseContext} Processing context.
@@ -1154,6 +1338,11 @@ class Traverse implements ITraverse {
 
    /**
     * Process html element tag and create value node of abstract syntax tree.
+    * ```
+    *    <ws:Value>
+    *       Mustache-expression, translation or text
+    *    </ws:Value>
+    * ```
     * @private
     * @param node {Tag} Html tag node.
     * @param context {ITraverseContext} Processing context.
