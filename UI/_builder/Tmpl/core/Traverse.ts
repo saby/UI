@@ -1108,6 +1108,16 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process content of array node. Requirements to content:
+    * it can contain only data type nodes.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attributes {IAttributes} Preprocessed collection of html tag node attributes.
+    * Attributes collection on html tag node will be ignored.
+    * @returns {TData[]} Returns consistent collection of data type nodes.
+    */
    private processArrayContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TData[] {
       const childrenContext = {
          ...context,
@@ -1146,6 +1156,16 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process content of boolean node. Requirements to content:
+    * it can contain Mustache-expression or text with values "true" or "false".
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attributes {IAttributes} Preprocessed collection of html tag node attributes.
+    * Attributes collection on html tag node will be ignored.
+    * @returns {TText[]} Returns consistent collection of text nodes.
+    */
    private processBooleanContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
       const childrenContext = {
          ...context,
@@ -1186,6 +1206,16 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process content of function node. Requirements to content:
+    * it can contain text with correct path to function.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attributes {IAttributes} Preprocessed collection of html tag node attributes.
+    * Attributes collection on html tag node will be ignored.
+    * @returns {*} Returns collection of function parameters.
+    */
    private processFunctionContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): { physicalPath: string[]; logicalPath: string[]; options: Ast.IOptions; } {
       const childrenContext = {
          ...context,
@@ -1248,6 +1278,16 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process content of number node. Requirements to content:
+    * it can contain Mustache-expression or text with valid number value.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attributes {IAttributes} Preprocessed collection of html tag node attributes.
+    * Attributes collection on html tag node will be ignored.
+    * @returns {TText[]} Returns consistent collection of text nodes.
+    */
    private processNumberContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
       const childrenContext = {
          ...context,
@@ -1293,6 +1333,16 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process content of object node. Requirements to content:
+    * it can contain only tag nodes and their names starts with "ws:" prefix.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attributes {IAttributes} Preprocessed collection of html tag node attributes.
+    * Attributes collection on html tag node will be ignored.
+    * @returns {IObjectProperties} Returns collection of properties nodes.
+    */
    private processObjectContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.IObjectProperties {
       // TODO: Release
       throw new Error('Not implemented yet');
@@ -1327,6 +1377,16 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process content of string node. Requirements to content:
+    * it can contain Mustache-expression, translation or text.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attributes {IAttributes} Preprocessed collection of html tag node attributes.
+    * Attributes collection on html tag node will be ignored.
+    * @returns {TText[]} Returns consistent collection of text nodes.
+    */
    private processStringContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
       const childrenContext = {
          ...context,
@@ -1365,6 +1425,16 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process content of value node. Requirements to content:
+    * it can contain Mustache-expression, translation or text.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attributes {IAttributes} Preprocessed collection of html tag node attributes.
+    * Attributes collection on html tag node will be ignored.
+    * @returns {TText[]} Returns consistent collection of text nodes.
+    */
    private processValueContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
       const childrenContext = {
          ...context,
