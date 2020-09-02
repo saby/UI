@@ -8,25 +8,25 @@ import template = require('wml!UIDemo/MobileEventDemo/LongTap');
 class LongTap extends Control {
    _template = template;
 
-   private longTapCount: number = null;
-   private swipeCount: number = null;
-   private tapCount: number = null;
+   private _longTapCount: number = null;
+   private _swipeCount: number = null;
+   private _tapCount: number = null;
 
    _beforeMount() {
-      this.longTapCount = 0;
-      this.swipeCount = 0;
-      this.tapCount = 0;
+      this._longTapCount = 0;
+      this._swipeCount = 0;
+      this._tapCount = 0;
    }
 
-   private longClick() {
-      this.longTapCount += 1;
+   private _longClick() {
+      this._longTapCount += 1;
    }
 
-   private simpleClick() {
-      this.tapCount += 1;
+   private _simpleClick() {
+      this._tapCount += 1;
    }
-   private swipe() {
-      this.swipeCount += 1;
+   private _swipe() {
+      this._swipeCount += 1;
    }
 }
 
