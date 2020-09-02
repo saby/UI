@@ -270,6 +270,24 @@ function isFirstChildContent(children: Ast.Ast[]): boolean {
    return Ast.isTypeofContent(children[0]);
 }
 
+const CASTING_TYPES = {
+   'array': true,
+   'boolean': true,
+   'function': true,
+   'number': true,
+   'object': true,
+   'string': true,
+   'value': true
+};
+
+function canBeTypeCasted(node: Nodes.Tag): boolean {
+   if (!node.attributes.hasOwnProperty('type')) {
+      return false;
+   }
+   const type = node.attributes.type.value;
+   return !!CASTING_TYPES[type];
+}
+
 // </editor-fold>
 
 /**
@@ -688,7 +706,7 @@ class Traverse implements ITraverse {
       if (context.state === TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT) {
          context.state = TraverseState.COMPONENT_WITH_OPTIONS;
       }
-      if (context.state !== TraverseState.COMPONENT_WITH_CONTENT) {
+      if (context.state !== TraverseState.COMPONENT_WITH_OPTIONS) {
          this.errorHandler.error(
             `Запрещено смешивать контент по умолчанию с опциями - обнаружена опция "${node.name}". Опция будет отброшен. ` +
             'Необходимо явно задать контент в ws:content',
@@ -703,6 +721,9 @@ class Traverse implements ITraverse {
    }
 
    private processTagInComplexObjectProperty(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
+      if (canBeTypeCasted(node)) {
+         return this.castPropertyWithType(node, context);
+      }
       // TODO: release
       this.errorHandler.error(
          `Not implemented yet to process "${node.name}"`,
@@ -713,6 +734,180 @@ class Traverse implements ITraverse {
       );
       return null;
    }
+
+   // <editor-fold desc="Properties type casting">
+
+   private castPropertyWithType(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode {
+      const type = node.attributes.type.value;
+      const attributes: Nodes.IAttributes = {
+         ...node.attributes
+      };
+      delete attributes.type;
+      switch (type) {
+         case 'array':
+            return this.castPropertyContentToArray(node, context, attributes);
+         case 'boolean':
+            return this.castPropertyContentToBoolean(node, context, attributes);
+         case 'function':
+            return this.castPropertyContentToFunction(node, context, attributes);
+         case 'number':
+            return this.castPropertyContentToNumber(node, context, attributes);
+         case 'object':
+            return this.castPropertyContentToObject(node, context, attributes);
+         case 'string':
+            return this.castPropertyContentToString(node, context, attributes);
+         case 'value':
+            return this.castPropertyContentToValue(node, context, attributes);
+      }
+      this.errorHandler.critical(
+         `Не удалось определить тип опции ${node.name} для выполнения приведения. Опция будет отброшена`,
+         {
+            fileName: context.fileName,
+            position: node.position
+         }
+      );
+      return null;
+   }
+
+   private castPropertyContentToArray(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
+      try {
+         const name = Resolvers.resolveOption(node.name);
+         const elements = new Ast.ArrayNode(
+            this.processArrayContent(node, context, attributes)
+         );
+         elements.setFlag(Ast.Flags.TYPE_CASTED);
+         return new Ast.OptionNode(name, elements);
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка обработки свойства "${node.name}" с заданным типом "array": ${error.message}`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+   }
+
+   private castPropertyContentToBoolean(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
+      try {
+         const name = Resolvers.resolveOption(node.name);
+         const value = new Ast.BooleanNode(
+            this.processBooleanContent(node, context, attributes)
+         );
+         value.setFlag(Ast.Flags.TYPE_CASTED);
+         return new Ast.OptionNode(name, value);
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка обработки свойства "${node.name}" с заданным типом "boolean": ${error.message}`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+   }
+
+   private castPropertyContentToFunction(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
+      // TODO: Release
+      try {
+         const name = Resolvers.resolveOption(node.name);
+         const value = new Ast.FunctionNode([], []);
+         value.setFlag(Ast.Flags.TYPE_CASTED);
+         return new Ast.OptionNode(name, value);
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка обработки свойства "${node.name}" с заданным типом "function": ${error.message}`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+   }
+
+   private castPropertyContentToNumber(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
+      try {
+         const name = Resolvers.resolveOption(node.name);
+         const value = new Ast.NumberNode(
+            this.processNumberContent(node, context, attributes)
+         );
+         value.setFlag(Ast.Flags.TYPE_CASTED);
+         return new Ast.OptionNode(name, value);
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка обработки свойства "${node.name}" с заданным типом "number": ${error.message}`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+   }
+
+   private castPropertyContentToObject(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
+      // TODO: Release
+      try {
+         const name = Resolvers.resolveOption(node.name);
+         const value = new Ast.ObjectNode({ });
+         value.setFlag(Ast.Flags.TYPE_CASTED);
+         return new Ast.OptionNode(name, value);
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка обработки свойства "${node.name}" с заданным типом "object": ${error.message}`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+   }
+
+   private castPropertyContentToString(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
+      try {
+         const name = Resolvers.resolveOption(node.name);
+         const value = new Ast.StringNode(
+            this.processStringContent(node, context, attributes)
+         );
+         value.setFlag(Ast.Flags.TYPE_CASTED);
+         return new Ast.OptionNode(name, value);
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка обработки свойства "${node.name}" с заданным типом "string": ${error.message}`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+   }
+
+   private castPropertyContentToValue(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
+      try {
+         const name = Resolvers.resolveOption(node.name);
+         const value = new Ast.ValueNode(
+            this.processValueContent(node, context, attributes)
+         );
+         value.setFlag(Ast.Flags.TYPE_CASTED);
+         return new Ast.OptionNode(name, value);
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка обработки свойства "${node.name}" с заданным типом "value": ${error.message}`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+   }
+
+   // </editor-fold>
 
    /**
     * Process html element tag and create element node of abstract syntax tree.
@@ -757,13 +952,9 @@ class Traverse implements ITraverse {
     */
    private processArray(node: Nodes.Tag, context: ITraverseContext): Ast.ArrayNode {
       try {
-         const childrenContext = {
-            ...context,
-            state: TraverseState.ARRAY_ELEMENTS
-         };
-         this.warnUnexpectedAttributes(node, context);
-         const elements = <Ast.TData[]>this.visitAll(node.children, childrenContext);
-         return new Ast.ArrayNode(elements);
+         return new Ast.ArrayNode(
+            this.processArrayContent(node, context, node.attributes)
+         );
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Array: ${error.message}. Директива будет отброшена`,
@@ -776,6 +967,15 @@ class Traverse implements ITraverse {
       }
    }
 
+   private processArrayContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TData[] {
+      const childrenContext = {
+         ...context,
+         state: TraverseState.ARRAY_ELEMENTS
+      };
+      this.warnUnexpectedAttributes(attributes, context, node.name);
+      return <Ast.TData[]>this.visitAll(node.children, childrenContext);
+   }
+
    /**
     * Process html element tag and create boolean node of abstract syntax tree.
     * @private
@@ -785,15 +985,9 @@ class Traverse implements ITraverse {
     */
    private processBoolean(node: Nodes.Tag, context: ITraverseContext): Ast.BooleanNode {
       try {
-         const childrenContext = {
-            ...context,
-            state: TraverseState.PRIMITIVE_VALUE,
-            textContent: TextContentFlags.TEXT_AND_EXPRESSION
-         };
-         this.warnUnexpectedAttributes(node, context);
-         const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
-         validateBoolean(children);
-         return new Ast.BooleanNode(children[0].__$ws_content);
+         return new Ast.BooleanNode(
+            this.processBooleanContent(node, context, node.attributes)
+         );
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Boolean: ${error.message}. Директива будет отброшена`,
@@ -804,6 +998,18 @@ class Traverse implements ITraverse {
          );
          return null;
       }
+   }
+
+   private processBooleanContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
+      const childrenContext = {
+         ...context,
+         state: TraverseState.PRIMITIVE_VALUE,
+         textContent: TextContentFlags.TEXT_AND_EXPRESSION
+      };
+      this.warnUnexpectedAttributes(attributes, context, node.name);
+      const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
+      validateBoolean(children);
+      return children[0].__$ws_content;
    }
 
    private processFunction(node: Nodes.Tag, context: ITraverseContext): Ast.FunctionNode {
@@ -857,15 +1063,9 @@ class Traverse implements ITraverse {
     */
    private processNumber(node: Nodes.Tag, context: ITraverseContext): Ast.NumberNode {
       try {
-         const childrenContext = {
-            ...context,
-            state: TraverseState.PRIMITIVE_VALUE,
-            textContent: TextContentFlags.TEXT_AND_EXPRESSION
-         };
-         this.warnUnexpectedAttributes(node, context);
-         const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
-         validateNumber(children);
-         return new Ast.NumberNode(children[0].__$ws_content);
+         return new Ast.NumberNode(
+            this.processNumberContent(node, context, node.attributes)
+         );
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Number: ${error.message}. Директива будет отброшена`,
@@ -876,6 +1076,18 @@ class Traverse implements ITraverse {
          );
          return null;
       }
+   }
+
+   private processNumberContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
+      const childrenContext = {
+         ...context,
+         state: TraverseState.PRIMITIVE_VALUE,
+         textContent: TextContentFlags.TEXT_AND_EXPRESSION
+      };
+      this.warnUnexpectedAttributes(attributes, context, node.name);
+      const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
+      validateNumber(children);
+      return children[0].__$ws_content;
    }
 
    private processObject(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode {
@@ -902,13 +1114,9 @@ class Traverse implements ITraverse {
     */
    private processString(node: Nodes.Tag, context: ITraverseContext): Ast.StringNode {
       try {
-         const childrenContext = {
-            ...context,
-            state: TraverseState.PRIMITIVE_VALUE
-         };
-         this.warnUnexpectedAttributes(node, context);
-         const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
-         return new Ast.StringNode(children);
+         return new Ast.StringNode(
+            this.processStringContent(node, context, node.attributes)
+         );
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:String: ${error.message}. Директива будет отброшена`,
@@ -921,6 +1129,15 @@ class Traverse implements ITraverse {
       }
    }
 
+   private processStringContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
+      const childrenContext = {
+         ...context,
+         state: TraverseState.PRIMITIVE_VALUE
+      };
+      this.warnUnexpectedAttributes(attributes, context, node.name);
+      return <Ast.TText[]>this.visitAll(node.children, childrenContext);
+   }
+
    /**
     * Process html element tag and create value node of abstract syntax tree.
     * @private
@@ -930,13 +1147,9 @@ class Traverse implements ITraverse {
     */
    private processValue(node: Nodes.Tag, context: ITraverseContext): Ast.ValueNode {
       try {
-         const childrenContext = {
-            ...context,
-            state: TraverseState.PRIMITIVE_VALUE
-         };
-         this.warnUnexpectedAttributes(node, context);
-         const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
-         return new Ast.ValueNode(children);
+         return new Ast.ValueNode(
+            this.processValueContent(node, context, node.attributes)
+         );
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Value: ${error.message}. Директива будет отброшена`,
@@ -947,6 +1160,15 @@ class Traverse implements ITraverse {
          );
          return null;
       }
+   }
+
+   private processValueContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
+      const childrenContext = {
+         ...context,
+         state: TraverseState.PRIMITIVE_VALUE
+      };
+      this.warnUnexpectedAttributes(attributes, context, node.name);
+      return <Ast.TText[]>this.visitAll(node.children, childrenContext);
    }
 
    // </editor-fold>
@@ -1440,16 +1662,17 @@ class Traverse implements ITraverse {
    /**
     * Warn all html attributes in html tag node as unexpected.
     * @private
-    * @param node {Tag} Tag node that contains collection of attributes.
+    * @param attributes {IAttributes} Collection of attributes.
     * @param context {ITraverseContext} Processing context.
+    * @param nodeName {string} Tag node name that contains processing collection of attributes.
     */
-   private warnUnexpectedAttributes(node: Nodes.Tag, context: ITraverseContext): void {
-      for (const name in node.attributes) {
+   private warnUnexpectedAttributes(attributes: Nodes.IAttributes, context: ITraverseContext, nodeName: string): void {
+      for (const name in attributes) {
          this.errorHandler.warn(
-            `Обнаружен непредусмотренный атрибут "${name}" на теге "${node.name}". Атрибут будет отброшен`,
+            `Обнаружен непредусмотренный атрибут "${name}" на теге "${nodeName}". Атрибут будет отброшен`,
             {
                fileName: context.fileName,
-               position: node.attributes[name].position
+               position: attributes[name].position
             }
          );
       }
