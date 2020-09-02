@@ -36,10 +36,20 @@ function createTraverseOptions() {
    };
 }
 
-function traverseTemplate(text: string) {
+function traverseTemplate(text: string): Ast.Ast[] {
    const options = createTraverseOptions();
    const html = parse(text, options.fileName, parseConfig);
    return traverse(html, traverseConfig, options);
+}
+
+function traversePropertyOnComponent(optionTemplate: string): Ast.ComponentNode {
+   const template = `<UIModule.Control>
+    ${optionTemplate}
+</UIModule.Control>`;
+   const tree = traverseTemplate(template);
+   assert.strictEqual(tree.length, 1);
+   assert.instanceOf(tree[0], Ast.ComponentNode);
+   return <Ast.ComponentNode>tree[0];
 }
 
 describe('Compiler/core/Traverse', () => {
@@ -286,6 +296,151 @@ describe('Compiler/core/Traverse', () => {
          const html = '{{ 1 2 3 }}';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 0);
+      });
+   });
+   describe('Data types', () => {
+      describe('Data type directive', () => {
+         it('Array', () => {
+            const optionTemplate = `
+            <ws:option>
+                <ws:Array>
+                   <ws:Array></ws:Array>
+                   <ws:Boolean>true</ws:Boolean>
+                   <ws:Function>UIModule/Module:library.handler</ws:Function>
+                   <ws:Number>123</ws:Number>
+                   <ws:Object></ws:Object>
+                   <ws:String>text</ws:String>
+                   <ws:Value>value</ws:Value>
+                </ws:Array>
+            </ws:option>
+            `;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.ArrayNode);
+            const array = <Ast.ArrayNode>option.__$ws_value;
+            assert.strictEqual(array.__$ws_elements.length, 7);
+         });
+         it('Boolean', () => {
+            const optionTemplate = `
+            <ws:option>
+                <ws:Boolean>true</ws:Boolean>
+            </ws:option>
+            `;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.BooleanNode);
+         });
+         it('Function', () => {
+            const optionTemplate = `
+            <ws:option>
+                <ws:Function>UIModule/Module:library.handler</ws:Function>
+            </ws:option>
+            `;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.FunctionNode);
+         });
+         it('Number', () => {
+            const optionTemplate = `
+            <ws:option>
+                <ws:Number>123</ws:Number>
+            </ws:option>
+            `;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.NumberNode);
+         });
+         it('Object', () => {
+            // TODO: dev
+         });
+         it('String', () => {
+            const optionTemplate = `
+            <ws:option>
+                <ws:String>text</ws:String>
+            </ws:option>
+            `;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.StringNode);
+         });
+         it('Value', () => {
+            const optionTemplate = `
+            <ws:option>
+                <ws:Value>value</ws:Value>
+            </ws:option>
+            `;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.ValueNode);
+         });
+      });
+      describe('Explicit type casting', () => {
+         it('Array', () => {
+            // TODO: dev
+         });
+         it('Boolean', () => {
+            const optionTemplate = `<ws:option type='boolean'>true</ws:option>`;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.BooleanNode);
+         });
+         it('Function', () => {
+            // TODO: dev
+         });
+         it('Number', () => {
+            const optionTemplate = `<ws:option type='number'>123</ws:option>`;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.NumberNode);
+         });
+         it('Object', () => {
+            // TODO: dev
+         });
+         it('String', () => {
+            const optionTemplate = `<ws:option type='string'>text</ws:option>`;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.StringNode);
+         });
+         it('Value', () => {
+            const optionTemplate = `<ws:option type='value'>value</ws:option>`;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.ValueNode);
+         });
+      });
+      describe('Implicit type casting', () => {
+         it('Array', () => {
+            // TODO: dev
+         });
+         it('Boolean', () => {
+            // TODO: dev
+         });
+         it('Function', () => {
+            // TODO: dev
+         });
+         it('Number', () => {
+            // TODO: dev
+         });
+         it('Object', () => {
+            // TODO: dev
+         });
+         it('String', () => {
+            // TODO: dev
+         });
+         it('Value', () => {
+            // TODO: dev
+         });
       });
    });
 });
