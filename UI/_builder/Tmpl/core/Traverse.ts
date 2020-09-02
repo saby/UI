@@ -104,6 +104,21 @@ const enum TraverseState {
    MARKUP,
 
    /**
+    * In processing component or partial that contains either content or options.
+    */
+   COMPONENT_WITH_UNKNOWN_CONTENT,
+
+   /**
+    * In processing component or partial where only content is allowed.
+    */
+   COMPONENT_WITH_CONTENT,
+
+   /**
+    * In processing component or partial where only options are allowed.
+    */
+   COMPONENT_WITH_OPTIONS,
+
+   /**
     * In processing array type node where only data types node are allowed.
     */
    ARRAY_DATA,
@@ -241,6 +256,13 @@ function validatePartialTemplate(option: Ast.OptionNode | undefined, node: Nodes
       throw new Error('не задано значение обязательной опции "template"');
    }
    return value;
+}
+
+function isFirstChildContent(children: Ast.Ast[]): boolean {
+   if (children.length === 0) {
+      return false;
+   }
+   return Ast.isTypeofContent(children[0]);
 }
 
 // </editor-fold>
@@ -479,6 +501,12 @@ class Traverse implements ITraverse {
       switch (context.state) {
          case TraverseState.MARKUP:
             return this.processTagInMarkup(node, context);
+         case TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT:
+            return this.processTagInComponentWithUnknownContent(node, context);
+         case TraverseState.COMPONENT_WITH_CONTENT:
+            return this.processTagInComponentWithContent(node, context);
+         case TraverseState.COMPONENT_WITH_OPTIONS:
+            return this.processTagInComponentWithOptions(node, context);
          case TraverseState.ARRAY_DATA:
             return this.processTagInArrayData(node, context);
          case TraverseState.PRIMITIVE_DATA:
@@ -585,6 +613,18 @@ class Traverse implements ITraverse {
             );
             return null;
       }
+   }
+
+   private processTagInComponentWithUnknownContent(node: Nodes.Tag, context: ITraverseContext): Ast.Ast {
+      throw new Error('Not implemented');
+   }
+
+   private processTagInComponentWithContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
+      throw new Error('Not implemented');
+   }
+
+   private processTagInComponentWithOptions(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
+      throw new Error('Not implemented');
    }
 
    /**
@@ -1041,9 +1081,9 @@ class Traverse implements ITraverse {
    private processComponent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       try {
          if (node.children.length === 0) {
-            return this.processComponentWithNoContent(node, context);
+            return this.processComponentWithNoChildren(node, context);
          }
-         throw new Error('Not implemented');
+         return this.processComponentWithChildren(node, context);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора компонента "${node.name}": ${error.message}. Компонент будет отброшен`,
@@ -1063,7 +1103,7 @@ class Traverse implements ITraverse {
     * @param context {ITraverseContext} Processing context.
     * @returns {ComponentNode | null} Returns instance of ComponentNode null in case of broken content.
     */
-   private processComponentWithNoContent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
+   private processComponentWithNoChildren(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       if (!node.isSelfClosing) {
          this.errorHandler.warn(
             `Для компонента "${node.name}" не задан контент и тег компонента не указан как самозакрывающийся`,
@@ -1074,6 +1114,13 @@ class Traverse implements ITraverse {
          );
       }
       return this.createComponentOnly(node, context);
+   }
+
+   private processComponentWithChildren(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
+      const options = this.getComponentOrPartialOptions(node.children, context);
+      const ast = this.createComponentOnly(node, context);
+      this.applyOptionsToComponentOrPartial(ast, options);
+      return ast;
    }
 
    /**
@@ -1116,7 +1163,7 @@ class Traverse implements ITraverse {
          if (node.children.length === 0) {
             return this.processPartialWithNoChildren(node, context);
          }
-         throw new Error('Not implemented');
+         return this.processPartialWithChildren(node, context);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы ws:partial: ${error.message}. Директива будет отброшена`,
@@ -1147,6 +1194,13 @@ class Traverse implements ITraverse {
          );
       }
       return this.createPartialOnly(node, context);
+   }
+
+   private processPartialWithChildren(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
+      const options = this.getComponentOrPartialOptions(node.children, context);
+      const ast = this.createPartialOnly(node, context);
+      this.applyOptionsToComponentOrPartial(ast, options);
+      return ast;
    }
 
    /**
@@ -1180,6 +1234,29 @@ class Traverse implements ITraverse {
    // </editor-fold>
 
    // <editor-fold desc="Machine helpers">
+
+   private getComponentOrPartialOptions(children: Nodes.Node[], context: ITraverseContext): Array<Ast.OptionNode | Ast.ContentOptionNode> {
+      const contentContext: ITraverseContext = {
+         ...context,
+         state: TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT
+      };
+      const content = this.visitAll(children, contentContext);
+      if (isFirstChildContent(content)) {
+         return [
+            new Ast.ContentOptionNode(
+               'content',
+               <Ast.TContent[]>content
+            )
+         ];
+      }
+      return <Array<Ast.OptionNode | Ast.ContentOptionNode>>content;
+   }
+
+   private applyOptionsToComponentOrPartial(ast: Ast.BaseWasabyElement, options: Array<Ast.OptionNode | Ast.ContentOptionNode>): void {
+      for (let index = 0; index < options.length; ++index) {
+         ast.setOption(options[index]);
+      }
+   }
 
    /**
     * Get program node from tag node attribute value.
