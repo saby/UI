@@ -1,16 +1,16 @@
 /// <amd-module name="UIDemo/MobileEventDemo/LongTap" />
 
-import {Control} from 'UI/Base';
+import { Control, TemplateFunction } from 'UI/Base';
 
 // @ts-ignore
 import template = require('wml!UIDemo/MobileEventDemo/LongTap');
 
 class LongTap extends Control {
-   _template = template;
+   _template: TemplateFunction = template;
 
-   private _longTapCount: number = 0;
-   private _swipeCount: number = 0;
-   private _tapCount: number = 0;
+   _longTapCount: number = 0;
+   _swipeCount: number = 0;
+   _tapCount: number = 0;
 
    _beforeMount() {
       this._longTapCount = 0;
@@ -18,14 +18,14 @@ class LongTap extends Control {
       this._tapCount = 0;
    }
 
-   private _longClick() {
+   _longClick() {
       this._longTapCount += 1;
    }
 
-   private _simpleClick() {
+   _simpleClick() {
       this._tapCount += 1;
    }
-   private _swipe() {
+   _swipe() {
       this._swipeCount += 1;
    }
 }

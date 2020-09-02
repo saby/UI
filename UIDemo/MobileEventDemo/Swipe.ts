@@ -1,26 +1,26 @@
 /// <amd-module name="UIDemo/MobileEventDemo/Swipe" />
 
-import {Control} from 'UI/Base';
+import { Control, TemplateFunction } from 'UI/Base';
 
 // @ts-ignore
 import template = require('wml!UIDemo/MobileEventDemo/Swipe');
 
 class Swipe extends Control {
-   _template = template;
+   _template: TemplateFunction = template;
 
-   private _swipeCount: number = 0;
-   private _tapCount: number = 0;
+   _swipeCount: number = 0;
+   _tapCount: number = 0;
 
    _beforeMount() {
       this._swipeCount = 0;
       this._tapCount = 0;
    }
 
-   private _simpleClick() {
+   _simpleClick() {
       this._tapCount += 1;
    }
 
-   private _swipe() {
+   _swipe() {
       this._swipeCount += 1;
    }
 }
