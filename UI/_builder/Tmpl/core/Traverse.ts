@@ -810,10 +810,10 @@ class Traverse implements ITraverse {
    }
 
    private castPropertyContentToFunction(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
-      // TODO: Release
       try {
+         const { physicalPath, logicalPath, options } = this.processFunctionContent(node, context, attributes);
          const name = Resolvers.resolveOption(node.name);
-         const value = new Ast.FunctionNode([], []);
+         const value = new Ast.FunctionNode(physicalPath, logicalPath, options);
          value.setFlag(Ast.Flags.TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
@@ -849,10 +849,11 @@ class Traverse implements ITraverse {
    }
 
    private castPropertyContentToObject(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
-      // TODO: Release
       try {
          const name = Resolvers.resolveOption(node.name);
-         const value = new Ast.ObjectNode({ });
+         const value = new Ast.ObjectNode(
+            this.processObjectContent(node, context, attributes)
+         );
          value.setFlag(Ast.Flags.TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
@@ -1014,34 +1015,8 @@ class Traverse implements ITraverse {
 
    private processFunction(node: Nodes.Tag, context: ITraverseContext): Ast.FunctionNode {
       try {
-         const childrenContext = {
-            ...context,
-            state: TraverseState.PRIMITIVE_VALUE,
-            textContent: TextContentFlags.TEXT
-         };
-         const children = this.visitAll(node.children, childrenContext);
-         if (children.length !== 1) {
-            throw new Error('полученые некорректные данные');
-         }
-         const textContent = (<Ast.TextNode>children[0]).__$ws_content;
-         if (textContent.length !== 1) {
-            throw new Error('полученые некорректные данные');
-         }
-         const text = (<Ast.TextDataNode>textContent[0]).__$ws_content;
-         const { physicalPath, logicalPath } = Resolvers.resolveFunction(text);
-         const ast = new Ast.FunctionNode(physicalPath, logicalPath);
-         const options = this.attributeProcessor.process(
-            node.attributes,
-            {
-               fileName: context.fileName,
-               hasAttributesOnly: false,
-               parentTagName: node.name
-            }
-         );
-         this.warnIncorrectProperties(options.attributes, node, context);
-         this.warnIncorrectProperties(options.events, node, context);
-         ast.__ws_options = options.options;
-         return ast;
+         const { physicalPath, logicalPath, options } = this.processFunctionContent(node, context, node.attributes);
+         return new Ast.FunctionNode(physicalPath, logicalPath, options);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Function: ${error.message}. Директива будет отброшена`,
@@ -1052,6 +1027,39 @@ class Traverse implements ITraverse {
          );
          return null;
       }
+   }
+
+   private processFunctionContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): { physicalPath: string[]; logicalPath: string[]; options: Ast.IOptions; } {
+      const childrenContext = {
+         ...context,
+         state: TraverseState.PRIMITIVE_VALUE,
+         textContent: TextContentFlags.TEXT
+      };
+      const children = this.visitAll(node.children, childrenContext);
+      if (children.length !== 1) {
+         throw new Error('полученые некорректные данные');
+      }
+      const textContent = (<Ast.TextNode>children[0]).__$ws_content;
+      if (textContent.length !== 1) {
+         throw new Error('полученые некорректные данные');
+      }
+      const text = (<Ast.TextDataNode>textContent[0]).__$ws_content;
+      const { physicalPath, logicalPath } = Resolvers.resolveFunction(text);
+      const options = this.attributeProcessor.process(
+         attributes,
+         {
+            fileName: context.fileName,
+            hasAttributesOnly: false,
+            parentTagName: node.name
+         }
+      );
+      this.warnIncorrectProperties(options.attributes, node, context);
+      this.warnIncorrectProperties(options.events, node, context);
+      return {
+         physicalPath,
+         logicalPath,
+         options: options.options
+      };
    }
 
    /**
@@ -1092,7 +1100,9 @@ class Traverse implements ITraverse {
 
    private processObject(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode {
       try {
-         throw new Error('Not implemented');
+         return new Ast.ObjectNode(
+            this.processObjectContent(node, context, node.attributes)
+         );
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Object: ${error.message}. Директива будет отброшена`,
@@ -1103,6 +1113,10 @@ class Traverse implements ITraverse {
          );
          return null;
       }
+   }
+
+   private processObjectContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.IObjectProperties {
+      throw new Error('Not implemented yet');
    }
 
    /**
@@ -1428,7 +1442,7 @@ class Traverse implements ITraverse {
    private processComponentWithChildren(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       const options = this.getComponentOrPartialOptions(node.children, context);
       const ast = this.createComponentOnly(node, context);
-      this.applyOptionsToComponentOrPartial(ast, options);
+      this.applyOptionsToComponentOrPartial(ast, options, context, node);
       return ast;
    }
 
@@ -1508,7 +1522,7 @@ class Traverse implements ITraverse {
    private processPartialWithChildren(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
       const options = this.getComponentOrPartialOptions(node.children, context);
       const ast = this.createPartialOnly(node, context);
-      this.applyOptionsToComponentOrPartial(ast, options);
+      this.applyOptionsToComponentOrPartial(ast, options, context, node);
       return ast;
    }
 
@@ -1561,8 +1575,19 @@ class Traverse implements ITraverse {
       return <Array<Ast.OptionNode | Ast.ContentOptionNode>>content;
    }
 
-   private applyOptionsToComponentOrPartial(ast: Ast.BaseWasabyElement, options: Array<Ast.OptionNode | Ast.ContentOptionNode>): void {
+   private applyOptionsToComponentOrPartial(ast: Ast.BaseWasabyElement, options: Array<Ast.OptionNode | Ast.ContentOptionNode>, context: ITraverseContext, node: Nodes.Tag): void {
       for (let index = 0; index < options.length; ++index) {
+         const child = options[index];
+         if (ast.hasOption(child.__$ws_name)) {
+            this.errorHandler.error(
+               `Опция "${child.__$ws_name}" уже определена на теге "${node.name}". Полученная опция будет отброшена`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            continue;
+         }
          ast.setOption(options[index]);
       }
    }
