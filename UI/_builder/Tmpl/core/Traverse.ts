@@ -95,43 +95,94 @@ export default function traverse(nodes: Nodes.Node[], config: ITraverseConfig, o
 
 /**
  * Traverse machine states.
+ * Represents shared processing states between sibling nodes.
  */
 const enum TraverseState {
 
    /**
     * In processing html elements and html directives.
+    * From this state only one jump is available - to COMPONENT_WITH_UNKNOWN_CONTENT.
     */
    MARKUP,
 
    /**
     * In processing component or partial that contains either content or options.
+    * Processing component or partial is ambiguous. Before processing their children
+    * there is no way to know the content type. After processing first child
+    * this state will be changed to
+    * 1) COMPONENT_WITH_CONTENT - if first child represents node which type is content;
+    * 2) COMPONENT_WITH_OPTIONS - if first child represents node which type is option or content option.
     */
    COMPONENT_WITH_UNKNOWN_CONTENT,
 
    /**
     * In processing component or partial where only content is allowed.
+    * All child nodes of component or partial will be processed in markup state.
+    * From this state only one implicit jump is available - to MARKUP.
     */
    COMPONENT_WITH_CONTENT,
 
    /**
     * In processing component or partial where only options are allowed.
+    * All child nodes of component will be processed as options.
+    * From this state only one implicit jump is available - to MARKUP.
     */
    COMPONENT_WITH_OPTIONS,
 
    /**
     * In processing array type node where only data types node are allowed.
+    * Processing child nodes of array data type node is simple. It only can contain
+    * data type nodes which will be packed into array node.
+    * From this state next jumps are available:
+    * 1) PRIMITIVE_VALUE - if processing node is boolean, function, number, string or value;
+    * 2) ARRAY_ELEMENTS - if processing node is array. Again.
+    * 3) OBJECT_PROPERTIES - if processing node is object.
     */
    ARRAY_ELEMENTS,
 
    /**
     * In processing primitive type node content where only text is allowed.
+    * In this state only text nodes can be processed. Before processing primitive value content
+    * at parent node describes text content using special text content flags.
+    * There are no jumps to other states.
     */
    PRIMITIVE_VALUE,
 
    /**
-    * In processing property of content, partial or object.
+    * In processing properties of object.
+    * In this states only properties can be processed.
+    * From this state only one jump is available - to OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT.
     */
-   COMPLEX_OBJECT_PROPERTY
+   OBJECT_PROPERTIES,
+
+   /**
+    * In processing object property content which content is unknown.
+    * Processing object property content is ambiguous. Before processing its children
+    * there is no way to know the content type. After processing first child
+    * this state will be changed to
+    * 1) OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_OBJECT - if first child represents another option;
+    * 2) OBJECT_PROPERTY_WITH_CONTENT - if first child represents node which type is content;
+    * 3) OBJECT_PROPERTY_WITH_DATA_TYPE - if first child represents data type node.
+    */
+   OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT,
+
+   /**
+    * In processing object property that contain other object properties.
+    * In this case other properties will be packed into options or content options,
+    * these options will be packed into object, and this object will be a value of processing object property.
+    */
+   OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_OBJECT,
+
+   /**
+    * In processing object property that contain content nodes only.
+    * From this state only one implicit jump is available - to MARKUP.
+    */
+   OBJECT_PROPERTY_WITH_CONTENT,
+
+   /**
+    * In processing object property that contain content nodes only.
+    */
+   OBJECT_PROPERTY_WITH_DATA_TYPE
 }
 
 /**
@@ -272,6 +323,17 @@ function isFirstChildContent(children: Ast.Ast[]): boolean {
       return false;
    }
    return Ast.isTypeofContent(children[0]);
+}
+
+/**
+ * Check if first child in type consistent collection has type of object.
+ * @param children {Ast[]} Type consistent collection of nodes of abstract syntax tree.
+ */
+function isFirstChildObject(children: Ast.Ast[]): boolean {
+   if (children.length === 0) {
+      return false;
+   }
+   return children[0] instanceof Ast.ObjectNode;
 }
 
 /**
@@ -538,11 +600,23 @@ class Traverse implements ITraverse {
          case TraverseState.MARKUP:
             return this.processTagInMarkup(node, context);
          case TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT:
+            return this.processTagInComponentWithUnknownContent(node, context);
          case TraverseState.COMPONENT_WITH_CONTENT:
+            return this.processTagInComponentWithContent(node, context);
          case TraverseState.COMPONENT_WITH_OPTIONS:
-            return this.processTagInComponentWithAnyContent(node, context);
+            return this.processTagInComponentWithOptions(node, context);
          case TraverseState.ARRAY_ELEMENTS:
             return this.processTagInArrayData(node, context);
+         case TraverseState.OBJECT_PROPERTIES:
+            return this.processTagInObjectProperties(node, context);
+         case TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT:
+            return this.processTagInObjectPropertyWithUnknownContent(node, context);
+         case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_OBJECT:
+            return this.processTagInObjectPropertyWithContentTypeCastedToObject(node, context);
+         case TraverseState.OBJECT_PROPERTY_WITH_CONTENT:
+            return this.processTagInObjectPropertyWithContent(node, context);
+         case TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE:
+            return this.processTagInObjectPropertyWithDataType(node, context);
          case TraverseState.PRIMITIVE_VALUE:
             this.errorHandler.error(
                `Обнаружен тег "${node.name}", когда ожидалось текстовое содержимое. Тег будет отброшен`,
@@ -552,13 +626,14 @@ class Traverse implements ITraverse {
                }
             );
             return null;
-         case TraverseState.COMPLEX_OBJECT_PROPERTY:
-            return this.processTagInComplexObjectProperty(node, context);
          default:
-            this.errorHandler.critical('Конечный автомат traverse находится в неизвестном состоянии', {
-               fileName: context.fileName,
-               position: node.position
-            });
+            this.errorHandler.critical(
+               'Конечный автомат traverse находится в неизвестном состоянии',
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
             return null;
       }
    }
@@ -672,7 +747,7 @@ class Traverse implements ITraverse {
     * @param context {ITraverseContext} Processing context.
     * @returns {TContent | ContentOptionNode | OptionNode | null} Returns instance of concrete TContent or null in case of broken content.
     */
-   private processTagInComponentWithAnyContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent | Ast.ContentOptionNode | Ast.OptionNode {
+   private processTagInComponentWithUnknownContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent | Ast.ContentOptionNode | Ast.OptionNode {
       switch (node.name) {
          case 'ws:if':
          case 'ws:else':
@@ -698,23 +773,7 @@ class Traverse implements ITraverse {
             if (Resolvers.isOption(node.name)) {
                return this.processTagInComponentWithOptions(node, context);
             }
-            if (Resolvers.isComponent(node.name)) {
-               return this.processTagInComponentWithContent(node, context);
-            }
-
-            // We need to check element node even if element node is broken.
-            const elementNode = this.processTagInComponentWithContent(node, context);
-            if (isElementNode(node.name)) {
-               return elementNode;
-            }
-            this.errorHandler.error(
-               `Обнаружен неизвестный HTML тег "${node.name}". Тег будет отброшен`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
+            return this.processTagInComponentWithContent(node, context);
       }
    }
 
@@ -765,23 +824,202 @@ class Traverse implements ITraverse {
          );
          return null;
       }
-      return this.processTagInComplexObjectProperty(node, context);
+      return this.processProperty(node, context);
    }
 
    /**
-    * Process html tag node in state of complex object properties.
+    * Process html tag node in state of object properties.
     * @private
     * @param node {Tag} Processing html tag node.
     * @param context {ITraverseContext} Processing context.
     * @returns {ContentOptionNode | OptionNode | null} Returns ContentOptionNode or OptionNode or null in case of broken content.
     */
-   private processTagInComplexObjectProperty(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
+   private processTagInObjectProperties(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
+      switch (node.name) {
+         case 'ws:if':
+         case 'ws:else':
+         case 'ws:for':
+         case 'ws:partial':
+            this.errorHandler.error(
+               `Использование директивы "${node.name}" внутри директивы "ws:Object" запрещено. Ожидалась опция объекта. Директива будет отброшена`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
+         case 'ws:Array':
+         case 'ws:Boolean':
+         case 'ws:Function':
+         case 'ws:Number':
+         case 'ws:Object':
+         case 'ws:String':
+         case 'ws:Value':
+            this.errorHandler.error(
+               `Использование директивы "${node.name}" вне описания опции запрещено. Ожидалась опция объекта. Директива будет отброшена`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
+         default:
+            if (Resolvers.isOption(node.name)) {
+               return this.processProperty(node, context);
+            }
+            this.errorHandler.error(
+               `Обнаружен тег "${node.name}" вместо ожидаемой опции объекта. Тег будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
+      }
+   }
+
+   /**
+    * Process content node of property.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    */
+   private processTagInObjectPropertyWithUnknownContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent | Ast.TData | Ast.OptionNode {
+      switch (node.name) {
+         case 'ws:if':
+         case 'ws:else':
+         case 'ws:for':
+         case 'ws:partial':
+            return this.processTagInObjectPropertyWithContent(node, context);
+         case 'ws:Array':
+         case 'ws:Boolean':
+         case 'ws:Function':
+         case 'ws:Number':
+         case 'ws:Object':
+         case 'ws:String':
+         case 'ws:Value':
+            return this.processTagInObjectPropertyWithDataType(node, context);
+         default:
+            if (Resolvers.isOption(node.name)) {
+               return this.processTagInObjectPropertyWithContentTypeCastedToObject(node, context);
+            }
+            return this.processTagInObjectPropertyWithContent(node, context);
+      }
+   }
+
+   /**
+    * Process content of property node.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    */
+   private processTagInObjectPropertyWithContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
+      if (context.state === TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT) {
+         context.state = TraverseState.OBJECT_PROPERTY_WITH_CONTENT;
+      }
+      if (context.state !== TraverseState.OBJECT_PROPERTY_WITH_CONTENT) {
+         this.errorHandler.error(
+            `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидался тег контента. Тег будет отброшен.`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+      return this.processTagInMarkup(node, context);
+   }
+
+   /**
+    * Process data content of property node.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TData | null} Returns instance of concrete TData or null in case of broken content.
+    */
+   private processTagInObjectPropertyWithDataType(node: Nodes.Tag, context: ITraverseContext): Ast.TData {
+      if (context.state === TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE) {
+         this.errorHandler.error(
+            `Опция компонента, ws:partial и объекта может содержать только 1 директиву типа данных. Обнаружен тег "${node.name}". Тег будет отброшен.`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+      if (context.state === TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT) {
+         context.state = TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE;
+      }
+      if (context.state !== TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE) {
+         this.errorHandler.error(
+            `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидалась. Тег будет отброшен.`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+      return this.processTagInArrayData(node, context);
+   }
+
+   /**
+    * Process property of property with casting the current to object type.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {OptionNode} Returns OptionNode or null in case of broken content.
+    */
+   private processTagInObjectPropertyWithContentTypeCastedToObject(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode {
+      if (context.state === TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT) {
+         context.state = TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_OBJECT;
+      }
+      if (context.state !== TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_OBJECT) {
+         this.errorHandler.error(
+            `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидалась. Тег будет отброшен.`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+      return this.castPropertyContentToObject(node, context, node.attributes);
+   }
+
+   /**
+    * Process property of "complex" object - component, partial or object.
+    * If property contains "type" attribute then property content will be type casted.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ContentOptionNode | OptionNode | null} Returns ContentOptionNode or OptionNode or null in case of broken content.
+    */
+   private processProperty(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode | Ast.ContentOptionNode {
       if (canBeTypeCasted(node)) {
          return this.castPropertyWithType(node, context);
       }
-      // TODO: process option content and create [content] option node
-      this.errorHandler.error(
-         `Not implemented yet to process property "${node.name}"`,
+      const propertyContext: ITraverseContext = {
+         ...context,
+         state: TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT
+      };
+      const content = this.visitAll(node.children, propertyContext);
+      const name = Resolvers.resolveOption(node.name);
+      if (isFirstChildContent(content)) {
+         return new Ast.ContentOptionNode(
+            name,
+            <Ast.TContent[]>content
+         );
+      }
+      if (isFirstChildObject(content)) {
+         return new Ast.OptionNode(
+            name,
+            <Ast.TData>content[0]
+         );
+      }
+      this.errorHandler.critical(
+         `Результат обработки опции "${node.name}" содержит некорректные данные. Все данные будут отброшены`,
          {
             fileName: context.fileName,
             position: node.position
@@ -1388,7 +1626,7 @@ class Traverse implements ITraverse {
    private processObjectContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.IObjectProperties {
       const propertiesContext: ITraverseContext = {
          ...context,
-         state: TraverseState.COMPLEX_OBJECT_PROPERTY
+         state: TraverseState.OBJECT_PROPERTIES
       };
       const processedChildren = this.visitAll(node.children, propertiesContext);
       const processedAttributes = this.attributeProcessor.process(node.attributes, {
