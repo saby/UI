@@ -392,7 +392,11 @@ describe('Compiler/core/Traverse', () => {
             assert.instanceOf(option.__$ws_value, Ast.BooleanNode);
          });
          it('Function', () => {
-            // TODO: dev
+            const optionTemplate = `<ws:option type='function'>UIModule/Module:library.handler</ws:option>`;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.FunctionNode);
          });
          it('Number', () => {
             const optionTemplate = `<ws:option type='number'>123</ws:option>`;
