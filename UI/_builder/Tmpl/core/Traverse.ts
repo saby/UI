@@ -121,12 +121,17 @@ const enum TraverseState {
    /**
     * In processing array type node where only data types node are allowed.
     */
-   ARRAY_DATA,
+   ARRAY_ELEMENTS,
 
    /**
     * In processing primitive type node content where only text is allowed.
     */
-   PRIMITIVE_DATA
+   PRIMITIVE_VALUE,
+
+   /**
+    * In processing property of content, partial or object.
+    */
+   COMPLEX_OBJECT_PROPERTY
 }
 
 /**
@@ -502,14 +507,12 @@ class Traverse implements ITraverse {
          case TraverseState.MARKUP:
             return this.processTagInMarkup(node, context);
          case TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT:
-            return this.processTagInComponentWithUnknownContent(node, context);
          case TraverseState.COMPONENT_WITH_CONTENT:
-            return this.processTagInComponentWithContent(node, context);
          case TraverseState.COMPONENT_WITH_OPTIONS:
-            return this.processTagInComponentWithOptions(node, context);
-         case TraverseState.ARRAY_DATA:
+            return this.processTagInComponentWithAnyContent(node, context);
+         case TraverseState.ARRAY_ELEMENTS:
             return this.processTagInArrayData(node, context);
-         case TraverseState.PRIMITIVE_DATA:
+         case TraverseState.PRIMITIVE_VALUE:
             this.errorHandler.error(
                `Обнаружен тег "${node.name}", когда ожидалось текстовое содержимое. Тег будет отброшен`,
                {
@@ -518,6 +521,8 @@ class Traverse implements ITraverse {
                }
             );
             return null;
+         case TraverseState.COMPLEX_OBJECT_PROPERTY:
+            return this.processTagInComplexObjectProperty(node, context);
          default:
             this.errorHandler.critical('Конечный автомат traverse находится в неизвестном состоянии', {
                fileName: context.fileName,
@@ -615,16 +620,98 @@ class Traverse implements ITraverse {
       }
    }
 
-   private processTagInComponentWithUnknownContent(node: Nodes.Tag, context: ITraverseContext): Ast.Ast {
-      throw new Error('Not implemented');
+   private processTagInComponentWithAnyContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent | Ast.ContentOptionNode | Ast.OptionNode {
+      switch (node.name) {
+         case 'ws:if':
+         case 'ws:else':
+         case 'ws:for':
+         case 'ws:partial':
+            return this.processTagInComponentWithContent(node, context);
+         case 'ws:Array':
+         case 'ws:Boolean':
+         case 'ws:Function':
+         case 'ws:Number':
+         case 'ws:Object':
+         case 'ws:String':
+         case 'ws:Value':
+            this.errorHandler.error(
+               `Использование директивы "${node.name}" вне описания опции запрещено. Директива будет отброшена`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
+         default:
+            if (Resolvers.isOption(node.name)) {
+               return this.processTagInComponentWithOptions(node, context);
+            }
+            if (Resolvers.isComponent(node.name)) {
+               return this.processTagInComponentWithContent(node, context);
+            }
+
+            // We need to check element node even if element node is broken.
+            const elementNode = this.processTagInComponentWithContent(node, context);
+            if (isElementNode(node.name)) {
+               return elementNode;
+            }
+            this.errorHandler.error(
+               `Обнаружен неизвестный HTML тег "${node.name}". Тег будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
+      }
    }
 
    private processTagInComponentWithContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
-      throw new Error('Not implemented');
+      if (context.state === TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT) {
+         context.state = TraverseState.COMPONENT_WITH_CONTENT;
+      }
+      if (context.state !== TraverseState.COMPONENT_WITH_CONTENT) {
+         this.errorHandler.error(
+            `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег "${node.name}". Тег будет отброшен. ` +
+            'Необходимо явно задать контент в ws:content',
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+      return this.processTagInMarkup(node, context);
    }
 
    private processTagInComponentWithOptions(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
-      throw new Error('Not implemented');
+      if (context.state === TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT) {
+         context.state = TraverseState.COMPONENT_WITH_OPTIONS;
+      }
+      if (context.state !== TraverseState.COMPONENT_WITH_CONTENT) {
+         this.errorHandler.error(
+            `Запрещено смешивать контент по умолчанию с опциями - обнаружена опция "${node.name}". Опция будет отброшен. ` +
+            'Необходимо явно задать контент в ws:content',
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+      return this.processTagInComplexObjectProperty(node, context);
+   }
+
+   private processTagInComplexObjectProperty(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
+      // TODO: release
+      this.errorHandler.error(
+         `Not implemented yet to process "${node.name}"`,
+         {
+            fileName: context.fileName,
+            position: node.position
+         }
+      );
+      return null;
    }
 
    /**
@@ -672,7 +759,7 @@ class Traverse implements ITraverse {
       try {
          const childrenContext = {
             ...context,
-            state: TraverseState.ARRAY_DATA
+            state: TraverseState.ARRAY_ELEMENTS
          };
          this.warnUnexpectedAttributes(node, context);
          const elements = <Ast.TData[]>this.visitAll(node.children, childrenContext);
@@ -700,7 +787,7 @@ class Traverse implements ITraverse {
       try {
          const childrenContext = {
             ...context,
-            state: TraverseState.PRIMITIVE_DATA,
+            state: TraverseState.PRIMITIVE_VALUE,
             textContent: TextContentFlags.TEXT_AND_EXPRESSION
          };
          this.warnUnexpectedAttributes(node, context);
@@ -723,7 +810,7 @@ class Traverse implements ITraverse {
       try {
          const childrenContext = {
             ...context,
-            state: TraverseState.PRIMITIVE_DATA,
+            state: TraverseState.PRIMITIVE_VALUE,
             textContent: TextContentFlags.TEXT
          };
          const children = this.visitAll(node.children, childrenContext);
@@ -772,7 +859,7 @@ class Traverse implements ITraverse {
       try {
          const childrenContext = {
             ...context,
-            state: TraverseState.PRIMITIVE_DATA,
+            state: TraverseState.PRIMITIVE_VALUE,
             textContent: TextContentFlags.TEXT_AND_EXPRESSION
          };
          this.warnUnexpectedAttributes(node, context);
@@ -817,7 +904,7 @@ class Traverse implements ITraverse {
       try {
          const childrenContext = {
             ...context,
-            state: TraverseState.PRIMITIVE_DATA
+            state: TraverseState.PRIMITIVE_VALUE
          };
          this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
@@ -845,7 +932,7 @@ class Traverse implements ITraverse {
       try {
          const childrenContext = {
             ...context,
-            state: TraverseState.PRIMITIVE_DATA
+            state: TraverseState.PRIMITIVE_VALUE
          };
          this.warnUnexpectedAttributes(node, context);
          const children = <Ast.TText[]>this.visitAll(node.children, childrenContext);
