@@ -8,8 +8,8 @@ import template = require('wml!UIDemo/MobileEventDemo/Swipe');
 class Swipe extends Control {
    _template = template;
 
-   private _swipeCount: number = null;
-   private _tapCount: number = null;
+   private _swipeCount: number = 0;
+   private _tapCount: number = 0;
 
    _beforeMount() {
       this._swipeCount = 0;
