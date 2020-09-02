@@ -382,7 +382,23 @@ describe('Compiler/core/Traverse', () => {
       });
       describe('Explicit type casting', () => {
          it('Array', () => {
-            // TODO: dev
+            const optionTemplate = `
+            <ws:option type="array">
+                <ws:Array></ws:Array>
+                <ws:Boolean>true</ws:Boolean>
+                <ws:Function>UIModule/Module:library.handler</ws:Function>
+                <ws:Number>123</ws:Number>
+                <ws:Object></ws:Object>
+                <ws:String>text</ws:String>
+                <ws:Value>value</ws:Value>
+            </ws:option>
+            `;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.ArrayNode);
+            const array = <Ast.ArrayNode>option.__$ws_value;
+            assert.strictEqual(array.__$ws_elements.length, 7);
          });
          it('Boolean', () => {
             const optionTemplate = `<ws:option type='boolean'>true</ws:option>`;
