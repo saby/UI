@@ -326,17 +326,6 @@ function isFirstChildContent(children: Ast.Ast[]): boolean {
 }
 
 /**
- * Check if first child in type consistent collection has type of object.
- * @param children {Ast[]} Type consistent collection of nodes of abstract syntax tree.
- */
-function isFirstChildObject(children: Ast.Ast[]): boolean {
-   if (children.length === 0) {
-      return false;
-   }
-   return children[0] instanceof Ast.ObjectNode;
-}
-
-/**
  * Allowed type names for type casting.
  */
 const CASTING_TYPES = {
@@ -1012,7 +1001,7 @@ class Traverse implements ITraverse {
             <Ast.TContent[]>content
          );
       }
-      if (isFirstChildObject(content)) {
+      if (content.length === 1 && Ast.isTypeofData(content[0])) {
          return new Ast.OptionNode(
             name,
             <Ast.TData>content[0]
