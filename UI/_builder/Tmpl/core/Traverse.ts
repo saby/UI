@@ -565,6 +565,13 @@ class Traverse implements ITraverse {
 
    // </editor-fold>
 
+   /**
+    * Process html tag node in state of markup.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {Ast | null} Returns instance of concrete TContent or null in case of broken content.
+    */
    private processTagInMarkup(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
       switch (node.name) {
          case 'ws:if':
@@ -623,6 +630,13 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process html tag node in state of array elements.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TData | null} Returns instance of concrete TData or null in case of broken content.
+    */
    private processTagInArrayData(node: Nodes.Tag, context: ITraverseContext): Ast.TData {
       switch (node.name) {
          case 'ws:Array':
@@ -651,6 +665,13 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process html tag node in state of component with any type of content.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TContent | ContentOptionNode | OptionNode | null} Returns instance of concrete TContent or null in case of broken content.
+    */
    private processTagInComponentWithAnyContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent | Ast.ContentOptionNode | Ast.OptionNode {
       switch (node.name) {
          case 'ws:if':
@@ -697,6 +718,13 @@ class Traverse implements ITraverse {
       }
    }
 
+   /**
+    * Process html tag node in state of component content with content.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TContent | null} Returns instance of concrete TContent or null in case of broken content.
+    */
    private processTagInComponentWithContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
       if (context.state === TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT) {
          context.state = TraverseState.COMPONENT_WITH_CONTENT;
@@ -715,6 +743,13 @@ class Traverse implements ITraverse {
       return this.processTagInMarkup(node, context);
    }
 
+   /**
+    * Process html tag node in state of component content with options.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ContentOptionNode | OptionNode | null} Returns ContentOptionNode or OptionNode or null in case of broken content.
+    */
    private processTagInComponentWithOptions(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
       if (context.state === TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT) {
          context.state = TraverseState.COMPONENT_WITH_OPTIONS;
@@ -733,19 +768,78 @@ class Traverse implements ITraverse {
       return this.processTagInComplexObjectProperty(node, context);
    }
 
+   /**
+    * Process html tag node in state of complex object properties.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ContentOptionNode | OptionNode | null} Returns ContentOptionNode or OptionNode or null in case of broken content.
+    */
    private processTagInComplexObjectProperty(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
       if (canBeTypeCasted(node)) {
          return this.castPropertyWithType(node, context);
       }
-      // TODO: release
-      this.errorHandler.error(
-         `Not implemented yet to process "${node.name}"`,
-         {
-            fileName: context.fileName,
-            position: node.position
-         }
-      );
-      return null;
+      switch (node.name) {
+         case 'ws:if':
+         case 'ws:else':
+         case 'ws:for':
+         case 'ws:partial':
+            this.errorHandler.error(
+               `Использование директивы "${node.name}" в данном контексте запрещено. Ожидалась опция. Директива будет отброшена`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
+         case 'ws:Array':
+         case 'ws:Boolean':
+         case 'ws:Function':
+         case 'ws:Number':
+         case 'ws:Object':
+         case 'ws:String':
+         case 'ws:Value':
+            this.errorHandler.error(
+               `Использование директивы "${node.name}" вне описания опции запрещено. Ожидалась опция. Директива будет отброшена`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
+         default:
+            if (Resolvers.isOption(node.name)) {
+               return this.processTagInComplexObjectProperty(node, context);
+            }
+            if (Resolvers.isComponent(node.name)) {
+               this.errorHandler.error(
+                  `Использование компонента "${node.name}" в данном контексте запрещено. Ожидалась опция. Компонент будет отброшен`,
+                  {
+                     fileName: context.fileName,
+                     position: node.position
+                  }
+               );
+               return null;
+            }
+            if (Resolvers.isComponent(node.name) || isElementNode(node.name)) {
+               this.errorHandler.error(
+                  `Использование элемента "${node.name}" в данном контексте запрещено. Ожидалась опция. Элемент будет отброшен`,
+                  {
+                     fileName: context.fileName,
+                     position: node.position
+                  }
+               );
+               return null;
+            }
+            this.errorHandler.error(
+               `Обнаружен неизвестный HTML тег "${node.name}". Ожидалась опция. Тег будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
+      }
    }
 
    // <editor-fold desc="Properties type casting">
@@ -1344,8 +1438,44 @@ class Traverse implements ITraverse {
     * @returns {IObjectProperties} Returns collection of properties nodes.
     */
    private processObjectContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.IObjectProperties {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      const propertiesContext: ITraverseContext = {
+         ...context,
+         state: TraverseState.COMPLEX_OBJECT_PROPERTY
+      };
+      const processedChildren = this.visitAll(node.children, propertiesContext);
+      const processedAttributes = this.attributeProcessor.process(node.attributes, {
+         fileName: context.fileName,
+         hasAttributesOnly: false,
+         parentTagName: node.name
+      });
+      this.warnIncorrectProperties(processedAttributes.attributes, node, context);
+      this.warnIncorrectProperties(processedAttributes.events, node, context);
+      const properties: Ast.IObjectProperties = processedAttributes.options;
+      for (let index = 0; index < processedChildren.length; ++index) {
+         const child = processedChildren[index];
+         if (!(child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode)) {
+            this.errorHandler.critical(
+               `Получен некорректный узел (!=Option|ContentOption) внутри компонента "${node.name}"`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            continue;
+         }
+         if (properties.hasOwnProperty(child.__$ws_name)) {
+            this.errorHandler.critical(
+               `Опция "${child.__$ws_name}" уже определена на директиве "ws:Object". Полученная опция будет отброшена`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            continue;
+         }
+         properties[child.__$ws_name] = child;
+      }
+      return properties;
    }
 
    /**
@@ -1698,6 +1828,13 @@ class Traverse implements ITraverse {
       return this.createComponentOnly(node, context);
    }
 
+   /**
+    * Process component node with its content.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ComponentNode} Returns component node of abstract syntax tree.
+    */
    private processComponentWithChildren(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       const options = this.getComponentOrPartialOptions(node.children, context);
       const ast = this.createComponentOnly(node, context);
@@ -1778,6 +1915,13 @@ class Traverse implements ITraverse {
       return this.createPartialOnly(node, context);
    }
 
+   /**
+    * Process partial node with its content.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {InlineTemplateNode | StaticPartialNode | DynamicPartialNode} Concrete instance of partial node of abstract syntax tree.
+    */
    private processPartialWithChildren(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
       const options = this.getComponentOrPartialOptions(node.children, context);
       const ast = this.createPartialOnly(node, context);
@@ -1817,6 +1961,13 @@ class Traverse implements ITraverse {
 
    // <editor-fold desc="Machine helpers">
 
+   /**
+    * Process component or partial node children.
+    * @private
+    * @param children {Node[]} Collection of child nodes of processing component or partial node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {<OptionNode | ContentOptionNode>} Returns collection of options and content options.
+    */
    private getComponentOrPartialOptions(children: Nodes.Node[], context: ITraverseContext): Array<Ast.OptionNode | Ast.ContentOptionNode> {
       const contentContext: ITraverseContext = {
          ...context,
@@ -1834,6 +1985,14 @@ class Traverse implements ITraverse {
       return <Array<Ast.OptionNode | Ast.ContentOptionNode>>content;
    }
 
+   /***
+    * Apply processed collection of options and content options.
+    * @private
+    * @param ast {BaseWasabyElement} Node of abstract syntax tree. On this node collection of options will be applied.
+    * @param options {Array<OptionNode | ContentOptionNode>} Collection of processed options.
+    * @param context {ITraverseContext} Processing context.
+    * @param node {Tag} Base html tag node of processing component or partial node.
+    */
    private applyOptionsToComponentOrPartial(ast: Ast.BaseWasabyElement, options: Array<Ast.OptionNode | Ast.ContentOptionNode>, context: ITraverseContext, node: Nodes.Tag): void {
       for (let index = 0; index < options.length; ++index) {
          const child = options[index];
