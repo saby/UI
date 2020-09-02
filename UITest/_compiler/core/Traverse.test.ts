@@ -355,7 +355,45 @@ describe('Compiler/core/Traverse', () => {
             assert.instanceOf(option.__$ws_value, Ast.NumberNode);
          });
          it('Object', () => {
-            // TODO: dev
+            const optionTemplate = `
+            <ws:option>
+                <ws:Object>
+                    <ws:arrayProperty>
+                        <ws:Array></ws:Array>
+                    </ws:arrayProperty>
+                    <ws:booleanProperty>
+                        <ws:Boolean>true</ws:Boolean>
+                    </ws:booleanProperty>
+                    <ws:functionProperty>
+                        <ws:Function>UIModule/Module:library.handler</ws:Function>
+                    </ws:functionProperty>
+                    <ws:numberProperty>
+                        <ws:Number>123</ws:Number>
+                    </ws:numberProperty>
+                    <ws:objectProperty>
+                       <ws:Object></ws:Object>
+                    </ws:objectProperty>
+                    <ws:stringProperty>
+                        <ws:String>text</ws:String>
+                    </ws:stringProperty>
+                    <ws:valueProperty>
+                        <ws:Value>value</ws:Value>
+                    </ws:valueProperty>
+                </ws:Object>
+            </ws:option>
+            `;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.ObjectNode);
+            const properties = (<Ast.ObjectNode>option.__$ws_value).__$ws_properties;
+            assert.isTrue(properties.hasOwnProperty('arrayProperty'));
+            assert.isTrue(properties.hasOwnProperty('booleanProperty'));
+            assert.isTrue(properties.hasOwnProperty('functionProperty'));
+            assert.isTrue(properties.hasOwnProperty('numberProperty'));
+            assert.isTrue(properties.hasOwnProperty('objectProperty'));
+            assert.isTrue(properties.hasOwnProperty('stringProperty'));
+            assert.isTrue(properties.hasOwnProperty('valueProperty'));
          });
          it('String', () => {
             const optionTemplate = `
@@ -422,7 +460,43 @@ describe('Compiler/core/Traverse', () => {
             assert.instanceOf(option.__$ws_value, Ast.NumberNode);
          });
          it('Object', () => {
-            // TODO: dev
+            const optionTemplate = `
+            <ws:option type="object">
+                 <ws:arrayProperty>
+                     <ws:Array></ws:Array>
+                 </ws:arrayProperty>
+                 <ws:booleanProperty>
+                     <ws:Boolean>true</ws:Boolean>
+                 </ws:booleanProperty>
+                 <ws:functionProperty>
+                     <ws:Function>UIModule/Module:library.handler</ws:Function>
+                 </ws:functionProperty>
+                 <ws:numberProperty>
+                     <ws:Number>123</ws:Number>
+                 </ws:numberProperty>
+                 <ws:objectProperty>
+                    <ws:Object></ws:Object>
+                 </ws:objectProperty>
+                 <ws:stringProperty>
+                     <ws:String>text</ws:String>
+                 </ws:stringProperty>
+                 <ws:valueProperty>
+                     <ws:Value>value</ws:Value>
+                 </ws:valueProperty>
+            </ws:option>
+            `;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.ObjectNode);
+            const properties = (<Ast.ObjectNode>option.__$ws_value).__$ws_properties;
+            assert.isTrue(properties.hasOwnProperty('arrayProperty'));
+            assert.isTrue(properties.hasOwnProperty('booleanProperty'));
+            assert.isTrue(properties.hasOwnProperty('functionProperty'));
+            assert.isTrue(properties.hasOwnProperty('numberProperty'));
+            assert.isTrue(properties.hasOwnProperty('objectProperty'));
+            assert.isTrue(properties.hasOwnProperty('stringProperty'));
+            assert.isTrue(properties.hasOwnProperty('valueProperty'));
          });
          it('String', () => {
             const optionTemplate = `<ws:option type='string'>text</ws:option>`;
@@ -440,26 +514,37 @@ describe('Compiler/core/Traverse', () => {
          });
       });
       describe('Implicit type casting', () => {
-         it('Array', () => {
-            // TODO: dev
-         });
-         it('Boolean', () => {
-            // TODO: dev
-         });
-         it('Function', () => {
-            // TODO: dev
-         });
-         it('Number', () => {
-            // TODO: dev
-         });
          it('Object', () => {
-            // TODO: dev
-         });
-         it('String', () => {
-            // TODO: dev
-         });
-         it('Value', () => {
-            // TODO: dev
+            // FIXME: !!!
+            // const optionTemplate = `
+            // <ws:option>
+            //      <ws:arrayProperty>
+            //          <ws:Array></ws:Array>
+            //      </ws:arrayProperty>
+            //      <ws:booleanProperty>
+            //          <ws:Boolean>true</ws:Boolean>
+            //      </ws:booleanProperty>
+            //      <ws:functionProperty>
+            //          <ws:Function>UIModule/Module:library.handler</ws:Function>
+            //      </ws:functionProperty>
+            //      <ws:numberProperty>
+            //          <ws:Number>123</ws:Number>
+            //      </ws:numberProperty>
+            //      <ws:objectProperty>
+            //         <ws:Object></ws:Object>
+            //      </ws:objectProperty>
+            //      <ws:stringProperty>
+            //          <ws:String>text</ws:String>
+            //      </ws:stringProperty>
+            //      <ws:valueProperty>
+            //          <ws:Value>value</ws:Value>
+            //      </ws:valueProperty>
+            // </ws:option>
+            // `;
+            // const ast = traversePropertyOnComponent(optionTemplate);
+            // const option = ast.__$ws_options.option;
+            // assert.instanceOf(option, Ast.OptionNode);
+            // assert.instanceOf(option.__$ws_value, Ast.ObjectNode);
          });
       });
    });
