@@ -261,6 +261,7 @@ var
    },
    // todo добавлено для совместимости с прошлой версией, можно будет удалить после выполнения задачи
    // https://online.sbis.ru/opendoc.html?guid=0443ec3f-0d33-469b-89f1-57d208ed2982
+   // @ts-ignore
    getMarkupGenerator = function() {
       return this.createGenerator.apply(this, arguments);
    },
