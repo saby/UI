@@ -515,36 +515,35 @@ describe('Compiler/core/Traverse', () => {
       });
       describe('Implicit type casting', () => {
          it('Object', () => {
-            // FIXME: !!!
-            // const optionTemplate = `
-            // <ws:option>
-            //      <ws:arrayProperty>
-            //          <ws:Array></ws:Array>
-            //      </ws:arrayProperty>
-            //      <ws:booleanProperty>
-            //          <ws:Boolean>true</ws:Boolean>
-            //      </ws:booleanProperty>
-            //      <ws:functionProperty>
-            //          <ws:Function>UIModule/Module:library.handler</ws:Function>
-            //      </ws:functionProperty>
-            //      <ws:numberProperty>
-            //          <ws:Number>123</ws:Number>
-            //      </ws:numberProperty>
-            //      <ws:objectProperty>
-            //         <ws:Object></ws:Object>
-            //      </ws:objectProperty>
-            //      <ws:stringProperty>
-            //          <ws:String>text</ws:String>
-            //      </ws:stringProperty>
-            //      <ws:valueProperty>
-            //          <ws:Value>value</ws:Value>
-            //      </ws:valueProperty>
-            // </ws:option>
-            // `;
-            // const ast = traversePropertyOnComponent(optionTemplate);
-            // const option = ast.__$ws_options.option;
-            // assert.instanceOf(option, Ast.OptionNode);
-            // assert.instanceOf(option.__$ws_value, Ast.ObjectNode);
+            const optionTemplate = `
+            <ws:option>
+                 <ws:arrayProperty>
+                     <ws:Array></ws:Array>
+                 </ws:arrayProperty>
+                 <ws:booleanProperty>
+                     <ws:Boolean>true</ws:Boolean>
+                 </ws:booleanProperty>
+                 <ws:functionProperty>
+                     <ws:Function>UIModule/Module:library.handler</ws:Function>
+                 </ws:functionProperty>
+                 <ws:numberProperty>
+                     <ws:Number>123</ws:Number>
+                 </ws:numberProperty>
+                 <ws:objectProperty>
+                    <ws:Object></ws:Object>
+                 </ws:objectProperty>
+                 <ws:stringProperty>
+                     <ws:String>text</ws:String>
+                 </ws:stringProperty>
+                 <ws:valueProperty>
+                     <ws:Value>value</ws:Value>
+                 </ws:valueProperty>
+            </ws:option>
+            `;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.ObjectNode);
          });
       });
    });
