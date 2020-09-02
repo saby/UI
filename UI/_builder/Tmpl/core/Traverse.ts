@@ -104,21 +104,6 @@ const enum TraverseState {
    MARKUP,
 
    /**
-    * In processing component or partial that contains either content or options.
-    */
-   COMPONENT,
-
-   /**
-    * In processing component or partial where only content is allowed.
-    */
-   COMPONENT_WITH_CONTENT,
-
-   /**
-    * In processing component or partial where only options are allowed.
-    */
-   COMPONENT_WITH_OPTION,
-
-   /**
     * In processing array type node where only data types node are allowed.
     */
    ARRAY_DATA,
@@ -126,14 +111,7 @@ const enum TraverseState {
    /**
     * In processing primitive type node content where only text is allowed.
     */
-   PRIMITIVE_DATA,
-
-   /**
-    * In processing object type node content where only options are allowed.
-    */
-   OBJECT_DATA,
-
-   COMPONENT_OPTION
+   PRIMITIVE_DATA
 }
 
 /**
@@ -263,19 +241,6 @@ function validatePartialTemplate(option: Ast.OptionNode | undefined, node: Nodes
       throw new Error('не задано значение обязательной опции "template"');
    }
    return value;
-}
-
-/**
- * Check if collection of nodes of abstract syntax tree contains only node types of content.
- * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
- */
-function containsContentOnly(nodes: Ast.Ast[]): boolean {
-   for (let index = 0; index < nodes.length; ++index) {
-      if (!Ast.isTypeofContent(nodes[index])) {
-         return false;
-      }
-   }
-   return true;
 }
 
 // </editor-fold>
@@ -409,8 +374,6 @@ class Traverse implements ITraverse {
    visitCData(node: Nodes.CData, context: ITraverseContext): Ast.CDataNode {
       switch (context.state) {
          case TraverseState.MARKUP:
-         case TraverseState.COMPONENT:
-         case TraverseState.COMPONENT_OPTION:
             return new Ast.CDataNode(node.data);
          default:
             this.errorHandler.error(
@@ -433,8 +396,6 @@ class Traverse implements ITraverse {
    visitDoctype(node: Nodes.Doctype, context: ITraverseContext): Ast.DoctypeNode {
       switch (context.state) {
          case TraverseState.MARKUP:
-         case TraverseState.COMPONENT:
-         case TraverseState.COMPONENT_OPTION:
             return new Ast.DoctypeNode(node.data);
          default:
             this.errorHandler.error(
@@ -457,8 +418,6 @@ class Traverse implements ITraverse {
    visitInstruction(node: Nodes.Instruction, context: ITraverseContext): Ast.InstructionNode {
       switch (context.state) {
          case TraverseState.MARKUP:
-         case TraverseState.COMPONENT:
-         case TraverseState.COMPONENT_OPTION:
             return new Ast.InstructionNode(node.data);
          default:
             this.errorHandler.error(
@@ -520,10 +479,6 @@ class Traverse implements ITraverse {
       switch (context.state) {
          case TraverseState.MARKUP:
             return this.processTagInMarkup(node, context);
-         case TraverseState.COMPONENT:
-            return this.processTagInComponent(node, context);
-         case TraverseState.COMPONENT_OPTION:
-            return this.processTagInComponentOption(node, context);
          case TraverseState.ARRAY_DATA:
             return this.processTagInArrayData(node, context);
          case TraverseState.PRIMITIVE_DATA:
@@ -535,8 +490,6 @@ class Traverse implements ITraverse {
                }
             );
             return null;
-         case TraverseState.OBJECT_DATA:
-            return this.processTagInObjectData(node, context);
          default:
             this.errorHandler.critical('Конечный автомат traverse находится в неизвестном состоянии', {
                fileName: context.fileName,
@@ -548,13 +501,6 @@ class Traverse implements ITraverse {
 
    // </editor-fold>
 
-   /**
-    * Process tag node in markup state.
-    * @private
-    * @param node {Tag} Html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {TContent | null} Returns concrete instance of TContent type or null in case of broken tag node.
-    */
    private processTagInMarkup(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
       switch (node.name) {
          case 'ws:if':
@@ -613,99 +559,6 @@ class Traverse implements ITraverse {
       }
    }
 
-   /**
-    * Process tag node in markup state.
-    * @private
-    * @param node {Tag} Html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {TContent | ContentOptionNode | OptionNode | null} Returns concrete instance of TContent type or null in case of broken tag node.
-    */
-   private processTagInComponent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent | Ast.ContentOptionNode | Ast.OptionNode {
-      switch (node.name) {
-         case 'ws:if':
-         case 'ws:else':
-         case 'ws:for':
-         case 'ws:partial':
-            return this.processComponentContent(node, context);
-         case 'ws:template':
-            return this.processComponentOption(node, context);
-         case 'ws:Array':
-         case 'ws:Boolean':
-         case 'ws:Function':
-         case 'ws:Number':
-         case 'ws:Object':
-         case 'ws:String':
-         case 'ws:Value':
-            this.errorHandler.error(
-               `Использование директивы "${node.name}" вне описания опции запрещено. Директива будет отброшена`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
-         default:
-            if (Resolvers.isOption(node.name)) {
-               return this.processComponentOption(node, context);
-            }
-
-            // We need to check component content node even if node is broken.
-            const componentContent = this.processComponentContent(node, context);
-            if (Resolvers.isComponent(node.name) || isElementNode(node.name)) {
-               return componentContent;
-            }
-            this.errorHandler.error(
-               `Обнаружен неизвестный HTML тег "${node.name}". Тег будет отброшен`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
-      }
-   }
-
-   private processTagInComponentOption(node: Nodes.Tag, context: ITraverseContext): Ast.TData | Ast.TContent | Ast.ContentOptionNode | Ast.OptionNode {
-      switch (node.name) {
-         case 'ws:if':
-         case 'ws:else':
-         case 'ws:for':
-         case 'ws:partial':
-            return this.processComponentContent(node, context);
-         case 'ws:template':
-            return this.castAndProcessObjectProperty(node, context);
-         case 'ws:Array':
-            return this.processArray(node, context);
-         case 'ws:Boolean':
-            return this.processBoolean(node, context);
-         case 'ws:Function':
-            return this.processFunction(node, context);
-         case 'ws:Number':
-            return this.processNumber(node, context);
-         case 'ws:Object':
-            return this.processObject(node, context);
-         case 'ws:String':
-            return this.processString(node, context);
-         case 'ws:Value':
-            return this.processValue(node, context);
-         default:
-            if (Resolvers.isOption(node.name)) {
-               return this.castAndProcessObjectProperty(node, context);
-            }
-            if (Resolvers.isComponent(node.name) || isElementNode(node.name)) {
-               return this.processComponentContent(node, context);
-            }
-            this.errorHandler.error(
-               `Обнаружен неизвестный HTML тег "${node.name}". Тег будет отброшен`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
-      }
-   }
-
    private processTagInArrayData(node: Nodes.Tag, context: ITraverseContext): Ast.TData {
       switch (node.name) {
          case 'ws:Array':
@@ -732,24 +585,6 @@ class Traverse implements ITraverse {
             );
             return null;
       }
-   }
-
-   private processTagInObjectData(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
-      // TODO: !!!
-      if (Resolvers.isOption(node.name)) {
-         const optionContext: ITraverseContext = {
-            ...context
-         };
-         return this.processComponentOption(node, optionContext);
-      }
-      this.errorHandler.error(
-         `Обнаружен тег "${node.name}" вместо ожидаемого тега с префиксом ws: в имени, служащий свойством ws:Object`,
-         {
-            fileName: context.fileName,
-            position: node.position
-         }
-      );
-      return null;
    }
 
    /**
@@ -916,120 +751,12 @@ class Traverse implements ITraverse {
       }
    }
 
-   private prepareObjectProperties(node: Nodes.Tag, context: ITraverseContext): Ast.IObjectProperties {
-      const attributes = this.attributeProcessor.process(node.attributes, {
-         fileName: context.fileName,
-         hasAttributesOnly: false,
-         parentTagName: node.name
-      });
-      this.warnIncorrectProperties(attributes.attributes, node, context);
-      this.warnIncorrectProperties(attributes.events, node, context);
-      return attributes.options;
-   }
-
-   private mergeObjectProperties(source: Ast.Ast[], target: Ast.IObjectProperties, node: Nodes.Tag, context: ITraverseContext): void {
-      for (let index = 0; index < source.length; ++index) {
-         const child = source[index];
-         if (child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode) {
-            if (target.hasOwnProperty(child.__$ws_name)) {
-               this.errorHandler.critical(
-                  `Опция "${child.__$ws_name}" уже определена на директиве ws:Object. Полученная опция будет отброшена`,
-                  {
-                     fileName: context.fileName,
-                     position: node.position
-                  }
-               );
-               continue;
-            }
-            target[child.__$ws_name] = child;
-            continue;
-         }
-         this.errorHandler.critical(
-            `Получен некорректный узел (!=Option|ContentOption) внутри компонента "${node.name}"`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-      }
-   }
-
    private processObject(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode {
       try {
-         const childrenContext = {
-            ...context,
-            state: TraverseState.OBJECT_DATA
-         };
-         const children = this.visitAll(node.children, childrenContext);
-         const properties = this.prepareObjectProperties(node, context);
-         this.mergeObjectProperties(children, properties, node, context);
-         return new Ast.ObjectNode(properties);
+         throw new Error('Not implemented');
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Object: ${error.message}. Директива будет отброшена`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
-   }
-
-   private castAndProcessObjectProperty(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode {
-      try {
-         const properties = { };
-         const childrenContext: ITraverseContext = {
-            ...context
-         };
-         const optionName = Resolvers.resolveOption(node.name);
-         const content = this.visitAll(node.children, childrenContext);
-         if (content.length !== 1) {
-            this.errorHandler.critical(
-               'Ожидался единственый узел в packAndProcessObjectProperty',
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-         }
-         const value = <Ast.TData>content[0];
-         if (value.hasFlag(Ast.Flags.TYPE_CASTED) && value instanceof Ast.ObjectNode) {
-            for (const attributeName in node.attributes) {
-               try {
-                  const processedValue = this.textProcessor.process(
-                     node.attributes[attributeName].value,
-                     {
-                        fileName: context.fileName,
-                        allowedContent: TextContentFlags.FULL_TEXT
-                     },
-                     node.attributes[attributeName].position
-                  );
-                  const valueNode = new Ast.ValueNode(processedValue);
-                  value.__$ws_properties[attributeName] = new Ast.OptionNode(
-                     attributeName,
-                     valueNode
-                  );
-               } catch (error) {
-                  this.errorHandler.error(
-                     `Ошибка обработки атрибута "${attributeName}": ${error.message}. Атрибут будет отброшен`,
-                     {
-                        fileName: context.fileName,
-                        position: node.attributes[attributeName].position
-                     }
-                  );
-               }
-            }
-         } else {
-            this.warnUnexpectedAttributes(node, context);
-         }
-         properties[optionName] = content[0];
-         const ast = new Ast.ObjectNode(properties);
-         ast.setFlag(Ast.Flags.TYPE_CASTED);
-         return ast;
-      } catch (error) {
-         this.errorHandler.error(
-            `Ошибка разбора опции "${node.name}": ${error.message}. Опция будет отброшена`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1175,10 +902,10 @@ class Traverse implements ITraverse {
          const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          const data = this.getTextFromAttribute(node, 'data', context);
          if (data.indexOf(';') > -1) {
-            const { init, test, update } = this.parseForData(data);
+            const { init, test, update } = this.parseForParameters(data);
             return new Ast.ForNode(init, test, update, content);
          }
-         const { index, iterator, collection } = this.parseForeachData(data);
+         const { index, iterator, collection } = this.parseForeachParameters(data);
          return new Ast.ForeachNode(index, iterator, collection, content);
       } catch (error) {
          this.errorHandler.error(
@@ -1238,7 +965,7 @@ class Traverse implements ITraverse {
     * @param data {string} For-cycle parameters.
     * @throws {Error} Throws error if cycle parameters are invalid.
     */
-   private parseForData(data: string): { init: ProgramNode | null; test: ProgramNode; update: ProgramNode | null; } {
+   private parseForParameters(data: string): { init: ProgramNode | null; test: ProgramNode; update: ProgramNode | null; } {
       const parameters = data.split(';').map(s => s.trim());
       if (parameters.length !== 3) {
          throw new Error(
@@ -1268,7 +995,7 @@ class Traverse implements ITraverse {
     * @param data {string} For-cycle parameters.
     * @throws {Error} Throws error if cycle parameters are invalid.
     */
-   private parseForeachData(data: string): { iterator: ProgramNode; index: ProgramNode | null; collection: ProgramNode; } {
+   private parseForeachParameters(data: string): { iterator: ProgramNode; index: ProgramNode | null; collection: ProgramNode; } {
       const params = data.split(' in ');
       if (params.length !== 2) {
          throw new Error(
@@ -1305,27 +1032,48 @@ class Traverse implements ITraverse {
    // <editor-fold desc="Processing component nodes">
 
    /**
-    * Process component or partial children and return collection of options.
+    * Process html element tag and create component node of abstract syntax tree.
     * @private
     * @param node {Tag} Html tag node.
     * @param context {ITraverseContext} Processing context.
-    * @returns {Array<ContentOptionNode | OptionNode>} Returns collection of options.
+    * @returns {ComponentNode | null} Returns instance of ComponentNode null in case of broken content.
     */
-   private processComponentChildren(node: Nodes.Tag, context: ITraverseContext): Array<Ast.ContentOptionNode | Ast.OptionNode> {
-      // TODO: ожидаю массив, состоящий:
-      //  1) из 1 контентной опции - дочернее состояние COMPONENT_WITH_CONTENT
-      //  2) из N опций - дочернее состояние COMPONENT_WITH_OPTION
-      const childrenContext: ITraverseContext = {
-         ...context,
-         state: TraverseState.COMPONENT
-      };
-      const componentContent = this.visitAll(node.children, childrenContext);
-      if (containsContentOnly(componentContent)) {
-         return [
-            new Ast.ContentOptionNode('content', <Ast.TContent[]>componentContent)
-         ];
+   private processComponent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
+      try {
+         if (node.children.length === 0) {
+            return this.processComponentWithNoContent(node, context);
+         }
+         throw new Error('Not implemented');
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка разбора компонента "${node.name}": ${error.message}. Компонент будет отброшен`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
       }
-      return <Array<Ast.OptionNode>>componentContent;
+   }
+
+   /**
+    * Process html element tag with no children and create component node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ComponentNode | null} Returns instance of ComponentNode null in case of broken content.
+    */
+   private processComponentWithNoContent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
+      if (!node.isSelfClosing) {
+         this.errorHandler.warn(
+            `Для компонента "${node.name}" не задан контент и тег компонента не указан как самозакрывающийся`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+      }
+      return this.createComponentOnly(node, context);
    }
 
    /**
@@ -1336,7 +1084,7 @@ class Traverse implements ITraverse {
     * @returns {ComponentNode} Returns instance of ComponentNode.
     * @throws {Error} Throws error in case of broken node data.
     */
-   private processComponentHead(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
+   private createComponentOnly(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       const attributes = this.attributeProcessor.process(node.attributes, {
          fileName: context.fileName,
          hasAttributesOnly: false,
@@ -1352,77 +1100,9 @@ class Traverse implements ITraverse {
       );
    }
 
-   /**
-    * Process html element tag and create component node of abstract syntax tree.
-    * @private
-    * @param node {Tag} Html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {ComponentNode | null} Returns instance of ForNode or ForeachNode or null in case of broken content.
-    */
-   private processComponent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
-      try {
-         if (node.isSelfClosing || node.children.length === 0) {
-            if (!node.isSelfClosing && node.children.length === 0) {
-               this.errorHandler.warn(
-                  `Для компонента "${node.name}" не задан контент и тег компонента не указан как самозакрывающийся`,
-                  {
-                     fileName: context.fileName,
-                     position: node.position
-                  }
-               );
-            }
-            return this.processComponentHead(node, context);
-         }
-         const ast = this.processComponentHead(node, context);
-         const componentContent = this.processComponentChildren(node, context);
-         this.applyOptions(ast, componentContent, node, context);
-         return ast;
-      } catch (error) {
-         this.errorHandler.error(
-            `Ошибка разбора компонента "${node.name}": ${error.message}. Компонент будет отброшен`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
-   }
+   // </editor-fold>
 
-   /**
-    * Only process html tag name and attributes and create
-    * concrete realisation of partial template node of abstract syntax tree.
-    * @private
-    * @param node {Tag} Html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {InlineTemplateNode | StaticPartialNode | DynamicPartialNode} Returns concrete instance of partial template.
-    * @throws {Error} Throws error in case of broken node data.
-    */
-   private processPartialHead(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
-      if (!node.isSelfClosing &&node.children.length === 0) {
-         this.errorHandler.warn(
-            `Для директивы ws:partial не задан контент и тег компонента не указан как самозакрывающийся`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-      }
-      const attributeProcessorOptions = {
-         fileName: context.fileName,
-         hasAttributesOnly: false,
-         parentTagName: node.name
-      };
-      const attributes = this.attributeProcessor.process(node.attributes, attributeProcessorOptions);
-      const template = validatePartialTemplate(attributes.options['template'], node);
-      if (template instanceof ProgramNode) {
-         return new Ast.DynamicPartialNode(template, attributes.attributes, attributes.events, attributes.options);
-      }
-      if (Resolvers.isLogicalPath(template) || Resolvers.isPhysicalPath(template)) {
-         return new Ast.StaticPartialNode(template, attributes.attributes, attributes.events, attributes.options);
-      }
-      return new Ast.InlineTemplateNode(template, attributes.attributes, attributes.events, attributes.options);
-   }
+   // <editor-fold desc="Processing partial nodes">
 
    /**
     * Process html element tag and create concrete realisation of partial template node of abstract syntax tree.
@@ -1433,20 +1113,10 @@ class Traverse implements ITraverse {
     */
    private processPartial(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
       try {
-         if (node.isSelfClosing || node.children.length === 0) {
-            return this.processPartialHead(node, context);
+         if (node.children.length === 0) {
+            return this.processPartialWithNoChildren(node, context);
          }
-         const ast = this.processPartialHead(node, context);
-         const partialContent = this.processComponentChildren(node, context);
-         if (containsContentOnly(partialContent)) {
-            ast.setOption(new Ast.ContentOptionNode('content', <Ast.TContent[]>partialContent));
-            return ast;
-         }
-         this.applyOptions(ast, partialContent, node, context);
-         if (ast instanceof Ast.InlineTemplateNode) {
-            context.scope.registerTemplateUsage(ast.__$ws_name);
-         }
-         return ast;
+         throw new Error('Not implemented');
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы ws:partial: ${error.message}. Директива будет отброшена`,
@@ -1460,184 +1130,56 @@ class Traverse implements ITraverse {
    }
 
    /**
-    * Apply component or partial options.
-    * @private
-    * @param ast {BaseWasabyElement} Concrete instance of BaseWasabyElement - partial or component.
-    * @param children {Array<ContentOptionNode | OptionNode>} Collection of options and content options.
-    * @param node {Tag} Source html tag node.
-    * @param context {ITraverseContext} Processing context.
-    */
-   private applyOptions(ast: Ast.BaseWasabyElement, children: Array<Ast.ContentOptionNode | Ast.OptionNode>, node: Nodes.Tag, context: ITraverseContext): void {
-      for (let index = 0; index < children.length; ++index) {
-         const child = children[index];
-         if (child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode) {
-            if (ast.hasOption(child.__$ws_name)) {
-               this.errorHandler.error(
-                  `Опция "${child.__$ws_name}" уже определена на теге "${node.name}". Полученная опция будет отброшена`,
-                  {
-                     fileName: context.fileName,
-                     position: node.position
-                  }
-               );
-               continue;
-            }
-            ast.setOption(child);
-            continue;
-         }
-         // TODO: remove after work
-         this.errorHandler.critical(
-            `Получен некорректный узел (!=Option|ContentOption) внутри теге "${node.name}"`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-      }
-   }
-
-   private processComponentOption(node: Nodes.Tag, context: ITraverseContext): Ast.ContentOptionNode | Ast.OptionNode {
-      if (context.state === TraverseState.COMPONENT) {
-         context.state = TraverseState.COMPONENT_WITH_OPTION;
-      }
-      if (context.state !== TraverseState.COMPONENT_WITH_OPTION) {
-         this.errorHandler.error(
-            `Запрещено смешивать контент по умолчанию с опциями - обнаружена опция "${node.name}". ` +
-            'Необходимо явно задать контент в ws:content',
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
-      try {
-         const optionContext: ITraverseContext = {
-            ...context,
-            state: TraverseState.COMPONENT_OPTION
-         };
-         const optionName = Resolvers.resolveOption(node.name);
-         if (node.isSelfClosing || node.children.length === 0) {
-            const properties = { };
-            for (const attributeName in node.attributes) {
-               try {
-                  const processedValue = this.textProcessor.process(
-                     node.attributes[attributeName].value,
-                     {
-                        fileName: context.fileName,
-                        allowedContent: TextContentFlags.FULL_TEXT
-                     },
-                     node.attributes[attributeName].position
-                  );
-                  const valueNode = new Ast.ValueNode(processedValue);
-                  properties[attributeName] = new Ast.OptionNode(
-                     attributeName,
-                     valueNode
-                  );
-               } catch (error) {
-                  this.errorHandler.error(
-                     `Ошибка обработки опции "${node.name}": ${error.message}. Опция будет отброшен`,
-                     {
-                        fileName: context.fileName,
-                        position: node.attributes[attributeName].position
-                     }
-                  );
-               }
-            }
-            return new Ast.OptionNode(optionName, new Ast.ObjectNode(properties));
-         }
-         // результат: контентная опция, узел с данными (возможно type casted)
-         const children = this.visitAll(node.children, optionContext);
-         if (children.length !== 1) {
-            this.errorHandler.error(
-               `Содержимое опции "${node.name}" некорректно. Опция будет отброшена`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
-         }
-         const data = children[0];
-         if (data instanceof Ast.ContentOptionNode) {
-            this.warnUnexpectedAttributes(node, context);
-            return new Ast.ContentOptionNode(optionName, <Ast.TContent[]>children);
-         }
-         if (Ast.isTypeofData(data)) {
-            if (data instanceof Ast.ObjectNode) {
-               for (const attributeName in node.attributes) {
-                  try {
-                     const processedValue = this.textProcessor.process(
-                        node.attributes[attributeName].value,
-                        {
-                           fileName: context.fileName,
-                           allowedContent: TextContentFlags.FULL_TEXT
-                        },
-                        node.attributes[attributeName].position
-                     );
-                     const valueNode = new Ast.ValueNode(processedValue);
-                     (<Ast.ObjectNode>data).__$ws_properties[attributeName] = new Ast.OptionNode(
-                        attributeName,
-                        valueNode
-                     );
-                  } catch (error) {
-                     this.errorHandler.error(
-                        `Ошибка обработки опции "${node.name}": ${error.message}. Опция будет отброшен`,
-                        {
-                           fileName: context.fileName,
-                           position: node.attributes[attributeName].position
-                        }
-                     );
-                  }
-               }
-            }
-            return new Ast.OptionNode(optionName, <Ast.TData>data);
-         }
-         this.errorHandler.critical(
-            `Результат разбора опции "${node.name}" - неизвестного типа`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      } catch (error) {
-         this.errorHandler.error(
-            `Ошибка разбора опции "${node.name}": ${error.message}. Опция будет отброшена`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
-   }
-
-   /**
-    * Process component or partial content in context "content only".
+    * Process html element tag with no children and create partial node of abstract syntax tree.
     * @private
     * @param node {Tag} Html tag node.
     * @param context {ITraverseContext} Processing context.
-    * @returns {TContent | null} Returns content node or null in case of invalid content.
+    * @returns {InlineTemplateNode | StaticPartialNode | DynamicPartialNode} Returns concrete instance of partial template.
     */
-   private processComponentContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
-      if (context.state === TraverseState.COMPONENT) {
-         context.state = TraverseState.COMPONENT_WITH_CONTENT;
-      }
-      if (context.state !== TraverseState.COMPONENT_WITH_CONTENT) {
-         this.errorHandler.error(
-            `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег "${node.name}". Тег будет отброшен. ` +
-            'Необходимо явно задать контент в ws:content',
+   private processPartialWithNoChildren(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
+      if (!node.isSelfClosing) {
+         this.errorHandler.warn(
+            `Для директивы ws:partial не задан контент и тег компонента не указан как самозакрывающийся`,
             {
                fileName: context.fileName,
                position: node.position
             }
          );
-         return null;
       }
-      return this.processTagInMarkup(node, context);
+      return this.createPartialOnly(node, context);
+   }
+
+   /**
+    * Only process html tag name and attributes and create
+    * concrete realisation of partial template node of abstract syntax tree.
+    * @private
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {InlineTemplateNode | StaticPartialNode | DynamicPartialNode} Returns concrete instance of partial template.
+    * @throws {Error} Throws error in case of broken node data.
+    */
+   private createPartialOnly(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
+      const attributeProcessorOptions = {
+         fileName: context.fileName,
+         hasAttributesOnly: false,
+         parentTagName: node.name
+      };
+      const attributes = this.attributeProcessor.process(node.attributes, attributeProcessorOptions);
+      const template = validatePartialTemplate(attributes.options['template'], node);
+      if (template instanceof ProgramNode) {
+         return new Ast.DynamicPartialNode(template, attributes.attributes, attributes.events, attributes.options);
+      }
+      if (Resolvers.isLogicalPath(template) || Resolvers.isPhysicalPath(template)) {
+         return new Ast.StaticPartialNode(template, attributes.attributes, attributes.events, attributes.options);
+      }
+      const inlineTemplate = new Ast.InlineTemplateNode(template, attributes.attributes, attributes.events, attributes.options);
+      context.scope.registerTemplateUsage(inlineTemplate.__$ws_name);
+      return inlineTemplate;
    }
 
    // </editor-fold>
+
+   // <editor-fold desc="Machine helpers">
 
    /**
     * Get program node from tag node attribute value.
@@ -1748,4 +1290,6 @@ class Traverse implements ITraverse {
          );
       }
    }
+
+   // </editor-fold>
 }
