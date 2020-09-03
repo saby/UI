@@ -40,7 +40,7 @@ function getGeneratorCompatible() {
    } else {
       //@ts-ignore
       if (require.defined('View/ExecutorCompatible')) {
-         generatorCompatible = require('View/ExecutorCompatible').GeneratorCompatible;
+         generatorCompatible = require('View/ExecutorCompatible').Compatible;
          return generatorCompatible;
       } else {
          // FIXME: сейчас на СП всегда стоит флаг совместимости
@@ -253,15 +253,15 @@ var
    },
    createGenerator = function (isVdom, forceCompatible = false) {
       if (isVdom) {
-         return new Vdom();
+         return Vdom;
       }
       if (Common.isCompat() || forceCompatible) {
          const Compatible = getGeneratorCompatible();
          if (Compatible) {
-            return new Compatible();
+            return Compatible;
          }
       }
-      return new Text();
+      return Text;
    },
    // todo добавлено для совместимости с прошлой версией, можно будет удалить после выполнения задачи
    // https://online.sbis.ru/opendoc.html?guid=0443ec3f-0d33-469b-89f1-57d208ed2982
