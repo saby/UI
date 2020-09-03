@@ -115,6 +115,15 @@ describe('Compiler/core/Traverse', () => {
          assert.strictEqual(tree.length, 1);
          assert.instanceOf(tree[0], Ast.ComponentNode);
       });
+      it('Drop cycle attribute', () => {
+         const html = '<UIModule.Component for="index, item in items" />';
+         const tree = traverseTemplate(html);
+         const componentNode = <Ast.ComponentNode>tree[0];
+         assert.strictEqual(Object.keys(componentNode.__$ws_attributes).length, 0);
+         assert.strictEqual(Object.keys(componentNode.__$ws_options).length, 0);
+         assert.strictEqual(Object.keys(componentNode.__$ws_events).length, 0);
+         assert.strictEqual(Object.keys(componentNode.__$ws_contents).length, 0);
+      });
       it('Simple component', () => {
          const html = '<UIModule.DirModule.Component />';
          const tree = traverseTemplate(html);
