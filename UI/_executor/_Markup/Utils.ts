@@ -17,7 +17,8 @@ import voidElements from '../_Utils/VoidTags';
 // @ts-ignore
 import { NumberUtils } from 'UI/Utils';
 import { INodeAttribute } from './IGeneratorType';
-import {IAttributes} from '../_Expressions/Attr';
+import { IAttributes } from '../_Expressions/Attr';
+import { Logger } from 'UI/Utils';
 
 /**
  * @author Тэн В.А.
@@ -239,6 +240,11 @@ export function stringTemplateResolver(tpl: string,
    if (resolver) {
       return resolver(tpl);
    } else {
-      return Common.depsTemplateResolver(tpl, includedTemplates, _deps, config);
+      const deps = Common.depsTemplateResolver(tpl, includedTemplates, _deps, config);
+      if (deps === false) {
+            Logger.error(`Контрол ${tpl} отсутствует в зависимостях и не может быть построен."`, data.parent);
+            return this.createEmptyText();
+         }
+      return deps;
    }
 }
