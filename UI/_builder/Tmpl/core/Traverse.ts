@@ -1981,6 +1981,7 @@ class Traverse implements ITraverse {
     */
    private processComponent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       try {
+         this.errorForbiddenCycle(node, context);
          if (node.children.length === 0) {
             return this.processComponentWithNoChildren(node, context);
          }
@@ -2068,6 +2069,7 @@ class Traverse implements ITraverse {
     */
    private processPartial(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
       try {
+         this.errorForbiddenCycle(node, context);
          if (node.children.length === 0) {
             return this.processPartialWithNoChildren(node, context);
          }
@@ -2149,6 +2151,26 @@ class Traverse implements ITraverse {
    // </editor-fold>
 
    // <editor-fold desc="Machine helpers">
+
+   /**
+    * Handle error in case of forbidden attribute "for" on html tag node.
+    * @todo Resolve this situation.
+    * @private
+    * @param node {Tag} Current tag node.
+    * @param context {ITraverseContext} Processing context.
+    */
+   private errorForbiddenCycle(node: Nodes.Tag, context: ITraverseContext): void {
+      if (node.attributes.hasOwnProperty('for')) {
+         this.errorHandler.error(
+            `Обнаружен цикл "for" в атрибутах тега "${node.name}". Цикл на данном теге не поддерживается. Атрибут будет отброшен`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         delete node.attributes.for;
+      }
+   }
 
    /**
     * Get options from object node or casted object property.
