@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_flatten/Array/flatten" />
+/// <amd-module name="UI/_utils/Array/Flatten" />
 /**
  * @author Мальцев А.А.
  */
