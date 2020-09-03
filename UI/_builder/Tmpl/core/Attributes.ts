@@ -398,6 +398,7 @@ class AttributeProcessor implements IAttributeProcessor {
 
    /**
     * Parse attribute value and validate its text content.
+    * @private
     * @param attributeNode {Attribute} Html attribute node.
     * @param options {IAttributeProcessorOptions} Attribute processor options.
     * @throws {Error} Throws error if attribute is invalid.

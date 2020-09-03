@@ -378,31 +378,43 @@ class Traverse implements ITraverse {
 
    /**
     * Mustache expression parser.
+    * @private
+    * @readonly
     */
    private readonly expressionParser: IParser;
 
    /**
     * Keys generator for nodes of abstract syntax tree.
+    * @private
+    * @readonly
     */
    private readonly keysGenerator: IKeysGenerator;
 
    /**
     * Error handler.
+    * @private
+    * @readonly
     */
    private readonly errorHandler: IErrorHandler;
 
    /**
     * Allow creating comment nodes in abstract syntax tree.
+    * @private
+    * @readonly
     */
    private readonly allowComments: boolean;
 
    /**
     * Attribute processor.
+    * @private
+    * @readonly
     */
    private readonly attributeProcessor: IAttributeProcessor;
 
    /**
     * Text processor.
+    * @private
+    * @readonly
     */
    private readonly textProcessor: ITextProcessor;
 
@@ -1022,6 +1034,7 @@ class Traverse implements ITraverse {
 
    /**
     * Process "for" attribute value.
+    * @private
     * @param node {Tag} Processing html tag node.
     * @param context {ITraverseContext} Processing context.
     * @param attribute {Attribute} "for" attribute.
@@ -2311,6 +2324,7 @@ class Traverse implements ITraverse {
 
    /**
     * Get options from object node or casted object property.
+    * @private
     * @param attributes {IAttributes} Attributes collection.
     * @param context {ITraverseContext} Processing context.
     * @param parentNode {Tag} Parent node that contains processing attributes.
