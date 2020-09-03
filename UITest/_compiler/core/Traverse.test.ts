@@ -226,12 +226,38 @@ describe('Compiler/core/Traverse', () => {
       });
    });
    describe('PartialNode', () => {
-      it('Base', () => {
-         // TODO: In development...
-         // const html = `<ws:partial template="...">`;
-         // const tree = traverseTemplate(html);
-         // assert.strictEqual(tree.length, 1);
-         // assert.instanceOf(tree[0], Ast.PartialNode);
+      it('Inline template', () => {
+         const html = '<ws:template name="tmpl"><div></div></ws:template><ws:partial template="tmpl" />';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 2);
+         assert.instanceOf(tree[0], Ast.TemplateNode);
+         assert.instanceOf(tree[1], Ast.InlineTemplateNode);
+         const inlineTemplateNode = <Ast.InlineTemplateNode>tree[1];
+         assert.strictEqual(inlineTemplateNode.__$ws_name, 'tmpl');
+      });
+      it('Dynamic partial', () => {
+         const html = '<ws:partial template="{{ tmpl }}" />';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 1);
+         assert.instanceOf(tree[0], Ast.DynamicPartialNode);
+      });
+      it('Static partial 1', () => {
+         const html = '<ws:partial template="UIModule/Library:Template" />';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 1);
+         assert.instanceOf(tree[0], Ast.StaticPartialNode);
+      });
+      it('Static partial 2', () => {
+         const html = '<ws:partial template="UIModule/Library" />';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 1);
+         assert.instanceOf(tree[0], Ast.StaticPartialNode);
+      });
+      it('Static partial 3', () => {
+         const html = '<ws:partial template="wml!UIModule/Library/template" />';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 1);
+         assert.instanceOf(tree[0], Ast.StaticPartialNode);
       });
    });
    it('TemplateNode', () => {
