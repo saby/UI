@@ -417,6 +417,17 @@ describe('Compiler/core/Traverse', () => {
             assert.instanceOf(option, Ast.OptionNode);
             assert.instanceOf(option.__$ws_value, Ast.ValueNode);
          });
+         it('Ignore attribute on "option" tag', () => {
+            const optionTemplate = `
+            <ws:option attribute='value'>
+                <ws:Value>value</ws:Value>
+            </ws:option>
+            `;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.ValueNode);
+         });
       });
       describe('Explicit type casting', () => {
          it('Array', () => {
@@ -498,6 +509,22 @@ describe('Compiler/core/Traverse', () => {
             assert.isTrue(properties.hasOwnProperty('stringProperty'));
             assert.isTrue(properties.hasOwnProperty('valueProperty'));
          });
+         it('Object with option in tag attributes', () => {
+            const optionTemplate = `
+            <ws:option type="object" attributeOption="value">
+                 <ws:tagOption>
+                     <ws:Value>value</ws:Value>
+                 </ws:tagOption>
+            </ws:option>
+            `;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.ObjectNode);
+            const properties = (<Ast.ObjectNode>option.__$ws_value).__$ws_properties;
+            assert.isTrue(properties.hasOwnProperty('attributeOption'));
+            assert.isTrue(properties.hasOwnProperty('tagOption'));
+         });
          it('String', () => {
             const optionTemplate = `<ws:option type='string'>text</ws:option>`;
             const ast = traversePropertyOnComponent(optionTemplate);
@@ -507,6 +534,13 @@ describe('Compiler/core/Traverse', () => {
          });
          it('Value', () => {
             const optionTemplate = `<ws:option type='value'>value</ws:option>`;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.ValueNode);
+         });
+         it('Ignore attribute on "option" tag', () => {
+            const optionTemplate = `<ws:option type='value' attribute='value'>value</ws:option>`;
             const ast = traversePropertyOnComponent(optionTemplate);
             const option = ast.__$ws_options.option;
             assert.instanceOf(option, Ast.OptionNode);
@@ -544,6 +578,22 @@ describe('Compiler/core/Traverse', () => {
             const option = ast.__$ws_options.option;
             assert.instanceOf(option, Ast.OptionNode);
             assert.instanceOf(option.__$ws_value, Ast.ObjectNode);
+         });
+         it('Object with option in tag attributes', () => {
+            const optionTemplate = `
+            <ws:option attributeOption="value">
+                 <ws:tagOption>
+                     <ws:Value>value</ws:Value>
+                 </ws:tagOption>
+            </ws:option>
+            `;
+            const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.ObjectNode);
+            const properties = (<Ast.ObjectNode>option.__$ws_value).__$ws_properties;
+            assert.isTrue(properties.hasOwnProperty('attributeOption'));
+            assert.isTrue(properties.hasOwnProperty('tagOption'));
          });
       });
    });
