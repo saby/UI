@@ -355,7 +355,7 @@ export enum Flags {
    /**
     * Flag for node that has been validated.
     */
-   CLEAN = 0,
+   VALIDATED = 0,
 
    /**
     * Flag for broken node that should be ignored.
@@ -363,19 +363,33 @@ export enum Flags {
    BROKEN = 1,
 
    /**
-    * Flag for unpacked node that has been changed its view.
+    * Flag for unknown node that have not been typed.
     */
-   UNPACKED = 2,
+   UNKNOWN = 2,
 
    /**
-    * Flag for type casted node that has been changed its view.
+    * Flag for unpacked node that has been changed its view:
+    * Processing attribute node have been wrapped into another node and changed its location.
     */
-   TYPE_CASTED = 4,
+   UNPACKED = 4,
+
+   /**
+    * Flag for type casted node that has been changed its view:
+    * Processing node have been wrapped into another data type node.
+    */
+   TYPE_CASTED = 8,
+
+   /**
+    * Flag for context casted node that has been changed its view:
+    * Processing node have been wrapped into another node.
+    */
+   NEST_CASTED = 16,
 
    /**
     * Flag for node that must be ignored in next processing.
+    * It used for comment node, broken or unknown node.
     */
-   IGNORE = 8
+   IGNORABLE = 32
 }
 
 /**
@@ -398,7 +412,7 @@ export abstract class Ast {
     */
    protected constructor() {
       this.__$ws_key =  '';
-      this.__$ws_flags = Flags.CLEAN;
+      this.__$ws_flags = Flags.VALIDATED;
    }
 
    /**
