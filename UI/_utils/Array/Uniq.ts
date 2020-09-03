@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_utils/Array/uniq" />
+/// <amd-module name="UI/_utils/Array/Uniq" />
 
 /**
  * Модуль, в котором описана функция <b>uniq(array)</b>.
