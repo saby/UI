@@ -659,7 +659,7 @@ class Traverse implements ITraverse {
          case 'ws:template':
             return this.processTemplate(node, context);
          case 'ws:partial':
-            return this.processPartial(node, context);
+            return this.checkDirectiveInAttribute(node, context);
          case 'ws:Array':
          case 'ws:Boolean':
          case 'ws:Function':
@@ -686,23 +686,7 @@ class Traverse implements ITraverse {
                );
                return null;
             }
-            if (Resolvers.isComponent(node.name)) {
-               return this.processComponent(node, context);
-            }
-
-            // We need to check element node even if element node is broken.
-            const elementNode = this.processElement(node, context);
-            if (isElementNode(node.name)) {
-               return elementNode;
-            }
-            this.errorHandler.error(
-               `Обнаружен неизвестный HTML тег "${node.name}". Тег будет отброшен`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
+            return this.checkDirectiveInAttribute(node, context);
       }
    }
 
@@ -882,6 +866,7 @@ class Traverse implements ITraverse {
     * @private
     * @param node {Tag} Processing html tag node.
     * @param context {ITraverseContext} Processing context.
+    * @returns {TContent | TData | OptionNode | null} Returns node type of TContent, TData, OptionNode or null in case of broken content.
     */
    private processTagInObjectPropertyWithUnknownContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent | Ast.TData | Ast.OptionNode {
       switch (node.name) {
@@ -911,6 +896,7 @@ class Traverse implements ITraverse {
     * @private
     * @param node {Tag} Processing html tag node.
     * @param context {ITraverseContext} Processing context.
+    * @returns {TContent | null} Returns node type of TContent or null in case of broken content.
     */
    private processTagInObjectPropertyWithContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
       updateToContentState(context);
@@ -966,7 +952,7 @@ class Traverse implements ITraverse {
     * @private
     * @param node {Tag} Processing html tag node.
     * @param context {ITraverseContext} Processing context.
-    * @returns {OptionNode} Returns OptionNode or null in case of broken content.
+    * @returns {OptionNode | ContentOptionNode} Returns OptionNode, ContentOptionNode or null in case of broken content.
     */
    private processTagInObjectPropertyWithContentTypeCastedToObject(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode | Ast.ContentOptionNode {
       if (context.state === TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT) {
@@ -983,6 +969,82 @@ class Traverse implements ITraverse {
          return null;
       }
       return this.processProperty(node, context);
+   }
+
+   /**
+    * Check directive in attribute and try to unpack node.
+    * @private
+    * @todo Do real unpacking when compiler codegen stage will be ready. Do unpacking also for "if"-directive
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TContent | null} Returns node type of TContent or null in case of broken content.
+    */
+   private checkDirectiveInAttribute(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
+      if (node.attributes.hasOwnProperty('for')) {
+         return this.unpackForDirective(node, context);
+      }
+      return this.processContentTagWithoutUnpacking(node, context);
+   }
+
+   /**
+    * Unpack for directive from attribute of content type html tag node.
+    * @private
+    * @todo Do real unpacking when compiler codegen stage will be ready
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TContent | null} Returns node type of TContent or null in case of broken content.
+    */
+   private unpackForDirective(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
+      // const forAttribute = node.attributes.for;
+      delete node.attributes.for;
+      const ast = this.processContentTagWithoutUnpacking(node, context);
+      if (ast === null) {
+         return ast;
+      }
+      if (!(ast instanceof Ast.ElementNode)) {
+         this.errorHandler.error(
+            `Обнаружен цикл "for" в атрибутах тега "${node.name}". Цикл на данном теге не поддерживается. Атрибут будет отброшен`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return ast;
+      }
+      // TODO: release
+      return ast;
+   }
+
+   /**
+    * Continue processing html tag node as content type node.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TContent | null} Returns node type of TContent or null in case of broken content.
+    */
+   private processContentTagWithoutUnpacking(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
+      switch (node.name) {
+         case 'ws:partial':
+            return this.processPartial(node, context);
+         default:
+            if (Resolvers.isComponent(node.name)) {
+               return this.processComponent(node, context);
+            }
+
+            // We need to check element node even if element node is broken.
+            const elementNode = this.processElement(node, context);
+            if (isElementNode(node.name)) {
+               return elementNode;
+            }
+            this.errorHandler.error(
+               `Обнаружен неизвестный HTML тег "${node.name}". Тег будет отброшен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
+      }
    }
 
    /**
@@ -2029,7 +2091,6 @@ class Traverse implements ITraverse {
     */
    private processComponent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       try {
-         this.errorForbiddenCycle(node, context);
          if (node.children.length === 0) {
             return this.processComponentWithNoChildren(node, context);
          }
@@ -2117,7 +2178,6 @@ class Traverse implements ITraverse {
     */
    private processPartial(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
       try {
-         this.errorForbiddenCycle(node, context);
          if (node.children.length === 0) {
             return this.processPartialWithNoChildren(node, context);
          }
@@ -2199,26 +2259,6 @@ class Traverse implements ITraverse {
    // </editor-fold>
 
    // <editor-fold desc="Machine helpers">
-
-   /**
-    * Handle error in case of forbidden attribute "for" on html tag node.
-    * @todo Resolve this situation.
-    * @private
-    * @param node {Tag} Current tag node.
-    * @param context {ITraverseContext} Processing context.
-    */
-   private errorForbiddenCycle(node: Nodes.Tag, context: ITraverseContext): void {
-      if (node.attributes.hasOwnProperty('for')) {
-         this.errorHandler.error(
-            `Обнаружен цикл "for" в атрибутах тега "${node.name}". Цикл на данном теге не поддерживается. Атрибут будет отброшен`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         delete node.attributes.for;
-      }
-   }
 
    /**
     * Get options from object node or casted object property.
