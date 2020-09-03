@@ -996,6 +996,7 @@ class Traverse implements ITraverse {
     */
    private unpackForDirective(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
       const forAttribute = node.attributes.for;
+      // FIXME: Don't modify source html tree
       delete node.attributes.for;
       const ast = this.processContentTagWithoutUnpacking(node, context);
       if (ast === null) {
@@ -1065,28 +1066,26 @@ class Traverse implements ITraverse {
     * @returns {TContent | null} Returns node type of TContent or null in case of broken content.
     */
    private processContentTagWithoutUnpacking(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
-      switch (node.name) {
-         case 'ws:partial':
-            return this.processPartial(node, context);
-         default:
-            if (Resolvers.isComponent(node.name)) {
-               return this.processComponent(node, context);
-            }
-
-            // We need to check element node even if element node is broken.
-            const elementNode = this.processElement(node, context);
-            if (isElementNode(node.name)) {
-               return elementNode;
-            }
-            this.errorHandler.error(
-               `Обнаружен неизвестный HTML тег "${node.name}". Тег будет отброшен`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
+      if (node.name == 'ws:partial') {
+         return this.processPartial(node, context);
       }
+      if (Resolvers.isComponent(node.name)) {
+         return this.processComponent(node, context);
+      }
+
+      // We need to check element node even if element node is broken.
+      const elementNode = this.processElement(node, context);
+      if (isElementNode(node.name)) {
+         return elementNode;
+      }
+      this.errorHandler.error(
+         `Обнаружен неизвестный HTML тег "${node.name}". Тег будет отброшен`,
+         {
+            fileName: context.fileName,
+            position: node.position
+         }
+      );
+      return null;
    }
 
    /**
