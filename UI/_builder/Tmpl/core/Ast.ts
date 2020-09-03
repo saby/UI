@@ -1509,17 +1509,17 @@ export class FunctionNode extends Ast {
    /**
     * Path to module that contains function.
     */
-   __ws_physicalPath: string[];
+   __$ws_physicalPath: string[];
 
    /**
     * Path to a function inside the module file.
     */
-   __ws_logicalPath: string[];
+   __$ws_logicalPath: string[];
 
    /**
     * Collection of function options.
     */
-   __ws_options: IOptions;
+   __$ws_options: IOptions;
 
    /**
     * Initialize new instance of function node.
@@ -1529,9 +1529,9 @@ export class FunctionNode extends Ast {
     */
    constructor(physicalPath: string[], logicalPath: string[], options: IOptions = { }) {
       super();
-      this.__ws_physicalPath = physicalPath;
-      this.__ws_logicalPath = logicalPath;
-      this.__ws_options = options;
+      this.__$ws_physicalPath = physicalPath;
+      this.__$ws_logicalPath = logicalPath;
+      this.__$ws_options = options;
    }
 
    /**

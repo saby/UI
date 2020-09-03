@@ -343,8 +343,8 @@ describe('Compiler/core/Traverse', () => {
             assert.instanceOf(option, Ast.OptionNode);
             assert.instanceOf(option.__$ws_value, Ast.FunctionNode);
             const functionNode = <Ast.FunctionNode>option.__$ws_value;
-            assert.isTrue(functionNode.__ws_options.hasOwnProperty('arg1'));
-            assert.isTrue(functionNode.__ws_options.hasOwnProperty('arg2'));
+            assert.isTrue(functionNode.__$ws_options.hasOwnProperty('arg1'));
+            assert.isTrue(functionNode.__$ws_options.hasOwnProperty('arg2'));
          });
          it('Number', () => {
             const optionTemplate = `
