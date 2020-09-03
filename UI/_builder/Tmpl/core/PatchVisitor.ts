@@ -545,7 +545,7 @@ class PatchVisitor implements Ast.IAstVisitor {
             type: 'control'
          }];
          // @ts-ignore
-         node.attribs._wstemplatename = '';
+         node.attribs._wstemplatename = constructor;
          name = `ws:${constructor}`;
          originName = node.__$ws_physicalPath.join('.');
       }
