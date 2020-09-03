@@ -1,10 +1,11 @@
-/**
- * @author Санников К.
- */
 /// <amd-module name="UI/_state/StateReceiver" />
 import { IStateReceiver } from 'Application/Interface';
 import Serializer = require('UI/_state/Serializer');
 import { Logger } from 'UI/Utils';
+
+/**
+ * @author Санников К.
+ */
 
 interface ISerializedType {
    serialized: string;

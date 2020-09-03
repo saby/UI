@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_utils/Array/findIndex" />
+/// <amd-module name="UI/_utils/Array/FindIndex" />
 
 /**
  * Модуль, в котором описана функция <b>findIndex(array, predicate, context)</b>.

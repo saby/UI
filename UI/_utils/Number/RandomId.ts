@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_utils/Number/randomId" />
+/// <amd-module name="UI/_utils/Number/RandomId" />
 /**
  * @author Мальцев А.А.
  */
