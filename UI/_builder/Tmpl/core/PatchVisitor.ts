@@ -710,10 +710,15 @@ class PatchVisitor implements Ast.IAstVisitor {
    }
 
    visitStaticPartial(node: Ast.StaticPartialNode, context: INavigationContext): any {
+      const attributes = this.collectComponentAttributes(node, context);
       // @ts-ignore
-      node.attribs = { };
+      node.attribs = {
+         ...attributes
+      };
       // @ts-ignore
-      node.children = [];
+      node.children = [{
+
+      }];
       // @ts-ignore
       node.key = node.__$ws_key;
       // @ts-ignore
@@ -724,11 +729,34 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.type = 'tag';
    }
 
+   // done.
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: INavigationContext): any {
+      const attributes = this.collectComponentAttributes(node, context);
+      const injectedTemplate = {
+         isBind: false,
+         isEvent: false,
+         localized: false,
+         name: node.__$ws_expression,
+         noEscape: false,
+         type: 'var',
+         value: ''
+      };
       // @ts-ignore
-      node.attribs = { };
+      node.attribs = {
+         ...attributes,
+         template: {
+            data: [injectedTemplate],
+            key: undefined,
+            type: 'text'
+         },
+         _wstemplatename: {
+            data: [injectedTemplate],
+            key: undefined,
+            type: 'text'
+         }
+      };
       // @ts-ignore
-      node.children = [];
+      node.injectedTemplate = injectedTemplate;
       // @ts-ignore
       node.key = node.__$ws_key;
       // @ts-ignore
@@ -737,6 +765,11 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.originName = `ws:partial`;
       // @ts-ignore
       node.type = 'tag';
+      const children = this.collectContents(node, context);
+      // @ts-ignore
+      node.children = children;
+      // @ts-ignore
+      node.injectedData = children;
    }
 
    // done.
