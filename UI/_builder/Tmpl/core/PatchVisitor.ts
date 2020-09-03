@@ -260,7 +260,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.key = node.__$ws_key;
       // @ts-ignore
       node.children = node.__$ws_content;
-      const attribs = this.collectAttributes(node, context);
+      const attribs = this.collectAttributes(node, context, true);
       // @ts-ignore
       node.attribs = Object.keys(attribs).length === 0 ? undefined : attribs;
       this.visitAll(node.__$ws_content, context);
@@ -425,7 +425,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       let name;
       let originName;
       // @ts-ignore
-      node.attribs = this.collectAttributes(node, context);
+      node.attribs = this.collectComponentAttributes(node, context);
       if (node.__$ws_logicalPath.length > 0) {
          // module
          const library = node.__$ws_physicalPath.join('/');
@@ -650,15 +650,14 @@ class PatchVisitor implements Ast.IAstVisitor {
    }
 
    // done.
-   private collectAttributes(node: Ast.BaseHtmlElement, context: INavigationContext): any {
+   private collectAttributes(node: Ast.BaseHtmlElement, context: INavigationContext, removePrefix: boolean = false): any {
       const attributes = { };
       for (const attributeName in node.__$ws_attributes) {
+         // rm prefix for elements only
+         const cleanName = attributeName.replace('attr:', '');
+         const name = removePrefix ? cleanName : attributeName;
          node.__$ws_attributes[attributeName].accept(this, context);
-         if (['attr:if', 'attr:for', 'attr:name'].indexOf(attributeName) > -1) {
-            attributes[attributeName.replace('attr:', '')] = node.__$ws_attributes[attributeName];
-            continue;
-         }
-         attributes[attributeName] = node.__$ws_attributes[attributeName];
+         attributes[name] = node.__$ws_attributes[attributeName];
       }
       for (const eventName in node.__$ws_events) {
          node.__$ws_events[eventName].accept(this, context);
@@ -667,12 +666,35 @@ class PatchVisitor implements Ast.IAstVisitor {
       return attributes;
    }
 
+   private collectComponentAttributes(node: Ast.BaseWasabyElement, context: INavigationContext): any {
+      const attributes = this.collectAttributes(node, context);
+      for (const optionName in node.__$ws_options) {
+         const option = node.__$ws_options[optionName];
+         if (!option.hasFlag(Ast.Flags.UNPACKED)) {
+            continue;
+         }
+         node.__$ws_options[optionName].accept(this, context);
+         const dataArray = (<Ast.ValueNode>node.__$ws_options[optionName].__$ws_value).__$ws_data;
+         const isTextOnly = dataArray.length === 1 && (dataArray[0] instanceof Ast.TextDataNode);
+         attributes[optionName] = {
+            data: isTextOnly ? dataArray[0] : dataArray,
+            key: undefined,
+            type: 'text'
+         };
+      }
+      return attributes;
+   }
+
    // done.
    private collectContents(node: Ast.BaseWasabyElement, context: INavigationContext): any {
       const injectedData = [];
       for (const optionName in node.__$ws_options) {
-         node.__$ws_options[optionName].accept(this, context);
-         injectedData.push(node.__$ws_options[optionName]);
+         const option = node.__$ws_options[optionName];
+         if (option.hasFlag(Ast.Flags.UNPACKED)) {
+            continue;
+         }
+         option.accept(this, context);
+         injectedData.push(option);
       }
       for (const optionName in node.__$ws_contents) {
          node.__$ws_contents[optionName].accept(this, context);

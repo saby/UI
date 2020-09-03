@@ -555,10 +555,12 @@ class AttributeProcessor implements IAttributeProcessor {
          );
          const valueNode = new Ast.ValueNode(value);
          valueNode.setFlag(Ast.Flags.TYPE_CASTED);
-         return new Ast.OptionNode(
+         const option = new Ast.OptionNode(
             attributeNode.name,
             valueNode
          );
+         option.setFlag(Ast.Flags.UNPACKED);
+         return option;
       } catch (error) {
          this.errorHandler.error(
             `В процессе разбора атрибута "${attributeNode.name}" на теге "${options.parentTagName}" возникла ошибка: ${error.message}. Атрибут будет отброшен`,
