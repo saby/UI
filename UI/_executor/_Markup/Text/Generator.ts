@@ -178,7 +178,7 @@ export class GeneratorText implements IGenerator {
          fn;
 
       if (isTplString) {
-         fn = stringTemplateResolver(tpl, includedTemplates, _deps, config);
+         fn = stringTemplateResolver(tpl, includedTemplates, _deps, config, data.parent);
       } else if (isTplModule) {
          fn = data.controlClass;
       } else {

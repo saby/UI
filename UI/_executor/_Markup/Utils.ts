@@ -5,10 +5,15 @@ import * as Attr from '../_Expressions/Attr';
 import * as Decorate from '../_Expressions/Decorate';
 import { _FocusAttrs } from 'UI/Focus';
 import {
-   GeneratorEmptyObject, GeneratorError, GeneratorFn,
+   GeneratorEmptyObject,
+   GeneratorError,
+   GeneratorFn,
    GeneratorStringArray,
-   IBaseAttrs, IGeneratorConfig,
-   IGeneratorDefCollection, IStringTemplateResolverIncludedTemplates,
+   IBaseAttrs,
+   IGeneratorConfig,
+   IControl,
+   IGeneratorDefCollection,
+   IStringTemplateResolverIncludedTemplates,
    TAttributes,
    TObject
 } from './IGeneratorType';
@@ -230,19 +235,21 @@ export function resolveControlName<TOptions extends IControlData>(controlData: T
  * @param includedTemplates
  * @param _deps
  * @param config
+ * @param parent
  * @returns {*}
  */
 export function stringTemplateResolver(tpl: string,
                                        includedTemplates: IStringTemplateResolverIncludedTemplates,
                                        _deps: GeneratorEmptyObject,
-                                       config: IGeneratorConfig): GeneratorFn {
+                                       config: IGeneratorConfig,
+                                       parent?: IControl): GeneratorFn {
    const resolver = config && config.resolvers ? Common.findResolverInConfig(tpl, config.resolvers) : undefined;
    if (resolver) {
       return resolver(tpl);
    } else {
       const deps = Common.depsTemplateResolver(tpl, includedTemplates, _deps, config);
       if (deps === false) {
-            Logger.error(`Контрол ${tpl} отсутствует в зависимостях и не может быть построен."`, data.parent);
+            Logger.error(`Контрол ${tpl} отсутствует в зависимостях и не может быть построен."`, parent);
             return this.createEmptyText();
          }
       return deps;
