@@ -24,7 +24,7 @@ define('UI/_builder/Tmpl/core/bridge', [
          scope: new ScopeLib.default()
       };
       var traversed = TraverseLib.default(htmlTree, traverseConfig, traverseOptions);
-      PatchVisitorLib.default(traversed);
+      PatchVisitorLib.default(traversed, traverseOptions.scope);
       postTraverse.call({
          createResultDictionary: options.createResultDictionary,
          words: options.words,
