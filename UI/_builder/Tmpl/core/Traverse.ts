@@ -1007,7 +1007,7 @@ class Traverse implements ITraverse {
             <Ast.TData>content[0]
          );
       }
-      const properties: Ast.IObjectProperties = { };
+      const properties = this.getObjectOptionsFromAttributes(node.attributes, context, node);
       for (let index = 0; index < content.length; ++index) {
          const property = content[index];
          if (!(property instanceof Ast.OptionNode || property instanceof Ast.ContentOptionNode)) {
@@ -1639,14 +1639,7 @@ class Traverse implements ITraverse {
          state: TraverseState.OBJECT_PROPERTIES
       };
       const processedChildren = this.visitAll(node.children, propertiesContext);
-      const processedAttributes = this.attributeProcessor.process(node.attributes, {
-         fileName: context.fileName,
-         hasAttributesOnly: false,
-         parentTagName: node.name
-      });
-      this.warnIncorrectProperties(processedAttributes.attributes, node, context);
-      this.warnIncorrectProperties(processedAttributes.events, node, context);
-      const properties: Ast.IObjectProperties = processedAttributes.options;
+      const properties = this.getObjectOptionsFromAttributes(attributes, context, node);
       for (let index = 0; index < processedChildren.length; ++index) {
          const child = processedChildren[index];
          if (!(child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode)) {
@@ -2156,6 +2149,24 @@ class Traverse implements ITraverse {
    // </editor-fold>
 
    // <editor-fold desc="Machine helpers">
+
+   /**
+    * Get options from object node or casted object property.
+    * @param attributes {IAttributes} Attributes collection.
+    * @param context {ITraverseContext} Processing context.
+    * @param parentNode {Tag} Parent node that contains processing attributes.
+    * @returns {IObjectProperties} Collection of properties.
+    */
+   private getObjectOptionsFromAttributes(attributes: Nodes.IAttributes, context: ITraverseContext, parentNode: Nodes.Tag): Ast.IObjectProperties {
+      const processedAttributes = this.attributeProcessor.process(attributes, {
+         fileName: context.fileName,
+         hasAttributesOnly: false,
+         parentTagName: parentNode.name
+      });
+      this.warnIncorrectProperties(processedAttributes.attributes, parentNode, context);
+      this.warnIncorrectProperties(processedAttributes.events, parentNode, context);
+      return <Ast.IObjectProperties>processedAttributes.options;
+   }
 
    /**
     * Process component or partial node children.
