@@ -995,7 +995,7 @@ class Traverse implements ITraverse {
     * @returns {TContent | null} Returns node type of TContent or null in case of broken content.
     */
    private unpackForDirective(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
-      // const forAttribute = node.attributes.for;
+      const forAttribute = node.attributes.for;
       delete node.attributes.for;
       const ast = this.processContentTagWithoutUnpacking(node, context);
       if (ast === null) {
@@ -1011,8 +1011,50 @@ class Traverse implements ITraverse {
          );
          return ast;
       }
-      // TODO: release
+      ast.__$ws_unpackedCycle = this.processForAttribute(node, context, forAttribute);
       return ast;
+   }
+
+   /**
+    * Process "for" attribute value.
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attribute {Attribute} "for" attribute.
+    */
+   private processForAttribute(node: Nodes.Tag, context: ITraverseContext, attribute: Nodes.Attribute): Ast.ForNode | Ast.ForeachNode {
+      try {
+         if (attribute.value === null) {
+            throw new Error('не заданы параметры цикла');
+         }
+         const textValue = this.textProcessor.process(
+            attribute.value,
+            {
+               fileName: context.fileName,
+               allowedContent: TextContentFlags.TEXT
+            },
+            node.position
+         );
+         if (textValue.length !== 1) {
+            throw new Error('не удалось извлечь параметры цикла');
+         }
+         const cycleData = (<Ast.TextDataNode>textValue[0]).__$ws_content;
+         if (cycleData.indexOf(';')) {
+            const { init, test, update } = this.parseForParameters(cycleData);
+            return new Ast.ForNode(init, test, update, []);
+
+         }
+         const { index, iterator, collection } = this.parseForeachParameters(cycleData);
+         return new Ast.ForeachNode(index, iterator, collection, []);
+      } catch (error) {
+         this.errorHandler.critical(
+            `Ошибка обработки директивы "for" на атрибуте тега ${node.name}: ${error.message}. Директива будет отброшена`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
    }
 
    /**
