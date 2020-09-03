@@ -167,24 +167,62 @@ describe('Compiler/core/Traverse', () => {
          assert.isTrue(componentNode.__$ws_events.hasOwnProperty('on:click'));
       });
       it('Component contents', () => {
-// TODO: In development
-//          const html = `
-// <UIModule.Component>
-//     <ws:content>
-//        <div>123</div>
-//    </ws:content>
-//     <ws:contentOption>
-//        <div>456</div>
-//    </ws:contentOption>
-// </UIModule.Component>`;
-//          const tree = traverseTemplate(html);
-//          const componentNode = <Ast.ComponentNode>tree[0];
-//          assert.strictEqual(Object.keys(componentNode.__$ws_attributes).length, 0);
-//          assert.strictEqual(Object.keys(componentNode.__$ws_options).length, 0);
-//          assert.strictEqual(Object.keys(componentNode.__$ws_events).length, 0);
-//          assert.strictEqual(Object.keys(componentNode.__$ws_contents).length, 2);
-//          assert.isTrue(componentNode.__$ws_contents.hasOwnProperty('content'));
-//          assert.isTrue(componentNode.__$ws_contents.hasOwnProperty('contentOption'));
+         const html = `
+<UIModule.Component>
+    <ws:content>
+       <div>123</div>
+   </ws:content>
+    <ws:contentOption>
+       <div>456</div>
+   </ws:contentOption>
+</UIModule.Component>`;
+         const tree = traverseTemplate(html);
+         const componentNode = <Ast.ComponentNode>tree[0];
+         assert.strictEqual(Object.keys(componentNode.__$ws_attributes).length, 0);
+         assert.strictEqual(Object.keys(componentNode.__$ws_options).length, 0);
+         assert.strictEqual(Object.keys(componentNode.__$ws_events).length, 0);
+         assert.strictEqual(Object.keys(componentNode.__$ws_contents).length, 2);
+         assert.isTrue(componentNode.__$ws_contents.hasOwnProperty('content'));
+         assert.isTrue(componentNode.__$ws_contents.hasOwnProperty('contentOption'));
+      });
+      it('Doctype in Component 1', () => {
+         const html = `
+<UIModule.Component>
+    <!DOCTYPE html>
+    <ws:content>
+       <div>123</div>
+   </ws:content>
+    <ws:contentOption>
+       <div>456</div>
+   </ws:contentOption>
+</UIModule.Component>`;
+         const tree = traverseTemplate(html);
+         const componentNode = <Ast.ComponentNode>tree[0];
+         assert.strictEqual(Object.keys(componentNode.__$ws_attributes).length, 0);
+         assert.strictEqual(Object.keys(componentNode.__$ws_options).length, 0);
+         assert.strictEqual(Object.keys(componentNode.__$ws_events).length, 0);
+         assert.strictEqual(Object.keys(componentNode.__$ws_contents).length, 1);
+         assert.isTrue(componentNode.__$ws_contents.hasOwnProperty('content'));
+      });
+      it('Doctype in Component 2', () => {
+         const html = `
+<UIModule.Component>
+    <ws:content>
+       <div>123</div>
+   </ws:content>
+    <!DOCTYPE html>
+    <ws:contentOption>
+       <div>456</div>
+   </ws:contentOption>
+</UIModule.Component>`;
+         const tree = traverseTemplate(html);
+         const componentNode = <Ast.ComponentNode>tree[0];
+         assert.strictEqual(Object.keys(componentNode.__$ws_attributes).length, 0);
+         assert.strictEqual(Object.keys(componentNode.__$ws_options).length, 0);
+         assert.strictEqual(Object.keys(componentNode.__$ws_events).length, 0);
+         assert.strictEqual(Object.keys(componentNode.__$ws_contents).length, 2);
+         assert.isTrue(componentNode.__$ws_contents.hasOwnProperty('content'));
+         assert.isTrue(componentNode.__$ws_contents.hasOwnProperty('contentOption'));
       });
    });
    describe('PartialNode', () => {
