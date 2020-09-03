@@ -2286,12 +2286,17 @@ class Traverse implements ITraverse {
       };
       const attributes = this.attributeProcessor.process(node.attributes, attributeProcessorOptions);
       const template = validatePartialTemplate(attributes.options['template'], node);
+      if (!template) {
+         throw new Error('не задано обязательное значение опции "template"');
+      }
       if (template instanceof ProgramNode) {
          return new Ast.DynamicPartialNode(template, attributes.attributes, attributes.events, attributes.options);
       }
       if (Resolvers.isLogicalPath(template) || Resolvers.isPhysicalPath(template)) {
+         // TODO: validate template path
          return new Ast.StaticPartialNode(template, attributes.attributes, attributes.events, attributes.options);
       }
+      Resolvers.validateInlineTemplate(template);
       const inlineTemplate = new Ast.InlineTemplateNode(template, attributes.attributes, attributes.events, attributes.options);
       context.scope.registerTemplateUsage(inlineTemplate.__$ws_name);
       return inlineTemplate;

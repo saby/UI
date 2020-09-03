@@ -49,6 +49,11 @@ const SPECIAL_UI_MODULE_NAMES = [
 ];
 
 /**
+ * Pattern for extension of template file path.
+ */
+const TEMPLATE_FILE_EXTENSION_PATTER = /\.(tmpl|wml)/i;
+
+/**
  * Collection of reserved words in JavaScript.
  */
 const RESERVED_JAVASCRIPT_WORDS = [
@@ -267,6 +272,9 @@ export function parseFunctionPath(fullPath: string): IComplexPath {
    }
    // TODO: validate paths
    const physicalPathString = paths.shift();
+   if (TEMPLATE_FILE_EXTENSION_PATTER.test(physicalPathString)) {
+      throw new Error(`некорректный путь к функции "${fullPath}" - указано расширение файла`);
+   }
    const logicalPathString = paths.length === 1 ? paths.shift() : EMPTY_STRING;
    const prefix = findSpecialUIModulePrefix(physicalPathString);
    const physicalPathOffset = prefix !== EMPTY_STRING ? prefix.length + 1 : 0;
@@ -311,6 +319,9 @@ export function parseTemplatePath(fullPath: string): IComplexPath {
    const { plugins, path } = extractPlugins(fullPath);
    // TODO: validate paths
    const logicalPath = [ ];
+   if (TEMPLATE_FILE_EXTENSION_PATTER.test(path)) {
+      throw new Error(`некорректный путь к файлу "${fullPath}" - указано расширение файла`);
+   }
    const prefix = findSpecialUIModulePrefix(path);
    const physicalPathOffset = prefix !== EMPTY_STRING ? prefix.length + 1 : 0;
    const physicalPath = path
