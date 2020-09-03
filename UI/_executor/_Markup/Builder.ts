@@ -65,7 +65,7 @@ export class Builder implements IBuilder {
          }
 
          try {
-            dfd = inst._beforeMountLimited && inst._beforeMountLimited(actualOptions, scope.templateContext || {});
+            dfd = inst.__beforeMount && inst.__beforeMount(actualOptions, scope.templateContext || {});
          } catch (error) {
             // @ts-ignore
             if(typeof process !== 'undefined' && !process.versions) {

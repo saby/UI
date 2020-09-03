@@ -15,7 +15,6 @@ import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
 import { ReactiveObserver } from 'UI/Reactivity';
 
 import startApplication from 'UI/_base/startApplication';
-import { headDataStore } from 'UI/_base/HeadData';
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
 
@@ -701,73 +700,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return undefined;
    }
 
-   private _resultBeforeMount(resultBeforeMount: Promise<void | boolean | TState>, time: number): Promise<void | boolean | TState> | void {
-      return new Promise((resolve, reject) => {
-         let timeout = 0;
-         resultBeforeMount.then(
-             (result) => {
-                if (!timeout) {
-                   timeout = 1;
-                   resolve(result);
-                }
-                return result;
-             },
-             (error) => {
-                if (!timeout) {
-                   timeout = 1;
-                   reject(error);
-                }
-                return error;
-             }
-         );
-         if (time === 0){
-            return resolve(false);
-         }
-         setTimeout(() => {
-            if (!timeout) {
-               /* Change _template and _afterMount
-               *  if execution was longer than 2 sec
-               */
-               const message = `Promise, который вернули из метода _beforeMount контрола ${this._moduleName} ` +
-                  `не завершился за ${time} миллисекунд. ` +
-                   `Шаблон контрола не будет построен на сервере.`
-               Logger.warn(message, this);
-
-               timeout = 1;
-               resolve(false);
-               // @ts-ignore
-               require(['UI/Executor'], () => {
-                  // @ts-ignore
-                  this._originTemplate = this._template;
-                  // @ts-ignore
-                  this._template = function (
-                      data: any,
-                      attr: any,
-                      context: any,
-                      isVdom: boolean,
-                      sets: any
-                  ): any {
-                     return template.apply(this, arguments);
-                  };
-                  // @ts-ignore
-                  this._template.stable = true;
-
-                  // tslint:disable-next-line:only-arrow-functions
-                  this._afterMount = function (): void {
-                     // can be overridden
-                  };
-               });
-            }
-         }, time);
-      });
-   }
-
-   /**
-    * хук должен ограничивать асинхронное построение 20-ю секундами (устанавливается в HeadData).
-    * вызывается он в процессе генерации верстки
-    * @author Тэн В.А.
-    */
-   _beforeMountLimited(opts: TOptions): Promise<TState> | Promise<void> | void {
+   __beforeMount(options?: TOptions,
+                 contexts?: object,
+                 receivedState?: TState): Promise<TState> | Promise<void> | void {
       if (this._$resultBeforeMount) {
          return this._$resultBeforeMount;
       }
@@ -782,21 +717,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       // prevent start reactive properties if beforeMount return Promise.
       // Reactive properties will be started in Synchronizer
       if (resultBeforeMount && resultBeforeMount.callback) {
-         //start server side render
-          // todo проверка на сервис представления
-         if (typeof process !== 'undefined' && !process.versions) {
-            let time = WAIT_TIMEOUT;
-            try {
-               time = headDataStore.read('ssrTimeout');
-            }
-            catch (e) {
-
-            }
-            resultBeforeMount = this._resultBeforeMount(resultBeforeMount, time);
-         }
          resultBeforeMount.then(() => {
             this._reactiveStart = true;
-         }). catch (() => {});
+         }).catch (() => {});
 
          //start client render
          if (typeof window !== 'undefined') {
@@ -807,8 +730,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          // _reactiveStart means starting of monitor change in properties
          this._reactiveStart = true;
       }
-      const cssLoading = Promise.all([this.loadThemes(opts.theme), this.loadStyles()]);
-      if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded(opts.theme)) {
+      const cssLoading = Promise.all([this.loadThemes(options.theme), this.loadStyles()]);
+      if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded(options.theme)) {
          return this._$resultBeforeMount = resultBeforeMount;
       }
       return this._$resultBeforeMount = cssLoading.then(() => resultBeforeMount);
