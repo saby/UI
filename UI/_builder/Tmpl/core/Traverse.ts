@@ -1012,7 +1012,11 @@ class Traverse implements ITraverse {
          );
          return ast;
       }
-      ast.__$ws_unpackedCycle = this.processForAttribute(node, context, forAttribute);
+      const attributeFor = this.processForAttribute(node, context, forAttribute);
+      ast.__$ws_unpackedCycle = attributeFor;
+      if (attributeFor) {
+         attributeFor.setFlag(Ast.Flags.UNPACKED);
+      }
       return ast;
    }
 
@@ -1042,7 +1046,6 @@ class Traverse implements ITraverse {
          if (cycleData.indexOf(';') > -1) {
             const { init, test, update } = this.parseForParameters(cycleData);
             return new Ast.ForNode(init, test, update, []);
-
          }
          const { index, iterator, collection } = this.parseForeachParameters(cycleData);
          return new Ast.ForeachNode(index, iterator, collection, []);
@@ -2338,11 +2341,13 @@ class Traverse implements ITraverse {
       };
       const content = this.visitAll(children, contentContext);
       if (isFirstChildContent(content)) {
+         const contentOption = new Ast.ContentOptionNode(
+            'content',
+            <Ast.TContent[]>content
+         );
+         contentOption.setFlag(Ast.Flags.NEST_CASTED);
          return [
-            new Ast.ContentOptionNode(
-               'content',
-               <Ast.TContent[]>content
-            )
+            contentOption
          ];
       }
       return <Array<Ast.OptionNode | Ast.ContentOptionNode>>content;
