@@ -1039,7 +1039,7 @@ class Traverse implements ITraverse {
             throw new Error('не удалось извлечь параметры цикла');
          }
          const cycleData = (<Ast.TextDataNode>textValue[0]).__$ws_content;
-         if (cycleData.indexOf(';')) {
+         if (cycleData.indexOf(';') > -1) {
             const { init, test, update } = this.parseForParameters(cycleData);
             return new Ast.ForNode(init, test, update, []);
 

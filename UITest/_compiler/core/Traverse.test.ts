@@ -80,6 +80,40 @@ describe('Compiler/core/Traverse', () => {
          const elementNode = <Ast.ElementNode>tree[0];
          assert.strictEqual(elementNode.__$ws_name, 'div');
       });
+      it('Unpack for attribute', () => {
+         const html = '<div for="; it.test();"></div>';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 1);
+         assert.instanceOf(tree[0], Ast.ElementNode);
+         const elementNode = <Ast.ElementNode>tree[0];
+         assert.strictEqual(elementNode.__$ws_name, 'div');
+         assert.instanceOf(elementNode.__$ws_unpackedCycle, Ast.ForNode);
+      });
+      it('Failure! Unpack for attribute', () => {
+         const html = '<div for="; it.te st();"></div>';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 1);
+         assert.instanceOf(tree[0], Ast.ElementNode);
+         const elementNode = <Ast.ElementNode>tree[0];
+         assert.strictEqual(elementNode.__$ws_name, 'div');
+         assert.isNull(elementNode.__$ws_unpackedCycle);
+      });
+      it('Unpack foreach attribute', () => {
+         const html = '<div for="index, item in items"></div>';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 1);
+         assert.instanceOf(tree[0], Ast.ElementNode);
+         const elementNode = <Ast.ElementNode>tree[0];
+         assert.instanceOf(elementNode.__$ws_unpackedCycle, Ast.ForeachNode);
+      });
+      it('Failure! Unpack foreach attribute', () => {
+         const html = '<div for="in dex, it em in ite ms"></div>';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 1);
+         assert.instanceOf(tree[0], Ast.ElementNode);
+         const elementNode = <Ast.ElementNode>tree[0];
+         assert.isNull(elementNode.__$ws_unpackedCycle);
+      });
       it('Attributes', () => {
          const html = '<div attr:class="div-class" id="content" on:click="handler()"></div>';
          const tree = traverseTemplate(html);
