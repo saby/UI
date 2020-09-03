@@ -109,7 +109,7 @@ function fillCtx(control: any, vnode: any, resolvedCtx: any): void {
 export function getReceivedState(controlNode: IControlNode, vnodeP: ISomeData, serializer: any): any {
    const control = controlNode.control;
    const stateVar = controlNode.key ? findTopConfig(controlNode.key) : '';
-   if (!control._beforeMountLimited) {
+   if (!control.__beforeMount) {
       // TODO https://online.sbis.ru/opendoc.html?guid=4936d2f7-38c1-43c6-b64c-3ae650e0e612
       // There is a _beforeMount function call inside of getStateReadyOrCall
       // So we need to pass options processed by optionsResolver.
@@ -169,14 +169,14 @@ export function getReceivedState(controlNode: IControlNode, vnodeP: ISomeData, s
    }
 
    try {
-      res = data ? control._beforeMountLimited(
+      res = data ? control.__beforeMount(
          vnode.controlProperties,
          //@ts-ignore TODO разобраться
          ctx,
          data
          ) :
          //@ts-ignore TODO разобраться
-         control._beforeMountLimited(vnode.controlProperties, ctx);
+         control.__beforeMount(vnode.controlProperties, ctx);
    } catch (error) {
       Logger.lifeError('_beforeMount', control, error);
    }
