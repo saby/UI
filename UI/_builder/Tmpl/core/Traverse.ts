@@ -1521,7 +1521,7 @@ class Traverse implements ITraverse {
          throw new Error('полученые некорректные данные');
       }
       const text = (<Ast.TextDataNode>textContent[0]).__$ws_content;
-      const { physicalPath, logicalPath } = Resolvers.resolveFunction(text);
+      const { physicalPath, logicalPath } = Resolvers.parseFunctionPath(text);
       const options = this.attributeProcessor.process(
          attributes,
          {
@@ -1875,7 +1875,7 @@ class Traverse implements ITraverse {
          };
          const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          const name = this.getTextFromAttribute(node, 'name', context);
-         Resolvers.resolveInlineTemplate(name);
+         Resolvers.validateInlineTemplate(name);
          const ast = new Ast.TemplateNode(name, content);
          if (content.length === 0) {
             this.errorHandler.error(
@@ -2045,7 +2045,7 @@ class Traverse implements ITraverse {
          hasAttributesOnly: false,
          parentTagName: node.name
       });
-      const { physicalPath, logicalPath } = Resolvers.resolveComponent(node.name);
+      const { physicalPath, logicalPath } = Resolvers.parseComponentPath(node.name);
       return new Ast.ComponentNode(
          physicalPath,
          logicalPath,

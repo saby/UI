@@ -21,7 +21,7 @@ const PHYSICAL_PATH_SEPARATOR = '/';
 const LOGICAL_PATH_SEPARATOR = '.';
 
 /**
- *
+ * Physical and logical paths separator.
  */
 const INTER_PATH_SEPARATOR = ':';
 
@@ -39,6 +39,139 @@ const WS_PREFIX_PATTERN = /^ws:/i;
  * Inline template name pattern.
  */
 const INLINE_TEMPLATE_PATTERN = /^[a-zA-Z_]\w*$/i;
+
+/**
+ * Special UI-module names that do not obey standard of naming UI-modules.
+ */
+const SPECIAL_UI_MODULE_NAMES = [
+   'SBIS3.CONTROLS',
+   'SBIS3.ENGINE'
+];
+
+/**
+ * Collection of reserved words in JavaScript.
+ */
+const RESERVED_JAVASCRIPT_WORDS = [
+   'abstract',
+   'arguments',
+   'await',
+   'boolean',
+   'break',
+   'byte',
+   'case',
+   'catch',
+   'char',
+   'class',
+   'const',
+   'continue',
+   'debugger',
+   'default',
+   'delete',
+   'do',
+   'double',
+   'else',
+   'enum',
+   'eval',
+   'export',
+   'extends',
+   'false',
+   'final',
+   'finally',
+   'float',
+   'for',
+   'function',
+   'goto',
+   'if',
+   'implements',
+   'import',
+   'in',
+   'instanceof',
+   'int',
+   'interface',
+   'let',
+   'long',
+   'native',
+   'new',
+   'null',
+   'package',
+   'private',
+   'protected',
+   'public',
+   'return',
+   'short',
+   'static',
+   'super',
+   'switch',
+   'synchronized',
+   'this',
+   'throw',
+   'throws',
+   'transient',
+   'true',
+   'try',
+   'typeof',
+   'var',
+   'void',
+   'volatile',
+   'while',
+   'with',
+   'yield'
+];
+
+/**
+ * Get RequireJS plugin flag by plugin name.
+ * @param plugin {string} RequireJS plugin name.
+ * @returns {RequireJSPlugins} Returns found RequireJS plugin flag.
+ */
+function getPluginFlag(plugin: string): RequireJSPlugins {
+   const pluginName = plugin.toUpperCase();
+   if (RequireJSPlugins[pluginName]) {
+      return RequireJSPlugins[pluginName];
+   }
+   throw new Error(
+      `обнаружен неизвестный плагин "${plugin}" RequireJS`
+   );
+}
+
+/**
+ * Find special UI module name if input name starts with its.
+ * @param physicalPath {string} Physical path.
+ * @returns {string} Found UI-module name or empty string.
+ */
+function findSpecialUIModulePrefix(physicalPath: string): string {
+   for (let index = 0; index < SPECIAL_UI_MODULE_NAMES.length; ++index) {
+      const specialUIModuleName = SPECIAL_UI_MODULE_NAMES[index];
+      if (physicalPath.startsWith(specialUIModuleName)) {
+         return specialUIModuleName;
+      }
+   }
+   return EMPTY_STRING;
+}
+
+/**
+ * Extract RequireJS plugins from full path.
+ * @param fullPath {string} Full path to source with RequireJS plugins.
+ */
+function extractPlugins(fullPath: string): { plugins: RequireJSPlugins; path: string; } {
+   const parts = fullPath.split(REQUIRE_JS_PLUGIN_SEPARATOR);
+   const path = parts.pop();
+   let plugins = RequireJSPlugins.NONE;
+   for (let index = 0; index < parts.length; ++index) {
+      plugins = plugins | getPluginFlag(parts[index]);
+   }
+   return {
+      plugins,
+      path
+   };
+}
+
+/**
+ * Check if first character is capitalized.
+ * @param name {string} Any name.
+ */
+function isCapitalized(name: string): boolean {
+   return name[0] === name[0].toUpperCase();
+}
 
 /**
  * RequireJS plugin flags.
@@ -63,60 +196,15 @@ export enum RequireJSPlugins {
    XML = 1 << 16
 }
 
-function getPluginFlag(plugin: string): RequireJSPlugins {
-   const pluginName = plugin.toUpperCase();
-   if (RequireJSPlugins[pluginName]) {
-      return RequireJSPlugins[pluginName];
-   }
-   return RequireJSPlugins.NONE;
-}
-
-function isCapitalized(name: string): boolean {
-   return name[0] === name[0].toUpperCase();
-}
-
-export interface IPhysicalPathDescription {
-   plugins: RequireJSPlugins;
-   physicalPath: string;
-}
-
-export function getPhysicalPathDescription(path: string): IPhysicalPathDescription {
-   const parts = path.split(REQUIRE_JS_PLUGIN_SEPARATOR);
-   const physicalPath = parts.pop();
-   let plugins = RequireJSPlugins.NONE;
-   for (let index = 0; index < parts.length; ++index) {
-      plugins = plugins | getPluginFlag(parts[index]);
-   }
-   return {
-      physicalPath,
-      plugins
-   };
-}
-
-export function isPhysicalPath(path: string): boolean {
-   return path.indexOf(PHYSICAL_PATH_SEPARATOR) > -1;
-}
-
-export function isLogicalPath(path: string): boolean {
-   return path.indexOf(LOGICAL_PATH_SEPARATOR) > -1;
-}
-
-export function isOption(name: string): boolean {
-   return WS_PREFIX_PATTERN.test(name);
-}
-
-export function resolveOption(name: string): string {
-   return name.replace(WS_PREFIX_PATTERN, EMPTY_STRING);
-}
-
-export function isComponent(name: string): boolean {
-   return isLogicalPath(name) && isCapitalized(name);
-}
-
 /**
  * Interface for complex paths.
  */
 export interface IComplexPath {
+
+   /**
+    * Mounted RequireJS plugins.
+    */
+   plugins: RequireJSPlugins;
 
    /**
     * Physical path to module.
@@ -129,52 +217,173 @@ export interface IComplexPath {
    logicalPath: string[];
 }
 
-export function isDynamicTemplateFile(path: string): boolean {
-   // FIXME: legacy - UI/_builder/Tmpl/modules/utils/names @ isTemplateString
-   const ALLOWED_PLUGINS = RequireJSPlugins.TMPL | RequireJSPlugins.HTML | RequireJSPlugins.WML;
-   const description = getPhysicalPathDescription(path);
-   return !!(description.plugins & ALLOWED_PLUGINS);
+/**
+ * Parse component name into complex path.
+ * @param fullPath {string} Component name.
+ * @returns {IComplexPath} Returns complex path description for component.
+ * @throws {Error} Throws Error in case of invalid path for component.
+ */
+export function parseComponentPath(fullPath: string): IComplexPath {
+   const paths = fullPath.split(INTER_PATH_SEPARATOR);
+   if (paths.length > 2) {
+      throw new Error(
+         `некорректное имя компонента "${fullPath}" - ожидалось не более 1 COLON(:)-разделителя`
+      );
+   }
+   // TODO: validate paths
+   const physicalPathString = paths.shift();
+   const logicalPathString = paths.length === 1 ? paths.shift() : EMPTY_STRING;
+   const prefix = findSpecialUIModulePrefix(physicalPathString);
+   const physicalPathOffset = prefix !== EMPTY_STRING? prefix.length + 1 : 0;
+   const physicalPath = physicalPathString
+      .slice(physicalPathOffset)
+      .split(LOGICAL_PATH_SEPARATOR);
+   if (prefix !== EMPTY_STRING) {
+      physicalPath.unshift(prefix);
+   }
+   const logicalPath = logicalPathString !== EMPTY_STRING
+      ? logicalPathString.split(LOGICAL_PATH_SEPARATOR)
+      : [ ];
+   return {
+      plugins: RequireJSPlugins.NONE,
+      physicalPath,
+      logicalPath
+   };
 }
 
-export function isDynamicControl(path: string): boolean {
-   // FIXME: legacy - UI/_builder/Tmpl/modules/utils/names @ isControlString
-   const ALLOWED_PLUGINS = RequireJSPlugins.JS;
-   const description = getPhysicalPathDescription(path);
-   return !!(description.plugins & ALLOWED_PLUGINS);
+/**
+ * Parse function path.
+ * @param fullPath {string} Full path to source with RequireJS plugins.
+ * @returns {IComplexPath} Returns complex path description for function.
+ * @throws {Error} Throws Error in case of invalid path for function.
+ */
+export function parseFunctionPath(fullPath: string): IComplexPath {
+   const { plugins, path } = extractPlugins(fullPath);
+   const paths = path.split(INTER_PATH_SEPARATOR);
+   if (paths.length > 2) {
+      throw new Error(
+         `некорректный путь к функции "${fullPath}" - ожидалось не более 1 COLON(:)-разделителя`
+      );
+   }
+   // TODO: validate paths
+   const physicalPathString = paths.shift();
+   const logicalPathString = paths.length === 1 ? paths.shift() : EMPTY_STRING;
+   const prefix = findSpecialUIModulePrefix(physicalPathString);
+   const physicalPathOffset = prefix !== EMPTY_STRING ? prefix.length + 1 : 0;
+   const physicalPath = physicalPathString
+      .slice(physicalPathOffset)
+      .split(PHYSICAL_PATH_SEPARATOR);
+   if (prefix !== EMPTY_STRING) {
+      physicalPath.unshift(prefix);
+   }
+   const logicalPath = logicalPathString !== EMPTY_STRING
+      ? logicalPathString.split(LOGICAL_PATH_SEPARATOR)
+      : [ ];
+   if (physicalPath.length === 0) {
+      throw new Error(
+         `некорректный путь к функции "${fullPath}" - отсутствует физический путь к модулю, в котором находится запрашиваемая функция`
+      );
+   }
+   if (logicalPath.length === 0) {
+      throw new Error(
+         `некорректный путь к функции "${fullPath}" - отсутствует логический путь к функции, по которому функция должна быть разрешена внутри указанного модуля`
+      );
+   }
+   if (plugins !== RequireJSPlugins.NONE) {
+      throw new Error(
+         `некорректный путь к функции "${fullPath}" - использовать плагины RequireJS запрещено`
+      );
+   }
+   return {
+      plugins,
+      physicalPath,
+      logicalPath
+   };
 }
 
-export function resolveInlineTemplate(name: string): string {
-   // FIXME: legacy - UI/_builder/Tmpl/modules/template @ validateTemplateName
+/**
+ * Parse template file path.
+ * @param fullPath {string} Full path to source with RequireJS plugins.
+ * @returns {IComplexPath} Returns complex path description for template file path.
+ * @throws {Error} Throws Error in case of invalid path for template file path.
+ */
+export function parseTemplatePath(fullPath: string): IComplexPath {
+   const { plugins, path } = extractPlugins(fullPath);
+   // TODO: validate paths
+   const logicalPath = [ ];
+   const prefix = findSpecialUIModulePrefix(path);
+   const physicalPathOffset = prefix !== EMPTY_STRING ? prefix.length + 1 : 0;
+   const physicalPath = path
+      .slice(physicalPathOffset)
+      .split(PHYSICAL_PATH_SEPARATOR);
+   if (prefix !== EMPTY_STRING) {
+      physicalPath.unshift(prefix);
+   }
+   if (physicalPath.length === 0) {
+      throw new Error(
+         `некорректный путь к файлу "${fullPath}" - отсутствует физический путь к модулю, в котором находится запрашиваемый шаблон`
+      );
+   }
+   return {
+      plugins,
+      physicalPath,
+      logicalPath
+   };
+}
+
+/**
+ * Check if name is valid option name.
+ * @param name {string} Option name.
+ */
+export function isOption(name: string): boolean {
+   return WS_PREFIX_PATTERN.test(name);
+}
+
+/**
+ * Resolve option name.
+ * @param name {string} Option name.
+ */
+export function resolveOption(name: string): string {
+   return name.replace(WS_PREFIX_PATTERN, EMPTY_STRING);
+}
+
+/**
+ * Fast check if path represents physical path.
+ * @param path {string} Path.
+ * @returns {boolean} Returns true if path contains physical path separator.
+ */
+export function isPhysicalPath(path: string): boolean {
+   return path.indexOf(PHYSICAL_PATH_SEPARATOR) > -1;
+}
+
+/**
+ * Fast check if path represents logical path.
+ * @param path {string} Path.
+ * @returns {boolean} Returns true if path contains logical path separator.
+ */
+export function isLogicalPath(path: string): boolean {
+   return path.indexOf(LOGICAL_PATH_SEPARATOR) > -1;
+}
+
+/**
+ * Fast check if name represents component name.
+ * @param name {string} Component name.
+ * @returns {boolean} Returns true if name is valid logical path and first letter is capitalized.
+ */
+export function isComponent(name: string): boolean {
+   return isLogicalPath(name) && isCapitalized(name);
+}
+
+/**
+ * Validate inline template name.
+ * @param name {string} Name of inline template.
+ * @throws {Error} Throws error in case of invalid inline template name.
+ */
+export function validateInlineTemplate(name: string): void {
    if (!INLINE_TEMPLATE_PATTERN.test(name)) {
       throw new Error(`некорректное имя шаблона "${name}"`);
    }
-   return name;
-}
-
-// UIModule.dir.library:module
-export function resolveComponent(name: string): IComplexPath {
-   const parts = name.split(INTER_PATH_SEPARATOR, 2);
-   const physicalPath = parts[0].split(LOGICAL_PATH_SEPARATOR);
-   const logicalPath = parts[1] ? parts[1].split(LOGICAL_PATH_SEPARATOR) : [];
-   return {
-      physicalPath,
-      logicalPath
-   };
-}
-// UIModule/dir/library:module.property.functionName
-export function resolveFunction(name: string): IComplexPath {
-   const parts = name.split(INTER_PATH_SEPARATOR);
-   if (parts.length !== 2) {
-      throw new Error('Некорректный путь. Ожидался 1 colon-разделитель');
+   if (RESERVED_JAVASCRIPT_WORDS.indexOf(name) > -1) {
+      throw new Error(`некорректное имя шаблона - "${name}". Использование зарезервированных слов языка JavaScript в качестве имени шаблона запрещено`);
    }
-   const [ fullModule, fullPath ] = parts;
-   const physicalPath = fullModule.split(PHYSICAL_PATH_SEPARATOR);
-   const logicalPath = fullPath.split(LOGICAL_PATH_SEPARATOR);
-   if (physicalPath.length < 1 || logicalPath.length < 1) {
-      throw new Error('Задан некорректный путь');
-   }
-   return {
-      physicalPath,
-      logicalPath
-   };
 }
