@@ -352,6 +352,21 @@ function canBeTypeCasted(node: Nodes.Tag): boolean {
    return !!CASTING_TYPES[type];
 }
 
+/**
+ * Check special unknown states to content state.
+ * @param context {ITraverseContext} Processing context.
+ */
+function updateToContentState(context: ITraverseContext): void {
+   switch (context.state) {
+      case TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT:
+         context.state = TraverseState.COMPONENT_WITH_CONTENT;
+         break;
+      case TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT:
+         context.state = TraverseState.OBJECT_PROPERTY_WITH_CONTENT;
+         break;
+   }
+}
+
 // </editor-fold>
 
 /**
@@ -481,8 +496,11 @@ class Traverse implements ITraverse {
     * @returns {CDataNode | null} Returns instance of CDataNode or null in case of broken content.
     */
    visitCData(node: Nodes.CData, context: ITraverseContext): Ast.CDataNode {
+      updateToContentState(context);
       switch (context.state) {
          case TraverseState.MARKUP:
+         case TraverseState.COMPONENT_WITH_CONTENT:
+         case TraverseState.OBJECT_PROPERTY_WITH_CONTENT:
             return new Ast.CDataNode(node.data);
          default:
             this.errorHandler.error(
@@ -503,8 +521,11 @@ class Traverse implements ITraverse {
     * @returns {DoctypeNode | null} Returns instance of DoctypeNode or null in case of broken content.
     */
    visitDoctype(node: Nodes.Doctype, context: ITraverseContext): Ast.DoctypeNode {
+      updateToContentState(context);
       switch (context.state) {
          case TraverseState.MARKUP:
+         case TraverseState.COMPONENT_WITH_CONTENT:
+         case TraverseState.OBJECT_PROPERTY_WITH_CONTENT:
             return new Ast.DoctypeNode(node.data);
          default:
             this.errorHandler.error(
@@ -525,8 +546,11 @@ class Traverse implements ITraverse {
     * @returns {InstructionNode | null} Returns instance of InstructionNode or null in case of broken content.
     */
    visitInstruction(node: Nodes.Instruction, context: ITraverseContext): Ast.InstructionNode {
+      updateToContentState(context);
       switch (context.state) {
          case TraverseState.MARKUP:
+         case TraverseState.COMPONENT_WITH_CONTENT:
+         case TraverseState.OBJECT_PROPERTY_WITH_CONTENT:
             return new Ast.InstructionNode(node.data);
          default:
             this.errorHandler.error(
@@ -547,34 +571,22 @@ class Traverse implements ITraverse {
     * @returns {TextNode | null} Returns instance of TextNode or null in case of broken content.
     */
    visitText(node: Nodes.Text, context: ITraverseContext): Ast.TextNode {
-      try {
-         // Process text node content.
-         // If text is invalid then an error will be thrown.
-         const content = this.textProcessor.process(node.data, {
-            fileName: context.fileName,
-            allowedContent: context.textContent || TextContentFlags.FULL_TEXT
-         }, node.position);
-
-         // Set keys onto text content nodes.
-         this.keysGenerator.openChildren();
-         for (let index = 0; index < content.length; ++index) {
-            content[index].setKey(
-               this.keysGenerator.generate()
+      updateToContentState(context);
+      switch (context.state) {
+         case TraverseState.MARKUP:
+         case TraverseState.COMPONENT_WITH_CONTENT:
+         case TraverseState.OBJECT_PROPERTY_WITH_CONTENT:
+         case TraverseState.PRIMITIVE_VALUE:
+            return this.processText(node, context);
+         default:
+            this.errorHandler.error(
+               'Использование текста запрещено в данном контексте',
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
             );
-         }
-         this.keysGenerator.closeChildren();
-
-         // Pack the processed data
-         return new Ast.TextNode(content);
-      } catch (error) {
-         this.errorHandler.error(
-            `Ошибка обработки текста: ${error.message}. Текст будет отброшен`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
+            return null;
       }
    }
 
@@ -774,9 +786,7 @@ class Traverse implements ITraverse {
     * @returns {TContent | null} Returns instance of concrete TContent or null in case of broken content.
     */
    private processTagInComponentWithContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
-      if (context.state === TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT) {
-         context.state = TraverseState.COMPONENT_WITH_CONTENT;
-      }
+      updateToContentState(context);
       if (context.state !== TraverseState.COMPONENT_WITH_CONTENT) {
          this.errorHandler.error(
             `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег "${node.name}". Тег будет отброшен. ` +
@@ -903,9 +913,7 @@ class Traverse implements ITraverse {
     * @param context {ITraverseContext} Processing context.
     */
    private processTagInObjectPropertyWithContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
-      if (context.state === TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT) {
-         context.state = TraverseState.OBJECT_PROPERTY_WITH_CONTENT;
-      }
+      updateToContentState(context);
       if (context.state !== TraverseState.OBJECT_PROPERTY_WITH_CONTENT) {
          this.errorHandler.error(
             `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидался тег контента. Тег будет отброшен.`,
@@ -1036,6 +1044,46 @@ class Traverse implements ITraverse {
          name,
          new Ast.ObjectNode(properties)
       );
+   }
+
+   /**
+    * Process html text node.
+    * @private
+    * @param node {Text} Html text node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TextNode | null} Returns instance of TextNode or null in case of broken content.
+    */
+   private processText(node: Nodes.Text, context: ITraverseContext): Ast.TextNode {
+      try {
+         updateToContentState(context);
+         // Process text node content.
+         // If text is invalid then an error will be thrown.
+         const content = this.textProcessor.process(node.data, {
+            fileName: context.fileName,
+            allowedContent: context.textContent || TextContentFlags.FULL_TEXT
+         }, node.position);
+
+         // Set keys onto text content nodes.
+         this.keysGenerator.openChildren();
+         for (let index = 0; index < content.length; ++index) {
+            content[index].setKey(
+               this.keysGenerator.generate()
+            );
+         }
+         this.keysGenerator.closeChildren();
+
+         // Pack the processed data
+         return new Ast.TextNode(content);
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка обработки текста: ${error.message}. Текст будет отброшен`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
    }
 
    // <editor-fold desc="Properties type casting">
