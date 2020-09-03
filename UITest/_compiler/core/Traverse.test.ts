@@ -335,13 +335,16 @@ describe('Compiler/core/Traverse', () => {
          it('Function', () => {
             const optionTemplate = `
             <ws:option>
-                <ws:Function>UIModule/Module:library.handler</ws:Function>
+                <ws:Function arg1='1' arg2='2'>UIModule/Module:library.handler</ws:Function>
             </ws:option>
             `;
             const ast = traversePropertyOnComponent(optionTemplate);
             const option = ast.__$ws_options.option;
             assert.instanceOf(option, Ast.OptionNode);
             assert.instanceOf(option.__$ws_value, Ast.FunctionNode);
+            const functionNode = <Ast.FunctionNode>option.__$ws_value;
+            assert.isTrue(functionNode.__ws_options.hasOwnProperty('arg1'));
+            assert.isTrue(functionNode.__ws_options.hasOwnProperty('arg2'));
          });
          it('Number', () => {
             const optionTemplate = `
@@ -457,7 +460,7 @@ describe('Compiler/core/Traverse', () => {
             assert.instanceOf(option.__$ws_value, Ast.BooleanNode);
          });
          it('Function', () => {
-            const optionTemplate = `<ws:option type='function'>UIModule/Module:library.handler</ws:option>`;
+            const optionTemplate = `<ws:option type='function' arg1='1' arg2='2'>UIModule/Module:library.handler</ws:option>`;
             const ast = traversePropertyOnComponent(optionTemplate);
             const option = ast.__$ws_options.option;
             assert.instanceOf(option, Ast.OptionNode);
@@ -501,6 +504,7 @@ describe('Compiler/core/Traverse', () => {
             assert.instanceOf(option, Ast.OptionNode);
             assert.instanceOf(option.__$ws_value, Ast.ObjectNode);
             const properties = (<Ast.ObjectNode>option.__$ws_value).__$ws_properties;
+            assert.isTrue(!properties.hasOwnProperty('type'));
             assert.isTrue(properties.hasOwnProperty('arrayProperty'));
             assert.isTrue(properties.hasOwnProperty('booleanProperty'));
             assert.isTrue(properties.hasOwnProperty('functionProperty'));
@@ -522,6 +526,7 @@ describe('Compiler/core/Traverse', () => {
             assert.instanceOf(option, Ast.OptionNode);
             assert.instanceOf(option.__$ws_value, Ast.ObjectNode);
             const properties = (<Ast.ObjectNode>option.__$ws_value).__$ws_properties;
+            assert.isTrue(!properties.hasOwnProperty('type'));
             assert.isTrue(properties.hasOwnProperty('attributeOption'));
             assert.isTrue(properties.hasOwnProperty('tagOption'));
          });
