@@ -264,6 +264,96 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.attribs = Object.keys(attribs).length === 0 ? undefined : attribs;
       this.visitAll(node.__$ws_content, context);
+      if (node.__$ws_unpackedCycle) {
+         // @ts-ignore
+         if (!node.attribs) {
+            // @ts-ignore
+            node.attribs = { };
+         }
+         if (node.__$ws_unpackedCycle instanceof Ast.ForNode) {
+            const initStr = node.__$ws_unpackedCycle.__$ws_init ? node.__$ws_unpackedCycle.__$ws_init.string : '';
+            const testStr = node.__$ws_unpackedCycle.__$ws_test.string;
+            const updateStr = node.__$ws_unpackedCycle.__$ws_update ? node.__$ws_unpackedCycle.__$ws_update.string : '';
+            const forData = `${initStr}; ${testStr}; ${updateStr}`;
+            // @ts-ignore
+            node.attribs = {
+               'for': {
+                  data: {
+                     type: 'text',
+                     value: forData
+                  },
+                  key: undefined,
+                  type: 'text'
+               },
+               CUSTOM_CONDITION: {
+                  data: [{
+                     isBind: false,
+                     isEvent: false,
+                     localized: false,
+                     name: node.__$ws_unpackedCycle.__$ws_test,
+                     noEscape: false,
+                     type: 'var',
+                     value: ''
+                  }],
+                  key: undefined,
+                  type: 'text'
+               },
+               CUSTOM_ITERATOR: {
+                  data: node.__$ws_unpackedCycle.__$ws_update ? [{
+                     isBind: false,
+                     isEvent: false,
+                     localized: false,
+                     name: node.__$ws_unpackedCycle.__$ws_update,
+                     noEscape: false,
+                     type: 'var',
+                     value: ''
+                  }] : {
+                     type: 'text',
+                     value: ''
+                  },
+                  key: undefined,
+                  type: 'text'
+               },
+               START_FROM: {
+                  data: node.__$ws_unpackedCycle.__$ws_init ? [{
+                     isBind: false,
+                     isEvent: false,
+                     localized: false,
+                     name: node.__$ws_unpackedCycle.__$ws_init,
+                     noEscape: false,
+                     type: 'var',
+                     value: ''
+                  }] : {
+                     type: 'text',
+                     value: ''
+                  },
+                  key: undefined,
+                  type: 'text'
+               },
+            };
+            return;
+         }
+         const forSource = node.__$ws_unpackedCycle.__$ws_index
+            ? `${node.__$ws_unpackedCycle.__$ws_index.string}, ${node.__$ws_unpackedCycle.__$ws_iterator.string} in ${node.__$ws_unpackedCycle.__$ws_collection.string}`
+            : `${node.__$ws_unpackedCycle.__$ws_iterator.string} in ${node.__$ws_unpackedCycle.__$ws_collection.string}`;
+         // @ts-ignore
+         node.attribs = {
+            'for': {
+               data: {
+                  type: 'text',
+                  value: forSource
+               },
+               key: undefined,
+               type: 'text'
+            }
+         };
+         // @ts-ignore
+         node.forSource = {
+            key: node.__$ws_unpackedCycle.__$ws_index ? node.__$ws_unpackedCycle.__$ws_index.string : undefined,
+            value: node.__$ws_unpackedCycle.__$ws_iterator.string,
+            main: node.__$ws_unpackedCycle.__$ws_collection
+         };
+      }
    }
 
    // done.
@@ -666,6 +756,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       return attributes;
    }
 
+   // done.
    private collectComponentAttributes(node: Ast.BaseWasabyElement, context: INavigationContext): any {
       const attributes = this.collectAttributes(node, context);
       for (const optionName in node.__$ws_options) {
