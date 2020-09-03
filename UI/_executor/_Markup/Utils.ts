@@ -249,9 +249,9 @@ export function stringTemplateResolver(tpl: string,
    } else {
       const deps = Common.depsTemplateResolver(tpl, includedTemplates, _deps, config);
       if (deps === false) {
-            Logger.error(`Контрол ${tpl} отсутствует в зависимостях и не может быть построен."`, parent);
-            return this.createEmptyText();
-         }
+         Logger.error(`Контрол ${tpl} отсутствует в зависимостях и не может быть построен."`, parent);
+         return this.createEmptyText();
+      }
       return deps;
    }
 }
