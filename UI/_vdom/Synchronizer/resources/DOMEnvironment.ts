@@ -20,8 +20,7 @@ import { TComponentAttrs } from '../interfaces';
 import { EventUtils } from 'UI/Events';
 import { RawMarkupNode } from 'UI/Executor';
 import Environment from './Environment';
-import { SwipeController } from './SwipeController';
-import { LongTapController } from './LongTapController';
+import * as SwipeController from './SwipeController';
 import {
    onStartSync,
    onEndSync
@@ -447,8 +446,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       // flag to true to avoid event triggering twice.
       event.addedToClickState = true;
 
-      SwipeController.initState(event);
-      LongTapController.initState(event);
+      SwipeController.initSwipeState(event);
    }
    _handleTouchmove(event: any): any {
       if (this._shouldUseClickByTap()) {
@@ -465,8 +463,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          }
       }
 
-      SwipeController.detectState(event);
-      LongTapController.resetState();
+      SwipeController.detectSwipe(event);
    }
 
    _handleTouchend(event: any): any {
@@ -506,7 +503,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       // flag to true to avoid event triggering twice.
       event.addedToClickState = true;
 
-      SwipeController.resetState();
+      SwipeController.resetSwipeState();
    }
 
    _shouldUseClickByTap(): any {
@@ -1257,9 +1254,6 @@ function isBodyElement(element: HTMLElement): boolean {
 function fixPassiveEventConfig(eventName: string, config: any): any {
    if (EventUtils.checkPassiveFalseEvents(eventName)) {
       config.passive = false;
-   }
-   if (EventUtils.checkPassiveTrueEvents(eventName)) {
-      config.passive = true;
    }
    return config;
 }

@@ -43,8 +43,7 @@ var domEventsBubbling = {
    touchend: true,
    touchmove: true,
    contextmenu: true,
-   swipe: true,
-   longtap: true
+   swipe: true
 };
 
 interface IEventConfig {
@@ -89,7 +88,8 @@ export default class SyntheticEvent<TNativeEvent extends Event = Event> {
    }
 
    preventDefault(): void {
-       if (this.nativeEvent) {
+      // для тач-событий следует проверить можем ли мы остановить событие (например scroll нельзя)
+       if (this.nativeEvent && this.nativeEvent.cancelable) {
            this.nativeEvent.preventDefault();
        }
    }
