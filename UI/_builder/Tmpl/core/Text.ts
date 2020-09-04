@@ -71,6 +71,11 @@ export interface ITextProcessorOptions {
     * Flags for allowed text content.
     */
    allowedContent: TextContentFlags;
+
+   /**
+    * Remove useless whitespaces from text data.
+    */
+   removeWhiteSpaces: boolean;
 }
 
 /**
@@ -102,7 +107,12 @@ const TRANSLATION_PATTERN = /\{\[ ?([\s\S]*?) ?\]\}/g;
 /**
  * Regular expression for start and end whitespaces.
  */
-const START_END_WHITESPACES_PATTERN = /^\s{1,}|\s{1,}$/gi;
+const START_WHITESPACES_PATTERN = /^\s{1,}/gi;
+
+/**
+ * Regular expression for start and end whitespaces.
+ */
+const END_WHITESPACES_PATTERN = /\s{1,}$/gi;
 
 /**
  * Regular expression for content whitespaces.
@@ -209,13 +219,45 @@ function finalizeContentCheck(nodes: Ast.TText[], options: ITextProcessorOptions
 /**
  * Remove useless whitespaces from string.
  * @param text {string} Text data.
+ * @param trimStart {boolean} Trim start of text data. Default is false.
+ * @param trimEnd {boolean} Trim start of text data. Default is false.
  */
-function removeUselessWhitespaces(text: string): string {
-   START_END_WHITESPACES_PATTERN.lastIndex = -1;
+function removeWhitespaces(text: string, trimStart: boolean = false, trimEnd: boolean = false): string {
+   START_WHITESPACES_PATTERN.lastIndex = -1;
+   END_WHITESPACES_PATTERN.lastIndex = -1;
    CONTENT_WHITESPACES_PATTERN.lastIndex = -1;
-   return text
-      .replace(START_END_WHITESPACES_PATTERN, EMPTY_STRING)
-      .replace(CONTENT_WHITESPACES_PATTERN, WHITESPACE);
+   let data = text.replace(CONTENT_WHITESPACES_PATTERN, WHITESPACE);
+   if (trimStart) {
+      data= data.replace(START_WHITESPACES_PATTERN, EMPTY_STRING);
+   }
+   if (trimEnd) {
+      data= data.replace(END_WHITESPACES_PATTERN, EMPTY_STRING);
+   }
+   return data;
+}
+
+/**
+ * Remove useless whitespaces from string.
+ * @param data {TText[]} Collection of text nodes.
+ * @returns {TText[]} Returns new collection of text nodes.
+ */
+function removeUselessWhitespaces(data: Ast.TText[]): Ast.TText[] {
+   const processed = [];
+   for (let index = 0; index < data.length; ++index) {
+      const trimStart = index === 0;
+      const trimEnd = index === data.length - 1;
+      const node = data[index];
+      if (node instanceof Ast.TextDataNode) {
+         const text = removeWhitespaces(node.__$ws_content, trimStart, trimEnd);
+         if (text.length === 0) {
+            continue;
+         }
+         processed.push(new Ast.TextDataNode(text));
+         continue;
+      }
+      processed.push(node);
+   }
+   return processed;
 }
 
 /**
@@ -230,7 +272,7 @@ function createTextNode(data: string, options: ITextProcessorOptions, position: 
    if ((options.allowedContent & TextContentFlags.TEXT) === 0) {
       throw new Error(`в данном контексте использование текстовых данных запрещено`);
    }
-   return new Ast.TextDataNode(removeUselessWhitespaces(data));
+   return new Ast.TextDataNode(data);
 }
 
 /**
@@ -245,7 +287,7 @@ function createTranslationNode(data: string, options: ITextProcessorOptions, pos
    if ((options.allowedContent & TextContentFlags.TRANSLATION) === 0) {
       throw new Error(`в данном контексте использование конструкции локализации запрещено`);
    }
-   const { text, context } = splitLocalizationText(removeUselessWhitespaces(data));
+   const { text, context } = splitLocalizationText(data);
    return new Ast.TranslationNode(text, context);
 }
 
@@ -298,7 +340,11 @@ class TextProcessor implements ITextProcessor {
          (data: string) => createTextNode(data, internalOptions, position)
       );
 
-      return finalizeContentCheck(thirdStage, options, position);
+      const finalStage = finalizeContentCheck(thirdStage, options, position);
+      if (options.removeWhiteSpaces) {
+         return removeUselessWhitespaces(finalStage);
+      }
+      return finalStage;
    }
 
    /**

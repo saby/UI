@@ -36,6 +36,7 @@ function createTextProcessorConfig() {
 function createTextProcessorOptions(allowedContent: Text.TextContentFlags) {
    return {
       fileName: FILE_NAME,
+      removeWhiteSpaces: true,
       allowedContent
    }
 }
@@ -99,6 +100,15 @@ describe('Compiler/core/Text', () => {
       assert.instanceOf(collection[0], Ast.TranslationNode);
       assert.instanceOf(collection[1], Ast.TextDataNode);
       assert.instanceOf(collection[2], Ast.ExpressionNode);
+   });
+   it('Cleaning whitespaces 2', () => {
+      const collection = processText('    {[ text ]}    t   e  x    t   {{ userName }}     ');
+      assert.strictEqual(collection.length, 3);
+      assert.instanceOf(collection[0], Ast.TranslationNode);
+      assert.instanceOf(collection[1], Ast.TextDataNode);
+      assert.instanceOf(collection[2], Ast.ExpressionNode);
+      const textDataNode = <Ast.TextDataNode>collection[1];
+      assert.strictEqual(textDataNode.__$ws_content, ' t e x t ');
    });
    describe('.allowedContent', () => {
       it('TextContentFlags.TEXT', () => {

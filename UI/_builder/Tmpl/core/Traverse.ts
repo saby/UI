@@ -1073,7 +1073,8 @@ class Traverse implements ITraverse {
             attribute.value,
             {
                fileName: context.fileName,
-               allowedContent: TextContentFlags.TEXT
+               allowedContent: TextContentFlags.TEXT,
+               removeWhiteSpaces: true
             },
             node.position
          );
@@ -1209,7 +1210,8 @@ class Traverse implements ITraverse {
          // If text is invalid then an error will be thrown.
          const content = this.textProcessor.process(node.data, {
             fileName: context.fileName,
-            allowedContent: context.textContent || TextContentFlags.FULL_TEXT
+            allowedContent: context.textContent || TextContentFlags.FULL_TEXT,
+            removeWhiteSpaces: true
          }, node.position);
 
          // Set keys onto text content nodes.
@@ -2581,6 +2583,7 @@ class Traverse implements ITraverse {
          dataValue,
          {
             fileName: context.fileName,
+            removeWhiteSpaces: true,
             allowedContent
          },
          node.position
