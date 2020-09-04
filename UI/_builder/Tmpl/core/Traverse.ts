@@ -2217,18 +2217,19 @@ class Traverse implements ITraverse {
     * @returns {ComponentNode | null} Returns instance of ComponentNode null in case of broken content.
     */
    private processOldComponentWithNoChildren(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
-      if (!node.isSelfClosing) {
-         const name = node.attributes.hasOwnProperty('data-component')
-            ? node.attributes['data-component'].value
-            : node.name;
-         this.errorHandler.warn(
-            `Для компонента "${name}" не задан контент и тег компонента не указан как самозакрывающийся`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-      }
+      // TODO: Temporary disable warnings. Discuss this case.
+      // if (!node.isSelfClosing) {
+      //    const name = node.attributes.hasOwnProperty('data-component')
+      //       ? node.attributes['data-component'].value
+      //       : node.name;
+      //    this.errorHandler.warn(
+      //       `Для компонента "${name}" не задан контент и тег компонента не указан как самозакрывающийся`,
+      //       {
+      //          fileName: context.fileName,
+      //          position: node.position
+      //       }
+      //    );
+      // }
       return this.createOldComponentOnly(node, context);
    }
 
@@ -2318,15 +2319,16 @@ class Traverse implements ITraverse {
     * @returns {ComponentNode | null} Returns instance of ComponentNode null in case of broken content.
     */
    private processComponentWithNoChildren(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
-      if (!node.isSelfClosing) {
-         this.errorHandler.warn(
-            `Для компонента "${node.name}" не задан контент и тег компонента не указан как самозакрывающийся`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-      }
+      // TODO: Temporary disable warnings. Discuss this case.
+      // if (!node.isSelfClosing) {
+      //    this.errorHandler.warn(
+      //       `Для компонента "${node.name}" не задан контент и тег компонента не указан как самозакрывающийся`,
+      //       {
+      //          fileName: context.fileName,
+      //          position: node.position
+      //       }
+      //    );
+      // }
       return this.createComponentOnly(node, context);
    }
 
@@ -2404,15 +2406,16 @@ class Traverse implements ITraverse {
     * @returns {InlineTemplateNode | StaticPartialNode | DynamicPartialNode} Returns concrete instance of partial template.
     */
    private processPartialWithNoChildren(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
-      if (!node.isSelfClosing) {
-         this.errorHandler.warn(
-            `Для директивы ws:partial не задан контент и тег компонента не указан как самозакрывающийся`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-      }
+      // TODO: Temporary disable warnings. Discuss this case.
+      // if (!node.isSelfClosing) {
+      //    this.errorHandler.warn(
+      //       `Для директивы ws:partial не задан контент и тег компонента не указан как самозакрывающийся`,
+      //       {
+      //          fileName: context.fileName,
+      //          position: node.position
+      //       }
+      //    );
+      // }
       return this.createPartialOnly(node, context);
    }
 
