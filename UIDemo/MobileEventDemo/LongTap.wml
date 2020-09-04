@@ -1,0 +1,9 @@
+<div class="container">
+    <div>tapCount: <span>{{ _tapCount }}</span></div>
+    <div>swipeCount:  <span>{{ _swipeCount }}</span></div>
+    <div>longTapCount:  <span>{{ _longTapCount }}</span></div>
+    <div on:longtap="_longClick()" on:swipe="_swipe()" class="lcontainer__button"></div>
+    <Controls.heading:Title caption="longTapOnly" readOnly="{{true}}" fontColorStyle="primary" fontSize="l"  on:longtap="_longClick()"/>
+    <Controls.buttons:Button on:click="_simpleClick()" caption="tapOnly" class="container__button"/>
+    <Controls.buttons:Button on:longtap="_longClick()" caption="longTapOnly" class="container__button"/>
+</div>
