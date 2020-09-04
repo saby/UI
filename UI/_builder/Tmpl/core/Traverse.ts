@@ -1000,7 +1000,7 @@ class Traverse implements ITraverse {
     * @returns {TContent | null} Returns node type of TContent or null in case of broken content.
     */
    private checkDirectiveInAttribute(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
-      if (node.attributes.hasOwnProperty('for')) {
+      if (node.attributes.hasOwnProperty('for') && node.name !== 'label') {
          return this.unpackForDirective(node, context);
       }
       return this.processContentTagWithoutUnpacking(node, context);
