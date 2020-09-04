@@ -585,7 +585,11 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.type = 'tag';
       // @ts-ignore
-      node.children = node.__$ws_data;
+      node.children = [{
+         data: node.__$ws_data,
+         key: undefined,
+         type: 'text'
+      }];
       this.visitAll(node.__$ws_data, context);
    }
 
@@ -602,7 +606,11 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.type = 'tag';
       // @ts-ignore
-      node.children = node.__$ws_data;
+      node.children = [{
+         data: node.__$ws_data,
+         key: undefined,
+         type: 'text'
+      }];
       this.visitAll(node.__$ws_data, context);
    }
 
@@ -619,7 +627,11 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.type = 'tag';
       // @ts-ignore
-      node.children = node.__$ws_data;
+      node.children = [{
+         data: node.__$ws_data,
+         key: undefined,
+         type: 'text'
+      }];
       this.visitAll(node.__$ws_data, context);
    }
 
@@ -636,7 +648,11 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.type = 'tag';
       // @ts-ignore
-      node.children = node.__$ws_data;
+      node.children = [{
+         data: node.__$ws_data,
+         key: undefined,
+         type: 'text'
+      }];
       this.visitAll(node.__$ws_data, context);
    }
 
