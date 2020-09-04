@@ -315,15 +315,16 @@ class AttributeProcessor implements IAttributeProcessor {
             }
             if (isAttribute(attributeName) || options.hasAttributesOnly) {
                const attributeNode = this.processAttribute(node, options);
-               if (isAttribute(attributeName) && options.hasAttributesOnly) {
-                  this.errorHandler.warn(
-                     `Использование префикса "attr:" не обязательно на html-элементах. Обнаружен атрибут "${attributeName}" на теге "${options.parentTagName}" `,
-                     {
-                        fileName: options.fileName,
-                        position: node.position
-                     }
-                  );
-               }
+               // TODO: Temporary disable warnings. Discuss this case.
+               // if (isAttribute(attributeName) && options.hasAttributesOnly) {
+               //    this.errorHandler.warn(
+               //       `Использование префикса "attr:" не обязательно на html-элементах. Обнаружен атрибут "${attributeName}" на теге "${options.parentTagName}" `,
+               //       {
+               //          fileName: options.fileName,
+               //          position: node.position
+               //       }
+               //    );
+               // }
                if (attributeNode) {
                   if (collection.attributes.hasOwnProperty(`attr:${attributeNode.__$ws_name}`)) {
                      this.errorHandler.error(
