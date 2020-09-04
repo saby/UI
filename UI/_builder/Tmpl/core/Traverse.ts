@@ -16,6 +16,7 @@ import { IAttributeProcessor, createAttributeProcessor } from 'UI/_builder/Tmpl/
 import { ITextProcessor, createTextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
 import Scope from 'UI/_builder/Tmpl/core/Scope';
 import * as Resolvers from 'UI/_builder/Tmpl/core/Resolvers';
+import * as Path from 'UI/_builder/Tmpl/core/Path';
 
 // <editor-fold desc="Public interfaces and functions">
 
@@ -1339,9 +1340,9 @@ class Traverse implements ITraverse {
     */
    private castPropertyContentToFunction(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
       try {
-         const { physicalPath, logicalPath, options } = this.processFunctionContent(node, context, attributes);
+         const { path, options } = this.processFunctionContent(node, context, attributes);
          const name = Resolvers.resolveOption(node.name);
-         const value = new Ast.FunctionNode(physicalPath, logicalPath, options);
+         const value = new Ast.FunctionNode(path, options);
          value.setFlag(Ast.Flags.TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
@@ -1649,8 +1650,8 @@ class Traverse implements ITraverse {
     */
    private processFunction(node: Nodes.Tag, context: ITraverseContext): Ast.FunctionNode {
       try {
-         const { physicalPath, logicalPath, options } = this.processFunctionContent(node, context, node.attributes);
-         return new Ast.FunctionNode(physicalPath, logicalPath, options);
+         const { path, options } = this.processFunctionContent(node, context, node.attributes);
+         return new Ast.FunctionNode(path, options);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Function: ${error.message}. Директива будет отброшена`,
@@ -1673,7 +1674,7 @@ class Traverse implements ITraverse {
     * Attributes collection on html tag node will be ignored.
     * @returns {*} Returns collection of function parameters.
     */
-   private processFunctionContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): { physicalPath: string[]; logicalPath: string[]; options: Ast.IOptions; } {
+   private processFunctionContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): { path: Path.IPath; options: Ast.IOptions; } {
       const childrenContext = {
          ...context,
          state: TraverseState.PRIMITIVE_VALUE,
@@ -1688,7 +1689,7 @@ class Traverse implements ITraverse {
          throw new Error('полученые некорректные данные');
       }
       const text = (<Ast.TextDataNode>textContent[0]).__$ws_content;
-      const { physicalPath, logicalPath } = Resolvers.parseFunctionPath(text);
+      const path = Path.parseFunctionPath(text);
       const options = this.attributeProcessor.process(
          attributes,
          {
@@ -1700,8 +1701,7 @@ class Traverse implements ITraverse {
       this.warnIncorrectProperties(options.attributes, node, context);
       this.warnIncorrectProperties(options.events, node, context);
       return {
-         physicalPath,
-         logicalPath,
+         path,
          options: options.options
       };
    }
@@ -2212,10 +2212,9 @@ class Traverse implements ITraverse {
          hasAttributesOnly: false,
          parentTagName: node.name
       });
-      const { physicalPath, logicalPath } = Resolvers.parseComponentPath(node.name);
+      const path = Path.parseComponentName(node.name);
       return new Ast.ComponentNode(
-         physicalPath,
-         logicalPath,
+         path,
          attributes.attributes,
          attributes.events,
          attributes.options
@@ -2308,9 +2307,9 @@ class Traverse implements ITraverse {
       if (template instanceof ProgramNode) {
          return new Ast.DynamicPartialNode(template, attributes.attributes, attributes.events, attributes.options);
       }
-      if (Resolvers.isLogicalPath(template) || Resolvers.isPhysicalPath(template)) {
-         // TODO: validate template path
-         return new Ast.StaticPartialNode(template, attributes.attributes, attributes.events, attributes.options);
+      if (Path.isLogicalPath(template) || Path.isPhysicalPath(template)) {
+         const path = Path.parseTemplatePath(template);
+         return new Ast.StaticPartialNode(path, attributes.attributes, attributes.events, attributes.options);
       }
       Resolvers.validateInlineTemplate(template);
       const inlineTemplate = new Ast.InlineTemplateNode(template, attributes.attributes, attributes.events, attributes.options);

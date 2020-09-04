@@ -6,6 +6,7 @@
  */
 
 import { ProgramNode } from '../expressions/_private/Nodes';
+import { IPath } from './Path';
 
 // tslint:disable:max-classes-per-file
 // Намеренно отключаю правило max-classes-per-file
@@ -1029,28 +1030,21 @@ export class CommentNode extends Ast {
 export class ComponentNode extends BaseWasabyElement {
 
    /**
-    * Path to component module or library.
+    * Path to component.
     */
-   __$ws_physicalPath: string[];
-
-   /**
-    * Path to component class inside library.
-    */
-   __$ws_logicalPath: string[];
+   __$ws_path: IPath;
 
    /**
     * Initialize new instance of component node.
-    * @param physicalPath {string[]} Path to component module or library.
-    * @param logicalPath {string[]} Path to component class inside library.
+    * @param path {IPath} Path to component.
     * @param attributes {IAttributes} Collection of abstract syntax node attributes.
     * @param events {IEvents} Collection of abstract syntax node event handlers.
     * @param options {IOptions} Collection of abstract syntax node options.
     * @param contents {IContents} Collection of abstract syntax node contents.
     */
-   constructor(physicalPath: string[], logicalPath: string[], attributes: IAttributes, events: IEvents, options: IOptions, contents: IContents = { }) {
+   constructor(path: IPath, attributes: IAttributes, events: IEvents, options: IOptions, contents: IContents = { }) {
       super(attributes, events, options, contents);
-      this.__$ws_physicalPath = physicalPath;
-      this.__$ws_logicalPath = logicalPath;
+      this.__$ws_path = path;
    }
 
    /**
@@ -1116,21 +1110,21 @@ export class InlineTemplateNode extends BaseWasabyElement {
 export class StaticPartialNode extends BaseWasabyElement {
 
    /**
-    * Physical path to template file.
+    * Path to template file.
     */
-   __$ws_physicalPath: string;
+   __$ws_path: IPath;
 
    /**
     * Initialize new instance of static partial node.
-    * @param physicalPath {string} Physical path to template file.
+    * @param path {IPath} Path to template file.
     * @param attributes {IAttributes} Collection of abstract syntax node attributes.
     * @param events {IEvents} Collection of abstract syntax node event handlers.
     * @param options {IOptions} Collection of abstract syntax node options.
     * @param contents {IContents} Collection of abstract syntax node contents.
     */
-   constructor(physicalPath: string, attributes: IAttributes, events: IEvents, options: IOptions, contents: IContents = { }) {
+   constructor(path: IPath, attributes: IAttributes, events: IEvents, options: IOptions, contents: IContents = { }) {
       super(attributes, events, options, contents);
-      this.__$ws_physicalPath = physicalPath;
+      this.__$ws_path = path;
    }
 
    /**
@@ -1528,14 +1522,9 @@ export class BooleanNode extends Ast {
 export class FunctionNode extends Ast {
 
    /**
-    * Path to module that contains function.
+    * Path to function.
     */
-   __$ws_physicalPath: string[];
-
-   /**
-    * Path to a function inside the module file.
-    */
-   __$ws_logicalPath: string[];
+   __$ws_path: IPath;
 
    /**
     * Collection of function options.
@@ -1544,14 +1533,12 @@ export class FunctionNode extends Ast {
 
    /**
     * Initialize new instance of function node.
-    * @param physicalPath {string[]} Path to module that contains function.
-    * @param logicalPath {string[]} Path to a function inside the module file.
+    * @param path {IPath} Path to function.
     * @param options {IOptions} Collection of function options.
     */
-   constructor(physicalPath: string[], logicalPath: string[], options: IOptions = { }) {
+   constructor(path: IPath, options: IOptions = { }) {
       super();
-      this.__$ws_physicalPath = physicalPath;
-      this.__$ws_logicalPath = logicalPath;
+      this.__$ws_path = path;
       this.__$ws_options = options;
    }
 

@@ -5,6 +5,8 @@
  * @file UI/_builder/Tmpl/core/Resolvers.ts
  */
 
+import { isLogicalPath } from './Path';
+
 /**
  * Separator for RequireJS plugins.
  */
@@ -356,24 +358,6 @@ export function isOption(name: string): boolean {
  */
 export function resolveOption(name: string): string {
    return name.replace(WS_PREFIX_PATTERN, EMPTY_STRING);
-}
-
-/**
- * Fast check if path represents physical path.
- * @param path {string} Path.
- * @returns {boolean} Returns true if path contains physical path separator.
- */
-export function isPhysicalPath(path: string): boolean {
-   return path.indexOf(PHYSICAL_PATH_SEPARATOR) > -1;
-}
-
-/**
- * Fast check if path represents logical path.
- * @param path {string} Path.
- * @returns {boolean} Returns true if path contains logical path separator.
- */
-export function isLogicalPath(path: string): boolean {
-   return path.indexOf(LOGICAL_PATH_SEPARATOR) > -1;
 }
 
 /**
