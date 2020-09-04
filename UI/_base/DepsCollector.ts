@@ -429,6 +429,9 @@ export class DepsCollector {
       const langCode = controller.currentLang;
       const processedContexts = [];
 
+      // Добавляем конфигурацию локали.
+      files.js.push(controller.loadingsHistory.locales[localeCode]);
+
       for (const moduleModule of Object.keys(deps.i18n)) {
          const UIModuleName = deps.i18n[moduleModule].moduleName.split('/')[0];
 

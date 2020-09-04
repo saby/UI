@@ -111,6 +111,10 @@ describe('DepsCollector', () => {
                         dictionary: 'ModuleWithLocalization/lang/ru/ru.json',
                      }
                   }
+               },
+               locales: {
+                  'ru-RU': 'I18n/locales/ru-RU',
+                  'en-US': 'I18n/locales/en-US'
                }
             };
          });
@@ -130,6 +134,7 @@ describe('DepsCollector', () => {
          const deps = dc.collectDependencies(['ModuleWithLocalization/test']);
 
          assert.deepStrictEqual(deps.js, [
+            'I18n/locales/en-US',
             'ModuleWithLocalization/lang/en/en.json',
             'ModuleWithLocalization/test'
          ]);
@@ -144,6 +149,7 @@ describe('DepsCollector', () => {
          const deps = dc.collectDependencies(['ModuleWithLocalization/test']);
 
          assert.deepStrictEqual(deps.js, [
+            'I18n/locales/ru-RU',
             'ModuleWithLocalization/lang/ru/ru.json',
             'ModuleWithLocalization/test'
          ]);
