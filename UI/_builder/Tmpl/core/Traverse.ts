@@ -374,6 +374,23 @@ function updateToContentState(context: ITraverseContext): void {
    }
 }
 
+/**
+ * Process expression "identifier as alias" and return alias name.
+ * @deprecated
+ * @param identifier {string} Expression that can contain alias.
+ * @returns {string} Alias name.
+ */
+function useIdentifierAlias(identifier: string): string {
+   if (identifier.indexOf(' as ') === -1) {
+      return identifier;
+   }
+   const params = identifier.split(' as ');
+   if (params.length > 2) {
+      throw new Error('указано более 1 алиаса для идентификатора');
+   }
+   return params[1];
+}
+
 // </editor-fold>
 
 /**
@@ -2130,8 +2147,8 @@ class Traverse implements ITraverse {
          );
       }
       try {
-         const iteratorExpression = variables.pop();
-         const indexExpression = variables.length == 1 ? variables.pop() : null;
+         const iteratorExpression = useIdentifierAlias(variables.pop());
+         const indexExpression = variables.length == 1 ? useIdentifierAlias(variables.pop()) : null;
          const iterator = this.expressionParser.parse(iteratorExpression);
          const index = indexExpression ? this.expressionParser.parse(indexExpression) : null;
          const collection = this.expressionParser.parse(collectionExpression);
