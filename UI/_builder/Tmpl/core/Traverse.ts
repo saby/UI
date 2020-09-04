@@ -205,6 +205,12 @@ interface ITraverseContext extends ITraverseOptions {
     * Allowed text content data.
     */
    textContent: TextContentFlags;
+
+   /**
+    * Processing old components.
+    * @deprecated
+    */
+   oldComponentProcessing: boolean;
 }
 
 /**
@@ -451,7 +457,8 @@ class Traverse implements ITraverse {
          state: TraverseState.MARKUP,
          fileName: options.fileName,
          scope: options.scope,
-         textContent: TextContentFlags.FULL_TEXT
+         textContent: TextContentFlags.FULL_TEXT,
+         oldComponentProcessing: false
       };
       const tree = this.visitAll(nodes, context);
       this.removeUnusedTemplates(context);
@@ -768,7 +775,7 @@ class Traverse implements ITraverse {
             );
             return null;
          default:
-            if (Resolvers.isOption(node.name)) {
+            if (Resolvers.isOption(node.name) || context.oldComponentProcessing) {
                return this.processTagInComponentWithOptions(node, context);
             }
             return this.processTagInComponentWithContent(node, context);
@@ -860,7 +867,7 @@ class Traverse implements ITraverse {
             );
             return null;
          default:
-            if (Resolvers.isOption(node.name)) {
+            if (Resolvers.isOption(node.name) || context.oldComponentProcessing) {
                return this.processProperty(node, context);
             }
             this.errorHandler.error(
@@ -897,7 +904,7 @@ class Traverse implements ITraverse {
          case 'ws:Value':
             return this.processTagInObjectPropertyWithDataType(node, context);
          default:
-            if (Resolvers.isOption(node.name)) {
+            if (Resolvers.isOption(node.name) || context.oldComponentProcessing) {
                return this.processTagInObjectPropertyWithContentTypeCastedToObject(node, context);
             }
             return this.processTagInObjectPropertyWithContent(node, context);
@@ -1088,6 +1095,11 @@ class Traverse implements ITraverse {
       }
       if (Resolvers.isComponent(node.name)) {
          return this.processComponent(node, context);
+      }
+
+      // TODO: Deprecated!!!
+      if (node.name === 'component') {
+         return this.processOldComponent(node, context);
       }
 
       // We need to check element node even if element node is broken.
@@ -2133,6 +2145,123 @@ class Traverse implements ITraverse {
             `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
          );
       }
+   }
+
+   // </editor-fold>
+
+   // <editor-fold desc="Processing old component nodes">
+
+   /**
+    * Process html element tag and create component node of abstract syntax tree.
+    * ```
+    *    <tag data-component="path/to/component">
+    *       <option type="Type">
+    *          ...
+    *       </option>
+    *    </tag>
+    * ```
+    * @private
+    * @deprecated
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ComponentNode | null} Returns instance of ComponentNode null in case of broken content.
+    */
+   private processOldComponent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
+      try {
+         const oldComponentContext: ITraverseContext = {
+            ...context,
+            oldComponentProcessing: true
+         };
+         if (node.children.length === 0) {
+            return this.processOldComponentWithNoChildren(node, oldComponentContext);
+         }
+         return this.processOldComponentWithChildren(node, oldComponentContext);
+      } catch (error) {
+         const name = node.attributes.hasOwnProperty('data-component')
+            ? node.attributes['data-component'].value
+            : node.name;
+         this.errorHandler.error(
+            `Ошибка разбора компонента "${name}": ${error.message}. Компонент будет отброшен`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
+   }
+
+   /**
+    * Process html element tag with no children and create component node of abstract syntax tree.
+    * @private
+    * @deprecated
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ComponentNode | null} Returns instance of ComponentNode null in case of broken content.
+    */
+   private processOldComponentWithNoChildren(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
+      if (!node.isSelfClosing) {
+         const name = node.attributes.hasOwnProperty('data-component')
+            ? node.attributes['data-component'].value
+            : node.name;
+         this.errorHandler.warn(
+            `Для компонента "${name}" не задан контент и тег компонента не указан как самозакрывающийся`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+      }
+      return this.createOldComponentOnly(node, context);
+   }
+
+   /**
+    * Process component node with its content.
+    * @private
+    * @deprecated
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ComponentNode} Returns component node of abstract syntax tree.
+    */
+   private processOldComponentWithChildren(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
+      const options = this.getComponentOrPartialOptions(node.children, context);
+      const ast = this.createOldComponentOnly(node, context);
+      this.applyOptionsToComponentOrPartial(ast, options, context, node);
+      return ast;
+   }
+
+   /**
+    * Only process html tag name and attributes and create component node of abstract syntax tree.
+    * @private
+    * @deprecated
+    * @param node {Tag} Html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {ComponentNode} Returns instance of ComponentNode.
+    * @throws {Error} Throws error in case of broken node data.
+    */
+   private createOldComponentOnly(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
+      const attributes = {
+         ...node.attributes
+      };
+      const name = node.attributes.hasOwnProperty('data-component')
+         ? node.attributes['data-component'].value
+         : null;
+      delete attributes['data-component'];
+      const attributesCollection = this.attributeProcessor.process(attributes, {
+         fileName: context.fileName,
+         hasAttributesOnly: false,
+         parentTagName: node.name
+      });
+      if (!name) {
+         throw new Error('не найден атрибут "data-component" с именем компонента');
+      }
+      const path = Path.parseTemplatePath(node.name);
+      return new Ast.ComponentNode(
+         path,
+         attributesCollection.attributes,
+         attributesCollection.events,
+         attributesCollection.options
+      );
    }
 
    // </editor-fold>
