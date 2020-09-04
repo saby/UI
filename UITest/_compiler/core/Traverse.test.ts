@@ -446,7 +446,7 @@ describe('Compiler/core/Traverse', () => {
          it('Object', () => {
             const optionTemplate = `
             <ws:option>
-                <ws:Object>
+                <ws:Object attributeOption="value">
                     <ws:arrayProperty>
                         <ws:Array></ws:Array>
                     </ws:arrayProperty>
@@ -476,6 +476,7 @@ describe('Compiler/core/Traverse', () => {
             assert.instanceOf(option, Ast.OptionNode);
             assert.instanceOf(option.__$ws_value, Ast.ObjectNode);
             const properties = (<Ast.ObjectNode>option.__$ws_value).__$ws_properties;
+            assert.isTrue(properties.hasOwnProperty('attributeOption'));
             assert.isTrue(properties.hasOwnProperty('arrayProperty'));
             assert.isTrue(properties.hasOwnProperty('booleanProperty'));
             assert.isTrue(properties.hasOwnProperty('functionProperty'));
