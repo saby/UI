@@ -52,6 +52,16 @@ function traversePropertyOnComponent(optionTemplate: string): Ast.ComponentNode 
    return <Ast.ComponentNode>tree[0];
 }
 
+function traverseDeprecatedPropertyOnComponent(optionTemplate: string): Ast.ComponentNode {
+   const template = `<component data-component="UIModule/Component">
+    ${optionTemplate}
+</component>`;
+   const tree = traverseTemplate(template);
+   assert.strictEqual(tree.length, 1);
+   assert.instanceOf(tree[0], Ast.ComponentNode);
+   return <Ast.ComponentNode>tree[0];
+}
+
 describe('Compiler/core/Traverse', () => {
    it('DoctypeNode', () => {
       const html = '<!DOCTYPE html>';
@@ -149,6 +159,12 @@ describe('Compiler/core/Traverse', () => {
          assert.strictEqual(tree.length, 1);
          assert.instanceOf(tree[0], Ast.ComponentNode);
       });
+      it('Deprecated! Node', () => {
+         const html = '<component data-component="UIModule/Component" />';
+         const tree = traverseTemplate(html);
+         assert.strictEqual(tree.length, 1);
+         assert.instanceOf(tree[0], Ast.ComponentNode);
+      });
       it('Drop cycle attribute', () => {
          const html = '<UIModule.Component for="index, item in items" />';
          const tree = traverseTemplate(html);
@@ -169,8 +185,29 @@ describe('Compiler/core/Traverse', () => {
          assert.isTrue(componentNode.__$ws_attributes.hasOwnProperty('attr:class'));
          assert.isTrue(componentNode.__$ws_options.hasOwnProperty('id'));
       });
+      it('Deprecated! Component attributes and options', () => {
+         const html = '<component data-component="UIModule/Component" attr:class="div-class" id="content" />';
+         const tree = traverseTemplate(html);
+         const componentNode = <Ast.ComponentNode>tree[0];
+         assert.strictEqual(Object.keys(componentNode.__$ws_attributes).length, 1);
+         assert.strictEqual(Object.keys(componentNode.__$ws_options).length, 1);
+         assert.strictEqual(Object.keys(componentNode.__$ws_events).length, 0);
+         assert.strictEqual(Object.keys(componentNode.__$ws_contents).length, 0);
+         assert.isTrue(componentNode.__$ws_attributes.hasOwnProperty('attr:class'));
+         assert.isTrue(componentNode.__$ws_options.hasOwnProperty('id'));
+      });
       it('Component event handlers', () => {
          const html = '<UIModule.DirModule.Component on:click="handler()" />';
+         const tree = traverseTemplate(html);
+         const componentNode = <Ast.ComponentNode>tree[0];
+         assert.strictEqual(Object.keys(componentNode.__$ws_attributes).length, 0);
+         assert.strictEqual(Object.keys(componentNode.__$ws_options).length, 0);
+         assert.strictEqual(Object.keys(componentNode.__$ws_events).length, 1);
+         assert.strictEqual(Object.keys(componentNode.__$ws_contents).length, 0);
+         assert.isTrue(componentNode.__$ws_events.hasOwnProperty('on:click'));
+      });
+      it('Deprecated! Component event handlers', () => {
+         const html = '<component data-component="UIModule/Component" on:click="handler()" />';
          const tree = traverseTemplate(html);
          const componentNode = <Ast.ComponentNode>tree[0];
          assert.strictEqual(Object.keys(componentNode.__$ws_attributes).length, 0);
@@ -634,6 +671,102 @@ describe('Compiler/core/Traverse', () => {
          it('Ignore attribute on "option" tag', () => {
             const optionTemplate = `<ws:option type='value' attribute='value'>value</ws:option>`;
             const ast = traversePropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.ValueNode);
+         });
+      });
+      describe('Deprecated! Explicit type casting', () => {
+         it('Boolean', () => {
+            const optionTemplate = `<option type='boolean'>true</option>`;
+            const ast = traverseDeprecatedPropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.BooleanNode);
+         });
+         it('Function', () => {
+            const optionTemplate = `<option type='function' arg1='1' arg2='2'>UIModule/Module:library.handler</option>`;
+            const ast = traverseDeprecatedPropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.FunctionNode);
+         });
+         it('Number', () => {
+            const optionTemplate = `<option type='number'>123</option>`;
+            const ast = traverseDeprecatedPropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.NumberNode);
+         });
+         it('Object', () => {
+            const optionTemplate = `
+            <option type="object">
+                 <booleanProperty type="boolean">
+                     true
+                 </booleanProperty>
+                 <functionProperty type="function">
+                     UIModule/Module:library.handler
+                 </functionProperty>
+                 <numberProperty type="number">
+                     123
+                 </numberProperty>
+                 <objectProperty type="object">
+                 </objectProperty>
+                 <stringProperty type="string">
+                     text
+                 </stringProperty>
+                 <valueProperty type="value">
+                     value
+                 </valueProperty>
+            </option>
+            `;
+            const ast = traverseDeprecatedPropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.ObjectNode);
+            const properties = (<Ast.ObjectNode>option.__$ws_value).__$ws_properties;
+            assert.isTrue(!properties.hasOwnProperty('type'));
+            assert.isTrue(properties.hasOwnProperty('booleanProperty'));
+            assert.isTrue(properties.hasOwnProperty('functionProperty'));
+            assert.isTrue(properties.hasOwnProperty('numberProperty'));
+            assert.isTrue(properties.hasOwnProperty('objectProperty'));
+            assert.isTrue(properties.hasOwnProperty('stringProperty'));
+            assert.isTrue(properties.hasOwnProperty('valueProperty'));
+         });
+         it('Object with option in tag attributes', () => {
+            const optionTemplate = `
+            <option type="object" attributeOption="value">
+                 <tagOption type="value">
+                     value
+                 </tagOption>
+            </option>
+            `;
+            const ast = traverseDeprecatedPropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.ObjectNode);
+            const properties = (<Ast.ObjectNode>option.__$ws_value).__$ws_properties;
+            assert.isTrue(!properties.hasOwnProperty('type'));
+            assert.isTrue(properties.hasOwnProperty('attributeOption'));
+            assert.isTrue(properties.hasOwnProperty('tagOption'));
+         });
+         it('String', () => {
+            const optionTemplate = `<option type='string'>text</option>`;
+            const ast = traverseDeprecatedPropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.StringNode);
+         });
+         it('Value', () => {
+            const optionTemplate = `<option type='value'>value</option>`;
+            const ast = traverseDeprecatedPropertyOnComponent(optionTemplate);
+            const option = ast.__$ws_options.option;
+            assert.instanceOf(option, Ast.OptionNode);
+            assert.instanceOf(option.__$ws_value, Ast.ValueNode);
+         });
+         it('Ignore attribute on "option" tag', () => {
+            const optionTemplate = `<option type='value' attribute='value'>value</option>`;
+            const ast = traverseDeprecatedPropertyOnComponent(optionTemplate);
             const option = ast.__$ws_options.option;
             assert.instanceOf(option, Ast.OptionNode);
             assert.instanceOf(option.__$ws_value, Ast.ValueNode);
