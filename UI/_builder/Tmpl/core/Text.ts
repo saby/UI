@@ -281,6 +281,11 @@ class TextProcessor implements ITextProcessor {
       if ((options.allowedContent & TextContentFlags.EXPRESSION) === 0) {
          throw new Error('в данном контексте использование Mustache-выражения запрещено');
       }
+
+      // TODO: warn about empty Mustache-expressions.
+      if (data.trim().length === 0) {
+         return null;
+      }
       try {
          const programNode = this.expressionParser.parse(data);
          return new Ast.ExpressionNode(programNode);
