@@ -530,7 +530,7 @@ class PatchVisitor implements Ast.IAstVisitor {
             type: 'module'
          }];
          // @ts-ignore
-         node.attribs._wstemplatename = constructor;
+         node.attribs._wstemplatename = node.__$ws_path.getFullPath();
       } else {
          // @ts-ignore
          node.children = [{
@@ -541,7 +541,7 @@ class PatchVisitor implements Ast.IAstVisitor {
             type: 'control'
          }];
          // @ts-ignore
-         node.attribs._wstemplatename = constructor;
+         node.attribs._wstemplatename = node.__$ws_path.getFullPath();
       }
       // @ts-ignore
       node.key = node.__$ws_key;

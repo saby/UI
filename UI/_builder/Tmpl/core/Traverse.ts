@@ -2258,14 +2258,10 @@ class Traverse implements ITraverse {
     * @throws {Error} Throws error in case of broken node data.
     */
    private createOldComponentOnly(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
-      const attributes = {
-         ...node.attributes
-      };
       const name = node.attributes.hasOwnProperty('data-component')
          ? node.attributes['data-component'].value
          : null;
-      delete attributes['data-component'];
-      const attributesCollection = this.attributeProcessor.process(attributes, {
+      const attributesCollection = this.attributeProcessor.process(node.attributes, {
          fileName: context.fileName,
          hasAttributesOnly: false,
          parentTagName: node.name
