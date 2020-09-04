@@ -100,6 +100,26 @@ const EXPRESSION_PATTERN = /\{\{ ?([\s\S]*?) ?\}\}/g;
 const TRANSLATION_PATTERN = /\{\[ ?([\s\S]*?) ?\]\}/g;
 
 /**
+ * Regular expression for start and end whitespaces.
+ */
+const START_END_WHITESPACES_PATTERN = /^\s{1,}|\s{1,}$/gi;
+
+/**
+ * Regular expression for content whitespaces.
+ */
+const CONTENT_WHITESPACES_PATTERN = /\s{1,}/gi;
+
+/**
+ * Empty string constant.
+ */
+const EMPTY_STRING = '';
+
+/**
+ * Whitespace constant.
+ */
+const WHITESPACE = ' ';
+
+/**
  * Type for text node wrappers.
  * Function accepts text contents and returns one of text nodes.
  */
@@ -187,6 +207,18 @@ function finalizeContentCheck(nodes: Ast.TText[], options: ITextProcessorOptions
 }
 
 /**
+ * Remove useless whitespaces from string.
+ * @param text {string} Text data.
+ */
+function removeUselessWhitespaces(text: string): string {
+   START_END_WHITESPACES_PATTERN.lastIndex = -1;
+   CONTENT_WHITESPACES_PATTERN.lastIndex = -1;
+   return text
+      .replace(START_END_WHITESPACES_PATTERN, EMPTY_STRING)
+      .replace(CONTENT_WHITESPACES_PATTERN, WHITESPACE);
+}
+
+/**
  * Parse and create text node.
  * @param data {string} Text content.
  * @param options {ITextProcessorOptions} Text processor options.
@@ -198,7 +230,7 @@ function createTextNode(data: string, options: ITextProcessorOptions, position: 
    if ((options.allowedContent & TextContentFlags.TEXT) === 0) {
       throw new Error(`в данном контексте использование текстовых данных запрещено`);
    }
-   return new Ast.TextDataNode(data);
+   return new Ast.TextDataNode(removeUselessWhitespaces(data));
 }
 
 /**
@@ -213,7 +245,7 @@ function createTranslationNode(data: string, options: ITextProcessorOptions, pos
    if ((options.allowedContent & TextContentFlags.TRANSLATION) === 0) {
       throw new Error(`в данном контексте использование конструкции локализации запрещено`);
    }
-   const { text, context } = splitLocalizationText(data);
+   const { text, context } = splitLocalizationText(removeUselessWhitespaces(data));
    return new Ast.TranslationNode(text, context);
 }
 

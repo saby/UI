@@ -63,6 +63,13 @@ describe('Compiler/core/Text', () => {
       const textDataNode = <Ast.TextDataNode>collection[0];
       assert.strictEqual(textDataNode.__$ws_content, 'Simple text');
    });
+   it('Cleaning whitespaces', () => {
+      const collection = processText('  Simple       text   ');
+      assert.strictEqual(collection.length, 1);
+      assert.instanceOf(collection[0], Ast.TextDataNode);
+      const textDataNode = <Ast.TextDataNode>collection[0];
+      assert.strictEqual(textDataNode.__$ws_content, 'Simple text');
+   });
    it('TranslationNode (text and context)', () => {
       const collection = processText('{[ Context @@ Text ]}');
       assert.strictEqual(collection.length, 1);
