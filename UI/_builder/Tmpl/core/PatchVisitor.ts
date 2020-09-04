@@ -697,16 +697,61 @@ class PatchVisitor implements Ast.IAstVisitor {
       }
    }
 
+   // done.
    visitStaticPartial(node: Ast.StaticPartialNode, context: INavigationContext): any {
       const attributes = this.collectComponentAttributes(node, context);
       // @ts-ignore
       node.attribs = {
-         ...attributes
+         ...attributes,
+         template: {
+            data: {
+               type: 'text',
+               value: node.__$ws_path.getFullPath()
+            },
+            key: undefined,
+            type: 'text'
+         }
       };
-      // @ts-ignore
-      node.children = [{
-
-      }];
+      if (node.__$ws_path.hasPlugins()) {
+         // @ts-ignore
+         node.attribs._wstemplatename = {
+            data: {
+               type: 'text',
+               value: node.__$ws_path.getFullPath()
+            },
+            key: undefined,
+            type: 'text'
+         };
+         // @ts-ignore
+         node.children = [{
+            fn: node.__$ws_path.getFullPath(),
+            key: undefined,
+            optional: undefined,
+            type: 'template'
+         }];
+      } else if (node.__$ws_path.hasLogicalPath()) {
+         // @ts-ignore
+         node.attribs._wstemplatename = node.__$ws_path.getFullPath();
+         // @ts-ignore
+         node.children = [{
+            constructor: node.__$ws_path.getFullPath(),
+            key: undefined,
+            library: node.__$ws_path.getFullPhysicalPath(),
+            module: node.__$ws_path.getLogicalPath(),
+            type: 'module'
+         }];
+      } else {
+         // @ts-ignore
+         node.attribs._wstemplatename = node.__$ws_path.getFullPath();
+         // @ts-ignore
+         node.children = [{
+            constructor: node.__$ws_path.getFullPath(),
+            fn: node.__$ws_path.getFullPath(),
+            key: undefined,
+            optional: undefined,
+            type: 'control'
+         }];
+      }
       // @ts-ignore
       node.key = node.__$ws_key;
       // @ts-ignore
@@ -715,6 +760,8 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.originName = `ws:partial`;
       // @ts-ignore
       node.type = 'tag';
+      // @ts-ignore
+      node.injectedData = this.collectContents(node, context);
    }
 
    // done.
