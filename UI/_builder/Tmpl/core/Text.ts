@@ -5,7 +5,7 @@
  * @file UI/_builder/Tmpl/core/Text.ts
  */
 
-import { splitLocalizationText } from './i18n';
+import { canBeTranslated, splitLocalizationText } from './i18n';
 import * as Ast from './Ast';
 import { IParser } from '../expressions/_private/Parser';
 import { SourcePosition } from '../html/Reader';
@@ -105,11 +105,6 @@ const EXPRESSION_PATTERN = /\{\{ ?([\s\S]*?) ?\}\}/g;
 const TRANSLATION_PATTERN = /\{\[ ?([\s\S]*?) ?\]\}/g;
 
 /**
- * Html entity pattern.
- */
-const HTML_ENTITY_PATTERN = /^&[^\s;]+;$/;
-
-/**
  * Type for text node wrappers.
  * Function accepts text contents and returns one of text nodes.
  */
@@ -172,26 +167,6 @@ function markDataByRegex(
       }
    }
    return data;
-}
-
-/**
- * Check if text can be translatable.
- * @todo Release clever translate wrapper.
- * @param text {string} Text data.
- * @returns {boolean} Returns true if text can be translated.
- */
-function canBeTranslated(text: string): boolean {
-   // Text is considered possible to translate if it is not:
-   // 1. A variable: {{ someOption }}, Text with {{ option }}s - can't be translated
-   // 2. A single html entity: &amp;, &#123 - shouldn't be translated
-   //    (Text with html entities can be translated: String &amp; entity)
-   // 3. An INCLUDE instruction: %{INCLUDE ...} - for compatibility
-
-   // С флагом global у регулярного выражения нужно сбрасывать индекс
-   EXPRESSION_PATTERN.lastIndex = 0;
-   return !EXPRESSION_PATTERN.test(text) &&
-      !HTML_ENTITY_PATTERN.test(text.trim()) &&
-      text.indexOf('%{INCLUDE') === -1 && text.trim().length > 0;
 }
 
 /**
