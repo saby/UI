@@ -170,6 +170,16 @@ function markDataByRegex(
 }
 
 /**
+ * Check if text can be translatable.
+ * @todo Release clever translate wrapper.
+ * @param text {string} Text data.
+ * @returns {boolean} Returns true if text can be translated.
+ */
+function hasTranslatableText(text: string): boolean {
+   return text.trim().length > 0;
+}
+
+/**
  * Process final text node check.
  * @param nodes {TText[]} Processed nodes.
  * @param options {ITextProcessorOptions} Text processor options.
@@ -185,18 +195,16 @@ function finalizeContentCheck(nodes: Ast.TText[], options: ITextProcessorOptions
    const collection = [];
    for (let index = 0; index < nodes.length; ++index) {
       const node = nodes[index];
-      if (!(node instanceof Ast.TextDataNode)) {
+      if (!(node instanceof Ast.TextDataNode) || !hasTranslatableText(node.__$ws_content)) {
          collection.push(node);
          continue;
       }
       if (isTextForbidden) {
          throw new Error(`в данном контексте использование текстовых данных запрещено`);
       }
-      if (options.translateText) {
-         collection.push(
-            createTranslationNode(node.__$ws_content, options, position)
-         );
-      }
+      collection.push(
+         createTranslationNode(node.__$ws_content, options, position)
+      );
    }
    return collection;
 }
