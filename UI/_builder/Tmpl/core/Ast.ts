@@ -1522,9 +1522,9 @@ export class BooleanNode extends Ast {
 export class FunctionNode extends Ast {
 
    /**
-    * Path to function.
+    * Function expression.
     */
-   __$ws_path: IPath;
+   __$ws_functionExpression: TText[];
 
    /**
     * Collection of function options.
@@ -1533,12 +1533,12 @@ export class FunctionNode extends Ast {
 
    /**
     * Initialize new instance of function node.
-    * @param path {IPath} Path to function.
+    * @param functionExpression {TText[]} Path to function.
     * @param options {IOptions} Collection of function options.
     */
-   constructor(path: IPath, options: IOptions = { }) {
+   constructor(functionExpression: TText[], options: IOptions = { }) {
       super();
-      this.__$ws_path = path;
+      this.__$ws_functionExpression = functionExpression;
       this.__$ws_options = options;
    }
 

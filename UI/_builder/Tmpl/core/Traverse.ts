@@ -1380,9 +1380,9 @@ class Traverse implements ITraverse {
     */
    private castPropertyContentToFunction(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.OptionNode {
       try {
-         const { path, options } = this.processFunctionContent(node, context, attributes);
+         const { functionExpression, options } = this.processFunctionContent(node, context, attributes);
          const name = Resolvers.resolveOption(node.name);
-         const value = new Ast.FunctionNode(path, options);
+         const value = new Ast.FunctionNode(functionExpression, options);
          value.setFlag(Ast.Flags.TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
@@ -1691,8 +1691,8 @@ class Traverse implements ITraverse {
     */
    private processFunction(node: Nodes.Tag, context: ITraverseContext): Ast.FunctionNode {
       try {
-         const { path, options } = this.processFunctionContent(node, context, node.attributes);
-         return new Ast.FunctionNode(path, options);
+         const { functionExpression, options } = this.processFunctionContent(node, context, node.attributes);
+         return new Ast.FunctionNode(functionExpression, options);
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных ws:Function: ${error.message}. Директива будет отброшена`,
@@ -1715,23 +1715,18 @@ class Traverse implements ITraverse {
     * Attributes collection on html tag node will be ignored.
     * @returns {*} Returns collection of function parameters.
     */
-   private processFunctionContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): { path: Path.IPath; options: Ast.IOptions; } {
+   private processFunctionContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): { functionExpression: Ast.TText[]; options: Ast.IOptions; } {
       const childrenContext = {
          ...context,
          state: TraverseState.PRIMITIVE_VALUE,
-         textContent: TextContentFlags.TEXT,
+         textContent: TextContentFlags.TEXT_AND_EXPRESSION,
          translateText: false
       };
-      const children = this.visitAll(node.children, childrenContext);
-      if (children.length !== 1) {
+      const textNodes = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
+      if (textNodes.length !== 1) {
          throw new Error('полученые некорректные данные');
       }
-      const textContent = (<Ast.TextNode>children[0]).__$ws_content;
-      if (textContent.length !== 1) {
-         throw new Error('полученые некорректные данные');
-      }
-      const text = (<Ast.TextDataNode>textContent[0]).__$ws_content;
-      const path = Path.parseFunctionPath(text);
+      const functionExpression = textNodes[0].__$ws_content;
       const options = this.attributeProcessor.process(
          attributes,
          {
@@ -1743,7 +1738,7 @@ class Traverse implements ITraverse {
       this.warnIncorrectProperties(options.attributes, node, context);
       this.warnIncorrectProperties(options.events, node, context);
       return {
-         path,
+         functionExpression,
          options: options.options
       };
    }
