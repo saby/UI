@@ -11,11 +11,6 @@
 const EMPTY_STRING = '';
 
 /**
- * Regular expression for translation node content.
- */
-const TRANSLATION_PATTERN = /\{\[ ?([\s\S]*?) ?\]\}/g;
-
-/**
  * Html entity pattern.
  */
 const HTML_ENTITY_PATTERN = /^&[^\s;]+;$/;
@@ -64,9 +59,9 @@ export interface ITranslationKey {
    module: string;
 
    /**
-    * Translation text.
+    * Translation key.
     */
-   text: string;
+   key: string;
 
    /**
     * Translation context.
@@ -94,16 +89,16 @@ export class Dictionary {
    /**
     * Push new data into dictionary.
     * @param module {string} Template file where translation item was discovered.
-    * @param text {string} Translation text.
+    * @param key {string} Translation text.
     * @param context {string} Translation context.
     */
-   push(module: string, text: string, context: string = EMPTY_STRING): void {
-      if (text.trim().length === 0) {
+   push(module: string, key: string, context: string = EMPTY_STRING): void {
+      if (key.trim().length === 0) {
          return;
       }
       this.items.push({
          module,
-         text,
+         key,
          context
       });
    }
