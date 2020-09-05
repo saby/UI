@@ -17,6 +17,7 @@ import { ITextProcessor, createTextProcessor, TextContentFlags } from 'UI/_build
 import Scope from 'UI/_builder/Tmpl/core/Scope';
 import * as Resolvers from 'UI/_builder/Tmpl/core/Resolvers';
 import * as Path from 'UI/_builder/Tmpl/core/Path';
+import { ITextTranslator } from 'UI/_builder/Tmpl/core/i18n';
 
 // <editor-fold desc="Public interfaces and functions">
 
@@ -44,6 +45,11 @@ export interface ITraverseConfig {
     * Allow creating comment nodes in abstract syntax tree.
     */
    allowComments: boolean;
+
+   /**
+    * Text translator.
+    */
+   textTranslator: ITextTranslator;
 }
 
 /**
@@ -446,6 +452,11 @@ class Traverse implements ITraverse {
     */
    private readonly textProcessor: ITextProcessor;
 
+   /**
+    * Text translator.
+    */
+   private readonly textTranslator: ITextTranslator;
+
    // </editor-fold>
 
    /**
@@ -465,6 +476,7 @@ class Traverse implements ITraverse {
          errorHandler: config.errorHandler,
          textProcessor: this.textProcessor
       });
+      this.textTranslator = config.textTranslator;
    }
 
    /**
@@ -1550,9 +1562,10 @@ class Traverse implements ITraverse {
     */
    private processElement(node: Nodes.Tag, context: ITraverseContext): Ast.ElementNode {
       try {
-         const childrenContext = {
+         const childrenContext: ITraverseContext = {
             ...context,
-            state: TraverseState.MARKUP
+            state: TraverseState.MARKUP,
+            translateText: this.textTranslator.isElementContentTranslatable(node.name)
          };
          const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          const attributes = this.attributeProcessor.process(node.attributes, {

@@ -5,6 +5,7 @@ import Scope from 'UI/_builder/Tmpl/core/Scope';
 import { parse } from 'UI/_builder/Tmpl/html/Parser';
 import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
+import { createTextTranslator } from 'UI/_builder/Tmpl/core/i18n';
 import { assert } from 'chai';
 
 // TODO: UI/_builder/Tmpl/* -> Compiler/*
@@ -13,7 +14,8 @@ const traverseConfig = {
    allowComments: false,
    expressionParser: new Parser(),
    hierarchicalKeys: true,
-   errorHandler: createErrorHandler()
+   errorHandler: createErrorHandler(),
+   textTranslator: createTextTranslator()
 };
 
 const parseConfig = {

@@ -6,7 +6,8 @@ define('UI/_builder/Tmpl/core/bridge', [
    'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/core/PatchVisitor',
    'Core/Deferred',
-   'UI/_builder/Tmpl/core/Scope'
+   'UI/_builder/Tmpl/core/Scope',
+   'UI/_builder/Tmpl/core/i18n'
 ], function(
    traversing,
    TraverseLib,
@@ -15,7 +16,8 @@ define('UI/_builder/Tmpl/core/bridge', [
    ErrorHandlerLib,
    PatchVisitorLib,
    Deferred,
-   ScopeLib
+   ScopeLib,
+   i18n
 ) {
    'use strict';
    var USE_VISITOR = false;
@@ -27,7 +29,8 @@ define('UI/_builder/Tmpl/core/bridge', [
          expressionParser: new ParserLib.Parser(),
          hierarchicalKeys: true,
          errorHandler: new ErrorHandlerLib.default(),
-         allowComments: false
+         allowComments: false,
+         textTranslator: i18n.createTextTranslator()
       };
       var traverseOptions = {
          fileName: options.fileName,
@@ -40,7 +43,7 @@ define('UI/_builder/Tmpl/core/bridge', [
          // post traverse
          postTraverse.call({
             createResultDictionary: options.createResultDictionary,
-            words: options.words,
+            words: scope.getTranslationKeys(),
             fileName: options.fileName
          }, deferred, traversed);
       });
