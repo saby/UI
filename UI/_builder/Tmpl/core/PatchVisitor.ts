@@ -845,7 +845,11 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.type = 'tag';
       // @ts-ignore
-      node.children = node.__$ws_functionExpression;
+      node.children = [{
+         data: node.__$ws_functionExpression,
+         key: undefined,
+         type: 'text'
+      }];
       this.visitAll(node.__$ws_functionExpression, context);
    }
 
