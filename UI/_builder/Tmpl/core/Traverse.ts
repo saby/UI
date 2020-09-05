@@ -188,19 +188,7 @@ const enum TraverseState {
    /**
     * In processing object property that contain content nodes only.
     */
-   OBJECT_PROPERTY_WITH_DATA_TYPE,
-
-   /**
-    * In processing old component options.
-    * @deprecated
-    */
-   OLD_COMPONENT_OPTIONS,
-
-   /**
-    * In processing elements in olad array data type.
-    * @deprecated
-    */
-   OLD_ARRAY_ELEMENTS
+   OBJECT_PROPERTY_WITH_DATA_TYPE
 }
 
 /**
@@ -222,6 +210,11 @@ interface ITraverseContext extends ITraverseOptions {
     * Allowed text content data.
     */
    textContent: TextContentFlags;
+
+   /**
+    * Tag with name "component" and all its content need process uin state MARKUP
+    */
+   processingOldComponent: boolean;
 }
 
 /**
@@ -486,7 +479,8 @@ class Traverse implements ITraverse {
          fileName: options.fileName,
          scope: options.scope,
          textContent: TextContentFlags.FULL_TEXT,
-         translateText: options.translateText
+         translateText: options.translateText,
+         processingOldComponent: false
       };
       const tree = this.visitAll(nodes, context);
       this.removeUnusedTemplates(context);
@@ -675,10 +669,6 @@ class Traverse implements ITraverse {
                }
             );
             return null;
-         case TraverseState.OLD_COMPONENT_OPTIONS:
-            return this.processingTagInOldComponentOptions(node, context);
-         case TraverseState.OLD_ARRAY_ELEMENTS:
-            return this.processingTagInOldArrayElements(node, context);
          default:
             this.errorHandler.critical(
                'Конечный автомат traverse находится в неизвестном состоянии',
@@ -1024,295 +1014,6 @@ class Traverse implements ITraverse {
    }
 
    /**
-    * Process html tag node as old component option.
-    * @deprecated
-    * @private
-    * @param node {Tag} Processing html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {OptionNode} Returns OptionNode or null in case of broken content.
-    */
-   private processingTagInOldComponentOptions(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode {
-      if (node.name === 'option') {
-         return this.processOldComponentOption(node, context);
-      }
-      if (node.name === 'options') {
-         return this.processOldComponentOptions(node, context);
-      }
-      this.errorHandler.error(
-         `Обнаружена неизвестная опция "${node.name}". Опция будет отброшена`,
-         {
-            fileName: context.fileName,
-            position: node.position
-         }
-      );
-      return null;
-   }
-
-   /**
-    * Process html tag node as old array data type element.
-    * @deprecated
-    * @private
-    * @param node {Tag} Processing html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {OptionNode} Returns OptionNode or null in case of broken content.
-    */
-   private processingTagInOldArrayElements(node: Nodes.Tag, context: ITraverseContext): Ast.TData {
-      if (node.name !== 'options') {
-         this.errorHandler.error(
-            `Обнаружена неизвестная опция "${node.name}". Опция будет отброшена`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
-      const type = node.attributes.hasOwnProperty('type') ? node.attributes.type.value : 'object';
-      switch (type) {
-         case 'array':
-            return this.processOldArrayContent(node, context);
-         case 'object':
-            return this.processOldObjectContent(node, context);
-         default:
-            this.errorHandler.error(
-               `Обнаружена опция "${node.name}" неизвестного типа "${type}". Опция будет отброшена`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
-      }
-   }
-
-   /**
-    * Process html tag node as old component option. Default type is string.
-    * @deprecated
-    * @private
-    * @param node {Tag} Processing html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {OptionNode} Returns OptionNode or null in case of broken content.
-    */
-   private processOldComponentOption(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode {
-      const name = node.attributes.hasOwnProperty('name') ? node.attributes.name.value : null;
-      const type = node.attributes.hasOwnProperty('type') ? node.attributes.type.value : 'string';
-      if (name === null) {
-         this.errorHandler.error(
-            `Не задано имя опции на теге "${node.name}". Опция будет отброшена`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
-      const value = this.processOldOptionValue(node, context);
-      switch (type) {
-         case 'boolean':
-            return new Ast.OptionNode(
-               name,
-               new Ast.BooleanNode(value)
-            );
-         case 'number':
-            return new Ast.OptionNode(
-               name,
-               new Ast.NumberNode(value)
-            );
-         case 'string':
-            return new Ast.OptionNode(
-               name,
-               new Ast.StringNode(value)
-            );
-         case 'array':
-         case 'object':
-            this.errorHandler.error(
-               `Тип "${type}" не поддерживается на опции с именем "${name}". Опция будет отброшена`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
-         default:
-            this.errorHandler.error(
-               `Обнаружен неизвестный тип "${type}" на опции с именем "${name}". Опция будет отброшена`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
-      }
-   }
-
-   /**
-    * Process option text data.
-    * @deprecated
-    * @private
-    * @param node {Tag} Processing html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {} Returns collection of parsed text nodes.
-    */
-   private processOldOptionValue(node: Nodes.Tag, context: ITraverseContext): Ast.TText[] {
-      const value = this.parseOldOptionValue(node, context);
-      if (value.length > 0) {
-         return value;
-      }
-      return [
-         new Ast.TextDataNode('')
-      ];
-   }
-
-   /**
-    * Parse option text data.
-    * @deprecated
-    * @private
-    * @param node {Tag} Processing html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {} Returns collection of parsed text nodes.
-    */
-   private parseOldOptionValue(node: Nodes.Tag, context: ITraverseContext): Ast.TText[] {
-      if (node.attributes.hasOwnProperty('value')) {
-         const data = node.attributes.value.value;
-         return this.textProcessor.process(data, {
-            fileName: context.fileName,
-            allowedContent: TextContentFlags.FULL_TEXT,
-            translateText: false
-         }, node.position);
-      }
-      const oldComponentOptionContext: ITraverseContext = {
-         ...context,
-         state: TraverseState.PRIMITIVE_VALUE,
-         textContent: TextContentFlags.FULL_TEXT,
-         translateText: false
-      };
-      return <Ast.TText[]>this.visitAll(node.children, oldComponentOptionContext);
-   }
-
-   /**
-    * Process html tag node as old component option. Default type is object.
-    * @deprecated
-    * @private
-    * @param node {Tag} Processing html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {OptionNode} Returns OptionNode or null in case of broken content.
-    */
-   private processOldComponentOptions(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode {
-      const type = node.attributes.hasOwnProperty('type') ? node.attributes.type.value : 'object';
-      if (type === 'array') {
-         return this.processOldComponentArrayOption(node, context);
-      }
-      if (type === 'object') {
-         return this.processOldComponentObjectOption(node, context);
-      }
-      this.errorHandler.error(
-         `Обнаружена опция "${node.name}" неизвестного типа "${type}". Опция будет отброшена`,
-         {
-            fileName: context.fileName,
-            position: node.position
-         }
-      );
-      return null;
-   }
-
-   /**
-    * Process html tag node as old component option.
-    * @deprecated
-    * @private
-    * @param node {Tag} Processing html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {OptionNode} Returns OptionNode or null in case of broken content.
-    */
-   private processOldComponentArrayOption(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode {
-      const name = node.attributes.hasOwnProperty('name') ? node.attributes.name.value : null;
-      if (name === null) {
-         this.errorHandler.error(
-            `Не задано имя опции на теге "${node.name}". Опция будет отброшена`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
-      const array = this.processOldArrayContent(node, context);
-      return new Ast.OptionNode(name, array);
-   }
-
-   /**
-    * Process html tag node as old component option.
-    * @deprecated
-    * @private
-    * @param node {Tag} Processing html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {OptionNode} Returns OptionNode or null in case of broken content.
-    */
-   private processOldComponentObjectOption(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode {
-      const name = node.attributes.hasOwnProperty('name') ? node.attributes.name.value : null;
-      if (name === null) {
-         this.errorHandler.error(
-            `Не задано имя опции на теге "${node.name}". Опция будет отброшена`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
-      const objectNode = this.processOldObjectContent(node, context);
-      return new Ast.OptionNode(name, objectNode);
-   }
-
-   /**
-    * Process old array content.
-    * @deprecated
-    * @private
-    * @param node {Tag} Processing html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {ArrayNode} Returns ArrayNode or null in case of broken content.
-    */
-   private processOldArrayContent(node: Nodes.Tag, context: ITraverseContext): Ast.ArrayNode {
-      const oldArrayElementsContext: ITraverseContext = {
-         ...context,
-         state: TraverseState.OLD_ARRAY_ELEMENTS
-      };
-      const elements = <Ast.TData[]>this.visitAll(node.children, oldArrayElementsContext);
-      return new Ast.ArrayNode(elements);
-   }
-
-   /**
-    * Process old object content.
-    * @deprecated
-    * @private
-    * @param node {Tag} Processing html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {ObjectNode} Returns ObjectNode or null in case of broken content.
-    */
-   private processOldObjectContent(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode {
-      const oldObjectPropertiesContext: ITraverseContext = {
-         ...context,
-         state: TraverseState.OLD_COMPONENT_OPTIONS
-      };
-      const content = <Ast.OptionNode[]>this.visitAll(node.children, oldObjectPropertiesContext);
-      const properties: Ast.IObjectProperties = { };
-      for (let index = 0; index < content.length; ++index) {
-         const property = content[index];
-         if (properties.hasOwnProperty(property.__$ws_name)) {
-            this.errorHandler.error(
-               `Опция "${property.__$ws_name}" уже задана на объекте. Опция будет отброшена`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            continue;
-         }
-         properties[property.__$ws_name] = property;
-      }
-      return new Ast.ObjectNode(properties);
-   }
-
-   /**
     * Check directive in attribute and try to unpack node.
     * @private
     * @todo Do real unpacking when compiler codegen stage will be ready. Do unpacking also for "if"-directive
@@ -1419,14 +1120,18 @@ class Traverse implements ITraverse {
          return this.processComponent(node, context);
       }
 
-      // TODO: Deprecated!!!
+      // TODO: Deprecated behaviour
       if (node.name === 'component') {
-         return this.processOldComponent(node, context);
+         const oldComponentContext: ITraverseContext = {
+            ...context,
+            processingOldComponent: true
+         };
+         return this.processElement(node, oldComponentContext);
       }
 
       // We need to check element node even if element node is broken.
       const elementNode = this.processElement(node, context);
-      if (isElementNode(node.name)) {
+      if (isElementNode(node.name) || context.processingOldComponent) {
          return elementNode;
       }
       this.errorHandler.error(
@@ -2473,124 +2178,6 @@ class Traverse implements ITraverse {
             `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
          );
       }
-   }
-
-   // </editor-fold>
-
-   // <editor-fold desc="Processing old component nodes">
-
-   /**
-    * Process html element tag and create component node of abstract syntax tree.
-    * ```
-    *    <tag data-component="path/to/component">
-    *       <option type="Type">
-    *          ...
-    *       </option>
-    *    </tag>
-    * ```
-    * @private
-    * @deprecated
-    * @param node {Tag} Html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {ComponentNode | null} Returns instance of ComponentNode null in case of broken content.
-    */
-   private processOldComponent(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
-      try {
-         if (node.children.length === 0) {
-            return this.processOldComponentWithNoChildren(node, context);
-         }
-         return this.processOldComponentWithChildren(node, context);
-      } catch (error) {
-         const name = node.attributes.hasOwnProperty('data-component')
-            ? node.attributes['data-component'].value
-            : node.name;
-         this.errorHandler.error(
-            `Ошибка разбора компонента "${name}": ${error.message}. Компонент будет отброшен`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
-   }
-
-   /**
-    * Process html element tag with no children and create component node of abstract syntax tree.
-    * @private
-    * @deprecated
-    * @param node {Tag} Html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {ComponentNode | null} Returns instance of ComponentNode null in case of broken content.
-    */
-   private processOldComponentWithNoChildren(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
-      // TODO: Temporary disable warnings. Discuss this case.
-      // if (!node.isSelfClosing) {
-      //    const name = node.attributes.hasOwnProperty('data-component')
-      //       ? node.attributes['data-component'].value
-      //       : node.name;
-      //    this.errorHandler.warn(
-      //       `Для компонента "${name}" не задан контент и тег компонента не указан как самозакрывающийся`,
-      //       {
-      //          fileName: context.fileName,
-      //          position: node.position
-      //       }
-      //    );
-      // }
-      return this.createOldComponentOnly(node, context);
-   }
-
-   /**
-    * Process component node with its content.
-    * @private
-    * @deprecated
-    * @param node {Tag} Html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {ComponentNode} Returns component node of abstract syntax tree.
-    */
-   private processOldComponentWithChildren(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
-      const oldComponentContext: ITraverseContext = {
-         ...context,
-         state: TraverseState.OLD_COMPONENT_OPTIONS
-      };
-      const options = this.getComponentOrPartialOptions(node.children, oldComponentContext);
-      const ast = this.createOldComponentOnly(node, context);
-      this.applyOptionsToComponentOrPartial(ast, options, context, node);
-      return ast;
-   }
-
-   /**
-    * Only process html tag name and attributes and create component node of abstract syntax tree.
-    * @private
-    * @deprecated
-    * @param node {Tag} Html tag node.
-    * @param context {ITraverseContext} Processing context.
-    * @returns {ComponentNode} Returns instance of ComponentNode.
-    * @throws {Error} Throws error in case of broken node data.
-    */
-   private createOldComponentOnly(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
-      const name = node.attributes.hasOwnProperty('data-component')
-         ? node.attributes['data-component'].value
-         : null;
-      const attributes = {
-         ...node.attributes
-      };
-      delete attributes['data-component'];
-      const attributesCollection = this.attributeProcessor.process(attributes, {
-         fileName: context.fileName,
-         hasAttributesOnly: false,
-         parentTagName: node.name
-      });
-      if (!name) {
-         throw new Error('не найден атрибут "data-component" с именем компонента');
-      }
-      const path = Path.parseTemplatePath(name);
-      return new Ast.ComponentNode(
-         path,
-         attributesCollection.attributes,
-         attributesCollection.events,
-         attributesCollection.options
-      );
    }
 
    // </editor-fold>
