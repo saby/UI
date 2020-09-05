@@ -195,7 +195,7 @@ describe('Compiler/core/Traverse', () => {
          const tree = traverseTemplate(html);
          const componentNode = <Ast.ComponentNode>tree[0];
          assert.strictEqual(Object.keys(componentNode.__$ws_attributes).length, 1);
-         assert.strictEqual(Object.keys(componentNode.__$ws_options).length, 2);
+         assert.strictEqual(Object.keys(componentNode.__$ws_options).length, 1);
          assert.strictEqual(Object.keys(componentNode.__$ws_events).length, 0);
          assert.strictEqual(Object.keys(componentNode.__$ws_contents).length, 0);
          assert.isTrue(componentNode.__$ws_attributes.hasOwnProperty('attr:class'));
@@ -216,7 +216,7 @@ describe('Compiler/core/Traverse', () => {
          const tree = traverseTemplate(html);
          const componentNode = <Ast.ComponentNode>tree[0];
          assert.strictEqual(Object.keys(componentNode.__$ws_attributes).length, 0);
-         assert.strictEqual(Object.keys(componentNode.__$ws_options).length, 1);
+         assert.strictEqual(Object.keys(componentNode.__$ws_options).length, 0);
          assert.strictEqual(Object.keys(componentNode.__$ws_events).length, 1);
          assert.strictEqual(Object.keys(componentNode.__$ws_contents).length, 0);
          assert.isTrue(componentNode.__$ws_events.hasOwnProperty('on:click'));

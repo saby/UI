@@ -2572,7 +2572,11 @@ class Traverse implements ITraverse {
       const name = node.attributes.hasOwnProperty('data-component')
          ? node.attributes['data-component'].value
          : null;
-      const attributesCollection = this.attributeProcessor.process(node.attributes, {
+      const attributes = {
+         ...node.attributes
+      };
+      delete attributes['data-component'];
+      const attributesCollection = this.attributeProcessor.process(attributes, {
          fileName: context.fileName,
          hasAttributesOnly: false,
          parentTagName: node.name
@@ -2580,7 +2584,7 @@ class Traverse implements ITraverse {
       if (!name) {
          throw new Error('не найден атрибут "data-component" с именем компонента');
       }
-      const path = Path.parseTemplatePath(node.name);
+      const path = Path.parseTemplatePath(name);
       return new Ast.ComponentNode(
          path,
          attributesCollection.attributes,
