@@ -17,7 +17,7 @@ import { ITextProcessor, createTextProcessor, TextContentFlags } from 'UI/_build
 import Scope from 'UI/_builder/Tmpl/core/Scope';
 import * as Resolvers from 'UI/_builder/Tmpl/core/Resolvers';
 import * as Path from 'UI/_builder/Tmpl/core/Path';
-import { ITextTranslator } from 'UI/_builder/Tmpl/core/i18n';
+import { ITextTranslator } from 'UI/_builder/Tmpl/i18n/Translator';
 
 // <editor-fold desc="Public interfaces and functions">
 

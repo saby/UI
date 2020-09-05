@@ -7,7 +7,7 @@
 
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { IPath } from 'UI/_builder/Tmpl/core/Path';
-import { Dictionary, ITranslationKey } from 'UI/_builder/Tmpl/core/i18n';
+import { Dictionary, ITranslationKey } from 'UI/_builder/Tmpl/i18n/Dictionary';
 
 /**
  * Interface of inner representation of template nodes.

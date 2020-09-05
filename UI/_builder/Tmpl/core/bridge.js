@@ -7,7 +7,7 @@ define('UI/_builder/Tmpl/core/bridge', [
    'UI/_builder/Tmpl/core/PatchVisitor',
    'Core/Deferred',
    'UI/_builder/Tmpl/core/Scope',
-   'UI/_builder/Tmpl/core/i18n'
+   'UI/_builder/Tmpl/i18n/Translator'
 ], function(
    traversing,
    TraverseLib,
@@ -17,7 +17,7 @@ define('UI/_builder/Tmpl/core/bridge', [
    PatchVisitorLib,
    Deferred,
    ScopeLib,
-   i18n
+   Translator
 ) {
    'use strict';
    var USE_VISITOR = false;
@@ -30,7 +30,7 @@ define('UI/_builder/Tmpl/core/bridge', [
          hierarchicalKeys: true,
          errorHandler: new ErrorHandlerLib.default(),
          allowComments: false,
-         textTranslator: i18n.createTextTranslator()
+         textTranslator: Translator.createTextTranslator()
       };
       var traverseOptions = {
          fileName: options.fileName,

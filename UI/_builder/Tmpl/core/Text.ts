@@ -5,7 +5,7 @@
  * @file UI/_builder/Tmpl/core/Text.ts
  */
 
-import { canBeTranslated, splitLocalizationText } from 'UI/_builder/Tmpl/core/i18n';
+import { canBeTranslated, splitLocalizationText } from 'UI/_builder/Tmpl/i18n/Helpers';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { SourcePosition } from 'UI/_builder/Tmpl/html/Reader';

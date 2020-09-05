@@ -5,7 +5,7 @@ import Scope from 'UI/_builder/Tmpl/core/Scope';
 import { parse } from 'UI/_builder/Tmpl/html/Parser';
 import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
-import { createTextTranslator } from 'UI/_builder/Tmpl/core/i18n';
+import { createTextTranslator } from 'UI/_builder/Tmpl/i18n/Translator';
 import { assert } from 'chai';
 
 // TODO: UI/_builder/Tmpl/* -> Compiler/*

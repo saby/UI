@@ -10,7 +10,7 @@ import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { ITextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
-import { INodeDescription } from 'UI/_builder/Tmpl/core/i18n';
+import { INodeDescription } from 'UI/_builder/Tmpl/i18n/Translator';
 
 /**
  * Empty string constant.
