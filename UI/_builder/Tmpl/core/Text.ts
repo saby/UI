@@ -76,6 +76,11 @@ export interface ITextProcessorOptions {
     * Remove useless whitespaces from text data.
     */
    removeWhiteSpaces: boolean;
+
+   /**
+    * Create translation nodes instead of text nodes.
+    */
+   translateText: boolean;
 }
 
 /**
@@ -203,15 +208,25 @@ function markDataByRegex(
  * @returns {TText[]} Collection of text data nodes.
  */
 function finalizeContentCheck(nodes: Ast.TText[], options: ITextProcessorOptions, position: SourcePosition): Ast.TText[] {
-   if (options.allowedContent & TextContentFlags.TEXT) {
+   const isTextForbidden = !(options.allowedContent & TextContentFlags.TEXT);
+   if (!isTextForbidden && !options.translateText) {
       return nodes;
    }
    const collection = [];
    for (let index = 0; index < nodes.length; ++index) {
-      if (nodes[index] instanceof Ast.TextDataNode) {
+      const node = nodes[index];
+      if (!(node instanceof Ast.TextDataNode)) {
+         collection.push(node);
+         continue;
+      }
+      if (isTextForbidden) {
          throw new Error(`в данном контексте использование текстовых данных запрещено`);
       }
-      collection.push(nodes[index]);
+      if (options.translateText) {
+         collection.push(
+            createTranslationNode(node.__$ws_content, options, position)
+         );
+      }
    }
    return collection;
 }

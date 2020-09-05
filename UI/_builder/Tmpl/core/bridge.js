@@ -34,7 +34,8 @@ define('UI/_builder/Tmpl/core/bridge', [
       };
       var traverseOptions = {
          fileName: options.fileName,
-         scope: new ScopeLib.default()
+         scope: new ScopeLib.default(),
+         translateText: true
       };
       var traversed = TraverseLib.default(htmlTree, traverseConfig, traverseOptions);
       PatchVisitorLib.default(traversed, traverseOptions.scope);

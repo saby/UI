@@ -32,7 +32,8 @@ const parseConfig = {
 function createTraverseOptions() {
    return {
       fileName: 'Compiler/core/Traverse/TestTemplate.wml',
-      scope: new Scope()
+      scope: new Scope(),
+      translateText: false
    };
 }
 

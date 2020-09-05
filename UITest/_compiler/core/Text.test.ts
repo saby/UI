@@ -33,22 +33,23 @@ function createTextProcessorConfig() {
    };
 }
 
-function createTextProcessorOptions(allowedContent: Text.TextContentFlags) {
+function createTextProcessorOptions(allowedContent: Text.TextContentFlags, translateText: boolean) {
    return {
       fileName: FILE_NAME,
       removeWhiteSpaces: true,
-      allowedContent
+      allowedContent,
+      translateText
    }
 }
 
-function processText(data: string, allowedContent: Text.TextContentFlags = Text.TextContentFlags.FULL_TEXT) {
+function processText(data: string, allowedContent: Text.TextContentFlags = Text.TextContentFlags.FULL_TEXT, translateText: boolean = false) {
    const html = parse(data, FILE_NAME, parseConfig);
    assert.strictEqual(html.length, 1);
    assert.isTrue(html[0] instanceof Nodes.Text);
    const text = <Nodes.Text>html[0];
    const textProcessorConfig = createTextProcessorConfig();
    const processor = Text.createTextProcessor(textProcessorConfig);
-   const textProcessorOptions = createTextProcessorOptions(allowedContent);
+   const textProcessorOptions = createTextProcessorOptions(allowedContent, translateText);
    return processor.process(
       text.data,
       textProcessorOptions,
@@ -63,6 +64,14 @@ describe('Compiler/core/Text', () => {
       assert.instanceOf(collection[0], Ast.TextDataNode);
       const textDataNode = <Ast.TextDataNode>collection[0];
       assert.strictEqual(textDataNode.__$ws_content, 'Simple text');
+   });
+   it('TextDataNode, translateText=true', () => {
+      const collection = processText('Simple text', Text.TextContentFlags.FULL_TEXT, true);
+      assert.strictEqual(collection.length, 1);
+      assert.instanceOf(collection[0], Ast.TranslationNode);
+      const translationNode = <Ast.TranslationNode>collection[0];
+      assert.strictEqual(translationNode.__$ws_context, '');
+      assert.strictEqual(translationNode.__$ws_text, 'Simple text');
    });
    it('Cleaning whitespaces', () => {
       const collection = processText('  Simple       text   ');

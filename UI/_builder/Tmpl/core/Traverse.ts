@@ -60,6 +60,11 @@ export interface ITraverseOptions {
     * Processing scope object.
     */
    scope: Scope;
+
+   /**
+    * Allow translating text data.
+    */
+   translateText: boolean;
 }
 
 /**
@@ -475,7 +480,8 @@ class Traverse implements ITraverse {
          fileName: options.fileName,
          scope: options.scope,
          textContent: TextContentFlags.FULL_TEXT,
-         oldComponentProcessing: false
+         oldComponentProcessing: false,
+         translateText: options.translateText
       };
       const tree = this.visitAll(nodes, context);
       this.removeUnusedTemplates(context);
@@ -1074,7 +1080,8 @@ class Traverse implements ITraverse {
             {
                fileName: context.fileName,
                allowedContent: TextContentFlags.TEXT,
-               removeWhiteSpaces: true
+               removeWhiteSpaces: true,
+               translateText: false
             },
             node.position
          );
@@ -1211,7 +1218,8 @@ class Traverse implements ITraverse {
          const content = this.textProcessor.process(node.data, {
             fileName: context.fileName,
             allowedContent: context.textContent || TextContentFlags.FULL_TEXT,
-            removeWhiteSpaces: true
+            removeWhiteSpaces: true,
+            translateText: context.translateText
          }, node.position);
 
          // Set keys onto text content nodes.
@@ -1656,10 +1664,11 @@ class Traverse implements ITraverse {
     * @returns {TText[]} Returns consistent collection of text nodes.
     */
    private processBooleanContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
-      const childrenContext = {
+      const childrenContext: ITraverseContext = {
          ...context,
          state: TraverseState.PRIMITIVE_VALUE,
-         textContent: TextContentFlags.TEXT_AND_EXPRESSION
+         textContent: TextContentFlags.TEXT_AND_EXPRESSION,
+         translateText: false
       };
       this.warnUnexpectedAttributes(attributes, context, node.name);
       const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
@@ -1709,7 +1718,8 @@ class Traverse implements ITraverse {
       const childrenContext = {
          ...context,
          state: TraverseState.PRIMITIVE_VALUE,
-         textContent: TextContentFlags.TEXT
+         textContent: TextContentFlags.TEXT,
+         translateText: false
       };
       const children = this.visitAll(node.children, childrenContext);
       if (children.length !== 1) {
@@ -1780,7 +1790,8 @@ class Traverse implements ITraverse {
       const childrenContext = {
          ...context,
          state: TraverseState.PRIMITIVE_VALUE,
-         textContent: TextContentFlags.TEXT_AND_EXPRESSION
+         textContent: TextContentFlags.TEXT_AND_EXPRESSION,
+         translateText: false
       };
       this.warnUnexpectedAttributes(attributes, context, node.name);
       const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
@@ -1907,7 +1918,8 @@ class Traverse implements ITraverse {
    private processStringContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
       const childrenContext = {
          ...context,
-         state: TraverseState.PRIMITIVE_VALUE
+         state: TraverseState.PRIMITIVE_VALUE,
+         translateText: false
       };
       this.warnUnexpectedAttributes(attributes, context, node.name);
       return <Ast.TText[]>this.visitAll(node.children, childrenContext);
@@ -1955,7 +1967,8 @@ class Traverse implements ITraverse {
    private processValueContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
       const childrenContext = {
          ...context,
-         state: TraverseState.PRIMITIVE_VALUE
+         state: TraverseState.PRIMITIVE_VALUE,
+         translateText: false
       };
       this.warnUnexpectedAttributes(attributes, context, node.name);
       return <Ast.TText[]>this.visitAll(node.children, childrenContext);
@@ -2584,6 +2597,7 @@ class Traverse implements ITraverse {
          {
             fileName: context.fileName,
             removeWhiteSpaces: true,
+            translateText: false,
             allowedContent
          },
          node.position
