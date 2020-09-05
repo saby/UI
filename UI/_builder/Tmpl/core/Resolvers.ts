@@ -5,7 +5,7 @@
  * @file UI/_builder/Tmpl/core/Resolvers.ts
  */
 
-import { isLogicalPath } from './Path';
+import { isLogicalPath } from 'UI/_builder/Tmpl/core/Path';
 
 /**
  * Separator for RequireJS plugins.

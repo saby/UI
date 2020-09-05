@@ -9,9 +9,8 @@
  *   Удалить после реализации остальных фаз анализа и синтеза.
  */
 
-import Scope from './Scope';
-
-import * as Ast from './Ast';
+import Scope from 'UI/_builder/Tmpl/core/Scope';
+import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 
 interface INavigationContext {
    scope: Scope;

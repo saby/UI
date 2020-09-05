@@ -6,9 +6,9 @@
  */
 
 import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
-import * as Ast from './Ast';
-import { IParser } from '../expressions/_private/Parser';
-import { IErrorHandler } from '../utils/ErrorHandler';
+import * as Ast from 'UI/_builder/Tmpl/core//Ast';
+import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
+import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { ITextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
 
 /**

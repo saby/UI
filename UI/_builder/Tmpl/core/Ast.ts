@@ -5,8 +5,8 @@
  * @file UI/_builder/Tmpl/core/Ast.ts
  */
 
-import { ProgramNode } from '../expressions/_private/Nodes';
-import { IPath } from './Path';
+import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
+import { IPath } from 'UI/_builder/Tmpl/core/Path';
 
 // tslint:disable:max-classes-per-file
 // Намеренно отключаю правило max-classes-per-file

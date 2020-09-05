@@ -5,10 +5,10 @@
  * @file UI/_builder/Tmpl/core/Text.ts
  */
 
-import { canBeTranslated, splitLocalizationText } from './i18n';
-import * as Ast from './Ast';
-import { IParser } from '../expressions/_private/Parser';
-import { SourcePosition } from '../html/Reader';
+import { canBeTranslated, splitLocalizationText } from 'UI/_builder/Tmpl/core/i18n';
+import * as Ast from 'UI/_builder/Tmpl/core/Ast';
+import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
+import { SourcePosition } from 'UI/_builder/Tmpl/html/Reader';
 
 /**
  * Interface for text processor config.
