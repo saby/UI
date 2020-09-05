@@ -1915,10 +1915,17 @@ class Traverse implements ITraverse {
       const childrenContext = {
          ...context,
          state: TraverseState.PRIMITIVE_VALUE,
+         textContent: TextContentFlags.FULL_TEXT,
          translateText: false
       };
       this.warnUnexpectedAttributes(attributes, context, node.name);
-      return <Ast.TText[]>this.visitAll(node.children, childrenContext);
+      const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
+      if (children.length === 1) {
+         return children[0].__$ws_content;
+      }
+      return [
+         new Ast.TextDataNode('')
+      ];
    }
 
    /**
@@ -1964,10 +1971,17 @@ class Traverse implements ITraverse {
       const childrenContext = {
          ...context,
          state: TraverseState.PRIMITIVE_VALUE,
+         textContent: TextContentFlags.FULL_TEXT,
          translateText: false
       };
       this.warnUnexpectedAttributes(attributes, context, node.name);
-      return <Ast.TText[]>this.visitAll(node.children, childrenContext);
+      const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
+      if (children.length === 1) {
+         return children[0].__$ws_content;
+      }
+      return [
+         new Ast.TextDataNode('')
+      ];
    }
 
    // </editor-fold>
