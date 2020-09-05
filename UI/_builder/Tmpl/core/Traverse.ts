@@ -2272,6 +2272,7 @@ class Traverse implements ITraverse {
          parentTagName: node.name
       });
       const path = Path.parseComponentName(node.name);
+      context.scope.registerDependency(path);
       return new Ast.ComponentNode(
          path,
          attributes.attributes,
@@ -2373,6 +2374,7 @@ class Traverse implements ITraverse {
       }
       if (Path.isLogicalPath(template) || Path.isPhysicalPath(template)) {
          const path = Path.parseTemplatePath(template);
+         context.scope.registerDependency(path);
          return new Ast.StaticPartialNode(path, attributes.attributes, attributes.events, attributes.options);
       }
       Resolvers.validateInlineTemplate(template);

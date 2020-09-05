@@ -22,6 +22,7 @@ define('UI/_builder/Tmpl/core/bridge', [
 
    function traverseWithVisitors(htmlTree, options) {
       var deferred = new Deferred();
+      var scope = new ScopeLib.default(!options.fromBuilderTmpl);
       var traverseConfig = {
          expressionParser: new ParserLib.Parser(),
          hierarchicalKeys: true,
@@ -30,16 +31,19 @@ define('UI/_builder/Tmpl/core/bridge', [
       };
       var traverseOptions = {
          fileName: options.fileName,
-         scope: new ScopeLib.default(),
+         scope: scope,
          translateText: true
       };
       var traversed = TraverseLib.default(htmlTree, traverseConfig, traverseOptions);
       PatchVisitorLib.default(traversed, traverseOptions.scope);
-      postTraverse.call({
-         createResultDictionary: options.createResultDictionary,
-         words: options.words,
-         fileName: options.fileName
-      }, deferred, traversed);
+      scope.requestDependencies().then(function() {
+         // post traverse
+         postTraverse.call({
+            createResultDictionary: options.createResultDictionary,
+            words: options.words,
+            fileName: options.fileName
+         }, deferred, traversed);
+      });
       return deferred;
    }
 

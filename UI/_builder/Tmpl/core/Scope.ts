@@ -5,7 +5,8 @@
  * @file UI/_builder/Tmpl/core/Scope.ts
  */
 
-import * as Ast from './Ast';
+import * as Ast from 'UI/_builder/Tmpl/core/Ast';
+import { IPath } from 'UI/_builder/Tmpl/core/Path';
 
 /**
  * Interface of inner representation of template nodes.
@@ -31,6 +32,13 @@ interface ITemplates {
 }
 
 /**
+ * Interface of collection of dependencies.
+ */
+interface IDependencies {
+   [fullPath: string]: IPath;
+}
+
+/**
  * Represents methods to work with object that depends on scope.
  */
 export default class Scope {
@@ -41,10 +49,61 @@ export default class Scope {
    private readonly templates: ITemplates;
 
    /**
-    * Initialize new instance of scope.
+    * Flag for loading registered dependencies for only JIT compilation.
     */
-   constructor() {
+   private readonly loadDependencies: boolean;
+
+   /**
+    * Collection of dependencies.
+    */
+   private readonly dependencies: IDependencies;
+
+   /**
+    * Collection of requested dependencies.
+    */
+   private readonly dependencyRequests: Promise<IPath>[];
+
+   /**
+    * Initialize new instance of scope.
+    * @param loadDependencies {boolean} Load registered dependencies for only JIT compilation.
+    */
+   constructor(loadDependencies: boolean = false) {
       this.templates = { };
+      this.dependencies = { };
+      this.loadDependencies = loadDependencies;
+      this.dependencyRequests = [];
+   }
+
+   /**
+    * Register dependency.
+    * @param path {IPath} Dependency path.
+    */
+   registerDependency(path: IPath): void {
+      const fullPath = path.getFullPhysicalPath();
+      if (!this.dependencies.hasOwnProperty(fullPath)) {
+         this.dependencies[fullPath] = path;
+      }
+      if (!this.loadDependencies || requirejs.defined(fullPath)) {
+         return;
+      }
+      this.dependencyRequests.push(
+         new Promise((resolve: any, reject: any): void => {
+            requirejs([fullPath], (module) => {
+               // TODO: Handle result
+               resolve();
+            });
+         })
+      );
+   }
+
+   /**
+    * Request all registered dependencies.
+    */
+   requestDependencies(): Promise<any> {
+      if (!this.loadDependencies || this.dependencyRequests.length === 0) {
+         return Promise.resolve();
+      }
+      return Promise.all(this.dependencyRequests);
    }
 
    /**
