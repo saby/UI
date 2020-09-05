@@ -36,7 +36,6 @@ function createTextProcessorConfig() {
 function createTextProcessorOptions(allowedContent: Text.TextContentFlags, translateText: boolean) {
    return {
       fileName: FILE_NAME,
-      removeWhiteSpaces: true,
       allowedContent,
       translateText
    }
@@ -73,13 +72,6 @@ describe('Compiler/core/Text', () => {
       assert.strictEqual(translationNode.__$ws_context, '');
       assert.strictEqual(translationNode.__$ws_text, 'Simple text');
    });
-   it('Cleaning whitespaces', () => {
-      const collection = processText('  Simple       text   ');
-      assert.strictEqual(collection.length, 1);
-      assert.instanceOf(collection[0], Ast.TextDataNode);
-      const textDataNode = <Ast.TextDataNode>collection[0];
-      assert.strictEqual(textDataNode.__$ws_content, 'Simple text');
-   });
    it('TranslationNode (text and context)', () => {
       const collection = processText('{[ Context @@ Text ]}');
       assert.strictEqual(collection.length, 1);
@@ -109,15 +101,6 @@ describe('Compiler/core/Text', () => {
       assert.instanceOf(collection[0], Ast.TranslationNode);
       assert.instanceOf(collection[1], Ast.TextDataNode);
       assert.instanceOf(collection[2], Ast.ExpressionNode);
-   });
-   it('Cleaning whitespaces 2', () => {
-      const collection = processText('    {[ text ]}    t   e  x    t   {{ userName }}     ');
-      assert.strictEqual(collection.length, 3);
-      assert.instanceOf(collection[0], Ast.TranslationNode);
-      assert.instanceOf(collection[1], Ast.TextDataNode);
-      assert.instanceOf(collection[2], Ast.ExpressionNode);
-      const textDataNode = <Ast.TextDataNode>collection[1];
-      assert.strictEqual(textDataNode.__$ws_content, ' t e x t ');
    });
    describe('.allowedContent', () => {
       it('TextContentFlags.TEXT', () => {

@@ -73,11 +73,6 @@ export interface ITextProcessorOptions {
    allowedContent: TextContentFlags;
 
    /**
-    * Remove useless whitespaces from text data.
-    */
-   removeWhiteSpaces: boolean;
-
-   /**
     * Create translation nodes instead of text nodes.
     */
    translateText: boolean;
@@ -108,31 +103,6 @@ const EXPRESSION_PATTERN = /\{\{ ?([\s\S]*?) ?\}\}/g;
  * Regular expression for translation node content.
  */
 const TRANSLATION_PATTERN = /\{\[ ?([\s\S]*?) ?\]\}/g;
-
-/**
- * Regular expression for start and end whitespaces.
- */
-const START_WHITESPACES_PATTERN = /^\s{1,}/gi;
-
-/**
- * Regular expression for start and end whitespaces.
- */
-const END_WHITESPACES_PATTERN = /\s{1,}$/gi;
-
-/**
- * Regular expression for content whitespaces.
- */
-const CONTENT_WHITESPACES_PATTERN = /\s{1,}/gi;
-
-/**
- * Empty string constant.
- */
-const EMPTY_STRING = '';
-
-/**
- * Whitespace constant.
- */
-const WHITESPACE = ' ';
 
 /**
  * Type for text node wrappers.
@@ -232,50 +202,6 @@ function finalizeContentCheck(nodes: Ast.TText[], options: ITextProcessorOptions
 }
 
 /**
- * Remove useless whitespaces from string.
- * @param text {string} Text data.
- * @param trimStart {boolean} Trim start of text data. Default is false.
- * @param trimEnd {boolean} Trim start of text data. Default is false.
- */
-function removeWhitespaces(text: string, trimStart: boolean = false, trimEnd: boolean = false): string {
-   START_WHITESPACES_PATTERN.lastIndex = -1;
-   END_WHITESPACES_PATTERN.lastIndex = -1;
-   CONTENT_WHITESPACES_PATTERN.lastIndex = -1;
-   let data = text.replace(CONTENT_WHITESPACES_PATTERN, WHITESPACE);
-   if (trimStart) {
-      data= data.replace(START_WHITESPACES_PATTERN, EMPTY_STRING);
-   }
-   if (trimEnd) {
-      data= data.replace(END_WHITESPACES_PATTERN, EMPTY_STRING);
-   }
-   return data;
-}
-
-/**
- * Remove useless whitespaces from string.
- * @param data {TText[]} Collection of text nodes.
- * @returns {TText[]} Returns new collection of text nodes.
- */
-function removeUselessWhitespaces(data: Ast.TText[]): Ast.TText[] {
-   const processed = [];
-   for (let index = 0; index < data.length; ++index) {
-      const trimStart = index === 0;
-      const trimEnd = index === data.length - 1;
-      const node = data[index];
-      if (node instanceof Ast.TextDataNode) {
-         const text = removeWhitespaces(node.__$ws_content, trimStart, trimEnd);
-         if (text.length === 0) {
-            continue;
-         }
-         processed.push(new Ast.TextDataNode(text));
-         continue;
-      }
-      processed.push(node);
-   }
-   return processed;
-}
-
-/**
  * Parse and create text node.
  * @param data {string} Text content.
  * @param options {ITextProcessorOptions} Text processor options.
@@ -355,11 +281,7 @@ class TextProcessor implements ITextProcessor {
          (data: string) => createTextNode(data, internalOptions, position)
       );
 
-      const finalStage = finalizeContentCheck(thirdStage, options, position);
-      if (options.removeWhiteSpaces) {
-         return removeUselessWhitespaces(finalStage);
-      }
-      return finalStage;
+      return finalizeContentCheck(thirdStage, options, position);
    }
 
    /**

@@ -1080,7 +1080,6 @@ class Traverse implements ITraverse {
             {
                fileName: context.fileName,
                allowedContent: TextContentFlags.TEXT,
-               removeWhiteSpaces: true,
                translateText: false
             },
             node.position
@@ -1218,7 +1217,6 @@ class Traverse implements ITraverse {
          const content = this.textProcessor.process(node.data, {
             fileName: context.fileName,
             allowedContent: context.textContent || TextContentFlags.FULL_TEXT,
-            removeWhiteSpaces: true,
             translateText: context.translateText
          }, node.position);
 
@@ -2596,7 +2594,6 @@ class Traverse implements ITraverse {
          dataValue,
          {
             fileName: context.fileName,
-            removeWhiteSpaces: true,
             translateText: false,
             allowedContent
          },

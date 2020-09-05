@@ -413,7 +413,6 @@ class AttributeProcessor implements IAttributeProcessor {
          {
             fileName: options.fileName,
             allowedContent: TextContentFlags.TEXT,
-            removeWhiteSpaces: true,
             translateText: false
          },
          attributeNode.position
@@ -504,7 +503,6 @@ class AttributeProcessor implements IAttributeProcessor {
             {
                fileName: options.fileName,
                allowedContent: TextContentFlags.FULL_TEXT,
-               removeWhiteSpaces: true,
                translateText: false
             },
             attributeNode.position
@@ -556,7 +554,6 @@ class AttributeProcessor implements IAttributeProcessor {
             {
                fileName: options.fileName,
                allowedContent: TextContentFlags.FULL_TEXT,
-               removeWhiteSpaces: true,
                translateText: false
             },
             attributeNode.position
