@@ -222,7 +222,9 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.localized = true;
       // @ts-ignore
-      node.name = `${node.__$ws_context} @@ ${node.__$ws_text}`;
+      node.name = node.__$ws_context
+         ? `${node.__$ws_context} @@ ${node.__$ws_text}`
+         : node.__$ws_text;
       // @ts-ignore
       node.type = 'var';
       // @ts-ignore
