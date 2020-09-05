@@ -1223,6 +1223,8 @@ class Traverse implements ITraverse {
             translateText: context.translateText
          }, node.position);
 
+         this.registerAllTranslations(content, context);
+
          // Set keys onto text content nodes.
          this.keysGenerator.openChildren();
          for (let index = 0; index < content.length; ++index) {
@@ -2503,6 +2505,7 @@ class Traverse implements ITraverse {
          },
          node.position
       );
+      this.registerAllTranslations(textValue, context);
       return textValue[0];
    }
 
@@ -2561,6 +2564,23 @@ class Traverse implements ITraverse {
                fileName: context.fileName,
                position: attributes[name].position
             }
+         );
+      }
+   }
+
+   /**
+    * Register all translation keys in processed text.
+    */
+   private registerAllTranslations(text: Ast.TText[], context: ITraverseContext): void {
+      for (let index = 0; index < text.length; ++index) {
+         const node = text[index];
+         if (!(node instanceof Ast.TranslationNode)) {
+            continue;
+         }
+         context.scope.registerTranslation(
+            context.fileName,
+            node.__$ws_text,
+            node.__$ws_context
          );
       }
    }

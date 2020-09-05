@@ -7,6 +7,7 @@
 
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { IPath } from 'UI/_builder/Tmpl/core/Path';
+import { Dictionary, ITranslationKey } from 'UI/_builder/Tmpl/core/i18n';
 
 /**
  * Interface of inner representation of template nodes.
@@ -64,6 +65,11 @@ export default class Scope {
    private readonly dependencyRequests: Promise<IPath>[];
 
    /**
+    * Translations dictionary.
+    */
+   private readonly dictionary: Dictionary;
+
+   /**
     * Initialize new instance of scope.
     * @param loadDependencies {boolean} Load registered dependencies for only JIT compilation.
     */
@@ -72,6 +78,7 @@ export default class Scope {
       this.dependencies = { };
       this.loadDependencies = loadDependencies;
       this.dependencyRequests = [];
+      this.dictionary = new Dictionary();
    }
 
    /**
@@ -104,6 +111,23 @@ export default class Scope {
          return Promise.resolve();
       }
       return Promise.all(this.dependencyRequests);
+   }
+
+   /**
+    * Register translation key.
+    * @param module {string} Template file where translation item was discovered.
+    * @param text {string} Translation text.
+    * @param context {string} Translation context.
+    */
+   registerTranslation(module: string, text: string, context: string): void {
+      this.dictionary.push(module, text, context);
+   }
+
+   /**
+    * Get all collected keys.
+    */
+   getTranslationKeys(): ITranslationKey[] {
+      return this.dictionary.getKeys();
    }
 
    /**
