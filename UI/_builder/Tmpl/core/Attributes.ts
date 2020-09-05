@@ -6,10 +6,11 @@
  */
 
 import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
-import * as Ast from 'UI/_builder/Tmpl/core//Ast';
+import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { ITextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
+import { INodeDescription } from 'UI/_builder/Tmpl/core/i18n';
 
 /**
  * Empty string constant.
@@ -210,8 +211,9 @@ export interface IAttributeProcessor {
     * separated and parsed attribute nodes.
     * @param attributes {IAttributes} Collection of raw html attributes.
     * @param options {IAttributeProcessorOptions} Processing options.
+    * @param nodeDescription {INodeDescription} Processing node description.
     */
-   process(attributes: Nodes.IAttributes, options: IAttributeProcessorOptions): IAttributesCollection;
+   process(attributes: Nodes.IAttributes, options: IAttributeProcessorOptions, nodeDescription?: INodeDescription): IAttributesCollection;
 
    /**
     * Filter raw html attributes collection.
@@ -289,8 +291,9 @@ class AttributeProcessor implements IAttributeProcessor {
     * separated and parsed attribute nodes.
     * @param attributes {IAttributes} Collection of raw html attributes.
     * @param options {IAttributeProcessorOptions} Processing options.
+    * @param nodeDescription {INodeDescription} Processing node description.
     */
-   process(attributes: Nodes.IAttributes, options: IAttributeProcessorOptions): IAttributesCollection {
+   process(attributes: Nodes.IAttributes, options: IAttributeProcessorOptions, nodeDescription?: INodeDescription): IAttributesCollection {
       const collection: IAttributesCollection = {
          attributes: { },
          options: { },
@@ -314,7 +317,7 @@ class AttributeProcessor implements IAttributeProcessor {
                continue;
             }
             if (isAttribute(attributeName) || options.hasAttributesOnly) {
-               const attributeNode = this.processAttribute(node, options);
+               const attributeNode = this.processAttribute(node, options, nodeDescription);
                // TODO: Temporary disable warnings. Discuss this case.
                // if (isAttribute(attributeName) && options.hasAttributesOnly) {
                //    this.errorHandler.warn(
@@ -341,7 +344,7 @@ class AttributeProcessor implements IAttributeProcessor {
                }
                continue;
             }
-            const optionNode = this.processOption(node, options);
+            const optionNode = this.processOption(node, options, nodeDescription);
             if (optionNode) {
                collection.options[optionNode.__$ws_name] = optionNode;
             }
@@ -476,8 +479,9 @@ class AttributeProcessor implements IAttributeProcessor {
     * @param attributeNode {Attribute} Html attribute node.
     * @param options {IAttributeProcessorOptions} Attribute processor options.
     * @returns {AttributeNode} Attribute node, or null if processing failed.
+    * @param nodeDescription {INodeDescription} Processing node description.
     */
-   private processAttribute(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions): Ast.AttributeNode {
+   private processAttribute(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions, nodeDescription?: INodeDescription): Ast.AttributeNode {
       try {
          const attribute = getAttributeName(attributeNode.name);
          const attributeValue = validateAttribute(attribute, attributeNode.value);
@@ -503,7 +507,7 @@ class AttributeProcessor implements IAttributeProcessor {
             {
                fileName: options.fileName,
                allowedContent: TextContentFlags.FULL_TEXT,
-               translateText: false
+               translateText: nodeDescription ? nodeDescription.isAttributeTranslatable(attribute) : false
             },
             attributeNode.position
          );
@@ -526,8 +530,9 @@ class AttributeProcessor implements IAttributeProcessor {
     * @param attributeNode {Attribute} Html attribute node.
     * @param options {IAttributeProcessorOptions} Attribute processor options.
     * @returns {OptionNode} Option node, or null if processing failed.
+    * @param nodeDescription {INodeDescription} Processing node description.
     */
-   private processOption(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions): Ast.OptionNode {
+   private processOption(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions, nodeDescription?: INodeDescription): Ast.OptionNode {
       try {
          const attributeValue = attributeNode.value;
          if (attributeValue === null) {
@@ -554,7 +559,7 @@ class AttributeProcessor implements IAttributeProcessor {
             {
                fileName: options.fileName,
                allowedContent: TextContentFlags.FULL_TEXT,
-               translateText: false
+               translateText: nodeDescription ? nodeDescription.isOptionTranslatable(attributeNode.name) : false
             },
             attributeNode.position
          );

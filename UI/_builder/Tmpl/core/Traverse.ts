@@ -1568,11 +1568,17 @@ class Traverse implements ITraverse {
             translateText: this.textTranslator.isElementContentTranslatable(node.name)
          };
          const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
-         const attributes = this.attributeProcessor.process(node.attributes, {
+         const elementDescription = this.textTranslator.getElementDescription(node.name);
+         const attributeProcessorOptions = {
             fileName: context.fileName,
             hasAttributesOnly: true,
             parentTagName: node.name
-         });
+         };
+         const attributes = this.attributeProcessor.process(
+            node.attributes,
+            attributeProcessorOptions,
+            elementDescription
+         );
          return new Ast.ElementNode(node.name, attributes.attributes, attributes.events, content);
       } catch (error) {
          this.errorHandler.error(
@@ -2281,11 +2287,17 @@ class Traverse implements ITraverse {
     * @throws {Error} Throws error in case of broken node data.
     */
    private createComponentOnly(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
-      const attributes = this.attributeProcessor.process(node.attributes, {
+      const componentDescription = this.textTranslator.getComponentDescription(node.name);
+      const attributeProcessorOptions = {
          fileName: context.fileName,
          hasAttributesOnly: false,
          parentTagName: node.name
-      });
+      };
+      const attributes = this.attributeProcessor.process(
+         node.attributes,
+         attributeProcessorOptions,
+         componentDescription
+      );
       const path = Path.parseComponentName(node.name);
       context.scope.registerDependency(path);
       return new Ast.ComponentNode(
