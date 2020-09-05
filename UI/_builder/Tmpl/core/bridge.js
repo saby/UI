@@ -66,10 +66,10 @@ define('UI/_builder/Tmpl/core/bridge', [
 
       // в случае сбора словаря локализуемых слов отдаем объект
       // { astResult - ast-дерево, words - словарь локализуемых слов }
-      if (this.createResultDictionary) {
+      if (options.createResultDictionary) {
          deferred.callback({
             astResult: traversed,
-            words: this.words
+            words: [] // TODO: Release words collecting
          });
       } else {
          deferred.callback(traversed);
