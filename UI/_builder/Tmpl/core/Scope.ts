@@ -98,6 +98,9 @@ export default class Scope {
             requirejs([fullPath], (module) => {
                // TODO: Handle result
                resolve();
+            }, (module) => {
+               // TODO: Handle result
+               resolve();
             });
          })
       );
