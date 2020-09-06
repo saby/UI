@@ -352,8 +352,7 @@ class AttributeProcessor implements IAttributeProcessor {
                if (attributeNode) {
                   if (collection.attributes.hasOwnProperty(`attr:${attributeNode.__$ws_name}`)) {
                      this.errorHandler.error(
-                        `Атрибут с именем "${attributeName}" уже содержится на теге "${options.parentTagName}" ` +
-                        'Данный атрибут будет отброшен',
+                        `Атрибут "${attributeName}" уже содержится на теге "${options.parentTagName}"`,
                         {
                            fileName: options.fileName,
                            position: node.position
@@ -389,8 +388,7 @@ class AttributeProcessor implements IAttributeProcessor {
             collection[attributeName] = attribute;
          } else {
             this.errorHandler.warn(
-               `Обнаружен непредусмотренный атрибут "${attributeName}" на теге "${options.parentTagName}" ` +
-               'Данный атрибут будет отброшен',
+               `Обнаружен непредусмотренный атрибут "${attributeName}" на теге "${options.parentTagName}"`,
                {
                   fileName: options.fileName,
                   position: attribute.position

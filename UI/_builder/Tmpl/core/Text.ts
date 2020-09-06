@@ -174,19 +174,19 @@ function markDataByRegex(
  * @param flags {TextContentFlags} Enabled flags.
  */
 function whatExpected(flags: TextContentFlags): string {
-   if (flags & TextContentFlags.TEXT_AND_EXPRESSION) {
+   if (!(flags ^ TextContentFlags.TEXT_AND_EXPRESSION)) {
       return 'ожидался текст и/или Mustache-выражение';
    }
-   if (flags & TextContentFlags.TEXT_AND_TRANSLATION) {
+   if (!(flags ^ TextContentFlags.TEXT_AND_TRANSLATION)) {
       return 'ожидался текст и/или конструкция локализации';
    }
-   if (flags & TextContentFlags.EXPRESSION) {
+   if (!(flags ^ TextContentFlags.EXPRESSION)) {
       return 'ожидалось только Mustache-выражение';
    }
-   if (flags & TextContentFlags.TRANSLATION) {
+   if (!(flags ^ TextContentFlags.TRANSLATION)) {
       return 'ожидалась только конструкция локализации';
    }
-   if (flags & TextContentFlags.TEXT_AND_EXPRESSION) {
+   if (!(flags ^ TextContentFlags.TEXT_AND_EXPRESSION)) {
       return 'ожидался только текст';
    }
 }

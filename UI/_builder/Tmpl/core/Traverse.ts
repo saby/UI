@@ -244,6 +244,7 @@ interface ITraverseContext extends ITraverseOptions {
 
    /**
     * Tag with name "component" and all its content need process uin state MARKUP
+    * @deprecated
     */
    processingOldComponent: boolean;
 }
@@ -260,12 +261,12 @@ function validateElseNode(prev: Ast.Ast | null): void {
    if (prev instanceof Ast.ElseNode) {
       if (!prev.isElif()) {
          throw new Error(
-            'Ожидалось, что директива ws:else следует за директивной ws:else, на котором задан атрибут data'
+            'ожидалось, что директива "ws:else" следует за директивной "ws:else", на котором задан атрибут "data"'
          );
       }
       return;
    }
-   throw new Error('Ожидалось, что директива ws:else следует за директивной ws:if или ws:else с атрибутом data');
+   throw new Error('ожидалось, что директива "ws:else" следует за директивной "ws:if" или "ws:else" с атрибутом "data"');
 }
 
 /**
@@ -289,7 +290,7 @@ function validateBoolean(children: Ast.TextNode[]): void {
          }
       }
       if (child instanceof Ast.TranslationNode) {
-         throw new Error('использование локализации недопустимо');
+         throw new Error('использование конструкции локализации недопустимо');
       }
    }
 }
@@ -315,7 +316,7 @@ function validateNumber(children: Ast.TextNode[]): void {
          }
       }
       if (child instanceof Ast.TranslationNode) {
-         throw new Error('использование локализации недопустимо');
+         throw new Error('использование конструкции локализации недопустимо');
       }
    }
 }
@@ -421,7 +422,7 @@ function useIdentifierAlias(identifier: string): string {
    }
    const params = identifier.split(' as ');
    if (params.length > 2) {
-      throw new Error('указано более 1 алиаса для идентификатора');
+      throw new Error(`указано более 1 алиаса для идентификатора - "${identifier}"`);
    }
    return params[1];
 }
@@ -719,7 +720,7 @@ class Traverse implements ITraverse {
             return this.processTagInObjectPropertyWithDataType(node, context);
          case TraverseState.PRIMITIVE_VALUE:
             this.errorHandler.error(
-               `Обнаружен тег "${node.name}", когда ожидалось текстовое содержимое. Тег будет отброшен`,
+               `Обнаружен тег "${node.name}", когда ожидалось текстовое содержимое`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -767,7 +768,7 @@ class Traverse implements ITraverse {
          case 'ws:String':
          case 'ws:Value':
             this.errorHandler.error(
-               `Использование директивы "${node.name}" вне описания опции запрещено. Директива будет отброшена`,
+               `Использование директивы "${node.name}" вне описания опции запрещено`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -777,7 +778,7 @@ class Traverse implements ITraverse {
          default:
             if (Resolvers.isOption(node.name)) {
                this.errorHandler.error(
-                  `Обнаружена неизвестная директива "${node.name}". Директива будет отброшена`,
+                  `Обнаружена неизвестная директива "${node.name}"`,
                   {
                      fileName: context.fileName,
                      position: node.position
@@ -814,7 +815,7 @@ class Traverse implements ITraverse {
             return this.processValue(node, context);
          default:
             this.errorHandler.error(
-               `Обнаружен тег "${node.name}" вместо ожидаемой директивы данных. Тег будет отброшен`,
+               `Обнаружен тег "${node.name}" вместо ожидаемой директивы данных`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -846,7 +847,7 @@ class Traverse implements ITraverse {
          case 'ws:String':
          case 'ws:Value':
             this.errorHandler.error(
-               `Использование директивы "${node.name}" вне описания опции запрещено. Директива будет отброшена`,
+               `Использование директивы "${node.name}" вне описания опции запрещено`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -872,7 +873,7 @@ class Traverse implements ITraverse {
       updateToContentState(context);
       if (context.state !== TraverseState.COMPONENT_WITH_CONTENT) {
          this.errorHandler.error(
-            `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег "${node.name}". Тег будет отброшен. ` +
+            `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег "${node.name}". ` +
             'Необходимо явно задать контент в ws:content',
             {
                fileName: context.fileName,
@@ -897,7 +898,7 @@ class Traverse implements ITraverse {
       }
       if (context.state !== TraverseState.COMPONENT_WITH_OPTIONS) {
          this.errorHandler.error(
-            `Запрещено смешивать контент по умолчанию с опциями - обнаружена опция "${node.name}". Опция будет отброшен. ` +
+            `Запрещено смешивать контент по умолчанию с опциями - обнаружена опция "${node.name}". ` +
             'Необходимо явно задать контент в ws:content',
             {
                fileName: context.fileName,
@@ -923,7 +924,7 @@ class Traverse implements ITraverse {
          case 'ws:for':
          case 'ws:partial':
             this.errorHandler.error(
-               `Использование директивы "${node.name}" внутри директивы "ws:Object" запрещено. Ожидалась опция объекта. Директива будет отброшена`,
+               `Использование директивы "${node.name}" внутри директивы "ws:Object" запрещено. Ожидалась опция объекта`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -938,7 +939,7 @@ class Traverse implements ITraverse {
          case 'ws:String':
          case 'ws:Value':
             this.errorHandler.error(
-               `Использование директивы "${node.name}" вне описания опции запрещено. Ожидалась опция объекта. Директива будет отброшена`,
+               `Использование директивы "${node.name}" вне описания опции запрещено. Ожидалась опция объекта`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -950,7 +951,7 @@ class Traverse implements ITraverse {
                return this.processProperty(node, context);
             }
             this.errorHandler.error(
-               `Обнаружен тег "${node.name}" вместо ожидаемой опции объекта. Тег будет отброшен`,
+               `Обнаружен тег "${node.name}" вместо ожидаемой опции объекта`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -1001,7 +1002,7 @@ class Traverse implements ITraverse {
       updateToContentState(context);
       if (context.state !== TraverseState.OBJECT_PROPERTY_WITH_CONTENT) {
          this.errorHandler.error(
-            `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидался тег контента. Тег будет отброшен.`,
+            `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидался контент`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1022,7 +1023,7 @@ class Traverse implements ITraverse {
    private processTagInObjectPropertyWithDataType(node: Nodes.Tag, context: ITraverseContext): Ast.TData {
       if (context.state === TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE) {
          this.errorHandler.error(
-            `Опция компонента, ws:partial и объекта может содержать только 1 директиву типа данных. Обнаружен тег "${node.name}". Тег будет отброшен.`,
+            `Опция компонента, ws:partial и объекта может содержать только 1 директиву типа данных. Обнаружен тег "${node.name}"`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1035,7 +1036,7 @@ class Traverse implements ITraverse {
       }
       if (context.state !== TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE) {
          this.errorHandler.error(
-            `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидалась опция. Тег будет отброшен.`,
+            `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидалась опция`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1059,7 +1060,7 @@ class Traverse implements ITraverse {
       }
       if (context.state !== TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_OBJECT) {
          this.errorHandler.error(
-            `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидалась опция. Тег будет отброшен.`,
+            `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидалась опция`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1103,7 +1104,7 @@ class Traverse implements ITraverse {
       }
       if (!(ast instanceof Ast.ElementNode)) {
          this.errorHandler.error(
-            `Обнаружен цикл "for" в атрибутах тега "${node.name}". Цикл на данном теге не поддерживается. Атрибут будет отброшен`,
+            `Обнаружен цикл "for" в атрибутах тега "${node.name}". Цикл на данном теге не поддерживается`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1152,7 +1153,7 @@ class Traverse implements ITraverse {
          return new Ast.ForeachNode(index, iterator, collection, []);
       } catch (error) {
          this.errorHandler.critical(
-            `Ошибка обработки директивы "for" на атрибуте тега ${node.name}: ${error.message}. Директива будет отброшена`,
+            `Ошибка обработки директивы "for" на атрибуте тега ${node.name}: ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1233,7 +1234,7 @@ class Traverse implements ITraverse {
          const property = content[index];
          if (!(property instanceof Ast.OptionNode || property instanceof Ast.ContentOptionNode)) {
             this.errorHandler.critical(
-               `Результат обработки опции "${node.name}" был получен некорректный узел. Узел будет отброшен`,
+               `Опция "${node.name}" содержит некорректные данные`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -1243,7 +1244,7 @@ class Traverse implements ITraverse {
          }
          if (properties.hasOwnProperty(property.__$ws_name)) {
             this.errorHandler.critical(
-               `Опция "${property.__$ws_name}" уже существует на объекте "${node.name}". Опция будет отброшена`,
+               `Опция "${property.__$ws_name}" уже существует на теге "${node.name}"`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -1292,7 +1293,7 @@ class Traverse implements ITraverse {
          return new Ast.TextNode(content);
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка обработки текста: ${error.message}. Текст будет отброшен`,
+            `Ошибка обработки текста: ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1339,7 +1340,7 @@ class Traverse implements ITraverse {
             return this.castPropertyContentToValue(node, context, attributes);
       }
       this.errorHandler.critical(
-         `Не удалось определить тип опции ${node.name} для выполнения приведения. Опция будет отброшена`,
+         `Не удалось определить тип опции ${node.name} для выполнения приведения`,
          {
             fileName: context.fileName,
             position: node.position
@@ -1624,7 +1625,7 @@ class Traverse implements ITraverse {
          return new Ast.ElementNode(node.name, attributes.attributes, attributes.events, content);
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора HTML-элемента: ${error.message}. Тег будет отброшен`,
+            `Ошибка разбора HTML-элемента: ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1659,7 +1660,7 @@ class Traverse implements ITraverse {
          );
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора директивы данных ws:Array: ${error.message}. Директива будет отброшена`,
+            `Ошибка разбора директивы данных "ws:Array": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1707,7 +1708,7 @@ class Traverse implements ITraverse {
          );
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора директивы данных ws:Boolean: ${error.message}. Директива будет отброшена`,
+            `Ошибка разбора директивы данных "ws:Boolean": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1758,7 +1759,7 @@ class Traverse implements ITraverse {
          return new Ast.FunctionNode(functionExpression, options);
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора директивы данных ws:Function: ${error.message}. Директива будет отброшена`,
+            `Ошибка разбора директивы данных "ws:Function": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1825,7 +1826,7 @@ class Traverse implements ITraverse {
          );
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора директивы данных ws:Number: ${error.message}. Директива будет отброшена`,
+            `Ошибка разбора директивы данных "ws:Number": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1881,7 +1882,7 @@ class Traverse implements ITraverse {
          );
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора директивы данных ws:Object: ${error.message}. Директива будет отброшена`,
+            `Ошибка разбора директивы данных "ws:Object": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1912,7 +1913,7 @@ class Traverse implements ITraverse {
          const child = processedChildren[index];
          if (!(child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode)) {
             this.errorHandler.critical(
-               `Получен некорректный узел (!=Option|ContentOption) внутри компонента "${node.name}"`,
+               `Тег "${node.name}" содержит некорректные данные`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -1922,7 +1923,7 @@ class Traverse implements ITraverse {
          }
          if (properties.hasOwnProperty(child.__$ws_name)) {
             this.errorHandler.critical(
-               `Опция "${child.__$ws_name}" уже определена на директиве "ws:Object". Полученная опция будет отброшена`,
+               `Опция "${child.__$ws_name}" уже определена на директиве "ws:Object"`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -1954,7 +1955,7 @@ class Traverse implements ITraverse {
          );
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора директивы данных ws:String: ${error.message}. Директива будет отброшена`,
+            `Ошибка разбора директивы данных "ws:String": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -2010,7 +2011,7 @@ class Traverse implements ITraverse {
          );
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора директивы данных ws:Value: ${error.message}. Директива будет отброшена`,
+            `Ошибка разбора директивы данных "ws:Value": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -2069,7 +2070,7 @@ class Traverse implements ITraverse {
          return new Ast.IfNode(test, consequent);
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора директивы ws:if: ${error.message}. Директива будет отброшена`,
+            `Ошибка разбора директивы "ws:if": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -2101,7 +2102,7 @@ class Traverse implements ITraverse {
          return new Ast.ElseNode(consequent, test);
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора директивы ws:else: ${error.message}. Директива будет отброшена`,
+            `Ошибка разбора директивы "ws:else": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -2134,7 +2135,7 @@ class Traverse implements ITraverse {
          return new Ast.ForeachNode(index, iterator, collection, content);
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора директивы ws:for: ${error.message}. Директива будет отброшена`,
+            `Ошибка разбора директивы "ws:for": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -2197,21 +2198,33 @@ class Traverse implements ITraverse {
             `цикл задан некорректно. Ожидалось соответствие шаблону "[init]; test; [update]". Получено: "${data}"`
          );
       }
-      try {
-         const [initExpression, testExpression, updateExpression] = parameters;
-         const init = initExpression ? this.expressionParser.parse(initExpression) : null;
-         const test = this.expressionParser.parse(testExpression);
-         const update = updateExpression ? this.expressionParser.parse(updateExpression) : null;
-         return {
-            init,
-            test,
-            update
-         };
-      } catch (error) {
-         throw new Error(
-            `цикл задан некорректно. Ожидалось соответствие шаблону "init; test; update". Получено: "${data}"`
-         );
+      const [initExpression, testExpression, updateExpression] = parameters;
+      let init;
+      let test;
+      let update;
+      if (testExpression.length === 0) {
+         throw new Error('отсутствует обязательное выражение условия цикла');
       }
+      try {
+         init = initExpression ? this.expressionParser.parse(initExpression) : null;
+      } catch (error) {
+         throw new Error(`выражение инициализации цикла "${initExpression}" задано некорректно`);
+      }
+      try {
+         test = this.expressionParser.parse(testExpression);
+      } catch (error) {
+         throw new Error(`выражение условия цикла "${testExpression}" задано некорректно`);
+      }
+      try {
+         update = updateExpression ? this.expressionParser.parse(updateExpression) : null;
+      } catch (error) {
+         throw new Error(`выражение обновления цикла "${updateExpression}" задано некорректно`);
+      }
+      return {
+         init,
+         test,
+         update
+      };
    }
 
    /**
@@ -2234,22 +2247,39 @@ class Traverse implements ITraverse {
             `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
          );
       }
+      const iteratorString = variables.pop();
+      const indexString = variables.length == 1 ? variables.pop() : null;
+      let iterator;
+      let index;
+      let collection;
       try {
-         const iteratorExpression = useIdentifierAlias(variables.pop());
-         const indexExpression = variables.length == 1 ? useIdentifierAlias(variables.pop()) : null;
-         const iterator = this.expressionParser.parse(iteratorExpression);
-         const index = indexExpression ? this.expressionParser.parse(indexExpression) : null;
-         const collection = this.expressionParser.parse(collectionExpression);
-         return {
-            iterator,
-            index,
-            collection
-         };
+         const iteratorExpression = useIdentifierAlias(iteratorString);
+         iterator = this.expressionParser.parse(iteratorExpression);
       } catch (error) {
          throw new Error(
-            `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
+            `итератор цикла "${iteratorString}" задан некорректно`
          );
       }
+      try {
+         const indexExpression = indexString !== null ? useIdentifierAlias(indexString) : null;
+         index = indexExpression ? this.expressionParser.parse(indexExpression) : null;
+      } catch (error) {
+         throw new Error(
+            `индекс цикла "${indexString}" задан некорректно`
+         );
+      }
+      try {
+         collection = this.expressionParser.parse(collectionExpression);
+      } catch (error) {
+         throw new Error(
+            `коллекция цикла ${collectionExpression} задана некорректно`
+         );
+      }
+      return {
+         iterator,
+         index,
+         collection
+      };
    }
 
    // </editor-fold>
@@ -2271,7 +2301,7 @@ class Traverse implements ITraverse {
          return this.processComponentWithChildren(node, context);
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора компонента "${node.name}": ${error.message}. Компонент будет отброшен`,
+            `Ошибка разбора компонента "${node.name}": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -2368,7 +2398,7 @@ class Traverse implements ITraverse {
          return this.processPartialWithChildren(node, context);
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора директивы ws:partial: ${error.message}. Директива будет отброшена`,
+            `Ошибка разбора директивы "ws:partial": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -2388,7 +2418,7 @@ class Traverse implements ITraverse {
    private processPartialWithNoChildren(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
       if (!node.isSelfClosing && this.warnEmptyComponentContent) {
          this.errorHandler.warn(
-            `Для директивы ws:partial не задан контент и тег компонента не указан как самозакрывающийся`,
+            `Для директивы "ws:partial" не задан контент и тег компонента не указан как самозакрывающийся`,
             {
                fileName: context.fileName,
                position: node.position
@@ -2508,7 +2538,7 @@ class Traverse implements ITraverse {
          const child = options[index];
          if (ast.hasOption(child.__$ws_name)) {
             this.errorHandler.error(
-               `Опция "${child.__$ws_name}" уже определена на теге "${node.name}". Полученная опция будет отброшена`,
+               `Опция "${child.__$ws_name}" уже определена на теге "${node.name}"`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -2556,22 +2586,26 @@ class Traverse implements ITraverse {
     * @throws {Error} Throws error if attribute value is invalid.
     */
    private getAttributeValue(node: Nodes.Tag, attribute: string, allowedContent: TextContentFlags, context: ITraverseContext): Ast.TText {
-      const dataValue = this.attributeProcessor.validateValue(node.attributes, attribute, {
-         fileName: context.fileName,
-         hasAttributesOnly: true,
-         parentTagName: node.name
-      });
-      const textValue = this.textProcessor.process(
-         dataValue,
-         {
+      try {
+         const dataValue = this.attributeProcessor.validateValue(node.attributes, attribute, {
             fileName: context.fileName,
-            translateText: false,
-            allowedContent
-         },
-         node.position
-      );
-      this.registerAllTranslations(textValue, context);
-      return textValue[0];
+            hasAttributesOnly: true,
+            parentTagName: node.name
+         });
+         const textValue = this.textProcessor.process(
+            dataValue,
+            {
+               fileName: context.fileName,
+               translateText: false,
+               allowedContent
+            },
+            node.position
+         );
+         this.registerAllTranslations(textValue, context);
+         return textValue[0];
+      } catch (error){
+         throw new Error(`в атрибуте "${attribute}" ${error.message}`);
+      }
    }
 
    /**
@@ -2608,7 +2642,7 @@ class Traverse implements ITraverse {
    private warnIncorrectProperties(collection: Ast.IAttributes | Ast.IEvents, parent: Nodes.Tag, context: ITraverseContext): void {
       for (const name in collection) {
          this.errorHandler.warn(
-            `Обнаружен непредусмотренный атрибут "${name}" на теге "${parent.name}". Атрибут будет отброшен`,
+            `Обнаружен непредусмотренный атрибут "${name}" на теге "${parent.name}"`,
             {
                fileName: context.fileName,
                position: parent.position
@@ -2627,7 +2661,7 @@ class Traverse implements ITraverse {
    private warnUnexpectedAttributes(attributes: Nodes.IAttributes, context: ITraverseContext, nodeName: string): void {
       for (const name in attributes) {
          this.errorHandler.warn(
-            `Обнаружен непредусмотренный атрибут "${name}" на теге "${nodeName}". Атрибут будет отброшен`,
+            `Обнаружен непредусмотренный атрибут "${name}" на теге "${nodeName}"`,
             {
                fileName: context.fileName,
                position: attributes[name].position
