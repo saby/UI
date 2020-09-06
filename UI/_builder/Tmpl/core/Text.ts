@@ -170,6 +170,28 @@ function markDataByRegex(
 }
 
 /**
+ * Get processing expectation for handling an error.
+ * @param flags {TextContentFlags} Enabled flags.
+ */
+function whatExpected(flags: TextContentFlags): string {
+   if (flags & TextContentFlags.TEXT_AND_EXPRESSION) {
+      return 'ожидался текст и/или Mustache-выражение';
+   }
+   if (flags & TextContentFlags.TEXT_AND_TRANSLATION) {
+      return 'ожидался текст и/или конструкция локализации';
+   }
+   if (flags & TextContentFlags.EXPRESSION) {
+      return 'ожидалось только Mustache-выражение';
+   }
+   if (flags & TextContentFlags.TRANSLATION) {
+      return 'ожидалась только конструкция локализации';
+   }
+   if (flags & TextContentFlags.TEXT_AND_EXPRESSION) {
+      return 'ожидался только текст';
+   }
+}
+
+/**
  * Process final text node check.
  * @param nodes {TText[]} Processed nodes.
  * @param options {ITextProcessorOptions} Text processor options.
@@ -190,7 +212,7 @@ function finalizeContentCheck(nodes: Ast.TText[], options: ITextProcessorOptions
          continue;
       }
       if (isTextForbidden) {
-         throw new Error(`в данном контексте использование текстовых данных запрещено`);
+         throw new Error(`${whatExpected(options.allowedContent)}. Обнаружен текст "${node.__$ws_content}"`);
       }
       collection.push(
          createTranslationNode(node.__$ws_content, options, position)
@@ -209,7 +231,7 @@ function finalizeContentCheck(nodes: Ast.TText[], options: ITextProcessorOptions
  */
 function createTextNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TextDataNode {
    if ((options.allowedContent & TextContentFlags.TEXT) === 0) {
-      throw new Error(`в данном контексте использование текстовых данных запрещено`);
+      throw new Error(`${whatExpected(options.allowedContent)}. Обнаружен текст "${data}"`);
    }
    return new Ast.TextDataNode(data);
 }
@@ -224,7 +246,7 @@ function createTextNode(data: string, options: ITextProcessorOptions, position: 
  */
 function createTranslationNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TranslationNode {
    if ((options.allowedContent & TextContentFlags.TRANSLATION) === 0) {
-      throw new Error(`в данном контексте использование конструкции локализации запрещено`);
+      throw new Error(`${whatExpected(options.allowedContent)}. Обнаружена конструкция локализации "${data}"`);
    }
    const { text, context } = splitLocalizationText(data);
    return new Ast.TranslationNode(text, context);
@@ -257,33 +279,29 @@ class TextProcessor implements ITextProcessor {
     * @returns {TText[]} Collection of text data nodes.
     */
    process(text: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TText[] {
-      try {
-         const internalOptions: ITextProcessorOptions = {
-            ...options,
-            allowedContent: options.allowedContent | TextContentFlags.TEXT
-         };
-         const firstStage = [
-            createTextNode(text, internalOptions, position)
-         ];
+      const internalOptions: ITextProcessorOptions = {
+         ...options,
+         allowedContent: options.allowedContent | TextContentFlags.TEXT
+      };
+      const firstStage = [
+         createTextNode(text, internalOptions, position)
+      ];
 
-         const secondStage = markDataByRegex(
-            firstStage,
-            EXPRESSION_PATTERN,
-            (data: string) => this.createExpressionNode(data, internalOptions, position),
-            (data: string) => createTextNode(data, internalOptions, position)
-         );
+      const secondStage = markDataByRegex(
+         firstStage,
+         EXPRESSION_PATTERN,
+         (data: string) => this.createExpressionNode(data, internalOptions, position),
+         (data: string) => createTextNode(data, internalOptions, position)
+      );
 
-         const thirdStage = markDataByRegex(
-            secondStage,
-            TRANSLATION_PATTERN,
-            (data: string) => createTranslationNode(data, internalOptions, position),
-            (data: string) => createTextNode(data, internalOptions, position)
-         );
+      const thirdStage = markDataByRegex(
+         secondStage,
+         TRANSLATION_PATTERN,
+         (data: string) => createTranslationNode(data, internalOptions, position),
+         (data: string) => createTextNode(data, internalOptions, position)
+      );
 
-         return finalizeContentCheck(thirdStage, options, position);
-      } catch (error) {
-         throw new Error(`текст "${text}" некорректный: ${error.message}`);
-      }
+      return finalizeContentCheck(thirdStage, options, position);
    }
 
    /**
@@ -296,7 +314,7 @@ class TextProcessor implements ITextProcessor {
     */
    private createExpressionNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.ExpressionNode {
       if ((options.allowedContent & TextContentFlags.EXPRESSION) === 0) {
-         throw new Error('в данном контексте использование Mustache-выражения запрещено');
+         throw new Error(`${whatExpected(options.allowedContent)}. Обнаружено Mustache-выражение "${data}"`);
       }
 
       // TODO: warn about empty Mustache-expressions.
