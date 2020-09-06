@@ -50,6 +50,31 @@ export interface ITraverseConfig {
     * Text translator.
     */
    textTranslator: ITextTranslator;
+
+   /**
+    * Warn in case of using useless attribute prefix.
+    */
+   warnUselessAttributePrefix?: boolean;
+
+   /**
+    * Warn unknown boolean attributes and options.
+    */
+   warnBooleanAttributesAndOptions?: boolean;
+
+   /**
+    * Warn about declared but unused templates.
+    */
+   warnUnusedTemplates?: boolean;
+
+   /**
+    * Warn about empty component content if component tag was not self-closing.
+    */
+   warnEmptyComponentContent?: boolean;
+
+   /**
+    * Warn about unknown element tags.
+    */
+   warnUnknownElements?: boolean;
 }
 
 /**
@@ -457,6 +482,21 @@ class Traverse implements ITraverse {
     */
    private readonly textTranslator: ITextTranslator;
 
+   /**
+    * Warn about declared but unused templates.
+    */
+   private readonly warnUnusedTemplates: boolean;
+
+   /**
+    * Warn about empty component content if component tag was not self-closing.
+    */
+   private readonly warnEmptyComponentContent: boolean;
+
+   /**
+    * Warn about unknown element tags.
+    */
+   private readonly warnUnknownElements: boolean;
+
    // </editor-fold>
 
    /**
@@ -474,9 +514,14 @@ class Traverse implements ITraverse {
       this.attributeProcessor = createAttributeProcessor({
          expressionParser: config.expressionParser,
          errorHandler: config.errorHandler,
-         textProcessor: this.textProcessor
+         textProcessor: this.textProcessor,
+         warnBooleanAttributesAndOptions: !!config.warnBooleanAttributesAndOptions,
+         warnUselessAttributePrefix: !!config.warnUselessAttributePrefix
       });
       this.textTranslator = config.textTranslator;
+      this.warnUnusedTemplates = !!config.warnUnusedTemplates;
+      this.warnEmptyComponentContent = !!config.warnEmptyComponentContent;
+      this.warnUnknownElements = !!config.warnUnknownElements;
    }
 
    /**
@@ -1141,19 +1186,16 @@ class Traverse implements ITraverse {
          return this.processElement(node, oldComponentContext);
       }
 
-      // We need to check element node even if element node is broken.
-      const elementNode = this.processElement(node, context);
-      if (isElementNode(node.name) || context.processingOldComponent) {
-         return elementNode;
+      if (!(isElementNode(node.name) || context.processingOldComponent) && this.warnUnknownElements) {
+         this.errorHandler.warn(
+            `Обнаружен неизвестный HTML тег "${node.name}"`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
       }
-      this.errorHandler.error(
-         `Обнаружен неизвестный HTML тег "${node.name}". Тег будет отброшен`,
-         {
-            fileName: context.fileName,
-            position: node.position
-         }
-      );
-      return null;
+      return this.processElement(node, context);
    }
 
    /**
@@ -2247,16 +2289,15 @@ class Traverse implements ITraverse {
     * @returns {ComponentNode | null} Returns instance of ComponentNode null in case of broken content.
     */
    private processComponentWithNoChildren(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
-      // TODO: Temporary disable warnings. Discuss this case.
-      // if (!node.isSelfClosing) {
-      //    this.errorHandler.warn(
-      //       `Для компонента "${node.name}" не задан контент и тег компонента не указан как самозакрывающийся`,
-      //       {
-      //          fileName: context.fileName,
-      //          position: node.position
-      //       }
-      //    );
-      // }
+      if (!node.isSelfClosing && this.warnEmptyComponentContent) {
+         this.errorHandler.warn(
+            `Для компонента "${node.name}" не задан контент и тег компонента не указан как самозакрывающийся`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+      }
       return this.createComponentOnly(node, context);
    }
 
@@ -2345,16 +2386,15 @@ class Traverse implements ITraverse {
     * @returns {InlineTemplateNode | StaticPartialNode | DynamicPartialNode} Returns concrete instance of partial template.
     */
    private processPartialWithNoChildren(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
-      // TODO: Temporary disable warnings. Discuss this case.
-      // if (!node.isSelfClosing) {
-      //    this.errorHandler.warn(
-      //       `Для директивы ws:partial не задан контент и тег компонента не указан как самозакрывающийся`,
-      //       {
-      //          fileName: context.fileName,
-      //          position: node.position
-      //       }
-      //    );
-      // }
+      if (!node.isSelfClosing && this.warnEmptyComponentContent) {
+         this.errorHandler.warn(
+            `Для директивы ws:partial не задан контент и тег компонента не указан как самозакрывающийся`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+      }
       return this.createPartialOnly(node, context);
    }
 
@@ -2543,15 +2583,18 @@ class Traverse implements ITraverse {
       const templates = context.scope.getTemplateNames();
       for (let index = 0; index < templates.length; ++index) {
          const name = templates[index];
-         if (context.scope.getTemplateUsages(name) === 0) {
+         if (context.scope.getTemplateUsages(name) > 0) {
+            continue;
+         }
+         if (this.warnUnusedTemplates) {
             this.errorHandler.warn(
-               `Шаблон с именем "${name}" определен, но не был использован. Шаблон будет отброшен`,
+               `Шаблон с именем "${name}" определен, но не был использован`,
                {
                   fileName: context.fileName
                }
             );
-            context.scope.removeTemplate(name);
          }
+         context.scope.removeTemplate(name);
       }
    }
 

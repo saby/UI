@@ -134,11 +134,6 @@ describe('Compiler/core/Traverse', () => {
          assert.instanceOf(elementNode.__$ws_attributes['attr:id'], Ast.AttributeNode);
          assert.instanceOf(elementNode.__$ws_events['on:click'], Ast.EventNode);
       });
-      it('Failure! Node', () => {
-         const html = '<unknown attr:class="div-class" id="content" on:click="handler()"></unknown>';
-         const tree = traverseTemplate(html);
-         assert.strictEqual(tree.length, 0);
-      });
       it('Failure! Attributes', () => {
          const html = '<div attr:class="{{ 1 2 3 }}" on:click="{{ handler() }}"></div>';
          const tree = traverseTemplate(html);

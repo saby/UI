@@ -254,6 +254,16 @@ export interface IAttributeProcessorConfig {
     * Text processor.
     */
    textProcessor: ITextProcessor;
+
+   /**
+    * Warn in case of using useless attribute prefix.
+    */
+   warnUselessAttributePrefix?: boolean;
+
+   /**
+    * Warn unknown boolean attributes and options.
+    */
+   warnBooleanAttributesAndOptions?: boolean;
 }
 
 /**
@@ -277,6 +287,16 @@ class AttributeProcessor implements IAttributeProcessor {
    private readonly textProcessor: ITextProcessor;
 
    /**
+    * Warn in case of using useless attribute prefix.
+    */
+   private readonly warnUselessAttributePrefix: boolean;
+
+   /**
+    * Warn unknown boolean attributes and options.
+    */
+   private readonly warnBooleanAttributesAndOptions: boolean;
+
+   /**
     * Initialize new instance of attribute processor.
     * @param config {IAttributeProcessorConfig} Attribute processor config.
     */
@@ -284,6 +304,8 @@ class AttributeProcessor implements IAttributeProcessor {
       this.expressionParser = config.expressionParser;
       this.errorHandler = config.errorHandler;
       this.textProcessor = config.textProcessor;
+      this.warnUselessAttributePrefix = !!config.warnUselessAttributePrefix;
+      this.warnUselessAttributePrefix = !!config.warnBooleanAttributesAndOptions;
    }
 
    /**
@@ -318,16 +340,15 @@ class AttributeProcessor implements IAttributeProcessor {
             }
             if (isAttribute(attributeName) || options.hasAttributesOnly) {
                const attributeNode = this.processAttribute(node, options, nodeDescription);
-               // TODO: Temporary disable warnings. Discuss this case.
-               // if (isAttribute(attributeName) && options.hasAttributesOnly) {
-               //    this.errorHandler.warn(
-               //       `Использование префикса "attr:" не обязательно на html-элементах. Обнаружен атрибут "${attributeName}" на теге "${options.parentTagName}" `,
-               //       {
-               //          fileName: options.fileName,
-               //          position: node.position
-               //       }
-               //    );
-               // }
+               if (isAttribute(attributeName) && options.hasAttributesOnly && this.warnUselessAttributePrefix) {
+                  this.errorHandler.warn(
+                     `Использование префикса "attr:" не обязательно на html-элементах. Обнаружен атрибут "${attributeName}" на теге "${options.parentTagName}" `,
+                     {
+                        fileName: options.fileName,
+                        position: node.position
+                     }
+                  );
+               }
                if (attributeNode) {
                   if (collection.attributes.hasOwnProperty(`attr:${attributeNode.__$ws_name}`)) {
                      this.errorHandler.error(
@@ -486,15 +507,15 @@ class AttributeProcessor implements IAttributeProcessor {
          const attribute = getAttributeName(attributeNode.name);
          const attributeValue = validateAttribute(attribute, attributeNode.value);
          if (attributeValue === null) {
-            // TODO: сейчас определяется пустая строка. Есть предложение поддержать
-            //  boolean-атрибуты (когда 'true' по умолчанию). Пока на рассмотрении!
-            // this.errorHandler.error(
-            //    `Обнаружен атрибут "${attributeNode.name}" на теге "${options.parentTagName}", которому не было задано значение. Атрибут будет отброшен`,
-            //    {
-            //       fileName: options.fileName,
-            //       position: attributeNode.position
-            //    }
-            // );
+            if (this.warnBooleanAttributesAndOptions) {
+               this.errorHandler.error(
+                  `Обнаружен атрибут "${attributeNode.name}" на теге "${options.parentTagName}", которому не было задано значение. Атрибут будет отброшен`,
+                  {
+                     fileName: options.fileName,
+                     position: attributeNode.position
+                  }
+               );
+            }
             return new Ast.AttributeNode(
                attribute,
                [
@@ -536,15 +557,15 @@ class AttributeProcessor implements IAttributeProcessor {
       try {
          const attributeValue = attributeNode.value;
          if (attributeValue === null) {
-            // TODO: сейчас определяется пустая строка. Есть предложение поддержать
-            //  boolean-атрибуты (когда 'true' по умолчанию). Пока на рассмотрении!
-            // this.errorHandler.error(
-            //    `Обнаружена опция "${attributeNode.name}" на теге "${options.parentTagName}", которой не было задано значение. Опция будет отброшена`,
-            //    {
-            //       fileName: options.fileName,
-            //       position: attributeNode.position
-            //    }
-            // );
+            if (this.warnBooleanAttributesAndOptions) {
+               this.errorHandler.error(
+                  `Обнаружена опция "${attributeNode.name}" на теге "${options.parentTagName}", которой не было задано значение. Опция будет отброшена`,
+                  {
+                     fileName: options.fileName,
+                     position: attributeNode.position
+                  }
+               );
+            }
             return new Ast.OptionNode(
                attributeNode.name,
                new Ast.ValueNode(
