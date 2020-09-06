@@ -400,7 +400,7 @@ export class Tokenizer implements ITokenizer {
                   // this.returnExpressionCharacter = null;
                   // reader.reconsume();
                   // break;
-                  this.error(`Нельзя использовать символы QUOTATION_MARK (") и APOSTROPHE (') в Mustache-выражении, если они открывают и закрывают значение атрибута`);
+                  this.warn(`Нельзя использовать символы QUOTATION_MARK (") и APOSTROPHE (') в Mustache-выражении, если они открывают и закрывают значение атрибута`);
                }
                this.appendCharBuffer(char);
                if (char === Characters.RIGHT_CURLY_BRACKET) {
