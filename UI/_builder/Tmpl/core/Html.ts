@@ -99,6 +99,7 @@ const HTML_NODES = [
    'nav',
    'nextid',
    'nobr',
+   'noindex',
    'noembed',
    'noframes',
    'noscript',
