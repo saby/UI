@@ -25,7 +25,8 @@ const JSDoc = {
                   'type': 'Object'
                },
                'fullyTranslatableObjectOption': {
-                  'type': 'Object'
+                  'type': 'Object',
+                  'translatable': true
                },
                'numberOption': {
                   'type': 'Number'
