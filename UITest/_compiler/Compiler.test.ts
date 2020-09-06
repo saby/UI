@@ -17,7 +17,7 @@ describe('Compiler/Compiler', () => {
          .then(function(artifact) {
             try {
                assert.isTrue(artifact.stable);
-               assert.strictEqual(artifact.nodeName, 'wml!ApiTest1');
+               assert.strictEqual(artifact.nodeName, 'wml!Compiler/Compiler/Template');
                assert.strictEqual(typeof artifact.text, 'string');
                done();
             } catch (error) {
@@ -41,7 +41,7 @@ describe('Compiler/Compiler', () => {
          .catch(function(artifact) {
             try {
                assert.isFalse(artifact.stable);
-               assert.strictEqual(artifact.nodeName, 'wml!ApiTest2');
+               assert.strictEqual(artifact.nodeName, 'wml!Compiler/Compiler/Template');
                assert.strictEqual(artifact.errors[0].message, 'Во время разбора шаблона была обнаружена критическая ошибка. Детали ошибки следует смотреть в логах');
                done();
             } catch (error) {
@@ -57,8 +57,8 @@ describe('Compiler/Compiler', () => {
       compiler.compile(html, options)
          .then(function(artifact) {
             try {
-               assert.strictEqual(artifact.text.indexOf("define('wml!ApiTest3'"), 0);
-               assert.strictEqual(artifact.nodeName, 'wml!ApiTest3');
+               assert.strictEqual(artifact.text.indexOf("define('wml!Compiler/Compiler/Template'"), 0);
+               assert.strictEqual(artifact.nodeName, 'wml!Compiler/Compiler/Template');
                done();
             } catch (error) {
                done(error);
@@ -76,8 +76,8 @@ describe('Compiler/Compiler', () => {
       compiler.compile(html, options)
          .then(function(artifact) {
             try {
-               assert.strictEqual(artifact.text.indexOf("define('tmpl!ApiTest4'"), 0);
-               assert.strictEqual(artifact.nodeName, 'tmpl!ApiTest4');
+               assert.strictEqual(artifact.text.indexOf("define('tmpl!Compiler/Compiler/Template'"), 0);
+               assert.strictEqual(artifact.nodeName, 'tmpl!Compiler/Compiler/Template');
                done();
             } catch (error) {
                done(error);
@@ -118,7 +118,7 @@ describe('Compiler/Compiler', () => {
                assert.isTrue(artifact.hasOwnProperty('localizedDictionary'));
                assert.strictEqual(artifact.localizedDictionary[0].key, 'Hello');
                assert.strictEqual(artifact.localizedDictionary[0].context, '');
-               assert.strictEqual(artifact.localizedDictionary[0].module, 'ApiTest8');
+               assert.strictEqual(artifact.localizedDictionary[0].module, 'Compiler/Compiler/Template');
                done();
             } catch (error) {
                done(error);
