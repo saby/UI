@@ -257,29 +257,33 @@ class TextProcessor implements ITextProcessor {
     * @returns {TText[]} Collection of text data nodes.
     */
    process(text: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TText[] {
-      const internalOptions: ITextProcessorOptions = {
-         ...options,
-         allowedContent: options.allowedContent | TextContentFlags.TEXT
-      };
-      const firstStage = [
-         createTextNode(text, internalOptions, position)
-      ];
+      try {
+         const internalOptions: ITextProcessorOptions = {
+            ...options,
+            allowedContent: options.allowedContent | TextContentFlags.TEXT
+         };
+         const firstStage = [
+            createTextNode(text, internalOptions, position)
+         ];
 
-      const secondStage = markDataByRegex(
-         firstStage,
-         EXPRESSION_PATTERN,
-         (data: string) => this.createExpressionNode(data, internalOptions, position),
-         (data: string) => createTextNode(data, internalOptions, position)
-      );
+         const secondStage = markDataByRegex(
+            firstStage,
+            EXPRESSION_PATTERN,
+            (data: string) => this.createExpressionNode(data, internalOptions, position),
+            (data: string) => createTextNode(data, internalOptions, position)
+         );
 
-      const thirdStage = markDataByRegex(
-         secondStage,
-         TRANSLATION_PATTERN,
-         (data: string) => createTranslationNode(data, internalOptions, position),
-         (data: string) => createTextNode(data, internalOptions, position)
-      );
+         const thirdStage = markDataByRegex(
+            secondStage,
+            TRANSLATION_PATTERN,
+            (data: string) => createTranslationNode(data, internalOptions, position),
+            (data: string) => createTextNode(data, internalOptions, position)
+         );
 
-      return finalizeContentCheck(thirdStage, options, position);
+         return finalizeContentCheck(thirdStage, options, position);
+      } catch (error) {
+         throw new Error(`текст "${text}" некорректный: ${error.message}`);
+      }
    }
 
    /**

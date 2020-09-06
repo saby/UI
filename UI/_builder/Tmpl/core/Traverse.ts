@@ -2159,7 +2159,7 @@ class Traverse implements ITraverse {
          };
          const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          const name = this.getTextFromAttribute(node, 'name', context);
-         Resolvers.validateInlineTemplate(name);
+         // TODO: Validate inline template name
          const ast = new Ast.TemplateNode(name, content);
          if (content.length === 0) {
             this.errorHandler.error(
@@ -2444,7 +2444,7 @@ class Traverse implements ITraverse {
          context.scope.registerDependency(path);
          return new Ast.StaticPartialNode(path, attributes.attributes, attributes.events, attributes.options);
       }
-      Resolvers.validateInlineTemplate(template);
+      // TODO: Validate inline template name
       const inlineTemplate = new Ast.InlineTemplateNode(template, attributes.attributes, attributes.events, attributes.options);
       context.scope.registerTemplateUsage(inlineTemplate.__$ws_name);
       return inlineTemplate;

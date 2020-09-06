@@ -38,11 +38,6 @@ const EMPTY_STRING = '';
 const WS_PREFIX_PATTERN = /^ws:/i;
 
 /**
- * Inline template name pattern.
- */
-const INLINE_TEMPLATE_PATTERN = /^[a-zA-Z_]\w*$/i;
-
-/**
  * Special UI-module names that do not obey standard of naming UI-modules.
  */
 const SPECIAL_UI_MODULE_NAMES = [
@@ -54,76 +49,6 @@ const SPECIAL_UI_MODULE_NAMES = [
  * Pattern for extension of template file path.
  */
 const TEMPLATE_FILE_EXTENSION_PATTER = /\.(tmpl|wml)/i;
-
-/**
- * Collection of reserved words in JavaScript.
- */
-const RESERVED_JAVASCRIPT_WORDS = [
-   'abstract',
-   'arguments',
-   'await',
-   'boolean',
-   'break',
-   'byte',
-   'case',
-   'catch',
-   'char',
-   'class',
-   'const',
-   'continue',
-   'debugger',
-   'default',
-   'delete',
-   'do',
-   'double',
-   'else',
-   'enum',
-   'eval',
-   'export',
-   'extends',
-   'false',
-   'final',
-   'finally',
-   'float',
-   'for',
-   'function',
-   'goto',
-   'if',
-   'implements',
-   'import',
-   'in',
-   'instanceof',
-   'int',
-   'interface',
-   'let',
-   'long',
-   'native',
-   'new',
-   'null',
-   'package',
-   'private',
-   'protected',
-   'public',
-   'return',
-   'short',
-   'static',
-   'super',
-   'switch',
-   'synchronized',
-   'this',
-   'throw',
-   'throws',
-   'transient',
-   'true',
-   'try',
-   'typeof',
-   'var',
-   'void',
-   'volatile',
-   'while',
-   'with',
-   'yield'
-];
 
 /**
  * Get RequireJS plugin flag by plugin name.
@@ -367,18 +292,4 @@ export function resolveOption(name: string): string {
  */
 export function isComponent(name: string): boolean {
    return isLogicalPath(name) && isCapitalized(name);
-}
-
-/**
- * Validate inline template name.
- * @param name {string} Name of inline template.
- * @throws {Error} Throws error in case of invalid inline template name.
- */
-export function validateInlineTemplate(name: string): void {
-   if (!INLINE_TEMPLATE_PATTERN.test(name)) {
-      throw new Error(`некорректное имя шаблона "${name}"`);
-   }
-   if (RESERVED_JAVASCRIPT_WORDS.indexOf(name) > -1) {
-      throw new Error(`некорректное имя шаблона - "${name}". Использование зарезервированных слов языка JavaScript в качестве имени шаблона запрещено`);
-   }
 }
