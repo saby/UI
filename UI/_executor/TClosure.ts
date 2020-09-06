@@ -1,8 +1,12 @@
 /// <amd-module name="UI/_executor/TClosure" />
 /* tslint:disable */
 
+/**
+ * @author Тэн В.А.
+ */
+
 // @ts-ignore
-import * as Serializer from 'Core/Serializer';
+import { Serializer } from 'UI/State';
 // @ts-ignore
 import { IoC } from 'Env/Env';
 // @ts-ignore
@@ -10,7 +14,8 @@ import { Logger } from 'UI/Utils';
 // @ts-ignore
 import {Config as config} from 'UI/Builder';
 // @ts-ignore
-import * as isPlainObject from 'Core/helpers/Object/isPlainObject';
+import { ObjectUtils } from 'UI/Utils';
+import {object} from 'Types/util';
 
 import { Text, Vdom } from './Markup';
 import { _FocusAttrs } from 'UI/Focus';
@@ -36,7 +41,7 @@ function getGeneratorCompatible() {
    } else {
       //@ts-ignore
       if (require.defined('View/ExecutorCompatible')) {
-         generatorCompatible = require('View/ExecutorCompatible').GeneratorCompatible;
+         generatorCompatible = require('View/ExecutorCompatible').Compatible;
          return generatorCompatible;
       } else {
          // FIXME: сейчас на СП всегда стоит флаг совместимости
@@ -72,7 +77,7 @@ const ITERATORS = [
    {
       type: 'object',
       is: function isObject(ent) {
-         return isPlainObject(ent);
+         return ObjectUtils.isPlainObject(ent);
       },
       iterator: function objectIterator(object, callback) {
          for (var key in object) {
@@ -97,43 +102,19 @@ var lastGetterPath;
 var
    getter = function getter(obj, path, viewController) {
       lastGetterPath = path;
-      for (var i = 0; i < path.length; i++) {
-         var name = path[i];
-
-         if (obj != undefined) {
-            if (obj.has && obj.get && obj.has(name)) {
-               // Чтобы можно было звать дефолтные свойства модели
-               obj = obj.get(name);
-            } else {
-
-               /**
-                * if we want get "_options" field
-                * we maybe want all fields from current scope
-                * It is actual for stateless wml files
-                */
-               if (name !== '_options' || obj[name]) {
-
-                  const error = obj['_$' + name];
-                  if (error instanceof ConfigResolver.UseAutoProxiedOptionError) {
-                     if (!error.isDestroyed()) {
-                        Logger.error(`Попытка использовать опцию, которой не существует: ${path.slice(0, i+1).join('.')}
-                           При вставке контрола/шаблона эта опция не была явно передана, поэтому в текущем дочернем контроле ее использовать нельзя.
-                           Передача опции не произошла в шаблоне контрола: ${error.upperControlName}.
-                           Вставляемый контрол/шаблон, в котором должна явно передаваться опция: ${error.lostHere}.
-                           Попытка использовать опцию`, viewController);
-                        error.destroy();
-                     }
-                  }
-
-                  obj = obj[name];
-               }
+      return object.extractValue(obj, path, (name: string, scope: unknown, depth: number): void => {
+         const error = scope['_$' + name];
+         if (error instanceof ConfigResolver.UseAutoProxiedOptionError) {
+            if (!error.isDestroyed()) {
+               Logger.error(`Попытка использовать опцию, которой не существует: ${path.slice(0, depth + 1).join('.')}
+                  При вставке контрола/шаблона эта опция не была явно передана, поэтому в текущем дочернем контроле ее использовать нельзя.
+                  Передача опции не произошла в шаблоне контрола: ${error.upperControlName}.
+                  Вставляемый контрол/шаблон, в котором должна явно передаваться опция: ${error.lostHere}.
+                  Попытка использовать опцию`, viewController);
+               error.destroy();
             }
-         } else {
-            return undefined;
          }
-      }
-
-      return obj;
+      });
    },
 
    /**
@@ -144,19 +125,7 @@ var
     * @param value
     */
    setter = function setter(obj, path, viewController, value) {
-      var
-         lastPathPart = path.pop(),
-         lastObj = getter(obj, path, null);
-
-      if (lastObj) {
-         if (lastObj.set) {
-            lastObj.set(lastPathPart, value);
-         } else {
-            lastObj[lastPathPart] = value;
-         }
-         return true;
-      }
-      return false;
+      return object.implantValue(obj, path, value);
    },
    isFunction = function isFunction(fn) {
       return Object.prototype.toString.call(fn) === '[object Function]';
@@ -249,15 +218,21 @@ var
    },
    createGenerator = function (isVdom, forceCompatible = false) {
       if (isVdom) {
-         return new Vdom();
+         return Vdom;
       }
       if (Common.isCompat() || forceCompatible) {
          const Compatible = getGeneratorCompatible();
          if (Compatible) {
-            return new Compatible();
+            return Compatible;
          }
       }
-      return new Text();
+      return Text;
+   },
+   // todo добавлено для совместимости с прошлой версией, можно будет удалить после выполнения задачи
+   // https://online.sbis.ru/opendoc.html?guid=0443ec3f-0d33-469b-89f1-57d208ed2982
+   // @ts-ignore
+   getMarkupGenerator = function() {
+      return this.createGenerator.apply(this, arguments);
    },
    makeFunctionSerializable = function makeFunctionSerializable(func, scope) {
       var funcStr = '';
@@ -384,6 +359,7 @@ export {
    plainMergeContext,
    getTypeFunction as getTypeFunc,
    createGenerator,
+   getMarkupGenerator,
    bindProxy,
    isObject,
    prepareAttrsForFocus,

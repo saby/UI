@@ -2,18 +2,18 @@
 /* tslint:disable */
 
 import { DirtyKind, rebuildNode, createNode, destroyReqursive, IMemoNode, getReceivedState } from './resources/DirtyChecking';
-import DOMEnvironment, { IDOMEnvironment } from './resources/DOMEnvironment';
+import DOMEnvironment from './resources/DOMEnvironment';
 import { delay } from 'Types/function';
 // @ts-ignore
-import * as isEmptyObject from 'Core/helpers/Object/isEmpty';
+import { ObjectUtils } from 'UI/Utils';
 // @ts-ignore
-import * as Serializer from 'Core/Serializer';
+import { Serializer } from 'UI/State';
 import { Set } from 'Types/shim';
 import { Control } from 'UI/Base';
 
 // @ts-ignore
 import { Logger } from 'UI/Utils';
-import { IControlNodeOptions, IControlNode, IWasabyHTMLElement } from './interfaces';
+import { IControlNodeOptions, IControlNode, IWasabyHTMLElement, IDOMEnvironment } from './interfaces';
 
 import {
    injectHook,
@@ -237,7 +237,7 @@ class VDomSynchronizer {
       let i: number;
       for (i = 0; i !== MAX_REBUILD; i++) {
          this.__doRebuild(currentRoot);
-         if (isEmptyObject(currentRoot.environment._nextDirties)) {
+         if (ObjectUtils.isEmpty(currentRoot.environment._nextDirties)) {
             break;
          }
       }
@@ -408,6 +408,7 @@ class VDomSynchronizer {
 
    cleanControlDomLink(node: any[], control?: { _instId: string | number; }) {
       if (control) {
+         // @ts-ignore
          delete this._controlNodes[control._instId];
       }
       if (!node) {

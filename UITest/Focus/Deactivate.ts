@@ -1,6 +1,7 @@
 import {TemplateFunction} from 'UI/Base';
 import {TestBaseControl} from '../Base'
 
+// @ts-ignore
 import template = require('wml!UITest/Focus/Deactivate');
 
 class TestControl extends TestBaseControl {

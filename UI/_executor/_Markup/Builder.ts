@@ -7,8 +7,7 @@ import { ContextResolver } from 'UI/Contexts';
 import * as OptionsResolver from '../_Utils/OptionsResolver';
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
-// @ts-ignore
-import * as isNewEnvironment from 'Core/helpers/isNewEnvironment';
+import { isNewEnvironment } from 'UI/Utils';
 import { IBuilder } from './IBuilder';
 
 import { invisibleNodeCompat, isInstOfPromise, asyncRenderErrorTag } from './Utils'
@@ -66,7 +65,7 @@ export class Builder implements IBuilder {
          }
 
          try {
-            dfd = inst._beforeMountLimited && inst._beforeMountLimited(actualOptions, scope.templateContext || {});
+            dfd = inst.__beforeMount && inst.__beforeMount(actualOptions, scope.templateContext || {});
          } catch (error) {
             // @ts-ignore
             if(typeof process !== 'undefined' && !process.versions) {

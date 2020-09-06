@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_focus/Activate" />
 
 /**
- * @author Белотелов Н.В.
+ * @author Тэн В.А.
  * Модуль, в котором находится логика по активации контролов
  */
 
@@ -12,8 +12,7 @@ import { goUpByControlTree } from 'UI/NodeCollector';
 
 import { IControlElement } from './IFocus';
 
-// @ts-ignore
-import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
+import { isElementVisible } from 'UI/Utils';
 
 function findAutofocusForVDOM(findContainer: Element): NodeListOf<Element> {
    return findContainer.querySelectorAll('[ws-autofocus="true"]');
@@ -21,7 +20,7 @@ function findAutofocusForVDOM(findContainer: Element): NodeListOf<Element> {
 
 function doFocus(container: IControlElement,
                  cfg: { enableScreenKeyboard?: boolean,
-                        enableScrollToElement?: boolean } = {}): boolean {
+                    enableScrollToElement?: boolean } = {}): boolean {
 
    let res = false;
    if (container.wsControl && container.wsControl.setActive) {
@@ -51,60 +50,46 @@ function doFocus(container: IControlElement,
 }
 
 export function activate(
-   container: Element,
+   container: IControlElement,
    cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } =
       { enableScreenKeyboard: false, enableScrollToElement: false }
-   ): boolean {
-
-   let res = false;
+): boolean {
 
    // сначала попробуем поискать по ws-autofocus, если найдем - позовем focus рекурсивно для найденного компонента
    const autofocusElems = findAutofocusForVDOM(container);
    let autofocusElem;
-   let found;
 
    for (let i = 0; i < autofocusElems.length; i++) {
       autofocusElem = autofocusElems[i];
-
-      // если что-то зафокусировали, перестаем поиск
-      if (!found) {
-         // фокусируем только найденный компонент, ws-autofocus можно повесить только на контейнер компонента
-         if (autofocusElem && autofocusElem.controlNodes && autofocusElem.controlNodes.length) {
-            // берем самый внешний контрол и активируем его
-            const outerControlNode = autofocusElem.controlNodes[autofocusElem.controlNodes.length - 1];
-            res = outerControlNode.control.activate(cfg);
-            found = res;
-         }
+      // фокусируем только найденный компонент, ws-autofocus можно повесить только на контейнер компонента
+      if (autofocusElem && autofocusElem.controlNodes && autofocusElem.controlNodes.length) {
+         // берем самый внешний контрол и активируем его
+         const outerControlNode = autofocusElem.controlNodes[autofocusElem.controlNodes.length - 1];
+         return outerControlNode.control.activate(cfg);
       }
    }
 
    // если не получилось найти по автофокусу, поищем первый элемент по табиндексам и сфокусируем его.
    // причем если это будет конейнер старого компонента, активируем его по старому тоже
-   if (!found) {
-      // так ищем DOMEnvironment для текущего компонента. В нем сосредоточен код по работе с фокусами.
-      let next = ElementFinder.findFirstInContext(container, false);
-      if (next) {
-         // при поиске первого элемента игнорируем vdom-focus-in и vdom-focus-out
-         const startElem = 'vdom-focus-in';
-         const finishElem = 'vdom-focus-out';
-         if (next.classList.contains(startElem)) {
-            next = ElementFinder.findWithContexts(container, next, false);
-         }
-         if (next.classList.contains(finishElem)) {
-            next = null;
-         }
+   // так ищем DOMEnvironment для текущего компонента. В нем сосредоточен код по работе с фокусами.
+   let next = ElementFinder.findFirstInContext(container, false);
+   if (next) {
+      // при поиске первого элемента игнорируем vdom-focus-in и vdom-focus-out
+      const startElem = 'vdom-focus-in';
+      const finishElem = 'vdom-focus-out';
+      if (next.classList.contains(startElem)) {
+         next = ElementFinder.findWithContexts(container, next, false);
       }
-      if (next) {
-         res = doFocus(next, cfg);
-      } else {
-         if (isElementVisible(container)) {
-            res = doFocus(container, cfg);
-         } else {
-            // если элемент не видим - не можем его сфокусировать
-            res = false;
-         }
+      if (next.classList.contains(finishElem)) {
+         next = null;
       }
    }
+   if (next) {
+      return doFocus(next, cfg);;
+   }
+   if (isElementVisible(container)) {
+     return doFocus(container, cfg);
+   }
 
-   return res;
+   return false;
 }

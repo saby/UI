@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_focus/PreventFocus" />
 
 /**
- * @author Белотелов Н.В.
+ * @author Тэн В.А.
  * Содержит логику по предотвращению фокуса по клику
  */
 

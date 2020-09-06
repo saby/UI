@@ -1,5 +1,8 @@
 /// <amd-module name="UI/_executor/_Expressions/AttrHelper" />
 /* tslint:disable */
+/**
+ * @author Тэн В.А.
+ */
 
 export function isAttr(string) {
    return string.startsWith('attr:');

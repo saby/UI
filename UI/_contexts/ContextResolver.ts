@@ -1,10 +1,11 @@
 /// <amd-module name="UI/_contexts/ContextResolver" />
 /* tslint:disable */
 
-// @ts-ignore
+/**
+ * @author Тэн В.А.
+ */
+
 import { Logger } from 'UI/Utils';
-// @ts-ignore
-import * as DataContext from 'Core/DataContext';
 
 const whiteList = {
    "UserActivity/ActivityContextField": true,
@@ -58,7 +59,7 @@ export function wrapContext(inst, currentCtx) {
                Logger.error(message, inst);
             }
             currentCtx[i] = ctx[i];
-            if (ctx[i] && ctx[i].getVersion === DataContext.prototype.getVersion) {
+            if (ctx[i] && ctx[i].getVersion !== compositeGetVersion) {
                for (var j in ctx[i]) {
                   if (ctx[i].hasOwnProperty(j) && ctx[i][j]) {
                      if (ctx[i][j].getVersion) {

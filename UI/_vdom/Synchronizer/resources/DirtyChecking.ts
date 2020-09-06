@@ -18,12 +18,11 @@ import { textNode, OptionsResolver } from 'UI/Executor';
 import { ContextResolver } from 'UI/Contexts';
 import { delay } from 'Types/function';
 // @ts-ignore
-import * as Serializer from 'Core/Serializer';
+import { Serializer } from 'UI/State';
 // @ts-ignore
 import { Logger } from 'UI/Utils';
 import * as _dcc from './DirtyCheckingCompatible';
-// @ts-ignore
-import * as ReactiveObserver from 'Core/ReactiveObserver';
+import { ReactiveObserver } from 'UI/Reactivity';
 import {
    onEndCommit,
    onStartCommit,
@@ -110,7 +109,7 @@ function fillCtx(control: any, vnode: any, resolvedCtx: any): void {
 export function getReceivedState(controlNode: IControlNode, vnodeP: ISomeData, serializer: any): any {
    const control = controlNode.control;
    const stateVar = controlNode.key ? findTopConfig(controlNode.key) : '';
-   if (!control._beforeMountLimited) {
+   if (!control.__beforeMount) {
       // TODO https://online.sbis.ru/opendoc.html?guid=4936d2f7-38c1-43c6-b64c-3ae650e0e612
       // There is a _beforeMount function call inside of getStateReadyOrCall
       // So we need to pass options processed by optionsResolver.
@@ -170,14 +169,14 @@ export function getReceivedState(controlNode: IControlNode, vnodeP: ISomeData, s
    }
 
    try {
-      res = data ? control._beforeMountLimited(
+      res = data ? control.__beforeMount(
          vnode.controlProperties,
          //@ts-ignore TODO разобраться
          ctx,
          data
          ) :
          //@ts-ignore TODO разобраться
-         control._beforeMountLimited(vnode.controlProperties, ctx);
+         control.__beforeMount(vnode.controlProperties, ctx);
    } catch (error) {
       Logger.lifeError('_beforeMount', control, error);
    }
@@ -375,7 +374,7 @@ function createInstance(cnstr, userOptions, internalOptions) {
    }
    catch (error) {
       // @ts-ignore
-      coreControl = require('Core/Control');
+      coreControl = require('UI/Base').Control;
       inst = new coreControl();
       Logger.lifeError('constructor', cnstr.prototype, error);
    }
@@ -580,12 +579,14 @@ export function destroyReqursive(childControlNode, environment) {
 
          const vnode = childControlNode.vnode || childControlNode;
          onStartCommit(OperationType.DESTROY, getNodeName(childControlNode), vnode);
-         let logicParent = childControlNode.control._logicParent;
-         const controlName = childControlNode.control._options.name;
+         let logicParent;
+         let controlName: string;
          // Пометим контрол, как разрушаемый из DirtyChecking
          // слой совместимости попытается удалить контрол из дома,
          // этого не должно произойти, иначе синхронизатор упадет
          if (!childControlNode.control._destroyed) {
+            logicParent = childControlNode.control._logicParent;
+            controlName = childControlNode.control._options.name;
             childControlNode.control.__$destroyFromDirtyChecking = true;
             childControlNode.control.destroy();
          }
@@ -595,6 +596,7 @@ export function destroyReqursive(childControlNode, environment) {
          delete childControlNode.markup;
          if (
             logicParent &&
+            !logicParent._destroyed &&
             logicParent._template &&
             controlName
          ) {

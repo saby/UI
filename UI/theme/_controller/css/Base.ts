@@ -1,6 +1,6 @@
 /// <amd-module name='UI/theme/_controller/css/Base' />
-import { ICssEntity } from 'UI/theme/_controller/css/interface';
-import { DEFAULT_THEME, THEME_TYPE, ELEMENT_ATTR } from 'UI/theme/_controller/css/const';
+import { ICssEntity } from './interface';
+import { DEFAULT_THEME, THEME_TYPE, ELEMENT_ATTR } from './const';
 
 export abstract class Base implements ICssEntity {
    outerHtml: string = '';

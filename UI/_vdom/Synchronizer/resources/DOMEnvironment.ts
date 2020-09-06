@@ -1,24 +1,16 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DOMEnvironment" />
-// tslint:disable:variable-name
+// tslint:disable:variable-name no-any
 
-// FIXME: This module can only be referenced with ECMAScript imports/exports
-// by turning on the 'esModuleInterop' flag and referencing its default export.
-// @ts-ignore
-import * as findIndex from 'Core/helpers/Array/findIndex';
-
-import { _IDOMEnvironment } from 'UI/Focus';
-
-// @ts-ignore FIXME: Cannot find this module
-import * as isNewEnvironment from 'Core/helpers/isNewEnvironment';
-
-// @ts-ignore FIXME: Cannot find this module
-import * as needToBeCompatible from 'Core/helpers/Hcontrol/needToBeCompatible';
+import { ArrayUtils } from 'UI/Utils';
+import { needToBeCompatible } from 'UI/Utils';
 
 import { constants, detection } from 'Env/Env';
-import { Logger } from 'UI/Utils';
-import { Control } from 'UI/Base';
+import { Logger, isNewEnvironment } from 'UI/Utils';
 import { ElementFinder, Events, BoundaryElements, focus, preventFocus, hasNoFocus, goUpByControlTree } from 'UI/Focus';
-import { TControlId, TControlStateCollback, IControlNode, IWasabyHTMLElement, TEventsObject } from '../interfaces';
+import {
+   IDOMEnvironment, TControlStateCollback, IControlNode,
+   IWasabyHTMLElement, TMarkupNodeDecoratorFn, IHandlerInfo, TModifyHTMLNode
+} from '../interfaces';
 
 import { delay } from 'Types/function';
 import { mapVNode } from './VdomMarkup';
@@ -28,7 +20,8 @@ import { TComponentAttrs } from '../interfaces';
 import { EventUtils } from 'UI/Events';
 import { RawMarkupNode } from 'UI/Executor';
 import Environment from './Environment';
-import * as SwipeController from './SwipeController';
+import { SwipeController } from './SwipeController';
+import { LongTapController } from './LongTapController';
 import {
    onStartSync,
    onEndSync
@@ -75,7 +68,7 @@ function createRecursiveVNodeMapper(fn: any): any {
       let fnRes = fn(tagName, properties, children, key, controlNode, ref);
       let newChildren = fnRes[2];
 
-      i = findIndex(newChildren, (child: any): any => {
+      i = ArrayUtils.findIndex(newChildren, (child: any): any => {
          const newChild = mapVNode(recursiveVNodeMapperFn, controlNode, child);
          return child !== newChild;
       });
@@ -164,8 +157,6 @@ class QueueMixin extends Environment {
       this.queue = null;
    }
 }
-
-type TModifyHTMLNode = HTMLElement & Record<string, any>;
 
 interface IDires {
    [key: string]: number;
@@ -456,7 +447,8 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       // flag to true to avoid event triggering twice.
       event.addedToClickState = true;
 
-      SwipeController.initSwipeState(event);
+      SwipeController.initState(event);
+      LongTapController.initState(event);
    }
    _handleTouchmove(event: any): any {
       if (this._shouldUseClickByTap()) {
@@ -473,7 +465,8 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          }
       }
 
-      SwipeController.detectSwipe(event);
+      SwipeController.detectState(event);
+      LongTapController.resetState();
    }
 
    _handleTouchend(event: any): any {
@@ -513,7 +506,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       // flag to true to avoid event triggering twice.
       event.addedToClickState = true;
 
-      SwipeController.resetSwipeState();
+      SwipeController.resetState();
    }
 
    _shouldUseClickByTap(): any {
@@ -1293,77 +1286,4 @@ if (detection.isIE12 && typeof window !== 'undefined' && typeof document !== 'un
          }
       }, true);
    }
-}
-
-export interface IProperties {
-   attributes: Record<string, string>;
-   hooks: Record<string, any>;
-   events: TEventsObject;
-}
-
-interface IHandlerInfo {
-   handler: (evt: Event) => void;
-   bodyEvent: boolean;
-   processingHandler: boolean;
-   count: number;
-}
-
-type TMarkupNodeDecoratorFn = (
-   tagName: string,
-   properties: IProperties,
-   children: any,
-   key: TControlId,
-   controlNode: any,
-   ref: any
-) => VNode[];
-
-export interface IDOMEnvironment extends _IDOMEnvironment {
-   addTabListener(e?: any): void;
-   removeTabListener(e: any): void;
-   destroy(): void;
-
-   _handleFocusEvent(e: any): void;
-   _handleBlurEvent(e: any): void;
-   _handleMouseDown(e: any): void;
-   _handleClick(event: any): void;
-   _handleTouchstart(event: any): void;
-   _handleTouchmove(event: any): void;
-   _handleTouchend(event: any): void;
-   _shouldUseClickByTap(): boolean;
-
-   applyNewVNode(newVNnode: any, rebuildChanges: any, newRootCntNode: any): void;
-   decorateFullMarkup(vnode: VNode, controlNode: any): VNode;
-   getMarkupNodeDecorator(): TMarkupNodeDecoratorFn;
-   getDOMNode(): HTMLElement;
-
-   startEvent(controlNode: any, args: any): any;
-   getHandlerInfo(eventName: string, processingHandler: boolean, bodyEvent: boolean): IHandlerInfo | null;
-   addHandler(eventName: string, isBodyElement: boolean, handler: any, processingHandler: boolean): void;
-   addNativeListener(
-      element: HTMLElement,
-      handler: any,
-      eventName: string,
-      config: any,
-      options?: boolean | AddEventListenerOptions
-   ): void;
-   removeHandler(eventName: string, isBodyElement: boolean, processingHandler: boolean): any;
-   removeNativeListener(element: HTMLElement, handler: EventListener, eventName: string, capture: boolean): any;
-   addCaptureEventHandler(eventName: string, element: IWasabyHTMLElement): any;
-   addCaptureProcessingHandler(eventName: string, method: (event: Event) => void): any;
-   removeCaptureEventHandler(eventName: string, element: IWasabyHTMLElement): void;
-   removeAllCaptureHandlers(): void;
-   removeProcessiingEventHandler(eventName: string): void;
-   _canDestroy(destroyedControl: Control): any;
-
-   queue?: string[];
-
-   _currentDirties: Record<string, number>;
-   _nextDirties: Record<string, number>;
-   activateSubQueue: undefined;
-
-   // FIXME это не должно быть публичным. Найти все ссылки и разобраться
-   _rootDOMNode: TModifyHTMLNode;
-   __captureEventHandler: Function;
-   _rebuildRequestStarted?: boolean;
-   _haveRebuildRequest?: boolean;
 }

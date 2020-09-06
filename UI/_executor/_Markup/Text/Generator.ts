@@ -79,6 +79,56 @@ export class GeneratorText implements IGenerator {
          config, contextObj, defCollection);
    }
 
+   prepareWsControl(name: GeneratorTemplateOrigin,
+                    data: IControlData,
+                    attrs: IGeneratorAttrs,
+                    templateCfg: ICreateControlTemplateCfg,
+                    context: string,
+                    deps: TDeps): GeneratorObject | Promise<unknown> | Error {
+      return this.generatorBase.prepareWsControl(name, data, attrs, templateCfg, context, deps);
+   }
+
+   prepareTemplate(name: GeneratorTemplateOrigin,
+                   data: IControlData,
+                   attrs: IGeneratorAttrs,
+                   templateCfg: ICreateControlTemplateCfg,
+                   context: string,
+                   deps: TDeps,
+                   config: IGeneratorConfig): GeneratorObject | Promise<unknown> | Error {
+      return this.generatorBase.prepareTemplate(name, data, attrs, templateCfg, context, deps, config);
+   }
+
+   prepareController(name: GeneratorTemplateOrigin,
+                     data: IControlData,
+                     attrs: IGeneratorAttrs,
+                     templateCfg: ICreateControlTemplateCfg,
+                     context: string,
+                     deps: TDeps): GeneratorObject | Promise<unknown> | Error {
+      return this.generatorBase.prepareController(name, data, attrs, templateCfg, context, deps);
+   }
+
+   prepareResolver(name: GeneratorTemplateOrigin,
+                   data: IControlData,
+                   attrs: IGeneratorAttrs,
+                   templateCfg: ICreateControlTemplateCfg,
+                   context: string,
+                   deps: TDeps,
+                   includedTemplates: TIncludedTemplate,
+                   config: IGeneratorConfig,
+                   contextObj?: GeneratorEmptyObject,
+                   defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error {
+      return this.generatorBase.prepareResolver(name,
+         data,
+         attrs,
+         templateCfg,
+         context,
+         deps,
+         includedTemplates,
+         config,
+         contextObj,
+         defCollection);
+   }
+
    createText(text) {
       return text;
    };
@@ -96,10 +146,10 @@ export class GeneratorText implements IGenerator {
       let resultingFn = cnstr && cnstr.prototype && cnstr.prototype._template;
 
       if (!cnstr && !resultingFn) {
-         let message = 'Попытка создания контрола, у которого отсутствует конструктор и шаблон';
-         let e = new Error('createWsControl() - constructor not found');
+         let message = `Попытка создания контрола ${data.dataComponent}, у которого отсутствует конструктор и шаблон`;
+         let e = new Error(`Ошибка создания контрола (${data.dataComponent}) - конструктор не найден`);
          // TODO в аргументах функции createWsControl содержатся много вспомогательной информации, нужно изучить что можно передать в детализацию логера за место инстанса
-         Logger.error(message, data, e);
+         Logger.error(message, data.logicParent, e);
          this.createEmptyText();
       }
 
@@ -178,7 +228,7 @@ export class GeneratorText implements IGenerator {
          fn;
 
       if (isTplString) {
-         fn = stringTemplateResolver(tpl, includedTemplates, _deps, config);
+         fn = stringTemplateResolver(tpl, includedTemplates, _deps, config, data.parent);
       } else if (isTplModule) {
          fn = data.controlClass;
       } else {

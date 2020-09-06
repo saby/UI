@@ -1,6 +1,9 @@
 /// <amd-module name="UI/_executor/_Utils/Class" />
 /* tslint:disable */
 
+/**
+ * @author Тэн В.А.
+ */
 function removeDuplicates(array) {
    for (var i = 0; i < array.length; ++i) {
       for (var j = i + 1; j < array.length; ++j) {

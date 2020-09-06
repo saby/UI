@@ -2,6 +2,7 @@ import {TemplateFunction} from 'UI/Base';
 import {TestBaseControl} from '../Base';
 import {detection} from 'Env/Env';
 
+// @ts-ignore
 import template = require('wml!UITest/Focus/WithInputFakeMobile');
 
 class TestControl extends TestBaseControl {

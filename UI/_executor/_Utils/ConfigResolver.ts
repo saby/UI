@@ -1,10 +1,10 @@
 /// <amd-module name="UI/_executor/_Utils/ConfigResolver" />
 
-// This module can only be referenced with ECMAScript imports/exports
-// by turning on the 'esModuleInterop' flag and referencing its default export.
-// @ts-ignore
-import * as cMerge from 'Core/core-merge';
+/**
+ * @author Тэн В.А.
+ */
 
+import { FunctionUtils } from 'UI/Utils';
 import { constants, cookie } from 'Env/Env';
 import { plainMerge } from './Common';
 import * as Scope from '../_Expressions/Scope';
@@ -165,7 +165,7 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
             (!insertedData.hasOwnProperty('element') || !insertedData.element || insertedData.element.length === 0)) {
 
             // @ts-ignore
-            if (!fixScopeMergingInContent && !constants.isProduction) {
+            if (fixScopeMergingInContent === undefined && !constants.isProduction) {
                fixScopeMergingInContent = cookie.get('fixScopeMergingInContent');
             }
             if (!templateCfg.isRootTag && fixScopeMergingInContent === 'true') {
@@ -198,7 +198,7 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
                insertedData = insertedDataCloned;
             }
 
-            data = cMerge(data, insertedData, {
+            data = FunctionUtils.merge(data, insertedData, {
                rec: !(templateCfg.viewController && templateCfg.viewController._template),
 
                // для vdomных детей не клонируем объекты внутрь.

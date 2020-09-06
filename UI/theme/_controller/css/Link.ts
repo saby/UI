@@ -1,7 +1,7 @@
 /// <amd-module name='UI/theme/_controller/css/Link' />
-import { Base } from 'UI/theme/_controller/css/Base';
-import { IHTMLElement, ICssEntity } from 'UI/theme/_controller/css/interface';
-import { THEME_TYPE, ELEMENT_ATTR } from 'UI/theme/_controller/css/const';
+import { Base } from './Base';
+import { IHTMLElement, ICssEntity } from './interface';
+import { THEME_TYPE, ELEMENT_ATTR } from './const';
 /**
  * Мультитемная ссылка на клиенте
  */

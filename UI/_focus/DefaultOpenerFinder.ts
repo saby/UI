@@ -2,7 +2,7 @@
 /* tslint:disable */
 
 /**
- * @author Белотелов Н.В.
+ * @author Тэн В.
  * В этом модуле содержится логика по нахождению opener'а, если opener нигде не задан
  */
 
@@ -31,21 +31,19 @@ Controls/Popup/Opener/Sticky
 
 Таким образом для решения проблемы достаточно будет просто не задавать opener для подробной карточки сотрудника.
 */
-// @ts-ignore
-import * as cInstance from 'Core/core-instance';
 
 import { Logger } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
-import { Control } from 'UI/Base';
+import { IControl } from './IControl';
 
-export function find(control: Control): Control[] {
+export function find(control: IControl|Element|Array<Element>): IControl[] {
    let container;
-   if (cInstance.instanceOfModule(control, 'UI/Base:Control')) {
+   if (control.hasOwnProperty('_container')) {
       // @ts-ignore
       container = control._container;
    } else if (control instanceof Element) {
       container = control;
-   } else if (control && control[0] instanceof Element) {
+   } else if (control && (control[0] instanceof Element)) {
       // для совместимости, если пришел jquery
       container = control[0];
    } else {

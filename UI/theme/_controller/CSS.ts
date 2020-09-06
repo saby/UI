@@ -1,10 +1,10 @@
 /// <amd-module name='UI/theme/_controller/CSS' />
-import { THEME_TYPE, ELEMENT_ATTR, DEPRECATED_ELEMENT_ATTR, EMPTY_THEME, DEPRECATED_THEME_TYPE } from 'UI/theme/_controller/css/const';
-import { ICssEntity, IHTMLElement } from 'UI/theme/_controller/css/interface';
-import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
-import SingleLink from 'UI/theme/_controller/css/SingleLink';
-import LinkPS from 'UI/theme/_controller/css/LinkPS';
-import Link from 'UI/theme/_controller/css/Link';
+import { THEME_TYPE, ELEMENT_ATTR, DEPRECATED_ELEMENT_ATTR, EMPTY_THEME, DEPRECATED_THEME_TYPE } from './css/const';
+import { ICssEntity, IHTMLElement } from './css/interface';
+import SingleLinkPS from './css/SingleLinkPS';
+import SingleLink from './css/SingleLink';
+import LinkPS from './css/LinkPS';
+import Link from './css/Link';
 // @ts-ignore
 import { constants } from 'Env/Env';
 

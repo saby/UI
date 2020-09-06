@@ -1,11 +1,10 @@
 // @ts-ignore
 import { goUpByControlTree } from 'UI/NodeCollector';
-// @ts-ignore
-import isElementVisible = require('Core/helpers/Hcontrol/isElementVisible');
+import { isElementVisible } from 'UI/Utils';
 import { notifyActivationEvents } from 'UI/_focus/Events';
 
 /**
- * @author Белотелов Н.В.
+ * @author Тэн В.А.
  * Содержит логику восстановление фокуса, если фокус слетает на body
  */
 
@@ -33,10 +32,10 @@ export function restoreFocus(control: IControl, action: Function): void {
       prevControls = goUpByControlTree(savedActiveElement);
    }
 
-   action();
-
    // @ts-ignore
    const environment = control._getEnvironment();
+
+   action();
 
    environment._restoreFocusState = true;
    // если сразу после изменения DOM-дерева фокус слетел в body, пытаемся восстановить фокус на ближайший элемент от

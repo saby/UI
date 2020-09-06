@@ -1,4 +1,9 @@
+/**
+ * @author Тэн В.А.
+ */
 import { Control } from 'UI/Base';
+
+// @ts-ignore
 import template = require('wml!UI/_hotKeys/KeyHook');
 import { goUpByControlTree } from 'UI/NodeCollector';
 import Dispatcher from './Dispatcher';

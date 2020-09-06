@@ -1,5 +1,8 @@
 /// <amd-module name="UI/_executor/_Expressions/Decorate" />
 /* tslint:disable */
+/**
+ * @author Тэн В.А.
+ */
 
 import { checkAttr } from './AttrHelper';
 

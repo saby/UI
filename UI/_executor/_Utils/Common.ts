@@ -1,14 +1,18 @@
 /// <amd-module name="UI/_executor/_Utils/Common" />
 /* tslint:disable */
 
+/**
+ * @author Тэн В.А.
+ */
+
 // @ts-ignore
 import { constants } from 'Env/Env';
 
 import * as Attr from '../_Expressions/Attr';
 
 import * as RequireHelper from './RequireHelper';
-// @ts-ignore
-import * as ReactiveObserver from 'Core/ReactiveObserver';
+
+import { ReactiveObserver } from 'UI/Reactivity';
 
 var
    requireIfDefined = function requireIfDefined(tpl) {

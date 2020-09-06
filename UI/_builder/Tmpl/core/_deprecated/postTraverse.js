@@ -1,11 +1,13 @@
 define('UI/_builder/Tmpl/core/_deprecated/postTraverse', [
    'UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch',
-   'Core/helpers/Array/uniq'
+   'UI/Utils'
 ], function(
    dirtyCheckingPatch,
-   uniqueArray
+   Utils
 ) {
    'use string';
+
+   var uniqueArray = Utils.ArrayUtils.uniq;
 
    /**
     * @author Крылов М.А.

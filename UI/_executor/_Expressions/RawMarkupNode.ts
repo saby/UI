@@ -1,6 +1,8 @@
 /// <amd-module name="UI/_executor/_Expressions/RawMarkupNode" />
 /* tslint:disable */
-
+/**
+ * @author Тэн В.А.
+ */
 import { _FocusAttrs } from 'UI/Focus';
 
 // this class need for create instance containing raw html and some properties.

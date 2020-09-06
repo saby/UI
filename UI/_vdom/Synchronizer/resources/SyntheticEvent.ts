@@ -43,7 +43,8 @@ var domEventsBubbling = {
    touchend: true,
    touchmove: true,
    contextmenu: true,
-   swipe: true
+   swipe: true,
+   longtap: true
 };
 
 interface IEventConfig {

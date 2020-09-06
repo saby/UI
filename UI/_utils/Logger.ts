@@ -24,6 +24,7 @@ import { IoC } from 'Env/Env';
  *    at constructor.<anonymous> (DOMEnvironment.js:968)
  *
  * @class UI/_utils/Logger
+ * @author Шипин А.А.
  * @public
  */
 

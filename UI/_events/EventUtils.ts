@@ -1,6 +1,10 @@
 /// <amd-module name="UI/_events/EventUtils" />
 /* tslint:disable */
 
+/**
+ * @author Тэн В.А.
+ */
+
 const originDOMEventNames = {
    mozmousepixelscroll: "MozMousePixelScroll",
    domautocomplete: "DOMAutoComplete"

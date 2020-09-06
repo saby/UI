@@ -1,5 +1,8 @@
 /// <amd-module name="UI/_executor/_Expressions/Attr" />
 /* tslint:disable */
+/**
+ * @author Тэн В.А.
+ */
 
 import { isAttr, checkAttr } from './AttrHelper';
 import { _FocusAttrs } from 'UI/Focus';
