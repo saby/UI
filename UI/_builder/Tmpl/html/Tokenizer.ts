@@ -893,7 +893,7 @@ export class Tokenizer implements ITokenizer {
                      break;
                   default:
                      // Parse error. Reconsume the character in the before attribute name state.
-                     this.warn('В закрывающем теге после символа / сразу должен следовать символ >');
+                     this.warn('В закрывающем теге после символа "/" сразу должен следовать символ >');
                      this.state = State.BEFORE_ATTRIBUTE_NAME;
                      reader.reconsume();
                      break;
@@ -1905,9 +1905,8 @@ export class Tokenizer implements ITokenizer {
          return;
       }
       if (this.attributes[this.attributeName]) {
-         this.error(`Обнаружен дублированное имя атрибута "${this.attributeName}" на теге "${this.tagName}"`);
-         // FIXME: Use the last attribute
-         // this.attributeName = undefined;
+         this.error(`Атрибут "${this.attributeName}" уже определен на теге "${this.tagName}"`);
+         this.attributeName = undefined;
       }
    }
 
