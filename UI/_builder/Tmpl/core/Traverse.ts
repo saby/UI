@@ -1059,7 +1059,7 @@ class Traverse implements ITraverse {
       }
       if (context.state !== TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_OBJECT) {
          this.errorHandler.error(
-            `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидалась. Тег будет отброшен.`,
+            `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидалась опция. Тег будет отброшен.`,
             {
                fileName: context.fileName,
                position: node.position
