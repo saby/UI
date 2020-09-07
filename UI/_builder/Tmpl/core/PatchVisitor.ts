@@ -283,6 +283,7 @@ class PatchVisitor implements Ast.IAstVisitor {
             const forData = `${initStr}; ${testStr}; ${updateStr}`;
             // @ts-ignore
             node.attribs = {
+               ...attribs,
                'for': {
                   data: {
                      type: 'text',
@@ -344,6 +345,7 @@ class PatchVisitor implements Ast.IAstVisitor {
             : `${node.__$ws_unpackedCycle.__$ws_iterator.string} in ${node.__$ws_unpackedCycle.__$ws_collection.string}`;
          // @ts-ignore
          node.attribs = {
+            ...attribs,
             'for': {
                data: {
                   type: 'text',
