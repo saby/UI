@@ -457,6 +457,15 @@ function whatExpected(state: TraverseState): string {
    }
 }
 
+/**
+ * Check for text content.
+ * It is used for only bug when content option has type="string".
+ * @deprecated
+ */
+function hasTextContent(children: Nodes.Node[]): boolean {
+   return children.length > 0 && children.every((node: Nodes.Node) => node instanceof Nodes.Text);
+}
+
 // </editor-fold>
 
 /**
@@ -1235,7 +1244,9 @@ class Traverse implements ITraverse {
     */
    private processProperty(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode | Ast.ContentOptionNode {
       if (canBeTypeCasted(node)) {
-         return this.castPropertyWithType(node, context);
+         if (node.attributes.type.value !== 'string' || hasTextContent(node.children)) {
+            return this.castPropertyWithType(node, context);
+         }
       }
       const propertyContext: ITraverseContext = {
          ...context,
