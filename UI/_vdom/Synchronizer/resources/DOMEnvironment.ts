@@ -21,6 +21,7 @@ import { EventUtils } from 'UI/Events';
 import { RawMarkupNode } from 'UI/Executor';
 import Environment from './Environment';
 import * as SwipeController from './SwipeController';
+import { LongTapController } from './LongTapController';
 import {
    onStartSync,
    onEndSync
@@ -446,7 +447,8 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       // flag to true to avoid event triggering twice.
       event.addedToClickState = true;
 
-      SwipeController.initSwipeState(event);
+      SwipeController.initState(event);
+      LongTapController.initState(event);
    }
    _handleTouchmove(event: any): any {
       if (this._shouldUseClickByTap()) {
@@ -463,7 +465,8 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          }
       }
 
-      SwipeController.detectSwipe(event);
+      SwipeController.detectState(event);
+      LongTapController.resetState();
    }
 
    _handleTouchend(event: any): any {
@@ -503,7 +506,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       // flag to true to avoid event triggering twice.
       event.addedToClickState = true;
 
-      SwipeController.resetSwipeState();
+      SwipeController.resetState();
    }
 
    _shouldUseClickByTap(): any {
