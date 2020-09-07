@@ -217,9 +217,18 @@ const enum TraverseState {
    OBJECT_PROPERTY_WITH_CONTENT,
 
    /**
-    * In processing object property that contain content nodes only.
+    * In processing object property that contain data type node only.
+    * In case of detected more than one data type nodes this state
+    * will be changed to OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY state.
     */
-   OBJECT_PROPERTY_WITH_DATA_TYPE
+   OBJECT_PROPERTY_WITH_DATA_TYPE,
+
+   /**
+    * In processing object property that contain data type directives.
+    * In this case data type directives will be processed into data type nodes,
+    * these nodes will be packed into array, and this array will be a value of processing object property.
+    */
+   OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY,
 }
 
 /**
@@ -717,6 +726,7 @@ class Traverse implements ITraverse {
          case TraverseState.OBJECT_PROPERTY_WITH_CONTENT:
             return this.processTagInObjectPropertyWithContent(node, context);
          case TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE:
+         case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY:
             return this.processTagInObjectPropertyWithDataType(node, context);
          case TraverseState.PRIMITIVE_VALUE:
             this.errorHandler.error(
@@ -768,7 +778,7 @@ class Traverse implements ITraverse {
          case 'ws:String':
          case 'ws:Value':
             this.errorHandler.error(
-               `Использование директивы "${node.name}" вне описания опции запрещено`,
+               `Использование директив типа данных разрешено только внутри опции и массива. Обнаружена директива типа данных "${node.name}"`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -847,7 +857,7 @@ class Traverse implements ITraverse {
          case 'ws:String':
          case 'ws:Value':
             this.errorHandler.error(
-               `Использование директивы "${node.name}" вне описания опции запрещено`,
+               `Использование директив типа данных разрешено только внутри опции и массива. Обнаружена директива типа данных "${node.name}"`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -939,7 +949,7 @@ class Traverse implements ITraverse {
          case 'ws:String':
          case 'ws:Value':
             this.errorHandler.error(
-               `Использование директивы "${node.name}" вне описания опции запрещено. Ожидалась опция объекта`,
+               `Использование директив типа данных разрешено только внутри опции и массива. Обнаружена директива типа данных "${node.name}"`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -1021,30 +1031,25 @@ class Traverse implements ITraverse {
     * @returns {TData | null} Returns instance of concrete TData or null in case of broken content.
     */
    private processTagInObjectPropertyWithDataType(node: Nodes.Tag, context: ITraverseContext): Ast.TData {
-      if (context.state === TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE) {
-         this.errorHandler.error(
-            `Опция компонента, ws:partial и объекта может содержать только 1 директиву типа данных. Обнаружен тег "${node.name}"`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
+      switch (context.state) {
+         case TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT:
+            context.state = TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE;
+            return this.processTagInArrayData(node, context);
+         case TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE:
+            context.state = TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY;
+            return this.processTagInArrayData(node, context);
+         case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY:
+            return this.processTagInArrayData(node, context);
+         default:
+            this.errorHandler.error(
+               `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидалась опция`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
       }
-      if (context.state === TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT) {
-         context.state = TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE;
-      }
-      if (context.state !== TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE) {
-         this.errorHandler.error(
-            `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидалась опция`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
-      return this.processTagInArrayData(node, context);
    }
 
    /**
@@ -1217,16 +1222,28 @@ class Traverse implements ITraverse {
       };
       const content = this.visitAll(node.children, propertyContext);
       const name = Resolvers.resolveOption(node.name);
-      if (isFirstChildContent(content)) {
+      const isContentOnly = content.every((child: Ast.Ast) => Ast.isTypeofContent(child)) && content.length > 0;
+      if (isContentOnly) {
+         this.warnUnexpectedAttributes(node.attributes, context, node.name);
          return new Ast.ContentOptionNode(
             name,
             <Ast.TContent[]>content
          );
       }
-      if (content.length === 1 && Ast.isTypeofData(content[0])) {
+      const isDataTypeOnly = content.every((child: Ast.Ast) => Ast.isTypeofData(child)) && content.length > 0;
+      if (isDataTypeOnly) {
+         this.warnUnexpectedAttributes(node.attributes, context, node.name);
+         if (content.length === 1) {
+            return new Ast.OptionNode(
+               name,
+               <Ast.TData>content[0]
+            );
+         }
+         const array = new Ast.ArrayNode(<Ast.TData[]>content);
+         array.setFlag(Ast.Flags.TYPE_CASTED);
          return new Ast.OptionNode(
             name,
-            <Ast.TData>content[0]
+            array
          );
       }
       const properties = this.getObjectOptionsFromAttributes(node.attributes, context, node);
