@@ -998,8 +998,7 @@ function vdomEventBubbling(
                }
                /* Составляем массив аргументов для обаботчика. Первым аргументом будет объект события. Затем будут
                 * аргументы, переданные в обработчик в шаблоне, и последними - аргументы в _notify */
-               finalArgs = templateArgs.concat(args);
-               finalArgs = [eventObject].concat(finalArgs);
+               finalArgs = [eventObject].push(...templateArgs, ...args);
                // Добавляем в eventObject поле со ссылкой DOM-элемент, чей обработчик вызываем
                eventObject.currentTarget = curDomNode;
 
@@ -1011,8 +1010,6 @@ function vdomEventBubbling(
                if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control)) {
                   fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
                }
-               finalArgs = [];
-               eventObject.currentTarget = undefined;
                /* Проверяем, нужно ли дальше распространять событие по controlNodes */
                if (!eventObject.propagating()) {
                   const needCallNext =
