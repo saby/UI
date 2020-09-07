@@ -457,7 +457,7 @@ class AttributeProcessor implements IAttributeProcessor {
          return new Ast.BindNode(property, programNode);
       } catch (error) {
          this.errorHandler.error(
-            `В процессе разбора атрибута "${attributeNode.name}" на теге "${options.parentTagName}" возникла ошибка: ${error.message}. Атрибут будет отброшен`,
+            `В процессе разбора атрибута "${attributeNode.name}" на теге "${options.parentTagName}" возникла ошибка: ${error.message}`,
             {
                fileName: options.fileName,
                position: attributeNode.position
@@ -482,7 +482,7 @@ class AttributeProcessor implements IAttributeProcessor {
          return new Ast.EventNode(event, programNode);
       } catch (error) {
          this.errorHandler.error(
-            `В процессе разбора атрибута "${attributeNode.name}" на теге "${options.parentTagName}" возникла ошибка: ${error.message}. Атрибут будет отброшен`,
+            `В процессе разбора атрибута "${attributeNode.name}" на теге "${options.parentTagName}" возникла ошибка: ${error.message}`,
             {
                fileName: options.fileName,
                position: attributeNode.position
@@ -507,7 +507,7 @@ class AttributeProcessor implements IAttributeProcessor {
          if (attributeValue === null) {
             if (this.warnBooleanAttributesAndOptions) {
                this.errorHandler.error(
-                  `Обнаружен атрибут "${attributeNode.name}" на теге "${options.parentTagName}", которому не было задано значение. Атрибут будет отброшен`,
+                  `Обнаружен атрибут "${attributeNode.name}" на теге "${options.parentTagName}", которому не было задано значение`,
                   {
                      fileName: options.fileName,
                      position: attributeNode.position
@@ -533,7 +533,7 @@ class AttributeProcessor implements IAttributeProcessor {
          return new Ast.AttributeNode(attribute, value);
       } catch (error) {
          this.errorHandler.error(
-            `В процессе разбора атрибута "${attributeNode.name}" на теге "${options.parentTagName}" возникла ошибка: ${error.message}. Атрибут будет отброшен`,
+            `В процессе разбора атрибута "${attributeNode.name}" на теге "${options.parentTagName}" возникла ошибка: ${error.message}`,
             {
                fileName: options.fileName,
                position: attributeNode.position
@@ -557,7 +557,7 @@ class AttributeProcessor implements IAttributeProcessor {
          if (attributeValue === null) {
             if (this.warnBooleanAttributesAndOptions) {
                this.errorHandler.error(
-                  `Обнаружена опция "${attributeNode.name}" на теге "${options.parentTagName}", которой не было задано значение. Опция будет отброшена`,
+                  `Обнаружена опция "${attributeNode.name}" на теге "${options.parentTagName}", которой не было задано значение`,
                   {
                      fileName: options.fileName,
                      position: attributeNode.position
@@ -592,7 +592,7 @@ class AttributeProcessor implements IAttributeProcessor {
          return option;
       } catch (error) {
          this.errorHandler.error(
-            `В процессе разбора атрибута "${attributeNode.name}" на теге "${options.parentTagName}" возникла ошибка: ${error.message}. Атрибут будет отброшен`,
+            `В процессе разбора атрибута "${attributeNode.name}" на теге "${options.parentTagName}" возникла ошибка: ${error.message}`,
             {
                fileName: options.fileName,
                position: attributeNode.position
