@@ -450,7 +450,9 @@ export function createNode(controlClass_, options, key, environment, parentNode,
 
       if (typeof controlClass_ === 'function') {
          // создаем инстанс компонента
-         if (constants.compat) {
+         if (constants.compat ||
+            controlCnstr.prototype._moduleName === "Controls/compatiblePopup:CompoundArea" ||
+            controlCnstr.prototype._moduleName === "Core/CompoundContainer") {
             instCompat = getCompatibleUtils().createInstanceCompatible(controlCnstr, optionsWithState, internalOptions);
          } else {
             instCompat = createInstance(controlCnstr, optionsWithState, internalOptions);
