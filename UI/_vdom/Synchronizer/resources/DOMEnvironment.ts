@@ -1010,6 +1010,9 @@ function vdomEventBubbling(
                if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control)) {
                   fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
                }
+
+               finalArgs = [];
+               eventObject.currentTarget = undefined;
                /* Проверяем, нужно ли дальше распространять событие по controlNodes */
                if (!eventObject.propagating()) {
                   const needCallNext =
