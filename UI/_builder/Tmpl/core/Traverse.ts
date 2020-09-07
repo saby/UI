@@ -436,6 +436,27 @@ function useIdentifierAlias(identifier: string): string {
    return params[1];
 }
 
+/**
+ * Get processing expectation for handling an error.
+ * @param state {TraverseState} Current processing state.
+ */
+function whatExpected(state: TraverseState): string {
+   switch (state) {
+      case TraverseState.COMPONENT_WITH_OPTIONS:
+         return 'ожидались опции компонента или директивы "ws:partial"';
+      case TraverseState.ARRAY_ELEMENTS:
+      case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY:
+         return 'ожидались директивы типов данных для массива';
+      case TraverseState.OBJECT_PROPERTIES:
+      case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_OBJECT:
+         return 'ожидались опции объекта';
+      case TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE:
+         return 'ожидалась директива типа данных для опции';
+      case TraverseState.PRIMITIVE_VALUE:
+         return 'ожидался текст для примитивного типа данных';
+   }
+}
+
 // </editor-fold>
 
 /**
@@ -613,7 +634,7 @@ class Traverse implements ITraverse {
             return new Ast.CDataNode(node.data);
          default:
             this.errorHandler.error(
-               'Использование тега CData запрещено в данном контексте',
+               `Обнаружен непредусмотренный тег CData: ${whatExpected(context.state)}`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -638,7 +659,7 @@ class Traverse implements ITraverse {
             return new Ast.DoctypeNode(node.data);
          default:
             this.errorHandler.error(
-               'Использование тега Doctype запрещено в данном контексте',
+               `Обнаружен непредусмотренный тег Doctype: ${whatExpected(context.state)}`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -663,7 +684,7 @@ class Traverse implements ITraverse {
             return new Ast.InstructionNode(node.data);
          default:
             this.errorHandler.error(
-               'Использование тега Instruction запрещено в данном контексте',
+               `Обнаружен непредусмотренный тег Instruction: ${whatExpected(context.state)}`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -689,7 +710,7 @@ class Traverse implements ITraverse {
             return this.processText(node, context);
          default:
             this.errorHandler.error(
-               'Использование текста запрещено в данном контексте',
+               `Обнаружен непредусмотренный текст "${node.data}": ${whatExpected(context.state)}`,
                {
                   fileName: context.fileName,
                   position: node.position
