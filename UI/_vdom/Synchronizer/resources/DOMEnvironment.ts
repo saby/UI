@@ -1258,9 +1258,6 @@ function fixPassiveEventConfig(eventName: string, config: any): any {
    if (EventUtils.checkPassiveFalseEvents(eventName)) {
       config.passive = false;
    }
-   if (EventUtils.checkPassiveTrueEvents(eventName)) {
-      config.passive = true;
-   }
    return config;
 }
 

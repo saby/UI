@@ -1,4 +1,4 @@
-/// <amd-module name="Vdom/_private/Synchronizer/resources/SwipeController" />
+/// <amd-module name="UI/_vdom/Synchronizer/resources/SwipeController" />
 /* tslint:disable */
 
 import { IEventState, IMobileEvent, ITouchLocation, MobileEvent } from "./MobileEvents";

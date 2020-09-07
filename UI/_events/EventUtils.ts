@@ -10,8 +10,7 @@ const originDOMEventNames = {
    domautocomplete: "DOMAutoComplete"
 };
 
-const passiveFalseEvents = ["wheel", "mousewheel"];
-const passiveTrueEvents = ["touchstart", "touchmove"];
+const passiveFalseEvents = ["wheel", "mousewheel", "touchstart", "touchmove"];
 const specialBodyEvents = ["scroll", "resize"];
 
 export function isEvent(titleAttribute) {
@@ -32,9 +31,6 @@ export function getEventName(eventAttribute) {
  */
 export function checkPassiveFalseEvents(eventName): boolean {
    return passiveFalseEvents.indexOf(eventName) !== -1;
-}
-export function checkPassiveTrueEvents(eventName): boolean {
-   return passiveTrueEvents.indexOf(eventName) !== -1;
 }
 
 /**
