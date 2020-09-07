@@ -89,8 +89,7 @@ export default class SyntheticEvent<TNativeEvent extends Event = Event> {
    }
 
    preventDefault(): void {
-      // для тач-событий следует проверить можем ли мы остановить событие (например scroll нельзя)
-       if (this.nativeEvent && this.nativeEvent.cancelable) {
+       if (this.nativeEvent) {
            this.nativeEvent.preventDefault();
        }
    }
