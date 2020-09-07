@@ -253,6 +253,19 @@ function createTranslationNode(data: string, options: ITextProcessorOptions, pos
 }
 
 /**
+ *
+ * @param text
+ */
+function replaceNewLines(text: string): string {
+   const SPACE = ' ';
+   return text
+      .replace(/\n\r/g, SPACE)
+      .replace(/\r\n/g, SPACE)
+      .replace(/\r/g, SPACE)
+      .replace(/\n/g, SPACE);
+}
+
+/**
  * Represents methods to process html text nodes.
  */
 class TextProcessor implements ITextProcessor {
@@ -322,7 +335,9 @@ class TextProcessor implements ITextProcessor {
          return null;
       }
       try {
-         const programNode = this.expressionParser.parse(data);
+         const programNode = this.expressionParser.parse(
+            replaceNewLines(data)
+         );
          return new Ast.ExpressionNode(programNode);
       } catch (error) {
          throw new Error(`Mustache-выражение "${data}" некорректно`);
