@@ -966,7 +966,7 @@ function vdomEventBubbling(
    let fn;
    let evArgs;
    let templateArgs;
-   let finalArgs;
+   let finalArgs = [];
 
    //Если событием стрельнул window или document, то распространение начинаем с body
    if (native) {
@@ -998,8 +998,9 @@ function vdomEventBubbling(
                }
                /* Составляем массив аргументов для обаботчика. Первым аргументом будет объект события. Затем будут
                 * аргументы, переданные в обработчик в шаблоне, и последними - аргументы в _notify */
-               finalArgs = templateArgs.concat(args);
-               finalArgs = [eventObject].concat(finalArgs);
+               // finalArgs = templateArgs.concat(args);
+               // finalArgs = [eventObject].concat(finalArgs);
+               finalArgs.push([eventObject].push(...templateArgs.push(...args)));
                // Добавляем в eventObject поле со ссылкой DOM-элемент, чей обработчик вызываем
                eventObject.currentTarget = curDomNode;
 
