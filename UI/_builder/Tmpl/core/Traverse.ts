@@ -2241,11 +2241,14 @@ class Traverse implements ITraverse {
     * @throws {Error} Throws error if cycle parameters are invalid.
     */
    private parseForParameters(data: string): { init: ProgramNode | null; test: ProgramNode; update: ProgramNode | null; } {
-      const parameters = data.split(';').map(s => s.trim());
+      const parameters = data.split(';').map((s: string) => s.trim());
       if (parameters.length !== 3) {
-         throw new Error(
-            `цикл задан некорректно. Ожидалось соответствие шаблону "[init]; test; [update]". Получено: "${data}"`
-         );
+         // case "[init]; test; [update];" is also correct
+         if (parameters.length !== 4 || (parameters[4] || '').length !== 0) {
+            throw new Error(
+               `цикл задан некорректно. Ожидалось соответствие шаблону "[init]; test; [update]". Получено: "${data}"`
+            );
+         }
       }
       const [initExpression, testExpression, updateExpression] = parameters;
       let init;
@@ -2511,7 +2514,8 @@ class Traverse implements ITraverse {
          parentTagName: node.name
       };
       const attributes = this.attributeProcessor.process(node.attributes, attributeProcessorOptions);
-      const template = validatePartialTemplate(attributes.options['template'], node);
+      const template = validatePartialTemplate(attributes.options.template, node);
+      delete attributes.options.template;
       if (!template) {
          throw new Error('не задано обязательное значение опции "template"');
       }
