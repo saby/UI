@@ -17,20 +17,24 @@ const HTML_VOID_ELEMENTS = {
 export default class {
    outerHTML: string = '';
 
-   constructor (tags: ITagDescription[]) {
+   constructor(tags: ITagDescription[]) {
       this.outerHTML = tags
          .map(generateTagMarkup)
          .join('\n');
    }
 }
 
-export function generateTagMarkup({ tagName, attrs, children }: ITagDescription = { tagName: 'no_tag', attrs: {} }) {
+export function generateTagMarkup(
+   { tagName, attrs, children }: ITagDescription = { tagName: 'no_tag', attrs: {} }): string {
    const _atts = { ...DEFAULT_ATTRS, ...attrs };
    const attrMarkup = Object.entries(_atts).map(([key, val]) => `${key}="${val}"`).join(' ');
-   if (!children) {
-      const endChar = HTML_VOID_ELEMENTS[tagName] ? '' : '/';
-      return `<${tagName} ${attrMarkup}${endChar}>`;
+   if (HTML_VOID_ELEMENTS[tagName]) {
+      return `<${tagName} ${attrMarkup}>`;
    }
-   const childMarkup = (typeof children === 'string') ? children : generateTagMarkup(children);
-   return `<${tagName} ${attrMarkup}> ${childMarkup} </${tagName}>`;
+
+   let childMarkup = '';
+   if (children) {
+      childMarkup = (typeof children === 'string') ? children : generateTagMarkup(children);
+   }
+   return `<${tagName} ${attrMarkup}>${childMarkup}</${tagName}>`;
 }
