@@ -404,8 +404,11 @@ class PatchVisitor implements Ast.IAstVisitor {
          localized: false,
          noEscape: false
       };
+      const attributeValue = this.visitAll(node.__$ws_value, attributeContext);
       // @ts-ignore
-      node.data = this.visitAll(node.__$ws_value, attributeContext);
+      node.data = node.__$ws_value.length === 1 && node.__$ws_value[0] instanceof Ast.TextDataNode
+         ? attributeValue[0]
+         : attributeValue;
       // @ts-ignore
       node.key = undefined;
       // @ts-ignore
@@ -1002,7 +1005,7 @@ class PatchVisitor implements Ast.IAstVisitor {
    }
 
    // done.
-   private collectObjectProperties(node: Ast.ObjectNode): any {
+   private collectObjectProperties(node: Ast.ObjectNode, context: INavigationContext): any {
       const injectedData = [];
       for (const optionName in node.__$ws_properties) {
          const originProperty = node.__$ws_properties[optionName];
