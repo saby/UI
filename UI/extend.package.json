@@ -11,7 +11,6 @@
     "UI/Contexts",
     "UI/Executor",
     "UI/Reactivity",
-    "UI/Builder",
     "UI/State",
     "UI/Events"
   ],
