@@ -294,7 +294,10 @@ describe('Compiler/core/Traverse', () => {
       it('Failure! IfNode (if only - no data)', () => {
          const html = '<ws:if>Text</ws:if>';
          const tree = traverseTemplate(html);
-         assert.strictEqual(tree.length, 0);
+         assert.strictEqual(tree.length, 1);
+         assert.instanceOf(tree[0], Ast.IfNode);
+         const ast = <Ast.IfNode>tree[0];
+         assert.isTrue(ast.hasFlag(Ast.Flags.BROKEN));
       });
       it('ElseNode (if-else)', () => {
          const html = '<ws:if data="{{ condition }}">Text</ws:if><ws:else>Text</ws:else>';
@@ -306,14 +309,25 @@ describe('Compiler/core/Traverse', () => {
       it('Failure! ElseNode (if-else - no data)', () => {
          const html = '<ws:if>Text</ws:if><ws:else data="{{ otherCondition }}">Text</ws:else>';
          const tree = traverseTemplate(html);
-         assert.strictEqual(tree.length, 0);
+         assert.strictEqual(tree.length, 2);
+         assert.instanceOf(tree[0], Ast.IfNode);
+         assert.instanceOf(tree[1], Ast.ElseNode);
+         const ifNode = <Ast.IfNode>tree[0];
+         assert.isTrue(ifNode.hasFlag(Ast.Flags.BROKEN));
+         const elseNode = <Ast.ElseNode>tree[1];
+         assert.isFalse(elseNode.hasFlag(Ast.Flags.BROKEN));
       });
       it('Failure! ElseNode (if-elif-else)', () => {
          const html = '<ws:if data="{{ otherCondition }}">Text</ws:if><ws:else>Text</ws:else><ws:else data="{{ otherCondition }}">Text</ws:else>';
          const tree = traverseTemplate(html);
-         assert.strictEqual(tree.length, 2);
+         assert.strictEqual(tree.length, 3);
          assert.instanceOf(tree[0], Ast.IfNode);
          assert.instanceOf(tree[1], Ast.ElseNode);
+         assert.instanceOf(tree[2], Ast.ElseNode);
+         const firstElseIfNode = <Ast.ElseNode>tree[1];
+         assert.isFalse(firstElseIfNode.hasFlag(Ast.Flags.BROKEN));
+         const secondElseIfNode = <Ast.ElseNode>tree[2];
+         assert.isTrue(secondElseIfNode.hasFlag(Ast.Flags.BROKEN));
       });
    });
    describe('Cycles', () => {

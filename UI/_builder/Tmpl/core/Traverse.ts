@@ -268,7 +268,7 @@ function validateElseNode(prev: Ast.Ast | null): void {
       return;
    }
    if (prev instanceof Ast.ElseNode) {
-      if (!prev.isElif()) {
+      if (!prev.isElseIf()) {
          throw new Error(
             'ожидалось, что директива "ws:else" следует за директивной "ws:else", на котором задан атрибут "data"'
          );
@@ -1213,7 +1213,7 @@ class Traverse implements ITraverse {
          return this.processComponent(node, context);
       }
 
-      // TODO: Deprecated behaviour
+      // FIXME: Deprecated legacy behaviour. Remove components from template files *.tmpl, *.wml
       if (node.name === 'component') {
          const oldComponentContext: ITraverseContext = {
             ...context,
@@ -1247,6 +1247,9 @@ class Traverse implements ITraverse {
          if (node.attributes.type.value !== 'string' || hasTextContent(node.children)) {
             return this.castPropertyWithType(node, context);
          }
+         // FIXME: Incorrect legacy behaviour - type="string" on content option of component or ws:partial.
+         //  Ignore user type, remove type from attributes collection and process as content option node.
+         delete node.attributes.type;
       }
       const propertyContext: ITraverseContext = {
          ...context,
@@ -1254,16 +1257,16 @@ class Traverse implements ITraverse {
       };
       const content = this.visitAll(node.children, propertyContext);
       const name = Resolvers.resolveOption(node.name);
-      const isContentOnly = content.every((child: Ast.Ast) => Ast.isTypeofContent(child)) && content.length > 0;
-      if (isContentOnly) {
+      const hasContentOnly = content.every((child: Ast.Ast) => Ast.isTypeofContent(child)) && content.length > 0;
+      if (hasContentOnly) {
          this.warnUnexpectedAttributes(node.attributes, context, node.name);
          return new Ast.ContentOptionNode(
             name,
             <Ast.TContent[]>content
          );
       }
-      const isDataTypeOnly = content.every((child: Ast.Ast) => Ast.isTypeofData(child)) && content.length > 0;
-      if (isDataTypeOnly) {
+      const hasDataTypeOnly = content.every((child: Ast.Ast) => Ast.isTypeofData(child)) && content.length > 0;
+      if (hasDataTypeOnly) {
          this.warnUnexpectedAttributes(node.attributes, context, node.name);
          if (content.length === 1) {
             return new Ast.OptionNode(
@@ -1653,35 +1656,24 @@ class Traverse implements ITraverse {
     * @returns {ElementNode | null} Returns instance of ElementNode or null in case of broken content.
     */
    private processElement(node: Nodes.Tag, context: ITraverseContext): Ast.ElementNode {
-      try {
-         const childrenContext: ITraverseContext = {
-            ...context,
-            state: TraverseState.MARKUP,
-            translateText: this.textTranslator.isElementContentTranslatable(node.name)
-         };
-         const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
-         const elementDescription = this.textTranslator.getElementDescription(node.name);
-         const attributeProcessorOptions = {
-            fileName: context.fileName,
-            hasAttributesOnly: true,
-            parentTagName: node.name
-         };
-         const attributes = this.attributeProcessor.process(
-            node.attributes,
-            attributeProcessorOptions,
-            elementDescription
-         );
-         return new Ast.ElementNode(node.name, attributes.attributes, attributes.events, content);
-      } catch (error) {
-         this.errorHandler.error(
-            `Ошибка разбора HTML-элемента: ${error.message}`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
+      const childrenContext: ITraverseContext = {
+         ...context,
+         state: TraverseState.MARKUP,
+         translateText: this.textTranslator.isElementContentTranslatable(node.name)
+      };
+      const content = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
+      const elementDescription = this.textTranslator.getElementDescription(node.name);
+      const attributeProcessorOptions = {
+         fileName: context.fileName,
+         hasAttributesOnly: true,
+         parentTagName: node.name
+      };
+      const attributes = this.attributeProcessor.process(
+         node.attributes,
+         attributeProcessorOptions,
+         elementDescription
+      );
+      return new Ast.ElementNode(node.name, attributes.attributes, attributes.events, content);
    }
 
    // <editor-fold desc="Processing data type nodes">
@@ -1704,9 +1696,9 @@ class Traverse implements ITraverse {
     */
    private processArray(node: Nodes.Tag, context: ITraverseContext): Ast.ArrayNode {
       try {
-         return new Ast.ArrayNode(
-            this.processArrayContent(node, context, node.attributes)
-         );
+      return new Ast.ArrayNode(
+         this.processArrayContent(node, context, node.attributes)
+      );
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных "ws:Array": ${error.message}`,
@@ -1752,9 +1744,9 @@ class Traverse implements ITraverse {
     */
    private processBoolean(node: Nodes.Tag, context: ITraverseContext): Ast.BooleanNode {
       try {
-         return new Ast.BooleanNode(
-            this.processBooleanContent(node, context, node.attributes)
-         );
+      return new Ast.BooleanNode(
+         this.processBooleanContent(node, context, node.attributes)
+      );
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных "ws:Boolean": ${error.message}`,
@@ -1870,9 +1862,9 @@ class Traverse implements ITraverse {
     */
    private processNumber(node: Nodes.Tag, context: ITraverseContext): Ast.NumberNode {
       try {
-         return new Ast.NumberNode(
-            this.processNumberContent(node, context, node.attributes)
-         );
+      return new Ast.NumberNode(
+         this.processNumberContent(node, context, node.attributes)
+      );
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных "ws:Number": ${error.message}`,
@@ -2109,14 +2101,17 @@ class Traverse implements ITraverse {
     * @returns {IfNode | null} Returns instance of IfNode or null in case of broken content.
     */
    private processIf(node: Nodes.Tag, context: ITraverseContext): Ast.IfNode {
+      const ast = new Ast.IfNode();
+      const childrenContext = {
+         ...context,
+         state: TraverseState.MARKUP
+      };
+      const consequent = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
+      ast.setConsequent(consequent);
       try {
-         const childrenContext = {
-            ...context,
-            state: TraverseState.MARKUP
-         };
-         const consequent = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          const test = this.getProgramNodeFromAttribute(node, 'data', context);
-         return new Ast.IfNode(test, consequent);
+         ast.setTest(test);
+         return ast;
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы "ws:if": ${error.message}`,
@@ -2125,7 +2120,8 @@ class Traverse implements ITraverse {
                position: node.position
             }
          );
-         return null;
+         ast.setFlag(Ast.Flags.BROKEN);
+         return ast;
       }
    }
 
@@ -2137,18 +2133,22 @@ class Traverse implements ITraverse {
     * @returns {ElseNode | null} Returns instance of ElseNode or null in case of broken content.
     */
    private processElse(node: Nodes.Tag, context: ITraverseContext): Ast.ElseNode {
+      const isElseIf = node.attributes.hasOwnProperty('data');
+      const ast = new Ast.ElseNode(isElseIf);
+      const childrenContext = {
+         ...context,
+         state: TraverseState.MARKUP
+      };
+      const consequent = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
+      ast.setConsequent(consequent);
       try {
-         const childrenContext = {
-            ...context,
-            state: TraverseState.MARKUP
-         };
-         const consequent = <Ast.TContent[]>this.visitAll(node.children, childrenContext);
          let test = null;
-         if (node.attributes.hasOwnProperty('data')) {
+         if (isElseIf) {
             test = this.getProgramNodeFromAttribute(node, 'data', context);
          }
+         ast.setTest(test);
          validateElseNode(childrenContext.prev);
-         return new Ast.ElseNode(consequent, test);
+         return ast;
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы "ws:else": ${error.message}`,
@@ -2157,7 +2157,8 @@ class Traverse implements ITraverse {
                position: node.position
             }
          );
-         return null;
+         ast.setFlag(Ast.Flags.BROKEN);
+         return ast;
       }
    }
 

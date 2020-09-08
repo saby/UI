@@ -247,9 +247,9 @@ export declare type TText = ExpressionNode
  * @param node {Ast} Wasaby abstract syntax node.
  */
 export function isTypeofText(node: Ast): boolean {
-   return node instanceof ExpressionNode ||
-      node instanceof TextDataNode ||
-      node instanceof TranslationNode;
+      return node instanceof ExpressionNode ||
+         node instanceof TextDataNode ||
+         node instanceof TranslationNode;
 }
 
 /**
@@ -410,10 +410,11 @@ export abstract class Ast {
 
    /**
     * Initialize new instance of abstract syntax node.
+    * @param flags {Flags} Node flags.
     */
-   protected constructor() {
+   protected constructor(flags: Flags = Flags.VALIDATED) {
       this.__$ws_key =  '';
-      this.__$ws_flags = Flags.VALIDATED;
+      this.__$ws_flags = flags;
    }
 
    /**
@@ -519,7 +520,7 @@ export abstract class BaseWasabyElement extends BaseHtmlElement {
    setOption(option: OptionNode | ContentOptionNode): void {
       const name = option.__$ws_name;
       if (this.hasOption(name)) {
-         throw new Error(`Опция ${name} уже существует на компоненте`);
+         throw new Error(`Опция "${name}" уже определена на компоненте`);
       }
       if (option instanceof OptionNode) {
          this.__$ws_options[name] = option;
@@ -1000,7 +1001,7 @@ export class CommentNode extends Ast {
     * @param data {string} Comment data.
     */
    constructor(data: string) {
-      super();
+      super(Flags.IGNORABLE);
       this.__$ws_data = data;
    }
 
@@ -1247,15 +1248,20 @@ export class IfNode extends Ast {
 
    /**
     * Initialize new instance of conditional node.
-    * @param test {ProgramNode} Test expression.
-    * @param consequent {TContent[]} Consequent content nodes.
-    * @param alternate {ElseNode | null} Alternate conditional node.
     */
-   constructor(test: ProgramNode, consequent: TContent[], alternate: ElseNode | null = null) {
+   constructor() {
       super();
+      this.__$ws_test = null;
+      this.__$ws_consequent = null;
+      this.__$ws_alternate = null;
+   }
+
+   setTest(test: ProgramNode): void {
       this.__$ws_test = test;
+   }
+
+   setConsequent(consequent: TContent[]): void {
       this.__$ws_consequent = consequent;
-      this.__$ws_alternate = alternate;
    }
 
    /**
@@ -1280,6 +1286,11 @@ export class IfNode extends Ast {
 export class ElseNode extends Ast {
 
    /**
+    *
+    */
+   __$ws_isElseIf: boolean;
+
+   /**
     * Consequent content nodes.
     */
    __$ws_consequent: TContent[];
@@ -1296,15 +1307,22 @@ export class ElseNode extends Ast {
 
    /**
     * Initialize new instance of conditional node.
-    * @param consequent {TContent[]} Consequent content nodes.
-    * @param test {ProgramNode | null} Optional test expression.
-    * @param alternate {ElseNode | null} Alternate conditional node.
+    * @param isElseIf {boolean} If node represents "else if" notation.
     */
-   constructor(consequent: TContent[], test: ProgramNode | null = null, alternate: ElseNode | null = null) {
+   constructor(isElseIf: boolean) {
       super();
-      this.__$ws_consequent = consequent;
+      this.__$ws_isElseIf = isElseIf;
+      this.__$ws_consequent = [];
+      this.__$ws_test = null;
+      this.__$ws_alternate = null;
+   }
+
+   setTest(test: ProgramNode): void {
       this.__$ws_test = test;
-      this.__$ws_alternate = alternate;
+   }
+
+   setConsequent(consequent: TContent[]): void {
+      this.__$ws_consequent = consequent;
    }
 
    /**
@@ -1319,8 +1337,8 @@ export class ElseNode extends Ast {
    /**
     * Check if conditional node is else-if node.
     */
-   isElif(): boolean {
-      return this.__$ws_test !== null;
+   isElseIf(): boolean {
+      return this.__$ws_isElseIf;
    }
 }
 
