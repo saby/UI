@@ -525,22 +525,29 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.type = 'tag';
       const optionValue = node.__$ws_value;
       if (optionValue.hasFlag(Ast.Flags.TYPE_CASTED)) {
+         const isArrayOrObject = optionValue instanceof Ast.ArrayNode && optionValue.__$ws_elements.length > 1
+            || optionValue instanceof Ast.ArrayNode;
          const patchedOptionValue = optionValue.accept(this, context);
          // @ts-ignore
-         node.children = patchedOptionValue.children;
+         node.attribs = patchedOptionValue.attribs;
          // @ts-ignore
-         node.attribs = {
+         node.children = patchedOptionValue.children;
+         if (!isArrayOrObject) {
             // @ts-ignore
-            ...(patchedOptionValue.attribs || { }),
-            type: {
+            if (!node.attribs) {
+               // @ts-ignore
+               node.attribs = { };
+            }
+            // @ts-ignore
+            node.attribs.type = {
                data: {
                   type: 'text',
                   value: getDataTypeName(node.__$ws_value)
                },
                key: undefined,
                type: 'text'
-            }
-         };
+            };
+         }
          return node;
       }
       // @ts-ignore
@@ -549,8 +556,6 @@ class PatchVisitor implements Ast.IAstVisitor {
       ];
       // @ts-ignore
       node.attribs = undefined;
-      // @ts-ignore
-      node.children = this.visitAll(node.__$ws_value, context);
       return node;
    }
 
@@ -732,11 +737,11 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.type = 'tag';
       // @ts-ignore
       node.children = [{
-         data: node.__$ws_data,
+         data: this.visitAll(node.__$ws_data, context),
          key: undefined,
          type: 'text'
       }];
-      return this.visitAll(node.__$ws_data, context);
+      return node;
    }
 
    // done.
