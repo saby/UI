@@ -202,10 +202,11 @@ class PatchVisitor implements Ast.IAstVisitor {
          isEvent: false,
          localized: false,
          noEscape: false,
-         ...(context || { })
+         ...context
       };
+      const content = this.visitAll(node.__$ws_content, textContext);
       // @ts-ignore
-      node.data = this.visitAll(node.__$ws_content, textContext);
+      node.data = (node.__$ws_content.length === 1 && node.__$ws_content[0] instanceof Ast.TextDataNode) ? content[0] : content;
       // @ts-ignore
       node.type = 'text';
       // @ts-ignore
@@ -522,9 +523,15 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.originName = `ws:${node.__$ws_name}`;
       // @ts-ignore
       node.type = 'tag';
-      if (node.hasFlag(Ast.Flags.TYPE_CASTED)) {
+      const optionValue = node.__$ws_value;
+      if (optionValue.hasFlag(Ast.Flags.TYPE_CASTED)) {
+         const patchedOptionValue = optionValue.accept(this, context);
+         // @ts-ignore
+         node.children = patchedOptionValue.children;
          // @ts-ignore
          node.attribs = {
+            // @ts-ignore
+            ...(patchedOptionValue.attribs || { }),
             type: {
                data: {
                   type: 'text',
@@ -534,12 +541,12 @@ class PatchVisitor implements Ast.IAstVisitor {
                type: 'text'
             }
          };
-         // @ts-ignore
-         node.children = [
-            node.__$ws_value.accept(this, context)
-         ];
          return node;
       }
+      // @ts-ignore
+      node.children = [
+         node.__$ws_value.accept(this, context)
+      ];
       // @ts-ignore
       node.attribs = undefined;
       // @ts-ignore
