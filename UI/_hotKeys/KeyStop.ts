@@ -1,6 +1,3 @@
-/**
- * @author Тэн В.А.
- */
 import { Control, IControlOptions, TemplateFunction } from 'UI/Base';
 
 // @ts-ignore
@@ -21,7 +18,7 @@ interface IKeyStopOptions extends IControlOptions {
  * @class UI/_hotKeys/KeyStop
  * @extends UI/Base:Control
  * @public
- * @author Шипин А.А.
+ * @author Тэн В.А.
  */
 export default class KeyStop extends Control<IKeyStopOptions> {
    protected _template: TemplateFunction = template;
