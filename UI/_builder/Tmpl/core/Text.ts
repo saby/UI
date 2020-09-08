@@ -5,7 +5,7 @@
  * @file UI/_builder/Tmpl/core/Text.ts
  */
 
-import { canBeTranslated, splitLocalizationText } from 'UI/_builder/Tmpl/i18n/Helpers';
+import { splitLocalizationText } from 'UI/_builder/Tmpl/i18n/Helpers';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { SourcePosition } from 'UI/_builder/Tmpl/html/Reader';
@@ -105,68 +105,103 @@ const EXPRESSION_PATTERN = /\{\{ ?([\s\S]*?) ?\}\}/g;
 const TRANSLATION_PATTERN = /\{\[ ?([\s\S]*?) ?\]\}/g;
 
 /**
+ * Empty string constant
+ */
+const EMPTY_STRING = '';
+
+/**
+ * Whitespace constant
+ */
+const WHITESPACE = ' ';
+
+/**
+ * Processed text type
+ */
+const enum RawTextType {
+
+   /**
+    * Text content type
+    */
+   TEXT,
+
+   /**
+    * Mustache-expression content type
+    */
+   EXPRESSION,
+
+   /**
+    * Translation content type
+    */
+   TRANSLATION
+}
+
+/**
+ * Processed text item
+ */
+interface IRawTextItem {
+
+   /**
+    * Text type
+    */
+   type: RawTextType;
+
+   /**
+    * Text content
+    */
+   data: string;
+}
+
+/**
  * Type for text node wrappers.
  * Function accepts text contents and returns one of text nodes.
  */
-declare type TWrapper = (data: string) => Ast.TText;
+declare type TWrapper = (data: string) => IRawTextItem;
 
 /**
  * Process all text nodes and concrete them.
  * If text node content satisfies regular expression then new node will be created instead of that text node
  * using targetWrapper. If not then default wrapper will be used.
- * @param nodes {TText[]} Collection of text nodes.
+ * @param items {IRawTextItem[]} Collection of text nodes.
  * @param regex {RegExp} Target regular expression.
  * @param targetWrapper {TWrapper} Target text wrapper.
  * @param defaultWrapper {TWrapper} Default text wrapper.
- * @returns {TText[]} Returns new collection of text nodes.
+ * @returns {IRawTextItem[]} Returns new collection of text nodes.
  */
-function markDataByRegex(
-   nodes: Ast.TText[],
-   regex: RegExp,
-   targetWrapper: TWrapper,
-   defaultWrapper: TWrapper
-): Ast.TText[] {
+function markDataByRegex(items: IRawTextItem[], regex: RegExp, targetWrapper: TWrapper, defaultWrapper: TWrapper): IRawTextItem[] {
    let item;
-   let createdNode;
    let value;
+   let stringData;
    let last;
-   const data = [];
-   for (let idx = 0; idx < nodes.length; ++idx) {
-      if (!(nodes[idx] instanceof Ast.TextDataNode)) {
-         data.push(nodes[idx]);
-         continue;
-      }
+   const collection = [];
+   for (let idx = 0; idx < items.length; ++idx) {
+      // FIXME: Алгоритм построен на поэтапном уточнении текстовых сущностей
+      //  поэтому здесь нужно работать только с объектами, где strings[idx].type = 0
+      //  но пока не будет хорошей документации и прикладной код не будет содержать ошибок,
+      //  поддержим прежнюю работу
+      stringData = items[idx].data;
 
-      const stringData = (<Ast.TextDataNode>nodes[idx]).__$ws_content;
-
+      // С флагом global у регулярного выражения нужно сбрасывать индекс
       regex.lastIndex = 0;
       last = 0;
+      // eslint-disable-next-line no-cond-assign
       while ((item = regex.exec(stringData))) {
          if (last < item.index) {
             value = stringData.slice(last, item.index);
-            createdNode = defaultWrapper(value);
-            if (createdNode) {
-               data.push(createdNode);
-            }
+            collection.push(defaultWrapper(value));
          }
-         createdNode = targetWrapper(item[1]);
-         if (createdNode) {
-            data.push(createdNode);
-         }
+         collection.push(targetWrapper(item[1]));
          last = item.index + item[0].length;
       }
 
+      // В случае, если ни одна сущность не была уточнена, то просто положить ее такой же
       if (last === 0) {
-         data.push(nodes[idx]);
+         collection.push(items[idx]);
       } else if (last < stringData.length) {
          value = stringData.slice(last);
-         createdNode = defaultWrapper(value);
-         if (createdNode) {
-            data.push(createdNode);
-         }
+         collection.push(defaultWrapper(value));
       }
    }
-   return data;
+   return collection;
 }
 
 /**
@@ -189,36 +224,6 @@ function whatExpected(flags: TextContentFlags): string {
    if (!(flags ^ TextContentFlags.TEXT_AND_EXPRESSION)) {
       return 'ожидался только текст';
    }
-}
-
-/**
- * Process final text node check.
- * @param nodes {TText[]} Processed nodes.
- * @param options {ITextProcessorOptions} Text processor options.
- * @param position {SourcePosition} Position in source file for text node.
- * @throws {Error} Throws error if text data collection contains disallowed content type.
- * @returns {TText[]} Collection of text data nodes.
- */
-function finalizeContentCheck(nodes: Ast.TText[], options: ITextProcessorOptions, position: SourcePosition): Ast.TText[] {
-   const isTextForbidden = !(options.allowedContent & TextContentFlags.TEXT);
-   if (!isTextForbidden && !options.translateText) {
-      return nodes;
-   }
-   const collection = [];
-   for (let index = 0; index < nodes.length; ++index) {
-      const node = nodes[index];
-      if (!(node instanceof Ast.TextDataNode) || !canBeTranslated(node.__$ws_content)) {
-         collection.push(node);
-         continue;
-      }
-      if (isTextForbidden) {
-         throw new Error(`${whatExpected(options.allowedContent)}. Обнаружен текст "${node.__$ws_content}"`);
-      }
-      collection.push(
-         createTranslationNode(node.__$ws_content, options, position)
-      );
-   }
-   return collection;
 }
 
 /**
@@ -257,12 +262,11 @@ function createTranslationNode(data: string, options: ITextProcessorOptions, pos
  * @param text
  */
 function replaceNewLines(text: string): string {
-   const SPACE = ' ';
    return text
-      .replace(/\n\r/g, SPACE)
-      .replace(/\r\n/g, SPACE)
-      .replace(/\r/g, SPACE)
-      .replace(/\n/g, SPACE);
+      .replace(/\n\r/g, WHITESPACE)
+      .replace(/\r\n/g, WHITESPACE)
+      .replace(/\r/g, WHITESPACE)
+      .replace(/\n/g, WHITESPACE);
 }
 
 /**
@@ -292,29 +296,65 @@ class TextProcessor implements ITextProcessor {
     * @returns {TText[]} Collection of text data nodes.
     */
    process(text: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TText[] {
-      const internalOptions: ITextProcessorOptions = {
-         ...options,
-         allowedContent: options.allowedContent | TextContentFlags.TEXT
-      };
-      const firstStage = [
-         createTextNode(text, internalOptions, position)
-      ];
+      const firstStage: IRawTextItem[] = [{
+         type: RawTextType.TEXT,
+         data: text
+      }];
 
       const secondStage = markDataByRegex(
          firstStage,
          EXPRESSION_PATTERN,
-         (data: string) => this.createExpressionNode(data, internalOptions, position),
-         (data: string) => createTextNode(data, internalOptions, position)
+         (data: string) => { return { type: RawTextType.EXPRESSION, data }; },
+         (data: string) => { return { type: RawTextType.TEXT, data }; }
       );
 
       const thirdStage = markDataByRegex(
          secondStage,
          TRANSLATION_PATTERN,
-         (data: string) => createTranslationNode(data, internalOptions, position),
-         (data: string) => createTextNode(data, internalOptions, position)
+         (data: string) => { return { type: RawTextType.TRANSLATION, data }; },
+         (data: string) => { return { type: RawTextType.TEXT, data }; }
       );
 
-      return finalizeContentCheck(thirdStage, options, position);
+      return this.processMarkedStatements(thirdStage, options, position);
+   }
+
+   /**
+    * Create text nodes of abstract syntax tree.
+    * @param items {IRawTextItem[]} Collection of text nodes.
+    * @param options {ITextProcessorOptions} Text processor options.
+    * @param position {SourcePosition} Position in source file for text node.
+    */
+   private processMarkedStatements(items: IRawTextItem[], options: ITextProcessorOptions, position: SourcePosition): Ast.TText[] {
+      let node: Ast.TText;
+      const collection: Ast.TText[] = [];
+      for (let index = 0; index < items.length; index++) {
+         const data = items[index].data;
+         if (data === EMPTY_STRING) {
+            // TODO: Do not process empty strings.
+            //  1) Warn in case of empty mustache expressions
+            //  2) Warn in case of empty translations
+            continue;
+         }
+         node = null;
+         switch (items[index].type) {
+            case RawTextType.EXPRESSION:
+               if (data.trim() === EMPTY_STRING) {
+                  break;
+               }
+               node = this.createExpressionNode(data, options, position);
+               break;
+            case RawTextType.TRANSLATION:
+               node = createTranslationNode(data, options, position);
+               break;
+            default:
+               node = createTextNode(data, options, position);
+               break;
+         }
+         if (node) {
+            collection.push(node);
+         }
+      }
+      return collection;
    }
 
    /**
@@ -328,11 +368,6 @@ class TextProcessor implements ITextProcessor {
    private createExpressionNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.ExpressionNode {
       if ((options.allowedContent & TextContentFlags.EXPRESSION) === 0) {
          throw new Error(`${whatExpected(options.allowedContent)}. Обнаружено Mustache-выражение "${data}"`);
-      }
-
-      // TODO: warn about empty Mustache-expressions.
-      if (data.trim().length === 0) {
-         return null;
       }
       try {
          const programNode = this.expressionParser.parse(

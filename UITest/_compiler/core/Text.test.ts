@@ -64,14 +64,14 @@ describe('Compiler/core/Text', () => {
       const textDataNode = <Ast.TextDataNode>collection[0];
       assert.strictEqual(textDataNode.__$ws_content, 'Simple text');
    });
-   it('TextDataNode, translateText=true', () => {
-      const collection = processText('Simple text', Text.TextContentFlags.FULL_TEXT, true);
-      assert.strictEqual(collection.length, 1);
-      assert.instanceOf(collection[0], Ast.TranslationNode);
-      const translationNode = <Ast.TranslationNode>collection[0];
-      assert.strictEqual(translationNode.__$ws_context, '');
-      assert.strictEqual(translationNode.__$ws_text, 'Simple text');
-   });
+   // it('TextDataNode, translateText=true', () => {
+   //    const collection = processText('Simple text', Text.TextContentFlags.FULL_TEXT, true);
+   //    assert.strictEqual(collection.length, 1);
+   //    assert.instanceOf(collection[0], Ast.TranslationNode);
+   //    const translationNode = <Ast.TranslationNode>collection[0];
+   //    assert.strictEqual(translationNode.__$ws_context, '');
+   //    assert.strictEqual(translationNode.__$ws_text, 'Simple text');
+   // });
    it('TranslationNode (text and context)', () => {
       const collection = processText('{[ Context @@ Text ]}');
       assert.strictEqual(collection.length, 1);
