@@ -197,12 +197,6 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitText(node: Ast.TextNode, context: INavigationContext): any {
-      // @ts-ignore
-      node.data = this.visitAll(node.__$ws_content, textContext);
-      // @ts-ignore
-      node.type = 'text';
-      // @ts-ignore
-      node.key = node.__$ws_key;
       const textContext = {
          isBind: false,
          isEvent: false,
@@ -210,6 +204,12 @@ class PatchVisitor implements Ast.IAstVisitor {
          noEscape: false,
          ...(context || { })
       };
+      // @ts-ignore
+      node.data = this.visitAll(node.__$ws_content, textContext);
+      // @ts-ignore
+      node.type = 'text';
+      // @ts-ignore
+      node.key = node.__$ws_key;
       return node;
    }
 
