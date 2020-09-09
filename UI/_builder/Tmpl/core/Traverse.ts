@@ -1309,7 +1309,7 @@ class Traverse implements ITraverse {
          const content = this.textProcessor.process(node.data, {
             fileName: context.fileName,
             allowedContent: context.textContent || TextContentFlags.FULL_TEXT,
-            translateText: context.translateText,
+            translateText: context.translateText && !context.processingOldComponent,
             translationsRegistrar: context.scope
          }, node.position);
 
@@ -2394,20 +2394,20 @@ class Traverse implements ITraverse {
     * @throws {Error} Throws error in case of broken node data.
     */
    private createComponentOnly(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
-      const componentDescription = this.textTranslator.getComponentDescription(node.name);
       const attributeProcessorOptions = {
          fileName: context.fileName,
          hasAttributesOnly: false,
          parentTagName: node.name,
          translationsRegistrar: context.scope
       };
+      const path = Path.parseComponentName(node.name);
+      context.scope.registerDependency(path);
+      const componentDescription = this.textTranslator.getComponentDescription(path.getFullPath());
       const attributes = this.attributeProcessor.process(
          node.attributes,
          attributeProcessorOptions,
          componentDescription
       );
-      const path = Path.parseComponentName(node.name);
-      context.scope.registerDependency(path);
       return new Ast.ComponentNode(
          path,
          attributes.attributes,

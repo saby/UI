@@ -42,17 +42,6 @@ const JSDoc = {
                   'itemType': 'Items.typedef',
                   'type': 'object'
                },
-               'fullyTranslatable': {
-                  'type': 'object',
-                  'translatable': true
-               },
-               'myCaption': {
-                  'type': 'string',
-                  'translatable': true
-               },
-               'inlineOption': {
-                  'translatable': true
-               },
                'standardObject2': {
                   'itemType': 'StandardObject.Typedef',
                   'type': 'object'

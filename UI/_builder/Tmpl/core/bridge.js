@@ -37,7 +37,7 @@ define('UI/_builder/Tmpl/core/bridge', [
          hierarchicalKeys: true,
          errorHandler: errorHandler,
          allowComments: false,
-         textTranslator: Translator.createTextTranslator()
+         textTranslator: Translator.createTextTranslator(options.componentsProperties || { })
       };
       var traverseOptions = {
          fileName: options.fileName,

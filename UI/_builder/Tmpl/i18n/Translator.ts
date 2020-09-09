@@ -5,6 +5,8 @@
  * @file UI/_builder/Tmpl/i18n/Translator.ts
  */
 
+import createJSDocProcessor, { IJSDocProcessor, IJSDocSchema, IComponentDescription } from 'UI/_builder/Tmpl/i18n/JSDoc';
+
 /**
  * @todo
  */
@@ -93,20 +95,56 @@ class ElementDescription implements INodeDescription {
 /**
  * @todo
  */
-const ELEMENT_DESCRIPTION = new ElementDescription([
+class ComponentDescription extends ElementDescription {
+
+   /**
+    * @todo
+    */
+   private readonly componentDescription: IComponentDescription;
+
+   /**
+    * @todo
+    * @param translatableAttributeNames {string[]}
+    * @param componentDescription {IComponentDescription}
+    */
+   constructor(translatableAttributeNames: string[], componentDescription: IComponentDescription) {
+      super(translatableAttributeNames);
+      this.componentDescription = componentDescription;
+   }
+
+   /**
+    * @todo
+    * @param name {string}
+    */
+   isOptionTranslatable(name: string): boolean {
+      return this.componentDescription.isPropertyTranslatable(name);
+   }
+}
+
+/**
+ * @todo
+ */
+const TRANSLATABLE_ELEMENT_ATTRIBUTES = [
    'title'
-]);
+];
+
+/**
+ * @todo
+ */
+const ELEMENT_DESCRIPTION = new ElementDescription(TRANSLATABLE_ELEMENT_ATTRIBUTES);
 
 /**
  * @todo
  */
 class TextTranslator implements ITextTranslator {
 
+   private readonly jsDocProcessor: IJSDocProcessor;
+
    /**
     * @todo
     */
-   constructor() {
-      // TODO: !!!
+   constructor(jsDocSchema: IJSDocSchema) {
+      this.jsDocProcessor = createJSDocProcessor(jsDocSchema);
    }
 
    /**
@@ -114,7 +152,7 @@ class TextTranslator implements ITextTranslator {
     * @param name {string}
     */
    isElementContentTranslatable(name: string): boolean {
-      return FORBIDDEN_CONTENT_TRANSLATION.indexOf(name) == -1;
+      return FORBIDDEN_CONTENT_TRANSLATION.indexOf(name) === -1;
    }
 
    /**
@@ -127,18 +165,18 @@ class TextTranslator implements ITextTranslator {
 
    /**
     * @todo
-    * @param name {string}
+    * @param componentPath {string}
     */
-   getComponentDescription(name: string): INodeDescription {
-      // TODO: For components from storage!
-      return ELEMENT_DESCRIPTION;
+   getComponentDescription(componentPath: string): INodeDescription {
+      const componentDescription = this.jsDocProcessor.getComponentDescription(componentPath);
+      return new ComponentDescription(TRANSLATABLE_ELEMENT_ATTRIBUTES, componentDescription);
    }
 }
 
 /**
  * @todo
  */
-export function createTextTranslator(): ITextTranslator {
-   return new TextTranslator();
+export function createTextTranslator(jsDocSchema: IJSDocSchema): ITextTranslator {
+   return new TextTranslator(jsDocSchema);
 }
 
