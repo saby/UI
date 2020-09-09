@@ -7,6 +7,7 @@
 
 import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
+import Scope from 'UI/_builder/Tmpl/core/Scope';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { ITextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
@@ -199,6 +200,12 @@ export interface IAttributeProcessorOptions {
     * Parent tag name that contains processing attributes.
     */
    parentTagName: string;
+
+   /**
+    * Scope for register translations.
+    * @todo Describe interface.
+    */
+   scope: Scope;
 }
 
 /**
@@ -435,7 +442,8 @@ class AttributeProcessor implements IAttributeProcessor {
          {
             fileName: options.fileName,
             allowedContent: TextContentFlags.TEXT,
-            translateText: false
+            translateText: false,
+            scope: options.scope
          },
          attributeNode.position
       );
@@ -526,7 +534,8 @@ class AttributeProcessor implements IAttributeProcessor {
             {
                fileName: options.fileName,
                allowedContent: TextContentFlags.FULL_TEXT,
-               translateText: nodeDescription ? nodeDescription.isAttributeTranslatable(attribute) : false
+               translateText: nodeDescription ? nodeDescription.isAttributeTranslatable(attribute) : false,
+               scope: options.scope
             },
             attributeNode.position
          );
@@ -578,7 +587,8 @@ class AttributeProcessor implements IAttributeProcessor {
             {
                fileName: options.fileName,
                allowedContent: TextContentFlags.FULL_TEXT,
-               translateText: nodeDescription ? nodeDescription.isOptionTranslatable(attributeNode.name) : false
+               translateText: nodeDescription ? nodeDescription.isOptionTranslatable(attributeNode.name) : false,
+               scope: options.scope
             },
             attributeNode.position
          );

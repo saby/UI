@@ -5,6 +5,7 @@ import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';
 import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
 import * as Text from 'UI/_builder/Tmpl/core/Text';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
+import Scope from 'UI/_builder/Tmpl/core/Scope';
 import { assert } from 'chai';
 
 // TODO: UI/_builder/Tmpl/* -> Compiler/*
@@ -36,6 +37,7 @@ function createTextProcessorConfig() {
 function createTextProcessorOptions(allowedContent: Text.TextContentFlags, translateText: boolean) {
    return {
       fileName: FILE_NAME,
+      scope: new Scope(),
       allowedContent,
       translateText
    }

@@ -9,6 +9,7 @@ import { splitLocalizationText } from 'UI/_builder/Tmpl/i18n/Helpers';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { SourcePosition } from 'UI/_builder/Tmpl/html/Reader';
+import Scope from 'UI/_builder/Tmpl/core/Scope';
 
 /**
  * Interface for text processor config.
@@ -76,6 +77,12 @@ export interface ITextProcessorOptions {
     * Create translation nodes instead of text nodes.
     */
    translateText: boolean;
+
+   /**
+    * Scope for register translations.
+    * @todo Describe interface.
+    */
+   scope: Scope;
 }
 
 /**
@@ -254,6 +261,7 @@ function createTranslationNode(data: string, options: ITextProcessorOptions, pos
       throw new Error(`${whatExpected(options.allowedContent)}. Обнаружена конструкция локализации "${data}"`);
    }
    const { text, context } = splitLocalizationText(data);
+   options.scope.registerTranslation(options.fileName, text, context);
    return new Ast.TranslationNode(text, context);
 }
 
@@ -328,6 +336,7 @@ class TextProcessor implements ITextProcessor {
       let node: Ast.TText;
       const collection: Ast.TText[] = [];
       for (let index = 0; index < items.length; index++) {
+         let type = items[index].type;
          const data = items[index].data;
          if (data === EMPTY_STRING) {
             // TODO: Do not process empty strings.
@@ -336,7 +345,10 @@ class TextProcessor implements ITextProcessor {
             continue;
          }
          node = null;
-         switch (items[index].type) {
+         if (items.length === 1 && type === RawTextType.TEXT && options.translateText) {
+            type = RawTextType.TRANSLATION;
+         }
+         switch (type) {
             case RawTextType.EXPRESSION:
                if (data.trim() === EMPTY_STRING) {
                   break;

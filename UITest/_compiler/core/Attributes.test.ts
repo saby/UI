@@ -6,6 +6,7 @@ import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
 import * as Attributes from 'UI/_builder/Tmpl/core/Attributes';
 import { createTextProcessor } from 'UI/_builder/Tmpl/core/Text';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
+import Scope from 'UI/_builder/Tmpl/core/Scope';
 import { assert } from 'chai';
 
 // TODO: UI/_builder/Tmpl/* -> Compiler/*
@@ -42,7 +43,8 @@ function createAttributeProcessorOptions(hasAttributesOnly: boolean) {
    return {
       fileName: FILE_NAME,
       hasAttributesOnly,
-      parentTagName: 'tag-name'
+      parentTagName: 'tag-name',
+      scope: new Scope()
    };
 }
 

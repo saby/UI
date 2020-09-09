@@ -1160,7 +1160,8 @@ class Traverse implements ITraverse {
             {
                fileName: context.fileName,
                allowedContent: TextContentFlags.TEXT,
-               translateText: false
+               translateText: false,
+               scope: context.scope
             },
             node.position
          );
@@ -1308,10 +1309,9 @@ class Traverse implements ITraverse {
          const content = this.textProcessor.process(node.data, {
             fileName: context.fileName,
             allowedContent: context.textContent || TextContentFlags.FULL_TEXT,
-            translateText: context.translateText
+            translateText: context.translateText,
+            scope: context.scope
          }, node.position);
-
-         this.registerAllTranslations(content, context);
 
          // Set keys onto text content nodes.
          this.keysGenerator.openChildren();
@@ -1647,7 +1647,8 @@ class Traverse implements ITraverse {
       const attributeProcessorOptions = {
          fileName: context.fileName,
          hasAttributesOnly: true,
-         parentTagName: node.name
+         parentTagName: node.name,
+         scope: context.scope
       };
       const attributes = this.attributeProcessor.process(
          node.attributes,
@@ -1818,7 +1819,8 @@ class Traverse implements ITraverse {
          {
             fileName: context.fileName,
             hasAttributesOnly: false,
-            parentTagName: node.name
+            parentTagName: node.name,
+            scope: context.scope
          }
       );
       this.warnIncorrectProperties(options.attributes, node, context);
@@ -2396,7 +2398,8 @@ class Traverse implements ITraverse {
       const attributeProcessorOptions = {
          fileName: context.fileName,
          hasAttributesOnly: false,
-         parentTagName: node.name
+         parentTagName: node.name,
+         scope: context.scope
       };
       const attributes = this.attributeProcessor.process(
          node.attributes,
@@ -2493,7 +2496,8 @@ class Traverse implements ITraverse {
       const attributeProcessorOptions = {
          fileName: context.fileName,
          hasAttributesOnly: false,
-         parentTagName: node.name
+         parentTagName: node.name,
+         scope: context.scope
       };
       const attributes = this.attributeProcessor.process(node.attributes, attributeProcessorOptions);
       const template = validatePartialTemplate(attributes.options.template, node);
@@ -2531,7 +2535,8 @@ class Traverse implements ITraverse {
       const processedAttributes = this.attributeProcessor.process(attributes, {
          fileName: context.fileName,
          hasAttributesOnly: false,
-         parentTagName: parentNode.name
+         parentTagName: parentNode.name,
+         scope: context.scope
       });
       this.warnIncorrectProperties(processedAttributes.attributes, parentNode, context);
       this.warnIncorrectProperties(processedAttributes.events, parentNode, context);
@@ -2625,18 +2630,19 @@ class Traverse implements ITraverse {
          const dataValue = this.attributeProcessor.validateValue(node.attributes, attribute, {
             fileName: context.fileName,
             hasAttributesOnly: true,
-            parentTagName: node.name
+            parentTagName: node.name,
+            scope: context.scope
          });
          const textValue = this.textProcessor.process(
             dataValue,
             {
                fileName: context.fileName,
                translateText: false,
-               allowedContent
+               allowedContent,
+               scope: context.scope
             },
             node.position
          );
-         this.registerAllTranslations(textValue, context);
          return textValue[0];
       } catch (error){
          throw new Error(`в атрибуте "${attribute}" ${error.message}`);
@@ -2701,23 +2707,6 @@ class Traverse implements ITraverse {
                fileName: context.fileName,
                position: attributes[name].position
             }
-         );
-      }
-   }
-
-   /**
-    * Register all translation keys in processed text.
-    */
-   private registerAllTranslations(text: Ast.TText[], context: ITraverseContext): void {
-      for (let index = 0; index < text.length; ++index) {
-         const node = text[index];
-         if (!(node instanceof Ast.TranslationNode)) {
-            continue;
-         }
-         context.scope.registerTranslation(
-            context.fileName,
-            node.__$ws_text,
-            node.__$ws_context
          );
       }
    }
