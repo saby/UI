@@ -1811,7 +1811,7 @@ class Traverse implements ITraverse {
       };
       const textNodes = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
       if (textNodes.length !== 1) {
-         throw new Error('полученые некорректные данные');
+         throw new Error('получены некорректные данные');
       }
       const functionExpression = textNodes[0].__$ws_content;
       const options = this.attributeProcessor.process(
