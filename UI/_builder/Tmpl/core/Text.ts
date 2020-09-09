@@ -339,6 +339,7 @@ class TextProcessor implements ITextProcessor {
       for (let index = 0; index < items.length; index++) {
          let type = items[index].type;
          const data = items[index].data;
+         const isTranslatableItem = items.length === 1 && type === RawTextType.TEXT && options.translateText && canBeTranslated(items[0].data);
          if (data === EMPTY_STRING) {
             // TODO: Do not process empty strings.
             //  1) Warn in case of empty mustache expressions
@@ -346,16 +347,8 @@ class TextProcessor implements ITextProcessor {
             continue;
          }
          node = null;
-         if (items.length === 1 && type === RawTextType.TEXT && options.translateText && canBeTranslated(items[0].data)) {
+         if (isTranslatableItem) {
             type = RawTextType.TRANSLATION;
-            if (/^\s+/gi.test(items[0].data)) {
-               // Has important spaces before text
-               collection.splice(cursor - 1, 0, createTextNode(' ', options, position));
-            }
-            if (/\s+$/gi.test(items[0].data)) {
-               // Has important spaces after text
-               collection.splice(cursor + 1, 0, createTextNode(' ', options, position));
-            }
          }
          switch (type) {
             case RawTextType.EXPRESSION:
@@ -373,8 +366,20 @@ class TextProcessor implements ITextProcessor {
          }
          if (node) {
             collection.splice(cursor, 0, node);
-            ++cursor;
          }
+         if (isTranslatableItem) {
+            if (/^\s+/gi.test(items[0].data)) {
+               // Has important spaces before text
+               collection.splice(cursor - 1, 0, createTextNode(' ', options, position));
+               ++cursor;
+            }
+            if (/\s+$/gi.test(items[0].data)) {
+               // Has important spaces after text
+               collection.splice(cursor + 1, 0, createTextNode(' ', options, position));
+               ++cursor;
+            }
+         }
+         ++cursor;
       }
       return collection;
    }
