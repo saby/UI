@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_base/HTML/_meta/TagMarkup" />
 
 import { ITagDescription } from 'UI/_base/HTML/_meta/interface';
+import getResourceUrl = require('Core/helpers/getResourceUrl');
 
 export const DEFAULT_ATTRS = {
    'data-vdomignore': 'true'
@@ -27,7 +28,15 @@ export default class {
 export function generateTagMarkup(
    { tagName, attrs, children }: ITagDescription = { tagName: 'no_tag', attrs: {} }): string {
    const _atts = { ...DEFAULT_ATTRS, ...attrs };
-   const attrMarkup = Object.entries(_atts).map(([key, val]) => `${key}="${val}"`).join(' ');
+
+   // decorate all of input links and scripts to redirect requests onto
+   // cdn domain if it's configured on current page.
+   const attrMarkup = Object.entries(_atts).map(([key, val]) => {
+      if (key === 'href' || key === 'src') {
+         return `${key}="${getResourceUrl(val)}"`;
+      }
+      return `${key}="${val}"`;
+   }).join(' ');
    if (HTML_VOID_ELEMENTS[tagName]) {
       return `<${tagName} ${attrMarkup}>`;
    }
