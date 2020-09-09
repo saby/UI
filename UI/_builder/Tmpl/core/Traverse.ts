@@ -7,7 +7,6 @@
 
 import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
-import { isElementNode } from 'UI/_builder/Tmpl/core/Html';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { IKeysGenerator, createKeysGenerator } from 'UI/_builder/Tmpl/core/KeysGenerator';
@@ -70,11 +69,6 @@ export interface ITraverseConfig {
     * Warn about empty component content if component tag was not self-closing.
     */
    warnEmptyComponentContent?: boolean;
-
-   /**
-    * Warn about unknown element tags.
-    */
-   warnUnknownElements?: boolean;
 }
 
 /**
@@ -532,11 +526,6 @@ class Traverse implements ITraverse {
     */
    private readonly warnEmptyComponentContent: boolean;
 
-   /**
-    * Warn about unknown element tags.
-    */
-   private readonly warnUnknownElements: boolean;
-
    // </editor-fold>
 
    /**
@@ -561,7 +550,6 @@ class Traverse implements ITraverse {
       this.textTranslator = config.textTranslator;
       this.warnUnusedTemplates = !!config.warnUnusedTemplates;
       this.warnEmptyComponentContent = !!config.warnEmptyComponentContent;
-      this.warnUnknownElements = !!config.warnUnknownElements;
    }
 
    /**
@@ -1220,16 +1208,6 @@ class Traverse implements ITraverse {
             processingOldComponent: true
          };
          return this.processElement(node, oldComponentContext);
-      }
-
-      if (!(isElementNode(node.name) || context.processingOldComponent) && this.warnUnknownElements) {
-         this.errorHandler.warn(
-            `Обнаружен неизвестный HTML тег "${node.name}"`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
       }
       return this.processElement(node, context);
    }
