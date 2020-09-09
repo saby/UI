@@ -255,6 +255,10 @@ function whatExpected(flags: TextContentFlags): string {
  */
 function createTextNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TextDataNode {
    if ((options.allowedContent & TextContentFlags.TEXT) === 0) {
+      if (/^\s+$/gi.test(data)) {
+         // Ignore tabulation spaces
+         return null;
+      }
       throw new Error(`${whatExpected(options.allowedContent)}. Обнаружен текст "${data}"`);
    }
    return new Ast.TextDataNode(data);
