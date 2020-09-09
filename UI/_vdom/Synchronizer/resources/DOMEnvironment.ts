@@ -1149,13 +1149,15 @@ function isMyDOMEnvironment(env: any, event: any): any {
    if (element === window || element === document) {
       return true;
    }
+   const isCompatibleTemplate = requirejs.defined('OnlineSbisRu/CompatibleTemplate')
    while (element) {
-      if (element === env._rootDOMNode) {
+      //для страниц с CompatibleTemplate вся обработка в checkSameEnvironment
+      if (element === env._rootDOMNode && !isCompatibleTemplate) {
          return true;
       }
       // встретили controlNode - нужно принять решение
       if (element.controlNodes && element.controlNodes[0]) {
-         return checkSameEnvironment(env, element);
+         return checkSameEnvironment(env, element, isCompatibleTemplate);
       }
       if (element === document.body) {
          element = document.documentElement;
@@ -1168,11 +1170,11 @@ function isMyDOMEnvironment(env: any, event: any): any {
    return false;
 }
 
-function checkSameEnvironment(env: any, element: any): boolean {
+function checkSameEnvironment(env: any, element: any, isCompatibleTemplate: boolean): boolean {
    // todo костыльное решение, в случае CompatibleTemplate нужно всегда работать с верхним окружением (которое на html)
    // на ws3 страницах, переведенных на wasaby-окружение при быстром открытие/закртые окон не успевается полностью
    // задестроится окружение (очищается пурификатором через 10 сек), поэтому следует проверить env на destroy
-   if (requirejs.defined('OnlineSbisRu/CompatibleTemplate') && !env._destroyed) {
+   if (isCompatibleTemplate && !env._destroyed) {
       const htmlEnv = env._rootDOMNode.tagName.toLowerCase() === 'html';
       if (element.controlNodes[0].environment === env && !htmlEnv) {
          // FIXME: 1. проблема в том, что обработчики событий могут быть только на внутреннем окружении,
