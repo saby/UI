@@ -1243,6 +1243,7 @@ class Traverse implements ITraverse {
     * @returns {ContentOptionNode | OptionNode | null} Returns ContentOptionNode or OptionNode or null in case of broken content.
     */
    private processProperty(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode | Ast.ContentOptionNode {
+      let isStringTypeContentOption = false;
       if (canBeTypeCasted(node)) {
          if (node.attributes.type.value !== 'string' || hasTextContent(node.children)) {
             return this.castPropertyWithType(node, context);
@@ -1250,6 +1251,7 @@ class Traverse implements ITraverse {
          // FIXME: Incorrect legacy behaviour - type="string" on content option of component or ws:partial.
          //  Ignore user type, remove type from attributes collection and process as content option node.
          delete node.attributes.type;
+         isStringTypeContentOption = true;
       }
       const propertyContext: ITraverseContext = {
          ...context,
@@ -1262,7 +1264,8 @@ class Traverse implements ITraverse {
          this.warnUnexpectedAttributes(node.attributes, context, node.name);
          return new Ast.ContentOptionNode(
             name,
-            <Ast.TContent[]>content
+            <Ast.TContent[]>content,
+            isStringTypeContentOption
          );
       }
       const hasDataTypeOnly = content.every((child: Ast.Ast) => Ast.isTypeofData(child)) && content.length > 0;

@@ -687,14 +687,21 @@ export class ContentOptionNode extends Ast {
    __$ws_content: TContent[];
 
    /**
+    * FIXME: for content option with type="string". Output is markup string.
+    */
+   __$ws_isStringType: boolean;
+
+   /**
     * Initialize new instance of content option node.
     * @param name {string} Content option name.
     * @param content {TContent} Collection of content nodes.
+    * @param isStringType {boolean} For content option with type="string". Output is markup string.
     */
-   constructor(name: string, content: TContent[]) {
+   constructor(name: string, content: TContent[], isStringType: boolean = false) {
       super();
       this.__$ws_name = name;
       this.__$ws_content = content;
+      this.__$ws_isStringType = isStringType;
    }
 
    /**

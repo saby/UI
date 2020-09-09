@@ -564,10 +564,23 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitContentOption(node: Ast.ContentOptionNode, context: INavigationContext): any {
+      let attributes = undefined;
+      if (node.__$ws_isStringType) {
+         attributes = {
+            type: {
+               data: {
+                  value: 'string',
+                  type: 'text'
+               },
+               key: undefined,
+               type: 'text'
+            }
+         };
+      }
       // @ts-ignore
       node.children = this.visitAll(node.__$ws_content, context);
       // @ts-ignore
-      node.attribs = undefined;
+      node.attribs = attributes;
       // @ts-ignore
       node.key = node.__$ws_key;
       // @ts-ignore
