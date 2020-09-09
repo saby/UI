@@ -1,4 +1,4 @@
-/// <amd-module name="Vdom/_private/Synchronizer/resources/MobileEvents" />
+/// <amd-module name="UI/_vdom/Synchronizer/resources/MobileEvents" />
 /* tslint:disable */
 
 export interface IMobileEvent extends Event {

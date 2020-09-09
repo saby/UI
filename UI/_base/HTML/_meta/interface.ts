@@ -120,7 +120,7 @@ export interface IOpenGraph {
 
 export interface IAttrsDescription extends Record<string, string> { }
 export interface ITagDescription {
-   tagName: string,
+   tagName: string;
    attrs?: IAttrsDescription;
    children?: ITagDescription | string;
 }
