@@ -463,7 +463,7 @@ function whatExpected(state: TraverseState): string {
  * @deprecated
  */
 function hasTextContent(children: Nodes.Node[]): boolean {
-   return children.length > 0 && children.every((node: Nodes.Node) => node instanceof Nodes.Text);
+   return children.every((node: Nodes.Node) => node instanceof Nodes.Text);
 }
 
 // </editor-fold>
