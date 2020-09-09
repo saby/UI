@@ -5,7 +5,7 @@
  * @file UI/_builder/Tmpl/core/Text.ts
  */
 
-import { splitLocalizationText } from 'UI/_builder/Tmpl/i18n/Helpers';
+import { canBeTranslated, splitLocalizationText } from 'UI/_builder/Tmpl/i18n/Helpers';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { SourcePosition } from 'UI/_builder/Tmpl/html/Reader';
@@ -334,6 +334,7 @@ class TextProcessor implements ITextProcessor {
     */
    private processMarkedStatements(items: IRawTextItem[], options: ITextProcessorOptions, position: SourcePosition): Ast.TText[] {
       let node: Ast.TText;
+      let cursor: number = 0;
       const collection: Ast.TText[] = [];
       for (let index = 0; index < items.length; index++) {
          let type = items[index].type;
@@ -345,8 +346,16 @@ class TextProcessor implements ITextProcessor {
             continue;
          }
          node = null;
-         if (items.length === 1 && type === RawTextType.TEXT && options.translateText) {
+         if (items.length === 1 && type === RawTextType.TEXT && options.translateText && canBeTranslated(items[0].data)) {
             type = RawTextType.TRANSLATION;
+            if (/^\s+/gi.test(items[0].data)) {
+               // Has important spaces before text
+               collection.splice(cursor - 1, 0, createTextNode(' ', options, position));
+            }
+            if (/\s+$/gi.test(items[0].data)) {
+               // Has important spaces after text
+               collection.splice(cursor + 1, 0, createTextNode(' ', options, position));
+            }
          }
          switch (type) {
             case RawTextType.EXPRESSION:
@@ -363,7 +372,8 @@ class TextProcessor implements ITextProcessor {
                break;
          }
          if (node) {
-            collection.push(node);
+            collection.splice(cursor, 0, node);
+            ++cursor;
          }
       }
       return collection;
