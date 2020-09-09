@@ -390,17 +390,8 @@ export class Tokenizer implements ITokenizer {
             case State.IN_EXPRESSION:
                // Special Wasaby state. Consume the next input character.
                if (char === this.returnExpressionCharacter) {
-                  // FIXME: починить прямо сейчас невозможно:
-                  //  есть случаи, когда returnExpressionCharacter
-                  //  используется внутри Mustache-выражения.
-                  //  Поэтому сначала выводим ошибку,
-                  //  ожидаем исправления по местам, а потом переключаем
-                  //  на новое правильное поведение.
-                  // this.state = this.returnState;
-                  // this.returnExpressionCharacter = null;
-                  // reader.reconsume();
-                  // break;
-                  this.warn(`Нельзя использовать символы QUOTATION_MARK (") и APOSTROPHE (') в Mustache-выражении, если они открывают и закрывают значение атрибута`);
+                  // TODO: Enable warning
+                  // this.warn(`Нельзя использовать символы QUOTATION_MARK (") и APOSTROPHE (') в Mustache-выражении, если они открывают и закрывают значение атрибута`);
                }
                this.appendCharBuffer(char);
                if (char === Characters.RIGHT_CURLY_BRACKET) {
