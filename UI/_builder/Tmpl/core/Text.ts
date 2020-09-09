@@ -9,7 +9,6 @@ import { canBeTranslated, splitLocalizationText } from 'UI/_builder/Tmpl/i18n/He
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { SourcePosition } from 'UI/_builder/Tmpl/html/Reader';
-import Scope from 'UI/_builder/Tmpl/core/Scope';
 
 /**
  * Interface for text processor config.
@@ -20,6 +19,20 @@ interface ITextProcessorConfig {
     * Mustache expressions parser.
     */
    expressionParser: IParser;
+}
+
+/**
+ * Interface for translations registrar.
+ */
+export interface ITranslationsRegistrar {
+
+   /**
+    * Register translation key.
+    * @param module {string} Template file where translation item was discovered.
+    * @param text {string} Translation text.
+    * @param context {string} Translation context.
+    */
+   registerTranslation(module: string, text: string, context: string): void;
 }
 
 /**
@@ -79,10 +92,9 @@ export interface ITextProcessorOptions {
    translateText: boolean;
 
    /**
-    * Scope for register translations.
-    * @todo Describe interface.
+    * Translations registrar.
     */
-   scope: Scope;
+   translationsRegistrar: ITranslationsRegistrar;
 }
 
 /**
@@ -261,7 +273,7 @@ function createTranslationNode(data: string, options: ITextProcessorOptions, pos
       throw new Error(`${whatExpected(options.allowedContent)}. Обнаружена конструкция локализации "${data}"`);
    }
    const { text, context } = splitLocalizationText(data);
-   options.scope.registerTranslation(options.fileName, text, context);
+   options.translationsRegistrar.registerTranslation(options.fileName, text, context);
    return new Ast.TranslationNode(text, context);
 }
 

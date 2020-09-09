@@ -6,6 +6,7 @@
  */
 
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
+import { ITranslationsRegistrar } from 'UI/_builder/Tmpl/core/Text';
 import { IPath } from 'UI/_builder/Tmpl/core/Path';
 import { Dictionary, ITranslationKey } from 'UI/_builder/Tmpl/i18n/Dictionary';
 
@@ -42,7 +43,7 @@ interface IDependencies {
 /**
  * Represents methods to work with object that depends on scope.
  */
-export default class Scope {
+export default class Scope implements ITranslationsRegistrar {
 
    /**
     * Collection of inner template representations.

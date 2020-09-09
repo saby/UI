@@ -44,7 +44,7 @@ function createAttributeProcessorOptions(hasAttributesOnly: boolean) {
       fileName: FILE_NAME,
       hasAttributesOnly,
       parentTagName: 'tag-name',
-      scope: new Scope()
+      translationsRegistrar: new Scope()
    };
 }
 

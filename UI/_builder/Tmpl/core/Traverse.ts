@@ -1161,7 +1161,7 @@ class Traverse implements ITraverse {
                fileName: context.fileName,
                allowedContent: TextContentFlags.TEXT,
                translateText: false,
-               scope: context.scope
+               translationsRegistrar: context.scope
             },
             node.position
          );
@@ -1310,7 +1310,7 @@ class Traverse implements ITraverse {
             fileName: context.fileName,
             allowedContent: context.textContent || TextContentFlags.FULL_TEXT,
             translateText: context.translateText,
-            scope: context.scope
+            translationsRegistrar: context.scope
          }, node.position);
 
          // Set keys onto text content nodes.
@@ -1648,7 +1648,7 @@ class Traverse implements ITraverse {
          fileName: context.fileName,
          hasAttributesOnly: true,
          parentTagName: node.name,
-         scope: context.scope
+         translationsRegistrar: context.scope
       };
       const attributes = this.attributeProcessor.process(
          node.attributes,
@@ -1820,7 +1820,7 @@ class Traverse implements ITraverse {
             fileName: context.fileName,
             hasAttributesOnly: false,
             parentTagName: node.name,
-            scope: context.scope
+            translationsRegistrar: context.scope
          }
       );
       this.warnIncorrectProperties(options.attributes, node, context);
@@ -2399,7 +2399,7 @@ class Traverse implements ITraverse {
          fileName: context.fileName,
          hasAttributesOnly: false,
          parentTagName: node.name,
-         scope: context.scope
+         translationsRegistrar: context.scope
       };
       const attributes = this.attributeProcessor.process(
          node.attributes,
@@ -2497,7 +2497,7 @@ class Traverse implements ITraverse {
          fileName: context.fileName,
          hasAttributesOnly: false,
          parentTagName: node.name,
-         scope: context.scope
+         translationsRegistrar: context.scope
       };
       const attributes = this.attributeProcessor.process(node.attributes, attributeProcessorOptions);
       const template = validatePartialTemplate(attributes.options.template, node);
@@ -2536,7 +2536,7 @@ class Traverse implements ITraverse {
          fileName: context.fileName,
          hasAttributesOnly: false,
          parentTagName: parentNode.name,
-         scope: context.scope
+         translationsRegistrar: context.scope
       });
       this.warnIncorrectProperties(processedAttributes.attributes, parentNode, context);
       this.warnIncorrectProperties(processedAttributes.events, parentNode, context);
@@ -2631,7 +2631,7 @@ class Traverse implements ITraverse {
             fileName: context.fileName,
             hasAttributesOnly: true,
             parentTagName: node.name,
-            scope: context.scope
+            translationsRegistrar: context.scope
          });
          const textValue = this.textProcessor.process(
             dataValue,
@@ -2639,7 +2639,7 @@ class Traverse implements ITraverse {
                fileName: context.fileName,
                translateText: false,
                allowedContent,
-               scope: context.scope
+               translationsRegistrar: context.scope
             },
             node.position
          );

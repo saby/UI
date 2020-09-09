@@ -7,10 +7,9 @@
 
 import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
-import Scope from 'UI/_builder/Tmpl/core/Scope';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
-import { ITextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
+import { ITextProcessor, TextContentFlags, ITranslationsRegistrar } from 'UI/_builder/Tmpl/core/Text';
 import { INodeDescription } from 'UI/_builder/Tmpl/i18n/Translator';
 
 /**
@@ -202,10 +201,9 @@ export interface IAttributeProcessorOptions {
    parentTagName: string;
 
    /**
-    * Scope for register translations.
-    * @todo Describe interface.
+    * Translations registrar.
     */
-   scope: Scope;
+   translationsRegistrar: ITranslationsRegistrar;
 }
 
 /**
@@ -443,7 +441,7 @@ class AttributeProcessor implements IAttributeProcessor {
             fileName: options.fileName,
             allowedContent: TextContentFlags.TEXT,
             translateText: false,
-            scope: options.scope
+            translationsRegistrar: options.translationsRegistrar
          },
          attributeNode.position
       );
@@ -535,7 +533,7 @@ class AttributeProcessor implements IAttributeProcessor {
                fileName: options.fileName,
                allowedContent: TextContentFlags.FULL_TEXT,
                translateText: nodeDescription ? nodeDescription.isAttributeTranslatable(attribute) : false,
-               scope: options.scope
+               translationsRegistrar: options.translationsRegistrar
             },
             attributeNode.position
          );
@@ -588,7 +586,7 @@ class AttributeProcessor implements IAttributeProcessor {
                fileName: options.fileName,
                allowedContent: TextContentFlags.FULL_TEXT,
                translateText: nodeDescription ? nodeDescription.isOptionTranslatable(attributeNode.name) : false,
-               scope: options.scope
+               translationsRegistrar: options.translationsRegistrar
             },
             attributeNode.position
          );
