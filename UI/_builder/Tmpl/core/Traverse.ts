@@ -1924,11 +1924,11 @@ class Traverse implements ITraverse {
    private processObject(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode | Ast.TData {
       try {
          // FIXME: <ws:Object>Some text</ws:Object>
-         if (hasTextContent(node.children)) {
+         if (hasTextContent(node.children) && node.children.length > 0) {
             return this.processValue(node, context);
          }
          // FIXME: <ws:Object><ws:Type>...</ws:Type></ws:Object>
-         if (hasDataTypeContent(node.children)) {
+         if (hasDataTypeContent(node.children) && node.children.length > 0) {
             return this.processArrayContent(node, context, node.attributes)[0];
          }
          return new Ast.ObjectNode(
