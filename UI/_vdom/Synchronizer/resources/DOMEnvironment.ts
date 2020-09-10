@@ -507,6 +507,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       event.addedToClickState = true;
 
       SwipeController.resetState();
+      LongTapController.resetState();
    }
 
    _shouldUseClickByTap(): any {
