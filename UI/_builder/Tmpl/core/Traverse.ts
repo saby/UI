@@ -455,9 +455,31 @@ function whatExpected(state: TraverseState): string {
  * Check for text content.
  * It is used for only bug when content option has type="string".
  * @deprecated
+ * @param children {Node[]} Collection of html nodes.
  */
 function hasTextContent(children: Nodes.Node[]): boolean {
    return children.every((node: Nodes.Node) => node instanceof Nodes.Text);
+}
+
+/**
+ * Check for single data type node.
+ * @deprecated
+ * @param children {Node[]} Collection of html nodes.
+ */
+function hasDataTypeContent(children: Nodes.Node[]): boolean {
+   if (children.length !== 1) {
+      return false;
+   }
+   const firstChild = children[0];
+   if (!(firstChild instanceof Nodes.Tag)) {
+      return false;
+   }
+   return [
+      'ws:Boolean',
+      'ws:Function',
+      'ws:Number',
+      'ws:String'
+   ].indexOf(firstChild.name) > -1;
 }
 
 // </editor-fold>
@@ -1899,8 +1921,16 @@ class Traverse implements ITraverse {
     * @param context {ITraverseContext} Processing context.
     * @returns {ObjectNode | null} Returns instance of ObjectNode or null in case of broken content.
     */
-   private processObject(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode {
+   private processObject(node: Nodes.Tag, context: ITraverseContext): Ast.ObjectNode | Ast.TData {
       try {
+         // FIXME: <ws:Object>Some text</ws:Object>
+         if (hasTextContent(node.children)) {
+            return this.processValue(node, context);
+         }
+         // FIXME: <ws:Object><ws:Type>...</ws:Type></ws:Object>
+         if (hasDataTypeContent(node.children)) {
+            return this.processArrayContent(node, context, node.attributes)[0];
+         }
          return new Ast.ObjectNode(
             this.processObjectContent(node, context, node.attributes)
          );
