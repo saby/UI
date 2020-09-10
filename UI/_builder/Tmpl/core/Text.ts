@@ -356,7 +356,7 @@ class TextProcessor implements ITextProcessor {
          let type = items[index].type;
          const data = items[index].data;
          const isTranslatableItem = items.length === 1 && type === RawTextType.TEXT && options.translateText && canBeTranslated(items[0].data);
-         if (data === EMPTY_STRING) {
+         if (data.trim() === EMPTY_STRING && type !== RawTextType.TEXT) {
             // TODO: Do not process empty strings.
             //  1) Warn in case of empty mustache expressions
             //  2) Warn in case of empty translations
@@ -368,9 +368,6 @@ class TextProcessor implements ITextProcessor {
          }
          switch (type) {
             case RawTextType.EXPRESSION:
-               if (data.trim() === EMPTY_STRING) {
-                  break;
-               }
                node = this.createExpressionNode(data, options, position);
                break;
             case RawTextType.TRANSLATION:
