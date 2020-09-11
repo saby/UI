@@ -12,8 +12,6 @@ import { IoC } from 'Env/Env';
 // @ts-ignore
 import { Logger } from 'UI/Utils';
 // @ts-ignore
-import {Config as config} from 'UI/Builder';
-// @ts-ignore
 import { ObjectUtils } from 'UI/Utils';
 
 import { Text, Vdom } from './Markup';
@@ -21,6 +19,22 @@ import { _FocusAttrs } from 'UI/Focus';
 import * as Scope from './_Expressions/Scope';
 import * as Attr from './_Expressions/Attr';
 import { Common, ConfigResolver } from './Utils';
+
+var BUILDER_CONFIG = {
+
+   /**
+    * Префиксы контролов, точки которых не должны преобразовываться к слешам при замене.
+    */
+   mustBeDots: [
+      'SBIS3.CONTROLS',
+      'SBIS3.ENGINE'
+   ],
+
+   /**
+    * Максимально возможная длина имени модуля или подключаемого шаблона
+    */
+   moduleMaxNameLength: 4096
+};
 
 var decorators;
 function getDecorators() {
@@ -387,7 +401,7 @@ export {
    getter,
    setter,
    IoC,
-   config,
+   BUILDER_CONFIG as config,
    Common as utils,
    plainMerge,
    plainMergeAttr,
