@@ -113,7 +113,7 @@ define('UI/_builder/Tmpl/modules/utils/common', ['Env/Env'], function utilsLoade
    var otherEscapeRegExp = /({{)|(}})|([<>'"])/g;
 
    function escape(entity) {
-      if (entity && typeof entity === 'string') {
+      if (entity && entity.replace) {
          entity = entity.replace(ampRegExp, function escapeReplace(tag, suffix) {
             return '&amp;' + suffix;
          });
