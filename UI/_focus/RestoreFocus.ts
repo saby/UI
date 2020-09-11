@@ -20,6 +20,22 @@ function isDestroyedControl(control: any): boolean {
    return control.isDestroyed && control.isDestroyed() || control._destroyed;
 }
 
+/*
+ * Поиск невидимых элементов среди предков.
+ * FIXME: https://online.sbis.ru/opendoc.html?guid=0e12f26e-776c-4822-94aa-d1a93bbddccf
+ */
+function isTreeVisible(element: HTMLElement): boolean {
+   let currentElement = element;
+   while (currentElement) {
+      const calculatedStyle = getComputedStyle(currentElement);
+      if (calculatedStyle.display === 'none' || calculatedStyle.visibility === 'hidden') {
+         return false;
+      }
+      currentElement = currentElement.parentElement;
+   }
+   return true;
+}
+
 let prevControls = [];
 let savedActiveElement;
 export function restoreFocus(control: IControl, action: Function): void {
@@ -56,7 +72,8 @@ export function restoreFocus(control: IControl, action: Function): void {
          const container = control._template ? control._container : control.getContainer()[0];
          // @ts-ignore
          focus.__restoreFocusPhase = true;
-         const result = isElementVisible(container) && focus(container);
+         const containerVisible = isElementVisible(container) && isTreeVisible(container);
+         const result = containerVisible && focus(container);
          // @ts-ignore
          delete focus.__restoreFocusPhase;
          return result;
