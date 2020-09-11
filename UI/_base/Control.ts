@@ -3,6 +3,9 @@
 // @ts-ignore
 import template = require('wml!UI/_base/Control');
 
+// @ts-ignore FIXME: убрал зависимость от шаблонизатора - core перестал тянуться. Исследовать и исправить
+import cExtend = require('Core/core-extend');
+
 import { Synchronizer } from 'UI/Vdom';
 import { OptionsResolver } from 'UI/Executor';
 import { ContextResolver } from 'UI/Contexts';
@@ -1198,15 +1201,15 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    //#endregion
 
    static extend(mixinsList: any, classExtender: any): Function {
-      // @ts-ignore
-      if (!require.defined('Core/core-extend')) {
-         throw new ReferenceError(
-            'You should require module "Core/core-extend" to use old "UI/_base/Control::extend()" method.'
-         );
-      }
-      // @ts-ignore
-      const coreExtend = require('Core/core-extend');
-      return coreExtend(this, mixinsList, classExtender);
+      // // @ts-ignore
+      // if (!require.defined('Core/core-extend')) {
+      //    throw new ReferenceError(
+      //       'You should require module "Core/core-extend" to use old "UI/_base/Control::extend()" method.'
+      //    );
+      // }
+      // // @ts-ignore
+      // const coreExtend = require('Core/core-extend');
+      return cExtend(this, mixinsList, classExtender);
    }
 
    static _getInheritOptions(ctor: any): any {
