@@ -1,10 +1,11 @@
 /// <amd-module name="UI/_builder/Tmpl/core/Tags" />
 
-import getTagDescription, { TagDescription, ITagsDescription } from 'UI/_builder/Tmpl/html/Tags';
-
 /**
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/core/Tags.ts
  */
+
+import getTagDescription, { TagDescription, ITagsDescription } from 'UI/_builder/Tmpl/html/Tags';
 
 // tslint:disable:object-literal-key-quotes
 const TAGS_DESCRIPTIONS: ITagsDescription = {
@@ -15,8 +16,8 @@ const TAGS_DESCRIPTIONS: ITagsDescription = {
 // tslint:enable:object-literal-key-quotes
 
 /**
- *
- * @param name {string}
+ * Get tag description by name.
+ * @param name {string} Tag name.
  */
 export default function getWasabyTagDescription(name: string): TagDescription {
    if (TAGS_DESCRIPTIONS[name]) {

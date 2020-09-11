@@ -256,7 +256,7 @@ export class Attribute {
    /**
     *
     */
-   value: string = '';
+   value: string | null = null;
 
    /**
     *

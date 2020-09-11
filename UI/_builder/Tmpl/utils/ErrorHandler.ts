@@ -256,6 +256,16 @@ export interface IErrorHandler {
     * @param meta {IMetaInfo}
     */
    fatal(message: string, meta: IMetaInfo): void;
+
+   /**
+    *
+    */
+   hasErrors(): boolean;
+
+   /**
+    *
+    */
+   hasCriticalErrors(): boolean;
 }
 
 /**
@@ -276,6 +286,17 @@ export default class ErrorHandler implements IErrorHandler {
     * @param meta {IMetaInfo}
     */
    private readonly formatter: IErrorFormatter;
+
+   /**
+    *
+    */
+   private hasProcessedErrors: boolean;
+
+   /**
+    *
+    */
+   private hasProcessedCriticalErrors: boolean;
+
 
    /**
     *
@@ -320,6 +341,7 @@ export default class ErrorHandler implements IErrorHandler {
     * @param meta {IMetaInfo}
     */
    error(message: string, meta: IMetaInfo): void {
+      this.hasProcessedErrors = true;
       this.logger.error(this.formatter.error(message, meta));
    }
 
@@ -329,6 +351,7 @@ export default class ErrorHandler implements IErrorHandler {
     * @param meta {IMetaInfo}
     */
    critical(message: string, meta: IMetaInfo): void {
+      this.hasProcessedCriticalErrors = true;
       this.logger.error(this.formatter.critical(message, meta));
    }
 
@@ -338,6 +361,21 @@ export default class ErrorHandler implements IErrorHandler {
     * @param meta {IMetaInfo}
     */
    fatal(message: string, meta: IMetaInfo): void {
+      this.hasProcessedCriticalErrors = true;
       this.logger.error(this.formatter.fatal(message, meta));
+   }
+
+   /**
+    *
+    */
+   hasErrors(): boolean {
+      return this.hasProcessedErrors;
+   }
+
+   /**
+    *
+    */
+   hasCriticalErrors(): boolean {
+      return this.hasProcessedCriticalErrors;
    }
 }

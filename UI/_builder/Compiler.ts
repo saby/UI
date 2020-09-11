@@ -4,11 +4,11 @@
  * @author Крылов М.А.
  */
 
-import * as ComponentCollector from 'UI/_builder/Tmpl/ComponentCollector';
+import * as ComponentCollector from 'UI/_builder/Tmpl/core/_deprecated/ComponentCollector';
 import { parse } from 'UI/_builder/Tmpl/html/Parser';
 import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';
-import * as traversing from 'UI/_builder/Tmpl/traverse';
+import { traverse } from 'UI/_builder/Tmpl/core/bridge';
 import * as processingToFunction from 'UI/_builder/Tmpl/function';
 import * as templates from 'UI/_builder/Tmpl/codegen/templates';
 import { ISource, Source } from './utils/Source';
@@ -227,7 +227,7 @@ abstract class BaseCompiler implements ICompiler {
             });
             const dependencies = ComponentCollector.getComponents(parsed);
             // tslint:disable:prefer-const
-            let traversed = traversing.traverse(parsed, resolver, options);
+            let traversed = traverse(parsed, resolver, options);
             traversed.addCallbacks(
                (rawTraversed) => resolve(fixTraversed(rawTraversed, dependencies)),
                (error) => reject(error)

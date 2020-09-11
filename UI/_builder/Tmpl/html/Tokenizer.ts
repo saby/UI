@@ -310,6 +310,11 @@ export class Tokenizer implements ITokenizer {
 
    /**
     *
+    */
+   private returnExpressionCharacter: string | null = null;
+
+   /**
+    *
     * @param tokenHandler {ITokenHandler}
     * @param options {ITokenizerOptions}
     */
@@ -384,17 +389,20 @@ export class Tokenizer implements ITokenizer {
                break;
             case State.IN_EXPRESSION:
                // Special Wasaby state. Consume the next input character.
+               if (char === this.returnExpressionCharacter) {
+                  // TODO: Enable warning
+                  // this.warn(`Нельзя использовать символы QUOTATION_MARK (") и APOSTROPHE (') в Mustache-выражении, если они открывают и закрывают значение атрибута`);
+               }
                this.appendCharBuffer(char);
-               switch (char) {
-                  case Characters.RIGHT_CURLY_BRACKET:
-                     this.state = State.AFTER_EXPRESSION;
-                     break;
+               if (char === Characters.RIGHT_CURLY_BRACKET) {
+                  this.state = State.AFTER_EXPRESSION;
                }
                break;
             case State.AFTER_EXPRESSION:
                // Special Wasaby state. Consume the next input character.
                switch (char) {
                   case Characters.RIGHT_CURLY_BRACKET:
+                     this.returnExpressionCharacter = null;
                      this.state = this.returnState;
                      this.appendCharBuffer(char);
                      break;
@@ -746,6 +754,7 @@ export class Tokenizer implements ITokenizer {
                      // Switch to the special Wasaby state for mustache-expression.
                      // Emit the current input character as a character token.
                      this.returnState = this.state;
+                     this.returnExpressionCharacter = '"';
                      this.state = State.BEFORE_EXPRESSION;
                      this.appendCharBuffer(char);
                      break;
@@ -782,6 +791,7 @@ export class Tokenizer implements ITokenizer {
                      // Emit the current input character as a character token.
                      this.appendCharBuffer(char);
                      this.returnState = this.state;
+                     this.returnExpressionCharacter = "'";
                      this.state = State.BEFORE_EXPRESSION;
                      break;
                   default:
@@ -874,7 +884,7 @@ export class Tokenizer implements ITokenizer {
                      break;
                   default:
                      // Parse error. Reconsume the character in the before attribute name state.
-                     this.warn('В закрывающем теге после символа / сразу должен следовать символ >');
+                     this.warn('В закрывающем теге после символа "/" сразу должен следовать символ >');
                      this.state = State.BEFORE_ATTRIBUTE_NAME;
                      reader.reconsume();
                      break;
@@ -1886,9 +1896,8 @@ export class Tokenizer implements ITokenizer {
          return;
       }
       if (this.attributes[this.attributeName]) {
-         this.error(`Обнаружен дублированное имя атрибута "${this.attributeName}" на теге "${this.tagName}"`);
-         // FIXME: Use the last attribute
-         // this.attributeName = undefined;
+         this.error(`Атрибут "${this.attributeName}" уже определен на теге "${this.tagName}"`);
+         this.attributeName = undefined;
       }
    }
 

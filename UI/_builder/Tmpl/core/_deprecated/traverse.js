@@ -2,7 +2,7 @@
  * Parsing step
  * Traversing/parsing AST-html tree
  */
-define('UI/_builder/Tmpl/traverse', [
+define('UI/_builder/Tmpl/core/_deprecated/traverse', [
    'UI/_builder/Tmpl/utils/ErrorHandler',
    'Core/Deferred',
    'Core/ParallelDeferred',
@@ -16,7 +16,7 @@ define('UI/_builder/Tmpl/traverse', [
    'UI/_builder/Tmpl/modules/utils/common',
    'UI/_builder/Tmpl/modules/utils/tag',
    'UI/_builder/Tmpl/modules/utils/loader',
-   'UI/_builder/Tmpl/postTraverse'
+   'UI/_builder/Tmpl/core/_deprecated/postTraverse'
 ], function traverseLoader(
    ErrorHandlerLib,
    Deferred,
@@ -75,7 +75,7 @@ define('UI/_builder/Tmpl/traverse', [
       var message = err.message.split('Expecting')[0];
       message = message.split('line')[0] + 'line:' + message.slice(message.indexOf(':') + 1);
       return message;
-      }
+   }
 
    /**
     * Для проверки на то, есть ли вставленные теги данных
@@ -88,8 +88,8 @@ define('UI/_builder/Tmpl/traverse', [
          for (var i = 0; i < data.length; i++) {
             if (data[i].data !== emptySpace) {
                return true;
+            }
          }
-      }
       }
       return false;
    }
@@ -105,15 +105,15 @@ define('UI/_builder/Tmpl/traverse', [
       return {
          value: templateName,
          type: 'optional'
-            };
-         }
+      };
+   }
 
    function createTemplateTagName(templateName) {
       return {
          value: templateName,
          type: 'template'
-                  };
-               }
+      };
+   }
 
    function createSimpleControlTagName(templateName) {
       return {
@@ -131,7 +131,7 @@ define('UI/_builder/Tmpl/traverse', [
          type: 'ws-module',
          simple: true
       };
-      }
+   }
 
    /**
     * Safe replacing
@@ -149,7 +149,7 @@ define('UI/_builder/Tmpl/traverse', [
          value: value,
          main: main
       };
-      }
+   }
 
    function findForAllArguments(value, main) {
       var crStringArray = value.split(concreteSourceStrings.key),
@@ -163,7 +163,7 @@ define('UI/_builder/Tmpl/traverse', [
          if (crStringArray.length > 1) {
             entityWhichIterates = crStringArray[1];
             key = crStringArray[0];
-      }
+         }
       }
       return createForConfig(key, entityWhichIterates, main);
    }
@@ -311,8 +311,9 @@ define('UI/_builder/Tmpl/traverse', [
                      property: true
                   };
                } else {
+                  // Включил поддержку boolean-атрибутов. У них значение - null
                   res = this._traverseText({
-                     data: attrib
+                     data: (attrib || '')
                   });
                }
             } catch (error) {
@@ -545,7 +546,7 @@ define('UI/_builder/Tmpl/traverse', [
             }
             if (moduleName === 'for') {
                return this._forParse(tag);
-         }
+            }
             throw new Error('Unknown module to parse "' + moduleName + '"');
          }
          return this._generateTag(tag, injectedData);
@@ -656,7 +657,7 @@ define('UI/_builder/Tmpl/traverse', [
             tag.attribs = { };
          }
 
-      /**
+         /**
           * Активный атрибут для вычисление модуля для require в шаблонизаторе.
           * Сделано для того чтобы освободить такое популярное опции - template!
           * @private
