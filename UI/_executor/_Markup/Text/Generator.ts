@@ -170,12 +170,12 @@ export class GeneratorText implements IGenerator {
    };
 
    resolver(tpl, preparedScope, decorAttribs, context, _deps?, includedTemplates?, config?, defCollection?) {
-      var
-         isTplString = typeof tpl === 'string',
-         isTplModule = Common.isLibraryModule(tpl),
-         data = this.prepareDataForCreate(tpl, preparedScope, decorAttribs, _deps, includedTemplates),
-         resolvedScope = data.controlProperties,
-         fn;
+      let isTplString = typeof tpl === 'string';
+      let isTplModule = Common.isLibraryModule(tpl);
+      let data = this.prepareDataForCreate(tpl, preparedScope, decorAttribs, _deps, includedTemplates);
+      let resolvedScope = data.controlProperties;
+      let fn;
+      let isTemplateWrapper = false;
 
       if (isTplString) {
          fn = stringTemplateResolver(tpl, includedTemplates, _deps, config, data.parent);
@@ -189,6 +189,7 @@ export class GeneratorText implements IGenerator {
       // временно добавили проверку на этот модуль, проверять по _moduleName опасно,
       // т.к. в режиме резиза может работаь не верно, поэтому проверим на наличии дополнительного экспорта
       if (fn && fn.hasOwnProperty('TemplateWrapper') && fn.hasOwnProperty('HeadContent') && fn.hasOwnProperty('default')) {
+         isTemplateWrapper = true;
          fn = fn.default;
       }
 
@@ -212,7 +213,10 @@ export class GeneratorText implements IGenerator {
          Logger.debug('Context for control', decorAttribs.context);
          Logger.debug('Inherit options for control', decorAttribs.inheritOptions);
 
-         var r;
+         let r;
+         if (!this.isValidTemplate(fn, tpl, isTemplateWrapper)) {
+            return this.createEmptyText();
+         }
          if (typeof fn === 'function') {
             r = preparedScope && data.parent ? fn.call(data.parent, resolvedScope, decorAttribs, context, false) :
                fn(resolvedScope, decorAttribs, context, false);
@@ -294,4 +298,18 @@ export class GeneratorText implements IGenerator {
    calculateScope(scope) {
       return Scope.calculateScope(scope, Scope.controlPropMerge);
    };
+   
+   private isValidTemplate(fn: any, tpl: GeneratorTemplateOrigin, isTemplateWrapper: boolean): boolean {
+      if (fn && typeof fn === 'object' && !isTemplateWrapper && !fn.hasOwnProperty('module')) {
+         let reason = '';
+         if (fn.hasOwnProperty('default')) {
+            reason = 'В модуле экспортируется объект по-умолчанию (export default ControlName).'
+         }
+         Logger.error(`Не удалось построить вертску.` +
+            `В качестве шаблона контрола ${tpl} была передана структура не поддерживаемая генератором.` +
+            `${reason}`, fn);
+         return false;
+      }
+      return true;
+   }
 }
