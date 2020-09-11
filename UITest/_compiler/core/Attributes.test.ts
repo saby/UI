@@ -124,6 +124,19 @@ describe('Compiler/core/Attributes', () => {
    });
    describe('process @ AttributeProcessor', () => {
       describe('.hasAttributesOnly = true', () => {
+         it('Empty attribute value', () => {
+            const attributes = processAttributes('attribute=""', true);
+            assert.strictEqual(Object.keys(attributes.attributes).length, 1);
+            assert.strictEqual(Object.keys(attributes.options).length, 0);
+            assert.isTrue(attributes.attributes.hasOwnProperty('attr:attribute'));
+            assert.strictEqual(attributes.attributes['attr:attribute'].__$ws_value.length, 1);
+            assert.strictEqual(Object.keys(attributes.events).length, 0);
+
+            assert.instanceOf(attributes.attributes['attr:attribute'], Ast.AttributeNode);
+            const attributeNode = <Ast.AttributeNode>attributes.attributes['attr:attribute'];
+            assert.strictEqual(attributeNode.__$ws_name, 'attribute');
+            assert.strictEqual(attributeNode.__$ws_value.length, 1);
+         });
          it('Attribute (without prefix)', () => {
             const attributes = processAttributes('attribute="value"', true);
             assert.strictEqual(Object.keys(attributes.attributes).length, 1);
