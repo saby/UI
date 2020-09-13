@@ -82,7 +82,7 @@ const ampRegExp = /&([^#])/g;
 const otherEscapeRegExp = /({{)|(}})|([<>'"])/g;
 
 export function escape(entity) {
-   if (entity && typeof entity === 'string') {
+   if (isString(entity)) {
       entity = entity.replace(ampRegExp, function escapeReplace(tag, suffix) {
          return '&amp;' + suffix;
       });
@@ -102,7 +102,7 @@ const regExpToParenthesisReplace = /({{)|(}})/g;
 
 // Для того чтобы при прогоне второй раз в dot, все конструкции эскейпились
 export function escapeParenthesis(entity) {
-   if (entity && typeof entity === 'string') {
+   if (isString(entity)) {
       return entity.replace(regExpToParenthesisReplace, function escapeReplace(tag) {
          return tagsToParenthesisReplace[tag] || tag;
       });
