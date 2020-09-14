@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_focus/FocusAttrs   " />
+/// <amd-module name="UI/_focus/FocusAttrs" />
 /* tslint:disable */
 
 /**
