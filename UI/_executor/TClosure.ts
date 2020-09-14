@@ -147,7 +147,7 @@ var
     * @param path
     * @param value
     */
-   setter = function setter(obj, path, viewController, value) {
+   setter = function setter(obj, path, value) {
       var
          lastPathPart = path.pop(),
          lastObj = getter(obj, path, null);
