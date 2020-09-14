@@ -170,12 +170,12 @@ export class GeneratorText implements IGenerator {
    };
 
    resolver(tpl, preparedScope, decorAttribs, context, _deps?, includedTemplates?, config?, defCollection?) {
-      var
-         isTplString = typeof tpl === 'string',
-         isTplModule = Common.isLibraryModule(tpl),
-         data = this.prepareDataForCreate(tpl, preparedScope, decorAttribs, _deps, includedTemplates),
-         resolvedScope = data.controlProperties,
-         fn;
+      let isTplString = typeof tpl === 'string';
+      let isTplModule = Common.isLibraryModule(tpl);
+      let data = this.prepareDataForCreate(tpl, preparedScope, decorAttribs, _deps, includedTemplates);
+      let resolvedScope = data.controlProperties;
+      let fn;
+      // let isTemplateWrapper = false;
 
       if (isTplString) {
          fn = stringTemplateResolver(tpl, includedTemplates, _deps, config, data.parent);
