@@ -194,13 +194,13 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    private readonly _instId: string = 'inst_' + countInst++;
    protected _options: TOptions = {} as TOptions;
-   private _internalOptions: Record<string, unknown> = {};
+   private _internalOptions: Record<string, unknown>;
 
    /**
     * TODO: delete it
     */
 
-   private _fullContext: unknown = null;
+   private _fullContext: unknown;
 
    private _evaluatedContext: IContext;
 
@@ -219,11 +219,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     * end todo
     */
 
-   private _context: any = null;
-   private _$resultBeforeMount: any = null;
+   private _context: any;
+   private _$resultBeforeMount: any;
 
    protected _template: TemplateFunction;
-   protected _clientTimeout: number = null;
+   protected _clientTimeout: number;
    protected _allowNativeEvent: boolean = false;
 
    // protected for compatibility, should be private
@@ -231,15 +231,15 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    // TODO: Временное решение. Удалить после выполнения удаления всех использований.
    // Ссылка: https://online.sbis.ru/opendoc.html?guid=5f576e21-6606-4a55-94fd-6979c6bfcb53.
-   private _logicParent: Control<TOptions, void> = null;
+   private _logicParent: Control<TOptions, void>;
 
    protected _children: IControlChildren = {};
 
-   private _savedInheritOptions: unknown = null;
+   private _savedInheritOptions: unknown;
 
-   private _controlNode: any = null;
+   private _controlNode: any;
 
-   private _environment: any = null;
+   private _environment: any;
 
    private _isRendered: boolean;
 
