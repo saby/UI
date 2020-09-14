@@ -68,7 +68,6 @@ class StateReceiver implements IStateReceiver {
             serializedState = serializedState.replace(re.toFind, re.toReplace);
          }
       );
-      serializedState = serializedState.replace(/\\"/g, '\\\\"');
       const addDeps = getDepsFromSerializer(slr);
       for (const dep in addDeps) {
          if (addDeps.hasOwnProperty(dep)) {
