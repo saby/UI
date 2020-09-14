@@ -14,11 +14,11 @@ export function prepareAttrsForFocus(attributes, opts) {
 
    if (checkAttr(attributes)) {
       if (!attributes['attr:ws-creates-context']) {
-         attributes['attr:ws-creates-context'] = 'default';
+         attributes['attr:ws-creates-context'] = 'true';
       }
 
       if (!attributes['attr:ws-delegates-tabfocus']) {
-         attributes['attr:ws-delegates-tabfocus'] = 'default';
+         attributes['attr:ws-delegates-tabfocus'] = 'true';
       }
 
       return;
@@ -27,13 +27,13 @@ export function prepareAttrsForFocus(attributes, opts) {
    if (opts['ws-creates-context'] === 'true') {
       attributes['ws-creates-context'] = 'true';
    } else if(!attributes['ws-creates-context']) {
-      attributes['ws-creates-context'] = 'default';
+      attributes['ws-creates-context'] = 'true';
    }
 
    if (opts['ws-delegates-tabfocus'] === 'true') {
       attributes['ws-delegates-tabfocus'] = 'true';
    } else if(!attributes['ws-delegates-tabfocus']) {
-      attributes['ws-delegates-tabfocus'] = 'default';
+      attributes['ws-delegates-tabfocus'] = 'true';
    }
 
    if (opts['ws-tab-cycling'] === 'true') {
@@ -64,28 +64,6 @@ export function prepareTabindex(attrs) {
 }
 
 /**
- * Функция выставляет дефолтные атрибуты для фокусов
- * @param attrs - Объект, в котором хранятся атрибуты
- * @param newAttrs - опциональный аргумент, отсюда возьмутся атрибуты, если они есть
- * иначе атрибуты выставятся в true
- */
-export function resetDefaultValues(attrs, newAttrs?) {
-   if (attrs['ws-creates-context'] === 'default') {
-      attrs['ws-creates-context'] = newAttrs && newAttrs['ws-creates-context'] || 'true';
-   }
-   if (attrs['ws-delegates-tabfocus'] === 'default') {
-      attrs['ws-delegates-tabfocus'] = newAttrs && newAttrs['ws-delegates-tabfocus'] || 'true';
-   }
-
-   if (attrs['attr:ws-creates-context'] === 'default') {
-      attrs['attr:ws-creates-context'] = newAttrs && newAttrs['attr:ws-creates-context'] || 'true';
-   }
-   if (attrs['attr:ws-delegates-tabfocus'] === 'default') {
-      attrs['attr:ws-delegates-tabfocus'] = newAttrs && newAttrs['attr:ws-delegates-tabfocus'] || 'true';
-   }
-}
-
-/**
  * Функция нужна для патчинга корневых элементов при маутинге
  * Вызывается только из createControl!
  * @param dom
@@ -109,7 +87,6 @@ export function patchDom(dom, cfg) {
       }
    }
    prepareAttrsForFocus(attrObj, cfg);
-   resetDefaultValues(attrObj, cfg);
    prepareTabindex(attrObj);
    for (var key in attrObj) {
       dom.setAttribute(key, attrObj[key]);

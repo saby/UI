@@ -3,7 +3,6 @@
 /**
  * @author Тэн В.А.
  */
-import { _FocusAttrs } from 'UI/Focus';
 
 // this class need for create instance containing raw html and some properties.
 // VDOM will insert it as is and generated node will get some properties.
@@ -28,8 +27,6 @@ export default class RawMarkupNode {
       if (attributes.hasOwnProperty('attr:ws-no-focus')) {
          nodeProperties['ws-no-focus'] = attributes['attr:ws-no-focus'];
       }
-      // todo в resetDefaultValues нужно передать вторым аргументом атрибуты, которые могут перебить дефолтные
-      _FocusAttrs.resetDefaultValues(nodeProperties);
 
       this.markup = markup;
       this.dom = null;
