@@ -1,13 +1,13 @@
 /// <amd-module name="UI/_base/HTML/Wait" />
 
-import Control from '../Control';
-
+import Control, { TemplateFunction } from 'UI/_base/Control';
+// tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Wait');
-import * as Request from 'View/Request';
+import { headDataStore } from 'UI/_base/HeadData';
 
-let asyncTemplate = function() {
-   let res = template.apply(this, arguments);
+const asyncTemplate: TemplateFunction = function(): string {
+   const res = template.apply(this, arguments);
    if (res.then) {
       res.then((result) => {
          this.resolvePromiseFn();
@@ -20,12 +20,16 @@ let asyncTemplate = function() {
 };
 
 // Template functions should have true "stable" flag to send error on using, for example, some control instead it.
-asyncTemplate.stable = template.stable;
-
+// tslint:disable-next-line:no-string-literal
+asyncTemplate['stable'] = template['stable'];
+/**
+ * Компонент используется как маркер построения верстки,
+ * экспортрует Promise в headDataStore
+ */
 class Wait extends Control {
-   public _template: Function = asyncTemplate;
+   _template: TemplateFunction = asyncTemplate;
 
-   public waitDef: Promise<any>;
+   waitDef: Promise<void>;
 
    private resolvePromise: Function = null;
    private resolvePromiseFn(): void {
@@ -40,9 +44,9 @@ class Wait extends Control {
       });
    }
 
-   public _beforeMount(): void {
+   _beforeMount(): void {
       this.createPromise();
-      Request.getCurrent().getStorage('HeadData').pushWaiterDeferred(this.waitDef);
+      headDataStore.read('collectDeps')(this.waitDef);
       if (typeof window !== 'undefined') {
          this.resolvePromiseFn();
          this.createPromise();

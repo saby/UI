@@ -1,0 +1,10 @@
+.container {
+    display: flex;
+    flex-direction: column;
+}
+
+.container__button {
+    max-width: 200px;
+    height: 20px;
+    background-color: #ff7033;
+}

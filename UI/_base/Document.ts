@@ -2,90 +2,87 @@
 
 import Control from './Control';
 
-
 // @ts-ignore
 import template = require('wml!UI/_base/Document/Document');
-
-// @ts-ignore
-import ThemesController = require('Core/Themes/ThemesController');
-
-import HeadData from './HeadData';
-import StateReceiver from './StateReceiver';
-import AppData from './Deprecated/AppData';
-
-import * as Request from 'View/Request';
-import createDefault from 'View/_Request/createDefault';
+import { getThemeController } from 'UI/theme/controller';
+import * as AppEnv from 'Application/Env';
+import { headDataStore } from 'UI/_base/HeadData';
+import AppData from './AppData';
+import startApplication from 'UI/_base/startApplication';
 
 class Document extends Control {
-   public _template: Function = template;
+    _template = template;
 
-   private ctxData: any = null;
-   private application: string = '';
-   private applicationForChange: string = '';
+    private ctxData: any = null;
+    private application: string = '';
+    private applicationForChange: string = '';
 
-   private coreTheme: string = '';
+    private coreTheme: string = '';
 
-   constructor(cfg: any) {
-      super(cfg);
+    constructor (cfg: object) {
+        super(cfg);
 
-      if (typeof window === 'undefined') {
+        /*
+        * Копипаста из Controls/Application/Core для сервиса представления.
+        * TODO: Удалить либо эту копипасту, либо комментарий в задаче:
+        * https://online.sbis.ru/opendoc.html?guid=bd7fb25b-fdde-4caf-8144-9cf8502713d0
+        * */
+        try {
+            process.domain.req.compatible = false;
+        } catch (e) {
+        }
 
-         //need create request for SSR
-         //on client request will create in app-init.js
-         var req = new Request(createDefault(Request));
-         req.setStateReceiver(new StateReceiver());
-         if (typeof window !== 'undefined' && window.receivedStates) {
-            req.stateReceiver.deserialize(window.receivedStates);
-         }
-         Request.setCurrent(req);
-      }
+        startApplication(cfg);
+        // Временно положим это в HeadData, потом это переедет в константы реквеста
+        // Если запуск страницы начинается с UI/Base:Document, значит мы находимся в новом окружении
+        headDataStore.write('isNewEnvironment', true);
+        AppData.initAppData(cfg);
+        AppEnv.setStore('CoreInstance', { instance: this });
+        this.ctxData = new AppData(cfg);
+        }
 
-      var headData = new HeadData();
-      Request.getCurrent().setStorage('HeadData', headData);
+    _beforeMount(cfg: any): void {
+        this.application = cfg.application;
+    }
 
-      this.ctxData = new AppData(cfg);
-   }
+    _beforeUpdate(cfg: any): void {
+        if (this.applicationForChange) {
+            this.application = this.applicationForChange;
+            this.applicationForChange = null;
+        } else {
+            this.application = cfg.application;
+        }
+    }
 
-   public _beforeMount(cfg:any) {
-      this.application = cfg.application;
-   }
+    // _getChildContext(): { AppData: any } {
+    //     return {
+    //         AppData: this.ctxData
+    //     };
+    // }
 
-   public _beforeUpdate(cfg:any) {
-      if (this.applicationForChange) {
-         this.application = this.applicationForChange;
-         this.applicationForChange = null;
-      } else {
-         this.application = cfg.application;
-      }
-   }
+    setTheme(ev: Event, theme: string): void {
+        this.coreTheme = theme;
+        getThemeController()
+            .setTheme(theme)
+            .catch((e: Error) => {
+                import('UI/Utils').then(({ Logger }) => {
+                    Logger.error(e.message);
+                });
+            });
+    }
 
-   public _getChildContext() {
-      return {
-         AppData: this.ctxData
-      };
-   }
-
-   public setTheme(ev: Event, theme: string) {
-      this.coreTheme = theme;
-      if (ThemesController.getInstance().setTheme) {
-         ThemesController.getInstance().setTheme(theme);
-      }
-   }
-
-   public changeApplicationHandler(e: Event, app: string): Boolean {
-      let result;
-      if (this.application !== app) {
-         this.applicationForChange = app;
-         var headData = Request.getCurrent().getStorage('HeadData');
-         headData && headData.resetRenderDeferred();
-         this._forceUpdate();
-         result = true;
-      } else {
-         result = false;
-      }
-      return result;
-   }
-
+    changeApplicationHandler(e: Event, app: string): Boolean {
+        let result;
+        if (this.application !== app) {
+            this.applicationForChange = app;
+            headDataStore.read('resetRenderDeferred')();
+            this._forceUpdate();
+            result = true;
+        } else {
+            result = false;
+        }
+        return result;
+    }
 }
 
 export default Document;

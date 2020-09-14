@@ -4,26 +4,28 @@
       require(['Core/patchRequireJS',
          'Core/load-contents',
          'Core/app-init',
-         'Core/constants',
+         'Env/Env',
+         'UI/Vdom',
          'Vdom/Vdom',
          'Lib/Control/BaseCompatible/BaseCompatible',
          'Core/nativeExtensions',
          'is!browser?jquery'
-      ], function(path, lc, appinit, constants) {
-         constants.$body = body;
-         constants.$window = window;
+      ], function(path, lc, appinit, Env) {
+         Env.constants.$body = body;
+         Env.constants.$window = window;
          appinit();
-         require(['UI/Base', 'Core/app-start', 'View/Executor/TClosure',
+         require(['UI/Base', 'Core/app-start', 'UI/Executor',
             'Core/helpers/Hcontrol/makeInstanceCompatible',
-            {{_options.dependencies | unescape}}], function(UI, AppStart, tclosure, makeInstanceCompatible) {
+            {{ __setHTMLUnsafe(_options.dependencies) }}], function(UI, AppStart, UIExecutor, makeInstanceCompatible) {
             var AppData = UI.AppData,
                Control = UI.Control,
                Core = UI.Document;
 
             var templCtr = new Control({});
             makeInstanceCompatible(templCtr);
+            templCtr.destroy();
             window.startContextData = {AppData: new AppData({})};
-            var templateFn = {{_options.builder | unescape}};
+            var templateFn = {{ __setHTMLUnsafe(_options.builder) }};
             templateFn.stable = true;
             var cnt = Core.extend({
                _template: templateFn

@@ -4,28 +4,27 @@ import Control from '../Control';
 
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/StartApplicationScript');
-
-import * as Request from 'View/Request';
+import { headDataStore } from 'UI/_base/HeadData';
 
 class StartApplicationScript extends Control {
-   public _template: Function = template;
-   private additionalDeps:Array<string> = [];
+   // @ts-ignore
+   _template: Function = template;
+   private additionalDeps: string[] = [];
 
-   public _beforeMount(): Promise<any> {
+   _beforeMount(): Promise<any> {
       if (typeof window !== 'undefined') {
          return;
       }
-      let def = Request.getCurrent().getStorage('HeadData').waitAppContent();
-
+      const def = headDataStore.read('waitAppContent')();
       return new Promise((resolve) => {
          def.then((res) => {
             this.additionalDeps = res.additionalDeps;
             resolve();
          });
-      })
+      });
    }
 
-   public getDeps(): string {
+   getDeps(): string {
       if (!this.additionalDeps || !this.additionalDeps.length) {
          return '[]';
       }

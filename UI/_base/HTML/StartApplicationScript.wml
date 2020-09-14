@@ -1,29 +1,26 @@
 <div key="scripts">
    <ws:if data="{{!_options.compat && _options.onServer}}">
       <script key="init_script">
-         require(['Core/polyfill', 'UI/Base', 'View/Request', 'View/_Request/createDefault', 'Core/ConsoleLogger'],
-            function(polyfill, UI, Request, createDefault){
-               function StartApplication() {
-                  var req = new Request(createDefault.default(Request));
-                  var StateReceiver = UI.StateReceiver;
-                  req.setStateReceiver(new StateReceiver());
-                  Request.setCurrent(req);
-
-                  UI.Start();
-               }
-
-               var AppData = UI.AppData;
-
-               window.startContextData = {AppData: new AppData({})};
-               var deps = {{ __setHTMLUnsafe(getDeps()) }};
-               if (deps && deps.length>0) {
-                  require(deps, function(){
-                     StartApplication();
-                  });
-               } else {
-                  StartApplication();
+         require(['Core/polyfill', 'Env/Env', 'Application/Initializer', 'Application/Env', 'Core/app-init'], function (polyfill, Env, AppInit, AppEnv) {
+            require(['UI/Base'], function (UI) {
+               window.startContextData = { AppData: new UI.AppData({}) };
+               Object.assign(Env.constants, window.wsConfig);
+               require( {{ __setHTMLUnsafe(getDeps()) }}, function () {
+                  var sr = new UI.StateReceiver();
+                  sr.deserialize(window.receivedStates);
+                  AppInit.default(window.wsConfig, void 0, sr);
+                  UI.Start({}, document.getElementById('root'));
+               });
+               if(Env.constants.isProduction) {
+                    console.log(
+                         '%c\tЭта функция браузера предназначена для разработчиков.\t\n' +
+                         '\tЕсли кто-то сказал вам скопировать и вставить что-то здесь, это мошенники.\t\n' +
+                         '\tВыполнив эти действия, вы предоставите им доступ к своему аккаунту.\t\n',
+                         'background: red; color: white; font-size: 22px; font-weight: bolder; text-shadow: 1px 1px 2px black;'
+                    );
                }
             });
+         });
       </script>
    </ws:if>
    <ws:if data="{{ _options.compat }}">

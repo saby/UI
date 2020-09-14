@@ -1,21 +1,9 @@
+@Library('pipeline') _
+
+def version = '20.6100'
+
 node ('controls') {
-def version = "19.100"
-def workspace = "/home/sbis/workspace/ui_${version}/${BRANCH_NAME}"
-    ws (workspace){
-        deleteDir()
-        checkout([$class: 'GitSCM',
-            branches: [[name: "rc-${version}"]],
-            doGenerateSubmoduleConfigurations: false,
-            extensions: [[
-                $class: 'RelativeTargetDirectory',
-                relativeTargetDir: "jenkins_pipeline"
-                ]],
-                submoduleCfg: [],
-                userRemoteConfigs: [[
-                    credentialsId: CREDENTIAL_ID_GIT,
-                    url: "${GIT}:sbis-ci/jenkins_pipeline.git"]]
-                                    ])
-        start = load "./jenkins_pipeline/platforma/branch/JenkinsfileUI"
-        start.start(version, workspace)
-    }
+    checkout_pipeline("rc-${version}")
+    run_branch = load '/home/sbis/jenkins_pipeline/platforma/branch/run_branch'
+    run_branch.execute('ui', version)
 }

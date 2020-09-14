@@ -1,0 +1,47 @@
+<div class="limitedDemo">
+    <b class="limitedDemo__info">Описание значений в тесте</b>
+    <div class="limitedDemo__info">
+        I'm "Имя контрола" control - это имя контрола который построился
+    </div>
+    <div class="limitedDemo__info">
+        My timeout is "число" - это значение timiout в _beforeMount контрола
+    </div>
+    <div class="limitedDemo__info">
+        Summary timeout is "число" - это значение всех timiout'ов, когда оно превышает 20000, значит строим такой контрол уже на клиенте
+    </div>
+
+    <b class="limitedDemo__info">Порядок тестирования</b>
+    <div class="limitedDemo__info">
+        Через 20 с. должна появиться верстка. Ожившими должны быть элементы:
+    </div>
+    <div class="limitedDemo__nested limitedDemo__info__bordered">
+        <div>I'm Simple control. My timeout is <span class="limitedDemo__loaded">500</span></div>
+        <div>I'm Nested control. My timeout is <span class="limitedDemo__loaded">19000</span></div>
+    </div>
+    <div class="limitedDemo__info">
+        Далее верстка будет строиться и оживать на клиенте. Через ~25 c. вся верстка должна построиться.
+    </div>
+    <div class="limitedDemo__info">
+        После построения верстки нажать на кнопку "Action". Счетчик под кнопкой должен увеличиться на число нажатий кнопки
+    </div>
+    <div class="limitedDemo__info">
+        Если счетчик не увеличивается, значит возникли проблемы с оживлением страницы.
+    </div>
+    <br/>
+    <hr/>
+    <br/>
+    <ws:if data="{{!_isClear}}">
+        <ws:content>
+            <div class="limitedDemo__row">
+                <div>I'm Simple control. My timeout is <span class="{{ _state && 'limitedDemo__loaded' }}">{{_timeOut}}</span></div>
+                <div>Summary timeout is <span class="{{ _state && 'limitedDemo__summary' }}">{{ _timeOut }}</span></div>
+                <ws:partial template = "UIDemo/LimitedDemo/Nested" timeOut = "{{ _timeOut }}"/>
+                <Controls.Container.Async templateName="{{'UIDemo/LimitedDemo/Nested'}}">
+                    <ws:templateOptions timeOut = "{{ _timeOut }}" />
+                </Controls.Container.Async>
+            </div>
+        </ws:content>
+    </ws:if>
+    <button on:click="_actionHandler()" class="limitedDemo__button">Action</button>
+    <div class="limitedDemo__counter">{{ _actionClick }}</div>
+</div>

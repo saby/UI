@@ -1,0 +1,22 @@
+/// <amd-module name="UI/_base/startApplication" />
+import { default as AppInit, isInit } from 'Application/Initializer';
+import StateReceiver from 'UI/_state/StateReceiver';
+
+/**
+ * Инициализация Application/Env для Sbis приложения
+ * @param {Record<string, any>} Настройки приложения
+ */
+export default function startApplication(cfg?: Record<string, any>) {
+    if (isInit()) {
+        return;
+    }
+
+    let config = cfg || window && window['wsConfig'];
+
+    const stateReceiverInst = new StateReceiver();
+    AppInit(config, void 0, stateReceiverInst);
+
+    if (typeof window !== 'undefined' && window['receivedStates']) {
+        stateReceiverInst.deserialize(window['receivedStates']);
+    }
+}

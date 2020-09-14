@@ -1,147 +1,193 @@
 /// <amd-module name="UI/_base/HeadData" />
-// @ts-ignore
-import ThemesController = require('Core/Themes/ThemesController');
-// @ts-ignore
-import cookie = require('Core/cookie');
-// @ts-ignore
-import DepsCollector from './DepsCollector';
+import { IDeps } from 'UI/_base/DepsCollector';
+import PageDeps from 'UI/_base/PageDeps';
+import * as AppEnv from 'Application/Env';
+import { IStore } from 'Application/Interface';
+/**
+ * Компонент-состояние head страницы
+ * Собирает ресурсы страницы,
+ */
+// tslint:disable-next-line:no-any
+export default class HeadData implements IStore<Record<keyof HeadData, any>> {
+    // переедет в константы реквеста, изменяется в Controls/Application
+    isNewEnvironment: boolean = false;
+    pageDeps: PageDeps;
+    /** Дополнительные модули, для которых следует собрать зависимости */
+    private initDeps: Record<string, boolean> = {};
+    /** Дополнительные модули, которые следует грузить отложенно */
+    private lazyInitDeps: Record<string, boolean> = {};
+    private resolve: Function = null;
+    // tslint:disable-next-line:no-any
+    private renderPromise: Promise<ICollectedDeps> = null;
+    private _ssrTimeout: number = 0;
+    /**
+     * Непакуемые require-зависимости
+     */
+    private unpackDeps: IDeps = [];
 
-import * as Request from 'View/Request';
+    /**
+     * Уже подключенные через rt-пакеты, статические бандлы ресурсы
+     */
+    private includedResources: { links: IDeps, scripts: IDeps; } = { links: [], scripts: [] };
+    constructor() {
+        this.get = this.get.bind(this);
+        this.set = this.set.bind(this);
+        this.getKeys = this.getKeys.bind(this);
+        this.toObject = this.toObject.bind(this);
+        this.collectDeps = this.collectDeps.bind(this);
+        this.setUnpackDeps = this.setUnpackDeps.bind(this);
+        this.waitAppContent = this.waitAppContent.bind(this);
+        this.pushDepComponent = this.pushDepComponent.bind(this);
+        this.resetRenderDeferred = this.resetRenderDeferred.bind(this);
+        this.setIncludedResources = this.setIncludedResources.bind(this);
 
-function cropSlash(str) {
-   let res = str;
-   res = res.replace(/\/+$/, '');
-   res = res.replace(/^\/+/, '');
-   return res;
-}
+        this.pageDeps = new PageDeps();
+        this.resetRenderDeferred();
+        this._ssrTimeout = Date.now() + HeadData.SSR_DELAY;
+    }
 
-function joinPaths(arr) {
-   let arrRes = [];
-   for (let i = 0; i < arr.length; i++) {
-      arrRes.push(cropSlash(arr[i]));
-   }
-   return arrRes.join('/');
-}
+    /* toDO: StateRec.register */
+    /**
+     * добавить зависимость страницы
+     */
+    pushDepComponent(componentName: string, lazyLoading: boolean = false): void {
+        this.initDeps[componentName] = true;
+        if (lazyLoading) {
+            this.lazyInitDeps[componentName] = true;
+        }
+    }
 
-let bundles, modDeps, contents;
+    /**
+     * Установка непакуемых зависимостей
+     * @param unpack
+     */
+    setUnpackDeps(unpack: IDeps): void {
+        this.unpackDeps = unpack;
+    }
 
-// Need these try-catch because:
-// 1. We don't need to load these files on client
-// 2. We don't have another way to check if these files exists on server
-try {
-   // TODO https://online.sbis.ru/opendoc.html?guid=7e096cc5-d95a-48b9-8b71-2a719bd9886f
-   // Need to fix this, to remove hardcoded paths
-   modDeps = require('json!resources/module-dependencies');
-} catch (e) {
-}
-try {
-   contents = require('json!resources/contents');
-} catch (e) {
-}
-try {
-   bundles = require('json!resources/bundlesRoute');
-} catch (e) {
-}
+    /**
+     * Установка дополнительных ресурсов
+     * @param resources
+     */
+    setIncludedResources(resources: IResources): void {
+        const scripts = resources.scripts.map((l) => l.src);
+        const links = resources.links.map((l) => l.href);
+        this.includedResources = { links, scripts };
+    }
 
-bundles = bundles || {};
-modDeps = modDeps || { links: {}, nodes: {} };
-contents = contents || {};
+    /**
+     * Таймаут построения на сп
+     */
+    get ssrTimeout(): number {
+        return (Date.now() < this._ssrTimeout) ? this._ssrTimeout - Date.now() : 0;
+    }
 
-
-
-class HeadData {
-
-   private depComponentsMap: any = {};
-   private additionalDeps: any = {};
-   private waiterDef: Promise<any> = null;
-   private isDebug: Boolean = false;
-
-   // переедет в константы реквеста, изменяется в Controls/Application
-   private isNewEnvironment: Boolean = false;
-
-   private resolve: Function = null;
-   private renderPromise: Promise<any> = null;
-
-   constructor() {
-      this.renderPromise = new Promise((resolve) => {
-         this.resolve = resolve;
-      });
-
-      this.depComponentsMap = {};
-      this.additionalDeps = {};
-      this.isDebug = cookie.get('s3debug') === 'true' || contents.buildMode === 'debug';
-   }
-
-   /* toDO: StateRec.register */
-   public pushDepComponent(componentName, needRequire) {
-      this.depComponentsMap[componentName] = true;
-      if (needRequire) {
-         this.additionalDeps[componentName] = true;
-      }
-   }
-
-   public pushWaiterDeferred(def: Promise<any>): void {
-      let depsCollector = new DepsCollector(modDeps.links, modDeps.nodes, bundles, true);
-      this.waiterDef = def;
-      this.waiterDef.then(() => {
-         if (!this.resolve) {
-            return;
-         }
-         let components = Object.keys(this.depComponentsMap);
-         let files = {};
-         if (this.isDebug) {
-            files = {};
-         } else {
-            files = depsCollector.collectDependencies(components);
-            ThemesController.getInstance().initCss({
-               themedCss: files.css.themedCss,
-               simpleCss: files.css.simpleCss
+    /**
+     * Коллекция зависимостей
+     * @param tempLoading
+     */
+    collectDeps(tempLoading: Promise<void>): void {
+        tempLoading.then(() => {
+            if (!this.resolve) {
+                return;
+            }
+            const { additionalDeps, serialized: rsSerialized } = getSerializedData();
+            const deps = Object.keys({ ...additionalDeps, ...this.initDeps });
+            const files = this.pageDeps.collect(deps, this.unpackDeps);
+            // некоторые разработчики завязываются на порядок css, поэтому сначала css переданные через links
+            const simpleCss = this.includedResources.links.concat(files.css.simpleCss);
+            // TODO нельзя слить ссылки и имена модулей т.к LinkResolver портит готовые ссылки
+            // TODO временно прокидываю их раздельно
+            this.resolve({
+                scripts: this.includedResources.scripts, // готовые ссылки на js
+                js: files.js, // названия js модулей
+                css: { simpleCss, themedCss: files.css.themedCss },
+                tmpl: files.tmpl,
+                wml: files.wml,
+                rsSerialized,
+                rtpackModuleNames: this.unpackDeps,
+                additionalDeps: deps
             });
-         }
+            this.resolve = null;
+        });
+    }
 
-         let rcsData = Request.getCurrent().stateReceiver.serialize();
-         let additionalDepsArray = [];
-         for (var key in rcsData.additionalDeps) {
-            if (rcsData.additionalDeps.hasOwnProperty(key)) {
-               additionalDepsArray.push(key);
-            }
-         }
+    waitAppContent(): Promise<ICollectedDeps> {
+        return this.renderPromise;
+    }
 
-         // Костыль. Чтобы сериализовать receivedState, нужно собрать зависимости, т.к. в receivedState у компонента
-         // Application сейчас будет список css, для восстановления состояния с сервера.
-         // Но собирать зависимости нам нужно после receivedState, потому что в нем могут тоже могут быть зависимости
-         var additionalDeps = depsCollector.collectDependencies(additionalDepsArray);
+    resetRenderDeferred(): void {
+        this.renderPromise = new Promise((resolve) => {
+            this.resolve = resolve;
+        });
+    }
 
-         files.js = files.js || [];
-         if (!this.isDebug) {
-            for (let i = 0; i < additionalDeps.js.length; i++) {
-               if (!~files.js.indexOf(additionalDeps.js[i])) {
-                  files.js.push(additionalDeps.js[i]);
-               }
-            }
-         }
-         this.resolve({
-            js: files.js || [],
-            tmpl: files.tmpl || [],
-            css: files.css || { themedCss: [], simpleCss: [] },
-            errorState: this.err,
-            receivedStateArr: rcsData.serialized,
-            additionalDeps: Object.keys(rcsData.additionalDeps).concat(Object.keys(this.additionalDeps))
-         });
-         this.resolve = null;
-
-      });
-   }
-
-   public waitAppContent():Promise<any> {
-      return this.renderPromise;
-   }
-
-   public resetRenderDeferred(): void {
-      this.renderPromise = new Promise((resolve) => {
-         this.resolve = resolve;
-      });
-   }
+    // #region IStore
+    get<K extends keyof HeadData>(key: K): HeadData[K] {
+        return this[key];
+    }
+    set<K extends keyof HeadData>(key: K, value: this[K]): boolean {
+        try {
+            this[key] = value;
+            return true;
+        } catch (_e) {
+            return false;
+        }
+    }
+    // tslint:disable-next-line:no-empty
+    remove(): void { }
+    getKeys(): Array<keyof HeadData> {
+        return Object.keys(this) as Array<keyof HeadData>;
+    }
+    // tslint:disable-next-line:no-any
+    toObject(): Record<keyof HeadData, any> {
+        return Object.assign({}, this);
+    }
+    // #endregion
 }
 
-export default HeadData;
+class HeadDataStore {
+    constructor(private readonly storageKey: string) { }
+
+    read<K extends keyof HeadData>(key: K): HeadData[K] {
+        return AppEnv.getStore<HeadData>(this.storageKey, () => new HeadData()).get(key);
+    }
+
+    write<K extends keyof HeadData>(key: K, value: HeadData[K]): boolean {
+        return AppEnv.getStore<HeadData>(this.storageKey, () => new HeadData()).set(key, value);
+    }
+}
+/**
+ * Singleton для работы со HeadData Store.
+ */
+export const headDataStore = new HeadDataStore('HeadData');
+
+function getSerializedData(): ISerializedData {
+    return AppEnv.getStateReceiver().serialize();
+}
+
+interface ISerializedData {
+    additionalDeps: IDeps;
+    serialized: string;
+}
+
+interface IResources {
+    links: Array<{ href: string; }>;
+    scripts: Array<{ src: string; }>;
+}
+
+interface ICollectedDeps {
+    // готовые ссылки на js
+    scripts: IDeps;
+    // названия js модулей
+    js: IDeps;
+    css: {
+        simpleCss: IDeps;
+        themedCss: IDeps;
+    };
+    tmpl: IDeps;
+    wml: IDeps;
+    rsSerialized: string;
+    rtpackModuleNames: IDeps;
+    additionalDeps: IDeps;
+}

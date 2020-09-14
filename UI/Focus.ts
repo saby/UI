@@ -1,0 +1,34 @@
+/// <amd-module name="UI/Focus" />
+
+import * as ElementFinder from './_focus/ElementFinder';
+import * as Events from './_focus/Events';
+import * as BoundaryElements from './_focus/BoundaryElements';
+import { focus, _initFocus, nativeFocus } from './_focus/Focus';
+import { activate } from './_focus/Activate';
+import { preventFocus, hasNoFocus } from './_focus/PreventFocus';
+import { restoreFocus } from './_focus/RestoreFocus';
+
+import { goUpByControlTree } from 'UI/NodeCollector';
+import * as DefaultOpenerFinder from './_focus/DefaultOpenerFinder';
+import * as FocusAttrs from './_focus/FocusAttrs';
+import { IControl } from './_focus/IControl';
+
+/**
+ * @author Тэн В.А.
+ */
+export {
+   ElementFinder,
+   Events,
+   BoundaryElements,
+   focus,
+   _initFocus,
+   IControl as _IControl,
+   FocusAttrs as _FocusAttrs,
+   nativeFocus,
+   activate,
+   preventFocus,
+   hasNoFocus,
+   restoreFocus,
+   goUpByControlTree,
+   DefaultOpenerFinder
+};

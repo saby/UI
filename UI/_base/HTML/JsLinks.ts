@@ -1,71 +1,63 @@
 /// <amd-module name="UI/_base/HTML/JsLinks" />
 
-import Control from '../Control';
+import Control, { TemplateFunction } from 'UI/_base/Control';
 
+// tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/JsLinks');
-import * as Request from 'View/Request';
+import { headDataStore } from 'UI/_base/HeadData';
+import { IControlOptions } from 'UI/Base';
 
+interface IJsLinksOptions extends IControlOptions {
+   linkResolver: {
+      resolveLink(l: string, ext: string): string;
+   };
+}
+/**
+ * Компонент для вставки ссылок на ресурсы страницы
+ */
+class JsLinks extends Control<IJsLinksOptions> {
+   _template: TemplateFunction = template;
 
-class JsLinks extends Control {
-   public _template: Function = template;
+   js: Record<string, number> = {};
+   tmpl: string[] = [];
+   wml: string[] = [];
+   themedCss: string[] = [];
+   simpleCss: string[] = [];
+   rsSerialized: string = '';
+   rtpackModuleNames: string = '';
 
-   public js: Array<string> = [];
-   public tmpl: Array<string> = [];
-   public wml: Array<string> = [];
-   public themedCss: Array<string> = [];
-   public simpleCss: Array<string> = [];
-   public receivedStateArr: string = '';
-
-   public _beforeMountLimited():Promise<any> {
-      // https://online.sbis.ru/opendoc.html?guid=252155de-dc95-402c-967d-7565951d2061
-      // This component awaits completion of building content of _Wait component
-      // So we don't need timeout of async building in this component
-      // Because we need to build depends list in any case
-      // before returning html to client
-      return this._beforeMount.apply(this, arguments);
-   }
-
-
-   public _beforeMount():Promise<any> {
+   _beforeMount(options: IJsLinksOptions): Promise<void> {
       if (typeof window !== 'undefined') {
          return;
       }
-      let headData = Request.getCurrent().getStorage('HeadData');
-      let def = headData.waitAppContent();
-      return new Promise((resolve, reject) => {
-         def.then((res) => {
-            this.js = res.js;
-            this.tmpl = res.tmpl;
-            this.wml = res.wml;
-            this.themedCss = res.css.themedCss;
-            this.simpleCss = res.css.simpleCss;
-            this.receivedStateArr = res.receivedStateArr;
-            resolve(true);
-         });
+      const resolveJsLink = (js: string) => options.linkResolver.resolveLink(js, 'js');
+      return headDataStore.read('waitAppContent')().then((res) => {
+         const jsLinks: string[] = res.js.map(resolveJsLink).concat(res.scripts);
+         this.js = arrayToObject(jsLinks); // конвертируем в hashmap чтобы избавиться от дублей
+         this.tmpl = res.tmpl;
+         this.wml = res.wml;
+         this.rsSerialized = res.rsSerialized;
+         /**
+          * На страницах OnlineSbisRu/CompatibleTemplate зависимости пакуются в rt-пакеты и собираются DepsCollector
+          * Поэтому в глобальной переменной храним имена запакованных в rt-пакет модулей
+          * И игнорируем попытки require (см. WS.Core\ext\requirejs\plugins\preload.js)
+          * https://online.sbis.ru/opendoc.html?guid=348beb13-7b57-4257-b8b8-c5393bee13bd
+          * TODO следует избавится при отказе от rt-паковки
+          */
+         this.rtpackModuleNames = JSON.stringify(arrayToObject(res.rtpackModuleNames));
       });
    }
-
-   public getCssNameForDefineWithTheme(cssLink:string): string {
-      return 'theme?' + cssLink;
-   }
-
-   public getDefines():string {
-      let result = '';
-      if (this.themedCss && this.simpleCss) {
-         let i;
-         for (i = 0; i < this.simpleCss.length; i++) {
-            result += 'define("css!' + this.simpleCss[i] + '", "");';
-         }
-         for (i = 0; i < this.themedCss.length; i++) {
-            result += 'define("css!' + this.getCssNameForDefineWithTheme(this.themedCss[i]) + '", "");';
-         }
-      }
-
-      return result;
-   }
-
-
 }
 
 export default JsLinks;
+
+/** Конвертируем в hashmap для быстрого поиска имени модуля */
+function arrayToObject(arr: string[]): Record<string, number> {
+   const obj: Record<string, number> = {};
+   let index = 0;
+   for (const key of arr) {
+      obj[key] = index++;
+   }
+   return obj;
+}
