@@ -43,6 +43,11 @@ class StateReceiver implements IStateReceiver {
 
    serialize(): ISerializedType {
       const slr = new Serializer();
+      /**
+       * Сериалайзер в своей памяти учитывает предыдущие результаты и может выдать ссылку на объект,
+       * если его 2 раза прогнать через один инстанс. Поэтому для проверки один сериалайзер, а для итога другой.
+       */
+      const slrForCheck = new Serializer();
       const serializedMap = {};
       const allAdditionalDeps = {};
       const allRecStates = this.receivedStateObjectsArray;
@@ -51,7 +56,15 @@ class StateReceiver implements IStateReceiver {
          const receivedState = typeof state === 'object' && 'receivedState' in state ? state.receivedState : state;
          if (!receivedState) { return; }
          try {
-            serializedMap[key] = JSON.stringify(receivedState, slr.serializeStrict);
+            /**
+             * Если удалось сериализовать отдельное состояние, то можно его добавить в общий несериализованный словарь
+             * Раньше в этот словарь добавлялось уже сериализованное значение. И потом словарь еще раз сериализовывался.
+             * Результат: экранирование тремя слешами
+             * https://online.sbis.ru/opendoc.html?guid=3b1fffe6-6f75-411f-989d-f0f90ec2ec46
+             */
+            if (JSON.stringify(receivedState, slrForCheck.serializeStrict)) {
+               serializedMap[key] = receivedState;
+            }
          } catch (e) {
             let serializedFieldError = '';
             if (typeof(serializedMap[key]) === 'object') {
@@ -63,12 +76,7 @@ class StateReceiver implements IStateReceiver {
             delete serializedMap[key];
          }
       });
-      /**
-       * Здесь дополнительная сериализация: сериализуется словарь уже сериализованных receivedStates
-       * Отдельная сериализация каждого receivedState позволяет его валидировать
-       * Десериализвация также двухэтапная
-       */
-      let serializedState = JSON.stringify(serializedMap);
+      let serializedState = JSON.stringify(serializedMap, slr.serializeStrict);
       Serializer.componentOptsReArray.forEach(
          (re): void => {
             serializedState = serializedState.replace(re.toFind, re.toReplace);
@@ -91,14 +99,11 @@ class StateReceiver implements IStateReceiver {
    deserialize(str: string | undefined): void {
       if (!str) { return; }
       const slr = new Serializer();
-      Object.entries(JSON.parse(str))
-         .forEach(([key, value]: [string, string]) => {
-            try {
-               this.deserialized[key] = JSON.parse(value, slr.deserialize);
-            } catch (error) {
-               Logger.error(`Ошибка десериализации ${key} - ${value}`, null, error);
-            }
-         });
+      try {
+         this.deserialized = JSON.parse(str, slr.deserialize);
+      } catch (error) {
+         Logger.error(`Ошибка десериализации ${str}`, null, error);
+      }
    }
 
    register(key: string, inst: any): void {
