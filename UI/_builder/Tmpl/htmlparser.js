@@ -4,16 +4,14 @@ define('UI/_builder/Tmpl/htmlparser', [
    'UI/_builder/Tmpl/core/Tags',
    'Core/htmlparser2',
    'UI/_builder/Tmpl/handlers/third-party/dom',
-   'UI/_builder/Tmpl/checkDomHandler',
-   'UI/_builder/Tmpl/utils/ErrorHandler',
+   'UI/_builder/Tmpl/checkDomHandler'
 ], function(
    Parser,
    ErrorHandler,
    Tags,
    HtmlParser2,
    DomHandler,
-   CheckDomHandler,
-   ErrorHandlerLib
+   CheckDomHandler
 ) {
    'use strict';
 
@@ -30,7 +28,7 @@ define('UI/_builder/Tmpl/htmlparser', [
 
    var USE_NEW_HTML_PARSER = true;
 
-   var errorHandler = new ErrorHandlerLib.default();
+   var errorHandler = new ErrorHandler.default();
 
    function defaultHandler(error) {
       if (error) {
