@@ -39,7 +39,7 @@ export function genGetter(data: string, path: string[]): string {
 }
 
 export function genSetter(data: string, path: string[]): string {
-   return `${VAR_MODULE_NAME}.setter(${data}, [${path.join()}], viewController, value)`;
+   return `${VAR_MODULE_NAME}.setter(${data}, [${path.join()}], value)`;
 }
 
 export function genDecorate(name: string, args: string[]): string {

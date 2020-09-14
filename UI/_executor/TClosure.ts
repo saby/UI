@@ -244,7 +244,7 @@ var
     * @param path
     * @param value
     */
-   setter = function setter(obj, path, viewController, value) {
+   setter = function setter(obj, path, value) {
       return object.implantValue(obj, path, value);
    },
    isFunction = function isFunction(fn) {
