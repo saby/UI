@@ -245,6 +245,11 @@ var
     * @param value
     */
    setter = function setter(obj, path, viewController, value) {
+      // костыль, удалить
+      // есть сервис который работает в 515 версии, и там еще нет аргумента viewController
+      if (value === undefined && typeof viewController !== 'object') {
+         value = viewController;
+      }
       return object.implantValue(obj, path, value);
    },
    isFunction = function isFunction(fn) {
