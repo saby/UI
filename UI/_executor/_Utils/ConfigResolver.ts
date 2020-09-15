@@ -11,32 +11,6 @@ import * as Scope from '../_Expressions/Scope';
 
 /**
  * todo: describe method
- * @param obj
- * @param prop
- */
-function hasOwnPropertyCheck(obj: any, prop: string): boolean {
-   return !!(obj && obj.hasOwnProperty && obj.hasOwnProperty(prop));
-}
-
-/**
- * todo: describe method
- * @param obj
- */
-function detectObjectAsParent(obj: any): object | null {
-   if (obj && obj.hasOwnProperty && !obj.global) {
-      if (obj[Scope.ORIGIN_FLAG]) {
-         obj = obj[Scope.ORIGIN_FLAG];
-      }
-      if (hasOwnPropertyCheck(obj, '_options')) {
-         return obj;
-      }
-      return detectObjectAsParent(Object.getPrototypeOf(obj));
-   }
-   return null;
-}
-
-/**
- * todo: describe method
  * @param parent
  * @param obj
  * @param currentPropertyName
@@ -112,10 +86,7 @@ export class UseAutoProxiedOptionError {
  * @param data
  */
 export function calcParent(obj: any, currentPropertyName: any, data: any): any {
-   if (obj.viewController) {
-      return obj.viewController;
-   }
-   return  detectObjectAsParent(obj);
+   return obj.viewController || obj;
 }
 
 const mergeRegExp = /(^on:|^content$)/ig;
