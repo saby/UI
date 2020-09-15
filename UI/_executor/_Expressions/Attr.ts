@@ -5,7 +5,6 @@
  */
 
 import { isAttr, checkAttr } from './AttrHelper';
-import { _FocusAttrs } from 'UI/Focus';
 
 export { isAttr, checkAttr };
 
@@ -263,19 +262,6 @@ function mergeAttributes(parentAttributes: IAttributes, ownAttributes: IAttribut
       attributes[key] = value;
    });
 
-   // Значения атрибутов для системы фокусов сбрасываются на дефолтные значения
-   if (attributes['ws-creates-context'] === 'default') {
-      const value = ownAttributes && ownAttributes[`${ownAttrHavePrefix ? attrPrefix : ''}ws-creates-context`];
-
-      attributes['ws-creates-context'] = value || 'true';
-   }
-
-   if (attributes['ws-delegates-tabfocus'] === 'default') {
-      const value = ownAttributes && ownAttributes[`${ownAttrHavePrefix ? attrPrefix : ''}ws-delegates-tabfocus`];
-
-      attributes['ws-delegates-tabfocus'] = value || 'true';
-   }
-
    return attributes;
 }
 export { mergeAttributes as processMergeAttributes }
@@ -345,15 +331,13 @@ export function mergeAttrs(attr1, attr2) {
             finalAttr.key = attr2[name];
          } else {
             empt = name.replace('attr:', '');
-            if (!finalAttr.hasOwnProperty(empt) || ((empt === 'ws-creates-context' || empt === 'ws-delegates-tabfocus') && finalAttr[empt] === 'default')) {
-               finalAttr[empt] = attr2[name] ? attr2[name] : undefined;
+            if (!finalAttr.hasOwnProperty(empt)) {
+               finalAttr[empt] = attr2[name] || undefined;
             }
          }
       }
    }
 
-   // Значения атрибутов для системы фокусов сбрасываются на дефолтные значения
-   _FocusAttrs.resetDefaultValues(finalAttr, attr2);
    return finalAttr;
 }
 
