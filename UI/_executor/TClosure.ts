@@ -270,8 +270,10 @@ var
    setter = function setter(obj, path, viewController, value) {
       // костыль, удалить
       // есть сервис который работает в 515 версии, и там еще нет аргумента viewController
-      if (value === undefined && typeof viewController !== 'object') {
-         value = viewController;
+      if (value === undefined) {
+         if (typeof viewController !== 'object' || Array.isArray(viewController)) {
+            value = viewController;
+         }
       }
 
       var
