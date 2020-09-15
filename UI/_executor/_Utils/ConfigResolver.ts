@@ -92,7 +92,7 @@ export function calcParent(obj: any, currentPropertyName: any, data: any): any {
    if (obj === global) {
       return undefined;
    }
-   if (obj && obj.viewController) {
+   if (obj && obj.viewController !== undefined) {
       return obj.viewController;
    }
    return obj;
