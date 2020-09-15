@@ -191,7 +191,7 @@ define('UI/_state/TemplateDeserialization', ['UI/_state/FunctionHeaderTemplate']
          var wrappedFunction = (function(realFunction) {
             return function wrappedRepairedFunction() {
                if (this === window) {
-                  return realFunction.apply({}, arguments);
+                  return realFunction.apply(undefined, arguments);
                }
                return realFunction.apply(this, arguments);
             };
