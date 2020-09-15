@@ -593,14 +593,12 @@ define('UI/_state/Serializer', [
          toReplace: '\\\\'
       },
       {
-         // Открывающий тег, закрывающий тег, открывающийся комментарий.
-         toFind: /<([/a-z!])/gi,
-         toReplace: '<\\$1'
+         toFind: /<\/(script)/gi,
+         toReplace: '<\\/$1'
       },
       {
-         // Закрывающийся комментарий.
-         toFind: /-->/g,
-         toReplace: '-\\->'
+         toFind: /<!--/g,
+         toReplace: '<\\!--'
       },
       {
          toFind: /'/g,
