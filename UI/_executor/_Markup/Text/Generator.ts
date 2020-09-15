@@ -298,9 +298,9 @@ export class GeneratorText implements IGenerator {
    calculateScope(scope) {
       return Scope.calculateScope(scope, Scope.controlPropMerge);
    };
-   
+
    private isValidTemplate(fn: any, tpl: GeneratorTemplateOrigin, isTemplateWrapper: boolean): boolean {
-      if (fn && typeof fn === 'object' && !isTemplateWrapper && !fn.hasOwnProperty('module')) {
+      if (fn && typeof fn === 'object' && !isTemplateWrapper && !fn.hasOwnProperty('func') && !Common.isArray(fn)) {
          let reason = '';
          if (fn.hasOwnProperty('default')) {
             reason = 'В модуле экспортируется объект по-умолчанию (export default ControlName).'
