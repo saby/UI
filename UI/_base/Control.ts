@@ -290,6 +290,15 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): unknown {
+      if (args && !(args instanceof Array)) {
+         var error = `Ошибка использования API событий. В метод _notify() в качестве второго аргументов необходимо передавать массив (была передан объект типа ${typeof args})
+                     Контрол: ${this._moduleName}
+                     Событие: ${eventName} 
+                     Аргументы: ${args}
+                     Подробнее о событиях: https://wasaby.dev/doc/platform/ui-library/events/#params-from-notify`;
+         Logger.error(error, this);
+         throw new Error(error);
+      }
       return this._environment && this._environment.startEvent(this._controlNode, arguments);
    }
 
