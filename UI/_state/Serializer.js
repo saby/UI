@@ -603,6 +603,10 @@ define('UI/_state/Serializer', [
          toReplace: '-\\->'
       },
       {
+         toFind: /<!--/g,
+         toReplace: '<\\!--'
+      },
+      {
          toFind: /'/g,
          toReplace: '\\u0027'
       },
