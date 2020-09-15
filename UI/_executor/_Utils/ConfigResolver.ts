@@ -92,10 +92,10 @@ export function calcParent(obj: any, currentPropertyName: any, data: any): any {
    if (obj === global) {
       return undefined;
    }
-   if (obj && obj.hasOwnProperty('viewController')) {
+   if (obj && obj.viewController) {
       return obj.viewController;
    }
-   return obj;
+   //return obj;
 }
 
 const mergeRegExp = /(^on:|^content$)/ig;
