@@ -46,6 +46,7 @@ return out || markupGenerator.createText("");
 `;
 
 export const DEFINE = `define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEPENDENCIES#*/, function(Executor, rk) {
+   "use strict";
    function debug() {
       debugger;
    }
