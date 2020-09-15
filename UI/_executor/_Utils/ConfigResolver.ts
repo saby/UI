@@ -79,6 +79,9 @@ export class UseAutoProxiedOptionError {
    }
 }
 
+var global = (function() {
+   return this || (0, eval)('this');
+}());
 /**
  * todo: describe method
  * @param obj
