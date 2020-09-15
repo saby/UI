@@ -597,6 +597,10 @@ define('UI/_state/Serializer', [
          toReplace: '<\\/$1'
       },
       {
+         toFind: /<!--/g,
+         toReplace: '<\\!--'
+      },
+      {
          toFind: /'/g,
          toReplace: '\\u0027'
       },
