@@ -86,7 +86,7 @@ export class UseAutoProxiedOptionError {
  * @param data
  */
 export function calcParent(obj: any, currentPropertyName: any, data: any): any {
-   return obj.viewController || obj;
+   return obj?.viewController || obj;
 }
 
 const mergeRegExp = /(^on:|^content$)/ig;
