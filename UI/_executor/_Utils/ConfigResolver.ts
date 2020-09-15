@@ -115,15 +115,6 @@ export function calcParent(obj: any, currentPropertyName: any, data: any): any {
    if (obj.viewController) {
       return obj.viewController;
    }
-   if (typeof currentPropertyName === 'undefined') {
-      return detectObjectAsParent(obj);
-   }
-   if (data[currentPropertyName]
-      && hasOwnPropertyCheck(data[currentPropertyName], 'parent')
-      && hasOwnPropertyCheck(data[currentPropertyName].parent, '_template')
-   ) {
-      return data[currentPropertyName].parent;
-   }
    return  detectObjectAsParent(obj);
 }
 
