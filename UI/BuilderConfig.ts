@@ -9,4 +9,4 @@ import * as Config from './_builderConfig/Config';
 
 export {
    Config
-}
+};
