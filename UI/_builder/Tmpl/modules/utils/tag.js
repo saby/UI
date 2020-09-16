@@ -1,6 +1,6 @@
 define('UI/_builder/Tmpl/modules/utils/tag', [
    'UI/_builder/Tmpl/modules/data/utils/dataTypesCreator',
-   'UI/_builder/Config',
+   'UI/_builderConfig/Config',
 ], function(dataTypesCreator, Config) {
    'use strict';
 
