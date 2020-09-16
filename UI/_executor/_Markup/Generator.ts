@@ -408,7 +408,7 @@ export class Generator {
       if (!attrs.attributes) {
          attrs.attributes = {};
       }
-      _FocusAttrs.prepareAttrsForFocus(attrs.attributes, controlProperties);
+      _FocusAttrs.prepareAttrsForFocus(attrs.attributes);
       logicParent = (attrs.internal && attrs.internal.logicParent) ? attrs.internal.logicParent : null;
       parent = (attrs.internal && attrs.internal.parent) ? attrs.internal.parent : null;
       OptionsResolver.resolveInheritOptions(controlClass, attrs, controlProperties);
