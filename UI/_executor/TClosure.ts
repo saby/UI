@@ -452,6 +452,7 @@ const presetScope = Scope.presetScope;
 const uniteScope = Scope.uniteScope;
 const calculateScope = Scope.calculateScope;
 const calcParent = ConfigResolver.calcParent;
+const processMergeAttributes = Attr.processMergeAttributes;
 const plainMerge = Common.plainMerge;
 const plainMergeAttr = Common.plainMergeAttr;
 const plainMergeContext = Common.plainMergeContext;
@@ -466,7 +467,6 @@ export {
    calculateScope,
    createDataArray,
    filterOptions,
-   ConfigResolver as configResolver,
    calcParent,
    wrapUndef,
    getDecorators,
@@ -480,7 +480,7 @@ export {
    setter,
    IoC,
    BUILDER_CONFIG as config,
-   Common as utils,
+   processMergeAttributes,
    plainMerge,
    plainMergeAttr,
    plainMergeContext,
@@ -490,7 +490,6 @@ export {
    bindProxy,
    isObject,
    prepareAttrsForFocus,
-   Attr as attrExpressions,
    validateNodeKey,
    _isTClosure
 };
