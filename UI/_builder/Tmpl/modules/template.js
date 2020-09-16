@@ -1,6 +1,6 @@
 define('UI/_builder/Tmpl/modules/template', [
    'UI/_builder/Tmpl/utils/ErrorHandler',
-   'UI/_builder/Config',
+   'UI/_builderConfig/Config',
    'UI/_builder/Tmpl/codegen/templates'
 ], function templateLoader(ErrorHandlerLib, Config, templates) {
    'use strict';
