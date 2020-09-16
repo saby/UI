@@ -1,8 +1,8 @@
 define('UI/_builder/Tmpl/modules/template', [
    'UI/_builder/Tmpl/utils/ErrorHandler',
-   'UI/_builderConfig/Config',
+   'UI/BuilderConfig',
    'UI/_builder/Tmpl/codegen/templates'
-], function templateLoader(ErrorHandlerLib, Config, templates) {
+], function templateLoader(ErrorHandlerLib, BuilderConfig, templates) {
    'use strict';
 
    /**
@@ -13,7 +13,7 @@ define('UI/_builder/Tmpl/modules/template', [
 
    function validateTemplateName(tag) {
       var name = tag.attribs.name;
-      if (Config.reservedWords.includes(name)) {
+      if (BuilderConfig.Config.reservedWords.includes(name)) {
          errorHandler.error(
             "Встречено разерверированное служебное слово '" + name + "' в названии шаблона",
             {
