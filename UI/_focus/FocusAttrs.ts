@@ -7,49 +7,19 @@
 
 import { checkAttr } from './AttrHelper';
 
-export function prepareAttrsForFocus(attributes, opts) {
+export function prepareAttrsForFocus(attributes) {
    if (!attributes) {
       return;
    }
 
-   if (checkAttr(attributes)) {
-      if (!attributes['attr:ws-creates-context']) {
-         attributes['attr:ws-creates-context'] = 'true';
-      }
+   const prefix = checkAttr(attributes) ? 'attr:' : '';
 
-      if (!attributes['attr:ws-delegates-tabfocus']) {
-         attributes['attr:ws-delegates-tabfocus'] = 'true';
-      }
-
-      return;
+   if (!attributes[prefix + 'ws-creates-context']) {
+      attributes[prefix + 'ws-creates-context'] = 'true';
    }
 
-   if (opts['ws-creates-context'] === 'true') {
-      attributes['ws-creates-context'] = 'true';
-   } else if(!attributes['ws-creates-context']) {
-      attributes['ws-creates-context'] = 'true';
-   }
-
-   if (opts['ws-delegates-tabfocus'] === 'true') {
-      attributes['ws-delegates-tabfocus'] = 'true';
-   } else if(!attributes['ws-delegates-tabfocus']) {
-      attributes['ws-delegates-tabfocus'] = 'true';
-   }
-
-   if (opts['ws-tab-cycling'] === 'true') {
-      attributes['ws-tab-cycling'] = 'true';
-   }
-
-   if (opts['ws-autofocus'] === 'true') {
-      attributes['ws-autofocus'] = 'true';
-   }
-
-   if (opts['ws-no-focus'] === 'true') {
-      attributes['ws-no-focus'] = 'true';
-   }
-
-   if (opts.hasOwnProperty('tabindex')) {
-      attributes['tabindex'] = opts['tabindex'] + '';
+   if(!attributes[prefix + 'ws-delegates-tabfocus']) {
+      attributes[prefix + 'ws-delegates-tabfocus'] = 'true';
    }
 }
 
@@ -86,7 +56,7 @@ export function patchDom(dom, cfg) {
          attrObj[attrName] = attr.value; //Копируем необходимые атрибуты
       }
    }
-   prepareAttrsForFocus(attrObj, cfg);
+   prepareAttrsForFocus(attrObj);
    prepareTabindex(attrObj);
    for (var key in attrObj) {
       dom.setAttribute(key, attrObj[key]);
