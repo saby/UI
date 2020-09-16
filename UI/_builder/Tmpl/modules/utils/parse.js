@@ -21,6 +21,20 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
     * @author Крылов М.А.
     */
 
+   /**
+    * Collection of special attribute names that are always attributes.
+    */
+   const SPECIAL_ATTRIBUTES_COLLECTION = [
+      'ws-delegates-tabfocus',
+      'ws-creates-context',
+      'ws-tab-cycling',
+      'ws-autofocus',
+      'ws-no-focus',
+      'tabindex',
+      'class',
+      'data-access'
+   ];
+
    var errorHandler = new ErrorHandlerLib.default();
 
    function isAttr(string) {
@@ -238,7 +252,7 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
                   attr,
                   true);
                delete attribs[attr];
-            } else if (attr === 'class' || attr === 'tabindex' || attr === 'data-access') {
+            } else if (SPECIAL_ATTRIBUTES_COLLECTION.indexOf(attr) > -1) {
                mayBeToMerge['attr:' + attr] = processDataSequence.call(this,
                   attribs[attr],
                   data,
