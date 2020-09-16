@@ -24,7 +24,7 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
    /**
     * Collection of special attribute names that are always attributes.
     */
-   const SPECIAL_ATTRIBUTES_COLLECTION = [
+   var SPECIAL_ATTRIBUTES_COLLECTION = [
       'ws-delegates-tabfocus',
       'ws-creates-context',
       'ws-tab-cycling',
