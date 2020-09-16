@@ -227,7 +227,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    protected _allowNativeEvent: boolean = false;
 
    // protected for compatibility, should be private
-   protected _container: HTMLElement;
+   protected _container: HTMLElement = null;
 
    // TODO: Временное решение. Удалить после выполнения удаления всех использований.
    // Ссылка: https://online.sbis.ru/opendoc.html?guid=5f576e21-6606-4a55-94fd-6979c6bfcb53.
