@@ -99,7 +99,7 @@ export const EVENT = `(function (self) {
 
 export const FOR = `(function customForTemplate() {
    var out = [];
-   data.viewController = viewController;
+   data.viewController = viewController || null;
    (function customForTemplateScope() {
       var templateCount = 0,
          contextInput = key + '_' + (forCounter++),
@@ -123,7 +123,7 @@ export const FOREACH = `(function forTemplate() {
       }
    }
    var out = [];
-   data.viewController = viewController;
+   data.viewController = viewController || null;
    (function forTemplateScope() {
       var data = thelpers.createScope(this);
       if (iterator) {
@@ -213,7 +213,7 @@ var viewController = thelpers.configResolver.calcParent(this, typeof currentProp
 export const INCLUDED_TEMPLATE = `{
    func: (function () {
       var scope = Object.create(data);
-      scope.viewController = viewController;
+      scope.viewController = viewController || null;
       var bindFn = /*#TEMPLATE#*/.bind(scope);
 
       /*#DELETE IT START#*/
@@ -237,7 +237,7 @@ export const LOCALIZATION = `var rk = typeof rk !== 'undefined' ? rk : (function
 
 export const OBJECT_TEMPLATE = `(new(function () {
    var scope = Object.create(data);
-   scope.viewController = viewController;
+   scope.viewController = viewController || null;
    var func = ( /*#TEMPLATE#*/ );
    this.func = thelpers.makeFunctionSerializable(func, scope);
    /*#INTERNAL#*/;
