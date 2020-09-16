@@ -220,12 +220,20 @@ export class GeneratorText implements IGenerator {
    };
 
    resolver(tpl, preparedScope, decorAttribs, context, _deps?, includedTemplates?, config?, defCollection?) {
+      if (typeof tpl === 'undefined') {
+         const typeTemplate = typeof tpl;
+         Logger.error(`${typeTemplate} component error - Попытка использовать компонент/шаблон, ` +
+            `но вместо компонента в шаблоне был передан ${typeTemplate}! ` +
+            'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
+            `По стеку будет понятно, в каком шаблоне и в какую опцию передается ${typeTemplate}`, tpl);
+         return this.createEmptyText();
+      }
       let isTplString = typeof tpl === 'string';
       let isTplModule = Common.isLibraryModule(tpl);
+      let isTemplateWrapper = false;
       let data = this.prepareDataForCreate(tpl, preparedScope, decorAttribs, _deps, includedTemplates);
       let resolvedScope = data.controlProperties;
       let fn;
-      let isTemplateWrapper = false;
 
       if (isTplString) {
          fn = stringTemplateResolver(tpl, includedTemplates, _deps, config, data.parent);
@@ -242,7 +250,6 @@ export class GeneratorText implements IGenerator {
          isTemplateWrapper = true;
          fn = fn.default;
       }
-
 
       if (Common.isControlClass(fn)) {
          /**
@@ -264,34 +271,28 @@ export class GeneratorText implements IGenerator {
          Logger.debug('Inherit options for control', decorAttribs.inheritOptions);
 
          let r;
-         if (!this.isValidTemplate(fn, tpl, isTemplateWrapper)) {
+         let callContext = preparedScope && data.parent ? data.parent : fn;
+         if (!this.isValidTemplate(fn, tpl, isTplString, isTplModule, isTemplateWrapper)) {
             return this.createEmptyText();
          }
          if (typeof fn === 'function') {
-            r = preparedScope && data.parent ? fn.call(data.parent, resolvedScope, decorAttribs, context, false) :
-               fn(resolvedScope, decorAttribs, context, false);
+            r = fn.call(callContext, resolvedScope, decorAttribs, context, false);
          } else if (fn && typeof fn.func === 'function') {
-            r = preparedScope && data.parent ? fn.func.call(data.parent, resolvedScope, decorAttribs, context, false) :
-               fn.func(resolvedScope, decorAttribs, context, false);
+            r = fn.func.call(callContext, resolvedScope, decorAttribs, context, false);
          } else if (Common.isArray(fn)) {
-            r = preparedScope && data.parent ?
-               fn.map(function (template) {
-                  if (typeof template === 'function') {
-                     return template.call(data.parent, resolvedScope, decorAttribs, context, false);
-                  } else if (typeof template.func === 'function') {
-                     return template.func.call(data.parent, resolvedScope, decorAttribs, context, false);
-                  }
-                  return template;
-               })
-               :
-               fn.map(function (template) {
-                  if (typeof template === 'function') {
-                     return template(resolvedScope, decorAttribs, context, false);
-                  } else if (typeof template.func === 'function') {
-                     return template.func(resolvedScope, decorAttribs, context, false);
-                  }
-                  return template;
-               });
+            const _this = this;
+            r = fn.map(function (template) {
+               if (!_this.isValidTemplate(template, tpl, isTplString, isTplModule, isTemplateWrapper)) {
+                  return _this.createEmptyText();
+               }
+               callContext = preparedScope && data.parent ? data.parent : template;
+               if (typeof template === 'function') {
+                  return template.call(callContext, resolvedScope, decorAttribs, context, false);
+               } else if (typeof template.func === 'function') {
+                  return template.func.call(callContext, resolvedScope, decorAttribs, context, false);
+               }
+               return template;
+            });
             r = this.joinElements(r, undefined, defCollection);
          } else if (typeof tpl === 'undefined') {
             const typeTemplate = typeof tpl;
@@ -349,17 +350,32 @@ export class GeneratorText implements IGenerator {
       return Scope.calculateScope(scope, Scope.controlPropMerge);
    };
 
-   private isValidTemplate(fn: any, tpl: GeneratorTemplateOrigin, isTemplateWrapper: boolean): boolean {
-      if (fn && typeof fn === 'object' && !isTemplateWrapper && !fn.hasOwnProperty('func') && !Common.isArray(fn)) {
-         let reason = '';
+   private isValidTemplate(fn: any,
+                           tpl: GeneratorTemplateOrigin,
+                           isTplString: boolean,
+                           isTplModule: boolean,
+                           isTemplateWrapper: boolean): boolean {
+      let reason = '';
+      let isValid = true;
+      if (isTplString && typeof fn === 'number') {
+         isValid = false;
+         reason = `В качестве компонента/шаблона было передано число.`
+      }
+      if (isTplModule && typeof fn === 'string') {
+         isValid = false;
+         reason = `Из библиотеки ${tpl} в качестве компонента была передана строка.`
+      }
+      if (typeof fn === 'object' && !isTemplateWrapper && !fn.hasOwnProperty('func') && !Common.isArray(fn)) {
+         isValid = false;
          if (fn.hasOwnProperty('default')) {
             reason = 'В модуле экспортируется объект по-умолчанию (export default ControlName).'
          }
-         Logger.error(`Не удалось построить вертску.` +
+      }
+      if (isValid) {
+         Logger.error(`Не удалось построить верстку.` +
             `В качестве шаблона контрола ${tpl} была передана структура не поддерживаемая генератором.` +
             `${reason}`, fn);
-         return false;
       }
-      return true;
+      return isValid;
    }
 }
