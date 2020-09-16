@@ -3,7 +3,7 @@
 def version = '20.6000'
 
 node ('controls') {
-    checkout_pipeline("rc-${version}")
+    checkout_pipeline("20.6000/pea/new_repo_engine")
     run_branch = load '/home/sbis/jenkins_pipeline/platforma/branch/run_branch'
     run_branch.execute('ui', version)
 }
