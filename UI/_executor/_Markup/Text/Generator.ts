@@ -321,7 +321,7 @@ export class GeneratorText implements IGenerator {
             reason = 'В модуле экспортируется объект по-умолчанию (export default ControlName).'
          }
       }
-      if (isValid) {
+      if (!isValid) {
          Logger.error(`Не удалось построить верстку.` +
             `В качестве шаблона контрола ${tpl} была передана структура не поддерживаемая генератором.` +
             `${reason}`, fn);
