@@ -12,7 +12,8 @@
     "UI/Executor",
     "UI/Reactivity",
     "UI/State",
-    "UI/Events"
+    "UI/Events",
+    "UI/BuilderConfig"
   ],
   "extendsTo": "online-superbundle.package.js"
 }
