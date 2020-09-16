@@ -7,7 +7,6 @@
                Object.assign(Env.constants, window.wsConfig);
                require( {{ __setHTMLUnsafe(getDeps()) }}, function () {
                   var sr = new UI.StateReceiver();
-                  sr.deserialize(window.receivedStates);
                   AppInit.default(window.wsConfig, void 0, sr);
                   UI.Start({}, document.getElementById('root'));
                });
