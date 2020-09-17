@@ -227,15 +227,7 @@ function checkEnableScreenKeyboard(): boolean {
 }
 
 function fixScrollingEffect(undoScrolling: Function): void {
-   if (detection.safari) {
-      // для сафари нужен timeout, почему-то фокус не успевает проскроллить элемент,
-      // и вычисляется неправильный новый scrollTOp
-      setTimeout(() => {
-         undoScrolling();
-      }, 0);
-   } else {
-      undoScrolling();
-   }
+   undoScrolling();
 }
 
 function fixElementForMobileInputs(element: Element, cfg: IFocusConfig): Element {
