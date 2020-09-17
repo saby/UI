@@ -79,9 +79,8 @@ export class Builder implements IBuilder {
                   - выполнение метода БЛ занимает более 20 секунд
                   - бесконечный Promise в _beforeMount
                   - суммарное время построения контрола и его детей больше 20 секунд`, inst);
-            } else {
-               Logger.lifeError('_beforeMount', inst, error);
             }
+            Logger.lifeError('При построение на СП _beforeMount контрола ${inst._moduleName} возникла проблема', inst, error);
          }
 
          //TODO пропустить через contextResolver(где взять класс?)
