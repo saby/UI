@@ -30,7 +30,7 @@ import {
    OperationType,
    getNodeName
 } from 'UI/DevtoolsHook';
-import { IControlNode } from '../interfaces';
+import { IControlNode, IDOMEnvironment } from '../interfaces';
 import { collectObjectVersions, getChangedOptions } from './Options';
 
 import * as AppEnv from 'Application/Env';
@@ -44,13 +44,13 @@ export { getChangedOptions } from './Options';
 
 var Slr = new Serializer();
 
-var DirtyCheckingCompatible;
+let DirtyCheckingCompatible: typeof _dcc;
 if (constants.compat) {
    DirtyCheckingCompatible = _dcc;
 }
 
-let compatibleUtils;
-function getCompatibleUtils() {
+let compatibleUtils: unknown;
+function getCompatibleUtils(): unknown {
    if (!compatibleUtils) {
       if (requirejs.defined('View/ExecutorCompatible')) {
          compatibleUtils = requirejs('View/ExecutorCompatible').CompatibleUtils;
@@ -634,7 +634,7 @@ function addTemplateChildrenRecursive(node, result) {
    }
 }
 
-export function rebuildNode(environment, node, force, isRoot) {
+export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, force: boolean, isRoot) {
    var
       id = node.id,
       dirty = environment._currentDirties[id] || DirtyKind.NONE,
@@ -1345,26 +1345,26 @@ export function rebuildNode(environment, node, force, isRoot) {
       newNode.childrenNodes = childrenRebuild.value;
       if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
          var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
-            newNode.fullMarkup = environment.decorateFullMarkup(
-               getFullMarkup(
-                  newNode.childrenNodes,
-                  newNode.markup,
-                  undefined,
-                  needRenderMarkup || isSelfDirty ? undefined : newNode.fullMarkup,
-                  node.parent
-               ),
-               newNode
-            );
-            newNode.fullMarkup.changed = wasChanged || newNode.fullMarkup.changed || (needRenderMarkup || isSelfDirty);
-            if (newNode.fullMarkup.changed) {
-               setChangedForNode(newNode);
-            }
+         newNode.fullMarkup = environment.decorateFullMarkup(
+            getFullMarkup(
+               newNode.childrenNodes,
+               newNode.markup,
+               undefined,
+               needRenderMarkup || isSelfDirty ? undefined : newNode.fullMarkup,
+               node.parent
+            ),
+            newNode
+         );
+         newNode.fullMarkup.changed = wasChanged || newNode.fullMarkup.changed || (needRenderMarkup || isSelfDirty);
+         if (newNode.fullMarkup.changed) {
+            setChangedForNode(newNode);
          }
+      }
 
-         result = {
-            value: newNode,
-            memo: concatMemo(currentMemo, childrenRebuild.memo)
-         };
+      result = {
+         value: newNode,
+         memo: concatMemo(currentMemo, childrenRebuild.memo)
+      };
    } else {
       result = {
          value: node,

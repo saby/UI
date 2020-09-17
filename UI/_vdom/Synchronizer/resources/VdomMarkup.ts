@@ -7,9 +7,21 @@ import { ListMonad } from '../../Utils/Monad';
 import { setControlNodeHook } from './Hooks';
 import { Logger } from 'UI/Utils';
 import { WasabyProperties } from 'Inferno/third-party/index';
+import { VNode } from 'Inferno/third-party/index';
 import { Map, Set } from 'Types/shim';
 
-import {htmlNode, textNode} from 'UI/Executor';
+import { htmlNode, textNode } from 'UI/Executor';
+
+// this.childFlags = childFlags;
+// this.children = children;
+// this.className = className;
+// this.dom = null;
+// this.flags = flags;
+// this.key = key === void 0 ? null : key;
+// this.props = props === void 0 ? null : props;
+// this.ref = ref === void 0 ? null : ref;
+// this.type = type;
+// this.markup = markup;
 
 /**
  * @author Кондаков Р.Н.
@@ -46,12 +58,16 @@ export function isInvisibleNodeType(vnode: any): any {
    return vnode && typeof vnode === 'object' && vnode.type && vnode.type === 'invisible-node';
 }
 
-export function getVNodeChidlren(vnode: any, getFromTemplateNodes?: any): any {
+type InfernoNode = string | number | boolean;
+export function getVNodeChidlren(vnode: VNode, getFromTemplateNodes: boolean = false): InfernoNode | VNode[] {
    if (getFromTemplateNodes) {
       return vnode.children || [];
-   } else {
-      return isVNodeType(vnode) ? (vnode.children === null ? [] : vnode.children) : [];
    }
+   if (isVNodeType(vnode)) {
+      return vnode.children === null ? [] : vnode.children
+   }
+
+   return [];
 }
 
 export function mapVNode(
@@ -148,8 +164,19 @@ function collectChildTemplateVNodes(vnode: any): any {
    return mapVNodeChildren(true, vnode, identity, isTemplateVNodeType);
 }
 
-export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any, goin?: any): any {
-   const result = {
+interface IMarkupDiff {
+   create: VNode[];
+   createTemplates: [];
+   destroy: [];
+   destroyTemplates: [];
+   update: [];
+   updateTemplates: [];
+   vnodeChanged: boolean;
+}
+
+export function getMarkupDiff(oldNode: VNode, newNode: VNode,
+                              ignoreLinkEqual: boolean = false, goin: boolean = false): IMarkupDiff {
+   const result: IMarkupDiff = {
       create: [],
       createTemplates: [],
       destroy: [],
@@ -158,6 +185,7 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
       updateTemplates: [],
       vnodeChanged: false
    };
+
    let childrenResult;
    let oldChildren;
    let newChildren;
@@ -298,7 +326,7 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
       }
    }
 
-   function complexDiffFinder(oldNode: any, newNode: any, isTemplateNode: any, goin: any): any {
+   function complexDiffFinder(oldNode: VNode, newNode: VNode, isTemplateNode: any, goin: boolean): void {
       oldChildren = getVNodeChidlren(oldNode, isTemplateNode);
       newChildren = reorder(oldChildren, getVNodeChidlren(newNode, isTemplateNode));
 
@@ -638,10 +666,10 @@ function createErrVNode(err: any, key: any): any {
    );
 }
 
-export function getDecoratedMarkup(controlNode: any, isRoot: any): any {
+export function getDecoratedMarkup(controlNode: any, isRoot: boolean): any {
    //Теперь передададим еще и атрибуты, которые нам дали сверху для построения верстки
    //там они будут мержиться
-   const markupRes = controlNode.control._getMarkup(controlNode.key, isRoot, {
+   const markupRes = controlNode.control._getMarkup(controlNode.key, {
       key: controlNode.key,
       attributes: controlNode.attributes,
       events: controlNode.events,
