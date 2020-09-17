@@ -305,13 +305,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    /**
     * Метод, который возвращает разметку для компонента
     * @param rootKey
-    * @param isRoot
     * @param attributes
     * @param isVdom
     */
    _getMarkup(
       rootKey?: string,
-      isRoot?: boolean,
       attributes?: object,
       isVdom: boolean = true
    ): any {
@@ -358,7 +356,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    render(empty?: any, attributes?: any): any {
-      const markup = this._getMarkup(null, true, attributes, false);
+      const markup = this._getMarkup(null, attributes, false);
       this._isRendered = true;
       return markup;
    }
