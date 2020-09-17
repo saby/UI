@@ -6,10 +6,10 @@
 
 import * as Tmpl from './_builder/Tmpl';
 import { Compiler } from './_builder/Compiler';
-import * as Config from './_builder/Config';
+import { Config } from 'UI/BuilderConfig';
 
 export {
    Tmpl,
    Compiler,
-   Config
+   Config // используется в юнитах
 }
