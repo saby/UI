@@ -12,6 +12,7 @@ import { Map, Set } from 'Types/shim';
 
 import { htmlNode, textNode } from 'UI/Executor';
 import { IControlNode } from '../interfaces';
+import { TControlConstructor } from 'UI/_base/Control';
 
 // this.childFlags = childFlags;
 // this.children = children;
@@ -45,7 +46,7 @@ export function isTextNodeType(vnode: any): any {
 }
 
 // TODO: Release type flag on virtual nodes to distinguish virtual nodes.
-export function isControlVNodeType(vnode: any): any {
+export function isControlVNodeType(vnode: VNode | VNodeControl): boolean {
    return vnode && typeof vnode === 'object' && 'controlClass' in vnode;
 }
 
@@ -76,7 +77,7 @@ export function mapVNode(
    controlNode: any,
    vnode: any,
    setHookToVNode?: any,
-   nodeArray?: any,
+   _?: unknown,
    modify?: any
 ): any {
    /* mapVNode must be refactor
@@ -165,13 +166,15 @@ function collectChildTemplateVNodes(vnode: any): any {
    return mapVNodeChildren(true, vnode, identity, isTemplateVNodeType);
 }
 
+type VNodeControl = VNode & { controlClass: TControlConstructor };
+
 interface IMarkupDiff {
-   create: VNode[];
-   createTemplates: [];
-   destroy: [];
-   destroyTemplates: [];
-   update: [];
-   updateTemplates: [];
+   create: VNodeControl[];
+   createTemplates: VNode[];
+   destroy: VNodeControl[];
+   destroyTemplates: VNode[];
+   update: Array<{ oldNode: VNodeControl, newNode: VNodeControl }>;
+   updateTemplates: Array<{ oldNode: VNode, newNode: VNode }>;
    vnodeChanged: boolean;
 }
 
@@ -327,7 +330,8 @@ export function getMarkupDiff(oldNode: VNode, newNode: VNode,
       }
    }
 
-   function complexDiffFinder(oldNode: VNode, newNode: VNode, isTemplateNode: any, goin: boolean): void {
+   function complexDiffFinder(oldNode: VNode | VNodeControl, newNode: VNode | VNodeControl,
+      isTemplateNode: any, goin: boolean): void {
       oldChildren = getVNodeChidlren(oldNode, isTemplateNode);
       newChildren = reorder(oldChildren, getVNodeChidlren(newNode, isTemplateNode));
 
@@ -382,13 +386,13 @@ export function getMarkupDiff(oldNode: VNode, newNode: VNode,
 
       if (isEqualNode(oldNode, newNode)) {
          if (isControlVNodeType(newNode)) {
+            // @ts-ignore
             if (oldNode.controlNodeIdx === -1) {
+               // @ts-ignore
                result.create.push(newNode);
             } else {
-               result.update.push({
-                  oldNode,
-                  newNode
-               });
+               // @ts-ignore
+               result.update.push({ oldNode, newNode });
             }
          } else if (isTemplateVNodeType(newNode)) {
             if (!newNode.children && newNode === oldNode) {
@@ -421,8 +425,10 @@ export function getMarkupDiff(oldNode: VNode, newNode: VNode,
          result.vnodeChanged = true;
 
          if (isControlVNodeType(newNode)) {
+            // @ts-ignore
             result.create.push(newNode);
          } else if (isTemplateVNodeType(newNode)) {
+            // @ts-ignore
             result.createTemplates.push(newNode);
          } else {
             concatResults(result.create, collectChildControlVNodes(newNode));
@@ -431,6 +437,7 @@ export function getMarkupDiff(oldNode: VNode, newNode: VNode,
 
          if (oldNode) {
             if (isControlVNodeType(oldNode)) {
+               // @ts-ignore
                result.destroy.push(oldNode);
             } else if (isTemplateVNodeType(oldNode)) {
                concatResults(result.destroy, collectChildControlVNodes(oldNode, true));
@@ -675,8 +682,11 @@ export function getDecoratedMarkup(controlNode: IControlNode): any {
       attributes: controlNode.attributes,
       events: controlNode.events,
       inheritOptions: controlNode.inheritOptions,
+      // @ts-ignore
       templateContext: controlNode.templateContext,
+      // @ts-ignore
       internal: controlNode.internal,
+      // @ts-ignore
       domNodeProps: controlNode.domNodeProps
    });
    let result;
@@ -709,6 +719,7 @@ export function getDecoratedMarkup(controlNode: IControlNode): any {
    if (
       !result.hasTemplateRootElement &&
       controlNode.markup &&
+      // @ts-ignore
       controlNode.markup.hasTemplateRootElement !== result.hasTemplateRootElement
    ) {
       // если при первой синхронизации все нода построилась успешно,

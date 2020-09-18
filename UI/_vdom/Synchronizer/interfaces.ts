@@ -15,6 +15,15 @@ type IObjectsVersions<T> = {
 export interface IControlNodeOptions extends Record<string, unknown> {
 }
 
+export interface IAttrs extends Object {
+    // @ts-ignore
+    [key: string]: any;
+}
+
+export interface IRootAttrs extends IAttrs {
+    ['data-component']?: string | null;
+}
+
 interface IRebuildNode {
     rootId: number;  // это добавляет какой то Syncronizer
     requestDirtyCheck: (controlNode: IRebuildNode) => void;  // это добавляет какой то Syncronizer
@@ -93,7 +102,6 @@ export interface IProperties {
     events: TEventsObject;
 }
 
-
 export type TModifyHTMLNode = HTMLElement & Record<string, any>;
 
 export type TMarkupNodeDecoratorFn = (
@@ -151,6 +159,8 @@ export interface IDOMEnvironment {
     removeAllCaptureHandlers(): void;
     removeProcessiingEventHandler(eventName: string): void;
     _canDestroy(destroyedControl: Control): any;
+
+    setupControlNode(controlNode: IControlNode): void;
 
     queue?: string[];
 

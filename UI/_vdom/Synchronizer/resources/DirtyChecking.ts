@@ -30,7 +30,7 @@ import {
    OperationType,
    getNodeName
 } from 'UI/DevtoolsHook';
-import { IControlNode, IDOMEnvironment } from '../interfaces';
+import { IControlNode, IDOMEnvironment, IAttrs } from '../interfaces';
 import { collectObjectVersions, getChangedOptions } from './Options';
 
 import * as AppEnv from 'Application/Env';
@@ -252,7 +252,7 @@ function createChildrenResult(childrenRebuildResults: IMemoNode[]): {value: ICon
  * @param userOptions
  * @param parentNode
  */
-function fixInternalParentOptions(internalOptions, userOptions, parentNode) {
+function fixInternalParentOptions(internalOptions: IAttrs, userOptions: IAttrs, parentNode) {
    // У compound-контрола parent может уже лежать в user-опциях, берем его оттуда, если нет нашей parentNode
    internalOptions.parent = internalOptions.parent || (parentNode && parentNode.control) || userOptions.parent || null;
    internalOptions.logicParent =
@@ -394,12 +394,28 @@ function createInstance(cnstr, userOptions, internalOptions) {
    };
 }
 
+interface INodeOptions {
+   /**
+    * Прикладные опции
+    */
+   user: IAttrs;
+   /**
+    * Служебные опции
+    */
+   internal: IAttrs;
+   /**
+    * Нативные аттрибуты
+    */
+   attributes: IAttrs;
+   events: Record<string, () => void>;
+}
+
 export function createNode(controlClass_, options: INodeOptions, key: string, environment: IDOMEnvironment, parentNode, serialized, vnode?): IControlNode {
    let controlCnstr = getModuleDefaultCtor(controlClass_); // получаем конструктор из модуля
    let compound = vnode && vnode.compound;
    let serializedState = (serialized && serialized.state) || { vdomCORE: true }; // сериализованное состояние компонента
-   let userOptions = options.user; // прикладные опции
-   let internalOptions = options.internal || {}; // служебные опции
+   let userOptions = options.user;
+   let internalOptions = options.internal;
    let result;
 
    fixInternalParentOptions(internalOptions, userOptions, parentNode);
@@ -738,7 +754,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             OptionsResolver.resolveInheritOptions(newNode.controlClass, newNode, newNode.options);
             newNode.control.saveInheritOptions(newNode.inheritOptions);
 
-            newNode.markup = getDecoratedMarkup(newNode, isRoot);
+            newNode.markup = getDecoratedMarkup(newNode);
             saveChildren(node.markup);
 
             diff = getMarkupDiff(oldMarkup, newNode.markup, false, false);
@@ -991,6 +1007,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                      vnode.controlClass,
                      {
                         user: shallowMerge(vnode.controlProperties, vnode.controlInternalProperties),
+                        internal: {},
                         attributes: vnode.controlAttributes,
                         events: vnode.controlEvents
                      },

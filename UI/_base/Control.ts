@@ -169,11 +169,15 @@ export interface IControlOptions {
    theme?: string;
 }
 
-export interface TControlAttrs {
-   user: Record<string, any>;
-   internal: Record<string, any>;
-   attributes: Record<string, any>;
-   events: Record<string, any>;
+export interface ITemplateAttrs {
+   key?: string;
+   internal?: Record<string, any>;
+   inheritOptions?: Record<string, any>;
+   attributes?: Record<string, any>;
+   templateContext?: Record<string, any>;
+   context?: Record<string, any>;
+   domNodeProps?: Record<string, any>;
+   events?: Record<string, any>;
 };
 
 export type TControlConfig = IControlOptions & {
@@ -193,7 +197,7 @@ export type TControlConstructor<TOptions extends IControlOptions = {}, TState = 
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
-export default class Control<TOptions extends IControlOptions = {}, TState = void> implements _IControl {
+export default class Control<TOptions extends IControlOptions = {}, TState = unknown> implements _IControl {
    protected _moduleName: string;
 
    private _mounted: boolean = false;
@@ -210,8 +214,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    /**
     * TODO: delete it
     */
-
-   private _fullContext: unknown;
+   // @ts-ignore
+   private _fullContext: Record<string, any>;
 
    private _evaluatedContext: IContext;
 
@@ -242,7 +246,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    // TODO: Временное решение. Удалить после выполнения удаления всех использований.
    // Ссылка: https://online.sbis.ru/opendoc.html?guid=5f576e21-6606-4a55-94fd-6979c6bfcb53.
-   private _logicParent: Control;
+   private _logicParent: Control<IControlOptions, void>;
 
    protected _children: IControlChildren = {};
 
@@ -262,6 +266,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       if (cfg._logicParent && !(cfg._logicParent instanceof Control)) {
          Logger.error('Option "_logicParent" is not instance of "Control"', this);
       }
+      //@ts-ignore
       this._logicParent = cfg._logicParent;
 
       /*dont use this*/
@@ -321,7 +326,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
     */
    _getMarkup(
       rootKey?: string,
-      attributes?: object,
+      attributes?: ITemplateAttrs,
       isVdom: boolean = true
    ): any {
       if (!(this._template as any).stable) {
@@ -499,11 +504,13 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       ReactiveObserver.releaseProperties(this);
 
       try {
+         // @ts-ignore
          const contextTypes = this.constructor.contextTypes ? this.constructor.contextTypes() : {};
          for (const i in contextTypes) {
             // Need to check if context field actually exists.
             // Because context field can be described in contextTypes but not provided by parent of the control.
             if (contextTypes.hasOwnProperty(i) && this.context.get(i) instanceof contextTypes[i]) {
+               // @ts-ignore
                this.context.get(i).unregisterConsumer(this);
             }
          }
@@ -528,6 +535,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       }
 
       // У чистого Wasaby контрола нет метода getParent, у совместимого - есть;
+      // @ts-ignore
       const isPureWasaby: boolean = !this.getParent;
       if (isPureWasaby) {
          const async: boolean = !Purifier.canPurifyInstanceSync(this._moduleName);
