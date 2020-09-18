@@ -35,6 +35,7 @@ import { collectObjectVersions, getChangedOptions } from './Options';
 
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
+import { VNode } from 'Inferno/third-party/index';
 
 /**
  * @author Кондаков Р.Н.
@@ -49,8 +50,8 @@ if (constants.compat) {
    DirtyCheckingCompatible = _dcc;
 }
 
-let compatibleUtils: unknown;
-function getCompatibleUtils(): unknown {
+let compatibleUtils: any;
+function getCompatibleUtils(): any {
    if (!compatibleUtils) {
       if (requirejs.defined('View/ExecutorCompatible')) {
          compatibleUtils = requirejs('View/ExecutorCompatible').CompatibleUtils;
@@ -393,14 +394,13 @@ function createInstance(cnstr, userOptions, internalOptions) {
    };
 }
 
-export function createNode(controlClass_, options, key, environment, parentNode, serialized, vnode?): IControlNode {
-   var
-      controlCnstr = getModuleDefaultCtor(controlClass_), // получаем конструктор из модуля
-      compound = vnode && vnode.compound,
-      serializedState = (serialized && serialized.state) || { vdomCORE: true }, // сериализованное состояние компонента
-      userOptions = options.user, // прикладные опции
-      internalOptions = options.internal || {}, // служебные опции
-      result;
+export function createNode(controlClass_, options: INodeOptions, key: string, environment: IDOMEnvironment, parentNode, serialized, vnode?): IControlNode {
+   let controlCnstr = getModuleDefaultCtor(controlClass_); // получаем конструктор из модуля
+   let compound = vnode && vnode.compound;
+   let serializedState = (serialized && serialized.state) || { vdomCORE: true }; // сериализованное состояние компонента
+   let userOptions = options.user; // прикладные опции
+   let internalOptions = options.internal || {}; // служебные опции
+   let result;
 
    fixInternalParentOptions(internalOptions, userOptions, parentNode);
 

@@ -15,6 +15,7 @@ import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
 import { ReactiveObserver } from 'UI/Reactivity';
 
 import startApplication from 'UI/_base/startApplication';
+import { IOptions } from 'UI/_builder/utils/Options';
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
 
@@ -68,12 +69,6 @@ const EMPTY_FUNC = function () { };
 const BL_MAX_EXECUTE_TIME = 5000;
 const CONTROL_WAIT_TIMEOUT = 20000;
 
-const WAIT_TIMEOUT = 20000;
-// This timeout is needed for loading control css.
-// If we can not load css file we want to continue building control without blocking it by throwing an error.
-// IE browser only needs more than 5 sec to load so we increased timeout up to 30 sec.
-const WRAP_TIMEOUT = 30000;
-
 interface IContext {
    scope: unknown;
    get(field: string): Record<string, unknown>;
@@ -103,7 +98,7 @@ function createContext(): IContext {
 }
 
 export const _private = {
-   _checkAsyncExecuteTime: function<TState, TOptions>(startTime: number, customBLExecuteTime: number, moduleName: string, instance: Control<TOptions, TState>): void {
+   _checkAsyncExecuteTime: function<TState, TOptions extends IControlOptions>(startTime: number, customBLExecuteTime: number, moduleName: string, instance: Control<TOptions, TState>): void {
       let executeTime = Date.now() - startTime;
       customBLExecuteTime = customBLExecuteTime ? customBLExecuteTime : BL_MAX_EXECUTE_TIME;
       if (executeTime > customBLExecuteTime) {
@@ -119,7 +114,7 @@ export const _private = {
       }
    },
 
-   _asyncClientBeforeMount: function<TState, TOptions>(resultBeforeMount: Promise<void | TState>, time: number, customBLExecuteTime: number, moduleName: string, instance: Control<TOptions, TState>): Promise<void | TState> | boolean {
+   _asyncClientBeforeMount: function <TState, TOptions extends IControlOptions>(resultBeforeMount: Promise<void | TState>, time: number, customBLExecuteTime: number, moduleName: string, instance: Control<TOptions, TState>): Promise<void | TState> | boolean {
       let startTime = Date.now();
 
       let asyncTimer = setTimeout(() => {
@@ -165,11 +160,27 @@ export const _private = {
    }
 };
 
-
 export interface IControlOptions {
+   [key: string]: unknown;
    readOnly?: boolean;
    theme?: string;
 }
+
+export interface TControlAttrs {
+   user: Record<string, any>;
+   internal: Record<string, any>;
+   attributes: Record<string, any>;
+   events: Record<string, any>;
+};
+
+export type TControlConfig = IControlOptions & {
+   _logicParent?: Control;
+};
+
+export type TControlConstructor<TOptions extends IControlOptions = {}, TState = void> = {
+   new(cfg: TOptions): Control<TOptions, TState>;
+}
+
 /**
  * Базовый контрол, от которого наследуются все интерфейсные контролы фреймворка Wasaby.
  * Подробнее о работе с классом читайте <a href="/doc/platform/developmentapl/interface-development/ui-library/control/">здесь</a>.
@@ -228,7 +239,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    // TODO: Временное решение. Удалить после выполнения удаления всех использований.
    // Ссылка: https://online.sbis.ru/opendoc.html?guid=5f576e21-6606-4a55-94fd-6979c6bfcb53.
-   private _logicParent: Control<TOptions, void> = null;
+   private _logicParent: Control = null;
 
    protected _children: IControlChildren = {};
 
@@ -240,7 +251,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
 
    private _isRendered: boolean;
 
-   constructor(cfg: any) {
+   constructor(cfg: IControlOptions) {
       if (!cfg) {
          cfg = {};
       }
@@ -420,7 +431,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return this._instId;
    }
 
-   mountToDom(element: HTMLElement, cfg: any, controlClass: Control): void {
+   mountToDom(element: HTMLElement, cfg: TControlConfig): void {
       // @ts-ignore
       if (!this.VDOMReady) {
          // @ts-ignore
@@ -435,8 +446,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
    }
 
    // Just save link to new options
-   saveOptions(options: TOptions, controlNode: any = null): boolean {
-      this._options = options;
+   saveOptions(options: IControlOptions, controlNode: any = null): boolean {
+      this._options = options as TOptions;
       if (controlNode) {
          this._container = controlNode.element;
       }
@@ -1219,7 +1230,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       return inherit;
    }
 
-   static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
+   static createControl(ctor: TControlConstructor, cfg: TControlConfig, domElement: HTMLElement): Control {
       if (domElement) {
          // если пришел jquery, вытащим оттуда элемент
          domElement = domElement[0] || domElement;
@@ -1261,7 +1272,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
          }
       }
 
-      ctr.mountToDom(ctr._container, cfg, ctor);
+      ctr.mountToDom(ctr._container, cfg);
       return ctr;
    }
 

@@ -11,6 +11,7 @@ import { VNode } from 'Inferno/third-party/index';
 import { Map, Set } from 'Types/shim';
 
 import { htmlNode, textNode } from 'UI/Executor';
+import { IControlNode } from '../interfaces';
 
 // this.childFlags = childFlags;
 // this.children = children;
@@ -64,7 +65,7 @@ export function getVNodeChidlren(vnode: VNode, getFromTemplateNodes: boolean = f
       return vnode.children || [];
    }
    if (isVNodeType(vnode)) {
-      return vnode.children === null ? [] : vnode.children
+      return vnode.children === null ? [] : vnode.children;
    }
 
    return [];
@@ -666,7 +667,7 @@ function createErrVNode(err: any, key: any): any {
    );
 }
 
-export function getDecoratedMarkup(controlNode: any, isRoot: boolean): any {
+export function getDecoratedMarkup(controlNode: IControlNode): any {
    //Теперь передададим еще и атрибуты, которые нам дали сверху для построения верстки
    //там они будут мержиться
    const markupRes = controlNode.control._getMarkup(controlNode.key, {
