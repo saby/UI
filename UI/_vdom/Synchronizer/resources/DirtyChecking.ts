@@ -30,11 +30,12 @@ import {
    OperationType,
    getNodeName
 } from 'UI/DevtoolsHook';
-import { IControlNode } from '../interfaces';
+import { IControlNode, IDOMEnvironment } from '../interfaces';
 import { collectObjectVersions, getChangedOptions } from './Options';
 
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
+import { VNode } from 'Inferno/third-party/index';
 
 /**
  * @author Кондаков Р.Н.
@@ -44,13 +45,13 @@ export { getChangedOptions } from './Options';
 
 var Slr = new Serializer();
 
-var DirtyCheckingCompatible;
+let DirtyCheckingCompatible: typeof _dcc;
 if (constants.compat) {
    DirtyCheckingCompatible = _dcc;
 }
 
-let compatibleUtils;
-function getCompatibleUtils() {
+let compatibleUtils: any;
+function getCompatibleUtils(): any {
    if (!compatibleUtils) {
       if (requirejs.defined('View/ExecutorCompatible')) {
          compatibleUtils = requirejs('View/ExecutorCompatible').CompatibleUtils;
@@ -393,14 +394,13 @@ function createInstance(cnstr, userOptions, internalOptions) {
    };
 }
 
-export function createNode(controlClass_, options, key, environment, parentNode, serialized, vnode?): IControlNode {
-   var
-      controlCnstr = getModuleDefaultCtor(controlClass_), // получаем конструктор из модуля
-      compound = vnode && vnode.compound,
-      serializedState = (serialized && serialized.state) || { vdomCORE: true }, // сериализованное состояние компонента
-      userOptions = options.user, // прикладные опции
-      internalOptions = options.internal || {}, // служебные опции
-      result;
+export function createNode(controlClass_, options: INodeOptions, key: string, environment: IDOMEnvironment, parentNode, serialized, vnode?): IControlNode {
+   let controlCnstr = getModuleDefaultCtor(controlClass_); // получаем конструктор из модуля
+   let compound = vnode && vnode.compound;
+   let serializedState = (serialized && serialized.state) || { vdomCORE: true }; // сериализованное состояние компонента
+   let userOptions = options.user; // прикладные опции
+   let internalOptions = options.internal || {}; // служебные опции
+   let result;
 
    fixInternalParentOptions(internalOptions, userOptions, parentNode);
 
@@ -636,7 +636,7 @@ function addTemplateChildrenRecursive(node, result) {
    }
 }
 
-export function rebuildNode(environment, node, force, isRoot) {
+export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, force: boolean, isRoot) {
    var
       id = node.id,
       dirty = environment._currentDirties[id] || DirtyKind.NONE,
@@ -1347,26 +1347,26 @@ export function rebuildNode(environment, node, force, isRoot) {
       newNode.childrenNodes = childrenRebuild.value;
       if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
          var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
-            newNode.fullMarkup = environment.decorateFullMarkup(
-               getFullMarkup(
-                  newNode.childrenNodes,
-                  newNode.markup,
-                  undefined,
-                  needRenderMarkup || isSelfDirty ? undefined : newNode.fullMarkup,
-                  node.parent
-               ),
-               newNode
-            );
-            newNode.fullMarkup.changed = wasChanged || newNode.fullMarkup.changed || (needRenderMarkup || isSelfDirty);
-            if (newNode.fullMarkup.changed) {
-               setChangedForNode(newNode);
-            }
+         newNode.fullMarkup = environment.decorateFullMarkup(
+            getFullMarkup(
+               newNode.childrenNodes,
+               newNode.markup,
+               undefined,
+               needRenderMarkup || isSelfDirty ? undefined : newNode.fullMarkup,
+               node.parent
+            ),
+            newNode
+         );
+         newNode.fullMarkup.changed = wasChanged || newNode.fullMarkup.changed || (needRenderMarkup || isSelfDirty);
+         if (newNode.fullMarkup.changed) {
+            setChangedForNode(newNode);
          }
+      }
 
-         result = {
-            value: newNode,
-            memo: concatMemo(currentMemo, childrenRebuild.memo)
-         };
+      result = {
+         value: newNode,
+         memo: concatMemo(currentMemo, childrenRebuild.memo)
+      };
    } else {
       result = {
          value: node,
