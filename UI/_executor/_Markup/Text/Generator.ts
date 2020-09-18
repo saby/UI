@@ -357,18 +357,31 @@ export class GeneratorText implements IGenerator {
                            isTemplateWrapper: boolean): boolean {
       let reason = '';
       let isValid = true;
+      // высчитали функцию как число
       if (isTplString && typeof fn === 'number') {
          isValid = false;
          reason = `В качестве компонента/шаблона было передано число.`
       }
+      // из библиотеки вернули строку
       if (isTplModule && typeof fn === 'string') {
          isValid = false;
          reason = `Из библиотеки ${tpl} в качестве компонента была передана строка.`
       }
-      if (typeof fn === 'object' && !isTemplateWrapper && !fn.hasOwnProperty('func') && !Common.isArray(fn)) {
-         isValid = false;
-         if (fn.hasOwnProperty('default')) {
-            reason = 'В модуле экспортируется объект по-умолчанию (export default ControlName).'
+      // автоматически передевенные странаци на wasaby игнорируем
+      // массимы функций игнорируем, они будут проверены в fn.map()
+      if (!isTemplateWrapper && typeof fn === 'object' && !Common.isArray(fn)) {
+         // если объект не содержит hasOwnProperty то передали что-то странное
+         if(!fn.hasOwnProperty) {
+            isValid = false;
+            reason ='Объект не имеет метода hasOwnProperty, возможно был вызван Object.create(null)';
+         }
+         // если в fn есть свойство func, то все ок
+         if (isValid && !fn.hasOwnProperty('func')) {
+            isValid = false;
+            // export default не поддерживается следует вывести ошибку или странциа построится как [object Objcet]
+            if (fn.hasOwnProperty('default')) {
+               reason = 'В модуле экспортируется объект по-умолчанию (export default ControlName).'
+            }
          }
       }
       if (!isValid) {
