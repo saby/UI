@@ -1,4 +1,4 @@
-/// <amd-module name="Vdom/_private/Synchronizer/resources/LongTapController" />
+/// <amd-module name="UI/_vdom/Synchronizer/resources//LongTapController" />
 /* tslint:disable */
 
 import { IEventState, IMobileEvent, MobileEvent } from "./MobileEvents";
