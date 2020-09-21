@@ -5,19 +5,6 @@ export type TComponentAttrs = Record<string, unknown>;
 
 export type TControlId = string;
 // VdomMarkup.getDecoratedMark
-export interface ITextNode {
-    childFlags: 8;
-    children: Array<Record<string, any>>;
-    className: string;
-    dom: null;
-    flags: number;
-    key: string;
-    props: Record<string, string>;
-    ref: Function;
-    type: string;
-    markup: undefined;
-    hprops: object;
-}
 
 type IControlConstructor = () => Control;
 type TContext = Record<string, object>;
@@ -26,6 +13,15 @@ type IObjectsVersions<T> = {
 };
 
 export interface IControlNodeOptions extends Record<string, unknown> {
+}
+
+export interface IAttrs extends Object {
+    // @ts-ignore
+    [key: string]: any;
+}
+
+export interface IRootAttrs extends IAttrs {
+    ['data-component']?: string | null;
 }
 
 interface IRebuildNode {
@@ -51,7 +47,7 @@ export interface IControlNode extends IRebuildNode {
     parent: IControlNode;
     key: TControlId;
     defaultOptions: IControlOptions;
-    markup: ITextNode | undefined;
+    markup: VNode | undefined;
     fullMarkup: VNode | undefined;
     childrenNodes: IControlNode[];
     markupDecorator: Function;
@@ -106,7 +102,6 @@ export interface IProperties {
     events: TEventsObject;
 }
 
-
 export type TModifyHTMLNode = HTMLElement & Record<string, any>;
 
 export type TMarkupNodeDecoratorFn = (
@@ -129,6 +124,8 @@ export interface IDOMEnvironment {
     addTabListener(e?: any): void;
     removeTabListener(e: any): void;
     destroy(): void;
+
+    setRebuildIgnoreId(id: string): void;
 
     _handleFocusEvent(e: any): void;
     _handleBlurEvent(e: any): void;
@@ -162,6 +159,8 @@ export interface IDOMEnvironment {
     removeAllCaptureHandlers(): void;
     removeProcessiingEventHandler(eventName: string): void;
     _canDestroy(destroyedControl: Control): any;
+
+    setupControlNode(controlNode: IControlNode): void;
 
     queue?: string[];
 
