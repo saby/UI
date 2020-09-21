@@ -164,7 +164,8 @@ export const _private = {
 };
 
 export interface IControlOptions {
-   [key: string]: unknown;
+   // @ts-ignore Пока не можем указать unknown. Так как не все описали точно тип опций
+   [key: string]: any;
    readOnly?: boolean;
    theme?: string;
 }
