@@ -177,7 +177,7 @@ var defCollection = {
    id: [],
    def: undefined
 };
-var viewController = thelpers.configResolver.calcParent(this, typeof currentPropertyName === 'undefined' ? undefined : currentPropertyName, data);
+var viewController = thelpers.calcParent(this, typeof currentPropertyName === 'undefined' ? undefined : currentPropertyName, data);
 
 /*#TEMPLATE_BODY#*/
 `;
@@ -207,7 +207,7 @@ var defCollection = {
    id: [],
    def: undefined
 };
-var viewController = thelpers.configResolver.calcParent(this, typeof currentPropertyName === 'undefined' ? undefined : currentPropertyName, data);
+var viewController = thelpers.calcParent(this, typeof currentPropertyName === 'undefined' ? undefined : currentPropertyName, data);
 `;
 
 export const INCLUDED_TEMPLATE = `{
@@ -268,7 +268,7 @@ export const PRIVATE_TEMPLATE = `{
     id: [],
     def: undefined
   };
-  var viewController = thelpers.configResolver.calcParent(this, typeof currentPropertyName === "undefined" ? undefined : currentPropertyName, data);
+  var viewController = thelpers.calcParent(this, typeof currentPropertyName === "undefined" ? undefined : currentPropertyName, data);
   /*#BODY#*/
 }
 `;

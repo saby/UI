@@ -51,7 +51,7 @@ export function genFilterOptions(arg: string): string {
 }
 
 export function genProcessMergeAttributes(inner: string, outer: string): string {
-   return `${VAR_MODULE_NAME}.attrExpressions.processMergeAttributes(${inner}, ${outer})`;
+   return `${VAR_MODULE_NAME}.processMergeAttributes(${inner}, ${outer})`;
 }
 
 export function genPlainMergeAttr(inner: string, outer: string): string {
