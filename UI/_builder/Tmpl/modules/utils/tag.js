@@ -1,7 +1,7 @@
 define('UI/_builder/Tmpl/modules/utils/tag', [
    'UI/_builder/Tmpl/modules/data/utils/dataTypesCreator',
-   'UI/_builder/Config',
-], function(dataTypesCreator, Config) {
+   'UI/BuilderConfig',
+], function(dataTypesCreator, BuilderConfig) {
    'use strict';
 
    /**
@@ -132,7 +132,7 @@ define('UI/_builder/Tmpl/modules/utils/tag', [
     * @returns {string|undefined} Имя префикса или undefined.
     */
    function getMustBeDotsPrefix(name) {
-      return Config.mustBeDots.find(function(prefix) {
+      return BuilderConfig.Config.mustBeDots.find(function(prefix) {
          return name.indexOf(prefix) === 0 ? prefix : undefined;
       });
    }
