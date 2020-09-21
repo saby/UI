@@ -335,7 +335,6 @@ const calcParent = ConfigResolver.calcParent;
 const plainMerge = Common.plainMerge;
 const plainMergeAttr = Common.plainMergeAttr;
 const plainMergeContext = Common.plainMergeContext;
-const prepareAttrsForFocus = _FocusAttrs.prepareAttrsForFocus;
 const _isTClosure = true;
 
 export {
@@ -369,7 +368,6 @@ export {
    getMarkupGenerator,
    bindProxy,
    isObject,
-   prepareAttrsForFocus,
    Attr as attrExpressions,
    validateNodeKey,
    _isTClosure
