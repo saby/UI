@@ -9,7 +9,7 @@ import * as Common from '../../_Utils/Common';
 import * as RequireHelper from '../../_Utils/RequireHelper';
 import { onElementMount, onElementUnmount } from '../../_Utils/ChildrenManager';
 import { Generator } from '../Generator';
-import { IGenerator } from '../IGenerator';
+import { IGenerator, IGeneratorControlNode } from '../IGenerator';
 import {
    GeneratorEmptyObject,
    GeneratorError,
@@ -31,8 +31,7 @@ import {
    TDeps,
    TIncludedTemplate,
    TObject,
-   TScope,
-   WsControlOrController
+   TScope
 } from '../IGeneratorType';
 import { GeneratorNode } from './IVdomType';
 import { cutFocusAttributes } from '../Utils';
@@ -145,7 +144,7 @@ export class GeneratorVdom implements IGenerator {
                    scope: IControlProperties,
                    attrs: IGeneratorAttrs,
                    context: string,
-                   deps?: TDeps): WsControlOrController | GeneratorVoid {
+                   deps?: TDeps): GeneratorNode | GeneratorVoid {
       const data = this.prepareDataForCreate(name, scope, attrs, deps);
       const controlClass = data.controlClass;
 

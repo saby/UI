@@ -8,7 +8,10 @@ import {
    TAttributes,
    TEvents
 } from '../IGeneratorType';
-import { VNode as IGeneratorVNode } from 'Inferno/third-party/index';
+import { VNode } from 'Inferno/third-party/index';
+
+
+export type IGeneratorVNode = VNode;
 
 /**
  * @author Тэн В.А.
@@ -30,12 +33,7 @@ interface IGeneratorControlNode {
 }
 
 // Тип для генераторов Vdom-нод
-type GeneratorNode = IGeneratorVNode | IGeneratorControlNode;
+export type GeneratorNode = IGeneratorVNode | IGeneratorControlNode;
 
 // Типы сопоставления для случаем когда однозначно описать тип не можем
 type TProps = Record<string, unknown>;
-
-export {
-   IGeneratorVNode,
-   GeneratorNode
-}

@@ -10,7 +10,7 @@ import { constants } from 'Env/Env';
 // @ts-ignore
 import { Logger } from 'UI/Utils';
 import { UseAutoProxiedOptionError } from './ConfigResolver';
-import { TControlConstructor, TControlConfig } from 'UI/_base/Control'
+import { TControlConstructor } from 'UI/_base/Control'
 
 /**
  * Применить дефолтные опции конструктора

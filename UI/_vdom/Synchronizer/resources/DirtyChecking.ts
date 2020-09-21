@@ -35,7 +35,6 @@ import { collectObjectVersions, getChangedOptions } from './Options';
 
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
-import { VNode } from 'Inferno/third-party/index';
 
 /**
  * @author Кондаков Р.Н.

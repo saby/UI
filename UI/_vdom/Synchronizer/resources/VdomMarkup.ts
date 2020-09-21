@@ -6,11 +6,10 @@ import { coreDebug } from 'Env/Env';
 import { ListMonad } from '../../Utils/Monad';
 import { setControlNodeHook } from './Hooks';
 import { Logger } from 'UI/Utils';
-import { WasabyProperties } from 'Inferno/third-party/index';
-import { VNode } from 'Inferno/third-party/index';
+import { WasabyProperties, VNode } from 'Inferno/third-party/index';
 import { Map, Set } from 'Types/shim';
 
-import { htmlNode, textNode } from 'UI/Executor';
+import { htmlNode, textNode, GeneratorNode } from 'UI/Executor';
 import { IControlNode } from '../interfaces';
 import { TControlConstructor } from 'UI/_base/Control';
 
@@ -60,8 +59,7 @@ export function isInvisibleNodeType(vnode: any): any {
    return vnode && typeof vnode === 'object' && vnode.type && vnode.type === 'invisible-node';
 }
 
-type InfernoNode = string | number | boolean;
-export function getVNodeChidlren(vnode: VNode, getFromTemplateNodes: boolean = false): InfernoNode | VNode[] {
+export function getVNodeChidlren(vnode: VNode, getFromTemplateNodes: boolean = false): Array<GeneratorNode | VNode> {
    if (getFromTemplateNodes) {
       return vnode.children || [];
    }
@@ -707,7 +705,9 @@ export function getDecoratedMarkup(controlNode: IControlNode): any {
    ) {
       // если корневой элемент отсутствует при первой синхронизации создаем текстовую ноду с ошибкой
       // и кидаем предупреждение в консоль со стеком
+      // @ts-ignore
       const message = `Шаблон контрола ${controlNode.control._moduleName} ` +
+         // @ts-ignore
          `(name: ${controlNode.control._options.name}) не построил верстку. Должен быть корневой элемент!`;
       result = createErrVNode(message, controlNode.key);
       Logger.error(message, controlNode.control);
@@ -728,6 +728,7 @@ export function getDecoratedMarkup(controlNode: IControlNode): any {
       // https://online.sbis.ru/opendoc.html?guid=80ec2fd6-ce3c-4e7a-94e3-ccb47c0c8dcb
       // TODO: найти причину пропажи корневой ноды по задаче выше
       Logger.warn(
+         // @ts-ignore
          `В контроле ${controlNode.control._moduleName} был потерян корневой элемент`,
          controlNode.control
       );
