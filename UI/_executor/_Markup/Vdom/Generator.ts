@@ -36,7 +36,16 @@ import {
 } from '../IGeneratorType';
 import { GeneratorNode } from './IVdomType';
 import { cutFocusAttributes } from '../Utils';
-
+function callBeforeMount(template, attributes) {
+   if (attributes && !attributes.attributes) {
+      attributes.attributes = {};
+   }
+   if (template.__beforeMount) {
+      template.__beforeMount(attributes.attributes);
+   } else {
+      _FocusAttrs.prepareAttrsForFocus(attributes.attributes);
+   }
+}
 /**
  * @author Тэн В.А.
  */
@@ -290,10 +299,12 @@ export class GeneratorVdom implements IGenerator {
 
          const parent = data.parent;
          if (typeof fn === 'function') {
+            callBeforeMount(fn, decorAttribs);
             return parent ?
                fn.call(parent, resolvedScope, decorAttribs, context, true, undefined) :
                fn(resolvedScope, decorAttribs, context, true);
          } else if (fn && typeof fn.func === 'function') {
+            callBeforeMount(fn.func, decorAttribs);
             return parent ?
                fn.func.call(parent, resolvedScope, decorAttribs, context, true, undefined) :
                fn.func(resolvedScope, decorAttribs, context, true);
@@ -436,6 +447,7 @@ export class GeneratorVdom implements IGenerator {
    }
 
    resolveTemplateFunction(parent: any, template: any, resolvedScope: any, decorAttribs: any, context: any): any {
+      callBeforeMount(template, decorAttribs);
       if (parent) {
          return template.call(parent, resolvedScope, decorAttribs, context, true);
       }

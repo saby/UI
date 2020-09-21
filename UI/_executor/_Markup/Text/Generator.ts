@@ -26,8 +26,20 @@ import {
    TObject
 } from '../IGeneratorType';
 import { createTagDefault, joinElements, stringTemplateResolver } from '../Utils'
+import {_FocusAttrs} from "UI/Focus";
 
 const markupBuilder = new Builder();
+
+function callBeforeMount(template, attributes) {
+   if (attributes && !attributes.attributes) {
+      attributes.attributes = {};
+   }
+   if (template.__beforeMount) {
+      template.__beforeMount(attributes.attributes);
+   } else {
+      _FocusAttrs.prepareAttrsForFocus(attributes.attributes);
+   }
+}
 
 /**
  * @author Тэн В.А.
@@ -203,8 +215,18 @@ export class GeneratorText implements IGenerator {
       Logger.debug('Context for control', attributes.context);
       Logger.debug('Inherit options for control', attributes.inheritOptions);
 
-      // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
-      return resultingFn === null ? '' : (parent ? resultingFn.call(parent, resolvedScope, attributes, context) : resultingFn(resolvedScope, attributes, context));
+      let result;
+      if (resultingFn === null) {
+         // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
+         result = '';
+      } else if (parent) {
+         callBeforeMount(resultingFn, attributes);
+         result = resultingFn.call(parent, resolvedScope, attributes, context)
+      } else {
+         callBeforeMount(resultingFn, attributes);
+         result = resultingFn(resolvedScope, attributes, context)
+      }
+      return result;
    }
 
    createController(cnstr, scope, attributes, context, _deps?) {
@@ -276,8 +298,10 @@ export class GeneratorText implements IGenerator {
             return this.createEmptyText();
          }
          if (typeof fn === 'function') {
+            callBeforeMount(fn, decorAttribs);
             r = fn.call(callContext, resolvedScope, decorAttribs, context, false);
          } else if (fn && typeof fn.func === 'function') {
+            callBeforeMount(fn.func, decorAttribs);
             r = fn.func.call(callContext, resolvedScope, decorAttribs, context, false);
          } else if (Common.isArray(fn)) {
             const _this = this;
@@ -287,8 +311,10 @@ export class GeneratorText implements IGenerator {
                }
                callContext = preparedScope && data.parent ? data.parent : template;
                if (typeof template === 'function') {
+                  callBeforeMount(template, decorAttribs);
                   return template.call(callContext, resolvedScope, decorAttribs, context, false);
                } else if (typeof template.func === 'function') {
+                  callBeforeMount(template.func, decorAttribs);
                   return template.func.call(callContext, resolvedScope, decorAttribs, context, false);
                }
                return template;

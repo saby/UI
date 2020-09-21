@@ -324,6 +324,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState = voi
       if (!attributes) {
          attributes = {};
       }
+      _FocusAttrs.prepareAttrsForFocus(attributes);
+
       attributes.context = this._fullContext;
       attributes.inheritOptions = this._savedInheritOptions;
       for (const i in attributes.events) {

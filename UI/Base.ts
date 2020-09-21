@@ -17,6 +17,9 @@ import HeadController from './_base/HeadController';
 import HeadData, { headDataStore } from 'UI/_base/HeadData';
 import {DepsCollector} from './_base/DepsCollector';
 
+import { createTemplate as createWmlTemplate, loadModule } from './_base/Templates/Wml';
+import { createTemplate as createTmplTemplate } from './_base/Templates/Tmpl';
+
 //@ts-ignore
 import BaseRoute = require('wml!UI/_base/Route');
 import {IHTMLOptions, IHTML} from './_base/interface/IHTML';
@@ -30,6 +33,9 @@ export { getMetaStack, IMeta, IMetaState } from 'UI/_base/HTML/meta';
 
 export {
     Control,
+    createTmplTemplate,
+    createWmlTemplate,
+    loadModule,
     IControlOptions,
     HTML,
     Document,

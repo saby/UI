@@ -164,10 +164,6 @@ if (sets && sets.isSetts) {
 }
 /*#DELETE IT END#*/
 
-if (attr && !attr.attributes) {
-   attr.attributes = {};
-}
-thelpers.prepareAttrsForFocus(attr && attr.attributes);
 var templateCount = 0;
 var forCounter = 0;
 var currentPropertyName = "/*#PROPERTY_NAME#*/";
@@ -247,7 +243,6 @@ export const OBJECT_TEMPLATE = `(new(function () {
 
 export const PARTIAL_TEMPLATE = `(function f2(data, attr) {
   var key = thelpers.validateNodeKey(attr && attr.key);
-  thelpers.prepareAttrsForFocus(attr && attr.attributes);
   var defCollection = {
     id: [],
     def: undefined
@@ -260,10 +255,7 @@ export const PRIVATE_TEMPLATE = `{
   var key = thelpers.validateNodeKey(attr && attr.key);
   var forCounter = 0;
   var templateCount = 0;
-  if (!attr.attributes) {
-    attr.attributes = {};
-  }
-  thelpers.prepareAttrsForFocus(attr && attr.attributes);
+
   var defCollection = {
     id: [],
     def: undefined

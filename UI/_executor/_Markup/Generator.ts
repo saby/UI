@@ -405,14 +405,9 @@ export class Generator {
          }
       }
 
-      if (!attrs.attributes) {
-         attrs.attributes = {};
-      }
-      _FocusAttrs.prepareAttrsForFocus(attrs.attributes);
       logicParent = (attrs.internal && attrs.internal.logicParent) ? attrs.internal.logicParent : null;
       parent = (attrs.internal && attrs.internal.parent) ? attrs.internal.parent : null;
       OptionsResolver.resolveInheritOptions(controlClass, attrs, controlProperties);
-
 
       if (Common.isCompat()) {
          if (controlProperties && controlProperties.enabled === undefined) {
@@ -524,6 +519,4 @@ export class Generator {
       }
       throw new Error('MarkupGenerator: createControl type not resolved');
    }
-
-
 }
