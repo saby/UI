@@ -9,7 +9,7 @@ import * as Common from '../../_Utils/Common';
 import * as RequireHelper from '../../_Utils/RequireHelper';
 import { onElementMount, onElementUnmount } from '../../_Utils/ChildrenManager';
 import { Generator } from '../Generator';
-import { IGenerator, IGeneratorControlNode } from '../IGenerator';
+import { IGenerator } from '../IGenerator';
 import {
    GeneratorEmptyObject,
    GeneratorError,
