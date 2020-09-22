@@ -28,7 +28,6 @@ export const BODY = `if (typeof forceCompatible === 'undefined') {
 }
 var markupGenerator = thelpers.createGenerator(isVdom, forceCompatible);
 /*#DELETE IT START#*/
-var scopeForTemplate, attrsForTemplate;
 if (typeof includedTemplates === "undefined") {
    eval("var includedTemplates = undefined;");
    includedTemplates = (this && this.includedTemplates) ? this.includedTemplates : {};
@@ -54,6 +53,7 @@ export const DEFINE = `define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEP
    var deps = Array.prototype.slice.call(arguments);
    var depsLocal = { };
    var includedTemplates = { };
+   var scopeForTemplate, attrsForTemplate;
 
    /*#DELETE IT START#*/
    var tclosure=deps[0].TClosure;

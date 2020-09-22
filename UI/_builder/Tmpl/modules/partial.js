@@ -197,7 +197,7 @@ define('UI/_builder/Tmpl/modules/partial', [
             // Start code generation for construction:
             // <ws:partial template="inline_template_name" />
 
-            var callDataArg = 'thelpers.plainMerge(Object.create(data || {}), markupGenerator.prepareDataForCreate(undefined, ' +
+            var callDataArg = 'thelpers.plainMerge(Object.create(data || {}), markupGenerator.prepareDataForCreate("_$inline_template", ' +
                FSC.getStr(preparedScope) + ', attrsForTemplate, {}), false)';
             var callAttrArg = decor
                ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
@@ -207,7 +207,8 @@ define('UI/_builder/Tmpl/modules/partial', [
             callFnArgs = '.call(this, scopeForTemplate, attrsForTemplate, context, isVdom), ';
 
             if (this.includedFn) {
-               return tag.attribs._wstemplatename.data.value + callFnArgs;
+               return '(function(){ attrsForTemplate = ' + callAttrArg + '; scopeForTemplate = ' + callDataArg + ';})(),'
+                  + tag.attribs._wstemplatename.data.value + callFnArgs;
             }
             var body = this.getString(tag.children, {}, this.handlers, {}, true);
             return '(function(){ attrsForTemplate = ' + callAttrArg + '; scopeForTemplate = ' + callDataArg + ';})(),'

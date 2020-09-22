@@ -314,15 +314,14 @@ export class Generator {
       // сюда приходит объект tplOrigin, где __esModule есть true, а в default лежит нужная нам функция построения верстки
       // Для того, чтобы верстка строилась, необходимо вытащить функцию из default
       let tpl = typeof tplOrigin === 'object' && tplOrigin.__esModule && tplOrigin.default ? tplOrigin.default : tplOrigin;
-      if (tpl === undefined) {
-         // в случае инлайн шаблона ws:template
-         controlClass = undefined;
+      if (tpl === '_$inline_template') {
+         controlClass = '_$inline_template';
       }
-      if (typeof tpl === 'function') {
+      else if (typeof tpl === 'function') {
          controlClass = tpl;
          dataComponent = tpl.prototype ? tpl.prototype._moduleName : '';
       }
-      if (typeof tpl === 'string') {
+      else if (typeof tpl === 'string') {
          if (Common.isLibraryModuleString(tpl)) {
             // if this is a module string, it probably is from a dynamic partial template
             // (ws:partial template="{{someString}}"). Split library name and module name
@@ -377,7 +376,7 @@ export class Generator {
             }
          }
       }
-      if (typeof tpl === 'object' && tpl && tpl.library && tpl.module) {
+      else if (typeof tpl === 'object' && tpl && tpl.library && tpl.module) {
          // module type: { library: <requirable module name>, module: <field to take from the library> }
          let moduleName = tpl.library + ':' + tpl.module.join('.');
          if (deps && deps[tpl.library]) {
@@ -413,7 +412,7 @@ export class Generator {
          attrs.attributes = {};
       }
       _FocusAttrs.prepareAttrsForFocus(attrs.attributes);
-      if (controlClass === undefined) {
+      if (controlClass === '_$inline_template') {
          // в случае ws:template отдаем текущие свойства
          return controlProperties;
       }
