@@ -258,11 +258,12 @@ function fixElementForMobileInputs(element: IControlElement, cfg: IFocusConfig):
  */
 function focusInner(element: Element, cfg: IFocusConfig): boolean {
    // Заполняем cfg значениями по умолчанию, если другие не переданы
+   const undoScrolling = makeResetScrollFunction(element, cfg.enableScrollToElement);
    const result = tryMoveFocus(element, cfg);
    checkFocused(element);
 
    if (result) {
-      makeResetScrollFunction(element, cfg.enableScrollToElement);
+      undoScrolling();
    }
 
    return result;
