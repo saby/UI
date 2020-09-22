@@ -13,7 +13,7 @@ import { Control } from 'UI/Base';
 
 // @ts-ignore
 import { Logger } from 'UI/Utils';
-import { IControlNodeOptions, IControlNode, IWasabyHTMLElement, IDOMEnvironment } from './interfaces';
+import { IControlNodeOptions, IControlNode, IWasabyHTMLElement, IDOMEnvironment, IRootAttrs } from './interfaces';
 
 import {
    injectHook,
@@ -270,7 +270,7 @@ class VDomSynchronizer {
       control: TRequredControl,
       options: IControlNodeOptions,
       mountPoint: IWasabyHTMLElement,
-      attributes: {}) {
+      attributes: IRootAttrs) {
 
       //@ts-ignore не могу пока избавиться от jQuery
       if (mountPoint.length > 0) {
@@ -317,7 +317,15 @@ class VDomSynchronizer {
          //@ts-ignore
          control._moduleName
       );
-      let controlNode: IControlNode = createNode(control, { user: options }, undefined, environment, null, state);
+
+      let nodeOptions = {
+         user: options,
+         internal: {},
+         attributes: {},
+         events: {}
+      };
+
+      let controlNode: IControlNode = createNode(control, nodeOptions, undefined, environment, null, state);
       controlNode.rootId = rootId;  // KIRILL: оно добавляется только тут
       if (rootAttrs) {
          controlNode.attributes = rootAttrs;  // KIRILL: оно добавляется только тут
@@ -406,7 +414,7 @@ class VDomSynchronizer {
       }
    }
 
-   cleanControlDomLink(node: any[], control?: { _instId: string | number; }) {
+   cleanControlDomLink(node: HTMLElement, control?: Control) {
       if (control) {
          // @ts-ignore
          delete this._controlNodes[control._instId];

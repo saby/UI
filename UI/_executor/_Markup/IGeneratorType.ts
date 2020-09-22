@@ -165,7 +165,7 @@ interface IControl {
    _notify: Function;
    _container: HTMLElement;
    _logicParent: IControl;
-   _getMarkup: Function;
+   _getMarkup: (rootKey?: string, attributes?: object, isVdom?: boolean) => any;
    render: Function;
    _children: TObject;
    _forceUpdate: Function;

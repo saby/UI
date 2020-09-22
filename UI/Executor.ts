@@ -19,6 +19,7 @@ import voidElements from './_executor/_Utils/VoidTags';
 import * as _IGenerator from './_executor/_Markup/IGenerator';
 import * as _IGeneratorType from './_executor/_Markup/IGeneratorType';
 import * as _IBuilder from './_executor/_Markup/IBuilder';
+export * from './_executor/_Markup/Vdom/IVdomType';
 
 /**
  * @author Тэн В.А.

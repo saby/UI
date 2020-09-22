@@ -46,3 +46,54 @@ export function fixUppercaseDOMEventName(name) {
    var fixedName = originDOMEventNames[name];
    return fixedName || name;
 }
+
+
+//TODO: https://online.sbis.ru/opendoc.html?guid=9f8133e8-5aaf-4b95-897f-00160c512daf
+/**
+ * A handler to use in templates to proxy events to the logic parent.
+ */
+
+export function tmplNotify(event: Event, eventName: string) {
+   /**
+    * We can't ignore bubbling events here, because no one guarantees they're the same.
+    * E.g. on:myEvent="_tmplNotify('anotherEvent')"
+    * Here, event gets forwarded but under a different name.
+    */
+   const args = Array.prototype.slice.call(arguments, 2);
+   return this._notify(eventName, args);
+}
+
+export function proxyModelEvents(component, model, eventNames: string[]) {
+   eventNames.forEach((eventName: string) => {
+      model.subscribe(eventName, (event, value) => {
+         component._notify(eventName, value);
+      });
+   });
+}
+
+/**
+ * This used in control to handle keyDown events.
+ */
+export function keysHandler(event, keys, handlerSet, scope: object, dontStop: boolean): void {
+   for (const action in keys) {
+      if (keys.hasOwnProperty(action)) {
+         if (event.nativeEvent.keyCode === keys[action]) {
+            handlerSet[action](scope, event);
+
+            // Так как наша система событий ловит события на стадии capture,
+            // а подписки в БТРе на стадии bubbling, то не нужно звать stopPropagation
+            // так как обработчики БТРа в таком случае не отработают, потому что
+            // у события не будет bubbling фазы
+            // TODO: will be fixed https://online.sbis.ru/opendoc.html?guid=cefa8cd9-6a81-47cf-b642-068f9b3898b7
+            if (!dontStop) {
+               if (event.target.closest('.richEditor_TinyMCE')) {
+                  event._bubbling = false;
+               } else {
+                  event.stopImmediatePropagation();
+               }
+            }
+            return;
+         }
+      }
+   }
+}
