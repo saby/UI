@@ -376,7 +376,7 @@ export class Generator {
             }
          }
       }
-      else if (typeof tpl === 'object' && tpl && tpl.library && tpl.module) {
+      if (typeof tpl === 'object' && tpl && tpl.library && tpl.module) {
          // module type: { library: <requirable module name>, module: <field to take from the library> }
          let moduleName = tpl.library + ':' + tpl.module.join('.');
          if (deps && deps[tpl.library]) {
