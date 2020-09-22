@@ -314,6 +314,10 @@ export class Generator {
       // сюда приходит объект tplOrigin, где __esModule есть true, а в default лежит нужная нам функция построения верстки
       // Для того, чтобы верстка строилась, необходимо вытащить функцию из default
       let tpl = typeof tplOrigin === 'object' && tplOrigin.__esModule && tplOrigin.default ? tplOrigin.default : tplOrigin;
+      if (tpl === undefined) {
+         // в случае инлайн шаблона ws:template
+         controlClass = undefined;
+      }
       if (typeof tpl === 'function') {
          controlClass = tpl;
          dataComponent = tpl.prototype ? tpl.prototype._moduleName : '';
@@ -409,11 +413,14 @@ export class Generator {
          attrs.attributes = {};
       }
       _FocusAttrs.prepareAttrsForFocus(attrs.attributes);
-      _FocusAttrs.prepareTabindex(attrs.attributes);
+      if (controlClass === undefined) {
+         // в случае ws:template отдаем текущие свойства
+         return controlProperties;
+      }
+
       logicParent = (attrs.internal && attrs.internal.logicParent) ? attrs.internal.logicParent : null;
       parent = (attrs.internal && attrs.internal.parent) ? attrs.internal.parent : null;
       OptionsResolver.resolveInheritOptions(controlClass, attrs, controlProperties);
-
 
       if (Common.isCompat()) {
          if (controlProperties && controlProperties.enabled === undefined) {

@@ -28,6 +28,7 @@ export const BODY = `if (typeof forceCompatible === 'undefined') {
 }
 var markupGenerator = thelpers.createGenerator(isVdom, forceCompatible);
 /*#DELETE IT START#*/
+var scopeForTemplate, attrsForTemplate;
 if (typeof includedTemplates === "undefined") {
    eval("var includedTemplates = undefined;");
    includedTemplates = (this && this.includedTemplates) ? this.includedTemplates : {};

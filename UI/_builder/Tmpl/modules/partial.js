@@ -197,23 +197,21 @@ define('UI/_builder/Tmpl/modules/partial', [
             // Start code generation for construction:
             // <ws:partial template="inline_template_name" />
 
-            var callDataArg = TClosure.genPlainMerge(
-               'Object.create(data || {})',
-               TClosure.genCalculateScope(FSC.getStr(preparedScope), TClosure.getPlainMergeFunction()),
-               'false'
-            );
+            var callDataArg = 'thelpers.plainMerge(Object.create(data || {}), markupGenerator.prepareDataForCreate(undefined, ' +
+               FSC.getStr(preparedScope) + ', attrsForTemplate, {}), false)';
             var callAttrArg = decor
                ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
                : TClosure.genPlainMergeContext('attr', FSC.getStr(decorAttribs));
 
             // признак того, что функции у нас разложены
-            callFnArgs = '.call(this, ' + callDataArg + ', ' + callAttrArg + ', context, isVdom), ';
+            callFnArgs = '.call(this, scopeForTemplate, attrsForTemplate, context, isVdom), ';
 
             if (this.includedFn) {
                return tag.attribs._wstemplatename.data.value + callFnArgs;
             }
             var body = this.getString(tag.children, {}, this.handlers, {}, true);
-            return templates.generatePartialTemplate(body) + callFnArgs;
+            return '(function(){ attrsForTemplate = ' + callAttrArg + '; scopeForTemplate = ' + callDataArg + ';})(),'
+               + templates.generatePartialTemplate(body) + callFnArgs;
          }
          return resolveStatement;
       }
