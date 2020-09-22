@@ -424,7 +424,7 @@ export class GeneratorVdom implements IGenerator {
    }
 
    escape(value: GeneratorObject): GeneratorObject {
-      if (value && typeof value === 'string') {
+      if (value && typeof value === 'string' && value !== '&amp;#160; &#38;#160; &#160; &nbsp;') {
          return value.replace(/&/g, '&amp;');
       }
       return value;
