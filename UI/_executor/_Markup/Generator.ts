@@ -85,6 +85,14 @@ export class Generator {
    private createController: Function;
    private resolver: Function;
 
+   private prepareAttrsForPartial: Function;
+
+   constructor(config: IGeneratorConfig) {
+      if (config) {
+         this.prepareAttrsForPartial = config.prepareAttrsForPartial;
+      }
+   }
+
    chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string|void> | string | Error {
       function chainTrace(defObject: Array<any>): string {
          return out.replace(defRegExp, function(key) {
@@ -411,7 +419,9 @@ export class Generator {
       if (!attrs.attributes) {
          attrs.attributes = {};
       }
-      _FocusAttrs.prepareAttrsForFocus(attrs.attributes);
+      if (this.prepareAttrsForPartial) {
+         this.prepareAttrsForPartial(attrs.attributes);
+      }
       if (controlClass === '_$inline_template') {
          // в случае ws:template отдаем текущие свойства
          return controlProperties;

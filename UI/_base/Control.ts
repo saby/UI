@@ -7,7 +7,7 @@ import template = require('wml!UI/_base/Control');
 import cExtend = require('Core/core-extend');
 
 import { Synchronizer } from 'UI/Vdom';
-import { OptionsResolver } from 'UI/Executor';
+import { _IGeneratorType, OptionsResolver } from 'UI/Executor';
 import { ContextResolver } from 'UI/Contexts';
 import { _FocusAttrs, _IControl, activate } from 'UI/Focus';
 import { Logger, Purifier, needToBeCompatible } from 'UI/Utils';
@@ -20,7 +20,8 @@ import { ReactiveObserver } from 'UI/Reactivity';
 import startApplication from 'UI/_base/startApplication';
 import { IOptions } from 'UI/_builder/utils/Options';
 
-export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any) => string;
+export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
+                                forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
 
 type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
@@ -353,7 +354,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState = unk
             }
          }
       }
-      res = this._template(this, attributes, rootKey, isVdom);
+      res = this._template(this, attributes, rootKey, isVdom, undefined, undefined, {
+         prepareAttrsForPartial: _FocusAttrs.prepareAttrsForFocus
+      });
       if (res) {
          if (isVdom) {
             if (res.length !== 1) {

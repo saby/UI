@@ -35,14 +35,14 @@ function getDecorators() {
 }
 
 let generatorCompatible;
-function getGeneratorCompatible() {
+function getGeneratorCompatible(config) {
    if (generatorCompatible) {
       return generatorCompatible;
    } else {
       //@ts-ignore
       if (require.defined('View/ExecutorCompatible')) {
          generatorCompatible = require('View/ExecutorCompatible').Compatible;
-         return generatorCompatible;
+         return generatorCompatible(config);
       } else {
          // FIXME: сейчас на СП всегда стоит флаг совместимости
          // Logger.warn('View/ExecutorCompatible не загружен. Проверьте загрузку слоя совместимости.');
@@ -223,17 +223,17 @@ var
          Logger.error('Использование функции в качестве строковой переменной! Необходимо обернуть в тег ws:partial', null, err);
       }
    },
-   createGenerator = function (isVdom, forceCompatible = false) {
+   createGenerator = function (isVdom, forceCompatible = false, config) {
       if (isVdom) {
-         return Vdom;
+         return Vdom(config);
       }
       if (Common.isCompat() || forceCompatible) {
-         const Compatible = getGeneratorCompatible();
+         const Compatible = getGeneratorCompatible(config);
          if (Compatible) {
             return Compatible;
          }
       }
-      return Text;
+      return Text(config);
    },
    // todo добавлено для совместимости с прошлой версией, можно будет удалить после выполнения задачи
    // https://online.sbis.ru/opendoc.html?guid=0443ec3f-0d33-469b-89f1-57d208ed2982
