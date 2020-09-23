@@ -14,7 +14,6 @@ type TQueueElement = [TInstance, string, Record<string, boolean>, number];
 const asyncPurifyTimeout = 10000;
 
 const typesToPurify: string[] = ['object', 'function'];
-const ignoreStateNameList: string[] = ['_$defaultActions'];
 const queue: TQueueElement[] = [];
 let isQueueStarted: boolean = false;
 
@@ -58,11 +57,6 @@ function purifyState(instance: TInstance, stateName: string, getterFunction: () 
     if (stateName === 'destroy') {
         // TODO: убрать костыль в https://online.sbis.ru/opendoc.html?guid=1c91dd41-5adf-4fd7-b2a4-ff8f103a8084
         instance.destroy = emptyFunction;
-        return;
-    }
-    // TODO: надо разобраться в механике разрегистрации горячих клавишь,
-    //  когда на одной ноде висит контрол и хуки горячих клавишь, возникает проблема с очередностью очистки
-    if (ignoreStateNameList.indexOf(stateName) > -1) {
         return;
     }
     if (isDebug) {
