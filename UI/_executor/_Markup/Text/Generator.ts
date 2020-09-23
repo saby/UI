@@ -298,9 +298,9 @@ export class GeneratorText implements IGenerator {
                }
                callContext = preparedScope && data.parent ? data.parent : template;
                if (typeof template === 'function') {
-                  return template.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, this.prepareAttrsForPartial);
+                  return template.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, _this.prepareAttrsForPartial);
                } else if (typeof template.func === 'function') {
-                  return template.func.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, this.prepareAttrsForPartial);
+                  return template.func.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, _this.prepareAttrsForPartial);
                }
                return template;
             });

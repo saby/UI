@@ -41,8 +41,8 @@ function getGeneratorCompatible(config) {
    } else {
       //@ts-ignore
       if (require.defined('View/ExecutorCompatible')) {
-         generatorCompatible = require('View/ExecutorCompatible').Compatible;
-         return generatorCompatible(config);
+         generatorCompatible = require('View/ExecutorCompatible').Compatible(config);
+         return generatorCompatible;
       } else {
          // FIXME: сейчас на СП всегда стоит флаг совместимости
          // Logger.warn('View/ExecutorCompatible не загружен. Проверьте загрузку слоя совместимости.');
