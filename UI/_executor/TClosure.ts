@@ -192,7 +192,7 @@ var
       // TODO: покрыть тестами, нет юнитов
       var filteredScope = {};
 
-      if (!isObject(scope) || isObject(scope)) {
+      if (!isObject(scope) || !scope.name) {
          return scope;
       }
 
