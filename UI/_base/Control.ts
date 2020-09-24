@@ -18,7 +18,6 @@ import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
 import { ReactiveObserver } from 'UI/Reactivity';
 
 import startApplication from 'UI/_base/startApplication';
-import { IOptions } from 'UI/_builder/utils/Options';
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
                                 forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
@@ -186,7 +185,11 @@ export type TControlConfig = IControlOptions & {
    _logicParent?: Control;
 };
 
-export type TControlConstructor<TOptions extends IControlOptions = {}, TState = void> = {
+interface IState {
+}
+type TIState = void | IState;
+
+export type TControlConstructor<TOptions extends IControlOptions = {}, TState extends TIState = void> = {
    new(cfg: TOptions): Control<TOptions, TState>;
 }
 
@@ -199,7 +202,7 @@ export type TControlConstructor<TOptions extends IControlOptions = {}, TState = 
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
-export default class Control<TOptions extends IControlOptions = {}, TState = unknown> implements _IControl {
+export default class Control<TOptions extends IControlOptions = {}, TState extends TIState = void> implements _IControl {
    protected _moduleName: string;
 
    private _mounted: boolean = false;
