@@ -210,6 +210,9 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       this._handleTabKey = this._handleTabKey.bind(this);
 
       this.__initBodyTabIndex();
+
+      // если я это не напишу, ts ругнется 'touchendTarget' is declared but its value is never read
+      this.touchendTarget = null;
    }
 
    destroy(): any {
