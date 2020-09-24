@@ -89,6 +89,7 @@ define([
 
       afterEach(function() {
          if (control) {
+            control._isDestroyedFromCore = true;
             control.destroy();
          }
          document.body.removeChild(div);

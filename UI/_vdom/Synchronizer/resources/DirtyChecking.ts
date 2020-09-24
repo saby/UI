@@ -566,6 +566,7 @@ export function destroyReqursive(childControlNode, environment) {
             if (instanceCtr) {
                delay(function () {
                   if (!instanceCtr._destroyed) {
+                     instanceCtr._isDestroyedFromCore = true;
                      instanceCtr.destroy();
                   }
                });
@@ -590,6 +591,7 @@ export function destroyReqursive(childControlNode, environment) {
             logicParent = childControlNode.control._logicParent;
             controlName = childControlNode.control._options.name;
             childControlNode.control.__$destroyFromDirtyChecking = true;
+            childControlNode.control._isDestroyedFromCore = true;
             childControlNode.control.destroy();
          }
 
