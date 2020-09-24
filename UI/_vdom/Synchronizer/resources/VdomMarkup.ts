@@ -50,7 +50,7 @@ export function isControlVNodeType(vnode: VNode | VNodeControl): boolean {
 }
 
 // TODO: Release type flag on virtual nodes to distinguish virtual nodes.
-export function isTemplateVNodeType(vnode: any): any {
+export function isTemplateVNodeType(vnode: any): boolean {
    return vnode && typeof vnode === 'object' && vnode.type === 'TemplateNode';
 }
 

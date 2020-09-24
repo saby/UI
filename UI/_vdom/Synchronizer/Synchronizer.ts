@@ -186,7 +186,7 @@ class VDomSynchronizer {
       onStartSync(node.rootId);
       updateCurrentDirties(node.environment);
 
-      let rebuildedNode: Promise<IMemoNode> = rebuildNode(node.environment, node, undefined, true);
+      let rebuildedNode: IMemoNode | Promise<IMemoNode> = rebuildNode(node.environment, node, undefined, true);
       if (!node.environment._haveRebuildRequest) {
          onEndSync(node.rootId);
       }
