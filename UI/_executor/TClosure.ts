@@ -191,6 +191,10 @@ var
    filterOptions = function (scope) {
       // TODO: покрыть тестами, нет юнитов
       var filteredScope = {};
+      
+      if (isObject(scope) !== ObjectUtils.isPlainObject(scope)) {
+         console.error('Kondakov was wrong');
+      }
 
       if (!isObject(scope)) {
          return scope;
