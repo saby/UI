@@ -49,6 +49,9 @@ function getGeneratorCompatible() {
    }
 }
 
+function isObject(obj: any): boolean {
+   return Object.prototype.toString.call(obj) === '[object Object]';
+}
 
 const ITERATORS = [
    {
@@ -173,7 +176,7 @@ var
       // TODO: покрыть тестами, нет юнитов
       var filteredScope = {};
 
-      if (!ObjectUtils.isPlainObject(scope)) {
+      if (!isObject(scope)) {
          return scope;
       }
 
