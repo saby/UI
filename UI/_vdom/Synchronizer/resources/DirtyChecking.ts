@@ -1,5 +1,6 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DirtyChecking" />
 /* tslint:disable */
+// @ts-nocheck
 
 // @ts-ignore
 import { constants } from 'Env/Env';
@@ -744,11 +745,14 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             Logger.debug(`[DirtyChecking:rebuildNode()] - requestRebuild "${id}" for "${newNode.control._moduleName}"`);
             parentNode = newNode;
 
+            // @ts-ignore
             newNode.control.saveFullContext(ContextResolver.wrapContext(newNode.control, newNode.context || {}));
             if (!newNode.inheritOptions) {
                 newNode.inheritOptions = {};
             }
+            // @ts-ignore
             OptionsResolver.resolveInheritOptions(newNode.controlClass, newNode, newNode.options);
+            // @ts-ignore
             newNode.control.saveInheritOptions(newNode.inheritOptions);
 
             newNode.markup = getDecoratedMarkup(newNode);
