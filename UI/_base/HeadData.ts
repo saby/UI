@@ -144,7 +144,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
         return Object.assign({}, this);
     }
     // #endregion
-    static readonly SSR_DELAY: number = 20000;
+    static readonly SSR_DELAY: number = 19500;
 }
 
 class HeadDataStore {
