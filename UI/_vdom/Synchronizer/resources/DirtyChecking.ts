@@ -654,25 +654,6 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     let dirty = environment._currentDirties[id] || DirtyKind.NONE;
     let isDirty = dirty !== DirtyKind.NONE || force;
     let isSelfDirty = !!(dirty & DirtyKind.DIRTY) || force;
-    let oldMarkup = node.markup;
-    let shouldUpdate;
-    let needRenderMarkup = false;
-    let newNode;
-    let parentNode;
-    let diff;
-    let createdNodes;
-    let createdTemplateNodes;
-    let updatedNodes;
-    let updatedUnchangedNodes;
-    let updatedChangedNodes;
-    let updatedChangedTemplateNodes = [];
-    let selfDirtyNodes;
-    let destroyedNodes;
-    let childrenNodes;
-    let createdStartIdx;
-    let changedNodes;
-    let parentNodeContext;
-    let resolvedContext;
 
     if (!isDirty) {
         return {
@@ -681,10 +662,11 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         };
     }
 
-    newNode = node;
-    parentNodeContext = node.context;
-    resolvedContext = ContextResolver.resolveContext(newNode.controlClass, parentNodeContext, newNode.control);
+    let newNode = node;
+    let parentNodeContext = node.context;
+    let resolvedContext = ContextResolver.resolveContext(newNode.controlClass, parentNodeContext, newNode.control);
 
+    /// region Devhook
     if (isSelfDirty) {
         // Корни не маунтятся сразу после создания, так что чтобы избежать двух Create подряд делаем так:
         if (isRoot) {
@@ -695,12 +677,25 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             );
         } else {
             onStartCommit(
+                // @ts-ignore
                 !newNode.control._mounted ? OperationType.CREATE : OperationType.UPDATE,
                 getNodeName(newNode),
                 newNode
             );
         }
     }
+    /// end-region
+
+    let childrenNodes;
+
+    let createdNodes;
+    let createdTemplateNodes;
+    let updatedNodes;
+    let updatedUnchangedNodes;
+    let updatedChangedNodes;
+    let updatedChangedTemplateNodes = [];
+    let destroyedNodes;
+    let selfDirtyNodes;
 
     if (!newNode.compound) {
         /**
@@ -744,6 +739,8 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         }
 
         if (isSelfDirty) {
+            let parentNode;
+
             Logger.debug(`[DirtyChecking:rebuildNode()] - requestRebuild "${id}" for "${newNode.control._moduleName}"`);
             parentNode = newNode;
 
@@ -757,7 +754,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             newNode.markup = getDecoratedMarkup(newNode);
             saveChildren(node.markup);
 
-            diff = getMarkupDiff(oldMarkup, newNode.markup, false, false);
+            let diff = getMarkupDiff(oldMarkup, newNode.markup, false, false);
             Logger.debug('DirtyChecking (diff)', diff);
 
             if (diff.destroy.length || diff.vnodeChanged) {
@@ -1250,7 +1247,6 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             }
         } else {
             childrenNodes = node.childrenNodes;
-
             createdNodes = ARR_EMPTY;
             createdTemplateNodes = ARR_EMPTY;
             updatedNodes = ARR_EMPTY;
@@ -1291,6 +1287,13 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             logicParent: logicParent
         });
     }
+
+
+    let oldMarkup = node.markup;
+    let shouldUpdate;
+    let needRenderMarkup = false;
+    let createdStartIdx;
+    let changedNodes;
 
     const childrenRebuildResults: IMemoNode[] = [];
     let haveAsync: boolean = false;
