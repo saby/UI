@@ -8,8 +8,6 @@
 // @ts-ignore
 import { Serializer } from 'UI/State';
 // @ts-ignore
-import { IoC } from 'Env/Env';
-// @ts-ignore
 import { Logger } from 'UI/Utils';
 // @ts-ignore
 import {Config as config} from 'UI/BuilderConfig';
@@ -51,6 +49,9 @@ function getGeneratorCompatible() {
    }
 }
 
+function isObject(obj: any): boolean {
+   return Object.prototype.toString.call(obj) === '[object Object]';
+}
 
 const ITERATORS = [
    {
@@ -134,12 +135,6 @@ var
       }
       return object.implantValue(obj, path, value);
    },
-   isFunction = function isFunction(fn) {
-      return Object.prototype.toString.call(fn) === '[object Function]';
-   },
-   isObject = function isObject(fn) {
-      return Object.prototype.toString.call(fn) === '[object Object]';
-   },
    wrapUndef = function wrapUndef(value) {
       if (value === undefined || value === null) {
          return "";
@@ -169,17 +164,6 @@ var
       'Data/collection:Enum': enumTypePin,
       'Data/_collection/Enum': enumTypePin,
       'WS.Data/Type/Enum': enumTypePin
-   },
-
-   /**
-    * Calls function to set value for binding.
-    *
-    * @param event
-    * @param value
-    * @param fn
-    */
-   bindProxy = function (event, value, fn) {
-      fn.call(this, value);
    },
 
    checkPinTypes = function checkPinTypes(value) {
@@ -355,10 +339,8 @@ export {
    templateError,
    partialError,
    makeFunctionSerializable,
-   isFunction,
    getter,
    setter,
-   IoC,
    config,
    processMergeAttributes,
    plainMerge,
@@ -367,8 +349,6 @@ export {
    getTypeFunction as getTypeFunc,
    createGenerator,
    getMarkupGenerator,
-   bindProxy,
-   isObject,
    prepareAttrsForFocus,
    validateNodeKey,
    _isTClosure
