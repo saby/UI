@@ -9,7 +9,8 @@
 import { constants } from 'Env/Env';
 // @ts-ignore
 import { Logger } from 'UI/Utils';
-import {UseAutoProxiedOptionError} from './ConfigResolver';
+import { UseAutoProxiedOptionError } from './ConfigResolver';
+import { TControlConstructor } from 'UI/_base/Control'
 
 /**
  * Применить дефолтные опции конструктора
@@ -27,7 +28,7 @@ export function resolveDefaultOptions(cfg, defaultOptions) {
    return cfg;
 }
 
-function _validateOptions(controlClass, cfg, optionsTypes, parentName): boolean {
+function _validateOptions(controlClass: TControlConstructor, cfg, optionsTypes, parentName: string): boolean {
    let targetMessage = '';
    if (cfg['name']) {
       targetMessage = ` of "${cfg['name']}"`;
@@ -44,7 +45,7 @@ function _validateOptions(controlClass, cfg, optionsTypes, parentName): boolean 
    return true;
 }
 
-export function resolveOptions(controlClass, defaultOpts, cfg, parentName) {
+export function resolveOptions(controlClass: TControlConstructor, defaultOpts, cfg, parentName: string) {
    resolveDefaultOptions(cfg, defaultOpts);
    return validateOptions(controlClass, cfg, parentName);
 }
@@ -53,14 +54,14 @@ export function getDefaultOptions(controlClass) {
    return controlClass.getDefaultOptions ? controlClass.getDefaultOptions() : {};
 }
 
-export function validateOptions(controlClass, cfg, parentName): boolean {
+export function validateOptions(controlClass, cfg, parentName: string): boolean {
     // @ts-ignore
-   if (!constants.isProduction) { // Disable options validation in production-mode to optimize
-        var optionsTypes = controlClass.getOptionTypes && controlClass.getOptionTypes();
-        return _validateOptions(controlClass, cfg, optionsTypes, parentName);
-    } else {
-        return true;
-    }
+   if (!!constants.isProduction) { // Disable options validation in production-mode to optimize
+      return true;
+   }
+
+   var optionsTypes = controlClass.getOptionTypes && controlClass.getOptionTypes();
+   return _validateOptions(controlClass, cfg, optionsTypes, parentName);
 }
 
 export function resolveInheritOptions(controlClass, attrs, controlProperties, fromCreateControl?) {

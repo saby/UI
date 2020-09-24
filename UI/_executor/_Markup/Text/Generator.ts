@@ -369,8 +369,11 @@ export class GeneratorText implements IGenerator {
       }
       // автоматически передевенные странаци на wasaby игнорируем
       // массимы функций игнорируем, они будут проверены в fn.map()
-      // проверим на null, т.к. возможна ситуация когда среди дочерних контролов передают null в итоге не строится вся верстка
-      if (!isTemplateWrapper && typeof fn === 'object' && fn !== null &&!Common.isArray(fn)) {
+      if (!isTemplateWrapper && typeof fn === 'object' && !Common.isArray(fn)) {
+         if (fn === null) {
+            isValid = false;
+            reason = 'В качества шаблона/компонента передан "null"';
+         }
          // если в fn есть свойство func, то все ок
          if (isValid && !fn.hasOwnProperty('func')) {
             isValid = false;

@@ -15,4 +15,4 @@ includedTemplates = (this && this.includedTemplates) ? this.includedTemplates : 
 var templateCount = 0;
 var key = thelpers.validateNodeKey(attr && attr.key);
 var defCollection = {id: [], def: undefined};
-var viewController = thelpers.configResolver.calcParent(this, typeof currentPropertyName === \'undefined\' ? undefined : currentPropertyName, data);`;
+var viewController = thelpers.calcParent(this, typeof currentPropertyName === \'undefined\' ? undefined : currentPropertyName, data);`;

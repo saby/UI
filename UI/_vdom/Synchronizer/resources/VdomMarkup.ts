@@ -6,10 +6,23 @@ import { coreDebug } from 'Env/Env';
 import { ListMonad } from '../../Utils/Monad';
 import { setControlNodeHook } from './Hooks';
 import { Logger } from 'UI/Utils';
-import { WasabyProperties } from 'Inferno/third-party/index';
+import { WasabyProperties, VNode } from 'Inferno/third-party/index';
 import { Map, Set } from 'Types/shim';
 
-import {htmlNode, textNode} from 'UI/Executor';
+import { htmlNode, textNode, GeneratorNode } from 'UI/Executor';
+import { IControlNode } from '../interfaces';
+import { TControlConstructor } from 'UI/_base/Control';
+
+// this.childFlags = childFlags;
+// this.children = children;
+// this.className = className;
+// this.dom = null;
+// this.flags = flags;
+// this.key = key === void 0 ? null : key;
+// this.props = props === void 0 ? null : props;
+// this.ref = ref === void 0 ? null : ref;
+// this.type = type;
+// this.markup = markup;
 
 /**
  * @author Кондаков Р.Н.
@@ -32,7 +45,7 @@ export function isTextNodeType(vnode: any): any {
 }
 
 // TODO: Release type flag on virtual nodes to distinguish virtual nodes.
-export function isControlVNodeType(vnode: any): any {
+export function isControlVNodeType(vnode: VNode | VNodeControl): boolean {
    return vnode && typeof vnode === 'object' && 'controlClass' in vnode;
 }
 
@@ -46,12 +59,15 @@ export function isInvisibleNodeType(vnode: any): any {
    return vnode && typeof vnode === 'object' && vnode.type && vnode.type === 'invisible-node';
 }
 
-export function getVNodeChidlren(vnode: any, getFromTemplateNodes?: any): any {
+export function getVNodeChidlren(vnode: VNode, getFromTemplateNodes: boolean = false): Array<GeneratorNode | VNode> {
    if (getFromTemplateNodes) {
       return vnode.children || [];
-   } else {
-      return isVNodeType(vnode) ? (vnode.children === null ? [] : vnode.children) : [];
    }
+   if (isVNodeType(vnode)) {
+      return vnode.children === null ? [] : vnode.children;
+   }
+
+   return [];
 }
 
 export function mapVNode(
@@ -59,7 +75,7 @@ export function mapVNode(
    controlNode: any,
    vnode: any,
    setHookToVNode?: any,
-   nodeArray?: any,
+   _?: unknown,
    modify?: any
 ): any {
    /* mapVNode must be refactor
@@ -148,8 +164,21 @@ function collectChildTemplateVNodes(vnode: any): any {
    return mapVNodeChildren(true, vnode, identity, isTemplateVNodeType);
 }
 
-export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any, goin?: any): any {
-   const result = {
+type VNodeControl = VNode & { controlClass: TControlConstructor };
+
+interface IMarkupDiff {
+   create: VNodeControl[];
+   createTemplates: VNode[];
+   destroy: VNodeControl[];
+   destroyTemplates: VNode[];
+   update: Array<{ oldNode: VNodeControl, newNode: VNodeControl }>;
+   updateTemplates: Array<{ oldNode: VNode, newNode: VNode }>;
+   vnodeChanged: boolean;
+}
+
+export function getMarkupDiff(oldNode: VNode, newNode: VNode,
+                              ignoreLinkEqual: boolean = false, goin: boolean = false): IMarkupDiff {
+   const result: IMarkupDiff = {
       create: [],
       createTemplates: [],
       destroy: [],
@@ -158,6 +187,7 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
       updateTemplates: [],
       vnodeChanged: false
    };
+
    let childrenResult;
    let oldChildren;
    let newChildren;
@@ -298,7 +328,8 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
       }
    }
 
-   function complexDiffFinder(oldNode: any, newNode: any, isTemplateNode: any, goin: any): any {
+   function complexDiffFinder(oldNode: VNode | VNodeControl, newNode: VNode | VNodeControl,
+      isTemplateNode: any, goin: boolean): void {
       oldChildren = getVNodeChidlren(oldNode, isTemplateNode);
       newChildren = reorder(oldChildren, getVNodeChidlren(newNode, isTemplateNode));
 
@@ -353,13 +384,13 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
 
       if (isEqualNode(oldNode, newNode)) {
          if (isControlVNodeType(newNode)) {
+            // @ts-ignore
             if (oldNode.controlNodeIdx === -1) {
+               // @ts-ignore
                result.create.push(newNode);
             } else {
-               result.update.push({
-                  oldNode,
-                  newNode
-               });
+               // @ts-ignore
+               result.update.push({ oldNode, newNode });
             }
          } else if (isTemplateVNodeType(newNode)) {
             if (!newNode.children && newNode === oldNode) {
@@ -392,8 +423,10 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
          result.vnodeChanged = true;
 
          if (isControlVNodeType(newNode)) {
+            // @ts-ignore
             result.create.push(newNode);
          } else if (isTemplateVNodeType(newNode)) {
+            // @ts-ignore
             result.createTemplates.push(newNode);
          } else {
             concatResults(result.create, collectChildControlVNodes(newNode));
@@ -402,6 +435,7 @@ export function getMarkupDiff(oldNode: any, newNode: any, ignoreLinkEqual?: any,
 
          if (oldNode) {
             if (isControlVNodeType(oldNode)) {
+               // @ts-ignore
                result.destroy.push(oldNode);
             } else if (isTemplateVNodeType(oldNode)) {
                concatResults(result.destroy, collectChildControlVNodes(oldNode, true));
@@ -638,16 +672,19 @@ function createErrVNode(err: any, key: any): any {
    );
 }
 
-export function getDecoratedMarkup(controlNode: any, isRoot: any): any {
+export function getDecoratedMarkup(controlNode: IControlNode): any {
    //Теперь передададим еще и атрибуты, которые нам дали сверху для построения верстки
    //там они будут мержиться
-   const markupRes = controlNode.control._getMarkup(controlNode.key, isRoot, {
+   const markupRes = controlNode.control._getMarkup(controlNode.key, {
       key: controlNode.key,
       attributes: controlNode.attributes,
       events: controlNode.events,
       inheritOptions: controlNode.inheritOptions,
+      // @ts-ignore
       templateContext: controlNode.templateContext,
+      // @ts-ignore
       internal: controlNode.internal,
+      // @ts-ignore
       domNodeProps: controlNode.domNodeProps
    });
    let result;
@@ -668,7 +705,9 @@ export function getDecoratedMarkup(controlNode: any, isRoot: any): any {
    ) {
       // если корневой элемент отсутствует при первой синхронизации создаем текстовую ноду с ошибкой
       // и кидаем предупреждение в консоль со стеком
+      // @ts-ignore
       const message = `Шаблон контрола ${controlNode.control._moduleName} ` +
+         // @ts-ignore
          `(name: ${controlNode.control._options.name}) не построил верстку. Должен быть корневой элемент!`;
       result = createErrVNode(message, controlNode.key);
       Logger.error(message, controlNode.control);
@@ -680,6 +719,7 @@ export function getDecoratedMarkup(controlNode: any, isRoot: any): any {
    if (
       !result.hasTemplateRootElement &&
       controlNode.markup &&
+      // @ts-ignore
       controlNode.markup.hasTemplateRootElement !== result.hasTemplateRootElement
    ) {
       // если при первой синхронизации все нода построилась успешно,
@@ -688,6 +728,7 @@ export function getDecoratedMarkup(controlNode: any, isRoot: any): any {
       // https://online.sbis.ru/opendoc.html?guid=80ec2fd6-ce3c-4e7a-94e3-ccb47c0c8dcb
       // TODO: найти причину пропажи корневой ноды по задаче выше
       Logger.warn(
+         // @ts-ignore
          `В контроле ${controlNode.control._moduleName} был потерян корневой элемент`,
          controlNode.control
       );

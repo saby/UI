@@ -211,7 +211,7 @@ function hasControl(element: IControlElement): any {
    return element.controlNodes || element.wsControl;
 }
 
-function getContainerWithControlNode(element: Element): Element {
+function getContainerWithControlNode(element: IControlElement): Element {
    while (element) {
       // ищем ближайший элемент, который может быть сфокусирован и не является полем ввода
       if (hasControl(element) && ElementFinder.getElementProps(element).tabStop && !checkInput(element)) {
@@ -226,19 +226,7 @@ function checkEnableScreenKeyboard(): boolean {
    return detection.isMobilePlatform || isTouchInterface;
 }
 
-function fixScrollingEffect(undoScrolling: Function): void {
-   if (detection.safari) {
-      // для сафари нужен timeout, почему-то фокус не успевает проскроллить элемент,
-      // и вычисляется неправильный новый scrollTOp
-      setTimeout(() => {
-         undoScrolling();
-      }, 0);
-   } else {
-      undoScrolling();
-   }
-}
-
-function fixElementForMobileInputs(element: Element, cfg: IFocusConfig): Element {
+function fixElementForMobileInputs(element: IControlElement, cfg: IFocusConfig): IControlElement {
    // на мобильных устройствах иногда не надо ставить фокус в поля ввода. потому что может показаться
    // экранная клавиатура. на ipad в случае асинхронной фокусировки вообще фокусировка откладывается
    // до следующего клика, и экранная клавиатура показывается не вовремя.
@@ -275,7 +263,7 @@ function focusInner(element: Element, cfg: IFocusConfig): boolean {
    checkFocused(element);
 
    if (result) {
-      fixScrollingEffect(undoScrolling);
+      undoScrolling();
    }
 
    return result;
@@ -288,7 +276,7 @@ function fireActivationEvents(target: Element, relatedTarget: Element): void {
 
 let focusingState;
 let nativeFocus: Function;
-function focus(element: Element, {enableScreenKeyboard = false, enableScrollToElement = false}:
+function focus(element: IControlElement, {enableScreenKeyboard = false, enableScrollToElement = false}:
    IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}): boolean {
    let res;
    const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard};

@@ -31,8 +31,7 @@ import {
    TDeps,
    TIncludedTemplate,
    TObject,
-   TScope,
-   WsControlOrController
+   TScope
 } from '../IGeneratorType';
 import { GeneratorNode } from './IVdomType';
 import { cutFocusAttributes } from '../Utils';
@@ -145,7 +144,7 @@ export class GeneratorVdom implements IGenerator {
                    scope: IControlProperties,
                    attrs: IGeneratorAttrs,
                    context: string,
-                   deps?: TDeps): WsControlOrController | GeneratorVoid {
+                   deps?: TDeps): GeneratorNode | GeneratorVoid {
       const data = this.prepareDataForCreate(name, scope, attrs, deps);
       const controlClass = data.controlClass;
 
