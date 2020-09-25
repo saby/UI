@@ -1,5 +1,6 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DirtyChecking" />
 /* tslint:disable */
+//@ts-nocheck
 
 // @ts-ignore
 import { constants } from 'Env/Env';
@@ -654,25 +655,6 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     let dirty = environment._currentDirties[id] || DirtyKind.NONE;
     let isDirty = dirty !== DirtyKind.NONE || force;
     let isSelfDirty = !!(dirty & DirtyKind.DIRTY) || force;
-    let oldMarkup = node.markup;
-    let shouldUpdate;
-    let needRenderMarkup = false;
-    let newNode;
-    let parentNode;
-    let diff;
-    let createdNodes;
-    let createdTemplateNodes;
-    let updatedNodes;
-    let updatedUnchangedNodes;
-    let updatedChangedNodes;
-    let updatedChangedTemplateNodes = [];
-    let selfDirtyNodes;
-    let destroyedNodes;
-    let childrenNodes;
-    let createdStartIdx;
-    let changedNodes;
-    let parentNodeContext;
-    let resolvedContext;
 
     if (!isDirty) {
         return {
@@ -681,9 +663,9 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         };
     }
 
-    newNode = node;
-    parentNodeContext = node.context;
-    resolvedContext = ContextResolver.resolveContext(newNode.controlClass, parentNodeContext, newNode.control);
+    let newNode = node;
+    let parentNodeContext = node.context;
+    let resolvedContext = ContextResolver.resolveContext(newNode.controlClass, parentNodeContext, newNode.control);
 
     if (isSelfDirty) {
         // Корни не маунтятся сразу после создания, так что чтобы избежать двух Create подряд делаем так:
@@ -701,6 +683,20 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             );
         }
     }
+
+    let needRenderMarkup = false;
+    let diff;
+    let createdNodes;
+    let createdTemplateNodes;
+    let updatedNodes;
+    let updatedUnchangedNodes;
+    let updatedChangedNodes;
+    let updatedChangedTemplateNodes = [];
+    let selfDirtyNodes;
+    let destroyedNodes;
+    let childrenNodes;
+    let createdStartIdx;
+    let changedNodes;
 
     if (!newNode.compound) {
         /**
@@ -723,6 +719,8 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             } catch (error) {
                 Logger.lifeError('_beforeUpdate', newNode.control, error);
             }
+
+            let shouldUpdate;
             try {
                 shouldUpdate = newNode.control._shouldUpdate(newNode.options, resolvedContext);
             } catch (error) {
@@ -745,7 +743,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
 
         if (isSelfDirty) {
             Logger.debug(`[DirtyChecking:rebuildNode()] - requestRebuild "${id}" for "${newNode.control._moduleName}"`);
-            parentNode = newNode;
+            let parentNode = newNode;
 
             newNode.control.saveFullContext(ContextResolver.wrapContext(newNode.control, newNode.context || {}));
             if (!newNode.inheritOptions) {
@@ -754,8 +752,9 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             OptionsResolver.resolveInheritOptions(newNode.controlClass, newNode, newNode.options);
             newNode.control.saveInheritOptions(newNode.inheritOptions);
 
+            let oldMarkup = node.markup;
             newNode.markup = getDecoratedMarkup(newNode);
-            saveChildren(node.markup);
+            saveChildren(newNode.markup);
 
             diff = getMarkupDiff(oldMarkup, newNode.markup, false, false);
             Logger.debug('DirtyChecking (diff)', diff);
