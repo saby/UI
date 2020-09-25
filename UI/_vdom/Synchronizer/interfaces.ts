@@ -43,6 +43,7 @@ export interface IControlNode extends IRebuildNode {
     internalOptions: IControlOptions;
     optionsVersions: IObjectsVersions<IControlOptions>;
     inheritOptions: IControlOptions;
+    internalVersions: IObjectsVersions<IControlOptions>;
     id: TControlId;
     parent: IControlNode;
     key: TControlId;
