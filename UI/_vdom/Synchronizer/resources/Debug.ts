@@ -14,6 +14,7 @@ import { DirtyKind } from './DirtyChecking';
 import { TClosure } from 'UI/Executor';
 // @ts-ignore
 import { ObjectUtils } from 'UI/Utils';
+import {_FocusAttrs} from "UI/Focus";
 
 /**
  * @author Кондаков Р.Н.
@@ -139,7 +140,9 @@ export function vdomToHTML(vdom, context) {
 
       if (isControlVNodeType(node)) {
          return new Promise((resolve, reject) => {
-            const result = TClosure.createGenerator(false).createWsControl(
+            const result = TClosure.createGenerator(false, undefined, {
+               prepareAttrsForPartial: _FocusAttrs.prepareAttrsForFocus
+            }).createWsControl(
                node.controlClass,
                node.controlProperties,
                {
@@ -164,7 +167,9 @@ export function vdomToHTML(vdom, context) {
       }
       if (isTemplateVNodeType(node)) {
          return TClosure
-            .createGenerator(false)
+            .createGenerator(false, undefined, {
+               prepareAttrsForPartial: _FocusAttrs.prepareAttrsForFocus
+            })
             .createTemplate(node.template, node.attributes && node.controlProperties, node.attributes, context);
       } else if (isVNodeType(node)) {
          const result = tagContent(node);

@@ -199,7 +199,12 @@ define('UI/_builder/Tmpl/modules/partial', [
 
             var callDataArg = TClosure.genPlainMerge(
                'Object.create(data || {})',
-               TClosure.genCalculateScope(FSC.getStr(preparedScope), TClosure.getPlainMergeFunction()),
+               TClosure.genPrepareDataForCreate(
+                  '"_$inline_template"',
+                  FSC.getStr(preparedScope),
+                  'attrsForTemplate',
+                  '{}'
+               ),
                'false'
             );
             var callAttrArg = decor
@@ -207,13 +212,15 @@ define('UI/_builder/Tmpl/modules/partial', [
                : TClosure.genPlainMergeContext('attr', FSC.getStr(decorAttribs));
 
             // признак того, что функции у нас разложены
-            callFnArgs = '.call(this, ' + callDataArg + ', ' + callAttrArg + ', context, isVdom), ';
+            callFnArgs = '.call(this, scopeForTemplate, attrsForTemplate, context, isVdom), ';
 
             if (this.includedFn) {
-               return tag.attribs._wstemplatename.data.value + callFnArgs;
+               return '(function(){ attrsForTemplate = ' + callAttrArg + '; scopeForTemplate = ' + callDataArg + ';})(),'
+                  + tag.attribs._wstemplatename.data.value + callFnArgs;
             }
             var body = this.getString(tag.children, {}, this.handlers, {}, true);
-            return templates.generatePartialTemplate(body) + callFnArgs;
+            return '(function(){ attrsForTemplate = ' + callAttrArg + '; scopeForTemplate = ' + callDataArg + ';})(),'
+               + templates.generatePartialTemplate(body) + callFnArgs;
          }
          return resolveStatement;
       }
