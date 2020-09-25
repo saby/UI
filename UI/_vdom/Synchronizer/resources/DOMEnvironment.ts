@@ -175,6 +175,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
    __captureEventHandler: Function;
    private __captureEventHandlers: Record<string, IHandlerInfo[]>;
    private __markupNodeDecorator: TMarkupNodeDecoratorFn;
+   private touchendTarget: HTMLElement;
 
    private _clickState: any = {
       detected: false,
@@ -209,6 +210,9 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       this._handleTabKey = this._handleTabKey.bind(this);
 
       this.__initBodyTabIndex();
+
+      // если я это не напишу, ts ругнется 'touchendTarget' is declared but its value is never read
+      this.touchendTarget = this.touchendTarget || null;
    }
 
    destroy(): any {
@@ -505,6 +509,19 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       // processed. Since vdom has already handled this event, set this
       // flag to true to avoid event triggering twice.
       event.addedToClickState = true;
+
+      // есть ситуации когда в обработчик клика летит неправильный таргет в мобильном сафари
+      // причину выяснить не удалось так что буду брать таргет из touchend
+      // https://online.sbis.ru/opendoc.html?guid=a6669e05-8810-479f-8860-bc0d4f5c220e
+      // https://online.sbis.ru/opendoc.html?guid=b0f15e03-3672-4be6-8a49-2758bb4c34d7
+      // https://online.sbis.ru/opendoc.html?guid=f7e7811b-f093-4964-9838-0f735c97670e
+      // https://online.sbis.ru/opendoc.html?guid=076215f4-2cff-4242-a3ff-70f090bfacdd
+      // https://online.sbis.ru/opendoc.html?guid=79fc9323-05de-421e-b4ac-bc79ad6c775d
+      // https://online.sbis.ru/opendoc.html?guid=911984fb-1757-4f62-999f-600bec2305c0
+      // https://online.sbis.ru/opendoc.html?guid=f0695304-83e2-4cc5-b0b3-a63580214bf2
+      // https://online.sbis.ru/opendoc.html?guid=99861178-2bd8-40dc-8307-bda1080a91f5
+      this.touchendTarget = event.target;
+      setTimeout(() => { this.touchendTarget = null; }, 300);
 
       SwipeController.resetState();
       LongTapController.resetState();
@@ -1237,6 +1254,12 @@ function checkSameEnvironment(env: any, element: any, isCompatibleTemplate: bool
 function captureEventHandler(event: any): any {
    if (needPropagateEvent(this, event)) {
       const synthEvent = new SyntheticEvent(event);
+
+      if (detection.isMobileIOS && detection.safari && event.type === 'click' && this.touchendTarget) {
+         synthEvent.target = this.touchendTarget;
+         this.touchendTarget = null;
+      }
+
       vdomEventBubbling(synthEvent, null, undefined, [], true);
    }
 }
