@@ -85,6 +85,14 @@ export class Generator {
    private createController: Function;
    private resolver: Function;
 
+   private prepareAttrsForPartial: Function;
+
+   constructor(config: IGeneratorConfig) {
+      if (config) {
+         this.prepareAttrsForPartial = config.prepareAttrsForPartial;
+      }
+   }
+
    chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string|void> | string | Error {
       function chainTrace(defObject: Array<any>): string {
          return out.replace(defRegExp, function(key) {
@@ -314,11 +322,14 @@ export class Generator {
       // сюда приходит объект tplOrigin, где __esModule есть true, а в default лежит нужная нам функция построения верстки
       // Для того, чтобы верстка строилась, необходимо вытащить функцию из default
       let tpl = typeof tplOrigin === 'object' && tplOrigin.__esModule && tplOrigin.default ? tplOrigin.default : tplOrigin;
-      if (typeof tpl === 'function') {
+      if (tpl === '_$inline_template') {
+         controlClass = '_$inline_template';
+      }
+      else if (typeof tpl === 'function') {
          controlClass = tpl;
          dataComponent = tpl.prototype ? tpl.prototype._moduleName : '';
       }
-      if (typeof tpl === 'string') {
+      else if (typeof tpl === 'string') {
          if (Common.isLibraryModuleString(tpl)) {
             // if this is a module string, it probably is from a dynamic partial template
             // (ws:partial template="{{someString}}"). Split library name and module name
@@ -408,11 +419,17 @@ export class Generator {
       if (!attrs.attributes) {
          attrs.attributes = {};
       }
-      _FocusAttrs.prepareAttrsForFocus(attrs.attributes);
+      if (this.prepareAttrsForPartial) {
+         this.prepareAttrsForPartial(attrs.attributes);
+      }
+      if (controlClass === '_$inline_template') {
+         // в случае ws:template отдаем текущие свойства
+         return controlProperties;
+      }
+
       logicParent = (attrs.internal && attrs.internal.logicParent) ? attrs.internal.logicParent : null;
       parent = (attrs.internal && attrs.internal.parent) ? attrs.internal.parent : null;
       OptionsResolver.resolveInheritOptions(controlClass, attrs, controlProperties);
-
 
       if (Common.isCompat()) {
          if (controlProperties && controlProperties.enabled === undefined) {

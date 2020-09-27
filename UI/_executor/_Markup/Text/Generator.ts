@@ -36,9 +36,14 @@ export class GeneratorText implements IGenerator {
    cacheModules: TObject;
    generatorBase: Generator;
 
-   constructor() {
+   private prepareAttrsForPartial: Function;
+
+   constructor(config: IGeneratorConfig) {
+      if (config) {
+         this.prepareAttrsForPartial = config.prepareAttrsForPartial;
+      }
       this.cacheModules = {};
-      this.generatorBase = new Generator();
+      this.generatorBase = new Generator(config);
       this.generatorBase.bindGeneratorFunction(this.createEmptyText, this.createWsControl, this.createTemplate,
          this.createController, this.resolver, this)
    }
@@ -203,8 +208,14 @@ export class GeneratorText implements IGenerator {
       Logger.debug('Context for control', attributes.context);
       Logger.debug('Inherit options for control', attributes.inheritOptions);
 
-      // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
-      return resultingFn === null ? '' : (parent ? resultingFn.call(parent, resolvedScope, attributes, context) : resultingFn(resolvedScope, attributes, context));
+      if (resultingFn === null) {
+         // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
+         return '';
+      } else if (parent) {
+         return resultingFn.call(parent, resolvedScope, attributes, context, false, undefined, undefined, this.prepareAttrsForPartial);
+      } else {
+         return resultingFn(resolvedScope, attributes, context, false, undefined, undefined, this.prepareAttrsForPartial);
+      }
    }
 
    createController(cnstr, scope, attributes, context, _deps?) {
@@ -276,9 +287,9 @@ export class GeneratorText implements IGenerator {
             return this.createEmptyText();
          }
          if (typeof fn === 'function') {
-            r = fn.call(callContext, resolvedScope, decorAttribs, context, false);
+            r = fn.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, this.prepareAttrsForPartial);
          } else if (fn && typeof fn.func === 'function') {
-            r = fn.func.call(callContext, resolvedScope, decorAttribs, context, false);
+            r = fn.func.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, this.prepareAttrsForPartial);
          } else if (Common.isArray(fn)) {
             const _this = this;
             r = fn.map(function (template) {
@@ -287,9 +298,9 @@ export class GeneratorText implements IGenerator {
                }
                callContext = preparedScope && data.parent ? data.parent : template;
                if (typeof template === 'function') {
-                  return template.call(callContext, resolvedScope, decorAttribs, context, false);
+                  return template.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, _this.prepareAttrsForPartial);
                } else if (typeof template.func === 'function') {
-                  return template.func.call(callContext, resolvedScope, decorAttribs, context, false);
+                  return template.func.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, _this.prepareAttrsForPartial);
                }
                return template;
             });
