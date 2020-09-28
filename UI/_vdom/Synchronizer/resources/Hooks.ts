@@ -217,12 +217,14 @@ export function setEventHook(
             if (currentEventRef) {
                 currentEventRef(element);
             }
-            // Если видим инпут при маунте - присваиваем value, равный defaultValue
+            // Если видим инпут без значения при маунте - присваиваем value, равный defaultValue
             if (isInputElement(element) && !savedInputElement) {
                 savedInputElement = element;
                 if (!savedInputElements.has(savedInputElement)) {
                     savedInputElements.add(savedInputElement);
-                    savedInputElement.value = savedInputElement.defaultValue;
+                    if (!savedInputElement.value) {
+                        savedInputElement.value = savedInputElement.defaultValue;
+                    }
                 }
             }
             // Если видим инпут при анмаунте - стираем value
