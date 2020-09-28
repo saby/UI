@@ -1,5 +1,6 @@
 import Control, { IControlOptions } from 'UI/_base/Control';
 import { IOptions } from 'UI/_vdom/Synchronizer/resources/Options';
+export { IOptions } from 'UI/_vdom/Synchronizer/resources/Options';
 import { VNode } from 'Inferno/third-party/index';
 
 export type TComponentAttrs = Record<string, unknown>;

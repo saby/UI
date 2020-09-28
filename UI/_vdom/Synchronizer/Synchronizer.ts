@@ -13,7 +13,7 @@ import { Control } from 'UI/Base';
 
 // @ts-ignore
 import { Logger } from 'UI/Utils';
-import { IControlNodeOptions, IControlNode, IWasabyHTMLElement, IDOMEnvironment, IRootAttrs } from './interfaces';
+import { IOptions, IControlNode, IWasabyHTMLElement, IDOMEnvironment, IRootAttrs } from './interfaces';
 
 import {
    injectHook,
@@ -268,7 +268,7 @@ class VDomSynchronizer {
 
    mountControlToDOM(
       control: TRequredControl,
-      options: IControlNodeOptions,
+      options: IOptions,
       mountPoint: IWasabyHTMLElement,
       attributes: IRootAttrs) {
 
