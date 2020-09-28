@@ -23,7 +23,7 @@ function isInputElement(element: IWasabyHTMLElement): element is TWasabyInputEle
 
 function clearInputValue(element: IWasabyHTMLElement): void {
     if (element && isInputElement(element)) {
-        delete element.value;
+        element.value = '';
     }
 }
 
