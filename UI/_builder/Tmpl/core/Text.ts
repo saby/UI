@@ -9,6 +9,7 @@ import { canBeTranslated, splitLocalizationText } from 'UI/_builder/Tmpl/i18n/He
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { SourcePosition } from 'UI/_builder/Tmpl/html/Reader';
+import {IErrorHandler} from "UI/_builder/Tmpl/utils/ErrorHandler";
 
 /**
  * Interface for text processor config.
@@ -19,6 +20,11 @@ interface ITextProcessorConfig {
     * Mustache expressions parser.
     */
    expressionParser: IParser;
+
+   /**
+    * Error handler.
+    */
+   errorHandler: IErrorHandler;
 }
 
 /**
@@ -245,41 +251,7 @@ function whatExpected(flags: TextContentFlags): string {
    }
 }
 
-/**
- * Parse and create text node.
- * @param data {string} Text content.
- * @param options {ITextProcessorOptions} Text processor options.
- * @param position {SourcePosition} Position in source file for text node.
- * @throws {Error} Throws error if text data contains disallowed content type.
- * @returns {TextDataNode} Text data node.
- */
-function createTextNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TextDataNode {
-   if ((options.allowedContent & TextContentFlags.TEXT) === 0) {
-      if (/^\s+$/gi.test(data)) {
-         // Ignore tabulation spaces
-         return null;
-      }
-      throw new Error(`${whatExpected(options.allowedContent)}. Обнаружен текст "${data}"`);
-   }
-   return new Ast.TextDataNode(data);
-}
 
-/**
- * Parse and create translation node.
- * @param data {string} Text content.
- * @param options {ITextProcessorOptions} Text processor options.
- * @param position {SourcePosition} Position in source file for text node.
- * @throws {Error} Throws error if text data contains disallowed content type.
- * @returns {TextDataNode} Translation node.
- */
-function createTranslationNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TranslationNode {
-   if ((options.allowedContent & TextContentFlags.TRANSLATION) === 0) {
-      throw new Error(`${whatExpected(options.allowedContent)}. Обнаружена конструкция локализации "${data}"`);
-   }
-   const { text, context } = splitLocalizationText(data);
-   options.translationsRegistrar.registerTranslation(options.fileName, text, context);
-   return new Ast.TranslationNode(text, context);
-}
 
 /**
  *
@@ -304,11 +276,17 @@ class TextProcessor implements ITextProcessor {
    private readonly expressionParser: IParser;
 
    /**
+    * Error handler.
+    */
+   private readonly errorHandler: IErrorHandler;
+
+   /**
     * Initialize new instance of text processor.
     * @param config {ITextProcessorConfig} Text processor config.
     */
    constructor(config: ITextProcessorConfig) {
       this.expressionParser = config.expressionParser;
+      this.errorHandler = config.errorHandler;
    }
 
    /**
@@ -371,10 +349,10 @@ class TextProcessor implements ITextProcessor {
                node = this.createExpressionNode(data, options, position);
                break;
             case RawTextType.TRANSLATION:
-               node = createTranslationNode(data, options, position);
+               node = this.createTranslationNode(data, options, position);
                break;
             default:
-               node = createTextNode(data, options, position);
+               node = this.createTextNode(data, options, position);
                break;
          }
          if (node) {
@@ -383,12 +361,12 @@ class TextProcessor implements ITextProcessor {
          if (isTranslatableItem) {
             if (/^\s+/gi.test(items[0].data)) {
                // Has important spaces before text
-               collection.splice(cursor - 1, 0, createTextNode(' ', options, position));
+               collection.splice(cursor - 1, 0, this.createTextNode(' ', options, position));
                ++cursor;
             }
             if (/\s+$/gi.test(items[0].data)) {
                // Has important spaces after text
-               collection.splice(cursor + 1, 0, createTextNode(' ', options, position));
+               collection.splice(cursor + 1, 0, this.createTextNode(' ', options, position));
                ++cursor;
             }
          }
@@ -407,7 +385,14 @@ class TextProcessor implements ITextProcessor {
     */
    private createExpressionNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.ExpressionNode {
       if ((options.allowedContent & TextContentFlags.EXPRESSION) === 0) {
-         throw new Error(`${whatExpected(options.allowedContent)}. Обнаружено Mustache-выражение "${data}"`);
+         this.errorHandler.error(
+            `${whatExpected(options.allowedContent)}. Обнаружено Mustache-выражение "${data}"`,
+            {
+               fileName: options.fileName,
+               position
+            }
+         );
+         return null;
       }
       try {
          const programNode = this.expressionParser.parse(
@@ -415,8 +400,65 @@ class TextProcessor implements ITextProcessor {
          );
          return new Ast.ExpressionNode(programNode);
       } catch (error) {
-         throw new Error(`Mustache-выражение "${data}" некорректно`);
+         this.errorHandler.error(
+            `Mustache-выражение "${data}" некорректно`,
+            {
+               fileName: options.fileName,
+               position
+            }
+         );
+         return null;
       }
+   }
+
+   /**
+    * Parse and create text node.
+    * @param data {string} Text content.
+    * @param options {ITextProcessorOptions} Text processor options.
+    * @param position {SourcePosition} Position in source file for text node.
+    * @throws {Error} Throws error if text data contains disallowed content type.
+    * @returns {TextDataNode} Text data node.
+    */
+   private createTextNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TextDataNode {
+      if ((options.allowedContent & TextContentFlags.TEXT) === 0) {
+         if (/^\s+$/gi.test(data)) {
+            // Ignore tabulation spaces
+            return null;
+         }
+         this.errorHandler.error(
+            `${whatExpected(options.allowedContent)}. Обнаружен текст "${data}"`,
+            {
+               fileName: options.fileName,
+               position
+            }
+         );
+         return null;
+      }
+      return new Ast.TextDataNode(data);
+   }
+
+   /**
+    * Parse and create translation node.
+    * @param data {string} Text content.
+    * @param options {ITextProcessorOptions} Text processor options.
+    * @param position {SourcePosition} Position in source file for text node.
+    * @throws {Error} Throws error if text data contains disallowed content type.
+    * @returns {TextDataNode} Translation node.
+    */
+   private createTranslationNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TranslationNode {
+      if ((options.allowedContent & TextContentFlags.TRANSLATION) === 0) {
+         this.errorHandler.error(
+            `${whatExpected(options.allowedContent)}. Обнаружена конструкция локализации "${data}"`,
+            {
+               fileName: options.fileName,
+               position
+            }
+         );
+         return null;
+      }
+      const { text, context } = splitLocalizationText(data);
+      options.translationsRegistrar.registerTranslation(options.fileName, text, context);
+      return new Ast.TranslationNode(text, context);
    }
 }
 

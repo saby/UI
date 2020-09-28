@@ -314,7 +314,7 @@ function validateNumber(children: Ast.TextNode[]): void {
    for (let index = 0; index < data.length; ++index) {
       const child = data[index];
       if (child instanceof Ast.TextDataNode) {
-         if (Number.isNaN(+child.__$ws_content)) {
+         if (isNaN(+child.__$ws_content)) {
             throw new Error(`получено нечисловое значение -"${child.__$ws_content}"`);
          }
       }
@@ -560,7 +560,8 @@ class Traverse implements ITraverse {
       this.errorHandler = config.errorHandler;
       this.allowComments = config.allowComments;
       this.textProcessor = createTextProcessor({
-         expressionParser: config.expressionParser
+         expressionParser: config.expressionParser,
+         errorHandler: config.errorHandler
       });
       this.attributeProcessor = createAttributeProcessor({
          expressionParser: config.expressionParser,
