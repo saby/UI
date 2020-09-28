@@ -17,14 +17,10 @@ const inputTagNames = new Set([
     'TEXTAREA'
 ]);
 
-function isInputElement(element: IWasabyHTMLElement): element is TWasabyInputElement {
-    return inputTagNames.has(element.tagName);
-}
+const savedInputElements: Set<TWasabyInputElement> = new Set();
 
-function clearInputValue(element: IWasabyHTMLElement): void {
-    if (element && isInputElement(element)) {
-        element.value = '';
-    }
+function isInputElement(element: IWasabyHTMLElement): element is TWasabyInputElement {
+    return !!element && inputTagNames.has(element.tagName);
 }
 
 function updateControlNodes(
@@ -215,13 +211,24 @@ export function setEventHook(
         updateEventsOnElementFn(controlNode, events, environment, savedElement);
     } : ref;
 
+    let savedInputElement: TWasabyInputElement;
     const finalCurrentEventRef: TRef = inputTagNames.has(tagName) ?
         function clearInputValueRef(element: IWasabyHTMLElement): void {
             if (currentEventRef) {
                 currentEventRef(element);
             }
-            if (!element && !controlNode.markup) {
-                clearInputValue(savedElement);
+            // Если видим инпут при маунте - присваиваем value, равный defaultValue
+            if (isInputElement(element) && !savedInputElement) {
+                savedInputElement = element;
+                if (!savedInputElements.has(savedInputElement)) {
+                    savedInputElements.add(savedInputElement);
+                    savedInputElement.value = savedInputElement.defaultValue;
+                }
+            }
+            // Если видим инпут при анмаунте - стираем value
+            if (!element && !controlNode.markup && savedInputElements.has(savedInputElement)) {
+                savedInputElements.delete(savedInputElement);
+                savedInputElement.value = '';
             }
         } :
         currentEventRef;
