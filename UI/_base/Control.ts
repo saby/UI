@@ -736,7 +736,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
 
    __beforeMount(options?: TOptions,
                  contexts?: object,
-                 receivedState?: TState): Promise<TState> | Promise<void> | void {
+                 receivedState?: TState): Promise<TState | void> | void {
       if (this._$resultBeforeMount) {
          return this._$resultBeforeMount;
       }

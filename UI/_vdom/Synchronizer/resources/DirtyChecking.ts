@@ -1,5 +1,6 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DirtyChecking" />
 /* tslint:disable */
+// @ts-nocheck
 
 // @ts-ignore
 import { constants } from 'Env/Env';
@@ -35,6 +36,7 @@ import { collectObjectVersions, getChangedOptions } from './Options';
 
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
+import { VNode } from 'Inferno/third-party/index';
 
 /**
  * @author Кондаков Р.Н.
@@ -447,19 +449,19 @@ export function createNode(controlClass_, options: INodeOptions, key: string, en
          );
       }
    } else {
-      // Создаем виртуальную ноду для не-compound контрола
-      var
-         invisible = vnode && vnode.invisible,
-         // подмешиваем сериализованное состояние к прикладным опциям
-         optionsWithState = serializedState ? shallowMerge(userOptions, serializedState) : userOptions,
-         optionsVersions,
-         internalVersions,
-         contextVersions,
-         control,
-         params,
-         context,
-         instCompat,
-         defaultOptions;
+        // Создаем виртуальную ноду для не-compound контрола
+        let invisible = vnode && vnode.invisible;
+        // подмешиваем сериализованное состояние к прикладным опциям
+        let optionsWithState = serializedState ? shallowMerge(userOptions, serializedState) : userOptions;
+
+        let optionsVersions;
+        let internalVersions;
+        let contextVersions;
+        let control;
+        let params;
+        let context;
+        let instCompat;
+        let defaultOptions;
 
       if (typeof controlClass_ === 'function') {
          // создаем инстанс компонента
@@ -683,7 +685,6 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         }
     }
 
-    let diff;
     let createdNodes;
     let createdTemplateNodes;
     let updatedNodes;
@@ -766,7 +767,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     newNode.markup = getDecoratedMarkup(newNode);
     saveChildren(newNode.markup);
 
-    diff = getMarkupDiff(oldMarkup, newNode.markup, false, false);
+    let diff = getMarkupDiff(oldMarkup, newNode.markup, false, false);
     Logger.debug('DirtyChecking (diff)', diff);
 
     let needRenderMarkup = false;
@@ -785,8 +786,9 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             updateTemplates: []
         };
 
-        createdTemplateNodes = diff.createTemplates.map(function rebuildCreateTemplateNodes(vnode) {
+        createdTemplateNodes = diff.createTemplates.map(function rebuildCreateTemplateNodes(vnode: VNode) {
             Logger.debug('DirtyChecking (create template)', vnode);
+            // @ts-ignore getNodeName берёт имя только у IControlNode
             onStartCommit(OperationType.CREATE, getNodeName(vnode));
             vnode.optionsVersions = collectObjectVersions(vnode.controlProperties);
             // check current context field versions
@@ -1076,7 +1078,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             changedContextProto = changedContext
                 ? changedContext
                 : getChangedOptions(newChildNodeContext, oldChildNodeContext, false, oldContextVersions, true),
-            oldAttrs = childControlNode.controlAttributes || childControlNode.attributes,
+            oldAttrs = childControlNode.attributes,
             newAttrs = newVNode.controlAttributes || {},
             changedAttrs = getChangedOptions(newAttrs, oldAttrs, newVNode.compound, {}, true, '', newVNode.compound),
             changedInternalOptions;

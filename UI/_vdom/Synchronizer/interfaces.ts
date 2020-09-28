@@ -1,4 +1,5 @@
-import { Control, IControlOptions } from 'UI/Base';
+import Control, { IControlOptions } from 'UI/_base/Control';
+import { IOptions } from 'UI/_vdom/Synchronizer/resources/Options';
 import { VNode } from 'Inferno/third-party/index';
 
 export type TComponentAttrs = Record<string, unknown>;
@@ -11,9 +12,6 @@ type TContext = Record<string, object>;
 type IObjectsVersions<T> = {
     [key in keyof T]: number
 };
-
-export interface IControlNodeOptions extends Record<string, unknown> {
-}
 
 export interface IAttrs extends Object {
     // @ts-ignore
@@ -38,8 +36,8 @@ export interface IControlNode extends IRebuildNode {
     errors: object | undefined;
     element: IWasabyHTMLElement;
     controlClass: IControlConstructor;
-    options: IControlNodeOptions;
-    oldOptions: IControlNodeOptions;
+    options: IOptions;
+    oldOptions: IOptions;
     internalOptions: IControlOptions;
     optionsVersions: IObjectsVersions<IControlOptions>;
     inheritOptions: IControlOptions;
