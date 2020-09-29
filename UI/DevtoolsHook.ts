@@ -167,7 +167,7 @@ function onEndSync(rootId: number): void {
  * @param children
  */
 function saveChildren(
-   children: ITemplateNode['children'] | IControlNode['markup']
+   children: ITemplateNode['children'] | IControlNode['markup'] | any
 ): void {
    if (typeof saveChildrenFunc === 'function') {
       saveChildrenFunc(children);

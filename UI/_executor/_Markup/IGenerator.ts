@@ -21,8 +21,10 @@ import {
    IControlProperties,
    IControl,
    IControlData,
-   ICreateControlTemplateCfg
+   ICreateControlTemplateCfg,
+   ITemplateNode
 } from './IGeneratorType';
+import { VNode } from 'Inferno/third-party/index';
 
 /**
  * @author Тэн В.А.
@@ -153,7 +155,7 @@ export interface IGenerator {
     * @param isVar?
     * @return {string} text
     */
-   createText(text: string, key?: string, isVar?: boolean): GeneratorVoid;
+   createText(text: string, key?: string, isVar?: boolean): VNode;
 
    /**
     * Создание компонента с шаблоном
@@ -180,12 +182,13 @@ export interface IGenerator {
     * @param config
     * @return {string} template
     */
-   createTemplate(name: string,
-                  scope: IControlProperties,
-                  attributes: IGeneratorAttrs,
-                  context: string,
-                  _deps: TDeps,
-                  config?: IGeneratorConfig): string;
+   createTemplate(
+      name: string,
+      scope: IControlProperties,
+      attributes: IGeneratorAttrs,
+      context: string,
+      _deps: TDeps,
+      config?: IGeneratorConfig): ITemplateNode;
 
    /**
     * Создание компонента без шаблона

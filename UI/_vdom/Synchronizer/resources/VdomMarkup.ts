@@ -9,7 +9,7 @@ import { Logger } from 'UI/Utils';
 import { WasabyProperties, VNode } from 'Inferno/third-party/index';
 import { Map, Set } from 'Types/shim';
 
-import { htmlNode, textNode, GeneratorNode } from 'UI/Executor';
+import { htmlNode, textNode, GeneratorNode, ITemplateNode } from 'UI/Executor';
 import { IControlNode } from '../interfaces';
 import { TControlConstructor } from 'UI/_base/Control';
 
@@ -60,11 +60,12 @@ export function isInvisibleNodeType(vnode: any): any {
 }
 
 export function getVNodeChidlren(vnode: VNode, getFromTemplateNodes: boolean = false): Array<GeneratorNode | VNode> {
-   if (getFromTemplateNodes) {
-      return vnode.children || [];
+   if (!Array.isArray(vnode.children)) {
+      return [];
    }
-   if (isVNodeType(vnode)) {
-      return vnode.children === null ? [] : vnode.children;
+
+   if (getFromTemplateNodes || isVNodeType(vnode)) {
+      return vnode.children;
    }
 
    return [];
@@ -172,7 +173,7 @@ interface IMarkupDiff {
    destroy: VNodeControl[];
    destroyTemplates: VNode[];
    update: Array<{ oldNode: VNodeControl, newNode: VNodeControl }>;
-   updateTemplates: Array<{ oldNode: VNode, newNode: VNode }>;
+   updateTemplates: Array<{ oldNode: ITemplateNode, newNode: ITemplateNode }>;
    vnodeChanged: boolean;
 }
 
@@ -400,20 +401,16 @@ export function getMarkupDiff(oldNode: VNode, newNode: VNode,
                // зная что опции обновились.
                // Если обновились опции, а сами ноды совпадают, нам достаточно обновить
                // template, а не создавать его. При создании нового утекают старые контролы
-               result.updateTemplates.push({
-                  oldNode,
-                  newNode
-               });
+               // @ts-ignore
+               result.updateTemplates.push({ oldNode, newNode });
             } else {
                // we have to find and reorder by keys existing template nodes
                // in order to get the best possible diff we can get
                if (newNode.children && goin) {
                   complexDiffFinder(oldNode, newNode, true, goin);
                } else {
-                  result.updateTemplates.push({
-                     oldNode,
-                     newNode
-                  });
+                  // @ts-ignore
+                  result.updateTemplates.push({ oldNode, newNode });
                }
             }
          } else {
