@@ -1212,7 +1212,7 @@ class Traverse implements ITraverse {
          return new Ast.ForeachNode(index, iterator, collection, []);
       } catch (error) {
          this.errorHandler.critical(
-            `Ошибка обработки директивы "for" на атрибуте тега ${node.name}: ${error.message}`,
+            `Ошибка обработки директивы "for" на атрибуте тега "${node.name}": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1362,7 +1362,7 @@ class Traverse implements ITraverse {
          return new Ast.TextNode(content);
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка обработки текста: ${error.message}`,
+            `Ошибка обработки текста "${node.data}": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1409,7 +1409,7 @@ class Traverse implements ITraverse {
             return this.castPropertyContentToValue(node, context, attributes);
       }
       this.errorHandler.critical(
-         `Не удалось определить тип опции ${node.name} для выполнения приведения`,
+         `Не удалось определить тип опции "${node.name}" для выполнения приведения`,
          {
             fileName: context.fileName,
             position: node.position
@@ -2241,7 +2241,7 @@ class Traverse implements ITraverse {
          const ast = new Ast.TemplateNode(name, content);
          if (content.length === 0) {
             this.errorHandler.error(
-               `Содержимое директивы ws:template не должно быть пустым`,
+               `Содержимое директивы "ws:template" не должно быть пустым`,
                {
                   fileName: childrenContext.fileName,
                   position: node.position
@@ -2252,7 +2252,7 @@ class Traverse implements ITraverse {
          return ast;
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора директивы ws:template: ${error.message}. Директива будет отброшена`,
+            `Ошибка разбора директивы "ws:template": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -2352,7 +2352,7 @@ class Traverse implements ITraverse {
          collection = this.expressionParser.parse(collectionExpression);
       } catch (error) {
          throw new Error(
-            `коллекция цикла ${collectionExpression} задана некорректно`
+            `коллекция цикла "${collectionExpression}" задана некорректно`
          );
       }
       return {
