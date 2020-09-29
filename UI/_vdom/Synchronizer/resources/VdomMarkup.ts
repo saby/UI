@@ -679,6 +679,7 @@ export function getDecoratedMarkup(controlNode: IControlNode): any {
       key: controlNode.key,
       attributes: controlNode.attributes,
       events: controlNode.events,
+      savedEvent: controlNode.fullMarkup && controlNode.fullMarkup.events,
       inheritOptions: controlNode.inheritOptions,
       // @ts-ignore
       templateContext: controlNode.templateContext,

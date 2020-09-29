@@ -105,14 +105,9 @@ function addEventsToElement(
     controlNode: IControlNode,
     events: TEventsObject,
     environment: IDOMEnvironment,
-    element: IWasabyHTMLElement
+    isBodyElement: boolean
 ): void {
-    if (!element.eventProperties) {
-        element.eventProperties = {};
-        element.eventPropertiesCnt = 0;
-    }
-    const eventProperties: TEventsObject = element.eventProperties;
-
+    const eventProperties: TEventsObject = controlNode.fullMarkup.events;
     const eventFullNamesNames: string[] = Object.keys(events);
     for (let i = 0; i < eventFullNamesNames.length; i++) {
         const eventFullName: string = eventFullNamesNames[i];
@@ -127,12 +122,10 @@ function addEventsToElement(
             if (eventProperties[eventFullName] && elementEvents.length === 0) {
                 eventDescrArray = eventDescrArray.concat(eventProperties[eventFullName]);
             }
-        } else {
-            element.eventPropertiesCnt++;
         }
 
         eventProperties[eventFullName] = eventDescrArray;
-        environment.addCaptureEventHandler(eventName, element);
+        environment.addCaptureEventHandler(eventName, isBodyElement);
     }
 }
 
@@ -140,22 +133,16 @@ function removeEventsFromElement(
     controlNode: IControlNode,
     events: TEventsObject,
     environment: IDOMEnvironment,
-    element: IWasabyHTMLElement
+    isBodyElement: boolean
 ): void {
-    let eventProperties: TEventsObject = element.eventProperties;
+    const eventProperties: TEventsObject = controlNode.fullMarkup.eventProperties;
     const eventFullNamesNames: string[] = Object.keys(events);
     for (let i = 0; i < eventFullNamesNames.length; i++) {
         const eventFullName: string = eventFullNamesNames[i];
         const eventName = EventUtils.getEventName(eventFullName);
-        environment.removeCaptureEventHandler(eventName, element);
+        environment.removeCaptureEventHandler(eventName, isBodyElement);
         if (eventProperties) {
             delete eventProperties[eventFullName];
-            element.eventPropertiesCnt--;
-            if (element.eventPropertiesCnt === 0) {
-                delete element.eventPropertiesCnt;
-                delete element.eventProperties;
-                eventProperties = null;
-            }
         }
     }
 }
@@ -169,6 +156,7 @@ export function setControlNodeHook(
     ref?: TRef
 ): [string, IProperties, IControlNode[], TControlId | 0, TRef] {
     const environment: IDOMEnvironment = controlNode.environment;
+    const isBodyElement: boolean = tagName === 'body';
     let savedElement: IWasabyHTMLElement;
 
     const currentControlRef: TRef = function controlRef(element: IWasabyHTMLElement): void {
@@ -183,7 +171,7 @@ export function setControlNodeHook(
             ref(element);
         }
         if (isInvisibleNode(controlNode) && haveEvents(events)) {
-            updateEventsOnElementFn(controlNode, events, environment, savedElement);
+            updateEventsOnElementFn(controlNode, events, environment, isBodyElement);
         }
         updateControlNodes(savedElement, controlNode, updateControlNodesFn);
     };
@@ -201,6 +189,7 @@ export function setEventHook(
 ): [string, IProperties, IControlNode[], TControlId | 0, TRef] {
     const events: TEventsObject = props.events;
     const environment: IDOMEnvironment = controlNode.environment;
+    const isBodyElement: boolean = tagName === 'body';
     let savedElement: IWasabyHTMLElement;
 
     const currentEventRef: TRef = haveEvents(events) ? function eventRef(element: IWasabyHTMLElement): void {
@@ -212,7 +201,7 @@ export function setEventHook(
         if (ref) {
             ref(element);
         }
-        updateEventsOnElementFn(controlNode, events, environment, savedElement);
+        updateEventsOnElementFn(controlNode, events, environment, isBodyElement);
     } : ref;
 
     const finalCurrentEventRef: TRef = inputTagNames.has(tagName) ?

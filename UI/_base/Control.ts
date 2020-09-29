@@ -179,6 +179,7 @@ export interface ITemplateAttrs {
    context?: Record<string, any>;
    domNodeProps?: Record<string, any>;
    events?: Record<string, any>;
+   savedEvent?: Record<string, any>;
 };
 
 export type TControlConfig = IControlOptions & {
@@ -363,6 +364,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
             }
             for (let k = 0; k < res.length; k++) {
                if (res[k]) {
+                  Object.assign(res[k].events, attributes.savedEvent);
                   return res[k];
                }
             }

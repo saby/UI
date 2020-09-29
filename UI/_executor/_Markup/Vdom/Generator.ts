@@ -175,6 +175,7 @@ export class GeneratorVdom implements IGenerator {
          controlNodeIdx: -1,
          context: attrs.context,
          inheritOptions: attrs.inheritOptions,
+         events: attrs.events,
          flags: 131072
       };
    }
