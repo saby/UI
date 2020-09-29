@@ -250,6 +250,16 @@ interface ITraverseContext extends ITraverseOptions {
     * @deprecated
     */
    processingOldComponent: boolean;
+
+   /**
+    * Processing component path.
+    */
+   componentPath: string;
+
+   /**
+    * Processing component property path.
+    */
+   componentPropertyPath: string;
 }
 
 /**
@@ -588,7 +598,9 @@ class Traverse implements ITraverse {
          scope: options.scope,
          textContent: TextContentFlags.FULL_TEXT,
          translateText: options.translateText,
-         processingOldComponent: false
+         processingOldComponent: false,
+         componentPropertyPath: null,
+         componentPath: null
       };
       const tree = this.visitAll(nodes, context);
       this.removeUnusedTemplates(context);
@@ -1255,12 +1267,13 @@ class Traverse implements ITraverse {
          delete node.attributes.type;
          isStringTypeContentOption = true;
       }
+      const name = Resolvers.resolveOption(node.name);
       const propertyContext: ITraverseContext = {
          ...context,
-         state: TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT
+         state: TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT,
+         componentPropertyPath: context.componentPropertyPath ? context.componentPropertyPath + '/' + name : name
       };
       const content = this.visitAll(node.children, propertyContext);
-      const name = Resolvers.resolveOption(node.name);
       const hasContentOnly = content.every((child: Ast.Ast) => Ast.isTypeofContent(child)) && content.length > 0;
       if (hasContentOnly) {
          this.warnUnexpectedAttributes(node.attributes, context, node.name);
@@ -1332,7 +1345,7 @@ class Traverse implements ITraverse {
          const content = this.textProcessor.process(node.data, {
             fileName: context.fileName,
             allowedContent: context.textContent || TextContentFlags.FULL_TEXT,
-            translateText: context.translateText && !context.processingOldComponent,
+            translateText: context.translateText && !context.processingOldComponent || this.textTranslator.getComponentDescription(context.componentPath).isOptionTranslatable(context.componentPropertyPath),
             translationsRegistrar: context.scope
          }, node.position);
 
@@ -2035,7 +2048,7 @@ class Traverse implements ITraverse {
          ...context,
          state: TraverseState.PRIMITIVE_VALUE,
          textContent: TextContentFlags.FULL_TEXT,
-         translateText: false
+         translateText: this.textTranslator.getComponentDescription(context.componentPath).isOptionTranslatable(context.componentPropertyPath)
       };
       this.warnUnexpectedAttributes(attributes, context, node.name);
       const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
@@ -2408,7 +2421,9 @@ class Traverse implements ITraverse {
    private processComponentWithChildren(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       const componentContext: ITraverseContext = {
          ...context,
-         state: TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT
+         state: TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT,
+         componentPropertyPath: '',
+         componentPath: Path.parseComponentName(node.name).getFullPath()
       };
       const options = this.getComponentOrPartialOptions(node.children, componentContext);
       const ast = this.createComponentOnly(node, context);
@@ -2506,7 +2521,9 @@ class Traverse implements ITraverse {
    private processPartialWithChildren(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
       const componentContext: ITraverseContext = {
          ...context,
-         state: TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT
+         state: TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT,
+         // TODO: Do it better
+         componentPropertyPath: node.attributes.template ? node.attributes.template.value : ''
       };
       const options = this.getComponentOrPartialOptions(node.children, componentContext);
       const ast = this.createPartialOnly(node, context);
@@ -2530,7 +2547,9 @@ class Traverse implements ITraverse {
          parentTagName: node.name,
          translationsRegistrar: context.scope
       };
-      const attributes = this.attributeProcessor.process(node.attributes, attributeProcessorOptions);
+      // TODO: Do it better
+      const componentDescription = this.textTranslator.getComponentDescription(node.attributes.template ? node.attributes.template.value : '');
+      const attributes = this.attributeProcessor.process(node.attributes, attributeProcessorOptions, componentDescription);
       const template = validatePartialTemplate(attributes.options.template, node);
       delete attributes.options.template;
       if (!template) {

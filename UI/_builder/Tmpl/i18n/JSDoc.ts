@@ -85,13 +85,13 @@ class ComponentDescription implements IComponentDescription {
          const propertyName = path[index];
          const properties = this.jsDocProcessor.getComponentProperties(componentPath);
          const property = properties[propertyName];
-         const typedefName = property.itemType || property.arrayElementType;
          if (!property) {
             break;
          }
          if (property.translatable) {
             return true;
          }
+         const typedefName = property.itemType || property.arrayElementType;
          if (typeof typedefName !== 'string') {
             break;
          }
