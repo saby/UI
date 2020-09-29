@@ -165,26 +165,59 @@ const enum TraverseState {
     * Processing child nodes of array data type node is simple. It only can contain
     * data type nodes which will be packed into array node.
     * From this state next jumps are available:
-    * 1) PRIMITIVE_VALUE - if processing node is boolean, function, number, string or value;
-    * 2) ARRAY_ELEMENTS - if processing node is array. Again.
-    * 3) OBJECT_PROPERTIES - if processing node is object.
+    * 1) BOOLEAN_DATA_TYPE, FUNCTION_DATA_TYPE, NUMBER_DATA_TYPE, STRING_DATA_TYPE, VALUE_DATA_TYPE
+    *    - if processing node is boolean, function, number, string or value;
+    * 2) ARRAY_DATA_TYPE - if processing node is array. Again.
+    * 3) OBJECT_DATA_TYPE - if processing node is object.
     */
-   ARRAY_ELEMENTS,
+   ARRAY_DATA_TYPE,
 
    /**
-    * In processing primitive type node content where only text is allowed.
+    * In processing boolean type node content where only text is allowed.
     * In this state only text nodes can be processed. Before processing primitive value content
     * at parent node describes text content using special text content flags.
     * There are no jumps to other states.
     */
-   PRIMITIVE_VALUE,
+   BOOLEAN_DATA_TYPE,
+
+   /**
+    * In processing function type node content where only text is allowed.
+    * In this state only text nodes can be processed. Before processing primitive value content
+    * at parent node describes text content using special text content flags.
+    * There are no jumps to other states.
+    */
+   FUNCTION_DATA_TYPE,
+
+   /**
+    * In processing number type node content where only text is allowed.
+    * In this state only text nodes can be processed. Before processing primitive value content
+    * at parent node describes text content using special text content flags.
+    * There are no jumps to other states.
+    */
+   NUMBER_DATA_TYPE,
+
+   /**
+    * In processing string type node content where only text is allowed.
+    * In this state only text nodes can be processed. Before processing primitive value content
+    * at parent node describes text content using special text content flags.
+    * There are no jumps to other states.
+    */
+   STRING_DATA_TYPE,
+
+   /**
+    * In processing value type node content where only text is allowed.
+    * In this state only text nodes can be processed. Before processing primitive value content
+    * at parent node describes text content using special text content flags.
+    * There are no jumps to other states.
+    */
+   VALUE_DATA_TYPE,
 
    /**
     * In processing properties of object.
     * In this states only properties can be processed.
     * From this state only one jump is available - to OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT.
     */
-   OBJECT_PROPERTIES,
+   OBJECT_DATA_TYPE,
 
    /**
     * In processing object property content which content is unknown.
@@ -222,7 +255,7 @@ const enum TraverseState {
     * In this case data type directives will be processed into data type nodes,
     * these nodes will be packed into array, and this array will be a value of processing object property.
     */
-   OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY,
+   OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY
 }
 
 /**
@@ -448,16 +481,24 @@ function whatExpected(state: TraverseState): string {
    switch (state) {
       case TraverseState.COMPONENT_WITH_OPTIONS:
          return 'ожидались опции компонента или директивы "ws:partial"';
-      case TraverseState.ARRAY_ELEMENTS:
+      case TraverseState.ARRAY_DATA_TYPE:
       case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY:
          return 'ожидались директивы типов данных для массива';
-      case TraverseState.OBJECT_PROPERTIES:
+      case TraverseState.OBJECT_DATA_TYPE:
       case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_OBJECT:
          return 'ожидались опции объекта';
       case TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE:
          return 'ожидалась директива типа данных для опции';
-      case TraverseState.PRIMITIVE_VALUE:
-         return 'ожидался текст для примитивного типа данных';
+      case TraverseState.BOOLEAN_DATA_TYPE:
+         return 'ожидался текст для типа данных Boolean';
+      case TraverseState.FUNCTION_DATA_TYPE:
+         return 'ожидался текст для типа данных Function';
+      case TraverseState.NUMBER_DATA_TYPE:
+         return 'ожидался текст для типа данных Number';
+      case TraverseState.STRING_DATA_TYPE:
+         return 'ожидался текст для типа данных String';
+      case TraverseState.VALUE_DATA_TYPE:
+         return 'ожидался текст для типа данных Value';
    }
 }
 
@@ -738,7 +779,11 @@ class Traverse implements ITraverse {
          case TraverseState.MARKUP:
          case TraverseState.COMPONENT_WITH_CONTENT:
          case TraverseState.OBJECT_PROPERTY_WITH_CONTENT:
-         case TraverseState.PRIMITIVE_VALUE:
+         case TraverseState.BOOLEAN_DATA_TYPE:
+         case TraverseState.FUNCTION_DATA_TYPE:
+         case TraverseState.NUMBER_DATA_TYPE:
+         case TraverseState.STRING_DATA_TYPE:
+         case TraverseState.VALUE_DATA_TYPE:
             return this.processText(node, context);
          default:
             this.errorHandler.error(
@@ -768,9 +813,9 @@ class Traverse implements ITraverse {
             return this.processTagInComponentWithContent(node, context);
          case TraverseState.COMPONENT_WITH_OPTIONS:
             return this.processTagInComponentWithOptions(node, context);
-         case TraverseState.ARRAY_ELEMENTS:
+         case TraverseState.ARRAY_DATA_TYPE:
             return this.processTagInArrayData(node, context);
-         case TraverseState.OBJECT_PROPERTIES:
+         case TraverseState.OBJECT_DATA_TYPE:
             return this.processTagInObjectProperties(node, context);
          case TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT:
             return this.processTagInObjectPropertyWithUnknownContent(node, context);
@@ -781,7 +826,11 @@ class Traverse implements ITraverse {
          case TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE:
          case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY:
             return this.processTagInObjectPropertyWithDataType(node, context);
-         case TraverseState.PRIMITIVE_VALUE:
+         case TraverseState.BOOLEAN_DATA_TYPE:
+         case TraverseState.FUNCTION_DATA_TYPE:
+         case TraverseState.NUMBER_DATA_TYPE:
+         case TraverseState.STRING_DATA_TYPE:
+         case TraverseState.VALUE_DATA_TYPE:
             this.errorHandler.error(
                `Обнаружен тег "${node.name}", когда ожидалось текстовое содержимое`,
                {
@@ -1742,7 +1791,7 @@ class Traverse implements ITraverse {
    private processArrayContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TData[] {
       const childrenContext = {
          ...context,
-         state: TraverseState.ARRAY_ELEMENTS
+         state: TraverseState.ARRAY_DATA_TYPE
       };
       this.warnUnexpectedAttributes(attributes, context, node.name);
       return <Ast.TData[]>this.visitAll(node.children, childrenContext);
@@ -1790,7 +1839,7 @@ class Traverse implements ITraverse {
    private processBooleanContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
       const childrenContext: ITraverseContext = {
          ...context,
-         state: TraverseState.PRIMITIVE_VALUE,
+         state: TraverseState.BOOLEAN_DATA_TYPE,
          textContent: TextContentFlags.TEXT_AND_EXPRESSION,
          translateText: false
       };
@@ -1841,7 +1890,7 @@ class Traverse implements ITraverse {
    private processFunctionContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): { functionExpression: Ast.TText[]; options: Ast.IOptions; } {
       const childrenContext = {
          ...context,
-         state: TraverseState.PRIMITIVE_VALUE,
+         state: TraverseState.FUNCTION_DATA_TYPE,
          textContent: TextContentFlags.TEXT_AND_EXPRESSION,
          translateText: false
       };
@@ -1909,7 +1958,7 @@ class Traverse implements ITraverse {
    private processNumberContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
       const childrenContext = {
          ...context,
-         state: TraverseState.PRIMITIVE_VALUE,
+         state: TraverseState.NUMBER_DATA_TYPE,
          textContent: TextContentFlags.TEXT_AND_EXPRESSION,
          translateText: false
       };
@@ -1973,7 +2022,7 @@ class Traverse implements ITraverse {
    private processObjectContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.IObjectProperties {
       const propertiesContext: ITraverseContext = {
          ...context,
-         state: TraverseState.OBJECT_PROPERTIES
+         state: TraverseState.OBJECT_DATA_TYPE
       };
       const processedChildren = this.visitAll(node.children, propertiesContext);
       const properties = this.getObjectOptionsFromAttributes(attributes, context, node);
@@ -2046,7 +2095,7 @@ class Traverse implements ITraverse {
    private processStringContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
       const childrenContext = {
          ...context,
-         state: TraverseState.PRIMITIVE_VALUE,
+         state: TraverseState.STRING_DATA_TYPE,
          textContent: TextContentFlags.FULL_TEXT,
          translateText: this.textTranslator.getComponentDescription(context.componentPath).isOptionTranslatable(context.componentPropertyPath)
       };
@@ -2102,7 +2151,7 @@ class Traverse implements ITraverse {
    private processValueContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
       const childrenContext = {
          ...context,
-         state: TraverseState.PRIMITIVE_VALUE,
+         state: TraverseState.VALUE_DATA_TYPE,
          textContent: TextContentFlags.FULL_TEXT,
          translateText: false
       };
