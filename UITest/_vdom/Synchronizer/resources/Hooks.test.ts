@@ -1,11 +1,11 @@
-import { assert } from 'chai';
+// import { assert } from 'chai';
 import { replace, restore, fake } from 'sinon';
 
-import { IControlNode, IWasabyHTMLElement, TEventsObject, IEvent, IProperties } from 'UI/_vdom/Synchronizer/interfaces';
-import { invisibleNodeTypename } from 'UI/_vdom/Synchronizer/resources/InvisibleNodeChecker';
-import { TWasabyInputElement, TRef } from 'UI/_vdom/Synchronizer/resources/Hooks';
-
-import { Hooks } from 'UI/Vdom';
+import { IControlNode, IWasabyHTMLElement, TEventsObject } from 'UI/_vdom/Synchronizer/interfaces';
+// import { invisibleNodeTypename } from 'UI/_vdom/Synchronizer/resources/InvisibleNodeChecker';
+// import { TWasabyInputElement, TRef } from 'UI/_vdom/Synchronizer/resources/Hooks';
+//
+// import { Hooks } from 'UI/Vdom';
 import { constants } from 'Env/Env';
 
 const globalEnvironment = {
