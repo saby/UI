@@ -26,7 +26,7 @@ export const BIND = `(function (self, _data) {
 export const BODY = `if (typeof forceCompatible === 'undefined') {
     forceCompatible = false;
 }
-var markupGenerator = thelpers.createGenerator(isVdom, forceCompatible);
+var markupGenerator = thelpers.createGenerator(isVdom, forceCompatible, generatorConfig);
 /*#DELETE IT START#*/
 if (typeof includedTemplates === "undefined") {
    eval("var includedTemplates = undefined;");
@@ -53,6 +53,7 @@ export const DEFINE = `define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEP
    var deps = Array.prototype.slice.call(arguments);
    var depsLocal = { };
    var includedTemplates = { };
+   var scopeForTemplate, attrsForTemplate;
 
    /*#DELETE IT START#*/
    var tclosure=deps[0].TClosure;
@@ -164,10 +165,6 @@ if (sets && sets.isSetts) {
 }
 /*#DELETE IT END#*/
 
-if (attr && !attr.attributes) {
-   attr.attributes = {};
-}
-thelpers.prepareAttrsForFocus(attr && attr.attributes);
 var templateCount = 0;
 var forCounter = 0;
 var currentPropertyName = "/*#PROPERTY_NAME#*/";
@@ -186,6 +183,7 @@ export const HEAD = `/*#DELETE IT START#*/
 function debug() {
    debugger;
 }
+var scopeForTemplate, attrsForTemplate;
 var thelpers = typeof tclosure === 'undefined' || !tclosure ? arguments[arguments.length - 1] : tclosure;
 if (typeof thelpers === "undefined" || !thelpers._isTClosure) {
    eval("var thelpers = null;");
@@ -247,7 +245,6 @@ export const OBJECT_TEMPLATE = `(new(function () {
 
 export const PARTIAL_TEMPLATE = `(function f2(data, attr) {
   var key = thelpers.validateNodeKey(attr && attr.key);
-  thelpers.prepareAttrsForFocus(attr && attr.attributes);
   var defCollection = {
     id: [],
     def: undefined
@@ -260,10 +257,6 @@ export const PRIVATE_TEMPLATE = `{
   var key = thelpers.validateNodeKey(attr && attr.key);
   var forCounter = 0;
   var templateCount = 0;
-  if (!attr.attributes) {
-    attr.attributes = {};
-  }
-  thelpers.prepareAttrsForFocus(attr && attr.attributes);
   var defCollection = {
     id: [],
     def: undefined

@@ -8,8 +8,6 @@
 // @ts-ignore
 import { Serializer } from 'UI/State';
 // @ts-ignore
-import { IoC } from 'Env/Env';
-// @ts-ignore
 import { Logger } from 'UI/Utils';
 // @ts-ignore
 import {Config as config} from 'UI/BuilderConfig';
@@ -35,13 +33,13 @@ function getDecorators() {
 }
 
 let generatorCompatible;
-function getGeneratorCompatible() {
+function getGeneratorCompatible(config) {
    if (generatorCompatible) {
       return generatorCompatible;
    } else {
       //@ts-ignore
       if (require.defined('View/ExecutorCompatible')) {
-         generatorCompatible = require('View/ExecutorCompatible').Compatible;
+         generatorCompatible = require('View/ExecutorCompatible').Compatible(config);
          return generatorCompatible;
       } else {
          // FIXME: сейчас на СП всегда стоит флаг совместимости
@@ -51,6 +49,9 @@ function getGeneratorCompatible() {
    }
 }
 
+function isObject(obj: any): boolean {
+   return Object.prototype.toString.call(obj) === '[object Object]';
+}
 
 const ITERATORS = [
    {
@@ -134,12 +135,6 @@ var
       }
       return object.implantValue(obj, path, value);
    },
-   isFunction = function isFunction(fn) {
-      return Object.prototype.toString.call(fn) === '[object Function]';
-   },
-   isObject = function isObject(fn) {
-      return Object.prototype.toString.call(fn) === '[object Object]';
-   },
    wrapUndef = function wrapUndef(value) {
       if (value === undefined || value === null) {
          return "";
@@ -169,17 +164,6 @@ var
       'Data/collection:Enum': enumTypePin,
       'Data/_collection/Enum': enumTypePin,
       'WS.Data/Type/Enum': enumTypePin
-   },
-
-   /**
-    * Calls function to set value for binding.
-    *
-    * @param event
-    * @param value
-    * @param fn
-    */
-   bindProxy = function (event, value, fn) {
-      fn.call(this, value);
    },
 
    checkPinTypes = function checkPinTypes(value) {
@@ -223,17 +207,17 @@ var
          Logger.error('Использование функции в качестве строковой переменной! Необходимо обернуть в тег ws:partial', null, err);
       }
    },
-   createGenerator = function (isVdom, forceCompatible = false) {
+   createGenerator = function (isVdom, forceCompatible = false, config) {
       if (isVdom) {
-         return Vdom;
+         return Vdom(config);
       }
       if (Common.isCompat() || forceCompatible) {
-         const Compatible = getGeneratorCompatible();
+         const Compatible = getGeneratorCompatible(config);
          if (Compatible) {
             return Compatible;
          }
       }
-      return Text;
+      return Text(config);
    },
    // todo добавлено для совместимости с прошлой версией, можно будет удалить после выполнения задачи
    // https://online.sbis.ru/opendoc.html?guid=0443ec3f-0d33-469b-89f1-57d208ed2982
@@ -330,13 +314,11 @@ const isolateScope = Scope.isolateScope;
 const createScope = Scope.createScope;
 const presetScope = Scope.presetScope;
 const uniteScope = Scope.uniteScope;
-const calculateScope = Scope.calculateScope;
 const calcParent = ConfigResolver.calcParent;
 const processMergeAttributes = Attr.processMergeAttributes;
 const plainMerge = Common.plainMerge;
 const plainMergeAttr = Common.plainMergeAttr;
 const plainMergeContext = Common.plainMergeContext;
-const prepareAttrsForFocus = _FocusAttrs.prepareAttrsForFocus;
 const _isTClosure = true;
 
 export {
@@ -344,7 +326,6 @@ export {
    createScope,
    presetScope,
    uniteScope,
-   calculateScope,
    createDataArray,
    filterOptions,
    calcParent,
@@ -355,10 +336,8 @@ export {
    templateError,
    partialError,
    makeFunctionSerializable,
-   isFunction,
    getter,
    setter,
-   IoC,
    config,
    processMergeAttributes,
    plainMerge,
@@ -367,9 +346,6 @@ export {
    getTypeFunction as getTypeFunc,
    createGenerator,
    getMarkupGenerator,
-   bindProxy,
-   isObject,
-   prepareAttrsForFocus,
    validateNodeKey,
    _isTClosure
 };

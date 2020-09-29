@@ -5,6 +5,7 @@
  */
 
 const VAR_MODULE_NAME = 'thelpers';
+const VAR_GENERATOR_NAME = 'markupGenerator';
 
 export function genSanitize(data: string): string {
    return `${VAR_MODULE_NAME}.Sanitize.apply(undefined, [${data}])`;
@@ -62,10 +63,10 @@ export function genPlainMergeContext(inner: string, outer: string): string {
    return `${VAR_MODULE_NAME}.plainMergeContext(${inner}, ${outer})`;
 }
 
-export function genCalculateScope(inner: string, outer: string): string {
-   return `${VAR_MODULE_NAME}.calculateScope(${inner}, ${outer})`;
-}
-
 export function genPlainMerge(inner: string, outer: string, cloneFirst?: string): string {
    return `${VAR_MODULE_NAME}.plainMerge(${inner}, ${outer}, ${cloneFirst})`;
+}
+
+export function genPrepareDataForCreate(tpl, scope, attributes, deps) {
+   return `${VAR_GENERATOR_NAME}.prepareDataForCreate(${tpl}, ${scope}, ${attributes}, ${deps})`;
 }

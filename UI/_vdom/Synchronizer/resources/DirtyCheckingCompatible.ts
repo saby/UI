@@ -3,6 +3,7 @@
 
 import { TClosure } from 'UI/Executor';
 import { Logger } from "UI/Utils";
+import {_FocusAttrs} from "UI/Focus";
 
 let compatibleUtils;
 function getCompatibleUtils() {
@@ -36,7 +37,9 @@ export function createCompoundControlNode(
       key,
       parentNode,
       vnode,
-      TClosure.createGenerator(false)
+      TClosure.createGenerator(false, undefined, {
+         prepareAttrsForPartial: _FocusAttrs.prepareAttrsForFocus
+      })
    );
 }
 export function clearNotChangedOptions(options, actualChanges) {

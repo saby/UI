@@ -79,10 +79,6 @@ class KeyHook extends Control {
           this._options.defaultActions.forEach((action) => {
              for (let i = 0; i < parents.length; i++) {
                 const parent = parents[i];
-                // если родитель был очищен пурификатором
-                if (parent._destroyed) {
-                   break;
-                }
                 // если у контрола уже есть зарегистрированное действие по умолчанию на эту клавишу,
                 // перестаем регистрацию
                 if (parent._$defaultActions && parent._$defaultActions[action.keyCode]) {
@@ -125,7 +121,7 @@ class KeyHook extends Control {
                 for (let i = 0; i < parents.length; i++) {
                    const parent = parents[i];
                    const curAction = this._actions[action.keyCode];
-                   if (!parent._destroyed && parent._$defaultActions && parent._$defaultActions[action.keyCode] === curAction) {
+                   if (parent._$defaultActions && parent._$defaultActions[action.keyCode] === curAction) {
                       delete parent._$defaultActions[action.keyCode];
                    } else {
                       break;

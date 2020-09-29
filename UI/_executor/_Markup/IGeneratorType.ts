@@ -70,14 +70,16 @@ interface IGeneratorInheritOptions {
 
 // Конфиг контрола
 interface IGeneratorConfig {
-   calculators: Array<IConfigCalculator>;
-   iterators: Array<IConfigIterator>;
-   ignored: Array<string>;
-   mustBeDots: Array<string>;
-   screen: string;
-   moduleMaxNameLength: number;
-   reservedWords: Array<string>;
+   calculators?: Array<IConfigCalculator>;
+   iterators?: Array<IConfigIterator>;
+   ignored?: Array<string>;
+   mustBeDots?: Array<string>;
+   screen?: string;
+   moduleMaxNameLength?: number;
+   reservedWords?: Array<string>;
    resolvers?: Array<string>;
+
+   prepareAttrsForPartial?: Function;
 }
 
 // Базовый интерфейс конфига
