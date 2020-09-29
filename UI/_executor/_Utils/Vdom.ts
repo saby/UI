@@ -49,6 +49,11 @@ export function htmlNode(
       key,
       ref);
    vnode.hprops = hprops;
+   // add parent to child vnode
+   for (var i = 0; i < vnode.children.length; i++) {
+      vnode.children[i].parent = vnode;
+   }
+   vnode.events = hprops.events || {};
    return vnode;
 }
 

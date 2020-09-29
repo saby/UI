@@ -8,8 +8,12 @@ import { constants, detection } from 'Env/Env';
 import { Logger, isNewEnvironment } from 'UI/Utils';
 import { ElementFinder, Events, BoundaryElements, focus, preventFocus, hasNoFocus, goUpByControlTree } from 'UI/Focus';
 import {
-   IDOMEnvironment, TControlStateCollback, IControlNode,
-   IWasabyHTMLElement, TMarkupNodeDecoratorFn, IHandlerInfo, TModifyHTMLNode
+   IDOMEnvironment,
+   TControlStateCollback,
+   IControlNode,
+   TMarkupNodeDecoratorFn,
+   IHandlerInfo,
+   TModifyHTMLNode
 } from '../interfaces';
 
 import { delay } from 'Types/function';
@@ -1036,6 +1040,7 @@ function vdomEventBubbling(
                    * */
                   if (!fn.control._destroyed && (!controlNode[controlIndex] || fn.control !== controlNode[controlIndex].control)) {
                      fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
+                     stopPropagation = true;
                   }
                   /* Проверяем, нужно ли дальше распространять событие по controlNodes */
                   if (!eventObject.propagating()) {
@@ -1083,6 +1088,7 @@ function vdomEventBubbling(
             }
          }
          curVNode = curVNode.parent;
+         // TODO: нужна ли проверка?
          if (curVNode) {
             curDomNode = curVNode.dom;
             if (curDomNode === null || curDomNode === undefined || !eventObject.propagating()) {
@@ -1275,15 +1281,6 @@ function captureEventHandler(event: any): any {
 
       vdomEventBubbling(synthEvent, null, undefined, [], true);
    }
-}
-
-/**
- * Определяем кейс, в котором нужно подписаться именно на window.
- * @param {HTMLElement} element - элемент, у которого мы хотим обработать событие
- * @returns {boolean}
- */
-function isBodyElement(element: HTMLElement): boolean {
-   return element && element.tagName === 'BODY';
 }
 
 /**
