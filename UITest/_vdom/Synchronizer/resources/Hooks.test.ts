@@ -177,6 +177,7 @@ describe('UI/_vdom/Synchronizer/resources/Hooks', () => {
         it('unmountRef clears input', () => {
             const tagName = 'input';
             const element = createMockElement(tagName) as TWasabyInputElement;
+            element.defaultValue = 'some value';
             const id = 'inst_1';
             const controlNode = createMockControlNode(id);
             const props = {
@@ -189,11 +190,15 @@ describe('UI/_vdom/Synchronizer/resources/Hooks', () => {
             const eventRef = Hooks.setEventHook(tagName, props, children, id, controlNode)[4];
             eventRef(element);
             assert.ok(globalEnvironment.addCaptureEventHandler.calledOnce, 'mountRef не вызвал метод addCaptureEventHandler');
+            assert.equal(element.value, 'some value', 'Ожидалось, что первый вызов eventRef(element) присвоит value, равный defaultValue');
 
-            element.value = 'some value';
+            element.value = 'another value';
+            eventRef(element);
+            assert.equal(element.value, 'another value', 'Ожидалось, что повторный вызов eventRef(element) не изменит value');
+
             controlNode.markup = undefined;
             eventRef();
-            assert.notOk(element.hasOwnProperty('value'), 'Ожидалось, что value элемента удалится, чтобы подставился defautValue');
+            assert.equal(element.value, '', 'Ожидалось, что вызов eventRef() очистит value');
         });
     });
 });
