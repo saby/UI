@@ -71,7 +71,7 @@ define([
          currentCase = globalCases.shift();
          div = document.createElement('div');
          document.body.appendChild(div);
-         var ctr = currentCase.control;
+         var ctr = currentCase && currentCase.control;
          if (ctr) {
             Base.Creator(ctr, {
                afterMountCallback: function() {

@@ -2,7 +2,6 @@ import { EventUtils } from 'UI/Events';
 import { IDOMEnvironment, IProperties, IWasabyHTMLElement, IControlNode, IEvent, TEventsObject, TControlId } from '../interfaces';
 import isInvisibleNode from './InvisibleNodeChecker';
 import { constants } from 'Env/Env';
-import { Set } from 'Types/shim';
 
 /**
  * @author Кондаков Р.Н.
@@ -10,22 +9,6 @@ import { Set } from 'Types/shim';
 
 export type TRef = (element?: IWasabyHTMLElement) => void;
 export type TWasabyInputElement = HTMLInputElement & IWasabyHTMLElement;
-const inputTagNames = new Set([
-    'input',
-    'INPUT',
-    'textarea',
-    'TEXTAREA'
-]);
-
-function isInputElement(element: IWasabyHTMLElement): element is TWasabyInputElement {
-    return inputTagNames.has(element.tagName);
-}
-
-function clearInputValue(element: IWasabyHTMLElement): void {
-    if (element && isInputElement(element)) {
-        delete element.value;
-    }
-}
 
 function updateControlNodes(
     element: IWasabyHTMLElement,
@@ -190,30 +173,15 @@ export function setEventHook(
     const events: TEventsObject = props.events;
     const environment: IDOMEnvironment = controlNode.environment;
     const isBodyElement: boolean = tagName === 'body';
-    let savedElement: IWasabyHTMLElement;
 
     const currentEventRef: TRef = haveEvents(events) ? function eventRef(element: IWasabyHTMLElement): void {
         const haveElement = !!element;
         const updateEventsOnElementFn = haveElement ? addEventsToElement : removeEventsFromElement;
-        if (haveElement) {
-            savedElement = element;
-        }
         if (ref) {
             ref(element);
         }
         updateEventsOnElementFn(controlNode, events, environment, isBodyElement);
     } : ref;
 
-    const finalCurrentEventRef: TRef = inputTagNames.has(tagName) ?
-        function clearInputValueRef(element: IWasabyHTMLElement): void {
-            if (currentEventRef) {
-                currentEventRef(element);
-            }
-            if (!element && !controlNode.markup) {
-                clearInputValue(savedElement);
-            }
-        } :
-        currentEventRef;
-
-    return [tagName, props, children, key, finalCurrentEventRef];
+    return [tagName, props, children, key, currentEventRef];
 }
