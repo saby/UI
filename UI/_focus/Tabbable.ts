@@ -152,7 +152,7 @@ function sortOrderedTabbables(a, b) {
 }
 
 function isContentEditable(node) {
-   return node.contentEditable === 'true';
+   return node.contentEditable === 'true' || node.getAttribute('contenteditable') === 'true';
 }
 
 function isInput(node) {
