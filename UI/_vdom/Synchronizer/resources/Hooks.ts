@@ -107,7 +107,7 @@ function addEventsToElement(
     environment: IDOMEnvironment,
     isBodyElement: boolean
 ): void {
-    const eventProperties: TEventsObject = controlNode.fullMarkup.events;
+    const eventProperties: TEventsObject = controlNode.fullMarkup ? controlNode.fullMarkup.events : {};
     const eventFullNamesNames: string[] = Object.keys(events);
     for (let i = 0; i < eventFullNamesNames.length; i++) {
         const eventFullName: string = eventFullNamesNames[i];
