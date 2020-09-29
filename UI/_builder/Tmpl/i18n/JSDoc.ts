@@ -3,7 +3,6 @@
 /**
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/core/i18n.ts
- * @todo In development...
  */
 
 export interface IJSDocSchema {
@@ -55,7 +54,7 @@ export interface IWsHandlerSchema {
 }
 
 export interface IComponentDescription {
-   isPropertyTranslatable(componentPath: string): boolean;
+   isPropertyTranslatable(propertyPath: string): boolean;
 }
 
 export interface IJSDocProcessor {
@@ -66,6 +65,10 @@ interface IInternalJSDocContract extends IJSDocProcessor {
    getComponentProperties(componentPath: string): IWsConfigOptionsSchema;
 }
 
+const PROPERTY_PATH_SEPARATOR = '/';
+
+const EMPTY_OBJECT = { };
+
 class ComponentDescription implements IComponentDescription {
    private readonly jsDocProcessor: IInternalJSDocContract;
    private readonly componentPath: string;
@@ -75,15 +78,25 @@ class ComponentDescription implements IComponentDescription {
       this.componentPath = componentPath;
    }
 
-   isPropertyTranslatable(name: string): boolean {
-      const options = this.jsDocProcessor.getComponentProperties(this.componentPath);
-      if (!options[name]) {
-         return false;
+   isPropertyTranslatable(propertyPath: string): boolean {
+      const path = propertyPath.split(PROPERTY_PATH_SEPARATOR);
+      let componentPath = this.componentPath;
+      for (let index = 0; index < path.length; ++index) {
+         const propertyName = path[index];
+         const properties = this.jsDocProcessor.getComponentProperties(componentPath);
+         const property = properties[propertyName];
+         const typedefName = property.itemType || property.arrayElementType;
+         if (!property) {
+            break;
+         }
+         if (property.translatable) {
+            return true;
+         }
+         if (typeof typedefName !== 'string') {
+            break;
+         }
+         componentPath = typedefName;
       }
-      if (options[name].translatable) {
-         return true;
-      }
-      // TODO: !!!
       return false;
    }
 }
@@ -109,18 +122,17 @@ class JSDocProcessor implements IInternalJSDocContract {
    }
 
    getComponentProperties(componentPath: string): IWsConfigOptionsSchema {
-      const None = { };
       if (!this.schema[componentPath]) {
-         return None;
+         return EMPTY_OBJECT;
       }
       if (!this.schema[componentPath].properties) {
-         return None;
+         return EMPTY_OBJECT;
       }
       if (!this.schema[componentPath].properties["ws-config"]) {
-         return None;
+         return EMPTY_OBJECT;
       }
       if (!this.schema[componentPath].properties["ws-config"].options) {
-         return None;
+         return EMPTY_OBJECT;
       }
       return this.schema[componentPath].properties["ws-config"].options;
    }
