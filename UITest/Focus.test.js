@@ -397,20 +397,20 @@ define([
                   assert.strictEqual(keyCode, 9); // tab
                }
             },
-            {
-               name: 'vdom-focus-out',
-               control: FocusTestControls.Input,
-               checkFn: function() {
-                  var vdomfocusout = document.getElementsByClassName('vdom-focus-out');
-                  var vdomfocusoutElement = vdomfocusout.length ? vdomfocusout[0] : null;
-                  var keyCode = 0;
-                  vdomfocusoutElement.addEventListener('keydown', function(e) {
-                     keyCode = e.keyCode;
-                  });
-                  vdomfocusoutElement.focus();
-                  assert.strictEqual(keyCode, 9); // tab
-               }
-            }
+            // {
+            //    name: 'vdom-focus-out',
+            //    control: FocusTestControls.Input,
+            //    checkFn: function() {
+            //       var vdomfocusout = document.getElementsByClassName('vdom-focus-out');
+            //       var vdomfocusoutElement = vdomfocusout.length ? vdomfocusout[0] : null;
+            //       var keyCode = 0;
+            //       vdomfocusoutElement.addEventListener('keydown', function(e) {
+            //          keyCode = e.keyCode;
+            //       });
+            //       vdomfocusoutElement.focus();
+            //       assert.strictEqual(keyCode, 9); // tab
+            //    }
+            // }
          ];
 
          globalCases = globalCases.concat(localCases);
