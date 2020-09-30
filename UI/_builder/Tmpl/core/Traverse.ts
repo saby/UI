@@ -891,7 +891,8 @@ class Traverse implements ITraverse {
             return null;
          default:
             if (Resolvers.isOption(node.name)) {
-               this.errorHandler.error(
+               // FIXME: Must be error
+               this.errorHandler.warn(
                   `Обнаружена неизвестная директива "${node.name}"`,
                   {
                      fileName: context.fileName,

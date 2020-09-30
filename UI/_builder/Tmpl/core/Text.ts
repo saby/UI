@@ -251,8 +251,6 @@ function whatExpected(flags: TextContentFlags): string {
    }
 }
 
-
-
 /**
  *
  * @param text
@@ -359,12 +357,12 @@ class TextProcessor implements ITextProcessor {
             collection.splice(cursor, 0, node);
          }
          if (isTranslatableItem) {
-            if (/^\s+/gi.test(items[0].data)) {
+            if (/^\s+/gi.test(items[index].data)) {
                // Has important spaces before text
                collection.splice(cursor - 1, 0, this.createTextNode(' ', options, position));
                ++cursor;
             }
-            if (/\s+$/gi.test(items[0].data)) {
+            if (/\s+$/gi.test(items[index].data)) {
                // Has important spaces after text
                collection.splice(cursor + 1, 0, this.createTextNode(' ', options, position));
                ++cursor;
@@ -386,7 +384,7 @@ class TextProcessor implements ITextProcessor {
    private createExpressionNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.ExpressionNode {
       if ((options.allowedContent & TextContentFlags.EXPRESSION) === 0) {
          this.errorHandler.error(
-            `${whatExpected(options.allowedContent)}. Обнаружено Mustache-выражение "${data}"`,
+            `Обнаружено Mustache-выражение "${data}" - ${whatExpected(options.allowedContent)}`,
             {
                fileName: options.fileName,
                position
@@ -425,8 +423,9 @@ class TextProcessor implements ITextProcessor {
             // Ignore tabulation spaces
             return null;
          }
-         this.errorHandler.error(
-            `${whatExpected(options.allowedContent)}. Обнаружен текст "${data}"`,
+         // FIXME: Must be error
+         this.errorHandler.warn(
+            `Обнаружен текст "${data}" - ${whatExpected(options.allowedContent)}`,
             {
                fileName: options.fileName,
                position
@@ -448,7 +447,7 @@ class TextProcessor implements ITextProcessor {
    private createTranslationNode(data: string, options: ITextProcessorOptions, position: SourcePosition): Ast.TranslationNode {
       if ((options.allowedContent & TextContentFlags.TRANSLATION) === 0) {
          this.errorHandler.error(
-            `${whatExpected(options.allowedContent)}. Обнаружена конструкция локализации "${data}"`,
+            `Обнаружена конструкция локализации "${data}" - ${whatExpected(options.allowedContent)}`,
             {
                fileName: options.fileName,
                position
