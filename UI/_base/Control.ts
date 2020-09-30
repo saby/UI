@@ -733,7 +733,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
 
    __beforeMount(options?: TOptions,
                  contexts?: object,
-                 receivedState?: TState): Promise<TState> | Promise<void> | void {
+                 receivedState?: TState): Promise<TState | void> | void {
       if (this._$resultBeforeMount) {
          return this._$resultBeforeMount;
       }
@@ -845,7 +845,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       // Do
    }
 
-   __beforeUpdate(newOptions: TOptions): void {
+   /**
+    * @param {TOptions} newOptions
+    * @deprecated @param {Object} context устаревшая опция с контекстом
+    */
+   __beforeUpdate(newOptions: TOptions, context?: Record<string, any>): void {
       if (newOptions.theme !== this._options.theme) {
          this.loadThemes(newOptions.theme);
       }
@@ -911,7 +915,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * Определяет, должен ли контрол обновляться. Вызывается каждый раз перед обновлением контрола.
     *
     * @param {Object} options Опции контрола.
-    * @param {Object} context Поле контекста, запрошенное контролом.
+    * @deprecated @param {Object} context Поле контекста, запрошенное контролом.
     * @returns {Boolean}
     * <ol>
     *    <li>true(значание по умолчанию): контрол будет обновлен.</li>
@@ -969,7 +973,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * @see Documentation: Context
     * @see Documentation: Server render
     */
-   protected _shouldUpdate(options: TOptions, context: any): boolean {
+   protected _shouldUpdate(options: TOptions, context?: Record<string, any>): boolean {
       return true;
    }
 

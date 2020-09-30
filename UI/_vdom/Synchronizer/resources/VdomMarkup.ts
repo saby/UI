@@ -9,7 +9,7 @@ import { Logger } from 'UI/Utils';
 import { WasabyProperties, VNode } from 'Inferno/third-party/index';
 import { Map, Set } from 'Types/shim';
 
-import { htmlNode, textNode, GeneratorNode } from 'UI/Executor';
+import { htmlNode, textNode, GeneratorNode, ITemplateNode } from 'UI/Executor';
 import { IControlNode } from '../interfaces';
 import { TControlConstructor } from 'UI/_base/Control';
 
@@ -50,7 +50,7 @@ export function isControlVNodeType(vnode: VNode | VNodeControl): boolean {
 }
 
 // TODO: Release type flag on virtual nodes to distinguish virtual nodes.
-export function isTemplateVNodeType(vnode: any): any {
+export function isTemplateVNodeType(vnode: any): boolean {
    return vnode && typeof vnode === 'object' && vnode.type === 'TemplateNode';
 }
 
@@ -59,15 +59,23 @@ export function isInvisibleNodeType(vnode: any): any {
    return vnode && typeof vnode === 'object' && vnode.type && vnode.type === 'invisible-node';
 }
 
+// TODO модификация этой функции приводит к большим проблемам. Нужно точнее разобрать
 export function getVNodeChidlren(vnode: VNode, getFromTemplateNodes: boolean = false): Array<GeneratorNode | VNode> {
-   if (getFromTemplateNodes) {
-      return vnode.children || [];
-   }
-   if (isVNodeType(vnode)) {
-      return vnode.children === null ? [] : vnode.children;
+   if (!vnode) {
+      return [];
    }
 
-   return [];
+   if (getFromTemplateNodes) {
+      // @ts-ignore
+      return vnode.children || [];
+   }
+
+   if (!isVNodeType(vnode)) {
+      return [];
+   }
+
+   // @ts-ignore
+   return vnode.children === null ? [] : vnode.children;
 }
 
 export function mapVNode(
@@ -172,7 +180,7 @@ interface IMarkupDiff {
    destroy: VNodeControl[];
    destroyTemplates: VNode[];
    update: Array<{ oldNode: VNodeControl, newNode: VNodeControl }>;
-   updateTemplates: Array<{ oldNode: VNode, newNode: VNode }>;
+   updateTemplates: Array<{ oldNode: ITemplateNode, newNode: ITemplateNode }>;
    vnodeChanged: boolean;
 }
 
@@ -400,20 +408,16 @@ export function getMarkupDiff(oldNode: VNode, newNode: VNode,
                // зная что опции обновились.
                // Если обновились опции, а сами ноды совпадают, нам достаточно обновить
                // template, а не создавать его. При создании нового утекают старые контролы
-               result.updateTemplates.push({
-                  oldNode,
-                  newNode
-               });
+               // @ts-ignore
+               result.updateTemplates.push({ oldNode, newNode });
             } else {
                // we have to find and reorder by keys existing template nodes
                // in order to get the best possible diff we can get
                if (newNode.children && goin) {
                   complexDiffFinder(oldNode, newNode, true, goin);
                } else {
-                  result.updateTemplates.push({
-                     oldNode,
-                     newNode
-                  });
+                  // @ts-ignore
+                  result.updateTemplates.push({ oldNode, newNode });
                }
             }
          } else {

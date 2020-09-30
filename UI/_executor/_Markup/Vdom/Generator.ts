@@ -1,5 +1,5 @@
 /// <amd-module name="UI/_executor/_Markup/Vdom/Generator" />
-
+// @ts-nocheck
 import { ArrayUtils } from 'UI/Utils';
 import { Logger } from 'UI/Utils';
 import { _FocusAttrs } from 'UI/Focus';
@@ -30,11 +30,13 @@ import {
    TAttributes,
    TDeps,
    TIncludedTemplate,
+   ITemplateNode,
    TObject,
    TScope
 } from '../IGeneratorType';
 import { GeneratorNode } from './IVdomType';
 import { cutFocusAttributes } from '../Utils';
+import { VNode } from 'Inferno/third-party/index';
 
 /**
  * @author Тэн В.А.
@@ -136,7 +138,7 @@ export class GeneratorVdom implements IGenerator {
                                              defCollection);
    }
 
-   createText(text: string, key: string, isVar: boolean = false): GeneratorVoid {
+   createText(text: string, key: string, isVar: boolean = false): VNode {
       if (!text) {
          return undefined;
       }
@@ -148,7 +150,7 @@ export class GeneratorVdom implements IGenerator {
    createWsControl(name: GeneratorTemplateOrigin,
                    scope: IControlProperties,
                    attrs: IGeneratorAttrs,
-                   context: string,
+                   _: string,
                    deps?: TDeps): GeneratorNode | GeneratorVoid {
       const data = this.prepareDataForCreate(name, scope, attrs, deps);
       const controlClass = data.controlClass;
@@ -179,12 +181,13 @@ export class GeneratorVdom implements IGenerator {
       };
    }
 
-   createTemplate(name: string,
-                  scope: IControlProperties,
-                  attributes: IGeneratorAttrs,
-                  context: string,
-                  _deps?: TDeps,
-                  config?: IGeneratorConfig): string | GeneratorNode {
+   createTemplate(
+      name: string,
+      scope: IControlProperties,
+      attributes: IGeneratorAttrs,
+      context: string,
+      _deps?: TDeps,
+      config?: IGeneratorConfig): string | ITemplateNode | GeneratorNode {
       let resultingFn;
       if (Common.isString(name)) {
          // @ts-ignore
@@ -200,6 +203,7 @@ export class GeneratorVdom implements IGenerator {
 
       // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
       if (resultingFn == null) {
+         // @ts-ignore
          return '';
       }
 
@@ -226,7 +230,7 @@ export class GeneratorVdom implements IGenerator {
 
       Object.defineProperty(obj, 'count', {
          configurable: true,
-         get(): any {
+         get(): number {
             let descendants = 0;
             if (this.children) {
                for (let i = 0; i < this.children.length; i++) {
@@ -240,6 +244,7 @@ export class GeneratorVdom implements IGenerator {
          }
       });
 
+      // @ts-ignore
       return obj;
    }
 
