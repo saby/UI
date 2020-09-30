@@ -531,10 +531,13 @@ function hasDataTypeContent(children: Nodes.Node[]): boolean {
       return false;
    }
    return [
+      'ws:Array',
       'ws:Boolean',
       'ws:Function',
       'ws:Number',
-      'ws:String'
+      'ws:Object',
+      'ws:String',
+      'ws:Value'
    ].indexOf(firstChild.name) > -1;
 }
 
@@ -833,19 +836,11 @@ class Traverse implements ITraverse {
          case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY:
             return this.processTagInObjectPropertyWithDataType(node, context);
          case TraverseState.BOOLEAN_DATA_TYPE:
+         case TraverseState.FUNCTION_DATA_TYPE:
          case TraverseState.NUMBER_DATA_TYPE:
          case TraverseState.STRING_DATA_TYPE:
          case TraverseState.VALUE_DATA_TYPE:
             return this.processDoubleTypeDefinition(node, context);
-         case TraverseState.FUNCTION_DATA_TYPE:
-            this.errorHandler.error(
-               `Обнаружен непредусмотренный тег "${node.name}": ${whatExpected(context.state)}`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
          default:
             this.errorHandler.critical(
                'Конечный автомат traverse находится в неизвестном состоянии',
@@ -1315,7 +1310,7 @@ class Traverse implements ITraverse {
    private processProperty(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode | Ast.ContentOptionNode {
       let isStringTypeContentOption = false;
       if (canBeTypeCasted(node)) {
-         if (node.attributes.type.value !== 'string' || hasTextContent(node.children)) {
+         if (node.attributes.type.value !== 'string' || hasTextContent(node.children) || hasDataTypeContent(node.children)) {
             return this.castPropertyWithType(node, context);
          }
          // FIXME: Incorrect legacy behaviour - type="string" on content option of component or ws:partial.
@@ -1757,6 +1752,39 @@ class Traverse implements ITraverse {
    // <editor-fold desc="Processing data type nodes">
 
    /**
+    * Test potential processing node and converting it to concrete type.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param state {TraverseState} Required processing state that depends on data type directive name.
+    * @param isDirectiveProvided {boolean} Primitive data flag. True for data types which must contains text only.
+    * @returns {boolean} Returns true in case of correct node contents.
+    */
+   private testDoubleTypeDefinition(node: Nodes.Tag, context: ITraverseContext, state: TraverseState, isDirectiveProvided: boolean = true): boolean {
+      if (context.explicitDataType === null || !isDirectiveProvided) {
+         this.errorHandler.error(
+            `Обнаружена непредусмотренная директива "${node.name}": ${whatExpected(context.state)}`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return false;
+      }
+      if (context.state !== state) {
+         this.errorHandler.error(
+            `Директива "${node.name}" не соответствует заданному типу "${context.explicitDataType}"`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return false;
+      }
+      return true;
+   }
+
+   /**
     * Process data type content.
     * @private
     * @param node {Tag} Processing html tag node.
@@ -1770,15 +1798,18 @@ class Traverse implements ITraverse {
       };
       let content = [];
       switch (node.name) {
+         case 'ws:Array':
+            this.testDoubleTypeDefinition(node, context, TraverseState.ARRAY_DATA_TYPE, false);
+            break;
+         case 'ws:Object':
+            this.testDoubleTypeDefinition(node, context, TraverseState.OBJECT_DATA_TYPE, false);
+            break;
+         case 'ws:Function':
+            this.testDoubleTypeDefinition(node, context, TraverseState.FUNCTION_DATA_TYPE, false);
+            break;
          case 'ws:Boolean':
-            if (context.state !== TraverseState.BOOLEAN_DATA_TYPE && context.explicitDataType !== null) {
-               this.errorHandler.warn(
-                  `Директива "${node.name}" не соответствует заданному типу "${context.explicitDataType}"`,
-                  {
-                     fileName: context.fileName,
-                     position: node.position
-                  }
-               );
+            if (!this.testDoubleTypeDefinition(node, context, TraverseState.BOOLEAN_DATA_TYPE)) {
+               break;
             }
             const booleanNode = this.processBoolean(node, internalContext);
             if (booleanNode !== null) {
@@ -1786,14 +1817,8 @@ class Traverse implements ITraverse {
             }
             break;
          case 'ws:Number':
-            if (context.state !== TraverseState.NUMBER_DATA_TYPE && context.explicitDataType !== null) {
-               this.errorHandler.warn(
-                  `Директива "${node.name}" не соответствует заданному типу "${context.explicitDataType}"`,
-                  {
-                     fileName: context.fileName,
-                     position: node.position
-                  }
-               );
+            if (!this.testDoubleTypeDefinition(node, context, TraverseState.NUMBER_DATA_TYPE)) {
+               break;
             }
             const numberNode = this.processNumber(node, internalContext);
             if (numberNode !== null) {
@@ -1801,14 +1826,8 @@ class Traverse implements ITraverse {
             }
             break;
          case 'ws:String':
-            if (context.state !== TraverseState.STRING_DATA_TYPE && context.explicitDataType !== null) {
-               this.errorHandler.warn(
-                  `Директива "${node.name}" не соответствует заданному типу "${context.explicitDataType}"`,
-                  {
-                     fileName: context.fileName,
-                     position: node.position
-                  }
-               );
+            if (!this.testDoubleTypeDefinition(node, context, TraverseState.STRING_DATA_TYPE)) {
+               break;
             }
             const stringNode = this.processString(node, internalContext);
             if (stringNode !== null) {
@@ -1816,14 +1835,8 @@ class Traverse implements ITraverse {
             }
             break;
          case 'ws:Value':
-            if (context.state !== TraverseState.VALUE_DATA_TYPE && context.explicitDataType !== null) {
-               this.errorHandler.warn(
-                  `Директива "${node.name}" не соответствует заданному типу "${context.explicitDataType}"`,
-                  {
-                     fileName: context.fileName,
-                     position: node.position
-                  }
-               );
+            if (!this.testDoubleTypeDefinition(node, context, TraverseState.VALUE_DATA_TYPE)) {
+               break;
             }
             const valueNode = this.processValue(node, internalContext);
             if (valueNode !== null) {
