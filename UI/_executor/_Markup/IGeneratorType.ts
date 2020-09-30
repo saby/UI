@@ -6,13 +6,13 @@
  */
 
 // Служебные опции контрола
-interface IGeneratorConstructor {
+export interface IGeneratorConstructor {
    logicParent: IControl;
    parent: IControl;
 }
 
 // Служебные опции контрола
-interface IGeneratorInternalProperties extends IGeneratorConstructor {
+export interface IGeneratorInternalProperties extends IGeneratorConstructor {
    parentEnabled: boolean;
    hasOldParent: boolean;
    iWantBeWS3?: boolean;
@@ -21,13 +21,13 @@ interface IGeneratorInternalProperties extends IGeneratorConstructor {
 }
 
 // Коллекционируем Deferred-объекты
-interface IGeneratorDefCollection {
+export interface IGeneratorDefCollection {
    id: Array<string>;
    def: Array<Promise<any> | void>;
 }
 
 // Базовый интерфейс для атрибутов
-interface IBaseAttrs {
+export interface IBaseAttrs {
    attributes: TAttributes;
    // FIXME: интерфейс IEvents объявлен в приватной библиотеке Vdom
    events: any;
@@ -36,7 +36,7 @@ interface IBaseAttrs {
 
 // Есть кейсы, в которых контекст меняется в процессе выполнения
 // поэтому все поля опциональные
-interface IGeneratorAttrsContext {
+export interface IGeneratorAttrsContext {
    isTouch?: TObject;
    stickyHeader?: TObject;
    dataOptions?: TObject
@@ -44,32 +44,32 @@ interface IGeneratorAttrsContext {
 
 // В prepareDateForCreate сейчас передаются объекты, массивы объектов и функции и строки.
 // Объект, передаваемый в prepareDateForCreate
-interface IGeneratorNameObject {
+export interface IGeneratorNameObject {
    library: string;
    module: Array<string>;
 }
 
 // Объект, передаваемый в массив объектов prepareDateForCreate
-interface IGeneratorControlName {
+export interface IGeneratorControlName {
    func: Function;
    internal: IGeneratorInternalProperties;
 }
 
 // Атрибуты контрола
-interface IGeneratorAttrs extends IBaseAttrs {
+export interface IGeneratorAttrs extends IBaseAttrs {
    internal: IGeneratorInternalProperties;
    context: IGeneratorAttrsContext;
    inheritOptions: IGeneratorInheritOptions;
 }
 
 // В атрибутах контрола, опции могут быть унаследованы.
-interface IGeneratorInheritOptions {
+export interface IGeneratorInheritOptions {
    readOnly: boolean;
    theme: string;
 }
 
 // Конфиг контрола
-interface IGeneratorConfig {
+export interface IGeneratorConfig {
    calculators?: Array<IConfigCalculator>;
    iterators?: Array<IConfigIterator>;
    ignored?: Array<string>;
@@ -83,23 +83,23 @@ interface IGeneratorConfig {
 }
 
 // Базовый интерфейс конфига
-interface IConfigBase {
+export interface IConfigBase {
    type: string;
    is: Function;
 }
 
 // Объект, передаваемый в calculators конфига
-interface IConfigCalculator extends IConfigBase {
+export interface IConfigCalculator extends IConfigBase {
    calculator: Function;
 }
 
 // Объект, передаваемый в iterators конфига
-interface IConfigIterator extends IConfigBase  {
+export interface IConfigIterator extends IConfigBase  {
    iterator: Function;
 }
 
 // Свойства шаблона контрола
-interface ICreateControlTemplateCfg {
+export interface ICreateControlTemplateCfg {
    data: TObject;
    ctx: IControl;
    viewController: IControl;
@@ -107,13 +107,13 @@ interface ICreateControlTemplateCfg {
 }
 
 // Данные контрола, собственные и служебные
-interface IControlData {
+export interface IControlData {
    user: IControlUserData;
    internal: IGeneratorInternalProperties;
 }
 
 // Основная структура собственных данных контрола
-interface IControlUserData extends IControlProperties {
+export interface IControlUserData extends IControlProperties {
    source: unknown[];
    itemTemplate: Function;
    allowChangeEnable?: boolean;
@@ -124,7 +124,7 @@ interface IControlUserData extends IControlProperties {
 }
 
 // Подготовка к созданию контрола
-interface IPrepareDataForCreate {
+export interface IPrepareDataForCreate {
    logicParent: IControl;
    parent: IControl;
    attrs: IPrepareDataForCreateAttrs;
@@ -136,7 +136,7 @@ interface IPrepareDataForCreate {
 }
 
 // Свойства контрола
-interface IControlProperties {
+export interface IControlProperties {
    key: string;
    name: string;
    esc: boolean;
@@ -148,7 +148,7 @@ interface IControlProperties {
 }
 
 // Базовый контрол
-interface IControl {
+export interface IControl {
    _template: Function;
    _mounted: boolean;
    _unmounted: boolean;
@@ -177,95 +177,76 @@ interface IControl {
 }
 
 // Контекст базовый контрола
-interface IControlContext {
+export interface IControlContext {
    get: Function;
    set: Function;
    has: Function;
 }
 
 // Основные атрибуты контрола
-interface IPrepareDataForCreateAttrs {
+export interface IPrepareDataForCreateAttrs {
    'ws-creates-context': string;
    'ws-delegates-tabfocus': string;
 }
 
 // встроенный инлайновый шаблон
-interface IStringTemplateResolverIncludedTemplates {
+export interface IStringTemplateResolverIncludedTemplates {
    _itemTpm?: Function;
 }
 
 // Скопы для билдера
-interface IBuilderScope extends IControlData {
+export interface IBuilderScope extends IControlData {
    templateContext: TObject,
    inheritOptions: IGeneratorInheritOptions,
    key: string
 }
 
-interface ITplFunction {
+export interface ITplFunction {
    func: Function
 }
 
 // Опции для ноды в слое совместимости
-interface INodeAttribute {
+export interface INodeAttribute {
    name: string;
 }
 
 // Тип для контролов в слое совместимости
-type WsControlOrController = string | Function | TObject;
+export type WsControlOrController = string | Function | TObject;
 // Обобщенные типы для генератора, уменьшают громоздкость кода генераторов
-type GeneratorFn = string | Function | ITplFunction;
-type GeneratorVoid = string | undefined;
-type GeneratorError = string | Error;
-type GeneratorObject = string | TObject;
-type GeneratorEmptyObject = TObject | void;
-type GeneratorStringArray = Array<string[] | string>;
+export type GeneratorFn = string | Function | ITplFunction;
+export type GeneratorVoid = string | undefined;
+export type GeneratorError = string | Error;
+export type GeneratorObject = string | TObject;
+export type GeneratorEmptyObject = TObject | void;
+export type GeneratorStringArray = Array<string[] | string>;
 
 // Тип исходных данных для подготовки к построению контрола
-type GeneratorTemplateOrigin = GeneratorFn | IGeneratorNameObject | Array<IGeneratorControlName>;
+export type GeneratorTemplateOrigin = GeneratorFn | IGeneratorNameObject | Array<IGeneratorControlName>;
 
 // Типы сопоставления для случаев когда однозначно описать тип не можем
-type TObject = Record<string, unknown>;
-type TOptions = Record<string, unknown>;
-type TScope = Record<string, unknown>;
-type TDeps = Record<string, unknown>;
-type TIncludedTemplate = Record<string, unknown>;
-type TAttributes = Record<string, unknown>;
-type TEvents = Record<string, unknown>;
+export type TObject = Record<string, unknown>;
+export type TOptions = Record<string, unknown>;
+export type TScope = Record<string, unknown>;
+export type TDeps = Record<string, unknown>;
+export type TIncludedTemplate = Record<string, unknown>;
+export type TAttributes = Record<string, unknown>;
+export type TEvents = Record<string, unknown>;
 
-export {
-   IGeneratorNameObject,
-   IGeneratorConfig,
-   IGeneratorAttrs,
-   IGeneratorDefCollection,
-   IGeneratorControlName,
-   IControlData,
-   IControl,
-   IControlUserData,
-   IGeneratorConstructor,
-   IGeneratorInternalProperties,
-   IGeneratorAttrsContext,
-   IGeneratorInheritOptions,
-   ICreateControlTemplateCfg,
-   IPrepareDataForCreate,
-   IBaseAttrs,
-   IStringTemplateResolverIncludedTemplates,
-   IBuilderScope,
-   IControlProperties,
-   ITplFunction,
-   INodeAttribute,
-   WsControlOrController,
-   GeneratorTemplateOrigin,
-   GeneratorFn,
-   GeneratorVoid,
-   GeneratorError,
-   GeneratorObject,
-   GeneratorEmptyObject,
-   GeneratorStringArray,
-   TObject,
-   TOptions,
-   TScope,
-   TDeps,
-   TIncludedTemplate,
-   TAttributes,
-   TEvents
+// Типы сопоставления для случаем когда однозначно описать тип не можем
+export type TProps = Record<string, any>;
+
+import { IControlNode } from 'UI/_vdom/Synchronizer/interfaces';
+//import { VNode } from 'Inferno/third-party/index';
+
+export interface ITemplateNode {
+   compound: false;
+   template: Function & any,
+   controlProperties: TProps,
+   parentControl: IControlNode,
+   attributes: TAttributes,
+   context: IGeneratorAttrsContext,
+   type: 'TemplateNode',
+   key: string;
+   flags: 262144;
+   coutn: number;
 }

@@ -75,5 +75,3 @@ export function controlNode(controlClass: any, controlProperties: any, key: any)
       controlNodeIdx: -1
    };
 }
-
-
