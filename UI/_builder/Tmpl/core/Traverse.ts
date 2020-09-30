@@ -1874,9 +1874,9 @@ class Traverse implements ITraverse {
     */
    private processArray(node: Nodes.Tag, context: ITraverseContext): Ast.ArrayNode {
       try {
-      return new Ast.ArrayNode(
-         this.processArrayContent(node, context, node.attributes)
-      );
+         return new Ast.ArrayNode(
+            this.processArrayContent(node, context, node.attributes)
+         );
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных "ws:Array": ${error.message}`,
@@ -1923,9 +1923,9 @@ class Traverse implements ITraverse {
     */
    private processBoolean(node: Nodes.Tag, context: ITraverseContext): Ast.BooleanNode {
       try {
-      return new Ast.BooleanNode(
-         this.processBooleanContent(node, context, node.attributes)
-      );
+         return new Ast.BooleanNode(
+            this.processBooleanContent(node, context, node.attributes)
+         );
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных "ws:Boolean": ${error.message}`,
@@ -2042,9 +2042,9 @@ class Traverse implements ITraverse {
     */
    private processNumber(node: Nodes.Tag, context: ITraverseContext): Ast.NumberNode {
       try {
-      return new Ast.NumberNode(
-         this.processNumberContent(node, context, node.attributes)
-      );
+         return new Ast.NumberNode(
+            this.processNumberContent(node, context, node.attributes)
+         );
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных "ws:Number": ${error.message}`,
