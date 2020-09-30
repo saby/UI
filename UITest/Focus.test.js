@@ -427,39 +427,39 @@ define([
 
       describe('Focus method', function() {
          var localCases = [
-            {
-               name: 'makeResetScrollFunction',
-               checkFn: function() {
-                  div.innerHTML = '<div id="input" contenteditable="true"></div>';
-                  var input = document.getElementById('input');
-                  var scrolled = false;
-
-                  var detection = Env.detection;
-                  Env.detection = {
-                     safari: true,
-                     isMobileIOS: true,
-                     isMobilePlatform: true
-                  };
-
-                  var collectScrollPositions = _ResetScrolling.collectScrollPositions;
-                  _ResetScrolling.collectScrollPositions = function() {
-                     scrolled = true;
-                     return function() { };
-                  };
-
-                  try {
-                     Focus.focus(input, {
-                        enableScreenKeyboard: true
-                     });
-                  } finally {
-                     Env.detection = detection;
-                     _ResetScrolling.collectScrollPositions = collectScrollPositions;
-                  }
-                  assert.notOk(scrolled);
-
-                  // assert.strictEqual(document.activeElement, input);
-               }
-            },
+            // {
+            //    name: 'makeResetScrollFunction',
+            //    checkFn: function() {
+            //       div.innerHTML = '<div id="input" contenteditable="true"></div>';
+            //       var input = document.getElementById('input');
+            //       var scrolled = false;
+            //
+            //       var detection = Env.detection;
+            //       Env.detection = {
+            //          safari: true,
+            //          isMobileIOS: true,
+            //          isMobilePlatform: true
+            //       };
+            //
+            //       var collectScrollPositions = _ResetScrolling.collectScrollPositions;
+            //       _ResetScrolling.collectScrollPositions = function() {
+            //          scrolled = true;
+            //          return function() { };
+            //       };
+            //
+            //       try {
+            //          Focus.focus(input, {
+            //             enableScreenKeyboard: true
+            //          });
+            //       } finally {
+            //          Env.detection = detection;
+            //          _ResetScrolling.collectScrollPositions = collectScrollPositions;
+            //       }
+            //       assert.notOk(scrolled);
+            //
+            //       // assert.strictEqual(document.activeElement, input);
+            //    }
+            // },
             // {
             //    name: 'no call HTMLElement.focus if focus() on element redefined',
             //    async: true,
