@@ -59,16 +59,23 @@ export function isInvisibleNodeType(vnode: any): any {
    return vnode && typeof vnode === 'object' && vnode.type && vnode.type === 'invisible-node';
 }
 
+// TODO модификация этой функции приводит к большим проблемам. Нужно точнее разобрать
 export function getVNodeChidlren(vnode: VNode, getFromTemplateNodes: boolean = false): Array<GeneratorNode | VNode> {
-   if (!Array.isArray(vnode.children)) {
+   if (!vnode) {
       return [];
    }
 
-   if (getFromTemplateNodes || isVNodeType(vnode)) {
-      return vnode.children;
+   if (getFromTemplateNodes) {
+      // @ts-ignore
+      return vnode.children || [];
    }
 
-   return [];
+   if (!isVNodeType(vnode)) {
+      return [];
+   }
+
+   // @ts-ignore
+   return vnode.children === null ? [] : vnode.children;
 }
 
 export function mapVNode(
