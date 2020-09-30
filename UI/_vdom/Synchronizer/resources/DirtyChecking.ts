@@ -35,18 +35,11 @@ import { collectObjectVersions, getChangedOptions } from './Options';
 
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
-import { GeneratorNode } from 'UI/Executor';
-// import { VNode } from 'Inferno/third-party/index';
-import { ITemplateNode } from 'UI/_executor/_Markup/IGeneratorType';
-
-
-type TDirtyCheckingTemplate = ITemplateNode & {
-    children: GeneratorNode[];  // нужно понять почему у нас такое ограничение
-};
 
 /**
  * @author Кондаков Р.Н.
  */
+
 export { getChangedOptions } from './Options';
 
 var Slr = new Serializer();
@@ -69,15 +62,14 @@ function getCompatibleUtils(): any {
 }
 
 export class MemoForNode {
-    constructor(
-        public createdNodes: IControlNode[] = [],
-        public createdTemplateNodes: any[] = [],
-        public destroyedNodes: IControlNode[] = [],
-        public selfDirtyNodes: IControlNode[] = [],
-        public updatedChangedNodes: IControlNode[] = [],
-        public updatedChangedTemplateNodes: any[] = [],
-        public updatedNodes: IControlNode[] = [],
-        public updatedUnchangedNodes: any[] = []) { }
+    createdNodes: Array<any> = [];
+    createdTemplateNodes: Array<any> = [];
+    destroyedNodes: Array<any> = [];
+    selfDirtyNodes: Array<any> = [];
+    updatedChangedNodes: Array<any> = [];
+    updatedChangedTemplateNodes: Array<any> = [];
+    updatedNodes: Array<any> = [];
+    updatedUnchangedNodes: Array<any> = [];
 }
 
 export interface IMemoNode {
@@ -457,9 +449,8 @@ export function createNode(controlClass_, options: INodeOptions, key: string, en
    } else {
         // Создаем виртуальную ноду для не-compound контрола
         let invisible = vnode && vnode.invisible;
-        // подмешиваем сериализованное состояние к прикладным опциям
+         // подмешиваем сериализованное состояние к прикладным опциям
         let optionsWithState = serializedState ? shallowMerge(userOptions, serializedState) : userOptions;
-
         let optionsVersions;
         let internalVersions;
         let contextVersions;
@@ -792,33 +783,27 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             updateTemplates: []
         };
 
-        // @ts-ignore
-        createdTemplateNodes = diff.createTemplates.map(function rebuildCreateTemplateNodes(vnode: TDirtyCheckingTemplate) {
+        createdTemplateNodes = diff.createTemplates.map(function rebuildCreateTemplateNodes(vnode) {
             Logger.debug('DirtyChecking (create template)', vnode);
-            // @ts-ignore getNodeName берёт имя только у IControlNode
             onStartCommit(OperationType.CREATE, getNodeName(vnode));
-            // @ts-ignore
             vnode.optionsVersions = collectObjectVersions(vnode.controlProperties);
-            // @ts-ignore check current context field versions
+            // check current context field versions
             vnode.contextVersions = collectObjectVersions(vnode.context);
 
             vnode.children = getMarkupForTemplatedNode(vnode, newNode, environment);
             saveChildren(vnode.children);
             for (var i = 0; i < vnode.children.length; i++) {
-                // @ts-ignore
                 var diffTmplOneNode = getMarkupDiff(null, vnode.children[i]);
                 diffTmpl.create = diffTmpl.create.concat(diffTmplOneNode.create);
                 diffTmpl.createTemplates = diffTmpl.createTemplates.concat(diffTmplOneNode.createTemplates);
                 diffTmpl.update = diffTmpl.update.concat(diffTmplOneNode.update);
                 diffTmpl.updateTemplates = diffTmpl.updateTemplates.concat(diffTmplOneNode.updateTemplates);
             }
-            // @ts-ignore
             onEndCommit(vnode, {
                 template: vnode.template,
                 state: vnode.template.reactiveProps,
                 options: vnode.controlProperties,
                 attributes: vnode.attributes.attributes,
-                // @ts-ignore
                 logicParent: vnode.attributes.internal.logicParent
             });
             return vnode;
@@ -833,40 +818,30 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         diff.updateTemplates.map(function rebuildUpdateTemplateNodes(diffPair) {
             Logger.debug('DirtyChecking (update template)', diffPair);
 
-            let newTemplateNode: ITemplateNode = diffPair.newNode;
-            let oldTemplateNode: ITemplateNode = diffPair.oldNode;
+            let newTemplateNode = diffPair.newNode;
+            let oldTemplateNode = diffPair.oldNode;
             let oldOptions = oldTemplateNode.controlProperties;
             let newOptions = newTemplateNode.controlProperties;
-            // @ts-ignore
             let changedOptions = getChangedOptions(newOptions, oldOptions, false, oldTemplateNode.optionsVersions);
-            // @ts-ignore
             let oldAttrs = oldTemplateNode.attributes.attributes;
-            // @ts-ignore
             let newAttrs = newTemplateNode.attributes.attributes || {};
-            // @ts-ignore
             let changedAttrs = getChangedOptions(newAttrs, oldAttrs, newTemplateNode.compound, {}, true, '', newTemplateNode.compound);
             let changedTemplate = oldTemplateNode.template !== newTemplateNode.template;
             let diffTmplOneNode;
             let i;
 
             // Собрать версии новых опций необходимо до вызова функции шаблона
-            // @ts-ignore
             newTemplateNode.optionsVersions = collectObjectVersions(newOptions);
 
-            // @ts-ignore
             onStartCommit(OperationType.UPDATE, getNodeName(newTemplateNode), oldTemplateNode);
             if (changedOptions || changedAttrs || changedTemplate) {
                 Logger.debug('DirtyChecking (update template with changed options)', changedOptions);
 
                 /* newTemplateNode === oldTemplateNode but they children have changed */
-                // @ts-ignore
                 let oldChildren = oldTemplateNode.children || [];
-                // @ts-ignore
                 newTemplateNode.children = getMarkupForTemplatedNode(newTemplateNode, newNode, environment);
-                // @ts-ignore
                 saveChildren(newTemplateNode.children);
                 // We have to find diff between template nodes children to improve perfomance of rendering updated markup
-                // @ts-ignore
                 let templateNodeDiff = getMarkupDiff(oldTemplateNode, newTemplateNode, true, true);
                 let updatedTemplateNodesSimple = [];
                 let createdTemplateNodesSimple = [];
@@ -874,11 +849,9 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                 let createdNodesSimple = [];
                 let updatedNodesSimple = [];
                 let destroyedNodesSimple = [];
-                // @ts-ignore
                 const childrenMap = collectChildrenKeys(newTemplateNode.children, oldChildren);
                 for (i = 0; i < childrenMap.length; i++) {
                     let oldChild = oldChildren[childrenMap[i].prev];
-                    // @ts-ignore
                     let newChild = newTemplateNode.children[childrenMap[i].next];
                     if (newChild) {
                         diffTmplOneNode = getMarkupDiff(oldChild, newChild, true, false);
@@ -915,17 +888,13 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                     diffTmpl.destroy = diffTmpl.destroy.concat(destroyedNodesSimple);
                 }
             } else {
-                // @ts-ignore
                 newTemplateNode.children = oldTemplateNode.children;
-                // @ts-ignore
                 for (i = 0; i < newTemplateNode.children.length; i++) {
                     /*template can contains controlNodes and we try find all of them
                         * all controlNodes must be in array "childrenNodes"
                         */
                     diffTmplOneNode = getMarkupDiff(
-                        // @ts-ignore
                         oldTemplateNode.children[i],
-                        // @ts-ignore
                         newTemplateNode.children[i],
                         true
                     );
@@ -936,7 +905,6 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                     diffTmpl.destroy = diffTmpl.destroy.concat(diffTmplOneNode.destroy);
                 }
             }
-            // @ts-ignore
             onEndCommit(newTemplateNode, {
                 template: newTemplateNode.template,
                 state: newTemplateNode.template.reactiveProps,
@@ -944,7 +912,6 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                 changedOptions: changedOptions,
                 attributes: newTemplateNode.attributes.attributes,
                 changedAttributes: changedAttrs,
-                // @ts-ignore
                 logicParent: newTemplateNode.attributes.internal.logicParent
             });
             return newTemplateNode;
@@ -974,7 +941,6 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     }
 
     destroyedNodes = diff.destroy.map(function rebuildDestroyNodes(vnode) {
-        // @ts-ignore
         let controlNodeIdx = vnode.controlNodeIdx;
         let childControlNode = parentNode.childrenNodes[controlNodeIdx];
         destroyReqursive(childControlNode, environment);
@@ -996,26 +962,19 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             carrier,
             controlNode;
         Logger.debug('DirtyChecking (create node)' + idx, vnode);
-        // @ts-ignore
         onStartCommit(OperationType.CREATE, getNodeName(vnode));
 
         needRenderMarkup = true;
-        // @ts-ignore
         if (!vnode.compound) {
-            // @ts-ignore
             options = vnode.controlProperties;
             controlNode = createNode(
                 vnode.controlClass,
                 {
                     user: options,
-                    // @ts-ignore
                     internal: vnode.controlInternalProperties,
-                    // @ts-ignore
                     attributes: vnode.controlAttributes,
-                    // @ts-ignore
                     events: vnode.controlEvents
                 },
-                // @ts-ignore
                 vnode.key,
                 environment,
                 parentNode,
@@ -1023,7 +982,6 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                 vnode
             );
             if (!controlNode.control._mounted && !controlNode.control._unmounted) {
-                // @ts-ignore
                 carrier = getReceivedState(controlNode, vnode, Slr);
                 if (carrier) {
                     controlNode.receivedState = carrier;
@@ -1036,7 +994,6 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                      */
                     controlNode.control._options = controlNode.options;
                     controlNode.control._container = controlNode.element;
-                    // @ts-ignore
                     controlNode.control._setInternalOptions(vnode.controlInternalProperties || {});
 
                     if (constants.compat) {
@@ -1055,15 +1012,11 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             controlNode = createNode(
                 vnode.controlClass,
                 {
-                    // @ts-ignore
                     user: shallowMerge(vnode.controlProperties, vnode.controlInternalProperties),
                     internal: {},
-                    // @ts-ignore
                     attributes: vnode.controlAttributes,
-                    // @ts-ignore
                     events: vnode.controlEvents
                 },
-                // @ts-ignore
                 vnode.key,
                 environment,
                 parentNode,
@@ -1071,18 +1024,14 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                 vnode
             );
         }
-        // @ts-ignore
         vnode.controlNodeIdx = nodeIdx;
-        // @ts-ignore
         changedNodes[vnode.controlNodeIdx] = true;
-        // @ts-ignore
         onEndCommit(vnode, {
             template: controlNode.control._template,
             state: controlNode.control.reactiveValues,
             options: controlNode.options,
             attributes: controlNode.attributes,
             instance: controlNode.control,
-            // @ts-ignore
             logicParent: vnode.controlInternalProperties.logicParent
         });
         return controlNode;
@@ -1092,36 +1041,28 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         Logger.debug('DirtyChecking (update node)', diffPair);
         onStartCommit(
             OperationType.UPDATE,
-            // @ts-ignore
             getNodeName(diffPair.newNode),
             diffPair.oldNode
         );
 
 
         let newVNode = diffPair.newNode;
-        // @ts-ignore
         let controlNodeIdx = diffPair.oldNode.controlNodeIdx;
         let childControlNode = parentNode.childrenNodes[controlNodeIdx];
         let childControl = childControlNode.control;
         let shouldUpdate = true;
-        // @ts-ignore
         let newOptions = OptionsResolver.resolveDefaultOptions(newVNode.compound
             ? getCompatibleUtils().createCombinedOptions(
-                // @ts-ignore
                 newVNode.controlProperties,
-                // @ts-ignore
                 newVNode.controlInternalProperties
             )
-            // @ts-ignore
             : newVNode.controlProperties, childControlNode.defaultOptions);
         let oldOptionsVersions = childControlNode.optionsVersions;
         let oldOptions = childControlNode.options;
         let oldInternalVersions = childControlNode.internalVersions;
-        // @ts-ignore
         let newChildNodeContext = newVNode.context || {};
         let oldChildNodeContext = childControlNode.context;
         let oldContextVersions = childControlNode.contextVersions;
-        // @ts-ignore
         let changedOptions = getChangedOptions(newOptions, oldOptions, newVNode.compound, oldOptionsVersions, false, '', newVNode.compound);
         let changedContext = getChangedOptions(
                 newChildNodeContext,
@@ -1132,19 +1073,14 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             changedContextProto = changedContext
                 ? changedContext
                 : getChangedOptions(newChildNodeContext, oldChildNodeContext, false, oldContextVersions, true),
-            oldAttrs = childControlNode.attributes,
-            // @ts-ignore
+            oldAttrs = childControlNode.controlAttributes || childControlNode.attributes,
             newAttrs = newVNode.controlAttributes || {},
-            // @ts-ignore
             changedAttrs = getChangedOptions(newAttrs, oldAttrs, newVNode.compound, {}, true, '', newVNode.compound),
             changedInternalOptions;
 
-        // @ts-ignore
         childControlNode.optionsVersions = collectObjectVersions(newVNode.controlProperties);
-        // @ts-ignore
         childControlNode.contextVersions = collectObjectVersions(newChildNodeContext);
 
-        // @ts-ignore
         if (newVNode.compound) {
             newOptions.__vdomOptions = oldOptions.__vdomOptions;
             if (changedOptions) {
@@ -1337,47 +1273,11 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         destroyedNodes, selfDirtyNodes, isSelfDirty)
 }
 
-function __createMarkup(environment, newNode, isGenerateAnyway: boolean, childrenRebuildFinalResults, currentMemo: MemoForNode) {
-    const childrenRebuild = createChildrenResult(childrenRebuildFinalResults);
-    if (!newNode.markup) {
-        // Во время ожидания асинхронного ребилда контрол уничтожился, обновлять его уже не нужно.
-        return {
-            value: newNode,
-            memo: childrenRebuild.memo
-        };
-    }
-
-    newNode.childrenNodes = childrenRebuild.value;
-    if (isGenerateAnyway || !newNode.fullMarkup || newNode.fullMarkup.changed) {
-        var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
-        newNode.fullMarkup = environment.decorateFullMarkup(
-            getFullMarkup(
-                newNode.childrenNodes,
-                newNode.markup,
-                undefined,
-                isGenerateAnyway ? undefined : newNode.fullMarkup,
-                newNode.parent
-            ),
-            newNode
-        );
-        newNode.fullMarkup.changed =
-            wasChanged || newNode.fullMarkup.changed || isGenerateAnyway;
-        if (newNode.fullMarkup.changed) {
-            setChangedForNode(newNode);
-        }
-    }
-
-    return {
-        value: newNode,
-        memo: concatMemo(currentMemo, childrenRebuild.memo)
-    };
-}
-
 function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode, needRenderMarkup: boolean,
     changedNodes,
     childrenNodes, createdNodes, createdTemplateNodes,
     updatedNodes, updatedUnchangedNodes, updatedChangedNodes, updatedChangedTemplateNodes,
-    destroyedNodes, selfDirtyNodes, isSelfDirty: boolean): IMemoNode | Promise<IMemoNode> {
+    destroyedNodes, selfDirtyNodes, isSelfDirty): IMemoNode | Promise<IMemoNode> {
 
     const childrenRebuildResults: IMemoNode[] = [];
 
@@ -1404,14 +1304,70 @@ function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode,
     });
 
     if (haveAsync) {
-        return Promise.all(childrenRebuildResults).then((childrenRebuildResults) => {
-            return __createMarkup(environment, newNode, isSelfDirty || needRenderMarkup, childrenRebuildResults, currentMemo);
+        return Promise.all(childrenRebuildResults).then((childrenRebuildFinalResults) => {
+            const childrenRebuild = createChildrenResult(childrenRebuildFinalResults);
+            if (!newNode.markup) {
+                // Во время ожидания асинхронного ребилда контрол уничтожился, обновлять его уже не нужно.
+                return {
+                    value: newNode,
+                    memo: childrenRebuild.memo
+                };
+            }
+
+            newNode.childrenNodes = childrenRebuild.value;
+            if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
+                var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
+                newNode.fullMarkup = environment.decorateFullMarkup(
+                    getFullMarkup(
+                        newNode.childrenNodes,
+                        newNode.markup,
+                        undefined,
+                        needRenderMarkup || isSelfDirty ? undefined : newNode.fullMarkup,
+                        newNode.parent
+                    ),
+                    newNode
+                );
+                newNode.fullMarkup.changed =
+                    wasChanged || newNode.fullMarkup.changed || (needRenderMarkup || isSelfDirty);
+                if (newNode.fullMarkup.changed) {
+                    setChangedForNode(newNode);
+                }
+            }
+
+            return {
+                value: newNode,
+                memo: concatMemo(currentMemo, childrenRebuild.memo)
+            };
         }, (err) => {
             Logger.asyncRenderErrorLog(err);
             return err;
-        });
+        }
+        );
     }
 
+    const childrenRebuild = createChildrenResult(childrenRebuildResults);
+    newNode.childrenNodes = childrenRebuild.value;
+    if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
+        var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
+        newNode.fullMarkup = environment.decorateFullMarkup(
+            getFullMarkup(
+                newNode.childrenNodes,
+                newNode.markup,
+                undefined,
+                needRenderMarkup || isSelfDirty ? undefined : newNode.fullMarkup,
+                newNode.parent
+            ),
+            newNode
+        );
+        newNode.fullMarkup.changed =
+            wasChanged || newNode.fullMarkup.changed || (needRenderMarkup || isSelfDirty);
+        if (newNode.fullMarkup.changed) {
+            setChangedForNode(newNode);
+        }
+    }
 
-    return __createMarkup(environment, newNode, isSelfDirty || needRenderMarkup, childrenRebuildResults, currentMemo);
+    return {
+        value: newNode,
+        memo: concatMemo(currentMemo, childrenRebuild.memo)
+    };
 }
