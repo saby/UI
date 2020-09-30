@@ -86,25 +86,25 @@ const SPECIAL_ATTRIBUTES_COLLECTION = [
    'ws-tab-cycling',
    'ws-autofocus',
    'ws-no-focus',
-   'tabindex'
+   'tabindex',
+   'class',
+   'data-access'
 ];
 
 /**
  * Check if attribute name has special attribute prefix.
  * @param name {string} Attribute name.
- * @param check {boolean} Check or not if attribute name contains in collection of special attribute names.
  */
-export function isAttribute(name: string, check: boolean = false): boolean {
-   return ATTR_PREFIX_PATTERN.test(name) || checkAttributesOnly(name, check);
+export function isAttribute(name: string): boolean {
+   return ATTR_PREFIX_PATTERN.test(name) || checkAttributesOnly(name);
 }
 
 /**
  *
  * @param name {string} Attribute name.
- * @param check {boolean} Do check or not.
  */
-function checkAttributesOnly(name: string, check: boolean): boolean {
-   return check && SPECIAL_ATTRIBUTES_COLLECTION.indexOf(name) > -1;
+function checkAttributesOnly(name: string): boolean {
+   return SPECIAL_ATTRIBUTES_COLLECTION.indexOf(name) > -1;
 }
 
 /**
