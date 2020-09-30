@@ -3,20 +3,20 @@
       window.wsConfig.compatible = true;
       require(['Core/patchRequireJS',
          'Core/load-contents',
-         'Core/app-init',
+         'SbisEnvUI/Compatible',
          'Env/Env',
          'UI/Vdom',
          'Vdom/Vdom',
          'Lib/Control/BaseCompatible/BaseCompatible',
          'Core/nativeExtensions',
          'is!browser?jquery'
-      ], function(path, lc, appinit, Env) {
+      ], function(path, lc, Compatible, Env) {
          Env.constants.$body = body;
          Env.constants.$window = window;
-         appinit();
-         require(['UI/Base', 'Core/app-start', 'UI/Executor',
+         Compatible.AppInit();
+         require(['UI/Base', 'UI/Executor',
             'Core/helpers/Hcontrol/makeInstanceCompatible',
-            {{ __setHTMLUnsafe(_options.dependencies) }}], function(UI, AppStart, UIExecutor, makeInstanceCompatible) {
+            {{ __setHTMLUnsafe(_options.dependencies) }}], function(UI, UIExecutor, makeInstanceCompatible) {
             var AppData = UI.AppData,
                Control = UI.Control,
                Core = UI.Document;
@@ -30,8 +30,8 @@
             var cnt = Core.extend({
                _template: templateFn
             });
-            AppStart._shouldStart = false;
-            AppStart.createControl(cnt, {iWantBeWS3: true}, document.getElementById('root'));
+            Compatible.AppStart._shouldStart = false;
+            Compatible.AppStart.createControl(cnt, {iWantBeWS3: true}, document.getElementById('root'));
          });
       });
    </script>
