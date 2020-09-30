@@ -1212,7 +1212,7 @@ class Traverse implements ITraverse {
          return ast;
       }
       if (!(ast instanceof Ast.ElementNode)) {
-         this.errorHandler.error(
+         this.errorHandler.warn(
             `Обнаружен цикл "for" в атрибутах тега "${node.name}". Цикл на данном теге не поддерживается`,
             {
                fileName: context.fileName,
@@ -1262,7 +1262,7 @@ class Traverse implements ITraverse {
          const { index, iterator, collection } = this.parseForeachParameters(cycleData);
          return new Ast.ForeachNode(index, iterator, collection, []);
       } catch (error) {
-         this.errorHandler.critical(
+         this.errorHandler.error(
             `Ошибка обработки директивы "for" на атрибуте тега "${node.name}": ${error.message}`,
             {
                fileName: context.fileName,
@@ -1364,7 +1364,7 @@ class Traverse implements ITraverse {
             continue;
          }
          if (properties.hasOwnProperty(property.__$ws_name)) {
-            this.errorHandler.critical(
+            this.errorHandler.warn(
                `Опция "${property.__$ws_name}" уже существует на теге "${node.name}"`,
                {
                   fileName: context.fileName,
@@ -1463,7 +1463,7 @@ class Traverse implements ITraverse {
          case 'value':
             return this.castPropertyContentToValue(node, internalContext, attributes);
       }
-      this.errorHandler.critical(
+      this.errorHandler.error(
          `Не удалось определить тип опции "${node.name}" для выполнения приведения`,
          {
             fileName: context.fileName,
@@ -2141,7 +2141,7 @@ class Traverse implements ITraverse {
       for (let index = 0; index < processedChildren.length; ++index) {
          const child = processedChildren[index];
          if (!(child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode)) {
-            this.errorHandler.critical(
+            this.errorHandler.error(
                `Тег "${node.name}" содержит некорректные данные`,
                {
                   fileName: context.fileName,
@@ -2151,7 +2151,7 @@ class Traverse implements ITraverse {
             continue;
          }
          if (properties.hasOwnProperty(child.__$ws_name)) {
-            this.errorHandler.critical(
+            this.errorHandler.warn(
                `Опция "${child.__$ws_name}" уже определена на директиве "ws:Object"`,
                {
                   fileName: context.fileName,
@@ -2788,7 +2788,7 @@ class Traverse implements ITraverse {
       for (let index = 0; index < options.length; ++index) {
          const child = options[index];
          if (ast.hasOption(child.__$ws_name)) {
-            this.errorHandler.error(
+            this.errorHandler.warn(
                `Опция "${child.__$ws_name}" уже определена на теге "${node.name}"`,
                {
                   fileName: context.fileName,
