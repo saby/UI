@@ -1,7 +1,7 @@
 <div key="scripts">
    <ws:if data="{{!_options.compat && _options.onServer}}">
       <script key="init_script">
-         require(['Core/polyfill', 'Env/Env', 'Application/Initializer', 'Application/Env', 'Core/app-init', 'Core/TimeTesterInv'], function (polyfill, Env, AppInit, AppEnv, coreAppInit, TimeTesterInv) {
+         require(['Core/polyfill', 'Env/Env', 'Application/Initializer', 'Application/Env', 'Core/app-init'], function (polyfill, Env, AppInit, AppEnv) {
             require(['UI/Base'], function (UI) {
                window.startContextData = { AppData: new UI.AppData({}) };
                Object.assign(Env.constants, window.wsConfig);
@@ -10,8 +10,6 @@
                   AppInit.default(window.wsConfig, void 0, sr);
                   UI.Start({}, document.getElementById('root'));
                });
-               var timeTester = new TimeTesterInv.default(window.wsConfig.RUMEnabled, window.wsConfig.pageName);
-               timeTester.load();
                if(Env.constants.isProduction) {
                     console.log(
                          '%c\tЭта функция браузера предназначена для разработчиков.\t\n' +
