@@ -393,6 +393,11 @@ class TextProcessor implements ITextProcessor {
          }
          ++cursor;
       }
+
+      // FIXME: There can be empty collection. Return at least empty string
+      if (collection.length === 0) {
+         collection.push(new Ast.TextDataNode(EMPTY_STRING));
+      }
       return collection;
    }
 
