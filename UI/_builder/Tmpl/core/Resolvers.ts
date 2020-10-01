@@ -41,6 +41,11 @@ const INTER_PATH_SEPARATOR = ':';
 const TEMPLATE_FILE_EXTENSION_PATTER = /\.(tmpl|wml)/i;
 
 /**
+ * Pattern for cyrillic characters.
+ */
+const CYRILLIC_PATTERN = /[\u0400-\u04FF]/i;
+
+/**
  * Special UI-module names that do not obey standard of naming UI-modules.
  */
 const SPECIAL_UI_MODULE_NAMES = [
@@ -355,7 +360,7 @@ export function isOption(name: string): boolean {
    }
    // FIXME: Check if tag node name is component name with prefix "ws:"
    const cleanName = name.replace(WS_PREFIX_PATTERN, EMPTY_STRING);
-   return !(isLogicalPath(cleanName) && isCapitalized(cleanName));
+   return !(isLogicalPath(cleanName) && isCapitalized(cleanName) && !CYRILLIC_PATTERN.test(name));
 }
 
 /**
@@ -374,5 +379,5 @@ export function resolveOption(name: string): string {
 export function isComponent(name: string): boolean {
    // FIXME: Check if tag node name is component name with prefix "ws:"
    const cleanName = name.replace(WS_PREFIX_PATTERN, EMPTY_STRING);
-   return isLogicalPath(cleanName) && isCapitalized(cleanName);
+   return isLogicalPath(cleanName) && isCapitalized(cleanName) && !CYRILLIC_PATTERN.test(name);
 }

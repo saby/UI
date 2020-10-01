@@ -823,7 +823,7 @@ class Traverse implements ITraverse {
          case TraverseState.VALUE_DATA_TYPE:
             return this.processText(node, context);
          default:
-            this.errorHandler.error(
+            this.errorHandler.warn(
                `Обнаружен непредусмотренный текст "${node.data}": ${whatExpected(context.state)}`,
                {
                   fileName: context.fileName,
