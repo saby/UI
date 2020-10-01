@@ -130,6 +130,11 @@ const EXPRESSION_PATTERN = /\{\{ ?([\s\S]*?) ?\}\}/g;
 const TRANSLATION_PATTERN = /\{\[ ?([\s\S]*?) ?\]\}/g;
 
 /**
+ * Regular expression for JavaScript comment expression.
+ */
+const JAVASCRIPT_COMMENT_PATTERN = /\/\*[\s\S]*?\*\//g;
+
+/**
  * Empty string constant
  */
 const EMPTY_STRING = '';
@@ -393,9 +398,13 @@ class TextProcessor implements ITextProcessor {
          return null;
       }
       try {
-         const programNode = this.expressionParser.parse(
-            replaceNewLines(data)
-         );
+         JAVASCRIPT_COMMENT_PATTERN.lastIndex = 0;
+         const programText = replaceNewLines(data)
+            .replace(JAVASCRIPT_COMMENT_PATTERN, EMPTY_STRING);
+         if (programText.trim() === EMPTY_STRING) {
+            return null;
+         }
+         const programNode = this.expressionParser.parse(programText);
          return new Ast.ExpressionNode(programNode);
       } catch (error) {
          this.errorHandler.error(
