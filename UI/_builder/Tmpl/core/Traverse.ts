@@ -649,8 +649,7 @@ class Traverse implements ITraverse {
       this.errorHandler = config.errorHandler;
       this.allowComments = config.allowComments;
       this.textProcessor = createTextProcessor({
-         expressionParser: config.expressionParser,
-         errorHandler: config.errorHandler
+         expressionParser: config.expressionParser
       });
       this.attributeProcessor = createAttributeProcessor({
          expressionParser: config.expressionParser,
@@ -1274,8 +1273,7 @@ class Traverse implements ITraverse {
                allowedContent: TextContentFlags.TEXT,
                translateText: false,
                translationsRegistrar: context.scope
-            },
-            node.position
+            }
          );
          if (textValue.length !== 1) {
             throw new Error('не удалось извлечь параметры цикла');
@@ -1417,14 +1415,19 @@ class Traverse implements ITraverse {
    private processText(node: Nodes.Text, context: ITraverseContext): Ast.TextNode {
       try {
          updateToContentState(context);
+         const isOptionTranslatable = this.textTranslator
+            .getComponentDescription(context.componentPath)
+            .isOptionTranslatable(context.componentPropertyPath);
+         const translateText = (context.translateText && !context.processingOldComponent)|| isOptionTranslatable;
+
          // Process text node content.
          // If text is invalid then an error will be thrown.
          const content = this.textProcessor.process(node.data, {
             fileName: context.fileName,
             allowedContent: context.textContent || TextContentFlags.FULL_TEXT,
-            translateText: context.translateText && !context.processingOldComponent || this.textTranslator.getComponentDescription(context.componentPath).isOptionTranslatable(context.componentPropertyPath),
-            translationsRegistrar: context.scope
-         }, node.position);
+            translationsRegistrar: context.scope,
+            translateText
+         });
 
          // Set keys onto text content nodes.
          this.keysGenerator.openChildren();
@@ -2880,8 +2883,7 @@ class Traverse implements ITraverse {
                translateText: false,
                allowedContent,
                translationsRegistrar: context.scope
-            },
-            node.position
+            }
          );
          return textValue[0];
       } catch (error){

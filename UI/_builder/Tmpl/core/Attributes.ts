@@ -442,8 +442,7 @@ class AttributeProcessor implements IAttributeProcessor {
             allowedContent: TextContentFlags.TEXT,
             translateText: false,
             translationsRegistrar: options.translationsRegistrar
-         },
-         attributeNode.position
+         }
       );
       return (<Ast.TextDataNode>processedText[0]).__$ws_content;
    }
@@ -534,8 +533,7 @@ class AttributeProcessor implements IAttributeProcessor {
                allowedContent: TextContentFlags.FULL_TEXT,
                translateText: nodeDescription ? nodeDescription.isAttributeTranslatable(attribute) : false,
                translationsRegistrar: options.translationsRegistrar
-            },
-            attributeNode.position
+            }
          );
          return new Ast.AttributeNode(attribute, value);
       } catch (error) {
@@ -587,8 +585,7 @@ class AttributeProcessor implements IAttributeProcessor {
                allowedContent: TextContentFlags.FULL_TEXT,
                translateText: nodeDescription ? nodeDescription.isOptionTranslatable(attributeNode.name) : false,
                translationsRegistrar: options.translationsRegistrar
-            },
-            attributeNode.position
+            }
          );
          const valueNode = new Ast.ValueNode(value);
          valueNode.setFlag(Ast.Flags.TYPE_CASTED);

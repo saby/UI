@@ -53,8 +53,7 @@ function processText(data: string, allowedContent: Text.TextContentFlags = Text.
    const textProcessorOptions = createTextProcessorOptions(allowedContent, translateText);
    return processor.process(
       text.data,
-      textProcessorOptions,
-      text.position
+      textProcessorOptions
    );
 }
 
@@ -110,30 +109,39 @@ describe('Compiler/core/Text', () => {
          assert.strictEqual(collection.length, 1);
          assert.instanceOf(collection[0], Ast.TextDataNode);
       });
-      it('Failure! TextContentFlags.TEXT', () => {
-         const collection = processText('{[ Hello ]}, {{ userName }}', Text.TextContentFlags.TEXT);
-         assert.strictEqual(collection.length, 1);
-         assert.instanceOf(collection[0], Ast.TextDataNode);
+      it('Failure! TextContentFlags.TEXT', (done) => {
+         try {
+            processText('{[ Hello ]}, {{ userName }}', Text.TextContentFlags.TEXT);
+            done(new Error('Must be failed'));
+         } catch (error) {
+            done();
+         }
       });
       it('TextContentFlags.EXPRESSION', () => {
          const collection = processText('{{ userName }}', Text.TextContentFlags.EXPRESSION);
          assert.strictEqual(collection.length, 1);
          assert.instanceOf(collection[0], Ast.ExpressionNode);
       });
-      it('Failure! TextContentFlags.EXPRESSION', () => {
-         const collection = processText('{[ Hello ]}, {{ userName }}', Text.TextContentFlags.EXPRESSION);
-         assert.strictEqual(collection.length, 1);
-         assert.instanceOf(collection[0], Ast.ExpressionNode);
+      it('Failure! TextContentFlags.EXPRESSION', (done) => {
+         try {
+            processText('{[ Hello ]}, {{ userName }}', Text.TextContentFlags.EXPRESSION);
+            done(new Error('Must be failed'));
+         } catch (error) {
+            done();
+         }
       });
       it('TextContentFlags.TRANSLATION', () => {
          const collection = processText('{[ Hello ]}', Text.TextContentFlags.TRANSLATION);
          assert.strictEqual(collection.length, 1);
          assert.instanceOf(collection[0], Ast.TranslationNode);
       });
-      it('Failure! TextContentFlags.TRANSLATION', () => {
-         const collection = processText('{[ Hello ]}, {{ userName }}', Text.TextContentFlags.TRANSLATION);
-         assert.strictEqual(collection.length, 1);
-         assert.instanceOf(collection[0], Ast.TranslationNode);
+      it('Failure! TextContentFlags.TRANSLATION', (done) => {
+         try {
+            processText('{[ Hello ]}, {{ userName }}', Text.TextContentFlags.TRANSLATION);
+            done(new Error('Must be failed'));
+         } catch (error) {
+            done();
+         }
       });
       it('TextContentFlags.TEXT_AND_TRANSLATION', () => {
          const collection = processText('{[ Hello ]}, Wasaby!', Text.TextContentFlags.TEXT_AND_TRANSLATION);
@@ -141,11 +149,13 @@ describe('Compiler/core/Text', () => {
          assert.instanceOf(collection[0], Ast.TranslationNode);
          assert.instanceOf(collection[1], Ast.TextDataNode);
       });
-      it('Failure! TextContentFlags.TEXT_AND_TRANSLATION', () => {
-         const collection = processText('{[ Hello ]}, {{ userName }}', Text.TextContentFlags.TEXT_AND_TRANSLATION);
-         assert.strictEqual(collection.length, 2);
-         assert.instanceOf(collection[0], Ast.TranslationNode);
-         assert.instanceOf(collection[1], Ast.TextDataNode);
+      it('Failure! TextContentFlags.TEXT_AND_TRANSLATION', (done) => {
+         try {
+            processText('{[ Hello ]}, {{ userName }}', Text.TextContentFlags.TEXT_AND_TRANSLATION);
+            done(new Error('Must be failed'));
+         } catch (error) {
+            done();
+         }
       });
       it('TextContentFlags.TEXT_AND_EXPRESSION', () => {
          const collection = processText('Hello, {{ userName }}', Text.TextContentFlags.TEXT_AND_EXPRESSION);
@@ -153,11 +163,13 @@ describe('Compiler/core/Text', () => {
          assert.instanceOf(collection[0], Ast.TextDataNode);
          assert.instanceOf(collection[1], Ast.ExpressionNode);
       });
-      it('Failure! TextContentFlags.TEXT_AND_EXPRESSION', () => {
-         const collection = processText('{[ Hello ]}, {{ userName }}', Text.TextContentFlags.TEXT_AND_EXPRESSION);
-         assert.strictEqual(collection.length, 2);
-         assert.instanceOf(collection[0], Ast.TextDataNode);
-         assert.instanceOf(collection[1], Ast.ExpressionNode);
+      it('Failure! TextContentFlags.TEXT_AND_EXPRESSION', (done) => {
+         try {
+            processText('{[ Hello ]}, {{ userName }}', Text.TextContentFlags.TEXT_AND_EXPRESSION);
+            done(new Error('Must be failed'));
+         } catch (error) {
+            done();
+         }
       });
    });
 });

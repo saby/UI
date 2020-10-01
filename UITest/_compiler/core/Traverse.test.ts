@@ -138,9 +138,8 @@ describe('Compiler/core/Traverse', () => {
          const html = '<div attr:class="{{ 1 2 3 }}" on:click="{{ handler() }}"></div>';
          const tree = traverseTemplate(html);
          const elementNode = <Ast.ElementNode>tree[0];
-         assert.strictEqual(Object.keys(elementNode.__$ws_attributes).length, 1);
+         assert.strictEqual(Object.keys(elementNode.__$ws_attributes).length, 0);
          assert.strictEqual(Object.keys(elementNode.__$ws_events).length, 0);
-         assert.isTrue(elementNode.__$ws_attributes.hasOwnProperty('attr:class'));
       });
    });
    describe('ComponentNode', () => {
@@ -399,8 +398,7 @@ describe('Compiler/core/Traverse', () => {
       it('Failure! TextNode', () => {
          const html = '{{ 1 2 3 }}';
          const tree = traverseTemplate(html);
-         assert.strictEqual(tree.length, 1);
-         assert.instanceOf(tree[0], Ast.TextNode);
+         assert.strictEqual(tree.length, 0);
       });
    });
    describe('Data types', () => {
