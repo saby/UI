@@ -24,7 +24,7 @@ define('UI/_builder/Tmpl/core/bridge', [
    Utils
 ) {
    'use strict';
-   var USE_VISITOR = false;
+   var USE_VISITOR = !false;
 
    var uniqueArray = Utils.ArrayUtils.uniq;
 
