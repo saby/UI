@@ -15,7 +15,6 @@ import { IAttributeProcessor, createAttributeProcessor } from 'UI/_builder/Tmpl/
 import { ITextProcessor, createTextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
 import Scope from 'UI/_builder/Tmpl/core/Scope';
 import * as Resolvers from 'UI/_builder/Tmpl/core/Resolvers';
-import * as Path from 'UI/_builder/Tmpl/core/Path';
 import { ITextTranslator } from 'UI/_builder/Tmpl/i18n/Translator';
 
 // <editor-fold desc="Public interfaces and functions">
@@ -2616,7 +2615,7 @@ class Traverse implements ITraverse {
          ...context,
          state: TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT,
          componentPropertyPath: '',
-         componentPath: Path.parseComponentName(node.name).getFullPath()
+         componentPath: Resolvers.parseComponentName(node.name).getFullPath()
       };
       const options = this.getComponentOrPartialOptions(node.children, componentContext);
       const ast = this.createComponentOnly(node, context);
@@ -2639,7 +2638,7 @@ class Traverse implements ITraverse {
          parentTagName: node.name,
          translationsRegistrar: context.scope
       };
-      const path = Path.parseComponentName(node.name);
+      const path = Resolvers.parseComponentName(node.name);
       context.scope.registerDependency(path);
       const componentDescription = this.textTranslator.getComponentDescription(path.getFullPath());
       const attributes = this.attributeProcessor.process(
@@ -2751,8 +2750,8 @@ class Traverse implements ITraverse {
       if (template instanceof ProgramNode) {
          return new Ast.DynamicPartialNode(template, attributes.attributes, attributes.events, attributes.options);
       }
-      if (Path.isLogicalPath(template) || Path.isPhysicalPath(template)) {
-         const path = Path.parseTemplatePath(template);
+      if (Resolvers.isLogicalPath(template) || Resolvers.isPhysicalPath(template)) {
+         const path = Resolvers.parseTemplatePath(template);
          context.scope.registerDependency(path);
          return new Ast.StaticPartialNode(path, attributes.attributes, attributes.events, attributes.options);
       }

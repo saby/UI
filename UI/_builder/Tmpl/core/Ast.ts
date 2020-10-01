@@ -6,7 +6,7 @@
  */
 
 import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
-import { IPath } from 'UI/_builder/Tmpl/core/Path';
+import { IPath } from 'UI/_builder/Tmpl/core/Resolvers';
 
 // tslint:disable:max-classes-per-file
 // Намеренно отключаю правило max-classes-per-file

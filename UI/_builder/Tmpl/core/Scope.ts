@@ -7,7 +7,7 @@
 
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { ITranslationsRegistrar } from 'UI/_builder/Tmpl/core/Text';
-import { IPath } from 'UI/_builder/Tmpl/core/Path';
+import { IPath } from 'UI/_builder/Tmpl/core/Resolvers';
 import { Dictionary, ITranslationKey } from 'UI/_builder/Tmpl/i18n/Dictionary';
 
 /**
