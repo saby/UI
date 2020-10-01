@@ -273,6 +273,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       }
       //@ts-ignore
       this._logicParent = cfg._logicParent;
+
+      /*dont use this*/
+      if (this._afterCreate) {
+         this._afterCreate(cfg);
+      }
    }
 
    /**
