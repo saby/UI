@@ -321,6 +321,30 @@ function validateElseNode(prev: Ast.Ast | null): void {
 }
 
 /**
+ * Clean primitive value from useless whitespaces.
+ * @param children {TextNode[]} Processed boolean node content.
+ */
+function cleanPrimitiveValue(children: Ast.TextNode[]): Ast.TextNode[] {
+   if (children.length !== 1) {
+      return children;
+   }
+   const data = children[0].__$ws_content;
+   const result: Ast.TText[] = [];
+   for (let index = 0; index < data.length; ++index) {
+      const child = data[index];
+      if (child instanceof Ast.TextDataNode) {
+         if (child.__$ws_content.trim().length === 0) {
+            continue;
+         }
+      }
+      result.push(child);
+   }
+   return [
+      new Ast.TextNode(result)
+   ];
+}
+
+/**
  * Validate processed boolean node content.
  * @param children {TextNode[]} Processed boolean node content.
  * @throws {Error} Throws Error in case of invalid boolean semantics.
@@ -333,6 +357,9 @@ function validateBoolean(children: Ast.TextNode[]): void {
       throw new Error('данные некорректного типа');
    }
    const data = children[0].__$ws_content;
+   if (data.length !== 1) {
+      throw new Error('данные некорректного типа - ожидался текст или Mustache-выражение');
+   }
    for (let index = 0; index < data.length; ++index) {
       const child = data[index];
       if (child instanceof Ast.TextDataNode) {
@@ -359,6 +386,9 @@ function validateNumber(children: Ast.TextNode[]): void {
       throw new Error('данные некорректного типа');
    }
    const data = children[0].__$ws_content;
+   if (data.length !== 1) {
+      throw new Error('данные некорректного типа - ожидался текст или Mustache-выражение');
+   }
    for (let index = 0; index < data.length; ++index) {
       const child = data[index];
       if (child instanceof Ast.TextDataNode) {
@@ -1958,8 +1988,9 @@ class Traverse implements ITraverse {
       };
       this.warnUnexpectedAttributes(attributes, context, node.name);
       const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
-      validateBoolean(children);
-      return children[0].__$ws_content;
+      const content = cleanPrimitiveValue(children);
+      validateBoolean(content);
+      return content[0].__$ws_content;
    }
 
    /**
@@ -2011,7 +2042,8 @@ class Traverse implements ITraverse {
       if (textNodes.length !== 1) {
          throw new Error('получены некорректные данные');
       }
-      const functionExpression = textNodes[0].__$ws_content;
+      const content = cleanPrimitiveValue(textNodes);
+      const functionExpression = content[0].__$ws_content;
       const options = this.attributeProcessor.process(
          attributes,
          {
@@ -2077,8 +2109,9 @@ class Traverse implements ITraverse {
       };
       this.warnUnexpectedAttributes(attributes, context, node.name);
       const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
-      validateNumber(children);
-      return children[0].__$ws_content;
+      const content = cleanPrimitiveValue(children);
+      validateNumber(content);
+      return content[0].__$ws_content;
    }
 
    /**
