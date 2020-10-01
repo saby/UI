@@ -273,7 +273,9 @@ function createTextNode(data: string, options: ITextProcessorOptions): Ast.TextD
          // Ignore tabulation spaces
          return null;
       }
-      throw new Error(`${whatExpected(options.allowedContent)}. Обнаружен текст "${data}"`);
+      // FIXME: Temporary disable
+      // throw new Error(`${whatExpected(options.allowedContent)}. Обнаружен текст "${data}"`);
+      return null;
    }
    return new Ast.TextDataNode(data);
 }
@@ -287,7 +289,9 @@ function createTextNode(data: string, options: ITextProcessorOptions): Ast.TextD
  */
 function createTranslationNode(data: string, options: ITextProcessorOptions): Ast.TranslationNode {
    if ((options.allowedContent & TextContentFlags.TRANSLATION) === 0) {
-      throw new Error(`${whatExpected(options.allowedContent)}. Обнаружена конструкция локализации "${data}"`);
+      // FIXME: Temporary disable
+      // throw new Error(`${whatExpected(options.allowedContent)}. Обнаружена конструкция локализации "${data}"`);
+      return null;
    }
    const { text, context } = splitLocalizationText(data);
    options.translationsRegistrar.registerTranslation(options.fileName, text, context);
@@ -410,7 +414,9 @@ class TextProcessor implements ITextProcessor {
     */
    private createExpressionNode(data: string, options: ITextProcessorOptions): Ast.ExpressionNode {
       if ((options.allowedContent & TextContentFlags.EXPRESSION) === 0) {
-         throw new Error(`${whatExpected(options.allowedContent)}. Обнаружено Mustache-выражение "${data}"`);
+         // FIXME: Temporary disable
+         // throw new Error(`${whatExpected(options.allowedContent)}. Обнаружено Mustache-выражение "${data}"`);
+         return null;
       }
       try {
          JAVASCRIPT_COMMENT_PATTERN.lastIndex = 0;
