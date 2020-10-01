@@ -151,6 +151,16 @@ export default class Scope implements ITranslationsRegistrar {
    }
 
    /**
+    * Check if template has been already declared.
+    * @deprecated
+    * @param name {string} Template name.
+    * @returns {boolean} Returns true in case of declared template.
+    */
+   hasTemplate(name: string): boolean {
+      return this.templates.hasOwnProperty(name);
+   }
+
+   /**
     * Register template usage.
     * @param name {string} Template name.
     * @throws {Error} Throws error in case of template is undefined.

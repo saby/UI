@@ -2440,6 +2440,17 @@ class Traverse implements ITraverse {
                }
             );
          }
+         // FIXME: Remove this check
+         if (context.scope.hasTemplate(name)) {
+            this.errorHandler.warn(
+               `Шаблон с именем "${name}" уже был определен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
+         }
          context.scope.registerTemplate(name, ast);
          return ast;
       } catch (error) {
