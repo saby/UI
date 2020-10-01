@@ -847,24 +847,19 @@ class Traverse implements ITraverse {
          case TraverseState.MARKUP:
             return this.processTagInMarkup(node, context);
          case TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT:
-            return this.processTagInComponentWithUnknownContent(node, context);
          case TraverseState.COMPONENT_WITH_CONTENT:
-            return this.processTagInComponentWithContent(node, context);
          case TraverseState.COMPONENT_WITH_OPTIONS:
-            return this.processTagInComponentWithOptions(node, context);
+            return this.processTagInComponentWithUnknownContent(node, context);
          case TraverseState.ARRAY_DATA_TYPE:
             return this.processDataTypeTag(node, context);
          case TraverseState.OBJECT_DATA_TYPE:
             return this.processTagInObjectProperties(node, context);
          case TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT:
-            return this.processTagInObjectPropertyWithUnknownContent(node, context);
-         case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_OBJECT:
-            return this.processTagInObjectPropertyWithContentTypeCastedToObject(node, context);
          case TraverseState.OBJECT_PROPERTY_WITH_CONTENT:
-            return this.processTagInObjectPropertyWithContent(node, context);
          case TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE:
          case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY:
-            return this.processTagInObjectPropertyWithDataType(node, context);
+         case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_OBJECT:
+            return this.processTagInObjectPropertyWithUnknownContent(node, context);
          case TraverseState.BOOLEAN_DATA_TYPE:
          case TraverseState.FUNCTION_DATA_TYPE:
          case TraverseState.NUMBER_DATA_TYPE:
