@@ -118,7 +118,8 @@ var
       });
       if (typeof getterResult === 'string' && typeof document !== 'undefined' && viewController?._template) {
          if (getterResult !== Common.unescape(getterResult)) {
-            Logger.error('Пока посмотрим, что в тестах');
+            // TODO message
+            Logger.error('В контроле ' + viewController._moduleName + ' что-то не так с эскейпом в ' + path.join('.'));
          }
       }
       return getterResult;
