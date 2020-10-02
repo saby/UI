@@ -20,6 +20,7 @@ import { _FocusAttrs } from 'UI/Focus';
 import * as Scope from './_Expressions/Scope';
 import * as Attr from './_Expressions/Attr';
 import { Common, ConfigResolver } from './Utils';
+import catchEscapeProblems from './EscapeProblebsCatcher';
 
 var decorators;
 function getDecorators() {
@@ -116,12 +117,7 @@ var
             }
          }
       });
-      if (typeof getterResult === 'string' && typeof document !== 'undefined' && viewController?._template) {
-         if (getterResult !== Common.unescape(getterResult)) {
-            // TODO message
-            Logger.error('В контроле ' + viewController._moduleName + ' что-то не так с эскейпом в ' + path.join('.'));
-         }
-      }
+      catchEscapeProblems(getterResult, viewController, path.join('.'));
       return getterResult;
    },
 
