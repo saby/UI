@@ -10,7 +10,7 @@ import { constants } from 'Env/Env';
 import { headDataStore } from 'UI/_base/HeadData';
 import { Stack } from 'UI/_base/HTML/meta';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
-import TagMarkup from 'UI/_base/HTML/_meta/TagMarkup';
+import { default as TagMarkup, generateTagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 import { JML, ITagDescription } from 'UI/_base/HTML/_meta/interface';
 
@@ -21,6 +21,7 @@ class Head extends Control<IHeadOptions> {
 
     head: Function[] = null;
     headAdditiveTagsMarkup: string = '';
+    userTags: string = '';
 
     // Содержит информацию о том, был ли серверный рендеринг
     // Будет true, если мы строимся на клиенте и серверная верстка есть.
@@ -54,6 +55,7 @@ class Head extends Control<IHeadOptions> {
             // не вставляем переданные link css, это обязанность theme_controller'a
             .filter(({ attrs }) => attrs.rel !== "stylesheet" && attrs.type !== "text/css");
         this.headAdditiveTagsMarkup = new TagMarkup(tagDescriptions).outerHTML;
+        this._prepareMetaAndScripts(options);
 
         this.wasServerSide = false;
         this.isSSR = !constants.isBrowserPlatform;
@@ -78,6 +80,34 @@ class Head extends Control<IHeadOptions> {
             collectCSS(options.theme, css.simpleCss, css.themedCss)
                 .then((html) => { this.stylesHtml = `\n${html}\n`; })
                 .catch(onerror));
+    }
+
+    /**
+     * TODO: Временное решение для налаживания работы meta, links и scripts
+     * https://online.sbis.ru/opendoc.html?guid=16da0a34-a550-4d05-aff9-76101f6d7e2c
+     * @param options
+     * @private
+     */
+    _prepareMetaAndScripts(options: IHeadOptions): void {
+        const meta = (options.meta || []).map((attrs) => {
+            return generateTagMarkup({tagName: 'meta', attrs})
+        });
+        const scripts = (options.scripts || []).map((attrs) => {
+            return generateTagMarkup({tagName: 'script', attrs})
+        });
+        /**
+         * links - это не только стили.
+         * rel="canonical"
+         * rel="shortcut icon"
+         * вообще без атрибута rel
+         * Поэтому так, а не через themeController. Сложно фильтровать
+         */
+        const links = (options.links || []).map((attrs) => {
+            return generateTagMarkup({tagName: 'link', attrs})
+        });
+
+        /** Объеденим в одну строку для уменьшения накладных расходов на стороне шаблона */
+        this.userTags = meta.concat(scripts).concat(links).join('\n');
     }
 
     // @ts-ignore
@@ -146,4 +176,7 @@ interface IHeadOptions extends IControlOptions {
     builder: boolean;
     servicesPath: string;
     product: string;
+    meta?: Array<{}>;
+    links?: Array<{}>;
+    scripts?: Array<{}>;
 }
