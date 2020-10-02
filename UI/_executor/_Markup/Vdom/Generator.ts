@@ -433,6 +433,12 @@ export class GeneratorVdom implements IGenerator {
    }
 
    escape(value: GeneratorObject): GeneratorObject {
+      if (typeof value === 'string' && typeof document !== 'undefined') {
+         if (value !== Common.unescape(value)) {
+            // TODO message
+            Logger.error('Что-то не так с эскейпом');
+         }
+      }
       return value;
    }
 
