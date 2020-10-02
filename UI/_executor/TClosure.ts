@@ -103,7 +103,7 @@ var lastGetterPath;
 var
    getter = function getter(obj, path, viewController) {
       lastGetterPath = path;
-      return object.extractValue(obj, path, (name: string, scope: unknown, depth: number): void => {
+      const getterResult = object.extractValue(obj, path, (name: string, scope: unknown, depth: number): void => {
          const error = scope['_$' + name];
          if (error instanceof ConfigResolver.UseAutoProxiedOptionError) {
             if (!error.isDestroyed()) {
@@ -116,6 +116,12 @@ var
             }
          }
       });
+      if (typeof getterResult === 'string' && typeof document !== 'undefined' && viewController?._template) {
+         if (getterResult !== Common.unescape(getterResult)) {
+            Logger.error('Пока посмотрим, что в тестах');
+         }
+      }
+      return getterResult;
    },
 
    /**
