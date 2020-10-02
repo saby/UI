@@ -21,7 +21,7 @@ const wrongEscapeList: Map<string, Set<string>> = new Map([
 ]);
 
 export default function catchEscapeProblems(value, viewController, pathName): void {
-    if (typeof value !== 'string' || typeof document === 'undefined' || !viewController?._template || value !== Common.unescape(value)) {
+    if (typeof value !== 'string' || typeof document === 'undefined' || !viewController?._template || value === Common.unescape(value)) {
         return;
     }
     const moduleName = viewController._moduleName;
