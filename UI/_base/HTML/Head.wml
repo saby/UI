@@ -10,6 +10,9 @@
       <meta name="viewport" data-vdomignore="true" content="{{_options.viewport || 'width=1024'}}"/>
       <meta charset="utf-8" class="head-server-block" data-vdomignore="true"/>
    </ws:if>
+   <ws:if data="{{ isSSR && userTags }}">
+      {{ __setHTMLUnsafe( userTags ) }}
+   </ws:if>
    <!--   wsConfig нет смысла рендерить на клиенте. -->
    <!--   Он обязательно должен прийти с сервера.-->
    <!--   Потому что необходим для загрузки ресурсов.-->
