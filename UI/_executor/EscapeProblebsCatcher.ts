@@ -20,8 +20,23 @@ const wrongEscapeList: Map<string, Set<string>> = new Map([
         'value'])]
 ]);
 
+let escapeProblemError: Error;
+
+function getEscapeProblemError(): Error {
+    if (!escapeProblemError) {
+        escapeProblemError = new Error('Скоро будет исправлена старая ошибка, и это исправление может изменить отображение html-кодов в строковых переменных. ' +
+            'Обратитесь к Кондакову Роману, чтобы устранить причину или добавить данный случай в исключения');
+    }
+    return escapeProblemError;
+}
+
 export default function catchEscapeProblems(value, viewController, pathName): void {
-    if (typeof value !== 'string' || typeof document === 'undefined' || !viewController?._template || value === Common.unescape(value)) {
+    if (
+        typeof value !== 'string' ||
+        typeof document === 'undefined' ||
+        !viewController?._template ||
+        value === Common.unescape(value)
+     ) {
         return;
     }
     const moduleName = viewController._moduleName;
@@ -32,7 +47,7 @@ export default function catchEscapeProblems(value, viewController, pathName): vo
     }
     if (!pathlist.has(pathName)) {
         // TODO message
-        Logger.error('В контроле ' + moduleName + ' что-то не так с эскейпом в ' + pathName);
+        Logger.error('Обнаружено использование html-кода в переменной модуля ' + moduleName + ' по пути ' + pathName, '', getEscapeProblemError());
         pathlist.add(pathName);
     }
 }
