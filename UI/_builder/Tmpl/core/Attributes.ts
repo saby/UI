@@ -221,6 +221,14 @@ export interface IAttributeProcessor {
    process(attributes: Nodes.IAttributes, options: IAttributeProcessorOptions, nodeDescription?: INodeDescription): IAttributesCollection;
 
    /**
+    * Process raw html attributes collection and create a new collection of
+    * processed option nodes.
+    * @param attributes {IAttributes} Collection of raw html attributes.
+    * @param options {IAttributeProcessorOptions} Processing options.
+    */
+   processOptions(attributes: Nodes.IAttributes, options: IAttributeProcessorOptions): Ast.IObjectProperties;
+
+   /**
     * Filter raw html attributes collection.
     * @param attributes {IAttributes} Collection of raw html attributes.
     * @param expectedAttributeNames {string[]} Collection of expected attribute names.
@@ -370,6 +378,26 @@ class AttributeProcessor implements IAttributeProcessor {
                continue;
             }
             const optionNode = this.processOption(node, options, nodeDescription);
+            if (optionNode) {
+               collection.options[optionNode.__$ws_name] = optionNode;
+            }
+         }
+      }
+      return collection;
+   }
+
+   /**
+    * Process raw html attributes collection and create a new collection of
+    * processed option nodes.
+    * @param attributes {IAttributes} Collection of raw html attributes.
+    * @param options {IAttributeProcessorOptions} Processing options.
+    */
+   processOptions(attributes: Nodes.IAttributes, options: IAttributeProcessorOptions): Ast.IObjectProperties {
+      const collection: Ast.IObjectProperties = { };
+      for (const attributeName in attributes) {
+         if (attributes.hasOwnProperty(attributeName)) {
+            const node = attributes[attributeName];
+            const optionNode = this.processOption(node, options);
             if (optionNode) {
                collection.options[optionNode.__$ws_name] = optionNode;
             }
