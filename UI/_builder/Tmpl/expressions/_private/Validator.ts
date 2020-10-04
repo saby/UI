@@ -32,7 +32,8 @@ enum State {
    IN_OBJECT_PROPERTY,
    IN_PROGRAM,
    IN_SEQUENCE,
-   IN_UNARY
+   IN_UNARY,
+   IN_MEMBER
 }
 
 enum BindContextState {
@@ -179,7 +180,12 @@ class BaseValidator implements Nodes.IExpressionVisitor<IContext, void> {
    }
 
    visitMemberExpressionNode(node: Nodes.MemberExpressionNode, context: IContext): void {
-      return undefined;
+      const childContext: IContext = {
+         ...context,
+         state: State.IN_MEMBER
+      };
+      node.property.accept(this, childContext);
+      node.object.accept(this, childContext);
    }
 
    visitObjectExpressionNode(node: Nodes.ObjectExpressionNode, context: IContext): void {
@@ -332,6 +338,7 @@ class BindValidator extends BaseValidator {
                'Запрещено использовать bind на свойства объекта "_options": данный объект заморожен'
             );
          }
+         return;
       }
       obj.object.accept(this, childContext);
    }
