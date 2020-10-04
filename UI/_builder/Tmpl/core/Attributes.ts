@@ -399,7 +399,7 @@ class AttributeProcessor implements IAttributeProcessor {
             const node = attributes[attributeName];
             const optionNode = this.processOption(node, options);
             if (optionNode) {
-               collection.options[optionNode.__$ws_name] = optionNode;
+               collection[optionNode.__$ws_name] = optionNode;
             }
          }
       }
