@@ -16,6 +16,7 @@ import { ITextProcessor, createTextProcessor, TextContentFlags } from 'UI/_build
 import Scope from 'UI/_builder/Tmpl/core/Scope';
 import * as Resolvers from 'UI/_builder/Tmpl/core/Resolvers';
 import { ITextTranslator } from 'UI/_builder/Tmpl/i18n/Translator';
+import createValidator, { IValidator } from 'UI/_builder/Tmpl/expressions/_private/Validator';
 
 // <editor-fold desc="Public interfaces and functions">
 
@@ -636,6 +637,11 @@ class Traverse implements ITraverse {
     */
    private readonly warnEmptyComponentContent: boolean;
 
+   /**
+    * Mustache-expressions validator.
+    */
+   private readonly expressionValidator: IValidator;
+
    // </editor-fold>
 
    /**
@@ -647,15 +653,18 @@ class Traverse implements ITraverse {
       this.keysGenerator = createKeysGenerator(config.hierarchicalKeys);
       this.errorHandler = config.errorHandler;
       this.allowComments = config.allowComments;
+      this.expressionValidator = createValidator(config.errorHandler);
       this.textProcessor = createTextProcessor({
-         expressionParser: config.expressionParser
+         expressionParser: config.expressionParser,
+         expressionValidator: this.expressionValidator
       });
       this.attributeProcessor = createAttributeProcessor({
          expressionParser: config.expressionParser,
          errorHandler: config.errorHandler,
          textProcessor: this.textProcessor,
          warnBooleanAttributesAndOptions: !!config.warnBooleanAttributesAndOptions,
-         warnUselessAttributePrefix: !!config.warnUselessAttributePrefix
+         warnUselessAttributePrefix: !!config.warnUselessAttributePrefix,
+         expressionValidator: this.expressionValidator
       });
       this.textTranslator = config.textTranslator;
       this.warnUnusedTemplates = !!config.warnUnusedTemplates;
@@ -1271,7 +1280,8 @@ class Traverse implements ITraverse {
                fileName: context.fileName,
                allowedContent: TextContentFlags.TEXT,
                translateText: false,
-               translationsRegistrar: context.scope
+               translationsRegistrar: context.scope,
+               position: node.position
             }
          );
          if (textValue.length !== 1) {
@@ -1430,6 +1440,7 @@ class Traverse implements ITraverse {
             fileName: context.fileName,
             allowedContent: context.textContent || TextContentFlags.FULL_TEXT,
             translationsRegistrar: context.scope,
+            position: node.position,
             translateText
          });
 
@@ -2882,6 +2893,7 @@ class Traverse implements ITraverse {
                fileName: context.fileName,
                translateText: false,
                allowedContent,
+               position: node.position,
                translationsRegistrar: context.scope
             }
          );

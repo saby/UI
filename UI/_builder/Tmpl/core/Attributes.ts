@@ -11,6 +11,7 @@ import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { ITextProcessor, TextContentFlags, ITranslationsRegistrar } from 'UI/_builder/Tmpl/core/Text';
 import { INodeDescription } from 'UI/_builder/Tmpl/i18n/Translator';
+import { IValidator } from 'UI/_builder/Tmpl/expressions/_private/Validator';
 
 /**
  * Empty string constant.
@@ -269,6 +270,11 @@ export interface IAttributeProcessorConfig {
    textProcessor: ITextProcessor;
 
    /**
+    * Mustache-expressions validator.
+    */
+   expressionValidator: IValidator;
+
+   /**
     * Warn in case of using useless attribute prefix.
     */
    warnUselessAttributePrefix?: boolean;
@@ -310,6 +316,11 @@ class AttributeProcessor implements IAttributeProcessor {
    private readonly warnBooleanAttributesAndOptions: boolean;
 
    /**
+    * Mustache-expressions validator.
+    */
+   private readonly expressionValidator: IValidator;
+
+   /**
     * Initialize new instance of attribute processor.
     * @param config {IAttributeProcessorConfig} Attribute processor config.
     */
@@ -319,6 +330,7 @@ class AttributeProcessor implements IAttributeProcessor {
       this.textProcessor = config.textProcessor;
       this.warnUselessAttributePrefix = !!config.warnUselessAttributePrefix;
       this.warnUselessAttributePrefix = !!config.warnBooleanAttributesAndOptions;
+      this.expressionValidator = config.expressionValidator;
    }
 
    /**
@@ -469,7 +481,8 @@ class AttributeProcessor implements IAttributeProcessor {
             fileName: options.fileName,
             allowedContent: TextContentFlags.TEXT,
             translateText: false,
-            translationsRegistrar: options.translationsRegistrar
+            translationsRegistrar: options.translationsRegistrar,
+            position: attributeNode.position
          }
       );
       return (<Ast.TextDataNode>processedText[0]).__$ws_content;
@@ -487,6 +500,13 @@ class AttributeProcessor implements IAttributeProcessor {
          const property = getBindName(attributeNode.name);
          const value = this.validateTextValue(attributeNode, options);
          const programNode = this.expressionParser.parse(value);
+         this.expressionValidator.checkBindExpression(
+            programNode,
+            {
+               fileName: options.fileName,
+               position: attributeNode.position
+            }
+         );
          return new Ast.BindNode(property, programNode);
       } catch (error) {
          this.errorHandler.error(
@@ -512,6 +532,13 @@ class AttributeProcessor implements IAttributeProcessor {
          const event = getEventName(attributeNode.name);
          const value = this.validateTextValue(attributeNode, options);
          const programNode = this.expressionParser.parse(value);
+         this.expressionValidator.checkEventExpression(
+            programNode,
+            {
+               fileName: options.fileName,
+               position: attributeNode.position
+            }
+         );
          return new Ast.EventNode(event, programNode);
       } catch (error) {
          this.errorHandler.error(
@@ -560,7 +587,8 @@ class AttributeProcessor implements IAttributeProcessor {
                fileName: options.fileName,
                allowedContent: TextContentFlags.FULL_TEXT,
                translateText: nodeDescription ? nodeDescription.isAttributeTranslatable(attribute) : false,
-               translationsRegistrar: options.translationsRegistrar
+               translationsRegistrar: options.translationsRegistrar,
+               position: attributeNode.position
             }
          );
          return new Ast.AttributeNode(attribute, value);
@@ -612,7 +640,8 @@ class AttributeProcessor implements IAttributeProcessor {
                fileName: options.fileName,
                allowedContent: TextContentFlags.FULL_TEXT,
                translateText: nodeDescription ? nodeDescription.isOptionTranslatable(attributeNode.name) : false,
-               translationsRegistrar: options.translationsRegistrar
+               translationsRegistrar: options.translationsRegistrar,
+               position: attributeNode.position
             }
          );
          const valueNode = new Ast.ValueNode(value);

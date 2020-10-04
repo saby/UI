@@ -7,6 +7,7 @@ import * as Text from 'UI/_builder/Tmpl/core/Text';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import Scope from 'UI/_builder/Tmpl/core/Scope';
 import { assert } from 'chai';
+import createValidator from "UI/_builder/Tmpl/expressions/_private/Validator";
 
 // TODO: UI/_builder/Tmpl/* -> Compiler/*
 
@@ -28,9 +29,11 @@ const FILE_NAME = 'Compiler/core/Text/TestTemplate.wml';
 function createTextProcessorConfig() {
    const expressionParser = new Parser();
    const errorHandler = createErrorHandler();
+   const expressionValidator = createValidator(errorHandler);
    return {
       expressionParser,
-      errorHandler
+      errorHandler,
+      expressionValidator
    };
 }
 
@@ -39,7 +42,8 @@ function createTextProcessorOptions(allowedContent: Text.TextContentFlags, trans
       fileName: FILE_NAME,
       translationsRegistrar: new Scope(),
       allowedContent,
-      translateText
+      translateText,
+      position: null
    }
 }
 

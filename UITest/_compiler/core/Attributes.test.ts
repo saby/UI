@@ -7,6 +7,7 @@ import * as Attributes from 'UI/_builder/Tmpl/core/Attributes';
 import { createTextProcessor } from 'UI/_builder/Tmpl/core/Text';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import Scope from 'UI/_builder/Tmpl/core/Scope';
+import createValidator from 'UI/_builder/Tmpl/expressions/_private/Validator';
 import { assert } from 'chai';
 
 // TODO: UI/_builder/Tmpl/* -> Compiler/*
@@ -29,13 +30,16 @@ const FILE_NAME = 'Compiler/core/Attributes/TestTemplate.wml';
 function createAttributeProcessorConfig() {
    const expressionParser = new Parser();
    const errorHandler = createErrorHandler();
+   const expressionValidator = createValidator(errorHandler);
    const textProcessor = createTextProcessor({
-      expressionParser
+      expressionParser,
+      expressionValidator
    });
    return {
       expressionParser,
       errorHandler,
-      textProcessor
+      textProcessor,
+      expressionValidator
    };
 }
 

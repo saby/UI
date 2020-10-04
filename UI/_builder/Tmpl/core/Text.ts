@@ -8,6 +8,8 @@
 import { canBeTranslated, splitLocalizationText } from 'UI/_builder/Tmpl/i18n/Helpers';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
+import { IValidator } from 'UI/_builder/Tmpl/expressions/_private/Validator';
+import { SourcePosition } from 'UI/_builder/Tmpl/html/Reader';
 
 /**
  * Interface for text processor config.
@@ -18,6 +20,11 @@ interface ITextProcessorConfig {
     * Mustache expressions parser.
     */
    expressionParser: IParser;
+
+   /**
+    * Mustache-expressions validator.
+    */
+   expressionValidator: IValidator;
 }
 
 /**
@@ -94,6 +101,11 @@ export interface ITextProcessorOptions {
     * Translations registrar.
     */
    translationsRegistrar: ITranslationsRegistrar;
+
+   /**
+    * Position of processing text in source file.
+    */
+   position: SourcePosition;
 }
 
 /**
@@ -309,11 +321,17 @@ class TextProcessor implements ITextProcessor {
    private readonly expressionParser: IParser;
 
    /**
+    * Mustache-expressions validator.
+    */
+   private readonly expressionValidator: IValidator;
+
+   /**
     * Initialize new instance of text processor.
     * @param config {ITextProcessorConfig} Text processor config.
     */
    constructor(config: ITextProcessorConfig) {
       this.expressionParser = config.expressionParser;
+      this.expressionValidator = config.expressionValidator;
    }
 
    /**
@@ -426,6 +444,10 @@ class TextProcessor implements ITextProcessor {
             return null;
          }
          const programNode = this.expressionParser.parse(programText);
+         this.expressionValidator.checkTextExpression(
+            programNode,
+            options
+         );
          return new Ast.ExpressionNode(programNode);
       } catch (error) {
          throw new Error(`Mustache-выражение "${data}" некорректно`);
