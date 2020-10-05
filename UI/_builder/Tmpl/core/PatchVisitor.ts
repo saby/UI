@@ -262,7 +262,6 @@ class PatchVisitor implements Ast.IAstVisitor {
             nodes[i] instanceof Ast.ForeachNode ||
             nodes[i] instanceof Ast.StaticPartialNode ||
             nodes[i] instanceof Ast.DynamicPartialNode ||
-            nodes[i] instanceof Ast.ComponentNode ||
             nodes[i] instanceof Ast.InlineTemplateNode
          ) {
             // FIXME: Reset parent key for some kind of nodes
