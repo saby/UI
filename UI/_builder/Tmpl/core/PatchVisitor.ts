@@ -256,10 +256,10 @@ class PatchVisitor implements Ast.IAstVisitor {
    visitAll(nodes: Ast.Ast[], context: INavigationContext): any {
       const children = [];
       for (let i = 0; i < nodes.length; ++i) {
-         const key = children.length + '_';
+         const key = context.parentKey + children.length + '_';
          const childContext: INavigationContext = {
             ...context,
-            parentKey: context.parentKey + key
+            parentKey: key
          };
          const child = nodes[i].accept(this, childContext);
          if (child) {
@@ -955,14 +955,14 @@ class PatchVisitor implements Ast.IAstVisitor {
    private collectContents(node: Ast.BaseWasabyElement, context: INavigationContext): any[] {
       const injectedData = [];
       for (const optionName in node.__$ws_options) {
-         const key = injectedData.length + '_';
+         const key = context.parentKey + injectedData.length + '_';
          const option = node.__$ws_options[optionName];
          if (option.hasFlag(Ast.Flags.UNPACKED)) {
             continue;
          }
          const childContext: INavigationContext = {
             ...context,
-            parentKey: context.parentKey + key
+            parentKey: key
          };
          const injectedNode = option.accept(this, childContext);
          if (injectedNode) {
@@ -972,14 +972,14 @@ class PatchVisitor implements Ast.IAstVisitor {
          }
       }
       for (const optionName in node.__$ws_contents) {
-         const key = injectedData.length + '_';
+         const key = context.parentKey + injectedData.length + '_';
          const originContent = node.__$ws_contents[optionName];
          if (originContent.hasFlag(Ast.Flags.NEST_CASTED)) {
             return this.visitAll(originContent.__$ws_content, context);
          }
          const childContext: INavigationContext = {
             ...context,
-            parentKey: context.parentKey + key
+            parentKey: key
          };
          const contentNode = node.__$ws_contents[optionName].accept(this, childContext);
          if (contentNode) {
@@ -1016,14 +1016,14 @@ class PatchVisitor implements Ast.IAstVisitor {
    private collectObjectProperties(node: Ast.ObjectNode, context: INavigationContext): any {
       const injectedData = [];
       for (const optionName in node.__$ws_properties) {
-         const key = (injectedData.length) + '_';
+         const key = context.parentKey + injectedData.length + '_';
          const originProperty = node.__$ws_properties[optionName];
          if (originProperty.hasFlag(Ast.Flags.UNPACKED)) {
             continue;
          }
          const childContext: INavigationContext = {
             ...context,
-            parentKey: context.parentKey + key
+            parentKey: key
          };
          const property = originProperty.accept(this, childContext);
          if (property) {
