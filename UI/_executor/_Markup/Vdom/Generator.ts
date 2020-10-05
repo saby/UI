@@ -416,7 +416,9 @@ export class GeneratorVdom implements IGenerator {
       }.bind({
          control,
          attrs: props.attributes
-      }));
+      }),
+      //@ts-ignore
+      control._controlNode.fullMarkup && control._controlNode.fullMarkup.parent);
    }
 
    createEmptyText(key: string): string {
