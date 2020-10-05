@@ -139,6 +139,16 @@ const TRANSLATION_PATTERN = /\{\[ ?([\s\S]*?) ?\]\}/g;
 const JAVASCRIPT_COMMENT_PATTERN = /\/\*[\s\S]*?\*\//g;
 
 /**
+ * Safe replacing
+ */
+const SAFE_REPLACE_CASE_PATTERN = /\r|\n|\t|\/\*[\s\S]*?\*\//g;
+
+/**
+ * Safe whitespaces replacing
+ */
+const SAFE_WHITESPACE_REMOVE_PATTERN = / +(?= )/g;
+
+/**
  * Empty string constant
  */
 const EMPTY_STRING = '';
@@ -272,6 +282,15 @@ function replaceNewLines(text: string): string {
       .replace(/\n/g, WHITESPACE);
 }
 
+function cleanText(text: string): string {
+   SAFE_REPLACE_CASE_PATTERN.lastIndex = 0;
+   SAFE_WHITESPACE_REMOVE_PATTERN.lastIndex = 0;
+
+   return text
+      .replace(SAFE_REPLACE_CASE_PATTERN, ' ')
+      .replace(SAFE_WHITESPACE_REMOVE_PATTERN, EMPTY_STRING);
+}
+
 /**
  * Parse and create text node.
  * @param data {string} Text content.
@@ -342,9 +361,12 @@ class TextProcessor implements ITextProcessor {
     * @returns {TText[]} Collection of text data nodes.
     */
    process(text: string, options: ITextProcessorOptions): Ast.TText[] {
+      // FIXME: Rude source text preprocessing
+      const cleanedText = cleanText(text);
+
       const firstStage: IRawTextItem[] = [{
          type: RawTextType.TEXT,
-         data: text
+         data: cleanedText
       }];
 
       const secondStage = markDataByRegex(
