@@ -60,17 +60,30 @@ describe('Compiler/core/Resolvers', () => {
    });
    describe('parseFunctionPath()', () => {
       const FUNCTION_PATH = 'UIModule/Module:object.handler';
+      const FUNCTION_PATH_2 = 'UIModule/Module/handler';
       it('getFullPath()', () => {
          const path = Resolvers.parseFunctionPath(FUNCTION_PATH);
          assert.strictEqual(path.getFullPath(), FUNCTION_PATH);
+      });
+      it('getFullPath() 2', () => {
+         const path = Resolvers.parseFunctionPath(FUNCTION_PATH_2);
+         assert.strictEqual(path.getFullPath(), FUNCTION_PATH_2);
       });
       it('getFullPath() with special UI module name', () => {
          const path = Resolvers.parseTemplatePath('SBIS3.CONTROLS/Module:object.handler');
          assert.strictEqual(path.getFullPath(), 'SBIS3.CONTROLS/Module:object.handler');
       });
+      it('getFullPath() with special UI module name 2', () => {
+         const path = Resolvers.parseTemplatePath('SBIS3.CONTROLS/Module/handler');
+         assert.strictEqual(path.getFullPath(), 'SBIS3.CONTROLS/Module/handler');
+      });
       it('getFullPhysicalPath()', () => {
          const path = Resolvers.parseFunctionPath(FUNCTION_PATH);
          assert.strictEqual(path.getFullPhysicalPath(), 'UIModule/Module');
+      });
+      it('getFullPhysicalPath() 2', () => {
+         const path = Resolvers.parseFunctionPath(FUNCTION_PATH_2);
+         assert.strictEqual(path.getFullPhysicalPath(), FUNCTION_PATH_2);
       });
       it('getLogicalPath()', () => {
          const path = Resolvers.parseFunctionPath(FUNCTION_PATH);
@@ -80,8 +93,16 @@ describe('Compiler/core/Resolvers', () => {
          const path = Resolvers.parseFunctionPath(FUNCTION_PATH);
          assert.isTrue(path.hasLogicalPath());
       });
+      it('hasLogicalPath()', () => {
+         const path = Resolvers.parseFunctionPath(FUNCTION_PATH_2);
+         assert.isFalse(path.hasLogicalPath());
+      });
       it('hasPlugins()', () => {
          const path = Resolvers.parseFunctionPath(FUNCTION_PATH);
+         assert.isFalse(path.hasPlugins());
+      });
+      it('hasPlugins() 2', () => {
+         const path = Resolvers.parseFunctionPath(FUNCTION_PATH_2);
          assert.isFalse(path.hasPlugins());
       });
    });

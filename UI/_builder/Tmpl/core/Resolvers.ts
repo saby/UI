@@ -253,11 +253,6 @@ export function parseFunctionPath(functionPath: string): IPath {
          `некорректный путь к функции "${fullPath}" - отсутствует физический путь к модулю, в котором находится запрашиваемая функция`
       );
    }
-   if (logicalPath.length === 0) {
-      throw new Error(
-         `некорректный путь к функции "${fullPath}" - отсутствует логический путь к функции, по которому функция должна быть разрешена внутри указанного модуля`
-      );
-   }
    if (plugins.length !== 0) {
       throw new Error(
          `некорректный путь к функции "${fullPath}" - использовать плагины RequireJS запрещено`
