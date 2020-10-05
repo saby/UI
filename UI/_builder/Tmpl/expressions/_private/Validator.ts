@@ -157,7 +157,7 @@ class BaseValidator implements Nodes.IExpressionVisitor<IContext, void> {
    visitIdentifierNode(node: Nodes.IdentifierNode, context: IContext): void {
       if (context.state === State.IN_CALLEE) {
          if (node.name === 'debug') {
-            this.errorHandler.error(
+            this.errorHandler.warn(
                `В тексте шаблона обнаружено debug-выражение. Необходимо убрать его в production!`,
                context
             )
