@@ -153,9 +153,9 @@ export interface IDOMEnvironment {
     ): void;
     removeHandler(eventName: string, isBodyElement: boolean, processingHandler: boolean): any;
     removeNativeListener(element: HTMLElement, handler: EventListener, eventName: string, capture: boolean): any;
-    addCaptureEventHandler(eventName: string, element: IWasabyHTMLElement): any;
+    addCaptureEventHandler(eventName: string, isBodyElement: boolean): any;
     addCaptureProcessingHandler(eventName: string, method: (event: Event) => void): any;
-    removeCaptureEventHandler(eventName: string, element: IWasabyHTMLElement): void;
+    removeCaptureEventHandler(eventName: string, isBodyElement: boolean): void;
     removeAllCaptureHandlers(): void;
     removeProcessiingEventHandler(eventName: string): void;
     _canDestroy(destroyedControl: Control): any;

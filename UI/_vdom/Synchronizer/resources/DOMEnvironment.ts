@@ -8,8 +8,12 @@ import { constants, detection } from 'Env/Env';
 import { Logger, isNewEnvironment } from 'UI/Utils';
 import { ElementFinder, Events, BoundaryElements, focus, preventFocus, hasNoFocus, goUpByControlTree } from 'UI/Focus';
 import {
-   IDOMEnvironment, TControlStateCollback, IControlNode,
-   IWasabyHTMLElement, TMarkupNodeDecoratorFn, IHandlerInfo, TModifyHTMLNode
+   IDOMEnvironment,
+   TControlStateCollback,
+   IControlNode,
+   TMarkupNodeDecoratorFn,
+   IHandlerInfo,
+   TModifyHTMLNode
 } from '../interfaces';
 
 import { delay } from 'Types/function';
@@ -820,12 +824,12 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       element.removeEventListener(eventName, handler, capture);
    }
 
-   addCaptureEventHandler(eventName: any, element: any): any {
+   addCaptureEventHandler(eventName: string, isBodyElement: boolean): any {
       // В IE в слое совместимости дикая асинхронность,
       // что приводит к тому, что подписка начинает вызываться для компонентов,
       // которые уже удалены из ДОМА механизмами CompoundControl
       if (this._rootDOMNode.parentNode) {
-         this.addHandler(eventName, isBodyElement(element), this.__captureEventHandler, false);
+         this.addHandler(eventName, isBodyElement, this.__captureEventHandler, false);
       }
    }
 
@@ -841,7 +845,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       }
    }
 
-   removeCaptureEventHandler(eventName: string, element: IWasabyHTMLElement): any {
+   removeCaptureEventHandler(eventName: string, isBodyElement: boolean): any {
       // TODO раскомментить после https://online.sbis.ru/opendoc.html?guid=450170bd-6322-4c3c-b6bd-3520ce3cba8a
       // Сейчас есть проблемы с вызовом ref-ов. Рефы на удаление событий вызываются большее количество раз,
       // чем на добавление событий. Это приводит к тому, что обработчики на capture-фазу могут удаляться,
@@ -977,110 +981,125 @@ function vdomEventBubbling(
    args: any,
    native: any
 ): any {
+   let targetControlNodes = eventObject.target;
+   while (!controlNode) {
+      targetControlNodes = targetControlNodes.parentNode;
+      if (!targetControlNodes) {
+         return;
+      }
+      controlNode = targetControlNodes.controlNodes;
+   }
    let eventProperties;
    let stopPropagation = false;
    const eventPropertyName = 'on:' + eventObject.type.toLowerCase();
    let curDomNode;
+   let curVNode;
    let fn;
    let evArgs;
    let templateArgs;
    let finalArgs = [];
 
-   //Если событием стрельнул window или document, то распространение начинаем с body
-   if (native) {
-      curDomNode =
-         eventObject.target === window || eventObject.target === document ? document.body : eventObject.target;
-   } else {
-      curDomNode = controlNode.element;
+   if (!(controlNode instanceof Array)) {
+      controlNode = [controlNode];
    }
-   curDomNode = native ? curDomNode : controlNode.element;
+   for (let controlIndex = controlNode.length-1;  controlIndex > -1; controlIndex--) {
+      curVNode = controlNode[controlIndex].fullMarkup;
+      curDomNode = controlNode[controlIndex].element;
 
-   //Цикл, в котором поднимаемся по DOM-нодам
-   while (!stopPropagation) {
-      eventProperties = curDomNode.eventProperties;
-      if (eventProperties && eventProperties[eventPropertyName]) {
-         //Вызываем обработчики для всех controlNode на этой DOM-ноде
-         const eventProperty = eventPropertiesStartArray || eventProperties[eventPropertyName];
-         for (let i = 0; i < eventProperty.length && !stopPropagation; i++) {
-            fn = eventProperty[i].fn;
-            evArgs = eventProperty[i].args;
-            // If controlNode has event properties on it, we have to update args, because of the clos
-            // happens in template function
-            templateArgs = isArgsLengthEqual(checkControlNodeEvents(controlNode, eventPropertyName, i), evArgs)
-               ? controlNode.events[eventPropertyName][i].args : evArgs;
-            try {
-               if (!args.concat) {
-                  throw new Error(
-                     'Аргументы обработчика события ' + eventPropertyName.slice(3) + ' должны быть массивом.'
-                  );
-               }
-               /* Составляем массив аргументов для обаботчика. Первым аргументом будет объект события. Затем будут
-                * аргументы, переданные в обработчик в шаблоне, и последними - аргументы в _notify */
-               finalArgs = [eventObject];
-               Array.prototype.push.apply(finalArgs, templateArgs);
-               Array.prototype.push.apply(finalArgs, args);
-               // Добавляем в eventObject поле со ссылкой DOM-элемент, чей обработчик вызываем
-               eventObject.currentTarget = curDomNode;
+      //Цикл, в котором поднимаемся по DOM-нодам
+      while (!stopPropagation) {
+         eventProperties = curVNode.events;
+         if (eventProperties && eventProperties[eventPropertyName]) {
+            //Вызываем обработчики для всех controlNode на этой DOM-ноде
+            const eventProperty = eventPropertiesStartArray || eventProperties[eventPropertyName];
+            for (let i = 0; i < eventProperty.length && !stopPropagation; i++) {
+               fn = eventProperty[i].fn;
+               evArgs = eventProperty[i].args;
+               // If controlNode has event properties on it, we have to update args, because of the clos
+               // happens in template function
+               templateArgs = isArgsLengthEqual(checkControlNodeEvents(controlNode, eventPropertyName, i), evArgs)
+                  ? controlNode.events[eventPropertyName][i].args : evArgs;
+               try {
+                  if (!args.concat) {
+                     throw new Error(
+                        'Аргументы обработчика события ' + eventPropertyName.slice(3) + ' должны быть массивом.'
+                     );
+                  }
+                  /* Составляем массив аргументов для обаботчика. Первым аргументом будет объект события. Затем будут
+                   * аргументы, переданные в обработчик в шаблоне, и последними - аргументы в _notify */
+                  finalArgs = [eventObject];
+                  Array.prototype.push.apply(finalArgs, templateArgs);
+                  Array.prototype.push.apply(finalArgs, args);
+                  // Добавляем в eventObject поле со ссылкой DOM-элемент, чей обработчик вызываем
+                  eventObject.currentTarget = curDomNode;
 
-               /* Control can be destroyed, while some of his children emit async event.
-                * we ignore it event*/
-               /* Также игнорируем обработчики контрола, который выпустил событие.
-                * То есть, сам на себя мы не должны реагировать
-                * */
-               if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control)) {
-                  fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
-               }
-               /* Проверяем, нужно ли дальше распространять событие по controlNodes */
-               if (!eventObject.propagating()) {
-                  const needCallNext =
-                     !eventObject.isStopped() &&
-                     eventProperty[i + 1] &&
-                     (eventProperty[i + 1].toPartial ||
-                        eventProperty[i + 1].fn.controlDestination ===
-                        eventProperty[i].fn.controlDestination);
-                  /* Если подписались на события из HOC'a, и одновременно подписались на контент хока, то прекращать
-                   распространение не нужно.
-                    Пример sync-tests/vdomEvents/hocContent/hocContent */
-                  if (!needCallNext) {
+                  /* Control can be destroyed, while some of his children emit async event.
+                   * we ignore it event*/
+                  /* Также игнорируем обработчики контрола, который выпустил событие.
+                   * То есть, сам на себя мы не должны реагировать
+                   * */
+                  if (!fn.control._destroyed && (!controlNode[controlIndex] || fn.control !== controlNode[controlIndex].control)) {
+                     fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
                      stopPropagation = true;
                   }
-               }
-            } catch (errorInfo) {
-               let msg = `Event handle: "${eventObject.type}"`;
-               let errorPoint;
-
-               if (!fn.control) {
-                  if (typeof window !== 'undefined') {
-                     errorPoint = fn;
-                     msg += '; Error calculating the logical parent for the function';
-                  } else {
-                     errorPoint = curDomNode;
+                  /* Проверяем, нужно ли дальше распространять событие по controlNodes */
+                  if (!eventObject.propagating()) {
+                     const needCallNext =
+                        !eventObject.isStopped() &&
+                        eventProperty[i + 1] &&
+                        (eventProperty[i + 1].toPartial ||
+                           eventProperty[i + 1].fn.controlDestination ===
+                           eventProperty[i].fn.controlDestination);
+                     /* Если подписались на события из HOC'a, и одновременно подписались на контент хока, то прекращать
+                      распространение не нужно.
+                       Пример sync-tests/vdomEvents/hocContent/hocContent */
+                     if (!needCallNext) {
+                        stopPropagation = true;
+                     }
                   }
-               } else {
-                  errorPoint = fn.control;
-               }
+               } catch (errorInfo) {
+                  let msg = `Event handle: "${eventObject.type}"`;
+                  let errorPoint;
 
-               Logger.error(msg, errorPoint, errorInfo);
+                  if (!fn.control) {
+                     if (typeof window !== 'undefined') {
+                        errorPoint = fn;
+                        msg += '; Error calculating the logical parent for the function';
+                     } else {
+                        errorPoint = curDomNode;
+                     }
+                  } else {
+                     errorPoint = fn.control;
+                  }
+
+                  Logger.error(msg, errorPoint, errorInfo);
+               }
             }
          }
-      }
-      // TODO Remove when compatible is removed
-      if (curDomNode.compatibleNotifier && controlNode && controlNode.element !== curDomNode) {
-         const res = curDomNode.compatibleNotifier.notifyVdomEvent(
-            eventObject.type,
-            args,
-            controlNode && controlNode.control
-         );
-         if (!eventObject.hasOwnProperty('result')) {
-            eventObject.result = res;
+         // TODO Remove when compatible is removed
+         if (curDomNode && curDomNode.compatibleNotifier && controlNode[controlIndex] && controlNode[controlIndex].element !== curDomNode) {
+            const res = curDomNode.compatibleNotifier.notifyVdomEvent(
+               eventObject.type,
+               args,
+               controlNode[controlIndex] && controlNode[controlIndex].control
+            );
+            if (!eventObject.hasOwnProperty('result')) {
+               eventObject.result = res;
+            }
          }
-      }
-      curDomNode = curDomNode.parentNode;
-      if (curDomNode === null || curDomNode === undefined || !eventObject.propagating()) {
-         stopPropagation = true;
-      }
-      if (eventPropertiesStartArray !== undefined) {
-         eventPropertiesStartArray = undefined;
+         curVNode = curVNode.parent;
+         // TODO: нужна ли проверка?
+         if (curVNode) {
+            curDomNode = curVNode.dom;
+            if (curDomNode === null || curDomNode === undefined || !eventObject.propagating()) {
+               stopPropagation = true;
+            }
+         } else {
+            stopPropagation = true;
+         }
+         if (eventPropertiesStartArray !== undefined) {
+            eventPropertiesStartArray = undefined;
+         }
       }
    }
 }
@@ -1262,15 +1281,6 @@ function captureEventHandler(event: any): any {
 
       vdomEventBubbling(synthEvent, null, undefined, [], true);
    }
-}
-
-/**
- * Определяем кейс, в котором нужно подписаться именно на window.
- * @param {HTMLElement} element - элемент, у которого мы хотим обработать событие
- * @returns {boolean}
- */
-function isBodyElement(element: HTMLElement): boolean {
-   return element && element.tagName === 'BODY';
 }
 
 /**
