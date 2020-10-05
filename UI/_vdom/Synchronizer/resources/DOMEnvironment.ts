@@ -985,19 +985,49 @@ function vdomEventBubbling(
    let evArgs;
    let templateArgs;
    let finalArgs = [];
-
-   //Если событием стрельнул window или document, то распространение начинаем с body
-   if (native) {
-      curDomNode =
-         eventObject.target === window || eventObject.target === document ? document.body : eventObject.target;
-   } else {
-      curDomNode = controlNode.element;
+   let targetControlNodes = eventObject.target;
+   let controlNodes;
+   while (!controlNodes) {
+      targetControlNodes = targetControlNodes.parentNode;
+      if (!targetControlNodes) {
+         return;
+      }
+      controlNodes = targetControlNodes.controlNodes;
    }
-   curDomNode = native ? curDomNode : controlNode.element;
+   if (!controlNodes.length) {
+      return;
+   }
+   const findNested = function (vnode) {
+      if (vnode instanceof Array) {
+         for (let i in vnode) {
+            if (vnode[i].dom === eventObject.target) {
+               curVnode = vnode[i];
+               return;
+            }
+            if (vnode[i].dom !== eventObject.target && vnode[i].children) {
+               findNested(vnode[i].children);
+            }
+         }
+      } else {
+         if (vnode.dom === eventObject.target) {
+            curVnode = vnode;
+            return;
+         }
+         if (vnode.dom !== eventObject.target && vnode.children) {
+            findNested(vnode.children);
+         }
+      }
+   }
+   let curVnode;
+   findNested(controlNodes[0].fullMarkup);
+   if (!curVnode) {
+      return;
+   }
+   curDomNode = curVnode.dom;
 
    //Цикл, в котором поднимаемся по DOM-нодам
    while (!stopPropagation) {
-      eventProperties = curDomNode.eventProperties;
+      eventProperties = curVnode.eventProperties;
       if (eventProperties && eventProperties[eventPropertyName]) {
          //Вызываем обработчики для всех controlNode на этой DOM-ноде
          const eventProperty = eventPropertiesStartArray || eventProperties[eventPropertyName];
@@ -1065,7 +1095,7 @@ function vdomEventBubbling(
          }
       }
       // TODO Remove when compatible is removed
-      if (curDomNode.compatibleNotifier && controlNode && controlNode.element !== curDomNode) {
+      if (curDomNode && curDomNode.compatibleNotifier && controlNode && controlNode.element !== curDomNode) {
          const res = curDomNode.compatibleNotifier.notifyVdomEvent(
             eventObject.type,
             args,
@@ -1075,8 +1105,12 @@ function vdomEventBubbling(
             eventObject.result = res;
          }
       }
-      curDomNode = curDomNode.parentNode;
-      if (curDomNode === null || curDomNode === undefined || !eventObject.propagating()) {
+      if (curVnode) {
+         curVnode = curVnode.parent;
+         curDomNode = curVnode && curVnode.dom;
+      }
+      if (curDomNode === null || curDomNode === undefined || !eventObject.propagating() ||
+         curVnode === null || curVnode === undefined) {
          stopPropagation = true;
       }
       if (eventPropertiesStartArray !== undefined) {
