@@ -256,18 +256,7 @@ class PatchVisitor implements Ast.IAstVisitor {
    visitAll(nodes: Ast.Ast[], context: INavigationContext): any {
       const children = [];
       for (let i = 0; i < nodes.length; ++i) {
-         let parentKey = context.parentKey;
-         if (
-            nodes[i] instanceof Ast.ForNode ||
-            nodes[i] instanceof Ast.ForeachNode ||
-            nodes[i] instanceof Ast.StaticPartialNode ||
-            nodes[i] instanceof Ast.DynamicPartialNode ||
-            nodes[i] instanceof Ast.InlineTemplateNode
-         ) {
-            // FIXME: Reset parent key for some kind of nodes
-            parentKey = '';
-         }
-         const key = parentKey + children.length + '_';
+         const key = context.parentKey + children.length + '_';
          const childContext: INavigationContext = {
             ...context,
             parentKey: key
