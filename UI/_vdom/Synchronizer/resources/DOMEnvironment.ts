@@ -1002,7 +1002,7 @@ function vdomEventBubbling(
    if (!(controlNode instanceof Array)) {
       controlNode = [controlNode];
    }
-   for (let controlIndex = 0; controlIndex < controlNode.length; controlIndex++) {
+   for (let controlIndex = controlNode.length-1;  controlIndex > -1; controlIndex--) {
       curVNode = controlNode[controlIndex].fullMarkup;
       curDomNode = controlNode[controlIndex].element;
 
@@ -1077,7 +1077,7 @@ function vdomEventBubbling(
             }
          }
          // TODO Remove when compatible is removed
-         if (curDomNode.compatibleNotifier && controlNode[controlIndex] && controlNode[controlIndex].element !== curDomNode) {
+         if (curDomNode && curDomNode.compatibleNotifier && controlNode[controlIndex] && controlNode[controlIndex].element !== curDomNode) {
             const res = curDomNode.compatibleNotifier.notifyVdomEvent(
                eventObject.type,
                args,
