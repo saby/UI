@@ -15,7 +15,7 @@ import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 interface INavigationContext {
    scope: Scope;
    parent: Ast.Ast | null;
-   parentKey: string;
+   key: string;
    isBind?: boolean;
    isEvent?: boolean;
    localized?: boolean;
@@ -60,6 +60,8 @@ class PatchVisitor implements Ast.IAstVisitor {
    // done.
    visitDoctype(node: Ast.DoctypeNode, context: INavigationContext): any {
       // @ts-ignore
+      node.key = context.key;
+      // @ts-ignore
       node.type = 'directive';
       // @ts-ignore
       node.name = '!DOCTYPE';
@@ -71,6 +73,8 @@ class PatchVisitor implements Ast.IAstVisitor {
    // done.
    visitCData(node: Ast.CDataNode, context: INavigationContext): any {
       // @ts-ignore
+      node.key = context.key;
+      // @ts-ignore
       node.type = 'directive';
       // @ts-ignore
       node.name = '![CDATA[';
@@ -81,6 +85,8 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitInstruction(node: Ast.InstructionNode, context: INavigationContext): any {
+      // @ts-ignore
+      node.key = context.key;
       // @ts-ignore
       node.type = 'directive';
       // @ts-ignore
@@ -99,6 +105,8 @@ class PatchVisitor implements Ast.IAstVisitor {
    visitFor(node: Ast.ForNode, context: INavigationContext): any {
       // @ts-ignore
       node.children = this.visitAll(node.__$ws_content, context);
+      // @ts-ignore
+      node.key = context.key;
       // @ts-ignore
       node.name = 'ws:for';
       // @ts-ignore
@@ -164,6 +172,8 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.children = this.visitAll(node.__$ws_content, context);
       // @ts-ignore
+      node.key = context.key;
+      // @ts-ignore
       node.name = 'ws:for';
       // @ts-ignore
       node.originName = 'ws:for';
@@ -202,6 +212,8 @@ class PatchVisitor implements Ast.IAstVisitor {
          ...context
       };
       const content = this.visitAll(node.__$ws_content, textContext);
+      // @ts-ignore
+      node.key = context.key;
       // @ts-ignore
       node.data = (node.__$ws_content.length === 1 && node.__$ws_content[0] instanceof Ast.TextDataNode) ? content[0] : content;
       // @ts-ignore
@@ -256,31 +268,12 @@ class PatchVisitor implements Ast.IAstVisitor {
    visitAll(nodes: Ast.Ast[], context: INavigationContext): any {
       const children = [];
       for (let i = 0; i < nodes.length; ++i) {
-         let contentPrefix = context.parentKey;
-         const node = nodes[i];
-         if (
-            // component
-            node instanceof Ast.ComponentNode ||
-            // ws:for
-            node instanceof Ast.ForNode ||
-            node instanceof Ast.ForeachNode ||
-            // ws:partial
-            node instanceof Ast.StaticPartialNode ||
-            node instanceof Ast.DynamicPartialNode ||
-            node instanceof Ast.InlineTemplateNode
-         ) {
-            // FIXME: Reset parent key for some kind of nodes
-            contentPrefix = '';
-         }
-         const key = context.parentKey + children.length + '_';
          const childContext: INavigationContext = {
             ...context,
-            parentKey: contentPrefix + children.length + '_'
+            key: context.key + children.length + '_'
          };
-         const child = node.accept(this, childContext);
+         const child = nodes[i].accept(this, childContext);
          if (child) {
-            // @ts-ignore
-            child.key = key;
             children.push(child);
          }
       }
@@ -289,6 +282,8 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitTemplate(node: Ast.TemplateNode, context: INavigationContext): any {
+      // @ts-ignore
+      node.key = context.key;
       // @ts-ignore
       node.children = this.visitAll(node.__$ws_content, context);
       // @ts-ignore
@@ -306,6 +301,8 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitElement(node: Ast.ElementNode, context: INavigationContext): any {
+      // @ts-ignore
+      node.key = context.key;
       // @ts-ignore
       node.children = this.visitAll(node.__$ws_content, context);
       // @ts-ignore
@@ -473,6 +470,8 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.children = this.visitAll(node.__$ws_consequent, context);
       // @ts-ignore
+      node.key = context.key;
+      // @ts-ignore
       node.attribs = {
          data: {
             data: [{
@@ -502,6 +501,8 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.children = this.visitAll(node.__$ws_consequent, context);
       // @ts-ignore
+      node.key = context.key;
+      // @ts-ignore
       node.attribs = node.__$ws_test ? {
          data: {
             data: [{
@@ -528,6 +529,8 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitOption(node: Ast.OptionNode, context: INavigationContext): any {
+      // @ts-ignore
+      node.key = context.key;
       // @ts-ignore
       node.name = `ws:${node.__$ws_name}`;
       // @ts-ignore
@@ -587,6 +590,8 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.children = this.visitAll(node.__$ws_content, context);
       // @ts-ignore
+      node.key = context.key;
+      // @ts-ignore
       node.attribs = attributes;
       // @ts-ignore
       node.name = `ws:${node.__$ws_name}`;
@@ -599,6 +604,8 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitComponent(node: Ast.ComponentNode, context: INavigationContext): any {
+      // @ts-ignore
+      node.key = context.key;
       // @ts-ignore
       node.attribs = this.collectComponentAttributes(node, context);
       if (node.__$ws_path.hasLogicalPath()) {
@@ -640,7 +647,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.attribs = undefined;
       // @ts-ignore
-      node.key = context.parentKey;
+      node.key = context.key;
       // @ts-ignore
       node.name = `ws:Array`;
       // @ts-ignore
@@ -657,7 +664,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.attribs = undefined;
       // @ts-ignore
-      node.key = context.parentKey;
+      node.key = context.key;
       // @ts-ignore
       node.name = `ws:Boolean`;
       // @ts-ignore
@@ -688,7 +695,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.attribs = Object.keys(options).length > 0 ? options : undefined;
       // @ts-ignore
-      node.key = context.parentKey;
+      node.key = context.key;
       // @ts-ignore
       node.name = `ws:Function`;
       // @ts-ignore
@@ -709,7 +716,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.attribs = undefined;
       // @ts-ignore
-      node.key = context.parentKey;
+      node.key = context.key;
       // @ts-ignore
       node.name = `ws:Number`;
       // @ts-ignore
@@ -730,7 +737,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.attribs = this.collectObjectAttributeProperties(node, context);
       // @ts-ignore
-      node.key = context.parentKey;
+      node.key = context.key;
       // @ts-ignore
       node.name = `ws:Object`;
       // @ts-ignore
@@ -747,7 +754,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.attribs = undefined;
       // @ts-ignore
-      node.key = context.parentKey;
+      node.key = context.key;
       // @ts-ignore
       node.name = `ws:String`;
       // @ts-ignore
@@ -768,7 +775,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.attribs = undefined;
       // @ts-ignore
-      node.key = context.parentKey;
+      node.key = context.key;
       // @ts-ignore
       node.name = `ws:Value`;
       // @ts-ignore
@@ -787,6 +794,8 @@ class PatchVisitor implements Ast.IAstVisitor {
    // done.
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: INavigationContext): any {
       const attributes = this.collectComponentAttributes(node, context);
+      // @ts-ignore
+      node.key = context.key;
       // @ts-ignore
       node.attribs = {
          ...attributes,
@@ -827,6 +836,8 @@ class PatchVisitor implements Ast.IAstVisitor {
    // done.
    visitStaticPartial(node: Ast.StaticPartialNode, context: INavigationContext): any {
       const attributes = this.collectComponentAttributes(node, context);
+      // @ts-ignore
+      node.key = context.key;
       // @ts-ignore
       node.attribs = {
          ...attributes,
@@ -903,6 +914,8 @@ class PatchVisitor implements Ast.IAstVisitor {
          value: ''
       };
       // @ts-ignore
+      node.key = context.key;
+      // @ts-ignore
       node.attribs = {
          ...attributes,
          template: {
@@ -971,36 +984,30 @@ class PatchVisitor implements Ast.IAstVisitor {
    private collectContents(node: Ast.BaseWasabyElement, context: INavigationContext): any[] {
       const injectedData = [];
       for (const optionName in node.__$ws_options) {
-         const key = context.parentKey + injectedData.length + '_';
          const option = node.__$ws_options[optionName];
          if (option.hasFlag(Ast.Flags.UNPACKED)) {
             continue;
          }
          const childContext: INavigationContext = {
             ...context,
-            parentKey: key
+            key: context.key + injectedData.length + '_'
          };
          const injectedNode = option.accept(this, childContext);
          if (injectedNode) {
-            // @ts-ignore
-            injectedNode.key = key;
             injectedData.push(injectedNode);
          }
       }
       for (const optionName in node.__$ws_contents) {
-         const key = context.parentKey + injectedData.length + '_';
          const originContent = node.__$ws_contents[optionName];
          if (originContent.hasFlag(Ast.Flags.NEST_CASTED)) {
             return this.visitAll(originContent.__$ws_content, context);
          }
          const childContext: INavigationContext = {
             ...context,
-            parentKey: key
+            key: context.key + injectedData.length + '_'
          };
          const contentNode = node.__$ws_contents[optionName].accept(this, childContext);
          if (contentNode) {
-            // @ts-ignore
-            contentNode.key = key;
             injectedData.push(contentNode);
          }
       }
@@ -1032,19 +1039,16 @@ class PatchVisitor implements Ast.IAstVisitor {
    private collectObjectProperties(node: Ast.ObjectNode, context: INavigationContext): any {
       const injectedData = [];
       for (const optionName in node.__$ws_properties) {
-         const key = context.parentKey + injectedData.length + '_';
          const originProperty = node.__$ws_properties[optionName];
          if (originProperty.hasFlag(Ast.Flags.UNPACKED)) {
             continue;
          }
          const childContext: INavigationContext = {
             ...context,
-            parentKey: key
+            key: context.key + injectedData.length + '_'
          };
          const property = originProperty.accept(this, childContext);
          if (property) {
-            // @ts-ignore
-            property.key = key;
             injectedData.push(property);
          }
       }
@@ -1057,7 +1061,7 @@ export default function patch(nodes: Ast.Ast[], scope: Scope): Ast.Ast[] {
    const context: INavigationContext = {
       scope,
       parent: null,
-      parentKey: ''
+      key: ''
    };
    return visitor.visitAll(nodes, context);
 }
