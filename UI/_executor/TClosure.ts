@@ -20,6 +20,7 @@ import { _FocusAttrs } from 'UI/Focus';
 import * as Scope from './_Expressions/Scope';
 import * as Attr from './_Expressions/Attr';
 import { Common, ConfigResolver } from './Utils';
+import catchEscapeProblems from './EscapeProblebsCatcher';
 
 var decorators;
 function getDecorators() {
@@ -103,7 +104,7 @@ var lastGetterPath;
 var
    getter = function getter(obj, path, viewController) {
       lastGetterPath = path;
-      return object.extractValue(obj, path, (name: string, scope: unknown, depth: number): void => {
+      const getterResult = object.extractValue(obj, path, (name: string, scope: unknown, depth: number): void => {
          const error = scope['_$' + name];
          if (error instanceof ConfigResolver.UseAutoProxiedOptionError) {
             if (!error.isDestroyed()) {
@@ -116,6 +117,8 @@ var
             }
          }
       });
+      catchEscapeProblems(getterResult, viewController, path.join('.'));
+      return getterResult;
    },
 
    /**
