@@ -1019,7 +1019,11 @@ function vdomEventBubbling(
       }
    }
    let curVnode;
-   findNested(controlNodes[0].fullMarkup);
+   for (let control in controlNodes) {
+      if (!curVnode){
+         findNested(controlNodes[control].fullMarkup);
+      }
+   }
    if (!curVnode) {
       return;
    }
@@ -1125,7 +1129,7 @@ function vdomEventBubbling(
  * @returns {number}
  */
 function getEventPropertiesStartArray(controlNode: any, eventName: any): any {
-   const eventProperties = controlNode.element.eventProperties;
+   const eventProperties = controlNode.vnode.eventProperties;
    const controlNodes = controlNode.element.controlNodes;
    const eventPropertyName = 'on:' + eventName;
    const result = [];
