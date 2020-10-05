@@ -256,12 +256,15 @@ class PatchVisitor implements Ast.IAstVisitor {
    visitAll(nodes: Ast.Ast[], context: INavigationContext): any {
       const children = [];
       for (let i = 0; i < nodes.length; ++i) {
+         const key = children.length + '_';
          const childContext: INavigationContext = {
             ...context,
-            parentKey: context.parentKey + i + '_'
+            parentKey: context.parentKey + key
          };
          const child = nodes[i].accept(this, childContext);
          if (child) {
+            // @ts-ignore
+            child.key = key;
             children.push(child);
          }
       }
@@ -518,7 +521,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       const optionValue = node.__$ws_value;
       if (optionValue.hasFlag(Ast.Flags.TYPE_CASTED)) {
          const isArrayOrObject = optionValue instanceof Ast.ArrayNode && optionValue.__$ws_elements.length > 1
-            || optionValue instanceof Ast.ArrayNode;
+            || optionValue instanceof Ast.ObjectNode;
          const patchedOptionValue = optionValue.accept(this, context);
          // @ts-ignore
          node.attribs = patchedOptionValue.attribs;
@@ -952,30 +955,36 @@ class PatchVisitor implements Ast.IAstVisitor {
    private collectContents(node: Ast.BaseWasabyElement, context: INavigationContext): any[] {
       const injectedData = [];
       for (const optionName in node.__$ws_options) {
+         const key = injectedData.length + '_';
          const option = node.__$ws_options[optionName];
          if (option.hasFlag(Ast.Flags.UNPACKED)) {
             continue;
          }
          const childContext: INavigationContext = {
             ...context,
-            parentKey: context.parentKey + (injectedData.length) + '_'
+            parentKey: context.parentKey + key
          };
          const injectedNode = option.accept(this, childContext);
          if (injectedNode) {
+            // @ts-ignore
+            injectedNode.key = key;
             injectedData.push(injectedNode);
          }
       }
       for (const optionName in node.__$ws_contents) {
+         const key = injectedData.length + '_';
          const originContent = node.__$ws_contents[optionName];
          if (originContent.hasFlag(Ast.Flags.NEST_CASTED)) {
             return this.visitAll(originContent.__$ws_content, context);
          }
          const childContext: INavigationContext = {
             ...context,
-            parentKey: context.parentKey + (injectedData.length) + '_'
+            parentKey: context.parentKey + key
          };
          const contentNode = node.__$ws_contents[optionName].accept(this, childContext);
          if (contentNode) {
+            // @ts-ignore
+            contentNode.key = key;
             injectedData.push(contentNode);
          }
       }
@@ -1007,16 +1016,19 @@ class PatchVisitor implements Ast.IAstVisitor {
    private collectObjectProperties(node: Ast.ObjectNode, context: INavigationContext): any {
       const injectedData = [];
       for (const optionName in node.__$ws_properties) {
+         const key = (injectedData.length) + '_';
          const originProperty = node.__$ws_properties[optionName];
          if (originProperty.hasFlag(Ast.Flags.UNPACKED)) {
             continue;
          }
          const childContext: INavigationContext = {
             ...context,
-            parentKey: context.parentKey + (injectedData.length) + '_'
+            parentKey: context.parentKey + key
          };
          const property = originProperty.accept(this, childContext);
          if (property) {
+            // @ts-ignore
+            property.key = key;
             injectedData.push(property);
          }
       }
