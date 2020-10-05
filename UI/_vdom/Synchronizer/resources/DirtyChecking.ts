@@ -4,7 +4,7 @@
  */
 
 /* tslint:disable */
-// @ts-nocheck1
+// @ts-nocheck
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { composeWithResultApply } from '../../Utils/Functional';
