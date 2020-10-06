@@ -245,6 +245,7 @@ export interface ITemplateNode {
    parentControl: IControlNode,
    attributes: TAttributes,
    context: IGeneratorAttrsContext,
+   eventProperties: TEvents,
    type: 'TemplateNode',
    key: string;
    flags: 262144;

@@ -985,19 +985,34 @@ function vdomEventBubbling(
    let evArgs;
    let templateArgs;
    let finalArgs = [];
+   let curVnode;
 
    //Если событием стрельнул window или document, то распространение начинаем с body
    if (native) {
+      curVnode = null;
+   } else {
+      curVnode = controlNode.fullMarkup;
+   }
+   if (native) {
       curDomNode =
-         eventObject.target === window || eventObject.target === document ? document.body : eventObject.target;
+         eventObject.target === window || eventObject.target === document ?
+            document.body :
+            eventObject.target;
    } else {
       curDomNode = controlNode.element;
    }
-   curDomNode = native ? curDomNode : controlNode.element;
+
+   const Control = requirejs('UI/Base').Control;
+   const ws3Found = goUpByControlTree(curDomNode).find((control) => {
+      return !(control instanceof Control);
+   })
+   const isVnodeBubbling = !native && !ws3Found;
 
    //Цикл, в котором поднимаемся по DOM-нодам
    while (!stopPropagation) {
-      eventProperties = curDomNode.eventProperties;
+      eventProperties = isVnodeBubbling ?
+         curVnode.eventProperties :
+         curDomNode.eventProperties;
       if (eventProperties && eventProperties[eventPropertyName]) {
          //Вызываем обработчики для всех controlNode на этой DOM-ноде
          const eventProperty = eventPropertiesStartArray || eventProperties[eventPropertyName];
@@ -1065,7 +1080,7 @@ function vdomEventBubbling(
          }
       }
       // TODO Remove when compatible is removed
-      if (curDomNode.compatibleNotifier && controlNode && controlNode.element !== curDomNode) {
+      if (curDomNode && curDomNode.compatibleNotifier && controlNode && controlNode.element !== curDomNode) {
          const res = curDomNode.compatibleNotifier.notifyVdomEvent(
             eventObject.type,
             args,
@@ -1075,9 +1090,19 @@ function vdomEventBubbling(
             eventObject.result = res;
          }
       }
-      curDomNode = curDomNode.parentNode;
-      if (curDomNode === null || curDomNode === undefined || !eventObject.propagating()) {
-         stopPropagation = true;
+      if (isVnodeBubbling) {
+         curVnode = curVnode.parent;
+         curDomNode = curVnode && curVnode.dom;
+
+         if (curVnode === null || curVnode === undefined && !eventObject.propagating()) {
+            stopPropagation = true;
+         }
+      } else {
+         curDomNode = curDomNode.parentNode;
+
+         if (curDomNode === null || curDomNode === undefined || !eventObject.propagating()) {
+            stopPropagation = true;
+         }
       }
       if (eventPropertiesStartArray !== undefined) {
          eventPropertiesStartArray = undefined;
@@ -1091,7 +1116,7 @@ function vdomEventBubbling(
  * @returns {number}
  */
 function getEventPropertiesStartArray(controlNode: any, eventName: any): any {
-   const eventProperties = controlNode.element.eventProperties;
+   const eventProperties = controlNode.vnode.eventProperties;
    const controlNodes = controlNode.element.controlNodes;
    const eventPropertyName = 'on:' + eventName;
    const result = [];

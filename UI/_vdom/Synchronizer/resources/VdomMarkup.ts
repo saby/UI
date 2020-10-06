@@ -121,6 +121,9 @@ export function mapVNode(
          }
       }
       const newNodeArgs = fn(vnode.type, vnode.hprops, vnode.children, vnode.key, controlNode, vnode.ref, vnode);
+      if (vnode.parent) {
+         newNodeArgs.push(vnode.parent);
+      }
       const sameNode =
          vnode.type === newNodeArgs[0] &&
          vnode.props === newNodeArgs[1] &&
@@ -639,13 +642,13 @@ export function getFullMarkup(
             }
 
             if (changed) {
-               result = htmlNode(vnode.type, vnode.hprops, newChildren, vnode.key, vnode.ref);
+               result = htmlNode(vnode.type, vnode.hprops, newChildren, vnode.key, vnode.ref, vnode.parent);
                result.changed = true;
             } else {
                result = currentFullMarkup;
             }
          } else {
-            result = htmlNode(vnode.type, vnode.hprops, newChildren, vnode.key, vnode.ref);
+            result = htmlNode(vnode.type, vnode.hprops, newChildren, vnode.key, vnode.ref, vnode.parent);
             result.changed = true;
          }
       }

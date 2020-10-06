@@ -34,7 +34,8 @@ export function htmlNode(
    hprops: VNode['hprops'],
    children: VNode['children'],
    key: VNode['key'],
-   ref?: VNode['ref']
+   ref?: VNode['ref'],
+   parent?: VNode
 ): VNode {
    const flags = getFlagsForElementVnode(tagName);
    const className = (hprops && hprops.attributes && hprops.attributes['class']) || '';
@@ -47,8 +48,14 @@ export function htmlNode(
       childFlags,
       hprops.attributes,
       key,
-      ref);
+      ref, parent,
+      hprops.events);
    vnode.hprops = hprops;
+   vnode.parent = parent;
+   for (let i = 0; i < children.length; i++) {
+      children[i].parent = vnode;
+   }
+   vnode.eventProperties = hprops.events || {};
    return vnode;
 }
 
