@@ -974,7 +974,7 @@ function hasComaptibleNode(startPoint: Element): boolean {
 }
 
 /**
- * Распространение происходит по DOM-нодам вверх по родителям, с использованием массива обработчиков eventProperties,
+ * Распространение происходит по VDOM-нодам вверх по родителям, с использованием массива обработчиков eventProperties,
  * в котором указаны обработчики для каждого контрола, если эти контролы подписаны на событие
  * Таким образом, обходим всю иерархию, даже если на дом-ноде висит несколько контрол-нод.
  * @param eventObject - Объект распространения
@@ -1001,50 +1001,47 @@ function vdomEventBubbling(
    let templateArgs;
    let finalArgs = [];
    if (controlNode) {
-      curVnode = controlNode.vnode;
+      curVnode = controlNode.fullMarkup;
    }
-   if (!controlNode) {
-      const findNested = (vnode: any) => {
-         const check = (vnode: any) => {
-            if (vnode.dom === eventObject.target) {
-               curVnode = vnode;
-               return;
-            }
-            if (vnode.children) {
-               findNested(vnode.children);
-            }
-         };
-         if (vnode instanceof Array) {
-            for (const n in vnode) {
-               check(vnode[n]);
-            }
-         } else {
-            check(vnode);
-         }
-      };
-
-      let targetControlNodes = eventObject.target;
-      let controlNodes;
-      while (!controlNodes) {
-         targetControlNodes = targetControlNodes.parentNode;
-         if (!targetControlNodes) {
+   const findNested = (vnode: any) => {
+      const check = (vnode: any) => {
+         if (vnode.dom === eventObject.target) {
+            curVnode = vnode;
             return;
          }
-         controlNodes = targetControlNodes.controlNodes;
-      }
-      if (!controlNodes.length) {
-         return;
-      }
-      for (const control in controlNodes) {
-         if (!curVnode) {
-            findNested(controlNodes[control].fullMarkup);
+         if (vnode.children) {
+            findNested(vnode.children);
          }
+      };
+      if (vnode instanceof Array) {
+         for (const n in vnode) {
+            check(vnode[n]);
+         }
+      } else {
+         check(vnode);
       }
-      if (!curVnode) {
+   };
+
+   let targetControlNodes = eventObject.target;
+   let controlNodes;
+   while (!controlNodes) {
+      targetControlNodes = targetControlNodes.parentNode;
+      if (!targetControlNodes) {
          return;
       }
+      controlNodes = targetControlNodes.controlNodes;
    }
-   //Цикл, в котором поднимаемся по DOM-нодам
+   if (!controlNodes.length) {
+      return;
+   }
+   for (const control in controlNodes) {
+         findNested(controlNodes[control].fullMarkup);
+   }
+   if (!curVnode) {
+      return;
+   }
+
+   //Цикл, в котором поднимаемся по VDOM-нодам
    while (!stopPropagation) {
       eventProperties = curVnode.eventProperties;
       if (eventProperties && eventProperties[eventPropertyName]) {
@@ -1123,6 +1120,18 @@ function vdomEventBubbling(
    }
 }
 
+/**
+ * Распространение происходит по DOM-нодам вверх по родителям, с использованием массива обработчиков eventProperties,
+ * в котором указаны обработчики для каждого контрола, если эти контролы подписаны на событие
+ * Таким образом, обходим всю иерархию, даже если на дом-ноде висит несколько контрол-нод.
+ * @param eventObject - Объект распространения
+ * @param controlNode - Контрол-нода, с элемента которой начинается распространение, если это кастомное событие
+ * @param eventPropertiesStartArray - массив обработчиков в массиве eventProperties у eventObject.target,
+ * с которого нужно начать цепочку вызовов обработчиков события. Необходимо для того, чтобы не вызывать обработчики
+ * контролов дочерних контрол-нод.
+ * @param args - Аргументы, переданные в _notify
+ * @param native {any} - TODO: describe function parameter
+ */
 // TODO Remove when compatible is removed
 function compatibleEventBubbling(
    eventObject: any,
