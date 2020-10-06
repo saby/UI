@@ -14,7 +14,6 @@ import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 
 interface INavigationContext {
    scope: Scope;
-   parent: Ast.Ast | null;
    key: string;
    isBind?: boolean;
    isEvent?: boolean;
@@ -1057,7 +1056,6 @@ export default function patch(nodes: Ast.Ast[], scope: Scope): Ast.Ast[] {
    const visitor = new PatchVisitor();
    const context: INavigationContext = {
       scope,
-      parent: null,
       key: ''
    };
    return visitor.visitAll(nodes, context);
