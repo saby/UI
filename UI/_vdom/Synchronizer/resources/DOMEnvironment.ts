@@ -993,7 +993,7 @@ function vdomEventBubbling(
          eventObject.target === window || eventObject.target === document ?
             // @ts-ignore
             document.body.controlNodes[0].fullMarkup :
-            controlNode.fullMarkup;
+            eventObject.target.$V;
    } else {
       curVnode = controlNode.fullMarkup;
    }
