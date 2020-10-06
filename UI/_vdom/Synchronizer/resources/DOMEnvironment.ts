@@ -991,7 +991,8 @@ function vdomEventBubbling(
    if (native) {
       curVnode =
          eventObject.target === window || eventObject.target === document ?
-            document.body.controlNodes[0].controlNode.fullMarkup :
+            // @ts-ignore
+            document.body.controlNodes[0].fullMarkup :
             controlNode.fullMarkup;
    } else {
       curVnode = controlNode.fullMarkup;
