@@ -981,54 +981,58 @@ function vdomEventBubbling(
    let stopPropagation = false;
    const eventPropertyName = 'on:' + eventObject.type.toLowerCase();
    let curDomNode;
+   let curVnode;
    let fn;
    let evArgs;
    let templateArgs;
    let finalArgs = [];
    let targetControlNodes = eventObject.target;
    let controlNodes;
-   while (!controlNodes) {
-      targetControlNodes = targetControlNodes.parentNode;
-      if (!targetControlNodes) {
-         return;
-      }
-      controlNodes = targetControlNodes.controlNodes;
+   if (controlNode) {
+      curVnode = controlNode.vnode;
    }
-   if (!controlNodes.length) {
-      return;
-   }
-   const findNested = function (vnode) {
-      if (vnode instanceof Array) {
-         for (let i in vnode) {
-            if (vnode[i].dom === eventObject.target) {
-               curVnode = vnode[i];
+   if (!controlNode) {
+      const findNested = function(vnode) {
+         var check = function(vnode) {
+            if (vnode.dom === eventObject.target) {
+               curVnode = vnode;
                return;
             }
-            if (vnode[i].dom !== eventObject.target && vnode[i].children) {
-               findNested(vnode[i].children);
+            if (vnode.children) {
+               findNested(vnode.children);
             }
+         };
+         if (vnode instanceof Array) {
+            for (const n in vnode) {
+               check(vnode[n])
+            }
+         } else {
+            check(vnode)
          }
-      } else {
-         if (vnode.dom === eventObject.target) {
-            curVnode = vnode;
+      };
+
+      let targetControlNodes = eventObject.target;
+      let controlNodes;
+      while (!controlNodes) {
+         targetControlNodes = targetControlNodes.parentNode;
+         if (!targetControlNodes) {
             return;
          }
-         if (vnode.dom !== eventObject.target && vnode.children) {
-            findNested(vnode.children);
+         controlNodes = targetControlNodes.controlNodes;
+      }
+      if (!controlNodes.length) {
+         return;
+      }
+      for (let control in controlNodes) {
+         if (!curVnode){
+            findNested(controlNodes[control].fullMarkup);
          }
       }
-   }
-   let curVnode;
-   for (let control in controlNodes) {
-      if (!curVnode){
-         findNested(controlNodes[control].fullMarkup);
+      if (!curVnode) {
+         return;
       }
    }
-   if (!curVnode) {
-      return;
-   }
    curDomNode = curVnode.dom;
-
    //Цикл, в котором поднимаемся по DOM-нодам
    while (!stopPropagation) {
       eventProperties = curVnode.eventProperties;
@@ -1113,8 +1117,9 @@ function vdomEventBubbling(
          curVnode = curVnode.parent;
          curDomNode = curVnode && curVnode.dom;
       }
-      if (curDomNode === null || curDomNode === undefined || !eventObject.propagating() ||
-         curVnode === null || curVnode === undefined) {
+      if (curVnode === null || curVnode === undefined
+         || curDomNode === null || curDomNode === undefined
+         || !eventObject.propagating()) {
          stopPropagation = true;
       }
       if (eventPropertiesStartArray !== undefined) {
