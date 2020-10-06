@@ -1101,7 +1101,7 @@ function vdomEventBubbling(
                      errorPoint = fn;
                      msg += '; Error calculating the logical parent for the function';
                   } else {
-                     errorPoint = curVnode.dom;
+                     errorPoint = curDomNode;
                   }
                } else {
                   errorPoint = fn.control;
