@@ -642,13 +642,13 @@ export function getFullMarkup(
             }
 
             if (changed) {
-               result = htmlNode(vnode.type, vnode.hprops, newChildren, vnode.key, vnode.ref);
+               result = htmlNode(vnode.type, vnode.hprops, newChildren, vnode.key, vnode.ref, vnode.parent);
                result.changed = true;
             } else {
                result = currentFullMarkup;
             }
          } else {
-            result = htmlNode(vnode.type, vnode.hprops, newChildren, vnode.key, vnode.ref);
+            result = htmlNode(vnode.type, vnode.hprops, newChildren, vnode.key, vnode.ref, vnode.parent);
             result.changed = true;
          }
       }

@@ -1001,9 +1001,18 @@ function vdomEventBubbling(
    } else {
       curDomNode = controlNode.element;
    }
+
+   const Control = requirejs('UI/Base').Control;
+   const ws3Found = goUpByControlTree(curDomNode).find((control) => {
+      return !(control instanceof Control);
+   })
+   const isVnodeBubbling = !native && !ws3Found;
+
    //Цикл, в котором поднимаемся по DOM-нодам
    while (!stopPropagation) {
-      eventProperties = curVnode && curVnode.eventProperties || native && curDomNode.eventProperties;
+      eventProperties = isVnodeBubbling ?
+         curVnode.eventProperties :
+         curDomNode.eventProperties;
       if (eventProperties && eventProperties[eventPropertyName]) {
          //Вызываем обработчики для всех controlNode на этой DOM-ноде
          const eventProperty = eventPropertiesStartArray || eventProperties[eventPropertyName];
@@ -1081,16 +1090,19 @@ function vdomEventBubbling(
             eventObject.result = res;
          }
       }
-      if (curVnode) {
+      if (isVnodeBubbling) {
          curVnode = curVnode.parent;
          curDomNode = curVnode && curVnode.dom;
-      } else if (native) {
-         // в случае нативного всплытия
+
+         if (curVnode === null || curVnode === undefined && !eventObject.propagating()) {
+            stopPropagation = true;
+         }
+      } else {
          curDomNode = curDomNode.parentNode;
-      }
-      if (curDomNode === null || curDomNode === undefined || !eventObject.propagating() ||
-         curVnode === null || curVnode === undefined) {
-         stopPropagation = true;
+
+         if (curDomNode === null || curDomNode === undefined || !eventObject.propagating()) {
+            stopPropagation = true;
+         }
       }
       if (eventPropertiesStartArray !== undefined) {
          eventPropertiesStartArray = undefined;

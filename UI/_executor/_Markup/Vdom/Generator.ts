@@ -420,7 +420,9 @@ export class GeneratorVdom implements IGenerator {
          attrs: props.attributes
       }),
       //@ts-ignore
-      control._controlNode.fullMarkup && control._controlNode.fullMarkup.parent);
+      control._controlNode.fullMarkup && control._controlNode.fullMarkup.parent ||
+         control._controlNode.vnode && control._controlNode.vnode.parent ||
+         control._controlNode.parent && control._controlNode.parent.vnode);
    }
 
    createEmptyText(key: string): string {
