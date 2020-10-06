@@ -173,6 +173,7 @@ export class GeneratorVdom implements IGenerator {
          controlInternalProperties: data.internal, // служебные опции контрола
          controlAttributes: data.attrs,
          controlEvents: attrs.events,
+         eventProperties: attrs.events,
          key: controlProperties.__key || attrs.key,
          controlNodeIdx: -1,
          context: attrs.context,
@@ -221,6 +222,7 @@ export class GeneratorVdom implements IGenerator {
          parentControl: data.parent,
          attributes,
          context: attributes.key,
+         eventProperties: attributes.events,
          type: 'TemplateNode',
          // Template nodes must participate in reorder DirtyChecking.ts function same as
          // controlNodes do
@@ -416,7 +418,9 @@ export class GeneratorVdom implements IGenerator {
       }.bind({
          control,
          attrs: props.attributes
-      }));
+      }),
+      //@ts-ignore
+      control._controlNode.fullMarkup && control._controlNode.fullMarkup.parent);
    }
 
    createEmptyText(key: string): string {

@@ -25,11 +25,13 @@ export interface IGeneratorControlNode {
     controlInternalProperties: IGeneratorInternalProperties;
     controlAttributes: TAttributes;
     controlEvents: TEvents;
+    eventProperties: TEvents;
     key: string;
     controlNodeIdx: number;
     context: IGeneratorAttrsContext;
     inheritOptions: IGeneratorInheritOptions;
     flags: number;
+
 }
 
 // Тип для генераторов Vdom-нод

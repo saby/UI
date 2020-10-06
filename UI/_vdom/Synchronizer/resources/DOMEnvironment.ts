@@ -699,7 +699,12 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       const startArray = getEventPropertiesStartArray(controlNode, eventName);
       // @ts-ignore FIXME: Argument 'eventConfig' of type {} is not assignable to parameter of type IEventConfig
       eventObject = new SyntheticEvent(null, eventConfig);
-      vdomEventBubbling(eventObject, controlNode, startArray, handlerArgs, false);
+
+      if (hasComaptibleNode(eventObject.target) || (controlNode && hasComaptibleNode(controlNode.element))) {
+         compatibleEventBubbling(eventObject, controlNode, startArray, handlerArgs, false);
+      } else {
+         vdomEventBubbling(eventObject, controlNode, startArray, handlerArgs, false);
+      }
       return eventObject.result;
    }
 
@@ -958,6 +963,163 @@ function checkControlNodeEvents(controlNode: any, eventName: any, index: any): a
    return controlNode && controlNode.events && controlNode.events[eventName] && controlNode.events[eventName][index];
 }
 
+function hasComaptibleNode(startPoint: Element): boolean {
+   const nodes = goUpByControlTree(startPoint);
+   for (const node in nodes) {
+      if (nodes[node]._dotTplFn) {
+         return true;
+      }
+   }
+   return false;
+}
+
+/**
+ * Распространение происходит по VDOM-нодам вверх по родителям, с использованием массива обработчиков eventProperties,
+ * в котором указаны обработчики для каждого контрола, если эти контролы подписаны на событие
+ * Таким образом, обходим всю иерархию, даже если на дом-ноде висит несколько контрол-нод.
+ * @param eventObject - Объект распространения
+ * @param controlNode - Контрол-нода, с элемента которой начинается распространение, если это кастомное событие
+ * @param eventPropertiesStartArray - массив обработчиков в массиве eventProperties у eventObject.target,
+ * с которого нужно начать цепочку вызовов обработчиков события. Необходимо для того, чтобы не вызывать обработчики
+ * контролов дочерних контрол-нод.
+ * @param args - Аргументы, переданные в _notify
+ * @param native {any} - TODO: describe function parameter
+ */
+function vdomEventBubbling(
+   eventObject: any,
+   controlNode: any,
+   eventPropertiesStartArray: any,
+   args: any,
+   native: any
+): any {
+   let eventProperties;
+   let stopPropagation = false;
+   const eventPropertyName = 'on:' + eventObject.type.toLowerCase();
+   let curVnode;
+   let fn;
+   let evArgs;
+   let templateArgs;
+   let finalArgs = [];
+   if (controlNode) {
+      curVnode = controlNode.fullMarkup;
+   }
+   const findNested = (vnode: any) => {
+      const check = (vnode: any) => {
+         if (vnode.dom === eventObject.target) {
+            curVnode = vnode;
+            return;
+         }
+         if (vnode.children) {
+            findNested(vnode.children);
+         }
+      };
+      if (vnode instanceof Array) {
+         for (const n in vnode) {
+            check(vnode[n]);
+         }
+      } else {
+         check(vnode);
+      }
+   };
+
+   let targetControlNodes = eventObject.target;
+   let controlNodes;
+   while (!controlNodes) {
+      targetControlNodes = targetControlNodes.parentNode;
+      if (!targetControlNodes) {
+         return;
+      }
+      controlNodes = targetControlNodes.controlNodes;
+   }
+   if (!controlNodes.length) {
+      return;
+   }
+   for (const control in controlNodes) {
+         findNested(controlNodes[control].fullMarkup);
+   }
+   if (!curVnode) {
+      return;
+   }
+
+   //Цикл, в котором поднимаемся по VDOM-нодам
+   while (!stopPropagation) {
+      eventProperties = curVnode.eventProperties;
+      if (eventProperties && eventProperties[eventPropertyName]) {
+         //Вызываем обработчики для всех controlNode на этой DOM-ноде
+         const eventProperty = eventPropertiesStartArray || eventProperties[eventPropertyName];
+         for (let i = 0; i < eventProperty.length && !stopPropagation; i++) {
+            fn = eventProperty[i].fn;
+            evArgs = eventProperty[i].args;
+            // If controlNode has event properties on it, we have to update args, because of the clos
+            // happens in template function
+            templateArgs = isArgsLengthEqual(checkControlNodeEvents(controlNode, eventPropertyName, i), evArgs)
+               ? controlNode.events[eventPropertyName][i].args : evArgs;
+            try {
+               if (!args.concat) {
+                  throw new Error(
+                     'Аргументы обработчика события ' + eventPropertyName.slice(3) + ' должны быть массивом.'
+                  );
+               }
+               /* Составляем массив аргументов для обаботчика. Первым аргументом будет объект события. Затем будут
+                * аргументы, переданные в обработчик в шаблоне, и последними - аргументы в _notify */
+               finalArgs = [eventObject];
+               Array.prototype.push.apply(finalArgs, templateArgs);
+               Array.prototype.push.apply(finalArgs, args);
+               // Добавляем в eventObject поле со ссылкой DOM-элемент, чей обработчик вызываем
+               eventObject.currentTarget = curVnode.dom;
+
+               /* Control can be destroyed, while some of his children emit async event.
+                * we ignore it event*/
+               /* Также игнорируем обработчики контрола, который выпустил событие.
+                * То есть, сам на себя мы не должны реагировать
+                * */
+               if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control)) {
+                  fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
+               }
+               /* Проверяем, нужно ли дальше распространять событие по controlNodes */
+               if (!eventObject.propagating()) {
+                  const needCallNext =
+                     !eventObject.isStopped() &&
+                     eventProperty[i + 1] &&
+                     (eventProperty[i + 1].toPartial ||
+                        eventProperty[i + 1].fn.controlDestination ===
+                        eventProperty[i].fn.controlDestination);
+                  /* Если подписались на события из HOC'a, и одновременно подписались на контент хока, то прекращать
+                   распространение не нужно.
+                    Пример sync-tests/vdomEvents/hocContent/hocContent */
+                  if (!needCallNext) {
+                     stopPropagation = true;
+                  }
+               }
+            } catch (errorInfo) {
+               let msg = `Event handle: "${eventObject.type}"`;
+               let errorPoint;
+
+               if (!fn.control) {
+                  if (typeof window !== 'undefined') {
+                     errorPoint = fn;
+                     msg += '; Error calculating the logical parent for the function';
+                  } else {
+                     errorPoint = curVnode.dom;
+                  }
+               } else {
+                  errorPoint = fn.control;
+               }
+
+               Logger.error(msg, errorPoint, errorInfo);
+            }
+         }
+      }
+      curVnode = curVnode.parent;
+      if (curVnode === null || curVnode === undefined || !eventObject.propagating()) {
+         stopPropagation = true;
+      }
+      if (eventPropertiesStartArray !== undefined) {
+         eventPropertiesStartArray = undefined;
+      }
+   }
+}
+
 /**
  * Распространение происходит по DOM-нодам вверх по родителям, с использованием массива обработчиков eventProperties,
  * в котором указаны обработчики для каждого контрола, если эти контролы подписаны на событие
@@ -970,7 +1132,8 @@ function checkControlNodeEvents(controlNode: any, eventName: any, index: any): a
  * @param args - Аргументы, переданные в _notify
  * @param native {any} - TODO: describe function parameter
  */
-function vdomEventBubbling(
+// TODO Remove when compatible is removed
+function compatibleEventBubbling(
    eventObject: any,
    controlNode: any,
    eventPropertiesStartArray: any,
@@ -1091,7 +1254,7 @@ function vdomEventBubbling(
  * @returns {number}
  */
 function getEventPropertiesStartArray(controlNode: any, eventName: any): any {
-   const eventProperties = controlNode.element.eventProperties;
+   const eventProperties = controlNode.vnode.eventProperties;
    const controlNodes = controlNode.element.controlNodes;
    const eventPropertyName = 'on:' + eventName;
    const result = [];
@@ -1259,8 +1422,11 @@ function captureEventHandler(event: any): any {
          synthEvent.target = this.touchendTarget;
          this.touchendTarget = null;
       }
-
-      vdomEventBubbling(synthEvent, null, undefined, [], true);
+      if (hasComaptibleNode(event.target)) {
+         compatibleEventBubbling(synthEvent, null, undefined, [], true);
+      } else {
+         vdomEventBubbling(synthEvent, null, undefined, [], true);
+      }
    }
 }
 
