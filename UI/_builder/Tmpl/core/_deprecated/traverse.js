@@ -387,32 +387,9 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
          for (var i = 0; i < ast.length; i++) {
             traverseMethod = this._whatMethodShouldYouUse(ast[i], injectedData);
             if (traverseMethod) {
-               if (ast[i].type === 'tag') {
-                  if (ast[i].parent) {
-                     if (
-                        (
-                           ast[i].parent.children && ast[i].parent.children[0] &&
-                           ast[i].parent.children[0].fn && (
-                              names.isControlString(ast[i].parent.children[0].fn) ||
-                              names.isSlashedControl(ast[i].parent.children[0].fn)
-                           )
-                        ) ||
-                        ast[i].parent.name === 'ws:partial' ||
-                        ast[i].parent.name === 'ws:for'
-                     ) {
-                        parentKey = '';
-                     } else {
-                        parentKey = (ast[i].parent ? (ast[i].parent.key) : '');
-                     }
-                  }
-                  ast[i].key = parentKey + (keyIndex++) + '_';
-                  ast[i].prefix = prefix;
-               }
-               if (ast[i].type === 'text' || ast[i].type === 'style' || ast[i].type === 'script') {
-                  parentKey = (ast[i].parent ? (ast[i].parent.key) : '');
-                  ast[i].key = parentKey + (keyIndex++) + '_';
-                  ast[i].prefix = prefix;
-               }
+               parentKey = (ast[i].parent ? (ast[i].parent.key) : '');
+               ast[i].key = parentKey + (keyIndex++) + '_';
+               ast[i].prefix = prefix;
                ast[i] = checkForAttributes(ast[i]);
                try {
                   if (injectedData && _checkIsPropertyName(ast[i].name)) {
