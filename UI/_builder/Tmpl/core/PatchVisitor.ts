@@ -310,7 +310,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.name = node.__$ws_name;
       // @ts-ignore
       node.originName = node.__$ws_name;
-      const attribs = this.collectAttributes(node, context);
+      const attribs = this.collectAttributes(node, context, true);
       // @ts-ignore
       node.attribs = Object.keys(attribs).length === 0 ? undefined : attribs;
       if (node.__$ws_unpackedCycle) {
@@ -945,10 +945,13 @@ class PatchVisitor implements Ast.IAstVisitor {
    }
 
    // done.
-   private collectAttributes(node: Ast.BaseHtmlElement, context: INavigationContext): any {
+   private collectAttributes(node: Ast.BaseHtmlElement, context: INavigationContext, removePrefix: boolean = false): any {
       const attributes = { };
       for (const attributeName in node.__$ws_attributes) {
-         attributes[attributeName] = node.__$ws_attributes[attributeName].accept(this, context);
+         // rm prefix for elements only
+         const cleanName = attributeName.replace('attr:', '');
+         const name = removePrefix ? cleanName : attributeName;
+         attributes[name] = node.__$ws_attributes[attributeName].accept(this, context);
       }
       for (const eventName in node.__$ws_events) {
          attributes[eventName] = node.__$ws_events[eventName].accept(this, context);
