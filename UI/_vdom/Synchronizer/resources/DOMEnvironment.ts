@@ -989,11 +989,7 @@ function vdomEventBubbling(
 
    //Если событием стрельнул window или document, то распространение начинаем с body
    if (native) {
-      curVnode =
-         eventObject.target === window || eventObject.target === document ?
-            // @ts-ignore
-            document.body.controlNodes[0].fullMarkup :
-            eventObject.target.$V;
+      curVnode = null;
    } else {
       curVnode = controlNode.fullMarkup;
    }
@@ -1003,11 +999,11 @@ function vdomEventBubbling(
             document.body :
             eventObject.target;
    } else {
-      curVnode = controlNode.element;
+      curDomNode = controlNode.element;
    }
    //Цикл, в котором поднимаемся по DOM-нодам
    while (!stopPropagation) {
-      eventProperties = curVnode.eventProperties;
+      eventProperties = curVnode && curVnode.eventProperties || native && curDomNode.eventProperties;
       if (eventProperties && eventProperties[eventPropertyName]) {
          //Вызываем обработчики для всех controlNode на этой DOM-ноде
          const eventProperty = eventPropertiesStartArray || eventProperties[eventPropertyName];
@@ -1088,6 +1084,9 @@ function vdomEventBubbling(
       if (curVnode) {
          curVnode = curVnode.parent;
          curDomNode = curVnode && curVnode.dom;
+      } else if (native) {
+         // в случае нативного всплытия
+         curDomNode = curDomNode.parentNode;
       }
       if (curDomNode === null || curDomNode === undefined || !eventObject.propagating() ||
          curVnode === null || curVnode === undefined) {
