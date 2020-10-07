@@ -2212,7 +2212,8 @@ class Traverse implements ITraverse {
                   position: node.position
                }
             );
-            continue;
+            // FIXME: the last option has the highest priority
+            // continue;
          }
          properties[child.__$ws_name] = child;
       }
@@ -2840,7 +2841,8 @@ class Traverse implements ITraverse {
                   position: node.position
                }
             );
-            continue;
+            // FIXME: option on attribute has the highest priority
+            // continue;
          }
          ast.setOption(options[index]);
       }

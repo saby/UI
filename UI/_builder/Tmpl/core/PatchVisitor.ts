@@ -660,6 +660,10 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitBoolean(node: Ast.BooleanNode, context: INavigationContext): any {
+      const innerContext: INavigationContext = {
+         ...context,
+         key: (node.hasFlag(Ast.Flags.TYPE_CASTED) ? context.key : context.key + '0_')
+      };
       // @ts-ignore
       node.attribs = undefined;
       // @ts-ignore
@@ -672,8 +676,8 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.type = 'tag';
       // @ts-ignore
       node.children = [{
-         data: this.visitAll(node.__$ws_data, context),
-         key: undefined,
+         data: this.visitAll(node.__$ws_data, innerContext),
+         key: innerContext.key,
          type: 'text'
       }];
       return node;
@@ -681,6 +685,10 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitFunction(node: Ast.FunctionNode, context: INavigationContext): any {
+      const innerContext: INavigationContext = {
+         ...context,
+         key: (node.hasFlag(Ast.Flags.TYPE_CASTED) ? context.key : context.key + '0_')
+      };
       const options = { };
       for (const optionName in node.__$ws_options) {
          const option = node.__$ws_options[optionName];
@@ -703,8 +711,8 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.type = 'tag';
       // @ts-ignore
       node.children = [{
-         data: this.visitAll(node.__$ws_functionExpression, context),
-         key: undefined,
+         data: this.visitAll(node.__$ws_functionExpression, innerContext),
+         key: innerContext.key,
          type: 'text'
       }];
       return node;
@@ -712,6 +720,10 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitNumber(node: Ast.NumberNode, context: INavigationContext): any {
+      const innerContext: INavigationContext = {
+         ...context,
+         key: (node.hasFlag(Ast.Flags.TYPE_CASTED) ? context.key : context.key + '0_')
+      };
       // @ts-ignore
       node.attribs = undefined;
       // @ts-ignore
@@ -724,8 +736,8 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.type = 'tag';
       // @ts-ignore
       node.children = [{
-         data: this.visitAll(node.__$ws_data, context),
-         key: undefined,
+         data: this.visitAll(node.__$ws_data, innerContext),
+         key: innerContext.key,
          type: 'text'
       }];
       return node;
@@ -750,6 +762,10 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitString(node: Ast.StringNode, context: INavigationContext): any {
+      const innerContext: INavigationContext = {
+         ...context,
+         key: (node.hasFlag(Ast.Flags.TYPE_CASTED) ? context.key : context.key + '0_')
+      };
       // @ts-ignore
       node.attribs = undefined;
       // @ts-ignore
@@ -762,8 +778,8 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.type = 'tag';
       // @ts-ignore
       node.children = [{
-         data: this.visitAll(node.__$ws_data, context),
-         key: undefined,
+         data: this.visitAll(node.__$ws_data, innerContext),
+         key: innerContext.key,
          type: 'text'
       }];
       return node;
@@ -771,6 +787,10 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitValue(node: Ast.ValueNode, context: INavigationContext): any {
+      const innerContext: INavigationContext = {
+         ...context,
+         key: (node.hasFlag(Ast.Flags.TYPE_CASTED) ? context.key : context.key + '0_')
+      };
       // @ts-ignore
       node.attribs = undefined;
       // @ts-ignore
@@ -784,7 +804,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.children = [{
          data: this.visitAll(node.__$ws_data, context),
-         key: undefined,
+         key: innerContext.key,
          type: 'text'
       }];
       return node;
