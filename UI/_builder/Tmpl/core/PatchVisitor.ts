@@ -273,6 +273,11 @@ class PatchVisitor implements Ast.IAstVisitor {
          };
          const child = nodes[i].accept(this, childContext);
          if (child) {
+            // FIXME: REMOVE!!!
+            if (child.hasOwnProperty('__$origin_index')) {
+               children.splice(child.__$origin_index, 0, child);
+               continue;
+            }
             children.push(child);
          }
       }
@@ -1013,6 +1018,10 @@ class PatchVisitor implements Ast.IAstVisitor {
          };
          const injectedNode = option.accept(this, childContext);
          if (injectedNode) {
+            if (injectedNode.hasOwnProperty('__$origin_index')) {
+               injectedData.splice(injectedNode.__$origin_index, 0, injectedNode);
+               continue;
+            }
             injectedData.push(injectedNode);
          }
       }
@@ -1027,6 +1036,10 @@ class PatchVisitor implements Ast.IAstVisitor {
          };
          const contentNode = node.__$ws_contents[optionName].accept(this, childContext);
          if (contentNode) {
+            if (contentNode.hasOwnProperty('__$origin_index')) {
+               injectedData.splice(contentNode.__$origin_index, 0, contentNode);
+               continue;
+            }
             injectedData.push(contentNode);
          }
       }
@@ -1068,6 +1081,10 @@ class PatchVisitor implements Ast.IAstVisitor {
          };
          const property = originProperty.accept(this, childContext);
          if (property) {
+            if (property.hasOwnProperty('__$origin_index')) {
+               injectedData.splice(property.__$origin_index, 0, property);
+               continue;
+            }
             injectedData.push(property);
          }
       }

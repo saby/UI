@@ -709,6 +709,8 @@ class Traverse implements ITraverse {
          childContext.prev = children[children.length - 1] || null;
          const child = <Ast.Ast>nodes[index].accept(this, childContext);
          if (child) {
+            // @ts-ignore FIXME: REMOVE!!!
+            child.__$origin_index = children.length;
             child.setKey(
                this.keysGenerator.generate()
             );
