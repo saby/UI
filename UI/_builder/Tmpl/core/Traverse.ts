@@ -1413,9 +1413,11 @@ class Traverse implements ITraverse {
          }
          properties[property.__$ws_name] = property;
       }
+      const objectNode = new Ast.ObjectNode(properties);
+      objectNode.setFlag(Ast.Flags.TYPE_CASTED);
       return new Ast.OptionNode(
          name,
-         new Ast.ObjectNode(properties)
+         objectNode
       );
    }
 
