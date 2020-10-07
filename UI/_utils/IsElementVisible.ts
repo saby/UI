@@ -22,6 +22,8 @@
  * @author Шипин А.А.
  */
 
+import { Control } from 'UI/Base';
+
 var invisibleReWithoutVisibility = /\bws-hidden\b/;
 
 // ws-compatible-popup-hidden обсусловлен тем, что в слое совместимости окон нужно разделить скрытие
@@ -52,7 +54,7 @@ export default function isElementVisible(elem, isCheckVisibilityHidden: boolean 
          return false;
       }
       // @ts-ignore
-      if (elem.wsControl.iWantVDOM) {
+      if (elem.wsControl instanceof Control) {
          // @ts-ignore
          result = result && (!elem.wsControl.isVisible || elem.wsControl.isVisible());
       }
