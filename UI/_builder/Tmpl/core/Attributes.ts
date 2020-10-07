@@ -363,9 +363,11 @@ class AttributeProcessor implements IAttributeProcessor {
                }
                continue;
             }
-            if (isAttribute(attributeName) || options.hasAttributesOnly) {
+            const hasAttributePrefix = isAttribute(attributeName);
+            if (hasAttributePrefix || options.hasAttributesOnly) {
                const attributeNode = this.processAttribute(node, options, nodeDescription);
-               if (isAttribute(attributeName) && options.hasAttributesOnly && this.warnUselessAttributePrefix) {
+               attributeNode.__$ws_hasPrefix = hasAttributePrefix;
+               if (hasAttributePrefix && options.hasAttributesOnly && this.warnUselessAttributePrefix) {
                   this.errorHandler.warn(
                      `Использование префикса "attr:" не обязательно на html-элементах. Обнаружен атрибут "${attributeName}" на теге "${options.parentTagName}" `,
                      {

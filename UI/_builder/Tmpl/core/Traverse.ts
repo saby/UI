@@ -708,12 +708,10 @@ class Traverse implements ITraverse {
       for (let index = 0; index < nodes.length; ++index) {
          childContext.prev = children[children.length - 1] || null;
          const child = <Ast.Ast>nodes[index].accept(this, childContext);
+         const key = this.keysGenerator.generate();
          if (child) {
-            // @ts-ignore FIXME: REMOVE!!!
             child.__$origin_index = children.length;
-            child.setKey(
-               this.keysGenerator.generate()
-            );
+            child.setKey(key);
             children.push(child);
          }
       }

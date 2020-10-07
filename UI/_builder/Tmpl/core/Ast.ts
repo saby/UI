@@ -409,12 +409,19 @@ export abstract class Ast {
    __$ws_flags: Flags;
 
    /**
+    * Origin index in html nodes collection.
+    * @deprecated
+    */
+   __$origin_index: number;
+
+   /**
     * Initialize new instance of abstract syntax node.
     * @param flags {Flags} Node flags.
     */
    protected constructor(flags: Flags = Flags.VALIDATED) {
       this.__$ws_key =  '';
       this.__$ws_flags = flags;
+      this.__$origin_index = Number.MAX_VALUE;
    }
 
    /**
@@ -580,6 +587,12 @@ export class AttributeNode extends Ast {
    __$ws_value: TText[];
 
    /**
+    * Attribute prefix in name flag.
+    * @deprecated
+    */
+   __$ws_hasPrefix: boolean;
+
+   /**
     * Initialize new instance of attribute node.
     * @param name {string} Attribute name.
     * @param value {TText[]} Attribute value.
@@ -588,6 +601,7 @@ export class AttributeNode extends Ast {
       super();
       this.__$ws_name = name;
       this.__$ws_value = value;
+      this.__$ws_hasPrefix = false;
    }
 
    /**
