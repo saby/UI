@@ -1,8 +1,8 @@
 <div class="ControlsDemo-Page ws-flexbox ws-flex-column">
    <Router.router:Route mask="app/:app">
-      <ws:if data="UIDemo/{{content.app}}">
-         <Controls.Container.Async
-            templateName="{{ content.app }}"
+      <ws:if data="{{content.app}}">
+         <Controls.Container.Async 
+            templateName="UIDemo/{{ content.app }}"
             attr:id="newListView"
             attr:class="ControlsDemo-Page_content"/>
       </ws:if>
