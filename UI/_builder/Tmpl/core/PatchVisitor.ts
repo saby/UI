@@ -838,7 +838,18 @@ class PatchVisitor implements Ast.IAstVisitor {
             type: 'text'
          }
       };
-      if (node.__$ws_path.hasPlugins()) {
+      if (node.__$ws_path.hasLogicalPath()) {
+         // @ts-ignore
+         node.attribs._wstemplatename = node.__$ws_path.getFullPath();
+         // @ts-ignore
+         node.children = [{
+            constructor: node.__$ws_path.getFullPath(),
+            key: undefined,
+            library: node.__$ws_path.getFullPhysicalPath(),
+            module: node.__$ws_path.getLogicalPath(),
+            type: 'module'
+         }];
+      } else if (node.__$ws_path.hasPlugins()) {
          // @ts-ignore
          node.attribs._wstemplatename = {
             data: {
@@ -854,17 +865,6 @@ class PatchVisitor implements Ast.IAstVisitor {
             key: undefined,
             optional: undefined,
             type: 'template'
-         }];
-      } else if (node.__$ws_path.hasLogicalPath()) {
-         // @ts-ignore
-         node.attribs._wstemplatename = node.__$ws_path.getFullPath();
-         // @ts-ignore
-         node.children = [{
-            constructor: node.__$ws_path.getFullPath(),
-            key: undefined,
-            library: node.__$ws_path.getFullPhysicalPath(),
-            module: node.__$ws_path.getLogicalPath(),
-            type: 'module'
          }];
       } else {
          // @ts-ignore
