@@ -330,6 +330,16 @@ function createTranslationNode(data: string, options: ITextProcessorOptions): As
 }
 
 /**
+ * Fill order keys to collection of extended text nodes.
+ * @param collection {TText[]} Collection of extended text nodes.
+ */
+function fillKeys(collection: Ast.TText[]): void {
+   for (let index = 0; index < collection.length; ++index) {
+      collection[index].setKey(index);
+   }
+}
+
+/**
  * Represents methods to process html text nodes.
  */
 class TextProcessor implements ITextProcessor {
@@ -442,6 +452,7 @@ class TextProcessor implements ITextProcessor {
       if (collection.length === 0) {
          collection.push(new Ast.TextDataNode(EMPTY_STRING));
       }
+      fillKeys(collection);
       return collection;
    }
 

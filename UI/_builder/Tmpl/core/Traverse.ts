@@ -699,7 +699,7 @@ class Traverse implements ITraverse {
          childContext.prev = children[children.length - 1] || null;
          const child = <Ast.Ast>nodes[index].accept(this, childContext);
          if (child) {
-            child.setKey(index);
+            child.setKey(children.length);
             children.push(child);
          }
       }
