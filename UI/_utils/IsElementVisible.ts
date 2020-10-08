@@ -22,8 +22,6 @@
  * @author Шипин А.А.
  */
 
-import { Control } from 'UI/Base';
-
 var invisibleReWithoutVisibility = /\bws-hidden\b/;
 
 // ws-compatible-popup-hidden обсусловлен тем, что в слое совместимости окон нужно разделить скрытие
@@ -53,6 +51,7 @@ export default function isElementVisible(elem, isCheckVisibilityHidden: boolean 
       if (elem.wsControl.isDestroyed()) {
          return false;
       }
+      const Control = requirejs('UI/Base').Control;
       // @ts-ignore
       if (elem.wsControl instanceof Control) {
          // @ts-ignore
