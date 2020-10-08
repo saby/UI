@@ -96,8 +96,16 @@ const SPECIAL_ATTRIBUTES_COLLECTION = [
  * Check if attribute name has special attribute prefix.
  * @param name {string} Attribute name.
  */
+function hasWasabyPrefix(name: string): boolean {
+   return ATTR_PREFIX_PATTERN.test(name);
+}
+
+/**
+ * Check if attribute name has special attribute prefix.
+ * @param name {string} Attribute name.
+ */
 export function isAttribute(name: string): boolean {
-   return ATTR_PREFIX_PATTERN.test(name) || checkAttributesOnly(name);
+   return hasWasabyPrefix(name) || checkAttributesOnly(name);
 }
 
 /**
@@ -363,10 +371,9 @@ class AttributeProcessor implements IAttributeProcessor {
                }
                continue;
             }
-            const hasAttributePrefix = isAttribute(attributeName);
-            if (hasAttributePrefix || options.hasAttributesOnly) {
+            if (isAttribute(attributeName) || options.hasAttributesOnly) {
                const attributeNode = this.processAttribute(node, options, nodeDescription);
-               if (hasAttributePrefix && options.hasAttributesOnly && this.warnUselessAttributePrefix) {
+               if (isAttribute(attributeName) && options.hasAttributesOnly && this.warnUselessAttributePrefix) {
                   this.errorHandler.warn(
                      `Использование префикса "attr:" не обязательно на html-элементах. Обнаружен атрибут "${attributeName}" на теге "${options.parentTagName}" `,
                      {
@@ -376,7 +383,7 @@ class AttributeProcessor implements IAttributeProcessor {
                   );
                }
                if (attributeNode) {
-                  attributeNode.__$ws_hasAttributePrefix = hasAttributePrefix;
+                  attributeNode.__$ws_hasAttributePrefix = hasWasabyPrefix(attributeName);
                   if (collection.attributes.hasOwnProperty(`attr:${attributeNode.__$ws_name}`)) {
                      this.errorHandler.warn(
                         `Атрибут "${attributeName}" уже содержится на теге "${options.parentTagName}"`,
