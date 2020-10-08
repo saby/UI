@@ -1526,7 +1526,7 @@ class Traverse implements ITraverse {
          const elements = new Ast.ArrayNode(
             this.processArrayContent(node, context, attributes)
          );
-         elements.setFlag(Ast.Flags.TYPE_CASTED);
+         elements.setFlag(Ast.Flags.OBVIOUSLY_TYPE_CASTED);
          return new Ast.OptionNode(name, elements);
       } catch (error) {
          this.errorHandler.error(
@@ -1560,7 +1560,7 @@ class Traverse implements ITraverse {
          const value = new Ast.BooleanNode(
             this.processBooleanContent(node, context, attributes)
          );
-         value.setFlag(Ast.Flags.TYPE_CASTED);
+         value.setFlag(Ast.Flags.OBVIOUSLY_TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
          this.errorHandler.error(
@@ -1593,7 +1593,7 @@ class Traverse implements ITraverse {
          const { functionExpression, options } = this.processFunctionContent(node, context, attributes);
          const name = Resolvers.resolveOption(node.name);
          const value = new Ast.FunctionNode(functionExpression, options);
-         value.setFlag(Ast.Flags.TYPE_CASTED);
+         value.setFlag(Ast.Flags.OBVIOUSLY_TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
          this.errorHandler.error(
@@ -1627,7 +1627,7 @@ class Traverse implements ITraverse {
          const value = new Ast.NumberNode(
             this.processNumberContent(node, context, attributes)
          );
-         value.setFlag(Ast.Flags.TYPE_CASTED);
+         value.setFlag(Ast.Flags.OBVIOUSLY_TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
          this.errorHandler.error(
@@ -1665,7 +1665,7 @@ class Traverse implements ITraverse {
          const value = new Ast.ObjectNode(
             this.processObjectContent(node, context, attributes)
          );
-         value.setFlag(Ast.Flags.TYPE_CASTED);
+         value.setFlag(Ast.Flags.OBVIOUSLY_TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
          this.errorHandler.error(
@@ -1699,7 +1699,7 @@ class Traverse implements ITraverse {
          const value = new Ast.StringNode(
             this.processStringContent(node, context, attributes)
          );
-         value.setFlag(Ast.Flags.TYPE_CASTED);
+         value.setFlag(Ast.Flags.OBVIOUSLY_TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
          this.errorHandler.error(
@@ -1733,7 +1733,7 @@ class Traverse implements ITraverse {
          const value = new Ast.ValueNode(
             this.processValueContent(node, context, attributes)
          );
-         value.setFlag(Ast.Flags.TYPE_CASTED);
+         value.setFlag(Ast.Flags.OBVIOUSLY_TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
          this.errorHandler.error(

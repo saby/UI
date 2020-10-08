@@ -546,6 +546,9 @@ class PatchVisitor implements Ast.IAstVisitor {
          node.attribs = patchedOptionValue.attribs;
          // @ts-ignore
          node.children = patchedOptionValue.children;
+         if (!optionValue.hasFlag(Ast.Flags.TARGET_TYPE_CASTED)) {
+            return node;
+         }
          // @ts-ignore
          if (!node.attribs) {
             // @ts-ignore
@@ -822,7 +825,11 @@ class PatchVisitor implements Ast.IAstVisitor {
       const inlineTemplate = context.scope.getTemplate(node.__$ws_name);
       // @ts-ignore
       node.children = inlineTemplate.__$ws_content;
-      const injectedData = this.collectContents(node, context);
+      const innerContext: INavigationContext = {
+         ...context,
+         currentKey: ''
+      };
+      const injectedData = this.collectContents(node, innerContext);
       if (injectedData.length > 0) {
          // @ts-ignore
          node.injectedData = injectedData;
@@ -893,8 +900,12 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.originName = `ws:partial`;
       // @ts-ignore
       node.type = 'tag';
+      const innerContext: INavigationContext = {
+         ...context,
+         currentKey: ''
+      };
       // @ts-ignore
-      node.injectedData = this.collectContents(node, context);
+      node.injectedData = this.collectContents(node, innerContext);
       return node;
    }
 
@@ -934,7 +945,11 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.originName = `ws:partial`;
       // @ts-ignore
       node.type = 'tag';
-      const children = this.collectContents(node, context);
+      const innerContext: INavigationContext = {
+         ...context,
+         currentKey: ''
+      };
+      const children = this.collectContents(node, innerContext);
       // @ts-ignore
       node.children = children;
       // @ts-ignore

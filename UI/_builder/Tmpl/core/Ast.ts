@@ -390,7 +390,19 @@ export enum Flags {
     * Flag for node that must be ignored in next processing.
     * It used for comment node, broken or unknown node.
     */
-   IGNORABLE = 32
+   IGNORABLE = 32,
+
+   /**
+    * Data node type has explicit name.
+    */
+   TARGET_TYPE_CASTED = 64,
+
+   /**
+    * Flag for type casted node that has been changed its view:
+    * Processing node have been wrapped into another data type node.
+    * Data node type has explicit name.
+    */
+   OBVIOUSLY_TYPE_CASTED = TARGET_TYPE_CASTED | TYPE_CASTED
 }
 
 /**
