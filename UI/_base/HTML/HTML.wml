@@ -89,6 +89,7 @@
       meta="{{ _options.meta }}"
       scripts="{{ _options.scripts }}"
       links="{{ _options.links }}"
+      prefetchLinks="{{ _options.prefetchLinks }}"
       noscript="{{ _options.noscript }}"
       viewport="{{ _options.viewport }}"
       preInitScript="{{ _options.preInitScript }}"

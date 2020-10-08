@@ -7,6 +7,7 @@ import template = require('wml!UI/_base/HTML/Head');
 import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller';
 // @ts-ignore
 import { constants } from 'Env/Env';
+import { Head as AppHead } from 'Application/Page'
 import { headDataStore } from 'UI/_base/HeadData';
 import { Stack } from 'UI/_base/HTML/meta';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
@@ -56,6 +57,7 @@ class Head extends Control<IHeadOptions> {
             .filter(({ attrs }) => attrs.rel !== "stylesheet" && attrs.type !== "text/css");
         this.headAdditiveTagsMarkup = new TagMarkup(tagDescriptions).outerHTML;
         this._prepareMetaAndScripts(options);
+        this._preparePrefetchLinks(options.prefetchLinks);
 
         this.wasServerSide = false;
         this.isSSR = !constants.isBrowserPlatform;
@@ -108,6 +110,21 @@ class Head extends Control<IHeadOptions> {
 
         /** Объеденим в одну строку для уменьшения накладных расходов на стороне шаблона */
         this.userTags = meta.concat(scripts).concat(links).join('\n');
+    }
+
+    /**
+     * Обработка ресурсов, которые необходимо добавить в head для предзагрузки
+     * <link rel="prefetch" href="/style.css" as="style" />
+     * @param prefetchLinks
+     * @private
+     */
+    _preparePrefetchLinks(prefetchLinks: string[]): void {
+        // TODO получить абсолютные ссылки для указанных модулей методом Мальцева А
+        const absPrefetchLinks = prefetchLinks;
+
+        absPrefetchLinks.forEach((path) => {
+            AppHead.getInstance().createTag('link', {rel: 'prefetch', as: 'style', href: path});
+        });
     }
 
     // @ts-ignore
@@ -179,4 +196,5 @@ interface IHeadOptions extends IControlOptions {
     meta?: Array<{}>;
     links?: Array<{}>;
     scripts?: Array<{}>;
+    prefetchLinks?: string[];
 }

@@ -35,6 +35,7 @@ interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
     /** Ссылки подключенных ресурсов */
     scripts: { src: string; }[];
     links: { href: string; type: string; }[];
+    prefetchLinks: string[];
 }
 
 class HTML extends Control<IHTMLCombinedOptions> {
