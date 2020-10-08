@@ -340,6 +340,52 @@ define([
             assert.strictEqual(tree[0].name, 'ws:UIModule/Component');
             assert.strictEqual(tree[0].type, 'tag');
          });
+         it('control (duplicate option)', function() {
+            var html = `
+            <UIModule.Component option="1">
+                <ws:option><ws:String>2</ws:String></ws:option>
+                <ws:option><ws:String>3</ws:String></ws:option>
+            </UIModule.Component>
+            `;
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+            assert.isTrue(tree[0].attribs.hasOwnProperty('option'));
+            assert.strictEqual(tree[0].attribs.option.type, 'text');
+            assert.strictEqual(tree[0].attribs.option.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.option.data.value, '1');
+            assert.strictEqual(tree[0].injectedData.length, 0);
+         });
+         it('control (duplicate option) 2', function() {
+            var html = `
+            <UIModule.Component>
+                <ws:option><ws:String>2</ws:String></ws:option>
+                <ws:option><ws:String>3</ws:String></ws:option>
+            </UIModule.Component>
+            `;
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+            assert.isFalse(tree[0].attribs.hasOwnProperty('option'));
+            assert.strictEqual(tree[0].injectedData.length, 1);
+            var option = tree[0].injectedData[0];
+
+            assert.strictEqual(option.key, '0_1_');
+            assert.strictEqual(option.name, 'ws:option');
+            assert.strictEqual(option.type, 'tag');
+            assert.strictEqual(option.children.length, 1);
+
+            option = option.children[0];
+            assert.strictEqual(option.key, '0_1_0_');
+            assert.strictEqual(option.name, 'ws:String');
+            assert.strictEqual(option.type, 'tag');
+            assert.strictEqual(option.children.length, 1);
+
+            var value = option.children[0];
+            assert.strictEqual(value.key, '0_1_0_0_');
+            assert.strictEqual(value.type, 'text');
+            assert.strictEqual(value.data.length, 1);
+            assert.strictEqual(value.data[0].value, '3');
+            assert.strictEqual(value.data[0].type, 'text');
+         });
          it('module', function() {
             var html = '<UIModule.Library:Component />';
             var tree = process(html);
@@ -645,7 +691,7 @@ define([
             var html = `
             <UIModule.Component>
                <ws:option>
-                    <ws:Function>UIModule/module:func</ws:Function>
+                    <ws:Function attributeOption="value">UIModule/module:func</ws:Function>
                 </ws:option>
             </UIModule.Component>
             `;
@@ -665,6 +711,11 @@ define([
             assert.strictEqual(option.type, 'tag');
             assert.strictEqual(option.children.length, 1);
 
+            assert.isTrue(option.attribs.hasOwnProperty('attributeOption'));
+            assert.strictEqual(option.attribs.attributeOption.type, 'text');
+            assert.strictEqual(option.attribs.attributeOption.data.type, 'text');
+            assert.strictEqual(option.attribs.attributeOption.data.value, 'value');
+
             var value = option.children[0];
             assert.strictEqual(value.key, '0_0_0_0_');
             assert.strictEqual(value.type, 'text');
@@ -675,7 +726,7 @@ define([
          it('Function type', function() {
             var html = `
             <UIModule.Component>
-               <ws:option type="function">
+               <ws:option type="function" attributeOption="value">
                     UIModule/module:func
                 </ws:option>
             </UIModule.Component>
@@ -694,6 +745,11 @@ define([
             assert.strictEqual(option.attribs.type.type, 'text');
             assert.strictEqual(option.attribs.type.data.type, 'text');
             assert.strictEqual(option.attribs.type.data.value, 'function');
+
+            assert.isTrue(option.attribs.hasOwnProperty('attributeOption'));
+            assert.strictEqual(option.attribs.attributeOption.type, 'text');
+            assert.strictEqual(option.attribs.attributeOption.data.type, 'text');
+            assert.strictEqual(option.attribs.attributeOption.data.value, 'value');
 
             var value = option.children[0];
             assert.strictEqual(value.key, '0_0_0_');
@@ -793,7 +849,7 @@ define([
                <!-- comment # 1 -->
                <ws:option>
                     <!-- comment # 2 -->
-                    <ws:Object>
+                    <ws:Object attributeProperty="value">
                          <!-- comment # 3 -->
                          <ws:booleanProperty>
                               <!-- comment # 4 -->
@@ -824,6 +880,11 @@ define([
             assert.strictEqual(option.name, 'ws:Object');
             assert.strictEqual(option.type, 'tag');
             assert.strictEqual(option.children.length, 3);
+
+            assert.isTrue(option.attribs.hasOwnProperty('attributeProperty'));
+            assert.strictEqual(option.attribs.attributeProperty.type, 'text');
+            assert.strictEqual(option.attribs.attributeProperty.data.type, 'text');
+            assert.strictEqual(option.attribs.attributeProperty.data.value, 'value');
 
             var value;
             var booleanProperty = option.children[0];
@@ -885,6 +946,186 @@ define([
             assert.strictEqual(value.type, 'text');
             assert.strictEqual(value.data.length, 1);
             assert.strictEqual(value.data[0].value, 'string');
+            assert.strictEqual(value.data[0].type, 'text');
+         });
+         it('Object 3', function() {
+            var html = `
+            <UIModule.Component>
+               <!-- comment # 1 -->
+               <ws:option attributeProperty="value">
+                    <!-- comment # 2 -->
+                    <ws:property attributeProperty="value2">
+                         <!-- comment # 3 -->
+                         <ws:booleanProperty>
+                              <!-- comment # 4 -->
+                              <ws:Boolean>true</ws:Boolean>
+                         </ws:booleanProperty>
+                         <ws:numberProperty>
+                              <ws:Number>123</ws:Number>
+                         </ws:numberProperty>
+                         <ws:stringProperty>
+                              <ws:String>string</ws:String>
+                         </ws:stringProperty>
+                    </ws:property>
+                </ws:option>
+            </UIModule.Component>
+            `;
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+            assert.strictEqual(tree[0].injectedData.length, 1);
+            var option = tree[0].injectedData[0];
+
+            assert.strictEqual(option.key, '0_0_');
+            assert.strictEqual(option.name, 'ws:option');
+            assert.strictEqual(option.type, 'tag');
+            assert.strictEqual(option.children.length, 1);
+
+            assert.isTrue(option.attribs.hasOwnProperty('attributeProperty'));
+            assert.strictEqual(option.attribs.attributeProperty.type, 'text');
+            assert.strictEqual(option.attribs.attributeProperty.data.type, 'text');
+            assert.strictEqual(option.attribs.attributeProperty.data.value, 'value');
+
+            option = option.children[0];
+            assert.strictEqual(option.key, '0_0_0_');
+            assert.strictEqual(option.name, 'ws:property');
+            assert.strictEqual(option.type, 'tag');
+            assert.strictEqual(option.children.length, 3);
+
+            assert.isTrue(option.attribs.hasOwnProperty('attributeProperty'));
+            assert.strictEqual(option.attribs.attributeProperty.type, 'text');
+            assert.strictEqual(option.attribs.attributeProperty.data.type, 'text');
+            assert.strictEqual(option.attribs.attributeProperty.data.value, 'value2');
+
+            var value;
+            var booleanProperty = option.children[0];
+            var numberProperty = option.children[1];
+            var stringProperty = option.children[2];
+
+            option = booleanProperty;
+            assert.strictEqual(option.key, '0_0_0_0_');
+            assert.strictEqual(option.name, 'ws:booleanProperty');
+            assert.strictEqual(option.type, 'tag');
+            assert.strictEqual(option.children.length, 1);
+
+            option = option.children[0];
+            assert.strictEqual(option.key, '0_0_0_0_0_');
+            assert.strictEqual(option.name, 'ws:Boolean');
+            assert.strictEqual(option.type, 'tag');
+            assert.strictEqual(option.children.length, 1);
+
+            value = option.children[0];
+            assert.strictEqual(value.key, '0_0_0_0_0_0_');
+            assert.strictEqual(value.type, 'text');
+            assert.strictEqual(value.data.length, 1);
+            assert.strictEqual(value.data[0].value, 'true');
+            assert.strictEqual(value.data[0].type, 'text');
+
+            option = numberProperty;
+            assert.strictEqual(option.key, '0_0_0_1_');
+            assert.strictEqual(option.name, 'ws:numberProperty');
+            assert.strictEqual(option.type, 'tag');
+            assert.strictEqual(option.children.length, 1);
+
+            option = option.children[0];
+            assert.strictEqual(option.key, '0_0_0_1_0_');
+            assert.strictEqual(option.name, 'ws:Number');
+            assert.strictEqual(option.type, 'tag');
+            assert.strictEqual(option.children.length, 1);
+
+            value = option.children[0];
+            assert.strictEqual(value.key, '0_0_0_1_0_0_');
+            assert.strictEqual(value.type, 'text');
+            assert.strictEqual(value.data.length, 1);
+            assert.strictEqual(value.data[0].value, '123');
+            assert.strictEqual(value.data[0].type, 'text');
+
+            option = stringProperty;
+            assert.strictEqual(option.key, '0_0_0_2_');
+            assert.strictEqual(option.name, 'ws:stringProperty');
+            assert.strictEqual(option.type, 'tag');
+            assert.strictEqual(option.children.length, 1);
+
+            option = option.children[0];
+            assert.strictEqual(option.key, '0_0_0_2_0_');
+            assert.strictEqual(option.name, 'ws:String');
+            assert.strictEqual(option.type, 'tag');
+            assert.strictEqual(option.children.length, 1);
+
+            value = option.children[0];
+            assert.strictEqual(value.key, '0_0_0_2_0_0_');
+            assert.strictEqual(value.type, 'text');
+            assert.strictEqual(value.data.length, 1);
+            assert.strictEqual(value.data[0].value, 'string');
+            assert.strictEqual(value.data[0].type, 'text');
+         });
+         it('Object (duplicate option)', function() {
+            var html = `
+            <UIModule.Component>
+               <ws:option property="1">
+                    <ws:property>
+                        <ws:String>2</ws:String>
+                    </ws:property>
+                    <ws:property>
+                        <ws:String>3</ws:String>
+                    </ws:property>
+                </ws:option>
+            </UIModule.Component>
+            `;
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+            assert.strictEqual(tree[0].injectedData.length, 1);
+            var option = tree[0].injectedData[0];
+
+            assert.isTrue(option.attribs.hasOwnProperty('property'));
+            assert.strictEqual(option.attribs.property.type, 'text');
+            assert.strictEqual(option.attribs.property.data.type, 'text');
+            assert.strictEqual(option.attribs.property.data.value, '1');
+
+            assert.strictEqual(option.key, '0_0_');
+            assert.strictEqual(option.name, 'ws:option');
+            assert.strictEqual(option.type, 'tag');
+            assert.strictEqual(option.children.length, 0);
+         });
+         it('Object (duplicate option) 2', function() {
+            var html = `
+            <UIModule.Component>
+               <ws:option>
+                    <ws:property>
+                        <ws:String>2</ws:String>
+                    </ws:property>
+                    <ws:property>
+                        <ws:String>3</ws:String>
+                    </ws:property>
+                </ws:option>
+            </UIModule.Component>
+            `;
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+            assert.strictEqual(tree[0].injectedData.length, 1);
+            var option = tree[0].injectedData[0];
+
+            assert.strictEqual(option.key, '0_0_');
+            assert.strictEqual(option.name, 'ws:option');
+            assert.strictEqual(option.type, 'tag');
+            assert.strictEqual(option.children.length, 1);
+
+            option = option.children[0];
+            assert.strictEqual(option.key, '0_0_1_');
+            assert.strictEqual(option.name, 'ws:property');
+            assert.strictEqual(option.type, 'tag');
+            assert.strictEqual(option.children.length, 1);
+
+            option = option.children[0];
+            assert.strictEqual(option.key, '0_0_1_0_');
+            assert.strictEqual(option.name, 'ws:String');
+            assert.strictEqual(option.type, 'tag');
+            assert.strictEqual(option.children.length, 1);
+
+            var value = option.children[0];
+            assert.strictEqual(value.key, '0_0_1_0_0_');
+            assert.strictEqual(value.type, 'text');
+            assert.strictEqual(value.data.length, 1);
+            assert.strictEqual(value.data[0].value, '3');
             assert.strictEqual(value.data[0].type, 'text');
          });
          it('Object type', function() {
@@ -983,7 +1224,7 @@ define([
          it('Object type 2', function() {
             var html = `
             <UIModule.Component>
-               <ws:option type="object">
+               <ws:option type="object" attributeProperty="value">
                   <ws:booleanProperty type="boolean">
                     true
                   </ws:booleanProperty>
@@ -1010,6 +1251,11 @@ define([
             assert.strictEqual(option.attribs.type.type, 'text');
             assert.strictEqual(option.attribs.type.data.type, 'text');
             assert.strictEqual(option.attribs.type.data.value, 'object');
+
+            assert.isTrue(option.attribs.hasOwnProperty('attributeProperty'));
+            assert.strictEqual(option.attribs.attributeProperty.type, 'text');
+            assert.strictEqual(option.attribs.attributeProperty.data.type, 'text');
+            assert.strictEqual(option.attribs.attributeProperty.data.value, 'value');
 
             var value;
             var booleanProperty = option.children[0];

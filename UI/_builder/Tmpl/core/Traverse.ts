@@ -1370,12 +1370,15 @@ class Traverse implements ITraverse {
             array
          );
       }
-      const properties = this.attributeProcessor.processOptions(node.attributes, {
+      const processedAttributes = this.attributeProcessor.processOptions(node.attributes, {
          fileName: context.fileName,
          hasAttributesOnly: false,
          parentTagName: node.name,
          translationsRegistrar: context.scope
       });
+      const properties: Ast.IObjectProperties = {
+         ...processedAttributes
+      };
       for (let index = 0; index < content.length; ++index) {
          const property = content[index];
          if (!(property instanceof Ast.OptionNode || property instanceof Ast.ContentOptionNode)) {
@@ -1396,6 +1399,11 @@ class Traverse implements ITraverse {
                   position: node.position
                }
             );
+            // FIXME: take the last property
+            // continue;
+         }
+         if (processedAttributes.hasOwnProperty(property.__$ws_name)) {
+            // FIXME: take the last property but attribute have the highest priority
             continue;
          }
          properties[property.__$ws_name] = property;
@@ -2177,12 +2185,15 @@ class Traverse implements ITraverse {
          state: TraverseState.OBJECT_DATA_TYPE
       };
       const processedChildren = this.visitAll(node.children, propertiesContext);
-      const properties = this.attributeProcessor.processOptions(attributes, {
+      const processedAttributes = this.attributeProcessor.processOptions(attributes, {
          fileName: context.fileName,
          hasAttributesOnly: false,
          parentTagName: node.name,
          translationsRegistrar: context.scope
       });
+      const properties: Ast.IObjectProperties = {
+         ...processedAttributes
+      };
       for (let index = 0; index < processedChildren.length; ++index) {
          const child = processedChildren[index];
          if (!(child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode)) {
@@ -2203,6 +2214,11 @@ class Traverse implements ITraverse {
                   position: node.position
                }
             );
+            // FIXME: take the last property
+            // continue;
+         }
+         if (processedAttributes.hasOwnProperty(child.__$ws_name)) {
+            // FIXME: take the last property but attribute have the highest priority
             continue;
          }
          properties[child.__$ws_name] = child;
@@ -2821,6 +2837,9 @@ class Traverse implements ITraverse {
     * @param node {Tag} Base html tag node of processing component or partial node.
     */
    private applyOptionsToComponentOrPartial(ast: Ast.BaseWasabyElement, options: Array<Ast.OptionNode | Ast.ContentOptionNode>, context: ITraverseContext, node: Nodes.Tag): void {
+      const processedAttributes = {
+         ...ast.__$ws_options
+      };
       for (let index = 0; index < options.length; ++index) {
          const child = options[index];
          if (ast.hasOption(child.__$ws_name)) {
@@ -2831,6 +2850,11 @@ class Traverse implements ITraverse {
                   position: node.position
                }
             );
+            // FIXME: take the last property
+            // continue;
+         }
+         if (processedAttributes.hasOwnProperty(child.__$ws_name)) {
+            // FIXME: take the last property but attribute have the highest priority
             continue;
          }
          ast.setOption(options[index]);

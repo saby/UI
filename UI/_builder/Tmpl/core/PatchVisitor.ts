@@ -31,30 +31,6 @@ function getTagType(name: string): string {
    return 'tag';
 }
 
-function getDataTypeName(ast: Ast.Ast): string {
-   if (ast instanceof Ast.ArrayNode) {
-      return 'array';
-   }
-   if (ast instanceof Ast.BooleanNode) {
-      return 'boolean';
-   }
-   if (ast instanceof Ast.FunctionNode) {
-      return 'function';
-   }
-   if (ast instanceof Ast.NumberNode) {
-      return 'number';
-   }
-   if (ast instanceof Ast.ObjectNode) {
-      return 'object';
-   }
-   if (ast instanceof Ast.StringNode) {
-      return 'string';
-   }
-   if (ast instanceof Ast.ValueNode) {
-      return 'value';
-   }
-}
-
 class PatchVisitor implements Ast.IAstVisitor {
    // done.
    visitDoctype(node: Ast.DoctypeNode, context: INavigationContext): any {
@@ -312,7 +288,42 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.originName = node.__$ws_name;
       // @ts-ignore
       node.key = context.currentKey;
-      const attribs = this.collectAttributes(node, context);
+      const initChain = [];
+      if (node.__$ws_unpackedCycle) {
+         if (node.__$ws_unpackedCycle instanceof Ast.ForNode) {
+            const initStr = node.__$ws_unpackedCycle.__$ws_init ? node.__$ws_unpackedCycle.__$ws_init.string : '';
+            const testStr = node.__$ws_unpackedCycle.__$ws_test.string;
+            const updateStr = node.__$ws_unpackedCycle.__$ws_update ? node.__$ws_unpackedCycle.__$ws_update.string : '';
+            const forData = `${initStr}; ${testStr}; ${updateStr}`;
+            initChain.push({
+               node: {
+                  data: {
+                     type: 'text',
+                     value: forData
+                  },
+                  key: undefined,
+                  type: 'text'
+               },
+               name: 'for'
+            });
+         } else {
+            const forSource = node.__$ws_unpackedCycle.__$ws_index
+               ? `${node.__$ws_unpackedCycle.__$ws_index.string}, ${node.__$ws_unpackedCycle.__$ws_iterator.string} in ${node.__$ws_unpackedCycle.__$ws_collection.string}`
+               : `${node.__$ws_unpackedCycle.__$ws_iterator.string} in ${node.__$ws_unpackedCycle.__$ws_collection.string}`;
+            initChain.push({
+               node: {
+                  data: {
+                     type: 'text',
+                     value: forSource
+                  },
+                  key: undefined,
+                  type: 'text'
+               },
+               name: 'for'
+            });
+         }
+      }
+      const attribs = this.collectAttributes(node, context, initChain);
       // @ts-ignore
       node.attribs = Object.keys(attribs).length === 0 ? undefined : attribs;
       if (node.__$ws_unpackedCycle) {
@@ -322,19 +333,6 @@ class PatchVisitor implements Ast.IAstVisitor {
             node.attribs = { };
          }
          if (node.__$ws_unpackedCycle instanceof Ast.ForNode) {
-            const initStr = node.__$ws_unpackedCycle.__$ws_init ? node.__$ws_unpackedCycle.__$ws_init.string : '';
-            const testStr = node.__$ws_unpackedCycle.__$ws_test.string;
-            const updateStr = node.__$ws_unpackedCycle.__$ws_update ? node.__$ws_unpackedCycle.__$ws_update.string : '';
-            const forData = `${initStr}; ${testStr}; ${updateStr}`;
-            // @ts-ignore
-            node.attribs.for = {
-               data: {
-                  type: 'text',
-                  value: forData
-               },
-               key: undefined,
-               type: 'text'
-            };
             // @ts-ignore
             node.attribs.CUSTOM_CONDITION = {
                data: [{
@@ -385,18 +383,6 @@ class PatchVisitor implements Ast.IAstVisitor {
             };
             return node;
          }
-         const forSource = node.__$ws_unpackedCycle.__$ws_index
-            ? `${node.__$ws_unpackedCycle.__$ws_index.string}, ${node.__$ws_unpackedCycle.__$ws_iterator.string} in ${node.__$ws_unpackedCycle.__$ws_collection.string}`
-            : `${node.__$ws_unpackedCycle.__$ws_iterator.string} in ${node.__$ws_unpackedCycle.__$ws_collection.string}`;
-         // @ts-ignore
-         node.attribs.for = {
-            data: {
-               type: 'text',
-               value: forSource
-            },
-            key: undefined,
-            type: 'text'
-         };
          // @ts-ignore
          node.forSource = {
             key: node.__$ws_unpackedCycle.__$ws_index ? node.__$ws_unpackedCycle.__$ws_index.string : undefined,
@@ -546,23 +532,6 @@ class PatchVisitor implements Ast.IAstVisitor {
          node.attribs = patchedOptionValue.attribs;
          // @ts-ignore
          node.children = patchedOptionValue.children;
-         if (!optionValue.hasFlag(Ast.Flags.TARGET_TYPE_CASTED)) {
-            return node;
-         }
-         // @ts-ignore
-         if (!node.attribs) {
-            // @ts-ignore
-            node.attribs = { };
-         }
-         // @ts-ignore
-         node.attribs.type = {
-            data: {
-               type: 'text',
-               value: getDataTypeName(node.__$ws_value)
-            },
-            key: undefined,
-            type: 'text'
-         };
          return node;
       }
       // @ts-ignore
@@ -646,6 +615,19 @@ class PatchVisitor implements Ast.IAstVisitor {
    visitArray(node: Ast.ArrayNode, context: INavigationContext): any {
       // @ts-ignore
       node.attribs = undefined;
+      if (node.hasFlag(Ast.Flags.TARGET_TYPE_CASTED)) {
+         // @ts-ignore
+         node.attribs = {
+            type: {
+               data: {
+                  type: 'text',
+                  value: 'array'
+               },
+               key: undefined,
+               type: 'text'
+            }
+         };
+      }
       // @ts-ignore
       node.key = context.currentKey;
       // @ts-ignore
@@ -663,6 +645,19 @@ class PatchVisitor implements Ast.IAstVisitor {
    visitBoolean(node: Ast.BooleanNode, context: INavigationContext): any {
       // @ts-ignore
       node.attribs = undefined;
+      if (node.hasFlag(Ast.Flags.TARGET_TYPE_CASTED)) {
+         // @ts-ignore
+         node.attribs = {
+            type: {
+               data: {
+                  type: 'text',
+                  value: 'boolean'
+               },
+               key: undefined,
+               type: 'text'
+            }
+         };
+      }
       // @ts-ignore
       node.key = context.currentKey;
       // @ts-ignore
@@ -682,18 +677,46 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitFunction(node: Ast.FunctionNode, context: INavigationContext): any {
-      const options = { };
+      const chain = [];
+      if (node.hasFlag(Ast.Flags.TARGET_TYPE_CASTED)) {
+         chain.push({
+            node: {
+               data: {
+                  type: 'text',
+                  value: 'function'
+               },
+               key: undefined,
+               type: 'text'
+            },
+            name: 'type'
+         });
+      }
       for (const optionName in node.__$ws_options) {
          const option = node.__$ws_options[optionName];
          const optionValue = (<Ast.ValueNode>option.__$ws_value).accept(this, context);
-         options[optionName] = {
-            data: optionValue.__$ws_data,
-            key: undefined,
-            type: 'text'
+         const content = optionValue.__$ws_data;
+         const hasTextOnly = (content.length === 1 && content[0] instanceof Ast.TextDataNode);
+         const processedNode = {
+            node: {
+               data: hasTextOnly ? content[0] : content,
+               key: undefined,
+               type: 'text'
+            },
+            name: optionName
          };
+         chain.splice(option.__$ws_key, 0, processedNode);
       }
       // @ts-ignore
-      node.attribs = Object.keys(options).length > 0 ? options : undefined;
+      node.attribs = undefined;
+      if (chain.length > 0) {
+         // @ts-ignore
+         node.attribs = { };
+         for (let index = 0; index < chain.length; ++index) {
+            const item = chain[index];
+            // @ts-ignore
+            node.attribs[item.name] = item.node;
+         }
+      }
       // @ts-ignore
       node.key = context.currentKey;
       // @ts-ignore
@@ -715,6 +738,19 @@ class PatchVisitor implements Ast.IAstVisitor {
    visitNumber(node: Ast.NumberNode, context: INavigationContext): any {
       // @ts-ignore
       node.attribs = undefined;
+      if (node.hasFlag(Ast.Flags.TARGET_TYPE_CASTED)) {
+         // @ts-ignore
+         node.attribs = {
+            type: {
+               data: {
+                  type: 'text',
+                  value: 'number'
+               },
+               key: undefined,
+               type: 'text'
+            }
+         };
+      }
       // @ts-ignore
       node.key = context.currentKey;
       // @ts-ignore
@@ -734,8 +770,22 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitObject(node: Ast.ObjectNode, context: INavigationContext): any {
+      const initChain = [];
+      if (node.hasFlag(Ast.Flags.TARGET_TYPE_CASTED)) {
+         initChain.push({
+            node: {
+               data: {
+                  type: 'text',
+                  value: 'object'
+               },
+               key: undefined,
+               type: 'text'
+            },
+            name: 'type'
+         });
+      }
       // @ts-ignore
-      node.attribs = this.collectObjectAttributeProperties(node, context);
+      node.attribs = this.collectObjectAttributeProperties(node, context, initChain);
       // @ts-ignore
       node.key = context.currentKey;
       // @ts-ignore
@@ -753,6 +803,19 @@ class PatchVisitor implements Ast.IAstVisitor {
    visitString(node: Ast.StringNode, context: INavigationContext): any {
       // @ts-ignore
       node.attribs = undefined;
+      if (node.hasFlag(Ast.Flags.TARGET_TYPE_CASTED)) {
+         // @ts-ignore
+         node.attribs = {
+            type: {
+               data: {
+                  type: 'text',
+                  value: 'string'
+               },
+               key: undefined,
+               type: 'text'
+            }
+         };
+      }
       // @ts-ignore
       node.key = context.currentKey;
       // @ts-ignore
@@ -774,6 +837,19 @@ class PatchVisitor implements Ast.IAstVisitor {
    visitValue(node: Ast.ValueNode, context: INavigationContext): any {
       // @ts-ignore
       node.attribs = undefined;
+      if (node.hasFlag(Ast.Flags.TARGET_TYPE_CASTED)) {
+         // @ts-ignore
+         node.attribs = {
+            type: {
+               data: {
+                  type: 'text',
+                  value: 'value'
+               },
+               key: undefined,
+               type: 'text'
+            }
+         };
+      }
       // @ts-ignore
       node.key = context.currentKey;
       // @ts-ignore
@@ -793,11 +869,8 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: INavigationContext): any {
-      const attributes = this.collectComponentAttributes(node, context);
-      // @ts-ignore
-      node.attribs = {
-         ...attributes,
-         template: {
+      const initChain = [{
+         node: {
             data: {
                type: 'text',
                value: node.__$ws_name
@@ -805,14 +878,18 @@ class PatchVisitor implements Ast.IAstVisitor {
             key: undefined,
             type: 'text'
          },
-         _wstemplatename: {
-            data: {
-               type: 'text',
-               value: node.__$ws_name
-            },
-            key: undefined,
-            type: 'text'
-         }
+         name: 'template'
+      }];
+      // @ts-ignore
+      node.attribs = this.collectComponentAttributes(node, context, initChain);
+      // @ts-ignore
+      node.attribs._wstemplatename = {
+         data: {
+            type: 'text',
+            value: node.__$ws_name
+         },
+         key: undefined,
+         type: 'text'
       };
       // @ts-ignore
       node.key = context.currentKey;
@@ -839,19 +916,19 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitStaticPartial(node: Ast.StaticPartialNode, context: INavigationContext): any {
-      const attributes = this.collectComponentAttributes(node, context);
-      // @ts-ignore
-      node.attribs = {
-         ...attributes,
-         template: {
+      const initChain = [{
+         node: {
             data: {
                type: 'text',
                value: node.__$ws_path.getFullPath()
             },
             key: undefined,
             type: 'text'
-         }
-      };
+         },
+         name: 'template'
+      }];
+      // @ts-ignore
+      node.attribs = this.collectComponentAttributes(node, context, initChain);
       if (node.__$ws_path.hasLogicalPath() && !node.__$ws_path.hasPlugins()) {
          // @ts-ignore
          node.attribs._wstemplatename = node.__$ws_path.getFullPath();
@@ -911,7 +988,6 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: INavigationContext): any {
-      const attributes = this.collectComponentAttributes(node, context);
       const injectedTemplate = {
          isBind: false,
          isEvent: false,
@@ -921,19 +997,21 @@ class PatchVisitor implements Ast.IAstVisitor {
          type: 'var',
          value: ''
       };
-      // @ts-ignore
-      node.attribs = {
-         ...attributes,
-         template: {
+      const initChain = [{
+         node: {
             data: [injectedTemplate],
             key: undefined,
             type: 'text'
          },
-         _wstemplatename: {
-            data: [injectedTemplate],
-            key: undefined,
-            type: 'text'
-         }
+         name: 'template'
+      }];
+      // @ts-ignore
+      node.attribs = this.collectComponentAttributes(node, context, initChain);
+      // @ts-ignore
+      node.attribs._wstemplatename = {
+         data: [injectedTemplate],
+         key: undefined,
+         type: 'text'
       };
       // @ts-ignore
       node.injectedTemplate = injectedTemplate;
@@ -958,8 +1036,8 @@ class PatchVisitor implements Ast.IAstVisitor {
    }
 
    // done.
-   private getAttributesChain(node: Ast.BaseHtmlElement, context: INavigationContext): any {
-      const chain = [];
+   private getAttributesChain(node: Ast.BaseHtmlElement, context: INavigationContext, initChain: any): any {
+      const chain = initChain;
       for (const attributeName in node.__$ws_attributes) {
          const attribute = node.__$ws_attributes[attributeName];
          // rm prefix for elements only
@@ -983,8 +1061,8 @@ class PatchVisitor implements Ast.IAstVisitor {
    }
 
    // done.
-   private collectAttributes(node: Ast.BaseHtmlElement, context: INavigationContext): any {
-      const chain = this.getAttributesChain(node, context);
+   private collectAttributes(node: Ast.BaseHtmlElement, context: INavigationContext, initChain: any): any {
+      const chain = this.getAttributesChain(node, context, initChain);
       const attributes = { };
       for (let index = 0; index < chain.length; ++index) {
          const item = chain[index];
@@ -994,8 +1072,8 @@ class PatchVisitor implements Ast.IAstVisitor {
    }
 
    // done.
-   private collectComponentAttributes(node: Ast.BaseWasabyElement, context: INavigationContext): any {
-      const chain = this.getAttributesChain(node, context);
+   private collectComponentAttributes(node: Ast.BaseWasabyElement, context: INavigationContext, initChain: any = []): any {
+      const chain = this.getAttributesChain(node, context, initChain);
       for (const optionName in node.__$ws_options) {
          const option = node.__$ws_options[optionName];
          if (!option.hasFlag(Ast.Flags.UNPACKED)) {
@@ -1058,8 +1136,8 @@ class PatchVisitor implements Ast.IAstVisitor {
    }
 
    // done.
-   private collectObjectAttributeProperties(node: Ast.ObjectNode, context: INavigationContext): any {
-      const chain = [];
+   private collectObjectAttributeProperties(node: Ast.ObjectNode, context: INavigationContext, initChain: any): any {
+      const chain = initChain;
       for (const optionName in node.__$ws_properties) {
          const originProperty = node.__$ws_properties[optionName];
          if (!originProperty.hasFlag(Ast.Flags.UNPACKED)) {
