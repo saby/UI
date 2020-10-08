@@ -1418,10 +1418,18 @@ class Traverse implements ITraverse {
    private processText(node: Nodes.Text, context: ITraverseContext): Ast.TextNode {
       try {
          updateToContentState(context);
+         // FIXME: Legacy translation rule
+         //   If config is not a component's option, mark text as translatable if it is a simple
+         //   text node (config._optionName is missing), or if it is the `title` attribute of
+         //   a tag (_optionName[0] === 'title', title is always translatable)
          const isOptionTranslatable = this.textTranslator
             .getComponentDescription(context.componentPath)
             .isOptionTranslatable(context.componentPropertyPath);
-         const translateText = (context.translateText && !context.processingOldComponent)|| isOptionTranslatable;
+         const translateText = isOptionTranslatable || context.componentPropertyPath === null || (
+            (typeof context.componentPropertyPath === 'string' && context.componentPropertyPath.length > 0)
+            && context.translateText
+            && !context.processingOldComponent
+         );
 
          // Process text node content.
          // If text is invalid then an error will be thrown.

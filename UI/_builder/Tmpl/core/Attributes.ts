@@ -599,12 +599,19 @@ class AttributeProcessor implements IAttributeProcessor {
                ]
             );
          }
+         const translateText = nodeDescription
+            ? (
+               nodeDescription.isAttributeTranslatable(attribute)
+               // FIXME: attr:title have never been translated
+               && attributeNode.name !== 'attr:title'
+            )
+            : false;
          const value = this.textProcessor.process(
             attributeValue,
             {
                fileName: options.fileName,
                allowedContent: TextContentFlags.FULL_TEXT,
-               translateText: nodeDescription ? nodeDescription.isAttributeTranslatable(attribute) : false,
+               translateText,
                translationsRegistrar: options.translationsRegistrar,
                position: attributeNode.position
             }
