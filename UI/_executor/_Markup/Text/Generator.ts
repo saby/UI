@@ -241,7 +241,6 @@ export class GeneratorText implements IGenerator {
       }
       let isTplString = typeof tpl === 'string';
       let isTplModule = Common.isLibraryModule(tpl);
-      let isTemplateWrapper = false;
       let data = this.prepareDataForCreate(tpl, preparedScope, decorAttribs, _deps, includedTemplates);
       let resolvedScope = data.controlProperties;
       let fn;
@@ -258,7 +257,6 @@ export class GeneratorText implements IGenerator {
       // временно добавили проверку на этот модуль, проверять по _moduleName опасно,
       // т.к. в режиме резиза может работаь не верно, поэтому проверим на наличии дополнительного экспорта
       if (fn && fn.hasOwnProperty('TemplateWrapper') && fn.hasOwnProperty('HeadContent') && fn.hasOwnProperty('default')) {
-         isTemplateWrapper = true;
          fn = fn.default;
       }
 
@@ -283,9 +281,6 @@ export class GeneratorText implements IGenerator {
 
          let r;
          let callContext = preparedScope && data.parent ? data.parent : fn;
-         if (!this.isValidTemplate(fn, tpl, isTplString, isTplModule, isTemplateWrapper)) {
-            return this.createEmptyText();
-         }
          if (typeof fn === 'function') {
             r = fn.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, this.prepareAttrsForPartial);
          } else if (fn && typeof fn.func === 'function') {
@@ -293,9 +288,6 @@ export class GeneratorText implements IGenerator {
          } else if (Common.isArray(fn)) {
             const _this = this;
             r = fn.map(function (template) {
-               if (!_this.isValidTemplate(template, tpl, isTplString, isTplModule, isTemplateWrapper)) {
-                  return _this.createEmptyText();
-               }
                callContext = preparedScope && data.parent ? data.parent : template;
                if (typeof template === 'function') {
                   return template.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, _this.prepareAttrsForPartial);
@@ -360,45 +352,4 @@ export class GeneratorText implements IGenerator {
    calculateScope(scope) {
       return Scope.calculateScope(scope, Scope.controlPropMerge);
    };
-
-   private isValidTemplate(fn: any,
-                           tpl: GeneratorTemplateOrigin,
-                           isTplString: boolean,
-                           isTplModule: boolean,
-                           isTemplateWrapper: boolean): boolean {
-      let reason = '';
-      let isValid = true;
-      // высчитали функцию как число
-      if (isTplString && typeof fn === 'number') {
-         isValid = false;
-         reason = `В качестве компонента/шаблона было передано число.`
-      }
-      // из библиотеки вернули строку
-      if (isTplModule && typeof fn === 'string') {
-         isValid = false;
-         reason = `Из библиотеки ${tpl} в качестве компонента была передана строка.`
-      }
-      // автоматически передевенные странаци на wasaby игнорируем
-      // массимы функций игнорируем, они будут проверены в fn.map()
-      if (!isTemplateWrapper && typeof fn === 'object' && !Common.isArray(fn)) {
-         if (fn === null) {
-            isValid = false;
-            reason = 'В качества шаблона/компонента передан "null"';
-         }
-         // если в fn есть свойство func, то все ок
-         if (isValid && !fn.hasOwnProperty('func')) {
-            isValid = false;
-            // export default не поддерживается следует вывести ошибку или странциа построится как [object Objcet]
-            if (fn.hasOwnProperty('default')) {
-               reason = 'В модуле экспортируется объект по-умолчанию (export default ControlName).'
-            }
-         }
-      }
-      if (!isValid) {
-         Logger.error(`Не удалось построить верстку.` +
-            `В качестве шаблона контрола ${tpl} была передана структура не поддерживаемая генератором.` +
-            `${reason}`, fn);
-      }
-      return isValid;
-   }
 }
