@@ -7,7 +7,7 @@
 
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { ITranslationsRegistrar } from 'UI/_builder/Tmpl/core/Text';
-import { IPath } from 'UI/_builder/Tmpl/core/Path';
+import { IPath } from 'UI/_builder/Tmpl/core/Resolvers';
 import { Dictionary, ITranslationKey } from 'UI/_builder/Tmpl/i18n/Dictionary';
 
 /**
@@ -148,6 +148,16 @@ export default class Scope implements ITranslationsRegistrar {
          template: ast,
          usages: 0
       };
+   }
+
+   /**
+    * Check if template has been already declared.
+    * @deprecated
+    * @param name {string} Template name.
+    * @returns {boolean} Returns true in case of declared template.
+    */
+   hasTemplate(name: string): boolean {
+      return this.templates.hasOwnProperty(name);
    }
 
    /**
