@@ -70,7 +70,7 @@ define('UI/_builder/Tmpl/core/bridge', [
 
          // формируем набор реактивных свойств, "служебные" свойства игнорируем
          traversed.reactiveProps = uniqueArray(foundVars).filter(function(item) {
-            return item !== '...' && item !== '_options' && item !== '_container' && item !== '_children';
+            return item !== '...' && item !== '_options' && item !== '_container' && item !== '_children' && item !== 'rk';
          });
 
          traversed.childrenStorage = foundChildren;
