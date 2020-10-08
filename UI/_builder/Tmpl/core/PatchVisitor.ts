@@ -958,24 +958,44 @@ class PatchVisitor implements Ast.IAstVisitor {
    }
 
    // done.
-   private collectAttributes(node: Ast.BaseHtmlElement, context: INavigationContext): any {
-      const attributes = { };
+   private getAttributesChain(node: Ast.BaseHtmlElement, context: INavigationContext): any {
+      const chain = [];
       for (const attributeName in node.__$ws_attributes) {
          const attribute = node.__$ws_attributes[attributeName];
          // rm prefix for elements only
          const cleanName = attributeName.replace('attr:', '');
          const name = !attribute.__$ws_hasAttributePrefix ? cleanName : attributeName;
-         attributes[name] = attribute.accept(this, context);
+         const processedAttribute = {
+            node: attribute.accept(this, context),
+            name
+         };
+         chain.splice(attribute.__$ws_key, 0, processedAttribute);
       }
       for (const eventName in node.__$ws_events) {
-         attributes[eventName] = node.__$ws_events[eventName].accept(this, context);
+         const event = node.__$ws_events[eventName];
+         const processedEvent = {
+            node: event.accept(this, context),
+            name: eventName
+         };
+         chain.splice(event.__$ws_key, 0, processedEvent);
+      }
+      return chain;
+   }
+
+   // done.
+   private collectAttributes(node: Ast.BaseHtmlElement, context: INavigationContext): any {
+      const chain = this.getAttributesChain(node, context);
+      const attributes = { };
+      for (let index = 0; index < chain.length; ++index) {
+         const item = chain[index];
+         attributes[item.name] = item.node;
       }
       return attributes;
    }
 
    // done.
    private collectComponentAttributes(node: Ast.BaseWasabyElement, context: INavigationContext): any {
-      const attributes = this.collectAttributes(node, context);
+      const chain = this.getAttributesChain(node, context);
       for (const optionName in node.__$ws_options) {
          const option = node.__$ws_options[optionName];
          if (!option.hasFlag(Ast.Flags.UNPACKED)) {
@@ -984,11 +1004,20 @@ class PatchVisitor implements Ast.IAstVisitor {
          const optionValue = (<Ast.ValueNode>option.__$ws_value).__$ws_data;
          const isTextOnly = optionValue.length === 1 && (optionValue[0] instanceof Ast.TextDataNode);
          const dataArray = this.visitAll(optionValue, context);
-         attributes[optionName] = {
-            data: isTextOnly ? dataArray[0] : dataArray,
-            key: undefined,
-            type: 'text'
+         const processedOption = {
+            node: {
+               data: isTextOnly ? dataArray[0] : dataArray,
+               key: undefined,
+               type: 'text'
+            },
+            name: optionName
          };
+         chain.splice(option.__$ws_key, 0, processedOption);
+      }
+      const attributes = { };
+      for (let index = 0; index < chain.length; ++index) {
+         const item = chain[index];
+         attributes[item.name] = item.node;
       }
       return attributes;
    }
@@ -1030,7 +1059,7 @@ class PatchVisitor implements Ast.IAstVisitor {
 
    // done.
    private collectObjectAttributeProperties(node: Ast.ObjectNode, context: INavigationContext): any {
-      const properties = { };
+      const chain = [];
       for (const optionName in node.__$ws_properties) {
          const originProperty = node.__$ws_properties[optionName];
          if (!originProperty.hasFlag(Ast.Flags.UNPACKED)) {
@@ -1040,13 +1069,25 @@ class PatchVisitor implements Ast.IAstVisitor {
          const propertyValue = (<Ast.ValueNode>property.__$ws_value).__$ws_data;
          const isTextOnly = propertyValue.length === 1 && (propertyValue[0] instanceof Ast.TextDataNode);
          const dataArray = this.visitAll(propertyValue, context);
-         properties[optionName] = {
-            data: isTextOnly ? dataArray[0] : dataArray,
-            key: undefined,
-            type: 'text'
+         const processedOption = {
+            node: {
+               data: isTextOnly ? dataArray[0] : dataArray,
+               key: undefined,
+               type: 'text'
+            },
+            name: optionName
          };
+         chain.splice(property.__$ws_key, 0, processedOption);
       }
-      return Object.keys(properties).length > 0 ? properties : undefined;
+      if (chain.length === 0) {
+         return undefined;
+      }
+      const properties = { };
+      for (let index = 0; index < chain.length; ++index) {
+         const item = chain[index];
+         properties[item.name] = item.node;
+      }
+      return properties;
    }
 
    // done.

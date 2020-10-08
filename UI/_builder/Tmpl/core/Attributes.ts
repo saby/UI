@@ -349,6 +349,8 @@ class AttributeProcessor implements IAttributeProcessor {
     * @param nodeDescription {INodeDescription} Processing node description.
     */
    process(attributes: Nodes.IAttributes, options: IAttributeProcessorOptions, nodeDescription?: INodeDescription): IAttributesCollection {
+      // FIXME: keep processing attributes order
+      let index: number = 0;
       const collection: IAttributesCollection = {
          attributes: { },
          options: { },
@@ -360,6 +362,7 @@ class AttributeProcessor implements IAttributeProcessor {
             if (isBind(attributeName)) {
                const bindNode = this.processBind(node, options);
                if (bindNode) {
+                  bindNode.__$ws_key = index++;
                   collection.events[`bind:${bindNode.__$ws_property}`] = bindNode;
                }
                continue;
@@ -367,6 +370,7 @@ class AttributeProcessor implements IAttributeProcessor {
             if (isEvent(attributeName)) {
                const eventNode = this.processEvent(node, options);
                if (eventNode) {
+                  eventNode.__$ws_key = index++;
                   collection.events[`on:${eventNode.__$ws_event}`] = eventNode;
                }
                continue;
@@ -383,6 +387,7 @@ class AttributeProcessor implements IAttributeProcessor {
                   );
                }
                if (attributeNode) {
+                  attributeNode.__$ws_key = index++;
                   attributeNode.__$ws_hasAttributePrefix = hasWasabyPrefix(attributeName);
                   if (collection.attributes.hasOwnProperty(`attr:${attributeNode.__$ws_name}`)) {
                      this.errorHandler.warn(
@@ -400,6 +405,7 @@ class AttributeProcessor implements IAttributeProcessor {
             }
             const optionNode = this.processOption(node, options, nodeDescription);
             if (optionNode) {
+               optionNode.__$ws_key = index++;
                collection.options[optionNode.__$ws_name] = optionNode;
             }
          }
@@ -414,12 +420,15 @@ class AttributeProcessor implements IAttributeProcessor {
     * @param options {IAttributeProcessorOptions} Processing options.
     */
    processOptions(attributes: Nodes.IAttributes, options: IAttributeProcessorOptions): Ast.IObjectProperties {
+      // FIXME: keep processing attributes order
+      let index: number = 0;
       const collection: Ast.IObjectProperties = { };
       for (const attributeName in attributes) {
          if (attributes.hasOwnProperty(attributeName)) {
             const node = attributes[attributeName];
             const optionNode = this.processOption(node, options);
             if (optionNode) {
+               optionNode.__$ws_key = index++;
                collection[optionNode.__$ws_name] = optionNode;
             }
          }
