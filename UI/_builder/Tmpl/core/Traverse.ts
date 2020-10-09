@@ -2553,7 +2553,17 @@ class Traverse implements ITraverse {
             `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
          );
       }
-      const [indexIteratorString, collectionExpression] = params;
+      // FIXME: remove this code
+      let [indexIteratorString, collectionExpression] = params;
+      if (indexIteratorString.indexOf(' as ') > -1) {
+         const asParameters = indexIteratorString.split(' as ');
+         if (asParameters.length !== 2) {
+            throw new Error(
+               `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
+            );
+         }
+         indexIteratorString = `${asParameters[0]}, ${asParameters[1]}`;
+      }
       const variables = indexIteratorString.split(',').map(s => s.trim());
       if (variables.length < 1 ||variables.length > 2) {
          throw new Error(

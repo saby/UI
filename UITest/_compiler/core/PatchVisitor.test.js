@@ -1692,6 +1692,35 @@ define([
             assert.strictEqual(tree[0].name, 'ws:for');
             assert.strictEqual(tree[0].type, 'tag');
          });
+         it('foreach 2', function() {
+            var html = `
+            <ws:for data="index as item in items">
+               <div></div>
+            </ws:for>
+            `;
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('data'));
+            assert.strictEqual(tree[0].attribs.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.data.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.data.data.value, 'index, item in items');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].children.length, 0);
+            assert.strictEqual(tree[0].children[0].key, '0_');
+            assert.strictEqual(tree[0].children[0].name, 'div');
+            assert.strictEqual(tree[0].children[0].type, 'tag');
+
+            assert.strictEqual(tree[0].forSource.key, 'index');
+            assert.isTrue(isProgramNode(tree[0].forSource.main));
+            assert.strictEqual(tree[0].forSource.main.string, 'items');
+            assert.strictEqual(tree[0].forSource.value, 'item');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:for');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
          it('for', function() {
             var html = `
             <ws:for data="i.init(); i.test(); i.update()">
