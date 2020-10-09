@@ -78,10 +78,22 @@ class Head extends Control<IHeadOptions> {
             }
             return;
         }
-        return headDataStore.read('waitAppContent')().then(({ css }) =>
-            collectCSS(options.theme, css.simpleCss, css.themedCss)
-                .then((html) => { this.stylesHtml = `\n${html}\n`; })
-                .catch(onerror));
+        return headDataStore.read('waitAppContent')()
+            .then(({ css }) => {
+                collectCSS(options.theme, css.simpleCss, css.themedCss)
+                    .then((html) => { this.stylesHtml = `\n${html}\n`; })
+                    .catch(onerror);
+                /**
+                 * Опросим HEAD API на предмет накопленного результата. Он будет массивом JML.
+                 * Обработаем и добавим его к userTags
+                 * Напоминаю, что HEAD API это накопитель. Его дергают на протяжение всего процесса построения страницв
+                 * */
+                const data: Array<JML> = AppHead.getInstance().getData();
+                if (data && data.length) {
+                    const markup = new TagMarkup(data.map(fromJML)).outerHTML;
+                    this.userTags+=markup;
+                }
+            });
     }
 
     /**
@@ -119,11 +131,12 @@ class Head extends Control<IHeadOptions> {
      * @private
      */
     _preparePrefetchLinks(prefetchLinks: string[]): void {
+        const API = AppHead.getInstance();
         // TODO получить абсолютные ссылки для указанных модулей методом Мальцева А
         const absPrefetchLinks = prefetchLinks;
 
         absPrefetchLinks.forEach((path) => {
-            AppHead.getInstance().createTag('link', {rel: 'prefetch', as: 'style', href: path});
+            API.createTag('link', {rel: 'prefetch', as: 'style', href: path});
         });
     }
 
