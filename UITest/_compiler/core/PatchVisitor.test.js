@@ -93,6 +93,7 @@ define([
             assert.isFalse(tree[0].data[0].isEvent);
             assert.isFalse(tree[0].data[0].localized);
             assert.isTrue(isProgramNode(tree[0].data[0].name));
+            assert.strictEqual(tree[0].data[0].name.string, 'name2');
             assert.isFalse(tree[0].data[0].noEscape);
             assert.strictEqual(tree[0].data[0].type, 'var');
          });
@@ -115,6 +116,7 @@ define([
             assert.isFalse(tree[0].data[2].isEvent);
             assert.isFalse(tree[0].data[2].localized);
             assert.isTrue(isProgramNode(tree[0].data[2].name));
+            assert.strictEqual(tree[0].data[2].name.string, 'name2');
             assert.isFalse(tree[0].data[2].noEscape);
             assert.strictEqual(tree[0].data[2].type, 'var');
 
@@ -159,6 +161,7 @@ define([
             assert.isFalse(children[0].data[0].isEvent);
             assert.isFalse(children[0].data[0].localized);
             assert.isTrue(isProgramNode(children[0].data[0].name));
+            assert.strictEqual(children[0].data[0].name.string, 'name2');
             assert.isFalse(children[0].data[0].noEscape);
             assert.strictEqual(children[0].data[0].type, 'var');
          });
@@ -182,6 +185,7 @@ define([
             assert.isFalse(children[0].data[2].isEvent);
             assert.isFalse(children[0].data[2].localized);
             assert.isTrue(isProgramNode(children[0].data[2].name));
+            assert.strictEqual(children[0].data[2].name.string, 'name2');
             assert.isFalse(children[0].data[2].noEscape);
             assert.strictEqual(children[0].data[2].type, 'var');
 
@@ -278,6 +282,7 @@ define([
             assert.isTrue(tree[0].attribs['on:click'].data[0].isEvent);
             assert.isFalse(tree[0].attribs['on:click'].data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs['on:click'].data[0].name));
+            assert.strictEqual(tree[0].attribs['on:click'].data[0].name.string, 'handler()');
             assert.isFalse(tree[0].attribs['on:click'].data[0].noEscape);
             assert.strictEqual(tree[0].attribs['on:click'].data[0].type, 'var');
          });
@@ -293,6 +298,7 @@ define([
             assert.isFalse(tree[0].attribs.a1.data[0].isEvent);
             assert.isFalse(tree[0].attribs.a1.data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs.a1.data[0].name));
+            assert.strictEqual(tree[0].attribs.a1.data[0].name.string, 'i');
             assert.isFalse(tree[0].attribs.a1.data[0].noEscape);
             assert.strictEqual(tree[0].attribs.a1.data[0].type, 'var');
 
@@ -308,6 +314,7 @@ define([
             assert.isFalse(tree[0].attribs.a2.data[1].isEvent);
             assert.isFalse(tree[0].attribs.a2.data[1].localized);
             assert.isTrue(isProgramNode(tree[0].attribs.a2.data[1].name));
+            assert.strictEqual(tree[0].attribs.a2.data[1].name.string, 'i');
             assert.isFalse(tree[0].attribs.a2.data[1].noEscape);
 
             assert.strictEqual(tree[0].attribs.a2.data[2].type, 'text');
@@ -432,6 +439,7 @@ define([
             assert.isFalse(tree[0].attribs['attr:class'].data[1].isEvent);
             assert.isFalse(tree[0].attribs['attr:class'].data[1].localized);
             assert.isTrue(isProgramNode(tree[0].attribs['attr:class'].data[1].name));
+            assert.strictEqual(tree[0].attribs['attr:class'].data[1].name.string, 'b');
             assert.isFalse(tree[0].attribs['attr:class'].data[1].noEscape);
             assert.strictEqual(tree[0].attribs['attr:class'].data[2].type, 'text');
             assert.strictEqual(tree[0].attribs['attr:class'].data[2].value, '-c-');
@@ -452,6 +460,7 @@ define([
             assert.isTrue(tree[0].attribs['on:click'].data[0].isEvent);
             assert.isFalse(tree[0].attribs['on:click'].data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs['on:click'].data[0].name));
+            assert.strictEqual(tree[0].attribs['on:click'].data[0].name.string, 'handler()');
             assert.isFalse(tree[0].attribs['on:click'].data[0].noEscape);
             assert.strictEqual(tree[0].attribs['on:click'].data[0].type, 'var');
 
@@ -463,6 +472,7 @@ define([
             assert.isFalse(tree[0].attribs['bind:value'].data[0].isEvent);
             assert.isFalse(tree[0].attribs['bind:value'].data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs['bind:value'].data[0].name));
+            assert.strictEqual(tree[0].attribs['bind:value'].data[0].name.string, 'value');
             assert.isFalse(tree[0].attribs['bind:value'].data[0].noEscape);
             assert.strictEqual(tree[0].attribs['bind:value'].data[0].type, 'var');
          });
@@ -493,6 +503,7 @@ define([
             assert.isFalse(tree[0].attribs['attr:class'].data[1].isEvent);
             assert.isFalse(tree[0].attribs['attr:class'].data[1].localized);
             assert.isTrue(isProgramNode(tree[0].attribs['attr:class'].data[1].name));
+            assert.strictEqual(tree[0].attribs['attr:class'].data[1].name.string, 'b');
             assert.isFalse(tree[0].attribs['attr:class'].data[1].noEscape);
             assert.strictEqual(tree[0].attribs['attr:class'].data[2].type, 'text');
             assert.strictEqual(tree[0].attribs['attr:class'].data[2].value, '-c-');
@@ -513,6 +524,7 @@ define([
             assert.isTrue(tree[0].attribs['on:click'].data[0].isEvent);
             assert.isFalse(tree[0].attribs['on:click'].data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs['on:click'].data[0].name));
+            assert.strictEqual(tree[0].attribs['on:click'].data[0].name.string, 'handler()');
             assert.isFalse(tree[0].attribs['on:click'].data[0].noEscape);
             assert.strictEqual(tree[0].attribs['on:click'].data[0].type, 'var');
 
@@ -524,6 +536,7 @@ define([
             assert.isFalse(tree[0].attribs['bind:value'].data[0].isEvent);
             assert.isFalse(tree[0].attribs['bind:value'].data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs['bind:value'].data[0].name));
+            assert.strictEqual(tree[0].attribs['bind:value'].data[0].name.string, 'value');
             assert.isFalse(tree[0].attribs['bind:value'].data[0].noEscape);
             assert.strictEqual(tree[0].attribs['bind:value'].data[0].type, 'var');
          });
@@ -1452,6 +1465,7 @@ define([
             assert.isFalse(tree[0].attribs.template.data[0].isEvent);
             assert.isFalse(tree[0].attribs.template.data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs.template.data[0].name));
+            assert.strictEqual(tree[0].attribs.template.data[0].name.string, 'tmpl');
             assert.isFalse(tree[0].attribs.template.data[0].noEscape);
             assert.strictEqual(tree[0].attribs.template.data[0].type, 'var');
 
@@ -1462,6 +1476,7 @@ define([
             assert.isFalse(tree[0].attribs._wstemplatename.data[0].isEvent);
             assert.isFalse(tree[0].attribs._wstemplatename.data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs._wstemplatename.data[0].name));
+            assert.strictEqual(tree[0].attribs._wstemplatename.data[0].name.string, 'tmpl');
             assert.isFalse(tree[0].attribs._wstemplatename.data[0].noEscape);
             assert.strictEqual(tree[0].attribs._wstemplatename.data[0].type, 'var');
 
@@ -1471,6 +1486,7 @@ define([
             assert.isFalse(tree[0].injectedTemplate.isEvent);
             assert.isFalse(tree[0].injectedTemplate.localized);
             assert.isTrue(isProgramNode(tree[0].injectedTemplate.name));
+            assert.strictEqual(tree[0].injectedTemplate.name.string, 'tmpl');
             assert.isFalse(tree[0].injectedTemplate.noEscape);
             assert.strictEqual(tree[0].injectedTemplate.type, 'var');
 
@@ -1669,6 +1685,7 @@ define([
 
             assert.strictEqual(tree[0].forSource.key, 'index');
             assert.isTrue(isProgramNode(tree[0].forSource.main));
+            assert.strictEqual(tree[0].forSource.main.string, 'items');
             assert.strictEqual(tree[0].forSource.value, 'item');
 
             assert.strictEqual(tree[0].key, '0_');
@@ -1691,6 +1708,7 @@ define([
             assert.isFalse(tree[0].attribs.CUSTOM_CONDITION.data[0].isEvent);
             assert.isFalse(tree[0].attribs.CUSTOM_CONDITION.data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs.CUSTOM_CONDITION.data[0].name));
+            assert.strictEqual(tree[0].attribs.CUSTOM_CONDITION.data[0].name.string, 'i.test()');
             assert.isFalse(tree[0].attribs.CUSTOM_CONDITION.data[0].noEscape);
             assert.strictEqual(tree[0].attribs.CUSTOM_CONDITION.data[0].type, 'var');
 
@@ -1701,6 +1719,7 @@ define([
             assert.isFalse(tree[0].attribs.CUSTOM_ITERATOR.data[0].isEvent);
             assert.isFalse(tree[0].attribs.CUSTOM_ITERATOR.data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs.CUSTOM_ITERATOR.data[0].name));
+            assert.strictEqual(tree[0].attribs.CUSTOM_ITERATOR.data[0].name.string, 'i.update()');
             assert.isFalse(tree[0].attribs.CUSTOM_ITERATOR.data[0].noEscape);
             assert.strictEqual(tree[0].attribs.CUSTOM_ITERATOR.data[0].type, 'var');
 
@@ -1711,6 +1730,7 @@ define([
             assert.isFalse(tree[0].attribs.START_FROM.data[0].isEvent);
             assert.isFalse(tree[0].attribs.START_FROM.data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs.START_FROM.data[0].name));
+            assert.strictEqual(tree[0].attribs.START_FROM.data[0].name.string, 'i.init()');
             assert.isFalse(tree[0].attribs.START_FROM.data[0].noEscape);
             assert.strictEqual(tree[0].attribs.START_FROM.data[0].type, 'var');
 
@@ -1736,6 +1756,7 @@ define([
 
             assert.strictEqual(tree[0].forSource.key, 'index');
             assert.isTrue(isProgramNode(tree[0].forSource.main));
+            assert.strictEqual(tree[0].forSource.main.string, 'items');
             assert.strictEqual(tree[0].forSource.value, 'item');
 
             assert.strictEqual(tree[0].children.length, 0);
@@ -1760,6 +1781,7 @@ define([
             assert.isFalse(tree[0].attribs.CUSTOM_CONDITION.data[0].isEvent);
             assert.isFalse(tree[0].attribs.CUSTOM_CONDITION.data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs.CUSTOM_CONDITION.data[0].name));
+            assert.strictEqual(tree[0].attribs.CUSTOM_CONDITION.data[0].name.string, 'i.test()');
             assert.isFalse(tree[0].attribs.CUSTOM_CONDITION.data[0].noEscape);
             assert.strictEqual(tree[0].attribs.CUSTOM_CONDITION.data[0].type, 'var');
 
@@ -1770,6 +1792,7 @@ define([
             assert.isFalse(tree[0].attribs.CUSTOM_ITERATOR.data[0].isEvent);
             assert.isFalse(tree[0].attribs.CUSTOM_ITERATOR.data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs.CUSTOM_ITERATOR.data[0].name));
+            assert.strictEqual(tree[0].attribs.CUSTOM_ITERATOR.data[0].name.string, 'i.update()');
             assert.isFalse(tree[0].attribs.CUSTOM_ITERATOR.data[0].noEscape);
             assert.strictEqual(tree[0].attribs.CUSTOM_ITERATOR.data[0].type, 'var');
 
@@ -1780,6 +1803,7 @@ define([
             assert.isFalse(tree[0].attribs.START_FROM.data[0].isEvent);
             assert.isFalse(tree[0].attribs.START_FROM.data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs.START_FROM.data[0].name));
+            assert.strictEqual(tree[0].attribs.START_FROM.data[0].name.string, 'i.init()');
             assert.isFalse(tree[0].attribs.START_FROM.data[0].noEscape);
             assert.strictEqual(tree[0].attribs.START_FROM.data[0].type, 'var');
 
@@ -1812,6 +1836,7 @@ define([
             assert.isFalse(tree[0].attribs.data.data[0].isEvent);
             assert.isFalse(tree[0].attribs.data.data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs.data.data[0].name));
+            assert.strictEqual(tree[0].attribs.data.data[0].name.string, 'condition');
             assert.isFalse(tree[0].attribs.data.data[0].noEscape);
             assert.strictEqual(tree[0].attribs.data.data[0].type, 'var');
             assert.strictEqual(tree[0].children.length, 1);
@@ -1830,6 +1855,7 @@ define([
             assert.isFalse(tree[1].attribs.data.data[0].isEvent);
             assert.isFalse(tree[1].attribs.data.data[0].localized);
             assert.isTrue(isProgramNode(tree[1].attribs.data.data[0].name));
+            assert.strictEqual(tree[1].attribs.data.data[0].name.string, 'condition2');
             assert.isFalse(tree[1].attribs.data.data[0].noEscape);
             assert.strictEqual(tree[1].attribs.data.data[0].type, 'var');
             assert.strictEqual(tree[1].children.length, 1);
@@ -1863,6 +1889,7 @@ define([
             assert.isFalse(tree[0].attribs.if.data[0].isEvent);
             assert.isFalse(tree[0].attribs.if.data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs.if.data[0].name));
+            assert.strictEqual(tree[0].attribs.if.data[0].name.string, 'condition');
             assert.isFalse(tree[0].attribs.if.data[0].noEscape);
             assert.strictEqual(tree[0].attribs.if.data[0].type, 'var');
 
@@ -1883,6 +1910,7 @@ define([
             assert.isFalse(tree[0].attribs.if.data[0].isEvent);
             assert.isFalse(tree[0].attribs.if.data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs.if.data[0].name));
+            assert.strictEqual(tree[0].attribs.if.data[0].name.string, 'condition');
             assert.isFalse(tree[0].attribs.if.data[0].noEscape);
             assert.strictEqual(tree[0].attribs.if.data[0].type, 'var');
 
@@ -1903,6 +1931,7 @@ define([
             assert.isFalse(tree[0].attribs.if.data[0].isEvent);
             assert.isFalse(tree[0].attribs.if.data[0].localized);
             assert.isTrue(isProgramNode(tree[0].attribs.if.data[0].name));
+            assert.strictEqual(tree[0].attribs.if.data[0].name.string, 'condition');
             assert.isFalse(tree[0].attribs.if.data[0].noEscape);
             assert.strictEqual(tree[0].attribs.if.data[0].type, 'var');
 
