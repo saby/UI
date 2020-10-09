@@ -94,6 +94,49 @@ export function escape(entity) {
    return entity;
 }
 
+// умеет конвертировать не только ansii символы, но и unicode
+function fixedFromCharCode(codePt) {
+   //Код может быть в 16тиричной форме
+   if (codePt && codePt.indexOf){
+      if (codePt.indexOf('x') === 0){
+         var trueCode = codePt.split('x')[1];
+         codePt = parseInt(trueCode, 16);
+      }
+   }
+   if (codePt > 0xFFFF) {
+      codePt -= 0x10000;
+      return String.fromCharCode(0xD800 + (codePt >> 10), 0xDC00 + (codePt & 0x3FF));
+   } else {
+      return String.fromCharCode(codePt);
+   }
+}
+
+var unicodeRegExp = /&#(\w*);?/g;
+
+export function unescapeASCII(str: any): any {
+   if (typeof str !== 'string') {
+      return str;
+   }
+   return str.replace(unicodeRegExp, (_, entity) => fixedFromCharCode(entity));
+};
+
+const unescapeRegExp = /&(nbsp|amp|quot|apos|lt|gt);/g;
+const unescapeDict = {
+   "nbsp": String.fromCharCode(160),
+   "amp": "&",
+   "quot": "\"",
+   "apos": "'",
+   "lt": "<",
+   "gt": ">"
+};
+
+export function unescape(str: any): any {
+   if (typeof str !== 'string') {
+      return str;
+   }
+   return unescapeASCII(str).replace(unescapeRegExp, (_, entity: string) => unescapeDict[entity]);
+};
+
 const tagsToParenthesisReplace = {
    '{{': '&lcub;&lcub;',
    '}}': '&rcub;&rcub;'

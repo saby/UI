@@ -51,8 +51,9 @@ export default function isElementVisible(elem, isCheckVisibilityHidden: boolean 
       if (elem.wsControl.isDestroyed()) {
          return false;
       }
+      const Control = requirejs('UI/Base').Control;
       // @ts-ignore
-      if (elem.wsControl.iWantVDOM) {
+      if (elem.wsControl instanceof Control) {
          // @ts-ignore
          result = result && (!elem.wsControl.isVisible || elem.wsControl.isVisible());
       }
