@@ -1,9 +1,9 @@
 <div>
    <script key="init_script">
-      require(['Core/app-init', 'Env/Env', 'is!browser?jquery'], function(appinit, Env, rights){
+      require(['SbisEnvUI/Compatible', 'Env/Env', 'is!browser?jquery'], function(Compatible, Env, rights){
          Env.constants.$body = $(document.body);
          Env.constants.$window = $(window);
-         appinit();
+         Compatible.AppInit();
          require(['bootup-min',
           'Core/nativeExtensions',
           'Lib/Control/BaseCompatible/BaseCompatible'
