@@ -1440,7 +1440,7 @@ class Traverse implements ITraverse {
             .getComponentDescription(context.componentPath)
             .isOptionTranslatable(context.componentPropertyPath);
          const translateText = isOptionTranslatable || context.componentPropertyPath === null || (
-            (typeof context.componentPropertyPath === 'string' && context.componentPropertyPath.length > 0)
+            (typeof context.componentPropertyPath === 'string' && context.componentPropertyPath.length === 0)
             && context.translateText
             && !context.processingOldComponent
          );
