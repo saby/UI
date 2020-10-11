@@ -31,6 +31,15 @@ function getTagType(name: string): string {
    return 'tag';
 }
 
+function isTemplateType(fullPath: string): boolean {
+   const hasTemplatePlugin = /^wml!/gi.test(fullPath) ||
+      /^(optional!)?tmpl!/gi.test(fullPath) ||
+      /^html!/gi.test(fullPath);
+   const hasOptionalPlugin = /^optional!/gi.test(fullPath);
+   const hasSlashes = fullPath.indexOf('/') > -1;
+   return hasTemplatePlugin || !hasTemplatePlugin && hasOptionalPlugin && !hasSlashes;
+}
+
 class PatchVisitor implements Ast.IAstVisitor {
    // done.
    visitDoctype(node: Ast.DoctypeNode, context: INavigationContext): any {
@@ -929,18 +938,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       }];
       // @ts-ignore
       node.attribs = this.collectComponentAttributes(node, context, initChain);
-      if (node.__$ws_path.hasLogicalPath() && !node.__$ws_path.hasPlugins()) {
-         // @ts-ignore
-         node.attribs._wstemplatename = node.__$ws_path.getFullPath();
-         // @ts-ignore
-         node.children = [{
-            constructor: node.__$ws_path.getFullPath(),
-            key: undefined,
-            library: node.__$ws_path.getFullPhysicalPath(),
-            module: node.__$ws_path.getLogicalPath(),
-            type: 'module'
-         }];
-      } else if (node.__$ws_path.hasPlugins()) {
+      if (isTemplateType(node.__$ws_path.getFullPath())) {
          // @ts-ignore
          node.attribs._wstemplatename = {
             data: {
@@ -956,6 +954,17 @@ class PatchVisitor implements Ast.IAstVisitor {
             key: undefined,
             optional: undefined,
             type: 'template'
+         }];
+      } else if (node.__$ws_path.hasLogicalPath()) {
+         // @ts-ignore
+         node.attribs._wstemplatename = node.__$ws_path.getFullPath();
+         // @ts-ignore
+         node.children = [{
+            constructor: node.__$ws_path.getFullPath(),
+            key: undefined,
+            library: node.__$ws_path.getFullPhysicalPath(),
+            module: node.__$ws_path.getLogicalPath(),
+            type: 'module'
          }];
       } else {
          // @ts-ignore

@@ -20,6 +20,65 @@ define([
 ) {
    'use strict';
 
+   /**
+    * Testing template attributes for ws:partial directive.
+    *
+       <!--[0]--><ws:template name="tmpl"><div></div></ws:template>
+       <!--[1]--><ws:partial template="tmpl" />
+       <!--[2]--><ws:partial template="{{ tmplFunction }}" />
+
+       <!-- DOES NOT WORK
+       <ws:partial template="UIModule.Component" />
+       <ws:partial template="UIModule.library:Component" />
+       -->
+
+       <!--[3]--><ws:partial template="UIModule/Component" />
+       <!--                  type: control -->
+       <!--[4]--><ws:partial template="UIModule/library:Component" />
+       <!--                  type: module -->
+
+       <!--[5]--><ws:partial template="wml!UIModule/directory/file" />
+       <!--                  type: template -->
+       <!--[6]--><ws:partial template="optional!wml!UIModule/directory/file" />
+       <!--                  type: control -->
+       <!--[7]--><ws:partial template="wml!UIModule/library:tmplFunction" />
+       <!--                  type: template -->
+       <!--[8]--><ws:partial template="optional!wml!UIModule/library:tmplFunction" />
+       <!--                  type: module -->
+
+       <!--[9]--><ws:partial template="tmpl!UIModule/directory/file" />
+       <!--                  type: template -->
+       <!--[10]--><ws:partial template="optional!tmpl!UIModule/directory/file" />
+       <!--                  type: template -->
+       <!--[11]--><ws:partial template="tmpl!UIModule/library:tmplFunction" />
+       <!--                  type: template -->
+       <!--[12]--><ws:partial template="optional!tmpl!UIModule/library:tmplFunction" />
+       <!--                  type: template -->
+
+       <!--[13]--><ws:partial template="js!UIModule/directory/file" />
+       <!--                  type: control -->
+       <!--[14]--><ws:partial template="optional!js!UIModule/directory/file" />
+       <!--                  type: control -->
+       <!--[15]--><ws:partial template="js!UIModule/library:tmplFunction" />
+       <!--                  type: module -->
+       <!--[16]--><ws:partial template="optional!js!UIModule/library:tmplFunction" />
+       <!--                  type: module -->
+
+       <!--[17]--><ws:partial template="html!UIModule/directory/file" />
+       <!--                  type: template -->
+       <!--[18]--><ws:partial template="optional!html!UIModule/directory/file" />
+       <!--                  type: control -->
+       <!--[19]--><ws:partial template="html!UIModule/library:tmplFunction" />
+       <!--                  type: template -->
+       <!--[20]--><ws:partial template="optional!html!UIModule/library:tmplFunction" />
+       <!--                  type: module -->
+
+       <!--[21]--><ws:partial template="optional!UIModule.Component" />
+       <!--                  type: template -->
+       <!--[22]--><ws:partial template="optional!UIModule.library:Component" />
+       <!--                  type: template -->
+    */
+
    var FILE_NAME = 'Compiler/core/PatchVisitor/TestTemplate.wml';
 
    function isProgramNode(node) {
@@ -1468,172 +1527,7 @@ define([
          });
       });
       describe('Templates', function() {
-         it('{{ tmpl }}', function() {
-            var html = '<ws:partial template="{{ tmpl }}" />';
-            var tree = process(html);
-            assert.strictEqual(tree.length, 1);
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
-            assert.strictEqual(tree[0].attribs.template.type, 'text');
-            assert.strictEqual(tree[0].attribs.template.data.length, 1);
-            assert.isFalse(tree[0].attribs.template.data[0].isBind);
-            assert.isFalse(tree[0].attribs.template.data[0].isEvent);
-            assert.isFalse(tree[0].attribs.template.data[0].localized);
-            assert.isTrue(isProgramNode(tree[0].attribs.template.data[0].name));
-            assert.strictEqual(tree[0].attribs.template.data[0].name.string, 'tmpl');
-            assert.isFalse(tree[0].attribs.template.data[0].noEscape);
-            assert.strictEqual(tree[0].attribs.template.data[0].type, 'var');
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
-            assert.strictEqual(tree[0].attribs._wstemplatename.type, 'text');
-            assert.strictEqual(tree[0].attribs._wstemplatename.data.length, 1);
-            assert.isFalse(tree[0].attribs._wstemplatename.data[0].isBind);
-            assert.isFalse(tree[0].attribs._wstemplatename.data[0].isEvent);
-            assert.isFalse(tree[0].attribs._wstemplatename.data[0].localized);
-            assert.isTrue(isProgramNode(tree[0].attribs._wstemplatename.data[0].name));
-            assert.strictEqual(tree[0].attribs._wstemplatename.data[0].name.string, 'tmpl');
-            assert.isFalse(tree[0].attribs._wstemplatename.data[0].noEscape);
-            assert.strictEqual(tree[0].attribs._wstemplatename.data[0].type, 'var');
-
-            assert.strictEqual(tree[0].children.length, 0);
-
-            assert.isFalse(tree[0].injectedTemplate.isBind);
-            assert.isFalse(tree[0].injectedTemplate.isEvent);
-            assert.isFalse(tree[0].injectedTemplate.localized);
-            assert.isTrue(isProgramNode(tree[0].injectedTemplate.name));
-            assert.strictEqual(tree[0].injectedTemplate.name.string, 'tmpl');
-            assert.isFalse(tree[0].injectedTemplate.noEscape);
-            assert.strictEqual(tree[0].injectedTemplate.type, 'var');
-
-            assert.strictEqual(tree[0].key, '0_');
-            assert.strictEqual(tree[0].name, 'ws:partial');
-            assert.strictEqual(tree[0].type, 'tag');
-         });
-         it('optional!tmpl!UIModule/dir/file', function() {
-            var html = '<ws:partial template="optional!tmpl!UIModule/dir/file" />';
-            var tree = process(html);
-            assert.strictEqual(tree.length, 1);
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
-            assert.strictEqual(tree[0].attribs.template.type, 'text');
-            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
-            assert.strictEqual(tree[0].attribs.template.data.value, 'optional!tmpl!UIModule/dir/file');
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
-            assert.strictEqual(tree[0].attribs._wstemplatename.type, 'text');
-            assert.strictEqual(tree[0].attribs._wstemplatename.data.type, 'text');
-            assert.strictEqual(tree[0].attribs._wstemplatename.data.value, 'optional!tmpl!UIModule/dir/file');
-
-            assert.strictEqual(tree[0].children.length, 1);
-            assert.strictEqual(tree[0].children[0].fn, 'optional!tmpl!UIModule/dir/file');
-            assert.strictEqual(tree[0].children[0].key, undefined);
-            assert.strictEqual(tree[0].children[0].optional, undefined);
-            assert.strictEqual(tree[0].children[0].type, 'template');
-
-            assert.strictEqual(tree[0].key, '0_');
-            assert.strictEqual(tree[0].name, 'ws:partial');
-            assert.strictEqual(tree[0].type, 'tag');
-         });
-         it('optional!tmpl!UIModule/dir:library', function() {
-            var html = '<ws:partial template="optional!tmpl!UIModule/dir:library" />';
-            var tree = process(html);
-            assert.strictEqual(tree.length, 1);
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
-            assert.strictEqual(tree[0].attribs.template.type, 'text');
-            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
-            assert.strictEqual(tree[0].attribs.template.data.value, 'optional!tmpl!UIModule/dir:library');
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
-            assert.strictEqual(tree[0].attribs._wstemplatename.type, 'text');
-            assert.strictEqual(tree[0].attribs._wstemplatename.data.type, 'text');
-            assert.strictEqual(tree[0].attribs._wstemplatename.data.value, 'optional!tmpl!UIModule/dir:library');
-
-            assert.strictEqual(tree[0].children.length, 1);
-            assert.strictEqual(tree[0].children[0].fn, 'optional!tmpl!UIModule/dir:library');
-            assert.strictEqual(tree[0].children[0].key, undefined);
-            assert.strictEqual(tree[0].children[0].optional, undefined);
-            assert.strictEqual(tree[0].children[0].type, 'template');
-
-            assert.strictEqual(tree[0].key, '0_');
-            assert.strictEqual(tree[0].name, 'ws:partial');
-            assert.strictEqual(tree[0].type, 'tag');
-         });
-         it('wml!UIModule/dir/file', function() {
-            var html = '<ws:partial template="wml!UIModule/dir/file" />';
-            var tree = process(html);
-            assert.strictEqual(tree.length, 1);
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
-            assert.strictEqual(tree[0].attribs.template.type, 'text');
-            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
-            assert.strictEqual(tree[0].attribs.template.data.value, 'wml!UIModule/dir/file');
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
-            assert.strictEqual(tree[0].attribs._wstemplatename.type, 'text');
-            assert.strictEqual(tree[0].attribs._wstemplatename.data.type, 'text');
-            assert.strictEqual(tree[0].attribs._wstemplatename.data.value, 'wml!UIModule/dir/file');
-
-            assert.strictEqual(tree[0].children.length, 1);
-            assert.strictEqual(tree[0].children[0].fn, 'wml!UIModule/dir/file');
-            assert.strictEqual(tree[0].children[0].key, undefined);
-            assert.strictEqual(tree[0].children[0].optional, undefined);
-            assert.strictEqual(tree[0].children[0].type, 'template');
-
-            assert.strictEqual(tree[0].key, '0_');
-            assert.strictEqual(tree[0].name, 'ws:partial');
-            assert.strictEqual(tree[0].type, 'tag');
-         });
-         it('UIModule/Component', function() {
-            var html = '<ws:partial template="UIModule/Component" />';
-            var tree = process(html);
-            assert.strictEqual(tree.length, 1);
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
-            assert.strictEqual(tree[0].attribs._wstemplatename, 'UIModule/Component');
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
-            assert.strictEqual(tree[0].attribs.template.type, 'text');
-            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
-            assert.strictEqual(tree[0].attribs.template.data.value, 'UIModule/Component');
-
-            assert.strictEqual(tree[0].children.length, 1);
-            assert.strictEqual(tree[0].children[0].constructor, 'UIModule/Component');
-            assert.strictEqual(tree[0].children[0].fn, 'UIModule/Component');
-            assert.strictEqual(tree[0].children[0].key, undefined);
-            assert.strictEqual(tree[0].children[0].optional, undefined);
-            assert.strictEqual(tree[0].children[0].type, 'control');
-
-            assert.strictEqual(tree[0].key, '0_');
-            assert.strictEqual(tree[0].name, 'ws:partial');
-            assert.strictEqual(tree[0].type, 'tag');
-         });
-         it('UIModule/Library:Component', function() {
-            var html = '<ws:partial template="UIModule/Library:Component" />';
-            var tree = process(html);
-            assert.strictEqual(tree.length, 1);
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
-            assert.strictEqual(tree[0].attribs.template.type, 'text');
-            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
-            assert.strictEqual(tree[0].attribs.template.data.value, 'UIModule/Library:Component');
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
-            assert.strictEqual(tree[0].attribs._wstemplatename, 'UIModule/Library:Component');
-
-            assert.strictEqual(tree[0].children.length, 1);
-            assert.strictEqual(tree[0].children[0].constructor, 'UIModule/Library:Component');
-            assert.strictEqual(tree[0].children[0].key, undefined);
-            assert.strictEqual(tree[0].children[0].library, 'UIModule/Library');
-            assert.strictEqual(tree[0].children[0].module.length, 1);
-            assert.strictEqual(tree[0].children[0].module[0], 'Component');
-            assert.strictEqual(tree[0].children[0].type, 'module');
-
-            assert.strictEqual(tree[0].key, '0_');
-            assert.strictEqual(tree[0].name, 'ws:partial');
-            assert.strictEqual(tree[0].type, 'tag');
-         });
-         it('tmpl', function() {
+         it('[1] tmpl', function() {
             var html = `
             <ws:template name="tmpl">
                 <div></div>
@@ -1675,6 +1569,542 @@ define([
             assert.strictEqual(tree[1].key, '1_');
             assert.strictEqual(tree[1].name, 'ws:partial');
             assert.strictEqual(tree[1].type, 'tag');
+         });
+         it('[2] {{ tmplFunction }}', function() {
+            var html = '<ws:partial template="{{ tmplFunction }}" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.length, 1);
+            assert.isFalse(tree[0].attribs.template.data[0].isBind);
+            assert.isFalse(tree[0].attribs.template.data[0].isEvent);
+            assert.isFalse(tree[0].attribs.template.data[0].localized);
+            assert.isTrue(isProgramNode(tree[0].attribs.template.data[0].name));
+            assert.strictEqual(tree[0].attribs.template.data[0].name.string, 'tmplFunction');
+            assert.isFalse(tree[0].attribs.template.data[0].noEscape);
+            assert.strictEqual(tree[0].attribs.template.data[0].type, 'var');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.length, 1);
+            assert.isFalse(tree[0].attribs._wstemplatename.data[0].isBind);
+            assert.isFalse(tree[0].attribs._wstemplatename.data[0].isEvent);
+            assert.isFalse(tree[0].attribs._wstemplatename.data[0].localized);
+            assert.isTrue(isProgramNode(tree[0].attribs._wstemplatename.data[0].name));
+            assert.strictEqual(tree[0].attribs._wstemplatename.data[0].name.string, 'tmplFunction');
+            assert.isFalse(tree[0].attribs._wstemplatename.data[0].noEscape);
+            assert.strictEqual(tree[0].attribs._wstemplatename.data[0].type, 'var');
+
+            assert.strictEqual(tree[0].children.length, 0);
+
+            assert.isFalse(tree[0].injectedTemplate.isBind);
+            assert.isFalse(tree[0].injectedTemplate.isEvent);
+            assert.isFalse(tree[0].injectedTemplate.localized);
+            assert.isTrue(isProgramNode(tree[0].injectedTemplate.name));
+            assert.strictEqual(tree[0].injectedTemplate.name.string, 'tmplFunction');
+            assert.isFalse(tree[0].injectedTemplate.noEscape);
+            assert.strictEqual(tree[0].injectedTemplate.type, 'var');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[3] UIModule/Component', function() {
+            var html = '<ws:partial template="UIModule/Component" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename, 'UIModule/Component');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'UIModule/Component');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].constructor, 'UIModule/Component');
+            assert.strictEqual(tree[0].children[0].fn, 'UIModule/Component');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].optional, undefined);
+            assert.strictEqual(tree[0].children[0].type, 'control');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[4] UIModule/Library:Component', function() {
+            var html = '<ws:partial template="UIModule/library:Component" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'UIModule/library:Component');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename, 'UIModule/library:Component');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].constructor, 'UIModule/library:Component');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].library, 'UIModule/library');
+            assert.strictEqual(tree[0].children[0].module.length, 1);
+            assert.strictEqual(tree[0].children[0].module[0], 'Component');
+            assert.strictEqual(tree[0].children[0].type, 'module');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[5] wml!UIModule/directory/file', function() {
+            var html = '<ws:partial template="wml!UIModule/directory/file" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'wml!UIModule/directory/file');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.value, 'wml!UIModule/directory/file');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].fn, 'wml!UIModule/directory/file');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].optional, undefined);
+            assert.strictEqual(tree[0].children[0].type, 'template');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[6] optional!wml!UIModule/directory/file', function() {
+            var html = '<ws:partial template="optional!wml!UIModule/directory/file" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'optional!wml!UIModule/directory/file');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename, 'optional!wml!UIModule/directory/file');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].constructor, 'optional!wml!UIModule/directory/file');
+            assert.strictEqual(tree[0].children[0].fn, 'optional!wml!UIModule/directory/file');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].optional, undefined);
+            assert.strictEqual(tree[0].children[0].type, 'control');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[7] wml!UIModule/library:tmplFunction', function() {
+            var html = '<ws:partial template="wml!UIModule/library:tmplFunction" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'wml!UIModule/library:tmplFunction');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.value, 'wml!UIModule/library:tmplFunction');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].fn, 'wml!UIModule/library:tmplFunction');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].optional, undefined);
+            assert.strictEqual(tree[0].children[0].type, 'template');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[8] optional!wml!UIModule/library:tmplFunction', function() {
+            var html = '<ws:partial template="optional!wml!UIModule/library:tmplFunction" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'optional!wml!UIModule/library:tmplFunction');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename, 'optional!wml!UIModule/library:tmplFunction');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].constructor, 'optional!wml!UIModule/library:tmplFunction');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].library, 'optional!wml!UIModule/library');
+            assert.strictEqual(tree[0].children[0].module.length, 1);
+            assert.strictEqual(tree[0].children[0].module[0], 'tmplFunction');
+            assert.strictEqual(tree[0].children[0].type, 'module');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[9] tmpl!UIModule/directory/file', function() {
+            var html = '<ws:partial template="tmpl!UIModule/directory/file" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'tmpl!UIModule/directory/file');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.value, 'tmpl!UIModule/directory/file');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].fn, 'tmpl!UIModule/directory/file');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].optional, undefined);
+            assert.strictEqual(tree[0].children[0].type, 'template');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[10] optional!tmpl!UIModule/directory/file', function() {
+            var html = '<ws:partial template="optional!tmpl!UIModule/directory/file" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'optional!tmpl!UIModule/directory/file');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.value, 'optional!tmpl!UIModule/directory/file');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].fn, 'optional!tmpl!UIModule/directory/file');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].optional, undefined);
+            assert.strictEqual(tree[0].children[0].type, 'template');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[11] tmpl!UIModule/library:tmplFunction', function() {
+            var html = '<ws:partial template="tmpl!UIModule/library:tmplFunction" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'tmpl!UIModule/library:tmplFunction');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.value, 'tmpl!UIModule/library:tmplFunction');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].fn, 'tmpl!UIModule/library:tmplFunction');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].optional, undefined);
+            assert.strictEqual(tree[0].children[0].type, 'template');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[12] optional!tmpl!UIModule/library:tmplFunction', function() {
+            var html = '<ws:partial template="optional!tmpl!UIModule/library:tmplFunction" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'optional!tmpl!UIModule/library:tmplFunction');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.value, 'optional!tmpl!UIModule/library:tmplFunction');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].fn, 'optional!tmpl!UIModule/library:tmplFunction');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].optional, undefined);
+            assert.strictEqual(tree[0].children[0].type, 'template');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[13] js!UIModule/directory/file', function() {
+            var html = '<ws:partial template="js!UIModule/directory/file" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'js!UIModule/directory/file');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename, 'js!UIModule/directory/file');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].constructor, 'js!UIModule/directory/file');
+            assert.strictEqual(tree[0].children[0].fn, 'js!UIModule/directory/file');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].optional, undefined);
+            assert.strictEqual(tree[0].children[0].type, 'control');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[14] optional!js!UIModule/directory/file', function() {
+            var html = '<ws:partial template="optional!js!UIModule/directory/file" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'optional!js!UIModule/directory/file');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename, 'optional!js!UIModule/directory/file');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].constructor, 'optional!js!UIModule/directory/file');
+            assert.strictEqual(tree[0].children[0].fn, 'optional!js!UIModule/directory/file');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].optional, undefined);
+            assert.strictEqual(tree[0].children[0].type, 'control');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[15] js!UIModule/library:tmplFunction', function() {
+            var html = '<ws:partial template="js!UIModule/library:tmplFunction" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'js!UIModule/library:tmplFunction');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename, 'js!UIModule/library:tmplFunction');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].constructor, 'js!UIModule/library:tmplFunction');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].library, 'js!UIModule/library');
+            assert.strictEqual(tree[0].children[0].module.length, 1);
+            assert.strictEqual(tree[0].children[0].module[0], 'tmplFunction');
+            assert.strictEqual(tree[0].children[0].type, 'module');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[16] optional!js!UIModule/library:tmplFunction', function() {
+            var html = '<ws:partial template="optional!js!UIModule/library:tmplFunction" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'optional!js!UIModule/library:tmplFunction');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename, 'optional!js!UIModule/library:tmplFunction');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].constructor, 'optional!js!UIModule/library:tmplFunction');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].library, 'optional!js!UIModule/library');
+            assert.strictEqual(tree[0].children[0].module.length, 1);
+            assert.strictEqual(tree[0].children[0].module[0], 'tmplFunction');
+            assert.strictEqual(tree[0].children[0].type, 'module');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[17] html!UIModule/directory/file', function() {
+            var html = '<ws:partial template="html!UIModule/directory/file" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'html!UIModule/directory/file');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.value, 'html!UIModule/directory/file');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].fn, 'html!UIModule/directory/file');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].optional, undefined);
+            assert.strictEqual(tree[0].children[0].type, 'template');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[18] optional!html!UIModule/directory/file', function() {
+            var html = '<ws:partial template="optional!html!UIModule/directory/file" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'optional!html!UIModule/directory/file');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename, 'optional!html!UIModule/directory/file');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].constructor, 'optional!html!UIModule/directory/file');
+            assert.strictEqual(tree[0].children[0].fn, 'optional!html!UIModule/directory/file');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].optional, undefined);
+            assert.strictEqual(tree[0].children[0].type, 'control');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[19] html!UIModule/library:tmplFunction', function() {
+            var html = '<ws:partial template="html!UIModule/library:tmplFunction" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'html!UIModule/library:tmplFunction');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.value, 'html!UIModule/library:tmplFunction');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].fn, 'html!UIModule/library:tmplFunction');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].optional, undefined);
+            assert.strictEqual(tree[0].children[0].type, 'template');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[20] optional!html!UIModule/library:tmplFunction', function() {
+            var html = '<ws:partial template="optional!html!UIModule/library:tmplFunction" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'optional!html!UIModule/library:tmplFunction');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename, 'optional!html!UIModule/library:tmplFunction');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].constructor, 'optional!html!UIModule/library:tmplFunction');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].library, 'optional!html!UIModule/library');
+            assert.strictEqual(tree[0].children[0].module.length, 1);
+            assert.strictEqual(tree[0].children[0].module[0], 'tmplFunction');
+            assert.strictEqual(tree[0].children[0].type, 'module');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[21] optional!UIModule.Component', function() {
+            var html = '<ws:partial template="optional!UIModule.Component" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'optional!UIModule.Component');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.value, 'optional!UIModule.Component');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].fn, 'optional!UIModule.Component');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].optional, undefined);
+            assert.strictEqual(tree[0].children[0].type, 'template');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
+         });
+         it('[22] optional!UIModule.library:Component', function() {
+            var html = '<ws:partial template="optional!UIModule.library:Component" />';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('template'));
+            assert.strictEqual(tree[0].attribs.template.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.type, 'text');
+            assert.strictEqual(tree[0].attribs.template.data.value, 'optional!UIModule.library:Component');
+
+            assert.isTrue(tree[0].attribs.hasOwnProperty('_wstemplatename'));
+            assert.strictEqual(tree[0].attribs._wstemplatename.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.type, 'text');
+            assert.strictEqual(tree[0].attribs._wstemplatename.data.value, 'optional!UIModule.library:Component');
+
+            assert.strictEqual(tree[0].children.length, 1);
+            assert.strictEqual(tree[0].children[0].fn, 'optional!UIModule.library:Component');
+            assert.strictEqual(tree[0].children[0].key, undefined);
+            assert.strictEqual(tree[0].children[0].optional, undefined);
+            assert.strictEqual(tree[0].children[0].type, 'template');
+
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'ws:partial');
+            assert.strictEqual(tree[0].type, 'tag');
          });
       });
       describe('Cycle directive', function() {
