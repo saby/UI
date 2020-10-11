@@ -33,7 +33,8 @@ function createAttributeProcessorConfig() {
    const expressionValidator = createValidator(errorHandler);
    const textProcessor = createTextProcessor({
       expressionParser,
-      expressionValidator
+      expressionValidator,
+      generateTranslations: true
    });
    return {
       expressionParser,

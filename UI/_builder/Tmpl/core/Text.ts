@@ -25,6 +25,11 @@ interface ITextProcessorConfig {
     * Mustache-expressions validator.
     */
    expressionValidator: IValidator;
+
+   /**
+    * Generate translation nodes.
+    */
+   generateTranslations: boolean;
 }
 
 /**
@@ -355,12 +360,18 @@ class TextProcessor implements ITextProcessor {
    private readonly expressionValidator: IValidator;
 
    /**
+    * Generate translation nodes.
+    */
+   private readonly generateTranslations: boolean;
+
+   /**
     * Initialize new instance of text processor.
     * @param config {ITextProcessorConfig} Text processor config.
     */
    constructor(config: ITextProcessorConfig) {
       this.expressionParser = config.expressionParser;
       this.expressionValidator = config.expressionValidator;
+      this.generateTranslations = config.generateTranslations;
    }
 
    /**
@@ -389,7 +400,7 @@ class TextProcessor implements ITextProcessor {
       const thirdStage = markDataByRegex(
          secondStage,
          TRANSLATION_PATTERN,
-         (data: string) => { return { type: RawTextType.TRANSLATION, data }; },
+         (data: string) => { return { type: (this.generateTranslations ? RawTextType.TRANSLATION : RawTextType.TEXT), data }; },
          (data: string) => { return { type: RawTextType.TEXT, data }; }
       );
 

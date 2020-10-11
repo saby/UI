@@ -33,7 +33,8 @@ function createTextProcessorConfig() {
    return {
       expressionParser,
       errorHandler,
-      expressionValidator
+      expressionValidator,
+      generateTranslations: true
    };
 }
 

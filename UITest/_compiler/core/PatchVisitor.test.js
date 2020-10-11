@@ -46,7 +46,8 @@ define([
          hierarchicalKeys: true,
          errorHandler: new ErrorHandler.default(),
          allowComments: false,
-         textTranslator: Translator.createTextTranslator({})
+         textTranslator: Translator.createTextTranslator({}),
+         generateTranslations: true
       };
       let options = {
          fileName: FILE_NAME,

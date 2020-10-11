@@ -50,6 +50,11 @@ export interface ITraverseConfig {
    textTranslator: ITextTranslator;
 
    /**
+    * Generate translation nodes.
+    */
+   generateTranslations: boolean;
+
+   /**
     * Warn in case of using useless attribute prefix.
     */
    warnUselessAttributePrefix?: boolean;
@@ -647,7 +652,8 @@ class Traverse implements ITraverse {
       this.expressionValidator = createValidator(config.errorHandler);
       this.textProcessor = createTextProcessor({
          expressionParser: config.expressionParser,
-         expressionValidator: this.expressionValidator
+         expressionValidator: this.expressionValidator,
+         generateTranslations: config.generateTranslations
       });
       this.attributeProcessor = createAttributeProcessor({
          expressionParser: config.expressionParser,

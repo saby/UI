@@ -24,6 +24,9 @@ define('UI/_builder/Tmpl/core/bridge', [
    'use strict';
    var USE_VISITOR = false;
 
+   // TODO: https://online.sbis.ru/opendoc.html?guid=ea8a25dd-5a2f-4330-8d6f-599c8c5878dd
+   var USE_GENERATE_CODE_FOR_TRANSLATIONS = true;
+
    var uniqueArray = Utils.ArrayUtils.uniq;
 
    function traverseWithVisitors(htmlTree, options) {
@@ -35,7 +38,11 @@ define('UI/_builder/Tmpl/core/bridge', [
          hierarchicalKeys: true,
          errorHandler: errorHandler,
          allowComments: false,
-         textTranslator: Translator.createTextTranslator(options.componentsProperties || { })
+         textTranslator: Translator.createTextTranslator(options.componentsProperties || { }),
+         generateTranslations: (
+            (USE_GENERATE_CODE_FOR_TRANSLATIONS && !!options.generateCodeForTranslations) ||
+            !USE_GENERATE_CODE_FOR_TRANSLATIONS
+         )
       };
       var traverseOptions = {
          fileName: options.fileName,
