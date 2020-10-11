@@ -1439,10 +1439,13 @@ class Traverse implements ITraverse {
          const isOptionTranslatable = this.textTranslator
             .getComponentDescription(context.componentPath)
             .isOptionTranslatable(context.componentPropertyPath);
-         const translateText = isOptionTranslatable || context.componentPropertyPath === null || (
-            (typeof context.componentPropertyPath === 'string' && context.componentPropertyPath.length === 0)
-            && context.translateText
-            && !context.processingOldComponent
+         const translateText = context.translateText && (
+            isOptionTranslatable ||
+            context.componentPropertyPath === null || (
+               typeof context.componentPropertyPath === 'string' &&
+               context.componentPropertyPath.length === 0 &&
+               !context.processingOldComponent
+            )
          );
 
          // Process text node content.

@@ -228,6 +228,20 @@ define([
             assert.strictEqual(tree[0].name, 'div');
             assert.strictEqual(tree[0].type, 'tag');
          });
+         it('script', function() {
+            var html = '<script>program</script>';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].name, 'script');
+            assert.strictEqual(tree[0].type, 'script');
+            assert.strictEqual(tree[0].children.length, 1);
+
+            assert.strictEqual(tree[0].children[0].key, '0_0_');
+            assert.strictEqual(tree[0].children[0].type, 'text');
+            assert.strictEqual(tree[0].children[0].data.type, 'text');
+            assert.strictEqual(tree[0].children[0].data.value, 'program');
+         });
          it('element with comment', function() {
             var html = '<!-- --><div></div>';
             var tree = process(html);
