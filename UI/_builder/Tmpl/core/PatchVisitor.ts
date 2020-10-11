@@ -21,16 +21,6 @@ interface INavigationContext {
    noEscape?: boolean;
 }
 
-function getTagType(name: string): string {
-   if (name === 'script') {
-      return name;
-   }
-   if (name === 'style') {
-      return name;
-   }
-   return 'tag';
-}
-
 function isTemplateType(fullPath: string): boolean {
    const hasTemplatePlugin = /^wml!/gi.test(fullPath) ||
       /^(optional!)?tmpl!/gi.test(fullPath) ||
@@ -290,7 +280,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.children = this.visitAll(node.__$ws_content, context);
       // @ts-ignore
-      node.type = getTagType(node.__$ws_name);
+      node.type = 'tag';
       // @ts-ignore
       node.name = node.__$ws_name;
       // @ts-ignore
