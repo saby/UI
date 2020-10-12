@@ -68,6 +68,27 @@ function getCompatibleUtils(): any {
    return compatibleUtils;
 }
 
+const memoNames = [
+    'createdNodes',
+    'destroyedNodes',
+    'updatedNodes',
+    'createdTemplateNodes',
+    'updatedUnchangedNodes',
+    'updatedChangedNodes',
+    'updatedChangedTemplateNodes',
+    'selfDirtyNodes'
+];
+
+function concatArray(target: any[], source?: any[]): any[] {
+    if (!source) {
+        return;
+    }
+    for (let i = 0; i < source.length; i++) {
+        target.push(source[i]);
+    }
+    return target;
+}
+
 export class MemoForNode {
     createdNodes: Array<any> = [];
     createdTemplateNodes: Array<any> = [];
@@ -77,6 +98,19 @@ export class MemoForNode {
     updatedChangedTemplateNodes: Array<any> = [];
     updatedNodes: Array<any> = [];
     updatedUnchangedNodes: Array<any> = [];
+
+    constructor(source?) {
+        if (!source) {
+            return this;
+        }
+        Object.assign(this, source);
+    }
+
+    concat(source: MemoForNode): void {
+        for (let i = 0; i < memoNames.length; ++i) {
+            concatArray(this[memoNames[i]], source[memoNames[i]]);
+        }
+    }
 }
 
 export interface IMemoNode {
@@ -211,41 +245,13 @@ function subscribeToEvent(node) {
    }
 }
 
-const memoNames = [
-    'createdNodes',
-    'destroyedNodes',
-    'updatedNodes',
-    'createdTemplateNodes',
-    'updatedUnchangedNodes',
-    'updatedChangedNodes',
-    'updatedChangedTemplateNodes',
-    'selfDirtyNodes'
-];
-
-function concatArray(target: any[], source?: any[]): any[] {
-    if (!source) {
-        return;
-    }
-    for (let i = 0; i < source.length; i++) {
-        target.push(source[i]);
-    }
-    return target;
-}
-
-function concatMemo(target: MemoForNode, source: MemoForNode): MemoForNode {
-    for (let i = 0; i < memoNames.length; ++i) {
-        concatArray(target[memoNames[i]], source[memoNames[i]]);
-    }
-    return target;
-}
-
 function createChildrenResult(childrenRebuildResults: IMemoNode[]): {value: IControlNode[], memo: MemoForNode} {
     const value = [];
     const memo = new MemoForNode();
     for (let i = 0; i < childrenRebuildResults.length; i++) {
         const childrenRebuildResult = childrenRebuildResults[i];
         value.push(childrenRebuildResult.value);
-        concatMemo(memo, childrenRebuildResults[i].memo);
+        memo.concat(childrenRebuildResults[i].memo);
     }
     return {value, memo};
 }
@@ -1052,7 +1058,6 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             diffPair.oldNode
         );
 
-
         let newVNode = diffPair.newNode;
         let controlNodeIdx = diffPair.oldNode.controlNodeIdx;
         let childControlNode = parentNode.childrenNodes[controlNodeIdx];
@@ -1280,42 +1285,38 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         destroyedNodes, selfDirtyNodes, isSelfDirty)
 }
 
-function mapChildren(currentMemo, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty) {
+function mapChildren(currentMemo: MemoForNode, newNode: IControlNode, childrenRebuildFinalResults, environment, isRebuildTemplate: boolean) {
     const childrenRebuild = createChildrenResult(childrenRebuildFinalResults);
     if (!newNode.markup) {
         // Во время ожидания асинхронного ребилда контрол уничтожился, обновлять его уже не нужно.
-        return {
-            value: newNode,
-            memo: childrenRebuild.memo
-        };
+        return childrenRebuild.memo
     }
 
     newNode.childrenNodes = childrenRebuild.value;
-    if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
-        var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
-        newNode.fullMarkup = environment.decorateFullMarkup(
-            getFullMarkup(
-                newNode.childrenNodes,
-                newNode.markup,
-                undefined,
-                needRenderMarkup || isSelfDirty ? undefined : newNode.fullMarkup,
-                newNode.parent
-            ),
-            newNode
-        );
-        newNode.fullMarkup.changed =
-            wasChanged || newNode.fullMarkup.changed || (needRenderMarkup || isSelfDirty);
-        if (newNode.fullMarkup.changed) {
-            setChangedForNode(newNode);
-        }
+    if (!isRebuildTemplate && newNode?.fullMarkup?.changed) {
+        currentMemo.concat(childrenRebuild.memo);
+        return currentMemo;
     }
 
-    return {
-        value: newNode,
-        memo: concatMemo(currentMemo, childrenRebuild.memo)
-    };
-}
+    var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
+    newNode.fullMarkup = environment.decorateFullMarkup(
+        getFullMarkup(
+            newNode.childrenNodes,
+            newNode.markup,
+            undefined,
+            isRebuildTemplate ? undefined : newNode.fullMarkup,
+            newNode.parent
+        ),
+        newNode
+    );
+    newNode.fullMarkup.changed = wasChanged || newNode.fullMarkup.changed || isRebuildTemplate;
+    if (newNode.fullMarkup.changed) {
+        setChangedForNode(newNode);
+    }
 
+    currentMemo.concat(childrenRebuild.memo);
+    return currentMemo;
+}
 
 function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode, needRenderMarkup: boolean,
     changedNodes,
@@ -1336,7 +1337,8 @@ function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode,
         haveAsync = haveAsync || !!childRebuildResult.then;
         childrenRebuildResults.push(childRebuildResult);
     }
-    const currentMemo: MemoForNode = concatMemo(new MemoForNode(), {
+
+    const currentMemo: MemoForNode = new MemoForNode({
         createdNodes,
         updatedNodes,
         destroyedNodes,
@@ -1347,15 +1349,23 @@ function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode,
         createdTemplateNodes
     });
 
-    if (haveAsync) {
-        return Promise.all(childrenRebuildResults).then(
-            (res) => mapChildren(currentMemo, newNode, res, environment, needRenderMarkup, isSelfDirty),
-            (err) => {
-                Logger.asyncRenderErrorLog(err);
-                return err;
-            }
-        );
+    if (!haveAsync) {
+        return {
+            value: newNode,
+            memo: mapChildren(currentMemo, newNode, childrenRebuildResults, environment, needRenderMarkup || isSelfDirty)
+        };
     }
 
-    return mapChildren(currentMemo, newNode, childrenRebuildResults, environment, needRenderMarkup, isSelfDirty);
+    return Promise.all(childrenRebuildResults).then(
+        (res) => {
+            return {
+                value: newNode,
+                memo: mapChildren(currentMemo, newNode, res, environment, needRenderMarkup || isSelfDirty),
+            };
+        },
+        (err) => {
+            Logger.asyncRenderErrorLog(err);
+            return err;
+        }
+    );
 }
