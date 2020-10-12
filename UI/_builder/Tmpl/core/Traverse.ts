@@ -9,14 +9,13 @@ import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
-import { IKeysGenerator, createKeysGenerator } from 'UI/_builder/Tmpl/core/KeysGenerator';
 import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { IAttributeProcessor, createAttributeProcessor } from 'UI/_builder/Tmpl/core/Attributes';
 import { ITextProcessor, createTextProcessor, TextContentFlags } from 'UI/_builder/Tmpl/core/Text';
 import Scope from 'UI/_builder/Tmpl/core/Scope';
 import * as Resolvers from 'UI/_builder/Tmpl/core/Resolvers';
-import * as Path from 'UI/_builder/Tmpl/core/Path';
 import { ITextTranslator } from 'UI/_builder/Tmpl/i18n/Translator';
+import createValidator, { IValidator } from 'UI/_builder/Tmpl/expressions/_private/Validator';
 
 // <editor-fold desc="Public interfaces and functions">
 
@@ -49,6 +48,11 @@ export interface ITraverseConfig {
     * Text translator.
     */
    textTranslator: ITextTranslator;
+
+   /**
+    * Generate translation nodes.
+    */
+   generateTranslations: boolean;
 
    /**
     * Warn in case of using useless attribute prefix.
@@ -165,26 +169,59 @@ const enum TraverseState {
     * Processing child nodes of array data type node is simple. It only can contain
     * data type nodes which will be packed into array node.
     * From this state next jumps are available:
-    * 1) PRIMITIVE_VALUE - if processing node is boolean, function, number, string or value;
-    * 2) ARRAY_ELEMENTS - if processing node is array. Again.
-    * 3) OBJECT_PROPERTIES - if processing node is object.
+    * 1) BOOLEAN_DATA_TYPE, FUNCTION_DATA_TYPE, NUMBER_DATA_TYPE, STRING_DATA_TYPE, VALUE_DATA_TYPE
+    *    - if processing node is boolean, function, number, string or value;
+    * 2) ARRAY_DATA_TYPE - if processing node is array. Again.
+    * 3) OBJECT_DATA_TYPE - if processing node is object.
     */
-   ARRAY_ELEMENTS,
+   ARRAY_DATA_TYPE,
 
    /**
-    * In processing primitive type node content where only text is allowed.
+    * In processing boolean type node content where only text is allowed.
     * In this state only text nodes can be processed. Before processing primitive value content
     * at parent node describes text content using special text content flags.
     * There are no jumps to other states.
     */
-   PRIMITIVE_VALUE,
+   BOOLEAN_DATA_TYPE,
+
+   /**
+    * In processing function type node content where only text is allowed.
+    * In this state only text nodes can be processed. Before processing primitive value content
+    * at parent node describes text content using special text content flags.
+    * There are no jumps to other states.
+    */
+   FUNCTION_DATA_TYPE,
+
+   /**
+    * In processing number type node content where only text is allowed.
+    * In this state only text nodes can be processed. Before processing primitive value content
+    * at parent node describes text content using special text content flags.
+    * There are no jumps to other states.
+    */
+   NUMBER_DATA_TYPE,
+
+   /**
+    * In processing string type node content where only text is allowed.
+    * In this state only text nodes can be processed. Before processing primitive value content
+    * at parent node describes text content using special text content flags.
+    * There are no jumps to other states.
+    */
+   STRING_DATA_TYPE,
+
+   /**
+    * In processing value type node content where only text is allowed.
+    * In this state only text nodes can be processed. Before processing primitive value content
+    * at parent node describes text content using special text content flags.
+    * There are no jumps to other states.
+    */
+   VALUE_DATA_TYPE,
 
    /**
     * In processing properties of object.
     * In this states only properties can be processed.
     * From this state only one jump is available - to OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT.
     */
-   OBJECT_PROPERTIES,
+   OBJECT_DATA_TYPE,
 
    /**
     * In processing object property content which content is unknown.
@@ -222,7 +259,7 @@ const enum TraverseState {
     * In this case data type directives will be processed into data type nodes,
     * these nodes will be packed into array, and this array will be a value of processing object property.
     */
-   OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY,
+   OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY
 }
 
 /**
@@ -250,6 +287,21 @@ interface ITraverseContext extends ITraverseOptions {
     * @deprecated
     */
    processingOldComponent: boolean;
+
+   /**
+    * Processing component path.
+    */
+   componentPath: string;
+
+   /**
+    * Processing component property path.
+    */
+   componentPropertyPath: string;
+
+   /**
+    * Type name from attribute.
+    */
+   explicitDataType: string;
 }
 
 /**
@@ -273,6 +325,30 @@ function validateElseNode(prev: Ast.Ast | null): void {
 }
 
 /**
+ * Clean primitive value from useless whitespaces.
+ * @param children {TextNode[]} Processed boolean node content.
+ */
+function cleanPrimitiveValue(children: Ast.TextNode[]): Ast.TextNode[] {
+   if (children.length !== 1) {
+      return children;
+   }
+   const data = children[0].__$ws_content;
+   const result: Ast.TText[] = [];
+   for (let index = 0; index < data.length; ++index) {
+      const child = data[index];
+      if (child instanceof Ast.TextDataNode) {
+         if (child.__$ws_content.trim().length === 0) {
+            continue;
+         }
+      }
+      result.push(child);
+   }
+   return [
+      new Ast.TextNode(result)
+   ];
+}
+
+/**
  * Validate processed boolean node content.
  * @param children {TextNode[]} Processed boolean node content.
  * @throws {Error} Throws Error in case of invalid boolean semantics.
@@ -285,11 +361,14 @@ function validateBoolean(children: Ast.TextNode[]): void {
       throw new Error('данные некорректного типа');
    }
    const data = children[0].__$ws_content;
+   if (data.length !== 1) {
+      throw new Error('данные некорректного типа - ожидался текст или Mustache-выражение');
+   }
    for (let index = 0; index < data.length; ++index) {
       const child = data[index];
       if (child instanceof Ast.TextDataNode) {
          if (child.__$ws_content !== 'true' && child.__$ws_content !== 'false') {
-            throw new Error('ожидалось одно из значений - true/false');
+            throw new Error(`ожидалось одно из значений - true/false, получено - "${child.__$ws_content}"`);
          }
       }
       if (child instanceof Ast.TranslationNode) {
@@ -311,11 +390,14 @@ function validateNumber(children: Ast.TextNode[]): void {
       throw new Error('данные некорректного типа');
    }
    const data = children[0].__$ws_content;
+   if (data.length !== 1) {
+      throw new Error('данные некорректного типа - ожидался текст или Mustache-выражение');
+   }
    for (let index = 0; index < data.length; ++index) {
       const child = data[index];
       if (child instanceof Ast.TextDataNode) {
-         if (Number.isNaN(+child.__$ws_content)) {
-            throw new Error(`получено нечисловое значение -"${child.__$ws_content}"`);
+         if (isNaN(+child.__$ws_content)) {
+            throw new Error(`получено нечисловое значение - "${child.__$ws_content}"`);
          }
       }
       if (child instanceof Ast.TranslationNode) {
@@ -438,16 +520,24 @@ function whatExpected(state: TraverseState): string {
    switch (state) {
       case TraverseState.COMPONENT_WITH_OPTIONS:
          return 'ожидались опции компонента или директивы "ws:partial"';
-      case TraverseState.ARRAY_ELEMENTS:
+      case TraverseState.ARRAY_DATA_TYPE:
       case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY:
          return 'ожидались директивы типов данных для массива';
-      case TraverseState.OBJECT_PROPERTIES:
+      case TraverseState.OBJECT_DATA_TYPE:
       case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_OBJECT:
          return 'ожидались опции объекта';
       case TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE:
          return 'ожидалась директива типа данных для опции';
-      case TraverseState.PRIMITIVE_VALUE:
-         return 'ожидался текст для примитивного типа данных';
+      case TraverseState.BOOLEAN_DATA_TYPE:
+         return 'ожидался текст для типа данных Boolean';
+      case TraverseState.FUNCTION_DATA_TYPE:
+         return 'ожидался текст для типа данных Function';
+      case TraverseState.NUMBER_DATA_TYPE:
+         return 'ожидался текст для типа данных Number';
+      case TraverseState.STRING_DATA_TYPE:
+         return 'ожидался текст для типа данных String';
+      case TraverseState.VALUE_DATA_TYPE:
+         return 'ожидался текст для типа данных Value';
    }
 }
 
@@ -475,10 +565,13 @@ function hasDataTypeContent(children: Nodes.Node[]): boolean {
       return false;
    }
    return [
+      'ws:Array',
       'ws:Boolean',
       'ws:Function',
       'ws:Number',
-      'ws:String'
+      'ws:Object',
+      'ws:String',
+      'ws:Value'
    ].indexOf(firstChild.name) > -1;
 }
 
@@ -497,13 +590,6 @@ class Traverse implements ITraverse {
     * @readonly
     */
    private readonly expressionParser: IParser;
-
-   /**
-    * Keys generator for nodes of abstract syntax tree.
-    * @private
-    * @readonly
-    */
-   private readonly keysGenerator: IKeysGenerator;
 
    /**
     * Error handler.
@@ -548,6 +634,11 @@ class Traverse implements ITraverse {
     */
    private readonly warnEmptyComponentContent: boolean;
 
+   /**
+    * Mustache-expressions validator.
+    */
+   private readonly expressionValidator: IValidator;
+
    // </editor-fold>
 
    /**
@@ -556,18 +647,21 @@ class Traverse implements ITraverse {
     */
    constructor(config: ITraverseConfig) {
       this.expressionParser = config.expressionParser;
-      this.keysGenerator = createKeysGenerator(config.hierarchicalKeys);
       this.errorHandler = config.errorHandler;
       this.allowComments = config.allowComments;
+      this.expressionValidator = createValidator(config.errorHandler);
       this.textProcessor = createTextProcessor({
-         expressionParser: config.expressionParser
+         expressionParser: config.expressionParser,
+         expressionValidator: this.expressionValidator,
+         generateTranslations: config.generateTranslations
       });
       this.attributeProcessor = createAttributeProcessor({
          expressionParser: config.expressionParser,
          errorHandler: config.errorHandler,
          textProcessor: this.textProcessor,
          warnBooleanAttributesAndOptions: !!config.warnBooleanAttributesAndOptions,
-         warnUselessAttributePrefix: !!config.warnUselessAttributePrefix
+         warnUselessAttributePrefix: !!config.warnUselessAttributePrefix,
+         expressionValidator: this.expressionValidator
       });
       this.textTranslator = config.textTranslator;
       this.warnUnusedTemplates = !!config.warnUnusedTemplates;
@@ -587,7 +681,10 @@ class Traverse implements ITraverse {
          scope: options.scope,
          textContent: TextContentFlags.FULL_TEXT,
          translateText: options.translateText,
-         processingOldComponent: false
+         processingOldComponent: false,
+         componentPropertyPath: null,
+         componentPath: null,
+         explicitDataType: null
       };
       const tree = this.visitAll(nodes, context);
       this.removeUnusedTemplates(context);
@@ -604,18 +701,24 @@ class Traverse implements ITraverse {
       const childContext: ITraverseContext = {
          ...context
       };
-      this.keysGenerator.openChildren();
       for (let index = 0; index < nodes.length; ++index) {
          childContext.prev = children[children.length - 1] || null;
          const child = <Ast.Ast>nodes[index].accept(this, childContext);
          if (child) {
-            child.setKey(
-               this.keysGenerator.generate()
-            );
+            // Text content can be separated by comment node. Merge it!
+            const lastNode = children[children.length - 1];
+            if (lastNode instanceof Ast.TextNode && child instanceof Ast.TextNode) {
+               const shift = lastNode.__$ws_content.length;
+               for (let index = 0; index < child.__$ws_content.length; ++index) {
+                  child.__$ws_content[index].setKey(shift + index);
+               }
+               lastNode.__$ws_content = lastNode.__$ws_content.concat(child.__$ws_content);
+               continue;
+            }
+            child.setKey(children.length);
             children.push(child);
          }
       }
-      this.keysGenerator.closeChildren();
       return children;
    }
 
@@ -725,10 +828,14 @@ class Traverse implements ITraverse {
          case TraverseState.MARKUP:
          case TraverseState.COMPONENT_WITH_CONTENT:
          case TraverseState.OBJECT_PROPERTY_WITH_CONTENT:
-         case TraverseState.PRIMITIVE_VALUE:
+         case TraverseState.BOOLEAN_DATA_TYPE:
+         case TraverseState.FUNCTION_DATA_TYPE:
+         case TraverseState.NUMBER_DATA_TYPE:
+         case TraverseState.STRING_DATA_TYPE:
+         case TraverseState.VALUE_DATA_TYPE:
             return this.processText(node, context);
          default:
-            this.errorHandler.error(
+            this.errorHandler.warn(
                `Обнаружен непредусмотренный текст "${node.data}": ${whatExpected(context.state)}`,
                {
                   fileName: context.fileName,
@@ -750,33 +857,25 @@ class Traverse implements ITraverse {
          case TraverseState.MARKUP:
             return this.processTagInMarkup(node, context);
          case TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT:
-            return this.processTagInComponentWithUnknownContent(node, context);
          case TraverseState.COMPONENT_WITH_CONTENT:
-            return this.processTagInComponentWithContent(node, context);
          case TraverseState.COMPONENT_WITH_OPTIONS:
-            return this.processTagInComponentWithOptions(node, context);
-         case TraverseState.ARRAY_ELEMENTS:
-            return this.processTagInArrayData(node, context);
-         case TraverseState.OBJECT_PROPERTIES:
+            return this.processTagInComponentWithUnknownContent(node, context);
+         case TraverseState.ARRAY_DATA_TYPE:
+            return this.processDataTypeTag(node, context);
+         case TraverseState.OBJECT_DATA_TYPE:
             return this.processTagInObjectProperties(node, context);
          case TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT:
-            return this.processTagInObjectPropertyWithUnknownContent(node, context);
-         case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_OBJECT:
-            return this.processTagInObjectPropertyWithContentTypeCastedToObject(node, context);
          case TraverseState.OBJECT_PROPERTY_WITH_CONTENT:
-            return this.processTagInObjectPropertyWithContent(node, context);
          case TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE:
          case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY:
-            return this.processTagInObjectPropertyWithDataType(node, context);
-         case TraverseState.PRIMITIVE_VALUE:
-            this.errorHandler.error(
-               `Обнаружен тег "${node.name}", когда ожидалось текстовое содержимое`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
+         case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_OBJECT:
+            return this.processTagInObjectPropertyWithUnknownContent(node, context);
+         case TraverseState.BOOLEAN_DATA_TYPE:
+         case TraverseState.FUNCTION_DATA_TYPE:
+         case TraverseState.NUMBER_DATA_TYPE:
+         case TraverseState.STRING_DATA_TYPE:
+         case TraverseState.VALUE_DATA_TYPE:
+            return this.processDoubleTypeDefinition(node, context);
          default:
             this.errorHandler.critical(
                'Конечный автомат traverse находится в неизвестном состоянии',
@@ -827,14 +926,16 @@ class Traverse implements ITraverse {
             return null;
          default:
             if (Resolvers.isOption(node.name)) {
-               this.errorHandler.error(
+               // FIXME: Must be error
+               this.errorHandler.warn(
                   `Обнаружена неизвестная директива "${node.name}"`,
                   {
                      fileName: context.fileName,
                      position: node.position
                   }
                );
-               return null;
+               // FIXME: Must return broken node
+               // return null;
             }
             return this.checkDirectiveInAttribute(node, context);
       }
@@ -847,7 +948,7 @@ class Traverse implements ITraverse {
     * @param context {ITraverseContext} Processing context.
     * @returns {TData | null} Returns instance of concrete TData or null in case of broken content.
     */
-   private processTagInArrayData(node: Nodes.Tag, context: ITraverseContext): Ast.TData {
+   private processDataTypeTag(node: Nodes.Tag, context: ITraverseContext): Ast.TData {
       switch (node.name) {
          case 'ws:Array':
             return this.processArray(node, context);
@@ -922,7 +1023,8 @@ class Traverse implements ITraverse {
    private processTagInComponentWithContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
       updateToContentState(context);
       if (context.state !== TraverseState.COMPONENT_WITH_CONTENT) {
-         this.errorHandler.error(
+         // FIXME: Must be error
+         this.errorHandler.warn(
             `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег "${node.name}". ` +
             'Необходимо явно задать контент в ws:content',
             {
@@ -930,7 +1032,8 @@ class Traverse implements ITraverse {
                position: node.position
             }
          );
-         return null;
+         // FIXME: Must return broken node
+         // return null;
       }
       return this.processTagInMarkup(node, context);
    }
@@ -1051,14 +1154,16 @@ class Traverse implements ITraverse {
    private processTagInObjectPropertyWithContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
       updateToContentState(context);
       if (context.state !== TraverseState.OBJECT_PROPERTY_WITH_CONTENT) {
-         this.errorHandler.error(
+         // FIXME: Must be error
+         this.errorHandler.warn(
             `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидался контент`,
             {
                fileName: context.fileName,
                position: node.position
             }
          );
-         return null;
+         // FIXME: Must return broken node
+         // return null;
       }
       return this.processTagInMarkup(node, context);
    }
@@ -1074,12 +1179,12 @@ class Traverse implements ITraverse {
       switch (context.state) {
          case TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT:
             context.state = TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE;
-            return this.processTagInArrayData(node, context);
+            return this.processDataTypeTag(node, context);
          case TraverseState.OBJECT_PROPERTY_WITH_DATA_TYPE:
             context.state = TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY;
-            return this.processTagInArrayData(node, context);
+            return this.processDataTypeTag(node, context);
          case TraverseState.OBJECT_PROPERTY_WITH_CONTENT_TYPE_CASTED_TO_ARRAY:
-            return this.processTagInArrayData(node, context);
+            return this.processDataTypeTag(node, context);
          default:
             this.errorHandler.error(
                `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидалась опция`,
@@ -1148,7 +1253,7 @@ class Traverse implements ITraverse {
          return ast;
       }
       if (!(ast instanceof Ast.ElementNode)) {
-         this.errorHandler.error(
+         this.errorHandler.warn(
             `Обнаружен цикл "for" в атрибутах тега "${node.name}". Цикл на данном теге не поддерживается`,
             {
                fileName: context.fileName,
@@ -1183,9 +1288,9 @@ class Traverse implements ITraverse {
                fileName: context.fileName,
                allowedContent: TextContentFlags.TEXT,
                translateText: false,
-               translationsRegistrar: context.scope
-            },
-            node.position
+               translationsRegistrar: context.scope,
+               position: node.position
+            }
          );
          if (textValue.length !== 1) {
             throw new Error('не удалось извлечь параметры цикла');
@@ -1198,8 +1303,8 @@ class Traverse implements ITraverse {
          const { index, iterator, collection } = this.parseForeachParameters(cycleData);
          return new Ast.ForeachNode(index, iterator, collection, []);
       } catch (error) {
-         this.errorHandler.critical(
-            `Ошибка обработки директивы "for" на атрибуте тега ${node.name}: ${error.message}`,
+         this.errorHandler.error(
+            `Ошибка обработки директивы "for" на атрибуте тега "${node.name}": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1246,7 +1351,7 @@ class Traverse implements ITraverse {
    private processProperty(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode | Ast.ContentOptionNode {
       let isStringTypeContentOption = false;
       if (canBeTypeCasted(node)) {
-         if (node.attributes.type.value !== 'string' || hasTextContent(node.children)) {
+         if (node.attributes.type.value !== 'string' || hasTextContent(node.children) || hasDataTypeContent(node.children)) {
             return this.castPropertyWithType(node, context);
          }
          // FIXME: Incorrect legacy behaviour - type="string" on content option of component or ws:partial.
@@ -1254,12 +1359,13 @@ class Traverse implements ITraverse {
          delete node.attributes.type;
          isStringTypeContentOption = true;
       }
+      const name = Resolvers.resolveOption(node.name);
       const propertyContext: ITraverseContext = {
          ...context,
-         state: TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT
+         state: TraverseState.OBJECT_PROPERTY_WITH_UNKNOWN_CONTENT,
+         componentPropertyPath: context.componentPropertyPath ? context.componentPropertyPath + '/' + name : name
       };
       const content = this.visitAll(node.children, propertyContext);
-      const name = Resolvers.resolveOption(node.name);
       const hasContentOnly = content.every((child: Ast.Ast) => Ast.isTypeofContent(child)) && content.length > 0;
       if (hasContentOnly) {
          this.warnUnexpectedAttributes(node.attributes, context, node.name);
@@ -1285,7 +1391,15 @@ class Traverse implements ITraverse {
             array
          );
       }
-      const properties = this.getObjectOptionsFromAttributes(node.attributes, context, node);
+      const processedAttributes = this.attributeProcessor.processOptions(node.attributes, {
+         fileName: context.fileName,
+         hasAttributesOnly: false,
+         parentTagName: node.name,
+         translationsRegistrar: context.scope
+      });
+      const properties: Ast.IObjectProperties = {
+         ...processedAttributes
+      };
       for (let index = 0; index < content.length; ++index) {
          const property = content[index];
          if (!(property instanceof Ast.OptionNode || property instanceof Ast.ContentOptionNode)) {
@@ -1299,20 +1413,27 @@ class Traverse implements ITraverse {
             continue;
          }
          if (properties.hasOwnProperty(property.__$ws_name)) {
-            this.errorHandler.critical(
+            this.errorHandler.warn(
                `Опция "${property.__$ws_name}" уже существует на теге "${node.name}"`,
                {
                   fileName: context.fileName,
                   position: node.position
                }
             );
+            // FIXME: take the last property
+            // continue;
+         }
+         if (processedAttributes.hasOwnProperty(property.__$ws_name)) {
+            // FIXME: take the last property but attribute have the highest priority
             continue;
          }
          properties[property.__$ws_name] = property;
       }
+      const objectNode = new Ast.ObjectNode(properties);
+      objectNode.setFlag(Ast.Flags.TYPE_CASTED);
       return new Ast.OptionNode(
          name,
-         new Ast.ObjectNode(properties)
+         objectNode
       );
    }
 
@@ -1326,29 +1447,41 @@ class Traverse implements ITraverse {
    private processText(node: Nodes.Text, context: ITraverseContext): Ast.TextNode {
       try {
          updateToContentState(context);
+         // FIXME: Legacy translation rule
+         //   If config is not a component's option, mark text as translatable if it is a simple
+         //   text node (config._optionName is missing), or if it is the `title` attribute of
+         //   a tag (_optionName[0] === 'title', title is always translatable)
+         const isOptionTranslatable = this.textTranslator
+            .getComponentDescription(context.componentPath)
+            .isOptionTranslatable(context.componentPropertyPath);
+         const translateText = !context.processingOldComponent && context.translateText && (
+            isOptionTranslatable ||
+            context.componentPropertyPath === null || (
+               typeof context.componentPropertyPath === 'string' &&
+               context.componentPropertyPath.length === 0
+            )
+         );
+
          // Process text node content.
          // If text is invalid then an error will be thrown.
          const content = this.textProcessor.process(node.data, {
             fileName: context.fileName,
             allowedContent: context.textContent || TextContentFlags.FULL_TEXT,
-            translateText: context.translateText && !context.processingOldComponent,
-            translationsRegistrar: context.scope
-         }, node.position);
+            translationsRegistrar: context.scope,
+            position: node.position,
+            translateText
+         });
 
          // Set keys onto text content nodes.
-         this.keysGenerator.openChildren();
          for (let index = 0; index < content.length; ++index) {
-            content[index].setKey(
-               this.keysGenerator.generate()
-            );
+            content[index].setKey(index);
          }
-         this.keysGenerator.closeChildren();
 
          // Pack the processed data
          return new Ast.TextNode(content);
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка обработки текста: ${error.message}`,
+            `Ошибка обработки текста "${node.data}": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -1373,29 +1506,33 @@ class Traverse implements ITraverse {
     * @returns {OptionNode} Returns option node that contains value with concrete type.
     */
    private castPropertyWithType(node: Nodes.Tag, context: ITraverseContext): Ast.OptionNode {
-      const type = node.attributes.type.value;
+      const explicitDataType = node.attributes.type.value;
       const attributes: Nodes.IAttributes = {
          ...node.attributes
       };
       delete attributes.type;
-      switch (type) {
+      const internalContext: ITraverseContext = {
+         ...context,
+         explicitDataType
+      };
+      switch (explicitDataType) {
          case 'array':
-            return this.castPropertyContentToArray(node, context, attributes);
+            return this.castPropertyContentToArray(node, internalContext, attributes);
          case 'boolean':
-            return this.castPropertyContentToBoolean(node, context, attributes);
+            return this.castPropertyContentToBoolean(node, internalContext, attributes);
          case 'function':
-            return this.castPropertyContentToFunction(node, context, attributes);
+            return this.castPropertyContentToFunction(node, internalContext, attributes);
          case 'number':
-            return this.castPropertyContentToNumber(node, context, attributes);
+            return this.castPropertyContentToNumber(node, internalContext, attributes);
          case 'object':
-            return this.castPropertyContentToObject(node, context, attributes);
+            return this.castPropertyContentToObject(node, internalContext, attributes);
          case 'string':
-            return this.castPropertyContentToString(node, context, attributes);
+            return this.castPropertyContentToString(node, internalContext, attributes);
          case 'value':
-            return this.castPropertyContentToValue(node, context, attributes);
+            return this.castPropertyContentToValue(node, internalContext, attributes);
       }
-      this.errorHandler.critical(
-         `Не удалось определить тип опции ${node.name} для выполнения приведения`,
+      this.errorHandler.error(
+         `Не удалось определить тип опции "${node.name}" для выполнения приведения`,
          {
             fileName: context.fileName,
             position: node.position
@@ -1428,7 +1565,7 @@ class Traverse implements ITraverse {
          const elements = new Ast.ArrayNode(
             this.processArrayContent(node, context, attributes)
          );
-         elements.setFlag(Ast.Flags.TYPE_CASTED);
+         elements.setFlag(Ast.Flags.OBVIOUSLY_TYPE_CASTED);
          return new Ast.OptionNode(name, elements);
       } catch (error) {
          this.errorHandler.error(
@@ -1462,7 +1599,7 @@ class Traverse implements ITraverse {
          const value = new Ast.BooleanNode(
             this.processBooleanContent(node, context, attributes)
          );
-         value.setFlag(Ast.Flags.TYPE_CASTED);
+         value.setFlag(Ast.Flags.OBVIOUSLY_TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
          this.errorHandler.error(
@@ -1495,7 +1632,7 @@ class Traverse implements ITraverse {
          const { functionExpression, options } = this.processFunctionContent(node, context, attributes);
          const name = Resolvers.resolveOption(node.name);
          const value = new Ast.FunctionNode(functionExpression, options);
-         value.setFlag(Ast.Flags.TYPE_CASTED);
+         value.setFlag(Ast.Flags.OBVIOUSLY_TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
          this.errorHandler.error(
@@ -1529,7 +1666,7 @@ class Traverse implements ITraverse {
          const value = new Ast.NumberNode(
             this.processNumberContent(node, context, attributes)
          );
-         value.setFlag(Ast.Flags.TYPE_CASTED);
+         value.setFlag(Ast.Flags.OBVIOUSLY_TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
          this.errorHandler.error(
@@ -1567,7 +1704,7 @@ class Traverse implements ITraverse {
          const value = new Ast.ObjectNode(
             this.processObjectContent(node, context, attributes)
          );
-         value.setFlag(Ast.Flags.TYPE_CASTED);
+         value.setFlag(Ast.Flags.OBVIOUSLY_TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
          this.errorHandler.error(
@@ -1601,7 +1738,7 @@ class Traverse implements ITraverse {
          const value = new Ast.StringNode(
             this.processStringContent(node, context, attributes)
          );
-         value.setFlag(Ast.Flags.TYPE_CASTED);
+         value.setFlag(Ast.Flags.OBVIOUSLY_TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
          this.errorHandler.error(
@@ -1635,7 +1772,7 @@ class Traverse implements ITraverse {
          const value = new Ast.ValueNode(
             this.processValueContent(node, context, attributes)
          );
-         value.setFlag(Ast.Flags.TYPE_CASTED);
+         value.setFlag(Ast.Flags.OBVIOUSLY_TYPE_CASTED);
          return new Ast.OptionNode(name, value);
       } catch (error) {
          this.errorHandler.error(
@@ -1683,6 +1820,111 @@ class Traverse implements ITraverse {
    // <editor-fold desc="Processing data type nodes">
 
    /**
+    * Test potential processing node and converting it to concrete type.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param state {TraverseState} Required processing state that depends on data type directive name.
+    * @param isDirectiveProvided {boolean} Primitive data flag. True for data types which must contains text only.
+    * @returns {boolean} Returns true in case of correct node contents.
+    */
+   private testDoubleTypeDefinition(node: Nodes.Tag, context: ITraverseContext, state: TraverseState, isDirectiveProvided: boolean = true): boolean {
+      if (context.explicitDataType === null || !isDirectiveProvided) {
+         this.errorHandler.error(
+            `Обнаружена непредусмотренная директива "${node.name}": ${whatExpected(context.state)}`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return false;
+      }
+      if (context.state !== state) {
+         this.errorHandler.error(
+            `Директива "${node.name}" не соответствует заданному типу "${context.explicitDataType}"`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return false;
+      }
+      return true;
+   }
+
+   /**
+    * Process data type content.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TData | null} Returns instance of concrete TData or null in case of broken content.
+    */
+   private processDoubleTypeDefinition(node: Nodes.Tag, context: ITraverseContext): Ast.TextNode {
+      const internalContext: ITraverseContext = {
+         ...context,
+         explicitDataType: null
+      };
+      let content = [];
+      switch (node.name) {
+         case 'ws:Array':
+            this.testDoubleTypeDefinition(node, context, TraverseState.ARRAY_DATA_TYPE, false);
+            break;
+         case 'ws:Object':
+            this.testDoubleTypeDefinition(node, context, TraverseState.OBJECT_DATA_TYPE, false);
+            break;
+         case 'ws:Function':
+            this.testDoubleTypeDefinition(node, context, TraverseState.FUNCTION_DATA_TYPE, false);
+            break;
+         case 'ws:Boolean':
+            if (!this.testDoubleTypeDefinition(node, context, TraverseState.BOOLEAN_DATA_TYPE)) {
+               break;
+            }
+            const booleanNode = this.processBoolean(node, internalContext);
+            if (booleanNode !== null) {
+               content = booleanNode.__$ws_data;
+            }
+            break;
+         case 'ws:Number':
+            if (!this.testDoubleTypeDefinition(node, context, TraverseState.NUMBER_DATA_TYPE)) {
+               break;
+            }
+            const numberNode = this.processNumber(node, internalContext);
+            if (numberNode !== null) {
+               content = numberNode.__$ws_data;
+            }
+            break;
+         case 'ws:String':
+            if (!this.testDoubleTypeDefinition(node, context, TraverseState.STRING_DATA_TYPE)) {
+               break;
+            }
+            const stringNode = this.processString(node, internalContext);
+            if (stringNode !== null) {
+               content = stringNode.__$ws_data;
+            }
+            break;
+         case 'ws:Value':
+            if (!this.testDoubleTypeDefinition(node, context, TraverseState.VALUE_DATA_TYPE)) {
+               break;
+            }
+            const valueNode = this.processValue(node, internalContext);
+            if (valueNode !== null) {
+               content = valueNode.__$ws_data;
+            }
+            break;
+         default:
+            this.errorHandler.error(
+               `Обнаружен непредусмотренный тег "${node.name}": ${whatExpected(context.state)}`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            break;
+      }
+      return new Ast.TextNode(content);
+   }
+
+   /**
     * Process html element tag and create array node of abstract syntax tree.
     * ```
     *    <ws:Array>
@@ -1700,9 +1942,9 @@ class Traverse implements ITraverse {
     */
    private processArray(node: Nodes.Tag, context: ITraverseContext): Ast.ArrayNode {
       try {
-      return new Ast.ArrayNode(
-         this.processArrayContent(node, context, node.attributes)
-      );
+         return new Ast.ArrayNode(
+            this.processArrayContent(node, context, node.attributes)
+         );
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных "ws:Array": ${error.message}`,
@@ -1726,9 +1968,10 @@ class Traverse implements ITraverse {
     * @returns {TData[]} Returns consistent collection of data type nodes.
     */
    private processArrayContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TData[] {
-      const childrenContext = {
+      const childrenContext: ITraverseContext = {
          ...context,
-         state: TraverseState.ARRAY_ELEMENTS
+         state: TraverseState.ARRAY_DATA_TYPE,
+         explicitDataType: null
       };
       this.warnUnexpectedAttributes(attributes, context, node.name);
       return <Ast.TData[]>this.visitAll(node.children, childrenContext);
@@ -1748,9 +1991,9 @@ class Traverse implements ITraverse {
     */
    private processBoolean(node: Nodes.Tag, context: ITraverseContext): Ast.BooleanNode {
       try {
-      return new Ast.BooleanNode(
-         this.processBooleanContent(node, context, node.attributes)
-      );
+         return new Ast.BooleanNode(
+            this.processBooleanContent(node, context, node.attributes)
+         );
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных "ws:Boolean": ${error.message}`,
@@ -1776,14 +2019,15 @@ class Traverse implements ITraverse {
    private processBooleanContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
       const childrenContext: ITraverseContext = {
          ...context,
-         state: TraverseState.PRIMITIVE_VALUE,
+         state: TraverseState.BOOLEAN_DATA_TYPE,
          textContent: TextContentFlags.TEXT_AND_EXPRESSION,
          translateText: false
       };
       this.warnUnexpectedAttributes(attributes, context, node.name);
       const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
-      validateBoolean(children);
-      return children[0].__$ws_content;
+      const content = cleanPrimitiveValue(children);
+      validateBoolean(content);
+      return content[0].__$ws_content;
    }
 
    /**
@@ -1825,9 +2069,9 @@ class Traverse implements ITraverse {
     * @returns {*} Returns collection of function parameters.
     */
    private processFunctionContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): { functionExpression: Ast.TText[]; options: Ast.IOptions; } {
-      const childrenContext = {
+      const childrenContext: ITraverseContext = {
          ...context,
-         state: TraverseState.PRIMITIVE_VALUE,
+         state: TraverseState.FUNCTION_DATA_TYPE,
          textContent: TextContentFlags.TEXT_AND_EXPRESSION,
          translateText: false
       };
@@ -1835,7 +2079,8 @@ class Traverse implements ITraverse {
       if (textNodes.length !== 1) {
          throw new Error('получены некорректные данные');
       }
-      const functionExpression = textNodes[0].__$ws_content;
+      const content = cleanPrimitiveValue(textNodes);
+      const functionExpression = content[0].__$ws_content;
       const options = this.attributeProcessor.process(
          attributes,
          {
@@ -1867,9 +2112,9 @@ class Traverse implements ITraverse {
     */
    private processNumber(node: Nodes.Tag, context: ITraverseContext): Ast.NumberNode {
       try {
-      return new Ast.NumberNode(
-         this.processNumberContent(node, context, node.attributes)
-      );
+         return new Ast.NumberNode(
+            this.processNumberContent(node, context, node.attributes)
+         );
       } catch (error) {
          this.errorHandler.error(
             `Ошибка разбора директивы данных "ws:Number": ${error.message}`,
@@ -1893,16 +2138,17 @@ class Traverse implements ITraverse {
     * @returns {TText[]} Returns consistent collection of text nodes.
     */
    private processNumberContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
-      const childrenContext = {
+      const childrenContext: ITraverseContext = {
          ...context,
-         state: TraverseState.PRIMITIVE_VALUE,
+         state: TraverseState.NUMBER_DATA_TYPE,
          textContent: TextContentFlags.TEXT_AND_EXPRESSION,
          translateText: false
       };
       this.warnUnexpectedAttributes(attributes, context, node.name);
       const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
-      validateNumber(children);
-      return children[0].__$ws_content;
+      const content = cleanPrimitiveValue(children);
+      validateNumber(content);
+      return content[0].__$ws_content;
    }
 
    /**
@@ -1959,14 +2205,22 @@ class Traverse implements ITraverse {
    private processObjectContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.IObjectProperties {
       const propertiesContext: ITraverseContext = {
          ...context,
-         state: TraverseState.OBJECT_PROPERTIES
+         state: TraverseState.OBJECT_DATA_TYPE
       };
       const processedChildren = this.visitAll(node.children, propertiesContext);
-      const properties = this.getObjectOptionsFromAttributes(attributes, context, node);
+      const processedAttributes = this.attributeProcessor.processOptions(attributes, {
+         fileName: context.fileName,
+         hasAttributesOnly: false,
+         parentTagName: node.name,
+         translationsRegistrar: context.scope
+      });
+      const properties: Ast.IObjectProperties = {
+         ...processedAttributes
+      };
       for (let index = 0; index < processedChildren.length; ++index) {
          const child = processedChildren[index];
          if (!(child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode)) {
-            this.errorHandler.critical(
+            this.errorHandler.error(
                `Тег "${node.name}" содержит некорректные данные`,
                {
                   fileName: context.fileName,
@@ -1976,13 +2230,18 @@ class Traverse implements ITraverse {
             continue;
          }
          if (properties.hasOwnProperty(child.__$ws_name)) {
-            this.errorHandler.critical(
+            this.errorHandler.warn(
                `Опция "${child.__$ws_name}" уже определена на директиве "ws:Object"`,
                {
                   fileName: context.fileName,
                   position: node.position
                }
             );
+            // FIXME: take the last property
+            // continue;
+         }
+         if (processedAttributes.hasOwnProperty(child.__$ws_name)) {
+            // FIXME: take the last property but attribute have the highest priority
             continue;
          }
          properties[child.__$ws_name] = child;
@@ -2030,11 +2289,11 @@ class Traverse implements ITraverse {
     * @returns {TText[]} Returns consistent collection of text nodes.
     */
    private processStringContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
-      const childrenContext = {
+      const childrenContext: ITraverseContext = {
          ...context,
-         state: TraverseState.PRIMITIVE_VALUE,
+         state: TraverseState.STRING_DATA_TYPE,
          textContent: TextContentFlags.FULL_TEXT,
-         translateText: false
+         translateText: this.textTranslator.getComponentDescription(context.componentPath).isOptionTranslatable(context.componentPropertyPath)
       };
       this.warnUnexpectedAttributes(attributes, context, node.name);
       const children = <Ast.TextNode[]>this.visitAll(node.children, childrenContext);
@@ -2086,9 +2345,9 @@ class Traverse implements ITraverse {
     * @returns {TText[]} Returns consistent collection of text nodes.
     */
    private processValueContent(node: Nodes.Tag, context: ITraverseContext, attributes: Nodes.IAttributes): Ast.TText[] {
-      const childrenContext = {
+      const childrenContext: ITraverseContext = {
          ...context,
-         state: TraverseState.PRIMITIVE_VALUE,
+         state: TraverseState.VALUE_DATA_TYPE,
          textContent: TextContentFlags.FULL_TEXT,
          translateText: false
       };
@@ -2227,18 +2486,29 @@ class Traverse implements ITraverse {
          const ast = new Ast.TemplateNode(name, content);
          if (content.length === 0) {
             this.errorHandler.error(
-               `Содержимое директивы ws:template не должно быть пустым`,
+               `Содержимое директивы "ws:template" не должно быть пустым`,
                {
                   fileName: childrenContext.fileName,
                   position: node.position
                }
             );
          }
+         // FIXME: Remove this check
+         if (context.scope.hasTemplate(name)) {
+            this.errorHandler.warn(
+               `Шаблон с именем "${name}" уже был определен`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return null;
+         }
          context.scope.registerTemplate(name, ast);
          return ast;
       } catch (error) {
          this.errorHandler.error(
-            `Ошибка разбора директивы ws:template: ${error.message}. Директива будет отброшена`,
+            `Ошибка разбора директивы "ws:template": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
@@ -2306,7 +2576,17 @@ class Traverse implements ITraverse {
             `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
          );
       }
-      const [indexIteratorString, collectionExpression] = params;
+      // FIXME: remove this code
+      let [indexIteratorString, collectionExpression] = params;
+      if (indexIteratorString.indexOf(' as ') > -1) {
+         const asParameters = indexIteratorString.split(' as ');
+         if (asParameters.length !== 2) {
+            throw new Error(
+               `цикл задан некорректно. Ожидалось соответствие шаблону "[index, ] iterator in collection". Получено: "${data}"`
+            );
+         }
+         indexIteratorString = `${asParameters[0]}, ${asParameters[1]}`;
+      }
       const variables = indexIteratorString.split(',').map(s => s.trim());
       if (variables.length < 1 ||variables.length > 2) {
          throw new Error(
@@ -2338,7 +2618,7 @@ class Traverse implements ITraverse {
          collection = this.expressionParser.parse(collectionExpression);
       } catch (error) {
          throw new Error(
-            `коллекция цикла ${collectionExpression} задана некорректно`
+            `коллекция цикла "${collectionExpression}" задана некорректно`
          );
       }
       return {
@@ -2407,7 +2687,9 @@ class Traverse implements ITraverse {
    private processComponentWithChildren(node: Nodes.Tag, context: ITraverseContext): Ast.ComponentNode {
       const componentContext: ITraverseContext = {
          ...context,
-         state: TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT
+         state: TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT,
+         componentPropertyPath: '',
+         componentPath: Resolvers.parseComponentName(node.name).getFullPath()
       };
       const options = this.getComponentOrPartialOptions(node.children, componentContext);
       const ast = this.createComponentOnly(node, context);
@@ -2430,7 +2712,7 @@ class Traverse implements ITraverse {
          parentTagName: node.name,
          translationsRegistrar: context.scope
       };
-      const path = Path.parseComponentName(node.name);
+      const path = Resolvers.parseComponentName(node.name);
       context.scope.registerDependency(path);
       const componentDescription = this.textTranslator.getComponentDescription(path.getFullPath());
       const attributes = this.attributeProcessor.process(
@@ -2505,7 +2787,9 @@ class Traverse implements ITraverse {
    private processPartialWithChildren(node: Nodes.Tag, context: ITraverseContext): Ast.InlineTemplateNode | Ast.StaticPartialNode | Ast.DynamicPartialNode {
       const componentContext: ITraverseContext = {
          ...context,
-         state: TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT
+         state: TraverseState.COMPONENT_WITH_UNKNOWN_CONTENT,
+         // TODO: Do it better
+         componentPropertyPath: node.attributes.template ? node.attributes.template.value : ''
       };
       const options = this.getComponentOrPartialOptions(node.children, componentContext);
       const ast = this.createPartialOnly(node, context);
@@ -2529,7 +2813,9 @@ class Traverse implements ITraverse {
          parentTagName: node.name,
          translationsRegistrar: context.scope
       };
-      const attributes = this.attributeProcessor.process(node.attributes, attributeProcessorOptions);
+      // TODO: Do it better
+      const componentDescription = this.textTranslator.getComponentDescription(node.attributes.template ? node.attributes.template.value : '');
+      const attributes = this.attributeProcessor.process(node.attributes, attributeProcessorOptions, componentDescription);
       const template = validatePartialTemplate(attributes.options.template, node);
       delete attributes.options.template;
       if (!template) {
@@ -2538,8 +2824,8 @@ class Traverse implements ITraverse {
       if (template instanceof ProgramNode) {
          return new Ast.DynamicPartialNode(template, attributes.attributes, attributes.events, attributes.options);
       }
-      if (Path.isLogicalPath(template) || Path.isPhysicalPath(template)) {
-         const path = Path.parseTemplatePath(template);
+      if (Resolvers.isLogicalPath(template) || Resolvers.isPhysicalPath(template)) {
+         const path = Resolvers.parseTemplatePath(template);
          context.scope.registerDependency(path);
          return new Ast.StaticPartialNode(path, attributes.attributes, attributes.events, attributes.options);
       }
@@ -2552,26 +2838,6 @@ class Traverse implements ITraverse {
    // </editor-fold>
 
    // <editor-fold desc="Machine helpers">
-
-   /**
-    * Get options from object node or casted object property.
-    * @private
-    * @param attributes {IAttributes} Attributes collection.
-    * @param context {ITraverseContext} Processing context.
-    * @param parentNode {Tag} Parent node that contains processing attributes.
-    * @returns {IObjectProperties} Collection of properties.
-    */
-   private getObjectOptionsFromAttributes(attributes: Nodes.IAttributes, context: ITraverseContext, parentNode: Nodes.Tag): Ast.IObjectProperties {
-      const processedAttributes = this.attributeProcessor.process(attributes, {
-         fileName: context.fileName,
-         hasAttributesOnly: false,
-         parentTagName: parentNode.name,
-         translationsRegistrar: context.scope
-      });
-      this.warnIncorrectProperties(processedAttributes.attributes, parentNode, context);
-      this.warnIncorrectProperties(processedAttributes.events, parentNode, context);
-      return <Ast.IObjectProperties>processedAttributes.options;
-   }
 
    /**
     * Process component or partial node children.
@@ -2604,16 +2870,24 @@ class Traverse implements ITraverse {
     * @param node {Tag} Base html tag node of processing component or partial node.
     */
    private applyOptionsToComponentOrPartial(ast: Ast.BaseWasabyElement, options: Array<Ast.OptionNode | Ast.ContentOptionNode>, context: ITraverseContext, node: Nodes.Tag): void {
+      const processedAttributes = {
+         ...ast.__$ws_options
+      };
       for (let index = 0; index < options.length; ++index) {
          const child = options[index];
          if (ast.hasOption(child.__$ws_name)) {
-            this.errorHandler.error(
+            this.errorHandler.warn(
                `Опция "${child.__$ws_name}" уже определена на теге "${node.name}"`,
                {
                   fileName: context.fileName,
                   position: node.position
                }
             );
+            // FIXME: take the last property
+            // continue;
+         }
+         if (processedAttributes.hasOwnProperty(child.__$ws_name)) {
+            // FIXME: take the last property but attribute have the highest priority
             continue;
          }
          ast.setOption(options[index]);
@@ -2669,9 +2943,9 @@ class Traverse implements ITraverse {
                fileName: context.fileName,
                translateText: false,
                allowedContent,
+               position: node.position,
                translationsRegistrar: context.scope
-            },
-            node.position
+            }
          );
          return textValue[0];
       } catch (error){
