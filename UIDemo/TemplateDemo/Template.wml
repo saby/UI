@@ -1,0 +1,5 @@
+<div>
+    <ws:for data="i in 1000">
+        <ws:partial template="wml!UIDemo/TemplateDemo/_resources/SpanTemplate" />
+    </ws:for>
+</div>
