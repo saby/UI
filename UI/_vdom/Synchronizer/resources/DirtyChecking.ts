@@ -406,6 +406,9 @@ export function createInstance(cnstr, userOptions, internalOptions) {
       actualOptions = userOptions;
    }
 
+   if (!actualOptions) {
+      Logger.error(_needToBeCompatible + ' ' + cnstr.prototype + ' ' + userOptions + ' ' + internalOptions);
+   }
    actualOptions._logicParent = internalOptions.logicParent;
    const parentName = internalOptions.logicParent && internalOptions.logicParent._moduleName;
 
