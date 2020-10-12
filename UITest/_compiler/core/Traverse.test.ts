@@ -15,7 +15,8 @@ const traverseConfig = {
    expressionParser: new Parser(),
    hierarchicalKeys: true,
    errorHandler: createErrorHandler(),
-   textTranslator: createTextTranslator({})
+   textTranslator: createTextTranslator({}),
+   generateTranslations: true
 };
 
 const parseConfig = {
