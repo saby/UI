@@ -9,6 +9,12 @@ import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { ITranslationsRegistrar } from 'UI/_builder/Tmpl/core/Text';
 import { IPath } from 'UI/_builder/Tmpl/core/Resolvers';
 import { Dictionary, ITranslationKey } from 'UI/_builder/Tmpl/i18n/Dictionary';
+// @ts-ignore TODO: This module can only be referenced with ECMAScript imports/exports
+//             by turning on the 'esModuleInterop' flag and referencing its default export.
+import * as Deferred from 'Core/Deferred';
+// @ts-ignore TODO: This module can only be referenced with ECMAScript imports/exports
+//             by turning on the 'esModuleInterop' flag and referencing its default export.
+import * as ParallelDeferred from 'Core/ParallelDeferred';
 
 /**
  * Interface of inner representation of template nodes.
@@ -63,7 +69,7 @@ export default class Scope implements ITranslationsRegistrar {
    /**
     * Collection of requested dependencies.
     */
-   private readonly dependencyRequests: Promise<IPath>[];
+   private readonly dependencyRequests: Deferred<unknown>[];
 
    /**
     * Translations dictionary.
@@ -94,27 +100,35 @@ export default class Scope implements ITranslationsRegistrar {
       if (!this.loadDependencies || requirejs.defined(fullPath)) {
          return;
       }
-      this.dependencyRequests.push(
-         new Promise((resolve: any, reject: any): void => {
-            requirejs([fullPath], (module) => {
-               // TODO: Handle result
-               resolve();
-            }, (module) => {
-               // TODO: Handle result
-               resolve();
-            });
-         })
-      );
+      const deferred = new Deferred();
+      this.dependencyRequests.push(deferred);
+      if (require.defined(fullPath)) {
+         deferred.callback(require(fullPath));
+         return;
+      }
+      require([fullPath], (module) => {
+         if (module || module === null) {
+            deferred.callback(module);
+            return;
+         }
+         deferred.errback(new Error(`Не удалось загрузить файл "${fullPath}"`));
+      }, (error) => {
+         deferred.errback(error);
+      });
    }
 
    /**
     * Request all registered dependencies.
     */
-   requestDependencies(): Promise<any> {
+   requestDependencies(): ParallelDeferred<unknown> {
+      const parallelDeferred = new ParallelDeferred();
       if (!this.loadDependencies || this.dependencyRequests.length === 0) {
-         return Promise.resolve();
+         return parallelDeferred.done().getResult();
       }
-      return Promise.all(this.dependencyRequests);
+      this.dependencyRequests.forEach((deferred) => {
+         parallelDeferred.push(deferred);
+      });
+      return parallelDeferred.done().getResult();
    }
 
    /**

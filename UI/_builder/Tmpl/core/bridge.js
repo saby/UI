@@ -59,7 +59,7 @@ define('UI/_builder/Tmpl/core/bridge', [
          );
          return deferred;
       }
-      scope.requestDependencies().then(function() {
+      scope.requestDependencies().addCallbacks(function() {
          traversed.__newVersion = true;
          var foundVars = [];
          var foundChildren = [];
@@ -92,6 +92,8 @@ define('UI/_builder/Tmpl/core/bridge', [
             return;
          }
          deferred.callback(traversed);
+      }, function(error) {
+         deferred.errback(error);
       });
       return deferred;
    }
