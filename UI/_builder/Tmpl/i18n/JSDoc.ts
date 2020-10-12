@@ -107,6 +107,16 @@ class DummyComponentDescription implements IComponentDescription {
    }
 }
 
+/**
+ * @todo Release better check
+ * @param componentPath
+ */
+function prepareComponentPath(componentPath: string): string {
+   return componentPath
+      .replace(/^optional!/gi, '')
+      .replace(/^js!/gi, '');
+}
+
 class JSDocProcessor implements IInternalJSDocContract {
    private readonly schema: IJSDocSchema;
 
@@ -114,9 +124,12 @@ class JSDocProcessor implements IInternalJSDocContract {
       this.schema = schema;
    }
 
-   getComponentDescription(componentPath: string): IComponentDescription {
-      if (this.schema.hasOwnProperty(componentPath)) {
-         return new ComponentDescription(this, componentPath);
+   getComponentDescription(componentPath: string | null): IComponentDescription {
+      if (typeof componentPath === 'string') {
+         const component = prepareComponentPath(componentPath);
+         if (this.schema.hasOwnProperty(component)) {
+            return new ComponentDescription(this, component);
+         }
       }
       return new DummyComponentDescription();
    }

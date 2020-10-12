@@ -95,6 +95,20 @@ describe('Compiler/i18n/JSDoc', () => {
       const description = JS_DOC_PROCESSOR.getComponentDescription('UIModule/UnknownComponent');
       assert.isFalse(description.isPropertyTranslatable('property'));
    });
+   describe('Special components', () => {
+      it('optional!UIModule/Component', () => {
+         const description = JS_DOC_PROCESSOR.getComponentDescription('optional!UIModule/Component');
+         assert.isTrue(description.isPropertyTranslatable('translatableStringOption'));
+      });
+      it('js!UIModule/Component', () => {
+         const description = JS_DOC_PROCESSOR.getComponentDescription('js!UIModule/Component');
+         assert.isTrue(description.isPropertyTranslatable('translatableStringOption'));
+      });
+      it('optional!js!UIModule/Component', () => {
+         const description = JS_DOC_PROCESSOR.getComponentDescription('optional!js!UIModule/Component');
+         assert.isTrue(description.isPropertyTranslatable('translatableStringOption'));
+      });
+   });
    describe('Primitive types', () => {
       it('Boolean', () => {
          const description = JS_DOC_PROCESSOR.getComponentDescription('UIModule/Component');
