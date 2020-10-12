@@ -22,7 +22,7 @@ define('UI/_builder/Tmpl/core/bridge', [
    Utils
 ) {
    'use strict';
-   var USE_VISITOR = false;
+   var USE_VISITOR = !false;
 
    // TODO: https://online.sbis.ru/opendoc.html?guid=ea8a25dd-5a2f-4330-8d6f-599c8c5878dd
    var USE_GENERATE_CODE_FOR_TRANSLATIONS = false;
