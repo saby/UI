@@ -206,7 +206,7 @@ class BaseValidator implements Nodes.IExpressionVisitor<IContext, void> {
          state: State.IN_PROGRAM
       };
       if (node.body.length > context.programBodyLength) {
-         this.errorHandler.error(
+         this.errorHandler.warn(
             `Получено более 1 выражения в Mustache-выражении. Возможно, Mustache-выражение содержит несколько выражений, разделенных символом ";"`,
             context
          )

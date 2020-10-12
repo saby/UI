@@ -1023,7 +1023,8 @@ class Traverse implements ITraverse {
    private processTagInComponentWithContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
       updateToContentState(context);
       if (context.state !== TraverseState.COMPONENT_WITH_CONTENT) {
-         this.errorHandler.error(
+         // FIXME: Must be error
+         this.errorHandler.warn(
             `Запрещено смешивать контент по умолчанию с опциями - обнаружен тег "${node.name}". ` +
             'Необходимо явно задать контент в ws:content',
             {
@@ -1031,7 +1032,8 @@ class Traverse implements ITraverse {
                position: node.position
             }
          );
-         return null;
+         // FIXME: Must return broken node
+         // return null;
       }
       return this.processTagInMarkup(node, context);
    }
@@ -1152,14 +1154,16 @@ class Traverse implements ITraverse {
    private processTagInObjectPropertyWithContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
       updateToContentState(context);
       if (context.state !== TraverseState.OBJECT_PROPERTY_WITH_CONTENT) {
-         this.errorHandler.error(
+         // FIXME: Must be error
+         this.errorHandler.warn(
             `Запрещено смешивать контент, директивы типов данных и опции. Обнаружен тег "${node.name}". Ожидался контент`,
             {
                fileName: context.fileName,
                position: node.position
             }
          );
-         return null;
+         // FIXME: Must return broken node
+         // return null;
       }
       return this.processTagInMarkup(node, context);
    }
