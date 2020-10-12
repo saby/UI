@@ -8,7 +8,6 @@ import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { Head as AppHead } from 'Application/Page'
-import { Logger } from 'UI/Utils';
 import { headDataStore } from 'UI/_base/HeadData';
 import { Stack } from 'UI/_base/HTML/meta';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
@@ -58,7 +57,6 @@ class Head extends Control<IHeadOptions> {
             .filter(({ attrs }) => attrs.rel !== "stylesheet" && attrs.type !== "text/css");
         this.headAdditiveTagsMarkup = new TagMarkup(tagDescriptions).outerHTML;
         this._prepareMetaAndScripts(options);
-        this._prepareHeadResources(options);
 
         this.wasServerSide = false;
         this.isSSR = !constants.isBrowserPlatform;
@@ -124,52 +122,6 @@ class Head extends Control<IHeadOptions> {
         /** Объеденим в одну строку для уменьшения накладных расходов на стороне шаблона */
         this.userTags = meta.concat(scripts).concat(links).join('\n');
     }
-
-    /**
-     * Обработка ресурсов, которые необходимо добавить в head
-     * 1. prefetch: <link rel="prefetch" href="/style.css" as="style" />
-     * @param options
-     * @private
-     */
-    _prepareHeadResources(options: IHeadOptions): void {
-        const prefetchLinks = options.prefetchLinks || [];
-        if (!prefetchLinks.length) {
-            return;
-        }
-
-        // TODO получить абсолютные ссылки для указанных модулей методом Мальцева А
-        const absPrefetchLinks = prefetchLinks;
-
-        const API = AppHead.getInstance();
-        absPrefetchLinks.forEach((path) => {
-            const _type = this._getTypeString(path);
-            if (!_type) {
-                Logger.warn(`[UI/_base/HTML/Head.ts] Для файла ${path} не удалось получить строку-тип`);
-                return;
-            }
-            API.createTag('link', {rel: 'prefetch', as: _type, href: path});
-        });
-    }
-
-    /**
-     * Получить строку-тип ресурса по его расширению
-     * @param path
-     * @private
-     */
-    _getTypeString(path: string): string {
-        const types = {
-            'script': new RegExp('\.js'),
-            'fetch': new RegExp('\.wml'),
-            'style': new RegExp('\.css')
-        };
-        for (let _type in types) {
-            if(types.hasOwnProperty(_type) && types[_type].test(path)) {
-                return _type;
-            }
-        }
-        return null;
-    }
-
 
     // @ts-ignore
     _shouldUpdate(): Boolean {
@@ -240,5 +192,4 @@ interface IHeadOptions extends IControlOptions {
     meta?: Array<{}>;
     links?: Array<{}>;
     scripts?: Array<{}>;
-    prefetchLinks?: string[];
 }
