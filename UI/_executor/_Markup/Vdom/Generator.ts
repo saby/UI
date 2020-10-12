@@ -314,7 +314,6 @@ export class GeneratorVdom implements IGenerator {
                `но вместо компонента в шаблоне был передан ${typeTpl}! ` +
                'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
                `По стеку будет понятно, в каком шаблоне и в какую опцию передается ${typeTpl}`, parent);
-
             return this.createText('', decorAttribs.key);
          } else if (fn === false) {
             Logger.error(`Контрол ${tpl} отсутствует в зависимостях и не может быть построен."`, parent);

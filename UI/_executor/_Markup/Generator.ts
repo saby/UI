@@ -127,9 +127,9 @@ export class Generator {
       const type = 'wsControl';
       if (Common.isCompat()) {
          res = timing.methodExecutionTime(this.createWsControl, this, [name, userData, attrs, context, deps]);
-      } else {
-         res = this.createWsControl(name, userData, attrs, context, deps);
+         this.checkResult(res, type);
       }
+      res = this.createWsControl(name, userData, attrs, context, deps);
       return this.checkResult(res, type);
    }
 
@@ -148,9 +148,9 @@ export class Generator {
       const type = 'template';
       if (Common.isCompat()) {
          res = timing.methodExecutionTime(this.createTemplate, this, [name, userData, attrs, context, deps, config]);
-      } else {
-         res = this.createTemplate(name, userData, attrs, context, deps, config);
+         this.checkResult(res, type);
       }
+      res = this.createTemplate(name, userData, attrs, context, deps, config);
       return this.checkResult(res, type);
    }
 
@@ -168,9 +168,9 @@ export class Generator {
       const type = 'controller';
       if (Common.isCompat()) {
          res = timing.methodExecutionTime(this.createController, this, [name, userData, attrs, context, deps]);
-      } else {
-         res = this.createController(name, userData, attrs, context, deps);
+         this.checkResult(res, type);
       }
+      res = this.createController(name, userData, attrs, context, deps);
       return this.checkResult(res, type);
    }
 
@@ -204,9 +204,9 @@ export class Generator {
       }
       if (Common.isCompat()) {
          res = timing.methodExecutionTime(this.resolver, this, [name, userData, attrs, context, deps, includedTemplates, config, defCollection]);
-      } else {
-         res = this.resolver(name, userData, attrs, context, deps, includedTemplates, config, defCollection);
+         this.checkResult(res, type);
       }
+      res = this.resolver(name, userData, attrs, context, deps, includedTemplates, config, defCollection);
       return this.checkResult(res, type);
    }
 
@@ -233,81 +233,62 @@ export class Generator {
    // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
    if (name === null) {
       return this.createEmptyText();
-   } else {
-      // конвертирую объект строки в строку, чтобы везде провеять только на строку
-      // объект вместо строки вероятно приходит из-за интернационализации
-      if (name instanceof String) {
-         name = name.toString();
-      }
+   }
+   // конвертирую объект строки в строку, чтобы везде провеять только на строку
+   // объект вместо строки вероятно приходит из-за интернационализации
+   if (name instanceof String) {
+      name = name.toString();
+   }
 
-      // тип контрола - компонент с шаблоном
-      if (type === 'wsControl') {
-         if (Common.isCompat()) {
-            res = timing.methodExecutionTime(this.createWsControl, this, [name, userData, attrs, context, deps]);
-         } else {
-            res = this.createWsControl(name, userData, attrs, context, deps);
-         }
+   // тип контрола - компонент с шаблоном
+   if (type === 'wsControl') {
+      if (Common.isCompat()) {
+         res = timing.methodExecutionTime(this.createWsControl, this, [name, userData, attrs, context, deps]);
+         return this.checkResult(res, type);
       }
-      // типа контрола - шаблон
-      if (type === 'template') {
-         if (Common.isCompat()) {
-            res = timing.methodExecutionTime(this.createTemplate, this, [name, userData, attrs, context, deps, config]);
-         } else {
-            res = this.createTemplate(name, userData, attrs, context, deps, config);
-         }
+      res = this.createWsControl(name, userData, attrs, context, deps);
+      return this.checkResult(res, type);
 
+   }
+   // типа контрола - шаблон
+   if (type === 'template') {
+      if (Common.isCompat()) {
+         res = timing.methodExecutionTime(this.createTemplate, this, [name, userData, attrs, context, deps, config]);
+         return this.checkResult(res, type);
       }
-      // тип контрола - компонент без шаблона
-      if (type === 'controller') {
-         if (Common.isCompat()) {
-            res = timing.methodExecutionTime(this.createController, this, [name, userData, attrs, context, deps]);
-         } else {
-            res = this.createController(name, userData, attrs, context, deps);
-         }
+      res = this.createTemplate(name, userData, attrs, context, deps, config);
+      return this.checkResult(res, type);
+   }
+   // тип контрола - компонент без шаблона
+   if (type === 'controller') {
+      if (Common.isCompat()) {
+         res = timing.methodExecutionTime(this.createController, this, [name, userData, attrs, context, deps]);
+         return this.checkResult(res, type);
       }
-      // когда тип вычисляемый, запускаем функцию вычисления типа и там обрабатываем тип
-      if (type === 'resolver') {
-         let handl, i;
-         if (attrs.events) {
-            for (i in attrs.events) {
-               if (attrs.events.hasOwnProperty(i)) {
-                  for (handl = 0; handl < attrs.events[i].length; handl++) {
-                     if (!attrs.events[i][handl].fn.isControlEvent) {
-                        attrs.events[i][handl].toPartial = true;
-                     }
+      res = this.createController(name, userData, attrs, context, deps);
+      return this.checkResult(res, type);
+
+   }
+   // когда тип вычисляемый, запускаем функцию вычисления типа и там обрабатываем тип
+   if (type === 'resolver') {
+      let handl, i;
+      if (attrs.events) {
+         for (i in attrs.events) {
+            if (attrs.events.hasOwnProperty(i)) {
+               for (handl = 0; handl < attrs.events[i].length; handl++) {
+                  if (!attrs.events[i][handl].fn.isControlEvent) {
+                     attrs.events[i][handl].toPartial = true;
                   }
                }
             }
          }
-         if (Common.isCompat()) {
-            res = timing.methodExecutionTime(this.resolver, this, [name, userData, attrs, context, deps, includedTemplates, config, defCollection]);
-         } else {
-            res = this.resolver(name, userData, attrs, context, deps, includedTemplates, config, defCollection);
-         }
       }
-      if (res !== undefined) {
-         return res;
-      } else {
-         /**
-          * Если у нас есть имя и тип, значит мы выполнили код выше
-          * Функции шаблонизации возвращают undefined, когда работают на клиенте
-          * с уже построенной версткой
-          * А вот если нам не передали каких-то данных сюда, то мы ничего не строили,
-          * а значит это ошибка и нужно обругаться.
-          */
-         if ((typeof name !== 'undefined') && type) {
-            return this.createEmptyText();
-         }
-         if (typeof name === 'undefined') {
-            Logger.error('Попытка использовать компонент/шаблон, ' +
-               'но вместо компонента в шаблоне в опцию template был передан undefined! ' +
-               'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
-               'По стеку будет понятно, в каком шаблоне и в какую опцию передается undefined');
-
-            return this.createEmptyText();
-         }
-         throw new Error('MarkupGenerator: createControl type not resolved');
+      if (Common.isCompat()) {
+         res = timing.methodExecutionTime(this.resolver, this, [name, userData, attrs, context, deps, includedTemplates, config, defCollection]);
+         return this.checkResult(res, type);
       }
+      res = this.resolver(name, userData, attrs, context, deps, includedTemplates, config, defCollection);
+      return this.checkResult(res, type);
    }
 };
 
@@ -321,6 +302,7 @@ export class Generator {
    private _isStringTpl(tpl, deps, includedTemplates) {
       let isSlashes: boolean = false;
       let wasOptional: boolean = false;
+      let controlClass;
 
       const newName = Common.splitWs(tpl);
       if (newName) {
@@ -335,52 +317,100 @@ export class Generator {
       }
 
       tpl = tpl.replace('optional!', '');
-      if (includedTemplates && includedTemplates[tpl]) {
-         controlClass = includedTemplates[tpl];
+      controlClass = includedTemplates && includedTemplates[tpl];
+      if (controlClass) {
+         return {
+            controlClass: this._isWasabyControlClass(controlClass),
+            dataComponent: tpl
+         };
       }
 
-      if (!controlClass) {
-         controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
+      controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
+      if (controlClass) {
+         return {
+            controlClass: this._isWasabyControlClass(controlClass),
+            dataComponent: tpl
+         };
       }
 
-      if (!controlClass) {
-         if (!isSlashes || wasOptional || Common.isCompat()) {
-            /*
-               * it can be "optional"
-               * can be tmpl!
-               * */
-            if (RequireHelper.defined(tpl)) {
-               controlClass = RequireHelper.require(tpl);
-            }
-         } else {
-            try {
-               if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
-                  this.cacheModules[tpl] = RequireHelper.require(tpl);
-               }
-               controlClass = this.cacheModules[tpl];
-            } catch (e) {
-               Logger.error('Create component error', controlClass, e);
-            }
+      if (!isSlashes || wasOptional || Common.isCompat()) {
+         /* it can be "optional"
+          * can be tmpl!
+          */
+         if (RequireHelper.defined(tpl)) {
+            controlClass = RequireHelper.require(tpl);
+            return {
+               controlClass: this._isWasabyControlClass(controlClass),
+               dataComponent: tpl
+            };
          }
       }
-      dataComponent = tpl;
-
-      return {
-         tpl: this._isWasabyControlClass(controlClass),
-         dataComponent: tpl
+      try {
+         if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
+            this.cacheModules[tpl] = RequireHelper.require(tpl);
+         }
+         controlClass = this.cacheModules[tpl];
+         return {
+            controlClass: this._isWasabyControlClass(controlClass),
+            dataComponent: tpl
+         }
+      } catch (e) {
+         Logger.error('Ошибка создания компонента', controlClass, e);
       }
    }
 
-   private _step1(tpl, deps, includedTemplates) {
+   private _patchControlClassPrototype(controlClass, moduleName) {
+      if (controlClass && controlClass.prototype && !controlClass.prototype.hasOwnProperty('_moduleName')) {
+         // Patch controlClass prototype, it won't have a _moduleName the first time it is
+         // created, because it was exported in a library
+         controlClass.prototype._moduleName = moduleName;
+      }
+   }
+
+   private _isLibraryTpl(tpl, deps) {
+      // module type: { library: <requirable module name>, module: <field to take from the library> }
+      let moduleName = tpl.library + ':' + tpl.module.join('.');
+      let controlClass;
+      if (deps && deps[tpl.library]) {
+         controlClass = Common.extractLibraryModule(deps[tpl.library], tpl.module);
+         this._patchControlClassPrototype(controlClass, moduleName);
+         return {
+            controlClass: controlClass,
+            dataComponent: moduleName
+         };
+      }
+      if (RequireHelper.defined(tpl.library)) {
+         controlClass = Common.extractLibraryModule(RequireHelper.extendedRequire(tpl.library, tpl.module), tpl.module);
+         this._patchControlClassPrototype(controlClass, moduleName);
+         return {
+            controlClass: controlClass,
+            dataComponent: moduleName
+         };
+      }
+      if (this.cacheModules[tpl.library]) {
+         controlClass = Common.extractLibraryModule(this.cacheModules[tpl.library], tpl.module);
+         this._patchControlClassPrototype(controlClass, moduleName);
+         return {
+            controlClass: controlClass,
+            dataComponent: moduleName
+         };
+      }
+      return {
+         controlClass: controlClass,
+         dataComponent: undefined
+      };
+   }
+
+   private _resolveTpl(tpl, deps, includedTemplates) {
       if (tpl === '_$inline_template') {
          return {
-            tpl: '_$inline_template',
+            controlClass: '_$inline_template',
             dataComponent: ''
          };
       }
       if (typeof tpl === 'function') {
          return {
-            tpl: tpl,
+            controlClass: tpl,
             dataComponent: tpl.prototype ? tpl.prototype._moduleName : ''
          };
       }
@@ -390,129 +420,74 @@ export class Generator {
             // (ws:partial template="{{someString}}"). Split library name and module name
             // here and process it in the next `if tpl.library && tpl.module`
             return {
-               tpl: Common.splitModule(tpl),
+               controlClass: Common.splitModule(tpl),
                dataComponent: ''
             };
          }
          return this._isStringTpl(tpl, deps, includedTemplates);
       }
+      if (tpl && typeof tpl === 'object' && tpl.library && tpl.module) {
+        return this._isLibraryTpl(tpl, deps);
+      }
    }
 
-
-   prepareDataForCreate(tplOrigin, scope, attrs, deps, includedTemplates?) {
-      let controlClass,
-         logicParent,
-         dataComponent,
-         isSlashes,
-         wasOptional,
-         parent;
-      // При использовании ts-модуля, где нужный класс экспортируется дефолтно, внутри js-модуля
-      // сюда приходит объект tplOrigin, где __esModule есть true, а в default лежит нужная нам функция построения верстки
-      // Для того, чтобы верстка строилась, необходимо вытащить функцию из default
-      let tpl = typeof tplOrigin === 'object' && tplOrigin.__esModule && tplOrigin.default ? tplOrigin.default : tplOrigin;
-      if (tpl === '_$inline_template') {
-         controlClass = '_$inline_template';
-      }
-      else if (typeof tpl === 'function') {
-         controlClass = tpl;
-         dataComponent = tpl.prototype ? tpl.prototype._moduleName : '';
-      }
-      else if (typeof tpl === 'string') {
-         if (Common.isLibraryModuleString(tpl)) {
-            // if this is a module string, it probably is from a dynamic partial template
-            // (ws:partial template="{{someString}}"). Split library name and module name
-            // here and process it in the next `if tpl.library && tpl.module`
-            tpl = Common.splitModule(tpl);
-         } else {
-            const newName = Common.splitWs(tpl);
-            if (newName) {
-               tpl = newName;
-            }
-
-            if (tpl.indexOf('/') > -1) {
-               isSlashes = true;
-               if (tpl.indexOf('optional!') > -1) {
-                  wasOptional = true;
-               }
-            }
-
-            tpl = tpl.replace('optional!', '');
-            if (includedTemplates && includedTemplates[tpl]) {
-               controlClass = includedTemplates[tpl];
-            }
-
-            if (!controlClass) {
-               controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
-            }
-
-            if (!controlClass) {
-               if (!isSlashes || wasOptional || Common.isCompat()) {
-                  /*
-                     * it can be "optional"
-                     * can be tmpl!
-                     * */
-                  if (RequireHelper.defined(tpl)) {
-                     controlClass = RequireHelper.require(tpl);
-                  }
-               } else {
-                  try {
-                     if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
-                        this.cacheModules[tpl] = RequireHelper.require(tpl);
-                     }
-                     controlClass = this.cacheModules[tpl];
-                  } catch (e) {
-                     Logger.error('Create component error', controlClass, e);
-                  }
-               }
-            }
-            dataComponent = tpl;
-
-            if (controlClass && controlClass.default && controlClass.default.isWasaby) {
-               controlClass = controlClass.default;
-            }
-         }
-      }
-      if (typeof tpl === 'object' && tpl && tpl.library && tpl.module) {
-         // module type: { library: <requirable module name>, module: <field to take from the library> }
-         let moduleName = tpl.library + ':' + tpl.module.join('.');
-         if (deps && deps[tpl.library]) {
-            controlClass = Common.extractLibraryModule(deps[tpl.library], tpl.module);
-         } else if (RequireHelper.defined(tpl.library)) {
-            controlClass = Common.extractLibraryModule(RequireHelper.extendedRequire(tpl.library, tpl.module), tpl.module);
-         } else {
-            const mod = this.cacheModules[tpl.library];
-            if (mod) {
-               controlClass = Common.extractLibraryModule(this.cacheModules[tpl.library], tpl.module);
-            } else {
-               moduleName = undefined;
-            }
-         }
-         if (controlClass && controlClass.prototype && !controlClass.prototype.hasOwnProperty('_moduleName')) {
-            // Patch controlClass prototype, it won't have a _moduleName the first time it is
-            // created, because it was exported in a library
-            controlClass.prototype._moduleName = moduleName;
-         }
-         dataComponent = moduleName;
-      }
-
+   private _isCompatPatch(controlClass, controlProperties, attrs) {
       const fromOld = controlClass && controlClass.prototype && Common.isCompound(controlClass);
-
-      const controlProperties = Scope.calculateScope(scope, Common.plainMerge) || {};
       if (fromOld) {
          for (let key in attrs.events) {
             controlProperties[key] = attrs.events[key];
          }
       }
 
-      if (!attrs.attributes) {
-         attrs.attributes = {};
+      if (controlProperties && controlProperties.enabled === undefined) {
+         const internal = attrs.internal;
+         if (internal && internal.parent && fromOld) {
+            if (internal.parentEnabled !== undefined && controlProperties.allowChangeEnable !== false) {
+               controlProperties.enabled = internal.parentEnabled;
+            } else {
+               controlProperties.enabled = true;
+            }
+         } else if (fromOld && internal.parentEnabled === false) {
+            controlProperties.__enabledOnlyToTpl = internal.parentEnabled;
+         }
       }
-      if (this.prepareAttrsForPartial) {
-         this.prepareAttrsForPartial(attrs.attributes);
+
+      if (fromOld) {
+         const objForFor = attrs.attributes;
+         for (let i in objForFor) {
+            if (objForFor.hasOwnProperty(i) && EventUtils.isEvent(i)) {
+               controlProperties[i] = objForFor[i];
+            }
+         }
       }
+   }
+   prepareDataForCreate(tplOrigin, scope, attrs, deps, includedTemplates?) {
+      let controlClass;
+      let logicParent;
+      let dataComponent;
+      let parent;
+      // При использовании ts-модуля, где нужный класс экспортируется дефолтно, внутри js-модуля
+      // сюда приходит объект tplOrigin, где __esModule есть true, а в default лежит нужная нам функция построения верстки
+      // Для того, чтобы верстка строилась, необходимо вытащить функцию из default
+      let tpl = typeof tplOrigin === 'object' && tplOrigin.__esModule && tplOrigin.default ? tplOrigin.default : tplOrigin;
+
+      const resolverTpl = this._resolveTpl(tpl ,deps, includedTemplates);
+      controlClass = resolverTpl.controlClass;
+      dataComponent = resolverTpl.dataComponent;
+
+      const controlProperties = Scope.calculateScope(scope, Common.plainMerge) || {};
+
       if (controlClass === '_$inline_template') {
          // в случае ws:template отдаем текущие свойства
          return controlProperties;
+      }
+
+      if (!attrs.attributes) {
+         attrs.attributes = {};
+      }
+
+      if (this.prepareAttrsForPartial) {
+         this.prepareAttrsForPartial(attrs.attributes);
       }
 
       logicParent = (attrs.internal && attrs.internal.logicParent) ? attrs.internal.logicParent : null;
@@ -520,27 +495,7 @@ export class Generator {
       OptionsResolver.resolveInheritOptions(controlClass, attrs, controlProperties);
 
       if (Common.isCompat()) {
-         if (controlProperties && controlProperties.enabled === undefined) {
-            const internal = attrs.internal;
-            if (internal && internal.parent && fromOld) {
-               if (internal.parentEnabled !== undefined && controlProperties.allowChangeEnable !== false) {
-                  controlProperties.enabled = internal.parentEnabled;
-               } else {
-                  controlProperties.enabled = true;
-               }
-            } else if (fromOld && internal.parentEnabled === false) {
-               controlProperties.__enabledOnlyToTpl = internal.parentEnabled;
-            }
-         }
-
-         if (fromOld) {
-            const objForFor = attrs.attributes;
-            for (let i in objForFor) {
-               if (objForFor.hasOwnProperty(i) && EventUtils.isEvent(i)) {
-                  controlProperties[i] = objForFor[i];
-               }
-            }
-         }
+         this._isCompatPatch(controlClass, controlProperties, attrs);
       }
 
       return {
@@ -629,6 +584,4 @@ export class Generator {
       }
       throw new Error('MarkupGenerator: createControl type not resolved');
    }
-
-
 }
