@@ -131,6 +131,22 @@ define([
             assert.strictEqual(tree[0].data[0].name, 'Simple text');
             assert.strictEqual(tree[0].data[0].type, 'var');
          });
+         it('text 2', function() {
+            var html = 'Simple<!-- comment -->text';
+            var tree = process(html);
+            assert.strictEqual(tree.length, 1);
+            assert.strictEqual(tree[0].key, '0_');
+            assert.strictEqual(tree[0].type, 'text');
+            assert.strictEqual(tree[0].data.length, 2);
+
+            assert.isTrue(tree[0].data[0].localized);
+            assert.strictEqual(tree[0].data[0].name, 'Simple');
+            assert.strictEqual(tree[0].data[0].type, 'var');
+
+            assert.isTrue(tree[0].data[1].localized);
+            assert.strictEqual(tree[0].data[1].name, 'text');
+            assert.strictEqual(tree[0].data[1].type, 'var');
+         });
          it('translation', function() {
             var html = '{[ Context @@ Hello ]}';
             var tree = process(html);
@@ -196,6 +212,23 @@ define([
             assert.isTrue(children[0].data[0].localized);
             assert.strictEqual(children[0].data[0].name, 'Simple text');
             assert.strictEqual(children[0].data[0].type, 'var');
+         });
+         it('text 2', function() {
+            var html = '<div>Simple<!-- comment -->text</div>';
+            var tree = process(html);
+            var children = tree[0].children;
+            assert.strictEqual(children.length, 1);
+            assert.strictEqual(children[0].key, '0_0_');
+            assert.strictEqual(children[0].type, 'text');
+            assert.strictEqual(children[0].data.length, 2);
+
+            assert.isTrue(children[0].data[0].localized);
+            assert.strictEqual(children[0].data[0].name, 'Simple');
+            assert.strictEqual(children[0].data[0].type, 'var');
+
+            assert.isTrue(children[0].data[1].localized);
+            assert.strictEqual(children[0].data[1].name, 'text');
+            assert.strictEqual(children[0].data[1].type, 'var');
          });
          it('translation', function() {
             var html = '<div>{[ Context @@ Hello ]}</div>';

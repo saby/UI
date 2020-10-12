@@ -705,6 +705,16 @@ class Traverse implements ITraverse {
          childContext.prev = children[children.length - 1] || null;
          const child = <Ast.Ast>nodes[index].accept(this, childContext);
          if (child) {
+            // Text content can be separated by comment node. Merge it!
+            const lastNode = children[children.length - 1];
+            if (lastNode instanceof Ast.TextNode && child instanceof Ast.TextNode) {
+               const shift = lastNode.__$ws_content.length;
+               for (let index = 0; index < child.__$ws_content.length; ++index) {
+                  child.__$ws_content[index].setKey(shift + index);
+               }
+               lastNode.__$ws_content = lastNode.__$ws_content.concat(child.__$ws_content);
+               continue;
+            }
             child.setKey(children.length);
             children.push(child);
          }
@@ -924,7 +934,8 @@ class Traverse implements ITraverse {
                      position: node.position
                   }
                );
-               return null;
+               // FIXME: Must return broken node
+               // return null;
             }
             return this.checkDirectiveInAttribute(node, context);
       }
