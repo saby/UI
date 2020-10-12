@@ -311,6 +311,94 @@ export class Generator {
    }
 };
 
+   private _isWasabyControlClass(controlClass) {
+      if (controlClass && controlClass.default && controlClass.default.isWasaby) {
+         return controlClass.default;
+      }
+      return controlClass;
+   }
+
+   private _isStringTpl(tpl, deps, includedTemplates) {
+      let isSlashes: boolean = false;
+      let wasOptional: boolean = false;
+
+      const newName = Common.splitWs(tpl);
+      if (newName) {
+         tpl = newName;
+      }
+
+      if (tpl.indexOf('/') > -1) {
+         isSlashes = true;
+         if (tpl.indexOf('optional!') > -1) {
+            wasOptional = true;
+         }
+      }
+
+      tpl = tpl.replace('optional!', '');
+      if (includedTemplates && includedTemplates[tpl]) {
+         controlClass = includedTemplates[tpl];
+      }
+
+      if (!controlClass) {
+         controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
+      }
+
+      if (!controlClass) {
+         if (!isSlashes || wasOptional || Common.isCompat()) {
+            /*
+               * it can be "optional"
+               * can be tmpl!
+               * */
+            if (RequireHelper.defined(tpl)) {
+               controlClass = RequireHelper.require(tpl);
+            }
+         } else {
+            try {
+               if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
+                  this.cacheModules[tpl] = RequireHelper.require(tpl);
+               }
+               controlClass = this.cacheModules[tpl];
+            } catch (e) {
+               Logger.error('Create component error', controlClass, e);
+            }
+         }
+      }
+      dataComponent = tpl;
+
+      return {
+         tpl: this._isWasabyControlClass(controlClass),
+         dataComponent: tpl
+      }
+   }
+
+   private _step1(tpl, deps, includedTemplates) {
+      if (tpl === '_$inline_template') {
+         return {
+            tpl: '_$inline_template',
+            dataComponent: ''
+         };
+      }
+      if (typeof tpl === 'function') {
+         return {
+            tpl: tpl,
+            dataComponent: tpl.prototype ? tpl.prototype._moduleName : ''
+         };
+      }
+      if (typeof tpl === 'string') {
+         if (Common.isLibraryModuleString(tpl)) {
+            // if this is a module string, it probably is from a dynamic partial template
+            // (ws:partial template="{{someString}}"). Split library name and module name
+            // here and process it in the next `if tpl.library && tpl.module`
+            return {
+               tpl: Common.splitModule(tpl),
+               dataComponent: ''
+            };
+         }
+         return this._isStringTpl(tpl, deps, includedTemplates);
+      }
+   }
+
+
    prepareDataForCreate(tplOrigin, scope, attrs, deps, includedTemplates?) {
       let controlClass,
          logicParent,
