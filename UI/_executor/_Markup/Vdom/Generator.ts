@@ -151,8 +151,9 @@ export class GeneratorVdom implements IGenerator {
                    scope: IControlProperties,
                    attrs: IGeneratorAttrs,
                    _: string,
-                   deps?: TDeps): GeneratorNode | GeneratorVoid {
-      const data = this.prepareDataForCreate(name, scope, attrs, deps);
+                   deps?: TDeps,
+                   preparedData?: IPrepareDataForCreate): GeneratorNode | GeneratorVoid {
+      const data = preparedData || this.prepareDataForCreate(name, scope, attrs, deps);
       const controlClass = data.controlClass;
 
       Logger.debug(`createWsControl - "${data.dataComponent}"`, data.controlProperties);
@@ -289,7 +290,7 @@ export class GeneratorVdom implements IGenerator {
       }
 
       if (Common.isControlClass(fn)) {
-         return this.createWsControl(fn, resolvedScope, decorAttribs, context, _deps) as GeneratorNode;
+         return this.createWsControl(fn, resolvedScope, decorAttribs, context, _deps, data) as GeneratorNode;
       } else {
 
          const nameFunc = isTplString ? tpl : 'InlineFunction';
