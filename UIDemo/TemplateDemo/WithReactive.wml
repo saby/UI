@@ -1,5 +1,8 @@
 <div>
-    <ws:for data="i in 1000">
+    <div on:click="_clickHandler()">
+        Создать SPAN
+    </div>
+    <ws:for data="i in _spanCount">
         <ws:partial template="{{ _spanTemplate }}" />
     </ws:for>
 </div>
