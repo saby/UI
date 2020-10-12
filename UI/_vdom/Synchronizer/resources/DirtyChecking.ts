@@ -382,13 +382,12 @@ export function createCombinedOptions(userOptions, internalOptions) {
  * @returns {*} Правильные опции компонента
  */
 function combineOptionsIfCompatible(module, userOptions, internalOptions) {
-   var res;
+   let res = userOptions;
 
    if (module.$constructor) {
       res = createCombinedOptions(userOptions, internalOptions);
    } else if (internalOptions && internalOptions.logicParent) {
       //Если нет $constructor и есть логический родитель, значит vdom внутри vdom
-      res = userOptions;
       res._logicParent = internalOptions.logicParent;
    }
 
@@ -406,9 +405,6 @@ export function createInstance(cnstr, userOptions, internalOptions) {
       actualOptions = userOptions;
    }
 
-   if (!actualOptions) {
-      Logger.error(_needToBeCompatible + ' ' + cnstr.prototype + ' ' + userOptions + ' ' + internalOptions);
-   }
    actualOptions._logicParent = internalOptions.logicParent;
    const parentName = internalOptions.logicParent && internalOptions.logicParent._moduleName;
 
