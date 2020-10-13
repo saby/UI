@@ -1,4 +1,8 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DirtyChecking" />
+/**
+ * @author Кондаков Р.Н.
+ */
+
 /* tslint:disable */
 // @ts-nocheck
 // @ts-ignore
@@ -35,10 +39,13 @@ import { collectObjectVersions, getChangedOptions } from './Options';
 
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
+import { GeneratorNode } from 'UI/Executor';
+// import { VNode } from 'Inferno/third-party/index';
+import { ITemplateNode } from 'UI/_executor/_Markup/IGeneratorType';
 
-/**
- * @author Кондаков Р.Н.
- */
+type TDirtyCheckingTemplate = ITemplateNode & {
+    children: GeneratorNode[];  // нужно понять почему у нас такое ограничение
+};
 
 export { getChangedOptions } from './Options';
 
@@ -783,7 +790,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             updateTemplates: []
         };
 
-        createdTemplateNodes = diff.createTemplates.map(function rebuildCreateTemplateNodes(vnode) {
+        createdTemplateNodes = diff.createTemplates.map(function rebuildCreateTemplateNodes(vnode: TDirtyCheckingTemplate) {
             Logger.debug('DirtyChecking (create template)', vnode);
             onStartCommit(OperationType.CREATE, getNodeName(vnode));
             vnode.optionsVersions = collectObjectVersions(vnode.controlProperties);
@@ -1273,6 +1280,43 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         destroyedNodes, selfDirtyNodes, isSelfDirty)
 }
 
+function mapChildren(currentMemo, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty) {
+    const childrenRebuild = createChildrenResult(childrenRebuildFinalResults);
+    if (!newNode.markup) {
+        // Во время ожидания асинхронного ребилда контрол уничтожился, обновлять его уже не нужно.
+        return {
+            value: newNode,
+            memo: childrenRebuild.memo
+        };
+    }
+
+    newNode.childrenNodes = childrenRebuild.value;
+    if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
+        var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
+        newNode.fullMarkup = environment.decorateFullMarkup(
+            getFullMarkup(
+                newNode.childrenNodes,
+                newNode.markup,
+                undefined,
+                needRenderMarkup || isSelfDirty ? undefined : newNode.fullMarkup,
+                newNode.parent
+            ),
+            newNode
+        );
+        newNode.fullMarkup.changed =
+            wasChanged || newNode.fullMarkup.changed || (needRenderMarkup || isSelfDirty);
+        if (newNode.fullMarkup.changed) {
+            setChangedForNode(newNode);
+        }
+    }
+
+    return {
+        value: newNode,
+        memo: concatMemo(currentMemo, childrenRebuild.memo)
+    };
+}
+
+
 function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode, needRenderMarkup: boolean,
     changedNodes,
     childrenNodes, createdNodes, createdTemplateNodes,
@@ -1304,70 +1348,14 @@ function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode,
     });
 
     if (haveAsync) {
-        return Promise.all(childrenRebuildResults).then((childrenRebuildFinalResults) => {
-            const childrenRebuild = createChildrenResult(childrenRebuildFinalResults);
-            if (!newNode.markup) {
-                // Во время ожидания асинхронного ребилда контрол уничтожился, обновлять его уже не нужно.
-                return {
-                    value: newNode,
-                    memo: childrenRebuild.memo
-                };
+        return Promise.all(childrenRebuildResults).then(
+            (res) => mapChildren(currentMemo, newNode, res, environment, needRenderMarkup, isSelfDirty),
+            (err) => {
+                Logger.asyncRenderErrorLog(err);
+                return err;
             }
-
-            newNode.childrenNodes = childrenRebuild.value;
-            if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
-                var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
-                newNode.fullMarkup = environment.decorateFullMarkup(
-                    getFullMarkup(
-                        newNode.childrenNodes,
-                        newNode.markup,
-                        undefined,
-                        needRenderMarkup || isSelfDirty ? undefined : newNode.fullMarkup,
-                        newNode.parent
-                    ),
-                    newNode
-                );
-                newNode.fullMarkup.changed =
-                    wasChanged || newNode.fullMarkup.changed || (needRenderMarkup || isSelfDirty);
-                if (newNode.fullMarkup.changed) {
-                    setChangedForNode(newNode);
-                }
-            }
-
-            return {
-                value: newNode,
-                memo: concatMemo(currentMemo, childrenRebuild.memo)
-            };
-        }, (err) => {
-            Logger.asyncRenderErrorLog(err);
-            return err;
-        }
         );
     }
 
-    const childrenRebuild = createChildrenResult(childrenRebuildResults);
-    newNode.childrenNodes = childrenRebuild.value;
-    if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
-        var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
-        newNode.fullMarkup = environment.decorateFullMarkup(
-            getFullMarkup(
-                newNode.childrenNodes,
-                newNode.markup,
-                undefined,
-                needRenderMarkup || isSelfDirty ? undefined : newNode.fullMarkup,
-                newNode.parent
-            ),
-            newNode
-        );
-        newNode.fullMarkup.changed =
-            wasChanged || newNode.fullMarkup.changed || (needRenderMarkup || isSelfDirty);
-        if (newNode.fullMarkup.changed) {
-            setChangedForNode(newNode);
-        }
-    }
-
-    return {
-        value: newNode,
-        memo: concatMemo(currentMemo, childrenRebuild.memo)
-    };
+    return mapChildren(currentMemo, newNode, childrenRebuildResults, environment, needRenderMarkup, isSelfDirty);
 }
