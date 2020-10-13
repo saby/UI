@@ -15,6 +15,7 @@ import {
    isTemplateVNodeType
 } from './VdomMarkup';
 import { textNode, OptionsResolver } from 'UI/Executor';
+import { Control } from 'UI/Base';
 import { ContextResolver } from 'UI/Contexts';
 import { delay } from 'Types/function';
 // @ts-ignore
@@ -384,7 +385,7 @@ export function createCombinedOptions(userOptions, internalOptions) {
 function combineOptionsIfCompatible(module, userOptions, internalOptions) {
    let res = userOptions;
 
-   if (module.$constructor) {
+   if (!(module.prototype instanceof Control)) {
       res = createCombinedOptions(userOptions, internalOptions);
    } else if (internalOptions && internalOptions.logicParent) {
       //Если нет $constructor и есть логический родитель, значит vdom внутри vdom
@@ -400,12 +401,14 @@ export function createInstance(cnstr, userOptions, internalOptions) {
 
    let actualOptions;
    if (_needToBeCompatible) {
-      actualOptions = combineOptionsIfCompatible(cnstr.prototype, userOptions, internalOptions);
+      actualOptions = combineOptionsIfCompatible(cnstr, userOptions, internalOptions);
    } else {
       actualOptions = userOptions;
+      if (internalOptions.logicParent) {
+         actualOptions._logicParent = internalOptions.logicParent;
+      }
    }
 
-   actualOptions._logicParent = internalOptions.logicParent;
    const parentName = internalOptions.logicParent && internalOptions.logicParent._moduleName;
 
    const defaultOpts = OptionsResolver.getDefaultOptions(cnstr);
@@ -416,9 +419,7 @@ export function createInstance(cnstr, userOptions, internalOptions) {
       inst = new cnstr(actualOptions);
    }
    catch (error) {
-      // @ts-ignore
-      const coreControl = requirejs('UI/Base').Control;
-      inst = new coreControl();
+      inst = new Control();
       Logger.lifeError('constructor', cnstr.prototype, error);
    }
    if (_needToBeCompatible) {
@@ -528,7 +529,7 @@ export function createNode(controlClass_, options: INodeOptions, key: string, en
          defaultOptions = OptionsResolver.getDefaultOptions(controlClass_);
          if (constants.compat) {
             optionsWithState = combineOptionsIfCompatible(
-               controlCnstr.prototype,
+               controlCnstr,
                optionsWithState,
                internalOptions
             );
