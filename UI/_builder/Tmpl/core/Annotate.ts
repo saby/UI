@@ -295,8 +295,14 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitTemplate(node: Ast.TemplateNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      let expressions: Ast.ExpressionNode[] = [];
+      node.__$ws_content.forEach((node: Ast.Ast) => {
+         expressions = expressions.concat(node.accept(this, context));
+      });
+      setRootNodeFlags(node.__$ws_content);
+      node.__$ws_internal = { };
+      appendInternalExpressions(node.__$ws_internal, expressions);
+      return expressions;
    }
 
    // </editor-fold>
