@@ -76,6 +76,27 @@ function collectDroppedExpressions(program: ProgramNode): ProgramNode[] {
    throw new Error('Not implemented yet');
 }
 
+function getStringValueFromText(value: Ast.TText[]): string | null {
+   if (value.length !== 1) {
+      return null;
+   }
+   const valueNode = value[0];
+   if (!(valueNode instanceof Ast.TextDataNode)) {
+      return null;
+   }
+   return valueNode.__$ws_content;
+}
+
+function getElementName(element: Ast.BaseHtmlElement): string | null {
+   if (element.__$ws_attributes.hasOwnProperty('attr:name')) {
+      return getStringValueFromText(element.__$ws_attributes['attr:name'].__$ws_value);
+   }
+   if (element.__$ws_attributes.hasOwnProperty('name')) {
+      return getStringValueFromText(element.__$ws_attributes['name'].__$ws_value);
+   }
+   return null;
+}
+
 class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    annotate(nodes: Ast.Ast[]): IAnnotatedTree {
@@ -86,7 +107,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    // <editor-fold desc="Data types">
 
    visitArray(node: Ast.ArrayNode, context: IContext): Ast.ExpressionNode[] {
-      let expressions = [];
+      let expressions: Ast.ExpressionNode[] = [];
       node.__$ws_elements.forEach((node: Ast.Ast) => {
          expressions = expressions.concat(node.accept(this, context));
       });
@@ -94,7 +115,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitBoolean(node: Ast.BooleanNode, context: IContext): Ast.ExpressionNode[] {
-      let expressions = [];
+      let expressions: Ast.ExpressionNode[] = [];
       node.__$ws_data.forEach((node: Ast.Ast) => {
          expressions = expressions.concat(node.accept(this, context));
       });
@@ -102,7 +123,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitFunction(node: Ast.FunctionNode, context: IContext): Ast.ExpressionNode[] {
-      let expressions = [];
+      let expressions: Ast.ExpressionNode[] = [];
       node.__$ws_functionExpression.forEach((node: Ast.Ast) => {
          expressions = expressions.concat(node.accept(this, context));
       });
@@ -114,7 +135,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitNumber(node: Ast.NumberNode, context: IContext): Ast.ExpressionNode[] {
-      let expressions = [];
+      let expressions: Ast.ExpressionNode[] = [];
       node.__$ws_data.forEach((node: Ast.Ast) => {
          expressions = expressions.concat(node.accept(this, context));
       });
@@ -122,7 +143,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitObject(node: Ast.ObjectNode, context: IContext): Ast.ExpressionNode[] {
-      let expressions = [];
+      let expressions: Ast.ExpressionNode[] = [];
       for (const name in node.__$ws_properties) {
          const property = node.__$ws_properties[name];
          expressions = expressions.concat(property.accept(this, context));
@@ -131,7 +152,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitString(node: Ast.StringNode, context: IContext): Ast.ExpressionNode[] {
-      let expressions = [];
+      let expressions: Ast.ExpressionNode[] = [];
       node.__$ws_data.forEach((node: Ast.Ast) => {
          expressions = expressions.concat(node.accept(this, context));
       });
@@ -139,7 +160,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitValue(node: Ast.ValueNode, context: IContext): Ast.ExpressionNode[] {
-      let expressions = [];
+      let expressions: Ast.ExpressionNode[] = [];
       node.__$ws_data.forEach((node: Ast.Ast) => {
          expressions = expressions.concat(node.accept(this, context));
       });
@@ -151,7 +172,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    // <editor-fold desc="Attributes and options">
 
    visitAttribute(node: Ast.AttributeNode, context: IContext): Ast.ExpressionNode[] {
-      let expressions = [];
+      let expressions: Ast.ExpressionNode[] = [];
       node.__$ws_value.forEach((node: Ast.Ast) => {
          expressions = expressions.concat(node.accept(this, context));
       });
@@ -160,7 +181,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    visitBind(node: Ast.BindNode, context: IContext): Ast.ExpressionNode[] {
       const programs = collectDroppedExpressions(node.__$ws_value);
-      const expressions = [];
+      const expressions: Ast.ExpressionNode[] = [];
       programs.forEach((program: ProgramNode) => {
          const identifiers = collectIdentifiers(program);
          expressions.push(
@@ -217,8 +238,8 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitElement(node: Ast.ElementNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      // TODO: Process node.__$ws_unpackedCycle
+      return this.processElement(node, context);
    }
 
    visitInstruction(node: Ast.InstructionNode, context: IContext): Ast.ExpressionNode[] {
@@ -300,6 +321,29 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    // </editor-fold>
+
+   private processElement(node: Ast.ElementNode, context: IContext): Ast.ExpressionNode[] {
+      const name = getElementName(node);
+      let expressions: Ast.ExpressionNode[] = [];
+      if (name !== null) {
+         context.childrenStorage.push(name);
+      }
+      node.__$ws_content.forEach((node: Ast.Ast) => {
+         expressions = expressions.concat(node.accept(this, context));
+      });
+      this.annotateEnumerable(node.__$ws_attributes, context, expressions);
+      this.annotateEnumerable(node.__$ws_events, context, expressions);
+      return expressions;
+   }
+
+   private annotateEnumerable(collection: Ast.IAttributes | Ast.IEvents | Ast.IOptions | Ast.IObjectProperties, context: IContext, expressions: Ast.ExpressionNode[]): void {
+      for (const name in collection) {
+         const item = collection[name];
+         expressions.push(
+            item.accept(this, context)
+         );
+      }
+   }
 }
 
 export default function annotate(nodes: Ast.Ast[]): IAnnotatedTree {
