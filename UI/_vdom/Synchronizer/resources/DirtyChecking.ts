@@ -477,7 +477,7 @@ export function createNode(controlClass_, options: INodeOptions, key: string, en
 
       if (typeof controlClass_ === 'function') {
          let configForCreateInstance;
-         if (needToBeCompatible(cnstr, internalOptions.parent, internalOptions.iWantBeWS3)) {
+         if (needToBeCompatible(controlCnstr, internalOptions.parent, internalOptions.iWantBeWS3)) {
             configForCreateInstance = {
                getActalOptions: getCompatibleUtils().getActualOptions,
                createInstanceCallback: getCompatibleUtils().createInstanceCallback
@@ -497,7 +497,7 @@ export function createNode(controlClass_, options: INodeOptions, key: string, en
          // инстанс уже есть, работаем с его опциями
          control = controlClass_;
          defaultOptions = OptionsResolver.getDefaultOptions(controlClass_);
-         if (constants.compat) {
+         if (needToBeCompatible(controlCnstr, internalOptions.parent, internalOptions.iWantBeWS3)) {
             optionsWithState = getCompatibleUtils().combineOptionsIfCompatible(
                controlCnstr,
                optionsWithState,
