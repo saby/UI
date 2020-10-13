@@ -445,7 +445,7 @@ export abstract class Ast {
     * FIXME: Refactor it
     * @deprecated
     */
-   __$ws_isRootTag: boolean;
+   __$ws_isRootNode: boolean;
 
    /**
     * FIXME: Refactor it
@@ -460,7 +460,7 @@ export abstract class Ast {
    protected constructor(flags: Flags = Flags.VALIDATED) {
       this.__$ws_key =  0;
       this.__$ws_flags = flags;
-      this.__$ws_isRootTag = false;
+      this.__$ws_isRootNode = false;
       this.__$ws_internal = null;
    }
 

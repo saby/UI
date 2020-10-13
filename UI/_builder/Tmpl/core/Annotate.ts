@@ -28,6 +28,43 @@ interface IContext {
 
 const EMPTY_ARRAY = [];
 
+function setRootNodeFlags(nodes: Ast.Ast[]): void {
+   nodes.forEach((node) => {
+      if (node instanceof Ast.IfNode) {
+         setRootNodeFlags(node.__$ws_consequent);
+         return;
+      }
+      if (node instanceof Ast.ElseNode) {
+         setRootNodeFlags(node.__$ws_consequent);
+         return;
+      }
+      if (node instanceof Ast.ForNode) {
+         setRootNodeFlags(node.__$ws_content);
+         return;
+      }
+      if (node instanceof Ast.ForeachNode) {
+         setRootNodeFlags(node.__$ws_content);
+         return;
+      }
+      node.__$ws_isRootNode = true;
+   });
+}
+
+function appendInternalExpressions(internal: Ast.IInternal, expressions: Ast.ExpressionNode[]): void {
+   // TODO: Release
+   throw new Error('Not implemented yet');
+}
+
+function wrestNonIgnoredIdentifiers(expressions: Ast.ExpressionNode[], ignoredIdentifiers: IStorage): Ast.ExpressionNode[] {
+   // TODO: Release
+   throw new Error('Not implemented yet');
+}
+
+function excludeIgnoredExpressions(expressions: Ast.ExpressionNode[], ignoredIdentifiers: IStorage): Ast.ExpressionNode[] {
+   // TODO: Release
+   throw new Error('Not implemented yet');
+}
+
 class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    annotate(nodes: Ast.Ast[]): IAnnotatedTree {
@@ -137,8 +174,18 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitContentOption(node: Ast.ContentOptionNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      const ignoredIdentifiers: IStorage = { };
+      let expressions: Ast.ExpressionNode[] = [];
+      ignoredIdentifiers[node.__$ws_name] = true;
+      node.__$ws_content.forEach((node: Ast.Ast) => {
+         expressions = expressions.concat(node.accept(this, context));
+      });
+      setRootNodeFlags(node.__$ws_content);
+      node.__$ws_internal = { };
+      appendInternalExpressions(node.__$ws_internal, expressions);
+      expressions = expressions.concat(wrestNonIgnoredIdentifiers(expressions, ignoredIdentifiers));
+      expressions = excludeIgnoredExpressions(expressions, ignoredIdentifiers);
+      return expressions;
    }
 
    visitDoctype(node: Ast.DoctypeNode, context: IContext): Ast.ExpressionNode[] {
