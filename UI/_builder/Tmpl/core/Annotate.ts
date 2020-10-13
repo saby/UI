@@ -280,7 +280,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          expressions = expressions.concat(node.accept(this, context));
       });
       if (node.__$ws_test) {
-         // TODO: Process node.__$ws_test
+         expressions = expressions.concat(
+            this.processProgramNode(node.__$ws_test, context)
+         );
       }
       if (node.__$ws_alternate) {
          expressions = expressions.concat(node.__$ws_alternate.accept(this, context));
@@ -299,8 +301,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitIf(node: Ast.IfNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Process node.__$ws_test
-      let expressions: Ast.ExpressionNode[] = [];
+      let expressions: Ast.ExpressionNode[] = this.processProgramNode(node.__$ws_test, context);
       node.__$ws_consequent.forEach((node: Ast.Ast) => {
          expressions = expressions.concat(node.accept(this, context));
       });
@@ -326,8 +327,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    // <editor-fold desc="Extended text">
 
    visitExpression(node: Ast.ExpressionNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Process node.__$ws_program
-      throw new Error('Not implemented yet');
+      return this.processProgramNode(node.__$ws_program, context);
    }
 
    visitText(node: Ast.TextNode, context: IContext): Ast.ExpressionNode[] {
@@ -351,8 +351,11 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Process node.__$ws_expression
-      return this.processBaseWasabyElement(node, context);
+      let expressions: Ast.ExpressionNode[] = this.processProgramNode(node.__$ws_expression, context);
+      expressions = expressions.concat(
+         this.processBaseWasabyElement(node, context)
+      );
+      return expressions;
    }
 
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): Ast.ExpressionNode[] {
@@ -401,6 +404,16 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
             item.accept(this, context)
          );
       }
+   }
+
+   private processProgramNode(node: ProgramNode, context: IContext): Ast.ExpressionNode[] {
+      const identifiers = collectIdentifiers(node);
+      identifiers.forEach((identifier: string) => {
+         context.identifiersStore[identifier] = true;
+      });
+      return [
+         new Ast.ExpressionNode(node)
+      ];
    }
 }
 
