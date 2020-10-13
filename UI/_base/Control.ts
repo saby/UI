@@ -145,7 +145,7 @@ export const _private = {
       // вычисляем родителя физически - ближайший к элементу родительский контрол
       const parent = goUpByControlTree(domElement)[0];
 
-      if (needToBeCompatible(parent)) {
+      if (needToBeCompatible(ctor, parent)) {
          cfg.element = domElement;
 
          if (parent && parent._options === cfg) {

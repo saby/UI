@@ -24,7 +24,7 @@ import { delay } from 'Types/function';
 // @ts-ignore
 import { Serializer } from 'UI/State';
 // @ts-ignore
-import { Logger } from 'UI/Utils';
+import {FunctionUtils, Logger, needToBeCompatible} from 'UI/Utils';
 import * as _dcc from './DirtyCheckingCompatible';
 import { ReactiveObserver } from 'UI/Reactivity';
 import {
@@ -364,33 +364,89 @@ function collectChildrenKeys(next: { key }[], prev: { key }[]): { prev, next }[]
    return Object.values(keysMap);
 }
 
-function createInstance(cnstr, userOptions, internalOptions) {
+/**
+ * Создает объект с объединенными (прикладными и служебными опциями)
+ * @param {Object} userOptions Прикладные опции
+ * @param {Object} internalOptions Служебные опции
+ * @returns {Object} Объединенные опции
+ */
+export function createCombinedOptions(userOptions, internalOptions) {
+   var i, res = FunctionUtils.shallowClone(userOptions);
+   for (i in internalOptions) {
+      // не включаем переменные dirty-checking'а в объединенные опции
+      if (internalOptions.hasOwnProperty(i) && i.toString().indexOf('__dirtyCheckingVars_') === -1) {
+         res[i] = internalOptions[i];
+      }
+   }
+   return res;
+}
+/**
+ * Объединяет прикладные и служебные опции компонента, если это необходимо.
+ * (Например для compound-контрола)
+ * @param module Модуль контрола
+ * @param userOptions Прикладные опции
+ * @param internalOptions Служебные опции
+ * @returns {*} Правильные опции компонента
+ */
+function combineOptionsIfCompatible(module, userOptions, internalOptions) {
+   let res = userOptions;
+
+   if (module.$constructor) {
+      res = createCombinedOptions(userOptions, internalOptions);
+   } else if (internalOptions && internalOptions.logicParent) {
+      //Если нет $constructor и есть логический родитель, значит vdom внутри vdom
+      res._logicParent = internalOptions.logicParent;
+   }
+
+   return res;
+}
+export function createInstance(cnstr, userOptions, internalOptions) {
    internalOptions = internalOptions || {};
-   userOptions._logicParent = internalOptions.logicParent;
-   userOptions._isSeparatedOptions = true;
-   var actualOptions = userOptions,
-      inst,
-      coreControl,
-      parentName = internalOptions.logicParent && internalOptions.logicParent._moduleName;
-   var defaultOpts = OptionsResolver.getDefaultOptions(cnstr);
+
+   const _needToBeCompatible = needToBeCompatible(cnstr, internalOptions.parent, internalOptions.iWantBeWS3);
+
+   let actualOptions;
+   if (_needToBeCompatible) {
+      actualOptions = combineOptionsIfCompatible(cnstr.prototype, userOptions, internalOptions);
+   } else {
+      actualOptions = userOptions;
+   }
+
+   actualOptions._logicParent = internalOptions.logicParent;
+   const parentName = internalOptions.logicParent && internalOptions.logicParent._moduleName;
+
+   const defaultOpts = OptionsResolver.getDefaultOptions(cnstr);
    OptionsResolver.resolveOptions(cnstr, defaultOpts, actualOptions, parentName);
+
+   let inst;
    try {
       inst = new cnstr(actualOptions);
    }
    catch (error) {
       // @ts-ignore
-      coreControl = require('UI/Base').Control;
+      const coreControl = requirejs('UI/Base').Control;
       inst = new coreControl();
       Logger.lifeError('constructor', cnstr.prototype, error);
    }
+   if (_needToBeCompatible) {
+      // @ts-ignore
+      const makeInstanceCompatible = requirejs('Core/helpers/Hcontrol/makeInstanceCompatible');
+      makeInstanceCompatible(inst, actualOptions);
+   }
+
+   /*Здесь родитель может быть CompoundControl*/
    if (internalOptions.logicParent && internalOptions.logicParent._children && userOptions.name) {
       internalOptions.logicParent._children[userOptions.name] = inst;
    }
+
    //Если вдруг опции не установлены - надо туда установить объект, чтобы в логах было что-то человекопонятное
    if (!inst._options) {
-      inst._options = actualOptions;
+      throw new Error('DirtyChecking - createInstance: options must be exist');
    }
 
+   if (!constants.isServerSide && _needToBeCompatible) {
+      inst._setInternalOptions(internalOptions);
+   }
    return {
       instance: inst,
       resolvedOptions: actualOptions,
@@ -464,27 +520,21 @@ export function createNode(controlClass_, options: INodeOptions, key: string, en
         let control;
         let params;
         let context;
-        let instCompat;
+        let inst;
         let defaultOptions;
 
       if (typeof controlClass_ === 'function') {
          // создаем инстанс компонента
-         if (constants.compat ||
-            controlCnstr.prototype._moduleName === "Controls/compatiblePopup:CompoundArea" ||
-            controlCnstr.prototype._moduleName === "Core/CompoundContainer") {
-            instCompat = getCompatibleUtils().createInstanceCompatible(controlCnstr, optionsWithState, internalOptions);
-         } else {
-            instCompat = createInstance(controlCnstr, optionsWithState, internalOptions);
-         }
-         control = instCompat.instance;
-         optionsWithState = instCompat.resolvedOptions;
-         defaultOptions = instCompat.defaultOptions;
+         inst = createInstance(controlCnstr, optionsWithState, internalOptions);
+         control = inst.instance;
+         optionsWithState = inst.resolvedOptions;
+         defaultOptions = inst.defaultOptions;
       } else {
          // инстанс уже есть, работаем с его опциями
          control = controlClass_;
          defaultOptions = OptionsResolver.getDefaultOptions(controlClass_);
          if (constants.compat) {
-            optionsWithState = getCompatibleUtils().combineOptionsIfCompatible(
+            optionsWithState = combineOptionsIfCompatible(
                controlCnstr.prototype,
                optionsWithState,
                internalOptions
@@ -1059,7 +1109,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         let childControl = childControlNode.control;
         let shouldUpdate = true;
         let newOptions = OptionsResolver.resolveDefaultOptions(newVNode.compound
-            ? getCompatibleUtils().createCombinedOptions(
+            ? createCombinedOptions(
                 newVNode.controlProperties,
                 newVNode.controlInternalProperties
             )
@@ -1183,15 +1233,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                     childControl._saveContextObject(resolvedContext);
                     childControl.saveFullContext(ContextResolver.wrapContext(childControl, childControl._context));
                 } finally {
-                    /**
-                     * TODO: удалить после синхронизации с контролами
-                     */
-                    var shouldUp = childControl._shouldUpdate
-                        ? childControl._shouldUpdate(newOptions, newChildNodeContext) || changedInternalOptions
-                        : true;
-                    childControl._setInternalOptions(changedInternalOptions || {});
-
-                    if (shouldUp) {
+                    if (shouldUpdate) {
                         environment.setRebuildIgnoreId(null);
                     }
 
