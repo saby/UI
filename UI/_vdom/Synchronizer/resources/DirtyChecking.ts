@@ -20,7 +20,7 @@ import { delay } from 'Types/function';
 // @ts-ignore
 import { Serializer } from 'UI/State';
 // @ts-ignore
-import { Logger, needToBeCompatible } from 'UI/Utils';
+import {FunctionUtils, Logger, needToBeCompatible} from 'UI/Utils';
 import * as _dcc from './DirtyCheckingCompatible';
 import { ReactiveObserver } from 'UI/Reactivity';
 import {
@@ -364,7 +364,7 @@ function collectChildrenKeys(next: { key }[], prev: { key }[]): { prev, next }[]
  * @returns {Object} Объединенные опции
  */
 export function createCombinedOptions(userOptions, internalOptions) {
-   var i, res = shallowClone(userOptions);
+   var i, res = FunctionUtils.shallowClone(userOptions);
    for (i in internalOptions) {
       // не включаем переменные dirty-checking'а в объединенные опции
       if (internalOptions.hasOwnProperty(i) && i.toString().indexOf('__dirtyCheckingVars_') === -1) {
