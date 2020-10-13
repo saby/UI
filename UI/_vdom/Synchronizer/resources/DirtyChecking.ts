@@ -382,18 +382,11 @@ export function createCombinedOptions(userOptions, internalOptions) {
  * @returns {*} Правильные опции компонента
  */
 function combineOptionsIfCompatible(module, userOptions, internalOptions) {
-   let res = userOptions;
-
    // @ts-ignore
    const coreControl = requirejs('UI/Base').Control;
-   if (!(module.prototype instanceof coreControl)) {
-      res = createCombinedOptions(userOptions, internalOptions);
-   } else if (internalOptions && internalOptions.logicParent) {
-      //Если нет $constructor и есть логический родитель, значит vdom внутри vdom
-      res._logicParent = internalOptions.logicParent;
-   }
-
-   return res;
+   return module.prototype instanceof coreControl ?
+      userOptions :
+      createCombinedOptions(userOptions, internalOptions);
 }
 export function createInstance(cnstr, userOptions, internalOptions) {
    internalOptions = internalOptions || {};
@@ -405,9 +398,9 @@ export function createInstance(cnstr, userOptions, internalOptions) {
       actualOptions = combineOptionsIfCompatible(cnstr, userOptions, internalOptions);
    } else {
       actualOptions = userOptions;
-      if (internalOptions.logicParent) {
-         actualOptions._logicParent = internalOptions.logicParent;
-      }
+   }
+   if (internalOptions.logicParent) {
+      actualOptions._logicParent = internalOptions.logicParent;
    }
 
    const parentName = internalOptions.logicParent && internalOptions.logicParent._moduleName;
