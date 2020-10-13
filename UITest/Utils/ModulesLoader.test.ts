@@ -63,7 +63,7 @@ describe('UI/_utils/ModulesLoader', () => {
 
         it('should throw an error of module does not exist', () => {
             return loadAsync('UITest/Utils/resources/TestModuleAsyncFail').catch((err) => {
-                assert.include(err.message, 'Cannot find module');
+                assert.include(err.message, typeof window === 'undefined' ? 'Cannot find module' : 'Script error for');
             });
         });
 
@@ -94,15 +94,17 @@ describe('UI/_utils/ModulesLoader', () => {
         it('should return throw an Error if module does not exist', () => {
             assert.throws(() => {
                 loadSync('UITest/Utils/resources/TestModuleSyncFail');
-            }, 'Cannot find module');
+            }, typeof window === 'undefined' ? 'Cannot find module' : 'has not been loaded yet');
         });
 
         it('should return undefined on second require of not exists module', () => {
             assert.throws(() => {
                 loadSync('UITest/Utils/resources/TestModuleSyncFailTwice');
-            }, 'Cannot find module');
+            }, typeof window === 'undefined' ? 'Cannot find module' : 'has not been loaded yet' );
 
-            assert.isUndefined(loadSync('UITest/Utils/resources/TestModuleSyncFailTwice'));
+            if (typeof window === 'undefined') {
+                assert.isUndefined(loadSync('UITest/Utils/resources/TestModuleSyncFailTwice'));
+            }
         });
     });
 });
