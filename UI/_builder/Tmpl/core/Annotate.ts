@@ -275,8 +275,17 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    // <editor-fold desc="Directives">
 
    visitElse(node: Ast.ElseNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      let expressions: Ast.ExpressionNode[] = [];
+      node.__$ws_consequent.forEach((node: Ast.Ast) => {
+         expressions = expressions.concat(node.accept(this, context));
+      });
+      if (node.__$ws_test) {
+         // TODO: Process node.__$ws_test
+      }
+      if (node.__$ws_alternate) {
+         expressions = expressions.concat(node.__$ws_alternate.accept(this, context));
+      }
+      return expressions;
    }
 
    visitFor(node: Ast.ForNode, context: IContext): Ast.ExpressionNode[] {
@@ -290,8 +299,15 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitIf(node: Ast.IfNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      // TODO: Process node.__$ws_test
+      let expressions: Ast.ExpressionNode[] = [];
+      node.__$ws_consequent.forEach((node: Ast.Ast) => {
+         expressions = expressions.concat(node.accept(this, context));
+      });
+      if (node.__$ws_alternate) {
+         expressions = expressions.concat(node.__$ws_alternate.accept(this, context));
+      }
+      return expressions;
    }
 
    visitTemplate(node: Ast.TemplateNode, context: IContext): Ast.ExpressionNode[] {
