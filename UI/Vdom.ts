@@ -20,7 +20,11 @@ import * as _MountMethodsCaller from './_vdom/Synchronizer/resources/MountMethod
  */
 export { default as Synchronizer } from './_vdom/Synchronizer/Synchronizer';
 export { Debug };
-export { getChangedOptions } from './_vdom/Synchronizer/resources/DirtyChecking';
+export {
+   getChangedOptions,
+   createInstance,
+   createCombinedOptions
+} from './_vdom/Synchronizer/resources/DirtyChecking';
 export { DirtyChecking };
 export { DirtyCheckingCompatible };
 export { default as DOMEnvironment } from './_vdom/Synchronizer/resources/DOMEnvironment';
