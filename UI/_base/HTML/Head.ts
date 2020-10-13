@@ -7,6 +7,7 @@ import template = require('wml!UI/_base/HTML/Head');
 import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller';
 // @ts-ignore
 import { constants } from 'Env/Env';
+import { Head as AppHead } from 'Application/Page'
 import { headDataStore } from 'UI/_base/HeadData';
 import { Stack } from 'UI/_base/HTML/meta';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
@@ -76,10 +77,22 @@ class Head extends Control<IHeadOptions> {
             }
             return;
         }
-        return headDataStore.read('waitAppContent')().then(({ css }) =>
-            collectCSS(options.theme, css.simpleCss, css.themedCss)
-                .then((html) => { this.stylesHtml = `\n${html}\n`; })
-                .catch(onerror));
+        return headDataStore.read('waitAppContent')()
+            .then(({ css }) => {
+                collectCSS(options.theme, css.simpleCss, css.themedCss)
+                    .then((html) => { this.stylesHtml = `\n${html}\n`; })
+                    .catch(onerror);
+                /**
+                 * Опросим HEAD API на предмет накопленного результата. Он будет массивом JML.
+                 * Обработаем и добавим его к userTags
+                 * Напоминаю, что HEAD API это накопитель. Его дергают на протяжение всего процесса построения страницв
+                 * */
+                const data: Array<JML> = AppHead.getInstance().getData();
+                if (data && data.length) {
+                    const markup = new TagMarkup(data.map(fromJML)).outerHTML;
+                    this.userTags+=markup;
+                }
+            });
     }
 
     /**
