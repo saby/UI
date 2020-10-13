@@ -97,6 +97,30 @@ function getElementName(element: Ast.BaseHtmlElement): string | null {
    return null;
 }
 
+function getStringValueFromData(value: Ast.TData): string | null {
+   if (value instanceof Ast.ValueNode) {
+      return getStringValueFromText(value.__$ws_data);
+   }
+   if (value instanceof Ast.StringNode) {
+      return getStringValueFromText(value.__$ws_data);
+   }
+   return null;
+}
+
+function getComponentName(component: Ast.BaseWasabyElement): string | null {
+   const elementName = getElementName(component);
+   if (elementName !== null) {
+      return elementName;
+   }
+   if (component.__$ws_options.hasOwnProperty('attr:name')) {
+      return getStringValueFromData(component.__$ws_options['attr:name'].__$ws_value);
+   }
+   if (component.__$ws_options.hasOwnProperty('name')) {
+      return getStringValueFromData(component.__$ws_options['name'].__$ws_value);
+   }
+   return null;
+}
+
 class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    annotate(nodes: Ast.Ast[]): IAnnotatedTree {
@@ -280,7 +304,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    // <editor-fold desc="Extended text">
 
    visitExpression(node: Ast.ExpressionNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Release
+      // TODO: Process node.__$ws_program
       throw new Error('Not implemented yet');
    }
 
@@ -301,23 +325,20 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    // <editor-fold desc="Components and templates">
 
    visitComponent(node: Ast.ComponentNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      return this.processBaseWasabyElement(node, context);
    }
 
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      // TODO: Process node.__$ws_expression
+      return this.processBaseWasabyElement(node, context);
    }
 
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      return this.processBaseWasabyElement(node, context);
    }
 
    visitStaticPartial(node: Ast.StaticPartialNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      return this.processBaseWasabyElement(node, context);
    }
 
    // </editor-fold>
@@ -333,6 +354,21 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       });
       this.annotateEnumerable(node.__$ws_attributes, context, expressions);
       this.annotateEnumerable(node.__$ws_events, context, expressions);
+      return expressions;
+   }
+
+   private processBaseWasabyElement(node: Ast.BaseWasabyElement, context: IContext): Ast.ExpressionNode[] {
+      const name = getComponentName(node);
+      let expressions: Ast.ExpressionNode[] = [];
+      if (name !== null) {
+         context.childrenStorage.push(name);
+      }
+      this.annotateEnumerable(node.__$ws_attributes, context, expressions);
+      this.annotateEnumerable(node.__$ws_events, context, expressions);
+      this.annotateEnumerable(node.__$ws_options, context, expressions);
+      this.annotateEnumerable(node.__$ws_contents, context, expressions);
+      node.__$ws_internal = { };
+      appendInternalExpressions(node.__$ws_internal, expressions);
       return expressions;
    }
 
