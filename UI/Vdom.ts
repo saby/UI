@@ -22,8 +22,7 @@ export { default as Synchronizer } from './_vdom/Synchronizer/Synchronizer';
 export { Debug };
 export {
    getChangedOptions,
-   createInstance,
-   createCombinedOptions
+   createInstance
 } from './_vdom/Synchronizer/resources/DirtyChecking';
 export { DirtyChecking };
 export { DirtyCheckingCompatible };
