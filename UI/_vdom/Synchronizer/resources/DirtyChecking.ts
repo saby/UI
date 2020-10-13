@@ -357,48 +357,16 @@ function collectChildrenKeys(next: { key }[], prev: { key }[]): { prev, next }[]
    return Object.values(keysMap);
 }
 
-/**
- * Создает объект с объединенными (прикладными и служебными опциями)
- * @param {Object} userOptions Прикладные опции
- * @param {Object} internalOptions Служебные опции
- * @returns {Object} Объединенные опции
- */
-export function createCombinedOptions(userOptions, internalOptions) {
-   var i, res = FunctionUtils.shallowClone(userOptions);
-   for (i in internalOptions) {
-      // не включаем переменные dirty-checking'а в объединенные опции
-      if (internalOptions.hasOwnProperty(i) && i.toString().indexOf('__dirtyCheckingVars_') === -1) {
-         res[i] = internalOptions[i];
-      }
-   }
-   return res;
+function getActualOptions(cnstr, userOptions, internalOptions) {
+   return userOptions;
 }
-/**
- * Объединяет прикладные и служебные опции компонента, если это необходимо.
- * (Например для compound-контрола)
- * @param module Модуль контрола
- * @param userOptions Прикладные опции
- * @param internalOptions Служебные опции
- * @returns {*} Правильные опции компонента
- */
-function combineOptionsIfCompatible(module, userOptions, internalOptions) {
-   // @ts-ignore
-   const coreControl = requirejs('UI/Base').Control;
-   return module.prototype instanceof coreControl ?
-      userOptions :
-      createCombinedOptions(userOptions, internalOptions);
+function createInstanceCallback(inst, actualOptions, internalOptions) {
 }
-export function createInstance(cnstr, userOptions, internalOptions) {
+export function createInstance(cnstr, userOptions, internalOptions, configForCreateInstance) {
    internalOptions = internalOptions || {};
 
-   const _needToBeCompatible = needToBeCompatible(cnstr, internalOptions.parent, internalOptions.iWantBeWS3);
+   const actualOptions = configForCreateInstance.getActualOptions(cnstr, userOptions, internalOptions);
 
-   let actualOptions;
-   if (_needToBeCompatible) {
-      actualOptions = combineOptionsIfCompatible(cnstr, userOptions, internalOptions);
-   } else {
-      actualOptions = userOptions;
-   }
    if (internalOptions.logicParent) {
       actualOptions._logicParent = internalOptions.logicParent;
    }
@@ -418,11 +386,6 @@ export function createInstance(cnstr, userOptions, internalOptions) {
       inst = new coreControl();
       Logger.lifeError('constructor', cnstr.prototype, error);
    }
-   if (_needToBeCompatible) {
-      // @ts-ignore
-      const makeInstanceCompatible = requirejs('Core/helpers/Hcontrol/makeInstanceCompatible');
-      makeInstanceCompatible(inst, actualOptions);
-   }
 
    /*Здесь родитель может быть CompoundControl*/
    if (internalOptions.logicParent && internalOptions.logicParent._children && userOptions.name) {
@@ -434,9 +397,8 @@ export function createInstance(cnstr, userOptions, internalOptions) {
       throw new Error('DirtyChecking - createInstance: options must be exist');
    }
 
-   if (!constants.isServerSide && _needToBeCompatible) {
-      inst._setInternalOptions(internalOptions);
-   }
+   configForCreateInstance.createInstanceCallback(inst, actualOptions, internalOptions);
+
    return {
       instance: inst,
       resolvedOptions: actualOptions,
@@ -514,8 +476,20 @@ export function createNode(controlClass_, options: INodeOptions, key: string, en
         let defaultOptions;
 
       if (typeof controlClass_ === 'function') {
-         // создаем инстанс компонента
-         inst = createInstance(controlCnstr, optionsWithState, internalOptions);
+         let configForCreateInstance;
+         if (needToBeCompatible(cnstr, internalOptions.parent, internalOptions.iWantBeWS3)) {
+            configForCreateInstance = {
+               getActalOptions: getCompatibleUtils().getActualOptions,
+               createInstanceCallback: getCompatibleUtils().createInstanceCallback
+            };
+         } else {
+            configForCreateInstance = {
+               getActualOptions,
+               createInstanceCallback
+            }
+         }
+         inst = createInstance(controlCnstr, optionsWithState, internalOptions, configForCreateInstance);
+
          control = inst.instance;
          optionsWithState = inst.resolvedOptions;
          defaultOptions = inst.defaultOptions;
@@ -524,7 +498,7 @@ export function createNode(controlClass_, options: INodeOptions, key: string, en
          control = controlClass_;
          defaultOptions = OptionsResolver.getDefaultOptions(controlClass_);
          if (constants.compat) {
-            optionsWithState = combineOptionsIfCompatible(
+            optionsWithState = getCompatibleUtils().combineOptionsIfCompatible(
                controlCnstr,
                optionsWithState,
                internalOptions
@@ -1099,7 +1073,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         let childControl = childControlNode.control;
         let shouldUpdate = true;
         let newOptions = OptionsResolver.resolveDefaultOptions(newVNode.compound
-            ? createCombinedOptions(
+            ? getCompatibleUtils().createCombinedOptions(
                 newVNode.controlProperties,
                 newVNode.controlInternalProperties
             )
