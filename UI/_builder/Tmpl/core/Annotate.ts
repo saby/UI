@@ -6,6 +6,7 @@
  */
 
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
+import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 
 interface IAnnotatedTree extends Array<Ast.Ast> {
    childrenStorage: string[];
@@ -61,6 +62,16 @@ function wrestNonIgnoredIdentifiers(expressions: Ast.ExpressionNode[], ignoredId
 }
 
 function excludeIgnoredExpressions(expressions: Ast.ExpressionNode[], ignoredIdentifiers: IStorage): Ast.ExpressionNode[] {
+   // TODO: Release
+   throw new Error('Not implemented yet');
+}
+
+function collectIdentifiers(program: ProgramNode): string[] {
+   // TODO: Release
+   throw new Error('Not implemented yet');
+}
+
+function collectDroppedExpressions(program: ProgramNode): ProgramNode[] {
    // TODO: Release
    throw new Error('Not implemented yet');
 }
@@ -148,13 +159,26 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitBind(node: Ast.BindNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      const programs = collectDroppedExpressions(node.__$ws_value);
+      const expressions = [];
+      programs.forEach((program: ProgramNode) => {
+         const identifiers = collectIdentifiers(program);
+         expressions.push(
+            new Ast.ExpressionNode(program)
+         );
+         identifiers.forEach((identifier: string) => {
+            context.identifiersStore[identifier] = true;
+         });
+      });
+      return expressions;
    }
 
    visitEvent(node: Ast.EventNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      const identifiers = collectIdentifiers(node.__$ws_handler);
+      identifiers.forEach((identifier: string) => {
+         context.identifiersStore[identifier] = true;
+      });
+      return [];
    }
 
    visitOption(node: Ast.OptionNode, context: IContext): Ast.ExpressionNode[] {
