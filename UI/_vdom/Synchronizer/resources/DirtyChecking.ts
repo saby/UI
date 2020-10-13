@@ -15,7 +15,6 @@ import {
    isTemplateVNodeType
 } from './VdomMarkup';
 import { textNode, OptionsResolver } from 'UI/Executor';
-import { Control } from 'UI/Base';
 import { ContextResolver } from 'UI/Contexts';
 import { delay } from 'Types/function';
 // @ts-ignore
@@ -385,7 +384,9 @@ export function createCombinedOptions(userOptions, internalOptions) {
 function combineOptionsIfCompatible(module, userOptions, internalOptions) {
    let res = userOptions;
 
-   if (!(module.prototype instanceof Control)) {
+   // @ts-ignore
+   const coreControl = requirejs('UI/Base').Control;
+   if (!(module.prototype instanceof coreControl)) {
       res = createCombinedOptions(userOptions, internalOptions);
    } else if (internalOptions && internalOptions.logicParent) {
       //Если нет $constructor и есть логический родитель, значит vdom внутри vdom
@@ -419,7 +420,9 @@ export function createInstance(cnstr, userOptions, internalOptions) {
       inst = new cnstr(actualOptions);
    }
    catch (error) {
-      inst = new Control();
+      // @ts-ignore
+      const coreControl = requirejs('UI/Base').Control;
+      inst = new coreControl();
       Logger.lifeError('constructor', cnstr.prototype, error);
    }
    if (_needToBeCompatible) {
