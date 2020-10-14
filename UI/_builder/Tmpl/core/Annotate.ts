@@ -642,14 +642,14 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          context.childrenStorage.push(name);
       }
       this.processInjectedData(node, context, expressions);
+      const currentExpressions: Ast.ExpressionNode[] = this.processComponentAttributes(node, context, expressions);
       node.__$ws_internal = { };
-      appendInternalExpressions(node.__$ws_internal, expressions);
-      this.processComponentAttributes(node, context, expressions);
+      appendInternalExpressions(node.__$ws_internal, currentExpressions);
       return expressions;
    }
 
    /**
-    * Process attributes keeping the nodes order
+    *
     * @deprecated
     * @param node
     * @param context
@@ -679,8 +679,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
     * @param context
     * @param expressions
     */
-   private processComponentAttributes(node: Ast.BaseWasabyElement, context: IContext, expressions: Ast.ExpressionNode[]) {
-      const chain = [];
+   private processComponentAttributes(node: Ast.BaseWasabyElement, context: IContext, expressions: Ast.ExpressionNode[]): Ast.ExpressionNode[] {
+      const chain: Ast.Ast[] = [];
+      const currentExpressions: Ast.ExpressionNode[] = [].concat(expressions);
       for (const name in node.__$ws_attributes) {
          const attribute = node.__$ws_attributes[name];
          chain.splice(attribute.__$ws_key, 0, attribute);
@@ -699,8 +700,12 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       chain.forEach((node: Ast.Ast) => {
          node.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
             expressions.push(expression);
+            if (node instanceof Ast.BindNode) {
+               currentExpressions.push(expression);
+            }
          });
       });
+      return currentExpressions;
    }
 
    /**
