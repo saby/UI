@@ -79,19 +79,20 @@ class Head extends Control<IHeadOptions> {
         }
         return headDataStore.read('waitAppContent')()
             .then(({ css }) => {
-                collectCSS(options.theme, css.simpleCss, css.themedCss)
+                const promise: Promise<void> = collectCSS(options.theme, css.simpleCss, css.themedCss)
                     .then((html) => { this.stylesHtml = `\n${html}\n`; })
                     .catch(onerror);
                 /**
                  * Опросим HEAD API на предмет накопленного результата. Он будет массивом JML.
                  * Обработаем и добавим его к userTags
-                 * Напоминаю, что HEAD API это накопитель. Его дергают на протяжение всего процесса построения страницв
+                 * Напоминаю, что HEAD API это накопитель. Его дергают на протяжение всего процесса построения страницы
                  * */
                 const data: Array<JML> = AppHead.getInstance().getData();
                 if (data && data.length) {
                     const markup = new TagMarkup(data.map(fromJML)).outerHTML;
                     this.userTags+=markup;
                 }
+                return promise;
             });
     }
 
