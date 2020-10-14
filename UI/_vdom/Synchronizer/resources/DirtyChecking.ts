@@ -960,14 +960,13 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
 
     createdTemplateNodes = [];
 
-    createdNodes = diff.create.map(function rebuildCreateNodes(vnode, idx) {
-        var
-            nodeIdx = createdStartIdx + idx,
-            serializedChildren = parentNode.serializedChildren,
-            serialized = serializedChildren && serializedChildren[nodeIdx],
-            options,
-            carrier,
-            controlNode;
+    createdNodes = diff.create.map(function rebuildCreateNodes(vnode: GeneratorNode, idx) {
+        let nodeIdx = createdStartIdx + idx;
+        let serializedChildren = parentNode.serializedChildren;
+        let serialized = serializedChildren && serializedChildren[nodeIdx];
+        let options;
+        let carrier;
+        let controlNode;
         Logger.debug('DirtyChecking (create node)' + idx, vnode);
         onStartCommit(OperationType.CREATE, getNodeName(vnode));
 
@@ -1347,15 +1346,15 @@ function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode,
         createdTemplateNodes
     });
 
-    if (!haveAsync) {
-        return mapChildren(currentMemo, newNode, childrenRebuildResults, environment, needRenderMarkup, isSelfDirty);
+    if (haveAsync) {
+        return Promise.all(childrenRebuildResults).then(
+            (res) => mapChildren(currentMemo, newNode, res, environment, needRenderMarkup, isSelfDirty),
+            (err) => {
+                Logger.asyncRenderErrorLog(err);
+                return err;
+            }
+        );
     }
 
-    return Promise.all(childrenRebuildResults).then(
-        (res) => mapChildren(currentMemo, newNode, res, environment, needRenderMarkup, isSelfDirty),
-        (err) => {
-            Logger.asyncRenderErrorLog(err);
-            return err;
-        }
-    );
+    return mapChildren(currentMemo, newNode, childrenRebuildResults, environment, needRenderMarkup, isSelfDirty);
 }
