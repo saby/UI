@@ -727,10 +727,8 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       for (const name in node.__$ws_contents) {
          const content = node.__$ws_contents[name];
          if (content.hasFlag(Ast.Flags.NEST_CASTED)) {
-            content.__$ws_content.forEach((node: Ast.Ast) => {
-               node.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
-                  expressions.push(expression);
-               });
+            content.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
+               expressions.push(expression);
             });
             return;
          }
