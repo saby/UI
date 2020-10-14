@@ -479,7 +479,7 @@ export function createNode(controlClass_, options: INodeOptions, key: string, en
          let configForCreateInstance;
          if (needToBeCompatible(controlCnstr, internalOptions.parent, internalOptions.iWantBeWS3)) {
             configForCreateInstance = {
-               getActalOptions: getCompatibleUtils().getActualOptions,
+               getActualOptions: getCompatibleUtils().getActualOptions,
                createInstanceCallback: getCompatibleUtils().createInstanceCallback
             };
          } else {
