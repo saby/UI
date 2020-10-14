@@ -191,7 +191,7 @@ export class Generator {
                    context: string,
                    deps: TDeps,
                    config: IGeneratorConfig): GeneratorObject | Promise<unknown> | Error {
-      let preparedData = this.dataResolver(data, templateCfg, attrs, name);
+      let preparedData = dataResolver(data, templateCfg, attrs, name);
       attrs = preparedData[2];
       const userData = preparedData[1];
       name = nameResolver.call(this, name);
