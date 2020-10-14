@@ -691,6 +691,14 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       for (const name in node.__$ws_attributes) {
          const attribute = node.__$ws_attributes[name];
          chain.splice(attribute.__$ws_key, 0, attribute);
+         // FIXME: All expressions in attributes at position > 0 had been appended to internal collection.
+         //  See legacy functions isExprInAttributes, isExprEqualToAttr
+         for (let index = 1; index < attribute.__$ws_value.length; ++index) {
+            const value = attribute.__$ws_value[index];
+            if (value instanceof Ast.ExpressionNode) {
+               currentExpressions.push(value);
+            }
+         }
       }
       for (const name in node.__$ws_events) {
          const event = node.__$ws_events[name];
@@ -702,6 +710,15 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
             continue;
          }
          chain.splice(option.__$ws_key, 0, option);
+         // FIXME: All expressions in attributes at position > 0 had been appended to internal collection.
+         //  See legacy functions isExprInAttributes, isExprEqualToAttr
+         const unpackedValue = (<Ast.ValueNode>option.__$ws_value).__$ws_data;
+         for (let index = 1; index < unpackedValue.length; ++index) {
+            const value = unpackedValue[index];
+            if (value instanceof Ast.ExpressionNode) {
+               currentExpressions.push(value);
+            }
+         }
       }
       chain.forEach((node: Ast.Ast) => {
          node.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
