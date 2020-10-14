@@ -271,12 +271,12 @@ function calculateDataComponent(tplOrigin) {
 // }
 
 function isCompatPatch(controlClass, controlProperties, attrs) {
-   const fromOld = controlClass && controlClass.prototype && Common.isCompound(controlClass);
-   if (fromOld) {
-      for (let key in attrs.events) {
-         controlProperties[key] = attrs.events[key];
-      }
-   }
+   // const fromOld = controlClass && controlClass.prototype && Common.isCompound(controlClass);
+   // if (fromOld) {
+   //    for (let key in attrs.events) {
+   //       controlProperties[key] = attrs.events[key];
+   //    }
+   // }
 
    if (controlProperties && controlProperties.enabled === undefined) {
       const internal = attrs.internal;
@@ -670,7 +670,14 @@ export class Generator {
          dataComponent = moduleName;
       }
 
+      const fromOld = controlClass && controlClass.prototype && Common.isCompound(controlClass);
+
       const controlProperties = Scope.calculateScope(scope, Common.plainMerge) || {};
+      if (fromOld) {
+         for (let key in attrs.events) {
+            controlProperties[key] = attrs.events[key];
+         }
+      }
 
       if (!attrs.attributes) {
          attrs.attributes = {};
