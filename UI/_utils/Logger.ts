@@ -380,9 +380,9 @@ const templateError = (
       return error(`TEMPLATE ERROR: ${message} IN "${templateName}"`, errorPoint, errorInfo);
 };
 
-function asyncRenderErrorLog(error: any, errorPoint?: any) {
-   const message = `Async function was rejected ${error ? `with message "${error.message || error}"` : ''}`;
-   logger().error(message, errorPoint, error);
+const asyncRenderErrorLog = (errorObject: any, errorPoint?: object | Node | unknown): object => {
+   const message = `Async function was rejected ${error ? `with message "${errorObject.message || errorObject}"` : ''}`;
+   return error(message, errorPoint, errorObject);
 }
 
 export {
