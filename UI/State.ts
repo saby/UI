@@ -3,7 +3,7 @@ import * as Serializer from './_state/Serializer';
 
 /**
  * @library UI/State
- * @includes Serializer UI/_state/StateReceiver
+ * @includes StateReceiver UI/_state/StateReceiver
  * @includes Serializer UI/_state/Serializer
  * @author Санников А.А.
  */
