@@ -13,10 +13,11 @@ import { Logger } from 'UI/Utils';
 import {Config as config} from 'UI/BuilderConfig';
 // @ts-ignore
 import { ObjectUtils } from 'UI/Utils';
-import {object} from 'Types/util';
+import { object } from 'Types/util';
+// @ts-ignore
+import { constants } from 'Env/Env';
 
 import { Text, Vdom } from './Markup';
-import { _FocusAttrs } from 'UI/Focus';
 import * as Scope from './_Expressions/Scope';
 import * as Attr from './_Expressions/Attr';
 import { Common, ConfigResolver } from './Utils';
@@ -104,16 +105,19 @@ var lastGetterPath;
 var
    getter = function getter(obj, path, viewController) {
       lastGetterPath = path;
-      const getterResult = object.extractValue(obj, path, (name: string, scope: unknown, depth: number): void => {
-         const error = scope['_$' + name];
-         if (error instanceof ConfigResolver.UseAutoProxiedOptionError) {
-            if (!error.isDestroyed()) {
-               Logger.error(`Попытка использовать опцию, которой не существует: ${path.slice(0, depth + 1).join('.')}
+      const getterResult = constants.isProduction ? object.extractValue(obj, path) :
+         object.extractValue(obj, path, (name: string, scope: unknown, depth: number): void => {
+         if (scope.hasOwnProperty('_$' + name)) {
+            const error = scope['_$' + name];
+            if (error instanceof ConfigResolver.UseAutoProxiedOptionError) {
+               if (!error.isDestroyed()) {
+                  Logger.error(`Попытка использовать опцию, которой не существует: ${path.slice(0, depth + 1).join('.')}
                   При вставке контрола/шаблона эта опция не была явно передана, поэтому в текущем дочернем контроле ее использовать нельзя.
                   Передача опции не произошла в шаблоне контрола: ${error.upperControlName}.
                   Вставляемый контрол/шаблон, в котором должна явно передаваться опция: ${error.lostHere}.
                   Попытка использовать опцию`, viewController);
-               error.destroy();
+                  error.destroy();
+               }
             }
          }
       });

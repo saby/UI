@@ -34,9 +34,8 @@ export default function catchEscapeProblems(value, viewController, pathName): vo
     if (
         typeof value !== 'string' ||
         typeof document === 'undefined' ||
-        !viewController?._template ||
-        value === Common.unescape(value)
-     ) {
+        !(viewController && viewController._template) ||
+        value === Common.unescape(value)) {
         return;
     }
     const moduleName = viewController._moduleName;
