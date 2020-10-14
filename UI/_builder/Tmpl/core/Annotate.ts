@@ -6,7 +6,8 @@
  */
 
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
-import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
+import { ProgramNode, IdentifierNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
+import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 
 interface IAnnotatedTree extends Array<Ast.Ast> {
    childrenStorage: string[];
@@ -43,6 +44,10 @@ const NOT_REACTIVE_IDENTIFIERS = [
    'rk'
 ];
 
+const INTERNAL_EXPRESSION_PREFIX = '__dirtyCheckingVars_';
+
+const PARSER = new Parser();
+
 function setRootNodeFlags(nodes: Ast.Ast[]): void {
    nodes.forEach((node) => {
       if (node instanceof Ast.IfNode) {
@@ -65,29 +70,125 @@ function setRootNodeFlags(nodes: Ast.Ast[]): void {
    });
 }
 
+function hasBindings(node: Ast.ExpressionNode): boolean {
+   return node.__$ws_program.string.indexOf('|mutable') > -1 || node.__$ws_program.string.indexOf('|bind') > -1;
+}
+
 function appendInternalExpressions(internal: Ast.IInternal, expressions: Ast.ExpressionNode[]): void {
-   // TODO: Release
-   throw new Error('Not implemented yet');
+   let expressionIndex = 0;
+   for (let index = 0; index < expressions.length; ++index) {
+      const expression = expressions[index];
+      if (hasBindings(expression)) {
+         continue;
+      }
+
+      internal[INTERNAL_EXPRESSION_PREFIX + (expressionIndex++)] = {
+         data: [
+            // TODO: Do shallow clone in patch
+            expressions[index]
+         ],
+         type: 'text'
+      };
+   }
+}
+
+function collectNonIgnoredIdentifiers(expression: Ast.ExpressionNode, ignoredIdentifiers: IStorage): Ast.ExpressionNode[] {
+   let hasIgnored = false;
+   const identifiersAsExpressions = [];
+   const callbacks = {
+      Identifier: (data: any): any => {
+         if (ignoredIdentifiers.hasOwnProperty(data.name)) {
+            hasIgnored = true;
+            return;
+         } else {
+            identifiersAsExpressions.push(
+               new Ast.ExpressionNode(
+                  PARSER.parse(data.name)
+               )
+            );
+         }
+      }
+   };
+   const walker = new Walker(callbacks);
+   expression.__$ws_program.accept(walker, {
+      fileName: 'Unknown'
+   });
+   return hasIgnored ? identifiersAsExpressions : [];
 }
 
 function wrestNonIgnoredIdentifiers(expressions: Ast.ExpressionNode[], ignoredIdentifiers: IStorage): Ast.ExpressionNode[] {
-   // TODO: Release
-   throw new Error('Not implemented yet');
+   let identifiersAsExpressions = [];
+   for (let index = 0; index < expressions.length; ++index) {
+      identifiersAsExpressions = identifiersAsExpressions.concat(
+         collectNonIgnoredIdentifiers(expressions[index], ignoredIdentifiers)
+      );
+   }
+   return identifiersAsExpressions;
+}
+
+function hasIgnoredIdentifier(expression: Ast.ExpressionNode, ignoredIdentifiers: IStorage): boolean {
+   let hasIgnored = false;
+   const callbacks = {
+      Identifier: (data: any): any => {
+         if (ignoredIdentifiers.hasOwnProperty(data.name)) {
+            hasIgnored = true;
+         }
+      }
+   };
+   const walker = new Walker(callbacks);
+   expression.__$ws_program.accept(walker, {
+      fileName: 'Unknown'
+   });
+   return hasIgnored;
 }
 
 function excludeIgnoredExpressions(expressions: Ast.ExpressionNode[], ignoredIdentifiers: IStorage): Ast.ExpressionNode[] {
-   // TODO: Release
-   throw new Error('Not implemented yet');
+   const result = [];
+   for (let index = 0; index < expressions.length; ++index) {
+      if (!hasIgnoredIdentifier(expressions[index], ignoredIdentifiers)) {
+         result.push(expressions[index]);
+      }
+   }
+   return result;
 }
 
 function collectIdentifiers(program: ProgramNode): string[] {
-   // TODO: Release
-   throw new Error('Not implemented yet');
+   const result = [];
+   const callbacks = {
+      Identifier: (node: IdentifierNode): void => {
+         result.push(node.name);
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName: 'Unknown'
+   });
+   return result;
 }
 
 function collectDroppedExpressions(program: ProgramNode): ProgramNode[] {
-   // TODO: Release
-   throw new Error('Not implemented yet');
+   const result = [];
+   const callbacks = {
+      Identifier: (node: any): any => {
+         result.push(
+            new Ast.ExpressionNode(
+               PARSER.parse(node.name)
+            )
+         );
+      },
+      MemberExpression: (node: any): any => {
+         result.push(
+            new Ast.ExpressionNode(
+               PARSER.parse(node.string)
+            )
+         );
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName: 'Unknown'
+   });
+   return result.slice(-2);
 }
 
 function getStringValueFromText(value: Ast.TText[]): string | null {
@@ -135,16 +236,42 @@ function getComponentName(component: Ast.BaseWasabyElement): string | null {
    return null;
 }
 
+function processProgramNode(node: ProgramNode, context: IContext): Ast.ExpressionNode[] {
+   const identifiers = collectIdentifiers(node);
+   identifiers.forEach((identifier: string) => {
+      context.identifiersStore[identifier] = true;
+   });
+   return [
+      new Ast.ExpressionNode(node)
+   ];
+}
+
+function addIgnoredIdentifiers(program: ProgramNode, ignoredIdentifiers: IStorage): string[] {
+   const identifiers = collectIdentifiers(program);
+   identifiers.forEach((identifier: string) => {
+      ignoredIdentifiers[identifier] = true;
+   });
+   return identifiers;
+}
+
+function addIgnoredAndAdditionalIdentifiers(program: ProgramNode, ignoredIdentifiers: IStorage, additionalIdentifiers: string[]): void {
+   addIgnoredIdentifiers(program, ignoredIdentifiers).forEach((identifier: string) => {
+      if (additionalIdentifiers.indexOf(identifier) === -1) {
+         additionalIdentifiers.push(identifier);
+      }
+   });
+}
+
 function processBeforeFor(node: Ast.ForNode, context: IContext): ICyclePreprocess {
    const ignoredIdentifiers: IStorage = { };
-   const additionalIdentifiers = [];
+   const additionalIdentifiers: string[] = [];
    let expressions: Ast.ExpressionNode[] = [];
    if (node.__$ws_init) {
-      // TODO: Process node.__$ws_init
+      addIgnoredAndAdditionalIdentifiers(node.__$ws_init, ignoredIdentifiers, additionalIdentifiers);
    }
-   // TODO: Process node.__$ws_test
+   addIgnoredAndAdditionalIdentifiers(node.__$ws_test, ignoredIdentifiers, additionalIdentifiers);
    if (node.__$ws_update) {
-      // TODO: Process node.__$ws_update
+      addIgnoredAndAdditionalIdentifiers(node.__$ws_update, ignoredIdentifiers, additionalIdentifiers);
    }
    return {
       ignoredIdentifiers,
@@ -167,12 +294,11 @@ function processAfterFor(cyclePreprocess: ICyclePreprocess, context: IContext): 
 
 function processBeforeForeach(node: Ast.ForeachNode, context: IContext): ICyclePreprocess {
    const ignoredIdentifiers: IStorage = { };
-   let expressions: Ast.ExpressionNode[] = [];
    if (node.__$ws_index) {
-      // TODO: Process node.__$ws_index
+      addIgnoredIdentifiers(node.__$ws_index, ignoredIdentifiers);
    }
-   // TODO: Process node.__$ws_iterator
-   // TODO: Process node.__$ws_collection
+   addIgnoredIdentifiers(node.__$ws_iterator, ignoredIdentifiers);
+   const expressions: Ast.ExpressionNode[] = processProgramNode(node.__$ws_collection, context);
    return {
       ignoredIdentifiers,
       expressions,
@@ -375,7 +501,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       });
       if (node.__$ws_test) {
          expressions = expressions.concat(
-            this.processProgramNode(node.__$ws_test, context)
+            processProgramNode(node.__$ws_test, context)
          );
       }
       if (node.__$ws_alternate) {
@@ -406,7 +532,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitIf(node: Ast.IfNode, context: IContext): Ast.ExpressionNode[] {
-      let expressions: Ast.ExpressionNode[] = this.processProgramNode(node.__$ws_test, context);
+      let expressions: Ast.ExpressionNode[] = processProgramNode(node.__$ws_test, context);
       node.__$ws_consequent.forEach((node: Ast.Ast) => {
          expressions = expressions.concat(node.accept(this, context));
       });
@@ -432,7 +558,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    // <editor-fold desc="Extended text">
 
    visitExpression(node: Ast.ExpressionNode, context: IContext): Ast.ExpressionNode[] {
-      return this.processProgramNode(node.__$ws_program, context);
+      return processProgramNode(node.__$ws_program, context);
    }
 
    visitText(node: Ast.TextNode, context: IContext): Ast.ExpressionNode[] {
@@ -456,7 +582,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): Ast.ExpressionNode[] {
-      let expressions: Ast.ExpressionNode[] = this.processProgramNode(node.__$ws_expression, context);
+      let expressions: Ast.ExpressionNode[] = processProgramNode(node.__$ws_expression, context);
       expressions = expressions.concat(
          this.processBaseWasabyElement(node, context)
       );
@@ -509,16 +635,6 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
             item.accept(this, context)
          );
       }
-   }
-
-   private processProgramNode(node: ProgramNode, context: IContext): Ast.ExpressionNode[] {
-      const identifiers = collectIdentifiers(node);
-      identifiers.forEach((identifier: string) => {
-         context.identifiersStore[identifier] = true;
-      });
-      return [
-         new Ast.ExpressionNode(node)
-      ];
    }
 }
 
