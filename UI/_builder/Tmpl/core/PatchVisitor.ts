@@ -35,14 +35,6 @@ function isTemplateType(fullPath: string): boolean {
    return hasTemplatePlugin || !hasTemplatePlugin && hasOptionalPlugin && !hasSlashes;
 }
 
-function copyInternal(internal: Ast.IInternal): any {
-   const copy = { };
-   for (const property in internal) {
-      copy[property] = FunctionUtils.shallowClone(internal[property]);
-   }
-   return copy;
-}
-
 class PatchVisitor implements Ast.IAstVisitor {
    // done.
    visitDoctype(node: Ast.DoctypeNode, context: INavigationContext): any {
@@ -159,7 +151,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.isRootTag = node.__$ws_isRootNode;
       if (node.__$ws_internal) {
          // @ts-ignore
-         node.internal = copyInternal(node.__$ws_internal);
+         node.internal = this.copyInternal(node.__$ws_internal, context);
       }
       return node;
    }
@@ -204,7 +196,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.isRootTag = node.__$ws_isRootNode;
       if (node.__$ws_internal) {
          // @ts-ignore
-         node.internal = copyInternal(node.__$ws_internal);
+         node.internal = this.copyInternal(node.__$ws_internal, context);
       }
       return node;
    }
@@ -282,7 +274,7 @@ class PatchVisitor implements Ast.IAstVisitor {
          const child = nodes[i].accept(this, childContext);
          if (nodes[i].__$ws_internal) {
             // @ts-ignore
-            child.internal = copyInternal(nodes[i].__$ws_internal);
+            child.internal = this.copyInternal(nodes[i].__$ws_internal, context);
          }
          if (child) {
             children.splice(nodes[i].__$ws_key, child, child);
@@ -311,7 +303,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.isRootTag = node.__$ws_isRootNode;
       if (node.__$ws_internal) {
          // @ts-ignore
-         node.internal = copyInternal(node.__$ws_internal);
+         node.internal = this.copyInternal(node.__$ws_internal, context);
       }
       return node;
    }
@@ -425,7 +417,7 @@ class PatchVisitor implements Ast.IAstVisitor {
             node.isRootTag = node.__$ws_isRootNode;
             if (node.__$ws_internal) {
                // @ts-ignore
-               node.internal = copyInternal(node.__$ws_internal);
+               node.internal = this.copyInternal(node.__$ws_internal, context);
             }
             return node;
          }
@@ -440,7 +432,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.isRootTag = node.__$ws_isRootNode;
       if (node.__$ws_internal) {
          // @ts-ignore
-         node.internal = copyInternal(node.__$ws_internal);
+         node.internal = this.copyInternal(node.__$ws_internal, context);
       }
       return node;
    }
@@ -537,7 +529,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.isRootTag = node.__$ws_isRootNode;
       if (node.__$ws_internal) {
          // @ts-ignore
-         node.internal = copyInternal(node.__$ws_internal);
+         node.internal = this.copyInternal(node.__$ws_internal, context);
       }
       return node;
    }
@@ -574,7 +566,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.isRootTag = node.__$ws_isRootNode;
       if (node.__$ws_internal) {
          // @ts-ignore
-         node.internal = copyInternal(node.__$ws_internal);
+         node.internal = this.copyInternal(node.__$ws_internal, context);
       }
       return node;
    }
@@ -640,8 +632,10 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.isRootTag = node.__$ws_isRootNode;
       if (node.__$ws_internal) {
          // @ts-ignore
-         node.internal = copyInternal(node.__$ws_internal);
+         node.internal = this.copyInternal(node.__$ws_internal, context);
       }
+      // @ts-ignore
+      node.isContentOption = true;
       return node;
    }
 
@@ -686,7 +680,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.isRootTag = node.__$ws_isRootNode;
       if (node.__$ws_internal) {
          // @ts-ignore
-         node.internal = copyInternal(node.__$ws_internal);
+         node.internal = this.copyInternal(node.__$ws_internal, context);
       }
       return node;
    }
@@ -995,7 +989,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.isRootTag = node.__$ws_isRootNode;
       if (node.__$ws_internal) {
          // @ts-ignore
-         node.internal = copyInternal(node.__$ws_internal);
+         node.internal = this.copyInternal(node.__$ws_internal, context);
       }
       return node;
    }
@@ -1073,7 +1067,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.isRootTag = node.__$ws_isRootNode;
       if (node.__$ws_internal) {
          // @ts-ignore
-         node.internal = copyInternal(node.__$ws_internal);
+         node.internal = this.copyInternal(node.__$ws_internal, context);
       }
       return node;
    }
@@ -1128,7 +1122,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.isRootTag = node.__$ws_isRootNode;
       if (node.__$ws_internal) {
          // @ts-ignore
-         node.internal = copyInternal(node.__$ws_internal);
+         node.internal = this.copyInternal(node.__$ws_internal, context);
       }
       return node;
    }
@@ -1284,6 +1278,17 @@ class PatchVisitor implements Ast.IAstVisitor {
          }
       }
       return injectedData;
+   }
+
+   private copyInternal(internal: Ast.IInternal, context: INavigationContext): any {
+      const copy = { };
+      for (const property in internal) {
+         internal[property].data.forEach((expression: Ast.ExpressionNode) => {
+            expression.accept(this, context);
+         });
+         copy[property] = FunctionUtils.shallowClone(internal[property]);
+      }
+      return copy;
    }
 }
 
