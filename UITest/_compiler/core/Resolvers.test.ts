@@ -4,68 +4,183 @@ import { assert } from 'chai';
 // TODO: UI/_builder/Tmpl/* -> Compiler/*
 
 describe('Compiler/core/Resolvers', () => {
-   describe('.parseComponentPath()', () => {
-      it('Component path', () => {
-         const name = 'UIModule.Component';
-         const path = Resolvers.parseComponentPath(name);
-         assert.isFalse(!!(path.plugins ^ Resolvers.RequireJSPlugins.NONE));
-         assert.deepEqual(path.physicalPath, ['UIModule', 'Component']);
-         assert.deepEqual(path.logicalPath, []);
+   describe('parseComponentName() Simple', () => {
+      const COMPONENT_NAME = 'UIModule.Component';
+      it('getFullPath()', () => {
+         const path = Resolvers.parseComponentName(COMPONENT_NAME);
+         assert.strictEqual(path.getFullPath(), 'UIModule/Component');
       });
-      it('Component path (with special UI-module name)', () => {
-         const name = 'SBIS3.CONTROLS.Component';
-         const path = Resolvers.parseComponentPath(name);
-         assert.isFalse(!!(path.plugins ^ Resolvers.RequireJSPlugins.NONE));
-         assert.deepEqual(path.physicalPath, ['SBIS3.CONTROLS', 'Component']);
-         assert.deepEqual(path.logicalPath, []);
+      it('getFullPath() with special UI module name', () => {
+         const path = Resolvers.parseComponentName('SBIS3.CONTROLS.Component');
+         assert.strictEqual(path.getFullPath(), 'SBIS3.CONTROLS/Component');
       });
-      it('Component module path', () => {
-         const name = 'UIModule.Library:Component';
-         const path = Resolvers.parseComponentPath(name);
-         assert.isFalse(!!(path.plugins ^ Resolvers.RequireJSPlugins.NONE));
-         assert.deepEqual(path.physicalPath, ['UIModule', 'Library']);
-         assert.deepEqual(path.logicalPath, ['Component']);
+      it('getFullPhysicalPath()', () => {
+         const path = Resolvers.parseComponentName(COMPONENT_NAME);
+         assert.strictEqual(path.getFullPhysicalPath(), 'UIModule/Component');
       });
-      it('Component module path (with special UI-module name)', () => {
-         const name = 'SBIS3.CONTROLS.Library:Component';
-         const path = Resolvers.parseComponentPath(name);
-         assert.isFalse(!!(path.plugins ^ Resolvers.RequireJSPlugins.NONE));
-         assert.deepEqual(path.physicalPath, ['SBIS3.CONTROLS', 'Library']);
-         assert.deepEqual(path.logicalPath, ['Component']);
+      it('getLogicalPath()', () => {
+         const path = Resolvers.parseComponentName(COMPONENT_NAME);
+         assert.deepEqual(path.getLogicalPath(), []);
+      });
+      it('hasLogicalPath()', () => {
+         const path = Resolvers.parseComponentName(COMPONENT_NAME);
+         assert.isFalse(path.hasLogicalPath());
+      });
+      it('hasPlugins()', () => {
+         const path = Resolvers.parseComponentName(COMPONENT_NAME);
+         assert.isFalse(path.hasPlugins());
       });
    });
-   describe('.parseTemplatePath()', () => {
-      it('no plugins', () => {
-         const physicalPath = 'UIModule/Directory/Template';
-         const path = Resolvers.parseTemplatePath(physicalPath);
-         assert.isFalse(!!(path.plugins ^ Resolvers.RequireJSPlugins.NONE));
-         assert.deepEqual(path.physicalPath, ['UIModule', 'Directory', 'Template']);
-         assert.deepEqual(path.logicalPath, []);
+   describe('parseComponentName() Module', () => {
+      const COMPONENT_NAME = 'UIModule.Module:Component';
+      it('getFullPath()', () => {
+         const path = Resolvers.parseComponentName(COMPONENT_NAME);
+         assert.strictEqual(path.getFullPath(), 'UIModule/Module:Component');
       });
-      it('wml!', () => {
-         const physicalPath = 'wml!UIModule/Directory/Template';
-         const path = Resolvers.parseTemplatePath(physicalPath);
-         assert.isTrue(!!(path.plugins & Resolvers.RequireJSPlugins.WML));
-         assert.isFalse(!!(path.plugins ^ Resolvers.RequireJSPlugins.WML));
-         assert.deepEqual(path.physicalPath, ['UIModule', 'Directory', 'Template']);
-         assert.deepEqual(path.logicalPath, []);
+      it('getFullPath() with special UI module name', () => {
+         const path = Resolvers.parseComponentName('SBIS3.CONTROLS.Module:Component');
+         assert.strictEqual(path.getFullPath(), 'SBIS3.CONTROLS/Module:Component');
       });
-      it('tmpl! (with special UI-module name)', () => {
-         const physicalPath = 'tmpl!UIModule/Directory/Template';
-         const path = Resolvers.parseTemplatePath(physicalPath);
-         assert.isTrue(!!(path.plugins & Resolvers.RequireJSPlugins.TMPL));
-         assert.isFalse(!!(path.plugins ^ Resolvers.RequireJSPlugins.TMPL));
-         assert.deepEqual(path.physicalPath, ['UIModule', 'Directory', 'Template']);
-         assert.deepEqual(path.logicalPath, []);
+      it('getFullPhysicalPath()', () => {
+         const path = Resolvers.parseComponentName(COMPONENT_NAME);
+         assert.strictEqual(path.getFullPhysicalPath(), 'UIModule/Module');
       });
-      it('optional!tmpl!', () => {
-         const physicalPath = 'optional!tmpl!SBIS3.CONTROLS/Directory/Template';
-         const path = Resolvers.parseTemplatePath(physicalPath);
-         const plugins = Resolvers.RequireJSPlugins.TMPL | Resolvers.RequireJSPlugins.OPTIONAL;
-         assert.isTrue(!!(path.plugins & plugins));
-         assert.isFalse(!!(path.plugins ^ plugins));
-         assert.deepEqual(path.physicalPath, ['SBIS3.CONTROLS', 'Directory', 'Template']);
-         assert.deepEqual(path.logicalPath, []);
+      it('getLogicalPath()', () => {
+         const path = Resolvers.parseComponentName(COMPONENT_NAME);
+         assert.deepEqual(path.getLogicalPath(), ['Component']);
+      });
+      it('hasLogicalPath()', () => {
+         const path = Resolvers.parseComponentName(COMPONENT_NAME);
+         assert.isTrue(path.hasLogicalPath());
+      });
+      it('hasPlugins()', () => {
+         const path = Resolvers.parseComponentName(COMPONENT_NAME);
+         assert.isFalse(path.hasPlugins());
+      });
+   });
+   describe('parseFunctionPath()', () => {
+      const FUNCTION_PATH = 'UIModule/Module:object.handler';
+      const FUNCTION_PATH_2 = 'UIModule/Module/handler';
+      it('getFullPath()', () => {
+         const path = Resolvers.parseFunctionPath(FUNCTION_PATH);
+         assert.strictEqual(path.getFullPath(), FUNCTION_PATH);
+      });
+      it('getFullPath() 2', () => {
+         const path = Resolvers.parseFunctionPath(FUNCTION_PATH_2);
+         assert.strictEqual(path.getFullPath(), FUNCTION_PATH_2);
+      });
+      it('getFullPath() with special UI module name', () => {
+         const path = Resolvers.parseTemplatePath('SBIS3.CONTROLS/Module:object.handler');
+         assert.strictEqual(path.getFullPath(), 'SBIS3.CONTROLS/Module:object.handler');
+      });
+      it('getFullPath() with special UI module name 2', () => {
+         const path = Resolvers.parseTemplatePath('SBIS3.CONTROLS/Module/handler');
+         assert.strictEqual(path.getFullPath(), 'SBIS3.CONTROLS/Module/handler');
+      });
+      it('getFullPhysicalPath()', () => {
+         const path = Resolvers.parseFunctionPath(FUNCTION_PATH);
+         assert.strictEqual(path.getFullPhysicalPath(), 'UIModule/Module');
+      });
+      it('getFullPhysicalPath() 2', () => {
+         const path = Resolvers.parseFunctionPath(FUNCTION_PATH_2);
+         assert.strictEqual(path.getFullPhysicalPath(), FUNCTION_PATH_2);
+      });
+      it('getLogicalPath()', () => {
+         const path = Resolvers.parseFunctionPath(FUNCTION_PATH);
+         assert.deepEqual(path.getLogicalPath(), ['object', 'handler']);
+      });
+      it('hasLogicalPath()', () => {
+         const path = Resolvers.parseFunctionPath(FUNCTION_PATH);
+         assert.isTrue(path.hasLogicalPath());
+      });
+      it('hasLogicalPath()', () => {
+         const path = Resolvers.parseFunctionPath(FUNCTION_PATH_2);
+         assert.isFalse(path.hasLogicalPath());
+      });
+      it('hasPlugins()', () => {
+         const path = Resolvers.parseFunctionPath(FUNCTION_PATH);
+         assert.isFalse(path.hasPlugins());
+      });
+      it('hasPlugins() 2', () => {
+         const path = Resolvers.parseFunctionPath(FUNCTION_PATH_2);
+         assert.isFalse(path.hasPlugins());
+      });
+   });
+   describe('parseTemplatePath() Plugin', () => {
+      const TEMPLATE_PATH = 'wml!UIModule/Directory/Template';
+      it('getFullPath()', () => {
+         const path = Resolvers.parseTemplatePath(TEMPLATE_PATH);
+         assert.strictEqual(path.getFullPath(), TEMPLATE_PATH);
+      });
+      it('getFullPhysicalPath()', () => {
+         const path = Resolvers.parseTemplatePath(TEMPLATE_PATH);
+         assert.strictEqual(path.getFullPhysicalPath(), TEMPLATE_PATH);
+      });
+      it('getLogicalPath()', () => {
+         const path = Resolvers.parseTemplatePath(TEMPLATE_PATH);
+         assert.deepEqual(path.getLogicalPath(), []);
+      });
+      it('hasLogicalPath()', () => {
+         const path = Resolvers.parseTemplatePath(TEMPLATE_PATH);
+         assert.isFalse(path.hasLogicalPath());
+      });
+      it('hasPlugins()', () => {
+         const path = Resolvers.parseTemplatePath(TEMPLATE_PATH);
+         assert.isTrue(path.hasPlugins());
+      });
+   });
+   describe('parseTemplatePath() Simple', () => {
+      const TEMPLATE_AS_SIMPLE_PATH = 'UIModule/Module/Template';
+      it('getFullPath()', () => {
+         const path = Resolvers.parseComponentName(TEMPLATE_AS_SIMPLE_PATH);
+         assert.strictEqual(path.getFullPath(), TEMPLATE_AS_SIMPLE_PATH);
+      });
+      it('getFullPath() with special UI module name', () => {
+         const path = Resolvers.parseComponentName('SBIS3.CONTROLS/Module/Template');
+         assert.strictEqual(path.getFullPath(), 'SBIS3.CONTROLS/Module/Template');
+      });
+      it('getFullPhysicalPath()', () => {
+         const path = Resolvers.parseComponentName(TEMPLATE_AS_SIMPLE_PATH);
+         assert.strictEqual(path.getFullPhysicalPath(), TEMPLATE_AS_SIMPLE_PATH);
+      });
+      it('getLogicalPath()', () => {
+         const path = Resolvers.parseComponentName(TEMPLATE_AS_SIMPLE_PATH);
+         assert.deepEqual(path.getLogicalPath(), []);
+      });
+      it('hasLogicalPath()', () => {
+         const path = Resolvers.parseComponentName(TEMPLATE_AS_SIMPLE_PATH);
+         assert.isFalse(path.hasLogicalPath());
+      });
+      it('hasPlugins()', () => {
+         const path = Resolvers.parseComponentName(TEMPLATE_AS_SIMPLE_PATH);
+         assert.isFalse(path.hasPlugins());
+      });
+   });
+   describe('parseTemplatePath() Module', () => {
+      const TEMPLATE_AS_COMPONENT_PATH = 'UIModule/Module:Component';
+      it('getFullPath()', () => {
+         const path = Resolvers.parseTemplatePath(TEMPLATE_AS_COMPONENT_PATH);
+         assert.strictEqual(path.getFullPath(), 'UIModule/Module:Component');
+      });
+      it('getFullPath() with special UI module name', () => {
+         const path = Resolvers.parseTemplatePath('SBIS3.CONTROLS/Module:Component');
+         assert.strictEqual(path.getFullPath(), 'SBIS3.CONTROLS/Module:Component');
+      });
+      it('getFullPhysicalPath()', () => {
+         const path = Resolvers.parseTemplatePath(TEMPLATE_AS_COMPONENT_PATH);
+         assert.strictEqual(path.getFullPhysicalPath(), 'UIModule/Module');
+      });
+      it('getLogicalPath()', () => {
+         const path = Resolvers.parseTemplatePath(TEMPLATE_AS_COMPONENT_PATH);
+         assert.deepEqual(path.getLogicalPath(), ['Component']);
+      });
+      it('hasLogicalPath()', () => {
+         const path = Resolvers.parseTemplatePath(TEMPLATE_AS_COMPONENT_PATH);
+         assert.isTrue(path.hasLogicalPath());
+      });
+      it('hasPlugins()', () => {
+         const path = Resolvers.parseTemplatePath(TEMPLATE_AS_COMPONENT_PATH);
+         assert.isFalse(path.hasPlugins());
       });
    });
    describe('helpers', () => {

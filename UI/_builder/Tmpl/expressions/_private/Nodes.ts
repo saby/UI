@@ -32,7 +32,6 @@ export interface ISourceLocation {
 declare type TReturn = string | void;
 
 interface IContext {
-   fileName: string;
 }
 
 export interface IExpressionVisitor<C, R> {
@@ -58,6 +57,7 @@ export interface IExpressionVisitor<C, R> {
 }
 
 interface IExpressionVisitorContext extends IContext {
+   fileName: string;
    isControl: boolean;
    attributeName: string;
    isExprConcat: boolean;
@@ -483,14 +483,6 @@ export class EventExpressionVisitor extends ExpressionVisitor {
       throw new Error('Ожидалось, что обработчик события является функцией');
    }
 
-   visitArrayExpressionNode(node: ArrayExpressionNode, context: IExpressionVisitorContext): string {
-      return super.visitArrayExpressionNode(node, context);
-   }
-
-   visitBinaryExpressionNode(node: BinaryExpressionNode, context: IExpressionVisitorContext): string {
-      return super.visitBinaryExpressionNode(node, context);
-   }
-
    visitCallExpressionNode(node: CallExpressionNode, context: IExpressionVisitorContext): string {
       if (this.state !== EventVisitorState.BEFORE_HANDLER) {
          return super.visitCallExpressionNode(node, context);
@@ -507,34 +499,6 @@ export class EventExpressionVisitor extends ExpressionVisitor {
       return callee as string;
    }
 
-   visitConditionalExpressionNode(node: ConditionalExpressionNode, context: IExpressionVisitorContext): string {
-      return super.visitConditionalExpressionNode(node, context);
-   }
-
-   visitDecoratorCallNode(node: DecoratorCallNode, context: IExpressionVisitorContext): string {
-      return super.visitDecoratorCallNode(node, context);
-   }
-
-   visitDecoratorChainCallNode(node: DecoratorChainCallNode, context: IExpressionVisitorContext): string {
-      return super.visitDecoratorChainCallNode(node, context);
-   }
-
-   visitDecoratorChainContext(node: DecoratorChainContext, context: IExpressionVisitorContext): string {
-      return super.visitDecoratorChainContext(node, context);
-   }
-
-   visitEmptyStatementNode(node: EmptyStatementNode, context: IExpressionVisitorContext): string {
-      return super.visitEmptyStatementNode(node, context);
-   }
-
-   visitExpressionBrace(node: ExpressionBrace, context: IExpressionVisitorContext): string {
-      return super.visitExpressionBrace(node, context);
-   }
-
-   visitExpressionStatementNode(node: ExpressionStatementNode, context: IExpressionVisitorContext): string {
-      return super.visitExpressionStatementNode(node, context);
-   }
-
    visitIdentifierNode(node: IdentifierNode, context: IExpressionVisitorContext): string {
       const identifierContext = { ...context };
       if (this.state === EventVisitorState.IN_HANDLER) {
@@ -546,34 +510,20 @@ export class EventExpressionVisitor extends ExpressionVisitor {
       return super.visitIdentifierNode(node, identifierContext);
    }
 
-   visitLiteralNode(node: LiteralNode, context: IExpressionVisitorContext): string {
-      return super.visitLiteralNode(node, context);
-   }
-
-   visitLogicalExpressionNode(node: LogicalExpressionNode, context: IExpressionVisitorContext): string {
-      return super.visitLogicalExpressionNode(node, context);
-   }
-
    visitMemberExpressionNode(node: MemberExpressionNode, context: IExpressionVisitorContext): string {
       const expressionContext = { ...context };
       if (this.state === EventVisitorState.IN_HANDLER) {
-         this.state = EventVisitorState.IN_CONTEXT;
-         if (!node.computed) {
-            this.handlerName = (node.property as IdentifierNode).name;
-         } else {
+         if (node.computed) {
             throw new Error('Имя функции-обработчика события не может быть вычисляемым');
          }
+         this.state = EventVisitorState.IN_CONTEXT;
+         this.handlerName = (node.property as IdentifierNode).name;
          this.context = node.object.accept(this, expressionContext) as string;
       } else if (this.state === EventVisitorState.IN_ARGUMENTS) {
          // Для аргументов не запрещаем вычисляемые поля
          expressionContext.forbidComputedMembers = false;
       }
       return super.visitMemberExpressionNode(node, expressionContext);
-
-   }
-
-   visitObjectExpressionNode(node: ObjectExpressionNode, context: IExpressionVisitorContext): string {
-      return super.visitObjectExpressionNode(node, context);
    }
 
    visitProgramNode(node: ProgramNode, context: IExpressionVisitorContext): string {
@@ -584,18 +534,6 @@ export class EventExpressionVisitor extends ExpressionVisitor {
       // Начинаем читать контекст-функцию обработчика
       this.state = EventVisitorState.BEFORE_HANDLER;
       return node.body[0].accept(this, context) as string;
-   }
-
-   visitSequenceExpressionNode(node: SequenceExpressionNode, context: IExpressionVisitorContext): string {
-      return super.visitSequenceExpressionNode(node, context);
-   }
-
-   visitThisExpressionNode(node: ThisExpressionNode, context: IExpressionVisitorContext): string {
-      return super.visitThisExpressionNode(node, context);
-   }
-
-   visitUnaryExpressionNode(node: UnaryExpressionNode, context: IExpressionVisitorContext): string {
-      return super.visitUnaryExpressionNode(node, context);
    }
 }
 

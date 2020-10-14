@@ -6,7 +6,7 @@
  */
 
 import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
-import { IPath } from 'UI/_builder/Tmpl/core/Path';
+import { IPath } from 'UI/_builder/Tmpl/core/Resolvers';
 
 // tslint:disable:max-classes-per-file
 // Намеренно отключаю правило max-classes-per-file
@@ -390,7 +390,19 @@ export enum Flags {
     * Flag for node that must be ignored in next processing.
     * It used for comment node, broken or unknown node.
     */
-   IGNORABLE = 32
+   IGNORABLE = 32,
+
+   /**
+    * Data node type has explicit name.
+    */
+   TARGET_TYPE_CASTED = 64,
+
+   /**
+    * Flag for type casted node that has been changed its view:
+    * Processing node have been wrapped into another data type node.
+    * Data node type has explicit name.
+    */
+   OBVIOUSLY_TYPE_CASTED = TARGET_TYPE_CASTED | TYPE_CASTED
 }
 
 /**
@@ -401,7 +413,7 @@ export abstract class Ast {
    /**
     * Abstract syntax node key in the abstract syntax tree.
     */
-   __$ws_key: string;
+   __$ws_key: number;
 
    /**
     * Processing flags.
@@ -413,7 +425,7 @@ export abstract class Ast {
     * @param flags {Flags} Node flags.
     */
    protected constructor(flags: Flags = Flags.VALIDATED) {
-      this.__$ws_key =  '';
+      this.__$ws_key =  0;
       this.__$ws_flags = flags;
    }
 
@@ -436,7 +448,7 @@ export abstract class Ast {
    /**
     * Get internal node key.
     */
-   getKey(): string {
+   getKey(): number {
       return this.__$ws_key;
    }
 
@@ -444,7 +456,7 @@ export abstract class Ast {
     * Set internal node key.
     * @param key {string} Key value.
     */
-   setKey(key: string): void {
+   setKey(key: number): void {
       this.__$ws_key = key;
    }
 
@@ -520,7 +532,8 @@ export abstract class BaseWasabyElement extends BaseHtmlElement {
    setOption(option: OptionNode | ContentOptionNode): void {
       const name = option.__$ws_name;
       if (this.hasOption(name)) {
-         throw new Error(`Опция "${name}" уже определена на компоненте`);
+         // FIXME: this already checked before set
+         // throw new Error(`Опция "${name}" уже определена на компоненте`);
       }
       if (option instanceof OptionNode) {
          this.__$ws_options[name] = option;
@@ -574,6 +587,12 @@ export class AttributeNode extends Ast {
    __$ws_name: string;
 
    /**
+    * Origin attribute name has attr prefix.
+    * @deprecated
+    */
+   __$ws_hasAttributePrefix: boolean;
+
+   /**
     * Attribute value.
     */
    __$ws_value: TText[];
@@ -582,11 +601,13 @@ export class AttributeNode extends Ast {
     * Initialize new instance of attribute node.
     * @param name {string} Attribute name.
     * @param value {TText[]} Attribute value.
+    * @param hasAttributePrefix {boolean} Origin attribute name has attr prefix.
     */
-   constructor(name: string, value: TText[]) {
+   constructor(name: string, value: TText[], hasAttributePrefix: boolean = false) {
       super();
       this.__$ws_name = name;
       this.__$ws_value = value;
+      this.__$ws_hasAttributePrefix = hasAttributePrefix;
    }
 
    /**

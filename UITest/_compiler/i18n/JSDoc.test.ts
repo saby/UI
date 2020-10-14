@@ -15,6 +15,10 @@ const JSDoc = {
                   'type': 'Array',
                   'translatable': true
                },
+               'translatableArrayOption': {
+                  'type': 'Array',
+                  'itemType': 'ArrayItems.typedef'
+               },
                'booleanOption': {
                   'type': 'Boolean'
                },
@@ -38,58 +42,42 @@ const JSDoc = {
                   'type': 'String',
                   'translatable': true
                },
-               'standardObject': {
-                  'itemType': 'Items.typedef',
-                  'type': 'object'
-               },
-               'standardObject2': {
-                  'itemType': 'StandardObject.Typedef',
+               'specialObjectOption': {
+                  'itemType': 'SpecialObject.typedef',
                   'type': 'object'
                },
                'fullyTranslatableObject': {
                   'type': 'object',
                   'translatable': true
+               }
+            }
+         }
+      }
+   },
+   'ArrayItems.typedef': {
+      'properties': {
+         'ws-config': {
+            'options': {
+               'translatableOption': {
+                  'translatable': true
                },
-               'hiddenObject': {
-                  'itemType': 'HiddenObject.Typedef',
-                  'type': 'object'
+               'notTranslatableOption': {
+                  'translatable': false
                }
             }
          }
       }
    },
-   'StandardObject.Typedef': {
+   'SpecialObject.typedef': {
       'properties': {
          'ws-config': {
             'options': {
-               'translatableString': {
-                  'translatable': true
-               }
-            }
-         }
-      }
-   },
-   'HiddenObject.Typedef': {
-      'properties': {
-         'ws-config': {
-            'options': {
-               'translateMe': {
-                  'translatable': true
-               }
-            }
-         }
-      }
-   },
-   'Items.typedef': {
-      'properties': {
-         'ws-config': {
-            'options': {
-               'translatableArrayField': {
+               'translatableProperty': {
                   'arrayElementType': 'String',
                   'type': 'array',
                   'translatable': true
                },
-               'untranslatableArray': {
+               'notTranslatableProperty': {
                   'arrayElementType': 'String',
                   'type': 'array',
                   'translatable': false
@@ -106,6 +94,20 @@ describe('Compiler/i18n/JSDoc', () => {
    it('Unknown component', () => {
       const description = JS_DOC_PROCESSOR.getComponentDescription('UIModule/UnknownComponent');
       assert.isFalse(description.isPropertyTranslatable('property'));
+   });
+   describe('Special components', () => {
+      it('optional!UIModule/Component', () => {
+         const description = JS_DOC_PROCESSOR.getComponentDescription('optional!UIModule/Component');
+         assert.isTrue(description.isPropertyTranslatable('translatableStringOption'));
+      });
+      it('js!UIModule/Component', () => {
+         const description = JS_DOC_PROCESSOR.getComponentDescription('js!UIModule/Component');
+         assert.isTrue(description.isPropertyTranslatable('translatableStringOption'));
+      });
+      it('optional!js!UIModule/Component', () => {
+         const description = JS_DOC_PROCESSOR.getComponentDescription('optional!js!UIModule/Component');
+         assert.isTrue(description.isPropertyTranslatable('translatableStringOption'));
+      });
    });
    describe('Primitive types', () => {
       it('Boolean', () => {
@@ -148,9 +150,21 @@ describe('Compiler/i18n/JSDoc', () => {
       });
    });
    describe('Types with definition', () => {
-      it('todo', () => {
-         // @ts-ignore TODO: !!!
+      it('Translatable object property in array', () => {
          const description = JS_DOC_PROCESSOR.getComponentDescription('UIModule/Component');
+         assert.isTrue(description.isPropertyTranslatable('translatableArrayOption/translatableOption'));
+      });
+      it('Not translatable object property in array', () => {
+         const description = JS_DOC_PROCESSOR.getComponentDescription('UIModule/Component');
+         assert.isFalse(description.isPropertyTranslatable('translatableArrayOption/notTranslatableOption'));
+      });
+      it('Translatable object property', () => {
+         const description = JS_DOC_PROCESSOR.getComponentDescription('UIModule/Component');
+         assert.isTrue(description.isPropertyTranslatable('specialObjectOption/translatableProperty'));
+      });
+      it('Not translatable object property', () => {
+         const description = JS_DOC_PROCESSOR.getComponentDescription('UIModule/Component');
+         assert.isFalse(description.isPropertyTranslatable('specialObjectOption/notTranslatableProperty'));
       });
    });
 });

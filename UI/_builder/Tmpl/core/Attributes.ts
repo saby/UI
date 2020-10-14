@@ -11,6 +11,7 @@ import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { ITextProcessor, TextContentFlags, ITranslationsRegistrar } from 'UI/_builder/Tmpl/core/Text';
 import { INodeDescription } from 'UI/_builder/Tmpl/i18n/Translator';
+import { IValidator } from 'UI/_builder/Tmpl/expressions/_private/Validator';
 
 /**
  * Empty string constant.
@@ -86,25 +87,33 @@ const SPECIAL_ATTRIBUTES_COLLECTION = [
    'ws-tab-cycling',
    'ws-autofocus',
    'ws-no-focus',
-   'tabindex'
+   'tabindex',
+   'class',
+   'data-access'
 ];
 
 /**
  * Check if attribute name has special attribute prefix.
  * @param name {string} Attribute name.
- * @param check {boolean} Check or not if attribute name contains in collection of special attribute names.
  */
-export function isAttribute(name: string, check: boolean = false): boolean {
-   return ATTR_PREFIX_PATTERN.test(name) || checkAttributesOnly(name, check);
+function hasWasabyPrefix(name: string): boolean {
+   return ATTR_PREFIX_PATTERN.test(name);
+}
+
+/**
+ * Check if attribute name has special attribute prefix.
+ * @param name {string} Attribute name.
+ */
+export function isAttribute(name: string): boolean {
+   return hasWasabyPrefix(name) || checkAttributesOnly(name);
 }
 
 /**
  *
  * @param name {string} Attribute name.
- * @param check {boolean} Do check or not.
  */
-function checkAttributesOnly(name: string, check: boolean): boolean {
-   return check && SPECIAL_ATTRIBUTES_COLLECTION.indexOf(name) > -1;
+function checkAttributesOnly(name: string): boolean {
+   return SPECIAL_ATTRIBUTES_COLLECTION.indexOf(name) > -1;
 }
 
 /**
@@ -221,6 +230,14 @@ export interface IAttributeProcessor {
    process(attributes: Nodes.IAttributes, options: IAttributeProcessorOptions, nodeDescription?: INodeDescription): IAttributesCollection;
 
    /**
+    * Process raw html attributes collection and create a new collection of
+    * processed option nodes.
+    * @param attributes {IAttributes} Collection of raw html attributes.
+    * @param options {IAttributeProcessorOptions} Processing options.
+    */
+   processOptions(attributes: Nodes.IAttributes, options: IAttributeProcessorOptions): Ast.IObjectProperties;
+
+   /**
     * Filter raw html attributes collection.
     * @param attributes {IAttributes} Collection of raw html attributes.
     * @param expectedAttributeNames {string[]} Collection of expected attribute names.
@@ -259,6 +276,11 @@ export interface IAttributeProcessorConfig {
     * Text processor.
     */
    textProcessor: ITextProcessor;
+
+   /**
+    * Mustache-expressions validator.
+    */
+   expressionValidator: IValidator;
 
    /**
     * Warn in case of using useless attribute prefix.
@@ -302,6 +324,11 @@ class AttributeProcessor implements IAttributeProcessor {
    private readonly warnBooleanAttributesAndOptions: boolean;
 
    /**
+    * Mustache-expressions validator.
+    */
+   private readonly expressionValidator: IValidator;
+
+   /**
     * Initialize new instance of attribute processor.
     * @param config {IAttributeProcessorConfig} Attribute processor config.
     */
@@ -311,6 +338,7 @@ class AttributeProcessor implements IAttributeProcessor {
       this.textProcessor = config.textProcessor;
       this.warnUselessAttributePrefix = !!config.warnUselessAttributePrefix;
       this.warnUselessAttributePrefix = !!config.warnBooleanAttributesAndOptions;
+      this.expressionValidator = config.expressionValidator;
    }
 
    /**
@@ -321,6 +349,8 @@ class AttributeProcessor implements IAttributeProcessor {
     * @param nodeDescription {INodeDescription} Processing node description.
     */
    process(attributes: Nodes.IAttributes, options: IAttributeProcessorOptions, nodeDescription?: INodeDescription): IAttributesCollection {
+      // FIXME: keep processing attributes order
+      let index: number = 0;
       const collection: IAttributesCollection = {
          attributes: { },
          options: { },
@@ -332,6 +362,7 @@ class AttributeProcessor implements IAttributeProcessor {
             if (isBind(attributeName)) {
                const bindNode = this.processBind(node, options);
                if (bindNode) {
+                  bindNode.__$ws_key = index++;
                   collection.events[`bind:${bindNode.__$ws_property}`] = bindNode;
                }
                continue;
@@ -339,6 +370,7 @@ class AttributeProcessor implements IAttributeProcessor {
             if (isEvent(attributeName)) {
                const eventNode = this.processEvent(node, options);
                if (eventNode) {
+                  eventNode.__$ws_key = index++;
                   collection.events[`on:${eventNode.__$ws_event}`] = eventNode;
                }
                continue;
@@ -355,8 +387,10 @@ class AttributeProcessor implements IAttributeProcessor {
                   );
                }
                if (attributeNode) {
+                  attributeNode.__$ws_key = index++;
+                  attributeNode.__$ws_hasAttributePrefix = hasWasabyPrefix(attributeName);
                   if (collection.attributes.hasOwnProperty(`attr:${attributeNode.__$ws_name}`)) {
-                     this.errorHandler.error(
+                     this.errorHandler.warn(
                         `Атрибут "${attributeName}" уже содержится на теге "${options.parentTagName}"`,
                         {
                            fileName: options.fileName,
@@ -371,7 +405,31 @@ class AttributeProcessor implements IAttributeProcessor {
             }
             const optionNode = this.processOption(node, options, nodeDescription);
             if (optionNode) {
+               optionNode.__$ws_key = index++;
                collection.options[optionNode.__$ws_name] = optionNode;
+            }
+         }
+      }
+      return collection;
+   }
+
+   /**
+    * Process raw html attributes collection and create a new collection of
+    * processed option nodes.
+    * @param attributes {IAttributes} Collection of raw html attributes.
+    * @param options {IAttributeProcessorOptions} Processing options.
+    */
+   processOptions(attributes: Nodes.IAttributes, options: IAttributeProcessorOptions): Ast.IObjectProperties {
+      // FIXME: keep processing attributes order
+      let index: number = 0;
+      const collection: Ast.IObjectProperties = { };
+      for (const attributeName in attributes) {
+         if (attributes.hasOwnProperty(attributeName)) {
+            const node = attributes[attributeName];
+            const optionNode = this.processOption(node, options);
+            if (optionNode) {
+               optionNode.__$ws_key = index++;
+               collection[optionNode.__$ws_name] = optionNode;
             }
          }
       }
@@ -441,9 +499,9 @@ class AttributeProcessor implements IAttributeProcessor {
             fileName: options.fileName,
             allowedContent: TextContentFlags.TEXT,
             translateText: false,
-            translationsRegistrar: options.translationsRegistrar
-         },
-         attributeNode.position
+            translationsRegistrar: options.translationsRegistrar,
+            position: attributeNode.position
+         }
       );
       return (<Ast.TextDataNode>processedText[0]).__$ws_content;
    }
@@ -460,6 +518,13 @@ class AttributeProcessor implements IAttributeProcessor {
          const property = getBindName(attributeNode.name);
          const value = this.validateTextValue(attributeNode, options);
          const programNode = this.expressionParser.parse(value);
+         this.expressionValidator.checkBindExpression(
+            programNode,
+            {
+               fileName: options.fileName,
+               position: attributeNode.position
+            }
+         );
          return new Ast.BindNode(property, programNode);
       } catch (error) {
          this.errorHandler.error(
@@ -485,6 +550,13 @@ class AttributeProcessor implements IAttributeProcessor {
          const event = getEventName(attributeNode.name);
          const value = this.validateTextValue(attributeNode, options);
          const programNode = this.expressionParser.parse(value);
+         this.expressionValidator.checkEventExpression(
+            programNode,
+            {
+               fileName: options.fileName,
+               position: attributeNode.position
+            }
+         );
          return new Ast.EventNode(event, programNode);
       } catch (error) {
          this.errorHandler.error(
@@ -512,7 +584,7 @@ class AttributeProcessor implements IAttributeProcessor {
          const attributeValue = validateAttribute(attribute, attributeNode.value);
          if (attributeValue === null) {
             if (this.warnBooleanAttributesAndOptions) {
-               this.errorHandler.error(
+               this.errorHandler.warn(
                   `Обнаружен атрибут "${attributeNode.name}" на теге "${options.parentTagName}", которому не было задано значение`,
                   {
                      fileName: options.fileName,
@@ -527,15 +599,22 @@ class AttributeProcessor implements IAttributeProcessor {
                ]
             );
          }
+         const translateText = nodeDescription
+            ? (
+               nodeDescription.isAttributeTranslatable(attribute)
+               // FIXME: attr:title have never been translated
+               && attributeNode.name !== 'attr:title'
+            )
+            : false;
          const value = this.textProcessor.process(
             attributeValue,
             {
                fileName: options.fileName,
                allowedContent: TextContentFlags.FULL_TEXT,
-               translateText: nodeDescription ? nodeDescription.isAttributeTranslatable(attribute) : false,
-               translationsRegistrar: options.translationsRegistrar
-            },
-            attributeNode.position
+               translateText,
+               translationsRegistrar: options.translationsRegistrar,
+               position: attributeNode.position
+            }
          );
          return new Ast.AttributeNode(attribute, value);
       } catch (error) {
@@ -563,7 +642,7 @@ class AttributeProcessor implements IAttributeProcessor {
          const attributeValue = attributeNode.value;
          if (attributeValue === null) {
             if (this.warnBooleanAttributesAndOptions) {
-               this.errorHandler.error(
+               this.errorHandler.warn(
                   `Обнаружена опция "${attributeNode.name}" на теге "${options.parentTagName}", которой не было задано значение`,
                   {
                      fileName: options.fileName,
@@ -586,9 +665,9 @@ class AttributeProcessor implements IAttributeProcessor {
                fileName: options.fileName,
                allowedContent: TextContentFlags.FULL_TEXT,
                translateText: nodeDescription ? nodeDescription.isOptionTranslatable(attributeNode.name) : false,
-               translationsRegistrar: options.translationsRegistrar
-            },
-            attributeNode.position
+               translationsRegistrar: options.translationsRegistrar,
+               position: attributeNode.position
+            }
          );
          const valueNode = new Ast.ValueNode(value);
          valueNode.setFlag(Ast.Flags.TYPE_CASTED);

@@ -1,6 +1,11 @@
 import { TemplateFunction } from 'UI/Base';
 import { IControlNode } from './_vdom/Synchronizer/interfaces';
-import {IOptions} from './_vdom/Synchronizer/resources/Options';
+import { IOptions } from './_vdom/Synchronizer/resources/Options';
+
+interface IChangedReactiveProp {
+   name: string;
+   stack: string;
+}
 
 let onStartCommitFunc;
 let onEndCommitFunc;
@@ -10,7 +15,12 @@ let onStartSyncFunc;
 let onEndSyncFunc;
 let saveChildrenFunc;
 let foundDevtools = false;
-let changedReactiveProps: WeakMap<IControlNode['control'], string[]>;
+let saveReactivePropsStacks = false;
+let supportReactivePropsStacks = false;
+let changedReactiveProps: WeakMap<
+   IControlNode['control'],
+   IChangedReactiveProp[] | string[] // TODO: string[] это обратная совместимость
+>;
 
 interface ITemplateNode {
    template?: TemplateFunction;
@@ -25,16 +35,13 @@ interface ITemplateChanges {
    attributes: Record<string, string | number>;
    changedAttributes?: IOptions;
    state: object;
-
-   instance?: IControlNode['control'];
-   changedReactiveProps?: string[];
 }
 
 interface IControlChanges extends ITemplateChanges {
    instance: IControlNode['control'];
    context?: object;
    changedContext?: object;
-   changedReactiveProps?: string[];
+   changedReactiveProps?: string[] | IChangedReactiveProp[];
 }
 
 export enum OperationType {
@@ -56,6 +63,9 @@ function injectHook(): boolean {
    }
    // @ts-ignore
    const hook = window.__WASABY_DEV_HOOK__;
+   supportReactivePropsStacks = hook.hasOwnProperty('saveReactivePropsStacks');
+   saveReactivePropsStacks =
+      supportReactivePropsStacks && hook.saveReactivePropsStacks;
    // @ts-ignore
    window.__WASABY_DEV_HOOK__.init({});
    onStartCommitFunc = (...args) => {
@@ -100,6 +110,12 @@ function onStartCommit(
    }
 }
 
+function isControlChanges(
+   data?: ITemplateChanges | IControlChanges
+): data is IControlChanges {
+   return data && data.hasOwnProperty('instance');
+}
+
 /**
  * Сообщает в расширение о завершении работы над нодой
  * @param node
@@ -110,7 +126,7 @@ function onEndCommit(
    data?: ITemplateChanges | IControlChanges
 ): void {
    if (foundDevtools) {
-      if (data && data.instance) {
+      if (isControlChanges(data)) {
          const changedData = changedReactiveProps.get(data.instance);
          if (changedData) {
             data.changedReactiveProps = changedData;
@@ -186,10 +202,22 @@ function saveChangedProps(
 ): void {
    if (foundDevtools) {
       const reactiveProps = changedReactiveProps.get(instance);
-      if (reactiveProps) {
-         reactiveProps.push(propName);
+      let newChangedProp;
+
+      if (supportReactivePropsStacks) {
+         newChangedProp = {
+            name: propName,
+            stack: saveReactivePropsStacks ? new Error().stack : undefined
+         };
       } else {
-         changedReactiveProps.set(instance, [propName]);
+         // TODO: обратная совместимость для расширения, можно удалить после того как в магазин долетит обновление
+         newChangedProp = propName;
+      }
+
+      if (reactiveProps) {
+         reactiveProps.push(newChangedProp);
+      } else {
+         changedReactiveProps.set(instance, [newChangedProp]);
       }
    }
 }

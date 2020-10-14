@@ -3,7 +3,7 @@
       <ws:if data="{{content.app}}">
          <Controls.Container.Async 
             templateName="UIDemo/{{ content.app }}"
-            attr:id="newListView" 
+            attr:id="newListView"
             attr:class="ControlsDemo-Page_content"/>
       </ws:if>
       <ws:else>

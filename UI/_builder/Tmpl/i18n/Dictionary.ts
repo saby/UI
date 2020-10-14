@@ -59,9 +59,9 @@ export class Dictionary {
          return;
       }
       this.items.push({
-         module,
          key,
-         context
+         context,
+         module
       });
    }
 

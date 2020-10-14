@@ -1,9 +1,9 @@
 /**
  * Библиотека горячих клавиш
  * @library UI/HotKey
- * @includes Dispatcher UI/_hotkey/Dispatcher
- * @includes KeyHook UI/_hotkey/KeyHook
- * @includes KeyStop UI/_hotkey/KeyStop
+ * @includes Dispatcher UI/_hotKeys/Dispatcher
+ * @includes KeyHook UI/_hotKeys/KeyHook
+ * @includes KeyStop UI/_hotKeys/KeyStop
  * @public
  * @author Тэн В.А.
  */
