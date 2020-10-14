@@ -180,7 +180,7 @@ function resolveTpl(tpl, deps, includedTemplates) {
    if (tpl === '_$inline_template') {
       return {
          controlClass: '_$inline_template',
-         dataComponent: ''
+         dataComponent: undefined
       };
    }
    if (typeof tpl === 'function') {
@@ -189,8 +189,10 @@ function resolveTpl(tpl, deps, includedTemplates) {
          dataComponent: tpl.prototype ? tpl.prototype._moduleName : ''
       };
    }
+
    let controlClass;
    let dataComponent;
+
    if (typeof tpl === 'string') {
       if (Common.isLibraryModuleString(tpl)) {
          // if this is a module string, it probably is from a dynamic partial template
@@ -198,68 +200,62 @@ function resolveTpl(tpl, deps, includedTemplates) {
          // here and process it in the next `if tpl.library && tpl.module`
          return {
             controlClass: Common.splitModule(tpl),
-            dataComponent: tpl
+            dataComponent: undefined
          };
       }
-      if (Common.isLibraryModuleString(tpl)) {
-         // if this is a module string, it probably is from a dynamic partial template
-         // (ws:partial template="{{someString}}"). Split library name and module name
-         // here and process it in the next `if tpl.library && tpl.module`
-         tpl = Common.splitModule(tpl);
-      } else {
-         let isSlashes;
-         let wasOptional;
-         const newName = Common.splitWs(tpl);
-         if (newName) {
-            tpl = newName;
-         }
-
-         if (tpl.indexOf('/') > -1) {
-            isSlashes = true;
-            if (tpl.indexOf('optional!') > -1) {
-               wasOptional = true;
-            }
-         }
-
-         tpl = tpl.replace('optional!', '');
-         if (includedTemplates && includedTemplates[tpl]) {
-            controlClass = includedTemplates[tpl];
-         }
-
-         if (!controlClass) {
-            controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
-         }
-
-         if (!controlClass) {
-            if (!isSlashes || wasOptional || Common.isCompat()) {
-               /*
-                  * it can be "optional"
-                  * can be tmpl!
-                  * */
-               if (RequireHelper.defined(tpl)) {
-                  controlClass = RequireHelper.require(tpl);
-               }
-            } else {
-               try {
-                  if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
-                     this.cacheModules[tpl] = RequireHelper.require(tpl);
-                  }
-                  controlClass = this.cacheModules[tpl];
-               } catch (e) {
-                  Logger.error('Create component error', controlClass, e);
-               }
-            }
-         }
-         dataComponent = tpl;
-
-         if (controlClass && controlClass.default && controlClass.default.isWasaby) {
-            controlClass = controlClass.default;
-         }
-         return {
-            controlClass: controlClass,
-            dataComponent: dataComponent
-         };
+      let isSlashes;
+      let wasOptional;
+      const newName = Common.splitWs(tpl);
+      if (newName) {
+         tpl = newName;
       }
+
+      if (tpl.indexOf('/') > -1) {
+         isSlashes = true;
+         if (tpl.indexOf('optional!') > -1) {
+            wasOptional = true;
+         }
+      }
+
+      tpl = tpl.replace('optional!', '');
+      if (includedTemplates && includedTemplates[tpl]) {
+         controlClass = includedTemplates[tpl];
+      }
+
+      if (!controlClass) {
+         controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
+      }
+
+      if (!controlClass) {
+         if (!isSlashes || wasOptional || Common.isCompat()) {
+            /*
+               * it can be "optional"
+               * can be tmpl!
+               * */
+            if (RequireHelper.defined(tpl)) {
+               controlClass = RequireHelper.require(tpl);
+            }
+         } else {
+            try {
+               if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
+                  this.cacheModules[tpl] = RequireHelper.require(tpl);
+               }
+               controlClass = this.cacheModules[tpl];
+            } catch (e) {
+               Logger.error('Create component error', controlClass, e);
+            }
+         }
+      }
+      dataComponent = tpl;
+
+      if (controlClass && controlClass.default && controlClass.default.isWasaby) {
+         controlClass = controlClass.default;
+      }
+      return {
+         controlClass: controlClass,
+         dataComponent: dataComponent
+      };
+
    }
    if (tpl && typeof tpl === 'object' && tpl.library && tpl.module) {
       // module type: { library: <requirable module name>, module: <field to take from the library> }
