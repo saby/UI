@@ -294,6 +294,7 @@ function processAfterFor(cyclePreprocess: ICyclePreprocess, context: IContext): 
          )
       );
    }
+   cleanIgnoredIdentifiersFromReactive(context.identifiersStore, cyclePreprocess.ignoredIdentifiers);
    return cyclePreprocess.expressions;
 }
 
@@ -316,7 +317,16 @@ function processAfterForeach(cyclePreprocess: ICyclePreprocess, context: IContex
       wrestNonIgnoredIdentifiers(cyclePreprocess.expressions, cyclePreprocess.ignoredIdentifiers)
    );
    cyclePreprocess.expressions = excludeIgnoredExpressions(cyclePreprocess.expressions, cyclePreprocess.ignoredIdentifiers);
+   cleanIgnoredIdentifiersFromReactive(context.identifiersStore, cyclePreprocess.ignoredIdentifiers);
    return cyclePreprocess.expressions;
+}
+
+function cleanIgnoredIdentifiersFromReactive(identifiersStore: IStorage, ignoredIdentifiers: IStorage): void {
+   for (const ignoredIdentifier in ignoredIdentifiers) {
+      if (identifiersStore[ignoredIdentifier]) {
+         delete identifiersStore[ignoredIdentifier];
+      }
+   }
 }
 
 class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
@@ -469,6 +479,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       appendInternalExpressions(node.__$ws_internal, expressions);
       expressions = expressions.concat(wrestNonIgnoredIdentifiers(expressions, ignoredIdentifiers));
       expressions = excludeIgnoredExpressions(expressions, ignoredIdentifiers);
+      cleanIgnoredIdentifiersFromReactive(context.identifiersStore, ignoredIdentifiers);
       return expressions;
    }
 
