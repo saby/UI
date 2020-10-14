@@ -211,7 +211,7 @@ export class Generator {
                      templateCfg: ICreateControlTemplateCfg,
                      context: string,
                      deps: TDeps): GeneratorObject | Promise<unknown> | Error {
-      let preparedData = this.dataResolver(data, templateCfg, attrs, name);
+      let preparedData = dataResolver(data, templateCfg, attrs, name);
       attrs = preparedData[2];
       const userData = preparedData[1];
       name = nameResolver(name);
@@ -235,7 +235,7 @@ export class Generator {
                    config: IGeneratorConfig,
                    contextObj?: GeneratorEmptyObject,
                    defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error {
-      let preparedData = this.dataResolver(data, templateCfg, attrs, name);
+      let preparedData = dataResolver(data, templateCfg, attrs, name);
       attrs = preparedData[2];
       const userData = preparedData[1];
       name = nameResolver(name);
