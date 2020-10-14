@@ -84,7 +84,6 @@ function appendInternalExpressions(internal: Ast.IInternal, expressions: Ast.Exp
 
       internal[INTERNAL_EXPRESSION_PREFIX + (expressionIndex++)] = {
          data: [
-            // TODO: Do shallow clone in patch
             expressions[index]
          ],
          type: 'text'
@@ -287,7 +286,11 @@ function processAfterFor(cyclePreprocess: ICyclePreprocess, context: IContext): 
    cyclePreprocess.expressions = excludeIgnoredExpressions(cyclePreprocess.expressions, cyclePreprocess.ignoredIdentifiers);
 
    for (let index = 0; index < cyclePreprocess.additionalIdentifiers.length; ++index) {
-      // TODO: expressions.push(processProperty(additionalIdentifiers[index]));
+      cyclePreprocess.expressions.push(
+         new Ast.ExpressionNode(
+            PARSER.parse(cyclePreprocess.additionalIdentifiers[index])
+         )
+      );
    }
    return cyclePreprocess.expressions;
 }
@@ -631,9 +634,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    private annotateEnumerable(collection: Ast.IAttributes | Ast.IEvents | Ast.IOptions | Ast.IObjectProperties, context: IContext, expressions: Ast.ExpressionNode[]): void {
       for (const name in collection) {
          const item = collection[name];
-         expressions.push(
-            item.accept(this, context)
-         );
+         item.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
+            expressions.push(expression);
+         });
       }
    }
 }
