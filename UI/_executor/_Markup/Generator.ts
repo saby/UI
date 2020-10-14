@@ -296,26 +296,30 @@ export class Generator {
       if (type === 'wsControl') {
          if (Common.isCompat()) {
             res = timing.methodExecutionTime(this.createWsControl, this, [name, userData, attrs, context, deps]);
-         } else {
-            res = this.createWsControl(name, userData, attrs, context, deps);
+            return checkResult.call(this, res, type);
          }
+         res = this.createWsControl(name, userData, attrs, context, deps);
+         return checkResult.call(this, res, type);
       }
       // типа контрола - шаблон
       if (type === 'template') {
          if (Common.isCompat()) {
             res = timing.methodExecutionTime(this.createTemplate, this, [name, userData, attrs, context, deps, config]);
-         } else {
-            res = this.createTemplate(name, userData, attrs, context, deps, config);
+            return checkResult.call(this, res, type);
          }
+         res = this.createTemplate(name, userData, attrs, context, deps, config);
+         return checkResult.call(this, res, type);
 
       }
       // тип контрола - компонент без шаблона
       if (type === 'controller') {
          if (Common.isCompat()) {
             res = timing.methodExecutionTime(this.createController, this, [name, userData, attrs, context, deps]);
-         } else {
-            res = this.createController(name, userData, attrs, context, deps);
+            return checkResult.call(this, res, type);
          }
+         res = this.createController(name, userData, attrs, context, deps);
+         return checkResult.call(this, res, type);
+
       }
       // когда тип вычисляемый, запускаем функцию вычисления типа и там обрабатываем тип
       if (type === 'resolver') {
@@ -333,34 +337,11 @@ export class Generator {
          }
          if (Common.isCompat()) {
             res = timing.methodExecutionTime(this.resolver, this, [name, userData, attrs, context, deps, includedTemplates, config, defCollection]);
-         } else {
-            res = this.resolver(name, userData, attrs, context, deps, includedTemplates, config, defCollection);
+            return checkResult.call(this, res, type);
          }
-      }
-      if (res !== undefined) {
-         return res;
-      } else {
-         /**
-          * Если у нас есть имя и тип, значит мы выполнили код выше
-          * Функции шаблонизации возвращают undefined, когда работают на клиенте
-          * с уже построенной версткой
-          * А вот если нам не передали каких-то данных сюда, то мы ничего не строили,
-          * а значит это ошибка и нужно обругаться.
-          */
-         if ((typeof name !== 'undefined') && type) {
-            return this.createEmptyText();
-         }
-         if (typeof name === 'undefined') {
-            Logger.error('Попытка использовать компонент/шаблон, ' +
-               'но вместо компонента в шаблоне в опцию template был передан undefined! ' +
-               'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
-               'По стеку будет понятно, в каком шаблоне и в какую опцию передается undefined');
-
-            return this.createEmptyText();
-         }
-         throw new Error('MarkupGenerator: createControl type not resolved');
-      }
-
+         res = this.resolver(name, userData, attrs, context, deps, includedTemplates, config, defCollection);
+         return checkResult.call(this, res, type);
+      }    
    };
 
    prepareDataForCreate(tplOrigin, scope, attrs, deps, includedTemplates?) {
