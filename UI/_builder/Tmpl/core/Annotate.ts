@@ -35,6 +35,14 @@ interface ICyclePreprocess {
 
 const EMPTY_ARRAY = [];
 
+const NOT_REACTIVE_IDENTIFIERS = [
+   '...',
+   '_options',
+   '_container',
+   '_children',
+   'rk'
+];
+
 function setRootNodeFlags(nodes: Ast.Ast[]): void {
    nodes.forEach((node) => {
       if (node instanceof Ast.IfNode) {
@@ -183,8 +191,25 @@ function processAfterForeach(cyclePreprocess: ICyclePreprocess, context: IContex
 class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    annotate(nodes: Ast.Ast[]): IAnnotatedTree {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      const childrenStorage = [ ];
+      const identifiersStore = { };
+      nodes.forEach((node: Ast.Ast) => {
+         const context: IContext = {
+            childrenStorage,
+            identifiersStore
+         };
+         const expressions: Ast.ExpressionNode[] = node.accept(this, context);
+         node.__$ws_internal = { };
+         appendInternalExpressions(node.__$ws_internal, expressions);
+      });
+      const reactiveProperties = Object
+         .keys(identifiersStore)
+         .filter((item: string) => NOT_REACTIVE_IDENTIFIERS.indexOf(item) === -1);
+      const result = <IAnnotatedTree>nodes;
+      result.childrenStorage = childrenStorage;
+      result.reactiveProps = reactiveProperties;
+      result.__newVersion = true;
+      return result;
    }
 
    // <editor-fold desc="Data types">
