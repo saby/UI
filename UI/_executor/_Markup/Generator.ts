@@ -196,7 +196,7 @@ function resolveTpl(tpl, deps, includedTemplates) {
          // here and process it in the next `if tpl.library && tpl.module`
          return {
             controlClass: Common.splitModule(tpl),
-            dataComponent: ''
+            dataComponent: tpl
          };
       }
       return isStringTpl.call(this, tpl, deps, includedTemplates);
