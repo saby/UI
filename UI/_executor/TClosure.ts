@@ -105,7 +105,7 @@ var lastGetterPath;
 var
    getter = function getter(obj, path, viewController) {
       lastGetterPath = path;
-      const getterResult = constants.isProduction ? object.extractValue(obj, path) :
+      const getterResult = constants.isProduction ? object.extractValue(obj, path, null) :
          object.extractValue(obj, path, (name: string, scope: unknown, depth: number): void => {
          if (scope.hasOwnProperty('_$' + name)) {
             const error = scope['_$' + name];
