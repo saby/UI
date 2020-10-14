@@ -4,7 +4,7 @@
  */
 
 /* tslint:disable */
-// @ts-nocheck
+// @ts-nocheck1
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { composeWithResultApply } from '../../Utils/Functional';
@@ -1280,37 +1280,40 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         destroyedNodes, selfDirtyNodes, isSelfDirty)
 }
 
-function mapChildren(currentMemo: MemoForNode, newNode: IControlNode, childrenRebuildFinalResults, environment, isRebuildTemplate: boolean) {
+function mapChildren(currentMemo, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty) {
     const childrenRebuild = createChildrenResult(childrenRebuildFinalResults);
     if (!newNode.markup) {
         // Во время ожидания асинхронного ребилда контрол уничтожился, обновлять его уже не нужно.
-        return childrenRebuild.memo
+        return {
+            value: newNode,
+            memo: childrenRebuild.memo
+        };
     }
 
     newNode.childrenNodes = childrenRebuild.value;
-    if (!isRebuildTemplate && newNode?.fullMarkup?.changed) {
-        concatMemo(currentMemo, childrenRebuild.memo);
-        return currentMemo;
+    if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
+        var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
+        newNode.fullMarkup = environment.decorateFullMarkup(
+            getFullMarkup(
+                newNode.childrenNodes,
+                newNode.markup,
+                undefined,
+                needRenderMarkup || isSelfDirty ? undefined : newNode.fullMarkup,
+                newNode.parent
+            ),
+            newNode
+        );
+        newNode.fullMarkup.changed =
+            wasChanged || newNode.fullMarkup.changed || (needRenderMarkup || isSelfDirty);
+        if (newNode.fullMarkup.changed) {
+            setChangedForNode(newNode);
+        }
     }
 
-    var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
-    newNode.fullMarkup = environment.decorateFullMarkup(
-        getFullMarkup(
-            newNode.childrenNodes,
-            newNode.markup,
-            undefined,
-            isRebuildTemplate ? undefined : newNode.fullMarkup,
-            newNode.parent
-        ),
-        newNode
-    );
-    newNode.fullMarkup.changed = wasChanged || newNode.fullMarkup.changed || isRebuildTemplate;
-    if (newNode.fullMarkup.changed) {
-        setChangedForNode(newNode);
-    }
-
-    concatMemo(currentMemo, childrenRebuild.memo);
-    return currentMemo;
+    return {
+        value: newNode,
+        memo: concatMemo(currentMemo, childrenRebuild.memo)
+    };
 }
 
 
@@ -1345,19 +1348,11 @@ function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode,
     });
 
     if (!haveAsync) {
-        return {
-            value: newNode,
-            memo: mapChildren(currentMemo, newNode, childrenRebuildResults, environment, needRenderMarkup || isSelfDirty)
-        };
+        return mapChildren(currentMemo, newNode, childrenRebuildResults, environment, needRenderMarkup, isSelfDirty);
     }
 
     return Promise.all(childrenRebuildResults).then(
-        (res) => {
-            return {
-                value: newNode,
-                memo: mapChildren(currentMemo, newNode, res, environment, needRenderMarkup || isSelfDirty),
-            };
-        },
+        (res) => mapChildren(currentMemo, newNode, res, environment, needRenderMarkup, isSelfDirty),
         (err) => {
             Logger.asyncRenderErrorLog(err);
             return err;
