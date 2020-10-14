@@ -12,6 +12,11 @@
 import Scope from 'UI/_builder/Tmpl/core/Scope';
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 
+// This module can only be referenced with ECMAScript imports/exports
+// by turning on the 'esModuleInterop' flag and referencing its default export.
+// @ts-ignore
+import { FunctionUtils } from 'UI/Utils';
+
 interface INavigationContext {
    scope: Scope;
    currentKey: string;
@@ -30,6 +35,14 @@ function isTemplateType(fullPath: string): boolean {
    return hasTemplatePlugin || !hasTemplatePlugin && hasOptionalPlugin && !hasSlashes;
 }
 
+function copyInternal(internal: Ast.IInternal): any {
+   const copy = { };
+   for (const property in internal) {
+      copy[property] = FunctionUtils.shallowClone(internal[property]);
+   }
+   return copy;
+}
+
 class PatchVisitor implements Ast.IAstVisitor {
    // done.
    visitDoctype(node: Ast.DoctypeNode, context: INavigationContext): any {
@@ -39,6 +52,8 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.name = '!DOCTYPE';
       // @ts-ignore
       node.data = node.__$ws_data;
+      // @ts-ignore
+      node.isRootTag = node.__$ws_isRootNode;
       return node;
    }
 
@@ -50,6 +65,8 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.name = '![CDATA[';
       // @ts-ignore
       node.data = node.__$ws_data;
+      // @ts-ignore
+      node.isRootTag = node.__$ws_isRootNode;
       return node;
    }
 
@@ -61,6 +78,8 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.name = '?';
       // @ts-ignore
       node.data = node.__$ws_data;
+      // @ts-ignore
+      node.isRootTag = node.__$ws_isRootNode;
       return node;
    }
 
@@ -136,6 +155,12 @@ class PatchVisitor implements Ast.IAstVisitor {
             type: 'text'
          },
       };
+      // @ts-ignore
+      node.isRootTag = node.__$ws_isRootNode;
+      if (node.__$ws_internal) {
+         // @ts-ignore
+         node.internal = copyInternal(node.__$ws_internal);
+      }
       return node;
    }
 
@@ -175,6 +200,12 @@ class PatchVisitor implements Ast.IAstVisitor {
          value: node.__$ws_iterator.string,
          main: node.__$ws_collection
       };
+      // @ts-ignore
+      node.isRootTag = node.__$ws_isRootNode;
+      if (node.__$ws_internal) {
+         // @ts-ignore
+         node.internal = copyInternal(node.__$ws_internal);
+      }
       return node;
    }
 
@@ -249,6 +280,10 @@ class PatchVisitor implements Ast.IAstVisitor {
             currentKey: context.currentKey + nodes[i].__$ws_key + '_'
          };
          const child = nodes[i].accept(this, childContext);
+         if (nodes[i].__$ws_internal) {
+            // @ts-ignore
+            child.internal = copyInternal(nodes[i].__$ws_internal);
+         }
          if (child) {
             children.splice(nodes[i].__$ws_key, child, child);
          }
@@ -272,6 +307,12 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.originName = 'ws:template';
       // @ts-ignore
       node.type = 'tag';
+      // @ts-ignore
+      node.isRootTag = node.__$ws_isRootNode;
+      if (node.__$ws_internal) {
+         // @ts-ignore
+         node.internal = copyInternal(node.__$ws_internal);
+      }
       return node;
    }
 
@@ -380,6 +421,12 @@ class PatchVisitor implements Ast.IAstVisitor {
                key: undefined,
                type: 'text'
             };
+            // @ts-ignore
+            node.isRootTag = node.__$ws_isRootNode;
+            if (node.__$ws_internal) {
+               // @ts-ignore
+               node.internal = copyInternal(node.__$ws_internal);
+            }
             return node;
          }
          // @ts-ignore
@@ -388,6 +435,12 @@ class PatchVisitor implements Ast.IAstVisitor {
             value: node.__$ws_unpackedCycle.__$ws_iterator.string,
             main: node.__$ws_unpackedCycle.__$ws_collection
          };
+      }
+      // @ts-ignore
+      node.isRootTag = node.__$ws_isRootNode;
+      if (node.__$ws_internal) {
+         // @ts-ignore
+         node.internal = copyInternal(node.__$ws_internal);
       }
       return node;
    }
@@ -480,6 +533,12 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.key = context.currentKey;
       // @ts-ignore
       node.type = 'tag';
+      // @ts-ignore
+      node.isRootTag = node.__$ws_isRootNode;
+      if (node.__$ws_internal) {
+         // @ts-ignore
+         node.internal = copyInternal(node.__$ws_internal);
+      }
       return node;
    }
 
@@ -511,6 +570,12 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.key = context.currentKey;
       // @ts-ignore
       node.type = 'tag';
+      // @ts-ignore
+      node.isRootTag = node.__$ws_isRootNode;
+      if (node.__$ws_internal) {
+         // @ts-ignore
+         node.internal = copyInternal(node.__$ws_internal);
+      }
       return node;
    }
 
@@ -531,12 +596,16 @@ class PatchVisitor implements Ast.IAstVisitor {
          node.attribs = patchedOptionValue.attribs;
          // @ts-ignore
          node.children = patchedOptionValue.children;
+         // @ts-ignore
+         node.isRootTag = node.__$ws_isRootNode;
          return node;
       }
       // @ts-ignore
       node.children = this.visitAll([ node.__$ws_value ], context);
       // @ts-ignore
       node.attribs = undefined;
+      // @ts-ignore
+      node.isRootTag = node.__$ws_isRootNode;
       return node;
    }
 
@@ -567,6 +636,12 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.originName = `ws:${node.__$ws_name}`;
       // @ts-ignore
       node.type = 'tag';
+      // @ts-ignore
+      node.isRootTag = node.__$ws_isRootNode;
+      if (node.__$ws_internal) {
+         // @ts-ignore
+         node.internal = copyInternal(node.__$ws_internal);
+      }
       return node;
    }
 
@@ -607,6 +682,12 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.type = 'tag';
       // @ts-ignore
       node.injectedData = this.collectContents(node, context);
+      // @ts-ignore
+      node.isRootTag = node.__$ws_isRootNode;
+      if (node.__$ws_internal) {
+         // @ts-ignore
+         node.internal = copyInternal(node.__$ws_internal);
+      }
       return node;
    }
 
@@ -910,6 +991,12 @@ class PatchVisitor implements Ast.IAstVisitor {
          // @ts-ignore
          node.injectedData = injectedData;
       }
+      // @ts-ignore
+      node.isRootTag = node.__$ws_isRootNode;
+      if (node.__$ws_internal) {
+         // @ts-ignore
+         node.internal = copyInternal(node.__$ws_internal);
+      }
       return node;
    }
 
@@ -982,6 +1069,12 @@ class PatchVisitor implements Ast.IAstVisitor {
       };
       // @ts-ignore
       node.injectedData = this.collectContents(node, innerContext);
+      // @ts-ignore
+      node.isRootTag = node.__$ws_isRootNode;
+      if (node.__$ws_internal) {
+         // @ts-ignore
+         node.internal = copyInternal(node.__$ws_internal);
+      }
       return node;
    }
 
@@ -1031,6 +1124,12 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.children = children;
       // @ts-ignore
       node.injectedData = children;
+      // @ts-ignore
+      node.isRootTag = node.__$ws_isRootNode;
+      if (node.__$ws_internal) {
+         // @ts-ignore
+         node.internal = copyInternal(node.__$ws_internal);
+      }
       return node;
    }
 
