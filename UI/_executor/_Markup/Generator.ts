@@ -270,7 +270,7 @@ function calculateDataComponent(tplOrigin) {
 //    };
 // }
 
-function isCompatPatch(controlClass, controlProperties, attrs) {
+function isCompatPatch(controlClass, controlProperties, attrs, fromOld) {
    // const fromOld = controlClass && controlClass.prototype && Common.isCompound(controlClass);
    // if (fromOld) {
    //    for (let key in attrs.events) {
@@ -695,7 +695,7 @@ export class Generator {
       OptionsResolver.resolveInheritOptions(controlClass, attrs, controlProperties);
 
       if (Common.isCompat()) {
-         isCompatPatch(controlClass, controlProperties, attrs);
+         isCompatPatch(controlClass, controlProperties, attrs, fromOld);
       }
 
       return {
