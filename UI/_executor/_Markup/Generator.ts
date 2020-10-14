@@ -210,36 +210,36 @@ function resolveTpl(tpl, deps, includedTemplates) {
    };
 }
 
-function isCompatPatch(controlClass, controlProperties, attrs) {
-   const fromOld = controlClass && controlClass.prototype && Common.isCompound(controlClass);
-   if (fromOld) {
-      for (let key in attrs.events) {
-         controlProperties[key] = attrs.events[key];
-      }
-   }
-
-   if (controlProperties && controlProperties.enabled === undefined) {
-      const internal = attrs.internal;
-      if (internal && internal.parent && fromOld) {
-         if (internal.parentEnabled !== undefined && controlProperties.allowChangeEnable !== false) {
-            controlProperties.enabled = internal.parentEnabled;
-         } else {
-            controlProperties.enabled = true;
-         }
-      } else if (fromOld && internal.parentEnabled === false) {
-         controlProperties.__enabledOnlyToTpl = internal.parentEnabled;
-      }
-   }
-
-   if (fromOld) {
-      const objForFor = attrs.attributes;
-      for (let i in objForFor) {
-         if (objForFor.hasOwnProperty(i) && EventUtils.isEvent(i)) {
-            controlProperties[i] = objForFor[i];
-         }
-      }
-   }
-}
+// function isCompatPatch(controlClass, controlProperties, attrs) {
+//    const fromOld = controlClass && controlClass.prototype && Common.isCompound(controlClass);
+//    if (fromOld) {
+//       for (let key in attrs.events) {
+//          controlProperties[key] = attrs.events[key];
+//       }
+//    }
+//
+//    if (controlProperties && controlProperties.enabled === undefined) {
+//       const internal = attrs.internal;
+//       if (internal && internal.parent && fromOld) {
+//          if (internal.parentEnabled !== undefined && controlProperties.allowChangeEnable !== false) {
+//             controlProperties.enabled = internal.parentEnabled;
+//          } else {
+//             controlProperties.enabled = true;
+//          }
+//       } else if (fromOld && internal.parentEnabled === false) {
+//          controlProperties.__enabledOnlyToTpl = internal.parentEnabled;
+//       }
+//    }
+//
+//    if (fromOld) {
+//       const objForFor = attrs.attributes;
+//       for (let i in objForFor) {
+//          if (objForFor.hasOwnProperty(i) && EventUtils.isEvent(i)) {
+//             controlProperties[i] = objForFor[i];
+//          }
+//       }
+//    }
+// }
 
 function dataResolver(data: IControlData,
                       templateCfg: ICreateControlTemplateCfg,
