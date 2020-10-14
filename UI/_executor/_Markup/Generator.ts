@@ -577,6 +577,8 @@ export class Generator {
       let dataComponent;
       let logicParent;
       let parent;
+      let isSlashes;
+      let wasOptional;
       // При использовании ts-модуля, где нужный класс экспортируется дефолтно, внутри js-модуля
       // сюда приходит объект tplOrigin, где __esModule есть true, а в default лежит нужная нам функция построения верстки
       // Для того, чтобы верстка строилась, необходимо вытащить функцию из default
@@ -591,8 +593,6 @@ export class Generator {
          controlClass = tpl;
          dataComponent = tpl.prototype ? tpl.prototype._moduleName : '';
       } else if (typeof tpl === 'string') {
-         let isSlashes;
-         let wasOptional;
          if (Common.isLibraryModuleString(tpl)) {
             // if this is a module string, it probably is from a dynamic partial template
             // (ws:partial template="{{someString}}"). Split library name and module name
