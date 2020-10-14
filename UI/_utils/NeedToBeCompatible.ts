@@ -1,8 +1,17 @@
+import { constants } from 'Env/Env';
+
 /**
- * @author Санников К.
+ * @author Шипин А.А.
  */
-function needToBeCompatible(parent) {
-   if (typeof window === 'undefined') {
+function needToBeCompatible(cnstr, parent, iWantBeWS3 = false) {
+   var moduleName = cnstr.prototype._moduleName;
+   if (iWantBeWS3 === true) {
+      return true;
+   }
+   if (moduleName === 'Controls/compatiblePopup:CompoundArea' || moduleName === 'Core/CompoundContainer') {
+      return true;
+   }
+   if (!constants.compat) {
       return false;
    }
 
