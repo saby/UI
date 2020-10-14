@@ -27,6 +27,12 @@ interface IContext {
    identifiersStore: IStorage;
 }
 
+interface ICyclePreprocess {
+   ignoredIdentifiers: IStorage;
+   expressions: Ast.ExpressionNode[];
+   additionalIdentifiers: string[];
+}
+
 const EMPTY_ARRAY = [];
 
 function setRootNodeFlags(nodes: Ast.Ast[]): void {
@@ -119,6 +125,59 @@ function getComponentName(component: Ast.BaseWasabyElement): string | null {
       return getStringValueFromData(component.__$ws_options['name'].__$ws_value);
    }
    return null;
+}
+
+function processBeforeFor(node: Ast.ForNode, context: IContext): ICyclePreprocess {
+   const ignoredIdentifiers: IStorage = { };
+   const additionalIdentifiers = [];
+   let expressions: Ast.ExpressionNode[] = [];
+   if (node.__$ws_init) {
+      // TODO: Process node.__$ws_init
+   }
+   // TODO: Process node.__$ws_test
+   if (node.__$ws_update) {
+      // TODO: Process node.__$ws_update
+   }
+   return {
+      ignoredIdentifiers,
+      additionalIdentifiers,
+      expressions
+   };
+}
+
+function processAfterFor(cyclePreprocess: ICyclePreprocess, context: IContext): Ast.ExpressionNode[] {
+   cyclePreprocess.expressions = cyclePreprocess.expressions.concat(
+      wrestNonIgnoredIdentifiers(cyclePreprocess.expressions, cyclePreprocess.ignoredIdentifiers)
+   );
+   cyclePreprocess.expressions = excludeIgnoredExpressions(cyclePreprocess.expressions, cyclePreprocess.ignoredIdentifiers);
+
+   for (let index = 0; index < cyclePreprocess.additionalIdentifiers.length; ++index) {
+      // TODO: expressions.push(processProperty(additionalIdentifiers[index]));
+   }
+   return cyclePreprocess.expressions;
+}
+
+function processBeforeForeach(node: Ast.ForeachNode, context: IContext): ICyclePreprocess {
+   const ignoredIdentifiers: IStorage = { };
+   let expressions: Ast.ExpressionNode[] = [];
+   if (node.__$ws_index) {
+      // TODO: Process node.__$ws_index
+   }
+   // TODO: Process node.__$ws_iterator
+   // TODO: Process node.__$ws_collection
+   return {
+      ignoredIdentifiers,
+      expressions,
+      additionalIdentifiers: []
+   };
+}
+
+function processAfterForeach(cyclePreprocess: ICyclePreprocess, context: IContext): Ast.ExpressionNode[] {
+   cyclePreprocess.expressions = cyclePreprocess.expressions.concat(
+      wrestNonIgnoredIdentifiers(cyclePreprocess.expressions, cyclePreprocess.ignoredIdentifiers)
+   );
+   cyclePreprocess.expressions = excludeIgnoredExpressions(cyclePreprocess.expressions, cyclePreprocess.ignoredIdentifiers);
+   return cyclePreprocess.expressions;
 }
 
 class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
@@ -262,8 +321,18 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitElement(node: Ast.ElementNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Process node.__$ws_unpackedCycle
-      return this.processElement(node, context);
+      if (!node.__$ws_unpackedCycle) {
+         return this.processElement(node, context);
+      }
+      const cyclePreprocess: ICyclePreprocess = node.__$ws_unpackedCycle instanceof Ast.ForNode
+         ? processBeforeFor(node.__$ws_unpackedCycle, context)
+         : processBeforeForeach(node.__$ws_unpackedCycle, context);
+      cyclePreprocess.expressions = cyclePreprocess.expressions.concat(
+         this.processElement(node, context)
+      );
+      return node.__$ws_unpackedCycle instanceof Ast.ForNode
+         ? processAfterFor(cyclePreprocess, context)
+         : processAfterForeach(cyclePreprocess, context);
    }
 
    visitInstruction(node: Ast.InstructionNode, context: IContext): Ast.ExpressionNode[] {
@@ -291,13 +360,24 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitFor(node: Ast.ForNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      const cyclePreprocess: ICyclePreprocess = processBeforeFor(node, context);
+
+      let expressions: Ast.ExpressionNode[] = cyclePreprocess.expressions;
+      node.__$ws_content.forEach((node: Ast.Ast) => {
+         expressions = expressions.concat(node.accept(this, context));
+      });
+
+      return processAfterFor(cyclePreprocess, context);
    }
 
    visitForeach(node: Ast.ForeachNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      const cyclePreprocess: ICyclePreprocess = processBeforeForeach(node, context);
+
+      node.__$ws_content.forEach((node: Ast.Ast) => {
+         cyclePreprocess.expressions = cyclePreprocess.expressions.concat(node.accept(this, context));
+      });
+
+      return processAfterForeach(cyclePreprocess, context);
    }
 
    visitIf(node: Ast.IfNode, context: IContext): Ast.ExpressionNode[] {
