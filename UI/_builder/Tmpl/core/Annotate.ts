@@ -554,7 +554,10 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       node.__$ws_consequent.forEach((node: Ast.Ast) => {
          expressions = expressions.concat(node.accept(this, context));
       });
-      expressions = expressions.concat(processProgramNode(node.__$ws_test, context));
+      // FIXME: Legacy error. Test can be invalid. Enable traverse check
+      if (node.__$ws_test) {
+         expressions = expressions.concat(processProgramNode(node.__$ws_test, context));
+      }
       if (node.__$ws_alternate) {
          expressions = expressions.concat(node.__$ws_alternate.accept(this, context));
       }
