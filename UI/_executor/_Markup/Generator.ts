@@ -297,17 +297,19 @@ export class Generator {
       if (type === 'wsControl') {
          if (Common.isCompat()) {
             res = timing.methodExecutionTime(this.createWsControl, this, [name, userData, attrs, context, deps]);
-         } else {
-
+            return checkResult.call(this, res, type, name);
          }
          res = this.createWsControl(name, userData, attrs, context, deps);
+         return checkResult.call(this, res, type, name);
       }
       // типа контрола - шаблон
       if (type === 'template') {
          if (Common.isCompat()) {
             res = timing.methodExecutionTime(this.createTemplate, this, [name, userData, attrs, context, deps, config]);
+            return checkResult.call(this, res, type, name);
          }
          res = this.createTemplate(name, userData, attrs, context, deps, config);
+         return checkResult.call(this, res, type, name);
 
       }
       // тип контрола - компонент без шаблона
@@ -341,27 +343,6 @@ export class Generator {
          res = this.resolver(name, userData, attrs, context, deps, includedTemplates, config, defCollection);
          return checkResult.call(this, res, type, name);
       }
-      if (res !== undefined) {
-         return res;
-      }
-      /**
-       * Если у нас есть имя и тип, значит мы выполнили код выше
-       * Функции шаблонизации возвращают undefined, когда работают на клиенте
-       * с уже построенной версткой
-       * А вот если нам не передали каких-то данных сюда, то мы ничего не строили,
-       * а значит это ошибка и нужно обругаться.
-       */
-      if ((typeof name !== 'undefined') && type) {
-         return this.createEmptyText();
-      }
-      if (typeof name === 'undefined') {
-         Logger.error('Попытка использовать компонент/шаблон, ' +
-            'но вместо компонента в шаблоне в опцию template был передан undefined! ' +
-            'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
-            'По стеку будет понятно, в каком шаблоне и в какую опцию передается undefined');
-         return this.createEmptyText();
-      }
-      throw new Error('MarkupGenerator: createControl type not resolved');
    };
 
    prepareDataForCreate(tplOrigin, scope, attrs, deps, includedTemplates?) {
