@@ -105,8 +105,7 @@ var lastGetterPath;
 var
    getter = function getter(obj, path, viewController) {
       lastGetterPath = path;
-      const getterResult = constants.isProduction ? object.extractValue(obj, path, null) :
-         object.extractValue(obj, path, (name: string, scope: unknown, depth: number): void => {
+      const extractValueFn = constants.isProduction ? null : (name: string, scope: unknown, depth: number): void => {
          if (scope.hasOwnProperty('_$' + name)) {
             const error = scope['_$' + name];
             if (error instanceof ConfigResolver.UseAutoProxiedOptionError) {
@@ -120,8 +119,12 @@ var
                }
             }
          }
-      });
-      catchEscapeProblems(getterResult, viewController, path.join('.'));
+      }
+      const getterResult = object.extractValue(obj, path, extractValueFn);
+      // ескейпинг не должен вызываться на клиенте
+      if (typeof window === 'undefined') {
+         catchEscapeProblems(getterResult, viewController, path.join('.'));
+      }
       return getterResult;
    },
 
