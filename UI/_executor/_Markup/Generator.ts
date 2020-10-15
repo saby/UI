@@ -153,17 +153,17 @@ function isLibraryTpl(tpl, deps) {
       let controlClass;
       if (deps && deps[tpl.library]) {
          controlClass = Common.extractLibraryModule(deps[tpl.library], tpl.module);
-         patchControlClassPrototype(controlClass, moduleName);
+         controlClass = patchControlClassPrototype(controlClass, moduleName);
          return [controlClass, moduleName];
       }
       if (RequireHelper.defined(tpl.library)) {
          controlClass = Common.extractLibraryModule(RequireHelper.extendedRequire(tpl.library, tpl.module), tpl.module);
-         patchControlClassPrototype(controlClass, moduleName);
+         controlClass = patchControlClassPrototype(controlClass, moduleName);
          return [controlClass, moduleName];
       }
       if (this.cacheModules[tpl.library]) {
          controlClass = Common.extractLibraryModule(this.cacheModules[tpl.library], tpl.module);
-         patchControlClassPrototype(controlClass, moduleName);
+         controlClass = patchControlClassPrototype(controlClass, moduleName);
          return [controlClass, moduleName];
       }
    }
@@ -187,7 +187,8 @@ function resolveTpl(tpl, deps, includedTemplates) {
          // if this is a module string, it probably is from a dynamic partial template
          // (ws:partial template="{{someString}}"). Split library name and module name
          // here and process it in the next `if tpl.library && tpl.module`
-         tpl = isLibraryTpl(Common.splitModule(tpl), deps);
+         tpl = Common.splitModule(tpl);
+         tpl = isLibraryTpl(tpl, deps);
          return [tpl[0], tpl[1]];
       }
       const newName = Common.splitWs(tpl);
