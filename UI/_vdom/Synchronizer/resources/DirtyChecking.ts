@@ -1,4 +1,8 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DirtyChecking" />
+/**
+ * @author Кондаков Р.Н.
+ */
+
 /* tslint:disable */
 // @ts-nocheck
 // @ts-ignore
@@ -20,7 +24,7 @@ import { delay } from 'Types/function';
 // @ts-ignore
 import { Serializer } from 'UI/State';
 // @ts-ignore
-import { Logger } from 'UI/Utils';
+import {FunctionUtils, Logger, needToBeCompatible} from 'UI/Utils';
 import * as _dcc from './DirtyCheckingCompatible';
 import { ReactiveObserver } from 'UI/Reactivity';
 import {
@@ -35,10 +39,13 @@ import { collectObjectVersions, getChangedOptions } from './Options';
 
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
+import { GeneratorNode } from 'UI/Executor';
+// import { VNode } from 'Inferno/third-party/index';
+import { ITemplateNode } from 'UI/_executor/_Markup/IGeneratorType';
 
-/**
- * @author Кондаков Р.Н.
- */
+type TDirtyCheckingTemplate = ITemplateNode & {
+    children: GeneratorNode[];  // нужно понять почему у нас такое ограничение
+};
 
 export { getChangedOptions } from './Options';
 
@@ -357,32 +364,42 @@ function collectChildrenKeys(next: { key }[], prev: { key }[]): { prev, next }[]
    return Object.values(keysMap);
 }
 
-function createInstance(cnstr, userOptions, internalOptions) {
+function getActualOptions(cnstr, userOptions, internalOptions) {
+   return userOptions;
+}
+function createInstanceCallback(inst, actualOptions, internalOptions) {
+}
+export function createInstance(cnstr, userOptions, internalOptions, configForCreateInstance) {
    internalOptions = internalOptions || {};
-   userOptions._logicParent = internalOptions.logicParent;
-   userOptions._isSeparatedOptions = true;
-   var actualOptions = userOptions,
-      inst,
-      coreControl,
-      parentName = internalOptions.logicParent && internalOptions.logicParent._moduleName;
-   var defaultOpts = OptionsResolver.getDefaultOptions(cnstr);
+
+   const actualOptions = configForCreateInstance.getActualOptions(cnstr, userOptions, internalOptions);
+
+   if (internalOptions.logicParent) {
+      actualOptions._logicParent = internalOptions.logicParent;
+   }
+
+   const parentName = internalOptions.logicParent && internalOptions.logicParent._moduleName;
+
+   const defaultOpts = OptionsResolver.getDefaultOptions(cnstr);
    OptionsResolver.resolveOptions(cnstr, defaultOpts, actualOptions, parentName);
+
+   let inst;
    try {
       inst = new cnstr(actualOptions);
    }
    catch (error) {
       // @ts-ignore
-      coreControl = require('UI/Base').Control;
+      const coreControl = requirejs('UI/Base').Control;
       inst = new coreControl();
       Logger.lifeError('constructor', cnstr.prototype, error);
    }
+
+   /*Здесь родитель может быть CompoundControl*/
    if (internalOptions.logicParent && internalOptions.logicParent._children && userOptions.name) {
       internalOptions.logicParent._children[userOptions.name] = inst;
    }
-   //Если вдруг опции не установлены - надо туда установить объект, чтобы в логах было что-то человекопонятное
-   if (!inst._options) {
-      inst._options = actualOptions;
-   }
+
+   configForCreateInstance.createInstanceCallback(inst, actualOptions, internalOptions);
 
    return {
       instance: inst,
@@ -457,28 +474,34 @@ export function createNode(controlClass_, options: INodeOptions, key: string, en
         let control;
         let params;
         let context;
-        let instCompat;
+        let inst;
         let defaultOptions;
 
       if (typeof controlClass_ === 'function') {
-         // создаем инстанс компонента
-         if (constants.compat ||
-            controlCnstr.prototype._moduleName === "Controls/compatiblePopup:CompoundArea" ||
-            controlCnstr.prototype._moduleName === "Core/CompoundContainer") {
-            instCompat = getCompatibleUtils().createInstanceCompatible(controlCnstr, optionsWithState, internalOptions);
+         let configForCreateInstance;
+         if (needToBeCompatible(controlCnstr, internalOptions.parent, internalOptions.iWantBeWS3)) {
+            configForCreateInstance = {
+               getActualOptions: getCompatibleUtils().getActualOptions,
+               createInstanceCallback: getCompatibleUtils().createInstanceCallback
+            };
          } else {
-            instCompat = createInstance(controlCnstr, optionsWithState, internalOptions);
+            configForCreateInstance = {
+               getActualOptions,
+               createInstanceCallback
+            }
          }
-         control = instCompat.instance;
-         optionsWithState = instCompat.resolvedOptions;
-         defaultOptions = instCompat.defaultOptions;
+         inst = createInstance(controlCnstr, optionsWithState, internalOptions, configForCreateInstance);
+
+         control = inst.instance;
+         optionsWithState = inst.resolvedOptions;
+         defaultOptions = inst.defaultOptions;
       } else {
          // инстанс уже есть, работаем с его опциями
          control = controlClass_;
          defaultOptions = OptionsResolver.getDefaultOptions(controlClass_);
-         if (constants.compat) {
+         if (needToBeCompatible(controlCnstr, internalOptions.parent, internalOptions.iWantBeWS3)) {
             optionsWithState = getCompatibleUtils().combineOptionsIfCompatible(
-               controlCnstr.prototype,
+               controlCnstr,
                optionsWithState,
                internalOptions
             );
@@ -783,7 +806,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             updateTemplates: []
         };
 
-        createdTemplateNodes = diff.createTemplates.map(function rebuildCreateTemplateNodes(vnode) {
+        createdTemplateNodes = diff.createTemplates.map(function rebuildCreateTemplateNodes(vnode: TDirtyCheckingTemplate) {
             Logger.debug('DirtyChecking (create template)', vnode);
             onStartCommit(OperationType.CREATE, getNodeName(vnode));
             vnode.optionsVersions = collectObjectVersions(vnode.controlProperties);
@@ -1176,15 +1199,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                     childControl._saveContextObject(resolvedContext);
                     childControl.saveFullContext(ContextResolver.wrapContext(childControl, childControl._context));
                 } finally {
-                    /**
-                     * TODO: удалить после синхронизации с контролами
-                     */
-                    var shouldUp = childControl._shouldUpdate
-                        ? childControl._shouldUpdate(newOptions, newChildNodeContext) || changedInternalOptions
-                        : true;
-                    childControl._setInternalOptions(changedInternalOptions || {});
-
-                    if (shouldUp) {
+                    if (shouldUpdate) {
                         environment.setRebuildIgnoreId(null);
                     }
 
@@ -1273,6 +1288,43 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         destroyedNodes, selfDirtyNodes, isSelfDirty)
 }
 
+function mapChildren(currentMemo, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty) {
+    const childrenRebuild = createChildrenResult(childrenRebuildFinalResults);
+    if (!newNode.markup) {
+        // Во время ожидания асинхронного ребилда контрол уничтожился, обновлять его уже не нужно.
+        return {
+            value: newNode,
+            memo: childrenRebuild.memo
+        };
+    }
+
+    newNode.childrenNodes = childrenRebuild.value;
+    if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
+        var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
+        newNode.fullMarkup = environment.decorateFullMarkup(
+            getFullMarkup(
+                newNode.childrenNodes,
+                newNode.markup,
+                undefined,
+                needRenderMarkup || isSelfDirty ? undefined : newNode.fullMarkup,
+                newNode.parent
+            ),
+            newNode
+        );
+        newNode.fullMarkup.changed =
+            wasChanged || newNode.fullMarkup.changed || (needRenderMarkup || isSelfDirty);
+        if (newNode.fullMarkup.changed) {
+            setChangedForNode(newNode);
+        }
+    }
+
+    return {
+        value: newNode,
+        memo: concatMemo(currentMemo, childrenRebuild.memo)
+    };
+}
+
+
 function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode, needRenderMarkup: boolean,
     changedNodes,
     childrenNodes, createdNodes, createdTemplateNodes,
@@ -1304,70 +1356,14 @@ function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode,
     });
 
     if (haveAsync) {
-        return Promise.all(childrenRebuildResults).then((childrenRebuildFinalResults) => {
-            const childrenRebuild = createChildrenResult(childrenRebuildFinalResults);
-            if (!newNode.markup) {
-                // Во время ожидания асинхронного ребилда контрол уничтожился, обновлять его уже не нужно.
-                return {
-                    value: newNode,
-                    memo: childrenRebuild.memo
-                };
+        return Promise.all(childrenRebuildResults).then(
+            (res) => mapChildren(currentMemo, newNode, res, environment, needRenderMarkup, isSelfDirty),
+            (err) => {
+                Logger.asyncRenderErrorLog(err);
+                return err;
             }
-
-            newNode.childrenNodes = childrenRebuild.value;
-            if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
-                var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
-                newNode.fullMarkup = environment.decorateFullMarkup(
-                    getFullMarkup(
-                        newNode.childrenNodes,
-                        newNode.markup,
-                        undefined,
-                        needRenderMarkup || isSelfDirty ? undefined : newNode.fullMarkup,
-                        newNode.parent
-                    ),
-                    newNode
-                );
-                newNode.fullMarkup.changed =
-                    wasChanged || newNode.fullMarkup.changed || (needRenderMarkup || isSelfDirty);
-                if (newNode.fullMarkup.changed) {
-                    setChangedForNode(newNode);
-                }
-            }
-
-            return {
-                value: newNode,
-                memo: concatMemo(currentMemo, childrenRebuild.memo)
-            };
-        }, (err) => {
-            Logger.asyncRenderErrorLog(err);
-            return err;
-        }
         );
     }
 
-    const childrenRebuild = createChildrenResult(childrenRebuildResults);
-    newNode.childrenNodes = childrenRebuild.value;
-    if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
-        var wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
-        newNode.fullMarkup = environment.decorateFullMarkup(
-            getFullMarkup(
-                newNode.childrenNodes,
-                newNode.markup,
-                undefined,
-                needRenderMarkup || isSelfDirty ? undefined : newNode.fullMarkup,
-                newNode.parent
-            ),
-            newNode
-        );
-        newNode.fullMarkup.changed =
-            wasChanged || newNode.fullMarkup.changed || (needRenderMarkup || isSelfDirty);
-        if (newNode.fullMarkup.changed) {
-            setChangedForNode(newNode);
-        }
-    }
-
-    return {
-        value: newNode,
-        memo: concatMemo(currentMemo, childrenRebuild.memo)
-    };
+    return mapChildren(currentMemo, newNode, childrenRebuildResults, environment, needRenderMarkup, isSelfDirty);
 }

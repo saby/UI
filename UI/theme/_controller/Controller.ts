@@ -10,6 +10,7 @@ import { EntityStorage, AliasStorage, IAliases } from './Storage';
 /**
  * Контроллер тем, необходим для скачивания/удаления/коллекции/переключения тем на странице
  * @class UI/theme/_controller/Controller
+ * @public
  * @singleton
  */
 export class Controller {

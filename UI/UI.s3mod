@@ -10,6 +10,7 @@
     <module id="323fd54f-1fab-42a6-8aea-6726d6392d53" name="Application"/>
     <module id="832cda0a-e19c-4ffc-a1d1-47edbb6b7501" name="I18n"/>
     <module id="686f183d-0bcc-4732-b4e4-6016c2a67a0f" name="Types"/>
+    <module id="951e1c80-ee24-4022-8349-96123fae8026" name="Inferno"/>
   </depends>
 
   <load_after/>

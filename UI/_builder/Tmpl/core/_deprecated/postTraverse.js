@@ -193,7 +193,7 @@ define('UI/_builder/Tmpl/core/_deprecated/postTraverse', [
 
          // формируем набор реактивных свойств, "служебные" свойства игнорируем
          astResult.reactiveProps = uniqueArray(foundVars).filter(function(item) {
-            return item !== '...' && item !== '_options' && item !== '_container' && item !== '_children';
+            return item !== '...' && item !== '_options' && item !== '_container' && item !== '_children' && item !== 'rk';
          });
 
          astResult.childrenStorage = foundChildren;

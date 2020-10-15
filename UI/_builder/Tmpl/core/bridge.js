@@ -22,7 +22,10 @@ define('UI/_builder/Tmpl/core/bridge', [
    Utils
 ) {
    'use strict';
-   var USE_VISITOR = false;
+   var USE_VISITOR = !false;
+
+   // TODO: https://online.sbis.ru/opendoc.html?guid=ea8a25dd-5a2f-4330-8d6f-599c8c5878dd
+   var USE_GENERATE_CODE_FOR_TRANSLATIONS = false;
 
    var uniqueArray = Utils.ArrayUtils.uniq;
 
@@ -35,7 +38,11 @@ define('UI/_builder/Tmpl/core/bridge', [
          hierarchicalKeys: true,
          errorHandler: errorHandler,
          allowComments: false,
-         textTranslator: Translator.createTextTranslator(options.componentsProperties || { })
+         textTranslator: Translator.createTextTranslator(options.componentsProperties || { }),
+         generateTranslations: (
+            (USE_GENERATE_CODE_FOR_TRANSLATIONS && !!options.generateCodeForTranslations) ||
+            !USE_GENERATE_CODE_FOR_TRANSLATIONS
+         )
       };
       var traverseOptions = {
          fileName: options.fileName,
@@ -52,7 +59,7 @@ define('UI/_builder/Tmpl/core/bridge', [
          );
          return deferred;
       }
-      scope.requestDependencies().then(function() {
+      scope.requestDependencies().addCallbacks(function() {
          traversed.__newVersion = true;
          var foundVars = [];
          var foundChildren = [];
@@ -70,7 +77,7 @@ define('UI/_builder/Tmpl/core/bridge', [
 
          // формируем набор реактивных свойств, "служебные" свойства игнорируем
          traversed.reactiveProps = uniqueArray(foundVars).filter(function(item) {
-            return item !== '...' && item !== '_options' && item !== '_container' && item !== '_children';
+            return item !== '...' && item !== '_options' && item !== '_container' && item !== '_children' && item !== 'rk';
          });
 
          traversed.childrenStorage = foundChildren;
@@ -85,6 +92,8 @@ define('UI/_builder/Tmpl/core/bridge', [
             return;
          }
          deferred.callback(traversed);
+      }, function(error) {
+         deferred.errback(error);
       });
       return deferred;
    }

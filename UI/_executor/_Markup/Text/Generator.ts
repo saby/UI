@@ -380,7 +380,8 @@ export class GeneratorText implements IGenerator {
       }
       // автоматически передевенные странаци на wasaby игнорируем
       // массимы функций игнорируем, они будут проверены в fn.map()
-      if (!isTemplateWrapper && typeof fn === 'object' && !Common.isArray(fn)) {
+      // isTplString === true в случае если в генератор отдлали строку, в partial это может быть просто текст
+      if (!isTemplateWrapper && typeof fn === 'object' && !Common.isArray(fn) && !isTplString) {
          if (fn === null) {
             isValid = false;
             reason = 'В качества шаблона/компонента передан "null"';

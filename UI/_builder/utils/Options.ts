@@ -71,6 +71,12 @@ export interface IOptions {
     *
     */
    isWasabyTemplate: boolean;
+
+   /**
+    * Generate rk-instructions.
+    * TODO: Enable this option.
+    */
+   generateCodeForTranslations: boolean;
 }
 
 /**
@@ -105,6 +111,10 @@ export class Options implements IOptions {
     *
     */
    isWasabyTemplate: boolean;
+   /**
+    * Generate rk-instructions.
+    */
+   generateCodeForTranslations: boolean;
 
    constructor(options: IOptions) {
       this.modulePath = new ModulePath(options.fileName);
@@ -115,5 +125,6 @@ export class Options implements IOptions {
       this.componentsProperties = options.componentsProperties || { };
       this.config = options.config || Config as ITraverseOptions;
       this.isWasabyTemplate = this.modulePath.extension === 'wml';
+      this.generateCodeForTranslations = options.generateCodeForTranslations;
    }
 }

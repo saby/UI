@@ -3,6 +3,7 @@
  * @library UI/Base
  * @includes Control UI/_base/Control
  * @includes getMetaStack UI/_base/HTML/meta#getMetaStack
+ * @includes Creator UI/_base/Creator
  * @public
  * @author Шипин А.А.
  */
