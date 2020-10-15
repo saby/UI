@@ -360,15 +360,17 @@ function processAfterFor(cyclePreprocess: ICyclePreprocess, context: IContext): 
       wrestNonIgnoredIdentifiers(cyclePreprocess.expressions, cyclePreprocess.ignoredIdentifiers)
    );
    cyclePreprocess.expressions = excludeIgnoredExpressions(cyclePreprocess.expressions, cyclePreprocess.ignoredIdentifiers);
+   cleanIgnoredIdentifiersFromReactive(context.identifiersStore, cyclePreprocess.ignoredIdentifiers);
 
    for (let index = 0; index < cyclePreprocess.additionalIdentifiers.length; ++index) {
+      const identifier = cyclePreprocess.additionalIdentifiers[index];
       cyclePreprocess.expressions.push(
          new Ast.ExpressionNode(
-            PARSER.parse(cyclePreprocess.additionalIdentifiers[index])
+            PARSER.parse(identifier)
          )
       );
+      context.identifiersStore[identifier] = true;
    }
-   cleanIgnoredIdentifiersFromReactive(context.identifiersStore, cyclePreprocess.ignoredIdentifiers);
    return cyclePreprocess.expressions;
 }
 
