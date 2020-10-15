@@ -406,6 +406,27 @@ export enum Flags {
 }
 
 /**
+ * Collection of internal expressions.
+ * @todo Refactor it
+ */
+export interface IInternal {
+
+   [name: string]: {
+
+      /**
+       * Internal expression.
+       */
+      data: ExpressionNode[];
+
+      /**
+       * Internal expression type. Always constant.
+       * @todo Refactor it
+       */
+      type: 'text';
+   };
+}
+
+/**
  * Declares abstract class for node of abstract syntax tree.
  */
 export abstract class Ast {
@@ -421,12 +442,26 @@ export abstract class Ast {
    __$ws_flags: Flags;
 
    /**
+    * FIXME: Refactor it
+    * @deprecated
+    */
+   __$ws_isRootNode: boolean;
+
+   /**
+    * FIXME: Refactor it
+    * @deprecated
+    */
+   __$ws_internal: IInternal | null;
+
+   /**
     * Initialize new instance of abstract syntax node.
     * @param flags {Flags} Node flags.
     */
    protected constructor(flags: Flags = Flags.VALIDATED) {
       this.__$ws_key =  0;
       this.__$ws_flags = flags;
+      this.__$ws_isRootNode = false;
+      this.__$ws_internal = null;
    }
 
    /**
@@ -1824,12 +1859,19 @@ export class ExpressionNode extends Ast {
    __$ws_program: ProgramNode;
 
    /**
+    * @deprecated
+    */
+   __$ws_isFromBind: boolean;
+
+   /**
     * Initialize new instance of mustache expression node.
     * @param program
+    * @param isFromBind
     */
-   constructor(program: ProgramNode) {
+   constructor(program: ProgramNode, isFromBind: boolean = false) {
       super();
       this.__$ws_program = program;
+      this.__$ws_isFromBind = isFromBind;
    }
 
    /**
