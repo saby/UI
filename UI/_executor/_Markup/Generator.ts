@@ -101,11 +101,13 @@ function isLibraryTpl(tpl, deps) {
 }
 
 function resolveTpl(tpl, deps, includedTemplates) {
+   let dataComponent;
+
    if (tpl === '_$inline_template') {
       return ['_$inline_template', undefined];
    }
    if (typeof tpl === 'function') {
-      const dataComponent = tpl.prototype ? tpl.prototype._moduleName : '';
+      dataComponent = tpl.prototype ? tpl.prototype._moduleName : '';
       return [tpl, dataComponent];
    }
    if (typeof tpl === 'string') {
@@ -160,10 +162,11 @@ function resolveTpl(tpl, deps, includedTemplates) {
             }
          }
       }
+      dataComponent = tpl;
       if (controlClass && controlClass.default && controlClass.default.isWasaby) {
          controlClass = controlClass.default;
       }
-      return [controlClass, tpl];
+      return [controlClass, dataComponent];
    }
    return isLibraryTpl(tpl, deps);
 }
