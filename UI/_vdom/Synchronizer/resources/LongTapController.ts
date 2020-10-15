@@ -1,4 +1,3 @@
-/// <amd-module name="Vdom/_private/Synchronizer/resources/LongTapController" />
 /* tslint:disable */
 
 import { IEventState, IMobileEvent, MobileEvent } from "./MobileEvents";
@@ -15,7 +14,6 @@ export class LongTapController {
          minTapDuration: 1000
       }
    }
-
 
    public static initState(event: IMobileEvent): IEventState {
       if (MobileEvent.hasEventData(longTapState) || this.resetState()) {

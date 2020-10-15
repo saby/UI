@@ -12,9 +12,8 @@ import Control from './Control';
  * @remark
  * При вызове метода инициализируется инфраструктура веб-фреймворка Wasaby.
  * Метод выполняется синхронно.
- * Для асинхронного создания контрола используйте метод
- * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/asynchronous-control-building/
- * Core/Creator}.
+ * Для асинхронного создания контрола используйте метод {@link async}.
+ * @see async
  */
 /**
  * Method for creation a root control.
@@ -32,9 +31,7 @@ export default Control.createControl;
  * @function UI/_base/Creator#async
  * @remark
  * Возвращается promise, который сработает на хуке afterMount().
- */
-/**
- * Method for asynchronous item creation.
+ * @see createControl
  */
 export async function async(ctor: any, cfg: any, domElement: HTMLElement): Promise<Control> {
     // @ts-ignore
