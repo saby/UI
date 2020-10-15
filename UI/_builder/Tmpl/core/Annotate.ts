@@ -660,9 +660,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          context.childrenStorage.push(name);
       }
       this.processInjectedData(node, context, expressions);
-      this.processComponentAttributes(node, context, expressions);
       node.__$ws_internal = { };
       appendInternalExpressions(node.__$ws_internal, expressions);
+      this.processComponentAttributes(node, context, expressions);
       return expressions;
    }
 
