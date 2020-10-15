@@ -270,36 +270,36 @@ function calculateDataComponent(tplOrigin) {
 //    };
 // }
 
-function isCompatPatch(controlClass, controlProperties, attrs, fromOld) {
-   // const fromOld = controlClass && controlClass.prototype && Common.isCompound(controlClass);
-   // if (fromOld) {
-   //    for (let key in attrs.events) {
-   //       controlProperties[key] = attrs.events[key];
-   //    }
-   // }
-
-   if (controlProperties && controlProperties.enabled === undefined) {
-      const internal = attrs.internal;
-      if (internal && internal.parent && fromOld) {
-         if (internal.parentEnabled !== undefined && controlProperties.allowChangeEnable !== false) {
-            controlProperties.enabled = internal.parentEnabled;
-         } else {
-            controlProperties.enabled = true;
-         }
-      } else if (fromOld && internal.parentEnabled === false) {
-         controlProperties.__enabledOnlyToTpl = internal.parentEnabled;
-      }
-   }
-
-   if (fromOld) {
-      const objForFor = attrs.attributes;
-      for (let i in objForFor) {
-         if (objForFor.hasOwnProperty(i) && EventUtils.isEvent(i)) {
-            controlProperties[i] = objForFor[i];
-         }
-      }
-   }
-}
+// function isCompatPatch(controlClass, controlProperties, attrs, fromOld) {
+//    // const fromOld = controlClass && controlClass.prototype && Common.isCompound(controlClass);
+//    // if (fromOld) {
+//    //    for (let key in attrs.events) {
+//    //       controlProperties[key] = attrs.events[key];
+//    //    }
+//    // }
+//
+//    if (controlProperties && controlProperties.enabled === undefined) {
+//       const internal = attrs.internal;
+//       if (internal && internal.parent && fromOld) {
+//          if (internal.parentEnabled !== undefined && controlProperties.allowChangeEnable !== false) {
+//             controlProperties.enabled = internal.parentEnabled;
+//          } else {
+//             controlProperties.enabled = true;
+//          }
+//       } else if (fromOld && internal.parentEnabled === false) {
+//          controlProperties.__enabledOnlyToTpl = internal.parentEnabled;
+//       }
+//    }
+//
+//    if (fromOld) {
+//       const objForFor = attrs.attributes;
+//       for (let i in objForFor) {
+//          if (objForFor.hasOwnProperty(i) && EventUtils.isEvent(i)) {
+//             controlProperties[i] = objForFor[i];
+//          }
+//       }
+//    }
+// }
 
 function dataResolver(data: IControlData,
                       templateCfg: ICreateControlTemplateCfg,
@@ -670,14 +670,7 @@ export class Generator {
          dataComponent = moduleName;
       }
 
-      const fromOld = controlClass && controlClass.prototype && Common.isCompound(controlClass);
-
       const controlProperties = Scope.calculateScope(scope, Common.plainMerge) || {};
-      if (fromOld) {
-         for (let key in attrs.events) {
-            controlProperties[key] = attrs.events[key];
-         }
-      }
 
       if (!attrs.attributes) {
          attrs.attributes = {};
@@ -695,7 +688,33 @@ export class Generator {
       OptionsResolver.resolveInheritOptions(controlClass, attrs, controlProperties);
 
       if (Common.isCompat()) {
-         isCompatPatch.call(this, controlClass, controlProperties, attrs, fromOld);
+         const fromOld = controlClass && controlClass.prototype && Common.isCompound(controlClass);
+         if (fromOld) {
+            for (let key in attrs.events) {
+               controlProperties[key] = attrs.events[key];
+            }
+         }
+         if (controlProperties && controlProperties.enabled === undefined) {
+            const internal = attrs.internal;
+            if (internal && internal.parent && fromOld) {
+               if (internal.parentEnabled !== undefined && controlProperties.allowChangeEnable !== false) {
+                  controlProperties.enabled = internal.parentEnabled;
+               } else {
+                  controlProperties.enabled = true;
+               }
+            } else if (fromOld && internal.parentEnabled === false) {
+               controlProperties.__enabledOnlyToTpl = internal.parentEnabled;
+            }
+         }
+
+         if (fromOld) {
+            const objForFor = attrs.attributes;
+            for (let i in objForFor) {
+               if (objForFor.hasOwnProperty(i) && EventUtils.isEvent(i)) {
+                  controlProperties[i] = objForFor[i];
+               }
+            }
+         // isCompatPatch(controlClass, controlProperties, attrs, fromOld);
       }
 
       return {
