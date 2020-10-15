@@ -93,51 +93,41 @@ function isStringTpl(tpl, deps, includedTemplates) {
       isSlashes = true;
       if (tpl.indexOf('optional!') > -1) {
          wasOptional = true;
+         tpl = tpl.replace('optional!', '');
       }
    }
 
-   tpl = tpl.replace('optional!', '');
-   if (includedTemplates && includedTemplates[tpl]) {
-      controlClass = includedTemplates[tpl];
+   controlClass = includedTemplates && includedTemplates[tpl];
+   if (controlClass) {
+      return [isWasabyControlClass(controlClass), tpl];
+   }
+   controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
+   if (controlClass) {
+      return [isWasabyControlClass(controlClass), tpl];
    }
 
-   if (!controlClass) {
-      controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
-   }
-
-   if (!controlClass) {
-      if (!isSlashes || wasOptional || Common.isCompat()) {
-         /*
-           * it can be "optional"
-           * can be tmpl!
-           * */
-         if (RequireHelper.defined(tpl)) {
-            controlClass = RequireHelper.require(tpl);
-         }
-      } else {
-         try {
-            if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
-               this.cacheModules[tpl] = RequireHelper.require(tpl);
-            }
-            controlClass = this.cacheModules[tpl];
-         } catch (e) {
-            Logger.error('Create component error', controlClass, e);
+   if (!isSlashes || wasOptional || Common.isCompat()) {
+      /*
+        * it can be "optional"
+        * can be tmpl!
+        * */
+      if (RequireHelper.defined(tpl)) {
+         controlClass = RequireHelper.require(tpl);
+         if (controlClass) {
+            return [isWasabyControlClass(controlClass), tpl];
          }
       }
    }
-   controlClass = isWasabyControlClass(controlClass.default);
-
-   return [controlClass, tpl];
+   try {
+      if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
+         this.cacheModules[tpl] = RequireHelper.require(tpl);
+      }
+      controlClass = this.cacheModules[tpl];
+      return [isWasabyControlClass(controlClass), tpl];
+   } catch (e) {
+      Logger.error('Create component error', controlClass, e);
+   }
 }
-
-// function patchControlClassPrototype(controlClass, moduleName) {
-//    if (controlClass && controlClass.prototype && !controlClass.prototype.hasOwnProperty('_moduleName')) {
-//       // Patch controlClass prototype, it won't have a _moduleName the first time it is
-//       // created, because it was exported in a library
-//       controlClass.prototype._moduleName = moduleName;
-//    }
-//    return controlClass;
-// }
 
 function isLibraryTpl(tpl, deps) {
    if (typeof tpl === 'object' && tpl && tpl.library && tpl.module) {
@@ -184,10 +174,9 @@ function resolveTpl(tpl, deps, includedTemplates) {
          tpl = Common.splitModule(tpl);
          return isLibraryTpl(tpl, deps);
       }
-      return isStringTpl(tpl, deps, includedTemplates);
+      return isStringTpl.call(this, tpl, deps, includedTemplates);
    }
-   tpl = isLibraryTpl(tpl, deps);
-   return [tpl[0], tpl[1]];
+   return isLibraryTpl(tpl, deps);
 }
 
 function isCompatPatch(controlClass, controlProperties, attrs, fromOld) {
