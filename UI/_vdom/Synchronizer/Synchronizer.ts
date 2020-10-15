@@ -9,7 +9,7 @@ import { ObjectUtils } from 'UI/Utils';
 // @ts-ignore
 import { Serializer } from 'UI/State';
 import { Set } from 'Types/shim';
-import { Control } from 'UI/Base';
+import { Control, IControlOptions } from 'UI/Base';
 
 // @ts-ignore
 import { Logger } from 'UI/Utils';
@@ -414,7 +414,7 @@ class VDomSynchronizer {
       }
    }
 
-   cleanControlDomLink(node: HTMLElement, control?: Control) {
+   cleanControlDomLink(node: HTMLElement, control?: Control<IControlOptions, unknown>) {
       if (control) {
          // @ts-ignore
          delete this._controlNodes[control._instId];

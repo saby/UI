@@ -164,8 +164,6 @@ export const _private = {
 };
 
 export interface IControlOptions {
-   // @ts-ignore Пока не можем указать unknown. Так как не все описали точно тип опций
-   [key: string]: any;
    readOnly?: boolean;
    theme?: string;
 }
@@ -181,8 +179,9 @@ export interface ITemplateAttrs {
    events?: Record<string, any>;
 };
 
-export type TControlConfig = IControlOptions & {
+type TControlConfig = IControlOptions & {
    _logicParent?: Control;
+   _$createdFromCode?: boolean;
 };
 
 interface IState {
@@ -263,7 +262,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
 
    private _isRendered: boolean;
 
-   constructor(cfg: IControlOptions) {
+   constructor(cfg: TControlConfig) {
       if (!cfg) {
          cfg = {};
       }
@@ -455,7 +454,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       return this._instId;
    }
 
-   mountToDom(element: HTMLElement, cfg: TControlConfig): void {
+   mountToDom(element: HTMLElement, cfg: TOptions): void {
       // @ts-ignore
       if (!this.VDOMReady) {
          // @ts-ignore
@@ -470,7 +469,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
    }
 
    // Just save link to new options
-   saveOptions(options: IControlOptions, controlNode: any = null): boolean {
+   saveOptions(options: TOptions, controlNode: any = null): boolean {
       this._options = options as TOptions;
       if (controlNode) {
          this._container = controlNode.element;
