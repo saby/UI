@@ -685,10 +685,10 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): Ast.ExpressionNode[] {
       let expressions: Ast.ExpressionNode[] = [];
       expressions = expressions.concat(
-         this.processBaseWasabyElement(node, context)
+         processProgramNode(node.__$ws_expression, context)
       );
       expressions = expressions.concat(
-         processProgramNode(node.__$ws_expression, context)
+         this.processBaseWasabyElement(node, context)
       );
       return expressions;
    }
