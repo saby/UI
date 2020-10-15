@@ -1,14 +1,14 @@
 /// <amd-module name="UI/_executor/_Markup/Generator" />
 /* tslint:disable */
 
-import { coreDebug as timing } from 'Env/Env';
-import { Logger } from 'UI/Utils';
+import {coreDebug as timing} from 'Env/Env';
+import {Logger} from 'UI/Utils';
 import * as Common from '../_Utils/Common';
 import * as RequireHelper from '../_Utils/RequireHelper';
 import * as OptionsResolver from '../_Utils/OptionsResolver';
 import * as Scope from '../_Expressions/Scope';
-import { _FocusAttrs } from 'UI/Focus';
-import { EventUtils } from 'UI/Events';
+import {_FocusAttrs} from 'UI/Focus';
+import {EventUtils} from 'UI/Events';
 import * as ConfigResolver from '../_Utils/ConfigResolver'
 import {
    GeneratorEmptyObject,
@@ -304,7 +304,7 @@ function calculateDataComponent(tplOrigin) {
 function dataResolver(data: IControlData,
                       templateCfg: ICreateControlTemplateCfg,
                       attrs: IGeneratorAttrs,
-                      name:GeneratorTemplateOrigin): [IControlData, IControlUserData, IGeneratorAttrs] {
+                      name: GeneratorTemplateOrigin): [IControlData, IControlUserData, IGeneratorAttrs] {
    data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs, calculateDataComponent(name));
    data.internal.logicParent = data.internal.logicParent || templateCfg.viewController;
    data.internal.parent = data.internal.parent || templateCfg.viewController;
@@ -374,7 +374,7 @@ export class Generator {
 
    chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string | void> | string | Error {
       function chainTrace(defObject: Array<any>): string {
-         return out.replace(defRegExp, function(key) {
+         return out.replace(defRegExp, function (key) {
             const valKey = defCollection.id.indexOf(key);
             if (defObject[valKey] && defCollection.id[valKey]) {
                return defObject[valKey].result ? defObject[valKey].result : defObject[valKey];
@@ -714,7 +714,8 @@ export class Generator {
                   controlProperties[i] = objForFor[i];
                }
             }
-         // isCompatPatch(controlClass, controlProperties, attrs, fromOld);
+            // isCompatPatch(controlClass, controlProperties, attrs, fromOld);
+         }
       }
 
       return {
@@ -744,7 +745,7 @@ export class Generator {
                          createTemplate: Function,
                          createController: Function,
                          resolver: Function,
-                         generatorContext?: {cacheModules: TObject}): void {
+                         generatorContext?: { cacheModules: TObject }): void {
       this.createEmptyText = createEmptyText;
       this.createWsControl = createWsControl;
       this.createTemplate = createTemplate;
