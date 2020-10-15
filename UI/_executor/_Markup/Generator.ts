@@ -144,6 +144,7 @@ function patchControlClassPrototype(controlClass, moduleName) {
       // created, because it was exported in a library
       controlClass.prototype._moduleName = moduleName;
    }
+   return controlClass;
 }
 
 function isLibraryTpl(tpl, deps) {
