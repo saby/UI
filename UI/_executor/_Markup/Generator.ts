@@ -695,7 +695,7 @@ export class Generator {
       OptionsResolver.resolveInheritOptions(controlClass, attrs, controlProperties);
 
       if (Common.isCompat()) {
-         isCompatPatch(controlClass, controlProperties, attrs, fromOld);
+         isCompatPatch.call(this, controlClass, controlProperties, attrs, fromOld);
       }
 
       return {
