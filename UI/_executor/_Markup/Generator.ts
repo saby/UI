@@ -183,16 +183,16 @@ function resolveTpl(tpl, deps, includedTemplates) {
    let wasOptional;
 
    if (tpl === '_$inline_template') {
-      controlClass = '_$inline_template';
+      return ['_$inline_template', dataComponent];
    } else if (typeof tpl === 'function') {
-      controlClass = tpl;
       dataComponent = tpl.prototype ? tpl.prototype._moduleName : '';
+      return [tpl, dataComponent];
    } else if (typeof tpl === 'string') {
       if (Common.isLibraryModuleString(tpl)) {
          // if this is a module string, it probably is from a dynamic partial template
          // (ws:partial template="{{someString}}"). Split library name and module name
          // here and process it in the next `if tpl.library && tpl.module`
-         tpl = Common.splitModule(tpl);
+         return [Common.splitModule(tpl), dataComponent];
       } else {
          const newName = Common.splitWs(tpl);
          if (newName) {
@@ -240,6 +240,7 @@ function resolveTpl(tpl, deps, includedTemplates) {
          if (controlClass && controlClass.default && controlClass.default.isWasaby) {
             controlClass = controlClass.default;
          }
+         return [controlClass, dataComponent];
       }
    }
    if (typeof tpl === 'object' && tpl && tpl.library && tpl.module) {
@@ -263,6 +264,7 @@ function resolveTpl(tpl, deps, includedTemplates) {
          controlClass.prototype._moduleName = moduleName;
       }
       dataComponent = moduleName;
+      return [controlClass, dataComponent];
    }
    return [controlClass, dataComponent];
 }
