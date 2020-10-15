@@ -1,20 +1,27 @@
-import {Control} from 'UI/Base';
+import { Control, IControlOptions } from 'UI/Base';
 
-export class TestBaseControl extends Control {
-    testName = '';
-    fromNode = true;
-    afterMountCallback = null;
-    afterUpdateCallback = null;
-   _beforeMount(options) {
-      this.afterMountCallback = options.afterMountCallback;
-      this.afterUpdateCallback = options.afterUpdateCallback;
-      this.testName = options.testName;
-      this.fromNode = options.fromNode;
-   }
-   _afterMount() {
-       this.afterMountCallback && this.afterMountCallback();
-   }
-   _afterUpdate() {
-       this.afterUpdateCallback && this.afterUpdateCallback();
-   }
+interface ITestOptions extends IControlOptions {
+    testName: string;
+    fromNode: boolean;
+    afterMountCallback?: Function;
+    afterUpdateCallback?: Function;
+}
+
+export class TestBaseControl extends Control<ITestOptions> {
+    testName: string = '';
+    fromNode: boolean = true;
+    afterMountCallback: Function = null;
+    afterUpdateCallback: Function = null;
+    _beforeMount(options: ITestOptions): void {
+        this.afterMountCallback = options.afterMountCallback;
+        this.afterUpdateCallback = options.afterUpdateCallback;
+        this.testName = options.testName;
+        this.fromNode = options.fromNode;
+    }
+    _afterMount(): void {
+        this.afterMountCallback && this.afterMountCallback();
+    }
+    _afterUpdate(): void {
+        this.afterUpdateCallback && this.afterUpdateCallback();
+    }
 }
