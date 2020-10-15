@@ -80,7 +80,7 @@ function hasBindings(node: Ast.ExpressionNode): boolean {
 }
 
 function appendInternalExpressions(internal: Ast.IInternal, expressions: Ast.ExpressionNode[]): void {
-   let expressionIndex = 0;
+   let expressionIndex = Object.keys(internal).length;
    for (let index = 0; index < expressions.length; ++index) {
       const expression = expressions[index];
       if (hasBindings(expression)) {
@@ -662,7 +662,19 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       this.processInjectedData(node, context, expressions);
       node.__$ws_internal = { };
       appendInternalExpressions(node.__$ws_internal, expressions);
+      // FIXME: From current node attributes in internal collection must only be bind-expressions.
+      const startIndex = expressions.length;
       this.processComponentAttributes(node, context, expressions);
+      const bindExpressions: Ast.ExpressionNode[] = [];
+      expressions.forEach((expression: Ast.ExpressionNode, index: number) => {
+         if (index < startIndex) {
+            return;
+         }
+         if (expression.__$ws_isFromBind) {
+            bindExpressions.push(expression);
+         }
+      });
+      appendInternalExpressions(node.__$ws_internal, bindExpressions);
       return expressions;
    }
 
