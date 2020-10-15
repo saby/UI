@@ -73,57 +73,6 @@ function calculateDataComponent(tplOrigin) {
    return dataComponent;
 }
 
-// function isStringTpl(tpl, deps, includedTemplates) {
-//    let isSlashes;
-//    let wasOptional;
-//    let controlClass;
-//    const newName = Common.splitWs(tpl);
-//    if (newName) {
-//       tpl = newName;
-//    }
-//
-//    if (tpl.indexOf('/') > -1) {
-//       isSlashes = true;
-//       if (tpl.indexOf('optional!') > -1) {
-//          wasOptional = true;
-//          tpl = tpl.replace('optional!', '');
-//       }
-//    }
-//
-//    if (includedTemplates && includedTemplates[tpl]) {
-//       controlClass = includedTemplates[tpl];
-//    }
-//
-//    if (!controlClass) {
-//       controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
-//    }
-//
-//    if (!controlClass) {
-//       if (!isSlashes || wasOptional || Common.isCompat()) {
-//          /*
-//             * it can be "optional"
-//             * can be tmpl!
-//             * */
-//          if (RequireHelper.defined(tpl)) {
-//             controlClass = RequireHelper.require(tpl);
-//          }
-//       } else {
-//          try {
-//             if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
-//                this.cacheModules[tpl] = RequireHelper.require(tpl);
-//             }
-//             controlClass = this.cacheModules[tpl];
-//          } catch (e) {
-//             Logger.error('Create component error', controlClass, e);
-//          }
-//       }
-//    }
-//    if (controlClass && controlClass.default && controlClass.default.isWasaby) {
-//       controlClass = controlClass.default;
-//    }
-//    return [controlClass, tpl];
-// }
-
 function isLibraryTpl(tpl, deps) {
    if (typeof tpl === 'object' && tpl && tpl.library && tpl.module) {
       let controlClass;
