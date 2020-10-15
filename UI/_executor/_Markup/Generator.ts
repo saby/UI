@@ -74,199 +74,107 @@ function calculateDataComponent(tplOrigin) {
    return dataComponent;
 }
 
-// function isWasabyControlClass(controlClass) {
-//    if (controlClass && controlClass.default && controlClass.default.isWasaby) {
-//       return controlClass.default;
-//    }
-//    return controlClass;
-// }
+function isWasabyControlClass(controlClass) {
+   if (controlClass && controlClass.default && controlClass.default.isWasaby) {
+      return controlClass.default;
+   }
+   return controlClass;
+}
 
-// function isStringTpl(tpl, deps, includedTemplates) {
-//    let isSlashes: boolean = false;
-//    let wasOptional: boolean = false;
-//    let controlClass;
-//    const newName = Common.splitWs(tpl);
-//    if (newName) {
-//       tpl = newName;
-//    }
-//    if (tpl.indexOf('/') > -1) {
-//       isSlashes = true;
-//       if (tpl.indexOf('optional!') > -1) {
-//          wasOptional = true;
-//          tpl = tpl.replace('optional!', '');
-//       }
-//    }
-//    controlClass = includedTemplates && includedTemplates[tpl];
-//    if (controlClass) {
-//       controlClass = isWasabyControlClass(controlClass);
-//       return {
-//          controlClass: controlClass,
-//          dataComponent: tpl
-//       };
-//    }
-//    controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
-//    if (controlClass) {
-//       controlClass = isWasabyControlClass(controlClass);
-//       return {
-//          controlClass: controlClass,
-//          dataComponent: tpl
-//       };
-//    }
-//    if (!isSlashes || wasOptional || Common.isCompat()) {
-//       /* it can be "optional"
-//        * can be tmpl!
-//        */
-//       if (RequireHelper.defined(tpl)) {
-//          controlClass = isWasabyControlClass(RequireHelper.require(tpl));
-//          return {
-//             controlClass: controlClass,
-//             dataComponent: tpl
-//          };
-//       }
-//    }
-//    try {
-//       if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
-//          this.cacheModules[tpl] = RequireHelper.require(tpl);
-//       }
-//       controlClass = isWasabyControlClass(this.cacheModules[tpl]);
-//       return {
-//          controlClass: controlClass,
-//          dataComponent: tpl
-//       }
-//    } catch (e) {
-//       Logger.error('Ошибка создания компонента', controlClass, e);
-//    }
-// }
-//
-// function patchControlClassPrototype(controlClass, moduleName) {
-//    if (controlClass && controlClass.prototype && !controlClass.prototype.hasOwnProperty('_moduleName')) {
-//       // Patch controlClass prototype, it won't have a _moduleName the first time it is
-//       // created, because it was exported in a library
-//       controlClass.prototype._moduleName = moduleName;
-//    }
-// }
+function isStringTpl(tpl, deps, includedTemplates) {
+   let isSlashes: boolean = false;
+   let wasOptional: boolean = false;
+   let controlClass;
+   const newName = Common.splitWs(tpl);
+   if (newName) {
+      tpl = newName;
+   }
+   if (tpl.indexOf('/') > -1) {
+      isSlashes = true;
+      if (tpl.indexOf('optional!') > -1) {
+         wasOptional = true;
+         tpl = tpl.replace('optional!', '');
+      }
+   }
+   controlClass = includedTemplates && includedTemplates[tpl];
+   if (controlClass) {
+      return [isWasabyControlClass(controlClass), tpl];
+   }
+   controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
+   if (controlClass) {
+      return [isWasabyControlClass(controlClass), tpl];
+   }
+   if (!isSlashes || wasOptional || Common.isCompat()) {
+      /* it can be "optional"
+       * can be tmpl!
+       */
+      if (RequireHelper.defined(tpl)) {
+         return [isWasabyControlClass(RequireHelper.require(tpl)), tpl];
+      }
+   }
+   try {
+      if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
+         this.cacheModules[tpl] = RequireHelper.require(tpl);
+      }
+      return [isWasabyControlClass(this.cacheModules[tpl]), tpl];
+   } catch (e) {
+      Logger.error('Ошибка создания компонента', controlClass, e);
+   }
+   return [controlClass, tpl];
+}
 
-// function isLibraryTpl(tpl, deps) {
-//    // module type: { library: <requirable module name>, module: <field to take from the library> }
-//    let moduleName = tpl.library + ':' + tpl.module.join('.');
-//    let controlClass;
-//    if (deps && deps[tpl.library]) {
-//       controlClass = Common.extractLibraryModule(deps[tpl.library], tpl.module);
-//       patchControlClassPrototype(controlClass, moduleName);
-//       return {
-//          controlClass: controlClass,
-//          dataComponent: moduleName
-//       };
-//    }
-//    if (RequireHelper.defined(tpl.library)) {
-//       controlClass = Common.extractLibraryModule(RequireHelper.extendedRequire(tpl.library, tpl.module), tpl.module);
-//       patchControlClassPrototype(controlClass, moduleName);
-//       return {
-//          controlClass: controlClass,
-//          dataComponent: moduleName
-//       };
-//    }
-//    if (this.cacheModules[tpl.library]) {
-//       controlClass = Common.extractLibraryModule(this.cacheModules[tpl.library], tpl.module);
-//       patchControlClassPrototype(controlClass, moduleName);
-//       return {
-//          controlClass: controlClass,
-//          dataComponent: moduleName
-//       };
-//    }
-// }
+function patchControlClassPrototype(controlClass, moduleName) {
+   if (controlClass && controlClass.prototype && !controlClass.prototype.hasOwnProperty('_moduleName')) {
+      // Patch controlClass prototype, it won't have a _moduleName the first time it is
+      // created, because it was exported in a library
+      controlClass.prototype._moduleName = moduleName;
+   }
+}
+
+function isLibraryTpl(tpl, deps) {
+   if (typeof tpl === 'object' && tpl && tpl.library && tpl.module) {
+      // module type: { library: <requirable module name>, module: <field to take from the library> }
+      let moduleName = tpl.library + ':' + tpl.module.join('.');
+      let controlClass;
+      if (deps && deps[tpl.library]) {
+         controlClass = Common.extractLibraryModule(deps[tpl.library], tpl.module);
+         patchControlClassPrototype(controlClass, moduleName);
+         return [controlClass, moduleName];
+      }
+      if (RequireHelper.defined(tpl.library)) {
+         controlClass = Common.extractLibraryModule(RequireHelper.extendedRequire(tpl.library, tpl.module), tpl.module);
+         patchControlClassPrototype(controlClass, moduleName);
+         return [controlClass, moduleName];
+      }
+      if (this.cacheModules[tpl.library]) {
+         controlClass = Common.extractLibraryModule(this.cacheModules[tpl.library], tpl.module);
+         patchControlClassPrototype(controlClass, moduleName);
+         return [controlClass, moduleName];
+      }
+   }
+}
 
 function resolveTpl(tpl, deps, includedTemplates) {
-   let controlClass;
-   let dataComponent;
-   let isSlashes;
-   let wasOptional;
-
    if (tpl === '_$inline_template') {
-      return ['_$inline_template', dataComponent];
-   } else if (typeof tpl === 'function') {
-      dataComponent = tpl.prototype ? tpl.prototype._moduleName : '';
+      return ['_$inline_template', undefined];
+   }
+   if (typeof tpl === 'function') {
+      const dataComponent = tpl.prototype ? tpl.prototype._moduleName : '';
       return [tpl, dataComponent];
-   } else if (typeof tpl === 'string') {
+   }
+   if (typeof tpl === 'string') {
       if (Common.isLibraryModuleString(tpl)) {
          // if this is a module string, it probably is from a dynamic partial template
          // (ws:partial template="{{someString}}"). Split library name and module name
          // here and process it in the next `if tpl.library && tpl.module`
-         return [Common.splitModule(tpl), dataComponent];
-      } else {
-         const newName = Common.splitWs(tpl);
-         if (newName) {
-            tpl = newName;
-         }
-
-         if (tpl.indexOf('/') > -1) {
-            isSlashes = true;
-            if (tpl.indexOf('optional!') > -1) {
-               wasOptional = true;
-            }
-         }
-
-         tpl = tpl.replace('optional!', '');
-         if (includedTemplates && includedTemplates[tpl]) {
-            controlClass = includedTemplates[tpl];
-         }
-
-         if (!controlClass) {
-            controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
-         }
-
-         if (!controlClass) {
-            if (!isSlashes || wasOptional || Common.isCompat()) {
-               /*
-                 * it can be "optional"
-                 * can be tmpl!
-                 * */
-               if (RequireHelper.defined(tpl)) {
-                  controlClass = RequireHelper.require(tpl);
-               }
-            } else {
-               try {
-                  if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
-                     this.cacheModules[tpl] = RequireHelper.require(tpl);
-                  }
-                  controlClass = this.cacheModules[tpl];
-               } catch (e) {
-                  Logger.error('Create component error', controlClass, e);
-               }
-            }
-         }
-         dataComponent = tpl;
-
-         if (controlClass && controlClass.default && controlClass.default.isWasaby) {
-            controlClass = controlClass.default;
-         }
-         return [controlClass, dataComponent];
+         tpl = isLibraryTpl(Common.splitModule(tpl), deps);
+         return [tpl[0], tpl[1]];
       }
+      tpl = isStringTpl(tpl, deps, includedTemplates);
+      return [tpl[0], tpl[1]];
    }
-   if (typeof tpl === 'object' && tpl && tpl.library && tpl.module) {
-      // module type: { library: <requirable module name>, module: <field to take from the library> }
-      let moduleName = tpl.library + ':' + tpl.module.join('.');
-      if (deps && deps[tpl.library]) {
-         controlClass = Common.extractLibraryModule(deps[tpl.library], tpl.module);
-      } else if (RequireHelper.defined(tpl.library)) {
-         controlClass = Common.extractLibraryModule(RequireHelper.extendedRequire(tpl.library, tpl.module), tpl.module);
-      } else {
-         const mod = this.cacheModules[tpl.library];
-         if (mod) {
-            controlClass = Common.extractLibraryModule(this.cacheModules[tpl.library], tpl.module);
-         } else {
-            moduleName = undefined;
-         }
-      }
-      if (controlClass && controlClass.prototype && !controlClass.prototype.hasOwnProperty('_moduleName')) {
-         // Patch controlClass prototype, it won't have a _moduleName the first time it is
-         // created, because it was exported in a library
-         controlClass.prototype._moduleName = moduleName;
-      }
-      dataComponent = moduleName;
-      return [controlClass, dataComponent];
-   }
-   return [controlClass, dataComponent];
+   tpl = isLibraryTpl(tpl, deps);
+   return [tpl[0], tpl[1]];
 }
 
 function isCompatPatch(controlClass, controlProperties, attrs, fromOld) {
