@@ -852,7 +852,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
 
    /**
     * @param {TOptions} newOptions
-    * @deprecated @param {Object} context устаревшая опция с контекстом
+    * @param {Object} context deprecated: устаревшая опция с контекстом
     */
    __beforeUpdate(newOptions: TOptions, context?: Record<string, any>): void {
       if (newOptions.theme !== this._options.theme) {
@@ -920,7 +920,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * Определяет, должен ли контрол обновляться. Вызывается каждый раз перед обновлением контрола.
     *
     * @param {Object} options Опции контрола.
-    * @deprecated @param {Object} context Поле контекста, запрошенное контролом.
+    * @param {Object} context deprecated: Поле контекста, запрошенное контролом.
     * @returns {Boolean}
     * <ol>
     *    <li>true(значание по умолчанию): контрол будет обновлен.</li>

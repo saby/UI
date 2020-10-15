@@ -700,11 +700,9 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     let childrenNodes;
     let createdStartIdx;
 
+
     if (!isSelfDirty) {
-        return __afterRebuildNode(environment, node, false, undefined,
-            node.childrenNodes, ARR_EMPTY, ARR_EMPTY,
-            ARR_EMPTY, ARR_EMPTY, ARR_EMPTY, ARR_EMPTY,
-            ARR_EMPTY, ARR_EMPTY, false);
+        return __afterRebuildNode(environment, node, false, undefined, node.childrenNodes, new MemoForNode(), false);
     }
 
     /**
@@ -1273,10 +1271,19 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         logicParent: logicParent
     });
 
-    return __afterRebuildNode(environment, newNode, needRenderMarkup, changedNodes,
-        childrenNodes, createdNodes, createdTemplateNodes,
-        updatedNodes, updatedUnchangedNodes, updatedChangedNodes, updatedChangedTemplateNodes,
-        destroyedNodes, selfDirtyNodes, isSelfDirty)
+    const currentMemo: MemoForNode = concatMemo(new MemoForNode(), {
+        createdNodes,
+        updatedNodes,
+        destroyedNodes,
+        updatedChangedNodes,
+        updatedChangedTemplateNodes,
+        updatedUnchangedNodes,
+        selfDirtyNodes,
+        createdTemplateNodes
+    });
+
+    return __afterRebuildNode(environment, newNode, needRenderMarkup,
+        changedNodes, childrenNodes, currentMemo, isSelfDirty);
 }
 
 function mapChildren(currentMemo, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty) {
@@ -1317,10 +1324,7 @@ function mapChildren(currentMemo, newNode, childrenRebuildFinalResults, environm
 
 
 function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode, needRenderMarkup: boolean,
-    changedNodes,
-    childrenNodes, createdNodes, createdTemplateNodes,
-    updatedNodes, updatedUnchangedNodes, updatedChangedNodes, updatedChangedTemplateNodes,
-    destroyedNodes, selfDirtyNodes, isSelfDirty): IMemoNode | Promise<IMemoNode> {
+    changedNodes, childrenNodes, currentMemo: MemoForNode, isSelfDirty): IMemoNode | Promise<IMemoNode> {
 
     const childrenRebuildResults: IMemoNode[] = [];
 
@@ -1335,16 +1339,6 @@ function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode,
         haveAsync = haveAsync || !!childRebuildResult.then;
         childrenRebuildResults.push(childRebuildResult);
     }
-    const currentMemo: MemoForNode = concatMemo(new MemoForNode(), {
-        createdNodes,
-        updatedNodes,
-        destroyedNodes,
-        updatedChangedNodes,
-        updatedChangedTemplateNodes,
-        updatedUnchangedNodes,
-        selfDirtyNodes,
-        createdTemplateNodes
-    });
 
     if (!haveAsync) {
         return mapChildren(currentMemo, newNode, childrenRebuildResults, environment, needRenderMarkup, isSelfDirty);

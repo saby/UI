@@ -423,29 +423,30 @@ export function getMarkupDiff(oldNode: VNode, newNode: VNode,
          } else {
             complexDiffFinder(oldNode, newNode, false, false);
          }
+
+         return result;
+      }
+      result.vnodeChanged = true;
+
+      if (isControlVNodeType(newNode)) {
+         // @ts-ignore
+         result.create.push(newNode);
+      } else if (isTemplateVNodeType(newNode)) {
+         // @ts-ignore
+         result.createTemplates.push(newNode);
       } else {
-         result.vnodeChanged = true;
+         concatResults(result.create, collectChildControlVNodes(newNode));
+         concatResults(result.createTemplates, collectChildTemplateVNodes(newNode));
+      }
 
-         if (isControlVNodeType(newNode)) {
+      if (oldNode) {
+         if (isControlVNodeType(oldNode)) {
             // @ts-ignore
-            result.create.push(newNode);
-         } else if (isTemplateVNodeType(newNode)) {
-            // @ts-ignore
-            result.createTemplates.push(newNode);
+            result.destroy.push(oldNode);
+         } else if (isTemplateVNodeType(oldNode)) {
+            concatResults(result.destroy, collectChildControlVNodes(oldNode, true));
          } else {
-            concatResults(result.create, collectChildControlVNodes(newNode));
-            concatResults(result.createTemplates, collectChildTemplateVNodes(newNode));
-         }
-
-         if (oldNode) {
-            if (isControlVNodeType(oldNode)) {
-               // @ts-ignore
-               result.destroy.push(oldNode);
-            } else if (isTemplateVNodeType(oldNode)) {
-               concatResults(result.destroy, collectChildControlVNodes(oldNode, true));
-            } else {
-               concatResults(result.destroy, collectChildControlVNodes(oldNode, true));
-            }
+            concatResults(result.destroy, collectChildControlVNodes(oldNode, true));
          }
       }
    }
