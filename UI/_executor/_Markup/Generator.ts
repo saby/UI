@@ -138,35 +138,38 @@ function calculateDataComponent(tplOrigin) {
 //    }
 // }
 //
-function patchControlClassPrototype(controlClass, moduleName) {
-   if (controlClass && controlClass.prototype && !controlClass.prototype.hasOwnProperty('_moduleName')) {
-      // Patch controlClass prototype, it won't have a _moduleName the first time it is
-      // created, because it was exported in a library
-      controlClass.prototype._moduleName = moduleName;
-   }
-   return controlClass;
-}
+// function patchControlClassPrototype(controlClass, moduleName) {
+//    if (controlClass && controlClass.prototype && !controlClass.prototype.hasOwnProperty('_moduleName')) {
+//       // Patch controlClass prototype, it won't have a _moduleName the first time it is
+//       // created, because it was exported in a library
+//       controlClass.prototype._moduleName = moduleName;
+//    }
+//    return controlClass;
+// }
 
 function isLibraryTpl(tpl, deps) {
    if (typeof tpl === 'object' && tpl && tpl.library && tpl.module) {
+      let controlClass;
       // module type: { library: <requirable module name>, module: <field to take from the library> }
       let moduleName = tpl.library + ':' + tpl.module.join('.');
-      let controlClass;
       if (deps && deps[tpl.library]) {
          controlClass = Common.extractLibraryModule(deps[tpl.library], tpl.module);
-         controlClass = patchControlClassPrototype(controlClass, moduleName);
-         return [controlClass, moduleName];
-      }
-      if (RequireHelper.defined(tpl.library)) {
+      } else if (RequireHelper.defined(tpl.library)) {
          controlClass = Common.extractLibraryModule(RequireHelper.extendedRequire(tpl.library, tpl.module), tpl.module);
-         controlClass = patchControlClassPrototype(controlClass, moduleName);
-         return [controlClass, moduleName];
+      } else {
+         const mod = this.cacheModules[tpl.library];
+         if (mod) {
+            controlClass = Common.extractLibraryModule(this.cacheModules[tpl.library], tpl.module);
+         } else {
+            moduleName = undefined;
+         }
       }
-      if (this.cacheModules[tpl.library]) {
-         controlClass = Common.extractLibraryModule(this.cacheModules[tpl.library], tpl.module);
-         controlClass = patchControlClassPrototype(controlClass, moduleName);
-         return [controlClass, moduleName];
+      if (controlClass && controlClass.prototype && !controlClass.prototype.hasOwnProperty('_moduleName')) {
+         // Patch controlClass prototype, it won't have a _moduleName the first time it is
+         // created, because it was exported in a library
+         controlClass.prototype._moduleName = moduleName;
       }
+      return [controlClass, moduleName];
    }
 }
 
@@ -188,8 +191,7 @@ function resolveTpl(tpl, deps, includedTemplates) {
          // if this is a module string, it probably is from a dynamic partial template
          // (ws:partial template="{{someString}}"). Split library name and module name
          // here and process it in the next `if tpl.library && tpl.module`
-         tpl = Common.splitModule(tpl);
-         tpl = isLibraryTpl(tpl, deps);
+         tpl = isLibraryTpl(Common.splitModule(tpl), deps);
          return [tpl[0], tpl[1]];
       }
       const newName = Common.splitWs(tpl);
@@ -239,7 +241,6 @@ function resolveTpl(tpl, deps, includedTemplates) {
          controlClass = controlClass.default;
       }
       return [controlClass, dataComponent];
-
    }
    tpl = isLibraryTpl(tpl, deps);
    return [tpl[0], tpl[1]];
