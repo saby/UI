@@ -1,6 +1,7 @@
 import { TemplateFunction } from 'UI/Base';
 import { IControlNode } from './_vdom/Synchronizer/interfaces';
 import { IOptions } from './_vdom/Synchronizer/resources/Options';
+import { TGeneratorNode } from 'UI/Executor';
 
 interface IChangedReactiveProp {
    name: string;
@@ -226,7 +227,7 @@ function isControlNode(node: object): node is IControlNode {
    return node.hasOwnProperty('controlClass');
 }
 
-function getNodeName(node: IControlNode | ITemplateNode): string {
+function getNodeName(node: IControlNode | TGeneratorNode): string {
    if (foundDevtools) {
       if (isControlNode(node)) {
          if (node.controlClass && node.controlClass.prototype) {

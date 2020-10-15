@@ -9,7 +9,7 @@ import { Logger } from 'UI/Utils';
 import { WasabyProperties, VNode } from 'Inferno/third-party/index';
 import { Map, Set } from 'Types/shim';
 
-import { htmlNode, textNode, GeneratorNode, ITemplateNode } from 'UI/Executor';
+import { htmlNode, textNode, TGeneratorNode, ITemplateNode } from 'UI/Executor';
 import { IControlNode } from '../interfaces';
 import { TControlConstructor } from 'UI/_base/Control';
 
@@ -60,7 +60,7 @@ export function isInvisibleNodeType(vnode: any): any {
 }
 
 // TODO модификация этой функции приводит к большим проблемам. Нужно точнее разобрать
-export function getVNodeChidlren(vnode: VNode, getFromTemplateNodes: boolean = false): Array<GeneratorNode | VNode> {
+export function getVNodeChidlren(vnode: VNode, getFromTemplateNodes: boolean = false): Array<TGeneratorNode | VNode> {
    if (!vnode) {
       return [];
    }
@@ -176,9 +176,9 @@ type VNodeControl = VNode & { controlClass: TControlConstructor };
 
 interface IMarkupDiff {
    create: VNodeControl[];
-   createTemplates: VNode[];
+   createTemplates: ITemplateNode[];
    destroy: VNodeControl[];
-   destroyTemplates: VNode[];
+   destroyTemplates: ITemplateNode[];
    update: Array<{ oldNode: VNodeControl, newNode: VNodeControl }>;
    updateTemplates: Array<{ oldNode: ITemplateNode, newNode: ITemplateNode }>;
    vnodeChanged: boolean;

@@ -250,3 +250,28 @@ export interface ITemplateNode {
    flags: 262144;
    coutn: number;
 }
+
+import { VNode } from 'Inferno/third-party/index';
+
+export type IGeneratorVNode = VNode & {
+   children: TGeneratorNode[];
+};
+
+// Интерфейс ноды контрола
+export interface IGeneratorControlNode {
+   compound: boolean;
+   invisible: boolean;
+   controlClass: Function;
+   controlProperties: TProps;
+   controlInternalProperties: IGeneratorInternalProperties;
+   controlAttributes: TAttributes;
+   controlEvents: TEvents;
+   key: string;
+   controlNodeIdx: number;
+   context: IGeneratorAttrsContext;
+   inheritOptions: IGeneratorInheritOptions;
+   flags: number;
+}
+
+// Тип для генераторов Vdom-нод
+export type TGeneratorNode = IGeneratorVNode & IGeneratorControlNode & ITemplateNode;

@@ -39,14 +39,7 @@ import { collectObjectVersions, getChangedOptions } from './Options';
 
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
-import { GeneratorNode } from 'UI/Executor';
-// import { VNode } from 'Inferno/third-party/index';
-import { ITemplateNode } from 'UI/_executor/_Markup/IGeneratorType';
-
-type TDirtyCheckingTemplate = ITemplateNode & {
-    children: GeneratorNode[];  // нужно понять почему у нас такое ограничение
-};
-
+import { TGeneratorNode, ITemplateNode } from 'UI/Executor';
 export { getChangedOptions } from './Options';
 
 var Slr = new Serializer();
@@ -804,7 +797,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             updateTemplates: []
         };
 
-        createdTemplateNodes = diff.createTemplates.map(function rebuildCreateTemplateNodes(vnode: TDirtyCheckingTemplate) {
+        createdTemplateNodes = diff.createTemplates.map(function rebuildCreateTemplateNodes(vnode: ITemplateNode) {
             Logger.debug('DirtyChecking (create template)', vnode);
             onStartCommit(OperationType.CREATE, getNodeName(vnode));
             vnode.optionsVersions = collectObjectVersions(vnode.controlProperties);
@@ -974,7 +967,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
 
     createdTemplateNodes = [];
 
-    createdNodes = diff.create.map(function rebuildCreateNodes(vnode: GeneratorNode, idx) {
+    createdNodes = diff.create.map(function rebuildCreateNodes(vnode: TGeneratorNode, idx) {
         let nodeIdx = createdStartIdx + idx;
         let serializedChildren = parentNode.serializedChildren;
         let serialized = serializedChildren && serializedChildren[nodeIdx];

@@ -32,9 +32,9 @@ import {
    TIncludedTemplate,
    ITemplateNode,
    TObject,
-   TScope
+   TScope,
+   TGeneratorNode
 } from '../IGeneratorType';
-import { GeneratorNode } from './IVdomType';
 import { cutFocusAttributes } from '../Utils';
 import { VNode } from 'Inferno/third-party/index';
 
@@ -151,7 +151,7 @@ export class GeneratorVdom implements IGenerator {
                    scope: IControlProperties,
                    attrs: IGeneratorAttrs,
                    _: string,
-                   deps?: TDeps): GeneratorNode | GeneratorVoid {
+                   deps?: TDeps): TGeneratorNode | GeneratorVoid {
       const data = this.prepareDataForCreate(name, scope, attrs, deps);
       const controlClass = data.controlClass;
 
@@ -187,7 +187,7 @@ export class GeneratorVdom implements IGenerator {
       attributes: IGeneratorAttrs,
       context: string,
       _deps?: TDeps,
-      config?: IGeneratorConfig): string | ITemplateNode | GeneratorNode {
+      config?: IGeneratorConfig): string | ITemplateNode | TGeneratorNode {
       let resultingFn;
       if (Common.isString(name)) {
          // @ts-ignore
@@ -289,7 +289,7 @@ export class GeneratorVdom implements IGenerator {
       }
 
       if (Common.isControlClass(fn)) {
-         return this.createWsControl(fn, resolvedScope, decorAttribs, context, _deps) as GeneratorNode;
+         return this.createWsControl(fn, resolvedScope, decorAttribs, context, _deps) as TGeneratorNode;
       } else {
 
          const nameFunc = isTplString ? tpl : 'InlineFunction';
