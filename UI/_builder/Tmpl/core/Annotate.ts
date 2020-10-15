@@ -8,6 +8,7 @@
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { ProgramNode, IdentifierNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
+import Scope from 'UI/_builder/Tmpl/core/Scope';
 
 interface IAnnotatedTree extends Array<Ast.Ast> {
    childrenStorage: string[];
@@ -16,7 +17,7 @@ interface IAnnotatedTree extends Array<Ast.Ast> {
 }
 
 export interface IAnnotateProcessor {
-   annotate(nodes: Ast.Ast[]): IAnnotatedTree;
+   annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree;
 }
 
 interface IStorage {
@@ -26,6 +27,7 @@ interface IStorage {
 interface IContext {
    childrenStorage: string[];
    identifiersStore: IStorage;
+   scope: Scope;
 }
 
 interface ICyclePreprocess {
@@ -403,13 +405,14 @@ function cleanIgnoredIdentifiersFromReactive(identifiersStore: IStorage, ignored
 
 class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
-   annotate(nodes: Ast.Ast[]): IAnnotatedTree {
+   annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree {
       const childrenStorage: string[] = [ ];
       const identifiersStore: IStorage = { };
       nodes.forEach((node: Ast.Ast) => {
          const context: IContext = {
             childrenStorage,
-            identifiersStore
+            identifiersStore,
+            scope
          };
          const expressions: Ast.ExpressionNode[] = node.accept(this, context);
          node.__$ws_internal = { };
@@ -691,8 +694,14 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): Ast.ExpressionNode[] {
-      // TODO: [Legacy] Visit inline template content
-      return this.processBaseWasabyElement(node, context);
+      let expressions: Ast.ExpressionNode[] = [];
+      expressions = expressions.concat(
+         context.scope.getTemplate(node.__$ws_name).accept(this, context)
+      );
+      expressions = expressions.concat(
+         this.processBaseWasabyElement(node, context)
+      );
+      return expressions;
    }
 
    visitStaticPartial(node: Ast.StaticPartialNode, context: IContext): Ast.ExpressionNode[] {
@@ -801,7 +810,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 }
 
-export default function annotate(nodes: Ast.Ast[]): IAnnotatedTree {
+export default function annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree {
    return new AnnotateProcessor()
-      .annotate(nodes);
+      .annotate(nodes, scope);
 }

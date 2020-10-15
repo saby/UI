@@ -69,7 +69,7 @@ define('UI/_builder/Tmpl/core/bridge', [
    }
 
    function annotateWithVisitors(traversed, options, traverseOptions, deferred) {
-      var annotated = Annotate.default(traversed);
+      var annotated = Annotate.default(traversed, traverseOptions.scope);
       PatchVisitorLib.default(traversed, traverseOptions.scope);
       traversed.childrenStorage = annotated.childrenStorage;
       traversed.reactiveProps = annotated.reactiveProps;
