@@ -7,7 +7,6 @@ import * as Common from '../_Utils/Common';
 import * as RequireHelper from '../_Utils/RequireHelper';
 import * as OptionsResolver from '../_Utils/OptionsResolver';
 import * as Scope from '../_Expressions/Scope';
-import { _FocusAttrs } from 'UI/Focus';
 import { EventUtils } from 'UI/Events';
 import * as ConfigResolver from '../_Utils/ConfigResolver'
 import {
@@ -74,6 +73,181 @@ function calculateDataComponent(tplOrigin) {
    return dataComponent;
 }
 
+function isLibraryTpl(tpl, deps) {
+   if (typeof tpl === 'object' && tpl && tpl.library && tpl.module) {
+      let controlClass;
+      // module type: { library: <requirable module name>, module: <field to take from the library> }
+      let moduleName = tpl.library + ':' + tpl.module.join('.');
+      if (deps && deps[tpl.library]) {
+         controlClass = Common.extractLibraryModule(deps[tpl.library], tpl.module);
+      } else if (RequireHelper.defined(tpl.library)) {
+         controlClass = Common.extractLibraryModule(RequireHelper.extendedRequire(tpl.library, tpl.module), tpl.module);
+      } else {
+         const mod = this.cacheModules[tpl.library];
+         if (mod) {
+            controlClass = Common.extractLibraryModule(this.cacheModules[tpl.library], tpl.module);
+         } else {
+            moduleName = undefined;
+         }
+      }
+      if (controlClass && controlClass.prototype && !controlClass.prototype.hasOwnProperty('_moduleName')) {
+         // Patch controlClass prototype, it won't have a _moduleName the first time it is
+         // created, because it was exported in a library
+         controlClass.prototype._moduleName = moduleName;
+      }
+      return [controlClass, moduleName];
+   }
+   return [undefined, undefined];
+}
+
+function resolveTpl(tpl, deps, includedTemplates) {
+   let dataComponent;
+
+   if (tpl === '_$inline_template') {
+      return ['_$inline_template', undefined];
+   }
+   if (typeof tpl === 'function') {
+      dataComponent = tpl.prototype ? tpl.prototype._moduleName : '';
+      return [tpl, dataComponent];
+   }
+   if (typeof tpl === 'string') {
+      if (Common.isLibraryModuleString(tpl)) {
+         // if this is a module string, it probably is from a dynamic partial template
+         // (ws:partial template="{{someString}}"). Split library name and module name
+         // here and process it in the next `if tpl.library && tpl.module`
+         tpl = Common.splitModule(tpl);
+         return isLibraryTpl(tpl, deps);
+      }
+      let isSlashes;
+      let wasOptional;
+      let controlClass;
+      const newName = Common.splitWs(tpl);
+      if (newName) {
+         tpl = newName;
+      }
+
+      if (tpl.indexOf('/') > -1) {
+         isSlashes = true;
+         if (tpl.indexOf('optional!') > -1) {
+            wasOptional = true;
+            tpl = tpl.replace('optional!', '');
+         }
+      }
+
+      if (includedTemplates && includedTemplates[tpl]) {
+         controlClass = includedTemplates[tpl];
+      }
+
+      if (!controlClass) {
+         controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
+      }
+
+      if (!controlClass) {
+         if (!isSlashes || wasOptional || Common.isCompat()) {
+            /*
+               * it can be "optional"
+               * can be tmpl!
+               * */
+            if (RequireHelper.defined(tpl)) {
+               controlClass = RequireHelper.require(tpl);
+            }
+         } else {
+            try {
+               if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
+                  this.cacheModules[tpl] = RequireHelper.require(tpl);
+               }
+               controlClass = this.cacheModules[tpl];
+            } catch (e) {
+               Logger.error('Create component error', controlClass, e);
+            }
+         }
+      }
+      dataComponent = tpl;
+      if (controlClass && controlClass.default && controlClass.default.isWasaby) {
+         controlClass = controlClass.default;
+      }
+      return [controlClass, dataComponent];
+   }
+   return isLibraryTpl(tpl, deps);
+}
+
+function isCompatPatch(controlClass, controlProperties, attrs, fromOld) {
+   if (controlProperties && controlProperties.enabled === undefined) {
+      const internal = attrs.internal;
+      if (internal && internal.parent && fromOld) {
+         if (internal.parentEnabled !== undefined && controlProperties.allowChangeEnable !== false) {
+            controlProperties.enabled = internal.parentEnabled;
+         } else {
+            controlProperties.enabled = true;
+         }
+      } else if (fromOld && internal.parentEnabled === false) {
+         controlProperties.__enabledOnlyToTpl = internal.parentEnabled;
+      }
+   }
+
+   if (fromOld) {
+      const objForFor = attrs.attributes;
+      for (let i in objForFor) {
+         if (objForFor.hasOwnProperty(i) && EventUtils.isEvent(i)) {
+            controlProperties[i] = objForFor[i];
+         }
+      }
+   }
+   return controlProperties;
+}
+
+function dataResolver(data: IControlData,
+                      templateCfg: ICreateControlTemplateCfg,
+                      attrs: IGeneratorAttrs,
+                      name: GeneratorTemplateOrigin): [IControlData, IControlUserData, IGeneratorAttrs] {
+   data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs, calculateDataComponent(name));
+   data.internal.logicParent = data.internal.logicParent || templateCfg.viewController;
+   data.internal.parent = data.internal.parent || templateCfg.viewController;
+
+   attrs.internal = data.internal;
+   const userData = data.user;
+   return [data, userData, attrs];
+}
+
+function nameResolver(name: GeneratorTemplateOrigin): GeneratorTemplateOrigin {
+   // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
+   if (name === null) {
+      return this.createEmptyText();
+   }
+   // конвертирую объект строки в строку, чтобы везде провеять только на строку
+   // объект вместо строки вероятно приходит из-за интернационализации
+   if (name instanceof String) {
+      name = name.toString();
+   }
+   return name;
+}
+
+function checkResult(res: GeneratorObject | Promise<unknown> | Error,
+                     type: string,
+                     name: string): GeneratorObject | Promise<unknown> | Error {
+   if (res !== undefined) {
+      return res;
+   }
+   /**
+    * Если у нас есть имя и тип, значит мы выполнили код выше
+    * Функции шаблонизации возвращают undefined, когда работают на клиенте
+    * с уже построенной версткой
+    * А вот если нам не передали каких-то данных сюда, то мы ничего не строили,
+    * а значит это ошибка и нужно обругаться.
+    */
+   if ((typeof name !== 'undefined') && type) {
+      return this.createEmptyText();
+   }
+   if (typeof name === 'undefined') {
+      Logger.error('Попытка использовать компонент/шаблон, ' +
+         'но вместо компонента в шаблоне в опцию template был передан undefined! ' +
+         'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
+         'По стеку будет понятно, в каком шаблоне и в какую опцию передается undefined');
+      return this.createEmptyText();
+   }
+   throw new Error('MarkupGenerator: createControl type not resolved');
+}
+
 /**
  * @author Тэн В.А.
  */
@@ -93,14 +267,14 @@ export class Generator {
       }
    }
 
-   chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string|void> | string | Error {
+   chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string | void> | string | Error {
       function chainTrace(defObject: Array<any>): string {
-         return out.replace(defRegExp, function(key) {
+         return out.replace(defRegExp, function (key) {
             const valKey = defCollection.id.indexOf(key);
             if (defObject[valKey] && defCollection.id[valKey]) {
                return defObject[valKey].result ? defObject[valKey].result : defObject[valKey];
             }
-            if(defObject[valKey] === undefined) {
+            if (defObject[valKey] === undefined) {
                Logger.asyncRenderErrorLog('Promise from chain return undefined value', inst);
             }
             return '';
@@ -108,7 +282,7 @@ export class Generator {
       }
 
       const Deferred = require('Core/Deferred');
-      return Promise.all(defCollection.def).then(Deferred.skipLogExecutionTime(chainTrace), function(err) {
+      return Promise.all(defCollection.def).then(Deferred.skipLogExecutionTime(chainTrace), function (err) {
          Logger.asyncRenderErrorLog(err);
       });
    };
@@ -119,18 +293,18 @@ export class Generator {
                     templateCfg: ICreateControlTemplateCfg,
                     context: string,
                     deps: TDeps): GeneratorObject | Promise<unknown> | Error {
-      let preparedData = this.dataResolver(data, templateCfg, attrs, name);
+      let preparedData = dataResolver(data, templateCfg, attrs, name);
       attrs = preparedData[2];
       const userData = preparedData[1];
-      name = this.nameResolver(name);
+      name = nameResolver.call(this, name);
       let res;
       const type = 'wsControl';
       if (Common.isCompat()) {
          res = timing.methodExecutionTime(this.createWsControl, this, [name, userData, attrs, context, deps]);
-      } else {
-         res = this.createWsControl(name, userData, attrs, context, deps);
+         return checkResult.call(this, res, type, name);
       }
-      return this.checkResult(res, type);
+      res = this.createWsControl(name, userData, attrs, context, deps);
+      return checkResult.call(this, res, type, name);
    }
 
    prepareTemplate(name: GeneratorTemplateOrigin,
@@ -140,18 +314,18 @@ export class Generator {
                    context: string,
                    deps: TDeps,
                    config: IGeneratorConfig): GeneratorObject | Promise<unknown> | Error {
-      let preparedData = this.dataResolver(data, templateCfg, attrs, name);
+      let preparedData = dataResolver(data, templateCfg, attrs, name);
       attrs = preparedData[2];
       const userData = preparedData[1];
-      name = this.nameResolver(name);
+      name = nameResolver.call(this, name);
       let res;
       const type = 'template';
       if (Common.isCompat()) {
          res = timing.methodExecutionTime(this.createTemplate, this, [name, userData, attrs, context, deps, config]);
-      } else {
-         res = this.createTemplate(name, userData, attrs, context, deps, config);
+         return checkResult.call(this, res, type, name);
       }
-      return this.checkResult(res, type);
+      res = this.createTemplate(name, userData, attrs, context, deps, config);
+      return checkResult.call(this, res, type, name);
    }
 
    prepareController(name: GeneratorTemplateOrigin,
@@ -160,18 +334,18 @@ export class Generator {
                      templateCfg: ICreateControlTemplateCfg,
                      context: string,
                      deps: TDeps): GeneratorObject | Promise<unknown> | Error {
-      let preparedData = this.dataResolver(data, templateCfg, attrs, name);
+      let preparedData = dataResolver(data, templateCfg, attrs, name);
       attrs = preparedData[2];
       const userData = preparedData[1];
-      name = this.nameResolver(name);
+      name = nameResolver(name);
       let res;
       const type = 'controller';
       if (Common.isCompat()) {
          res = timing.methodExecutionTime(this.createController, this, [name, userData, attrs, context, deps]);
-      } else {
-         res = this.createController(name, userData, attrs, context, deps);
+         return checkResult.call(this, res, type, name);
       }
-      return this.checkResult(res, type);
+      res = this.createController(name, userData, attrs, context, deps);
+      return checkResult.call(this, res, type, name);
    }
 
    prepareResolver(name: GeneratorTemplateOrigin,
@@ -184,10 +358,10 @@ export class Generator {
                    config: IGeneratorConfig,
                    contextObj?: GeneratorEmptyObject,
                    defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error {
-      let preparedData = this.dataResolver(data, templateCfg, attrs, name);
+      let preparedData = dataResolver(data, templateCfg, attrs, name);
       attrs = preparedData[2];
       const userData = preparedData[1];
-      name = this.nameResolver(name);
+      name = nameResolver(name);
       let res;
       const type = 'resolver';
       let handl, i;
@@ -204,10 +378,11 @@ export class Generator {
       }
       if (Common.isCompat()) {
          res = timing.methodExecutionTime(this.resolver, this, [name, userData, attrs, context, deps, includedTemplates, config, defCollection]);
-      } else {
-         res = this.resolver(name, userData, attrs, context, deps, includedTemplates, config, defCollection);
+         return checkResult.call(this, res, type, name);
       }
-      return this.checkResult(res, type);
+      res = this.resolver(name, userData, attrs, context, deps, includedTemplates, config, defCollection);
+      return checkResult.call(this, res, type, name);
+
    }
 
    createControl(type: string,
@@ -221,19 +396,19 @@ export class Generator {
                  config: IGeneratorConfig,
                  contextObj?: GeneratorEmptyObject,
                  defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error {
-   let res;
-   // TODO вынести конфиг ресолвер. пока это кранйе затруднительно, т.к. цепляет кучу всего.
-   data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs, calculateDataComponent(name));
-   data.internal.logicParent = data.internal.logicParent || templateCfg.viewController;
-   data.internal.parent = data.internal.parent || templateCfg.viewController;
+      let res;
+      // TODO вынести конфиг ресолвер. пока это кранйе затруднительно, т.к. цепляет кучу всего.
+      data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs, calculateDataComponent(name));
+      data.internal.logicParent = data.internal.logicParent || templateCfg.viewController;
+      data.internal.parent = data.internal.parent || templateCfg.viewController;
 
-   attrs.internal = data.internal;
-   const userData = data.user;
+      attrs.internal = data.internal;
+      const userData = data.user;
 
-   // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
-   if (name === null) {
-      return this.createEmptyText();
-   } else {
+      // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
+      if (name === null) {
+         return this.createEmptyText();
+      }
       // конвертирую объект строки в строку, чтобы везде провеять только на строку
       // объект вместо строки вероятно приходит из-за интернационализации
       if (name instanceof String) {
@@ -244,26 +419,30 @@ export class Generator {
       if (type === 'wsControl') {
          if (Common.isCompat()) {
             res = timing.methodExecutionTime(this.createWsControl, this, [name, userData, attrs, context, deps]);
-         } else {
-            res = this.createWsControl(name, userData, attrs, context, deps);
+            return checkResult.call(this, res, type, name);
          }
+         res = this.createWsControl(name, userData, attrs, context, deps);
+         return checkResult.call(this, res, type, name);
       }
       // типа контрола - шаблон
       if (type === 'template') {
          if (Common.isCompat()) {
             res = timing.methodExecutionTime(this.createTemplate, this, [name, userData, attrs, context, deps, config]);
-         } else {
-            res = this.createTemplate(name, userData, attrs, context, deps, config);
+            return checkResult.call(this, res, type, name);
          }
+         res = this.createTemplate(name, userData, attrs, context, deps, config);
+         return checkResult.call(this, res, type, name);
 
       }
       // тип контрола - компонент без шаблона
       if (type === 'controller') {
          if (Common.isCompat()) {
             res = timing.methodExecutionTime(this.createController, this, [name, userData, attrs, context, deps]);
-         } else {
-            res = this.createController(name, userData, attrs, context, deps);
+            return checkResult.call(this, res, type, name);
          }
+         res = this.createController(name, userData, attrs, context, deps);
+         return checkResult.call(this, res, type, name);
+
       }
       // когда тип вычисляемый, запускаем функцию вычисления типа и там обрабатываем тип
       if (type === 'resolver') {
@@ -281,135 +460,32 @@ export class Generator {
          }
          if (Common.isCompat()) {
             res = timing.methodExecutionTime(this.resolver, this, [name, userData, attrs, context, deps, includedTemplates, config, defCollection]);
-         } else {
-            res = this.resolver(name, userData, attrs, context, deps, includedTemplates, config, defCollection);
+            return checkResult.call(this, res, type, name);
          }
+         res = this.resolver(name, userData, attrs, context, deps, includedTemplates, config, defCollection);
+         return checkResult.call(this, res, type, name);
       }
-      if (res !== undefined) {
-         return res;
-      } else {
-         /**
-          * Если у нас есть имя и тип, значит мы выполнили код выше
-          * Функции шаблонизации возвращают undefined, когда работают на клиенте
-          * с уже построенной версткой
-          * А вот если нам не передали каких-то данных сюда, то мы ничего не строили,
-          * а значит это ошибка и нужно обругаться.
-          */
-         if ((typeof name !== 'undefined') && type) {
-            return this.createEmptyText();
-         }
-         if (typeof name === 'undefined') {
-            Logger.error('Попытка использовать компонент/шаблон, ' +
-               'но вместо компонента в шаблоне в опцию template был передан undefined! ' +
-               'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
-               'По стеку будет понятно, в каком шаблоне и в какую опцию передается undefined');
-
-            return this.createEmptyText();
-         }
-         throw new Error('MarkupGenerator: createControl type not resolved');
-      }
-   }
-};
+   };
 
    prepareDataForCreate(tplOrigin, scope, attrs, deps, includedTemplates?) {
-      let controlClass,
-         logicParent,
-         dataComponent,
-         isSlashes,
-         wasOptional,
-         parent;
+      let controlClass;
+      let dataComponent;
+      let logicParent;
+      let parent;
+
       // При использовании ts-модуля, где нужный класс экспортируется дефолтно, внутри js-модуля
       // сюда приходит объект tplOrigin, где __esModule есть true, а в default лежит нужная нам функция построения верстки
       // Для того, чтобы верстка строилась, необходимо вытащить функцию из default
       let tpl = typeof tplOrigin === 'object' && tplOrigin.__esModule && tplOrigin.default ? tplOrigin.default : tplOrigin;
-      if (tpl === '_$inline_template') {
-         controlClass = '_$inline_template';
-      }
-      else if (typeof tpl === 'function') {
-         controlClass = tpl;
-         dataComponent = tpl.prototype ? tpl.prototype._moduleName : '';
-      }
-      else if (typeof tpl === 'string') {
-         if (Common.isLibraryModuleString(tpl)) {
-            // if this is a module string, it probably is from a dynamic partial template
-            // (ws:partial template="{{someString}}"). Split library name and module name
-            // here and process it in the next `if tpl.library && tpl.module`
-            tpl = Common.splitModule(tpl);
-         } else {
-            const newName = Common.splitWs(tpl);
-            if (newName) {
-               tpl = newName;
-            }
 
-            if (tpl.indexOf('/') > -1) {
-               isSlashes = true;
-               if (tpl.indexOf('optional!') > -1) {
-                  wasOptional = true;
-               }
-            }
-
-            tpl = tpl.replace('optional!', '');
-            if (includedTemplates && includedTemplates[tpl]) {
-               controlClass = includedTemplates[tpl];
-            }
-
-            if (!controlClass) {
-               controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
-            }
-
-            if (!controlClass) {
-               if (!isSlashes || wasOptional || Common.isCompat()) {
-                  /*
-                     * it can be "optional"
-                     * can be tmpl!
-                     * */
-                  if (RequireHelper.defined(tpl)) {
-                     controlClass = RequireHelper.require(tpl);
-                  }
-               } else {
-                  try {
-                     if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
-                        this.cacheModules[tpl] = RequireHelper.require(tpl);
-                     }
-                     controlClass = this.cacheModules[tpl];
-                  } catch (e) {
-                     Logger.error('Create component error', controlClass, e);
-                  }
-               }
-            }
-            dataComponent = tpl;
-
-            if (controlClass && controlClass.default && controlClass.default.isWasaby) {
-               controlClass = controlClass.default;
-            }
-         }
-      }
-      if (typeof tpl === 'object' && tpl && tpl.library && tpl.module) {
-         // module type: { library: <requirable module name>, module: <field to take from the library> }
-         let moduleName = tpl.library + ':' + tpl.module.join('.');
-         if (deps && deps[tpl.library]) {
-            controlClass = Common.extractLibraryModule(deps[tpl.library], tpl.module);
-         } else if (RequireHelper.defined(tpl.library)) {
-            controlClass = Common.extractLibraryModule(RequireHelper.extendedRequire(tpl.library, tpl.module), tpl.module);
-         } else {
-            const mod = this.cacheModules[tpl.library];
-            if (mod) {
-               controlClass = Common.extractLibraryModule(this.cacheModules[tpl.library], tpl.module);
-            } else {
-               moduleName = undefined;
-            }
-         }
-         if (controlClass && controlClass.prototype && !controlClass.prototype.hasOwnProperty('_moduleName')) {
-            // Patch controlClass prototype, it won't have a _moduleName the first time it is
-            // created, because it was exported in a library
-            controlClass.prototype._moduleName = moduleName;
-         }
-         dataComponent = moduleName;
-      }
+      const resolverTpl = resolveTpl.call(this, tpl, deps, includedTemplates);
+      controlClass = resolverTpl[0];
+      dataComponent = resolverTpl[1];
 
       const fromOld = controlClass && controlClass.prototype && Common.isCompound(controlClass);
 
-      const controlProperties = Scope.calculateScope(scope, Common.plainMerge) || {};
+      let controlProperties = Scope.calculateScope(scope, Common.plainMerge) || {};
+
       if (fromOld) {
          for (let key in attrs.events) {
             controlProperties[key] = attrs.events[key];
@@ -432,27 +508,7 @@ export class Generator {
       OptionsResolver.resolveInheritOptions(controlClass, attrs, controlProperties);
 
       if (Common.isCompat()) {
-         if (controlProperties && controlProperties.enabled === undefined) {
-            const internal = attrs.internal;
-            if (internal && internal.parent && fromOld) {
-               if (internal.parentEnabled !== undefined && controlProperties.allowChangeEnable !== false) {
-                  controlProperties.enabled = internal.parentEnabled;
-               } else {
-                  controlProperties.enabled = true;
-               }
-            } else if (fromOld && internal.parentEnabled === false) {
-               controlProperties.__enabledOnlyToTpl = internal.parentEnabled;
-            }
-         }
-
-         if (fromOld) {
-            const objForFor = attrs.attributes;
-            for (let i in objForFor) {
-               if (objForFor.hasOwnProperty(i) && EventUtils.isEvent(i)) {
-                  controlProperties[i] = objForFor[i];
-               }
-            }
-         }
+         controlProperties = isCompatPatch(controlClass, controlProperties, attrs, fromOld);
       }
 
       return {
@@ -482,7 +538,7 @@ export class Generator {
                          createTemplate: Function,
                          createController: Function,
                          resolver: Function,
-                         generatorContext?: {cacheModules: TObject}): void {
+                         generatorContext?: { cacheModules: TObject }): void {
       this.createEmptyText = createEmptyText;
       this.createWsControl = createWsControl;
       this.createTemplate = createTemplate;
@@ -490,57 +546,4 @@ export class Generator {
       this.resolver = resolver;
       this.cacheModules = generatorContext.cacheModules;
    }
-
-   private dataResolver(data: IControlData,
-                        templateCfg: ICreateControlTemplateCfg,
-                        attrs: IGeneratorAttrs,
-                        name:GeneratorTemplateOrigin): [IControlData, IControlUserData, IGeneratorAttrs] {
-      data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs, calculateDataComponent(name));
-      data.internal.logicParent = data.internal.logicParent || templateCfg.viewController;
-      data.internal.parent = data.internal.parent || templateCfg.viewController;
-
-      attrs.internal = data.internal;
-      const userData = data.user;
-      return [data, userData, attrs];
-   };
-
-   private nameResolver(name: GeneratorTemplateOrigin): GeneratorTemplateOrigin {
-      // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
-      if (name === null) {
-         return this.createEmptyText();
-      }
-      // конвертирую объект строки в строку, чтобы везде провеять только на строку
-      // объект вместо строки вероятно приходит из-за интернационализации
-      if (name instanceof String) {
-         name = name.toString();
-      }
-      return name;
-   }
-
-   private checkResult(res: GeneratorObject | Promise<unknown> | Error,
-                       type: string): GeneratorObject | Promise<unknown> | Error {
-      if (res !== undefined) {
-         return res;
-      }
-      /**
-       * Если у нас есть имя и тип, значит мы выполнили код выше
-       * Функции шаблонизации возвращают undefined, когда работают на клиенте
-       * с уже построенной версткой
-       * А вот если нам не передали каких-то данных сюда, то мы ничего не строили,
-       * а значит это ошибка и нужно обругаться.
-       */
-      if ((typeof name !== 'undefined') && type) {
-         return this.createEmptyText();
-      }
-      if (typeof name === 'undefined') {
-         Logger.error('Попытка использовать компонент/шаблон, ' +
-            'но вместо компонента в шаблоне в опцию template был передан undefined! ' +
-            'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
-            'По стеку будет понятно, в каком шаблоне и в какую опцию передается undefined');
-         return this.createEmptyText();
-      }
-      throw new Error('MarkupGenerator: createControl type not resolved');
-   }
-
-
 }

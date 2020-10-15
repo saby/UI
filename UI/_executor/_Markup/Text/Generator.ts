@@ -138,8 +138,8 @@ export class GeneratorText implements IGenerator {
       return text;
    };
 
-   createWsControl(tpl, scope, attributes, context, _deps?) {
-      let data = this.prepareDataForCreate(tpl, scope, attributes, _deps);
+   createWsControl(tpl, scope, attributes, context, _deps?, preparedData?) {
+      let data = preparedData || this.prepareDataForCreate(tpl, scope, attributes, _deps);
 
       let dataComponent = data.dataComponent;
 
@@ -273,7 +273,7 @@ export class GeneratorText implements IGenerator {
             fn.prototype._moduleName = tpl.split('js!')[1];
          }
          if (fn.prototype._template) {
-            return this.createWsControl(fn, preparedScope, decorAttribs, context, _deps);
+            return this.createWsControl(fn, preparedScope, decorAttribs, context, _deps, data);
          }
       } else {
          const componentName = isTplString ? tpl : 'InlineFunction';
