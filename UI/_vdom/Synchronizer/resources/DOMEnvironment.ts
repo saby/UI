@@ -2,7 +2,6 @@
 // tslint:disable:variable-name no-any
 
 import { ArrayUtils } from 'UI/Utils';
-import { needToBeCompatible } from 'UI/Utils';
 
 import { constants, detection } from 'Env/Env';
 import { Logger, isNewEnvironment } from 'UI/Utils';
@@ -570,9 +569,9 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          Logger.error('Ошибка оживления Inferno', undefined, e);
       }
 
-      const hasCompound = needToBeCompatible(newRootCntNode.control);
-
-      if (hasCompound) {
+      // @ts-ignore
+      const isCompatible = newRootCntNode.control.hasCompatible && newRootCntNode.control.hasCompatible();
+      if (isCompatible) {
          control = atLeasOneControl([newRootCntNode]);
          if (newRootDOMNode) {
             // @ts-ignore FIXME: Unknown $
