@@ -73,13 +73,6 @@ function calculateDataComponent(tplOrigin) {
    return dataComponent;
 }
 
-function isWasabyControlClass(controlClass) {
-   if (controlClass && controlClass.default && controlClass.default.isWasaby) {
-      return controlClass.default;
-   }
-   return controlClass;
-}
-
 function isStringTpl(tpl, deps, includedTemplates) {
    let isSlashes: boolean = false;
    let wasOptional: boolean = false;
@@ -125,7 +118,10 @@ function isStringTpl(tpl, deps, includedTemplates) {
          }
       }
    }
-   return [isWasabyControlClass(controlClass), tpl];
+   if (controlClass && controlClass.default && controlClass.default.isWasaby) {
+      controlClass = controlClass.default;
+   }
+   return [controlClass, tpl];
 }
 
 function isLibraryTpl(tpl, deps) {
