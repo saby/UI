@@ -97,36 +97,35 @@ function isStringTpl(tpl, deps, includedTemplates) {
       }
    }
 
-   controlClass = includedTemplates && includedTemplates[tpl];
-   if (controlClass) {
-      return [isWasabyControlClass(controlClass), tpl];
-   }
-   controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
-   if (controlClass) {
-      return [isWasabyControlClass(controlClass), tpl];
+   if (includedTemplates && includedTemplates[tpl]) {
+      controlClass = includedTemplates[tpl];
    }
 
-   if (!isSlashes || wasOptional || Common.isCompat()) {
-      /*
-        * it can be "optional"
-        * can be tmpl!
-        * */
-      if (RequireHelper.defined(tpl)) {
-         controlClass = RequireHelper.require(tpl);
-         if (controlClass) {
-            return [isWasabyControlClass(controlClass), tpl];
+   if (!controlClass) {
+      controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
+   }
+
+   if (!controlClass) {
+      if (!isSlashes || wasOptional || Common.isCompat()) {
+         /*
+            * it can be "optional"
+            * can be tmpl!
+            * */
+         if (RequireHelper.defined(tpl)) {
+            controlClass = RequireHelper.require(tpl);
+         }
+      } else {
+         try {
+            if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
+               this.cacheModules[tpl] = RequireHelper.require(tpl);
+            }
+            controlClass = this.cacheModules[tpl];
+         } catch (e) {
+            Logger.error('Create component error', controlClass, e);
          }
       }
    }
-   try {
-      if (!this.cacheModules[tpl] && RequireHelper.defined(tpl)) {
-         this.cacheModules[tpl] = RequireHelper.require(tpl);
-      }
-      controlClass = this.cacheModules[tpl];
-      return [isWasabyControlClass(controlClass), tpl];
-   } catch (e) {
-      Logger.error('Create component error', controlClass, e);
-   }
+   return [isWasabyControlClass(controlClass), tpl];
 }
 
 function isLibraryTpl(tpl, deps) {
