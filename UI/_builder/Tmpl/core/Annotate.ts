@@ -77,11 +77,83 @@ function hasBindings(node: Ast.ExpressionNode): boolean {
    return node.__$ws_program.string.indexOf('|mutable') > -1 || node.__$ws_program.string.indexOf('|bind') > -1;
 }
 
-function appendInternalExpressions(internal: Ast.IInternal, expressions: Ast.ExpressionNode[]): void {
+function isProgramEqualToText(program: ProgramNode, value: Ast.TText[]): boolean {
+   const firstExpression = value[0];
+   if (!(firstExpression instanceof Ast.ExpressionNode)) {
+      return false;
+   }
+   return program === firstExpression.__$ws_program;
+}
+
+function isProgramEqualToProgram(program: ProgramNode, value: ProgramNode): boolean {
+   return program.string === value.string;
+}
+
+function isProgramEqualToTypeData(program: ProgramNode, value: Ast.TData): boolean {
+   if (!value.hasFlag(Ast.Flags.TYPE_CASTED)) {
+      return false;
+   }
+   if (!(value instanceof Ast.ValueNode)) {
+      return false;
+   }
+   return isProgramEqualToText(program, value.__$ws_data);
+}
+
+function isExprInAttributes(
+   expression: Ast.ExpressionNode,
+   attributes: Ast.IAttributes | null,
+   events: Ast.IEvents | null,
+   options: Ast.IOptions | null
+): boolean {
+   const program: ProgramNode = expression.__$ws_program;
+   if (attributes) {
+      for (const name in attributes) {
+         const attribute = attributes[name];
+         if (isProgramEqualToText(program, attribute.__$ws_value)) {
+            return true;
+         }
+      }
+   }
+   if (events) {
+      for (const name in events) {
+         const event = events[name];
+         if (event instanceof Ast.BindNode) {
+            if (isProgramEqualToProgram(program, event.__$ws_value)) {
+               return true;
+            }
+         }
+      }
+   }
+   if (options) {
+      for (const name in options) {
+         const option = options[name];
+         if (!option.hasFlag(Ast.Flags.UNPACKED)) {
+            continue;
+         }
+         if (isProgramEqualToTypeData(program, option.__$ws_value)) {
+            return true;
+         }
+      }
+   }
+   return false;
+}
+
+function appendInternalExpressions(
+   internal: Ast.IInternal,
+   expressions: Ast.ExpressionNode[],
+   attributes: Ast.IAttributes | null = null,
+   events: Ast.IEvents | null = null,
+   options: Ast.IOptions | null = null
+): void {
    let expressionIndex = 0;
+   let finished = false;
    for (let index = 0; index < expressions.length; ++index) {
       const expression = expressions[index];
-      if (hasBindings(expression)) {
+      if (hasBindings(expression) || isExprInAttributes(expression, attributes, events, options)) {
+         finished = true;
+      }
+
+      if (finished && !expression.__$ws_isFromBind) {
          continue;
       }
 
@@ -434,7 +506,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       programs.forEach((program: ProgramNode) => {
          const identifiers = collectIdentifiers(program);
          expressions.push(
-            new Ast.ExpressionNode(program)
+            new Ast.ExpressionNode(program, true)
          );
          identifiers.forEach((identifier: string) => {
             context.identifiersStore[identifier] = true;
@@ -619,6 +691,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): Ast.ExpressionNode[] {
+      // TODO: [Legacy] Visit inline template content
       return this.processBaseWasabyElement(node, context);
    }
 
@@ -648,20 +721,19 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          context.childrenStorage.push(name);
       }
       this.processInjectedData(node, context, expressions);
-      const currentExpressions: Ast.ExpressionNode[] = this.processComponentAttributes(node, context, expressions);
+      this.processComponentAttributes(node, context, expressions);
       node.__$ws_internal = { };
-      appendInternalExpressions(node.__$ws_internal, currentExpressions);
+      appendInternalExpressions(
+         node.__$ws_internal,
+         expressions,
+         node.__$ws_attributes,
+         node.__$ws_events,
+         node.__$ws_options
+      );
       return expressions;
    }
 
-   /**
-    *
-    * @deprecated
-    * @param node
-    * @param context
-    * @param expressions
-    */
-   private processElementAttributes(node: Ast.BaseHtmlElement, context: IContext, expressions: Ast.ExpressionNode[]) {
+   private processElementAttributes(node: Ast.BaseHtmlElement, context: IContext, expressions: Ast.ExpressionNode[]): void {
       const chain = [];
       for (const name in node.__$ws_attributes) {
          const attribute = node.__$ws_attributes[name];
@@ -678,27 +750,11 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       });
    }
 
-   /**
-    * Process attributes keeping the nodes order
-    * @deprecated
-    * @param node
-    * @param context
-    * @param expressions
-    */
-   private processComponentAttributes(node: Ast.BaseWasabyElement, context: IContext, expressions: Ast.ExpressionNode[]): Ast.ExpressionNode[] {
+   private processComponentAttributes(node: Ast.BaseWasabyElement, context: IContext, expressions: Ast.ExpressionNode[]): void {
       const chain: Ast.Ast[] = [];
-      const currentExpressions: Ast.ExpressionNode[] = [].concat(expressions);
       for (const name in node.__$ws_attributes) {
          const attribute = node.__$ws_attributes[name];
          chain.splice(attribute.__$ws_key, 0, attribute);
-         // FIXME: All expressions in attributes at position > 0 had been appended to internal collection.
-         //  See legacy functions isExprInAttributes, isExprEqualToAttr
-         for (let index = 1; index < attribute.__$ws_value.length; ++index) {
-            const value = attribute.__$ws_value[index];
-            if (value instanceof Ast.ExpressionNode) {
-               currentExpressions.push(value);
-            }
-         }
       }
       for (const name in node.__$ws_events) {
          const event = node.__$ws_events[name];
@@ -710,42 +766,22 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
             continue;
          }
          chain.splice(option.__$ws_key, 0, option);
-         // FIXME: All expressions in attributes at position > 0 had been appended to internal collection.
-         //  See legacy functions isExprInAttributes, isExprEqualToAttr
-         const unpackedValue = (<Ast.ValueNode>option.__$ws_value).__$ws_data;
-         for (let index = 1; index < unpackedValue.length; ++index) {
-            const value = unpackedValue[index];
-            if (value instanceof Ast.ExpressionNode) {
-               currentExpressions.push(value);
-            }
-         }
       }
       chain.forEach((node: Ast.Ast) => {
          node.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
             expressions.push(expression);
-            if (node instanceof Ast.BindNode) {
-               currentExpressions.push(expression);
-            }
          });
       });
-      return currentExpressions;
    }
 
-   /**
-    * Process injected data keeping the nodes order
-    * @deprecated
-    * @param node
-    * @param context
-    * @param expressions
-    */
    private processInjectedData(node: Ast.BaseWasabyElement, context: IContext, expressions: Ast.ExpressionNode[]): void {
-      const injectedData: Ast.Ast[] = [];
+      const chain: Ast.Ast[] = [];
       for (const name in node.__$ws_options) {
          const option = node.__$ws_options[name];
          if (option.hasFlag(Ast.Flags.UNPACKED)) {
             continue;
          }
-         injectedData.splice(option.__$ws_key, 0, option);
+         chain.splice(option.__$ws_key, 0, option);
       }
       for (const name in node.__$ws_contents) {
          const content = node.__$ws_contents[name];
@@ -755,9 +791,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
             });
             return;
          }
-         injectedData.splice(content.__$ws_key, 0, content);
+         chain.splice(content.__$ws_key, 0, content);
       }
-      injectedData.forEach((node: Ast.Ast) => {
+      chain.forEach((node: Ast.Ast) => {
          node.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
             expressions.push(expression);
          });

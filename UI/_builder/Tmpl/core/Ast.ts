@@ -1859,12 +1859,19 @@ export class ExpressionNode extends Ast {
    __$ws_program: ProgramNode;
 
    /**
+    * @deprecated
+    */
+   __$ws_isFromBind: boolean;
+
+   /**
     * Initialize new instance of mustache expression node.
     * @param program
+    * @param isFromBind
     */
-   constructor(program: ProgramNode) {
+   constructor(program: ProgramNode, isFromBind: boolean = false) {
       super();
       this.__$ws_program = program;
+      this.__$ws_isFromBind = isFromBind;
    }
 
    /**
