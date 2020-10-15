@@ -1,14 +1,13 @@
 /// <amd-module name="UI/_executor/_Markup/Generator" />
 /* tslint:disable */
 
-import {coreDebug as timing} from 'Env/Env';
-import {Logger} from 'UI/Utils';
+import { coreDebug as timing } from 'Env/Env';
+import { Logger } from 'UI/Utils';
 import * as Common from '../_Utils/Common';
 import * as RequireHelper from '../_Utils/RequireHelper';
 import * as OptionsResolver from '../_Utils/OptionsResolver';
 import * as Scope from '../_Expressions/Scope';
-import {_FocusAttrs} from 'UI/Focus';
-import {EventUtils} from 'UI/Events';
+import { EventUtils } from 'UI/Events';
 import * as ConfigResolver from '../_Utils/ConfigResolver'
 import {
    GeneratorEmptyObject,
@@ -131,14 +130,14 @@ function isStringTpl(tpl, deps, includedTemplates) {
    return [controlClass, tpl];
 }
 
-function patchControlClassPrototype(controlClass, moduleName) {
-   if (controlClass && controlClass.prototype && !controlClass.prototype.hasOwnProperty('_moduleName')) {
-      // Patch controlClass prototype, it won't have a _moduleName the first time it is
-      // created, because it was exported in a library
-      controlClass.prototype._moduleName = moduleName;
-   }
-   return controlClass;
-}
+// function patchControlClassPrototype(controlClass, moduleName) {
+//    if (controlClass && controlClass.prototype && !controlClass.prototype.hasOwnProperty('_moduleName')) {
+//       // Patch controlClass prototype, it won't have a _moduleName the first time it is
+//       // created, because it was exported in a library
+//       controlClass.prototype._moduleName = moduleName;
+//    }
+//    return controlClass;
+// }
 
 function isLibraryTpl(tpl, deps) {
    if (typeof tpl === 'object' && tpl && tpl.library && tpl.module) {
