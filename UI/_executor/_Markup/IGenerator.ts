@@ -164,13 +164,15 @@ export interface IGenerator {
     * @param attributes
     * @param context
     * @param _deps
+    * @param data
     * @return {WsControlOrController} buildMarkupForClass
     */
    createWsControl(tpl: GeneratorTemplateOrigin,
                    scope: IControlProperties,
                    attributes: IGeneratorAttrs,
                    context: string,
-                   _deps?: TDeps): WsControlOrController | GeneratorVoid ;
+                   _deps?: TDeps,
+                   data?): WsControlOrController | GeneratorVoid ;
 
    /**
     * Создание шаблона

@@ -353,7 +353,7 @@ export function splitOptional(string) {
 }
 
 export function splitWs(string) {
-   var ws;
+   let ws;
    if (string !== undefined && string.indexOf('ws:') === 0) {
       ws = string.split('ws:');
       return ws[1];
