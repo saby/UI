@@ -24,4 +24,4 @@ class Nested extends Control<IControlOptions, INestedState> {
 
 Nested._styles = ['UIDemo/LimitedDemo/Nested'];
 
-export = Nested;
+export default Nested;

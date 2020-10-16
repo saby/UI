@@ -29,4 +29,4 @@ class Simple extends Control<IControlOptions, INestedState> {
 
 Simple._styles = ['UIDemo/LimitedDemo/Simple'];
 
-export = Simple;
+export default Simple;
