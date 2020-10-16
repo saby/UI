@@ -74,6 +74,25 @@ export default class MountMethodsCaller {
             Logger.lifeError('_afterMount', control, error);
         }
     }
+    private afterRenederProcess(controlNode: IControlNode, control: Control): void {
+        // tslint:disable-next-line:ban-ts-ignore
+        // @ts-ignore
+        if (control._destroyed) {
+            return;
+        }
+        try {
+            // tslint:disable-next-line:ban-ts-ignore
+            // @ts-ignore
+            if (typeof control._afterRender === 'function') {
+                // tslint:disable-next-line:ban-ts-ignore
+                // @ts-ignore
+                control._afterRender(controlNode.oldOptions || controlNode.options, controlNode.oldContext);
+            }
+            this.forceUpdateIfNeed(control);
+        } catch (error) {
+            Logger.lifeError('_afterRender', control, error);
+        }
+    }
 
     beforePaint: TMountMethod = (controlNode, rebuildChanges) => {
         const [control, isDestroyed, childNodes, isChanged]: TPreparationsResult =
@@ -175,22 +194,9 @@ export default class MountMethodsCaller {
 
         onStartLifecycle(controlNode.vnode || controlNode);
         if (!this.isBeforeMount(control)) {
-            try {
-                // tslint:disable-next-line:ban-ts-ignore
-                // @ts-ignore
-                if (!isDestroyed && typeof control._afterRender === 'function') {
-                    // tslint:disable-next-line:ban-ts-ignore
-                    // @ts-ignore
-                    delay((): void => {
-                        control._afterRender(
-                           controlNode.oldOptions || controlNode.options,
-                           controlNode.oldContext
-                        );
-                    });
-                }
-            } catch (error) {
-                Logger.lifeError('_afterRender', control, error);
-            }
+            delay((): void => {
+                this.afterRenederProcess(controlNode, control);
+            });
         }
         onEndLifecycle(controlNode.vnode || controlNode);
     }
