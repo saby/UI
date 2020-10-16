@@ -75,11 +75,6 @@ export default class MountMethodsCaller {
         }
     }
     private afterRenederProcess(controlNode: IControlNode, control: Control): void {
-        // tslint:disable-next-line:ban-ts-ignore
-        // @ts-ignore
-        if (control._destroyed) {
-            return;
-        }
         try {
             // tslint:disable-next-line:ban-ts-ignore
             // @ts-ignore
@@ -194,9 +189,11 @@ export default class MountMethodsCaller {
 
         onStartLifecycle(controlNode.vnode || controlNode);
         if (!this.isBeforeMount(control)) {
-            delay((): void => {
-                this.afterRenederProcess(controlNode, control);
-            });
+            if (!isDestroyed) {
+                delay((): void => {
+                    this.afterRenederProcess(controlNode, control);
+                });
+            }
         }
         onEndLifecycle(controlNode.vnode || controlNode);
     }
