@@ -181,10 +181,12 @@ export default class MountMethodsCaller {
                 if (!isDestroyed && typeof control._afterRender === 'function') {
                     // tslint:disable-next-line:ban-ts-ignore
                     // @ts-ignore
-                    control._afterRender(
-                        controlNode.oldOptions || controlNode.options,
-                        controlNode.oldContext
-                    );
+                    delay((): void => {
+                        control._afterRender(
+                           controlNode.oldOptions || controlNode.options,
+                           controlNode.oldContext
+                        );
+                    });
                 }
             } catch (error) {
                 Logger.lifeError('_afterRender', control, error);
@@ -210,13 +212,9 @@ export default class MountMethodsCaller {
 
         onStartLifecycle(controlNode.vnode || controlNode);
         if (this.isBeforeMount(control)) {
-            if (controlNode.hasCompound) {
-                delay((): void => {
-                    this.afterMountProcess(controlNode, control);
-                });
-            } else {
+            delay((): void => {
                 this.afterMountProcess(controlNode, control);
-            }
+            });
             onEndLifecycle(controlNode.vnode || controlNode);
             return;
         }
