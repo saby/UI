@@ -7,7 +7,7 @@ import template = require('wml!UI/_base/Control');
 import cExtend = require('Core/core-extend');
 
 import { Synchronizer } from 'UI/Vdom';
-import { _IGeneratorType, OptionsResolver } from 'UI/Executor';
+import { _IGeneratorType, OptionsResolver, ITemplateAttrs } from 'UI/Executor';
 import { ContextResolver } from 'UI/Contexts';
 import { _FocusAttrs, _IControl, activate } from 'UI/Focus';
 import { Logger, Purifier, needToBeCompatible } from 'UI/Utils';
@@ -169,17 +169,6 @@ export interface IControlOptions {
    readOnly?: boolean;
    theme?: string;
 }
-
-export interface ITemplateAttrs {
-   key?: string;
-   internal?: Record<string, any>;
-   inheritOptions?: Record<string, any>;
-   attributes?: Record<string, any>;
-   templateContext?: Record<string, any>;
-   context?: Record<string, any>;
-   domNodeProps?: Record<string, any>;
-   events?: Record<string, any>;
-};
 
 export type TControlConfig = IControlOptions & {
    _logicParent?: Control;

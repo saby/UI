@@ -6,7 +6,7 @@ import RawMarkupNode from './_executor/_Expressions/RawMarkupNode';
 
 import * as _IGenerator from './_executor/_Markup/IGenerator';
 import * as _IGeneratorType from './_executor/_Markup/IGeneratorType';
-export { ITemplateNode, TGeneratorNode } from './_executor/_Markup/IGeneratorType';
+export { ITemplateNode, TGeneratorNode, ITemplateAttrs } from './_executor/_Markup/IGeneratorType';
 import * as _IBuilder from './_executor/_Markup/IBuilder';
 
 // TODO: для работы executorCompatible

@@ -238,12 +238,23 @@ export type TProps = Record<string, any>;
 import { IControlNode } from 'UI/_vdom/Synchronizer/interfaces';
 //import { VNode } from 'Inferno/third-party/index';
 
+export interface ITemplateAttrs {
+   key?: string;
+   internal?: Record<string, any>;
+   inheritOptions?: Record<string, any>;
+   attributes?: Record<string, any>;
+   templateContext?: Record<string, any>;
+   context?: Record<string, any>;
+   domNodeProps?: Record<string, any>;
+   events?: Record<string, any>;
+};
+
 export interface ITemplateNode {
    compound: false;
    template: Function & any,
    controlProperties: TProps,
    parentControl: IControlNode,
-   attributes: TAttributes,
+   attributes: ITemplateAttrs,
    context: IGeneratorAttrsContext,
    type: 'TemplateNode',
    key: string;

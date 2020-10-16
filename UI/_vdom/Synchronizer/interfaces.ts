@@ -11,7 +11,7 @@ export type TControlId = string;
 type IControlConstructor = () => Control;
 type TContext = Record<string, object>;
 type IObjectsVersions<T> = {
-    [key in keyof T]: number
+    [key in keyof T]: IObjectsVersions<T> | number
 };
 
 export interface IAttrs extends Object {

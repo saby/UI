@@ -13,9 +13,6 @@ class Environment {
 
    constructor(private _controlStateChangedCallback: Function) {
       this._rebuildIgnoreId = null;
-      // if (rootAttrs) {
-      //    this._rootMapper = Utils.mapVNode.bind(_, Utils.setAttributes.bind(_, rootAttrs));
-      // }
    }
 
    destroy(): void {

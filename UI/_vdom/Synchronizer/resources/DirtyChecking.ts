@@ -61,15 +61,30 @@ function getCompatibleUtils(): any {
    return compatibleUtils;
 }
 
-export class MemoForNode {
-    createdNodes: Array<any> = [];
-    createdTemplateNodes: Array<any> = [];
-    destroyedNodes: Array<any> = [];
-    selfDirtyNodes: Array<any> = [];
-    updatedChangedNodes: Array<any> = [];
-    updatedChangedTemplateNodes: Array<any> = [];
-    updatedNodes: Array<any> = [];
-    updatedUnchangedNodes: Array<any> = [];
+interface IMemoForNode {
+    createdNodes: Array<any>;
+    createdTemplateNodes: Array<any>;
+    destroyedNodes: Array<any>;
+    selfDirtyNodes: Array<any>;
+    updatedChangedNodes: Array<any>;
+    updatedChangedTemplateNodes: Array<any>;
+    updatedNodes: Array<any>;
+    updatedUnchangedNodes: Array<any>;
+}
+
+export class MemoForNode implements IMemoForNode {
+    createdNodes: Array<any>;
+    createdTemplateNodes: Array<any>;
+    destroyedNodes: Array<any>;
+    selfDirtyNodes: Array<any>;
+    updatedChangedNodes: Array<any>;
+    updatedChangedTemplateNodes: Array<any>;
+    updatedNodes: Array<any>;
+    updatedUnchangedNodes: Array<any> ;
+
+    constructor(start?: Partial<IMemoForNode>) {
+        Object.assign(this, start);
+    }
 }
 
 export interface IMemoNode {
@@ -1272,7 +1287,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         logicParent: logicParent
     });
 
-    const currentMemo: MemoForNode = concatMemo(new MemoForNode(), {
+    const currentMemo: MemoForNode = new MemoForNode({
         createdNodes,
         updatedNodes,
         destroyedNodes,
