@@ -180,7 +180,7 @@ export interface ITemplateAttrs {
 };
 
 type TControlConfig = IControlOptions & {
-   [key: string]: unknown;
+   [key: string]: any;
    _logicParent?: Control;
    _$createdFromCode?: boolean;
 };
