@@ -37,6 +37,12 @@ interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
     links: { href: string; type: string; }[];
 }
 
+/**
+ * В будущем этот компонент перейдет в разряд устаревших.
+ * Настоятельно рекомендуется использовать
+ * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/controls/controls-application/ базовые шаблоны веб-страницы}
+ *
+ */
 class HTML extends Control<IHTMLCombinedOptions> {
     // @ts-ignore
     _template: Function = template;

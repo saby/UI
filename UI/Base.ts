@@ -2,6 +2,7 @@
  * Библиотека базового контрола
  * @library UI/Base
  * @includes Control UI/_base/Control
+ * @includes HTML UI/_base/HTML
  * @includes getMetaStack UI/_base/HTML/meta#getMetaStack
  * @includes Creator UI/_base/Creator
  * @public
