@@ -23,4 +23,4 @@ class ListWithoutHotKey extends Control {
 
 ListWithoutHotKey._styles = ['UIDemo/HotKeyDemo/HotKeyDemo'];
 
-export = ListWithoutHotKey;
+export default ListWithoutHotKey;

@@ -23,4 +23,4 @@ class ManyHotKey extends Control {
 
 ManyHotKey._styles = ['UIDemo/HotKeyDemo/HotKeyDemo'];
 
-export = ManyHotKey;
+export default ManyHotKey;

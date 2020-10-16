@@ -23,4 +23,4 @@ class ListHotKey extends Control {
 
 ListHotKey._styles = ['UIDemo/HotKeyDemo/HotKeyDemo'];
 
-export = ListHotKey;
+export default ListHotKey;

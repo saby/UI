@@ -32,4 +32,4 @@ class LongTap extends Control {
 
 LongTap._styles = ['UIDemo/MobileEventDemo/MobileEventDemo'];
 
-export = LongTap;
+export default LongTap;
