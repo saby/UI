@@ -10,4 +10,4 @@ class Index extends Control {
    static _styles: string[] = ['UIDemo/Index'];
 }
 
-export = Index;
+export default Index;

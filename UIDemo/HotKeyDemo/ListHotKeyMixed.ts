@@ -23,4 +23,4 @@ class ListHotKeyMixed extends Control {
 
 ListHotKeyMixed._styles = ['UIDemo/HotKeyDemo/HotKeyDemo'];
 
-export = ListHotKeyMixed;
+export default ListHotKeyMixed;

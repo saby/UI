@@ -35,4 +35,4 @@ class PageLoader extends Control {
    };
 }
 
-export = PageLoader;
+export default PageLoader;

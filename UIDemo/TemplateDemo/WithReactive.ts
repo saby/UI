@@ -17,4 +17,4 @@ class TemplateDemo extends Control {
    }
 }
 
-export = TemplateDemo;
+export default TemplateDemo;

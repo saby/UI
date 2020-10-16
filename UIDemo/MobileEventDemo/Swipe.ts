@@ -27,4 +27,4 @@ class Swipe extends Control {
 
 Swipe._styles = ['UIDemo/MobileEventDemo/MobileEventDemo'];
 
-export = Swipe;
+export default Swipe;

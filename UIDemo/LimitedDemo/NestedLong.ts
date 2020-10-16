@@ -24,4 +24,4 @@ class NestedLong extends Control<IControlOptions, INestedState> {
 
 NestedLong._styles = ['UIDemo/LimitedDemo/NestedLong'];
 
-export = NestedLong;
+export default NestedLong;

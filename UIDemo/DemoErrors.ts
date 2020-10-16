@@ -45,7 +45,7 @@ class DemoErrors extends Control {
       this._hookError = true;
 
       // @ts-ignore
-      this._forceUpdate(); 
+      this._forceUpdate();
    };
 
    /**
@@ -108,9 +108,9 @@ class DemoErrors extends Control {
          self[fieldState] = link;
 
          // @ts-ignore
-         self._forceUpdate(); 
+         self._forceUpdate();
       });
    };
 };
 
-export = DemoErrors;
+export default DemoErrors;
