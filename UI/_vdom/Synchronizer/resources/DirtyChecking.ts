@@ -1355,15 +1355,15 @@ function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode,
         createdTemplateNodes
     });
 
-    if (haveAsync) {
-        return Promise.all(childrenRebuildResults).then(
-            (res) => mapChildren(currentMemo, newNode, res, environment, needRenderMarkup, isSelfDirty),
-            (err) => {
-                Logger.asyncRenderErrorLog(err);
-                return err;
-            }
-        );
+    if (!haveAsync) {
+        return mapChildren(currentMemo, newNode, childrenRebuildResults, environment, needRenderMarkup, isSelfDirty);
     }
 
-    return mapChildren(currentMemo, newNode, childrenRebuildResults, environment, needRenderMarkup, isSelfDirty);
+    return Promise.all(childrenRebuildResults).then(
+        (res) => mapChildren(currentMemo, newNode, res, environment, needRenderMarkup, isSelfDirty),
+        (err) => {
+            Logger.asyncRenderErrorLog(err);
+            return err;
+        }
+    );
 }
