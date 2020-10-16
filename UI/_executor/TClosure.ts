@@ -120,9 +120,7 @@ var
       }
       const getterResult = object.extractValue(obj, path, extractValueFn);
       // ескейпинг не должен вызываться на клиенте
-      if (typeof window === 'undefined') {
-         catchEscapeProblems(getterResult, viewController, path.join('.'));
-      }
+      catchEscapeProblems(getterResult, viewController, path.join('.'));
       return getterResult;
    },
 
