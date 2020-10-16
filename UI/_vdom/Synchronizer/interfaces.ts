@@ -27,6 +27,11 @@ interface IRebuildNode {
     rootId: number;  // это добавляет какой то Syncronizer
     requestDirtyCheck: (controlNode: IRebuildNode) => void;  // это добавляет какой то Syncronizer
 }
+
+interface ICoreControlOptions extends IControlOptions {
+    [key: string]: unknown;
+}
+
 export interface IControlNode extends IRebuildNode {
     attributes: any;
     events: TEventsObject;
@@ -39,14 +44,14 @@ export interface IControlNode extends IRebuildNode {
     controlClass: IControlConstructor;
     options: IOptions;
     oldOptions: IOptions;
-    internalOptions: IControlOptions;
-    optionsVersions: IObjectsVersions<IControlOptions>;
-    inheritOptions: IControlOptions;
-    internalVersions: IObjectsVersions<IControlOptions>;
+    internalOptions: ICoreControlOptions;
+    optionsVersions: IObjectsVersions<ICoreControlOptions>;
+    inheritOptions: ICoreControlOptions;
+    internalVersions: IObjectsVersions<ICoreControlOptions>;
     id: TControlId;
     parent: IControlNode;
     key: TControlId;
-    defaultOptions: IControlOptions;
+    defaultOptions: ICoreControlOptions;
     markup: VNode | undefined;
     fullMarkup: VNode | undefined;
     childrenNodes: IControlNode[];

@@ -23,4 +23,4 @@ class ScrollHotKey extends Control {
 
 ScrollHotKey._styles = ['UIDemo/HotKeyDemo/HotKeyDemo'];
 
-export = ScrollHotKey;
+export default ScrollHotKey;
