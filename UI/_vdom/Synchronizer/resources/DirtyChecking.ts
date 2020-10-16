@@ -84,6 +84,30 @@ export class MemoForNode implements IMemoForNode {
 
     constructor(start?: Partial<IMemoForNode>) {
         Object.assign(this, start);
+        if (!this.createdNodes) {
+            this.createdNodes = [];
+        }
+        if (!this.createdTemplateNodes) {
+            this.createdTemplateNodes = [];
+        }
+        if (!this.destroyedNodes) {
+            this.destroyedNodes = [];
+        }
+        if (!this.selfDirtyNodes) {
+            this.selfDirtyNodes = [];
+        }
+        if (!this.updatedChangedNodes) {
+            this.updatedChangedNodes = [];
+        }
+        if (!this.updatedChangedTemplateNodes) {
+            this.updatedChangedTemplateNodes = [];
+        }
+        if (!this.updatedNodes) {
+            this.updatedNodes = [];
+        }
+        if (!this.updatedUnchangedNodes) {
+            this.updatedUnchangedNodes = [];
+        }
     }
 }
 
