@@ -628,13 +628,19 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): Ast.ExpressionNode[] {
+      const name = getComponentName(node);
+      if (name !== null) {
+         context.childrenStorage.push(name);
+      }
       let expressions: Ast.ExpressionNode[] = [];
       expressions = expressions.concat(
          context.scope.getTemplate(node.__$ws_name).accept(this, context)
       );
-      expressions = expressions.concat(
-         this.processBaseWasabyElement(node, context)
-      );
+      this.processInjectedData(node, context, expressions);
+      // Important: there are some expressions that must be in component internal collection.
+      const componentOnlyExpressions: Ast.ExpressionNode[] = this.processComponentAttributes(node, context, expressions);
+      node.__$ws_internal = { };
+      appendInternalExpressions(node.__$ws_internal, componentOnlyExpressions);
       return expressions;
    }
 
