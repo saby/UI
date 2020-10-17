@@ -620,6 +620,10 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       expressions = expressions.concat(
          this.processBaseWasabyElement(node, context)
       );
+      // FIXME: Legacy bug
+      expressions = expressions.concat(
+         processProgramNode(node.__$ws_expression, context)
+      );
       return expressions;
    }
 
