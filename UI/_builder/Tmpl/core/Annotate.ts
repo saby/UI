@@ -397,12 +397,17 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitObject(node: Ast.ObjectNode, context: IContext): Ast.ExpressionNode[] {
-      let expressions: Ast.ExpressionNode[] = [];
+      let attributesExpressions: Ast.ExpressionNode[] = [];
+      let childrenExpressions: Ast.ExpressionNode[] = [];
       for (const name in node.__$ws_properties) {
          const property = node.__$ws_properties[name];
-         expressions = expressions.concat(property.accept(this, context));
+         if (!property.hasFlag(Ast.Flags.UNPACKED)) {
+            childrenExpressions = childrenExpressions.concat(property.accept(this, context));
+            continue;
+         }
+         attributesExpressions = attributesExpressions.concat(property.accept(this, context));
       }
-      return expressions;
+      return childrenExpressions.concat(attributesExpressions);
    }
 
    visitString(node: Ast.StringNode, context: IContext): Ast.ExpressionNode[] {
