@@ -675,12 +675,13 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       const chain = [];
       for (const name in node.__$ws_attributes) {
          const attribute = node.__$ws_attributes[name];
-         chain.splice(attribute.__$ws_key, 0, attribute);
+         chain.push(attribute);
       }
       for (const name in node.__$ws_events) {
          const event = node.__$ws_events[name];
-         chain.splice(event.__$ws_key, 0, event);
+         chain.push(event);
       }
+      chain.sort((prev: Ast.Ast, next: Ast.Ast) => prev.__$ws_key - next.__$ws_key);
       chain.forEach((node: Ast.Ast) => {
          node.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
             expressions.push(expression);
@@ -724,7 +725,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          if (option.hasFlag(Ast.Flags.UNPACKED)) {
             continue;
          }
-         chain.splice(option.__$ws_key, 0, option);
+         chain.push(option);
       }
       for (const name in node.__$ws_contents) {
          const content = node.__$ws_contents[name];
@@ -734,8 +735,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
             });
             return;
          }
-         chain.splice(content.__$ws_key, 0, content);
+         chain.push(content);
       }
+      chain.sort((prev: Ast.Ast, next: Ast.Ast) => prev.__$ws_key - next.__$ws_key);
       chain.forEach((node: Ast.Ast) => {
          node.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
             expressions.push(expression);
