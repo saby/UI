@@ -337,8 +337,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree {
       const childrenStorage: string[] = [ ];
-      const identifiersStore: IStorage = { };
+      let globalIdentifiersStore: IStorage = { };
       nodes.forEach((node: Ast.Ast) => {
+         const identifiersStore: IStorage = { };
          const context: IContext = {
             childrenStorage,
             identifiersStore,
@@ -347,9 +348,13 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          const expressions: Ast.ExpressionNode[] = node.accept(this, context);
          node.__$ws_internal = { };
          appendInternalExpressions(node.__$ws_internal, expressions);
+         globalIdentifiersStore = {
+            ...globalIdentifiersStore,
+            ...identifiersStore
+         };
       });
       const reactiveProperties: string[] = Object
-         .keys(identifiersStore)
+         .keys(globalIdentifiersStore)
          .filter((item: string) => NOT_REACTIVE_IDENTIFIERS.indexOf(item) === -1);
       const result = <IAnnotatedTree>nodes;
       result.childrenStorage = childrenStorage;
