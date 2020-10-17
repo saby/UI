@@ -688,20 +688,19 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       const chain: Ast.Ast[] = [];
       const componentOnlyExpressions: Ast.ExpressionNode[] = [].concat(expressions);
       for (const name in node.__$ws_attributes) {
-         const attribute = node.__$ws_attributes[name];
-         chain.splice(attribute.__$ws_key, 0, attribute);
+         chain.push(node.__$ws_attributes[name]);
       }
       for (const name in node.__$ws_events) {
-         const event = node.__$ws_events[name];
-         chain.splice(event.__$ws_key, 0, event);
+         chain.push(node.__$ws_events[name]);
       }
       for (const name in node.__$ws_options) {
          const option = node.__$ws_options[name];
          if (!option.hasFlag(Ast.Flags.UNPACKED)) {
             continue;
          }
-         chain.splice(option.__$ws_key, 0, option);
+         chain.push(option);
       }
+      chain.sort((prev: Ast.Ast, next: Ast.Ast) => prev.__$ws_key - next.__$ws_key);
       chain.forEach((node: Ast.Ast) => {
          node.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
             expressions.push(expression);
