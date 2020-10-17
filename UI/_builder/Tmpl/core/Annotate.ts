@@ -79,10 +79,7 @@ function hasBindings(node: Ast.ExpressionNode): boolean {
    return node.__$ws_program.string.indexOf('|mutable') > -1 || node.__$ws_program.string.indexOf('|bind') > -1;
 }
 
-function appendInternalExpressions(
-   internal: Ast.IInternal,
-   expressions: Ast.ExpressionNode[]
-): void {
+function appendInternalExpressions(internal: Ast.IInternal, expressions: Ast.ExpressionNode[]): void {
    let expressionIndex = 0;
    for (let index = 0; index < expressions.length; ++index) {
       const expression = expressions[index];
@@ -663,9 +660,10 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          context.childrenStorage.push(name);
       }
       this.processInjectedData(node, context, expressions);
-      this.processComponentAttributes(node, context, expressions);
+      // Important: there are some expressions that must be in component internal collection.
+      const componentOnlyExpressions: Ast.ExpressionNode[] = this.processComponentAttributes(node, context, expressions);
       node.__$ws_internal = { };
-      appendInternalExpressions(node.__$ws_internal, expressions);
+      appendInternalExpressions(node.__$ws_internal, componentOnlyExpressions);
       return expressions;
    }
 
@@ -686,8 +684,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       });
    }
 
-   private processComponentAttributes(node: Ast.BaseWasabyElement, context: IContext, expressions: Ast.ExpressionNode[]): void {
+   private processComponentAttributes(node: Ast.BaseWasabyElement, context: IContext, expressions: Ast.ExpressionNode[]): Ast.ExpressionNode[] {
       const chain: Ast.Ast[] = [];
+      const componentOnlyExpressions: Ast.ExpressionNode[] = [].concat(expressions);
       for (const name in node.__$ws_attributes) {
          const attribute = node.__$ws_attributes[name];
          chain.splice(attribute.__$ws_key, 0, attribute);
@@ -706,8 +705,13 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       chain.forEach((node: Ast.Ast) => {
          node.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
             expressions.push(expression);
+            // Important: bind expressions must be in component internal collection.
+            if (node instanceof Ast.BindNode) {
+               componentOnlyExpressions.push(expression);
+            }
          });
       });
+      return componentOnlyExpressions;
    }
 
    private processInjectedData(node: Ast.BaseWasabyElement, context: IContext, expressions: Ast.ExpressionNode[]): void {
