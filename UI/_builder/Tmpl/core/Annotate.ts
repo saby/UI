@@ -712,13 +712,33 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          chain.push(option);
       }
       chain.sort((prev: Ast.Ast, next: Ast.Ast) => prev.__$ws_key - next.__$ws_key);
+      // FIXME: Repeat invalid legacy behaviour
+      let finished: boolean = false;
       chain.forEach((node: Ast.Ast) => {
          node.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
             expressions.push(expression);
             // Important: bind expressions must be in component internal collection.
             if (node instanceof Ast.BindNode) {
                componentOnlyExpressions.push(expression);
+               return;
             }
+            // FIXME: Repeat invalid legacy behaviour written in functions
+            //  isExprInAttributes @ UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch
+            //  isExprEqualToAttr @ UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch
+            if (node instanceof Ast.AttributeNode) {
+               if (node.__$ws_value[0] instanceof Ast.ExpressionNode) {
+                  finished = true;
+               }
+            }
+            if (node instanceof Ast.OptionNode) {
+               if ((<Ast.ValueNode>node.__$ws_value).__$ws_data[0] instanceof Ast.ExpressionNode) {
+                  finished = true;
+               }
+            }
+            if (finished) {
+               return;
+            }
+            componentOnlyExpressions.push(expression);
          });
       });
       return componentOnlyExpressions;
