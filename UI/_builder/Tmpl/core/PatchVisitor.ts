@@ -320,42 +320,35 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.originName = node.__$ws_name;
       // @ts-ignore
       node.key = context.currentKey;
-      const initChain = [];
+      const attribs = this.getElementAttributesCollection(node, context);
       if (node.__$ws_unpackedCycle) {
          if (node.__$ws_unpackedCycle instanceof Ast.ForNode) {
             const initStr = node.__$ws_unpackedCycle.__$ws_init ? node.__$ws_unpackedCycle.__$ws_init.string : '';
             const testStr = node.__$ws_unpackedCycle.__$ws_test.string;
             const updateStr = node.__$ws_unpackedCycle.__$ws_update ? node.__$ws_unpackedCycle.__$ws_update.string : '';
             const forData = `${initStr}; ${testStr}; ${updateStr}`;
-            initChain.push({
-               node: {
-                  data: {
-                     type: 'text',
-                     value: forData
-                  },
-                  key: undefined,
-                  type: 'text'
+            attribs['for'] = {
+               data: {
+                  type: 'text',
+                  value: forData
                },
-               name: 'for'
-            });
+               key: undefined,
+               type: 'text'
+            };
          } else {
             const forSource = node.__$ws_unpackedCycle.__$ws_index
                ? `${node.__$ws_unpackedCycle.__$ws_index.string}, ${node.__$ws_unpackedCycle.__$ws_iterator.string} in ${node.__$ws_unpackedCycle.__$ws_collection.string}`
                : `${node.__$ws_unpackedCycle.__$ws_iterator.string} in ${node.__$ws_unpackedCycle.__$ws_collection.string}`;
-            initChain.push({
-               node: {
-                  data: {
-                     type: 'text',
-                     value: forSource
-                  },
-                  key: undefined,
-                  type: 'text'
+            attribs['for'] = {
+               data: {
+                  type: 'text',
+                  value: forSource
                },
-               name: 'for'
-            });
+               key: undefined,
+               type: 'text'
+            };
          }
       }
-      const attribs = this.collectAttributes(node, context, initChain);
       // @ts-ignore
       node.attribs = Object.keys(attribs).length === 0 ? undefined : attribs;
       if (node.__$ws_unpackedCycle) {
@@ -642,7 +635,7 @@ class PatchVisitor implements Ast.IAstVisitor {
    // done.
    visitComponent(node: Ast.ComponentNode, context: INavigationContext): any {
       // @ts-ignore
-      node.attribs = this.collectComponentAttributes(node, context);
+      node.attribs = this.getComponentAttributesCollection(node, context);
       if (node.__$ws_path.hasLogicalPath()) {
          // @ts-ignore
          node.children = [{
@@ -955,7 +948,7 @@ class PatchVisitor implements Ast.IAstVisitor {
          name: 'template'
       }];
       // @ts-ignore
-      node.attribs = this.collectComponentAttributes(node, context, initChain);
+      node.attribs = this.getComponentAttributesCollection(node, context, initChain);
       // @ts-ignore
       node.attribs._wstemplatename = {
          data: {
@@ -1008,7 +1001,7 @@ class PatchVisitor implements Ast.IAstVisitor {
          name: 'template'
       }];
       // @ts-ignore
-      node.attribs = this.collectComponentAttributes(node, context, initChain);
+      node.attribs = this.getComponentAttributesCollection(node, context, initChain);
       if (isTemplateType(node.__$ws_path.getFullPath())) {
          // @ts-ignore
          node.attribs._wstemplatename = {
@@ -1092,7 +1085,7 @@ class PatchVisitor implements Ast.IAstVisitor {
          name: 'template'
       }];
       // @ts-ignore
-      node.attribs = this.collectComponentAttributes(node, context, initChain);
+      node.attribs = this.getComponentAttributesCollection(node, context, initChain);
       // @ts-ignore
       node.attribs._wstemplatename = {
          data: [injectedTemplate],
@@ -1128,8 +1121,9 @@ class PatchVisitor implements Ast.IAstVisitor {
    }
 
    // done.
-   private getAttributesChain(node: Ast.BaseHtmlElement, context: INavigationContext, initChain: any): any {
-      const chain = initChain;
+   private getElementAttributesCollection(node: Ast.BaseHtmlElement, context: INavigationContext): any {
+      const attributes = { };
+      const chain = [];
       for (const attributeName in node.__$ws_attributes) {
          const attribute = node.__$ws_attributes[attributeName];
          // rm prefix for elements only
@@ -1137,37 +1131,54 @@ class PatchVisitor implements Ast.IAstVisitor {
          const name = !attribute.__$ws_hasAttributePrefix ? cleanName : attributeName;
          const processedAttribute = {
             node: attribute.accept(this, context),
+            key: attribute.__$ws_key,
             name
          };
-         chain.splice(attribute.__$ws_key, 0, processedAttribute);
+         chain.push(processedAttribute);
       }
-      for (const eventName in node.__$ws_events) {
-         const event = node.__$ws_events[eventName];
+      for (const name in node.__$ws_events) {
+         const event = node.__$ws_events[name];
          const processedEvent = {
             node: event.accept(this, context),
-            name: eventName
+            key: event.__$ws_key,
+            name
          };
-         chain.splice(event.__$ws_key, 0, processedEvent);
+         chain.push(processedEvent);
       }
-      return chain;
-   }
-
-   // done.
-   private collectAttributes(node: Ast.BaseHtmlElement, context: INavigationContext, initChain: any): any {
-      const chain = this.getAttributesChain(node, context, initChain);
-      const attributes = { };
-      for (let index = 0; index < chain.length; ++index) {
-         const item = chain[index];
-         attributes[item.name] = item.node;
-      }
+      chain.sort((prev: any, next: any) => prev.key - next.key);
+      chain.forEach((element: any) => {
+         attributes[element.name] = element.node;
+      });
       return attributes;
    }
 
    // done.
-   private collectComponentAttributes(node: Ast.BaseWasabyElement, context: INavigationContext, initChain: any = []): any {
-      const chain = this.getAttributesChain(node, context, initChain);
-      for (const optionName in node.__$ws_options) {
-         const option = node.__$ws_options[optionName];
+   private getComponentAttributesCollection(node: Ast.BaseWasabyElement, context: INavigationContext, initChain?: any[]): any {
+      const attributes = { };
+      const chain = [];
+      for (const attributeName in node.__$ws_attributes) {
+         const attribute = node.__$ws_attributes[attributeName];
+         // rm prefix for elements only
+         const cleanName = attributeName.replace('attr:', '');
+         const name = !attribute.__$ws_hasAttributePrefix ? cleanName : attributeName;
+         const processedAttribute = {
+            node: attribute.accept(this, context),
+            key: attribute.__$ws_key,
+            name
+         };
+         chain.push(processedAttribute);
+      }
+      for (const name in node.__$ws_events) {
+         const event = node.__$ws_events[name];
+         const processedEvent = {
+            node: event.accept(this, context),
+            key: event.__$ws_key,
+            name
+         };
+         chain.push(processedEvent);
+      }
+      for (const name in node.__$ws_options) {
+         const option = node.__$ws_options[name];
          if (!option.hasFlag(Ast.Flags.UNPACKED)) {
             continue;
          }
@@ -1180,15 +1191,20 @@ class PatchVisitor implements Ast.IAstVisitor {
                key: undefined,
                type: 'text'
             },
-            name: optionName
+            key: option.__$ws_key,
+            name
          };
-         chain.splice(option.__$ws_key, 0, processedOption);
+         chain.push(processedOption);
       }
-      const attributes = { };
-      for (let index = 0; index < chain.length; ++index) {
-         const item = chain[index];
-         attributes[item.name] = item.node;
+      if (Array.isArray(initChain)) {
+         initChain.forEach((element: any) => {
+            attributes[element.name] = element.node;
+         });
       }
+      chain.sort((prev: any, next: any) => prev.key - next.key);
+      chain.forEach((element: any) => {
+         attributes[element.name] = element.node;
+      });
       return attributes;
    }
 
@@ -1280,6 +1296,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       return injectedData;
    }
 
+   // done.
    private copyInternal(internal: Ast.IInternal, context: INavigationContext): any {
       const copy = { };
       for (const property in internal) {

@@ -24,8 +24,8 @@ define('UI/_builder/Tmpl/core/bridge', [
    Annotate
 ) {
    'use strict';
-   var USE_VISITOR = !false;
-   var USE_ANNOTATION_VISITOR = false;
+   var USE_TRAVERSE_VISITOR = !false;
+   var USE_ANNOTATION_VISITOR = !false;
 
    // TODO: https://online.sbis.ru/opendoc.html?guid=ea8a25dd-5a2f-4330-8d6f-599c8c5878dd
    var USE_GENERATE_CODE_FOR_TRANSLATIONS = false;
@@ -128,13 +128,18 @@ define('UI/_builder/Tmpl/core/bridge', [
    }
 
    function traverse(htmlTree, resolver, options) {
-      if (USE_VISITOR) {
+      if (USE_TRAVERSE_VISITOR) {
          return traverseWithVisitors(htmlTree, options);
       }
       return traversing.traverse(htmlTree, resolver, options);
    }
 
+   function canUseCodegenVisitors() {
+      return USE_TRAVERSE_VISITOR && USE_ANNOTATION_VISITOR;
+   }
+
    return {
-      traverse: traverse
+      traverse: traverse,
+      canUseCodegenVisitors: canUseCodegenVisitors
    };
 });
