@@ -194,10 +194,6 @@ define('UI/_builder/Tmpl/modules/data/object', [
       }
 
       if (objectForMerge !== undefined) {
-         // Проверяем наличие переменных dirty-checking'а и добавляем "безопасные геттеры", если это необходимо
-         // (Если используется опция, проброшенная на несколько уровней вложенности, нужно убедиться что она существует
-         // на каждом уровне вложенности)
-         dirtyCheckingPatch.doDirtyCheckingSafety(internalData);
          if (objectForMerge.createdscope) {
             result = common.plainMergeAttrs(tObject, curatedScope);
             if (common.isEmpty(result)) {
@@ -286,7 +282,6 @@ define('UI/_builder/Tmpl/modules/data/object', [
                   : null
             );
          if (currentInternalForInjected) {
-            dirtyCheckingPatch.doDirtyCheckingSafety(currentInternalForInjected);
             dirtyCh += FSC.getStr(currentInternalForInjected, htmlPropertyName);
          } else {
             dirtyCh += '{}';
