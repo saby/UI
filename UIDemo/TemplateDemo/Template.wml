@@ -5,8 +5,4 @@
     <ws:for data="i in _spanCount">
         <ws:partial template="wml!UIDemo/TemplateDemo/_resources/SpanTemplate" />
     </ws:for>
-    <Core.CompoundContainer component="SBIS3.CONTROLS/TextBox">
-        <ws:componentOptions text="asdadas">
-        </ws:componentOptions>
-    </Core.CompoundContainer>
 </div>
