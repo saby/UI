@@ -210,13 +210,9 @@ export default class MountMethodsCaller {
 
         onStartLifecycle(controlNode.vnode || controlNode);
         if (this.isBeforeMount(control)) {
-            if (controlNode.hasCompound) {
-                delay((): void => {
-                    this.afterMountProcess(controlNode, control);
-                });
-            } else {
+            delay((): void => {
                 this.afterMountProcess(controlNode, control);
-            }
+            });
             onEndLifecycle(controlNode.vnode || controlNode);
             return;
         }
