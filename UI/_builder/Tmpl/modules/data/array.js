@@ -34,7 +34,6 @@ define('UI/_builder/Tmpl/modules/data/array', [
             dirtyCh = 'this.func.internal = ';
          }
          if (injected && injected.internal) {
-            dirtyCheckingPatch.doDirtyCheckingSafety(injected.internal);
             dirtyCh += FSC.getStr(injected.internal, cleanPropertyName);
          } else {
             dirtyCh += '{}';
