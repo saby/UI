@@ -79,10 +79,7 @@ function hasBindings(node: Ast.ExpressionNode): boolean {
    return node.__$ws_program.string.indexOf('|mutable') > -1 || node.__$ws_program.string.indexOf('|bind') > -1;
 }
 
-function appendInternalExpressions(
-   internal: Ast.IInternal,
-   expressions: Ast.ExpressionNode[]
-): void {
+function appendInternalExpressions(internal: Ast.IInternal, expressions: Ast.ExpressionNode[]): void {
    let expressionIndex = 0;
    for (let index = 0; index < expressions.length; ++index) {
       const expression = expressions[index];
@@ -340,8 +337,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree {
       const childrenStorage: string[] = [ ];
-      const identifiersStore: IStorage = { };
+      let globalIdentifiersStore: IStorage = { };
       nodes.forEach((node: Ast.Ast) => {
+         const identifiersStore: IStorage = { };
          const context: IContext = {
             childrenStorage,
             identifiersStore,
@@ -350,9 +348,13 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          const expressions: Ast.ExpressionNode[] = node.accept(this, context);
          node.__$ws_internal = { };
          appendInternalExpressions(node.__$ws_internal, expressions);
+         globalIdentifiersStore = {
+            ...globalIdentifiersStore,
+            ...identifiersStore
+         };
       });
       const reactiveProperties: string[] = Object
-         .keys(identifiersStore)
+         .keys(globalIdentifiersStore)
          .filter((item: string) => NOT_REACTIVE_IDENTIFIERS.indexOf(item) === -1);
       const result = <IAnnotatedTree>nodes;
       result.childrenStorage = childrenStorage;
@@ -400,12 +402,17 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitObject(node: Ast.ObjectNode, context: IContext): Ast.ExpressionNode[] {
-      let expressions: Ast.ExpressionNode[] = [];
+      let attributesExpressions: Ast.ExpressionNode[] = [];
+      let childrenExpressions: Ast.ExpressionNode[] = [];
       for (const name in node.__$ws_properties) {
          const property = node.__$ws_properties[name];
-         expressions = expressions.concat(property.accept(this, context));
+         if (!property.hasFlag(Ast.Flags.UNPACKED)) {
+            childrenExpressions = childrenExpressions.concat(property.accept(this, context));
+            continue;
+         }
+         attributesExpressions = attributesExpressions.concat(property.accept(this, context));
       }
-      return expressions;
+      return childrenExpressions.concat(attributesExpressions);
    }
 
    visitString(node: Ast.StringNode, context: IContext): Ast.ExpressionNode[] {
@@ -617,23 +624,35 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): Ast.ExpressionNode[] {
       let expressions: Ast.ExpressionNode[] = [];
-      expressions = expressions.concat(
-         processProgramNode(node.__$ws_expression, context)
-      );
-      expressions = expressions.concat(
-         this.processBaseWasabyElement(node, context)
-      );
+      const name = getComponentName(node);
+      if (name !== null) {
+         context.childrenStorage.push(name);
+      }
+      this.processInjectedData(node, context, expressions);
+      // Important: there are some expressions that must be in component internal collection.
+      const componentOnlyExpressions: Ast.ExpressionNode[] = this.processComponentAttributes(node, context, expressions, true);
+      node.__$ws_internal = { };
+      appendInternalExpressions(node.__$ws_internal, componentOnlyExpressions);
+      expressions = processProgramNode(node.__$ws_expression, context).concat(expressions);
+      // FIXME: Legacy bug
+      expressions = expressions.concat(processProgramNode(node.__$ws_expression, context));
       return expressions;
    }
 
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): Ast.ExpressionNode[] {
+      const name = getComponentName(node);
+      if (name !== null) {
+         context.childrenStorage.push(name);
+      }
       let expressions: Ast.ExpressionNode[] = [];
       expressions = expressions.concat(
          context.scope.getTemplate(node.__$ws_name).accept(this, context)
       );
-      expressions = expressions.concat(
-         this.processBaseWasabyElement(node, context)
-      );
+      this.processInjectedData(node, context, expressions);
+      // Important: there are some expressions that must be in component internal collection.
+      const componentOnlyExpressions: Ast.ExpressionNode[] = this.processComponentAttributes(node, context, expressions);
+      node.__$ws_internal = { };
+      appendInternalExpressions(node.__$ws_internal, componentOnlyExpressions);
       return expressions;
    }
 
@@ -663,9 +682,10 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          context.childrenStorage.push(name);
       }
       this.processInjectedData(node, context, expressions);
-      this.processComponentAttributes(node, context, expressions);
+      // Important: there are some expressions that must be in component internal collection.
+      const componentOnlyExpressions: Ast.ExpressionNode[] = this.processComponentAttributes(node, context, expressions);
       node.__$ws_internal = { };
-      appendInternalExpressions(node.__$ws_internal, expressions);
+      appendInternalExpressions(node.__$ws_internal, componentOnlyExpressions);
       return expressions;
    }
 
@@ -673,12 +693,13 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       const chain = [];
       for (const name in node.__$ws_attributes) {
          const attribute = node.__$ws_attributes[name];
-         chain.splice(attribute.__$ws_key, 0, attribute);
+         chain.push(attribute);
       }
       for (const name in node.__$ws_events) {
          const event = node.__$ws_events[name];
-         chain.splice(event.__$ws_key, 0, event);
+         chain.push(event);
       }
+      chain.sort((prev: Ast.Ast, next: Ast.Ast) => prev.__$ws_key - next.__$ws_key);
       chain.forEach((node: Ast.Ast) => {
          node.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
             expressions.push(expression);
@@ -686,28 +707,53 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       });
    }
 
-   private processComponentAttributes(node: Ast.BaseWasabyElement, context: IContext, expressions: Ast.ExpressionNode[]): void {
+   private processComponentAttributes(node: Ast.BaseWasabyElement, context: IContext, expressions: Ast.ExpressionNode[], hasFinished: boolean = false): Ast.ExpressionNode[] {
       const chain: Ast.Ast[] = [];
+      const componentOnlyExpressions: Ast.ExpressionNode[] = [].concat(expressions);
       for (const name in node.__$ws_attributes) {
-         const attribute = node.__$ws_attributes[name];
-         chain.splice(attribute.__$ws_key, 0, attribute);
+         chain.push(node.__$ws_attributes[name]);
       }
       for (const name in node.__$ws_events) {
-         const event = node.__$ws_events[name];
-         chain.splice(event.__$ws_key, 0, event);
+         chain.push(node.__$ws_events[name]);
       }
       for (const name in node.__$ws_options) {
          const option = node.__$ws_options[name];
          if (!option.hasFlag(Ast.Flags.UNPACKED)) {
             continue;
          }
-         chain.splice(option.__$ws_key, 0, option);
+         chain.push(option);
       }
+      chain.sort((prev: Ast.Ast, next: Ast.Ast) => prev.__$ws_key - next.__$ws_key);
+      // FIXME: Repeat invalid legacy behaviour
+      let finished: boolean = hasFinished;
       chain.forEach((node: Ast.Ast) => {
          node.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
             expressions.push(expression);
+            // Important: bind expressions must be in component internal collection.
+            if (node instanceof Ast.BindNode) {
+               componentOnlyExpressions.push(expression);
+               return;
+            }
+            // FIXME: Repeat invalid legacy behaviour written in functions
+            //  isExprInAttributes @ UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch
+            //  isExprEqualToAttr @ UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch
+            if (node instanceof Ast.AttributeNode) {
+               if (node.__$ws_value[0] instanceof Ast.ExpressionNode) {
+                  finished = true;
+               }
+            }
+            if (node instanceof Ast.OptionNode) {
+               if ((<Ast.ValueNode>node.__$ws_value).__$ws_data[0] instanceof Ast.ExpressionNode) {
+                  finished = true;
+               }
+            }
+            if (finished) {
+               return;
+            }
+            componentOnlyExpressions.push(expression);
          });
       });
+      return componentOnlyExpressions;
    }
 
    private processInjectedData(node: Ast.BaseWasabyElement, context: IContext, expressions: Ast.ExpressionNode[]): void {
@@ -717,7 +763,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          if (option.hasFlag(Ast.Flags.UNPACKED)) {
             continue;
          }
-         chain.splice(option.__$ws_key, 0, option);
+         chain.push(option);
       }
       for (const name in node.__$ws_contents) {
          const content = node.__$ws_contents[name];
@@ -727,8 +773,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
             });
             return;
          }
-         chain.splice(content.__$ws_key, 0, content);
+         chain.push(content);
       }
+      chain.sort((prev: Ast.Ast, next: Ast.Ast) => prev.__$ws_key - next.__$ws_key);
       chain.forEach((node: Ast.Ast) => {
          node.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
             expressions.push(expression);
