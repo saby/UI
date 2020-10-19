@@ -75,6 +75,16 @@ export default class MountMethodsCaller {
         }
     }
 
+    private afterRenederProcess(controlNode: IControlNode, control: Control): void {
+        try {
+            // tslint:disable-next-line:ban-ts-ignore
+            // @ts-ignore
+            control._afterRender(controlNode.oldOptions || controlNode.options, controlNode.oldContext);
+        } catch (error) {
+            Logger.lifeError('_afterRender', control, error);
+        }
+    }
+
     beforePaint: TMountMethod = (controlNode, rebuildChanges) => {
         const [control, isDestroyed, childNodes, isChanged]: TPreparationsResult =
             this.mountMethodPreparations(controlNode, rebuildChanges);
@@ -179,12 +189,9 @@ export default class MountMethodsCaller {
                 // tslint:disable-next-line:ban-ts-ignore
                 // @ts-ignore
                 if (!isDestroyed && typeof control._afterRender === 'function') {
-                    // tslint:disable-next-line:ban-ts-ignore
-                    // @ts-ignore
-                    control._afterRender(
-                       controlNode.oldOptions || controlNode.options,
-                       controlNode.oldContext
-                    );
+                    delay((): void => {
+                        this.afterRenederProcess(controlNode, control);
+                    });
                 }
             } catch (error) {
                 Logger.lifeError('_afterRender', control, error);
