@@ -274,48 +274,50 @@ export class GeneratorText implements IGenerator {
          }
          if (fn.prototype._template) {
             return this.createWsControl(fn, preparedScope, decorAttribs, context, _deps, data);
-         }
-      } else {
-         const componentName = isTplString ? tpl : 'InlineFunction';
-         Logger.debug(`createWsControl - "${componentName}"`, data.controlProperties);
-         Logger.debug('Context for control', decorAttribs.context);
-         Logger.debug('Inherit options for control', decorAttribs.inheritOptions);
-
-         let r;
-         let callContext = preparedScope && data.parent ? data.parent : fn;
-         if (!this.isValidTemplate(fn, tpl, isTplString, isTplModule, isTemplateWrapper)) {
-            return this.createEmptyText();
-         }
-         if (typeof fn === 'function') {
-            r = fn.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, this.prepareAttrsForPartial);
-         } else if (fn && typeof fn.func === 'function') {
-            r = fn.func.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, this.prepareAttrsForPartial);
-         } else if (Common.isArray(fn)) {
-            const _this = this;
-            r = fn.map(function (template) {
-               if (!_this.isValidTemplate(template, tpl, isTplString, isTplModule, isTemplateWrapper)) {
-                  return _this.createEmptyText();
-               }
-               callContext = preparedScope && data.parent ? data.parent : template;
-               if (typeof template === 'function') {
-                  return template.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, _this.prepareAttrsForPartial);
-               } else if (typeof template.func === 'function') {
-                  return template.func.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, _this.prepareAttrsForPartial);
-               }
-               return template;
-            });
-            r = this.joinElements(r, undefined, defCollection);
-         } else if (typeof tpl === 'undefined') {
-            const typeTemplate = typeof tpl;
-            Logger.error(`${typeTemplate} component error - Попытка использовать компонент/шаблон, ` +
-               `но вместо компонента в шаблоне был передан ${typeTemplate}! ` +
-               'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
-               `По стеку будет понятно, в каком шаблоне и в какую опцию передается ${typeTemplate}`, fn);
-            this.createEmptyText();
+         } else if (Common.isTemplateClass(fn)) {
+            return this.createTemplate(fn, resolvedScope, decorAttribs, context, _deps, data);
          } else {
-            r = tpl;
+            const componentName = isTplString ? tpl : 'InlineFunction';
+            Logger.debug(`createWsControl - "${componentName}"`, data.controlProperties);
+            Logger.debug('Context for control', decorAttribs.context);
+            Logger.debug('Inherit options for control', decorAttribs.inheritOptions);
+
+            let r;
+            let callContext = preparedScope && data.parent ? data.parent : fn;
+            if (!this.isValidTemplate(fn, tpl, isTplString, isTplModule, isTemplateWrapper)) {
+               return this.createEmptyText();
+            }
+            if (typeof fn === 'function') {
+               r = fn.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, this.prepareAttrsForPartial);
+            } else if (fn && typeof fn.func === 'function') {
+               r = fn.func.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, this.prepareAttrsForPartial);
+            } else if (Common.isArray(fn)) {
+               const _this = this;
+               r = fn.map(function (template) {
+                  if (!_this.isValidTemplate(template, tpl, isTplString, isTplModule, isTemplateWrapper)) {
+                     return _this.createEmptyText();
+                  }
+                  callContext = preparedScope && data.parent ? data.parent : template;
+                  if (typeof template === 'function') {
+                     return template.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, _this.prepareAttrsForPartial);
+                  } else if (typeof template.func === 'function') {
+                     return template.func.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, _this.prepareAttrsForPartial);
+                  }
+                  return template;
+               });
+               r = this.joinElements(r, undefined, defCollection);
+            } else if (typeof tpl === 'undefined') {
+               const typeTemplate = typeof tpl;
+               Logger.error(`${typeTemplate} component error - Попытка использовать компонент/шаблон, ` +
+                  `но вместо компонента в шаблоне был передан ${typeTemplate}! ` +
+                  'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
+                  `По стеку будет понятно, в каком шаблоне и в какую опцию передается ${typeTemplate}`, fn);
+               this.createEmptyText();
+            } else {
+               r = tpl;
+            }
+            return r;
          }
-         return r;
       }
    };
 

@@ -309,6 +309,14 @@ export function isControlClass(controlClass) {
    return false;
 }
 
+export function isTemplateClass(controlClass) {
+   var prototype = controlClass && controlClass.prototype;
+   if (prototype && typeof prototype !== 'undefined') {
+      return prototype.isWasabyTemplate || controlClass.isWasabyTemplate;
+   }
+   return false;
+}
+
 export function isControl(control) {
    return control && control.constructor && isControlClass(control.constructor);
 }
