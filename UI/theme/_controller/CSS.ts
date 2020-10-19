@@ -72,7 +72,7 @@ export const isSingleEntity = (link: ICssEntity): link is SingleLink | SingleLin
 
 type IRestoredEntity = Link | SingleLink | null;
 
-function cutFromResourсePrefix(href: string): string {
+export function cutFromResourсePrefix(href: string): string {
    if (!href) { return null; }
    const index = href.indexOf(constants.resourceRoot);
    if (index === -1) { return href; }
