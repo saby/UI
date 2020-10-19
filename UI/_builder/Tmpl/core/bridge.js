@@ -134,7 +134,12 @@ define('UI/_builder/Tmpl/core/bridge', [
       return traversing.traverse(htmlTree, resolver, options);
    }
 
+   function canUseCodegenVisitors() {
+      return USE_TRAVERSE_VISITOR && USE_ANNOTATION_VISITOR;
+   }
+
    return {
-      traverse: traverse
+      traverse: traverse,
+      canUseCodegenVisitors: canUseCodegenVisitors
    };
 });
