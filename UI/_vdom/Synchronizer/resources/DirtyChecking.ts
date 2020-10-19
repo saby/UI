@@ -68,15 +68,54 @@ function getCompatibleUtils(): any {
    return compatibleUtils;
 }
 
-export class MemoForNode {
-    createdNodes: Array<any> = [];
-    createdTemplateNodes: Array<any> = [];
-    destroyedNodes: Array<any> = [];
-    selfDirtyNodes: Array<any> = [];
-    updatedChangedNodes: Array<any> = [];
-    updatedChangedTemplateNodes: Array<any> = [];
-    updatedNodes: Array<any> = [];
-    updatedUnchangedNodes: Array<any> = [];
+interface IMemoForNode {
+    createdNodes: Array<any>;
+    createdTemplateNodes: Array<any>;
+    destroyedNodes: Array<any>;
+    selfDirtyNodes: Array<any>;
+    updatedChangedNodes: Array<any>;
+    updatedChangedTemplateNodes: Array<any>;
+    updatedNodes: Array<any>;
+    updatedUnchangedNodes: Array<any>;
+}
+
+export class MemoForNode implements IMemoForNode {
+    createdNodes: Array<any>;
+    createdTemplateNodes: Array<any>;
+    destroyedNodes: Array<any>;
+    selfDirtyNodes: Array<any>;
+    updatedChangedNodes: Array<any>;
+    updatedChangedTemplateNodes: Array<any>;
+    updatedNodes: Array<any>;
+    updatedUnchangedNodes: Array<any>;
+
+    constructor(start?: Partial<IMemoForNode>) {
+        Object.assign(this, start);
+        if (!this.createdNodes) {
+            this.createdNodes = [];
+        }
+        if (!this.createdTemplateNodes) {
+            this.createdTemplateNodes = [];
+        }
+        if (!this.destroyedNodes) {
+            this.destroyedNodes = [];
+        }
+        if (!this.selfDirtyNodes) {
+            this.selfDirtyNodes = [];
+        }
+        if (!this.updatedChangedNodes) {
+            this.updatedChangedNodes = [];
+        }
+        if (!this.updatedChangedTemplateNodes) {
+            this.updatedChangedTemplateNodes = [];
+        }
+        if (!this.updatedNodes) {
+            this.updatedNodes = [];
+        }
+        if (!this.updatedUnchangedNodes) {
+            this.updatedUnchangedNodes = [];
+        }
+    }
 }
 
 export interface IMemoNode {
@@ -717,10 +756,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     let createdStartIdx;
 
     if (!isSelfDirty) {
-        return __afterRebuildNode(environment, node, false, undefined,
-            node.childrenNodes, ARR_EMPTY, ARR_EMPTY,
-            ARR_EMPTY, ARR_EMPTY, ARR_EMPTY, ARR_EMPTY,
-            ARR_EMPTY, ARR_EMPTY, false);
+        return __afterRebuildNode(environment, node, false, undefined, node.childrenNodes, new MemoForNode(), false);
     }
 
     /**
@@ -1281,10 +1317,19 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         logicParent: logicParent
     });
 
-    return __afterRebuildNode(environment, newNode, needRenderMarkup, changedNodes,
-        childrenNodes, createdNodes, createdTemplateNodes,
-        updatedNodes, updatedUnchangedNodes, updatedChangedNodes, updatedChangedTemplateNodes,
-        destroyedNodes, selfDirtyNodes, isSelfDirty)
+    const currentMemo: MemoForNode = new MemoForNode({
+        createdNodes,
+        updatedNodes,
+        destroyedNodes,
+        updatedChangedNodes,
+        updatedChangedTemplateNodes,
+        updatedUnchangedNodes,
+        selfDirtyNodes,
+        createdTemplateNodes
+    });
+
+    return __afterRebuildNode(environment, newNode, needRenderMarkup,
+        changedNodes, childrenNodes, currentMemo, isSelfDirty);
 }
 
 function mapChildren(currentMemo, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty) {
