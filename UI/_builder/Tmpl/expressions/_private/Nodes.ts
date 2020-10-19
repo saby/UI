@@ -225,17 +225,16 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
          }
          const args = this.buildArgumentsArray(node.arguments, context);
          // FIXME: Use instanceof
+         let object: string = 'data';
          if (node.callee.type === 'MemberExpression') {
             const calleeNode = node.callee as MemberExpressionNode;
-            const object = calleeNode.object.accept(this, context);
-            return callee +
-               '.apply(' +
-               object +
-               ', ' +
-               args +
-               ')';
+            object = <string>calleeNode.object.accept(this, context);
          }
-         return callee + '.apply(data, ' + this.buildArgumentsArray(node.arguments, context) + ')';
+         if (typeof context.attributeName === 'string' && context.attributeName.startsWith('__dirtyCheckingVars_')) {
+            // Замена функции doDirtyCheckingSafety суть которой - проверить наличие функции перед ее вызовом
+            return `${callee} && ${callee}.apply(${object}, ${args})`;
+         }
+         return `${callee}.apply(${object}, ${args})`;
       }
       errorHandler.error(
          'Обшибка при обработке выражения вызова функции. Object to call on is "'
