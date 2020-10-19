@@ -75,16 +75,6 @@ export default class MountMethodsCaller {
         }
     }
 
-    private afterRenederProcess(controlNode: IControlNode, control: Control): void {
-        try {
-            // tslint:disable-next-line:ban-ts-ignore
-            // @ts-ignore
-            control._afterRender(controlNode.oldOptions || controlNode.options, controlNode.oldContext);
-        } catch (error) {
-            Logger.lifeError('_afterRender', control, error);
-        }
-    }
-
     beforePaint: TMountMethod = (controlNode, rebuildChanges) => {
         const [control, isDestroyed, childNodes, isChanged]: TPreparationsResult =
             this.mountMethodPreparations(controlNode, rebuildChanges);
@@ -189,9 +179,12 @@ export default class MountMethodsCaller {
                 // tslint:disable-next-line:ban-ts-ignore
                 // @ts-ignore
                 if (!isDestroyed && typeof control._afterRender === 'function') {
-                    delay((): void => {
-                        this.afterRenederProcess(controlNode, control);
-                    });
+                    // tslint:disable-next-line:ban-ts-ignore
+                    // @ts-ignore
+                    control._afterRender(
+                        controlNode.oldOptions || controlNode.options,
+                        controlNode.oldContext
+                    );
                 }
             } catch (error) {
                 Logger.lifeError('_afterRender', control, error);
@@ -217,9 +210,13 @@ export default class MountMethodsCaller {
 
         onStartLifecycle(controlNode.vnode || controlNode);
         if (this.isBeforeMount(control)) {
-            delay((): void => {
+            if (controlNode.hasCompound) {
+                delay((): void => {
+                    this.afterMountProcess(controlNode, control);
+                });
+            } else {
                 this.afterMountProcess(controlNode, control);
-            });
+            }
             onEndLifecycle(controlNode.vnode || controlNode);
             return;
         }
