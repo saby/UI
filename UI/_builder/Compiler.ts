@@ -9,7 +9,7 @@ import { parse } from 'UI/_builder/Tmpl/html/Parser';
 import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';
 import { traverse } from 'UI/_builder/Tmpl/core/bridge';
-import * as processingToFunction from 'UI/_builder/Tmpl/function';
+import * as codegenBridge from 'UI/_builder/Tmpl/codegen/bridge';
 import * as templates from 'UI/_builder/Tmpl/codegen/templates';
 import { ISource, Source } from './utils/Source';
 import { IOptions, Options } from './utils/Options';
@@ -194,7 +194,7 @@ abstract class BaseCompiler implements ICompiler {
     */
    generate(traversed: ITraversed, options: IOptions): string {
       // tslint:disable:prefer-const
-      let tmplFunc = processingToFunction.getFunction(traversed.ast, null, options, null);
+      let tmplFunc = codegenBridge.getFunction(traversed.ast, null, options, null);
       if (!tmplFunc) {
          throw new Error('Шаблон не может быть построен. Не загружены зависимости.');
       }
@@ -290,21 +290,14 @@ class CompilerTmpl extends BaseCompiler {
     * Do initialize before compilation process.
     */
    initWorkspace(): void {
-      // FIXME: do not check template function name (diff stage)
-      processingToFunction.functionNames = null;
-      processingToFunction.includedFunctions = { };
-      processingToFunction.privateFn = null;
-      processingToFunction.includedFn = null;
+      codegenBridge.initWorkspaceTMPL();
    }
 
    /**
     * Clean needed variables after compilation process.
     */
    cleanWorkspace(): void {
-      processingToFunction.functionNames = null;
-      processingToFunction.includedFunctions = null;
-      processingToFunction.privateFn = null;
-      processingToFunction.includedFn = null;
+      codegenBridge.cleanWorkspace();
    }
 
    /**
@@ -343,20 +336,14 @@ class CompilerWml extends BaseCompiler {
     * Do initialize before compilation process.
     */
    initWorkspace(): void {
-      processingToFunction.functionNames = { };
-      processingToFunction.privateFn = [];
-      processingToFunction.includedFn = { };
-      processingToFunction.includedFunctions = { };
+      codegenBridge.initWorkspaceWML();
    }
 
    /**
     * Clean needed variables after compilation process.
     */
    cleanWorkspace(): void {
-      processingToFunction.functionNames = null;
-      processingToFunction.privateFn = null;
-      processingToFunction.includedFn = null;
-      processingToFunction.includedFunctions = null;
+      codegenBridge.cleanWorkspace();
    }
 
    /**

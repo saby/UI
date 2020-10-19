@@ -2,7 +2,7 @@ define('UI/_builder/Tmpl', [
    'UI/_builder/Tmpl/core/bridge',
    'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/modules/utils/common',
-   'UI/_builder/Tmpl/function',
+   'UI/_builder/Tmpl/codegen/bridge',
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/utils/ModulePath',
    'UI/_builder/Tmpl/html/Parser',
@@ -12,7 +12,7 @@ define('UI/_builder/Tmpl', [
    traversing,
    ErrorHandlerLib,
    utils,
-   processingToFunction,
+   codegenBridge,
    templates,
    ModulePathLib,
    Parser,
@@ -114,10 +114,7 @@ define('UI/_builder/Tmpl', [
 
       // FIXME: удалить, когда точно будут известны клиенты шаблонизатора.
       config.fileName = config.fileName || config.filename;
-
-      // FIXME: плохо так передавать includedFunctions
-      processingToFunction.includedFunctions = {};
-      functionResult = processingToFunction.getFunction(ast, null, config, null);
+      functionResult = codegenBridge.getFunction(ast, null, config, null);
       functionResult.reactiveProps = ast.reactiveProps;
       return functionResult;
    }
@@ -165,9 +162,7 @@ define('UI/_builder/Tmpl', [
 
       template(html, getResolverControls(currentExt), config).handle(function(traversed) {
          try {
-            processingToFunction.privateFn = [];
-            processingToFunction.includedFn = {};
-            processingToFunction.functionNames = {};
+            codegenBridge.initWorkspaceWML();
             tmplFunc = func(traversed, config);
             if (!tmplFunc) {
                errorHandler.error(
@@ -182,13 +177,11 @@ define('UI/_builder/Tmpl', [
             var finalFile = templates.generateDefine(moduleName, ext, tmplFunc, deps, traversed.reactiveProps);
             finalFile = templates.clearSourceFromDeprecated(finalFile);
 
-            processingToFunction.privateFn = null;
-            processingToFunction.functionNames = null;
-            processingToFunction.includedFn = null;
-
             successCallback(finalFile);
          } catch (error) {
             currentErrback(error);
+         } finally {
+            codegenBridge.cleanWorkspace();
          }
       }, currentErrback);
    }
@@ -249,6 +242,7 @@ define('UI/_builder/Tmpl', [
       template(html, getResolverControls('tmpl'), currentConfig).handle(function(traversed) {
          var templateFunction;
          try {
+            codegenBridge.initWorkspaceTMPL();
             templateFunction = func(traversed, currentConfig);
             templateFunction.stable = true;
             compatibleFunction = function compatibleTemplate() {
@@ -260,6 +254,8 @@ define('UI/_builder/Tmpl', [
             compatibleFunction.reactiveProps = traversed.reactiveProps;
          } catch (error) {
             defaultErrorback(error);
+         } finally {
+            codegenBridge.cleanWorkspace();
          }
          if (!compatibleFunction) {
             errorHandler.error(
@@ -273,9 +269,18 @@ define('UI/_builder/Tmpl', [
       return compatibleFunction;
    }
 
+   function outerFunc(ast, config) {
+      try {
+         codegenBridge.initWorkspaceTMPL();
+         return func(ast, config);
+      } finally {
+         codegenBridge.cleanWorkspace();
+      }
+   }
+
    return {
       template: template,
-      func: func,
+      func: outerFunc,
       getFile: getFile,
       getComponents: getComponents,
       addArgument: utils.addArgument,
