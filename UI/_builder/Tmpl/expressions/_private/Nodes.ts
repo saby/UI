@@ -241,7 +241,7 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
             const calleeNode = node.callee as MemberExpressionNode;
             object = <string>calleeNode.object.accept(this, context);
          }
-         if (typeof context.attributeName === 'string' && context.attributeName.startsWith('__dirtyCheckingVars_')) {
+         if (typeof context.attributeName === 'string' && /__dirtyCheckingVars_\d+$/gi.test(context.attributeName)) {
             // Эта проверка используется для проброса переменных из замыкания(dirtyCheckingVars)
             // Значения переменных из замыкания вычисляются в момент создания контентной опции
             // и пробрасываются через все контролы, оборачивающие контент.
