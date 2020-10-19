@@ -2,7 +2,7 @@
 // @ts-ignore
 import { cookie } from 'Env/Env';
 import { Logger } from 'UI/Utils';
-import { createEntity, restoreEntity, isLinkEntity, isSingleEntity, cutFromResourсePrefix } from './CSS';
+import { createEntity, restoreEntity, isSingleEntity, cutFromResourсePrefix } from './CSS';
 import { DEFAULT_THEME, EMPTY_THEME, THEME_TYPE } from './css/const';
 import { ICssEntity } from './css/interface';
 import Loader, { ICssLoader } from './Loader';
