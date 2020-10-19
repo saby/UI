@@ -369,7 +369,7 @@ export class Generator {
          for (i in attrs.events) {
             if (attrs.events.hasOwnProperty(i)) {
                for (handl = 0; handl < attrs.events[i].length; handl++) {
-                  if (!attrs.events[i][handl].fn.isControlEvent) {
+                  if (!attrs.events[i][handl].isControl) {
                      attrs.events[i][handl].toPartial = true;
                   }
                }
@@ -451,7 +451,7 @@ export class Generator {
             for (i in attrs.events) {
                if (attrs.events.hasOwnProperty(i)) {
                   for (handl = 0; handl < attrs.events[i].length; handl++) {
-                     if (!attrs.events[i][handl].fn.isControlEvent) {
+                     if (!attrs.events[i][handl].isControl) {
                         attrs.events[i][handl].toPartial = true;
                      }
                   }
@@ -491,7 +491,6 @@ export class Generator {
                data: event.data
             });
             event.fn.control = event.viewController;
-            event.fn.isControlEvent = event.isControl;
          });
       });
    }
