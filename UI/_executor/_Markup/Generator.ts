@@ -467,6 +467,35 @@ export class Generator {
       }
    };
 
+   prepareEvents(events) {
+      Object.keys(events).forEach((eventName) => {
+         const eventArr = events[eventName];
+         eventArr.forEach((event) => {
+            if (event.args) {
+               event.fn = function (eventObj) {
+                  const res = event.handler.apply(this.viewController).apply(event.context, arguments);
+                  if(res !== undefined) {
+                     eventObj.result = res;
+                  }
+               };
+            } else {
+               event.fn = function () {
+                  if (!event.handler(this.viewController)) {
+                     event.handler(this.data)
+                  }
+               };
+            }
+
+            event.fn = event.fn.bind({
+               viewController: event.viewController,
+               data: event.data
+            });
+            event.fn.control = event.viewController;
+            event.fn.isControlEvent = event.isControl;
+         });
+      });
+   }
+
    prepareDataForCreate(tplOrigin, scope, attrs, deps, includedTemplates?) {
       let controlClass;
       let dataComponent;
@@ -490,6 +519,10 @@ export class Generator {
          for (let key in attrs.events) {
             controlProperties[key] = attrs.events[key];
          }
+      } else {
+         // @ts-ignore
+         const prepareEvents = this.prepareEvents || this.generatorBase.prepareEvents;
+         prepareEvents(attrs.events);
       }
 
       if (!attrs.attributes) {
