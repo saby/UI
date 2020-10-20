@@ -59,7 +59,7 @@ export function processEventAttribute(
          viewController: FSC.wrapAroundExec('viewController'),
          handler: handler,
          isControl: isControl,
-         context: FSC.wrapAroundExec(artifact.context)
+         context: FSC.wrapAroundExec('(function(){ return ' + artifact.context + '}).bind(this)')
       }));
    return chain;
 }

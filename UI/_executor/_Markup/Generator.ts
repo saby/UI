@@ -473,7 +473,7 @@ export class Generator {
          eventArr.forEach((event) => {
             if (event.args) {
                event.fn = function (eventObj) {
-                  const res = event.handler.apply(this.viewController).apply(event.context, arguments);
+                  const res = event.handler.apply(this.viewController).apply(event.context(), arguments);
                   if(res !== undefined) {
                      eventObj.result = res;
                   }
