@@ -4,7 +4,7 @@
  */
 
 /* tslint:disable */
-// @ts-nocheck
+// @ts-nocheck1
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { composeWithResultApply } from '../../Utils/Functional';
@@ -90,30 +90,19 @@ export class MemoForNode implements IMemoForNode {
     updatedUnchangedNodes: Array<any>;
 
     constructor(start?: Partial<IMemoForNode>) {
-        Object.assign(this, start);
-        if (!this.createdNodes) {
-            this.createdNodes = [];
-        }
-        if (!this.createdTemplateNodes) {
-            this.createdTemplateNodes = [];
-        }
-        if (!this.destroyedNodes) {
-            this.destroyedNodes = [];
-        }
-        if (!this.selfDirtyNodes) {
-            this.selfDirtyNodes = [];
-        }
-        if (!this.updatedChangedNodes) {
-            this.updatedChangedNodes = [];
-        }
-        if (!this.updatedChangedTemplateNodes) {
-            this.updatedChangedTemplateNodes = [];
-        }
-        if (!this.updatedNodes) {
-            this.updatedNodes = [];
-        }
-        if (!this.updatedUnchangedNodes) {
-            this.updatedUnchangedNodes = [];
+        this.createdNodes = !start.createdNodes ? start.createdNodes.slice() : [];
+        this.createdTemplateNodes = !start.createdTemplateNodes ? start.createdTemplateNodes.slice() : [];
+        this.destroyedNodes = !start.destroyedNodes ? start.destroyedNodes.slice() : [];
+        this.selfDirtyNodes = !start.selfDirtyNodes ? start.selfDirtyNodes.slice() : [];
+        this.updatedChangedNodes = !start.updatedChangedNodes ? start.updatedChangedNodes.slice() : [];
+        this.updatedChangedTemplateNodes = !start.updatedChangedTemplateNodes ? start.updatedChangedTemplateNodes.slice() : [];
+        this.updatedNodes = !start.updatedNodes ? start.updatedNodes.slice() : [];
+        this.updatedUnchangedNodes = !start.updatedUnchangedNodes ? start.updatedUnchangedNodes.slice() : [];
+    }
+
+    concat(source: MemoForNode) {
+        for (let i = 0; i < memoNames.length; ++i) {
+            concatArray(this[memoNames[i]], source[memoNames[i]]);
         }
     }
 }
@@ -271,20 +260,13 @@ function concatArray(target: any[], source?: any[]): any[] {
     return target;
 }
 
-function concatMemo(target: MemoForNode, source: MemoForNode): MemoForNode {
-    for (let i = 0; i < memoNames.length; ++i) {
-        concatArray(target[memoNames[i]], source[memoNames[i]]);
-    }
-    return target;
-}
-
 function createChildrenResult(childrenRebuildResults: IMemoNode[]): {value: IControlNode[], memo: MemoForNode} {
     const value = [];
     const memo = new MemoForNode();
     for (let i = 0; i < childrenRebuildResults.length; i++) {
         const childrenRebuildResult = childrenRebuildResults[i];
         value.push(childrenRebuildResult.value);
-        concatMemo(memo, childrenRebuildResults[i].memo);
+        memo.concat(childrenRebuildResults[i].memo);
     }
     return {value, memo};
 }
@@ -1332,7 +1314,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         changedNodes, childrenNodes, currentMemo, isSelfDirty);
 }
 
-function mapChildren(currentMemo, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty) {
+function mapChildren(currentMemo: MemoForNode, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty) {
     const childrenRebuild = createChildrenResult(childrenRebuildFinalResults);
     if (!newNode.markup) {
         // Во время ожидания асинхронного ребилда контрол уничтожился, обновлять его уже не нужно.
@@ -1362,9 +1344,10 @@ function mapChildren(currentMemo, newNode, childrenRebuildFinalResults, environm
         }
     }
 
+    currentMemo.concat(childrenRebuild.memo);
     return {
         value: newNode,
-        memo: concatMemo(currentMemo, childrenRebuild.memo)
+        memo: currentMemo
     };
 }
 
