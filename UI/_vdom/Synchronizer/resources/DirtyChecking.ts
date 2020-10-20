@@ -90,14 +90,14 @@ export class MemoForNode implements IMemoForNode {
     updatedUnchangedNodes: Array<any>;
 
     constructor(start?: Partial<IMemoForNode>) {
-        this.createdNodes = !start.createdNodes ? start.createdNodes.slice() : [];
-        this.createdTemplateNodes = !start.createdTemplateNodes ? start.createdTemplateNodes.slice() : [];
-        this.destroyedNodes = !start.destroyedNodes ? start.destroyedNodes.slice() : [];
-        this.selfDirtyNodes = !start.selfDirtyNodes ? start.selfDirtyNodes.slice() : [];
-        this.updatedChangedNodes = !start.updatedChangedNodes ? start.updatedChangedNodes.slice() : [];
-        this.updatedChangedTemplateNodes = !start.updatedChangedTemplateNodes ? start.updatedChangedTemplateNodes.slice() : [];
-        this.updatedNodes = !start.updatedNodes ? start.updatedNodes.slice() : [];
-        this.updatedUnchangedNodes = !start.updatedUnchangedNodes ? start.updatedUnchangedNodes.slice() : [];
+        this.createdNodes = !start?.createdNodes ? start.createdNodes.slice() : [];
+        this.createdTemplateNodes = !start?.createdTemplateNodes ? start.createdTemplateNodes.slice() : [];
+        this.destroyedNodes = !start?.destroyedNodes ? start.destroyedNodes.slice() : [];
+        this.selfDirtyNodes = !start?.selfDirtyNodes ? start.selfDirtyNodes.slice() : [];
+        this.updatedChangedNodes = !start?.updatedChangedNodes ? start.updatedChangedNodes.slice() : [];
+        this.updatedChangedTemplateNodes = !start?.updatedChangedTemplateNodes ? start.updatedChangedTemplateNodes.slice() : [];
+        this.updatedNodes = !start?.updatedNodes ? start.updatedNodes.slice() : [];
+        this.updatedUnchangedNodes = !start?.updatedUnchangedNodes ? start.updatedUnchangedNodes.slice() : [];
     }
 
     concat(source: MemoForNode) {
