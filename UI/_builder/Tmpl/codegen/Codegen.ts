@@ -133,27 +133,32 @@ class Processor implements Ast.IAstVisitor, IProcessor {
 
    visitCData(node: Ast.CDataNode, context: IContext): string {
       const data = `'${node.__$ws_data}'`;
-      return MarkupGenerator.genCreateDirective(data);
+      return MarkupGenerator.genCreateDirective(data) + ', ';
    }
 
    visitComment(node: Ast.CommentNode, context: IContext): string {
       const data = `'${node.__$ws_data}'`;
-      return MarkupGenerator.genCreateComment(data);
+      return MarkupGenerator.genCreateComment(data) + ', ';
    }
 
    visitDoctype(node: Ast.DoctypeNode, context: IContext): string {
       const data = `'${node.__$ws_data}'`;
-      return MarkupGenerator.genCreateDirective(data);
+      return MarkupGenerator.genCreateDirective(data) + ', ';
    }
 
    visitElement(node: Ast.ElementNode, context: IContext): string {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      // TODO: process node.__$ws_unpackedCycle
+      const name = `'${node.__$ws_name}'`;
+      // TODO: Root node attributes -- decor
+      const rootAttributes: string = 'attr';
+      const attributes: string = this.processElementAttributes(node, context);
+      const children: string = this.processNodes(node.__$ws_content, context).join(',');
+      return MarkupGenerator.genCreateTag(name, attributes, children, rootAttributes) + ', ';
    }
 
    visitInstruction(node: Ast.InstructionNode, context: IContext): string {
       const data = `'${node.__$ws_data}'`;
-      return MarkupGenerator.genCreateDirective(data);
+      return MarkupGenerator.genCreateDirective(data) + ', ';
    }
 
    // </editor-fold>
@@ -239,6 +244,32 @@ class Processor implements Ast.IAstVisitor, IProcessor {
    }
 
    // </editor-fold>
+
+   private processElementAttributes(node: Ast.BaseHtmlElement, context: IContext): string {
+      const attributes: string = this.processAttributes(node.__$ws_attributes, context);
+      const events: string = this.processEvents(node.__$ws_events, context);
+      const key = `key+"${context.key}"`;
+      return `{"attributes":${attributes},"events":${events},"key":${key}}`;
+   }
+
+   private processAttributes(attributes: Ast.IAttributes, context: IContext): string {
+      const values: string[] = [];
+      for (const name in attributes) {
+         // TODO: Use attribute name from node
+         const attribute = attributes[name];
+         const cleanName = name.replace('attr:', '');
+         const attributeName = !attribute.__$ws_hasAttributePrefix ? cleanName : name;
+         const value: string = attribute.accept(this, context);
+         values.push(`"${attributeName}":${value}`);
+      }
+      return `{${values.join(',')}}`;
+   }
+
+   private processEvents(events: Ast.IEvents, context: IContext): string {
+      const elements: string[] = [];
+      // TODO: Release
+      return `typeof window === "undefined"?{}:{${elements.join(',')}}`;
+   }
 
    private generateTemplateFunction(nodes: Ast.Ast[], context: IContext): Function {
       const markup: string = this.joinNodes(nodes, context);
