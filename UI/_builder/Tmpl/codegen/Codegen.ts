@@ -132,18 +132,18 @@ class Processor implements Ast.IAstVisitor, IProcessor {
    // <editor-fold desc="HTML nodes">
 
    visitCData(node: Ast.CDataNode, context: IContext): string {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      const data = `'${node.__$ws_data}'`;
+      return MarkupGenerator.genCreateDirective(data);
    }
 
    visitComment(node: Ast.CommentNode, context: IContext): string {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      const data = `'${node.__$ws_data}'`;
+      return MarkupGenerator.genCreateComment(data);
    }
 
    visitDoctype(node: Ast.DoctypeNode, context: IContext): string {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      const data = `'${node.__$ws_data}'`;
+      return MarkupGenerator.genCreateDirective(data);
    }
 
    visitElement(node: Ast.ElementNode, context: IContext): string {
@@ -152,8 +152,8 @@ class Processor implements Ast.IAstVisitor, IProcessor {
    }
 
    visitInstruction(node: Ast.InstructionNode, context: IContext): string {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      const data = `'${node.__$ws_data}'`;
+      return MarkupGenerator.genCreateDirective(data);
    }
 
    // </editor-fold>
