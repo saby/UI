@@ -6,6 +6,8 @@
  */
 
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
+import * as TClosureGenerator from 'UI/_builder/Tmpl/codegen/TClosure';
+// import * as MarkupGenerator from 'UI/_builder/Tmpl/codegen/Generator';
 
 export interface IConfiguration {
    // TODO: Release
@@ -37,39 +39,37 @@ class Processor implements Ast.IAstVisitor, IProcessor {
 
    // <editor-fold desc="Data types">
 
-   visitArray(node: Ast.ArrayNode, context: IContext): void {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+   visitArray(node: Ast.ArrayNode, context: IContext): string {
+      const elements: string = this.enumerateNodes(node.__$ws_elements, context);
+      return `[${elements}]`;
    }
 
-   visitBoolean(node: Ast.BooleanNode, context: IContext): void {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+   visitBoolean(node: Ast.BooleanNode, context: IContext): string {
+      const value: string = this.concatDataNodes(node.__$ws_data, context);
+      return `Boolean(${value})`;
    }
 
-   visitFunction(node: Ast.FunctionNode, context: IContext): void {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+   visitFunction(node: Ast.FunctionNode, context: IContext): string {
+      const options: string = this.processCollection(node.__$ws_options, context);
+      const handler: string = this.concatDataNodes(node.__$ws_functionExpression, context);
+      return TClosureGenerator.genGetTypeFunc(handler, options);
    }
 
-   visitNumber(node: Ast.NumberNode, context: IContext): void {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+   visitNumber(node: Ast.NumberNode, context: IContext): string {
+      const value: string = this.concatDataNodes(node.__$ws_data, context);
+      return `Number(${value})`;
    }
 
-   visitObject(node: Ast.ObjectNode, context: IContext): void {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+   visitObject(node: Ast.ObjectNode, context: IContext): string {
+      return this.processCollection(node.__$ws_properties, context);
    }
 
-   visitString(node: Ast.StringNode, context: IContext): void {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+   visitString(node: Ast.StringNode, context: IContext): string {
+      return this.concatDataNodes(node.__$ws_data, context);
    }
 
-   visitValue(node: Ast.ValueNode, context: IContext): void {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+   visitValue(node: Ast.ValueNode, context: IContext): string {
+      return this.concatDataNodes(node.__$ws_data, context);
    }
 
    // </editor-fold>
@@ -208,6 +208,24 @@ class Processor implements Ast.IAstVisitor, IProcessor {
    }
 
    // </editor-fold>
+
+   private concatDataNodes(nodes: Ast.Ast[], context: IContext): string {
+      return nodes.map((node: Ast.Ast) => node.accept(this, context)).join(' + ');
+   }
+
+   private enumerateNodes(nodes: Ast.Ast[], context: IContext): string {
+      return nodes.map((node: Ast.Ast) => node.accept(this, context)).join(',');
+   }
+
+   private processCollection(options: Ast.IOptions | Ast.IObjectProperties, context: IContext): string {
+      const processed: string[] = [];
+      for (const name in options) {
+         const option = options[name];
+         const value = option.accept(this, context);
+         processed.push(`"${option.__$ws_name}":${value}`);
+      }
+      return `{${processed.join(',')}}`;
+   }
 }
 
 export default function process(nodes: Ast.Ast, options: IOptions, config: IConfiguration): string {
