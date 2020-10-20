@@ -370,7 +370,9 @@ export class GeneratorVdom implements IGenerator {
          attrs = {attributes: {}, events: {}, key: ''};
       }
 
-      this.generatorBase.prepareEvents(attrs.events);
+      if (attrs.events) {
+         this.generatorBase.prepareEvents(attrs.events);
+      }
 
       const mergedAttrs = Attr.mergeAttrs(attrToDecorate.attributes, attrs.attributes);
       const mergedEvents = Attr.mergeEvents(attrToDecorate.events, attrs.events);
