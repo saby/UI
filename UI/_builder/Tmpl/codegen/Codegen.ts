@@ -16,16 +16,25 @@ export interface IConfiguration {
 
 export interface IOptions {
    // TODO: Release
+   fileName: string;
+   childrenStorage: string[];
+}
+
+export interface IResult extends Function {
+   privateFn: Array<Function>;
+   includedFn: { [name: string]: Function; };
 }
 
 export interface IProcessor {
-   generate(nodes: Ast.Ast, options: IOptions): string;
+   generate(nodes: Ast.Ast[], options: IOptions): IResult;
 }
 
 interface IContext extends IOptions {
    // TODO: Release
    nextNode: Ast.Ast | null;
    key: string;
+   privateFn: Array<Function>;
+   includedFn: { [name: string]: Function; };
 }
 
 class Processor implements Ast.IAstVisitor, IProcessor {
@@ -35,9 +44,21 @@ class Processor implements Ast.IAstVisitor, IProcessor {
       // TODO: Release
    }
 
-   generate(nodes: Ast.Ast, options: IOptions): string {
+   generate(nodes: Ast.Ast[], options: IOptions): IResult {
       // TODO: Release
-      throw new Error('Not implemented yet');
+      const privateFn = [];
+      const includedFn = { };
+      const context: IContext = {
+         ...options,
+         key: '',
+         nextNode: null,
+         privateFn,
+         includedFn
+      };
+      const template = <IResult>this.generateTemplateFunction(nodes, context);
+      template.privateFn = privateFn;
+      template.includedFn = includedFn;
+      return template;
    }
 
    // <editor-fold desc="Data types">
@@ -219,6 +240,16 @@ class Processor implements Ast.IAstVisitor, IProcessor {
 
    // </editor-fold>
 
+   private generateTemplateFunction(nodes: Ast.Ast[], context: IContext): Function {
+      const markup: string = this.joinNodes(nodes, context);
+      let text: string = '';
+      if (true) {
+         text += Templates.generateTemplateHead(context.fileName, true);
+      }
+      text += Templates.generateTemplateBody(context.fileName, markup);
+      return new Function('data, attr, context, isVdom, sets, forceCompatible, generatorConfig', text);
+   }
+
    private processConditional(node: Ast.IfNode | Ast.ElseNode, context: IContext): string {
       // TODO: Release
       const test: string = 'true';
@@ -276,6 +307,6 @@ class Processor implements Ast.IAstVisitor, IProcessor {
    }
 }
 
-export default function process(nodes: Ast.Ast, options: IOptions, config: IConfiguration): string {
+export default function process(nodes: Ast.Ast[], options: IOptions, config: IConfiguration): IResult {
    return new Processor(config).generate(nodes, options);
 }
