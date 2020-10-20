@@ -8,6 +8,7 @@
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import * as TClosureGenerator from 'UI/_builder/Tmpl/codegen/TClosure';
 // import * as MarkupGenerator from 'UI/_builder/Tmpl/codegen/Generator';
+import * as Templates from 'UI/_builder/Tmpl/codegen/templates';
 
 export interface IConfiguration {
    // TODO: Release
@@ -45,18 +46,18 @@ class Processor implements Ast.IAstVisitor, IProcessor {
    }
 
    visitBoolean(node: Ast.BooleanNode, context: IContext): string {
-      const value: string = this.concatDataNodes(node.__$ws_data, context);
+      const value: string = this.concatNodes(node.__$ws_data, context);
       return `Boolean(${value})`;
    }
 
    visitFunction(node: Ast.FunctionNode, context: IContext): string {
       const options: string = this.processCollection(node.__$ws_options, context);
-      const handler: string = this.concatDataNodes(node.__$ws_functionExpression, context);
+      const handler: string = this.concatNodes(node.__$ws_functionExpression, context);
       return TClosureGenerator.genGetTypeFunc(handler, options);
    }
 
    visitNumber(node: Ast.NumberNode, context: IContext): string {
-      const value: string = this.concatDataNodes(node.__$ws_data, context);
+      const value: string = this.concatNodes(node.__$ws_data, context);
       return `Number(${value})`;
    }
 
@@ -65,40 +66,42 @@ class Processor implements Ast.IAstVisitor, IProcessor {
    }
 
    visitString(node: Ast.StringNode, context: IContext): string {
-      return this.concatDataNodes(node.__$ws_data, context);
+      return this.concatNodes(node.__$ws_data, context);
    }
 
    visitValue(node: Ast.ValueNode, context: IContext): string {
-      return this.concatDataNodes(node.__$ws_data, context);
+      return this.concatNodes(node.__$ws_data, context);
    }
 
    // </editor-fold>
 
    // <editor-fold desc="Attributes and options">
 
-   visitAttribute(node: Ast.AttributeNode, context: IContext): void {
+   visitAttribute(node: Ast.AttributeNode, context: IContext): string {
+      return this.concatNodes(node.__$ws_value, context);
+   }
+
+   visitBind(node: Ast.BindNode, context: IContext): string {
       // TODO: Release
       throw new Error('Not implemented yet');
    }
 
-   visitBind(node: Ast.BindNode, context: IContext): void {
+   visitEvent(node: Ast.EventNode, context: IContext): string {
       // TODO: Release
       throw new Error('Not implemented yet');
    }
 
-   visitEvent(node: Ast.EventNode, context: IContext): void {
-      // TODO: Release
-      throw new Error('Not implemented yet');
-   }
-
-   visitOption(node: Ast.OptionNode, context: IContext): void {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+   visitOption(node: Ast.OptionNode, context: IContext): string {
+      return node.__$ws_value.accept(this, context);
    }
 
    visitContentOption(node: Ast.ContentOptionNode, context: IContext): string {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      // TODO: Release isolated content option function
+      const functionName: string = node.__$ws_name;
+      const functionJson: string = '(function json$(){})';
+      const isWasabyTemplate: boolean = true;
+      const internal: string = node.__$ws_internal === null ? '{}' : '{}';
+      return Templates.generateIncludedTemplate(functionName, functionJson, isWasabyTemplate, internal);
    }
 
    // </editor-fold>
@@ -209,12 +212,16 @@ class Processor implements Ast.IAstVisitor, IProcessor {
 
    // </editor-fold>
 
-   private concatDataNodes(nodes: Ast.Ast[], context: IContext): string {
-      return nodes.map((node: Ast.Ast) => node.accept(this, context)).join(' + ');
+   private concatNodes(nodes: Ast.Ast[], context: IContext): string {
+      return this.processNodes(nodes, context).join(' + ');
    }
 
    private enumerateNodes(nodes: Ast.Ast[], context: IContext): string {
-      return nodes.map((node: Ast.Ast) => node.accept(this, context)).join(',');
+      return this.processNodes(nodes, context).join(',');
+   }
+
+   private processNodes(nodes: Ast.Ast[], context: IContext): string[] {
+      return nodes.map((node: Ast.Ast) => node.accept(this, context));
    }
 
    private processCollection(options: Ast.IOptions | Ast.IObjectProperties, context: IContext): string {
