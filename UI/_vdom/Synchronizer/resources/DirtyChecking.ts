@@ -68,15 +68,55 @@ function getCompatibleUtils(): any {
    return compatibleUtils;
 }
 
-export class MemoForNode {
-    createdNodes: Array<any> = [];
-    createdTemplateNodes: Array<any> = [];
-    destroyedNodes: Array<any> = [];
-    selfDirtyNodes: Array<any> = [];
-    updatedChangedNodes: Array<any> = [];
-    updatedChangedTemplateNodes: Array<any> = [];
-    updatedNodes: Array<any> = [];
-    updatedUnchangedNodes: Array<any> = [];
+interface IMemoForNode {
+    createdNodes: Array<any>;
+    createdTemplateNodes: Array<any>;
+    destroyedNodes: Array<any>;
+    selfDirtyNodes: Array<any>;
+    updatedChangedNodes: Array<any>;
+    updatedChangedTemplateNodes: Array<any>;
+    updatedNodes: Array<any>;
+    updatedUnchangedNodes: Array<any>;
+}
+
+export class MemoForNode implements IMemoForNode {
+    createdNodes: Array<any>;
+    createdTemplateNodes: Array<any>;
+    destroyedNodes: Array<any>;
+    selfDirtyNodes: Array<any>;
+    updatedChangedNodes: Array<any>;
+    updatedChangedTemplateNodes: Array<any>;
+    updatedNodes: Array<any>;
+    updatedUnchangedNodes: Array<any>;
+
+    constructor(start?: Partial<IMemoForNode>) {
+        if (!start) {
+            this.createdNodes =  [];
+            this.createdTemplateNodes =  [];
+            this.destroyedNodes = [];
+            this.selfDirtyNodes = [];
+            this.updatedChangedNodes = [];
+            this.updatedChangedTemplateNodes = [];
+            this.updatedNodes = [];
+            this.updatedUnchangedNodes = [];
+            return this;
+        }
+
+        this.createdNodes = start.createdNodes ? start.createdNodes.slice() : [];
+        this.createdTemplateNodes = start.createdTemplateNodes ? start.createdTemplateNodes.slice() : [];
+        this.destroyedNodes = start.destroyedNodes ? start.destroyedNodes.slice() : [];
+        this.selfDirtyNodes = start.selfDirtyNodes ? start.selfDirtyNodes.slice() : [];
+        this.updatedChangedNodes = start.updatedChangedNodes ? start.updatedChangedNodes.slice() : [];
+        this.updatedChangedTemplateNodes = start.updatedChangedTemplateNodes ? start.updatedChangedTemplateNodes.slice() : [];
+        this.updatedNodes = start.updatedNodes ? start.updatedNodes.slice() : [];
+        this.updatedUnchangedNodes = start.updatedUnchangedNodes ? start.updatedUnchangedNodes.slice() : [];
+    }
+
+    concat(source: MemoForNode) {
+        for (let i = 0; i < memoNames.length; ++i) {
+            concatArray(this[memoNames[i]], source[memoNames[i]]);
+        }
+    }
 }
 
 export interface IMemoNode {
@@ -232,20 +272,13 @@ function concatArray(target: any[], source?: any[]): any[] {
     return target;
 }
 
-function concatMemo(target: MemoForNode, source: MemoForNode): MemoForNode {
-    for (let i = 0; i < memoNames.length; ++i) {
-        concatArray(target[memoNames[i]], source[memoNames[i]]);
-    }
-    return target;
-}
-
 function createChildrenResult(childrenRebuildResults: IMemoNode[]): {value: IControlNode[], memo: MemoForNode} {
     const value = [];
     const memo = new MemoForNode();
     for (let i = 0; i < childrenRebuildResults.length; i++) {
         const childrenRebuildResult = childrenRebuildResults[i];
         value.push(childrenRebuildResult.value);
-        concatMemo(memo, childrenRebuildResults[i].memo);
+        memo.concat(childrenRebuildResults[i].memo);
     }
     return {value, memo};
 }
@@ -717,10 +750,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     let createdStartIdx;
 
     if (!isSelfDirty) {
-        return __afterRebuildNode(environment, node, false, undefined,
-            node.childrenNodes, ARR_EMPTY, ARR_EMPTY,
-            ARR_EMPTY, ARR_EMPTY, ARR_EMPTY, ARR_EMPTY,
-            ARR_EMPTY, ARR_EMPTY, false);
+        return __afterRebuildNode(environment, node, false, undefined, node.childrenNodes, new MemoForNode(), false);
     }
 
     /**
@@ -1281,13 +1311,22 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         logicParent: logicParent
     });
 
-    return __afterRebuildNode(environment, newNode, needRenderMarkup, changedNodes,
-        childrenNodes, createdNodes, createdTemplateNodes,
-        updatedNodes, updatedUnchangedNodes, updatedChangedNodes, updatedChangedTemplateNodes,
-        destroyedNodes, selfDirtyNodes, isSelfDirty)
+    const currentMemo: MemoForNode = new MemoForNode({
+        createdNodes,
+        updatedNodes,
+        destroyedNodes,
+        updatedChangedNodes,
+        updatedChangedTemplateNodes,
+        updatedUnchangedNodes,
+        selfDirtyNodes,
+        createdTemplateNodes
+    });
+
+    return __afterRebuildNode(environment, newNode, needRenderMarkup,
+        changedNodes, childrenNodes, currentMemo, isSelfDirty);
 }
 
-function mapChildren(currentMemo, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty) {
+function mapChildren(currentMemo: MemoForNode, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty) {
     const childrenRebuild = createChildrenResult(childrenRebuildFinalResults);
     if (!newNode.markup) {
         // Во время ожидания асинхронного ребилда контрол уничтожился, обновлять его уже не нужно.
@@ -1317,18 +1356,16 @@ function mapChildren(currentMemo, newNode, childrenRebuildFinalResults, environm
         }
     }
 
+    currentMemo.concat(childrenRebuild.memo);
     return {
         value: newNode,
-        memo: concatMemo(currentMemo, childrenRebuild.memo)
+        memo: currentMemo
     };
 }
 
 
 function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode, needRenderMarkup: boolean,
-    changedNodes,
-    childrenNodes, createdNodes, createdTemplateNodes,
-    updatedNodes, updatedUnchangedNodes, updatedChangedNodes, updatedChangedTemplateNodes,
-    destroyedNodes, selfDirtyNodes, isSelfDirty): IMemoNode | Promise<IMemoNode> {
+    changedNodes, childrenNodes, currentMemo: MemoForNode, isSelfDirty): IMemoNode | Promise<IMemoNode> {
 
     const childrenRebuildResults: IMemoNode[] = [];
 
@@ -1343,16 +1380,6 @@ function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode,
         haveAsync = haveAsync || !!childRebuildResult.then;
         childrenRebuildResults.push(childRebuildResult);
     }
-    const currentMemo: MemoForNode = concatMemo(new MemoForNode(), {
-        createdNodes,
-        updatedNodes,
-        destroyedNodes,
-        updatedChangedNodes,
-        updatedChangedTemplateNodes,
-        updatedUnchangedNodes,
-        selfDirtyNodes,
-        createdTemplateNodes
-    });
 
     if (!haveAsync) {
         return mapChildren(currentMemo, newNode, childrenRebuildResults, environment, needRenderMarkup, isSelfDirty);
