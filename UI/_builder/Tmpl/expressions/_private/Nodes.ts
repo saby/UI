@@ -196,6 +196,17 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
       return `[${elements}]`;
    }
 
+   buildSafeCheckArgumentsChain(args: Node[], context: IExpressionVisitorContext): string {
+      let result = '';
+      args.forEach((node: Node) => {
+         const itemCheck = node.accept(this, context);
+         if (typeof itemCheck === 'string' && itemCheck.indexOf('thelpers.getter') > -1) {
+            result += `${itemCheck} !== undefined&&`;
+         }
+      });
+      return result;
+   }
+
    visitArrayExpressionNode(node: ArrayExpressionNode, context: IExpressionVisitorContext): string {
       const elements = node.elements.map(
          (node: Node) => repairValue(node.accept(this, context), node.type)
@@ -225,17 +236,28 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
          }
          const args = this.buildArgumentsArray(node.arguments, context);
          // FIXME: Use instanceof
+         let object: string = 'data';
          if (node.callee.type === 'MemberExpression') {
             const calleeNode = node.callee as MemberExpressionNode;
-            const object = calleeNode.object.accept(this, context);
-            return callee +
-               '.apply(' +
-               object +
-               ', ' +
-               args +
-               ')';
+            object = <string>calleeNode.object.accept(this, context);
          }
-         return callee + '.apply(data, ' + this.buildArgumentsArray(node.arguments, context) + ')';
+         if (typeof context.attributeName === 'string' && /__dirtyCheckingVars_\d+$/gi.test(context.attributeName)) {
+            // Эта проверка используется для проброса переменных из замыкания(dirtyCheckingVars)
+            // Значения переменных из замыкания вычисляются в момент создания контентной опции
+            // и пробрасываются через все контролы, оборачивающие контент.
+            // Если в замыкании используется функция, в какой-то момент этой функции может не оказаться,
+            // мы попытаемся ее вызвать и упадем с TypeError
+            // Поэтому нужно проверить ее наличие. Кроме того, нужно проверить, что аргументы этой функции,
+            // если такие есть, тоже не равны undefined, иначе может случиться TypeError внутри функции
+            // Изначально здесь была проверка без !== undefined. Но такая проверка некорректно работала
+            // в случае, если одно из проверяемых значения было рано 0, например.
+            // Вообще этой проверки быть не должно. От нее можно избавиться,
+            // если не пробрасывать dirtyCheckingVars там, где это не нужно.
+            const functionSafeCheck = `${callee} !== undefined&&`;
+            const argsSafeCheck = this.buildSafeCheckArgumentsChain(node.arguments, context);
+            return `${functionSafeCheck}${argsSafeCheck}${callee}.apply(${object}, ${args})`;
+         }
+         return `${callee}.apply(${object}, ${args})`;
       }
       errorHandler.error(
          'Обшибка при обработке выражения вызова функции. Object to call on is "'

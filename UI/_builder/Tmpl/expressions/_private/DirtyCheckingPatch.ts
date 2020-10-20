@@ -11,7 +11,6 @@ import { IdentifierNode, Walker } from './Nodes';
 
 import * as dataTypesCreator from 'UI/_builder/Tmpl/modules/data/utils/dataTypesCreator';
 import * as tagUtils from 'UI/_builder/Tmpl/modules/utils/tag';
-import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
 // This module can only be referenced with ECMAScript imports/exports
 // by turning on the 'esModuleInterop' flag and referencing its default export.
@@ -57,10 +56,6 @@ interface IWasabyNode {
 
 interface IStorage {
    [name: string]: boolean;
-}
-
-interface IInternalProcessed {
-   [dirtyChecingName: string]: string;
 }
 
 /**
@@ -694,76 +689,4 @@ export function gatherReactive(ast: IWasabyNode): string[] {
    ast.childrenStorage = childrenStorage;
    appendInternalExpressions({ }, ast.internal, rootInternal);
    return Object.keys(identifiersStore);
-}
-
-function extractGetterFromString(str: string): string {
-   const pos = str.lastIndexOf('thelpers.getter');
-   const posEnd = str.indexOf(')', pos);
-   if (pos === -1 || posEnd === -1) {
-      return '';
-   }
-   return str.substring(pos, posEnd + 1);
-}
-
-/**
- * Не умеем работать со скопами. Перед вызовом функции проверяем ее наличие.
- * @param options Объект с опциями.
- */
-export function doDirtyCheckingSafety(options: IInternalProcessed): void {
-   const dict = { };
-   // TODO: убедиться, что hasOwnProperty для optionName ничего не сломает и исправить этот цикл
-   // tslint:disable-next-line:forin
-   for (const optionName in options) {
-      if (optionName.indexOf(INTERNAL_NAME) > -1) {
-
-         // we don't have closure, if we don't have getter
-         if (!options[optionName]) {
-            delete options[optionName];
-         } else if (options[optionName].indexOf('getter') === -1) {
-            delete options[optionName];
-         } else if (dict.hasOwnProperty(options[optionName])) {
-            delete options[optionName];
-         } else {
-            dict[options[optionName]] = true;
-            const getterPart = options[optionName].split('.apply');
-            let compr = '';
-            let one;
-            if (getterPart.length > 1) {
-
-               // we must checking existence only of functions
-               // last of splitted part doesn't have function
-               for (let getters = 0; getters < getterPart.length; ++getters) {
-
-                  /*
-                  * откатили изменения. у людей есть кейсы, когда они передают в опцию результат вызова метода
-                  * а в метод передают аргументы. Метод может упасть, если вместо аргумента передали undefined
-                  * задача: убрать из DirtyChecking результаты вызовов методов. оставить только аргументы
-                  * https://online.sbis.ru/opendoc.html?guid=4e55bd0a-70e2-46e9-a823-cdae4a756a6a
-                  * написать новость и удалить этот код
-                  * раскоментировать тест Vdom test DC
-                  */
-
-                  one = extractGetterFromString(getterPart[getters]);
-                  if (one) {
-                     // Эта проверка используется для проброса переменных из замыкания(dirtyCheckingVars)
-                     // Значения переменных из замыкания вычисляются в момент создания контентной опции
-                     // и пробрасываются через все контролы, оборачивающие контент.
-                     // Если в замыкании используется функция, в какой-то момент этой функции может не оказаться,
-                     // мы попытаемся ее вызвать и упадем с TypeError
-                     // Поэтому нужно проверить ее наличие. Кроме того, нужно проверить, что аргументы этой функции,
-                     // если такие есть, тоже не равны undefined, иначе может случиться TypeError внутри функции
-                     // Изначально здесь была проверка без !== undefined. Но такая проверка некорректно работала
-                     // в случае, если одно из проверяемых значения было рано 0, например.
-                     // Вообще этой проверки быть не должно. От нее можно избавиться,
-                     // если не пробрасывать dirtyCheckingVars там, где это не нужно.
-                     compr = one + ' !== undefined && ' + compr;
-                  }
-               }
-            }
-            if (compr) {
-               options[optionName] = FSC.insertIntoExec(options[optionName], compr);
-            }
-         }
-      }
-   }
 }
