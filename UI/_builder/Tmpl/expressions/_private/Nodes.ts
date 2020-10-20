@@ -19,6 +19,8 @@ import { genGetter, genSetter, genDecorate } from 'UI/_builder/Tmpl/codegen/TClo
 
 const errorHandler = new ErrorHandler();
 
+// <editor-fold desc="Mustache expression visitor base interfaces and classes">
+
 export interface IPosition {
    line: number;
    column: number;
@@ -55,6 +57,10 @@ export interface IExpressionVisitor<C, R> {
    visitExpressionBrace(node: ExpressionBrace, context: C): R;
    visitLiteralNode(node: LiteralNode, context: C): R;
 }
+
+// </editor-fold>
+
+// <editor-fold desc="Interfaces, constants and functions for bind/event visitor">
 
 interface IExpressionVisitorContext extends IContext {
    fileName: string;
@@ -177,6 +183,10 @@ const BINDING_NAMES = {
 function checkForContextDecorators(text: string): boolean {
    return (text.indexOf(BINDING_NAMES.one) > -1) || (text.indexOf(BINDING_NAMES.two) > -1);
 }
+
+// </editor-fold>
+
+// <editor-fold desc="Base mustache expression visitor for bind/event">
 
 export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorContext, string> {
 
@@ -453,6 +463,10 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
 
 }
 
+// </editor-fold>
+
+// <editor-fold desc="Mustache expression visitor for event">
+
 enum EventVisitorState {
    INITIAL,
    BEFORE_HANDLER,
@@ -558,6 +572,10 @@ export class EventExpressionVisitor extends ExpressionVisitor {
       return node.body[0].accept(this, context) as string;
    }
 }
+
+// </editor-fold>
+
+// <editor-fold desc="Mustache expression visitor for bind">
 
 const enum BindVisitorState {
    INITIAL,
@@ -707,6 +725,10 @@ export class BindExpressionVisitor extends ExpressionVisitor {
       return super.visitLiteralNode(node, context);
    }
 }
+
+// </editor-fold>
+
+// <editor-fold desc="Mustache expression visitor for walker">
 
 export interface IWalkerHooks {
    [nodeType: string]: (node: Node, context: IExpressionVisitorContext) => void;
@@ -875,6 +897,10 @@ export class Walker implements IExpressionVisitor<IExpressionVisitorContext, voi
       }
    }
 }
+
+// </editor-fold>
+
+// <editor-fold desc="Mustache expression nodes">
 
 export abstract class Node {
    loc: ISourceLocation;
@@ -1252,5 +1278,7 @@ export class LiteralNode extends Node {
       return visitor.visitLiteralNode(this, context);
    }
 }
+
+// </editor-fold>
 
 /* tslint:enable:max-classes-per-file */
