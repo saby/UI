@@ -25,6 +25,7 @@ export interface IProcessor {
 interface IContext extends IOptions {
    // TODO: Release
    nextNode: Ast.Ast | null;
+   key: string;
 }
 
 class Processor implements Ast.IAstVisitor, IProcessor {
@@ -175,18 +176,21 @@ class Processor implements Ast.IAstVisitor, IProcessor {
    }
 
    visitText(node: Ast.TextNode, context: IContext): string {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      const data = this.concatNodes(node.__$ws_content, context);
+      const key = `key+"${context.key}"`;
+      return MarkupGenerator.genCreateText(data, key);
    }
 
    visitTextData(node: Ast.TextDataNode, context: IContext): string {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      // TODO: Escape
+      return `"${node.__$ws_content}"`;
    }
 
    visitTranslation(node: Ast.TranslationNode, context: IContext): string {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      if (node.__$ws_context) {
+         return `rk("${node.__$ws_text}", "${node.__$ws_context}")`;
+      }
+      return `rk("${node.__$ws_text}")`;
    }
 
    // </editor-fold>
@@ -244,7 +248,8 @@ class Processor implements Ast.IAstVisitor, IProcessor {
       for (let index = 0; index < nodes.length; ++index) {
          const childContext: IContext = {
             ...context,
-            nextNode: index + 1 < nodes.length ? nodes[index + 1] : null
+            nextNode: index + 1 < nodes.length ? nodes[index + 1] : null,
+            key: `${context.key}${index}_`
          };
          processed.push(
             nodes[index].accept(this, childContext)
@@ -255,14 +260,17 @@ class Processor implements Ast.IAstVisitor, IProcessor {
 
    private processCollection(options: Ast.IOptions | Ast.IObjectProperties, context: IContext): string {
       const processed: string[] = [];
+      let index = 0;
       for (const name in options) {
          const childContext: IContext = {
             ...context,
-            nextNode: null
+            nextNode: null,
+            key: `${context.key}${index}_`
          };
          const option = options[name];
          const value = option.accept(this, childContext);
          processed.push(`"${option.__$ws_name}":${value}`);
+         ++index;
       }
       return `{${processed.join(',')}}`;
    }
