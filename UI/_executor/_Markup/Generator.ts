@@ -473,15 +473,17 @@ export class Generator {
          eventArr.forEach((event) => {
             if (event.args) {
                event.fn = function (eventObj) {
-                  const res = event.handler.apply(this.viewController).apply(event.context(), arguments);
+                  const context = event.context.apply(this.viewController);
+                  const handler = event.handler.apply(this.viewController);
+                  const res = handler.apply(context, arguments);
                   if(res !== undefined) {
                      eventObj.result = res;
                   }
                };
             } else {
-               event.fn = function () {
-                  if (!event.handler(this.viewController)) {
-                     event.handler(this.data)
+               event.fn = function (eventObj, value) {
+                  if (!event.handler(this.viewController, value)) {
+                     event.handler(this.data, value)
                   }
                };
             }

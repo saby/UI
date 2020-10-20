@@ -106,7 +106,7 @@ export function processBindAttribute(
 
    const funcName = getFunctionName(attributeName);
    let fn = visitBindExpressionNew(value, data, fileName, attributeName);
-   fn = FSC.wrapAroundExec('function(data){ return ' + fn + '; }');
+   fn = FSC.wrapAroundExec('function(data, value){ return ' + fn + '; }');
    const chain = EventChain.prepareEventChain(eventChain);
    chain.unshift(new EventNode({
          value: funcName,
