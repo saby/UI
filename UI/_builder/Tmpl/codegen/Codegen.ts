@@ -7,7 +7,7 @@
 
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import * as TClosureGenerator from 'UI/_builder/Tmpl/codegen/TClosure';
-// import * as MarkupGenerator from 'UI/_builder/Tmpl/codegen/Generator';
+import * as MarkupGenerator from 'UI/_builder/Tmpl/codegen/Generator';
 import * as Templates from 'UI/_builder/Tmpl/codegen/templates';
 
 export interface IConfiguration {
@@ -24,6 +24,7 @@ export interface IProcessor {
 
 interface IContext extends IOptions {
    // TODO: Release
+   nextNode: Ast.Ast | null;
 }
 
 class Processor implements Ast.IAstVisitor, IProcessor {
@@ -138,8 +139,11 @@ class Processor implements Ast.IAstVisitor, IProcessor {
    // <editor-fold desc="Directives">
 
    visitElse(node: Ast.ElseNode, context: IContext): string {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      if (node.__$ws_test === null) {
+         const consequent: string = this.joinNodes(node.__$ws_consequent, context);
+         return `([${consequent}])), `;
+      }
+      return this.processConditional(node, context);
    }
 
    visitFor(node: Ast.ForNode, context: IContext): string {
@@ -153,8 +157,7 @@ class Processor implements Ast.IAstVisitor, IProcessor {
    }
 
    visitIf(node: Ast.IfNode, context: IContext): string {
-      // TODO: Release
-      throw new Error('Not implemented yet');
+      return this.processConditional(node, context);
    }
 
    visitTemplate(node: Ast.TemplateNode, context: IContext): string {
@@ -212,6 +215,18 @@ class Processor implements Ast.IAstVisitor, IProcessor {
 
    // </editor-fold>
 
+   private processConditional(node: Ast.IfNode | Ast.ElseNode, context: IContext): string {
+      // TODO: Release
+      const test: string = 'true';
+      const consequent: string = this.joinNodes(node.__$ws_consequent, context);
+      const elseExists: boolean = context.nextNode instanceof Ast.ElseNode;
+      if (elseExists) {
+         return `((${test}) ? ([${consequent}]) : `;
+      }
+      const defaultAlternate: string = MarkupGenerator.genCreateText();
+      return `((${test}) ? ([${consequent}]) : ${defaultAlternate})`;
+   }
+
    private concatNodes(nodes: Ast.Ast[], context: IContext): string {
       return this.processNodes(nodes, context).join(' + ');
    }
@@ -220,15 +235,33 @@ class Processor implements Ast.IAstVisitor, IProcessor {
       return this.processNodes(nodes, context).join(',');
    }
 
+   private joinNodes(nodes: Ast.Ast[], context: IContext): string {
+      return this.processNodes(nodes, context).join('');
+   }
+
    private processNodes(nodes: Ast.Ast[], context: IContext): string[] {
-      return nodes.map((node: Ast.Ast) => node.accept(this, context));
+      const processed: string[] = [];
+      for (let index = 0; index < nodes.length; ++index) {
+         const childContext: IContext = {
+            ...context,
+            nextNode: index + 1 < nodes.length ? nodes[index + 1] : null
+         };
+         processed.push(
+            nodes[index].accept(this, childContext)
+         );
+      }
+      return processed;
    }
 
    private processCollection(options: Ast.IOptions | Ast.IObjectProperties, context: IContext): string {
       const processed: string[] = [];
       for (const name in options) {
+         const childContext: IContext = {
+            ...context,
+            nextNode: null
+         };
          const option = options[name];
-         const value = option.accept(this, context);
+         const value = option.accept(this, childContext);
          processed.push(`"${option.__$ws_name}":${value}`);
       }
       return `{${processed.join(',')}}`;
