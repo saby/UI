@@ -1,6 +1,6 @@
 /* tslint:disable */
 
-import { IEventState, IMobileEvent, MobileEvent } from "./MobileEvents";
+import { IEventState, IMobileEvent, ILongTapEvent, MobileEvent } from "./MobileEvents";
 
 let longTapState;
 let handlerName;
@@ -26,7 +26,15 @@ export class LongTapController {
       }, longTapState.minTapDuration);
       return longTapState;
    }
-
+   private static eventCoordPatch(target: ILongTapEvent, patch: Touch): Event {
+      target.clientX = patch.clientX;
+      target.clientY = patch.clientY;
+      target.pageX = patch.pageX;
+      target.pageY = patch.pageY;
+      target.screenX = patch.screenX;
+      target.screenY = patch.screenY;
+      return target;
+   }
    private static detectLongTap(event: IMobileEvent): boolean {
       const currentTime = Date.now();
       let isLongTapEvent = false;
@@ -42,7 +50,8 @@ export class LongTapController {
          if (isLongTap) {
             // block default action on long tap
             event.stopPropagation && event.stopPropagation();
-            const longTap = new Event('longtap') as any;
+            let longTap = new Event('longtap') as any;
+            longTap = this.eventCoordPatch(longTap, event.touches[0]);
             event.target.dispatchEvent(longTap);
             // prevent swipe event
             MobileEvent.stopInitializedHandler();
@@ -50,5 +59,4 @@ export class LongTapController {
          return isLongTap;
       }
    }
-
 }
