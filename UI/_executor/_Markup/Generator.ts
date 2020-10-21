@@ -369,7 +369,7 @@ export class Generator {
          for (i in attrs.events) {
             if (attrs.events.hasOwnProperty(i)) {
                for (handl = 0; handl < attrs.events[i].length; handl++) {
-                  if (!attrs.events[i][handl].isControl) {
+                  if (!attrs.events[i][handl].fn.isControlEvent) {
                      attrs.events[i][handl].toPartial = true;
                   }
                }
@@ -451,7 +451,7 @@ export class Generator {
             for (i in attrs.events) {
                if (attrs.events.hasOwnProperty(i)) {
                   for (handl = 0; handl < attrs.events[i].length; handl++) {
-                     if (!attrs.events[i][handl].isControl) {
+                     if (!attrs.events[i][handl].fn.isControlEvent) {
                         attrs.events[i][handl].toPartial = true;
                      }
                   }
@@ -466,36 +466,6 @@ export class Generator {
          return checkResult.call(this, res, type, name);
       }
    };
-
-   prepareEvents(events) {
-      Object.keys(events).forEach((eventName) => {
-         const eventArr = events[eventName];
-         eventArr.forEach((event) => {
-            if (event.args) {
-               event.fn = function (eventObj) {
-                  const context = event.context.apply(this.viewController);
-                  const handler = event.handler.apply(this.viewController);
-                  const res = handler.apply(context, arguments);
-                  if(res !== undefined) {
-                     eventObj.result = res;
-                  }
-               };
-            } else {
-               event.fn = function (eventObj, value) {
-                  if (!event.handler(this.viewController, value)) {
-                     event.handler(this.data, value)
-                  }
-               };
-            }
-
-            event.fn = event.fn.bind({
-               viewController: event.viewController,
-               data: event.data
-            });
-            event.fn.control = event.viewController;
-         });
-      });
-   }
 
    prepareDataForCreate(tplOrigin, scope, attrs, deps, includedTemplates?) {
       let controlClass;
@@ -520,10 +490,6 @@ export class Generator {
          for (let key in attrs.events) {
             controlProperties[key] = attrs.events[key];
          }
-      } else {
-         // @ts-ignore
-         const prepareEvents = this.prepareEvents || this.generatorBase.prepareEvents;
-         prepareEvents(attrs.events);
       }
 
       if (!attrs.attributes) {
