@@ -1224,14 +1224,16 @@ class Traverse implements ITraverse {
    /**
     * Check directive in attribute and try to unpack node.
     * @private
-    * @todo Do real unpacking when compiler codegen stage will be ready. Do unpacking also for "if"-directive
     * @param node {Tag} Processing html tag node.
     * @param context {ITraverseContext} Processing context.
     * @returns {TContent | null} Returns node type of TContent or null in case of broken content.
     */
    private checkDirectiveInAttribute(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
       if (node.attributes.hasOwnProperty('for') && node.name !== 'label') {
-         return this.unpackForDirective(node, context);
+         return this.unpackCycleDirective(node, context);
+      }
+      if (node.attributes.hasOwnProperty('if')) {
+         return this.unpackConditionalDirective(node, context);
       }
       return this.processContentTagWithoutUnpacking(node, context);
    }
@@ -1239,18 +1241,17 @@ class Traverse implements ITraverse {
    /**
     * Unpack for directive from attribute of content type html tag node.
     * @private
-    * @todo Do real unpacking when compiler codegen stage will be ready
     * @param node {Tag} Processing html tag node.
     * @param context {ITraverseContext} Processing context.
     * @returns {TContent | null} Returns node type of TContent or null in case of broken content.
     */
-   private unpackForDirective(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
-      const forAttribute = node.attributes.for;
+   private unpackCycleDirective(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
+      const directiveData = node.attributes.for;
       // FIXME: Don't modify source html tree
       delete node.attributes.for;
       const ast = this.processContentTagWithoutUnpacking(node, context);
       if (ast === null) {
-         return ast;
+         return null;
       }
       if (!(ast instanceof Ast.ElementNode)) {
          this.errorHandler.warn(
@@ -1260,14 +1261,73 @@ class Traverse implements ITraverse {
                position: node.position
             }
          );
+         return null;
+      }
+      const cycleDirective = this.processForAttribute(node, context, directiveData);
+      if (cycleDirective === null) {
          return ast;
       }
-      const attributeFor = this.processForAttribute(node, context, forAttribute);
-      ast.__$ws_unpackedCycle = attributeFor;
-      if (attributeFor) {
-         attributeFor.setFlag(Ast.Flags.UNPACKED);
+      cycleDirective.setFlag(Ast.Flags.UNPACKED);
+      cycleDirective.__$ws_content = [ast];
+      return cycleDirective;
+   }
+
+   /**
+    * Unpack for directive from attribute of content type html tag node.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TContent | null} Returns node type of TContent or null in case of broken content.
+    */
+   private unpackConditionalDirective(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
+      const directiveData = node.attributes.if;
+      // FIXME: Don't modify source html tree
+      delete node.attributes.if;
+      const ast = this.processContentTagWithoutUnpacking(node, context);
+      if (ast === null) {
+         return null;
       }
-      return ast;
+      const conditionalDirective = this.processConditionalAttribute(node, context, directiveData);
+      if (conditionalDirective === null) {
+         return ast;
+      }
+      conditionalDirective.setFlag(Ast.Flags.UNPACKED);
+      conditionalDirective.__$ws_consequent = [ast];
+      return conditionalDirective;
+   }
+
+   private processConditionalAttribute(node: Nodes.Tag, context: ITraverseContext, attribute: Nodes.Attribute): Ast.IfNode {
+      try {
+         if (attribute.value === null) {
+            throw new Error('не задано значение директивы');
+         }
+         const value = this.textProcessor.process(
+            attribute.value,
+            {
+               fileName: context.fileName,
+               allowedContent: TextContentFlags.EXPRESSION,
+               translateText: false,
+               translationsRegistrar: context.scope,
+               position: node.position
+            }
+         );
+         if (value.length !== 1) {
+            throw new Error('не удалось извлечь значение директивы');
+         }
+         const ast = new Ast.IfNode();
+         ast.__$ws_test = (<Ast.ExpressionNode>value[0]).__$ws_program;
+         return ast;
+
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка обработки директивы "if" на атрибуте тега "${node.name}": ${error.message}`,
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         return null;
+      }
    }
 
    /**

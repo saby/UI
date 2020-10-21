@@ -90,10 +90,11 @@ describe('Compiler/core/Traverse', () => {
          const html = '<div for="; it.test();"></div>';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
-         assert.instanceOf(tree[0], Ast.ElementNode);
-         const elementNode = <Ast.ElementNode>tree[0];
+         assert.instanceOf(tree[0], Ast.ForNode);
+         const cycleNode = <Ast.ForNode>tree[0];
+         assert.strictEqual(cycleNode.__$ws_content.length, 1);
+         const elementNode = <Ast.ElementNode>cycleNode.__$ws_content[0];
          assert.strictEqual(elementNode.__$ws_name, 'div');
-         assert.instanceOf(elementNode.__$ws_unpackedCycle, Ast.ForNode);
       });
       it('Failure! Unpack for attribute', () => {
          const html = '<div for="; it.te st();"></div>';
@@ -102,23 +103,22 @@ describe('Compiler/core/Traverse', () => {
          assert.instanceOf(tree[0], Ast.ElementNode);
          const elementNode = <Ast.ElementNode>tree[0];
          assert.strictEqual(elementNode.__$ws_name, 'div');
-         assert.isNull(elementNode.__$ws_unpackedCycle);
       });
       it('Unpack foreach attribute', () => {
          const html = '<div for="index, item in items"></div>';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
-         assert.instanceOf(tree[0], Ast.ElementNode);
-         const elementNode = <Ast.ElementNode>tree[0];
-         assert.instanceOf(elementNode.__$ws_unpackedCycle, Ast.ForeachNode);
+         assert.instanceOf(tree[0], Ast.ForeachNode);
+         const cycleNode = <Ast.ForeachNode>tree[0];
+         assert.strictEqual(cycleNode.__$ws_content.length, 1);
+         const elementNode = <Ast.ElementNode>cycleNode.__$ws_content[0];
+         assert.strictEqual(elementNode.__$ws_name, 'div');
       });
       it('Failure! Unpack foreach attribute', () => {
          const html = '<div for="in dex, it em in ite ms"></div>';
          const tree = traverseTemplate(html);
          assert.strictEqual(tree.length, 1);
          assert.instanceOf(tree[0], Ast.ElementNode);
-         const elementNode = <Ast.ElementNode>tree[0];
-         assert.isNull(elementNode.__$ws_unpackedCycle);
       });
       it('Attributes', () => {
          const html = '<div attr:class="div-class" id="content" on:click="handler()"></div>';
@@ -153,11 +153,7 @@ describe('Compiler/core/Traverse', () => {
       it('Drop cycle attribute', () => {
          const html = '<UIModule.Component for="index, item in items" />';
          const tree = traverseTemplate(html);
-         const componentNode = <Ast.ComponentNode>tree[0];
-         assert.strictEqual(Object.keys(componentNode.__$ws_attributes).length, 0);
-         assert.strictEqual(Object.keys(componentNode.__$ws_options).length, 0);
-         assert.strictEqual(Object.keys(componentNode.__$ws_events).length, 0);
-         assert.strictEqual(Object.keys(componentNode.__$ws_contents).length, 0);
+         assert.strictEqual(tree.length, 0);
       });
       it('Component attributes and options', () => {
          const html = '<UIModule.DirModule.Component attr:class="div-class" id="content" />';
