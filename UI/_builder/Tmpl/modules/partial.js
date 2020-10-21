@@ -215,14 +215,12 @@ define('UI/_builder/Tmpl/modules/partial', [
             callFnArgs = '.call(this, scopeForTemplate, attrsForTemplate, context, isVdom), ';
 
             if (this.includedFn) {
-               return '(function() {' +
-                  'attrsForTemplate = ' + callAttrArg + '; scopeForTemplate = ' + callDataArg + ';' +
-               '}).apply(this),' + tag.attribs._wstemplatename.data.value + callFnArgs;
+               return '(function(){ attrsForTemplate = ' + callAttrArg + '; scopeForTemplate = ' + callDataArg + ';})(),'
+                  + tag.attribs._wstemplatename.data.value + callFnArgs;
             }
             var body = this.getString(tag.children, {}, this.handlers, {}, true);
-            return '(function(){' +
-                  'attrsForTemplate = ' + callAttrArg + '; scopeForTemplate = ' + callDataArg + '' +
-               ';}).apply(this),' + templates.generatePartialTemplate(body) + callFnArgs;
+            return '(function(){ attrsForTemplate = ' + callAttrArg + '; scopeForTemplate = ' + callDataArg + ';})(),'
+               + templates.generatePartialTemplate(body) + callFnArgs;
          }
          return resolveStatement;
       }

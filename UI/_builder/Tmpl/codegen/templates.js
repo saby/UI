@@ -23,6 +23,8 @@ define('UI/_builder/Tmpl/codegen/templates', [
    var defineTemplate = preprocessRawTemplate(jstpl.DEFINE);
    var forTemplate = preprocessRawTemplate(jstpl.FOR);
    var foreachTemplate = preprocessRawTemplate(jstpl.FOREACH);
+   var bindTemplate = preprocessRawTemplate(jstpl.BIND);
+   var eventTemplate = preprocessRawTemplate(jstpl.EVENT);
    var headTemplate = preprocessRawTemplate(jstpl.HEAD);
    var bodyTemplate = preprocessRawTemplate(jstpl.BODY);
    var localizationTemplate = preprocessRawTemplate(jstpl.LOCALIZATION);
@@ -173,6 +175,34 @@ define('UI/_builder/Tmpl/codegen/templates', [
    }
 
    /**
+    * Сгенерировать блок кода для инструкции bind.
+    * @param handlerName Имя обработчика.
+    * @param handler Выражение обработчика.
+    * @param isControl Метка: bind на контроле.
+    * @returns {string} Сгенерированный блок кода.
+    */
+   function generateBind(handlerName, handler, isControl) {
+      return bindTemplate
+         .replace(/\/\*#BIND_HANDLER_NAME#\*\//g, handlerName)
+         .replace(/\/\*#HANDLER#\*\//g, handler)
+         .replace(/\/\*#IS_CONTROL#\*\//g, isControl);
+   }
+
+   /**
+    * Сгенерировать блок кода для инструкции on - обработчик события.
+    * @param handler Выражение обработчика.
+    * @param objectLink This-аргумент для обработчика.
+    * @param isControl Метка: обработчик на контроле.
+    * @returns {string} Сгенерированный блок кода.
+    */
+   function generateEvent(handler, objectLink, isControl) {
+      return eventTemplate
+         .replace(/\/\*#HANDLER#\*\//g, handler)
+         .replace(/\/\*#OBJECT_LINK#\*\//g, objectLink)
+         .replace(/\/\*#IS_CONTROL#\*\//g, isControl);
+   }
+
+   /**
     * Сгенерировать блок инициализации rk-функции.
     * @param fileName Путь к файлу шаблона.
     * @returns {string} Сгенерированный блок кода.
@@ -283,6 +313,8 @@ define('UI/_builder/Tmpl/codegen/templates', [
       generateTmplDefine: generateTmplDefine,
       generateFor: generateFor,
       generateForeach: generateForeach,
+      generateBind: generateBind,
+      generateEvent: generateEvent,
       generateTemplateHead: generateTemplateHead,
       generateTemplateBody: generateTemplateBody,
       generateTemplate: generateTemplate,
