@@ -300,7 +300,7 @@ export function isStringModules(str, config?) {
 }
 
 export function isControlClass(controlClass) {
-   var prototype = controlClass && controlClass.prototype;
+   const prototype = controlClass && controlClass.prototype;
    // Проверка на typeof добавлена в следствии странной ошибки https://inside.tensor.ru/opendoc.html?guid=872a7e36-7487-4362-88d0-eaf0e66cb6b6
    // По какой-то причине проверка controlClass && controlClass.prototype проходила и свойство $constructor вызывалось на undefined.
    if (prototype && typeof prototype !== 'undefined') {
@@ -310,7 +310,7 @@ export function isControlClass(controlClass) {
 }
 
 export function isTemplateClass(controlClass) {
-   var prototype = controlClass && controlClass.prototype;
+   const prototype = controlClass && controlClass.prototype;
    if (prototype && typeof prototype !== 'undefined') {
       return prototype.isWasabyTemplate || controlClass.isWasabyTemplate;
    }

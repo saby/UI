@@ -274,8 +274,6 @@ export class GeneratorText implements IGenerator {
          }
          if (fn.prototype._template) {
             return this.createWsControl(fn, preparedScope, decorAttribs, context, _deps, data);
-         } else if (Common.isTemplateClass(fn)) {
-            return this.createTemplate(fn, resolvedScope, decorAttribs, context, _deps, data);
          } else {
             const componentName = isTplString ? tpl : 'InlineFunction';
             Logger.debug(`createWsControl - "${componentName}"`, data.controlProperties);
