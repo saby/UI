@@ -523,7 +523,9 @@ export class Generator {
       } else {
          // @ts-ignore
          const prepareEvents = this.prepareEvents || this.generatorBase.prepareEvents;
-         prepareEvents(attrs.events);
+         if (attrs.events) {
+            prepareEvents(attrs.events);
+         }
       }
 
       if (!attrs.attributes) {
