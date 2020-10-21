@@ -1128,10 +1128,6 @@ class PatchVisitor implements Ast.IAstVisitor {
          }
       }
       for (const optionName in node.__$ws_contents) {
-         const originContent = node.__$ws_contents[optionName];
-         if (originContent.hasFlag(Ast.Flags.NEST_CASTED)) {
-            return this.visitAll(originContent.__$ws_content, context);
-         }
          const content = node.__$ws_contents[optionName];
          const childContext: INavigationContext = {
             ...context,

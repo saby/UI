@@ -2345,6 +2345,13 @@ define([
             var children = tree[0].injectedData;
             assert.strictEqual(children[0].attribs, undefined);
             assert.strictEqual(children[0].key, '0_0_');
+            assert.strictEqual(children[0].name, 'ws:content');
+            assert.strictEqual(children[0].type, 'tag');
+            assert.strictEqual(children[0].children.length, 1);
+
+            children = children[0].children;
+            assert.strictEqual(children[0].attribs, undefined);
+            assert.strictEqual(children[0].key, '0_0_0_');
             assert.strictEqual(children[0].name, 'div');
             assert.strictEqual(children[0].type, 'tag');
             assert.strictEqual(children[0].children.length, 0);
