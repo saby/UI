@@ -1266,6 +1266,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
          // если пришел jquery, вытащим оттуда элемент
          domElement = domElement[0] || domElement;
       }
+      if (!(ctor && ctor.prototype)) {
+         const message = '[UI/_base/Control:createControl] Аргумент ctor должен являться классом контрола!';
+         Logger.error(message, ctor.prototype);
+      }
       if (!(domElement instanceof HTMLElement)) {
          const message = '[UI/_base/Control:createControl] domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.';
          Logger.error(message, ctor.prototype);
