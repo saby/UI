@@ -451,7 +451,7 @@ class AttributeProcessor implements IAttributeProcessor {
             collection[attributeName] = attribute;
          } else {
             this.errorHandler.warn(
-               `Обнаружен непредусмотренный атрибут "${attributeName}" на теге "${options.parentTagName}"`,
+               `Обнаружен непредусмотренный атрибут "${attributeName}" на теге "${options.parentTagName}". Атрибут будет проигнорирован, его необходимо убрать`,
                {
                   fileName: options.fileName,
                   position: attribute.position

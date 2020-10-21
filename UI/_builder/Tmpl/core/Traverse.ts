@@ -756,7 +756,7 @@ class Traverse implements ITraverse {
             return new Ast.CDataNode(node.data);
          default:
             this.errorHandler.error(
-               `Обнаружен непредусмотренный тег CData: ${whatExpected(context.state)}`,
+               `Обнаружен непредусмотренный тег CData: ${whatExpected(context.state)}. Тег будет проигнорирован, его необходимо убрать`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -781,7 +781,7 @@ class Traverse implements ITraverse {
             return new Ast.DoctypeNode(node.data);
          default:
             this.errorHandler.error(
-               `Обнаружен непредусмотренный тег Doctype: ${whatExpected(context.state)}`,
+               `Обнаружен непредусмотренный тег Doctype: ${whatExpected(context.state)}. Тег будет проигнорирован, его необходимо убрать`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -806,7 +806,7 @@ class Traverse implements ITraverse {
             return new Ast.InstructionNode(node.data);
          default:
             this.errorHandler.error(
-               `Обнаружен непредусмотренный тег Instruction: ${whatExpected(context.state)}`,
+               `Обнаружен непредусмотренный тег Instruction: ${whatExpected(context.state)}. Тег будет проигнорирован, его необходимо убрать`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -836,7 +836,7 @@ class Traverse implements ITraverse {
             return this.processText(node, context);
          default:
             this.errorHandler.warn(
-               `Обнаружен непредусмотренный текст "${node.data}": ${whatExpected(context.state)}`,
+               `Обнаружен непредусмотренный текст "${node.data}": ${whatExpected(context.state)}. Текст будет проигнорирован, его необходимо убрать`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -1913,7 +1913,7 @@ class Traverse implements ITraverse {
             break;
          default:
             this.errorHandler.error(
-               `Обнаружен непредусмотренный тег "${node.name}": ${whatExpected(context.state)}`,
+               `Обнаружен непредусмотренный тег "${node.name}": ${whatExpected(context.state)}. Тег будет проигнорирован, его необходимо убрать`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -2987,7 +2987,7 @@ class Traverse implements ITraverse {
    private warnIncorrectProperties(collection: Ast.IAttributes | Ast.IEvents, parent: Nodes.Tag, context: ITraverseContext): void {
       for (const name in collection) {
          this.errorHandler.warn(
-            `Обнаружен непредусмотренный атрибут "${name}" на теге "${parent.name}"`,
+            `Обнаружен непредусмотренный атрибут "${name}" на теге "${parent.name}". Атрибут будет проигнорирован, его необходимо убрать`,
             {
                fileName: context.fileName,
                position: parent.position
@@ -3006,7 +3006,7 @@ class Traverse implements ITraverse {
    private warnUnexpectedAttributes(attributes: Nodes.IAttributes, context: ITraverseContext, nodeName: string): void {
       for (const name in attributes) {
          this.errorHandler.warn(
-            `Обнаружен непредусмотренный атрибут "${name}" на теге "${nodeName}"`,
+            `Обнаружен непредусмотренный атрибут "${name}" на теге "${nodeName}". Атрибут будет проигнорирован, его необходимо убрать`,
             {
                fileName: context.fileName,
                position: attributes[name].position
