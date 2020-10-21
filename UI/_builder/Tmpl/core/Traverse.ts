@@ -1253,16 +1253,6 @@ class Traverse implements ITraverse {
       if (ast === null) {
          return null;
       }
-      if (!(ast instanceof Ast.ElementNode)) {
-         this.errorHandler.warn(
-            `Обнаружен цикл "for" в атрибутах тега "${node.name}". Цикл на данном теге не поддерживается`,
-            {
-               fileName: context.fileName,
-               position: node.position
-            }
-         );
-         return null;
-      }
       const cycleDirective = this.processForAttribute(node, context, directiveData);
       if (cycleDirective === null) {
          return ast;
@@ -1296,6 +1286,14 @@ class Traverse implements ITraverse {
       return conditionalDirective;
    }
 
+
+   /**
+    * Process "if" attribute value.
+    * @private
+    * @param node {Tag} Processing tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attribute {Attribute} "if" attribute.
+    */
    private processConditionalAttribute(node: Nodes.Tag, context: ITraverseContext, attribute: Nodes.Attribute): Ast.IfNode {
       try {
          if (attribute.value === null) {
@@ -1317,7 +1315,6 @@ class Traverse implements ITraverse {
          const ast = new Ast.IfNode();
          ast.__$ws_test = (<Ast.ExpressionNode>value[0]).__$ws_program;
          return ast;
-
       } catch (error) {
          this.errorHandler.error(
             `Ошибка обработки директивы "if" на атрибуте тега "${node.name}": ${error.message}`,
@@ -1333,7 +1330,7 @@ class Traverse implements ITraverse {
    /**
     * Process "for" attribute value.
     * @private
-    * @param node {Tag} Processing html tag node.
+    * @param node {Tag} Processing tag node.
     * @param context {ITraverseContext} Processing context.
     * @param attribute {Attribute} "for" attribute.
     */

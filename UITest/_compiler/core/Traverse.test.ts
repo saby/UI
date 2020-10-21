@@ -150,10 +150,14 @@ describe('Compiler/core/Traverse', () => {
          assert.strictEqual(tree.length, 1);
          assert.instanceOf(tree[0], Ast.ComponentNode);
       });
-      it('Drop cycle attribute', () => {
+      it('Unpack cycle attribute', () => {
          const html = '<UIModule.Component for="index, item in items" />';
          const tree = traverseTemplate(html);
-         assert.strictEqual(tree.length, 0);
+         assert.strictEqual(tree.length, 1);
+         assert.instanceOf(tree[0], Ast.ForeachNode);
+         const cycleNode = <Ast.ForeachNode>tree[0];
+         assert.strictEqual(cycleNode.__$ws_content.length, 1);
+         assert.instanceOf(cycleNode.__$ws_content[0], Ast.ComponentNode);
       });
       it('Component attributes and options', () => {
          const html = '<UIModule.DirModule.Component attr:class="div-class" id="content" />';
