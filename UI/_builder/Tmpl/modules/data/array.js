@@ -4,9 +4,8 @@ define('UI/_builder/Tmpl/modules/data/array', [
    'UI/_builder/Tmpl/modules/utils/tag',
    'UI/_builder/Tmpl/modules/data/utils/dataTypesCreator',
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
-   'UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch',
    'UI/_builder/Tmpl/codegen/templates'
-], function arrayLoader(ErrorHandlerLib, parseUtils, tagUtils, DTC, FSC, dirtyCheckingPatch, templates) {
+], function arrayLoader(ErrorHandlerLib, parseUtils, tagUtils, DTC, FSC, templates) {
    'use strict';
 
    /**
