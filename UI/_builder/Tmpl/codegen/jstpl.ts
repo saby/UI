@@ -4,25 +4,6 @@
  * @author Крылов М.А.
  */
 
-export const BIND = `(function (self, _data) {
-   var f = (function /*#BIND_HANDLER_NAME#*/(event, value) {
-      var event = arguments[0];
-      var data = this.viewController;
-      if (! /*#HANDLER#*/ ) {
-         data = this.data;
-         /*#HANDLER#*/
-      }
-   });
-   f = f.bind({
-      viewController: self,
-      data: _data
-   });
-   f.control = self;
-   f.isControlEvent = /*#IS_CONTROL#*/ ;
-   return f;
-})(viewController, data)
-`;
-
 export const BODY = `if (typeof forceCompatible === 'undefined') {
     forceCompatible = false;
 }
@@ -81,21 +62,6 @@ export const DEFINE = `define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEP
 
    return templateFunction;
 });
-`;
-
-export const EVENT = `(function (self) {
-   var f = (function () {
-      var event = arguments[0];
-      var res = /*#HANDLER#*/ .apply( /*#OBJECT_LINK#*/ , arguments);
-      if(res !== undefined) {
-         event.result = res;
-      }
-   });
-   f = f.bind(self);
-   f.control = self;
-   f.isControlEvent = /*#IS_CONTROL#*/ ;
-   return f;
-})(viewController)
 `;
 
 export const FOR = `(function customForTemplate() {
