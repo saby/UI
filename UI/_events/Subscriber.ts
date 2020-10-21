@@ -72,7 +72,7 @@ export function forEventObjects(eventsList, func) {
 export function subscribeEvents(inst, parent, eventsList) {
    forEventObjects(eventsList, function (key, eventObject) {
       if (eventObject.fn) {
-         eventObject.bindedFunc = getBindFunc(eventObject.fn, eventObject.args || []);
+         eventObject.bindedFunc = getBindFunc(eventObject.fn, eventObject.args);
          inst.subscribe(key.split(':')[1], eventObject.bindedFunc);
       }
    });

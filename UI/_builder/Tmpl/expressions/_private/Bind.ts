@@ -4,12 +4,16 @@
  * @author Крылов М.А.
  */
 
+import {
+   EventChain,
+   EventNode,
+   IAttributeValue,
+   prepareEventChain
+} from 'UI/_builder/Tmpl/expressions/_private/Event';
 import { BindExpressionVisitor } from './Nodes';
-import {EventNode} from "./EventNode";
-import {EventChain} from "./EventChain";
-import {IAttributeValue} from "./IAttributeValue";
 
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
+import * as templates from 'UI/_builder/Tmpl/codegen/templates';
 
 /**
  * Паттерн двустороннего связывания для имени атрибута.
@@ -106,14 +110,8 @@ export function processBindAttribute(
 
    const funcName = getFunctionName(attributeName);
    let fn = visitBindExpressionNew(value, data, fileName, attributeName);
-   fn = FSC.wrapAroundExec('function(data, value){ return ' + fn + '; }');
-   const chain = EventChain.prepareEventChain(eventChain);
-   chain.unshift(new EventNode({
-         value: funcName,
-         viewController: FSC.wrapAroundExec('viewController'),
-         data: FSC.wrapAroundExec('data'),
-         handler: fn,
-         isControl: isControl
-      }));
+   fn =  FSC.wrapAroundExec(templates.generateBind(funcName, fn, isControl));
+   const chain = prepareEventChain(eventChain);
+   chain.unshift(new EventNode('event', FSC.wrapAroundExec('[]'), funcName, fn));
    return chain;
 }

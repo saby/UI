@@ -1002,7 +1002,7 @@ function vdomEventBubbling(
          const eventProperty = eventPropertiesStartArray || eventProperties[eventPropertyName];
          for (let i = 0; i < eventProperty.length && !stopPropagation; i++) {
             fn = eventProperty[i].fn;
-            evArgs = eventProperty[i].args || [];
+            evArgs = eventProperty[i].args;
             // If controlNode has event properties on it, we have to update args, because of the clos
             // happens in template function
             templateArgs = isArgsLengthEqual(checkControlNodeEvents(controlNode, eventPropertyName, i), evArgs)

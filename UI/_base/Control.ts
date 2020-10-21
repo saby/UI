@@ -349,7 +349,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
          if (attributes.events.hasOwnProperty(i)) {
             for (let handl = 0; handl < attributes.events[i].length; handl++) {
                if (
-                  attributes.events[i][handl].isControl &&
+                  attributes.events[i][handl].fn.isControlEvent &&
                   !attributes.events[i][handl].fn.controlDestination
                ) {
                   attributes.events[i][handl].fn.controlDestination = this;
