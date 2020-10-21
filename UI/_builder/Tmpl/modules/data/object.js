@@ -1,6 +1,5 @@
 define('UI/_builder/Tmpl/modules/data/object', [
    'UI/_builder/Tmpl/utils/ErrorHandler',
-   'UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch',
    'UI/_builder/Tmpl/modules/utils/tag',
    'UI/_builder/Tmpl/modules/data/utils/dataTypesCreator',
    'UI/_builder/Tmpl/modules/utils/common',
@@ -8,7 +7,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
    'UI/_builder/Tmpl/modules/utils/parse',
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/Tmpl/codegen/TClosure'
-], function objectLoader(ErrorHandlerLib, dirtyCheckingPatch, tagUtils, DTC, common, FSC, parseUtils, templates, TClosure) {
+], function objectLoader(ErrorHandlerLib, tagUtils, DTC, common, FSC, parseUtils, templates, TClosure) {
    'use strict';
 
    /**
