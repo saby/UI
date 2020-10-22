@@ -1232,23 +1232,23 @@ class Traverse implements ITraverse {
       const hasCycleDirective = node.attributes.hasOwnProperty('for') && node.name !== 'label';
       const hasConditionalDirective = node.attributes.hasOwnProperty('if');
       if (hasCycleDirective && hasConditionalDirective) {
-         this.errorHandler.error(
-            `Обнаружено использование одновременно двух директив "if" и "for" в атрибутах тега "${node.name}". Обе директивы будут проигнорированы. ` +
+         // HTML Specification says:
+         //   The order of attributes in HTML elements doesn't matter at all.
+         //   You can write the attributes in any order you like.
+         this.errorHandler.warn(
+            `Обнаружено использование одновременно двух директив "if" и "for" в атрибутах тега "${node.name}". Будет использован сначала "if", затем "for". ` +
             'Необходимо задать соответствующие директивы вне атрибутов, чтобы гарантировать правильный порядок их выполнения',
             {
                fileName: context.fileName,
                position: node.position
             }
          );
-         delete node.attributes.for;
-         delete node.attributes.if;
-         return this.processContentTagWithoutUnpacking(node, context);
-      }
-      if (hasCycleDirective) {
-         return this.unpackCycleDirective(node, context);
       }
       if (hasConditionalDirective) {
          return this.unpackConditionalDirective(node, context);
+      }
+      if (hasCycleDirective) {
+         return this.unpackCycleDirective(node, context);
       }
       return this.processContentTagWithoutUnpacking(node, context);
    }
@@ -1264,7 +1264,8 @@ class Traverse implements ITraverse {
       const directiveData = node.attributes.for;
       // FIXME: Don't modify source html tree
       delete node.attributes.for;
-      const ast = this.processContentTagWithoutUnpacking(node, context);
+      // FIXME: Double unpacking
+      const ast = this.checkDirectiveInAttribute(node, context);
       if (ast === null) {
          return null;
       }
@@ -1288,7 +1289,8 @@ class Traverse implements ITraverse {
       const directiveData = node.attributes.if;
       // FIXME: Don't modify source html tree
       delete node.attributes.if;
-      const ast = this.processContentTagWithoutUnpacking(node, context);
+      // FIXME: Double unpacking
+      const ast = this.checkDirectiveInAttribute(node, context);
       if (ast === null) {
          return null;
       }
