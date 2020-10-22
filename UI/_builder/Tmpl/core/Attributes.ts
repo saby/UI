@@ -19,6 +19,16 @@ import { IValidator } from 'UI/_builder/Tmpl/expressions/_private/Validator';
 const EMPTY_STRING = '';
 
 /**
+ * Whitespace constant.
+ */
+const WHITESPACE = ' ';
+
+/**
+ * Whitespace regular expression.
+ */
+const WHITESPACE_REGEX = /\s+/gi;
+
+/**
  * Regular expression pattern to determine if attribute name contains a special prefix for attributes.
  */
 const ATTR_PREFIX_PATTERN = /^attr:/i;
@@ -114,6 +124,20 @@ export function isAttribute(name: string): boolean {
  */
 function checkAttributesOnly(name: string): boolean {
    return SPECIAL_ATTRIBUTES_COLLECTION.indexOf(name) > -1;
+}
+
+/**
+ * Clean attribute value.
+ * @todo Clean values for all attributes.
+ * @param name {string} Attribute name.
+ * @param value {string} Attribute value.
+ */
+function cleanAttributeValue(name: string, value: string): string {
+   if (name === 'class' || name === 'style') {
+      WHITESPACE_REGEX.lastIndex = -1;
+      return value.replace(WHITESPACE_REGEX, WHITESPACE);
+   }
+   return value;
 }
 
 /**
@@ -606,8 +630,9 @@ class AttributeProcessor implements IAttributeProcessor {
                && attributeNode.name !== 'attr:title'
             )
             : false;
+         const cleanValue = cleanAttributeValue(attribute, attributeValue);
          const value = this.textProcessor.process(
-            attributeValue,
+            cleanValue,
             {
                fileName: options.fileName,
                allowedContent: TextContentFlags.FULL_TEXT,
