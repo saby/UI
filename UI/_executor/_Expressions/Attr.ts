@@ -33,27 +33,25 @@ function getAttributeValue(name: string, collection: IAttributes): string {
 }
 
 function concatValues(value1: string, value2: string, separator: string): string {
-   let result: string;
    if (!value1 || !value2) {
-      result = value1 || value2;
-   } else if (value1[value1.length - 1] === separator) {
-      result = value1 + value2;
-   } else {
-      result = value1 + separator + value2;
+      return value2 || value1;
    }
-   return result.trim();
+   if (value2[value2.length - 1] === separator) {
+      return value2 + value1;
+   }
+   return value2 + separator + value1;
 }
 
 function getClass(attr1: IAttributes, attr2: IAttributes): string {
    const attr1Class = getAttributeValue('class', attr1);
    const attr2Class = getAttributeValue('class', attr2);
-   return concatValues(attr1Class, attr2Class, WHITESPACE);
+   return concatValues(attr1Class, attr2Class, WHITESPACE).trim();
 }
 
 function getStyle(attr1: IAttributes, attr2: IAttributes): string {
    const style1 = getAttributeValue('style', attr1);
    const style2 = getAttributeValue('style', attr2);
-   return concatValues(style1, style2, SEMICOLON);
+   return concatValues(style1, style2, SEMICOLON).trim();
 }
 
 /**
