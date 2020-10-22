@@ -743,12 +743,25 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
          return this._$resultBeforeMount;
       }
 
+      let savedOptions;
+      // @ts-ignore
+      const hasCompatible = this.hasCompatible && this.hasCompatible();
+      // в совместимости опции добавилились и их нужно почистить
+      if (hasCompatible) {
+         savedOptions = this._options;
+         this._options = {} as TOptions;
+      }
+
       // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
       // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
       // _template на экземпляре, _template устанавливается сразу после вызова базового конструктора
       ReactiveObserver.observeProperties(this);
 
       let resultBeforeMount = this._beforeMount.apply(this, arguments);
+
+      if (hasCompatible) {
+         this._options = savedOptions;
+      }
 
       // prevent start reactive properties if beforeMount return Promise.
       // Reactive properties will be started in Synchronizer
