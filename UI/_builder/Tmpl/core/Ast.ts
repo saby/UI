@@ -917,12 +917,6 @@ export class ElementNode extends BaseHtmlElement {
    __$ws_content: TContent[];
 
    /**
-    * Unpacked for node from attribute
-    * @fixme Do real unpacking when compiler codegen stage will be ready and remove this property.
-    */
-   __$ws_unpackedCycle: ForNode | ForeachNode;
-
-   /**
     * Initialize new instance of element node.
     * @param name {string} Element name.
     * @param attributes {IAttributes} Collection of abstract syntax node attributes.
@@ -933,7 +927,6 @@ export class ElementNode extends BaseHtmlElement {
       super(attributes, events);
       this.__$ws_name = name;
       this.__$ws_content = content;
-      this.__$ws_unpackedCycle = null;
    }
 
    /**
