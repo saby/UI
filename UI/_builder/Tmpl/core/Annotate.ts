@@ -625,7 +625,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       }
       this.processInjectedData(node, context, expressions);
       // Important: there are some expressions that must be in component internal collection.
-      const componentOnlyExpressions: Ast.ExpressionNode[] = this.processComponentAttributes(node, context, expressions, true);
+      const componentOnlyExpressions: Ast.ExpressionNode[] = this.processComponentAttributes(node, context, expressions);
       node.__$ws_internal = { };
       appendInternalExpressions(node.__$ws_internal, componentOnlyExpressions);
       expressions = processProgramNode(node.__$ws_expression, context).concat(expressions);
@@ -687,7 +687,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       });
    }
 
-   private processComponentAttributes(node: Ast.BaseWasabyElement, context: IContext, expressions: Ast.ExpressionNode[], hasFinished: boolean = false): Ast.ExpressionNode[] {
+   private processComponentAttributes(node: Ast.BaseWasabyElement, context: IContext, expressions: Ast.ExpressionNode[]): Ast.ExpressionNode[] {
       const chain: Ast.Ast[] = [];
       const componentOnlyExpressions: Ast.ExpressionNode[] = [].concat(expressions);
       for (const name in node.__$ws_attributes) {
@@ -704,8 +704,6 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          chain.push(option);
       }
       chain.sort((prev: Ast.Ast, next: Ast.Ast) => prev.__$ws_key - next.__$ws_key);
-      // FIXME: Repeat invalid legacy behaviour
-      let finished: boolean = hasFinished;
       chain.forEach((node: Ast.Ast) => {
          node.accept(this, context).forEach((expression: Ast.ExpressionNode) => {
             expressions.push(expression);
@@ -714,23 +712,6 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
                componentOnlyExpressions.push(expression);
                return;
             }
-            // FIXME: Repeat invalid legacy behaviour written in functions
-            //  isExprInAttributes @ UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch
-            //  isExprEqualToAttr @ UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch
-            if (node instanceof Ast.AttributeNode) {
-               if (node.__$ws_value[0] instanceof Ast.ExpressionNode) {
-                  finished = true;
-               }
-            }
-            if (node instanceof Ast.OptionNode) {
-               if ((<Ast.ValueNode>node.__$ws_value).__$ws_data[0] instanceof Ast.ExpressionNode) {
-                  finished = true;
-               }
-            }
-            if (finished) {
-               return;
-            }
-            componentOnlyExpressions.push(expression);
          });
       });
       return componentOnlyExpressions;
