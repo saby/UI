@@ -743,6 +743,12 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
          return this._$resultBeforeMount;
       }
 
+      // в совместимости опции добавилились и их нужно почистить
+      // @ts-ignore
+      if (this.hasCompatible && this.hasCompatible()) {
+         this._options = {} as TOptions;
+      }
+
       // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
       // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
       // _template на экземпляре, _template устанавливается сразу после вызова базового конструктора
