@@ -45,13 +45,13 @@ function concatValues(value1: string, value2: string, separator: string): string
 function getClass(attr1: IAttributes, attr2: IAttributes): string {
    const attr1Class = getAttributeValue('class', attr1);
    const attr2Class = getAttributeValue('class', attr2);
-   return concatValues(attr1Class, attr2Class, WHITESPACE).trim();
+   return concatValues(attr1Class, attr2Class, WHITESPACE);
 }
 
 function getStyle(attr1: IAttributes, attr2: IAttributes): string {
-   const style1 = getAttributeValue('style', attr1).trim();
-   const style2 = getAttributeValue('style', attr2).trim();
-   return concatValues(style1, style2, SEMICOLON).trim();
+   const style1 = getAttributeValue('style', attr1);
+   const style2 = getAttributeValue('style', attr2);
+   return concatValues(style1, style2, SEMICOLON);
 }
 
 /**
