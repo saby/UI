@@ -33,8 +33,8 @@ function getAttributeValue(name: string, collection: IAttributes): string {
 }
 
 function concatValues(value1: string, value2: string, separator: string): string {
-   if (!value1) {
-      return value2;
+   if (!value1 || !value2) {
+      return value1 || value2;
    }
    if (value1[value1.length - 1] === separator) {
       return value1 + value2;
