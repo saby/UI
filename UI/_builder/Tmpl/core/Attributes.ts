@@ -135,7 +135,7 @@ function checkAttributesOnly(name: string): boolean {
 function cleanAttributeValue(name: string, value: string): string {
    if (name === 'class' || name === 'style') {
       WHITESPACE_REGEX.lastIndex = -1;
-      return value.replace(WHITESPACE_REGEX, WHITESPACE).trim();
+      return value.replace(WHITESPACE_REGEX, WHITESPACE);
    }
    return value;
 }

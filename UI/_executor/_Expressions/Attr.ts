@@ -33,13 +33,15 @@ function getAttributeValue(name: string, collection: IAttributes): string {
 }
 
 function concatValues(value1: string, value2: string, separator: string): string {
+   let result: string;
    if (!value1 || !value2) {
-      return value1 || value2;
+      result = value1 || value2;
+   } else if (value1[value1.length - 1] === separator) {
+      result = value1 + value2;
+   } else {
+      result = value1 + separator + value2;
    }
-   if (value1[value1.length - 1] === separator) {
-      return value1 + value2;
-   }
-   return value1 + separator + value2;
+   return result.trim();
 }
 
 function getClass(attr1: IAttributes, attr2: IAttributes): string {
