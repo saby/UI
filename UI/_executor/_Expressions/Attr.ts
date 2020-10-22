@@ -49,8 +49,8 @@ function getClass(attr1: IAttributes, attr2: IAttributes): string {
 }
 
 function getStyle(attr1: IAttributes, attr2: IAttributes): string {
-   const style1 = getAttributeValue('style', attr1);
-   const style2 = getAttributeValue('style', attr2);
+   const style1 = getAttributeValue('style', attr1).trim();
+   const style2 = getAttributeValue('style', attr2).trim();
    return concatValues(style1, style2, SEMICOLON).trim();
 }
 
