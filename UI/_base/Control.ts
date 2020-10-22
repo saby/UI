@@ -920,16 +920,14 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * Определяет, должен ли контрол обновляться. Вызывается каждый раз перед обновлением контрола.
     *
     * @param {Object} options Опции контрола.
-    * @deprecated @param {Object} context Поле контекста, запрошенное контролом.
+    * @param {Object} [context] Поле контекста, запрошенное контролом. Параметр считается deprecated, поэтому откажитесь от его использования.
     * @returns {Boolean}
-    * <ol>
-    *    <li>true(значание по умолчанию): контрол будет обновлен.</li>
-    *    <li>false: контрол не будет обновлен. Хук _afterUpdate не будет вызван.</li>
-    * </ol>
+    * * true (значание по умолчанию): контрол будет обновлен.
+    * * false: контрол не будет обновлен. Хук {@link UI/Base:Control#_afterUpdate _afterUpdate} не будет вызван.
     * @example
     * Например, если employeeSalary является единственным параметром, используемым в шаблоне контрола,
     * можно обновлять контрол только при изменении параметра employeeSalary.
-    * <pre>
+    * <pre class="brush: html">
     *    Control.extend({
     *       ...
     *       _shouldUpdate: function(newOptions, newContext) {
