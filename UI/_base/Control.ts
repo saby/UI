@@ -743,9 +743,12 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
          return this._$resultBeforeMount;
       }
 
-      // в совместимости опции добавилились и их нужно почистить
+      let savedOptions;
       // @ts-ignore
-      if (this.hasCompatible && this.hasCompatible()) {
+      const hasCompatible = this.hasCompatible && this.hasCompatible();
+      // в совместимости опции добавилились и их нужно почистить
+      if (hasCompatible) {
+         savedOptions = this._options;
          this._options = {} as TOptions;
       }
 
@@ -755,6 +758,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       ReactiveObserver.observeProperties(this);
 
       let resultBeforeMount = this._beforeMount.apply(this, arguments);
+
+      if (hasCompatible) {
+         this._options = savedOptions;
+      }
 
       // prevent start reactive properties if beforeMount return Promise.
       // Reactive properties will be started in Synchronizer
