@@ -8,7 +8,9 @@ import { isAttr, checkAttr } from './AttrHelper';
 
 export { isAttr, checkAttr };
 
-const spacesRE = /\s+/g;
+const EMPTY_STRING = '';
+const WHITESPACE = ' ';
+const SEMICOLON = ';';
 const attrPrefix = 'attr:';
 const blackListAttr = [
    'class',
@@ -19,36 +21,37 @@ export interface IAttributes{
    [name: string]: string;
 }
 
+function getAttributeValue(name: string, collection: IAttributes): string {
+   if (collection[name]) {
+      return collection[name];
+   }
+   // FIXME: Избавиться от префиксов attr:
+   if (collection[attrPrefix + name]) {
+      return collection[attrPrefix + name];
+   }
+   return EMPTY_STRING;
+}
+
+function concatValues(value1: string, value2: string, separator: string): string {
+   if (!value1) {
+      return value2;
+   }
+   if (value1[value1.length - 1] === separator) {
+      return value1 + value2;
+   }
+   return value1 + separator + value2;
+}
+
 function getClass(attr1: IAttributes, attr2: IAttributes): string {
-   var attr1Class = attr1.class || attr1['attr:class'];
-   var attr2Class = attr2.class || attr2['attr:class'];
-   return attr1Class ? (attr2Class + ' ' + attr1Class) : attr2Class;
+   const attr1Class = getAttributeValue('class', attr1);
+   const attr2Class = getAttributeValue('class', attr2);
+   return concatValues(attr1Class, attr2Class, WHITESPACE);
 }
 
 function getStyle(attr1: IAttributes, attr2: IAttributes): string {
-   const style1 = attr1.style || attr1['attr:style'] || '';
-   const style2 = attr2.style || attr2['attr:style'] || '';
-   let result = '';
-
-   if (style2) {
-      result += style2.trim();
-
-      if (style1) {
-         // If the styles need to be merged, they should be separated by
-         // a semicolon. We have to check if the original string ends
-         // with it and add one if it doesn't
-         if (result[result.length - 1] !== ';') {
-            result += ';';
-         }
-         result += ' ';
-      }
-   }
-   if (style1) {
-      result += style1.trim();
-   }
-   result = result.replace(spacesRE, ' ');
-
-   return result;
+   const style1 = getAttributeValue('style', attr1);
+   const style2 = getAttributeValue('style', attr2);
+   return concatValues(style1, style2, SEMICOLON);
 }
 
 /**
