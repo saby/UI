@@ -485,10 +485,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    visitContentOption(node: Ast.ContentOptionNode, context: IContext): Ast.ExpressionNode[] {
       const ignoredIdentifiers: IStorage = { };
       let expressions: Ast.ExpressionNode[] = [];
-      // FIXME: Legacy error
-      if (!node.hasFlag(Ast.Flags.NEST_CASTED)) {
-         ignoredIdentifiers[node.__$ws_name] = true;
-      }
+      ignoredIdentifiers[node.__$ws_name] = true;
       node.__$ws_content.forEach((node: Ast.Ast) => {
          expressions = expressions.concat(node.accept(this, context));
       });
@@ -632,8 +629,6 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       node.__$ws_internal = { };
       appendInternalExpressions(node.__$ws_internal, componentOnlyExpressions);
       expressions = processProgramNode(node.__$ws_expression, context).concat(expressions);
-      // FIXME: Legacy bug
-      expressions = expressions.concat(processProgramNode(node.__$ws_expression, context));
       return expressions;
    }
 
