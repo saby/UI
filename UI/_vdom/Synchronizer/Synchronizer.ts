@@ -1,7 +1,8 @@
 /// <amd-module name="UI/_vdom/Synchronizer/Synchronizer" />
 /* tslint:disable */
 
-import { DirtyKind, rebuildNode, createNode, destroyReqursive, IMemoNode, getReceivedState } from './resources/DirtyChecking';
+import { createNode } from './resources/ControlNode';
+import { DirtyKind, rebuildNode, destroyReqursive, IMemoNode, getReceivedState } from './resources/DirtyChecking';
 import DOMEnvironment from './resources/DOMEnvironment';
 import { delay } from 'Types/function';
 // @ts-ignore
