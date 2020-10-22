@@ -1229,10 +1229,25 @@ class Traverse implements ITraverse {
     * @returns {TContent | null} Returns node type of TContent or null in case of broken content.
     */
    private checkDirectiveInAttribute(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
-      if (node.attributes.hasOwnProperty('for') && node.name !== 'label') {
+      const hasCycleDirective = node.attributes.hasOwnProperty('for') && node.name !== 'label';
+      const hasConditionalDirective = node.attributes.hasOwnProperty('if');
+      if (hasCycleDirective && hasConditionalDirective) {
+         this.errorHandler.error(
+            `Обнаружено использование одновременно двух директив "if" и "for" в атрибутах тега "${node.name}". Обе директивы будут проигнорированы. ` +
+            'Необходимо задать соответствующие директивы вне атрибутов, чтобы гарантировать правильный порядок их выполнения',
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+         delete node.attributes.for;
+         delete node.attributes.if;
+         return this.processContentTagWithoutUnpacking(node, context);
+      }
+      if (hasCycleDirective) {
          return this.unpackCycleDirective(node, context);
       }
-      if (node.attributes.hasOwnProperty('if')) {
+      if (hasConditionalDirective) {
          return this.unpackConditionalDirective(node, context);
       }
       return this.processContentTagWithoutUnpacking(node, context);
