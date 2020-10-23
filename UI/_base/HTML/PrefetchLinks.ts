@@ -1,28 +1,25 @@
 import * as AppEnv from "Application/Env";
-import {Head as AppHead} from "Application/Page";
+import { Head as AppHead } from "Application/Page";
 import * as ModulesLoader from "UI/_utils/ModulesLoader";
-import {constants, IoC} from "Env/Env";
-import {headDataStore} from "UI/_base/HeadData";
+import { constants, IoC } from "Env/Env";
+import { headDataStore } from "UI/_base/HeadData";
 
+
+interface IPrefetchLinks {
+    addPrefetchModules(modules: string[]);
+    addPreloadModules(modules: string[]);
+}
 
 /**
  * Класс для добавления модулей для prefetch|preload на клиенте
  */
-class PrefetchLinksStore {
+export class PrefetchLinksStore implements IPrefetchLinks {
     addPrefetchModules(modules: string[]) {
         _addModulesToApi(modules, { prefetch: true});
     }
 
-    getPrefetchModules(): string[] {
-        return [];
-    }
-
     addPreloadModules(modules: string[]) {
         _addModulesToApi(modules, { preload: true});
-    }
-
-    getPreloadModules(): string[] {
-        return [];
     }
 }
 
@@ -30,7 +27,7 @@ class PrefetchLinksStore {
  * Класс для работы со стором хранящим список модулей для prefetch|preload на страницу
  * Используется только на СП
  */
-class PrefetchLinksStorePS extends PrefetchLinksStore {
+export class PrefetchLinksStorePS implements IPrefetchLinks {
     private _storeName: string = 'prefetchLinksStore';
     private _prefetchField: string = 'prefetchModules';
     private _preloadField: string = 'preloadModules';
@@ -95,9 +92,10 @@ class Store<T> {
 /**
  * Добавляет модули в prefetch/preload предварительно найдя все зависимости и отбросив зависимости страницы
  * Работает только на СП
- * @param jsModules
+ * @param pageModules список названий модулей, которые будут загружены на странице.
+ *                    из списка модулей для prefetch удалим те, которые уже есть в pageModules
  */
-export function handlePrefetchModules(jsModules: string[]): void {
+export function handlePrefetchModules(pageModules: string[]): void {
     if (!constants.isServerSide) {
         return
     }
@@ -107,7 +105,7 @@ export function handlePrefetchModules(jsModules: string[]): void {
     const prefetchModules: string[] = pls.getPrefetchModules();
     if (prefetchModules && prefetchModules.length) {
         const modules = _getModuleDeps(prefetchModules)
-            .filter((_mod) => jsModules.indexOf(_mod) === -1);
+            .filter((_mod) => pageModules.indexOf(_mod) === -1);
 
         _addModulesToApi(modules, {prefetch: true});
     }
@@ -115,7 +113,7 @@ export function handlePrefetchModules(jsModules: string[]): void {
     const preloadModules: string[] = pls.getPreloadModules();
     if (preloadModules && preloadModules.length) {
         const modules = _getModuleDeps(preloadModules)
-            .filter((_mod) => jsModules.indexOf(_mod) === -1);
+            .filter((_mod) => pageModules.indexOf(_mod) === -1);
 
         _addModulesToApi(modules, {prefetch: true});
     }

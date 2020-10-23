@@ -1,12 +1,11 @@
 import { assert } from 'chai';
 import { Head } from 'Application/Page';
-import { default as PrefetchLinksStore, handlePrefetchModules } from 'UI/_base/HTML/PrefetchLinks';
+import { PrefetchLinksStore, PrefetchLinksStorePS, handlePrefetchModules } from 'UI/_base/HTML/PrefetchLinks';
 
 const module = {
     name: 'Module/File',
     path: '/Module/File.js'
 };
-const pls = new PrefetchLinksStore();
 describe('UI/_base/HTML/PrefetchLinks', () => {
     typeof window !== 'undefined' &&
     describe('client side', () => {
@@ -16,6 +15,7 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
         });
 
         it('addPrefetchModules', () => {
+            const pls = new PrefetchLinksStore();
             pls.addPrefetchModules([module.name]);
             // @ts-ignore
             const data = Head.getInstance().getData();
@@ -26,6 +26,7 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
         });
 
         it('addPreloadModules', () => {
+            const pls = new PrefetchLinksStore();
             pls.addPreloadModules([module.name]);
             // @ts-ignore
             const data = Head.getInstance().getData();
@@ -39,6 +40,7 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
     typeof window === 'undefined' &&
     describe('server side', () => {
         it('addPrefetchModules', () => {
+            const pls = new PrefetchLinksStorePS();
             pls.addPrefetchModules([module.name]);
             const modules = pls.getPrefetchModules();
             assert.equal(modules.length, 1);
@@ -46,6 +48,7 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
         });
 
         it('addPreloadModules', () => {
+            const pls = new PrefetchLinksStorePS();
             pls.addPreloadModules([module.name]);
             const modules = pls.getPreloadModules();
             assert.equal(modules.length, 1);
@@ -55,6 +58,7 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
         it('handlePrefetchModules', () => {
             const pageDeps = ['Module1/File1', 'Module2/File2'];
             const prefetchModules = [module.name, 'Module2/File2'];
+            const pls = new PrefetchLinksStorePS();
             pls.addPrefetchModules(prefetchModules);
             handlePrefetchModules(pageDeps);
             // @ts-ignore
