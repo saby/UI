@@ -116,7 +116,7 @@ function resolveTpl(tpl, deps, includedTemplates) {
          // (ws:partial template="{{someString}}"). Split library name and module name
          // here and process it in the next `if tpl.library && tpl.module`
          tpl = Common.splitModule(tpl);
-         return isLibraryTpl(tpl, deps);
+         return isLibraryTpl.call(this, tpl, deps);
       }
       let isSlashes;
       let wasOptional;
