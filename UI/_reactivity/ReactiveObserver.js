@@ -96,7 +96,6 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], fun
                   if (inst._reactiveStart) {
                      if (inst._destroyed !== true) {
                         if (!pauseReactiveMap.has(inst)) {
-                           this._version++;
                            inst._forceUpdate();
                            DevtoolsHook.saveChangedProps(inst, prop);
                         }
@@ -108,20 +107,6 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], fun
                   value: mutator,
                   enumerable: false,
                   writable: true,
-                  configurable: true
-               });
-               Object.defineProperty(val, '_version', {
-                  value: 0,
-                  enumerable: true,
-                  writable: true,
-                  configurable: true
-               });
-               Object.defineProperty(val, 'getVersion', {
-                  value: function() {
-                     return val._version;
-                  },
-                  enumerable: false,
-                  writable: false,
                   configurable: true
                });
             });
