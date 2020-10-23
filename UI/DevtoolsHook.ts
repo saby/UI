@@ -1,6 +1,8 @@
 import { TemplateFunction } from 'UI/Base';
 import { IControlNode } from './_vdom/Synchronizer/interfaces';
 import { IOptions } from './_vdom/Synchronizer/resources/Options';
+import { GeneratorNode } from "UI/_executor/_Markup/Vdom/IVdomType";
+import { VNode } from "Inferno/third-party/index";
 
 interface IChangedReactiveProp {
    name: string;
@@ -103,7 +105,7 @@ function injectHook(): boolean {
 function onStartCommit(
    typeOfOperation: OperationType,
    name: string,
-   oldNode?: IControlNode | ITemplateNode
+   oldNode?: IControlNode | ITemplateNode | any
 ): void {
    if (foundDevtools) {
       onStartCommitFunc(typeOfOperation, name, oldNode);
@@ -122,8 +124,8 @@ function isControlChanges(
  * @param data
  */
 function onEndCommit(
-   node: IControlNode | ITemplateNode,
-   data?: ITemplateChanges | IControlChanges
+   node: IControlNode | ITemplateNode | GeneratorNode | VNode | any,
+   data?: ITemplateChanges | IControlChanges | any
 ): void {
    if (foundDevtools) {
       if (isControlChanges(data)) {
@@ -226,7 +228,7 @@ function isControlNode(node: object): node is IControlNode {
    return node.hasOwnProperty('controlClass');
 }
 
-function getNodeName(node: IControlNode | ITemplateNode): string {
+function getNodeName(node: IControlNode | ITemplateNode | any): string {
    if (foundDevtools) {
       if (isControlNode(node)) {
          if (node.controlClass && node.controlClass.prototype) {
