@@ -126,22 +126,6 @@ export function collectObjectVersions(collection: IOptions): IVersions {
                   versions[key + ';;' + innerKey] = innerVersions[innerKey];
                }
             }
-         } else if (Array.isArray(value) && !value.hasOwnProperty('getArrayVersion')) {
-            Object.defineProperty(value, '_arrayVersion', {
-               value: 0,
-               enumerable: true,
-               writable: true,
-               configurable: true
-            });
-            Object.defineProperty(value as IVersionableArray, 'getArrayVersion', {
-               value: () => {
-                  return (value as IVersionableArray)._arrayVersion++;
-               },
-               enumerable: false,
-               writable: false,
-               configurable: true
-            });
-
          }
       }
    }
