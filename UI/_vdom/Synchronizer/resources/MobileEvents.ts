@@ -17,6 +17,14 @@ export interface ITouchLocation {
    x: number;
    y: number;
 }
+export interface ILongTapEvent extends Event {
+   clientX: number;
+   clientY: number;
+   pageX: number;
+   pageY: number;
+   screenX: number;
+   screenY: number;
+}
 
 export class MobileEvent {
    private static initEventHandlers = {};

@@ -1,3 +1,5 @@
+import { getResourceUrl } from 'RequireJsLoader/conduct';
+
 /**
  * Возвращает обработанный URL ресураса с указанием домена и версии.
  *
@@ -12,12 +14,4 @@
  * @public
  * @author Мальцев А.А.
  */
-var global = (0, eval)('this');// eslint-disable-line no-eval
-
-export default function getResourceUrl(url) {
-   return global.wsConfig.getWithDomain(
-      global.wsConfig.getWithSuffix(
-         global.wsConfig.getWithVersion(url)
-      )
-   );
-};
+export default getResourceUrl;

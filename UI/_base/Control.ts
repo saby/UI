@@ -349,7 +349,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
          if (attributes.events.hasOwnProperty(i)) {
             for (let handl = 0; handl < attributes.events[i].length; handl++) {
                if (
-                  attributes.events[i][handl].fn.isControlEvent &&
+                  attributes.events[i][handl].isControl &&
                   !attributes.events[i][handl].fn.controlDestination
                ) {
                   attributes.events[i][handl].fn.controlDestination = this;
@@ -743,12 +743,25 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
          return this._$resultBeforeMount;
       }
 
+      let savedOptions;
+      // @ts-ignore
+      const hasCompatible = this.hasCompatible && this.hasCompatible();
+      // в совместимости опции добавилились и их нужно почистить
+      if (hasCompatible) {
+         savedOptions = this._options;
+         this._options = {} as TOptions;
+      }
+
       // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
       // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
       // _template на экземпляре, _template устанавливается сразу после вызова базового конструктора
       ReactiveObserver.observeProperties(this);
 
       let resultBeforeMount = this._beforeMount.apply(this, arguments);
+
+      if (hasCompatible) {
+         this._options = savedOptions;
+      }
 
       // prevent start reactive properties if beforeMount return Promise.
       // Reactive properties will be started in Synchronizer
@@ -920,16 +933,14 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * Определяет, должен ли контрол обновляться. Вызывается каждый раз перед обновлением контрола.
     *
     * @param {Object} options Опции контрола.
-    * @deprecated @param {Object} context Поле контекста, запрошенное контролом.
+    * @param {Object} [context] Поле контекста, запрошенное контролом. Параметр считается deprecated, поэтому откажитесь от его использования.
     * @returns {Boolean}
-    * <ol>
-    *    <li>true(значание по умолчанию): контрол будет обновлен.</li>
-    *    <li>false: контрол не будет обновлен. Хук _afterUpdate не будет вызван.</li>
-    * </ol>
+    * * true (значание по умолчанию): контрол будет обновлен.
+    * * false: контрол не будет обновлен. Хук {@link UI/Base:Control#_afterUpdate _afterUpdate} не будет вызван.
     * @example
     * Например, если employeeSalary является единственным параметром, используемым в шаблоне контрола,
     * можно обновлять контрол только при изменении параметра employeeSalary.
-    * <pre>
+    * <pre class="brush: html">
     *    Control.extend({
     *       ...
     *       _shouldUpdate: function(newOptions, newContext) {
@@ -1265,6 +1276,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       if (domElement) {
          // если пришел jquery, вытащим оттуда элемент
          domElement = domElement[0] || domElement;
+      }
+      if (!(ctor && ctor.prototype)) {
+         const message = '[UI/_base/Control:createControl] Аргумент ctor должен являться классом контрола!';
+         Logger.error(message, ctor.prototype);
       }
       if (!(domElement instanceof HTMLElement)) {
          const message = '[UI/_base/Control:createControl] domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.';

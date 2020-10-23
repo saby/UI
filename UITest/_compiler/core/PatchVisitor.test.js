@@ -2265,74 +2265,6 @@ define([
             assert.strictEqual(tree[0].name, 'ws:for');
             assert.strictEqual(tree[0].type, 'tag');
          });
-         it('element with foreach', function() {
-            var html = '<div for="index, item in items"></div>';
-            var tree = process(html);
-            assert.strictEqual(tree.length, 1);
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('for'));
-            assert.strictEqual(tree[0].attribs.for.type, 'text');
-            assert.strictEqual(tree[0].attribs.for.data.type, 'text');
-            assert.strictEqual(tree[0].attribs.for.data.value, 'index, item in items');
-
-            assert.strictEqual(tree[0].forSource.key, 'index');
-            assert.isTrue(isProgramNode(tree[0].forSource.main));
-            assert.strictEqual(tree[0].forSource.main.string, 'items');
-            assert.strictEqual(tree[0].forSource.value, 'item');
-
-            assert.strictEqual(tree[0].children.length, 0);
-            assert.strictEqual(tree[0].key, '0_');
-            assert.strictEqual(tree[0].name, 'div');
-            assert.strictEqual(tree[0].type, 'tag');
-         });
-         it('element with for', function() {
-            var html = '<div for="i.init(); i.test(); i.update()"></div>';
-            var tree = process(html);
-            assert.strictEqual(tree.length, 1);
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('for'));
-            assert.strictEqual(tree[0].attribs.for.type, 'text');
-            assert.strictEqual(tree[0].attribs.for.data.type, 'text');
-            assert.strictEqual(tree[0].attribs.for.data.value, 'i.init(); i.test(); i.update()');
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('CUSTOM_CONDITION'));
-            assert.strictEqual(tree[0].attribs.CUSTOM_CONDITION.type, 'text');
-            assert.strictEqual(tree[0].attribs.CUSTOM_CONDITION.data.length, 1);
-            assert.isFalse(tree[0].attribs.CUSTOM_CONDITION.data[0].isBind);
-            assert.isFalse(tree[0].attribs.CUSTOM_CONDITION.data[0].isEvent);
-            assert.isFalse(tree[0].attribs.CUSTOM_CONDITION.data[0].localized);
-            assert.isTrue(isProgramNode(tree[0].attribs.CUSTOM_CONDITION.data[0].name));
-            assert.strictEqual(tree[0].attribs.CUSTOM_CONDITION.data[0].name.string, 'i.test()');
-            assert.isFalse(tree[0].attribs.CUSTOM_CONDITION.data[0].noEscape);
-            assert.strictEqual(tree[0].attribs.CUSTOM_CONDITION.data[0].type, 'var');
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('CUSTOM_ITERATOR'));
-            assert.strictEqual(tree[0].attribs.CUSTOM_ITERATOR.type, 'text');
-            assert.strictEqual(tree[0].attribs.CUSTOM_ITERATOR.data.length, 1);
-            assert.isFalse(tree[0].attribs.CUSTOM_ITERATOR.data[0].isBind);
-            assert.isFalse(tree[0].attribs.CUSTOM_ITERATOR.data[0].isEvent);
-            assert.isFalse(tree[0].attribs.CUSTOM_ITERATOR.data[0].localized);
-            assert.isTrue(isProgramNode(tree[0].attribs.CUSTOM_ITERATOR.data[0].name));
-            assert.strictEqual(tree[0].attribs.CUSTOM_ITERATOR.data[0].name.string, 'i.update()');
-            assert.isFalse(tree[0].attribs.CUSTOM_ITERATOR.data[0].noEscape);
-            assert.strictEqual(tree[0].attribs.CUSTOM_ITERATOR.data[0].type, 'var');
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('START_FROM'));
-            assert.strictEqual(tree[0].attribs.START_FROM.type, 'text');
-            assert.strictEqual(tree[0].attribs.START_FROM.data.length, 1);
-            assert.isFalse(tree[0].attribs.START_FROM.data[0].isBind);
-            assert.isFalse(tree[0].attribs.START_FROM.data[0].isEvent);
-            assert.isFalse(tree[0].attribs.START_FROM.data[0].localized);
-            assert.isTrue(isProgramNode(tree[0].attribs.START_FROM.data[0].name));
-            assert.strictEqual(tree[0].attribs.START_FROM.data[0].name.string, 'i.init()');
-            assert.isFalse(tree[0].attribs.START_FROM.data[0].noEscape);
-            assert.strictEqual(tree[0].attribs.START_FROM.data[0].type, 'var');
-
-            assert.strictEqual(tree[0].children.length, 0);
-            assert.strictEqual(tree[0].key, '0_');
-            assert.strictEqual(tree[0].name, 'div');
-            assert.strictEqual(tree[0].type, 'tag');
-         });
       });
       describe('Conditional directive', function() {
          it('chain', function() {
@@ -2398,69 +2330,6 @@ define([
             assert.strictEqual(tree[2].name, 'ws:else');
             assert.strictEqual(tree[2].type, 'tag');
          });
-         it('element with if', function() {
-            var html = '<div if="{{ condition }}"></div>';
-            var tree = process(html);
-            assert.strictEqual(tree.length, 1);
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('if'));
-            assert.strictEqual(tree[0].attribs.if.type, 'text');
-            assert.strictEqual(tree[0].attribs.if.data.length, 1);
-            assert.isFalse(tree[0].attribs.if.data[0].isBind);
-            assert.isFalse(tree[0].attribs.if.data[0].isEvent);
-            assert.isFalse(tree[0].attribs.if.data[0].localized);
-            assert.isTrue(isProgramNode(tree[0].attribs.if.data[0].name));
-            assert.strictEqual(tree[0].attribs.if.data[0].name.string, 'condition');
-            assert.isFalse(tree[0].attribs.if.data[0].noEscape);
-            assert.strictEqual(tree[0].attribs.if.data[0].type, 'var');
-
-            assert.strictEqual(tree[0].children.length, 0);
-            assert.strictEqual(tree[0].key, '0_');
-            assert.strictEqual(tree[0].name, 'div');
-            assert.strictEqual(tree[0].type, 'tag');
-         });
-         it('control with if', function() {
-            var html = '<UIModule.Component if="{{ condition }}" />';
-            var tree = process(html);
-            assert.strictEqual(tree.length, 1);
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('if'));
-            assert.strictEqual(tree[0].attribs.if.type, 'text');
-            assert.strictEqual(tree[0].attribs.if.data.length, 1);
-            assert.isFalse(tree[0].attribs.if.data[0].isBind);
-            assert.isFalse(tree[0].attribs.if.data[0].isEvent);
-            assert.isFalse(tree[0].attribs.if.data[0].localized);
-            assert.isTrue(isProgramNode(tree[0].attribs.if.data[0].name));
-            assert.strictEqual(tree[0].attribs.if.data[0].name.string, 'condition');
-            assert.isFalse(tree[0].attribs.if.data[0].noEscape);
-            assert.strictEqual(tree[0].attribs.if.data[0].type, 'var');
-
-            assert.strictEqual(tree[0].injectedData.length, 0);
-            assert.strictEqual(tree[0].key, '0_');
-            assert.strictEqual(tree[0].name, 'ws:UIModule/Component');
-            assert.strictEqual(tree[0].type, 'tag');
-         });
-         it('{{ tmpl }} with if', function() {
-            var html = '<ws:partial template="{{ tmpl }}" if="{{ condition }}" />';
-            var tree = process(html);
-            assert.strictEqual(tree.length, 1);
-
-            assert.isTrue(tree[0].attribs.hasOwnProperty('if'));
-            assert.strictEqual(tree[0].attribs.if.type, 'text');
-            assert.strictEqual(tree[0].attribs.if.data.length, 1);
-            assert.isFalse(tree[0].attribs.if.data[0].isBind);
-            assert.isFalse(tree[0].attribs.if.data[0].isEvent);
-            assert.isFalse(tree[0].attribs.if.data[0].localized);
-            assert.isTrue(isProgramNode(tree[0].attribs.if.data[0].name));
-            assert.strictEqual(tree[0].attribs.if.data[0].name.string, 'condition');
-            assert.isFalse(tree[0].attribs.if.data[0].noEscape);
-            assert.strictEqual(tree[0].attribs.if.data[0].type, 'var');
-
-            assert.strictEqual(tree[0].injectedData.length, 0);
-            assert.strictEqual(tree[0].key, '0_');
-            assert.strictEqual(tree[0].name, 'ws:partial');
-            assert.strictEqual(tree[0].type, 'tag');
-         });
       });
       describe('Content properties', function() {
          it('default content', function() {
@@ -2476,6 +2345,13 @@ define([
             var children = tree[0].injectedData;
             assert.strictEqual(children[0].attribs, undefined);
             assert.strictEqual(children[0].key, '0_0_');
+            assert.strictEqual(children[0].name, 'ws:content');
+            assert.strictEqual(children[0].type, 'tag');
+            assert.strictEqual(children[0].children.length, 1);
+
+            children = children[0].children;
+            assert.strictEqual(children[0].attribs, undefined);
+            assert.strictEqual(children[0].key, '0_0_0_');
             assert.strictEqual(children[0].name, 'div');
             assert.strictEqual(children[0].type, 'tag');
             assert.strictEqual(children[0].children.length, 0);

@@ -756,7 +756,7 @@ class Traverse implements ITraverse {
             return new Ast.CDataNode(node.data);
          default:
             this.errorHandler.error(
-               `Обнаружен непредусмотренный тег CData: ${whatExpected(context.state)}`,
+               `Обнаружен непредусмотренный тег CData: ${whatExpected(context.state)}. Тег будет проигнорирован, его необходимо убрать`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -781,7 +781,7 @@ class Traverse implements ITraverse {
             return new Ast.DoctypeNode(node.data);
          default:
             this.errorHandler.error(
-               `Обнаружен непредусмотренный тег Doctype: ${whatExpected(context.state)}`,
+               `Обнаружен непредусмотренный тег Doctype: ${whatExpected(context.state)}. Тег будет проигнорирован, его необходимо убрать`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -806,7 +806,7 @@ class Traverse implements ITraverse {
             return new Ast.InstructionNode(node.data);
          default:
             this.errorHandler.error(
-               `Обнаружен непредусмотренный тег Instruction: ${whatExpected(context.state)}`,
+               `Обнаружен непредусмотренный тег Instruction: ${whatExpected(context.state)}. Тег будет проигнорирован, его необходимо убрать`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -836,7 +836,7 @@ class Traverse implements ITraverse {
             return this.processText(node, context);
          default:
             this.errorHandler.warn(
-               `Обнаружен непредусмотренный текст "${node.data}": ${whatExpected(context.state)}`,
+               `Обнаружен непредусмотренный текст "${node.data}": ${whatExpected(context.state)}. Текст будет проигнорирован, его необходимо убрать`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -1224,14 +1224,31 @@ class Traverse implements ITraverse {
    /**
     * Check directive in attribute and try to unpack node.
     * @private
-    * @todo Do real unpacking when compiler codegen stage will be ready. Do unpacking also for "if"-directive
     * @param node {Tag} Processing html tag node.
     * @param context {ITraverseContext} Processing context.
     * @returns {TContent | null} Returns node type of TContent or null in case of broken content.
     */
    private checkDirectiveInAttribute(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
-      if (node.attributes.hasOwnProperty('for') && node.name !== 'label') {
-         return this.unpackForDirective(node, context);
+      const hasCycleDirective = node.attributes.hasOwnProperty('for') && node.name !== 'label';
+      const hasConditionalDirective = node.attributes.hasOwnProperty('if');
+      if (hasCycleDirective && hasConditionalDirective) {
+         // HTML Specification says:
+         //   The order of attributes in HTML elements doesn't matter at all.
+         //   You can write the attributes in any order you like.
+         this.errorHandler.warn(
+            `Обнаружено использование одновременно двух директив "if" и "for" в атрибутах тега "${node.name}". Будет использован сначала "if", затем "for". ` +
+            'Необходимо задать соответствующие директивы вне атрибутов, чтобы гарантировать правильный порядок их выполнения',
+            {
+               fileName: context.fileName,
+               position: node.position
+            }
+         );
+      }
+      if (hasConditionalDirective) {
+         return this.unpackConditionalDirective(node, context);
+      }
+      if (hasCycleDirective) {
+         return this.unpackCycleDirective(node, context);
       }
       return this.processContentTagWithoutUnpacking(node, context);
    }
@@ -1239,41 +1256,98 @@ class Traverse implements ITraverse {
    /**
     * Unpack for directive from attribute of content type html tag node.
     * @private
-    * @todo Do real unpacking when compiler codegen stage will be ready
     * @param node {Tag} Processing html tag node.
     * @param context {ITraverseContext} Processing context.
     * @returns {TContent | null} Returns node type of TContent or null in case of broken content.
     */
-   private unpackForDirective(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
-      const forAttribute = node.attributes.for;
+   private unpackCycleDirective(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
+      const directiveData = node.attributes.for;
       // FIXME: Don't modify source html tree
       delete node.attributes.for;
-      const ast = this.processContentTagWithoutUnpacking(node, context);
+      // FIXME: Double unpacking
+      const ast = this.checkDirectiveInAttribute(node, context);
       if (ast === null) {
+         return null;
+      }
+      const cycleDirective = this.processForAttribute(node, context, directiveData);
+      if (cycleDirective === null) {
          return ast;
       }
-      if (!(ast instanceof Ast.ElementNode)) {
-         this.errorHandler.warn(
-            `Обнаружен цикл "for" в атрибутах тега "${node.name}". Цикл на данном теге не поддерживается`,
+      cycleDirective.setFlag(Ast.Flags.UNPACKED);
+      cycleDirective.__$ws_content = [ast];
+      return cycleDirective;
+   }
+
+   /**
+    * Unpack for directive from attribute of content type html tag node.
+    * @private
+    * @param node {Tag} Processing html tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @returns {TContent | null} Returns node type of TContent or null in case of broken content.
+    */
+   private unpackConditionalDirective(node: Nodes.Tag, context: ITraverseContext): Ast.TContent {
+      const directiveData = node.attributes.if;
+      // FIXME: Don't modify source html tree
+      delete node.attributes.if;
+      // FIXME: Double unpacking
+      const ast = this.checkDirectiveInAttribute(node, context);
+      if (ast === null) {
+         return null;
+      }
+      const conditionalDirective = this.processConditionalAttribute(node, context, directiveData);
+      if (conditionalDirective === null) {
+         return ast;
+      }
+      conditionalDirective.setFlag(Ast.Flags.UNPACKED);
+      conditionalDirective.__$ws_consequent = [ast];
+      return conditionalDirective;
+   }
+
+
+   /**
+    * Process "if" attribute value.
+    * @private
+    * @param node {Tag} Processing tag node.
+    * @param context {ITraverseContext} Processing context.
+    * @param attribute {Attribute} "if" attribute.
+    */
+   private processConditionalAttribute(node: Nodes.Tag, context: ITraverseContext, attribute: Nodes.Attribute): Ast.IfNode {
+      try {
+         if (attribute.value === null) {
+            throw new Error('не задано значение директивы');
+         }
+         const value = this.textProcessor.process(
+            attribute.value,
+            {
+               fileName: context.fileName,
+               allowedContent: TextContentFlags.EXPRESSION,
+               translateText: false,
+               translationsRegistrar: context.scope,
+               position: node.position
+            }
+         );
+         if (value.length !== 1) {
+            throw new Error('не удалось извлечь значение директивы');
+         }
+         const ast = new Ast.IfNode();
+         ast.__$ws_test = (<Ast.ExpressionNode>value[0]).__$ws_program;
+         return ast;
+      } catch (error) {
+         this.errorHandler.error(
+            `Ошибка обработки директивы "if" на атрибуте тега "${node.name}": ${error.message}`,
             {
                fileName: context.fileName,
                position: node.position
             }
          );
-         return ast;
+         return null;
       }
-      const attributeFor = this.processForAttribute(node, context, forAttribute);
-      ast.__$ws_unpackedCycle = attributeFor;
-      if (attributeFor) {
-         attributeFor.setFlag(Ast.Flags.UNPACKED);
-      }
-      return ast;
    }
 
    /**
     * Process "for" attribute value.
     * @private
-    * @param node {Tag} Processing html tag node.
+    * @param node {Tag} Processing tag node.
     * @param context {ITraverseContext} Processing context.
     * @param attribute {Attribute} "for" attribute.
     */
@@ -1913,7 +1987,7 @@ class Traverse implements ITraverse {
             break;
          default:
             this.errorHandler.error(
-               `Обнаружен непредусмотренный тег "${node.name}": ${whatExpected(context.state)}`,
+               `Обнаружен непредусмотренный тег "${node.name}": ${whatExpected(context.state)}. Тег будет проигнорирован, его необходимо убрать`,
                {
                   fileName: context.fileName,
                   position: node.position
@@ -2987,7 +3061,7 @@ class Traverse implements ITraverse {
    private warnIncorrectProperties(collection: Ast.IAttributes | Ast.IEvents, parent: Nodes.Tag, context: ITraverseContext): void {
       for (const name in collection) {
          this.errorHandler.warn(
-            `Обнаружен непредусмотренный атрибут "${name}" на теге "${parent.name}"`,
+            `Обнаружен непредусмотренный атрибут "${name}" на теге "${parent.name}". Атрибут будет проигнорирован, его необходимо убрать`,
             {
                fileName: context.fileName,
                position: parent.position
@@ -3006,7 +3080,7 @@ class Traverse implements ITraverse {
    private warnUnexpectedAttributes(attributes: Nodes.IAttributes, context: ITraverseContext, nodeName: string): void {
       for (const name in attributes) {
          this.errorHandler.warn(
-            `Обнаружен непредусмотренный атрибут "${name}" на теге "${nodeName}"`,
+            `Обнаружен непредусмотренный атрибут "${name}" на теге "${nodeName}". Атрибут будет проигнорирован, его необходимо убрать`,
             {
                fileName: context.fileName,
                position: attributes[name].position

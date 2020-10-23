@@ -255,7 +255,7 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
             // если не пробрасывать dirtyCheckingVars там, где это не нужно.
             const functionSafeCheck = `${callee} !== undefined&&`;
             const argsSafeCheck = this.buildSafeCheckArgumentsChain(node.arguments, context);
-            return `${functionSafeCheck}${argsSafeCheck}${callee}.apply(${object}, ${args})`;
+            return `(${functionSafeCheck}${argsSafeCheck}${callee}.apply(${object}, ${args}))`;
          }
          return `${callee}.apply(${object}, ${args})`;
       }

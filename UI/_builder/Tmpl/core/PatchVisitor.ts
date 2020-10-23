@@ -321,106 +321,8 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.key = context.currentKey;
       const attribs = this.getElementAttributesCollection(node, context);
-      if (node.__$ws_unpackedCycle) {
-         if (node.__$ws_unpackedCycle instanceof Ast.ForNode) {
-            const initStr = node.__$ws_unpackedCycle.__$ws_init ? node.__$ws_unpackedCycle.__$ws_init.string : '';
-            const testStr = node.__$ws_unpackedCycle.__$ws_test.string;
-            const updateStr = node.__$ws_unpackedCycle.__$ws_update ? node.__$ws_unpackedCycle.__$ws_update.string : '';
-            const forData = `${initStr}; ${testStr}; ${updateStr}`;
-            attribs['for'] = {
-               data: {
-                  type: 'text',
-                  value: forData
-               },
-               key: undefined,
-               type: 'text'
-            };
-         } else {
-            const forSource = node.__$ws_unpackedCycle.__$ws_index
-               ? `${node.__$ws_unpackedCycle.__$ws_index.string}, ${node.__$ws_unpackedCycle.__$ws_iterator.string} in ${node.__$ws_unpackedCycle.__$ws_collection.string}`
-               : `${node.__$ws_unpackedCycle.__$ws_iterator.string} in ${node.__$ws_unpackedCycle.__$ws_collection.string}`;
-            attribs['for'] = {
-               data: {
-                  type: 'text',
-                  value: forSource
-               },
-               key: undefined,
-               type: 'text'
-            };
-         }
-      }
       // @ts-ignore
       node.attribs = Object.keys(attribs).length === 0 ? undefined : attribs;
-      if (node.__$ws_unpackedCycle) {
-         // @ts-ignore
-         if (!node.attribs) {
-            // @ts-ignore
-            node.attribs = { };
-         }
-         if (node.__$ws_unpackedCycle instanceof Ast.ForNode) {
-            // @ts-ignore
-            node.attribs.CUSTOM_CONDITION = {
-               data: [{
-                  isBind: false,
-                  isEvent: false,
-                  localized: false,
-                  name: node.__$ws_unpackedCycle.__$ws_test,
-                  noEscape: false,
-                  type: 'var',
-                  value: ''
-               }],
-                  key: undefined,
-                  type: 'text'
-            };
-            // @ts-ignore
-            node.attribs.CUSTOM_ITERATOR = {
-               data: node.__$ws_unpackedCycle.__$ws_update ? [{
-                  isBind: false,
-                  isEvent: false,
-                  localized: false,
-                  name: node.__$ws_unpackedCycle.__$ws_update,
-                  noEscape: false,
-                  type: 'var',
-                  value: ''
-               }] : {
-                  type: 'text',
-                  value: ''
-               },
-               key: undefined,
-               type: 'text'
-            };
-            // @ts-ignore
-            node.attribs.START_FROM = {
-               data: node.__$ws_unpackedCycle.__$ws_init ? [{
-                  isBind: false,
-                  isEvent: false,
-                  localized: false,
-                  name: node.__$ws_unpackedCycle.__$ws_init,
-                  noEscape: false,
-                  type: 'var',
-                  value: ''
-               }] : {
-                  type: 'text',
-                  value: ''
-               },
-               key: undefined,
-               type: 'text'
-            };
-            // @ts-ignore
-            node.isRootTag = node.__$ws_isRootNode;
-            if (node.__$ws_internal) {
-               // @ts-ignore
-               node.internal = this.copyInternal(node.__$ws_internal, context);
-            }
-            return node;
-         }
-         // @ts-ignore
-         node.forSource = {
-            key: node.__$ws_unpackedCycle.__$ws_index ? node.__$ws_unpackedCycle.__$ws_index.string : undefined,
-            value: node.__$ws_unpackedCycle.__$ws_iterator.string,
-            main: node.__$ws_unpackedCycle.__$ws_collection
-         };
-      }
       // @ts-ignore
       node.isRootTag = node.__$ws_isRootNode;
       if (node.__$ws_internal) {
@@ -1226,10 +1128,6 @@ class PatchVisitor implements Ast.IAstVisitor {
          }
       }
       for (const optionName in node.__$ws_contents) {
-         const originContent = node.__$ws_contents[optionName];
-         if (originContent.hasFlag(Ast.Flags.NEST_CASTED)) {
-            return this.visitAll(originContent.__$ws_content, context);
-         }
          const content = node.__$ws_contents[optionName];
          const childContext: INavigationContext = {
             ...context,

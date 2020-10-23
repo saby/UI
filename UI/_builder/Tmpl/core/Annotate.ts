@@ -506,18 +506,16 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitElement(node: Ast.ElementNode, context: IContext): Ast.ExpressionNode[] {
-      if (!node.__$ws_unpackedCycle) {
-         return this.processElement(node, context);
+      const name = getElementName(node);
+      let expressions: Ast.ExpressionNode[] = [];
+      if (name !== null) {
+         context.childrenStorage.push(name);
       }
-      const cyclePreprocess: ICyclePreprocess = node.__$ws_unpackedCycle instanceof Ast.ForNode
-         ? processBeforeFor(node.__$ws_unpackedCycle, context)
-         : processBeforeForeach(node.__$ws_unpackedCycle, context);
-      cyclePreprocess.expressions = cyclePreprocess.expressions.concat(
-         this.processElement(node, context)
-      );
-      return node.__$ws_unpackedCycle instanceof Ast.ForNode
-         ? processAfterFor(cyclePreprocess, context)
-         : processAfterForeach(cyclePreprocess, context);
+      node.__$ws_content.forEach((node: Ast.Ast) => {
+         expressions = expressions.concat(node.accept(this, context));
+      });
+      this.processElementAttributes(node, context, expressions);
+      return expressions;
    }
 
    visitInstruction(node: Ast.InstructionNode, context: IContext): Ast.ExpressionNode[] {
@@ -661,19 +659,6 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    // </editor-fold>
-
-   private processElement(node: Ast.ElementNode, context: IContext): Ast.ExpressionNode[] {
-      const name = getElementName(node);
-      let expressions: Ast.ExpressionNode[] = [];
-      if (name !== null) {
-         context.childrenStorage.push(name);
-      }
-      node.__$ws_content.forEach((node: Ast.Ast) => {
-         expressions = expressions.concat(node.accept(this, context));
-      });
-      this.processElementAttributes(node, context, expressions);
-      return expressions;
-   }
 
    private processBaseWasabyElement(node: Ast.BaseWasabyElement, context: IContext): Ast.ExpressionNode[] {
       const name = getComponentName(node);
