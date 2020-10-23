@@ -7,7 +7,6 @@
 // @ts-nocheck
 // @ts-ignore
 import { constants } from 'Env/Env';
-import { composeWithResultApply } from '../../Utils/Functional';
 import { Subscriber } from 'UI/Events';
 import {
    getFullMarkup,
@@ -18,14 +17,14 @@ import {
    isControlVNodeType,
    isTemplateVNodeType
 } from './VdomMarkup';
-import { textNode, OptionsResolver } from 'UI/Executor';
+import { OptionsResolver } from 'UI/Executor';
 import { ContextResolver } from 'UI/Contexts';
 import { delay } from 'Types/function';
 // @ts-ignore
 import { Serializer } from 'UI/State';
 // @ts-ignore
-import {FunctionUtils, Logger, needToBeCompatible} from 'UI/Utils';
-import * as _dcc from './DirtyCheckingCompatible';
+import { FunctionUtils, Logger, needToBeCompatible } from 'UI/Utils';
+import { clearNotChangedOptions } from './DirtyCheckingCompatible';
 import { ReactiveObserver } from 'UI/Reactivity';
 import {
    onEndCommit,
@@ -34,39 +33,21 @@ import {
    OperationType,
    getNodeName
 } from 'UI/DevtoolsHook';
-import { IControlNode, IDOMEnvironment, IAttrs } from '../interfaces';
-import { collectObjectVersions, getChangedOptions } from './Options';
-
+import { IControlNode, IDOMEnvironment} from '../interfaces';
+import { getChangedOptions, collectObjectVersions } from './Options';
+import { createNode } from './ControlNode';
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
 import { GeneratorNode } from 'UI/Executor';
 // import { VNode } from 'Inferno/third-party/index';
 import { ITemplateNode } from 'UI/_executor/_Markup/IGeneratorType';
+import { getCompatibleUtils } from 'UI/_vdom/Synchronizer/resources/DirtyCheckingCompatible';
 
 type TDirtyCheckingTemplate = ITemplateNode & {
     children: GeneratorNode[];  // нужно понять почему у нас такое ограничение
 };
 
-export { getChangedOptions } from './Options';
-
 var Slr = new Serializer();
-
-let DirtyCheckingCompatible: typeof _dcc;
-if (constants.compat) {
-   DirtyCheckingCompatible = _dcc;
-}
-
-let compatibleUtils: any;
-function getCompatibleUtils(): any {
-   if (!compatibleUtils) {
-      if (requirejs.defined('View/ExecutorCompatible')) {
-         compatibleUtils = requirejs('View/ExecutorCompatible').CompatibleUtils;
-      } else {
-         Logger.error('View/ExecutorCompatible не загружен. Проверьте загрузку слоя совместимости');
-      }
-   }
-   return compatibleUtils;
-}
 
 interface IMemoForNode {
     createdNodes: Array<any>;
@@ -112,9 +93,23 @@ export class MemoForNode implements IMemoForNode {
         this.updatedUnchangedNodes = start.updatedUnchangedNodes ? start.updatedUnchangedNodes.slice() : [];
     }
 
-    concat(source: MemoForNode) {
-        for (let i = 0; i < memoNames.length; ++i) {
-            concatArray(this[memoNames[i]], source[memoNames[i]]);
+    concat(source: MemoForNode): void {
+        MemoForNode.concatArray(this.createdNodes, source.createdNodes);
+        MemoForNode.concatArray(this.createdTemplateNodes, source.createdTemplateNodes);
+        MemoForNode.concatArray(this.destroyedNodes, source.destroyedNodes);
+        MemoForNode.concatArray(this.selfDirtyNodes, source.selfDirtyNodes);
+        MemoForNode.concatArray(this.updatedChangedNodes, source.updatedChangedNodes);
+        MemoForNode.concatArray(this.updatedChangedTemplateNodes, source.updatedChangedTemplateNodes);
+        MemoForNode.concatArray(this.updatedNodes, source.updatedNodes);
+        MemoForNode.concatArray(this.updatedUnchangedNodes, source.updatedUnchangedNodes);
+    }
+
+    private static concatArray(target: any[], source?: any[]): void {
+        if (!source) {
+            return;
+        }
+        for (let i = 0; i < source.length; i++) {
+            target.push(source[i]);
         }
     }
 }
@@ -122,11 +117,6 @@ export class MemoForNode implements IMemoForNode {
 export interface IMemoNode {
     memo: MemoForNode
     value: IControlNode
-}
-
-interface ISomeData {
-   controlProperties: any;
-   controlClass: Function;
 }
 
 const configName = 'cfg-';
@@ -152,7 +142,7 @@ function fillCtx(control: any, vnode: any, resolvedCtx: any): void {
  * @param serializer TODO: Describe
  * @returns {*} TODO: Describe
  */
-export function getReceivedState(controlNode: IControlNode, vnodeP: ISomeData, serializer: any): any {
+export function getReceivedState(controlNode: IControlNode, vnodeP: GeneratorNode, serializer: any): any {
    const control = controlNode.control;
    const stateVar = controlNode.key ? findTopConfig(controlNode.key) : '';
    if (!control.__beforeMount) {
@@ -251,63 +241,11 @@ function subscribeToEvent(node) {
    }
 }
 
-const memoNames = [
-    'createdNodes',
-    'destroyedNodes',
-    'updatedNodes',
-    'createdTemplateNodes',
-    'updatedUnchangedNodes',
-    'updatedChangedNodes',
-    'updatedChangedTemplateNodes',
-    'selfDirtyNodes'
-];
-
-function concatArray(target: any[], source?: any[]): any[] {
-    if (!source) {
-        return;
-    }
-    for (let i = 0; i < source.length; i++) {
-        target.push(source[i]);
-    }
-    return target;
-}
-
-function createChildrenResult(childrenRebuildResults: IMemoNode[]): {value: IControlNode[], memo: MemoForNode} {
-    const value = [];
-    const memo = new MemoForNode();
-    for (let i = 0; i < childrenRebuildResults.length; i++) {
-        const childrenRebuildResult = childrenRebuildResults[i];
-        value.push(childrenRebuildResult.value);
-        memo.concat(childrenRebuildResults[i].memo);
-    }
-    return {value, memo};
-}
-
-/**
- * Добавляет родителя во внутренние опции компонента, если он отсутствует
- * @param internalOptions
- * @param userOptions
- * @param parentNode
- */
-function fixInternalParentOptions(internalOptions: IAttrs, userOptions: IAttrs, parentNode) {
-   // У compound-контрола parent может уже лежать в user-опциях, берем его оттуда, если нет нашей parentNode
-   internalOptions.parent = internalOptions.parent || (parentNode && parentNode.control) || userOptions.parent || null;
-   internalOptions.logicParent =
-      internalOptions.logicParent ||
-      (parentNode && parentNode.control && parentNode.control.logicParent) ||
-      userOptions.logicParent ||
-      null;
-}
-
 export const DirtyKind = {
    NONE: 0,
    DIRTY: 1,
    CHILD_DIRTY: 2
 };
-
-function getModuleDefaultCtor(mod) {
-   return typeof mod === 'function' ? mod : mod['constructor'];
-}
 
 const ARR_EMPTY = [];
 
@@ -319,14 +257,6 @@ function shallowMerge(dest, src) {
       }
    }
    return dest;
-}
-
-function getControlNodeParams(control, controlClass, environment) {
-   var composedDecorator = composeWithResultApply.call(undefined, [environment.getMarkupNodeDecorator()]).bind(control);
-   return {
-      markupDecorator: composedDecorator,
-      defaultOptions: {} //нет больше понятия опция по умолчанию
-   };
 }
 
 function getMarkupForTemplatedNode(vnode, controlNodes, environment) {
@@ -395,200 +325,6 @@ function collectChildrenKeys(next: { key }[], prev: { key }[]): { prev, next }[]
       }
    }
    return Object.values(keysMap);
-}
-
-function getActualOptions(cnstr, userOptions, internalOptions) {
-   return userOptions;
-}
-function createInstanceCallback(inst, actualOptions, internalOptions) {
-}
-export function createInstance(cnstr, userOptions, internalOptions, configForCreateInstance) {
-   internalOptions = internalOptions || {};
-
-   const actualOptions = configForCreateInstance.getActualOptions(cnstr, userOptions, internalOptions);
-
-   if (internalOptions.logicParent) {
-      actualOptions._logicParent = internalOptions.logicParent;
-   }
-
-   const parentName = internalOptions.logicParent && internalOptions.logicParent._moduleName;
-
-   const defaultOpts = OptionsResolver.getDefaultOptions(cnstr);
-   OptionsResolver.resolveOptions(cnstr, defaultOpts, actualOptions, parentName);
-
-   let inst;
-   try {
-      inst = new cnstr(actualOptions);
-   }
-   catch (error) {
-      // @ts-ignore
-      const coreControl = requirejs('UI/Base').Control;
-      inst = new coreControl();
-      Logger.lifeError('constructor', cnstr.prototype, error);
-   }
-
-   /*Здесь родитель может быть CompoundControl*/
-   if (internalOptions.logicParent && internalOptions.logicParent._children && userOptions.name) {
-      internalOptions.logicParent._children[userOptions.name] = inst;
-   }
-
-   configForCreateInstance.createInstanceCallback(inst, actualOptions, internalOptions);
-
-   return {
-      instance: inst,
-      resolvedOptions: actualOptions,
-      defaultOptions: defaultOpts
-   };
-}
-
-interface INodeOptions {
-   /**
-    * Прикладные опции
-    */
-   user: IAttrs;
-   /**
-    * Служебные опции
-    */
-   internal: IAttrs;
-   /**
-    * Нативные аттрибуты
-    */
-   attributes: IAttrs;
-   events: Record<string, () => void>;
-}
-
-export function createNode(controlClass_, options: INodeOptions, key: string, environment: IDOMEnvironment, parentNode, serialized, vnode?): IControlNode {
-   let controlCnstr = getModuleDefaultCtor(controlClass_); // получаем конструктор из модуля
-   let compound = vnode && vnode.compound;
-   let serializedState = (serialized && serialized.state) || { vdomCORE: true }; // сериализованное состояние компонента
-   let userOptions = options.user;
-   let internalOptions = options.internal;
-   let result;
-
-   fixInternalParentOptions(internalOptions, userOptions, parentNode);
-
-   if (!key) {
-      /*У каждой ноды должен быть ключ
-       * for строит внутренние ноды относительно этого ключа
-       * */
-      key = '_';
-   }
-
-   if (compound) {
-      if (parentNode.control._moduleName !== "Core/CompoundContainer") {
-      Logger.error(`В wasaby-окружении неправильно создается ws3-контрол. Необходимо использовать Core/CompoundContainer, а не вставлять ws3-контрол в шаблон wasaby-контрола напрямую.
-         Подробнее тут https://wi.sbis.ru/doc/platform/developmentapl/ws3/compound-wasaby/
-         Вставляется контрол '${controlCnstr && controlCnstr.prototype && controlCnstr.prototype._moduleName}' в шаблоне контрола `,
-         internalOptions && internalOptions.logicParent);
-      } else {
-         // Создаем виртуальную ноду для compound контрола
-         if (!DirtyCheckingCompatible) {
-            // @ts-ignore
-            DirtyCheckingCompatible = _dcc;
-         }
-         result = DirtyCheckingCompatible.createCompoundControlNode(
-            controlClass_,
-            controlCnstr,
-            userOptions,
-            internalOptions,
-            key,
-            parentNode,
-            vnode
-         );
-      }
-   } else {
-        // Создаем виртуальную ноду для не-compound контрола
-        let invisible = vnode && vnode.invisible;
-         // подмешиваем сериализованное состояние к прикладным опциям
-        let optionsWithState = serializedState ? shallowMerge(userOptions, serializedState) : userOptions;
-        let optionsVersions;
-        let internalVersions;
-        let contextVersions;
-        let control;
-        let params;
-        let context;
-        let inst;
-        let defaultOptions;
-
-      if (typeof controlClass_ === 'function') {
-         let configForCreateInstance;
-         if (needToBeCompatible(controlCnstr, internalOptions.parent, internalOptions.iWantBeWS3)) {
-            configForCreateInstance = {
-               getActualOptions: getCompatibleUtils().getActualOptions,
-               createInstanceCallback: getCompatibleUtils().createInstanceCallback
-            };
-         } else {
-            configForCreateInstance = {
-               getActualOptions,
-               createInstanceCallback
-            }
-         }
-         inst = createInstance(controlCnstr, optionsWithState, internalOptions, configForCreateInstance);
-
-         control = inst.instance;
-         optionsWithState = inst.resolvedOptions;
-         defaultOptions = inst.defaultOptions;
-      } else {
-         // инстанс уже есть, работаем с его опциями
-         control = controlClass_;
-         defaultOptions = OptionsResolver.getDefaultOptions(controlClass_);
-         if (needToBeCompatible(controlCnstr, internalOptions.parent, internalOptions.iWantBeWS3)) {
-            optionsWithState = getCompatibleUtils().combineOptionsIfCompatible(
-               controlCnstr,
-               optionsWithState,
-               internalOptions
-            );
-            if (control._setInternalOptions) {
-               control._options.doNotSetParent = true;
-               control._setInternalOptions(internalOptions || {});
-            }
-         }
-      }
-
-      // check current options versions
-      optionsVersions = collectObjectVersions(optionsWithState);
-      // check current context field versions
-      context = (vnode && vnode.context) || {};
-      contextVersions = collectObjectVersions(context);
-      internalVersions = collectObjectVersions(internalOptions);
-
-      params = getControlNodeParams(control, controlCnstr, environment);
-
-      result = {
-         attributes: options.attributes,
-         events: options.events,
-         control: control,
-         errors: serialized && serialized.errors,
-         controlClass: controlCnstr,
-         options: optionsWithState,
-         internalOptions: internalOptions,
-         optionsVersions: optionsVersions,
-         internalVersions: internalVersions,
-         id: control._instId || 0,
-         parent: parentNode,
-         key: key,
-         defaultOptions: defaultOptions,
-         markup: invisible ? textNode('') : undefined,
-         fullMarkup: undefined,
-         childrenNodes: ARR_EMPTY,
-         markupDecorator: params && params.markupDecorator,
-         serializedChildren: serialized && serialized.childrenNodes,
-         hasCompound: false,
-         receivedState: undefined,
-         invisible: invisible,
-
-         contextVersions: contextVersions,
-         context: (vnode && vnode.context) || {},
-         inheritOptions: (vnode && vnode.inheritOptions) || {}
-      };
-
-      environment.setupControlNode(result);
-   }
-   // Девтулзы используют это значение в качестве идентификатора. Нельзя использовать саму контрол ноду, т.к.
-   // иногда обход идёт по виртуальным нодам, а иногда по контрол нодам, и виртуальные ноды создаются раньше.
-   result.vnode = vnode;
-
-   return result;
 }
 
 function rebuildNodeWriter(environment, node, force, isRoot?) {
@@ -704,7 +440,7 @@ function addTemplateChildrenRecursive(node, result) {
    }
 }
 
-export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, force: boolean, isRoot) {
+export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, force: boolean, isRoot): IMemoNode | Promise<IMemoNode> {
     let id = node.id;
     let dirty = environment._currentDirties[id] || DirtyKind.NONE;
     let isDirty = dirty !== DirtyKind.NONE || force;
@@ -740,7 +476,6 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
 
     let createdNodes;
     let createdTemplateNodes;
-    let updatedNodes;
     let updatedUnchangedNodes;
     let updatedChangedNodes;
     let updatedChangedTemplateNodes = [];
@@ -1089,7 +824,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         return controlNode;
     });
 
-    updatedNodes = diff.update.map(function rebuildUpdateNodes(diffPair, idx) {
+    let updatedNodes = diff.update.map(function rebuildUpdateNodes(diffPair, idx) {
         Logger.debug('DirtyChecking (update node)', diffPair);
         onStartCommit(
             OperationType.UPDATE,
@@ -1154,7 +889,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                         instanceCtr.__$$blockSetProperties = true;
 
                         // Remove all options that were updated by CompoundControl already from changedOptions
-                        changedOptions = DirtyCheckingCompatible.clearNotChangedOptions(changedOptions, realCh);
+                        changedOptions = clearNotChangedOptions(changedOptions, realCh);
                         instanceCtr.setProperties(changedOptions);
 
                         delay(function () {
@@ -1326,6 +1061,17 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         changedNodes, childrenNodes, currentMemo, isSelfDirty);
 }
 
+function createChildrenResult(childrenRebuildResults: IMemoNode[]): { value: IControlNode[], memo: MemoForNode } {
+    const value = [];
+    const memo = new MemoForNode();
+    for (let i = 0; i < childrenRebuildResults.length; i++) {
+        const childrenRebuildResult = childrenRebuildResults[i];
+        value.push(childrenRebuildResult.value);
+        memo.concat(childrenRebuildResults[i].memo);
+    }
+    return { value, memo };
+}
+
 function mapChildren(currentMemo: MemoForNode, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty) {
     const childrenRebuild = createChildrenResult(childrenRebuildFinalResults);
     if (!newNode.markup) {
@@ -1362,7 +1108,6 @@ function mapChildren(currentMemo: MemoForNode, newNode, childrenRebuildFinalResu
         memo: currentMemo
     };
 }
-
 
 function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode, needRenderMarkup: boolean,
     changedNodes, childrenNodes, currentMemo: MemoForNode, isSelfDirty): IMemoNode | Promise<IMemoNode> {

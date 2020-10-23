@@ -175,11 +175,11 @@ function collectChildTemplateVNodes(vnode: any): any {
 type VNodeControl = VNode & { controlClass: TControlConstructor };
 
 interface IMarkupDiff {
-   create: VNodeControl[];
-   createTemplates: VNode[];
-   destroy: VNodeControl[];
-   destroyTemplates: VNode[];
-   update: Array<{ oldNode: VNodeControl, newNode: VNodeControl }>;
+   create: GeneratorNode[];
+   createTemplates: ITemplateNode[];
+   destroy: GeneratorNode[];
+   destroyTemplates: ITemplateNode[];
+   update: Array<{ oldNode: GeneratorNode, newNode: GeneratorNode }>;
    updateTemplates: Array<{ oldNode: ITemplateNode, newNode: ITemplateNode }>;
    vnodeChanged: boolean;
 }
