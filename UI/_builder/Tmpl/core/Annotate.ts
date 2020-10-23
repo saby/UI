@@ -585,35 +585,15 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): Ast.ExpressionNode[] {
-      let expressions: Ast.ExpressionNode[] = [];
-      const name = getComponentName(node);
-      if (name !== null) {
-         context.childrenStorage.push(name);
-      }
-      this.processInjectedData(node, context, expressions);
-      // Important: there are some expressions that must be in component internal collection.
-      const componentOnlyExpressions: Ast.ExpressionNode[] = this.processComponentAttributes(node, context, expressions);
-      node.__$ws_internal = { };
-      appendInternalExpressions(node.__$ws_internal, componentOnlyExpressions);
+      let expressions: Ast.ExpressionNode[] = this.processBaseWasabyElement(node, context);
       expressions = processProgramNode(node.__$ws_expression, context).concat(expressions);
       return expressions;
    }
 
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): Ast.ExpressionNode[] {
-      const name = getComponentName(node);
-      if (name !== null) {
-         context.childrenStorage.push(name);
-      }
-      let expressions: Ast.ExpressionNode[] = [];
-      expressions = expressions.concat(
-         context.scope.getTemplate(node.__$ws_name).accept(this, context)
-      );
-      this.processInjectedData(node, context, expressions);
-      // Important: there are some expressions that must be in component internal collection.
-      const componentOnlyExpressions: Ast.ExpressionNode[] = this.processComponentAttributes(node, context, expressions);
-      node.__$ws_internal = { };
-      appendInternalExpressions(node.__$ws_internal, componentOnlyExpressions);
-      return expressions;
+      // FIXME: Not all expressions exist in current scope
+      const initialExpressions = context.scope.getTemplate(node.__$ws_name).accept(this, context);
+      return this.processBaseWasabyElement(node, context, initialExpressions);
    }
 
    visitStaticPartial(node: Ast.StaticPartialNode, context: IContext): Ast.ExpressionNode[] {
@@ -639,12 +619,12 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       return expressions;
    }
 
-   private processBaseWasabyElement(node: Ast.BaseWasabyElement, context: IContext): Ast.ExpressionNode[] {
+   private processBaseWasabyElement(node: Ast.BaseWasabyElement, context: IContext, initialExpressions: Ast.ExpressionNode[] = []): Ast.ExpressionNode[] {
       const name = getComponentName(node);
-      let expressions: Ast.ExpressionNode[] = [];
       if (name !== null) {
          context.childrenStorage.push(name);
       }
+      let expressions: Ast.ExpressionNode[] = initialExpressions;
       this.processInjectedData(node, context, expressions);
       // Important: there are some expressions that must be in component internal collection.
       const componentOnlyExpressions: Ast.ExpressionNode[] = this.processComponentAttributes(node, context, expressions);
