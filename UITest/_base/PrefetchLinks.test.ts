@@ -8,13 +8,16 @@ const module = {
 };
 const pls = new PrefetchLinksStore();
 describe('UI/_base/HTML/PrefetchLinks', () => {
-    typeof window !== 'undefined' && describe('client side', () => {
+    typeof window !== 'undefined' &&
+    describe('client side', () => {
         beforeEach(() => {
+            // @ts-ignore
             Head.getInstance()._elements = {};
         });
 
         it('addPrefetchModules', () => {
             pls.addPrefetchModules([module.name]);
+            // @ts-ignore
             const data = Head.getInstance().getData();
             assert.equal(data.length, 1);
             assert.equal(data[0][0], 'link');
@@ -24,6 +27,7 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
 
         it('addPreloadModules', () => {
             pls.addPreloadModules([module.name]);
+            // @ts-ignore
             const data = Head.getInstance().getData();
             assert.equal(data.length, 1);
             assert.equal(data[0][0], 'link');
@@ -32,7 +36,8 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
         });
     });
 
-    typeof window === 'undefined' && describe('server side', () => {
+    typeof window === 'undefined' &&
+    describe('server side', () => {
         it('addPrefetchModules', () => {
             pls.addPrefetchModules([module.name]);
             const modules = pls.getPrefetchModules();
@@ -52,6 +57,7 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
             const prefetchModules = [module.name, 'Module2/File2'];
             pls.addPrefetchModules(prefetchModules);
             handlePrefetchModules(pageDeps);
+            // @ts-ignore
             const data = Head.getInstance().getData();
             assert.equal(data.length, 1);
             assert.equal(data[0][0], 'link');

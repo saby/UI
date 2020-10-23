@@ -1,5 +1,5 @@
 import * as AppEnv from "Application/Env";
-import {Head as AppHead} from "Application/_Page/Head";
+import {Head as AppHead} from "Application/Page";
 import * as ModulesLoader from "UI/_utils/ModulesLoader";
 import {constants, IoC} from "Env/Env";
 import {headDataStore} from "UI/_base/HeadData";
@@ -13,8 +13,16 @@ class PrefetchLinksStore {
         _addModulesToApi(modules, { prefetch: true});
     }
 
+    getPrefetchModules(): string[] {
+        return [];
+    }
+
     addPreloadModules(modules: string[]) {
         _addModulesToApi(modules, { preload: true});
+    }
+
+    getPreloadModules(): string[] {
+        return [];
     }
 }
 
@@ -124,17 +132,20 @@ interface IPrefetchModules {
  * @param cfg
  */
 function _addModulesToApi(modules: string[], cfg: IPrefetchModules): void {
-    var API = AppHead.getInstance();
+    const API = AppHead.getInstance();
     modules.forEach(function(moduleName) {
-        var path = ModulesLoader.getModuleUrl(moduleName);
+        let path = ModulesLoader.getModuleUrl(moduleName);
         path = path.indexOf('/') !== 0 ? '/' + path : path;
-        var _type = _getTypeString(path);
+        const _type = _getTypeString(path);
         if (!_type) {
             IoC.resolve('ILogger').warn('[Controls/Application.js] Для файла ' + path + ' не удалось получить строку-тип');
             return;
         }
 
-        var rel = cfg.prefetch ? 'prefetch' : 'preload';
+        const rel = cfg.prefetch ? 'prefetch' : 'preload';
+        // TODO разобраться, почему не видит метод createTag
+        //      https://online.sbis.ru/opendoc.html?guid=58ed127a-0322-4b63-a2a5-624abba203a9
+        // @ts-ignore
         API.createTag('link', { rel: rel, as: _type, href: path });
     });
 }
@@ -146,7 +157,7 @@ function _addModulesToApi(modules: string[], cfg: IPrefetchModules): void {
  * @private
  */
 function _getModuleDeps(modules) {
-    var dependencies = headDataStore.read('pageDeps').collect(modules);
+    const dependencies = headDataStore.read('pageDeps').collect(modules, []);
     return dependencies.js;
 }
 
@@ -156,12 +167,12 @@ function _getModuleDeps(modules) {
  * @private
  */
 function _getTypeString(path) {
-    var types = {
+    const types = {
         'script': new RegExp('\.js'),
         'fetch': new RegExp('\.wml'),
         'style': new RegExp('\.css')
     };
-    for (var _type in types) {
+    for (const _type in types) {
         if (types.hasOwnProperty(_type) && types[_type].test(path)) {
             return _type;
         }
