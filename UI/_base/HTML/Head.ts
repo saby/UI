@@ -5,8 +5,7 @@ import Control from '../Control';
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Head');
 import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller';
-// @ts-ignore
-import { constants, IoC } from 'Env/Env';
+import { constants } from 'Env/Env';
 import { Head as AppHead } from 'Application/Page'
 import { headDataStore } from 'UI/_base/HeadData';
 import { Stack } from 'UI/_base/HTML/meta';
