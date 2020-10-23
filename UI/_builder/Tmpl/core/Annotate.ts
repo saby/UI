@@ -606,6 +606,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       for (const name in node.__$ws_options) {
          const option = node.__$ws_options[name];
          const optionExpressions: Ast.ExpressionNode[] = option.accept(this, context);
+         if (optionExpressions.length === 0) {
+            continue;
+         }
          // option="{{ expr1 }}-{{ expr2 }}" complex expressions must be ignored
          if (optionExpressions.length > 1) {
             ignoredIdentifiers[option.__$ws_name] = true;
