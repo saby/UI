@@ -122,7 +122,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], fun
                   },
                   enumerable: false,
                   writable: false,
-                  configurable: false
+                  configurable: true
                });
             });
             Object.defineProperty(val, '_$reactived', {
