@@ -41,8 +41,11 @@ interface IContext {
    scope: Scope;
 }
 
-interface ICyclePreprocess {
+interface IScopePreprocess {
    ignoredIdentifiers: IStorage;
+}
+
+interface ICyclePreprocess extends IScopePreprocess {
    expressions: Ast.ExpressionNode[];
    additionalIdentifiers: string[];
 }
@@ -591,9 +594,51 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): Ast.ExpressionNode[] {
-      // FIXME: Not all expressions exist in current scope
       const initialExpressions = context.scope.getTemplate(node.__$ws_name).accept(this, context);
-      return this.processBaseWasabyElement(node, context, initialExpressions);
+      const scopePreprocess: IScopePreprocess = this.processBeforeInlineTemplate(node, context);
+      const expressions = this.processBaseWasabyElement(node, context, initialExpressions);
+      return this.processAfterInlineTemplate(scopePreprocess, context, expressions);
+   }
+
+   private processBeforeInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): IScopePreprocess {
+      // FIXME: Opt double proc
+      const ignoredIdentifiers: IStorage = { };
+      for (const name in node.__$ws_options) {
+         const option = node.__$ws_options[name];
+         const optionExpressions: Ast.ExpressionNode[] = option.accept(this, context);
+         // option="{{ expr1 }}-{{ expr2 }}" complex expressions must be ignored
+         if (optionExpressions.length > 1) {
+            ignoredIdentifiers[option.__$ws_name] = true;
+            continue;
+         }
+         // option="option" is simple alias and deep usages exist in current scope
+         if (option.__$ws_name !== optionExpressions[0].__$ws_program.string) {
+            ignoredIdentifiers[option.__$ws_name] = true;
+         }
+      }
+      for (const name in node.__$ws_events) {
+         const event = node.__$ws_events[name];
+         if (event instanceof Ast.BindNode) {
+            // bind:option="option" is simple alias and deep usages exist in current scope
+            if (event.__$ws_property !== event.__$ws_value.string) {
+               ignoredIdentifiers[event.__$ws_property] = true;
+            }
+         }
+      }
+      return {
+         ignoredIdentifiers
+      };
+   }
+
+   private processAfterInlineTemplate(scopePreprocess: IScopePreprocess, context: IContext, expressions: Ast.ExpressionNode[]): Ast.ExpressionNode[] {
+      // FIXME: Indep proc
+      let actualExpressions: Ast.ExpressionNode[] = expressions;
+      actualExpressions = actualExpressions.concat(
+         wrestNonIgnoredIdentifiers(actualExpressions, scopePreprocess.ignoredIdentifiers)
+      );
+      actualExpressions = excludeIgnoredExpressions(actualExpressions, scopePreprocess.ignoredIdentifiers);
+      cleanIgnoredIdentifiersFromReactive(context.identifiersStore, scopePreprocess.ignoredIdentifiers);
+      return actualExpressions;
    }
 
    visitStaticPartial(node: Ast.StaticPartialNode, context: IContext): Ast.ExpressionNode[] {
