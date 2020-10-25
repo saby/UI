@@ -364,20 +364,23 @@ function collectExpressionIds(next: Ast.ExpressionNode[], prev: Ast.ExpressionNo
    if (prev === null) {
       return EMPTY_ARRAY;
    }
-   const expressions: string[] = prev.map((expression: Ast.ExpressionNode) => expression.__$ws_program.__$ws_id);
    const ids: string[] = [];
-   next.forEach((expression: Ast.ExpressionNode) => {
+   const collection = next.concat(prev);
+   const prevIds = prev.map((expression: Ast.ExpressionNode) => expression.__$ws_program.__$ws_id);
+   const nextIds = next.map((expression: Ast.ExpressionNode) => expression.__$ws_program.__$ws_id);
+   collection.forEach((expression: Ast.ExpressionNode) => {
       const id = expression.__$ws_program.__$ws_id;
       if (id === null) {
-         return;
-      }
-      if (expressions.indexOf(id) > -1) {
          return;
       }
       if (ids.indexOf(id) > -1) {
          return;
       }
-      ids.push(id);
+      const hasPrev = prevIds.indexOf(id) > -1;
+      const hasNext = nextIds.indexOf(id) > -1;
+      if (hasPrev && !hasNext) {
+         ids.push(id);
+      }
    });
    return ids;
 }
@@ -404,7 +407,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          const expressions: Ast.ExpressionNode[] = node.accept(this, context);
          node.__$ws_internal = { };
          appendInternalExpressions(node.__$ws_internal, expressions);
-         node.__$ws_expressions = collectExpressionIds(expressions, []);
+         node.__$ws_expressions = collectExpressionIds([], expressions);
       });
       const reactiveProperties: string[] = Object
          .keys(identifiersStore)
