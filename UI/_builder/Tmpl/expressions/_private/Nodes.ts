@@ -893,10 +893,12 @@ export abstract class Node {
 }
 
 export class ProgramNode extends Node {
+   __$ws_id: string;
    body: Node[];
 
    constructor(body: Node[], loc: ISourceLocation) {
       super('Program', loc);
+      this.__$ws_id = null;
       this.body = body;
       if (body) {
          this.string = body[0].string;
