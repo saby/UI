@@ -237,6 +237,7 @@ define('UI/_builder/Tmpl/function', [
          if (!internal) {
             res += templates.generateTemplateHead(handlers.fileName, true);
          }
+         // TODO: Calculate available expressions
          res += templates.generateTemplateBody(handlers.fileName, str);
          return res;
       },
@@ -249,6 +250,9 @@ define('UI/_builder/Tmpl/function', [
             // эти сведения необходимы в кодогенерации, пробросим их (правда, не самым лучшим образом)
             // до модуля Event
             this.childrenStorage = ast.childrenStorage;
+
+            // FIXME: Expression registrar
+            handlers.expressionRegistrar = ast.expressionRegistrar;
 
             str = this.getString(ast, data, handlers, attributes, internal);
             // eslint-disable-next-line no-new-func
@@ -404,7 +408,8 @@ define('UI/_builder/Tmpl/function', [
                      bindingObject.isControl,
                      bindingObject.rootConfig,
                      bindingObject.propertyName,
-                     isAttribute
+                     isAttribute,
+                     this.handlers
                   );
                } else {
                   expressionResult = Process.processExpressions(
@@ -414,7 +419,8 @@ define('UI/_builder/Tmpl/function', [
                      undefined,
                      undefined,
                      attrib,
-                     isAttribute
+                     isAttribute,
+                     this.handlers
                   );
                }
 
@@ -448,7 +454,8 @@ define('UI/_builder/Tmpl/function', [
                bindingObject.isControl,
                bindingObject.rootConfig,
                bindingObject.propertyName,
-               isAttribute
+               isAttribute,
+               this.handlers
             );
          } else {
             result = Process.processExpressions(
@@ -458,7 +465,8 @@ define('UI/_builder/Tmpl/function', [
                undefined,
                undefined,
                undefined,
-               isAttribute
+               isAttribute,
+               this.handlers
             );
          }
          if (typeof result === 'string') {
