@@ -368,9 +368,16 @@ function collectExpressionIds(next: Ast.ExpressionNode[], prev: Ast.ExpressionNo
    const ids: string[] = [];
    next.forEach((expression: Ast.ExpressionNode) => {
       const id = expression.__$ws_program.__$ws_id;
-      if (expressions.indexOf(id) === -1 && id !== null) {
-         ids.push(id);
+      if (id === null) {
+         return;
       }
+      if (expressions.indexOf(id) > -1) {
+         return;
+      }
+      if (ids.indexOf(id) > -1) {
+         return;
+      }
+      ids.push(id);
    });
    return ids;
 }

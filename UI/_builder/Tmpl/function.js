@@ -229,6 +229,9 @@ define('UI/_builder/Tmpl/function', [
             this.fileName = handlers.fileName;
             this.config = handlers.config;
             this.isWasabyTemplate = handlers.isWasabyTemplate;
+            if (handlers.expressionRegistrar) {
+               this.expressionRegistrar = handlers.expressionRegistrar;
+            }
          }
          var str = '' + this._process(ast, null, decor);
          if (str) {
@@ -238,8 +241,8 @@ define('UI/_builder/Tmpl/function', [
             res += templates.generateTemplateHead(handlers.fileName, true);
          }
          // FIXME: Expr calc
-         var ids = ast.reduce((arr, node) => arr.concat(node.__$ws_expressions), []);
-         var processedExpressions = Process.generateExpressionsBlock(ids, handlers);
+         var ids = ast.reduce((arr, node) => arr.concat(node.__$ws_expressions || []), []);
+         var processedExpressions = Process.generateExpressionsBlock(ids, this.expressionRegistrar, this.fileName);
          res += templates.generateTemplateBody(handlers.fileName, str, processedExpressions);
          return res;
       },

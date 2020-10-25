@@ -200,14 +200,15 @@ export function processProgramNode(
 
 export function generateExpressionsBlock(
    identifiers: string[],
-   handlers: any
+   expressionRegistrar: any,
+   fileName: string
 ): string {
    let items: { id: string; value: string; }[] = [];
    for (let index = 0; index < identifiers.length; ++index) {
       const id = identifiers[index];
-      const program = handlers.expressionRegistrar.getExpression(id);
+      const program = expressionRegistrar.getExpression(id);
       const value = processProgramNode(
-         program, null, handlers.fileName
+         program, null, fileName
       );
       items.push({
          id,
