@@ -610,8 +610,12 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    // <editor-fold desc="Extended text">
 
    visitExpression(node: Ast.ExpressionNode, context: IContext): Ast.ExpressionNode[] {
-      node.__$ws_program.__$ws_id = this.expressionsRegistrar.registerExpression(node.__$ws_program);
-      return processProgramNode(node.__$ws_program, context);
+      const expressions: Ast.ExpressionNode[] = processProgramNode(node.__$ws_program, context);
+      // Do not register decorators and literals
+      if (expressions.length > 0) {
+         node.__$ws_program.__$ws_id = this.expressionsRegistrar.registerExpression(node.__$ws_program);
+      }
+      return expressions;
    }
 
    visitText(node: Ast.TextNode, context: IContext): Ast.ExpressionNode[] {
