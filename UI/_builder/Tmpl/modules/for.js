@@ -23,13 +23,22 @@ define('UI/_builder/Tmpl/modules/for', [
 
          function resolveStatement2() {
             var START_FROM = tag.attribs.START_FROM.data[0]
-               ? Process.processExpressions(tag.attribs.START_FROM.data[0], data, this.fileName)
+               ? Process.processExpressions(
+                  tag.attribs.START_FROM.data[0], data, this.fileName, undefined,
+                  undefined, undefined, undefined, this.handlers
+               )
                : '';
             var CUSTOM_CONDITION = tag.attribs.CUSTOM_CONDITION.data[0]
-               ? Process.processExpressions(tag.attribs.CUSTOM_CONDITION.data[0], data, this.fileName)
+               ? Process.processExpressions(
+                  tag.attribs.CUSTOM_CONDITION.data[0], data, this.fileName, undefined,
+                  undefined, undefined, undefined, this.handlers
+               )
                : '';
             var CUSTOM_ITERATOR = tag.attribs.CUSTOM_ITERATOR.data[0]
-               ? Process.processExpressions(tag.attribs.CUSTOM_ITERATOR.data[0], data, this.fileName)
+               ? Process.processExpressions(
+                  tag.attribs.CUSTOM_ITERATOR.data[0], data, this.fileName, undefined,
+                  undefined, undefined, undefined, this.handlers
+               )
                : '';
 
             if (fromAttr) {
@@ -50,7 +59,10 @@ define('UI/_builder/Tmpl/modules/for', [
             }
 
             var variableNode = new Statement.VariableNode(tag.forSource.main, false, undefined);
-            var scopeArray = Process.processExpressions(variableNode, data, this.fileName);
+            var scopeArray = Process.processExpressions(
+               variableNode, data, this.fileName, undefined,
+               undefined, undefined, undefined, this.handlers
+            );
 
             if (fromAttr) {
                tag.attribs.for = undefined;

@@ -49,7 +49,10 @@ define('UI/_builder/Tmpl/modules/else', [
                try {
                   tagExpressionBody = tag.attribs.data.data[0];
                   tagExpressionBody.noEscape = true;
-                  elseSource = Process.processExpressions(tagExpressionBody, data, this.fileName);
+                  elseSource = Process.processExpressions(
+                     tagExpressionBody, data, this.fileName, undefined,
+                     undefined, undefined, undefined, this.handlers
+                  );
                   tagExpressionBody.value = elseSource;
                } catch (err) {
                   errorHandler.error(

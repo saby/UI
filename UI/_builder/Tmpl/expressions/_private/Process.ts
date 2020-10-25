@@ -85,10 +85,11 @@ export function processExpressions(
    expressionRaw: TextNode | VariableNode | LocalizationNode,
    data: any,
    fileName: string,
-   isControl?: boolean,
-   configObject?: any,
-   attributeName?: string,
-   isAttribute?: boolean
+   isControl: boolean,
+   configObject: any,
+   attributeName: string,
+   isAttribute: boolean,
+   handlers: any
 ): any {
    let res;
    const esc = !(configObject && configObject.esc !== undefined);
@@ -131,6 +132,16 @@ export function processExpressions(
             childrenStorage: [],
             checkChildren: false
          };
+
+         // TODO: [begin] Refactor
+
+         const exprId = exprAsVariable.name.__$ws_id;
+         if (handlers.expressionRegistrar.needCalculateExpression(exprId)) {
+            handlers.expressionRegistrar.registerProcessing(exprId);
+         }
+
+         // TODO: [end] Refactor
+
          res = exprAsVariable.name.accept(visitor, context);
          if (!exprAsVariable.noEscape) {
             res = calculateResultOfExpression(res, context.escape, context.sanitize);

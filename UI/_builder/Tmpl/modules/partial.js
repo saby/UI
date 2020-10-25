@@ -117,7 +117,8 @@ define('UI/_builder/Tmpl/modules/partial', [
             var injectedTemplate;
             if (tag.injectedTemplate) {
                injectedTemplate = Process.processExpressions(
-                  tag.injectedTemplate, data, this.fileName, undefined, preparedScope
+                  tag.injectedTemplate, data, this.fileName, undefined,
+                  preparedScope, undefined, undefined, this.handlers
                );
 
                // Генерируем внедрённый шаблон с рутовой областью видимости

@@ -9,10 +9,12 @@ import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import { ProgramNode, IdentifierNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import Scope from 'UI/_builder/Tmpl/core/Scope';
+import { createExpressionRegistrar, IExpressionRegistrar } from 'UI/_builder/Tmpl/core/Expression';
 
 // <editor-fold desc="Public interfaces and functions">
 
 export interface IAnnotatedTree extends Array<Ast.Ast> {
+   expressionRegistrar: IExpressionRegistrar;
    childrenStorage: string[];
    reactiveProps: string[];
    __newVersion: boolean;
@@ -100,11 +102,17 @@ function hasBindings(node: Ast.ExpressionNode): boolean {
 
 function appendInternalExpressions(internal: Ast.IInternal, expressions: Ast.ExpressionNode[]): void {
    let expressionIndex = 0;
+   const processed = {};
    for (let index = 0; index < expressions.length; ++index) {
       const expression = expressions[index];
       if (hasBindings(expression)) {
          continue;
       }
+      const program = expressions[index].__$ws_program.string;
+      if (processed[program]) {
+         continue;
+      }
+      processed[program] = true;
 
       internal[INTERNAL_EXPRESSION_PREFIX + (expressionIndex++)] = {
          data: [
@@ -356,11 +364,16 @@ function cleanIgnoredIdentifiersFromReactive(identifiersStore: IStorage, ignored
 
 class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
+   private readonly expressionsRegistrar: IExpressionRegistrar;
+
+   constructor() {
+      this.expressionsRegistrar = createExpressionRegistrar();
+   }
+
    annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree {
       const childrenStorage: string[] = [ ];
-      let globalIdentifiersStore: IStorage = { };
+      const identifiersStore: IStorage = { };
       nodes.forEach((node: Ast.Ast) => {
-         const identifiersStore: IStorage = { };
          const context: IContext = {
             childrenStorage,
             identifiersStore,
@@ -369,15 +382,12 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          const expressions: Ast.ExpressionNode[] = node.accept(this, context);
          node.__$ws_internal = { };
          appendInternalExpressions(node.__$ws_internal, expressions);
-         globalIdentifiersStore = {
-            ...globalIdentifiersStore,
-            ...identifiersStore
-         };
       });
       const reactiveProperties: string[] = Object
-         .keys(globalIdentifiersStore)
+         .keys(identifiersStore)
          .filter((item: string) => NOT_REACTIVE_IDENTIFIERS.indexOf(item) === -1);
       const result = <IAnnotatedTree>nodes;
+      result.expressionRegistrar = this.expressionsRegistrar;
       result.childrenStorage = childrenStorage;
       result.reactiveProps = reactiveProperties;
       result.__newVersion = true;
@@ -437,6 +447,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          identifiers.forEach((identifier: string) => {
             context.identifiersStore[identifier] = true;
          });
+         program.__$ws_id = this.expressionsRegistrar.registerExpression(program);
       });
       return expressions;
    }
@@ -506,6 +517,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          expressions = expressions.concat(
             processProgramNode(node.__$ws_test, context)
          );
+         node.__$ws_test.__$ws_id = this.expressionsRegistrar.registerExpression(node.__$ws_test);
       }
       if (node.__$ws_alternate) {
          expressions = expressions.concat(
@@ -542,6 +554,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          expressions = expressions.concat(
             processProgramNode(node.__$ws_test, context)
          );
+         node.__$ws_test.__$ws_id = this.expressionsRegistrar.registerExpression(node.__$ws_test);
       }
       if (node.__$ws_alternate) {
          expressions = expressions.concat(
@@ -564,6 +577,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    // <editor-fold desc="Extended text">
 
    visitExpression(node: Ast.ExpressionNode, context: IContext): Ast.ExpressionNode[] {
+      node.__$ws_program.__$ws_id = this.expressionsRegistrar.registerExpression(node.__$ws_program);
       return processProgramNode(node.__$ws_program, context);
    }
 
@@ -590,6 +604,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): Ast.ExpressionNode[] {
       let expressions: Ast.ExpressionNode[] = this.processBaseWasabyElement(node, context);
       expressions = processProgramNode(node.__$ws_expression, context).concat(expressions);
+      node.__$ws_expression.__$ws_id = this.expressionsRegistrar.registerExpression(node.__$ws_expression);
       return expressions;
    }
 

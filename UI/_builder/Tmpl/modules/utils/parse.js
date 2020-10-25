@@ -63,20 +63,20 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
       if (attrData.length) {
          if (attrData.length === 1) {
             Process.processExpressions(
-               attrData[0], data, this.fileName, isControl, configObject, attributeName, isAttribute
+               attrData[0], data, this.fileName, isControl, configObject, attributeName, isAttribute, this.handlers
             );
             return attrData[0].value;
          }
          for (i = 0; i < attrData.length; i++) {
             Process.processExpressions(
-               attrData[i], data, this.fileName, isControl, configObject, attributeName, isAttribute
+               attrData[i], data, this.fileName, isControl, configObject, attributeName, isAttribute, this.handlers
             );
             string += attrData[i].value;
          }
          return string;
       }
       return Process.processExpressions(
-         attrData, data, this.fileName, isControl, configObject, attributeName, isAttribute
+         attrData, data, this.fileName, isControl, configObject, attributeName, isAttribute, this.handlers
       );
    }
 
@@ -109,7 +109,8 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
          if (attrs[root] && attrs[root].data) {
             attrData = attrs[root].data;
             obj = Process.processExpressions(
-               attrData[0], data, this.calculators, this.fileName
+               attrData[0], data, this.fileName, undefined,
+               undefined, undefined, undefined, this.handlers
             );
             if (typeof obj === 'string') {
                if (utils.isOptionsExpression(attrData[0])) {
