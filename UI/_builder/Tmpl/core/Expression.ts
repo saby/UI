@@ -9,11 +9,9 @@ import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 
 export interface IExpressionRegistrar {
    registerExpression(node: ProgramNode): string;
-   registerProcessing(id: string): void;
-   isRegisteredExpression(id: string): boolean;
-   needCalculateExpression(id: string): boolean;
    getExpression(id: string): ProgramNode;
-   getIdentifiersToProcess(): string[];
+   commitProcessing(ids: string[]): void;
+   finalize(): void;
 }
 
 export function createExpressionRegistrar(): IExpressionRegistrar {
@@ -29,7 +27,6 @@ interface IExpressionMap {
 }
 
 interface IExpressionDescription {
-   usages: number;
    isProcessed: boolean;
 }
 
@@ -76,20 +73,6 @@ class ExpressionRegistrar implements IExpressionRegistrar {
       return this.addExpression(node);
    }
 
-   registerProcessing(id: string): void {
-      if (id === null) {
-         return;
-      }
-      ++this.descriptions[id].usages;
-   }
-
-   needCalculateExpression(id: string): boolean {
-      if (id === null) {
-         return true;
-      }
-      return this.descriptions[id].usages === 0;
-   }
-
    getExpression(id: string): ProgramNode {
       if (id === null) {
          return null;
@@ -97,23 +80,22 @@ class ExpressionRegistrar implements IExpressionRegistrar {
       return this.storage[id];
    }
 
-   isRegisteredExpression(id: string): boolean {
-      if (id === null) {
-         return false;
-      }
-      return !!this.storage[id];
+   commitProcessing(ids: string[]): void {
+      ids.forEach((id: string) => {
+         this.descriptions[id].isProcessed = true;
+      });
    }
 
-   getIdentifiersToProcess(): string[] {
-      const ids: string[] = [];
+   finalize(): void {
+      const unprocessedIds: string[] = [];
       for (const id in this.descriptions) {
-         const item = this.descriptions[id];
-         if (!item.isProcessed && item.usages > 0) {
-            ids.push(id);
-            item.isProcessed = true;
+         if (!this.descriptions[id].isProcessed) {
+            unprocessedIds.push(`(${id} -> "${this.storage[id].string}")`);
          }
       }
-      return ids;
+      if (unprocessedIds.length > 0) {
+         throw new Error(`Внутренняя ошибка шаблонизатора. Обнаружены выражения, которые не были вычислены: ${unprocessedIds.join(',')}`);
+      }
    }
 
    private addExpression(node: ProgramNode): string {
@@ -122,7 +104,6 @@ class ExpressionRegistrar implements IExpressionRegistrar {
       this.map[rawExpression] = id;
       this.storage[id] = node;
       this.descriptions[id] = {
-         usages: 0,
          isProcessed: false
       };
       return id;

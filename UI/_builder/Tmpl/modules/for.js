@@ -52,6 +52,7 @@ define('UI/_builder/Tmpl/modules/for', [
 
             var ids = tag.__$ws_expressions || [];
             var processedExpressions = Process.generateExpressionsBlock(ids, this.expressionRegistrar, this.fileName);
+            this.expressionRegistrar.commitProcessing(ids);
             return templates.generateFor(
                START_FROM, CUSTOM_CONDITION, CUSTOM_ITERATOR, processed, processedExpressions
             );
@@ -76,6 +77,7 @@ define('UI/_builder/Tmpl/modules/for', [
 
             var ids = tag.__$ws_expressions || [];
             var processedExpressions = Process.generateExpressionsBlock(ids, this.expressionRegistrar, this.fileName);
+            this.expressionRegistrar.commitProcessing(ids);
             return templates.generateForeach(
                scopeArray, tag.forSource, processed, processedExpressions
             );

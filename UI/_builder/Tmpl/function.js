@@ -245,6 +245,7 @@ define('UI/_builder/Tmpl/function', [
             return arr.concat(node.__$ws_expressions || []);
          }, []);
          var processedExpressions = Process.generateExpressionsBlock(ids, this.expressionRegistrar, this.fileName);
+         this.expressionRegistrar.commitProcessing(ids);
          res += templates.generateTemplateBody(handlers.fileName, str, processedExpressions);
          return res;
       },
@@ -262,6 +263,7 @@ define('UI/_builder/Tmpl/function', [
             handlers.expressionRegistrar = ast.expressionRegistrar;
 
             str = this.getString(ast, data, handlers, attributes, internal);
+            handlers.expressionRegistrar.finalize();
             // eslint-disable-next-line no-new-func
             func = new Function('data, attr, context, isVdom, sets, forceCompatible, generatorConfig', str);
             func.includedFunctions = this.includedFunctions;
@@ -269,13 +271,7 @@ define('UI/_builder/Tmpl/function', [
             func.includedFn = this.includedFn;
             func.functionNames = this.functionNames;
          } catch (error) {
-            errorHandler.info(
-               '[UI/_builder/Tmpl/function:getFunction()] generating function: \n' + str,
-               {
-                  fileName: handlers.fileName
-               }
-            );
-            throw error;
+            throw new Error('[UI/_builder/Tmpl/function:getFunction()]: ' + error.message);
          }
          this.setFunctionName(func, undefined, this.fileName);
          this.childrenStorage = [ ];

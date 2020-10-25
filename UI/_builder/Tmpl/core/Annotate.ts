@@ -569,6 +569,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    visitForeach(node: Ast.ForeachNode, context: IContext): Ast.ExpressionNode[] {
       const cyclePreprocess: ICyclePreprocess = processBeforeForeach(node, context);
+      node.__$ws_collection.__$ws_id = this.expressionsRegistrar.registerExpression(node.__$ws_collection);
 
       cyclePreprocess.expressions = cyclePreprocess.expressions.concat(
          this.processNodes(node.__$ws_content, context)
@@ -640,8 +641,12 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): Ast.ExpressionNode[] {
       let expressions: Ast.ExpressionNode[] = this.processBaseWasabyElement(node, context);
-      expressions = processProgramNode(node.__$ws_expression, context).concat(expressions);
-      node.__$ws_expression.__$ws_id = this.expressionsRegistrar.registerExpression(node.__$ws_expression);
+      const programExpressions: Ast.ExpressionNode[] = processProgramNode(node.__$ws_expression, context);
+      // Do not register literals
+      if (programExpressions.length > 0) {
+         node.__$ws_expression.__$ws_id = this.expressionsRegistrar.registerExpression(node.__$ws_expression);
+      }
+      expressions = programExpressions.concat(expressions);
       return expressions;
    }
 
