@@ -601,6 +601,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       setRootNodeFlags(node.__$ws_content);
       node.__$ws_internal = { };
       appendInternalExpressions(node.__$ws_internal, expressions);
+      node.__$ws_expressions = collectExpressionIds([], expressions);
       return expressions;
    }
 
