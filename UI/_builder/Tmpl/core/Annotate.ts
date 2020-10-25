@@ -360,6 +360,21 @@ function cleanIgnoredIdentifiersFromReactive(identifiersStore: IStorage, ignored
    }
 }
 
+function collectExpressionIds(next: Ast.ExpressionNode[], prev: Ast.ExpressionNode[] = null): string[] {
+   if (prev === null) {
+      return EMPTY_ARRAY;
+   }
+   const expressions: string[] = prev.map((expression: Ast.ExpressionNode) => expression.__$ws_program.__$ws_id);
+   const ids: string[] = [];
+   next.forEach((expression: Ast.ExpressionNode) => {
+      const id = expression.__$ws_program.__$ws_id;
+      if (expressions.indexOf(id) === -1 && id !== null) {
+         ids.push(id);
+      }
+   });
+   return ids;
+}
+
 // </editor-fold>
 
 class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
@@ -382,6 +397,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          const expressions: Ast.ExpressionNode[] = node.accept(this, context);
          node.__$ws_internal = { };
          appendInternalExpressions(node.__$ws_internal, expressions);
+         node.__$ws_expressions = collectExpressionIds(expressions, []);
       });
       const reactiveProperties: string[] = Object
          .keys(identifiersStore)
@@ -482,10 +498,12 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       ignoredIdentifiers[node.__$ws_name] = true;
       setRootNodeFlags(node.__$ws_content);
       node.__$ws_internal = { };
-      appendInternalExpressions(node.__$ws_internal, expressions);
+      const prevExpressions = expressions;
       expressions = expressions.concat(wrestNonIgnoredIdentifiers(expressions, ignoredIdentifiers));
       expressions = excludeIgnoredExpressions(expressions, ignoredIdentifiers);
       cleanIgnoredIdentifiersFromReactive(context.identifiersStore, ignoredIdentifiers);
+      appendInternalExpressions(node.__$ws_internal, prevExpressions);
+      node.__$ws_expressions = collectExpressionIds(expressions, prevExpressions);
       return expressions;
    }
 
@@ -533,8 +551,10 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       cyclePreprocess.expressions = cyclePreprocess.expressions.concat(
          this.processNodes(node.__$ws_content, context)
       );
-
-      return processAfterFor(cyclePreprocess, context);
+      const prevExpressions = cyclePreprocess.expressions;
+      const expressions = processAfterFor(cyclePreprocess, context);
+      node.__$ws_expressions = collectExpressionIds(expressions, prevExpressions);
+      return expressions;
    }
 
    visitForeach(node: Ast.ForeachNode, context: IContext): Ast.ExpressionNode[] {
@@ -543,8 +563,10 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       cyclePreprocess.expressions = cyclePreprocess.expressions.concat(
          this.processNodes(node.__$ws_content, context)
       );
-
-      return processAfterForeach(cyclePreprocess, context);
+      const prevExpressions = cyclePreprocess.expressions;
+      const expressions = processAfterForeach(cyclePreprocess, context);
+      node.__$ws_expressions = collectExpressionIds(expressions, prevExpressions);
+      return expressions;
    }
 
    visitIf(node: Ast.IfNode, context: IContext): Ast.ExpressionNode[] {

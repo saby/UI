@@ -237,8 +237,10 @@ define('UI/_builder/Tmpl/function', [
          if (!internal) {
             res += templates.generateTemplateHead(handlers.fileName, true);
          }
-         // TODO: Calculate available expressions
-         res += templates.generateTemplateBody(handlers.fileName, str);
+         // FIXME: Expr calc
+         var ids = ast.reduce((arr, node) => arr.concat(node.__$ws_expressions), []);
+         var processedExpressions = Process.generateExpressionsBlock(ids, handlers);
+         res += templates.generateTemplateBody(handlers.fileName, str, processedExpressions);
          return res;
       },
       getFunction: function getFunction(ast, data, handlers, attributes, internal) {

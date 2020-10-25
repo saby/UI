@@ -199,12 +199,14 @@ define('UI/_builder/Tmpl/codegen/templates', [
     * Сгенерировать тело функции шаблона - блок формирования верстки.
     * @param fileName Путь к файлу шаблона.
     * @param markupGeneration Блок генерации верстки.
+    * @param processedExpressions Блок вычисления выражений.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generateTemplateBody(fileName, markupGeneration) {
+   function generateTemplateBody(fileName, markupGeneration, processedExpressions) {
       return bodyTemplate
          .replace(/\/\*#FILE_NAME#\*\//g, fileName)
-         .replace(/\/\*#MARKUP_GENERATION#\*\//g, markupGeneration);
+         .replace(/\/\*#MARKUP_GENERATION#\*\//g, markupGeneration)
+         .replace(/\/\*#PROCESSED_EXPRESSIONS#\*\//g, (processedExpressions || ''));
    }
 
    /**

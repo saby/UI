@@ -316,6 +316,20 @@ var
       return '_';
    };
 
+const EXPRESSIONS_STORAGE = '__$expressions';
+const EMPTY_PARENT_SCOPE = { };
+
+function initExpressions(data, expressions) {
+   const parentScope = data[EXPRESSIONS_STORAGE] || EMPTY_PARENT_SCOPE;
+   const currentScope = Object.create(parentScope);
+   const realScope = {
+      ...currentScope,
+      ...expressions
+   };
+   data[EXPRESSIONS_STORAGE] = realScope;
+   return realScope;
+}
+
 const isolateScope = Scope.isolateScope;
 const createScope = Scope.createScope;
 const presetScope = Scope.presetScope;
@@ -353,5 +367,6 @@ export {
    createGenerator,
    getMarkupGenerator,
    validateNodeKey,
+   initExpressions,
    _isTClosure
 };
