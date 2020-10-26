@@ -6,7 +6,7 @@ import { Logger } from "UI/Utils";
 import {_FocusAttrs} from "UI/Focus";
 
 let compatibleUtils;
-function getCompatibleUtils() {
+export function getCompatibleUtils() {
    if (requirejs.defined('View/ExecutorCompatible')) {
       compatibleUtils = requirejs('View/ExecutorCompatible').CompatibleUtils;
    } else {
@@ -18,7 +18,6 @@ function getCompatibleUtils() {
 /**
  * @author Кондаков Р.Н.
  */
-
 export function createCompoundControlNode(
    controlClass_,
    controlCnstr,

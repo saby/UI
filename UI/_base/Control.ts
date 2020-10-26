@@ -211,6 +211,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
    private _$active: boolean = false;
    private _reactiveStart: boolean = false;
    private _$needForceUpdate: boolean;
+   private _isPendingBeforeMount: boolean = false;
 
    private readonly _instId: string = 'inst_' + countInst++;
    protected _options: TOptions = {} as TOptions;
@@ -766,8 +767,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       // prevent start reactive properties if beforeMount return Promise.
       // Reactive properties will be started in Synchronizer
       if (resultBeforeMount && resultBeforeMount.callback) {
+         this._isPendingBeforeMount = true;
          resultBeforeMount.then(() => {
             this._reactiveStart = true;
+            this._isPendingBeforeMount = false;
          }).catch (() => {});
 
          //start client render
@@ -1118,6 +1121,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     */
    protected _beforeUnmount(): void {
       // Do
+   }
+
+   public getPendingBeforeMountState(): boolean {
+      return this._isPendingBeforeMount;
    }
 
    /**
