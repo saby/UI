@@ -100,6 +100,7 @@ export const FOREACH = `(function forTemplate() {
          iterator( /*#SCOPE_ARRAY#*/ , function forIteratorCallback(entity, key) {
             var originData = data;
             data = Object.create(data);
+            data._isFor = true;
             thelpers.presetScope(entity, data, key, /*#ITERATOR_SCOPE#*/ );
             key = contextInput + "_for_" + itCount + "_";
             itCount++;

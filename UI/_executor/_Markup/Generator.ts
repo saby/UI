@@ -458,6 +458,9 @@ export class Generator {
                }
             }
          }
+         if (templateCfg.hasOwnProperty('_isFor')){
+            userData._isFor = templateCfg._isFor;
+         }
          if (Common.isCompat()) {
             res = timing.methodExecutionTime(this.resolver, this, [name, userData, attrs, context, deps, includedTemplates, config, defCollection]);
             return checkResult.call(this, res, type, name);

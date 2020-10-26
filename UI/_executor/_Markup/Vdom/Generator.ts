@@ -292,7 +292,7 @@ export class GeneratorVdom implements IGenerator {
       if (Common.isControlClass(fn)) {
          return this.createWsControl(fn, resolvedScope, decorAttribs, context, _deps, data) as GeneratorNode;
       }
-      if (Common.isTemplateClass(fn)) {
+      if (preparedScope._isFor && Common.isTemplateClass(fn)) {
          return this.createTemplate(fn, resolvedScope, decorAttribs, context, _deps, data);
       }
       const nameFunc = isTplString ? tpl : 'InlineFunction';

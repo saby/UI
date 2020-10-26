@@ -104,6 +104,7 @@ export interface ICreateControlTemplateCfg {
    ctx: IControl;
    viewController: IControl;
    pName: string;
+   _isFor?: boolean;
 }
 
 // Данные контрола, собственные и служебные
@@ -121,6 +122,7 @@ export interface IControlUserData extends IControlProperties {
    __$config?: string;
    element?: unknown[];
    tabindex?: number;
+   _isFor?: boolean;
 }
 
 // Подготовка к созданию контрола
@@ -145,6 +147,7 @@ export interface IControlProperties {
    enabled: boolean;
    __key?: string;
    __noDirtyChecking?: boolean;
+   _isFor?: boolean;
 }
 
 // Базовый контрол

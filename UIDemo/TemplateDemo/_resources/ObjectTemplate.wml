@@ -1,0 +1,8 @@
+<div>
+    <div>
+        {{!objectGroups[item] ? '0' : '1'}}
+    </div>
+    <div>
+        {{objectGroups[item]}}
+    </div>
+</div>

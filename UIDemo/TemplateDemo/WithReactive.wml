@@ -1,8 +1,39 @@
 <div>
-    <div on:click="_clickHandler()">
-        Создать SPAN
+    <div>
+        <button on:click="_clickHandler()">
+            Создать SPAN
+        </button>
+        <button on:click="_clickHandler2()">
+            Изменить объект
+        </button>
+        <button on:click="_clickHandler3()">
+            Изменить массив
+        </button>
     </div>
-    <ws:for data="i in _spanCount">
-        <ws:partial template="{{ _spanTemplate }}" />
-    </ws:for>
+    <div>
+        <div>
+            Span тест
+        </div>
+        <ws:for data="i in _spanCount">
+            <ws:partial template="{{ _spanTemplate }}" />
+        </ws:for>
+    </div>
+    <div>
+        <div>
+            Object тест
+        </div>
+        <ws:for data="i in 100">
+            <ws:partial template="{{ _objectTemplate }}"
+                        objectGroups="{{ _objectGroups }}"
+                        item ="value"/>
+        </ws:for>
+
+    </div>
+    <div>
+        <div>
+            Array тест
+        </div>
+        <ws:partial template="{{ _arrayTemplate }}"
+                    arrayGroups="{{ _arrayGroups }}"/>
+    </div>
 </div>

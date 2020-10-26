@@ -1,0 +1,17 @@
+<div>
+    <ws:if data="{{arrayGroups[0]}}">
+        <div>
+            0
+        </div>
+    </ws:if>
+    <ws:if data="{{arrayGroups[1]}}">
+        <div>
+            1
+        </div>
+    </ws:if>
+    <ws:if data="{{arrayGroups[2]}}">
+        <div>
+            2
+        </div>
+    </ws:if>
+</div>
