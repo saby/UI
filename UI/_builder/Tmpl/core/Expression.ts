@@ -22,10 +22,6 @@ interface IExpressionStorage {
    [id: string]: ProgramNode;
 }
 
-interface IExpressionMap {
-   [expression: string]: string;
-}
-
 interface IExpressionDescription {
    isProcessed: boolean;
 }
@@ -44,11 +40,6 @@ class ExpressionRegistrar implements IExpressionRegistrar {
    private readonly storage: IExpressionStorage;
 
    /**
-    * Expressions map (string expression -> unique id)
-    */
-   private readonly map: IExpressionMap;
-
-   /**
     * Expressions descriptions (unique id -> description)
     */
    private readonly descriptions: IExpressionDescriptions;
@@ -60,17 +51,17 @@ class ExpressionRegistrar implements IExpressionRegistrar {
 
    constructor() {
       this.storage = { };
-      this.map = { };
       this.descriptions = { };
       this.counter = 0;
    }
 
    registerExpression(node: ProgramNode): string {
-      const rawExpression: string = node.string;
-      if (this.map.hasOwnProperty(rawExpression)) {
-         return this.map[rawExpression];
-      }
-      return this.addExpression(node);
+      const id = `${EXPRESSION_PREFIX}${this.counter++}`;
+      this.storage[id] = node;
+      this.descriptions[id] = {
+         isProcessed: false
+      };
+      return id;
    }
 
    getExpression(id: string): ProgramNode {
@@ -90,22 +81,11 @@ class ExpressionRegistrar implements IExpressionRegistrar {
       const unprocessedIds: string[] = [];
       for (const id in this.descriptions) {
          if (!this.descriptions[id].isProcessed) {
-            unprocessedIds.push(`(${id} -> "${this.storage[id].string}")`);
+            unprocessedIds.push(`(${id} -> ${this.storage[id].string})`);
          }
       }
       if (unprocessedIds.length > 0) {
          throw new Error(`Внутренняя ошибка шаблонизатора. Обнаружены выражения, которые не были вычислены: ${unprocessedIds.join(',')}`);
       }
-   }
-
-   private addExpression(node: ProgramNode): string {
-      const id = `${EXPRESSION_PREFIX}${this.counter++}`;
-      const rawExpression: string = node.string;
-      this.map[rawExpression] = id;
-      this.storage[id] = node;
-      this.descriptions[id] = {
-         isProcessed: false
-      };
-      return id;
    }
 }

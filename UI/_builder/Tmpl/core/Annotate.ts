@@ -407,6 +407,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          const expressions: Ast.ExpressionNode[] = node.accept(this, context);
          node.__$ws_internal = { };
          appendInternalExpressions(node.__$ws_internal, expressions);
+         // FIXME: lift identifiers up!
          node.__$ws_expressions = collectExpressionIds([], expressions);
       });
       const reactiveProperties: string[] = Object
@@ -513,6 +514,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       expressions = excludeIgnoredExpressions(expressions, ignoredIdentifiers);
       cleanIgnoredIdentifiersFromReactive(context.identifiersStore, ignoredIdentifiers);
       appendInternalExpressions(node.__$ws_internal, prevExpressions);
+      // FIXME: lift identifiers up!
       node.__$ws_expressions = collectExpressionIds(expressions, prevExpressions);
       return expressions;
    }
@@ -563,6 +565,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       );
       const prevExpressions = cyclePreprocess.expressions;
       const expressions = processAfterFor(cyclePreprocess, context);
+      // FIXME: lift identifiers up!
       node.__$ws_expressions = collectExpressionIds(expressions, prevExpressions);
       return expressions;
    }
@@ -576,6 +579,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       );
       const prevExpressions = cyclePreprocess.expressions;
       const expressions = processAfterForeach(cyclePreprocess, context);
+      // FIXME: lift identifiers up!
       node.__$ws_expressions = collectExpressionIds(expressions, prevExpressions);
       return expressions;
    }
@@ -602,6 +606,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       setRootNodeFlags(node.__$ws_content);
       node.__$ws_internal = { };
       appendInternalExpressions(node.__$ws_internal, expressions);
+      // FIXME: lift identifiers up!
       node.__$ws_expressions = collectExpressionIds([], expressions);
       return expressions;
    }
