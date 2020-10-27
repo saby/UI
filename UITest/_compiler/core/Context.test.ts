@@ -59,5 +59,43 @@ describe('Compiler/core/Context', () => {
          });
          assert.deepEqual(global.getPrograms(), programs);
       });
+      it('.getProgramIdentifiers()', () => {
+         const global = createProcessingContext();
+         const programs = [
+            parse('program1'),
+            parse('program2'),
+            parse('program3')
+         ];
+         const identifiers = [
+            '_$e0',
+            '_$e1',
+            '_$e2',
+         ];
+         programs.forEach((program: ProgramNode) => {
+            global.registerProgram(program);
+         });
+         assert.deepEqual(global.getProgramIdentifiers(), identifiers);
+      });
+      it('.getProgram()', () => {
+         const global = createProcessingContext();
+         const programs = [
+            parse('program1'),
+            parse('program2'),
+            parse('program3')
+         ];
+         const identifiers = [
+            '_$e0',
+            '_$e1',
+            '_$e2',
+         ];
+         programs.forEach((program: ProgramNode) => {
+            global.registerProgram(program);
+         });
+         for (let index = 0; index < 3; ++index) {
+            const id = identifiers[index];
+            const program = programs[index];
+            assert.strictEqual(global.getProgram(id), program);
+         }
+      });
    });
 });
