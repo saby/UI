@@ -654,7 +654,7 @@ export function getFullMarkup(
       if (result.children) {
          result = result.children;
       } else {
-         textNode('', result.attributes.key);
+         result = textNode('', result.attributes.key);
       }
    }
 
