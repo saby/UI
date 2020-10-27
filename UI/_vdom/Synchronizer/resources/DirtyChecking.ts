@@ -275,7 +275,7 @@ function getMarkupForTemplatedNode(vnode, controlNodes, environment) {
       /*return controlNodes "as is" without inner full markup
         it must be controlNode for dirty cheking
         */
-      var markup = getFullMarkup(controlNodes, result[k], true);
+      var markup = getFullMarkup(controlNodes, result[k], true, undefined, undefined, true);
       resultsFromTemplate = resultsFromTemplate.concat(Array.isArray(markup) ? markup : [markup]);
    }
    for (k = 0; k < resultsFromTemplate.length; k++) {
