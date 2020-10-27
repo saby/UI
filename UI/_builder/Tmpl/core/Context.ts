@@ -45,6 +45,17 @@ declare type IContext = IProcessingContext & IPrivateProcessingContext;
 
 const PROGRAM_PREFIX = '_$e';
 
+function hasBindings(program: ProgramNode): boolean {
+   if (typeof program.string !== 'string') {
+      return false;
+   }
+   return program.string.indexOf('|mutable') > -1 || program.string.indexOf('|bind') > -1;
+}
+
+function canRegisterProgram(program: ProgramNode): boolean {
+   return !hasBindings(program);
+}
+
 // </editor-fold>
 
 class ProcessingContext implements IContext {
@@ -77,6 +88,9 @@ class ProcessingContext implements IContext {
    }
 
    registerProgram(program: ProgramNode): void {
+      if (!canRegisterProgram(program)) {
+         return;
+      }
       const source = program.string;
       if (this.programsMap.hasOwnProperty(source)) {
          return;

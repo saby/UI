@@ -59,6 +59,17 @@ describe('Compiler/core/Context', () => {
          });
          assert.deepEqual(global.getPrograms(), programs);
       });
+      it('.registerProgram() bind/mutable', () => {
+         const global = createProcessingContext();
+         const programs = [
+            parse('"value1"|bind'),
+            parse('"value2"|mutable')
+         ];
+         programs.forEach((program: ProgramNode) => {
+            global.registerProgram(program);
+         });
+         assert.isEmpty(global.getPrograms());
+      });
       it('.getProgramIdentifiers()', () => {
          const global = createProcessingContext();
          const programs = [
