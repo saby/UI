@@ -14,9 +14,10 @@ export interface IProcessingContext {
    getIdentifiers(): string[];
 
    registerProgram(program: ProgramNode): void;
-
    getPrograms(): ProgramNode[];
-   getProgram(id: string): ProgramNode;
+
+   getProgramIdentifiers(): string[];
+   getProgram(id: string | null): ProgramNode | null;
 }
 
 export function createProcessingContext(): IProcessingContext {
@@ -32,32 +33,79 @@ interface IPrivateProcessingContext {
    addIdentifier(name: string): void;
 }
 
+interface IProgramStorage {
+   [id: string]: ProgramNode;
+}
+
+interface IProgramStorageMap {
+   [program: string]: string;
+}
+
 declare type IContext = IProcessingContext & IPrivateProcessingContext;
+
+const PROGRAM_PREFIX = '_$e';
 
 // </editor-fold>
 
 class ProcessingContext implements IContext {
 
+   private idCounter: number;
+
+   private readonly identifiers: string[];
+
+   private readonly programs: IProgramStorage;
+   private readonly programsMap: IProgramStorageMap;
+
+   constructor() {
+      this.idCounter = 0;
+      this.identifiers = [];
+      this.programs = { };
+      this.programsMap = { };
+   }
+
    // <editor-fold desc="Public interface implementation">
 
    declareIdentifier(name: string): void {
-      throw new Error('Not implemented yet');
+      if (this.identifiers.indexOf(name) > -1) {
+         throw new Error(`Переменная "${name}" уже определена`);
+      }
+      this.addIdentifier(name);
    }
 
    getIdentifiers(): string[] {
-      throw new Error('Not implemented yet');
+      return this.identifiers;
    }
 
    registerProgram(program: ProgramNode): void {
-      throw new Error('Not implemented yet');
+      const source = program.string;
+      if (this.programsMap.hasOwnProperty(source)) {
+         return;
+      }
+      const id = this.getNextId();
+      this.programsMap[source] = id;
+      this.programs[id] = program;
    }
 
    getPrograms(): ProgramNode[] {
-      throw new Error('Not implemented yet');
+      const expressions: ProgramNode[] = [];
+      for (const id in this.programs) {
+         expressions.push(this.programs[id]);
+      }
+      return expressions;
    }
 
-   getProgram(id: string): ProgramNode {
-      throw new Error('Not implemented yet');
+   getProgramIdentifiers(): string[] {
+      return Object.keys(this.programs);
+   }
+
+   getProgram(id: string | null): ProgramNode | null {
+      if (id === null) {
+         return null;
+      }
+      if (this.programs.hasOwnProperty(id)) {
+         return this.programs[id];
+      }
+      throw new Error(`Выражение с идентификатором "${id}" не было зарегистрировано`);
    }
 
    // </editor-fold>
@@ -65,11 +113,19 @@ class ProcessingContext implements IContext {
    // <editor-fold desc="Internal interface implementation">
 
    generateNextId(): string {
-      throw new Error('Not implemented yet');
+      return this.getNextId();
    }
 
    addIdentifier(name: string): void {
-      throw new Error('Not implemented yet');
+      this.identifiers.push(name);
+   }
+
+   // </editor-fold>
+
+   // <editor-fold desc="Private methods">
+
+   private getNextId(): string {
+      return `${PROGRAM_PREFIX}${this.idCounter++}`;
    }
 
    // </editor-fold>
