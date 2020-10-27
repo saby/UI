@@ -511,7 +511,10 @@ export function getFullMarkup(
    vnode: any,
    ignoreInnerComponent: any,
    currentFullMarkup?: any,
-   parentNode?: any
+   parentNode?: any,
+   // TODO ожидается, что функция может вернуть не VNode. А такого происходить не должно.
+   // Inferno может работать только с VNode
+   crutchAllowTemplateNode?: boolean
 ): any {
    let result;
    let i;
@@ -654,7 +657,9 @@ export function getFullMarkup(
       if (result.children) {
          result = result.children;
       } else {
-         result = textNode('', result.attributes.key);
+         if (!crutchAllowTemplateNode) {
+            result = textNode('', result.attributes.key);
+         }
       }
    }
 
