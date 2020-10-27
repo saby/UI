@@ -5,7 +5,6 @@ import Control from '../Control';
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Head');
 import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller';
-// @ts-ignore
 import { constants } from 'Env/Env';
 import { Head as AppHead } from 'Application/Page'
 import { headDataStore } from 'UI/_base/HeadData';
@@ -13,7 +12,8 @@ import { Stack } from 'UI/_base/HTML/meta';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
 import { default as TagMarkup, generateTagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
-import { JML, ITagDescription } from 'UI/_base/HTML/_meta/interface';
+import { JML } from 'UI/_base/HTML/_meta/interface';
+import { handlePrefetchModules } from 'UI/_base/HTML/PrefetchLinks';
 
 class Head extends Control<IHeadOptions> {
     _template: TemplateFunction = template;
@@ -78,10 +78,13 @@ class Head extends Control<IHeadOptions> {
             return;
         }
         return headDataStore.read('waitAppContent')()
-            .then(({ css }) => {
+            .then(({ js, css }) => {
                 const promise: Promise<void> = collectCSS(options.theme, css.simpleCss, css.themedCss)
                     .then((html) => { this.stylesHtml = `\n${html}\n`; })
                     .catch(onerror);
+
+                handlePrefetchModules(js);
+
                 /**
                  * Опросим HEAD API на предмет накопленного результата. Он будет массивом JML.
                  * Обработаем и добавим его к userTags
