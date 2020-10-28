@@ -128,7 +128,7 @@ function containsLocalIdentifiers(program: ProgramNode, local: string[]): boolea
    let hasLocalIdentifier = false;
    const callbacks = {
       Identifier: (data: IdentifierNode): void => {
-         if (local.indexOf(data.name)) {
+         if (local.indexOf(data.name) > -1) {
             hasLocalIdentifier = true;
          }
       }
@@ -289,6 +289,7 @@ class ProcessingContext implements IContext {
       if (!programContainsLocalIdentifiers && this.parent !== null) {
          return this.parent.hoistProgram(program);
       }
+      // TODO: Hoist identifiers as programs
       const key = this.generateNextKey();
       this.programsMap[source] = key;
       this.programs[key] = program;
