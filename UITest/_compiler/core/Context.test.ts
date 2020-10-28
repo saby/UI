@@ -211,5 +211,28 @@ describe('Compiler/core/Context', () => {
          assert.deepEqual(global.getIdentifiers(), expectedIdentifiers);
          assert.isEmpty(first.getIdentifiers());
       });
+      it('.getIdentifiers() nested', () => {
+         const global = createGlobalContext();
+         global.declareIdentifier('globalDeclaredIdent');
+         global.registerProgram(parse('globalDeclaredIdent + 1'));
+         global.registerProgram(parse('globalIdent'));
+
+         const first = global.createContext();
+         first.declareIdentifier('firstDeclaredIdent');
+         first.registerProgram(parse('firstDeclaredIdent + 1'));
+         first.registerProgram(parse('firstIdent'));
+
+         const expectedGlobalIdentifiers = [
+            'globalDeclaredIdent',
+            'globalIdent',
+            'firstIdent'
+         ];
+
+         const expectedFirstIdentifiers = [
+            'firstDeclaredIdent'
+         ];
+         assert.deepEqual(global.getIdentifiers(), expectedGlobalIdentifiers);
+         assert.deepEqual(first.getIdentifiers(), expectedFirstIdentifiers);
+      });
    });
 });
