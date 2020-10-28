@@ -70,6 +70,20 @@ describe('Compiler/core/Context', () => {
          });
          assert.isEmpty(global.getPrograms());
       });
+      it('.registerProgram() literals', () => {
+         const global = createProcessingContext();
+         const programs = [
+            parse('true'),
+            parse('12.3'),
+            parse('[1, 2, 3]'),
+            parse('{ "property": "value" }'),
+            parse('"string"')
+         ];
+         programs.forEach((program: ProgramNode) => {
+            global.registerProgram(program);
+         });
+         assert.isEmpty(global.getPrograms());
+      });
       it('.getProgramIdentifiers()', () => {
          const global = createProcessingContext();
          const programs = [
@@ -107,6 +121,34 @@ describe('Compiler/core/Context', () => {
             const program = programs[index];
             assert.strictEqual(global.getProgram(id), program);
          }
+      });
+      it('.getIdentifiers()', () => {
+         const global = createProcessingContext();
+         const identifiers = [
+            'ident1',
+            'ident2',
+            'ident3'
+         ];
+         identifiers.forEach((identifier: string) => {
+            global.declareIdentifier(identifier);
+         });
+         const programs = [
+            parse('ident1'),
+            parse('ident3[ident2].property'),
+            parse('ident4.handler(1, ident5) + ident6')
+         ];
+         programs.forEach((program: ProgramNode) => {
+            global.registerProgram(program);
+         });
+         const standardIdentifiers = [
+            'ident1',
+            'ident2',
+            'ident3',
+            'ident4',
+            'ident5',
+            'ident6'
+         ];
+         assert.deepEqual(global.getIdentifiers(), standardIdentifiers);
       });
    });
 });

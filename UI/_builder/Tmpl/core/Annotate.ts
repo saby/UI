@@ -91,6 +91,9 @@ function setRootNodeFlags(nodes: Ast.Ast[]): void {
    });
 }
 
+/**
+ * @deprecated
+ */
 function hasBindings(node: Ast.ExpressionNode): boolean {
    if (typeof node.__$ws_program.string !== 'string') {
       return false;
@@ -175,6 +178,9 @@ function excludeIgnoredExpressions(expressions: Ast.ExpressionNode[], ignoredIde
    return result;
 }
 
+/**
+ * @deprecated
+ */
 function collectIdentifiers(program: ProgramNode): string[] {
    const result: string[] = [];
    const callbacks = {

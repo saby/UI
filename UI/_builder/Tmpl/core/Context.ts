@@ -5,7 +5,7 @@
  * @file UI/_builder/Tmpl/core/Context.ts
  */
 
-import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
+import { IdentifierNode, ProgramNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 
 // <editor-fold desc="Public interfaces and functions">
 
@@ -14,10 +14,9 @@ export interface IProcessingContext {
    getIdentifiers(): string[];
 
    registerProgram(program: ProgramNode): void;
-   getPrograms(): ProgramNode[];
-
    getProgramIdentifiers(): string[];
    getProgram(id: string | null): ProgramNode | null;
+   getPrograms(): ProgramNode[];
 }
 
 export function createProcessingContext(): IProcessingContext {
@@ -53,12 +52,35 @@ function hasBindings(program: ProgramNode): boolean {
 }
 
 function canRegisterProgram(program: ProgramNode): boolean {
+   // Do not register program with bind and mutable decorators
    return !hasBindings(program);
 }
 
 // </editor-fold>
 
+// <editor-fold desc="Program walkers">
+
+const SCOPE_FILE_NAME = '[[Internal.scope]]';
+
+function collectIdentifiers(program: ProgramNode): string[] {
+   const result: string[] = [];
+   const callbacks = {
+      Identifier: (node: IdentifierNode): void => {
+         result.push(node.name);
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName: SCOPE_FILE_NAME
+   });
+   return result;
+}
+
+// </editor-fold>
+
 class ProcessingContext implements IContext {
+
+   // <editor-fold desc="Context properties">
 
    private idCounter: number;
 
@@ -66,6 +88,8 @@ class ProcessingContext implements IContext {
 
    private readonly programs: IProgramStorage;
    private readonly programsMap: IProgramStorageMap;
+
+   // </editor-fold>
 
    constructor() {
       this.idCounter = 0;
@@ -77,7 +101,7 @@ class ProcessingContext implements IContext {
    // <editor-fold desc="Public interface implementation">
 
    declareIdentifier(name: string): void {
-      if (this.identifiers.indexOf(name) > -1) {
+      if (this.hasIdentifier(name)) {
          throw new Error(`Переменная "${name}" уже определена`);
       }
       this.addIdentifier(name);
@@ -91,21 +115,13 @@ class ProcessingContext implements IContext {
       if (!canRegisterProgram(program)) {
          return;
       }
-      const source = program.string;
-      if (this.programsMap.hasOwnProperty(source)) {
+      const identifiers = collectIdentifiers(program);
+      // Do not register program without identifiers.
+      if (identifiers.length === 0) {
          return;
       }
-      const id = this.getNextId();
-      this.programsMap[source] = id;
-      this.programs[id] = program;
-   }
-
-   getPrograms(): ProgramNode[] {
-      const expressions: ProgramNode[] = [];
-      for (const id in this.programs) {
-         expressions.push(this.programs[id]);
-      }
-      return expressions;
+      this.addProgram(program);
+      this.addIdentifiers(identifiers);
    }
 
    getProgramIdentifiers(): string[] {
@@ -120,6 +136,14 @@ class ProcessingContext implements IContext {
          return this.programs[id];
       }
       throw new Error(`Выражение с идентификатором "${id}" не было зарегистрировано`);
+   }
+
+   getPrograms(): ProgramNode[] {
+      const expressions: ProgramNode[] = [];
+      for (const id in this.programs) {
+         expressions.push(this.programs[id]);
+      }
+      return expressions;
    }
 
    // </editor-fold>
@@ -140,6 +164,29 @@ class ProcessingContext implements IContext {
 
    private getNextId(): string {
       return `${PROGRAM_PREFIX}${this.idCounter++}`;
+   }
+
+   private addProgram(program: ProgramNode): void {
+      const source = program.string;
+      if (this.programsMap.hasOwnProperty(source)) {
+         return;
+      }
+      const id = this.getNextId();
+      this.programsMap[source] = id;
+      this.programs[id] = program;
+   }
+
+   private addIdentifiers(names: string[]): void {
+      names.forEach((name: string) => {
+         if (this.hasIdentifier(name)) {
+            return;
+         }
+         this.addIdentifier(name);
+      });
+   }
+
+   private hasIdentifier(name: string): boolean {
+      return this.identifiers.indexOf(name) > -1;
    }
 
    // </editor-fold>
