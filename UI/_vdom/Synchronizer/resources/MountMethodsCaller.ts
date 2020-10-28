@@ -237,10 +237,8 @@ export default class MountMethodsCaller {
             });
             return;
         }
-        delay((): void => {
-            this.afterUpdateProcess(controlNode, control, isDestroyed);
-            onEndLifecycle(controlNode.vnode || controlNode);
-        });
+        this.afterUpdateProcess(controlNode, control, isDestroyed);
+        onEndLifecycle(controlNode.vnode || controlNode);
         return;
     }
 }
