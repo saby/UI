@@ -84,7 +84,7 @@ describe('Compiler/core/Context', () => {
          });
          assert.isEmpty(global.getPrograms());
       });
-      it('.getProgramIdentifiers()', () => {
+      it('.getProgramKeys()', () => {
          const global = createProcessingContext();
          const programs = [
             parse('program1'),
@@ -99,7 +99,7 @@ describe('Compiler/core/Context', () => {
          programs.forEach((program: ProgramNode) => {
             global.registerProgram(program);
          });
-         assert.deepEqual(global.getProgramIdentifiers(), identifiers);
+         assert.deepEqual(global.getProgramKeys(), identifiers);
       });
       it('.getProgram()', () => {
          const global = createProcessingContext();

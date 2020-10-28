@@ -261,6 +261,9 @@ function getComponentName(component: Ast.BaseWasabyElement): string | null {
    return null;
 }
 
+/**
+ * @deprecated
+ */
 function processProgramNode(node: ProgramNode, context: IContext): Ast.ExpressionNode[] {
    const identifiers = collectIdentifiers(node);
    identifiers.forEach((identifier: string) => {

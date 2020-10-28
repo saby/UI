@@ -14,8 +14,8 @@ export interface IProcessingContext {
    getIdentifiers(): string[];
 
    registerProgram(program: ProgramNode): void;
-   getProgramIdentifiers(): string[];
-   getProgram(id: string | null): ProgramNode | null;
+   getProgramKeys(): string[];
+   getProgram(key: string | null): ProgramNode | null;
    getPrograms(): ProgramNode[];
 }
 
@@ -28,12 +28,12 @@ export function createProcessingContext(): IProcessingContext {
 // <editor-fold desc="Internal interfaces and functions">
 
 interface IPrivateProcessingContext {
-   generateNextId(): string;
+   generateNextKey(): string;
    addIdentifier(name: string): void;
 }
 
 interface IProgramStorage {
-   [id: string]: ProgramNode;
+   [key: string]: ProgramNode;
 }
 
 interface IProgramStorageMap {
@@ -82,7 +82,7 @@ class ProcessingContext implements IContext {
 
    // <editor-fold desc="Context properties">
 
-   private idCounter: number;
+   private keysCounter: number;
 
    private readonly identifiers: string[];
 
@@ -92,7 +92,7 @@ class ProcessingContext implements IContext {
    // </editor-fold>
 
    constructor() {
-      this.idCounter = 0;
+      this.keysCounter = 0;
       this.identifiers = [];
       this.programs = { };
       this.programsMap = { };
@@ -124,33 +124,30 @@ class ProcessingContext implements IContext {
       this.addIdentifiers(identifiers);
    }
 
-   getProgramIdentifiers(): string[] {
+   getProgramKeys(): string[] {
       return Object.keys(this.programs);
    }
 
-   getProgram(id: string | null): ProgramNode | null {
-      if (id === null) {
+   getProgram(key: string | null): ProgramNode | null {
+      if (key === null) {
          return null;
       }
-      if (this.programs.hasOwnProperty(id)) {
-         return this.programs[id];
+      if (this.programs.hasOwnProperty(key)) {
+         return this.programs[key];
       }
-      throw new Error(`Выражение с идентификатором "${id}" не было зарегистрировано`);
+      throw new Error(`Выражение с ключом "${key}" не было зарегистрировано`);
    }
 
    getPrograms(): ProgramNode[] {
-      const expressions: ProgramNode[] = [];
-      for (const id in this.programs) {
-         expressions.push(this.programs[id]);
-      }
-      return expressions;
+      // @ts-ignore This function exists on Object constructor and it has polyfill.
+      return Object.values(this.programs);
    }
 
    // </editor-fold>
 
    // <editor-fold desc="Internal interface implementation">
 
-   generateNextId(): string {
+   generateNextKey(): string {
       return this.getNextId();
    }
 
@@ -163,7 +160,7 @@ class ProcessingContext implements IContext {
    // <editor-fold desc="Private methods">
 
    private getNextId(): string {
-      return `${PROGRAM_PREFIX}${this.idCounter++}`;
+      return `${PROGRAM_PREFIX}${this.keysCounter++}`;
    }
 
    private addProgram(program: ProgramNode): void {
@@ -171,9 +168,9 @@ class ProcessingContext implements IContext {
       if (this.programsMap.hasOwnProperty(source)) {
          return;
       }
-      const id = this.getNextId();
-      this.programsMap[source] = id;
-      this.programs[id] = program;
+      const key = this.generateNextKey();
+      this.programsMap[source] = key;
+      this.programs[key] = program;
    }
 
    private addIdentifiers(names: string[]): void {
