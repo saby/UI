@@ -52,10 +52,10 @@ export default class MountMethodsCaller {
         return [control, isDestroyed, childNodes, isChanged];
     }
 
-    private afterMountProcess(controlNode: IControlNode, control: Control): void {
+    private afterMountProcess(controlNode: IControlNode, control: Control, isDestroyed: boolean): void {
         // tslint:disable-next-line:ban-ts-ignore
         // @ts-ignore
-        if (control._destroyed) {
+        if (isDestroyed) {
             return;
         }
         try {
@@ -72,6 +72,28 @@ export default class MountMethodsCaller {
             this.forceUpdateIfNeed(control);
         } catch (error) {
             Logger.lifeError('_afterMount', control, error);
+        }
+    }
+
+    private afterUpdateProcess(controlNode: IControlNode, control: Control, isDestroyed: boolean): void {
+        // tslint:disable-next-line:ban-ts-ignore
+        // @ts-ignore
+        if (isDestroyed) {
+            return;
+        }
+        try {
+            // tslint:disable-next-line:ban-ts-ignore
+            // @ts-ignore
+            if (typeof control._afterUpdate === 'function') {
+                // tslint:disable-next-line:ban-ts-ignore
+                // @ts-ignore
+                control._afterUpdate(controlNode.oldOptions || controlNode.options, controlNode.oldContext);
+            }
+            this.forceUpdateIfNeed(control);
+        } catch (error) {
+            Logger.lifeError('_afterUpdate', control, error);
+        } finally {
+            delete controlNode.oldOptions;
         }
     }
 
@@ -207,32 +229,18 @@ export default class MountMethodsCaller {
             this.forceUpdateIfNeed(control);
             return;
         }
-
         onStartLifecycle(controlNode.vnode || controlNode);
         if (this.isBeforeMount(control)) {
-            this.afterMountProcess(controlNode, control);
-            onEndLifecycle(controlNode.vnode || controlNode);
+            delay((): void => {
+                this.afterMountProcess(controlNode, control, isDestroyed);
+                onEndLifecycle(controlNode.vnode || controlNode);
+            });
             return;
         }
-        try {
-            if (!isDestroyed) {
-                // tslint:disable-next-line:ban-ts-ignore
-                // @ts-ignore
-                if (typeof control._afterUpdate === 'function') {
-                    // tslint:disable-next-line:ban-ts-ignore
-                    // @ts-ignore
-                    control._afterUpdate(
-                        controlNode.oldOptions || controlNode.options,
-                        controlNode.oldContext
-                    );
-                }
-                this.forceUpdateIfNeed(control);
-            }
-        } catch (error) {
-            Logger.lifeError('_afterUpdate', controlNode.control, error);
-        } finally {
-            delete controlNode.oldOptions;
-        }
-        onEndLifecycle(controlNode.vnode || controlNode);
+        delay((): void => {
+            this.afterUpdateProcess(controlNode, control, isDestroyed);
+            onEndLifecycle(controlNode.vnode || controlNode);
+        });
+        return;
     }
 }
