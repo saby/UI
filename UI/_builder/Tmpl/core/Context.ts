@@ -6,9 +6,14 @@
  */
 
 import { ProgramNode, IdentifierNode, MemberExpressionNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
-import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
+import { IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 
 // <editor-fold desc="Public interfaces and functions">
+
+export interface IProcessingContextConfig {
+   fileName: string;
+   parser: IParser;
+}
 
 export interface IProcessingContext {
    createContext(): IProcessingContext;
@@ -28,8 +33,8 @@ export interface IProcessingContext {
    getPrograms(): ProgramNode[];
 }
 
-export function createGlobalContext(): IProcessingContext {
-   return new ProcessingContext(null);
+export function createGlobalContext(config: IProcessingContextConfig): IProcessingContext {
+   return new ProcessingContext(config, null);
 }
 
 // </editor-fold>
@@ -81,13 +86,7 @@ function canRegisterProgram(program: ProgramNode): boolean {
 
 // <editor-fold desc="Program walkers">
 
-// FIXME: Accept fileName from config
-const SCOPE_FILE_NAME = '[[Internal.scope]]';
-
-// FIXME: Accept parser from config
-const PARSER = new Parser();
-
-function collectIdentifiers(program: ProgramNode): string[] {
+function collectIdentifiers(program: ProgramNode, fileName: string): string[] {
    const identifiers: string[] = [];
    const callbacks = {
       Identifier: (node: IdentifierNode): void => {
@@ -100,35 +99,35 @@ function collectIdentifiers(program: ProgramNode): string[] {
    };
    const walker = new Walker(callbacks);
    program.accept(walker, {
-      fileName: SCOPE_FILE_NAME
+      fileName
    });
    return identifiers;
 }
 
-function dropBindProgram(program: ProgramNode): ProgramNode[] {
+function dropBindProgram(program: ProgramNode, parser: IParser, fileName: string): ProgramNode[] {
    const programs: ProgramNode[] = [];
    const callbacks = {
       Identifier: (node: IdentifierNode): void => {
          programs.push(
-            PARSER.parse(node.name)
+            parser.parse(node.name)
          );
       },
       MemberExpression: (node: MemberExpressionNode): void => {
          programs.push(
-            PARSER.parse(node.string)
+            parser.parse(node.string)
          );
       }
    };
    const walker = new Walker(callbacks);
    program.accept(walker, {
-      fileName: SCOPE_FILE_NAME
+      fileName
    });
    // We need to return value-program and object-program.
    // Ex. for "a.b.c.d.e" we only return "a.b.c.d" and "a.b.c.d.e".
    return programs.slice(-2);
 }
 
-function containsLocalIdentifiers(program: ProgramNode, local: string[]): boolean {
+function containsLocalIdentifiers(program: ProgramNode, local: string[], fileName: string): boolean {
    let hasLocalIdentifier = false;
    const callbacks = {
       Identifier: (data: IdentifierNode): void => {
@@ -139,7 +138,7 @@ function containsLocalIdentifiers(program: ProgramNode, local: string[]): boolea
    };
    const walker = new Walker(callbacks);
    program.accept(walker, {
-      fileName: SCOPE_FILE_NAME
+      fileName
    });
    return hasLocalIdentifier;
 }
@@ -150,8 +149,11 @@ class ProcessingContext implements IContext {
 
    // <editor-fold desc="Context properties">
 
-   private readonly parent: IContext | null;
    private keysCounter: number;
+
+   private readonly fileName: string;
+   private readonly parser: IParser;
+   private readonly parent: IContext | null;
 
    private readonly identifiers: string[];
 
@@ -160,9 +162,11 @@ class ProcessingContext implements IContext {
 
    // </editor-fold>
 
-   constructor(parent: IContext | null) {
-      this.parent = parent;
+   constructor(config: IProcessingContextConfig, parent: IContext | null) {
       this.keysCounter = 0;
+      this.fileName = config.fileName;
+      this.parser = config.parser;
+      this.parent = parent;
       this.identifiers = [];
       this.programs = { };
       this.programsMap = { };
@@ -171,7 +175,11 @@ class ProcessingContext implements IContext {
    // <editor-fold desc="Public interface implementation">
 
    createContext(): IProcessingContext {
-      return new ProcessingContext(this);
+      const config: IProcessingContextConfig = {
+         fileName: this.fileName,
+         parser: this.parser
+      };
+      return new ProcessingContext(config, this);
    }
 
    declareIdentifier(name: string): void {
@@ -193,27 +201,31 @@ class ProcessingContext implements IContext {
    }
 
    registerBindProgram(program: ProgramNode): void {
-      const programs = dropBindProgram(program);
+      const programs = dropBindProgram(program, this.parser, this.fileName);
       programs.forEach((program: ProgramNode) => {
          this.registerProgram(program);
       });
    }
 
    registerEventProgram(program: ProgramNode): void {
-      const identifiers = collectIdentifiers(program);
-      this.hoistIdentifiers(identifiers);
+      const identifiers = collectIdentifiers(program, this.fileName);
+      identifiers.forEach((identifier: string) => {
+         this.hoistIdentifier(identifier);
+      });
    }
 
    registerProgram(program: ProgramNode): void {
       if (!canRegisterProgram(program)) {
          return;
       }
-      const identifiers = collectIdentifiers(program);
+      const identifiers = collectIdentifiers(program, this.fileName);
       // Do not register program without identifiers.
       if (identifiers.length === 0) {
          return;
       }
-      this.hoistIdentifiers(identifiers);
+      identifiers.forEach((identifier: string) => {
+         this.hoistIdentifier(identifier);
+      });
       this.hoistProgram(program);
    }
 
@@ -285,7 +297,7 @@ class ProcessingContext implements IContext {
       if (this.programsMap.hasOwnProperty(source)) {
          return;
       }
-      const programContainsLocalIdentifiers = containsLocalIdentifiers(program, this.identifiers);
+      const programContainsLocalIdentifiers = containsLocalIdentifiers(program, this.identifiers, this.fileName);
       if (!programContainsLocalIdentifiers && this.parent !== null) {
          return this.parent.hoistProgram(program);
       }
@@ -307,16 +319,6 @@ class ProcessingContext implements IContext {
          return this.parent.collectIdentifiers(result);
       }
       return result;
-   }
-
-   // </editor-fold>
-
-   // <editor-fold desc="Private methods">
-
-   private hoistIdentifiers(names: string[]): void {
-      names.forEach((name: string) => {
-         this.hoistIdentifier(name);
-      });
    }
 
    // </editor-fold>
