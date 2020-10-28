@@ -5,7 +5,7 @@
  * @file UI/_builder/Tmpl/core/Context.ts
  */
 
-import { IdentifierNode, MemberExpressionNode, ProgramNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
+import { ProgramNode, IdentifierNode, MemberExpressionNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 
 // <editor-fold desc="Public interfaces and functions">
@@ -36,7 +36,7 @@ export function createGlobalContext(): IProcessingContext {
 
 // <editor-fold desc="Internal interfaces and functions">
 
-interface IPrivateProcessingContext {
+interface IContext extends IProcessingContext {
    generateNextKey(): string;
    hoistIdentifier(name: string): void;
    hoistProgram(program: ProgramNode): void;
@@ -49,8 +49,6 @@ interface IProgramStorage {
 interface IProgramStorageMap {
    [program: string]: string;
 }
-
-declare type IContext = IProcessingContext & IPrivateProcessingContext;
 
 const PROGRAM_PREFIX = '_$e';
 
@@ -82,35 +80,40 @@ function canRegisterProgram(program: ProgramNode): boolean {
 
 // <editor-fold desc="Program walkers">
 
+// FIXME: Accept fileName from config
 const SCOPE_FILE_NAME = '[[Internal.scope]]';
 
-// TODO: Accept parser from config
+// FIXME: Accept parser from config
 const PARSER = new Parser();
 
 function collectIdentifiers(program: ProgramNode): string[] {
-   const result: string[] = [];
+   const identifiers: string[] = [];
    const callbacks = {
       Identifier: (node: IdentifierNode): void => {
-         result.push(node.name);
+         const identifier = node.name;
+         // Do not produce duplicates
+         if (identifiers.indexOf(identifier) === -1) {
+            identifiers.push(node.name);
+         }
       }
    };
    const walker = new Walker(callbacks);
    program.accept(walker, {
       fileName: SCOPE_FILE_NAME
    });
-   return result;
+   return identifiers;
 }
 
 function dropBindProgram(program: ProgramNode): ProgramNode[] {
-   const result: ProgramNode[] = [];
+   const programs: ProgramNode[] = [];
    const callbacks = {
       Identifier: (node: IdentifierNode): void => {
-         result.push(
+         programs.push(
             PARSER.parse(node.name)
          );
       },
       MemberExpression: (node: MemberExpressionNode): void => {
-         result.push(
+         programs.push(
             PARSER.parse(node.string)
          );
       }
@@ -121,7 +124,7 @@ function dropBindProgram(program: ProgramNode): ProgramNode[] {
    });
    // We need to return value-program and object-program.
    // Ex. for "a.b.c.d.e" we only return "a.b.c.d" and "a.b.c.d.e".
-   return result.slice(-2);
+   return programs.slice(-2);
 }
 
 function containsLocalIdentifiers(program: ProgramNode, local: string[]): boolean {
