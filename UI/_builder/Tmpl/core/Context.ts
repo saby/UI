@@ -202,16 +202,12 @@ class ProcessingContext implements IContext {
 
    registerBindProgram(program: ProgramNode): void {
       const programs = dropBindProgram(program, this.parser, this.fileName);
-      programs.forEach((program: ProgramNode) => {
-         this.registerProgram(program);
-      });
+      this.registerPrograms(programs);
    }
 
    registerEventProgram(program: ProgramNode): void {
       const identifiers = collectIdentifiers(program, this.fileName);
-      identifiers.forEach((identifier: string) => {
-         this.hoistIdentifier(identifier);
-      });
+      this.hoistIdentifiers(identifiers);
    }
 
    registerProgram(program: ProgramNode): void {
@@ -223,9 +219,8 @@ class ProcessingContext implements IContext {
       if (identifiers.length === 0) {
          return;
       }
-      identifiers.forEach((identifier: string) => {
-         this.hoistIdentifier(identifier);
-      });
+      this.hoistIdentifiers(identifiers);
+      this.hoistIdentifiersAsPrograms(identifiers);
       this.hoistProgram(program);
    }
 
@@ -301,10 +296,7 @@ class ProcessingContext implements IContext {
       if (!programContainsLocalIdentifiers && this.parent !== null) {
          return this.parent.hoistProgram(program);
       }
-      // TODO: Hoist identifiers as programs
-      const key = this.generateNextKey();
-      this.programsMap[source] = key;
-      this.programs[key] = program;
+      this.commitProgram(program);
    }
 
    collectIdentifiers(identifiers: string[] = []): string[] {
@@ -322,4 +314,45 @@ class ProcessingContext implements IContext {
    }
 
    // </editor-fold>
+
+   private commitProgram(program: ProgramNode): void {
+      const source = program.string;
+      const key = this.generateNextKey();
+      this.programsMap[source] = key;
+      this.programs[key] = program;
+   }
+
+   private registerPrograms(programs: ProgramNode[]): void {
+      programs.forEach((program: ProgramNode) => {
+         this.registerProgram(program);
+      });
+   }
+
+   private hoistIdentifiers(identifiers: string[]): void {
+      identifiers.forEach((identifier: string) => {
+         this.hoistIdentifier(identifier);
+      });
+   }
+
+   private hoistPrograms(programs: ProgramNode[]): void {
+      programs.forEach((program: ProgramNode) => {
+         this.hoistProgram(program);
+      });
+   }
+
+   private hoistIdentifiersAsPrograms(identifiers: string[]): void {
+      const programs: ProgramNode[] = [];
+      let hasLocalIdentifiers: boolean = false;
+      identifiers.forEach((identifier: string) => {
+         if (this.identifiers.indexOf(identifier) > -1) {
+            hasLocalIdentifiers = true;
+            return;
+         }
+         const program = this.parser.parse(identifier);
+         programs.push(program);
+      });
+      if (hasLocalIdentifiers) {
+         this.hoistPrograms(programs);
+      }
+   }
 }

@@ -421,5 +421,26 @@ describe('Compiler/core/Context', () => {
          assert.isEmpty(first.getPrograms());
          assert.isEmpty(first.getLocalPrograms());
       });
+      it('Register identifiers/programs and check programs', () => {
+         const global = createGlobalContext(CONFIG);
+         const first = global.createContext();
+         first.declareIdentifier('first_identifier');
+         first.registerProgram(parse('first_identifier + global_identifier'));
+         first.registerProgram(parse('other_identifier'));
+
+         const globalIdentifiers = [
+            'global_identifier',
+            'other_identifier'
+         ];
+         const stringGlobalPrograms = [
+            'global_identifier',
+            'other_identifier'
+         ];
+         assert.deepEqual(global.getIdentifiers(), globalIdentifiers);
+         const actualStringPrograms = global.getPrograms().map((program: ProgramNode) => program.string);
+         const actualStringLocalPrograms = global.getLocalPrograms().map((program: ProgramNode) => program.string);
+         assert.deepEqual(actualStringPrograms, stringGlobalPrograms);
+         assert.deepEqual(actualStringLocalPrograms, stringGlobalPrograms);
+      });
    });
 });
