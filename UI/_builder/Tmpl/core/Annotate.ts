@@ -195,6 +195,9 @@ function collectIdentifiers(program: ProgramNode): string[] {
    return result;
 }
 
+/**
+ * @deprecated
+ */
 function collectDroppedExpressions(program: ProgramNode): ProgramNode[] {
    const result: ProgramNode[] = [];
    const callbacks = {

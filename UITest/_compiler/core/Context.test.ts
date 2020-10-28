@@ -150,5 +150,20 @@ describe('Compiler/core/Context', () => {
          ];
          assert.deepEqual(global.getIdentifiers(), standardIdentifiers);
       });
+      it('.registerBindProgram()', () => {
+         const global = createProcessingContext();
+         const bindProgram = parse('ident.b.c.d');
+         global.registerBindProgram(bindProgram);
+         const identifiers = [
+            'ident'
+         ];
+         const stringPrograms = [
+            'ident.b.c',
+            'ident.b.c.d'
+         ];
+         assert.deepEqual(global.getIdentifiers(), identifiers);
+         const actualStringPrograms = global.getPrograms().map((program: ProgramNode) => program.string);
+         assert.deepEqual(actualStringPrograms, stringPrograms);
+      });
    });
 });

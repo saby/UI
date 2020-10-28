@@ -6,6 +6,7 @@
  */
 
 import { IdentifierNode, ProgramNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
+import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 
 // <editor-fold desc="Public interfaces and functions">
 
@@ -13,7 +14,9 @@ export interface IProcessingContext {
    declareIdentifier(name: string): void;
    getIdentifiers(): string[];
 
+   registerBindProgram(program: ProgramNode): void;
    registerProgram(program: ProgramNode): void;
+
    getProgramKeys(): string[];
    getProgram(key: string | null): ProgramNode | null;
    getPrograms(): ProgramNode[];
@@ -62,6 +65,9 @@ function canRegisterProgram(program: ProgramNode): boolean {
 
 const SCOPE_FILE_NAME = '[[Internal.scope]]';
 
+// TODO: Accept parser from config
+const PARSER = new Parser();
+
 function collectIdentifiers(program: ProgramNode): string[] {
    const result: string[] = [];
    const callbacks = {
@@ -74,6 +80,29 @@ function collectIdentifiers(program: ProgramNode): string[] {
       fileName: SCOPE_FILE_NAME
    });
    return result;
+}
+
+function dropBindProgram(program: ProgramNode): ProgramNode[] {
+   const result: ProgramNode[] = [];
+   const callbacks = {
+      Identifier: (node: any): any => {
+         result.push(
+            PARSER.parse(node.name)
+         );
+      },
+      MemberExpression: (node: any): any => {
+         result.push(
+            PARSER.parse(node.string)
+         );
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName: SCOPE_FILE_NAME
+   });
+   // We need to return value-program and object-program.
+   // Ex. for "a.b.c.d.e" we only return "a.b.c.d" and "a.b.c.d.e".
+   return result.slice(-2);
 }
 
 // </editor-fold>
@@ -109,6 +138,13 @@ class ProcessingContext implements IContext {
 
    getIdentifiers(): string[] {
       return this.identifiers;
+   }
+
+   registerBindProgram(program: ProgramNode): void {
+      const programs = dropBindProgram(program);
+      programs.forEach((program: ProgramNode) => {
+         this.registerProgram(program);
+      });
    }
 
    registerProgram(program: ProgramNode): void {
