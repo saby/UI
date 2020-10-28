@@ -165,5 +165,19 @@ describe('Compiler/core/Context', () => {
          const actualStringPrograms = global.getPrograms().map((program: ProgramNode) => program.string);
          assert.deepEqual(actualStringPrograms, stringPrograms);
       });
+      it('.registerEventProgram()', () => {
+         const global = createProcessingContext();
+         const bindProgram = parse('a.b.c(d, e.f, g[h])');
+         global.registerEventProgram(bindProgram);
+         const identifiers = [
+            'a',
+            'd',
+            'e',
+            'g',
+            'h'
+         ];
+         assert.deepEqual(global.getIdentifiers(), identifiers);
+         assert.isEmpty(global.getPrograms());
+      });
    });
 });

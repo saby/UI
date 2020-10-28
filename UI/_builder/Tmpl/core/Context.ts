@@ -15,6 +15,7 @@ export interface IProcessingContext {
    getIdentifiers(): string[];
 
    registerBindProgram(program: ProgramNode): void;
+   registerEventProgram(program: ProgramNode): void;
    registerProgram(program: ProgramNode): void;
 
    getProgramKeys(): string[];
@@ -145,6 +146,11 @@ class ProcessingContext implements IContext {
       programs.forEach((program: ProgramNode) => {
          this.registerProgram(program);
       });
+   }
+
+   registerEventProgram(program: ProgramNode): void {
+      const identifiers = collectIdentifiers(program);
+      this.addIdentifiers(identifiers);
    }
 
    registerProgram(program: ProgramNode): void {
