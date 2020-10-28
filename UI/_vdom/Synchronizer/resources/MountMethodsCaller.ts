@@ -102,7 +102,7 @@ export default class MountMethodsCaller {
                     }
                 }
                 onEndLifecycle(controlNode.vnode || controlNode);
-                return;
+                continue;
             }
             try {
                 // tslint:disable-next-line:ban-ts-ignore
@@ -180,7 +180,7 @@ export default class MountMethodsCaller {
                     this.afterMountProcess(controlNode, control);
                 }
                 onEndLifecycle(controlNode.vnode || controlNode);
-                return;
+                continue;
             }
             try {
                 // tslint:disable-next-line:ban-ts-ignore
