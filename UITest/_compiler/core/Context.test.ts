@@ -191,14 +191,9 @@ describe('Compiler/core/Context', () => {
          first.registerProgram(parse('firstIdent'));
          actualKeys = actualKeys.concat(first.getProgramKeys());
 
-         const second = first.createContext();
-         second.registerProgram(parse('secondIdent'));
-         actualKeys = actualKeys.concat(second.getProgramKeys());
-
          const expectedKeys = [
             '_$e0',
-            '_$e1',
-            '_$e2'
+            '_$e1'
          ];
          assert.deepEqual(actualKeys, expectedKeys);
       });
@@ -209,17 +204,12 @@ describe('Compiler/core/Context', () => {
          const first = global.createContext();
          first.registerProgram(parse('firstIdent'));
 
-         const second = first.createContext();
-         second.registerProgram(parse('secondIdent'));
-
          const expectedIdentifiers = [
             'globalIdent',
-            'firstIdent',
-            'secondIdent'
+            'firstIdent'
          ];
          assert.deepEqual(global.getIdentifiers(), expectedIdentifiers);
          assert.isEmpty(first.getIdentifiers());
-         assert.isEmpty(second.getIdentifiers());
       });
    });
 });

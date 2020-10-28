@@ -118,6 +118,9 @@ function appendInternalExpressions(internal: Ast.IInternal, expressions: Ast.Exp
    }
 }
 
+/**
+ * @deprecated
+ */
 function collectNonIgnoredIdentifiers(expression: Ast.ExpressionNode, ignoredIdentifiers: IStorage): Ast.ExpressionNode[] {
    let hasIgnored = false;
    const identifiersAsExpressions: Ast.ExpressionNode[] = [];
@@ -280,6 +283,9 @@ function processProgramNode(node: ProgramNode, context: IContext): Ast.Expressio
    ];
 }
 
+/**
+ * @deprecated
+ */
 function addIgnoredIdentifiers(program: ProgramNode, ignoredIdentifiers: IStorage): string[] {
    const identifiers = collectIdentifiers(program);
    identifiers.forEach((identifier: string) => {
@@ -356,6 +362,9 @@ function processAfterForeach(cyclePreprocess: ICyclePreprocess, context: IContex
    return cyclePreprocess.expressions;
 }
 
+/**
+ * @deprecated
+ */
 function cleanIgnoredIdentifiersFromReactive(identifiersStore: IStorage, ignoredIdentifiers: IStorage): void {
    for (const ignoredIdentifier in ignoredIdentifiers) {
       if (identifiersStore[ignoredIdentifier]) {
