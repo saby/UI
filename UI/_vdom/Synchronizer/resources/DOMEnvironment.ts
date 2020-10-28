@@ -554,8 +554,8 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
       BoundaryElements.insertBoundaryElements(this, vnode);
 
-      // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-      mountMethodsCaller.beforeRender(newRootCntNode, rebuildChanges);
+      const controlNodesToCall = mountMethodsCaller.collectControlNodesToCall(newRootCntNode, rebuildChanges);
+      mountMethodsCaller.beforeRender(controlNodesToCall);
 
       this._rootDOMNode.isRoot = true;
       try {
@@ -577,10 +577,8 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             // @ts-ignore FIXME: Unknown $
             control._container = window.$ ? $(newRootDOMNode) : newRootDOMNode;
          }
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.afterRender(newRootCntNode, rebuildChanges);
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.beforePaint(newRootCntNode, rebuildChanges);
+         mountMethodsCaller.afterRender(controlNodesToCall);
+         mountMethodsCaller.beforePaint(controlNodesToCall);
          delay(() => {
             //останавливать должны, только если запущено, иначе получается так,
             // что это предыдущая фаза синхронизации и она прерывает следующую
@@ -611,7 +609,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
                   control.reviveSuperOldControls();
                }
             }
-            mountMethodsCaller.afterUpdate(newRootCntNode, rebuildChanges);
+            mountMethodsCaller.afterUpdate(mountMethodsCaller.collectControlNodesToCall(newRootCntNode, rebuildChanges));
 
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
             newRootCntNode.environment._rebuildRequestStarted = false;
@@ -633,11 +631,10 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
             delete newRootCntNode.environment._asyncOngoing;
          }
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.afterRender(newRootCntNode, rebuildChanges);
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.beforePaint(newRootCntNode, rebuildChanges);
-         mountMethodsCaller.afterUpdate(newRootCntNode, rebuildChanges);
+
+         mountMethodsCaller.afterRender(controlNodesToCall);
+         mountMethodsCaller.beforePaint(controlNodesToCall);
+         mountMethodsCaller.afterUpdate(controlNodesToCall);
 
          delay(() => {
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
