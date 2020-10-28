@@ -155,6 +155,9 @@ function wrestNonIgnoredIdentifiers(expressions: Ast.ExpressionNode[], ignoredId
    return identifiersAsExpressions;
 }
 
+/**
+ * @deprecated
+ */
 function hasIgnoredIdentifier(expression: Ast.ExpressionNode, ignoredIdentifiers: IStorage): boolean {
    let hasIgnored = false;
    const callbacks = {
@@ -171,6 +174,9 @@ function hasIgnoredIdentifier(expression: Ast.ExpressionNode, ignoredIdentifiers
    return hasIgnored;
 }
 
+/**
+ * @deprecated
+ */
 function excludeIgnoredExpressions(expressions: Ast.ExpressionNode[], ignoredIdentifiers: IStorage): Ast.ExpressionNode[] {
    const result: Ast.ExpressionNode[] = [];
    for (let index = 0; index < expressions.length; ++index) {

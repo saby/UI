@@ -39,6 +39,7 @@ export function createGlobalContext(): IProcessingContext {
 interface IPrivateProcessingContext {
    generateNextKey(): string;
    hoistIdentifier(name: string): void;
+   hoistProgram(program: ProgramNode): void;
 }
 
 interface IProgramStorage {
@@ -123,6 +124,22 @@ function dropBindProgram(program: ProgramNode): ProgramNode[] {
    return result.slice(-2);
 }
 
+function containsLocalIdentifiers(program: ProgramNode, local: string[]): boolean {
+   let hasLocalIdentifier = false;
+   const callbacks = {
+      Identifier: (data: IdentifierNode): void => {
+         if (local.indexOf(data.name)) {
+            hasLocalIdentifier = true;
+         }
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName: SCOPE_FILE_NAME
+   });
+   return hasLocalIdentifier;
+}
+
 // </editor-fold>
 
 class ProcessingContext implements IContext {
@@ -196,8 +213,8 @@ class ProcessingContext implements IContext {
       if (identifiers.length === 0) {
          return;
       }
-      this.addProgram(program);
       this.hoistIdentifiers(identifiers);
+      this.hoistProgram(program);
    }
 
    getLocalProgramKeys(): string[] {
@@ -263,23 +280,26 @@ class ProcessingContext implements IContext {
       this.identifiers.push(name);
    }
 
+   hoistProgram(program: ProgramNode): void {
+      const source = program.string;
+      if (this.programsMap.hasOwnProperty(source)) {
+         return;
+      }
+      const programContainsLocalIdentifiers = containsLocalIdentifiers(program, this.identifiers);
+      if (!programContainsLocalIdentifiers && this.parent !== null) {
+         return this.parent.hoistProgram(program);
+      }
+      const key = this.generateNextKey();
+      this.programsMap[source] = key;
+      this.programs[key] = program;
+   }
+
    // </editor-fold>
 
    // <editor-fold desc="Private methods">
 
    private getNextId(): string {
       return `${PROGRAM_PREFIX}${this.keysCounter++}`;
-   }
-
-   private addProgram(program: ProgramNode): void {
-      const source = program.string;
-      if (this.programsMap.hasOwnProperty(source)) {
-         return;
-      }
-      // TODO: check context identifiers in program, wrest program and hoist its available parts to global context
-      const key = this.generateNextKey();
-      this.programsMap[source] = key;
-      this.programs[key] = program;
    }
 
    private hoistIdentifiers(names: string[]): void {
