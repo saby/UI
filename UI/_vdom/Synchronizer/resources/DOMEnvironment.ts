@@ -637,9 +637,9 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          mountMethodsCaller.afterRender(newRootCntNode, rebuildChanges);
          // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
          mountMethodsCaller.beforePaint(newRootCntNode, rebuildChanges);
-         mountMethodsCaller.afterUpdate(newRootCntNode, rebuildChanges);
 
          delay(() => {
+            mountMethodsCaller.afterUpdate(newRootCntNode, rebuildChanges);
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
             newRootCntNode.environment._rebuildRequestStarted = false;
             // @ts-ignore FIXME: Property 'runQueue' does not exist
