@@ -5,7 +5,7 @@
  * @file UI/_builder/Tmpl/core/Context.ts
  */
 
-import { IdentifierNode, ProgramNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
+import { IdentifierNode, MemberExpressionNode, ProgramNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 
 // <editor-fold desc="Public interfaces and functions">
@@ -100,12 +100,12 @@ function collectIdentifiers(program: ProgramNode): string[] {
 function dropBindProgram(program: ProgramNode): ProgramNode[] {
    const result: ProgramNode[] = [];
    const callbacks = {
-      Identifier: (node: any): any => {
+      Identifier: (node: IdentifierNode): void => {
          result.push(
             PARSER.parse(node.name)
          );
       },
-      MemberExpression: (node: any): any => {
+      MemberExpression: (node: MemberExpressionNode): void => {
          result.push(
             PARSER.parse(node.string)
          );
