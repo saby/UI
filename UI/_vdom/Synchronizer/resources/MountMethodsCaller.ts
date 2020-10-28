@@ -183,7 +183,9 @@ export default class MountMethodsCaller {
                 return;
             }
             try {
-                if (!isDestroyed) {
+                // tslint:disable-next-line:ban-ts-ignore
+                // @ts-ignore
+                if (!control._destroyed) {
                     // tslint:disable-next-line:ban-ts-ignore
                     // @ts-ignore
                     if (typeof control._afterUpdate === 'function') {
