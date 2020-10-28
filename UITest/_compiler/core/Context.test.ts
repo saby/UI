@@ -10,72 +10,76 @@ function parse(source: string): ProgramNode {
 }
 
 describe('Compiler/core/Context', () => {
-   describe('global', () => {
-      it('.declareIdentifier()', () => {
+   describe('Global context', () => {
+      it('Declare and check identifiers/local identifiers', () => {
          const global = createGlobalContext();
          const identifiers = [
-            'ident1',
-            'ident2',
-            'ident3'
+            'identifier_1',
+            'identifier_2',
+            'identifier_3'
          ];
          identifiers.forEach((identifier: string) => {
             global.declareIdentifier(identifier);
          });
          assert.deepEqual(global.getIdentifiers(), identifiers);
+         assert.deepEqual(global.getLocalIdentifiers(), identifiers);
       });
-      it('.declareIdentifier() duplicate', () => {
+      it('Declare and check duplicate identifiers', () => {
          const global = createGlobalContext();
-         global.declareIdentifier('ident');
+         global.declareIdentifier('identifier');
          try {
-            global.declareIdentifier('ident');
+            global.declareIdentifier('identifier');
          } catch (error) {
-            assert.strictEqual(error.message, 'Переменная "ident" уже определена');
+            assert.strictEqual(error.message, 'Переменная "identifier" уже определена');
             return;
          }
-         throw new Error('Must be failed');
+         throw new Error('Двойное объявление идентификатора должно завершиться ошибкой');
       });
-      it('.declareIdentifier() forbidden', () => {
+      it('Declare and check forbidden identifiers', () => {
          const global = createGlobalContext();
          global.declareIdentifier('_options');
          assert.isEmpty(global.getIdentifiers());
       });
-      it('.registerProgram()', () => {
+      it('Register and check programs/local programs', () => {
          const global = createGlobalContext();
          const programs = [
-            parse('program1'),
-            parse('program2'),
-            parse('program3')
+            parse('program_1'),
+            parse('program_2'),
+            parse('program_3')
          ];
          programs.forEach((program: ProgramNode) => {
             global.registerProgram(program);
          });
          assert.deepEqual(global.getPrograms(), programs);
+         assert.deepEqual(global.getLocalPrograms(), programs);
       });
-      it('.registerProgram() duplicate', () => {
+      it('Register and check duplicate programs/local programs', () => {
          const global = createGlobalContext();
          const programs = [
-            parse('program1'),
-            parse('program2'),
-            parse('program3')
+            parse('program_1'),
+            parse('program_2'),
+            parse('program_3')
          ];
          programs.forEach((program: ProgramNode) => {
             global.registerProgram(program);
             global.registerProgram(program);
          });
          assert.deepEqual(global.getPrograms(), programs);
+         assert.deepEqual(global.getLocalPrograms(), programs);
       });
-      it('.registerProgram() bind/mutable', () => {
+      it('Register and check bind/mutable programs/local programs', () => {
          const global = createGlobalContext();
          const programs = [
-            parse('"value1"|bind'),
-            parse('"value2"|mutable')
+            parse('"value_1"|bind'),
+            parse('"value_2"|mutable')
          ];
          programs.forEach((program: ProgramNode) => {
             global.registerProgram(program);
          });
          assert.isEmpty(global.getPrograms());
+         assert.isEmpty(global.getLocalPrograms());
       });
-      it('.registerProgram() literals', () => {
+      it('Register and literal programs/local programs', () => {
          const global = createGlobalContext();
          const programs = [
             parse('true'),
@@ -88,8 +92,9 @@ describe('Compiler/core/Context', () => {
             global.registerProgram(program);
          });
          assert.isEmpty(global.getPrograms());
+         assert.isEmpty(global.getLocalPrograms());
       });
-      it('.registerProgram() forbidden', () => {
+      it('Register and check programs and identifiers with forbidden identifiers/local identifiers', () => {
          const global = createGlobalContext();
          const programs = [
             parse('_options.value'),
@@ -101,15 +106,16 @@ describe('Compiler/core/Context', () => {
          });
          assert.deepEqual(global.getPrograms(), programs);
          assert.isEmpty(global.getIdentifiers());
+         assert.isEmpty(global.getLocalIdentifiers());
       });
-      it('.getProgramKeys()', () => {
+      it('Register and check programs keys/local program keys', () => {
          const global = createGlobalContext();
          const programs = [
-            parse('program1'),
-            parse('program2'),
-            parse('program3')
+            parse('program_1'),
+            parse('program_2'),
+            parse('program_3')
          ];
-         const identifiers = [
+         const programKeys = [
             '_$e0',
             '_$e1',
             '_$e2',
@@ -117,14 +123,15 @@ describe('Compiler/core/Context', () => {
          programs.forEach((program: ProgramNode) => {
             global.registerProgram(program);
          });
-         assert.deepEqual(global.getProgramKeys(), identifiers);
+         assert.deepEqual(global.getProgramKeys(), programKeys);
+         assert.deepEqual(global.getLocalProgramKeys(), programKeys);
       });
-      it('.getProgram()', () => {
+      it('Register program and check program by key', () => {
          const global = createGlobalContext();
          const programs = [
-            parse('program1'),
-            parse('program2'),
-            parse('program3')
+            parse('program_1'),
+            parse('program_2'),
+            parse('program_3')
          ];
          const identifiers = [
             '_$e0',
@@ -140,50 +147,52 @@ describe('Compiler/core/Context', () => {
             assert.strictEqual(global.getProgram(id), program);
          }
       });
-      it('.getIdentifiers()', () => {
+      it('Register identifiers/programs and check identifiers', () => {
          const global = createGlobalContext();
          const identifiers = [
-            'ident1',
-            'ident2',
-            'ident3'
+            'identifier_1',
+            'identifier_2',
+            'identifier_3'
          ];
          identifiers.forEach((identifier: string) => {
             global.declareIdentifier(identifier);
          });
          const programs = [
-            parse('ident1'),
-            parse('ident3[ident2].property'),
-            parse('ident4.handler(1, ident5) + ident6')
+            parse('identifier_1'),
+            parse('identifier_3[identifier_2].property'),
+            parse('identifier_4.handler(1, identifier_5) + identifier_6')
          ];
          programs.forEach((program: ProgramNode) => {
             global.registerProgram(program);
          });
          const standardIdentifiers = [
-            'ident1',
-            'ident2',
-            'ident3',
-            'ident4',
-            'ident5',
-            'ident6'
+            'identifier_1',
+            'identifier_2',
+            'identifier_3',
+            'identifier_4',
+            'identifier_5',
+            'identifier_6'
          ];
          assert.deepEqual(global.getIdentifiers(), standardIdentifiers);
       });
-      it('.registerBindProgram()', () => {
+      it('Register bind program and check programs/local programs', () => {
          const global = createGlobalContext();
-         const bindProgram = parse('ident.b.c.d');
+         const bindProgram = parse('identifier.field.property.value');
          global.registerBindProgram(bindProgram);
          const identifiers = [
-            'ident'
+            'identifier'
          ];
          const stringPrograms = [
-            'ident.b.c',
-            'ident.b.c.d'
+            'identifier.field.property',
+            'identifier.field.property.value'
          ];
          assert.deepEqual(global.getIdentifiers(), identifiers);
          const actualStringPrograms = global.getPrograms().map((program: ProgramNode) => program.string);
+         const actualStringLocalPrograms = global.getLocalPrograms().map((program: ProgramNode) => program.string);
          assert.deepEqual(actualStringPrograms, stringPrograms);
+         assert.deepEqual(actualStringLocalPrograms, stringPrograms);
       });
-      it('.registerEventProgram()', () => {
+      it('Register bind program and check programs/local programs', () => {
          const global = createGlobalContext();
          const bindProgram = parse('a.b.c(d, e.f, g[h])');
          global.registerEventProgram(bindProgram);
@@ -196,9 +205,10 @@ describe('Compiler/core/Context', () => {
          ];
          assert.deepEqual(global.getIdentifiers(), identifiers);
          assert.isEmpty(global.getPrograms());
+         assert.isEmpty(global.getLocalPrograms());
       });
    });
-   describe('nested scopes', () => {
+   describe('Nested context', () => {
       it('unique program keys', () => {
          // TODO: hoist program
          // const global = createGlobalContext();
