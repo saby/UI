@@ -50,6 +50,18 @@ declare type IContext = IProcessingContext & IPrivateProcessingContext;
 
 const PROGRAM_PREFIX = '_$e';
 
+const FORBIDDEN_IDENTIFIERS = [
+   '...',
+   '_options',
+   '_container',
+   '_children',
+   'rk'
+];
+
+function isForbiddenIdentifier(name: string): boolean {
+   return FORBIDDEN_IDENTIFIERS.indexOf(name) > -1;
+}
+
 function hasBindings(program: ProgramNode): boolean {
    if (typeof program.string !== 'string') {
       return false;
@@ -142,6 +154,9 @@ class ProcessingContext implements IContext {
       if (this.identifiers.indexOf(name) > -1) {
          throw new Error(`Переменная "${name}" уже определена`);
       }
+      if (isForbiddenIdentifier(name)) {
+         return;
+      }
       this.identifiers.push(name);
    }
 
@@ -206,6 +221,9 @@ class ProcessingContext implements IContext {
 
    hoistIdentifier(name: string): void {
       if (this.identifiers.indexOf(name) > -1) {
+         return;
+      }
+      if (isForbiddenIdentifier(name)) {
          return;
       }
       // Hoist all undeclared identifiers to global context

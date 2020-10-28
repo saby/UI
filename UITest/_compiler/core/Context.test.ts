@@ -34,6 +34,11 @@ describe('Compiler/core/Context', () => {
          }
          throw new Error('Must be failed');
       });
+      it('.declareIdentifier() forbidden', () => {
+         const global = createGlobalContext();
+         global.declareIdentifier('_options');
+         assert.isEmpty(global.getIdentifiers());
+      });
       it('.registerProgram()', () => {
          const global = createGlobalContext();
          const programs = [
@@ -83,6 +88,19 @@ describe('Compiler/core/Context', () => {
             global.registerProgram(program);
          });
          assert.isEmpty(global.getPrograms());
+      });
+      it('.registerProgram() forbidden', () => {
+         const global = createGlobalContext();
+         const programs = [
+            parse('_options.value'),
+            parse('_children.name'),
+            parse('_container.child')
+         ];
+         programs.forEach((program: ProgramNode) => {
+            global.registerProgram(program);
+         });
+         assert.deepEqual(global.getPrograms(), programs);
+         assert.isEmpty(global.getIdentifiers());
       });
       it('.getProgramKeys()', () => {
          const global = createGlobalContext();
