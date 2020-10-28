@@ -29,6 +29,14 @@ export default class MountMethodsCaller {
         return !control._mounted && !control._unmounted;
     }
 
+    /**
+     * Сбор изменённых контрол нод перед вызовом хуков среди всех детей.
+     * @function UI/_vdom/Synchronizer/resources/MountMethodsCaller#collectControlNodesToCall
+     * @param controlNode Корневая контрол нода.
+     * @param rebuildChanges Набор айди изменённых контрол нод.
+     * @param result Массив для сбора изменённых контрол нод, по умолчанию пустой.
+     * @returns Массив изменённых контрол нод
+     */
     collectControlNodesToCall(controlNode: IControlNode, rebuildChanges: Set<TControlId | 0>, result: IControlNode[] = []): IControlNode[] {
         const control: Control = controlNode.control;
         // tslint:disable-next-line:ban-ts-ignore
@@ -78,6 +86,10 @@ export default class MountMethodsCaller {
         }
     }
 
+    /**
+     * @function UI/_vdom/Synchronizer/resources/MountMethodsCaller#beforePaint
+     * @param controlNodes Массив контрол нод.
+     */
     beforePaint: TMountMethod = (controlNodes: IControlNode[]) => {
         for (let i = 0; i < controlNodes.length; i++) {
             const controlNode: IControlNode = controlNodes[i];
@@ -119,6 +131,10 @@ export default class MountMethodsCaller {
         }
     }
 
+    /**
+     * @function UI/_vdom/Synchronizer/resources/MountMethodsCaller#beforeRender
+     * @param controlNodes Массив контрол нод.
+     */
     beforeRender: TMountMethod = (controlNodes: IControlNode[]) => {
         for (let i = 0; i < controlNodes.length; i++) {
             const controlNode: IControlNode = controlNodes[i];
@@ -141,6 +157,10 @@ export default class MountMethodsCaller {
         }
     }
 
+    /**
+     * @function UI/_vdom/Synchronizer/resources/MountMethodsCaller#afterRender
+     * @param controlNodes Массив контрол нод.
+     */
     afterRender: TMountMethod = (controlNodes: IControlNode[]) => {
         for (let i = 0; i < controlNodes.length; i++) {
             const controlNode: IControlNode = controlNodes[i];
@@ -166,6 +186,10 @@ export default class MountMethodsCaller {
         }
     }
 
+    /**
+     * @function UI/_vdom/Synchronizer/resources/MountMethodsCaller#afterUpdate
+     * @param controlNodes Массив контрол нод.
+     */
     afterUpdate: TMountMethod = (controlNodes: IControlNode[]) => {
         for (let i = 0; i < controlNodes.length; i++) {
             const controlNode: IControlNode = controlNodes[i];
