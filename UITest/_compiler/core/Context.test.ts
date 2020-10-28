@@ -1,4 +1,4 @@
-import { createProcessingContext } from 'UI/_builder/Tmpl/core/Context';
+import { createGlobalContext } from 'UI/_builder/Tmpl/core/Context';
 import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { assert } from 'chai';
@@ -12,7 +12,7 @@ function parse(source: string): ProgramNode {
 describe('Compiler/core/Context', () => {
    describe('global', () => {
       it('.declareIdentifier()', () => {
-         const global = createProcessingContext();
+         const global = createGlobalContext();
          const identifiers = [
             'ident1',
             'ident2',
@@ -24,7 +24,7 @@ describe('Compiler/core/Context', () => {
          assert.deepEqual(global.getIdentifiers(), identifiers);
       });
       it('.declareIdentifier() duplicate', () => {
-         const global = createProcessingContext();
+         const global = createGlobalContext();
          global.declareIdentifier('ident');
          try {
             global.declareIdentifier('ident');
@@ -35,7 +35,7 @@ describe('Compiler/core/Context', () => {
          throw new Error('Must be failed');
       });
       it('.registerProgram()', () => {
-         const global = createProcessingContext();
+         const global = createGlobalContext();
          const programs = [
             parse('program1'),
             parse('program2'),
@@ -47,7 +47,7 @@ describe('Compiler/core/Context', () => {
          assert.deepEqual(global.getPrograms(), programs);
       });
       it('.registerProgram() duplicate', () => {
-         const global = createProcessingContext();
+         const global = createGlobalContext();
          const programs = [
             parse('program1'),
             parse('program2'),
@@ -60,7 +60,7 @@ describe('Compiler/core/Context', () => {
          assert.deepEqual(global.getPrograms(), programs);
       });
       it('.registerProgram() bind/mutable', () => {
-         const global = createProcessingContext();
+         const global = createGlobalContext();
          const programs = [
             parse('"value1"|bind'),
             parse('"value2"|mutable')
@@ -71,7 +71,7 @@ describe('Compiler/core/Context', () => {
          assert.isEmpty(global.getPrograms());
       });
       it('.registerProgram() literals', () => {
-         const global = createProcessingContext();
+         const global = createGlobalContext();
          const programs = [
             parse('true'),
             parse('12.3'),
@@ -85,7 +85,7 @@ describe('Compiler/core/Context', () => {
          assert.isEmpty(global.getPrograms());
       });
       it('.getProgramKeys()', () => {
-         const global = createProcessingContext();
+         const global = createGlobalContext();
          const programs = [
             parse('program1'),
             parse('program2'),
@@ -102,7 +102,7 @@ describe('Compiler/core/Context', () => {
          assert.deepEqual(global.getProgramKeys(), identifiers);
       });
       it('.getProgram()', () => {
-         const global = createProcessingContext();
+         const global = createGlobalContext();
          const programs = [
             parse('program1'),
             parse('program2'),
@@ -123,7 +123,7 @@ describe('Compiler/core/Context', () => {
          }
       });
       it('.getIdentifiers()', () => {
-         const global = createProcessingContext();
+         const global = createGlobalContext();
          const identifiers = [
             'ident1',
             'ident2',
@@ -151,7 +151,7 @@ describe('Compiler/core/Context', () => {
          assert.deepEqual(global.getIdentifiers(), standardIdentifiers);
       });
       it('.registerBindProgram()', () => {
-         const global = createProcessingContext();
+         const global = createGlobalContext();
          const bindProgram = parse('ident.b.c.d');
          global.registerBindProgram(bindProgram);
          const identifiers = [
@@ -166,7 +166,7 @@ describe('Compiler/core/Context', () => {
          assert.deepEqual(actualStringPrograms, stringPrograms);
       });
       it('.registerEventProgram()', () => {
-         const global = createProcessingContext();
+         const global = createGlobalContext();
          const bindProgram = parse('a.b.c(d, e.f, g[h])');
          global.registerEventProgram(bindProgram);
          const identifiers = [
@@ -178,6 +178,48 @@ describe('Compiler/core/Context', () => {
          ];
          assert.deepEqual(global.getIdentifiers(), identifiers);
          assert.isEmpty(global.getPrograms());
+      });
+   });
+   describe('nested scopes', () => {
+      it('unique program keys', () => {
+         let actualKeys: string[] = [];
+         const global = createGlobalContext();
+         global.registerProgram(parse('globalIdent'));
+         actualKeys = actualKeys.concat(global.getProgramKeys());
+
+         const first = global.createContext();
+         first.registerProgram(parse('firstIdent'));
+         actualKeys = actualKeys.concat(first.getProgramKeys());
+
+         const second = first.createContext();
+         second.registerProgram(parse('secondIdent'));
+         actualKeys = actualKeys.concat(second.getProgramKeys());
+
+         const expectedKeys = [
+            '_$e0',
+            '_$e1',
+            '_$e2'
+         ];
+         assert.deepEqual(actualKeys, expectedKeys);
+      });
+      it('.getIdentifiers() global', () => {
+         const global = createGlobalContext();
+         global.registerProgram(parse('globalIdent'));
+
+         const first = global.createContext();
+         first.registerProgram(parse('firstIdent'));
+
+         const second = first.createContext();
+         second.registerProgram(parse('secondIdent'));
+
+         const expectedIdentifiers = [
+            'globalIdent',
+            'firstIdent',
+            'secondIdent'
+         ];
+         assert.deepEqual(global.getIdentifiers(), expectedIdentifiers);
+         assert.isEmpty(first.getIdentifiers());
+         assert.isEmpty(second.getIdentifiers());
       });
    });
 });

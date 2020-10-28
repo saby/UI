@@ -11,6 +11,8 @@ import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 // <editor-fold desc="Public interfaces and functions">
 
 export interface IProcessingContext {
+   createContext(): IProcessingContext;
+
    declareIdentifier(name: string): void;
    getIdentifiers(): string[];
 
@@ -23,8 +25,8 @@ export interface IProcessingContext {
    getPrograms(): ProgramNode[];
 }
 
-export function createProcessingContext(): IProcessingContext {
-   return new ProcessingContext();
+export function createGlobalContext(): IProcessingContext {
+   return new ProcessingContext(null);
 }
 
 // </editor-fold>
@@ -33,7 +35,7 @@ export function createProcessingContext(): IProcessingContext {
 
 interface IPrivateProcessingContext {
    generateNextKey(): string;
-   addIdentifier(name: string): void;
+   hoistIdentifier(name: string): void;
 }
 
 interface IProgramStorage {
@@ -112,6 +114,7 @@ class ProcessingContext implements IContext {
 
    // <editor-fold desc="Context properties">
 
+   private readonly parent: IContext | null;
    private keysCounter: number;
 
    private readonly identifiers: string[];
@@ -121,7 +124,8 @@ class ProcessingContext implements IContext {
 
    // </editor-fold>
 
-   constructor() {
+   constructor(parent: IContext | null) {
+      this.parent = parent;
       this.keysCounter = 0;
       this.identifiers = [];
       this.programs = { };
@@ -130,11 +134,15 @@ class ProcessingContext implements IContext {
 
    // <editor-fold desc="Public interface implementation">
 
+   createContext(): IProcessingContext {
+      return new ProcessingContext(this);
+   }
+
    declareIdentifier(name: string): void {
-      if (this.hasIdentifier(name)) {
+      if (this.identifiers.indexOf(name) > -1) {
          throw new Error(`Переменная "${name}" уже определена`);
       }
-      this.addIdentifier(name);
+      this.identifiers.push(name);
    }
 
    getIdentifiers(): string[] {
@@ -150,7 +158,7 @@ class ProcessingContext implements IContext {
 
    registerEventProgram(program: ProgramNode): void {
       const identifiers = collectIdentifiers(program);
-      this.addIdentifiers(identifiers);
+      this.hoistIdentifiers(identifiers);
    }
 
    registerProgram(program: ProgramNode): void {
@@ -163,7 +171,7 @@ class ProcessingContext implements IContext {
          return;
       }
       this.addProgram(program);
-      this.addIdentifiers(identifiers);
+      this.hoistIdentifiers(identifiers);
    }
 
    getProgramKeys(): string[] {
@@ -190,10 +198,20 @@ class ProcessingContext implements IContext {
    // <editor-fold desc="Internal interface implementation">
 
    generateNextKey(): string {
+      if (this.parent !== null) {
+         return this.parent.generateNextKey();
+      }
       return this.getNextId();
    }
 
-   addIdentifier(name: string): void {
+   hoistIdentifier(name: string): void {
+      if (this.identifiers.indexOf(name) > -1) {
+         return;
+      }
+      // Hoist all undeclared identifiers to global context
+      if (this.parent !== null) {
+         return this.parent.hoistIdentifier(name);
+      }
       this.identifiers.push(name);
    }
 
@@ -210,22 +228,16 @@ class ProcessingContext implements IContext {
       if (this.programsMap.hasOwnProperty(source)) {
          return;
       }
+      // TODO: check context identifiers in program, wrest program and hoist its available parts to global context
       const key = this.generateNextKey();
       this.programsMap[source] = key;
       this.programs[key] = program;
    }
 
-   private addIdentifiers(names: string[]): void {
+   private hoistIdentifiers(names: string[]): void {
       names.forEach((name: string) => {
-         if (this.hasIdentifier(name)) {
-            return;
-         }
-         this.addIdentifier(name);
+         this.hoistIdentifier(name);
       });
-   }
-
-   private hasIdentifier(name: string): boolean {
-      return this.identifiers.indexOf(name) > -1;
    }
 
    // </editor-fold>
