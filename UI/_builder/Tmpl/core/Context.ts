@@ -263,7 +263,7 @@ class ProcessingContext implements IContext {
       if (this.parent !== null) {
          return this.parent.generateNextKey();
       }
-      return this.getNextId();
+      return `${PROGRAM_PREFIX}${this.keysCounter++}`;
    }
 
    hoistIdentifier(name: string): void {
@@ -312,10 +312,6 @@ class ProcessingContext implements IContext {
    // </editor-fold>
 
    // <editor-fold desc="Private methods">
-
-   private getNextId(): string {
-      return `${PROGRAM_PREFIX}${this.keysCounter++}`;
-   }
 
    private hoistIdentifiers(names: string[]): void {
       names.forEach((name: string) => {
