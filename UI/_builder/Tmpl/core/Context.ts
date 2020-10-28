@@ -14,6 +14,7 @@ export interface IProcessingContext {
    createContext(): IProcessingContext;
 
    declareIdentifier(name: string): void;
+   getLocalIdentifiers(): string[];
    getIdentifiers(): string[];
 
    registerBindProgram(program: ProgramNode): void;
@@ -21,7 +22,9 @@ export interface IProcessingContext {
    registerProgram(program: ProgramNode): void;
 
    getProgramKeys(): string[];
+   getLocalProgramKeys(): string[];
    getProgram(key: string | null): ProgramNode | null;
+   getLocalPrograms(): ProgramNode[];
    getPrograms(): ProgramNode[];
 }
 
@@ -160,8 +163,16 @@ class ProcessingContext implements IContext {
       this.identifiers.push(name);
    }
 
-   getIdentifiers(): string[] {
+   getLocalIdentifiers(): string[] {
       return this.identifiers;
+   }
+
+   getIdentifiers(): string[] {
+      const local = this.getLocalIdentifiers();
+      if (this.parent !== null) {
+         return this.parent.getIdentifiers().concat(local);
+      }
+      return local;
    }
 
    registerBindProgram(program: ProgramNode): void {
@@ -189,8 +200,16 @@ class ProcessingContext implements IContext {
       this.hoistIdentifiers(identifiers);
    }
 
-   getProgramKeys(): string[] {
+   getLocalProgramKeys(): string[] {
       return Object.keys(this.programs);
+   }
+
+   getProgramKeys(): string[] {
+      const local = this.getLocalProgramKeys();
+      if (this.parent !== null) {
+         return this.parent.getProgramKeys().concat(local);
+      }
+      return local;
    }
 
    getProgram(key: string | null): ProgramNode | null {
@@ -200,12 +219,23 @@ class ProcessingContext implements IContext {
       if (this.programs.hasOwnProperty(key)) {
          return this.programs[key];
       }
+      if (this.parent !== null) {
+         return this.parent.getProgram(key);
+      }
       throw new Error(`Выражение с ключом "${key}" не было зарегистрировано`);
    }
 
-   getPrograms(): ProgramNode[] {
+   getLocalPrograms(): ProgramNode[] {
       // @ts-ignore This function exists on Object constructor and it has polyfill.
       return Object.values(this.programs);
+   }
+
+   getPrograms(): ProgramNode[] {
+      const local = this.getLocalPrograms();
+      if (this.parent !== null) {
+         return this.parent.getPrograms().concat(local);
+      }
+      return local;
    }
 
    // </editor-fold>
