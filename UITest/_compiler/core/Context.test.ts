@@ -235,22 +235,21 @@ describe('Compiler/core/Context', () => {
          assert.deepEqual(second.getLocalIdentifiers(), identifiers.slice(2, 3));
       });
       it('Declare duplicate identifiers', () => {
-         // TODO: Check duplicate identifiers
-         // const global = createGlobalContext();
-         // global.declareIdentifier('identifier');
-         //
-         // const first = global.createContext();
-         // first.registerProgram(parse('identifier'));
-         //
-         // const identifiers = [
-         //    'identifier'
-         // ];
-         //
-         // assert.deepEqual(global.getIdentifiers(), identifiers);
-         // assert.deepEqual(global.getLocalIdentifiers(), identifiers);
-         //
-         // assert.deepEqual(first.getIdentifiers(), identifiers);
-         // assert.deepEqual(first.getLocalIdentifiers(), identifiers);
+         const global = createGlobalContext();
+         global.declareIdentifier('identifier');
+
+         const first = global.createContext();
+         first.declareIdentifier('identifier');
+
+         const identifiers = [
+            'identifier'
+         ];
+
+         assert.deepEqual(global.getIdentifiers(), identifiers);
+         assert.deepEqual(global.getLocalIdentifiers(), identifiers);
+
+         assert.deepEqual(first.getIdentifiers(), identifiers);
+         assert.deepEqual(first.getLocalIdentifiers(), identifiers);
       });
       it('Register programs', () => {
          const global = createGlobalContext();

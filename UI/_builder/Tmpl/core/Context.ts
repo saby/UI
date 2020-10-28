@@ -40,6 +40,7 @@ interface IContext extends IProcessingContext {
    generateNextKey(): string;
    hoistIdentifier(name: string): void;
    hoistProgram(program: ProgramNode): void;
+   collectIdentifiers(identifiers: string[]): string[];
 }
 
 interface IProgramStorage {
@@ -188,11 +189,7 @@ class ProcessingContext implements IContext {
    }
 
    getIdentifiers(): string[] {
-      const local = this.getLocalIdentifiers();
-      if (this.parent !== null) {
-         return this.parent.getIdentifiers().concat(local);
-      }
-      return local;
+      return this.collectIdentifiers();
    }
 
    registerBindProgram(program: ProgramNode): void {
@@ -296,6 +293,20 @@ class ProcessingContext implements IContext {
       const key = this.generateNextKey();
       this.programsMap[source] = key;
       this.programs[key] = program;
+   }
+
+   collectIdentifiers(identifiers: string[] = []): string[] {
+      const additional: string[] = [];
+      this.identifiers.forEach((identifier: string) => {
+         if (identifiers.indexOf(identifier) === -1) {
+            additional.push(identifier);
+         }
+      });
+      const result: string[] = additional.concat(identifiers);
+      if (this.parent !== null) {
+         return this.parent.collectIdentifiers(result);
+      }
+      return result;
    }
 
    // </editor-fold>
