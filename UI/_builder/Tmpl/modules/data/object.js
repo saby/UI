@@ -123,6 +123,11 @@ define('UI/_builder/Tmpl/modules/data/object', [
                         scopeData,
                         propertyName
                      );
+                     // Set _ignoreChanging flag on top ws:Object directive.
+                     var isTopObjectDirective = propertyName.split('/').length === 1;
+                     if (nameExists === 'Object' && typeof res === 'object' && isTopObjectDirective) {
+                        res._ignoreChanging = '¥true¥';
+                     }
                      if (checkSingleResultData(res, nameExists)) {
                         res = DTC.createDataRepresentation(nameExists, res, getChildrenData(injected));
                      }
