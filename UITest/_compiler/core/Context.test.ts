@@ -33,19 +33,30 @@ describe('Compiler/core/Context', () => {
       });
       it('Declare duplicate identifiers', () => {
          const global = createGlobalContext(CONFIG);
-         global.declareIdentifier('identifier');
-         try {
-            global.declareIdentifier('identifier');
-         } catch (error) {
-            assert.strictEqual(error.message, 'Переменная "identifier" уже определена');
-            return;
-         }
-         throw new Error('Повторное объявление идентификатора должно завершиться ошибкой');
+         const identifiers = [
+            'identifier_1',
+            'identifier_2',
+            'identifier_3'
+         ];
+         identifiers.forEach((identifier: string) => {
+            global.declareIdentifier(identifier);
+            global.declareIdentifier(identifier);
+         });
+         assert.deepEqual(global.getIdentifiers(), identifiers);
+         assert.deepEqual(global.getLocalIdentifiers(), identifiers);
       });
       it('Declare forbidden identifiers', () => {
          const global = createGlobalContext(CONFIG);
          global.declareIdentifier('_options');
          assert.isEmpty(global.getIdentifiers());
+      });
+      it('Declare float program', () => {
+         const global = createGlobalContext(CONFIG);
+         global.declareFloatProgram(parse('program'));
+         assert.deepEqual(global.getIdentifiers(), ['program']);
+         assert.deepEqual(global.getLocalIdentifiers(), ['program']);
+         assert.isEmpty(global.getPrograms());
+         assert.isEmpty(global.getLocalPrograms());
       });
       it('Register programs', () => {
          const global = createGlobalContext(CONFIG);
@@ -257,6 +268,16 @@ describe('Compiler/core/Context', () => {
 
          assert.deepEqual(first.getIdentifiers(), identifiers);
          assert.deepEqual(first.getLocalIdentifiers(), identifiers);
+      });
+      it('Declare float program', () => {
+         const global = createGlobalContext(CONFIG);
+         const first = global.createContext();
+         first.declareFloatProgram(parse('program'));
+
+         assert.isEmpty(global.getIdentifiers());
+         assert.isEmpty(global.getLocalIdentifiers());
+         assert.isEmpty(global.getPrograms());
+         assert.isEmpty(global.getLocalPrograms());
       });
       it('Register programs', () => {
          const global = createGlobalContext(CONFIG);
@@ -495,6 +516,59 @@ describe('Compiler/core/Context', () => {
             const expectedCyclePrograms = [
                'index%2===0&&outerCondition',
                'item.getValue()'
+            ];
+            const cyclePrograms = cycle.getLocalPrograms().map((program: ProgramNode) => program.string);
+            assert.deepEqual(cyclePrograms, expectedCyclePrograms);
+         });
+      });
+      describe('For', () => {
+         let global = null;
+         let cycle = null;
+
+         // Fragment of template
+         //
+         // <ws:for data="iterator.init(); iterator.test(); iterator.update()">
+         //    <ws:if data="{{ iterator.getIndex() % 2 === 0 && outerCondition }}">
+         //      {{ iterator.getValue() }}
+         //      {{ text }}
+         //    <ws:if>
+         // </ws:for>
+
+         before(() => {
+            global = createGlobalContext(CONFIG);
+            cycle = global.createContext();
+            cycle.declareFloatProgram(parse('iterator.init()'));
+            cycle.declareFloatProgram(parse('iterator.test()'));
+            cycle.declareFloatProgram(parse('iterator.update()'));
+            cycle.registerProgram(parse('iterator.getIndex() % 2 === 0 && outerCondition'));
+            cycle.registerProgram(parse('iterator.getValue()'));
+            cycle.registerProgram(parse('text'));
+         });
+         it('Global identifiers', () => {
+            const globalIdentifiers = [
+               'outerCondition',
+               'text'
+            ];
+            assert.deepEqual(global.getLocalIdentifiers(), globalIdentifiers);
+         });
+         it('Cycle identifiers', () => {
+            const cycleIdentifiers = [
+               'iterator'
+            ];
+            assert.deepEqual(cycle.getLocalIdentifiers(), cycleIdentifiers);
+         });
+         it('Global programs', () => {
+            const expectedGlobalPrograms = [
+               'outerCondition',
+               'text'
+            ];
+            const globalPrograms = global.getLocalPrograms().map((program: ProgramNode) => program.string);
+            assert.deepEqual(globalPrograms, expectedGlobalPrograms);
+         });
+         it('Cycle programs', () => {
+            const expectedCyclePrograms = [
+               'iterator.getIndex()%2===0&&outerCondition',
+               'iterator.getValue()'
             ];
             const cyclePrograms = cycle.getLocalPrograms().map((program: ProgramNode) => program.string);
             assert.deepEqual(cyclePrograms, expectedCyclePrograms);

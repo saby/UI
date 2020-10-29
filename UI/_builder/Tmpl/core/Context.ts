@@ -18,7 +18,8 @@ export interface IProcessingContextConfig {
 export interface IProcessingContext {
    createContext(): IProcessingContext;
 
-   declareIdentifier(name: string): void;
+   declareFloatProgram(program: ProgramNode): void;
+   declareIdentifier(identifier: string): void;
    getLocalIdentifiers(): string[];
    getIdentifiers(): string[];
 
@@ -182,14 +183,21 @@ class ProcessingContext implements IContext {
       return new ProcessingContext(config, this);
    }
 
-   declareIdentifier(name: string): void {
-      if (this.identifiers.indexOf(name) > -1) {
-         throw new Error(`Переменная "${name}" уже определена`);
-      }
-      if (isForbiddenIdentifier(name)) {
+   declareFloatProgram(program: ProgramNode): void {
+      const identifiers = collectIdentifiers(program, this.fileName);
+      identifiers.forEach((identifier: string): void => {
+         this.declareIdentifier(identifier);
+      });
+   }
+
+   declareIdentifier(identifier: string): void {
+      if (this.identifiers.indexOf(identifier) > -1) {
          return;
       }
-      this.identifiers.push(name);
+      if (isForbiddenIdentifier(identifier)) {
+         return;
+      }
+      this.identifiers.push(identifier);
    }
 
    getLocalIdentifiers(): string[] {
