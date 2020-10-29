@@ -634,7 +634,10 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
 
          mountMethodsCaller.afterRender(controlNodesToCall);
          mountMethodsCaller.beforePaint(controlNodesToCall);
-         mountMethodsCaller.afterUpdate(controlNodesToCall);
+
+         delay(() => {
+            mountMethodsCaller.afterUpdate(controlNodesToCall);
+         });
 
          delay(() => {
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
