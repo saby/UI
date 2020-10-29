@@ -476,11 +476,11 @@ describe('Compiler/core/Context', () => {
             assert.deepEqual(global.getLocalIdentifiers(), globalIdentifiers);
          });
          it('Cycle identifiers', () => {
-            const globalIdentifiers = [
+            const cycleIdentifiers = [
                'index',
                'item'
             ];
-            assert.deepEqual(cycle.getLocalIdentifiers(), globalIdentifiers);
+            assert.deepEqual(cycle.getLocalIdentifiers(), cycleIdentifiers);
          });
          it('Global programs', () => {
             const expectedGlobalPrograms = [
@@ -498,6 +498,51 @@ describe('Compiler/core/Context', () => {
             ];
             const cyclePrograms = cycle.getLocalPrograms().map((program: ProgramNode) => program.string);
             assert.deepEqual(cyclePrograms, expectedCyclePrograms);
+         });
+      });
+      describe('Content option', () => {
+         let global = null;
+         let contentOption = null;
+
+         // Fragment of template
+         //
+         // <ws:content>
+         //   {{ text }}
+         //   {{ content.value }}
+         // </ws:content>
+
+         before(() => {
+            global = createGlobalContext(CONFIG);
+            contentOption = global.createContext();
+            contentOption.declareIdentifier('content');
+            contentOption.registerProgram(parse('text'));
+            contentOption.registerProgram(parse('content.value'));
+         });
+         it('Global identifiers', () => {
+            const globalIdentifiers = [
+               'text'
+            ];
+            assert.deepEqual(global.getLocalIdentifiers(), globalIdentifiers);
+         });
+         it('Content option identifiers', () => {
+            const contentOptionIdentifiers = [
+               'content'
+            ];
+            assert.deepEqual(contentOption.getLocalIdentifiers(), contentOptionIdentifiers);
+         });
+         it('Global programs', () => {
+            const expectedGlobalPrograms = [
+               'text'
+            ];
+            const globalPrograms = global.getLocalPrograms().map((program: ProgramNode) => program.string);
+            assert.deepEqual(globalPrograms, expectedGlobalPrograms);
+         });
+         it('Content option programs', () => {
+            const expectedContentOptionPrograms = [
+               'content.value'
+            ];
+            const contentOptionPrograms = contentOption.getLocalPrograms().map((program: ProgramNode) => program.string);
+            assert.deepEqual(contentOptionPrograms, expectedContentOptionPrograms);
          });
       });
    });
