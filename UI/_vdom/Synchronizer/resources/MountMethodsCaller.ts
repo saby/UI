@@ -231,10 +231,8 @@ export default class MountMethodsCaller {
         }
         onStartLifecycle(controlNode.vnode || controlNode);
         if (this.isBeforeMount(control)) {
-            delay((): void => {
-                this.afterMountProcess(controlNode, control, isDestroyed);
-                onEndLifecycle(controlNode.vnode || controlNode);
-            });
+            this.afterMountProcess(controlNode, control, isDestroyed);
+            onEndLifecycle(controlNode.vnode || controlNode);
             return;
         }
         this.afterUpdateProcess(controlNode, control, isDestroyed);
