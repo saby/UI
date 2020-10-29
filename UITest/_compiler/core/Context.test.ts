@@ -443,4 +443,62 @@ describe('Compiler/core/Context', () => {
          assert.deepEqual(actualStringLocalPrograms, stringGlobalPrograms);
       });
    });
+   describe('Demo', () => {
+      describe('Foreach', () => {
+         let global = null;
+         let cycle = null;
+
+         // Fragment of template
+         //
+         // <ws:for data="index, item in collection">
+         //    <ws:if data="{{ index % 2 === 0 && outerCondition }}">
+         //      {{ item.getValue() }}
+         //      {{ text }}
+         //    <ws:if>
+         // </ws:for>
+
+         before(() => {
+            global = createGlobalContext(CONFIG);
+            cycle = global.createContext();
+            cycle.declareIdentifier('index');
+            cycle.declareIdentifier('item');
+            cycle.registerProgram(parse('collection'));
+            cycle.registerProgram(parse('index % 2 === 0 && outerCondition'));
+            cycle.registerProgram(parse('item.getValue()'));
+            cycle.registerProgram(parse('text'));
+         });
+         it('Global identifiers', () => {
+            const globalIdentifiers = [
+               'collection',
+               'outerCondition',
+               'text'
+            ];
+            assert.deepEqual(global.getLocalIdentifiers(), globalIdentifiers);
+         });
+         it('Cycle identifiers', () => {
+            const globalIdentifiers = [
+               'index',
+               'item'
+            ];
+            assert.deepEqual(cycle.getLocalIdentifiers(), globalIdentifiers);
+         });
+         it('Global programs', () => {
+            const expectedGlobalPrograms = [
+               'collection',
+               'outerCondition',
+               'text'
+            ];
+            const globalPrograms = global.getLocalPrograms().map((program: ProgramNode) => program.string);
+            assert.deepEqual(globalPrograms, expectedGlobalPrograms);
+         });
+         it('Cycle programs', () => {
+            const expectedCyclePrograms = [
+               'index%2===0&&outerCondition',
+               'item.getValue()'
+            ];
+            const cyclePrograms = cycle.getLocalPrograms().map((program: ProgramNode) => program.string);
+            assert.deepEqual(cyclePrograms, expectedCyclePrograms);
+         });
+      });
+   });
 });
