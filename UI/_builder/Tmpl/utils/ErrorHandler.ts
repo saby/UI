@@ -2,380 +2,279 @@
 
 // @ts-ignore
 import { IoC } from 'Env/Env';
-import { SourcePosition } from '../html/Reader';
+import { SourcePosition } from 'UI/_builder/Tmpl/html/Reader';
 
-/**
- *
- */
+function log(message: string): void {
+   IoC.resolve('ILogger').log(message);
+}
+
+function warn(message: string): void {
+   IoC.resolve('ILogger').warn(message);
+}
+
+function error(message: string): void {
+   IoC.resolve('ILogger').error(message);
+}
+
+export interface ILogger {
+   log(message: string): void;
+   warn(message: string): void;
+   error(message: string): void;
+   popLastErrorMessage(): string;
+   flush(): void;
+}
+
+export class Logger implements ILogger {
+   log(message: string): void {
+      log(message);
+   }
+   warn(message: string): void {
+      warn(message);
+   }
+   error(message: string): void {
+      error(message);
+   }
+   popLastErrorMessage(): string {
+      return null;
+   }
+   flush(): void { }
+}
+
+enum MessageType {
+   LOG,
+   WARN,
+   ERROR
+}
+
+interface IMessage {
+   type: MessageType;
+   message: string;
+}
+
+export class StackLogger implements ILogger {
+   private readonly stack: IMessage[];
+
+   constructor() {
+      this.stack = [];
+   }
+
+   log(message: string): void {
+      this.stack.push({
+         type: MessageType.LOG,
+         message
+      });
+   }
+
+   warn(message: string): void {
+      this.stack.push({
+         type: MessageType.WARN,
+         message
+      });
+   }
+
+   error(message: string): void {
+      this.stack.push({
+         type: MessageType.ERROR,
+         message
+      });
+   }
+
+   popLastErrorMessage(): string {
+      let lastIndex: number = this.stack.length - 1;
+      for (; lastIndex > -1; --lastIndex) {
+         if (this.stack[lastIndex].type === MessageType.ERROR) {
+            this.stack.splice(lastIndex, 1);
+            return this.stack[lastIndex].message;
+         }
+      }
+      return null;
+   }
+
+   flush(): void {
+      while (this.stack.length > 0) {
+         const item: IMessage = this.stack.shift();
+         switch (item.type) {
+            case MessageType.ERROR:
+               error(item.message);
+               break;
+            case MessageType.WARN:
+               warn(item.message);
+               break;
+            default:
+               log(item.message);
+               break;
+         }
+      }
+   }
+}
+
 export interface IMetaInfo {
-
-   /**
-    *
-    */
    fileName?: string;
-
-   /**
-    *
-    */
    position?: SourcePosition;
 }
 
-/**
- *
- */
-export interface ILogger {
-
-   /**
-    *
-    * @param message {string}
-    */
-   log(message: string): void;
-
-   /**
-    *
-    * @param message {string}
-    */
-   warn(message: string): void;
-
-   /**
-    *
-    * @param message {string}
-    */
-   error(message: string): void;
-}
-
-/**
- *
- */
-export class Logger implements ILogger {
-
-   /**
-    *
-    * @param message {string}
-    */
-   log(message: string): void {
-      IoC.resolve('ILogger').log(message);
-   }
-
-   /**
-    *
-    * @param message {string}
-    */
-   warn(message: string): void {
-      IoC.resolve('ILogger').warn(message);
-   }
-
-   /**
-    *
-    * @param message {string}
-    */
-   error(message: string): void {
-      IoC.resolve('ILogger').error(message);
-   }
-}
-
-/**
- *
- */
 export interface IErrorFormatter {
-
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    debug(message: string, meta: IMetaInfo): string;
-
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    info(message: string, meta: IMetaInfo): string;
-
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    warn(message: string, meta: IMetaInfo): string;
-
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    error(message: string, meta: IMetaInfo): string;
-
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    critical(message: string, meta: IMetaInfo): string;
-
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    fatal(message: string, meta: IMetaInfo): string;
 }
 
-/**
- *
- * @param meta {IMetaInfo}
- */
-function calculateHeader(meta: IMetaInfo): string {
-   let text = '';
-   if (meta.fileName) {
-      text += meta.fileName;
-   }
-   if (meta.position) {
-      text += `(${meta.position.line + 1}:${meta.position.column + 1})`;
-   }
-   return `${text} `;
-}
-
-/**
- *
- */
-export class MinimalErrorFormatter implements IErrorFormatter {
-
-   /**
-    *
-    */
+export class ErrorFormatterJIT implements IErrorFormatter {
    private readonly title: string;
 
-   /**
-    *
-    * @param title {string}
-    */
-   constructor(title: string = 'Template Compiler') {
+   constructor(title: string) {
       this.title = title;
    }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    debug(message: string, meta: IMetaInfo): string {
-      return `${this.title}: ${calculateHeader(meta)}${message}`;
+      return this.decorateMessage(message, meta);
    }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    info(message: string, meta: IMetaInfo): string {
-      return `${this.title}: ${calculateHeader(meta)}${message}`;
+      return this.decorateMessage(message, meta);
    }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    warn(message: string, meta: IMetaInfo): string {
-      return `${this.title}: ${calculateHeader(meta)}${message}`;
+      return this.decorateMessage(message, meta);
    }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    error(message: string, meta: IMetaInfo): string {
-      return `${this.title}: ${calculateHeader(meta)}${message}`;
+      return this.decorateMessage(message, meta);
    }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    critical(message: string, meta: IMetaInfo): string {
-      return `${this.title}: ${calculateHeader(meta)}${message}`;
+      return this.decorateMessage(message, meta);
    }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    fatal(message: string, meta: IMetaInfo): string {
-      return `${this.title}: ${calculateHeader(meta)}${message}`;
+      return this.decorateMessage(message, meta);
+   }
+
+   private decorateMessage(message: string, meta: IMetaInfo): string {
+      let decoratedMessage = `${this.title}: `;
+      if (meta.fileName) {
+         decoratedMessage += `${meta.fileName} `;
+      }
+      if (meta.position) {
+         decoratedMessage += `(${meta.position.line + 1}:${meta.position.column + 1}) `;
+      }
+      decoratedMessage += message;
+      return decoratedMessage;
    }
 }
 
-/**
- *
- */
-export interface IErrorHandler {
+export class ErrorFormatterAOT implements IErrorFormatter {
+   private readonly title: string;
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
-   debug(message: string, meta: IMetaInfo): void;
+   constructor(title: string) {
+      this.title = title;
+   }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
-   info(message: string, meta: IMetaInfo): void;
+   debug(message: string, meta: IMetaInfo): string {
+      return this.decorateMessage(message, meta);
+   }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
-   warn(message: string, meta: IMetaInfo): void;
+   info(message: string, meta: IMetaInfo): string {
+      return this.decorateMessage(message, meta);
+   }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
-   error(message: string, meta: IMetaInfo): void;
+   warn(message: string, meta: IMetaInfo): string {
+      return this.decorateMessage(message, meta);
+   }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
-   critical(message: string, meta: IMetaInfo): void;
+   error(message: string, meta: IMetaInfo): string {
+      return this.decorateMessage(message, meta);
+   }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
-   fatal(message: string, meta: IMetaInfo): void;
+   critical(message: string, meta: IMetaInfo): string {
+      return this.decorateMessage(message, meta);
+   }
 
-   /**
-    *
-    */
-   hasErrors(): boolean;
+   fatal(message: string, meta: IMetaInfo): string {
+      return this.decorateMessage(message, meta);
+   }
 
-   /**
-    *
-    */
-   hasCriticalErrors(): boolean;
+   private decorateMessage(message: string, meta: IMetaInfo): string {
+      let decoratedMessage = `${this.title}: ${message}`;
+      if (meta.position) {
+         decoratedMessage += `. Строка: ${meta.position.line + 1}, столбец: ${meta.position.column + 1}`;
+      }
+      return decoratedMessage;
+   }
 }
 
-/**
- *
- */
-export default class ErrorHandler implements IErrorHandler {
+export interface IErrorHandler {
+   debug(message: string, meta: IMetaInfo): void;
+   info(message: string, meta: IMetaInfo): void;
+   warn(message: string, meta: IMetaInfo): void;
+   error(message: string, meta: IMetaInfo): void;
+   critical(message: string, meta: IMetaInfo): void;
+   fatal(message: string, meta: IMetaInfo): void;
+   hasFailures(): boolean;
+   popLastErrorMessage(): string;
+   flush(): void;
+}
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
+export class ErrorHandler implements IErrorHandler {
+   private hasFailureDiagnostics: boolean;
    private readonly logger: ILogger;
-
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    private readonly formatter: IErrorFormatter;
 
-   /**
-    *
-    */
-   private hasProcessedErrors: boolean;
-
-   /**
-    *
-    */
-   private hasProcessedCriticalErrors: boolean;
-
-
-   /**
-    *
-    * @param logger {ILogger}
-    * @param formatter {IErrorFormatter}
-    */
-   constructor(logger: ILogger = new Logger(), formatter: IErrorFormatter = new MinimalErrorFormatter()) {
+   constructor(logger: ILogger, formatter: IErrorFormatter) {
+      this.hasFailureDiagnostics = false;
       this.logger = logger;
       this.formatter = formatter;
    }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    debug(message: string, meta: IMetaInfo): void {
       this.logger.log(this.formatter.debug(message, meta));
    }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    info(message: string, meta: IMetaInfo): void {
       this.logger.log(this.formatter.info(message, meta));
    }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    warn(message: string, meta: IMetaInfo): void {
       this.logger.warn(this.formatter.warn(message, meta));
    }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    error(message: string, meta: IMetaInfo): void {
-      this.hasProcessedErrors = true;
       this.logger.error(this.formatter.error(message, meta));
    }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    critical(message: string, meta: IMetaInfo): void {
-      this.hasProcessedCriticalErrors = true;
+      this.hasFailureDiagnostics = true;
       this.logger.error(this.formatter.critical(message, meta));
    }
 
-   /**
-    *
-    * @param message {string}
-    * @param meta {IMetaInfo}
-    */
    fatal(message: string, meta: IMetaInfo): void {
-      this.hasProcessedCriticalErrors = true;
+      this.hasFailureDiagnostics = true;
       this.logger.error(this.formatter.fatal(message, meta));
    }
 
-   /**
-    *
-    */
-   hasErrors(): boolean {
-      return this.hasProcessedErrors;
+   hasFailures(): boolean {
+      return this.hasFailureDiagnostics;
    }
 
-   /**
-    *
-    */
-   hasCriticalErrors(): boolean {
-      return this.hasProcessedCriticalErrors;
+   popLastErrorMessage(): string {
+      return this.logger.popLastErrorMessage();
    }
+
+   flush(): void {
+      this.logger.flush();
+   }
+}
+
+export function createErrorHandler(title: string, isJIT: boolean): IErrorHandler {
+   if (isJIT) {
+      const logger = new StackLogger();
+      const formatter = new ErrorFormatterJIT(title);
+      return new ErrorHandler(logger, formatter);
+   }
+   const logger = new Logger();
+   const formatter = new ErrorFormatterAOT(title);
+   return new ErrorHandler(logger, formatter);
 }

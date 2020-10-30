@@ -25,7 +25,6 @@ define('UI/_builder/Tmpl', [
     * @author Крылов М.А.
     */
 
-   var errorHandler = new ErrorHandlerLib.default();
    var ModulePath = ModulePathLib.ModulePath;
    var EMPTY_STRING = '';
 
@@ -74,6 +73,7 @@ define('UI/_builder/Tmpl', [
 
       // FIXME: удалить, когда точно будут известны клиенты шаблонизатора.
       config.fileName = config.fileName || config.filename;
+      config.errorHandler = config.errorHandler || (ErrorHandlerLib.createErrorHandler('Template Compiler', true));
       try {
          currentHtml = preprocessHtml(html, config);
          parsed = Parser.parse(currentHtml, config.fileName, {
@@ -86,7 +86,7 @@ define('UI/_builder/Tmpl', [
             cleanWhiteSpaces: true,
             needPreprocess: !!config.isWasabyTemplate,
             tagDescriptor: Tags.default,
-            errorHandler: errorHandler
+            errorHandler: config.errorHandler
          });
       } catch (error) {
          parsingError = error;
@@ -114,22 +114,10 @@ define('UI/_builder/Tmpl', [
 
       // FIXME: удалить, когда точно будут известны клиенты шаблонизатора.
       config.fileName = config.fileName || config.filename;
+      config.errorHandler = config.errorHandler || (ErrorHandlerLib.createErrorHandler('Template Compiler', true));
       functionResult = codegenBridge.getFunction(ast, null, config, null);
       functionResult.reactiveProps = ast.reactiveProps;
       return functionResult;
-   }
-
-   /**
-    * Обработчик ошибок по умолчанию. Вывести ошибку с помощью логгера.
-    * @param error Объект ошибки.
-    */
-   function defaultErrorback(error) {
-      errorHandler.error(
-         'Ошибка при парсинге шаблона: ' + error.message,
-         {
-            fileName: null
-         }
-      );
    }
 
    /**
@@ -153,19 +141,19 @@ define('UI/_builder/Tmpl', [
     */
    function getFile(html, config, successCallback, failureCallback, ext) {
       var currentExt = ext || 'tmpl';
-      var currentErrback = failureCallback || defaultErrorback;
       var tmplFunc = null;
       config.isWasabyTemplate = 'wml' === currentExt;
 
       // FIXME: удалить, когда точно будут известны клиенты шаблонизатора.
       config.fileName = config.fileName || config.filename;
+      config.errorHandler = ErrorHandlerLib.createErrorHandler('Template Compiler', !config.fromBuilderTmpl);
 
       template(html, getResolverControls(currentExt), config).handle(function(traversed) {
          try {
             codegenBridge.initWorkspaceWML();
             tmplFunc = func(traversed, config);
             if (!tmplFunc) {
-               errorHandler.error(
+               config.errorHandler.error(
                   'Шаблон не может быть построен. Не загружены зависимости.',
                   {
                      fileName: config.fileName
@@ -173,17 +161,39 @@ define('UI/_builder/Tmpl', [
                );
             }
             var moduleName = ModulePath.replaceWsModule(config.fileName).replace(/\.(wml|tmpl)$/gi, EMPTY_STRING);
-            var deps = getComponents(html);
+            var deps = getComponents(html, config);
             var finalFile = templates.generateDefine(moduleName, ext, tmplFunc, deps, traversed.reactiveProps);
             finalFile = templates.clearSourceFromDeprecated(finalFile);
 
             successCallback(finalFile);
          } catch (error) {
-            currentErrback(error);
+            config.errorHandler.flush();
+            if (failureCallback) {
+               failureCallback(error);
+               return;
+            }
+            config.errorHandler.error(
+               'Ошибка при парсинге шаблона: ' + error.message,
+               {
+                  fileName: config.fileName
+               }
+            );
          } finally {
             codegenBridge.cleanWorkspace();
          }
-      }, currentErrback);
+      }, function(error) {
+         config.errorHandler.flush();
+         if (failureCallback) {
+            failureCallback(error);
+            return;
+         }
+         config.errorHandler.error(
+            'Ошибка при парсинге шаблона: ' + error.message,
+            {
+               fileName: config.fileName
+            }
+         );
+      });
    }
 
    /**
@@ -203,7 +213,7 @@ define('UI/_builder/Tmpl', [
          cleanWhiteSpaces: true,
          needPreprocess: !!(config && config.isWasabyTemplate),
          tagDescriptor: Tags.default,
-         errorHandler: errorHandler
+         errorHandler: config.errorHandler
       });
       if (config) {
          // FIXME: плохо так передавать конфиг
@@ -237,7 +247,8 @@ define('UI/_builder/Tmpl', [
       var currentConfig = {
          config: configModule,
          fileName: 'userTemplate',
-         isWasabyTemplate: false
+         isWasabyTemplate: false,
+         errorHandler: ErrorHandlerLib.createErrorHandler('Template Compiler', true)
       };
       template(html, getResolverControls('tmpl'), currentConfig).handle(function(traversed) {
          var templateFunction;
@@ -253,19 +264,34 @@ define('UI/_builder/Tmpl', [
             };
             compatibleFunction.reactiveProps = traversed.reactiveProps;
          } catch (error) {
-            defaultErrorback(error);
+            currentConfig.flush();
+            currentConfig.errorHandler.error(
+               'Ошибка при парсинге шаблона: ' + error.message,
+               {
+                  fileName: null
+               }
+            );
          } finally {
             codegenBridge.cleanWorkspace();
          }
          if (!compatibleFunction) {
-            errorHandler.error(
+            currentConfig.flush();
+            currentConfig.errorHandler.error(
                'Шаблон не может быть построен. Не загружены зависимости.',
                {
                   fileName: '<userTemplate>'
                }
             );
          }
-      }, defaultErrorback);
+      }, function(error) {
+         currentConfig.flush();
+         currentConfig.errorHandler.error(
+            error.message,
+            {
+               fileName: '<userTemplate>'
+            }
+         );
+      });
       return compatibleFunction;
    }
 

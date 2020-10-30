@@ -3,7 +3,6 @@
  * Traversing/parsing AST-html tree
  */
 define('UI/_builder/Tmpl/core/_deprecated/traverse', [
-   'UI/_builder/Tmpl/utils/ErrorHandler',
    'Core/Deferred',
    'Core/ParallelDeferred',
    'UI/Utils',
@@ -18,7 +17,6 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
    'UI/_builder/Tmpl/modules/utils/loader',
    'UI/_builder/Tmpl/core/_deprecated/postTraverse'
 ], function traverseLoader(
-   ErrorHandlerLib,
    Deferred,
    ParallelDeferred,
    uiUtils,
@@ -38,8 +36,6 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
    /**
     * @author Крылов М.А.
     */
-
-   var errorHandler = new ErrorHandlerLib.default();
 
    var DATA_TYPE_NODES = [
       'ws:array',
@@ -456,6 +452,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
                this.isWasabyTemplate = config.isWasabyTemplate;
                this.config = config.config;
                this.fromBuilderTmpl = config.fromBuilderTmpl;
+               this.errorHandler = config.errorHandler;
 
                // опция говорит о том, что нужно собирать словарь локализуемых слов
                this.createResultDictionary = config.createResultDictionary;
@@ -468,6 +465,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
                }
             }
          }
+         var errorHandler = this.errorHandler;
          this.traversingAST(ast).addCallbacks(
             postTraverse.bind(this, deferred),
             function broken(fileName, error) {
@@ -492,6 +490,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
       traverseTagWithChildren: function traverseTagWithChildren(tag, injectedData) {
          var deferred = new Deferred();
          var fileName = this.fileName;
+         var errorHandler = this.errorHandler;
          this.traversingAST(tag.children, tag.prefix, injectedData).addCallbacks(
             function traverseTagSuccess(ast) {
                var result = _generatorFunctionForTags(tag, ast);
@@ -609,7 +608,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
             }
             deferred.callback(_generatorFunctionForTags(takeTag));
          } catch (error) {
-            errorHandler.error(
+            this.errorHandler.error(
                'Ошибка разбора шаблона: ' + error.message,
                {
                   fileName: this.fileName
@@ -693,7 +692,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
          }
          var res, name, attribs;
          if (tag.attribs._wstemplatename === undefined) {
-            errorHandler.error(
+            this.errorHandler.error(
                'No template tag for partial ' + tag.name,
                {
                   fileName: this.fileName
@@ -754,7 +753,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
       _resolveTemplateProcess: function(tag, tagData, template) {
          var def = new Deferred();
          if (this.includeStack[template] === undefined) {
-            errorHandler.error(
+            this.errorHandler.error(
                'Requiring tag for "' + template + '" is not found!',
                {
                   fileName: this.fileName
@@ -790,7 +789,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
                }.bind(this),
                function brokenPartial(reason) {
                   def.errback(reason);
-                  errorHandler.error(
+                  this.errorHandler.error(
                      reason.message,
                      {
                         fileName: this.fileName
@@ -831,7 +830,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
          try {
             name = tag.attribs.name.trim();
          } catch (e) {
-            errorHandler.error(
+            this.errorHandler.error(
                'Something wrong with name attribute in ws:template tag: ' + e.message,
                {
                   fileName: this.fileName
@@ -839,7 +838,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
             );
          }
          if (tag.children === undefined || tag.children.length === 0) {
-            errorHandler.error(
+            this.errorHandler.error(
                'There is got to be a children in ws:template tag',
                {
                   fileName: this.fileName
@@ -860,7 +859,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
                realDeferred.callback(tag);
             }, function brokenTraverse(reason) {
                realDeferred.errback(reason);
-               errorHandler.error(
+               this.errorHandler.error(
                   reason.message,
                   {
                      fileName: this.fileName
@@ -899,7 +898,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
             tag.attribs = this._traverseTagAttributes(tag.attribs);
          } catch (err) {
             var message = getErrorMessage(err);
-            errorHandler.error(
+            this.errorHandler.error(
                'Wrong arguments in for statement ' +
                tag.name + ': ' + message,
                {
@@ -951,7 +950,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
                statements = _lookForStatements(choppedText, config);
                deferred.callback(statements);
             } catch (error) {
-               errorHandler.error(
+               this.errorHandler.error(
                   error.message,
                   {
                      fileName: this.fileName
@@ -991,7 +990,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
        */
       defaultHandler: function defaultHandler(error) {
          if (error) {
-            errorHandler.error(
+            this.errorHandler.error(
                error.message,
                {
                   fileName: this.fileName

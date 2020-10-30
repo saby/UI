@@ -2,7 +2,6 @@ define('UI/_builder/Tmpl/core/bridge', [
    'UI/_builder/Tmpl/core/_deprecated/traverse',
    'UI/_builder/Tmpl/core/Traverse',
    'UI/_builder/Tmpl/expressions/_private/Parser',
-   'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/core/PatchVisitor',
    'Core/Deferred',
    'UI/_builder/Tmpl/core/Scope',
@@ -14,7 +13,6 @@ define('UI/_builder/Tmpl/core/bridge', [
    traversing,
    TraverseLib,
    ParserLib,
-   ErrorHandlerLib,
    PatchVisitorLib,
    Deferred,
    ScopeLib,
@@ -90,11 +88,10 @@ define('UI/_builder/Tmpl/core/bridge', [
    function traverseWithVisitors(htmlTree, options) {
       var deferred = new Deferred();
       var scope = new ScopeLib.default(!options.fromBuilderTmpl);
-      var errorHandler = new ErrorHandlerLib.default();
       var traverseConfig = {
          expressionParser: new ParserLib.Parser(),
          hierarchicalKeys: true,
-         errorHandler: errorHandler,
+         errorHandler: options.errorHandler,
          allowComments: false,
          textTranslator: Translator.createTextTranslator(options.componentsProperties || { }),
          generateTranslations: (
@@ -108,12 +105,11 @@ define('UI/_builder/Tmpl/core/bridge', [
          translateText: true
       };
       var traversed = TraverseLib.default(htmlTree, traverseConfig, traverseOptions);
-      if (errorHandler.hasErrors() || errorHandler.hasCriticalErrors()) {
-         deferred.errback(
-            new Error(
-               'При обработке файла "' + options.fileName + '" возникли ошибки. Смотри логи'
-            )
-         );
+      var hasFailures = options.errorHandler.hasFailures();
+      var lastMessage = options.errorHandler.popLastErrorMessage();
+      options.errorHandler.flush();
+      if (hasFailures) {
+         deferred.errback(new Error(lastMessage));
          return deferred;
       }
       scope.requestDependencies().addCallbacks(function() {

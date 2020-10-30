@@ -1,18 +1,15 @@
 define('UI/_builder/Tmpl/modules/data/array', [
-   'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/modules/utils/parse',
    'UI/_builder/Tmpl/modules/utils/tag',
    'UI/_builder/Tmpl/modules/data/utils/dataTypesCreator',
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
    'UI/_builder/Tmpl/codegen/templates'
-], function arrayLoader(ErrorHandlerLib, parseUtils, tagUtils, DTC, FSC, templates) {
+], function arrayLoader(parseUtils, tagUtils, DTC, FSC, templates) {
    'use strict';
 
    /**
     * @author Крылов М.А.
     */
-
-   var errorHandler = new ErrorHandlerLib.default();
 
    function clearPropertyName(propertyName) {
       return propertyName ? propertyName.split('/').pop() : propertyName;
@@ -131,13 +128,13 @@ define('UI/_builder/Tmpl/modules/data/array', [
                      // Если была опечатка в имени типа (например, value вместо Value),
                      // то необходимо вывести соответствующую ошибку
                      if (types[typeName]) {
-                        errorHandler.error(
+                        this.errorHandler.error(
                            'Typo in the type name. Use ws:' + typeName + ' instead of ws:', {
                               fileName: this.fileName
                            }
                         );
                      } else {
-                        errorHandler.error(
+                        this.errorHandler.error(
                            children[index].name + ' property can\'t be in the root of ws:array tag', {
                               fileName: this.fileName
                            }

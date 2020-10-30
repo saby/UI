@@ -1,6 +1,5 @@
 define('UI/_builder/Tmpl/modules/utils/loader', [
    'require',
-   'UI/_builder/Tmpl/utils/ErrorHandler',
    'Core/Deferred',
    'UI/_builder/Tmpl/modules/utils/common',
    'UI/_builder/Tmpl/modules/utils/names',
@@ -10,8 +9,6 @@ define('UI/_builder/Tmpl/modules/utils/loader', [
    /**
     * @author Крылов М.А.
     */
-
-   var errorHandler = new ErrorHandlerLib.default();
 
    /**
     * Создать служебный узел для контрола.
@@ -212,6 +209,7 @@ define('UI/_builder/Tmpl/modules/utils/loader', [
       var resolver = this.resolver.bind(this);
       var configResolvers = this.config && this.config.resolvers;
       var fileName = this.fileName;
+      var errorHandler = this.errorHandler;
 
       requireFile(url, fromBuilderTmpl, resolver, configResolvers).addCallbacks(
          function(node) {

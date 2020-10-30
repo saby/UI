@@ -6,6 +6,9 @@
 
 import { Config } from 'UI/BuilderConfig';
 import { ModulePath } from './ModulePath';
+import { createErrorHandler, IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
+
+const DIAGNOSTIC_MESSAGE_TITLE = 'Template Compiler';
 
 /**
  * Represents interface for traverse config.
@@ -77,6 +80,11 @@ export interface IOptions {
     * TODO: Enable this option.
     */
    generateCodeForTranslations: boolean;
+
+   /**
+    * Error handler
+    */
+   errorHandler: IErrorHandler;
 }
 
 /**
@@ -116,6 +124,11 @@ export class Options implements IOptions {
     */
    generateCodeForTranslations: boolean;
 
+   /**
+    * Error handler.
+    */
+   readonly errorHandler: IErrorHandler;
+
    constructor(options: IOptions) {
       this.modulePath = new ModulePath(options.fileName);
       // FIXME: Compatibility with prev builder version (diff checking stage)
@@ -126,5 +139,6 @@ export class Options implements IOptions {
       this.config = options.config || Config as ITraverseOptions;
       this.isWasabyTemplate = this.modulePath.extension === 'wml';
       this.generateCodeForTranslations = options.generateCodeForTranslations;
+      this.errorHandler = createErrorHandler(DIAGNOSTIC_MESSAGE_TITLE, !options.fromBuilderTmpl);
    }
 }
