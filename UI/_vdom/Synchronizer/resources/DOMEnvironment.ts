@@ -636,7 +636,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          mountMethodsCaller.beforePaint(controlNodesToCall);
 
          delay(() => {
-            mountMethodsCaller.afterUpdate(controlNodesToCall);
+            mountMethodsCaller.afterUpdate(mountMethodsCaller.collectControlNodesToCall(newRootCntNode, rebuildChanges));
          });
 
          delay(() => {
