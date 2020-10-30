@@ -1,15 +1,12 @@
 define('UI/_builder/Tmpl/modules/if', [
    'UI/_builder/Tmpl/expressions/_private/Process',
-   'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/codegen/Generator'
-], function ifLoader(Process, ErrorHandlerLib, Generator) {
+], function ifLoader(Process, Generator) {
    'use strict';
 
    /**
     * @author Крылов М.А.
     */
-
-   var errorHandler = new ErrorHandlerLib.default();
 
    /**
     * Retrieving value from tag constructions
@@ -28,7 +25,7 @@ define('UI/_builder/Tmpl/modules/if', [
             value: isText ? tagData.value.trim() : Process.processExpressions(tagData[0], data, this.fileName)
          };
       } catch (err) {
-         errorHandler.error(
+         this.errorHandler.error(
             'Для директивы ws:if не указан атрибут data, содержащий выражение с условием',
             {
                fileName: this.fileName

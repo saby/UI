@@ -4,7 +4,6 @@
  * @author Крылов М.А.
  */
 
-import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { LocalizationNode, TextNode, VariableNode } from './Statement';
 import { ProgramNode, ExpressionVisitor } from './Nodes';
 import { genEscape } from 'UI/_builder/Tmpl/codegen/Generator';
@@ -14,16 +13,12 @@ import * as common from 'UI/_builder/Tmpl/modules/utils/common';
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
 const EMPTY_STRING = '';
-const errorHandler = new ErrorHandler();
 
-function splitLocalizationText(text: string, fileName: string): { text: string, context: string } {
+function splitLocalizationText(text: string): { text: string, context: string } {
    const pair = text.split('@@');
    if (pair.length > 2) {
-      errorHandler.error(
-         `Ожидался только 1 @@-разделитель в конструкции локализации, а обнаружено ${pair.length - 1} разделителей в тексте "${text}"`,
-         {
-            fileName
-         }
+      throw new Error(
+         `Ожидался только 1 @@-разделитель в конструкции локализации, а обнаружено ${pair.length - 1} разделителей в тексте "${text}"`
       );
    }
    return {
@@ -32,13 +27,13 @@ function splitLocalizationText(text: string, fileName: string): { text: string, 
    };
 }
 
-function wrapWithLocalization(data: string, fileName: string): string {
+function wrapWithLocalization(data: string): string {
    // FIXME: строковые литералы идут сразу в кавычках.
    //  Так не должно быть! Убираем их перед разбором.
    const text = data
       .replace(/^"/gi, '')
       .replace(/"$/gi, '');
-   const prepared = splitLocalizationText(text, fileName);
+   const prepared = splitLocalizationText(text);
    if (prepared.context) {
       return `rk("${prepared.text}", "${prepared.context}")`;
    }
@@ -106,7 +101,7 @@ export function processExpressions(
          .replace(/\\/g, '\\\\')
          .replace(/"/g, '\\"');
       res = FSC.wrapAroundQuotes(res);
-      res = wrapWithLocalization(res, fileName);
+      res = wrapWithLocalization(res);
       exprAsLocalization.value = FSC.wrapAroundExec(res, true);
       return res;
    }
@@ -140,13 +135,7 @@ export function processExpressions(
          );
          return res;
       } else {
-         errorHandler.error(
-            'Something wrong with the expression given',
-            {
-               fileName
-            }
-         );
-         return undefined;
+         throw new Error('Получено некорректное Mustache-выражение');
       }
    }
 

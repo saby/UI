@@ -1,20 +1,17 @@
 define('UI/_builder/Tmpl/modules/template', [
-   'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/BuilderConfig',
    'UI/_builder/Tmpl/codegen/templates'
-], function templateLoader(ErrorHandlerLib, BuilderConfig, templates) {
+], function templateLoader(BuilderConfig, templates) {
    'use strict';
 
    /**
     * @author Крылов М.А.
     */
 
-   var errorHandler = new ErrorHandlerLib.default();
-
    function validateTemplateName(tag) {
       var name = tag.attribs.name;
       if (BuilderConfig.Config.reservedWords.includes(name)) {
-         errorHandler.error(
+         this.errorHandler.error(
             "Встречено разерверированное служебное слово '" + name + "' в названии шаблона",
             {
                fileName: this.fileName
@@ -22,7 +19,7 @@ define('UI/_builder/Tmpl/modules/template', [
          );
       }
       if (!name.match(/^[a-zA-Z_]\w*$/g) && /\.wml$/g.test(this.fileName)) {
-         errorHandler.error(
+         this.errorHandler.error(
             "Некорректное имя шаблона '" + name + "'",
             {
                fileName: this.fileName

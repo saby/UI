@@ -10,7 +10,6 @@ define('UI/_builder/Tmpl/function', [
    'UI/_builder/Tmpl/modules/template',
    'UI/_builder/Tmpl/modules/utils/tag',
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
-   'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/modules/utils/parse',
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/Tmpl/codegen/Generator',
@@ -27,7 +26,6 @@ define('UI/_builder/Tmpl/function', [
    templateModule,
    tagUtils,
    FSC,
-   ErrorHandlerLib,
    parseUtils,
    templates,
    Generator,
@@ -40,8 +38,6 @@ define('UI/_builder/Tmpl/function', [
     */
 
    var EMPTY_STRING = '';
-
-   var errorHandler = new ErrorHandlerLib.default();
 
    function createAttrObject(val) {
       return {
@@ -229,6 +225,9 @@ define('UI/_builder/Tmpl/function', [
             this.fileName = handlers.fileName;
             this.config = handlers.config;
             this.isWasabyTemplate = handlers.isWasabyTemplate;
+            if (handlers.errorHandler) {
+               this.errorHandler = handlers.errorHandler;
+            }
          }
          var str = '' + this._process(ast, null, decor);
          if (str) {
@@ -258,13 +257,7 @@ define('UI/_builder/Tmpl/function', [
             func.includedFn = this.includedFn;
             func.functionNames = this.functionNames;
          } catch (error) {
-            errorHandler.info(
-               '[UI/_builder/Tmpl/function:getFunction()] generating function: \n' + str,
-               {
-                  fileName: handlers.fileName
-               }
-            );
-            throw error;
+            throw new Error('Внутренняя ошибка построения функции: ' + error.message);
          }
          this.setFunctionName(func, undefined, this.fileName);
          this.childrenStorage = [ ];
