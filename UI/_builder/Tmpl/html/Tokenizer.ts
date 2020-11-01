@@ -160,7 +160,7 @@ export interface ITokenHandler {
    /**
     * Emit end of file token.
     */
-   onEOF(position: SourcePosition): void;
+   onEOF(): void;
 }
 
 /**
@@ -2088,6 +2088,6 @@ export class Tokenizer implements ITokenizer {
             break;
       }
       this.flushCharBuffer();
-      this.tokenHandler.onEOF(this.currentPosition);
+      this.tokenHandler.onEOF();
    }
 }

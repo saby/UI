@@ -6,7 +6,6 @@
 
 import * as ComponentCollector from 'UI/_builder/Tmpl/core/_deprecated/ComponentCollector';
 import { parse } from 'UI/_builder/Tmpl/html/Parser';
-import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';
 import { traverse } from 'UI/_builder/Tmpl/core/bridge';
 import * as codegenBridge from 'UI/_builder/Tmpl/codegen/bridge';
@@ -223,7 +222,7 @@ abstract class BaseCompiler implements ICompiler {
                cleanWhiteSpaces: true,
                needPreprocess: needPreprocess,
                tagDescriptor: getWasabyTagDescription,
-               errorHandler: new ErrorHandler()
+               errorHandler: options.errorHandler
             });
             const dependencies = ComponentCollector.getComponents(parsed);
             // tslint:disable:prefer-const
@@ -261,15 +260,18 @@ abstract class BaseCompiler implements ICompiler {
                      artifact.errors.push(error);
                      reject(artifact);
                   } finally {
+                     options.errorHandler.flush();
                      this.cleanWorkspace();
                   }
                })
                .catch((error) => {
+                  options.errorHandler.flush();
                   this.cleanWorkspace();
                   artifact.errors.push(error);
                   reject(artifact);
                });
          } catch (error) {
+            options.errorHandler.flush();
             artifact.errors.push(error);
             reject(artifact);
          }

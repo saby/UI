@@ -1,5 +1,4 @@
 define('UI/_builder/Tmpl/modules/data/object', [
-   'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/modules/utils/tag',
    'UI/_builder/Tmpl/modules/data/utils/dataTypesCreator',
    'UI/_builder/Tmpl/modules/utils/common',
@@ -7,14 +6,12 @@ define('UI/_builder/Tmpl/modules/data/object', [
    'UI/_builder/Tmpl/modules/utils/parse',
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/Tmpl/codegen/TClosure'
-], function objectLoader(ErrorHandlerLib, tagUtils, DTC, common, FSC, parseUtils, templates, TClosure) {
+], function objectLoader(tagUtils, DTC, common, FSC, parseUtils, templates, TClosure) {
    'use strict';
 
    /**
     * @author Крылов М.А.
     */
-
-   var errorHandler = new ErrorHandlerLib.default();
 
    function checkSingleResultData(data, type) {
       return typeof data === 'string' && type !== 'Array';
@@ -231,7 +228,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
                   var numEnd = result.indexOf(';', num + 1);
                   var message = 'Deprecated - Вы пытаетесь создать компонент внутри опции type=string. PropertyName=' +
                      htmlPropertyName + '. ResultFunction=' + result.substring(num, numEnd);
-                  errorHandler.error(
+                  this.handlers.errorHandler.error(
                      message,
                      {
                         fileName: this.handlers.fileName

@@ -11,7 +11,7 @@ define([
 ], function(
    Parser,
    Tags,
-   ErrorHandler,
+   ErrorHandlerLib,
    Traverse,
    PatchVisitor,
    Scope,
@@ -87,6 +87,7 @@ define([
 
    function process(html) {
       let scope = new Scope.default();
+      let errorHandler = ErrorHandlerLib.createErrorHandler('Template Compiler', false);
       let parsed = Parser.parse(html, FILE_NAME, {
          xml: true,
          allowComments: true,
@@ -97,13 +98,13 @@ define([
          cleanWhiteSpaces: true,
          needPreprocess: true,
          tagDescriptor: Tags.default,
-         errorHandler: new ErrorHandler.default()
+         errorHandler: errorHandler
       });
 
       let config = {
          expressionParser: new ExpressionsParser.Parser(),
          hierarchicalKeys: true,
-         errorHandler: new ErrorHandler.default(),
+         errorHandler: errorHandler,
          allowComments: false,
          textTranslator: Translator.createTextTranslator({}),
          generateTranslations: true

@@ -221,11 +221,10 @@ export class TreeBuilder implements ITreeBuilder {
 
    /**
     *
-    * @param position {SourcePosition}
     */
-   onEOF(position: SourcePosition): void {
+   onEOF(): void {
       this.cleanDataNode();
-      this.flushStack(position);
+      this.flushStack();
    }
 
    /**
@@ -276,15 +275,14 @@ export class TreeBuilder implements ITreeBuilder {
 
    /**
     *
-    * @param position {SourcePosition}
     */
-   private flushStack(position: SourcePosition): void {
+   private flushStack(): void {
       for (let index = this.stack.length - 1; index >= 0; --index) {
          const node = this.stack[index];
          if (!this.tagDescriptor(node.name).closedByParent) {
             this.hasCriticalError = true;
             this.errorHandler.critical(`Обнаружен незакрытый тег "${node.name}"`, {
-               position,
+               position: node.position,
                fileName: this.fileName
             });
          }

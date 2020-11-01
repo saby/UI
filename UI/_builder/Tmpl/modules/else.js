@@ -1,15 +1,12 @@
 define('UI/_builder/Tmpl/modules/else', [
    'UI/_builder/Tmpl/expressions/_private/Process',
-   'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/codegen/Generator'
-], function elseLoader(Process, ErrorHandlerLib, Generator) {
+], function elseLoader(Process, Generator) {
    'use strict';
 
    /**
     * @author Крылов М.А.
     */
-
-   var errorHandler = new ErrorHandlerLib.default();
 
    function capturingElse(tag, data, source, elseSource, decor) {
       var processed = this._process(tag.children, data, decor);
@@ -28,7 +25,7 @@ define('UI/_builder/Tmpl/modules/else', [
          function resolveStatement(decor) {
             var source, elseSource;
             if (tag.prev === undefined || (tag.prev.name !== 'ws:if' && tag.prev.name !== 'ws:else')) {
-               errorHandler.error(
+               this.errorHandler.error(
                   'There is no "if" for "else" module to use',
                   {
                      fileName: this.fileName
@@ -38,7 +35,7 @@ define('UI/_builder/Tmpl/modules/else', [
             try {
                source = tag.prev.attribs.data.data[0].value;
             } catch (err) {
-               errorHandler.error(
+               this.errorHandler.error(
                   'There is no data for "else" module to use',
                   {
                      fileName: this.fileName
@@ -52,7 +49,7 @@ define('UI/_builder/Tmpl/modules/else', [
                   elseSource = Process.processExpressions(tagExpressionBody, data, this.fileName);
                   tagExpressionBody.value = elseSource;
                } catch (err) {
-                  errorHandler.error(
+                  this.errorHandler.error(
                      'There is no data for "else" module to use for excluding place "elseif"',
                      {
                         fileName: this.fileName

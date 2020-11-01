@@ -4,16 +4,14 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
    'UI/_builder/Tmpl/expressions/_private/Process',
    'UI/_builder/Tmpl/expressions/_private/Bind',
    'UI/_builder/Tmpl/expressions/_private/Event',
-   'UI/_builder/Tmpl/codegen/TClosure',
-   'UI/_builder/Tmpl/utils/ErrorHandler'
+   'UI/_builder/Tmpl/codegen/TClosure'
 ], function straightFromFileLoader(
    FSC,
    utils,
    Process,
    bindExpressions,
    eventExpressions,
-   TClosure,
-   ErrorHandlerLib
+   TClosure
 ) {
    'use strict';
 
@@ -34,8 +32,6 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
       'class',
       'data-access'
    ];
-
-   var errorHandler = new ErrorHandlerLib.default();
 
    function isAttr(string) {
       return string.startsWith('attr:');
@@ -201,12 +197,10 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
                      attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage, eventChain
                   );
                } catch (error) {
-                  errorHandler.error(
+                  this.errorHandler.error(
                      'На теге "' + tag.originName + '" значение атрибута "' + attr + '" некорректно "' +
                      attribs[attr].data[0].name.string + '": ' + error.message +
-                     '. Данный атрибут будет обработан как опция. ' +
-                     'Строка ' + (tag.attributes[attr].position.line + 1) + ', ' +
-                     'столбец ' + (tag.attributes[attr].position.column + 1),
+                     '. Данный атрибут будет обработан как опция.',
                      {
                         fileName: this.fileName
                      }
@@ -229,12 +223,10 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
                      result.events[eventName].push(eventObject[0]);
                   }
                } catch (error) {
-                  errorHandler.error(
+                  this.errorHandler.error(
                      'На теге "' + tag.originName + '" значение атрибута "' + attr + '" некорректно "' +
                      attribs[attr].data[0].name.string + '": ' + error.message +
-                     '. Игнорирую данное выражение. ' +
-                     'Строка ' + (tag.attributes[attr].position.line + 1) + ', ' +
-                     'столбец ' + (tag.attributes[attr].position.column + 1),
+                     '. Игнорирую данное выражение.',
                      {
                         fileName: this.fileName
                      }
