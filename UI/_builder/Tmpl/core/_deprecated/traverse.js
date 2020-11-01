@@ -472,7 +472,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
             postTraverse.bind(this, deferred),
             function broken(fileName, error) {
                deferred.errback(error);
-               errorHandler.error(
+               errorHandler.critical(
                   error.message,
                   {
                      fileName: fileName
@@ -499,7 +499,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
             },
             function brokenTagTraversing(error) {
                deferred.errback(error);
-               errorHandler.error(
+               errorHandler.critical(
                   error.message,
                   {
                      fileName: fileName
@@ -609,7 +609,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
             }
             deferred.callback(_generatorFunctionForTags(takeTag));
          } catch (error) {
-            errorHandler.error(
+            errorHandler.critical(
                'Ошибка разбора шаблона: ' + error.message,
                {
                   fileName: this.fileName
@@ -693,7 +693,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
          }
          var res, name, attribs;
          if (tag.attribs._wstemplatename === undefined) {
-            errorHandler.error(
+            errorHandler.critical(
                'No template tag for partial ' + tag.name,
                {
                   fileName: this.fileName
@@ -754,7 +754,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
       _resolveTemplateProcess: function(tag, tagData, template) {
          var def = new Deferred();
          if (this.includeStack[template] === undefined) {
-            errorHandler.error(
+            errorHandler.critical(
                'Requiring tag for "' + template + '" is not found!',
                {
                   fileName: this.fileName
@@ -790,7 +790,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
                }.bind(this),
                function brokenPartial(reason) {
                   def.errback(reason);
-                  errorHandler.error(
+                  errorHandler.critical(
                      reason.message,
                      {
                         fileName: this.fileName
@@ -831,7 +831,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
          try {
             name = tag.attribs.name.trim();
          } catch (e) {
-            errorHandler.error(
+            errorHandler.critical(
                'Something wrong with name attribute in ws:template tag: ' + e.message,
                {
                   fileName: this.fileName
@@ -839,7 +839,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
             );
          }
          if (tag.children === undefined || tag.children.length === 0) {
-            errorHandler.error(
+            errorHandler.critical(
                'There is got to be a children in ws:template tag',
                {
                   fileName: this.fileName
@@ -860,7 +860,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
                realDeferred.callback(tag);
             }, function brokenTraverse(reason) {
                realDeferred.errback(reason);
-               errorHandler.error(
+               errorHandler.critical(
                   reason.message,
                   {
                      fileName: this.fileName
@@ -899,7 +899,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
             tag.attribs = this._traverseTagAttributes(tag.attribs);
          } catch (err) {
             var message = getErrorMessage(err);
-            errorHandler.error(
+            errorHandler.critical(
                'Wrong arguments in for statement ' +
                tag.name + ': ' + message,
                {
@@ -951,7 +951,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
                statements = _lookForStatements(choppedText, config);
                deferred.callback(statements);
             } catch (error) {
-               errorHandler.error(
+               errorHandler.critical(
                   error.message,
                   {
                      fileName: this.fileName
@@ -991,7 +991,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
        */
       defaultHandler: function defaultHandler(error) {
          if (error) {
-            errorHandler.error(
+            errorHandler.critical(
                error.message,
                {
                   fileName: this.fileName

@@ -231,7 +231,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
                   var numEnd = result.indexOf(';', num + 1);
                   var message = 'Deprecated - Вы пытаетесь создать компонент внутри опции type=string. PropertyName=' +
                      htmlPropertyName + '. ResultFunction=' + result.substring(num, numEnd);
-                  errorHandler.error(
+                  errorHandler.critical(
                      message,
                      {
                         fileName: this.handlers.fileName

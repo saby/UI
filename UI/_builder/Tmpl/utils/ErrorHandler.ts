@@ -83,8 +83,9 @@ export class StackLogger implements ILogger {
       let lastIndex: number = this.stack.length - 1;
       for (; lastIndex > -1; --lastIndex) {
          if (this.stack[lastIndex].type === MessageType.ERROR) {
+            const lastErrorMessage = this.stack[lastIndex].message;
             this.stack.splice(lastIndex, 1);
-            return this.stack[lastIndex].message;
+            return lastErrorMessage;
          }
       }
       return null;

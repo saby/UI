@@ -212,6 +212,7 @@ abstract class BaseCompiler implements ICompiler {
             // TODO: реализовать whitespace visitor и убрать флаг needPreprocess
             const needPreprocess = options.modulePath.extension === 'wml';
             const resolver = getResolverControls(options.modulePath.extension);
+            const errorHandler = createErrorHandler(!options.fromBuilderTmpl);
             // tslint:disable:prefer-const
             let parsed = parse(source.text, options.fileName, {
                xml: true,
@@ -223,9 +224,15 @@ abstract class BaseCompiler implements ICompiler {
                cleanWhiteSpaces: true,
                needPreprocess: needPreprocess,
                tagDescriptor: getWasabyTagDescription,
-               errorHandler: createErrorHandler(!options.fromBuilderTmpl)
+               errorHandler
             });
-            // TODO: Check errors
+            const hasFailures = errorHandler.hasFailures();
+            const lastMessage = errorHandler.popLastErrorMessage();
+            errorHandler.flush();
+            if (hasFailures) {
+               reject(new Error(lastMessage));
+               return;
+            }
             const dependencies = ComponentCollector.getComponents(parsed);
             // tslint:disable:prefer-const
             let traversed = traverse(parsed, resolver, options);

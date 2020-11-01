@@ -42,7 +42,7 @@ describe('Compiler/Compiler', () => {
             try {
                assert.isFalse(artifact.stable);
                assert.strictEqual(artifact.nodeName, 'wml!Compiler/Compiler/Template');
-               assert.strictEqual(artifact.errors[0].message, 'Во время разбора шаблона была обнаружена критическая ошибка. Детали ошибки следует смотреть в логах');
+               assert.strictEqual(artifact.errors[0].message, 'Template Compiler: Compiler/Compiler/Template (1:5) Обнаружен незакрытый тег "div"');
                done();
             } catch (error) {
                done(error);
