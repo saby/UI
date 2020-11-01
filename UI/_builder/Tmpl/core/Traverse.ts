@@ -755,7 +755,7 @@ class Traverse implements ITraverse {
          case TraverseState.OBJECT_PROPERTY_WITH_CONTENT:
             return new Ast.CDataNode(node.data);
          default:
-            this.errorHandler.critical(
+            this.errorHandler.error(
                `Обнаружен непредусмотренный тег CData: ${whatExpected(context.state)}. Тег будет проигнорирован, его необходимо убрать`,
                {
                   fileName: context.fileName,
@@ -780,7 +780,7 @@ class Traverse implements ITraverse {
          case TraverseState.OBJECT_PROPERTY_WITH_CONTENT:
             return new Ast.DoctypeNode(node.data);
          default:
-            this.errorHandler.critical(
+            this.errorHandler.error(
                `Обнаружен непредусмотренный тег Doctype: ${whatExpected(context.state)}. Тег будет проигнорирован, его необходимо убрать`,
                {
                   fileName: context.fileName,
@@ -805,7 +805,7 @@ class Traverse implements ITraverse {
          case TraverseState.OBJECT_PROPERTY_WITH_CONTENT:
             return new Ast.InstructionNode(node.data);
          default:
-            this.errorHandler.critical(
+            this.errorHandler.error(
                `Обнаружен непредусмотренный тег Instruction: ${whatExpected(context.state)}. Тег будет проигнорирован, его необходимо убрать`,
                {
                   fileName: context.fileName,
@@ -835,7 +835,7 @@ class Traverse implements ITraverse {
          case TraverseState.VALUE_DATA_TYPE:
             return this.processText(node, context);
          default:
-            this.errorHandler.warn(
+            this.errorHandler.error(
                `Обнаружен непредусмотренный текст "${node.data}": ${whatExpected(context.state)}. Текст будет проигнорирован, его необходимо убрать`,
                {
                   fileName: context.fileName,
@@ -926,7 +926,7 @@ class Traverse implements ITraverse {
             return null;
          default:
             if (Resolvers.isOption(node.name)) {
-               this.errorHandler.critical(
+               this.errorHandler.error(
                   `Обнаружена неизвестная директива "${node.name}"`,
                   {
                      fileName: context.fileName,
@@ -1983,7 +1983,7 @@ class Traverse implements ITraverse {
             }
             break;
          default:
-            this.errorHandler.critical(
+            this.errorHandler.error(
                `Обнаружен непредусмотренный тег "${node.name}": ${whatExpected(context.state)}. Тег будет проигнорирован, его необходимо убрать`,
                {
                   fileName: context.fileName,

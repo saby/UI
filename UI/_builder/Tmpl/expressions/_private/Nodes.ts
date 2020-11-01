@@ -223,14 +223,6 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
    visitCallExpressionNode(node: CallExpressionNode, context: IExpressionVisitorContext): string {
       const callee = node.callee.accept(this, context);
       if (callee) {
-         if (callee === 'debug') {
-            errorHandler.warn(
-               'В тексте шаблона обнаружено debug-выражение. Необходимо убрать его в production!',
-               {
-                  fileName: context.fileName
-               }
-            );
-         }
          if (callee === SET_HTML_UNSAFE) {
             return this.processUnescapedHtmlFunction(node.arguments, context);
          }

@@ -31,7 +31,8 @@ describe('Compiler/Compiler', () => {
    it('Broken', (done) => {
       const html = '<div>';
       let options = {
-         fileName: 'Compiler/Compiler/Template.wml'
+         fileName: 'Compiler/Compiler/Template.wml',
+         fromBuilderTmpl: true
       };
       compiler.compile(html, options)
          .then(function() {
@@ -42,7 +43,7 @@ describe('Compiler/Compiler', () => {
             try {
                assert.isFalse(artifact.stable);
                assert.strictEqual(artifact.nodeName, 'wml!Compiler/Compiler/Template');
-               assert.strictEqual(artifact.errors[0].message, 'Template Compiler: Compiler/Compiler/Template (1:5) Обнаружен незакрытый тег "div"');
+               assert.strictEqual(artifact.errors[0].message, 'Template Compiler: Обнаружен незакрытый тег "div". Строка: 1, столбец: 5');
                done();
             } catch (error) {
                done(error);
