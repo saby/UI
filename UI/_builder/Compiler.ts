@@ -6,7 +6,7 @@
 
 import * as ComponentCollector from 'UI/_builder/Tmpl/core/_deprecated/ComponentCollector';
 import { parse } from 'UI/_builder/Tmpl/html/Parser';
-import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
+import { createErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';
 import { traverse } from 'UI/_builder/Tmpl/core/bridge';
 import * as codegenBridge from 'UI/_builder/Tmpl/codegen/bridge';
@@ -223,8 +223,9 @@ abstract class BaseCompiler implements ICompiler {
                cleanWhiteSpaces: true,
                needPreprocess: needPreprocess,
                tagDescriptor: getWasabyTagDescription,
-               errorHandler: new ErrorHandler()
+               errorHandler: createErrorHandler(!options.fromBuilderTmpl)
             });
+            // TODO: Check errors
             const dependencies = ComponentCollector.getComponents(parsed);
             // tslint:disable:prefer-const
             let traversed = traverse(parsed, resolver, options);

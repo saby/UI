@@ -90,7 +90,7 @@ define('UI/_builder/Tmpl/core/bridge', [
    function traverseWithVisitors(htmlTree, options) {
       var deferred = new Deferred();
       var scope = new ScopeLib.default(!options.fromBuilderTmpl);
-      var errorHandler = new ErrorHandlerLib.default();
+      var errorHandler = ErrorHandlerLib.createErrorHandler(!options.fromBuilderTmpl);
       var traverseConfig = {
          expressionParser: new ParserLib.Parser(),
          hierarchicalKeys: true,
@@ -108,12 +108,11 @@ define('UI/_builder/Tmpl/core/bridge', [
          translateText: true
       };
       var traversed = TraverseLib.default(htmlTree, traverseConfig, traverseOptions);
-      if (errorHandler.hasErrors() || errorHandler.hasCriticalErrors()) {
-         deferred.errback(
-            new Error(
-               'При обработке файла "' + options.fileName + '" возникли ошибки. Смотри логи'
-            )
-         );
+      var hasFailures = errorHandler.hasFailures();
+      var lastMessage = errorHandler.popLastErrorMessage();
+      errorHandler.flush();
+      if (hasFailures) {
+         deferred.errback(new Error(lastMessage));
          return deferred;
       }
       scope.requestDependencies().addCallbacks(function() {

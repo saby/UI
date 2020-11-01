@@ -6,12 +6,12 @@
  * @author Крылов М.А.
  */
 
-import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
+import { createErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
 const DIR_FROM_CONTEXT = 'fromContext';
 const SEPARATOR = '/';
-const errorHandler = new ErrorHandler();
+const errorHandler = createErrorHandler(true);
 
 function splitControlPropName(name: any, separator: any, fieldName: any): any {
    let resultArr;

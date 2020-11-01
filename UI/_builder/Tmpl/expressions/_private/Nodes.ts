@@ -4,7 +4,7 @@
  * @author Крылов М.А.
  */
 
-import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
+import { createErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 import * as common from 'UI/_builder/Tmpl/modules/utils/common';
 import * as decorators from './Decorators';
@@ -17,7 +17,7 @@ import { genGetter, genSetter, genDecorate } from 'UI/_builder/Tmpl/codegen/TClo
 // классов узлов Mustache-выражений и
 // реализации паттерна "Посетитель" для этих узлов.
 
-const errorHandler = new ErrorHandler();
+const errorHandler = createErrorHandler(true);
 
 export interface IPosition {
    line: number;

@@ -25,7 +25,7 @@ define('UI/_builder/Tmpl', [
     * @author Крылов М.А.
     */
 
-   var errorHandler = new ErrorHandlerLib.default();
+   var errorHandler = ErrorHandlerLib.createErrorHandler(true);
    var ModulePath = ModulePathLib.ModulePath;
    var EMPTY_STRING = '';
 

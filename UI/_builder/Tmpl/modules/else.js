@@ -9,7 +9,7 @@ define('UI/_builder/Tmpl/modules/else', [
     * @author Крылов М.А.
     */
 
-   var errorHandler = new ErrorHandlerLib.default();
+   var errorHandler = ErrorHandlerLib.createErrorHandler(true);
 
    function capturingElse(tag, data, source, elseSource, decor) {
       var processed = this._process(tag.children, data, decor);

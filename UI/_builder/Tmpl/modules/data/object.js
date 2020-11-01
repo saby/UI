@@ -14,7 +14,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
     * @author Крылов М.А.
     */
 
-   var errorHandler = new ErrorHandlerLib.default();
+   var errorHandler = ErrorHandlerLib.createErrorHandler(true);
 
    function checkSingleResultData(data, type) {
       return typeof data === 'string' && type !== 'Array';

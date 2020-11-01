@@ -39,7 +39,7 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
     * @author Крылов М.А.
     */
 
-   var errorHandler = new ErrorHandlerLib.default();
+   var errorHandler = ErrorHandlerLib.createErrorHandler(true);
 
    var DATA_TYPE_NODES = [
       'ws:array',
