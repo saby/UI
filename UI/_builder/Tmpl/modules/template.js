@@ -9,7 +9,7 @@ define('UI/_builder/Tmpl/modules/template', [
     * @author Крылов М.А.
     */
 
-   var errorHandler = new ErrorHandlerLib.default();
+   var errorHandler = ErrorHandlerLib.createErrorHandler(true);
 
    function validateTemplateName(tag) {
       var name = tag.attribs.name;

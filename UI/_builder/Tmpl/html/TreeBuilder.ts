@@ -82,11 +82,6 @@ export class TreeBuilder implements ITreeBuilder {
 
    /**
     *
-    */
-   private hasCriticalError: boolean = false;
-
-   /**
-    *
     * @param options {ITreeBuilderOptions}
     */
    constructor(options: ITreeBuilderOptions) {
@@ -260,14 +255,13 @@ export class TreeBuilder implements ITreeBuilder {
             return;
          }
          if (!this.tagDescriptor(currentNodeName).closedByParent) {
-            this.errorHandler.error(`Обнаружен закрывающий тег "${name}", для которого не был указан открывающий тег`, {
+            this.errorHandler.critical(`Обнаружен закрывающий тег "${name}", для которого не был указан открывающий тег`, {
                position,
                fileName: this.fileName
             });
             return;
          }
       }
-      this.hasCriticalError = true;
       this.errorHandler.critical(`Обнаружен закрывающий тег "${name}", для которого не был указан открывающий тег`, {
          position,
          fileName: this.fileName
@@ -282,17 +276,11 @@ export class TreeBuilder implements ITreeBuilder {
       for (let index = this.stack.length - 1; index >= 0; --index) {
          const node = this.stack[index];
          if (!this.tagDescriptor(node.name).closedByParent) {
-            this.hasCriticalError = true;
             this.errorHandler.critical(`Обнаружен незакрытый тег "${node.name}"`, {
                position,
                fileName: this.fileName
             });
          }
-      }
-      if (this.hasCriticalError) {
-         throw new Error(
-            'Во время разбора шаблона была обнаружена критическая ошибка. Детали ошибки следует смотреть в логах'
-         );
       }
    }
 }

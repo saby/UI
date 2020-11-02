@@ -4,7 +4,7 @@
  * @author Крылов М.А.
  */
 
-import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
+import { createErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { LocalizationNode, TextNode, VariableNode } from './Statement';
 import { ProgramNode, ExpressionVisitor } from './Nodes';
 import { genEscape } from 'UI/_builder/Tmpl/codegen/Generator';
@@ -14,7 +14,7 @@ import * as common from 'UI/_builder/Tmpl/modules/utils/common';
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
 const EMPTY_STRING = '';
-const errorHandler = new ErrorHandler();
+const errorHandler = createErrorHandler(true);
 
 function splitLocalizationText(text: string, fileName: string): { text: string, context: string } {
    const pair = text.split('@@');

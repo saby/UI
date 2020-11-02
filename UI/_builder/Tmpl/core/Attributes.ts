@@ -414,7 +414,7 @@ class AttributeProcessor implements IAttributeProcessor {
                   attributeNode.__$ws_key = index++;
                   attributeNode.__$ws_hasAttributePrefix = hasWasabyPrefix(attributeName);
                   if (collection.attributes.hasOwnProperty(`attr:${attributeNode.__$ws_name}`)) {
-                     this.errorHandler.warn(
+                     this.errorHandler.error(
                         `Атрибут "${attributeName}" уже содержится на теге "${options.parentTagName}"`,
                         {
                            fileName: options.fileName,
@@ -474,7 +474,7 @@ class AttributeProcessor implements IAttributeProcessor {
          if (expectedAttributeNames.indexOf(attributeName) > -1) {
             collection[attributeName] = attribute;
          } else {
-            this.errorHandler.warn(
+            this.errorHandler.error(
                `Обнаружен непредусмотренный атрибут "${attributeName}" на теге "${options.parentTagName}". Атрибут будет проигнорирован, его необходимо убрать`,
                {
                   fileName: options.fileName,
@@ -551,7 +551,7 @@ class AttributeProcessor implements IAttributeProcessor {
          );
          return new Ast.BindNode(property, programNode);
       } catch (error) {
-         this.errorHandler.error(
+         this.errorHandler.critical(
             `В процессе разбора атрибута "${attributeNode.name}" на теге "${options.parentTagName}" возникла ошибка: ${error.message}`,
             {
                fileName: options.fileName,
@@ -583,7 +583,7 @@ class AttributeProcessor implements IAttributeProcessor {
          );
          return new Ast.EventNode(event, programNode);
       } catch (error) {
-         this.errorHandler.error(
+         this.errorHandler.critical(
             `В процессе разбора атрибута "${attributeNode.name}" на теге "${options.parentTagName}" возникла ошибка: ${error.message}`,
             {
                fileName: options.fileName,
@@ -643,7 +643,7 @@ class AttributeProcessor implements IAttributeProcessor {
          );
          return new Ast.AttributeNode(attribute, value);
       } catch (error) {
-         this.errorHandler.error(
+         this.errorHandler.critical(
             `В процессе разбора атрибута "${attributeNode.name}" на теге "${options.parentTagName}" возникла ошибка: ${error.message}`,
             {
                fileName: options.fileName,
@@ -703,7 +703,7 @@ class AttributeProcessor implements IAttributeProcessor {
          option.setFlag(Ast.Flags.UNPACKED);
          return option;
       } catch (error) {
-         this.errorHandler.error(
+         this.errorHandler.critical(
             `В процессе разбора атрибута "${attributeNode.name}" на теге "${options.parentTagName}" возникла ошибка: ${error.message}`,
             {
                fileName: options.fileName,
