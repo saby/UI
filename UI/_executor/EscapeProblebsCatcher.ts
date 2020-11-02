@@ -16,6 +16,7 @@ const wrongEscapeList: Map<string, Set<string>> = new Map([
     ['Controls/list:ListView', new Set([
         'itemData.item.country'])],
     ['Controls/grid:GridView', new Set([
+        'itemData.item.ViewCondition',
         'colData.column.caption'])],
     ['RichEditor/base:Editor', new Set([
         'displayValue'])],
