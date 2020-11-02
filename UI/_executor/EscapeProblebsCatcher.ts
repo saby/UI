@@ -11,8 +11,12 @@ const wrongEscapeList: Map<string, Set<string>> = new Map([
         '_tooltip',
         '_viewModel.displayValue',
         'value'])],
+    ['Controls/buttons:Button', new Set([
+        '_options.tooltip'])],
     ['Controls/list:ListView', new Set([
         'itemData.item.country'])],
+    ['Controls/grid:GridView', new Set([
+        'colData.column.caption'])],
     ['RichEditor/base:Editor', new Set([
         'displayValue'])],
     ['UI/Base:Control', new Set([

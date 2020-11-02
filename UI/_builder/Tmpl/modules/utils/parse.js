@@ -35,7 +35,7 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
       'data-access'
    ];
 
-   var errorHandler = new ErrorHandlerLib.default();
+   var errorHandler = ErrorHandlerLib.createErrorHandler(true);
 
    function isAttr(string) {
       return string.startsWith('attr:');

@@ -11,7 +11,7 @@ define('UI/_builder/Tmpl/modules/utils/loader', [
     * @author Крылов М.А.
     */
 
-   var errorHandler = new ErrorHandlerLib.default();
+   var errorHandler = ErrorHandlerLib.createErrorHandler(true);
 
    /**
     * Создать служебный узел для контрола.
