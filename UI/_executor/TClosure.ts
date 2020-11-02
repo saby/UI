@@ -21,7 +21,6 @@ import { Text, Vdom } from './Markup';
 import * as Scope from './_Expressions/Scope';
 import * as Attr from './_Expressions/Attr';
 import { Common, ConfigResolver } from './Utils';
-import catchEscapeProblems from './EscapeProblebsCatcher';
 
 var decorators;
 function getDecorators() {
