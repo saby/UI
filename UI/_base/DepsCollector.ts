@@ -447,6 +447,12 @@ export class DepsCollector {
 
          const loadedResources = loadedContexts[UIModuleName];
 
+         if (controller.loadingsHistory.contexts.hasOwnProperty(UIModuleName)) {
+
+            // Добавляем contents для модулей с внешних сервисов, в них инофрмация о доступных ресурсах локализации.
+            files.js.push(controller.loadingsHistory.contexts[UIModuleName]);
+         }
+
          if (loadedResources.hasOwnProperty(localeCode)) {
             this.addLocalizationResource(files, loadedResources[localeCode]);
 
