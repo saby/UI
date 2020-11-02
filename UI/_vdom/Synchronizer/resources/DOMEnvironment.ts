@@ -634,7 +634,11 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
 
          mountMethodsCaller.afterRender(controlNodesToCall);
          mountMethodsCaller.beforePaint(controlNodesToCall);
-         mountMethodsCaller.afterUpdate(controlNodesToCall);
+         // TODO: разобраться почему не работает с requesе animation frame (через delay())
+         // посмотреть на crbug
+         setTimeout(() => {
+            mountMethodsCaller.afterUpdate(controlNodesToCall);
+         }, 0);
 
          delay(() => {
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist

@@ -86,6 +86,28 @@ export default class MountMethodsCaller {
         }
     }
 
+    private afterUpdateProcess(controlNode: IControlNode, control: Control): void {
+        // tslint:disable-next-line:ban-ts-ignore
+        // @ts-ignore
+        if (control._destroyed) {
+            return;
+        }
+        try {
+            // tslint:disable-next-line:ban-ts-ignore
+            // @ts-ignore
+            if (typeof control._afterUpdate === 'function') {
+                // tslint:disable-next-line:ban-ts-ignore
+                // @ts-ignore
+                control._afterUpdate(controlNode.oldOptions || controlNode.options, controlNode.oldContext);
+            }
+            this.forceUpdateIfNeed(control);
+        } catch (error) {
+            Logger.lifeError('_afterUpdate', control, error);
+        } finally {
+            delete controlNode.oldOptions;
+        }
+    }
+
     /**
      * @function UI/_vdom/Synchronizer/resources/MountMethodsCaller#beforePaint
      * @param controlNodes Массив контрол нод.
@@ -206,27 +228,7 @@ export default class MountMethodsCaller {
                 onEndLifecycle(controlNode.vnode || controlNode);
                 continue;
             }
-            try {
-                // tslint:disable-next-line:ban-ts-ignore
-                // @ts-ignore
-                if (!control._destroyed) {
-                    // tslint:disable-next-line:ban-ts-ignore
-                    // @ts-ignore
-                    if (typeof control._afterUpdate === 'function') {
-                        // tslint:disable-next-line:ban-ts-ignore
-                        // @ts-ignore
-                        control._afterUpdate(
-                            controlNode.oldOptions || controlNode.options,
-                            controlNode.oldContext
-                        );
-                    }
-                    this.forceUpdateIfNeed(control);
-                }
-            } catch (error) {
-                Logger.lifeError('_afterUpdate', controlNode.control, error);
-            } finally {
-                delete controlNode.oldOptions;
-            }
+            this.afterUpdateProcess(controlNode, control);
             onEndLifecycle(controlNode.vnode || controlNode);
         }
     }
