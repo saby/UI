@@ -1027,7 +1027,13 @@ function vdomEventBubbling(
                 * То есть, сам на себя мы не должны реагировать
                 * */
                if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control)) {
-                  fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
+                  try {
+                     fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
+                  } catch (err) {
+                     // в шаблоне могут указать неверное имя обработчика, следует выводить адекватную ошибку
+                     Logger.error(`Ошибка при вызове обработчика "${ eventPropertyName }" из контрола ${ fn.control._moduleName }. 
+                     Проверьте существует ли обработчик с таким именем.`, fn.control);
+                  }
                }
                /* Проверяем, нужно ли дальше распространять событие по controlNodes */
                if (!eventObject.propagating()) {
