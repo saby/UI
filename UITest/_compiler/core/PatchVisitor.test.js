@@ -86,6 +86,7 @@ define([
    }
 
    function process(html) {
+      let errorHandler = ErrorHandler.createErrorHandler(true);
       let scope = new Scope.default();
       let parsed = Parser.parse(html, FILE_NAME, {
          xml: true,
@@ -97,13 +98,13 @@ define([
          cleanWhiteSpaces: true,
          needPreprocess: true,
          tagDescriptor: Tags.default,
-         errorHandler: new ErrorHandler.default()
+         errorHandler: errorHandler
       });
 
       let config = {
          expressionParser: new ExpressionsParser.Parser(),
          hierarchicalKeys: true,
-         errorHandler: new ErrorHandler.default(),
+         errorHandler: errorHandler,
          allowComments: false,
          textTranslator: Translator.createTextTranslator({}),
          generateTranslations: true

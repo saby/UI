@@ -12,7 +12,7 @@ define('UI/_builder/Tmpl/modules/data/array', [
     * @author Крылов М.А.
     */
 
-   var errorHandler = new ErrorHandlerLib.default();
+   var errorHandler = ErrorHandlerLib.createErrorHandler(true);
 
    function clearPropertyName(propertyName) {
       return propertyName ? propertyName.split('/').pop() : propertyName;
