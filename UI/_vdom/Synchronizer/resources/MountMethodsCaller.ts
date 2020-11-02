@@ -63,7 +63,7 @@ export default class MountMethodsCaller {
         return result;
     }
 
-    private afterMountProcess(controlNode: IControlNode, control: Control, ): void {
+    private afterMountProcess(controlNode: IControlNode, control: Control): void {
         // tslint:disable-next-line:ban-ts-ignore
         // @ts-ignore
         if (control._destroyed) {
@@ -218,7 +218,7 @@ export default class MountMethodsCaller {
             const control: Control = controlNode.control;
             onStartLifecycle(controlNode.vnode || controlNode);
             if (this.isBeforeMount(control)) {
-                if (controlNode.hasCompound) {
+                if (controlNode.hasCompound || control.getPendingBeforeMountState()) {
                     delay((): void => {
                         this.afterMountProcess(controlNode, control);
                     });
