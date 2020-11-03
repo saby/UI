@@ -190,7 +190,7 @@ export function notifyActivationEvents(env: IDOMEnvironment,
                      // @ts-ignore
                      isShiftKey: isTabPressed && isTabPressed.isShiftKey
                   }
-               ]);
+               ], {bubbling: true});
                control._$active = false;
             }
             found = false;
