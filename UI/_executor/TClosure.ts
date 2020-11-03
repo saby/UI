@@ -21,7 +21,6 @@ import { Text, Vdom } from './Markup';
 import * as Scope from './_Expressions/Scope';
 import * as Attr from './_Expressions/Attr';
 import { Common, ConfigResolver } from './Utils';
-import catchEscapeProblems from './EscapeProblebsCatcher';
 
 var decorators;
 function getDecorators() {
@@ -118,10 +117,7 @@ var
             }
          }
       }
-      const getterResult = object.extractValue(obj, path, extractValueFn);
-      // ескейпинг не должен вызываться на клиенте
-      catchEscapeProblems(getterResult, viewController, path.join('.'));
-      return getterResult;
+      return object.extractValue(obj, path, extractValueFn);
    },
 
    /**
