@@ -449,7 +449,7 @@ export class DepsCollector {
 
          if (controller.loadingsHistory.contents.hasOwnProperty(UIModuleName)) {
 
-            // Добавляем contents для модулей с внешних сервисов, в них инофрмация о доступных ресурсах локализации.
+            // Добавляем contents для модулей с внешних сервисов, с информацией о доступных ресурсах локализации.
             files.js.push(controller.loadingsHistory.contents[UIModuleName]);
          }
 
