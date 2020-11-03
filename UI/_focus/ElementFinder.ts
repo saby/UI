@@ -7,6 +7,7 @@
  */
 
 import { IControlElement } from './IFocus';
+import { isTabbable } from "./Tabbable";
 
 let NODE_NODE_TYPE = 1;
 
@@ -24,15 +25,7 @@ interface IProps {
    createsContext: Record<string, unknown>;
 }
 
-let FOCUSABLE_ELEMENTS = {
-      a: true,
-      link: true,
-      button: true,
-      input: true,
-      select: true,
-      textarea: true
-   },
-   CLASS_HIDDEN_FLAG = 1,
+let CLASS_HIDDEN_FLAG = 1,
    CLASS_DISABLED_FLAG = 2,
    CLASS_DELEGATES_TAB_FLAG = 4,
    CLASS_CREATES_CONTEXT = 8,
@@ -57,23 +50,12 @@ function getStyle(element: Element, style: string): string {
    return window.getComputedStyle(element)[style];
 }
 
-// Determines if the passed element can accept focus themselves instead of
-// delegating it to children. These are the usual interactive controls
-// (buttons, links, inputs) and containers with 'contenteditable'
-function canAcceptSelfFocus(element: IControlElement): boolean {
-   const tabIndex = element.tabIndex;
-
-   return FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase()) ||
-      (tabIndex !== -1 && element.hasAttribute('contenteditable'));
-}
-
 export function getElementProps(element: HTMLElement): IFocusElementProps {
    let elementPropsClassRe = /\bws-(hidden|disabled)\b/g;
    let className = element.getAttribute('class');
    let classes;
    let tabIndex;
    let tabIndexAttr;
-   let validTabIndex;
    let isContentEditable;
    let flags;
    let enabled;
@@ -102,14 +84,10 @@ export function getElementProps(element: HTMLElement): IFocusElementProps {
    if (enabled) {
       tabIndexAttr = element.getAttribute('tabindex');
       tabIndex = parseInt(tabIndexAttr, 10);
-      validTabIndex = !isNaN(tabIndex);
       isContentEditable = element.getAttribute('contenteditable') === 'true';
       result = {
          enabled: true,
-         tabStop:
-            (validTabIndex && tabIndex >= 0) ||
-            (tabIndexAttr === null && FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase())) ||
-            (tabIndex !== -1 && isContentEditable),
+         tabStop: isTabbable(element),
          createsContext: (flags & CLASS_CREATES_CONTEXT) !== 0,
          tabIndex: tabIndex || 0, // обязательно хоть 0
          delegateFocusToChildren: ((flags & CLASS_DELEGATES_TAB_FLAG) !== 0 && !isContentEditable),
@@ -262,7 +240,7 @@ function find(contextElement: Element,
       // или делегирует внутрь и внутри есть что сфокусировать (тогда он делегирует фокус внутрь)
       return !!(
          !nextProps.delegateFocusToChildren ||
-         canAcceptSelfFocus(next) ||
+         isTabbable(next) ||
          foundDelegated
       );
    }
