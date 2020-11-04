@@ -1251,6 +1251,11 @@ export class TemplateNode extends Ast {
    __$ws_name: string;
 
    /**
+    * Collection of arguments to invoke the inline template with.
+    */
+   __$ws_arguments: string[];
+
+   /**
     * Template content.
     */
    __$ws_content: TContent[];
@@ -1263,6 +1268,7 @@ export class TemplateNode extends Ast {
    constructor(name: string, content: TContent[] = []) {
       super();
       this.__$ws_name = name;
+      this.__$ws_arguments = null;
       this.__$ws_content = content;
    }
 
@@ -1273,6 +1279,38 @@ export class TemplateNode extends Ast {
     */
    accept(visitor: IAstVisitor, context: any): any {
       return visitor.visitTemplate(this, context);
+   }
+
+   addArguments(collection: string[], strategy: 'intersection' | 'union'): void {
+      if (this.__$ws_arguments === null) {
+         // Initialize arguments collection
+         this.__$ws_arguments = collection;
+         return;
+      }
+      if (strategy === 'intersection') {
+         this.addArgumentsWithIntersectionStrategy(collection);
+         return;
+      }
+      this.addArgumentsWithUnionStrategy(collection);
+   }
+
+   private addArgumentsWithIntersectionStrategy(collection: string[]): void {
+      const prev = this.__$ws_arguments;
+      const actual = [];
+      collection.forEach((arg: string): void => {
+         if (prev.indexOf(arg) > -1) {
+            actual.push(arg);
+         }
+      });
+      this.__$ws_arguments = actual;
+   }
+
+   private addArgumentsWithUnionStrategy(collection: string[]): void {
+      collection.forEach((arg: string): void => {
+         if (this.__$ws_arguments.indexOf(arg) > -1) {
+            this.__$ws_arguments.push(arg);
+         }
+      });
    }
 }
 

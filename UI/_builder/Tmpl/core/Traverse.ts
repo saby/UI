@@ -575,6 +575,30 @@ function hasDataTypeContent(children: Nodes.Node[]): boolean {
    ].indexOf(firstChild.name) > -1;
 }
 
+/**
+ * Collect inline template options as arguments.
+ * @param node {Tag} Origin html tag node.
+ * @param inlineTemplate {InlineTemplateNode} Processed inline template node.
+ */
+function collectInlineTemplateArguments(node: Nodes.Tag, inlineTemplate: Ast.InlineTemplateNode): string[] {
+   const args: string[] = [];
+   for (const name in inlineTemplate.__$ws_options) {
+      const option = inlineTemplate.__$ws_options[name];
+      if (node.attributes[name].value !== option.__$ws_name) {
+         args.push(option.__$ws_name);
+      }
+   }
+   for (const name in inlineTemplate.__$ws_events) {
+      const event = inlineTemplate.__$ws_events[name];
+      if (event instanceof Ast.BindNode) {
+         if (node.attributes[name].value !== event.__$ws_property) {
+            args.push(event.__$ws_property);
+         }
+      }
+   }
+   return args;
+}
+
 // </editor-fold>
 
 /**
@@ -1117,9 +1141,9 @@ class Traverse implements ITraverse {
     * @private
     * @param node {Tag} Processing html tag node.
     * @param context {ITraverseContext} Processing context.
-    * @returns {TContent | TData | OptionNode | null} Returns node type of TContent, TData, OptionNode or null in case of broken content.
+    * @returns {TContent | TData | OptionNode | ContentOptionNode | null} Returns node type of TContent, TData, OptionNode or null in case of broken content.
     */
-   private processTagInObjectPropertyWithUnknownContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent | Ast.TData | Ast.OptionNode {
+   private processTagInObjectPropertyWithUnknownContent(node: Nodes.Tag, context: ITraverseContext): Ast.TContent | Ast.TData | Ast.OptionNode | Ast.ContentOptionNode {
       switch (node.name) {
          case 'ws:if':
          case 'ws:else':
@@ -2903,6 +2927,9 @@ class Traverse implements ITraverse {
       // TODO: Validate inline template name
       const inlineTemplate = new Ast.InlineTemplateNode(template, attributes.attributes, attributes.events, attributes.options);
       context.scope.registerTemplateUsage(inlineTemplate.__$ws_name);
+      const originTemplate = context.scope.getTemplate(inlineTemplate.__$ws_name);
+      const args = collectInlineTemplateArguments(node, inlineTemplate);
+      originTemplate.addArguments(args, 'intersection');
       return inlineTemplate;
    }
 

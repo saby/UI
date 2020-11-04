@@ -91,6 +91,9 @@ function setRootNodeFlags(nodes: Ast.Ast[]): void {
    });
 }
 
+/**
+ * @deprecated
+ */
 function hasBindings(node: Ast.ExpressionNode): boolean {
    if (typeof node.__$ws_program.string !== 'string') {
       return false;
@@ -115,6 +118,9 @@ function appendInternalExpressions(internal: Ast.IInternal, expressions: Ast.Exp
    }
 }
 
+/**
+ * @deprecated
+ */
 function collectNonIgnoredIdentifiers(expression: Ast.ExpressionNode, ignoredIdentifiers: IStorage): Ast.ExpressionNode[] {
    let hasIgnored = false;
    const identifiersAsExpressions: Ast.ExpressionNode[] = [];
@@ -149,6 +155,9 @@ function wrestNonIgnoredIdentifiers(expressions: Ast.ExpressionNode[], ignoredId
    return identifiersAsExpressions;
 }
 
+/**
+ * @deprecated
+ */
 function hasIgnoredIdentifier(expression: Ast.ExpressionNode, ignoredIdentifiers: IStorage): boolean {
    let hasIgnored = false;
    const callbacks = {
@@ -165,6 +174,9 @@ function hasIgnoredIdentifier(expression: Ast.ExpressionNode, ignoredIdentifiers
    return hasIgnored;
 }
 
+/**
+ * @deprecated
+ */
 function excludeIgnoredExpressions(expressions: Ast.ExpressionNode[], ignoredIdentifiers: IStorage): Ast.ExpressionNode[] {
    const result: Ast.ExpressionNode[] = [];
    for (let index = 0; index < expressions.length; ++index) {
@@ -175,6 +187,9 @@ function excludeIgnoredExpressions(expressions: Ast.ExpressionNode[], ignoredIde
    return result;
 }
 
+/**
+ * @deprecated
+ */
 function collectIdentifiers(program: ProgramNode): string[] {
    const result: string[] = [];
    const callbacks = {
@@ -189,6 +204,9 @@ function collectIdentifiers(program: ProgramNode): string[] {
    return result;
 }
 
+/**
+ * @deprecated
+ */
 function collectDroppedExpressions(program: ProgramNode): ProgramNode[] {
    const result: ProgramNode[] = [];
    const callbacks = {
@@ -255,6 +273,9 @@ function getComponentName(component: Ast.BaseWasabyElement): string | null {
    return null;
 }
 
+/**
+ * @deprecated
+ */
 function processProgramNode(node: ProgramNode, context: IContext): Ast.ExpressionNode[] {
    const identifiers = collectIdentifiers(node);
    identifiers.forEach((identifier: string) => {
@@ -268,6 +289,9 @@ function processProgramNode(node: ProgramNode, context: IContext): Ast.Expressio
    ];
 }
 
+/**
+ * @deprecated
+ */
 function addIgnoredIdentifiers(program: ProgramNode, ignoredIdentifiers: IStorage): string[] {
    const identifiers = collectIdentifiers(program);
    identifiers.forEach((identifier: string) => {
@@ -344,6 +368,9 @@ function processAfterForeach(cyclePreprocess: ICyclePreprocess, context: IContex
    return cyclePreprocess.expressions;
 }
 
+/**
+ * @deprecated
+ */
 function cleanIgnoredIdentifiersFromReactive(identifiersStore: IStorage, ignoredIdentifiers: IStorage): void {
    for (const ignoredIdentifier in ignoredIdentifiers) {
       if (identifiersStore[ignoredIdentifier]) {
