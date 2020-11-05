@@ -67,7 +67,7 @@ export class Builder implements IBuilder {
          try {
             dfd = inst.__beforeMount && inst.__beforeMount(actualOptions, scope.templateContext || {});
          } catch (error) {
-            // @ts-ignore
+            // проверка на сервис представления
             if(typeof process !== 'undefined' && !process.versions) {
                // TODO: проблема при построении на СП, если _beforeMount возвращает Promise, от которого зависит вычисление опций,
                // передаваемых в дочерние контролы, в которых тоже возвращаются Promise(и т.д.)

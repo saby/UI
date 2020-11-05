@@ -289,9 +289,9 @@ var
       var Sanitize = require('Core/Sanitize');
       var opts = getDecorators()._sanitizeOpts();
 
-      // экранируем скобки только если код выполняется в сервисе представления, только там может dot дважды эскейпиться
-      // @ts-ignore
+      // проверка на сервис представления
       if (typeof process !== 'undefined' && !process.versions) {
+         // экранируем скобки только если код выполняется в сервисе представления, только там может dot дважды эскейпиться
          content = Common.escapeParenthesis(content);
       }
 
