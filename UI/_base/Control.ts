@@ -756,7 +756,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
       // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
       // _template на экземпляре, _template устанавливается сразу после вызова базового конструктора
-      if (!constants.isServerSide) {
+      if (!(typeof process !== 'undefined' && !process.versions)) {
          ReactiveObserver.observeProperties(this);
       }
 
