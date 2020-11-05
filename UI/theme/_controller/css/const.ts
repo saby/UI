@@ -65,3 +65,7 @@ export const EMPTY_THEME: string = 'no_theme';
  * Тип темы по-умолчанию
  */
 export const DEFAULT_THEME_TYPE: THEME_TYPE = THEME_TYPE.MULTI;
+/**
+ * Префикс (имя плагина) для CSS файлов, если мы хотим работать через RequireJS
+ */
+export const CSS_MODULE_PREFIX = 'css!';

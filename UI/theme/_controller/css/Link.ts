@@ -1,7 +1,9 @@
 /// <amd-module name='UI/theme/_controller/css/Link' />
+import { ModulesLoader } from 'UI/Utils';
 import { Base } from './Base';
-import { IHTMLElement, ICssEntity } from './interface';
-import { THEME_TYPE, ELEMENT_ATTR } from './const';
+import { ELEMENT_ATTR, THEME_TYPE, CSS_MODULE_PREFIX } from './const';
+import { ICssEntity, IHTMLElement } from './interface';
+
 /**
  * Мультитемная ссылка на клиенте
  */
@@ -13,13 +15,25 @@ export default class Link extends Base implements ICssEntity {
       cssName: string,
       themeName: string,
       element?: IHTMLElement,
-      public themeType:THEME_TYPE = THEME_TYPE.MULTI
+      public themeType: THEME_TYPE = THEME_TYPE.MULTI
    ) {
       super(href, cssName, themeName, themeType);
       this.element = element || createElement(href, cssName, themeName, themeType);
    }
 
    load(): Promise<void> {
+      /**
+       * CSS файл, который не привязан к теме, может прилететь внутри какого-то бандла
+       * https://online.sbis.ru/opendoc.html?guid=e5ea8fc8-f6de-4684-af44-5461ceef8990
+       * Проблема в том, что мы не знаем: прилетел этот бандл уже или не прилетел.
+       * TODO: Удалить в процессе внедрения HEAD API (он решит проблему дублей)
+       */
+      if (ModulesLoader.isLoaded(CSS_MODULE_PREFIX + this.cssName)) {
+         return new Promise<void>((resolve) => {
+            this.isMounted = true;
+            resolve();
+         });
+      }
       /**
        * На клиенте делаем fetch для новых стилей и игнориуем результат т.к монтируем в head стили как link элемент.
        * Браузер кэширует запрошенные через fetch стили, повторной загрузки не будет, а ошибки загрузки перехватываются.

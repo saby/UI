@@ -4,6 +4,7 @@ import LinkResolver from "./LinkResolver";
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { EMPTY_THEME } from './css/const';
+import { ModulesLoader } from 'UI/Utils';
 type IConfig = {
    buildnumber: string,
    wsRoot: string,
@@ -38,7 +39,11 @@ export default class Loader implements ICssLoader {
          return name;
       }
       if (theme === EMPTY_THEME) {
-         return this.lr.resolveLink(name, { ext: 'css' });
+         /**
+          * Для стилей без темы лучше всего полагаться на свежий механизм Мальцева.
+          * Он и минификацию и бандлы учтет
+          */
+         return ModulesLoader.getModuleUrl('css!' + name);
       }
       return this.lr.resolveCssWithTheme(name, theme);
    }
