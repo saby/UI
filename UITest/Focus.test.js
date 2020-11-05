@@ -66,6 +66,7 @@ define([
          // Run these tests in browser only
          if (!fromNode) {
             this.skip();
+            return;
          }
 
          currentCase = globalCases.shift();
