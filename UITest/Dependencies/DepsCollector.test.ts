@@ -18,7 +18,8 @@ const modDeps = {
    'ccc/bbb': [],
    'xxx/aaa': [],
    'tmpl!xxx/aaa': [],
-   'ModuleWithLocalization/test': ['i18n!ModuleWithLocalization']
+   'ModuleWithLocalization/test': ['i18n!ModuleWithLocalization'],
+   'ExternalModuleWithLocalization/test': ['i18n!ExternalModuleWithLocalization']
 };
 const modInfo = {
    'css!aaa/ddd': {path: 'resources/aaa/ddd.min.css'},
@@ -110,11 +111,19 @@ describe('DepsCollector', () => {
                      'ru-RU': {
                         dictionary: 'ModuleWithLocalization/lang/ru/ru.json',
                      }
+                  },
+                  ExternalModuleWithLocalization: {
+                     'ru-RU': {
+                        dictionary: 'ExternalModuleWithLocalization/lang/ru/ru.json',
+                     }
                   }
                },
                locales: {
                   'ru-RU': 'I18n/locales/ru-RU',
                   'en-US': 'I18n/locales/en-US'
+               },
+               contents: {
+                  ExternalModuleWithLocalization: 'ExternalModuleWithLocalization/contents.json'
                }
             };
          });
@@ -154,6 +163,16 @@ describe('DepsCollector', () => {
             'ModuleWithLocalization/test'
          ]);
          assert.strictEqual(deps.css.simpleCss.length, 0);
+      });
+
+      it('should add contents for external module', () => {
+         stubLocaleCurrent.get(() => {
+            return 'ru-RU';
+         });
+
+         const deps = dc.collectDependencies(['ExternalModuleWithLocalization/test']);
+
+         assert.isTrue(deps.js.includes('ExternalModuleWithLocalization/contents.json'));
       });
    })
 
