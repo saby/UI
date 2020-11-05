@@ -8,7 +8,7 @@ import ErrorHandler from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { LocalizationNode, TextNode, VariableNode } from './Statement';
 import { ProgramNode, ExpressionVisitor } from './Nodes';
 import { genEscape } from 'UI/_builder/Tmpl/codegen/Generator';
-import { genSanitize } from 'UI/_builder/Tmpl/codegen/TClosure';
+import { genSanitize, genInitExpressions } from 'UI/_builder/Tmpl/codegen/TClosure';
 
 import * as common from 'UI/_builder/Tmpl/modules/utils/common';
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
@@ -85,10 +85,11 @@ export function processExpressions(
    expressionRaw: TextNode | VariableNode | LocalizationNode,
    data: any,
    fileName: string,
-   isControl?: boolean,
-   configObject?: any,
-   attributeName?: string,
-   isAttribute?: boolean
+   isControl: boolean,
+   configObject: any,
+   attributeName: string,
+   isAttribute: boolean,
+   handlers: any
 ): any {
    let res;
    const esc = !(configObject && configObject.esc !== undefined);
@@ -131,7 +132,16 @@ export function processExpressions(
             childrenStorage: [],
             checkChildren: false
          };
-         res = exprAsVariable.name.accept(visitor, context);
+
+         // TODO: [begin] Refactor
+         const exprId = exprAsVariable.name.__$ws_id;
+         if (exprId !== null) {
+            res = `${EXPRESSIONS_VARIABLE_NAME}.${exprId}`;
+         } else {
+            res = exprAsVariable.name.accept(visitor, context);
+         }
+         // TODO: [end] Refactor
+
          if (!exprAsVariable.noEscape) {
             res = calculateResultOfExpression(res, context.escape, context.sanitize);
          }
@@ -160,4 +170,52 @@ export function processExpressions(
    }
 
    return expressionRaw.value;
+}
+
+const EXPRESSIONS_VARIABLE_NAME = '_$CEXP';
+
+export function processProgramNode(
+   program: ProgramNode,
+   data: any,
+   fileName: string
+): string {
+   const context = {
+      fileName,
+      attributeName: '__dirtyCheckingVars_', // FIXME: To generate safe function calls
+      isControl: false,
+      isExprConcat: false,
+      configObject: {},
+      escape: true,
+      sanitize: true,
+      getterContext: 'data',
+      forbidComputedMembers: false,
+
+      // TODO: есть ли необходимость в этих знаниях следующему кодогенератору???
+      childrenStorage: [],
+      checkChildren: false
+   };
+   const visitor = new ExpressionVisitor();
+   return <string>program.accept(visitor, context);
+}
+
+export function generateExpressionsBlock(
+   identifiers: string[],
+   expressionRegistrar: any,
+   fileName: string
+): string {
+   let items: { id: string; value: string; }[] = [];
+   for (let index = 0; index < identifiers.length; ++index) {
+      const id = identifiers[index];
+      const program = expressionRegistrar.getExpression(id);
+      const value = processProgramNode(
+         program, null, fileName
+      );
+      items.push({
+         id,
+         value
+      });
+   }
+   const properties: string = items.map((item) => `"${item.id}":${item.value}`).join(',');
+   const expressions: string = `{${properties}}`;
+   return `var ${EXPRESSIONS_VARIABLE_NAME} = ${genInitExpressions(expressions)};`;
 }

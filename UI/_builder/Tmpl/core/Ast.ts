@@ -454,6 +454,12 @@ export abstract class Ast {
    __$ws_internal: IInternal | null;
 
    /**
+    * FIXME: Refactor it
+    * @deprecated
+    */
+   __$ws_expressions: string[];
+
+   /**
     * Initialize new instance of abstract syntax node.
     * @param flags {Flags} Node flags.
     */
@@ -462,6 +468,7 @@ export abstract class Ast {
       this.__$ws_flags = flags;
       this.__$ws_isRootNode = false;
       this.__$ws_internal = null;
+      this.__$ws_expressions = [];
    }
 
    /**

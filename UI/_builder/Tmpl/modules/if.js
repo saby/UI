@@ -25,7 +25,10 @@ define('UI/_builder/Tmpl/modules/if', [
 
          source = {
             fromAttr: fromAttr,
-            value: isText ? tagData.value.trim() : Process.processExpressions(tagData[0], data, this.fileName)
+            value: isText ? tagData.value.trim() : Process.processExpressions(
+               tagData[0], data, this.fileName, undefined,
+               undefined, undefined, undefined, this.handlers
+            )
          };
       } catch (err) {
          errorHandler.error(

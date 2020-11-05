@@ -23,13 +23,22 @@ define('UI/_builder/Tmpl/modules/for', [
 
          function resolveStatement2() {
             var START_FROM = tag.attribs.START_FROM.data[0]
-               ? Process.processExpressions(tag.attribs.START_FROM.data[0], data, this.fileName)
+               ? Process.processExpressions(
+                  tag.attribs.START_FROM.data[0], data, this.fileName, undefined,
+                  undefined, undefined, undefined, this.handlers
+               )
                : '';
             var CUSTOM_CONDITION = tag.attribs.CUSTOM_CONDITION.data[0]
-               ? Process.processExpressions(tag.attribs.CUSTOM_CONDITION.data[0], data, this.fileName)
+               ? Process.processExpressions(
+                  tag.attribs.CUSTOM_CONDITION.data[0], data, this.fileName, undefined,
+                  undefined, undefined, undefined, this.handlers
+               )
                : '';
             var CUSTOM_ITERATOR = tag.attribs.CUSTOM_ITERATOR.data[0]
-               ? Process.processExpressions(tag.attribs.CUSTOM_ITERATOR.data[0], data, this.fileName)
+               ? Process.processExpressions(
+                  tag.attribs.CUSTOM_ITERATOR.data[0], data, this.fileName, undefined,
+                  undefined, undefined, undefined, this.handlers
+               )
                : '';
 
             if (fromAttr) {
@@ -41,7 +50,12 @@ define('UI/_builder/Tmpl/modules/for', [
 
             var processed = this._process(fromAttr ? [statelessTag] : statelessTag.children, data);
 
-            return templates.generateFor(START_FROM, CUSTOM_CONDITION, CUSTOM_ITERATOR, processed);
+            var ids = tag.__$ws_expressions || [];
+            var processedExpressions = Process.generateExpressionsBlock(ids, this.expressionRegistrar, this.fileName);
+            this.expressionRegistrar.commitProcessing(ids);
+            return templates.generateFor(
+               START_FROM, CUSTOM_CONDITION, CUSTOM_ITERATOR, processed, processedExpressions
+            );
          }
 
          function resolveStatement() {
@@ -50,7 +64,10 @@ define('UI/_builder/Tmpl/modules/for', [
             }
 
             var variableNode = new Statement.VariableNode(tag.forSource.main, false, undefined);
-            var scopeArray = Process.processExpressions(variableNode, data, this.fileName);
+            var scopeArray = Process.processExpressions(
+               variableNode, data, this.fileName, undefined,
+               undefined, undefined, undefined, this.handlers
+            );
 
             if (fromAttr) {
                tag.attribs.for = undefined;
@@ -58,7 +75,12 @@ define('UI/_builder/Tmpl/modules/for', [
 
             var processed = this._process(fromAttr ? [statelessTag] : statelessTag.children, data);
 
-            return templates.generateForeach(scopeArray, tag.forSource, processed);
+            var ids = tag.__$ws_expressions || [];
+            var processedExpressions = Process.generateExpressionsBlock(ids, this.expressionRegistrar, this.fileName);
+            this.expressionRegistrar.commitProcessing(ids);
+            return templates.generateForeach(
+               scopeArray, tag.forSource, processed, processedExpressions
+            );
          }
 
          return function forModuleReturnable() {

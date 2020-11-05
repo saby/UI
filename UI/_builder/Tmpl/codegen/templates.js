@@ -144,14 +144,16 @@ define('UI/_builder/Tmpl/codegen/templates', [
     * @param test Выражение условия.
     * @param update Выражение обновления.
     * @param processedBlock Тело цикла.
+    * @param processedExpressions Блок вычисления выражений.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generateFor(init, test, update, processedBlock) {
+   function generateFor(init, test, update, processedBlock, processedExpressions) {
       return forTemplate
          .replace(/\/\*#INIT#\*\//g, init)
          .replace(/\/\*#TEST#\*\//g, test)
          .replace(/\/\*#UPDATE#\*\//g, update)
-         .replace(/\/\*#PROCESSED#\*\//g, processedBlock);
+         .replace(/\/\*#PROCESSED#\*\//g, processedBlock)
+         .replace(/\/\*#PROCESSED_EXPRESSIONS#\*\//g, processedExpressions);
    }
 
    /**
@@ -159,9 +161,10 @@ define('UI/_builder/Tmpl/codegen/templates', [
     * @param scopeArray Выражение итерируемой коллекции.
     * @param forSource Инструкции цикла (key и value).
     * @param processedBlock Тело цикла.
+    * @param processedExpressions Блок вычисления выражений.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generateForeach(scopeArray, forSource, processedBlock) {
+   function generateForeach(scopeArray, forSource, processedBlock, processedExpressions) {
       var iteratorScope = JSON.stringify({
          key: forSource.key,
          value: forSource.value
@@ -169,7 +172,8 @@ define('UI/_builder/Tmpl/codegen/templates', [
       return foreachTemplate
          .replace(/\/\*#SCOPE_ARRAY#\*\//g, scopeArray)
          .replace(/\/\*#ITERATOR_SCOPE#\*\//g, iteratorScope)
-         .replace(/\/\*#PROCESSED#\*\//g, processedBlock);
+         .replace(/\/\*#PROCESSED#\*\//g, processedBlock)
+         .replace(/\/\*#PROCESSED_EXPRESSIONS#\*\//g, processedExpressions);
    }
 
    /**
@@ -199,12 +203,14 @@ define('UI/_builder/Tmpl/codegen/templates', [
     * Сгенерировать тело функции шаблона - блок формирования верстки.
     * @param fileName Путь к файлу шаблона.
     * @param markupGeneration Блок генерации верстки.
+    * @param processedExpressions Блок вычисления выражений.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generateTemplateBody(fileName, markupGeneration) {
+   function generateTemplateBody(fileName, markupGeneration, processedExpressions) {
       return bodyTemplate
          .replace(/\/\*#FILE_NAME#\*\//g, fileName)
-         .replace(/\/\*#MARKUP_GENERATION#\*\//g, markupGeneration);
+         .replace(/\/\*#MARKUP_GENERATION#\*\//g, markupGeneration)
+         .replace(/\/\*#PROCESSED_EXPRESSIONS#\*\//g, (processedExpressions || ''));
    }
 
    /**

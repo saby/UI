@@ -229,6 +229,9 @@ define('UI/_builder/Tmpl/function', [
             this.fileName = handlers.fileName;
             this.config = handlers.config;
             this.isWasabyTemplate = handlers.isWasabyTemplate;
+            if (handlers.expressionRegistrar) {
+               this.expressionRegistrar = handlers.expressionRegistrar;
+            }
          }
          var str = '' + this._process(ast, null, decor);
          if (str) {
@@ -237,7 +240,13 @@ define('UI/_builder/Tmpl/function', [
          if (!internal) {
             res += templates.generateTemplateHead(handlers.fileName, true);
          }
-         res += templates.generateTemplateBody(handlers.fileName, str);
+         // FIXME: Expr calc
+         var ids = ast.reduce(function(arr, node) {
+            return arr.concat(node.__$ws_expressions || []);
+         }, []);
+         var processedExpressions = Process.generateExpressionsBlock(ids, this.expressionRegistrar, this.fileName);
+         this.expressionRegistrar.commitProcessing(ids);
+         res += templates.generateTemplateBody(handlers.fileName, str, processedExpressions);
          return res;
       },
       getFunction: function getFunction(ast, data, handlers, attributes, internal) {
@@ -250,7 +259,11 @@ define('UI/_builder/Tmpl/function', [
             // до модуля Event
             this.childrenStorage = ast.childrenStorage;
 
+            // FIXME: Expression registrar
+            handlers.expressionRegistrar = ast.expressionRegistrar;
+
             str = this.getString(ast, data, handlers, attributes, internal);
+            handlers.expressionRegistrar.finalize();
             // eslint-disable-next-line no-new-func
             func = new Function('data, attr, context, isVdom, sets, forceCompatible, generatorConfig', str);
             func.includedFunctions = this.includedFunctions;
@@ -258,13 +271,7 @@ define('UI/_builder/Tmpl/function', [
             func.includedFn = this.includedFn;
             func.functionNames = this.functionNames;
          } catch (error) {
-            errorHandler.info(
-               '[UI/_builder/Tmpl/function:getFunction()] generating function: \n' + str,
-               {
-                  fileName: handlers.fileName
-               }
-            );
-            throw error;
+            throw new Error('[UI/_builder/Tmpl/function:getFunction()]: ' + error.message);
          }
          this.setFunctionName(func, undefined, this.fileName);
          this.childrenStorage = [ ];
@@ -404,7 +411,8 @@ define('UI/_builder/Tmpl/function', [
                      bindingObject.isControl,
                      bindingObject.rootConfig,
                      bindingObject.propertyName,
-                     isAttribute
+                     isAttribute,
+                     this.handlers
                   );
                } else {
                   expressionResult = Process.processExpressions(
@@ -414,7 +422,8 @@ define('UI/_builder/Tmpl/function', [
                      undefined,
                      undefined,
                      attrib,
-                     isAttribute
+                     isAttribute,
+                     this.handlers
                   );
                }
 
@@ -448,7 +457,8 @@ define('UI/_builder/Tmpl/function', [
                bindingObject.isControl,
                bindingObject.rootConfig,
                bindingObject.propertyName,
-               isAttribute
+               isAttribute,
+               this.handlers
             );
          } else {
             result = Process.processExpressions(
@@ -458,7 +468,8 @@ define('UI/_builder/Tmpl/function', [
                undefined,
                undefined,
                undefined,
-               isAttribute
+               isAttribute,
+               this.handlers
             );
          }
          if (typeof result === 'string') {
