@@ -638,6 +638,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          // посмотреть на crbug
          setTimeout(() => {
             mountMethodsCaller.afterUpdate(controlNodesToCall);
+            onEndSync(newRootCntNode.rootId);
          }, 0);
 
          delay(() => {
@@ -645,7 +646,6 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             newRootCntNode.environment._rebuildRequestStarted = false;
             // @ts-ignore FIXME: Property 'runQueue' does not exist
             newRootCntNode.environment.runQueue();
-            onEndSync(newRootCntNode.rootId);
          });
       }
 
