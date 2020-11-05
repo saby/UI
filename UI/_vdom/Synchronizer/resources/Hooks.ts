@@ -42,15 +42,23 @@ function updateControlNodes(
     fn(controlNodes, controlNode);
 
     for (let i = 0; i < controlNodes.length; i++) {
-        controlNodes[i].element = element;
+        const controlNode = controlNodes[i];
+        controlNode.element = element;
+        const control = controlNode.control;
+
+        // tslint:disable-next-line
+        // @ts-ignore поле _destroyed - приватное, его нельзя так использовать
+        if (control._destroyed) {
+            continue;
+        }
         if (constants.compat) {
             // tslint:disable-next-line
             // @ts-ignore TODO опции protected, их нельзя так использовать
-            controlNodes[i].control.saveOptions(controlNodes[i].control._options, controlNodes[i]);
+            control.saveOptions(control._options, controlNode);
         } else {
             // tslint:disable-next-line
             // @ts-ignore TODO контейнер protected, его нельзя так использовать
-            controlNodes[i].control._container = element;
+            control._container = element;
         }
     }
 }
