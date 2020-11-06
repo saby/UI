@@ -79,7 +79,7 @@ export interface IGeneratorConfig {
    reservedWords?: Array<string>;
    resolvers?: Array<string>;
 
-   prepareAttrsForPartial?: Function;
+   generatorConfig?: IGeneratorConfig;
 }
 
 // Базовый интерфейс конфига
