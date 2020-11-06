@@ -10,6 +10,12 @@ import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 
 // <editor-fold desc="Public interfaces and functions">
 
+const OPTIMIZE_PROGRAM_PROCESSING = false;
+
+export function needOptimizeProgramProcessing(): boolean {
+   return OPTIMIZE_PROGRAM_PROCESSING;
+}
+
 export declare type TProgramKey = string | null;
 
 export interface ILexicalContextConfig {
@@ -42,6 +48,10 @@ export interface ILexicalContext {
    getPrograms(): ProgramNode[];
 
    getProgram(key: TProgramKey): ProgramNode | null;
+
+   startProcessing(): void;
+   commitProcessing(key: TProgramKey): void;
+   endProcessing(): void;
 }
 
 export function createGlobalContext() {
@@ -85,7 +95,7 @@ interface IContext extends ILexicalContext {
 
    collectIdentifiers(identifiers: string[]): string[];
 
-   processProgram(program: ProgramNode): TProgramKey
+   processProgram(program: ProgramNode): TProgramKey;
 }
 
 interface IPrograms {
@@ -94,6 +104,10 @@ interface IPrograms {
 
 interface IProgramsMap {
    [program: string]: string;
+}
+
+interface IProcessingKeysMap {
+   [program: string]: boolean;
 }
 
 function prepareContextConfig(config?: ILexicalContextConfig): ILexicalContextConfig {
@@ -193,6 +207,8 @@ class Context implements IContext {
    // <editor-fold desc="Properties">
 
    private programKeyIndex: number;
+   private inProcessing: boolean;
+   private readonly processingKeysMap: IProcessingKeysMap;
    private readonly parent: IContext | null;
    private readonly allowHoisting: boolean;
    private readonly identifiers: string[];
@@ -205,6 +221,8 @@ class Context implements IContext {
 
    constructor(parent: IContext | null, config: ILexicalContextConfig) {
       this.programKeyIndex = 0;
+      this.inProcessing = false;
+      this.processingKeysMap = { };
       this.parent = parent;
       this.allowHoisting = config.allowHoisting;
       this.identifiers = config.identifiers;
@@ -320,13 +338,61 @@ class Context implements IContext {
       return this.parent.getProgram(key);
    }
 
+   startProcessing(): void {
+      if (this.parent !== null) {
+         return this.parent.startProcessing();
+      }
+      if (this.inProcessing) {
+         throw new Error('Контекст уже находится в состоянии вычисления');
+      }
+      this.inProcessing = true;
+   }
+
+   commitProcessing(key: TProgramKey): void {
+      if (this.parent !== null) {
+         return this.parent.commitProcessing(key);
+      }
+      if (!this.inProcessing) {
+         throw new Error('Контекст не находится в состоянии вычисления');
+      }
+      if (this.processingKeysMap[key]) {
+         throw new Error(`Выражение с ключом "${key}" уже было вычислено`);
+      }
+      this.processingKeysMap[key] = true;
+   }
+
+   endProcessing(): void {
+      if (this.parent !== null) {
+         return this.parent.endProcessing();
+      }
+      if (!this.inProcessing) {
+         throw new Error('Контекст не находится в состоянии вычисления');
+      }
+      this.inProcessing = false;
+      if (!OPTIMIZE_PROGRAM_PROCESSING) {
+         return;
+      }
+      const missedKeys = [];
+      for (const key in this.processingKeysMap) {
+         if (!this.processingKeysMap[key]) {
+            missedKeys.push(key);
+         }
+      }
+      const description = missedKeys.map((key: string): string => `"${key}"`).join(',');
+      if (missedKeys.length > 0) {
+         throw new Error(`В контексте остались не вычисленные выражения: ${description}`);
+      }
+   }
+
    // </editor-fold>
 
    // <editor-fold desc="Internal methods">
 
    generateProgramKey(): TProgramKey {
       if (this.parent === null) {
-         return `${PROGRAM_PREFIX}${this.programKeyIndex++}`;
+         const key = `${PROGRAM_PREFIX}${this.programKeyIndex++}`;
+         this.processingKeysMap[key] = false;
+         return key;
       }
       return this.parent.generateProgramKey();
    }
@@ -411,8 +477,6 @@ class Context implements IContext {
       return result;
    }
 
-   // </editor-fold>
-
    processProgram(program: ProgramNode): TProgramKey {
       // If program already exists in current scope branch then just take its key.
       let key = this.findProgramKey(program);
@@ -422,6 +486,8 @@ class Context implements IContext {
       this.hoistInternalProgram(program, key);
       return key;
    }
+
+   // </editor-fold>
 
    private commitIdentifiers(identifiers: string[]): void {
       for (let index = 0; index < identifiers.length; ++index) {
