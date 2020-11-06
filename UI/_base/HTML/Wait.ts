@@ -46,10 +46,11 @@ class Wait extends Control {
 
    _beforeMount(): void {
       this.createPromise();
-      headDataStore.read('collectDeps')(this.waitDef);
       if (typeof window !== 'undefined') {
          this.resolvePromiseFn();
          this.createPromise();
+      } else {
+         headDataStore.read('collectDeps')(this.waitDef);
       }
    }
 
