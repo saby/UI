@@ -251,14 +251,14 @@ class Context implements IContext {
    }
 
    joinContext(context: ILexicalContext, options?: ILexicalContextOptions): void {
-      const identifiers = Array.isArray(options && options.identifiers) ? options.identifiers : [];
-      const fakeContext = this.createContext({
-         identifiers
+      const cfg = prepareContextConfig({
+         identifiers: Array.isArray(options && options.identifiers) ? options.identifiers : []
       });
-      const programs = context.getPrograms();
-      programs.forEach((program: ProgramNode): void => {
-         fakeContext.registerProgram(program);
-      });
+      const fakeContext = new Context(this, cfg);
+      const identifiers = context.getLocalIdentifiers();
+      const programs = context.getLocalPrograms();
+      fakeContext.hoistIdentifiers(identifiers);
+      fakeContext.registerPrograms(programs);
    }
 
    getLocalIdentifiers(): string[] {
