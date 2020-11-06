@@ -8,10 +8,7 @@
 import { checkAttr } from './AttrHelper';
 
 export function prepareAttrsForFocus(attributes) {
-   if (!attributes) {
-      return;
-   }
-
+   attributes = attributes.attributes;
    const prefix = checkAttr(attributes) ? 'attr:' : '';
 
    if (!attributes[prefix + 'ws-creates-context']) {
