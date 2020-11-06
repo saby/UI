@@ -5,14 +5,16 @@
  */
 
 import { createErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
+import { ILexicalContext } from 'UI/_builder/Tmpl/core/Context';
 import { LocalizationNode, TextNode, VariableNode } from './Statement';
 import { ProgramNode, ExpressionVisitor } from './Nodes';
 import { genEscape } from 'UI/_builder/Tmpl/codegen/Generator';
-import { genSanitize } from 'UI/_builder/Tmpl/codegen/TClosure';
+import { genSanitize, genInitExpressions } from 'UI/_builder/Tmpl/codegen/TClosure';
 
 import * as common from 'UI/_builder/Tmpl/modules/utils/common';
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
+const OPTIMIZE_PROGRAM_PROCESSING = false;
 const EMPTY_STRING = '';
 const errorHandler = createErrorHandler(true);
 
@@ -131,7 +133,12 @@ export function processExpressions(
             childrenStorage: [],
             checkChildren: false
          };
-         res = exprAsVariable.name.accept(visitor, context);
+         const exprId = exprAsVariable.name.__$ws_id;
+         if (exprId === null || !OPTIMIZE_PROGRAM_PROCESSING) {
+            res = exprAsVariable.name.accept(visitor, context);
+         } else {
+            res = `${EXPRESSIONS_VARIABLE_NAME}.${exprId}`;
+         }
          if (!exprAsVariable.noEscape) {
             res = calculateResultOfExpression(res, context.escape, context.sanitize);
          }
@@ -160,4 +167,49 @@ export function processExpressions(
    }
 
    return expressionRaw.value;
+}
+
+export function processProgramNode(program: ProgramNode, fileName: string): string {
+   const context = {
+      fileName,
+      attributeName: undefined,
+      isControl: undefined,
+      generateSafeFunctionCall: true,
+      isExprConcat: false,
+      configObject: {},
+      escape: undefined,
+      sanitize: true,
+      getterContext: 'data',
+      forbidComputedMembers: false,
+
+      // TODO: есть ли необходимость в этих знаниях следующему кодогенератору???
+      childrenStorage: [],
+      checkChildren: false
+   };
+   const visitor = new ExpressionVisitor();
+   return <string>program.accept(visitor, context);
+}
+
+const EXPRESSIONS_VARIABLE_NAME = '$P';
+const DEFAULT_EMPTY_VALUE = '""';
+
+export function generateExpressionsBlock(context: ILexicalContext, fileName: string): string {
+   if (!OPTIMIZE_PROGRAM_PROCESSING) {
+      return EMPTY_STRING;
+   }
+   const items: { key: string; value: string; }[] = [];
+   const keys = context.getLocalProgramKeys();
+   for (let index = 0; index < keys.length; ++index) {
+      const key = keys[index];
+      const program = context.getProgram(key);
+      const value = processProgramNode(program, fileName);
+      if (!value) {
+         items.push({ key, value: DEFAULT_EMPTY_VALUE });
+         continue;
+      }
+      items.push({ key, value });
+   }
+   const properties: string = items.map((item) => `"${item.key}":${item.value}`).join(',');
+   const programs: string = `{${properties}}`;
+   return `var ${EXPRESSIONS_VARIABLE_NAME} = ${genInitExpressions(programs)};`;
 }

@@ -70,3 +70,7 @@ export function genPlainMerge(inner: string, outer: string, cloneFirst?: string)
 export function genPrepareDataForCreate(tpl, scope, attributes, deps) {
    return `${VAR_GENERATOR_NAME}.prepareDataForCreate(${tpl}, ${scope}, ${attributes}, ${deps})`;
 }
+
+export function genInitExpressions(expressions: string): string {
+   return `${VAR_MODULE_NAME}.initExpressions(data, ${expressions})`;
+}

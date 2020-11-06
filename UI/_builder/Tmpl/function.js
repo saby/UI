@@ -237,7 +237,8 @@ define('UI/_builder/Tmpl/function', [
          if (!internal) {
             res += templates.generateTemplateHead(handlers.fileName, true);
          }
-         res += templates.generateTemplateBody(handlers.fileName, str);
+         var processedExpressions = Process.generateExpressionsBlock(ast.lexicalContext, this.fileName);
+         res += templates.generateTemplateBody(handlers.fileName, str, processedExpressions);
          return res;
       },
       getFunction: function getFunction(ast, data, handlers, attributes, internal) {
