@@ -329,10 +329,8 @@ const EMPTY_PARENT_SCOPE = { };
 function initExpressions(data, expressions) {
    const parentScope = data[EXPRESSIONS_STORAGE] || EMPTY_PARENT_SCOPE;
    const currentScope = Object.create(parentScope);
-   const realScope = {
-      ...currentScope,
-      ...expressions
-   };
+   // @ts-ignore
+   const realScope = Object.assign(currentScope, expressions);
    data[EXPRESSIONS_STORAGE] = realScope;
    return realScope;
 }
