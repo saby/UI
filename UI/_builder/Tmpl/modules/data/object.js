@@ -215,6 +215,8 @@ define('UI/_builder/Tmpl/modules/data/object', [
          html = templateObject.html;
 
          if (tObject.type === 'string') {
+            // FIXME: Контентная опция с типом string. Прокинем контекст контентной опции
+            html.lexicalContext = realInjected.lexicalContext;
             result = FSC.wrapAroundObject(
                '(' +
                this.getFunction(

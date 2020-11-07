@@ -10,7 +10,7 @@ import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 
 // <editor-fold desc="Public interfaces and functions">
 
-const OPTIMIZE_PROGRAM_PROCESSING = false;
+const OPTIMIZE_PROGRAM_PROCESSING = true;
 
 export function needOptimizeProgramProcessing(): boolean {
    return OPTIMIZE_PROGRAM_PROCESSING;
@@ -355,9 +355,9 @@ class Context implements IContext {
       if (!this.inProcessing) {
          throw new Error('Контекст не находится в состоянии вычисления');
       }
-      if (this.processingKeysMap[key]) {
-         throw new Error(`Выражение с ключом "${key}" уже было вычислено`);
-      }
+      // if (this.processingKeysMap[key]) {
+      //    throw new Error(`Выражение с ключом "${key}" уже было вычислено`);
+      // }
       this.processingKeysMap[key] = true;
    }
 
