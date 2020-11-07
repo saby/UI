@@ -40,6 +40,8 @@ define('UI/_builder/Tmpl/modules/template', [
             var result, functionString;
             if (!this.includeStack[name]) {
                this.includeStack[name] = tag.children;
+               // FIXME: Нужно прокинуть контекст ws:template
+               this.includeStack[name].lexicalContext = tag.__$ws_lexicalContext;
             }
             functionString = this.getString(this.includeStack[name], {}, this.handlers, {}, true);
             delete this.includeStack[name];

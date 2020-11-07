@@ -259,16 +259,15 @@ define('UI/_builder/Tmpl/function', [
             func.includedFn = this.includedFn;
             func.functionNames = this.functionNames;
          } catch (error) {
-            errorHandler.info(
-               '[UI/_builder/Tmpl/function:getFunction()] generating function: \n' + str,
+            errorHandler.error(
+               'Ошибка построения функции: ' + error.message,
                {
                   fileName: handlers.fileName
-               }
-            );
+               });
             throw error;
          }
          this.setFunctionName(func, undefined, this.fileName);
-         this.childrenStorage = [ ];
+         this.childrenStorage = [];
          return func;
       },
 
