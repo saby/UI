@@ -605,7 +605,8 @@ define('UI/_builder/Tmpl/function', [
        * @returns {*}
        */
       _useManageableAttributes: function useManageableAttributes(tag, data, decor, parentNS) {
-         var constructArray = this._processManageableAttributes(tag.attribs);
+         // Сейчас производится распаковка директив из атрибутов, этот код больше не актуален
+         var constructArray = []; // this._processManageableAttributes(tag.attribs);
          if (constructArray.length) {
             var moduleName = constructArray.shift().module;
 

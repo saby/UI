@@ -231,14 +231,12 @@ class Context implements IContext {
    // </editor-fold>
 
    constructor(parent: IContext | null, config: ILexicalContextConfig) {
-      // FIXME: Context instance might be cloned (mixin) and parent and config are undefined.
-      const cfg = prepareContextConfig(config);
       this.programKeyIndex = 0;
       this.inProcessing = false;
       this.programDescriptions = { };
       this.parent = parent;
-      this.allowHoisting = cfg.allowHoisting;
-      this.identifiers = cfg.identifiers;
+      this.allowHoisting = config.allowHoisting;
+      this.identifiers = config.identifiers;
       this.programs = { };
       this.programsMap = { };
       this.internalPrograms = { };
