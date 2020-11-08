@@ -141,9 +141,7 @@ export function vdomToHTML(vdom, context) {
       if (isControlVNodeType(node)) {
          return new Promise((resolve, reject) => {
             const result = TClosure.createGenerator(false, undefined, {
-               prepareAttrsForPartial: function prepareAttrsForPartial(attributes) {
-                  return _FocusAttrs.prepareAttrsForFocus.apply(this, attributes.attributes);
-               }
+               prepareAttrsForPartial: _FocusAttrs.prepareAttrsForFocus
             }).createWsControl(
                node.controlClass,
                node.controlProperties,
@@ -170,9 +168,7 @@ export function vdomToHTML(vdom, context) {
       if (isTemplateVNodeType(node)) {
          return TClosure
             .createGenerator(false, undefined, {
-               prepareAttrsForPartial: function prepareAttrsForPartial(attributes) {
-                  return _FocusAttrs.prepareAttrsForFocus.apply(this, attributes.attributes);
-               }
+               prepareAttrsForPartial: _FocusAttrs.prepareAttrsForFocus
             })
             .createTemplate(node.template, node.attributes && node.controlProperties, node.attributes, context);
       } else if (isVNodeType(node)) {
