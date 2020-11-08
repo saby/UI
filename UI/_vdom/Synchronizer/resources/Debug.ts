@@ -142,7 +142,7 @@ export function vdomToHTML(vdom, context) {
          return new Promise((resolve, reject) => {
             const result = TClosure.createGenerator(false, undefined, {
                prepareAttrsForPartial: function prepareAttrsForPartial(attributes) {
-                  return _FocusAttrs.prepareAttrsForFocus(attributes.attributes);
+                  return _FocusAttrs.prepareAttrsForFocus.apply(this, attributes.attributes);
                }
             }).createWsControl(
                node.controlClass,
@@ -171,7 +171,7 @@ export function vdomToHTML(vdom, context) {
          return TClosure
             .createGenerator(false, undefined, {
                prepareAttrsForPartial: function prepareAttrsForPartial(attributes) {
-                  return _FocusAttrs.prepareAttrsForFocus(attributes.attributes);
+                  return _FocusAttrs.prepareAttrsForFocus.apply(this, attributes.attributes);
                }
             })
             .createTemplate(node.template, node.attributes && node.controlProperties, node.attributes, context);
