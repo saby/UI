@@ -311,7 +311,7 @@ class Context implements IContext {
 
    getProgramKeys(): string[] {
       const local = this.getLocalProgramKeys();
-      if (this.parent === null) {
+      if (this.parent === null || !this.allowHoisting) {
          return local;
       }
       return this.parent.getProgramKeys().concat(local);
@@ -319,7 +319,7 @@ class Context implements IContext {
 
    getPrograms(): ProgramNode[] {
       const local = this.getLocalPrograms();
-      if (this.parent === null) {
+      if (this.parent === null || !this.allowHoisting) {
          return local;
       }
       return this.parent.getPrograms().concat(local);
@@ -332,7 +332,7 @@ class Context implements IContext {
       if (this.programs.hasOwnProperty(key)) {
          return this.programs[key];
       }
-      if (this.parent === null) {
+      if (this.parent === null || !this.allowHoisting) {
          throw new Error(`Выражение с ключом "${key}" не было зарегистрировано`);
       }
       return this.parent.getProgram(key);
@@ -471,7 +471,7 @@ class Context implements IContext {
          }
       });
       const result: string[] = additional.concat(identifiers);
-      if (this.parent !== null) {
+      if (this.parent !== null && this.allowHoisting) {
          return this.parent.collectIdentifiers(result);
       }
       return result;
