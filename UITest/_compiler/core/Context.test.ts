@@ -1195,4 +1195,133 @@ describe('Compiler/core/Context', () => {
          });
       });
    });
+   describe('Join isolated context', () => {
+      let global: ILexicalContext;
+      let firstChild: ILexicalContext;
+      let secondChild: ILexicalContext;
+      let returnedKeys: string[];
+
+      // <@global>
+      //   {{ a.property }}                  # $p0
+      //
+      //   <#firstChild>
+      //     {{ a.property }}                # $p1
+      //     {{ b.property }}                # $p2, $p6
+      //     {{ c.property }}                # $p3
+      //     {{ d.property + e.property }}   # $p4; 'e' -> $p7
+      //   </#firstChild>
+      //   <@secondChild join-on="c,d">
+      //     {{ f.property }}                # $p5
+      //   </@secondChild>
+      // </@global>
+
+      before(() => {
+         global = createGlobalContext();
+         firstChild = global.createContext({
+            allowHoisting: false
+         });
+         secondChild = global.createContext();
+         returnedKeys = [
+            global.registerProgram(parse('a.property')),
+            firstChild.registerProgram(parse('a.property')),
+            firstChild.registerProgram(parse('b.property')),
+            firstChild.registerProgram(parse('c.property')),
+            firstChild.registerProgram(parse('d.property + e.property')),
+            secondChild.registerProgram(parse('f.property'))
+         ];
+         secondChild.joinContext(firstChild, { identifiers: ['c', 'd'] });
+      });
+      after(() => {
+         global.startProcessing();
+         const usedProgramKeys = []
+            .concat(
+               global.getLocalProgramKeys()
+            )
+            .concat(
+               firstChild.getLocalProgramKeys()
+            );
+         // Second child must have no programs.
+         usedProgramKeys.forEach((key: string): void => {
+            global.commitProcessing(key);
+         });
+         global.endProcessing();
+      });
+      it('Check returned keys', () => {
+         const standardKeys = [
+            '$p0',
+            '$p1',
+            '$p2',
+            '$p3',
+            '$p4',
+            '$p5'
+         ];
+         assert.deepEqual(returnedKeys, standardKeys);
+      });
+      it('Check global program keys', () => {
+         assert.deepEqual(global.getLocalProgramKeys(), ['$p0', '$p5', '$p6', '$p7']);
+         assert.deepEqual(global.getProgramKeys(), ['$p0', '$p5', '$p6', '$p7']);
+      });
+      it('Check first child program keys', () => {
+         assert.deepEqual(firstChild.getLocalProgramKeys(), ['$p1', '$p2', '$p3', '$p4']);
+         assert.deepEqual(firstChild.getProgramKeys(), ['$p1', '$p2', '$p3', '$p4']);
+      });
+      it('Check second child program keys', () => {
+         assert.isEmpty(secondChild.getLocalProgramKeys());
+         assert.deepEqual(secondChild.getProgramKeys(), ['$p0', '$p5', '$p6', '$p7']);
+      });
+      it('Check global identifiers', () => {
+         assert.deepEqual(global.getLocalIdentifiers(), ['a', 'f', 'b', 'e']);
+         assert.deepEqual(global.getIdentifiers(), ['a', 'f', 'b', 'e']);
+      });
+      it('Check first child identifiers', () => {
+         assert.deepEqual(firstChild.getLocalIdentifiers(), ['a', 'b', 'c', 'd', 'e']);
+         assert.deepEqual(firstChild.getIdentifiers(), ['a', 'b', 'c', 'd', 'e']);
+      });
+      it('Check second child identifiers', () => {
+         assert.isEmpty(secondChild.getLocalIdentifiers());
+         assert.deepEqual(secondChild.getIdentifiers(), ['a', 'f', 'b', 'e']);
+      });
+      it('Check global internal programs', () => {
+         const stringInternalPrograms = ['a.property', 'f.property', 'b.property', 'e'];
+         const actualStringInternalPrograms = global.getInternalPrograms()
+            .map((program: ProgramNode): string => program.string);
+         assert.deepEqual(actualStringInternalPrograms, stringInternalPrograms);
+      });
+      it('Check first child internal programs', () => {
+         const stringInternalPrograms = ['a.property', 'b.property', 'c.property', 'd.property+e.property'];
+         const actualStringInternalPrograms = firstChild.getInternalPrograms()
+            .map((program: ProgramNode): string => program.string);
+         assert.deepEqual(actualStringInternalPrograms, stringInternalPrograms);
+      });
+      it('Check second child internal programs', () => {
+         const stringInternalPrograms = ['f.property', 'a.property', 'b.property'];
+         const actualStringInternalPrograms = secondChild.getInternalPrograms()
+            .map((program: ProgramNode): string => program.string);
+         assert.deepEqual(actualStringInternalPrograms, stringInternalPrograms);
+      });
+      it('Check global programs', () => {
+         const actualLocalStringPrograms = global.getLocalPrograms()
+            .map((program: ProgramNode): string => program.string);
+         const actualStringPrograms = global.getPrograms()
+            .map((program: ProgramNode): string => program.string);
+         assert.deepEqual(actualLocalStringPrograms, ['a.property', 'f.property', 'b.property', 'e']);
+         assert.deepEqual(actualStringPrograms, ['a.property', 'f.property', 'b.property', 'e']);
+      });
+      it('Check first child programs', () => {
+         const actualLocalStringPrograms = firstChild.getLocalPrograms()
+            .map((program: ProgramNode): string => program.string);
+         const actualStringPrograms = firstChild.getPrograms()
+            .map((program: ProgramNode): string => program.string);
+         assert.deepEqual(actualLocalStringPrograms, ['a.property', 'b.property', 'c.property', 'd.property+e.property']);
+         assert.deepEqual(actualStringPrograms, ['a.property', 'b.property', 'c.property', 'd.property+e.property']);
+      });
+      it('Check second child programs', () => {
+         const actualLocalStringPrograms = secondChild.getLocalPrograms()
+            .map((program: ProgramNode): string => program.string);
+         const actualStringPrograms = secondChild.getPrograms()
+            .map((program: ProgramNode): string => program.string);
+         assert.isEmpty(actualLocalStringPrograms);
+         assert.deepEqual(actualStringPrograms, ['a.property', 'f.property', 'b.property', 'e']);
+      });
+   });
 });
