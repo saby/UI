@@ -367,9 +367,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
          }
       }
       const generatorConfig = {
-         prepareAttrsForPartial: function prepareAttrsForPartial(attributes) {
-            return _FocusAttrs.prepareAttrsForFocus.apply(this, attributes.attributes);
-         }
+         prepareAttrsForPartial: _FocusAttrs.prepareAttrsForFocus
       };
       if (bindToAttribute() === 'true') {
          const oldPrepareAttrsForPartial = generatorConfig.prepareAttrsForPartial;
