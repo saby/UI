@@ -10,7 +10,7 @@ import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 
 // <editor-fold desc="Public interfaces and functions">
 
-const OPTIMIZE_PROGRAM_PROCESSING = true;
+const OPTIMIZE_PROGRAM_PROCESSING = false;
 
 export function needOptimizeProgramProcessing(): boolean {
    return OPTIMIZE_PROGRAM_PROCESSING;
