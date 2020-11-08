@@ -334,7 +334,12 @@ function initExpressions(data, expressions) {
    const currentScope = Object.create(parentScope);
    // @ts-ignore
    const realScope = Object.assign(currentScope, expressions);
-   data[EXPRESSIONS_STORAGE] = realScope;
+   Object.defineProperty(data, EXPRESSIONS_STORAGE, {
+      value: realScope,
+      configurable: true,
+      enumerable: false,
+      writable: true
+   });
    return realScope;
 }
 
