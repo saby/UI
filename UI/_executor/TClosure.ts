@@ -327,13 +327,14 @@ const EXPRESSIONS_STORAGE = '__$ws_programs';
 const EMPTY_PARENT_SCOPE = { };
 
 function initExpressions(data, expressions) {
-   const parentScope = (data && data[EXPRESSIONS_STORAGE]) || EMPTY_PARENT_SCOPE;
+   if (!data) {
+      return expressions;
+   }
+   const parentScope = data[EXPRESSIONS_STORAGE] || EMPTY_PARENT_SCOPE;
    const currentScope = Object.create(parentScope);
    // @ts-ignore
    const realScope = Object.assign(currentScope, expressions);
-   if (data) {
-      data[EXPRESSIONS_STORAGE] = realScope;
-   }
+   data[EXPRESSIONS_STORAGE] = realScope;
    return realScope;
 }
 

@@ -117,6 +117,7 @@ export function processExpressions(
          if (configObject && !isAttribute) {
             exprAsVariable.noEscape = true;
          }
+         const exprId = exprAsVariable.name.__$ws_id;
          const context = {
             fileName,
             attributeName,
@@ -127,12 +128,12 @@ export function processExpressions(
             sanitize: true,
             getterContext: 'data',
             forbidComputedMembers: false,
+            generateSafeFunctionCall: exprId !== null,
 
             // TODO: есть ли необходимость в этих знаниях следующему кодогенератору???
             childrenStorage: [],
             checkChildren: false
          };
-         const exprId = exprAsVariable.name.__$ws_id;
          res = exprAsVariable.name.accept(visitor, context);
          if (exprId !== null && needOptimizeProgramProcessing()) {
             // @ts-ignore FIXME: Code generation
