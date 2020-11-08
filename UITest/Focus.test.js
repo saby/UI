@@ -70,6 +70,12 @@ define([
          }
 
          currentCase = globalCases.shift();
+         // todo почему-то падает иногда что нет currentCase
+         if (!currentCase) {
+            this.skip();
+            return;
+         }
+
          div = document.createElement('div');
          document.body.appendChild(div);
          var ctr = currentCase.control;
