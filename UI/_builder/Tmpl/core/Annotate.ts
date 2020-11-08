@@ -166,11 +166,18 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
             scope
          };
          node.accept(this, context);
-         if (!(node instanceof Ast.TemplateNode)) {
-            node.__$ws_lexicalContext = lexicalContext;
-            node.__$ws_internal = { };
-            appendInternalExpressions(node.__$ws_internal, lexicalContext.getInternalPrograms());
+         if (node instanceof Ast.TemplateNode) {
+            // Do not overwrite template node lexical context and internal
+            // because that node has its own programs
+            return;
          }
+         if (!(node instanceof Ast.ForNode || node instanceof Ast.ForeachNode)) {
+            // Do not overwrite cycle node lexical context and internal
+            // because that node has its own programs
+            node.__$ws_lexicalContext = lexicalContext;
+         }
+         node.__$ws_internal = {};
+         appendInternalExpressions(node.__$ws_internal, lexicalContext.getInternalPrograms());
       });
       const reactiveProperties: string[] = global.getIdentifiers();
       const result = <IAnnotatedTree>nodes;
