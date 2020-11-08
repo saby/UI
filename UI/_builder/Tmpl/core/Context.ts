@@ -96,6 +96,11 @@ interface IContext extends ILexicalContext {
    collectIdentifiers(identifiers: string[]): string[];
 
    processProgram(program: ProgramNode): TProgramKey;
+
+   joinIdentifiers(identifiers: string[], localIdentifiers: string[]): void;
+   joinPrograms(programs: ProgramNode[], localIdentifiers: string[]): void;
+   joinProgram(program: ProgramNode, localIdentifiers: string[]): void;
+   hoistJoinProgram(program: ProgramNode, localIdentifiers: string[]): TProgramKey;
 }
 
 interface IPrograms {
@@ -269,14 +274,11 @@ class Context implements IContext {
    }
 
    joinContext(context: ILexicalContext, options?: ILexicalContextOptions): void {
-      const cfg = prepareContextConfig({
-         identifiers: Array.isArray(options && options.identifiers) ? options.identifiers : []
-      });
-      const fakeContext = new Context(this, cfg);
+      const localIdentifiers = Array.isArray(options && options.identifiers) ? options.identifiers : [];
       const identifiers = context.getLocalIdentifiers();
       const programs = context.getLocalPrograms();
-      fakeContext.hoistIdentifiers(identifiers);
-      fakeContext.registerPrograms(programs);
+      this.joinIdentifiers(identifiers, localIdentifiers);
+      this.joinPrograms(programs, localIdentifiers);
    }
 
    getLocalIdentifiers(): string[] {
@@ -487,6 +489,54 @@ class Context implements IContext {
       return key;
    }
 
+   joinIdentifiers(identifiers: string[], localIdentifiers: string[]): void {
+      for (let index = 0; index < identifiers.length; ++index) {
+         const identifier = identifiers[index];
+         if (localIdentifiers.indexOf(identifier) > -1) {
+            continue;
+         }
+         this.hoistIdentifier(identifier);
+      }
+   }
+
+   joinPrograms(programs: ProgramNode[], localIdentifiers: string[]): void {
+      for (let index = 0; index < programs.length; ++index) {
+         const program = programs[index];
+         this.joinProgram(program, localIdentifiers);
+      }
+   }
+
+   joinProgram(program: ProgramNode, localIdentifiers: string[]): void {
+      if (!canRegisterProgram(program)) {
+         return;
+      }
+      const programContainsLocalIdentifiers = containsLocalIdentifiers(program, localIdentifiers);
+      if (programContainsLocalIdentifiers) {
+         // Program contains local identifiers. Do not commit this program
+         this.hoistProgramIdentifiersAsPrograms(program, localIdentifiers);
+         return;
+      }
+      // If program already exists in current scope branch then just take its key.
+      let key = this.findProgramKey(program);
+      if (key === null) {
+         key = this.hoistJoinProgram(program, localIdentifiers);
+      }
+      if (key === null) {
+         return;
+      }
+      this.hoistInternalProgram(program, key);
+   }
+
+   hoistJoinProgram(program: ProgramNode, localIdentifiers: string[]): TProgramKey {
+      const programContainsLocalIdentifiers = containsLocalIdentifiers(program, this.identifiers);
+      if (this.parent !== null && this.allowHoisting && !programContainsLocalIdentifiers) {
+         return this.parent.hoistJoinProgram(program, localIdentifiers);
+      }
+      const key = this.generateProgramKey();
+      this.commitProgram(program, key);
+      return key;
+   }
+
    // </editor-fold>
 
    private commitIdentifiers(identifiers: string[]): void {
@@ -501,13 +551,16 @@ class Context implements IContext {
       }
    }
 
-   private hoistProgramIdentifiersAsPrograms(program: ProgramNode): void {
+   private hoistProgramIdentifiersAsPrograms(program: ProgramNode, localIdentifiers: string[] = []): void {
       if (this.parent === null || !this.allowHoisting) {
          return;
       }
       const identifiers = collectIdentifiers(program);
       identifiers.forEach((identifier: string): void => {
          if (this.identifiers.indexOf(identifier) > -1) {
+            return;
+         }
+         if (localIdentifiers.indexOf(identifier) > -1) {
             return;
          }
          const program = PARSER.parse(identifier);
