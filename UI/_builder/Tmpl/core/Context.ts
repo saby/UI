@@ -449,7 +449,9 @@ class Context implements IContext {
    hoistProgram(program: ProgramNode): TProgramKey {
       const programContainsLocalIdentifiers = containsLocalIdentifiers(program, this.identifiers);
       if (!programContainsLocalIdentifiers && this.parent !== null && this.allowHoisting) {
-         return this.parent.hoistProgram(program);
+         const key = this.parent.hoistProgram(program);
+         this.commitProgram(program, key);
+         return key;
       }
       if (programContainsLocalIdentifiers) {
          this.hoistProgramIdentifiersAsPrograms(program);
@@ -554,7 +556,9 @@ class Context implements IContext {
    hoistJoinProgram(program: ProgramNode, localIdentifiers: string[]): TProgramKey {
       const programContainsLocalIdentifiers = containsLocalIdentifiers(program, this.identifiers);
       if (this.parent !== null && this.allowHoisting && !programContainsLocalIdentifiers) {
-         return this.parent.hoistJoinProgram(program, localIdentifiers);
+         const key = this.parent.hoistJoinProgram(program, localIdentifiers);
+         this.commitProgram(program, key);
+         return key;
       }
       const key = this.generateProgramKey();
       this.commitProgram(program, key);
