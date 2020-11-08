@@ -133,9 +133,10 @@ export function processExpressions(
             checkChildren: false
          };
          const exprId = exprAsVariable.name.__$ws_id;
-         if (exprId === null || !needOptimizeProgramProcessing()) {
-            res = exprAsVariable.name.accept(visitor, context);
-         } else {
+         res = exprAsVariable.name.accept(visitor, context);
+         if (exprId !== null && needOptimizeProgramProcessing()) {
+            // @ts-ignore FIXME: Code generation
+            exprAsVariable.name.__$ws_lexicalContext.commitProgramCode(exprId, res);
             res = `${EXPRESSIONS_VARIABLE_NAME}.${exprId}`;
          }
          if (!exprAsVariable.noEscape) {
@@ -201,8 +202,11 @@ export function generateExpressionsBlock(context: ILexicalContext, fileName: str
    for (let index = 0; index < keys.length; ++index) {
       const key = keys[index];
       const program = context.getProgram(key);
-      context.commitProcessing(key);
-      const value = processProgramNode(program, fileName);
+      let value = context.commitProcessing(key);
+      if (value === null) {
+         // FIXME: Skipped program calculation
+         value = processProgramNode(program, fileName);
+      }
       if (!value) {
          items.push({ key, value: DEFAULT_EMPTY_VALUE });
          continue;

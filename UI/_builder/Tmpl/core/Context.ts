@@ -10,7 +10,7 @@ import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 
 // <editor-fold desc="Public interfaces and functions">
 
-const OPTIMIZE_PROGRAM_PROCESSING = false;
+const OPTIMIZE_PROGRAM_PROCESSING = true;
 
 export function needOptimizeProgramProcessing(): boolean {
    return OPTIMIZE_PROGRAM_PROCESSING;
@@ -50,7 +50,8 @@ export interface ILexicalContext {
    getProgram(key: TProgramKey): ProgramNode | null;
 
    startProcessing(): void;
-   commitProcessing(key: TProgramKey): void;
+   commitProgramCode(key: TProgramKey, code: string): void;
+   commitProcessing(key: TProgramKey): string;
    endProcessing(): void;
 }
 
@@ -111,8 +112,13 @@ interface IProgramsMap {
    [program: string]: string;
 }
 
-interface IProcessingKeysMap {
-   [program: string]: boolean;
+interface IProgramDescription {
+   isProcessed: boolean;
+   code: string | null;
+}
+
+interface IProgramDescriptions {
+   [key: string]: IProgramDescription;
 }
 
 function prepareContextConfig(config?: ILexicalContextConfig): ILexicalContextConfig {
@@ -213,7 +219,7 @@ class Context implements IContext {
 
    private programKeyIndex: number;
    private inProcessing: boolean;
-   private readonly processingKeysMap: IProcessingKeysMap;
+   private readonly programDescriptions: IProgramDescriptions;
    private readonly parent: IContext | null;
    private readonly allowHoisting: boolean;
    private readonly identifiers: string[];
@@ -227,7 +233,7 @@ class Context implements IContext {
    constructor(parent: IContext | null, config: ILexicalContextConfig) {
       this.programKeyIndex = 0;
       this.inProcessing = false;
-      this.processingKeysMap = { };
+      this.programDescriptions = { };
       this.parent = parent;
       this.allowHoisting = config.allowHoisting;
       this.identifiers = config.identifiers;
@@ -351,7 +357,20 @@ class Context implements IContext {
       this.inProcessing = true;
    }
 
-   commitProcessing(key: TProgramKey): void {
+   commitProgramCode(key: TProgramKey, code: string): void {
+      if (this.parent !== null) {
+         return this.parent.commitProgramCode(key, code);
+      }
+      if (!this.inProcessing) {
+         throw new Error('Контекст не находится в состоянии вычисления');
+      }
+      if (!this.programDescriptions.hasOwnProperty(key)) {
+         throw new Error(`Выражение с ключом "${key}" не было зарегистрировано`);
+      }
+      this.programDescriptions[key].code = code;
+   }
+
+   commitProcessing(key: TProgramKey): string {
       if (this.parent !== null) {
          return this.parent.commitProcessing(key);
       }
@@ -361,7 +380,8 @@ class Context implements IContext {
       // if (this.processingKeysMap[key]) {
       //    throw new Error(`Выражение с ключом "${key}" уже было вычислено`);
       // }
-      this.processingKeysMap[key] = true;
+      this.programDescriptions[key].isProcessed = true;
+      return this.programDescriptions[key].code;
    }
 
    endProcessing(): void {
@@ -376,8 +396,8 @@ class Context implements IContext {
          return;
       }
       const missedKeys = [];
-      for (const key in this.processingKeysMap) {
-         if (!this.processingKeysMap[key]) {
+      for (const key in this.programDescriptions) {
+         if (!this.programDescriptions[key].isProcessed) {
             missedKeys.push(key);
          }
       }
@@ -394,7 +414,10 @@ class Context implements IContext {
    generateProgramKey(): TProgramKey {
       if (this.parent === null) {
          const key = `${PROGRAM_PREFIX}${this.programKeyIndex++}`;
-         this.processingKeysMap[key] = false;
+         this.programDescriptions[key] = {
+            isProcessed: false,
+            code: null
+         };
          return key;
       }
       return this.parent.generateProgramKey();

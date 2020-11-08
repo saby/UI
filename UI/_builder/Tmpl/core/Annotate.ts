@@ -229,6 +229,8 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    visitBind(node: Ast.BindNode, context: IContext): void {
       node.__$ws_value.__$ws_id = context.lexicalContext.registerBindProgram(node.__$ws_value);
+      // @ts-ignore FIXME: Code generation
+      node.__$ws_value.__$ws_lexicalContext = context.lexicalContext;
    }
 
    visitEvent(node: Ast.EventNode, context: IContext): void {
@@ -290,6 +292,8 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       this.processNodes(node.__$ws_consequent, context);
       if (node.__$ws_test) {
          node.__$ws_test.__$ws_id = context.lexicalContext.registerProgram(node.__$ws_test);
+         // @ts-ignore FIXME: Code generation
+         node.__$ws_test.__$ws_lexicalContext = context.lexicalContext;
       }
       if (node.__$ws_alternate) {
          node.__$ws_alternate.accept(this, context);
@@ -327,6 +331,8 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          lexicalContext
       };
       node.__$ws_collection.__$ws_id = lexicalContext.registerProgram(node.__$ws_collection);
+      // @ts-ignore FIXME: Code generation
+      node.__$ws_collection.__$ws_lexicalContext = context.lexicalContext;
       this.processNodes(node.__$ws_content, contentContext);
       node.__$ws_lexicalContext = lexicalContext;
    }
@@ -336,6 +342,8 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       // FIXME: Legacy error. Test can be invalid. Enable traverse check
       if (node.__$ws_test) {
          node.__$ws_test.__$ws_id = context.lexicalContext.registerProgram(node.__$ws_test);
+         // @ts-ignore FIXME: Code generation
+         node.__$ws_test.__$ws_lexicalContext = context.lexicalContext;
       }
       if (node.__$ws_alternate) {
          node.__$ws_alternate.accept(this, context);
@@ -363,6 +371,8 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    visitExpression(node: Ast.ExpressionNode, context: IContext): void {
       node.__$ws_program.__$ws_id = context.lexicalContext.registerProgram(node.__$ws_program);
+      // @ts-ignore FIXME: Code generation
+      node.__$ws_program.__$ws_lexicalContext = context.lexicalContext;
    }
 
    visitText(node: Ast.TextNode, context: IContext): void {
@@ -394,6 +404,8 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       };
       this.processComponentContent(node, contentContext);
       node.__$ws_expression.__$ws_id = lexicalContext.registerProgram(node.__$ws_expression);
+      // @ts-ignore FIXME: Code generation
+      node.__$ws_expression.__$ws_lexicalContext = context.lexicalContext;
    }
 
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): void {
