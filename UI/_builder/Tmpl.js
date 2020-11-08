@@ -121,8 +121,11 @@ define('UI/_builder/Tmpl', [
 
       // FIXME: удалить, когда точно будут известны клиенты шаблонизатора.
       config.fileName = config.fileName || config.filename;
+      config.lexicalContext = ast.lexicalContext;
+      config.lexicalContext.startProcessing();
       functionResult = codegenBridge.getFunction(ast, null, config, null);
       functionResult.reactiveProps = ast.reactiveProps;
+      config.lexicalContext.endProcessing();
       return functionResult;
    }
 

@@ -7,6 +7,7 @@
 
 import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { IPath } from 'UI/_builder/Tmpl/core/Resolvers';
+import {ILexicalContext} from "UI/_builder/Tmpl/core/Context";
 
 // tslint:disable:max-classes-per-file
 // Намеренно отключаю правило max-classes-per-file
@@ -454,6 +455,12 @@ export abstract class Ast {
    __$ws_internal: IInternal | null;
 
    /**
+    * FIXME: Refactor it
+    * @deprecated
+    */
+   __$ws_lexicalContext: ILexicalContext | null;
+
+   /**
     * Initialize new instance of abstract syntax node.
     * @param flags {Flags} Node flags.
     */
@@ -462,6 +469,7 @@ export abstract class Ast {
       this.__$ws_flags = flags;
       this.__$ws_isRootNode = false;
       this.__$ws_internal = null;
+      this.__$ws_lexicalContext = null;
    }
 
    /**
@@ -1132,6 +1140,11 @@ export class InlineTemplateNode extends BaseWasabyElement {
    __$ws_name: string;
 
    /**
+    * Inline template reference.
+    */
+   __ws_templateRef: TemplateNode;
+
+   /**
     * Initialize new instance of inline template node.
     * @param name {string} Partial template name or expression.
     * @param attributes {IAttributes} Collection of abstract syntax node attributes.
@@ -1142,6 +1155,7 @@ export class InlineTemplateNode extends BaseWasabyElement {
    constructor(name: string, attributes: IAttributes, events: IEvents, options: IOptions, contents: IContents = { }) {
       super(attributes, events, options, contents);
       this.__$ws_name = name;
+      this.__ws_templateRef = null;
    }
 
    /**

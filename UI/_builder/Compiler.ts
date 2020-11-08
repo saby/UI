@@ -14,6 +14,8 @@ import * as templates from 'UI/_builder/Tmpl/codegen/templates';
 import { ISource, Source } from './utils/Source';
 import { IOptions, Options } from './utils/Options';
 import { ModulePath } from './utils/ModulePath';
+import { Ast } from 'UI/_builder/Tmpl/core/Ast';
+import { ILexicalContext } from 'UI/_builder/Tmpl/core/Context';
 
 /**
  * Represents compiler interface.
@@ -92,14 +94,16 @@ interface IDictionaryItem {
 }
 
 /**
- * Represents abstract syntax tree interface as array of "object" - abstract syntax nodes.
- * FIXME: release interfaces for these nodes.
+ * Represents abstract syntax tree interface as array abstract syntax nodes.
  */
-interface IAST extends Array<Object> {
+interface IAST extends Array<Ast> {
    /**
     * Array of names of reactive variables.
     */
+   childrenStorage: string[];
    reactiveProps: string[];
+   lexicalContext: ILexicalContext;
+   __newVersion: boolean;
 }
 
 /**
@@ -193,11 +197,13 @@ abstract class BaseCompiler implements ICompiler {
     * @param options Compiler options.
     */
    generate(traversed: ITraversed, options: IOptions): string {
+      traversed.ast.lexicalContext.startProcessing();
       // tslint:disable:prefer-const
       let tmplFunc = codegenBridge.getFunction(traversed.ast, null, options, null);
       if (!tmplFunc) {
          throw new Error('Шаблон не может быть построен. Не загружены зависимости.');
       }
+      traversed.ast.lexicalContext.endProcessing();
       return this.generateModule(tmplFunc, traversed.dependencies, traversed.ast.reactiveProps, options.modulePath);
    }
 

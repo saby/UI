@@ -675,14 +675,14 @@ class AttributeProcessor implements IAttributeProcessor {
                   }
                );
             }
-            return new Ast.OptionNode(
+            const valueNode = new Ast.ValueNode([new Ast.TextDataNode('')]);
+            valueNode.setFlag(Ast.Flags.TYPE_CASTED);
+            const option = new Ast.OptionNode(
                attributeNode.name,
-               new Ast.ValueNode(
-                  [
-                     new Ast.TextDataNode('')
-                  ]
-               )
+               valueNode
             );
+            option.setFlag(Ast.Flags.UNPACKED);
+            return option;
          }
          const value = this.textProcessor.process(
             attributeValue,

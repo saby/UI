@@ -323,6 +323,21 @@ const plainMergeAttr = Common.plainMergeAttr;
 const plainMergeContext = Common.plainMergeContext;
 const _isTClosure = true;
 
+const EXPRESSIONS_STORAGE = '__$ws_programs';
+const EMPTY_PARENT_SCOPE = { };
+
+function initExpressions(data, expressions) {
+   if (!data) {
+      return expressions;
+   }
+   const parentScope = data[EXPRESSIONS_STORAGE] || EMPTY_PARENT_SCOPE;
+   const currentScope = Object.create(parentScope);
+   // @ts-ignore
+   const realScope = Object.assign(currentScope, expressions);
+   data[EXPRESSIONS_STORAGE] = realScope;
+   return realScope;
+}
+
 export {
    isolateScope,
    createScope,
@@ -349,5 +364,6 @@ export {
    createGenerator,
    getMarkupGenerator,
    validateNodeKey,
+   initExpressions,
    _isTClosure
 };

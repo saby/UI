@@ -58,6 +58,7 @@ export interface IExpressionVisitor<C, R> {
 
 interface IExpressionVisitorContext extends IContext {
    fileName: string;
+   generateSafeFunctionCall: boolean;
    isControl: boolean;
    attributeName: string;
    isExprConcat: boolean;
@@ -233,7 +234,7 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
             const calleeNode = node.callee as MemberExpressionNode;
             object = <string>calleeNode.object.accept(this, context);
          }
-         if (typeof context.attributeName === 'string' && /__dirtyCheckingVars_\d+$/gi.test(context.attributeName)) {
+         if (typeof context.attributeName === 'string' && /__dirtyCheckingVars_\d+$/gi.test(context.attributeName) || context.generateSafeFunctionCall) {
             // Эта проверка используется для проброса переменных из замыкания(dirtyCheckingVars)
             // Значения переменных из замыкания вычисляются в момент создания контентной опции
             // и пробрасываются через все контролы, оборачивающие контент.
@@ -885,10 +886,12 @@ export abstract class Node {
 }
 
 export class ProgramNode extends Node {
+   __$ws_id: string | null;
    body: Node[];
 
    constructor(body: Node[], loc: ISourceLocation) {
       super('Program', loc);
+      this.__$ws_id = null;
       this.body = body;
       if (body) {
          this.string = body[0].string;

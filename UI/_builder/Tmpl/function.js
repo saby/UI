@@ -237,7 +237,8 @@ define('UI/_builder/Tmpl/function', [
          if (!internal) {
             res += templates.generateTemplateHead(handlers.fileName, true);
          }
-         res += templates.generateTemplateBody(handlers.fileName, str);
+         var processedExpressions = Process.generateExpressionsBlock(ast.lexicalContext, this.fileName);
+         res += templates.generateTemplateBody(handlers.fileName, str, processedExpressions);
          return res;
       },
       getFunction: function getFunction(ast, data, handlers, attributes, internal) {
@@ -258,16 +259,15 @@ define('UI/_builder/Tmpl/function', [
             func.includedFn = this.includedFn;
             func.functionNames = this.functionNames;
          } catch (error) {
-            errorHandler.info(
-               '[UI/_builder/Tmpl/function:getFunction()] generating function: \n' + str,
+            errorHandler.error(
+               'Ошибка построения функции: ' + error.message,
                {
                   fileName: handlers.fileName
-               }
-            );
+               });
             throw error;
          }
          this.setFunctionName(func, undefined, this.fileName);
-         this.childrenStorage = [ ];
+         this.childrenStorage = [];
          return func;
       },
 
@@ -605,7 +605,8 @@ define('UI/_builder/Tmpl/function', [
        * @returns {*}
        */
       _useManageableAttributes: function useManageableAttributes(tag, data, decor, parentNS) {
-         var constructArray = this._processManageableAttributes(tag.attribs);
+         // Сейчас производится распаковка директив из атрибутов, этот код больше не актуален
+         var constructArray = []; // this._processManageableAttributes(tag.attribs);
          if (constructArray.length) {
             var moduleName = constructArray.shift().module;
 
