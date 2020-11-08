@@ -257,6 +257,7 @@ class Context implements IContext {
    registerFloatProgram(program: ProgramNode): void {
       const identifiers = collectIdentifiers(program);
       this.hoistProgramIdentifiersAsPrograms(program);
+      this.hoistIdentifiers(identifiers);
       this.commitIdentifiers(identifiers);
    }
 

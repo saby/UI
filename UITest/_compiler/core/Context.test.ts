@@ -448,8 +448,11 @@ describe('Compiler/core/Context', () => {
             assert.deepEqual(child.getProgramKeys(), standardKeys);
          });
          it('Check global identifiers', () => {
-            assert.isEmpty(global.getLocalIdentifiers());
-            assert.isEmpty(global.getIdentifiers());
+            const standardIdentifiers = [
+               'a', 'b', 'c', 'e', 'f', 'i'
+            ];
+            assert.deepEqual(global.getLocalIdentifiers(), standardIdentifiers);
+            assert.deepEqual(global.getIdentifiers(), standardIdentifiers);
          });
          it('Check child identifiers', () => {
             const standardIdentifiers = [
@@ -548,8 +551,11 @@ describe('Compiler/core/Context', () => {
             assert.deepEqual(child.getProgramKeys(), standardKeys);
          });
          it('Check global identifiers', () => {
-            assert.isEmpty(global.getLocalIdentifiers());
-            assert.isEmpty(global.getIdentifiers());
+            const standardIdentifiers = [
+               'a', 'b', 'e', 'f', 'i'
+            ];
+            assert.deepEqual(global.getLocalIdentifiers(), standardIdentifiers);
+            assert.deepEqual(global.getIdentifiers(), standardIdentifiers);
          });
          it('Check child identifiers', () => {
             const standardIdentifiers = [
