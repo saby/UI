@@ -73,6 +73,7 @@ define('UI/_builder/Tmpl/core/bridge', [
       PatchVisitorLib.default(traversed, traverseOptions.scope);
       traversed.childrenStorage = annotated.childrenStorage;
       traversed.reactiveProps = annotated.reactiveProps;
+      traversed.templateNames = annotated.templateNames;
       traversed.__newVersion = annotated.__newVersion;
 
       // в случае сбора словаря локализуемых слов отдаем объект

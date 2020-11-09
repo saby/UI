@@ -169,7 +169,7 @@ define('UI/_builder/Tmpl', [
 
       template(html, getResolverControls(currentExt), config).handle(function(traversed) {
          try {
-            codegenBridge.initWorkspaceWML();
+            codegenBridge.initWorkspaceWML(traversed.templateNames);
             tmplFunc = func(traversed, config);
             if (!tmplFunc) {
                errorHandler.critical(
@@ -256,7 +256,7 @@ define('UI/_builder/Tmpl', [
       template(html, getResolverControls('tmpl'), currentConfig).handle(function(traversed) {
          var templateFunction;
          try {
-            codegenBridge.initWorkspaceTMPL();
+            codegenBridge.initWorkspaceTMPL(traversed.templateNames);
             templateFunction = func(traversed, currentConfig);
             templateFunction.stable = true;
             compatibleFunction = function compatibleTemplate() {
@@ -285,7 +285,7 @@ define('UI/_builder/Tmpl', [
 
    function outerFunc(ast, config) {
       try {
-         codegenBridge.initWorkspaceTMPL();
+         codegenBridge.initWorkspaceTMPL(ast.templateNames);
          return func(ast, config);
       } finally {
          codegenBridge.cleanWorkspace();
