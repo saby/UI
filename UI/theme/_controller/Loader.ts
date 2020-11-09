@@ -3,7 +3,8 @@
 import LinkResolver from "./LinkResolver";
 // @ts-ignore
 import { constants } from 'Env/Env';
-import { EMPTY_THEME } from './css/const';
+import { EMPTY_THEME, CSS_MODULE_PREFIX } from './css/const';
+import { ModulesLoader } from 'UI/Utils';
 type IConfig = {
    buildnumber: string,
    wsRoot: string,
@@ -38,7 +39,16 @@ export default class Loader implements ICssLoader {
          return name;
       }
       if (theme === EMPTY_THEME) {
-         return this.lr.resolveLink(name, { ext: 'css' });
+         /**
+          * Для стилей без темы лучше всего полагаться на свежий механизм Мальцева.
+          * Он и минификацию и бандлы учтет
+          * На серверной стороне есть проблемы. Оставлю пока как есть.
+          * https://online.sbis.ru/opendoc.html?guid=62cf64e8-ecfa-47e4-b7b7-5e2a95bab01b
+          */
+         if (constants.isServerSide) {
+            return this.lr.resolveLink(name, { ext: 'css' });
+         }
+         return ModulesLoader.getModuleUrl(CSS_MODULE_PREFIX + name);
       }
       return this.lr.resolveCssWithTheme(name, theme);
    }
