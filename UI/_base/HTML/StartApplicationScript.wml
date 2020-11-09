@@ -3,6 +3,7 @@
       <script key="init_script">
          document.addEventListener('DOMContentLoaded', function() {
             require(['Core/polyfill', 'Env/Env', 'Application/Initializer', 'Application/Env', 'SbisEnvUI/Compatible',], function (polyfill, Env, AppInit, AppEnv) {
+
                require(['UI/Base'], function (UI) {
                   window.startContextData = { AppData: new UI.AppData({}) };
                   Object.assign(Env.constants, window.wsConfig);
