@@ -19,8 +19,8 @@ export function genWrapUndef(expression: string): string {
    return `${VAR_MODULE_NAME}.wrapUndef(${expression})`;
 }
 
-export function genGetTypeFunc(arg1: string, arg2: string): string {
-   return `${VAR_MODULE_NAME}.getTypeFunc(${arg1}, ${arg2})`;
+export function genGetTypeFunc(handler: string, options: string): string {
+   return `${VAR_MODULE_NAME}.getTypeFunc(${handler}, ${options})`;
 }
 
 export function genUniteScope(inner: string, outer: string): string {
