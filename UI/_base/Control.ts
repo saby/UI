@@ -732,8 +732,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * @see Documentation: Context
     * @see Documentation: Server render
     */
-   protected _beforeMount(options?: TOptions, contexts?: object, receivedState?: TState): Promise<TState> |
-      Promise<void> | void {
+   protected _beforeMount(options?: TOptions, contexts?: object, receivedState?: TState): Promise<TState | void> | void {
       return undefined;
    }
 
