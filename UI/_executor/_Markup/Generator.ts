@@ -475,6 +475,9 @@ export class Generator {
                event.fn = function (eventObj) {
                   const context = event.context.apply(this.viewController);
                   const handler = event.handler.apply(this.viewController);
+                  if (typeof handler === 'undefined') {
+                     throw new Error(`Отсутствует обработчик ${ event.value } события ${ eventObj.type } у контрола ${ event.viewController._moduleName }`);
+                  }
                   const res = handler.apply(context, arguments);
                   if(res !== undefined) {
                      eventObj.result = res;
