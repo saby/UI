@@ -27,8 +27,6 @@ export class EventNode {
    isControl: boolean;
    context: string;
 
-   bindValue: string;
-
    /**
     * Инициализировать новый узел.
     * @param cfg {IEventNodeCfg}
