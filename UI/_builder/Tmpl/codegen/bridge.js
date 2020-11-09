@@ -10,16 +10,23 @@ define('UI/_builder/Tmpl/codegen/bridge', [
    var CODEGEN_VISITORS = false;
    var USE_CODEGEN_VISITORS = CODEGEN_VISITORS && coreBridge.canUseCodegenVisitors();
 
-   function initWorkspaceWML() {
+   function initWorkspaceWML(templateNames) {
       processingToFunction.functionNames = { };
+      for (var index = 0; index < templateNames && templateNames.length; ++index) {
+         var name = templateNames[index];
+         processingToFunction.functionNames[name] = 2;
+      }
       processingToFunction.privateFn = [];
       processingToFunction.includedFn = { };
       processingToFunction.includedFunctions = { };
    }
 
-   function initWorkspaceTMPL() {
-      // FIXME: do not check template function name (diff stage)
-      processingToFunction.functionNames = null;
+   function initWorkspaceTMPL(templateNames) {
+      processingToFunction.functionNames = { };
+      for (var index = 0; index < templateNames && templateNames.length; ++index) {
+         var name = templateNames[index];
+         processingToFunction.functionNames[name] = 2;
+      }
       processingToFunction.includedFunctions = { };
       processingToFunction.privateFn = null;
       processingToFunction.includedFn = null;
