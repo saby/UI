@@ -102,8 +102,7 @@ export function createTagDefault(tag: string,
 
    let mergedAttrs = Attr.processMergeAttributes(
        attrToDecorate.attributes as IAttributes,
-       attrs.attributes as IAttributes,
-       true
+       attrs.attributes as IAttributes
    );
 
    _FocusAttrs.prepareTabindex(mergedAttrs);
