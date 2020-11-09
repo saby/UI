@@ -3,9 +3,10 @@
  * Модуль для вычисления путей до статических ресурсов
  * @author Санников К.А.
  */
-import { getResourceUrl } from 'UI/Utils';
+import { getResourceUrl, ModulesLoader } from 'UI/Utils';
 // @ts-ignore
 import { constants } from 'Env/Env';
+import { CSS_MODULE_PREFIX } from './css/const';
 
 // Need this code for compatibility with old controls
 // Some old module names are not the same as its physical address
@@ -216,6 +217,15 @@ class LinkResolver {
    }
 
    resolveLink(moduleName: string, linkInfo: any): string {
+      /**
+       * Для стилей без темы лучше всего полагаться на свежий механизм Мальцева.
+       * Он и минификацию и бандлы учтет
+       * На серверной стороне есть проблемы. Оставлю пока как есть.
+       * https://online.sbis.ru/opendoc.html?guid=62cf64e8-ecfa-47e4-b7b7-5e2a95bab01b
+       */
+      if (constants.isBrowserPlatform) {
+         return ModulesLoader.getModuleUrl(CSS_MODULE_PREFIX + name);
+      }
       if (typeof linkInfo === 'string') {
          linkInfo = {ext: linkInfo};
       }

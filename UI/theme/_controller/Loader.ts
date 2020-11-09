@@ -39,11 +39,7 @@ export default class Loader implements ICssLoader {
          return name;
       }
       if (theme === EMPTY_THEME) {
-         /**
-          * Для стилей без темы лучше всего полагаться на свежий механизм Мальцева.
-          * Он и минификацию и бандлы учтет
-          */
-         return ModulesLoader.getModuleUrl('css!' + name);
+         return this.lr.resolveLink(name, { ext: 'css' });
       }
       return this.lr.resolveCssWithTheme(name, theme);
    }
