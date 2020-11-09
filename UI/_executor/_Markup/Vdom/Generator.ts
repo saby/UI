@@ -46,11 +46,11 @@ export class GeneratorVdom implements IGenerator {
    canBeCompatible: boolean;
    generatorBase: Generator;
 
-   private generatorConfig: IGeneratorConfig;
+   private prepareAttrsForPartial: Function;
 
    constructor(config: IGeneratorConfig) {
       if (config) {
-         this.generatorConfig = config;
+         this.prepareAttrsForPartial = config.prepareAttrsForPartial;
       }
       this.cacheModules = {};
       this.generatorBase = new Generator(config);
@@ -303,11 +303,11 @@ export class GeneratorVdom implements IGenerator {
       const parent = data.parent;
       if (typeof fn === 'function') {
          return parent ?
-            fn.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
+            fn.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial) :
             fn(resolvedScope, decorAttribs, context, true);
       } else if (fn && typeof fn.func === 'function') {
          return parent ?
-            fn.func.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
+            fn.func.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial) :
             fn.func(resolvedScope, decorAttribs, context, true);
       } else if (Common.isArray(fn)) {
          return this.resolveTemplateArray(parent, fn, resolvedScope, decorAttribs, context);
@@ -451,9 +451,9 @@ export class GeneratorVdom implements IGenerator {
 
    resolveTemplateFunction(parent: any, template: any, resolvedScope: any, decorAttribs: any, context: any): any {
       if (parent) {
-         return template.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig);
+         return template.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial);
       }
-      return template(resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig);
+      return template(resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial);
    }
 
    resolveTemplate(template: any, parent: any, resolvedScope: any, decorAttribs: any, context: any): any {

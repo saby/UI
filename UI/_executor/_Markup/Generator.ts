@@ -259,11 +259,11 @@ export class Generator {
    private createController: Function;
    private resolver: Function;
 
-   private generatorConfig: IGeneratorConfig;
+   private prepareAttrsForPartial: Function;
 
    constructor(config: IGeneratorConfig) {
       if (config) {
-         this.generatorConfig = config;
+         this.prepareAttrsForPartial = config.prepareAttrsForPartial;
       }
    }
 
@@ -534,8 +534,8 @@ export class Generator {
       if (!attrs.attributes) {
          attrs.attributes = {};
       }
-      if (this.generatorConfig && this.generatorConfig.prepareAttrsForPartial) {
-         this.generatorConfig.prepareAttrsForPartial(attrs);
+      if (this.prepareAttrsForPartial) {
+         this.prepareAttrsForPartial(attrs.attributes);
       }
       if (controlClass === '_$inline_template') {
          // в случае ws:template отдаем текущие свойства
