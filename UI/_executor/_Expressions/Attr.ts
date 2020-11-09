@@ -157,13 +157,10 @@ function forEachAttrs(attributes: IAttributes, callback: Function): boolean {
  * @returns {IAttributes} - Объект со смерженными атрибутами.
  */
 function mergeAttributes(parentAttributes: IAttributes, ownAttributes: IAttributes): IAttributes {
-   const parentAttrWithoutPrefix: IAttributes = {};
-   const ownAttrsWithoutPrefix: IAttributes = {};
-
-   const parentAttr: IAttributes = parentAttrWithoutPrefix;
+   const parentAttr: IAttributes = parentAttributes || {};
    let ownKey: string = '';
 
-   const attributes = ownAttrsWithoutPrefix;
+   const attributes = ownAttributes || {};
 
    addAttribute(attributes, 'class', mergeAttr(parentAttributes, ownAttributes, 'class'));
 
