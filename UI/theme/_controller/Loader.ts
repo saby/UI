@@ -4,7 +4,6 @@ import LinkResolver from "./LinkResolver";
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { EMPTY_THEME } from './css/const';
-import { ModulesLoader } from 'UI/Utils';
 type IConfig = {
    buildnumber: string,
    wsRoot: string,
