@@ -89,14 +89,12 @@ describe('Compiler/html/TreeBuilder', () => {
       const markup = visitor.visitAll(tree);
       assert.strictEqual(markup, standard);
    });
-   it('void fail', (done) => {
+   it('void fail', () => {
       const html = '<input></input>';
-      try {
-         createTree(html);
-         done(new Error('Must be broken'));
-      } catch (error) {
-         done();
-      }
+      const standard = '<input>';
+      const tree = createTree(html);
+      const markup = visitor.visitAll(tree);
+      assert.strictEqual(markup, standard);
    });
    // it('closed by children', () => {
    //    const html = '<table><tr><td>1<td>2</table>';

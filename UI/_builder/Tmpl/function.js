@@ -41,7 +41,7 @@ define('UI/_builder/Tmpl/function', [
 
    var EMPTY_STRING = '';
 
-   var errorHandler = new ErrorHandlerLib.default();
+   var errorHandler = ErrorHandlerLib.createErrorHandler(true);
 
    function createAttrObject(val) {
       return {

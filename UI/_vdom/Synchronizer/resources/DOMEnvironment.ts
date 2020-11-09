@@ -554,8 +554,8 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
       BoundaryElements.insertBoundaryElements(this, vnode);
 
-      // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-      mountMethodsCaller.beforeRender(newRootCntNode, rebuildChanges);
+      const controlNodesToCall = mountMethodsCaller.collectControlNodesToCall(newRootCntNode, rebuildChanges);
+      mountMethodsCaller.beforeRender(controlNodesToCall);
 
       this._rootDOMNode.isRoot = true;
       try {
@@ -577,10 +577,8 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             // @ts-ignore FIXME: Unknown $
             control._container = window.$ ? $(newRootDOMNode) : newRootDOMNode;
          }
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.afterRender(newRootCntNode, rebuildChanges);
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.beforePaint(newRootCntNode, rebuildChanges);
+         mountMethodsCaller.afterRender(controlNodesToCall);
+         mountMethodsCaller.beforePaint(controlNodesToCall);
          delay(() => {
             //останавливать должны, только если запущено, иначе получается так,
             // что это предыдущая фаза синхронизации и она прерывает следующую
@@ -611,7 +609,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
                   control.reviveSuperOldControls();
                }
             }
-            mountMethodsCaller.afterUpdate(newRootCntNode, rebuildChanges);
+            mountMethodsCaller.afterUpdate(mountMethodsCaller.collectControlNodesToCall(newRootCntNode, rebuildChanges));
 
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
             newRootCntNode.environment._rebuildRequestStarted = false;
@@ -633,18 +631,21 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
             delete newRootCntNode.environment._asyncOngoing;
          }
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.afterRender(newRootCntNode, rebuildChanges);
-         // todo будет удалено по задаче https://online.sbis.ru/opendoc.html?guid=28940c84-511b-455b-8670-37e8e7ed70cb
-         mountMethodsCaller.beforePaint(newRootCntNode, rebuildChanges);
-         mountMethodsCaller.afterUpdate(newRootCntNode, rebuildChanges);
+
+         mountMethodsCaller.afterRender(controlNodesToCall);
+         mountMethodsCaller.beforePaint(controlNodesToCall);
+         // TODO: разобраться почему не работает с requesе animation frame (через delay())
+         // посмотреть на crbug
+         setTimeout(() => {
+            mountMethodsCaller.afterUpdate(controlNodesToCall);
+            onEndSync(newRootCntNode.rootId);
+         }, 0);
 
          delay(() => {
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
             newRootCntNode.environment._rebuildRequestStarted = false;
             // @ts-ignore FIXME: Property 'runQueue' does not exist
             newRootCntNode.environment.runQueue();
-            onEndSync(newRootCntNode.rootId);
          });
       }
 
@@ -1027,7 +1028,13 @@ function vdomEventBubbling(
                 * То есть, сам на себя мы не должны реагировать
                 * */
                if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control)) {
-                  fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
+                  try {
+                     fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
+                  } catch (err) {
+                     // в шаблоне могут указать неверное имя обработчика, следует выводить адекватную ошибку
+                     Logger.error(`Ошибка при вызове обработчика "${ eventPropertyName }" из контрола ${ fn.control._moduleName }.
+                     Проверьте существует ли обработчик с таким именем.`, fn.control);
+                  }
                }
                /* Проверяем, нужно ли дальше распространять событие по controlNodes */
                if (!eventObject.propagating()) {

@@ -19,7 +19,7 @@ define('UI/_builder/Tmpl/modules/partial', [
     * @author Крылов М.А.
     */
 
-   var errorHandler = new ErrorHandlerLib.default();
+   var errorHandler = ErrorHandlerLib.createErrorHandler(true);
 
    function calculateData(sequence) {
       var string = '', attrData = sequence.data, i;

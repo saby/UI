@@ -25,7 +25,7 @@ define('UI/_builder/Tmpl', [
     * @author Крылов М.А.
     */
 
-   var errorHandler = new ErrorHandlerLib.default();
+   var errorHandler = ErrorHandlerLib.createErrorHandler(true);
    var ModulePath = ModulePathLib.ModulePath;
    var EMPTY_STRING = '';
 
@@ -71,6 +71,7 @@ define('UI/_builder/Tmpl', [
     */
    function template(html, resolver, config) {
       var parsed, parsingError, currentHtml;
+      var errorHandlerLocal = ErrorHandlerLib.createErrorHandler(!config.fromBuilderTmpl);
 
       // FIXME: удалить, когда точно будут известны клиенты шаблонизатора.
       config.fileName = config.fileName || config.filename;
@@ -86,8 +87,14 @@ define('UI/_builder/Tmpl', [
             cleanWhiteSpaces: true,
             needPreprocess: !!config.isWasabyTemplate,
             tagDescriptor: Tags.default,
-            errorHandler: errorHandler
+            errorHandler: errorHandlerLocal
          });
+         var hasFailures = errorHandlerLocal.hasFailures();
+         var lastMessage = errorHandlerLocal.popLastErrorMessage();
+         errorHandlerLocal.flush();
+         if (hasFailures) {
+            throw new Error(lastMessage);
+         }
       } catch (error) {
          parsingError = error;
       }
@@ -124,7 +131,7 @@ define('UI/_builder/Tmpl', [
     * @param error Объект ошибки.
     */
    function defaultErrorback(error) {
-      errorHandler.error(
+      errorHandler.critical(
          'Ошибка при парсинге шаблона: ' + error.message,
          {
             fileName: null
@@ -165,7 +172,7 @@ define('UI/_builder/Tmpl', [
             codegenBridge.initWorkspaceWML();
             tmplFunc = func(traversed, config);
             if (!tmplFunc) {
-               errorHandler.error(
+               errorHandler.critical(
                   'Шаблон не может быть построен. Не загружены зависимости.',
                   {
                      fileName: config.fileName
@@ -193,6 +200,7 @@ define('UI/_builder/Tmpl', [
     * @returns {*}
     */
    function getComponents(html, config) {
+      var errorHandlerLocal = ErrorHandlerLib.createErrorHandler(config && !config.fromBuilderTmpl);
       var parsed = Parser.parse(html, (config && config.fileName), {
          xml: true,
          allowComments: true,
@@ -203,8 +211,14 @@ define('UI/_builder/Tmpl', [
          cleanWhiteSpaces: true,
          needPreprocess: !!(config && config.isWasabyTemplate),
          tagDescriptor: Tags.default,
-         errorHandler: errorHandler
+         errorHandler: errorHandlerLocal
       });
+      var hasFailures = errorHandlerLocal.hasFailures();
+      var lastMessage = errorHandlerLocal.popLastErrorMessage();
+      errorHandlerLocal.flush();
+      if (hasFailures) {
+         throw new Error(lastMessage);
+      }
       if (config) {
          // FIXME: плохо так передавать конфиг
          traversing.config = config;
@@ -258,7 +272,7 @@ define('UI/_builder/Tmpl', [
             codegenBridge.cleanWorkspace();
          }
          if (!compatibleFunction) {
-            errorHandler.error(
+            errorHandler.critical(
                'Шаблон не может быть построен. Не загружены зависимости.',
                {
                   fileName: '<userTemplate>'

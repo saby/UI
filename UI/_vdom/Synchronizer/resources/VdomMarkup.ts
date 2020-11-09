@@ -591,6 +591,10 @@ export function getFullMarkup(
             if (fullMarkup.changed) {
                changed = true;
             }
+            if (fullMarkup.type === 'TemplateNode' && !fullMarkup.children) {
+               Logger.error(`Дублирование ключей controlNode в списке: ${item.key}`);
+               return [];
+            }
             return fullMarkup;
          });
          childrenAfter = ArrayUtils.flatten(childrenAfter, true);

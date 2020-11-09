@@ -9,7 +9,7 @@ define('UI/_builder/Tmpl/modules/if', [
     * @author Крылов М.А.
     */
 
-   var errorHandler = new ErrorHandlerLib.default();
+   var errorHandler = ErrorHandlerLib.createErrorHandler(true);
 
    /**
     * Retrieving value from tag constructions

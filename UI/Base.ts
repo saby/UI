@@ -30,6 +30,8 @@ export { default as startApplication } from 'UI/_base/startApplication';
 export { getMetaStack, IMeta, IMetaState } from 'UI/_base/HTML/meta';
 //#endregion
 
+export { default as PrefetchLinksStore } from 'UI/_base/HTML/PrefetchLinks'
+
 export {
     Control,
     IControlOptions,
