@@ -15,6 +15,7 @@ import Scope from 'UI/_builder/Tmpl/core/Scope';
 export interface IAnnotatedTree extends Array<Ast.Ast> {
    childrenStorage: string[];
    reactiveProps: string[];
+   templateNames: string[];
    __newVersion: boolean;
 }
 
@@ -380,6 +381,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       const result = <IAnnotatedTree>nodes;
       result.childrenStorage = childrenStorage;
       result.reactiveProps = reactiveProperties;
+      result.templateNames = scope.getTemplateNames();
       result.__newVersion = true;
       return result;
    }
