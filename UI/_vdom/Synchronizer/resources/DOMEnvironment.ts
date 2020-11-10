@@ -543,8 +543,6 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       if (!this._rootDOMNode) {
          return;
       }
-      // TODO: в 1100 удаляю, уже неактуально (но onEndSync актуален)
-      onStartSync(newRootCntNode.rootId);
 
       const vnode = this.decorateRootNode(newVNnode);
       let control;
