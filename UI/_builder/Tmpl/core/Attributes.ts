@@ -413,7 +413,7 @@ class AttributeProcessor implements IAttributeProcessor {
                if (attributeNode) {
                   attributeNode.__$ws_key = index++;
                   attributeNode.__$ws_hasAttributePrefix = hasWasabyPrefix(attributeName);
-                  if (collection.attributes.hasOwnProperty(`attr:${attributeNode.__$ws_name}`)) {
+                  if (collection.attributes.hasOwnProperty(attributeNode.__$ws_name)) {
                      this.errorHandler.error(
                         `Атрибут "${attributeName}" уже содержится на теге "${options.parentTagName}"`,
                         {
@@ -423,7 +423,7 @@ class AttributeProcessor implements IAttributeProcessor {
                      );
                      continue;
                   }
-                  collection.attributes[`attr:${attributeNode.__$ws_name}`] = attributeNode;
+                  collection.attributes[attributeNode.__$ws_name] = attributeNode;
                }
                continue;
             }

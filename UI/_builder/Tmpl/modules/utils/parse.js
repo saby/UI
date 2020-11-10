@@ -253,7 +253,7 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
                   true);
                delete attribs[attr];
             } else if (SPECIAL_ATTRIBUTES_COLLECTION.indexOf(attr) > -1) {
-               mayBeToMerge['attr:' + attr] = processDataSequence.call(this,
+               mayBeToMerge[attr] = processDataSequence.call(this,
                   attribs[attr],
                   data,
                   isControl,
