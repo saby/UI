@@ -140,11 +140,7 @@ describe('UI/_vdom/Synchronizer/resources/Hooks', () => {
             const eventRef = setEventHookResult[4];
             eventRef(element);
             assert.strictEqual(element.eventPropertiesCnt, 1, 'mountRef не добавил событие в eventProperties элемента');
-            assert.ok(element.eventProperties &&
-                element.eventProperties['on:event'] &&
-                element.eventProperties['on:event'][0] &&
-                element.eventProperties['on:event'][0] === props.events['on:event'][0],
-                'mountRef добавил что-то не то в eventProperties элемента');
+            assert.ok(element.eventProperties && Object.keys(element.eventProperties).length === 0);
             assert.ok(globalEnvironment.addCaptureEventHandler.calledOnce, 'mountRef не вызвал метод addCaptureEventHandler');
             assert.ok(ref.calledOnce, 'mountRef не вызвал оригинальный ref или вызвал его дважды');
             assert.strictEqual(ref.firstCall.args[0], element, 'mountRef не передал element в оригинальный ref');
