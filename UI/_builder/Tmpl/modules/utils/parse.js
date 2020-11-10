@@ -244,7 +244,8 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
                }
             } else if (isAttr(attr)) {
                needMerge = false;
-               result.attributes[attr] = processDataSequence.call(this,
+               var newAttr = attr.replace('attr:', '');
+               result.attributes[newAttr] = processDataSequence.call(this,
                   attribs[attr],
                   data,
                   isControl,
