@@ -543,7 +543,6 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       if (!this._rootDOMNode) {
          return;
       }
-      onStartSync(newRootCntNode.rootId);
 
       const vnode = this.decorateRootNode(newVNnode);
       let control;
@@ -634,19 +633,17 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
 
          mountMethodsCaller.afterRender(controlNodesToCall);
          mountMethodsCaller.beforePaint(controlNodesToCall);
-         // TODO: разобраться почему не работает с requesе animation frame (через delay())
-         // посмотреть на crbug
+         // используется setTimeout вместо delay, т.к. delay работает через rAF
+         // rAF зовётся до того, как браузер отрисует кадр, а _afterUpdate должен вызываться после, чтобы не вызывать forced reflow.
+         // Если делать то же самое через rAF, то нужно звать rAF из rAF, это и дольше, и неудобно.
          setTimeout(() => {
             mountMethodsCaller.afterUpdate(controlNodesToCall);
             onEndSync(newRootCntNode.rootId);
-         }, 0);
-
-         delay(() => {
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
             newRootCntNode.environment._rebuildRequestStarted = false;
             // @ts-ignore FIXME: Property 'runQueue' does not exist
             newRootCntNode.environment.runQueue();
-         });
+         }, 0);
       }
 
       return patch;
