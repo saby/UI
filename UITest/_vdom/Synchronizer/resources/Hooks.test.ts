@@ -70,11 +70,7 @@ describe('UI/_vdom/Synchronizer/resources/Hooks', () => {
 
             const controlNodeRef = Hooks.setControlNodeHook(tagName, props, children, id, controlNode)[4];
             controlNodeRef(element);
-            assert.ok(element.eventProperties &&
-                element.eventProperties['on:event'] &&
-                element.eventProperties['on:event'][0] &&
-                element.eventProperties['on:event'][0] === events['on:event'][0],
-                'mountRef добавил что-то не то в eventProperties элемента');
+            assert.ok(element.eventProperties && Object.keys(element.eventProperties).length === 0);
             assert.ok(globalEnvironment.addCaptureEventHandler.calledOnce, 'mountRef не вызвал метод addCaptureEventHandler');
 
             controlNodeRef();
