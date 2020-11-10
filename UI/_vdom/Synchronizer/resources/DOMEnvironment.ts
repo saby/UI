@@ -1033,7 +1033,7 @@ function vdomEventBubbling(
                   } catch (err) {
                      // в шаблоне могут указать неверное имя обработчика, следует выводить адекватную ошибку
                      Logger.error(`Ошибка при вызове обработчика "${ eventPropertyName }" из контрола ${ fn.control._moduleName }.
-                     Проверьте существует ли обработчик с таким именем.`, fn.control);
+                     ${ err.message }`, fn.control);
                   }
                }
                /* Проверяем, нужно ли дальше распространять событие по controlNodes */
