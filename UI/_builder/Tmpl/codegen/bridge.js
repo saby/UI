@@ -7,6 +7,11 @@ define('UI/_builder/Tmpl/codegen/bridge', [
 ) {
    'use strict';
 
+   /**
+    * Модуль предназначен для соединения старой и новой логик генерации кода шаблона.
+    * @author Крылов М.А.
+    */
+
    var CODEGEN_VISITORS = false;
    var USE_CODEGEN_VISITORS = CODEGEN_VISITORS && coreBridge.canUseCodegenVisitors();
 

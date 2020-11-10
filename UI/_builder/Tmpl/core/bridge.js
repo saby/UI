@@ -24,6 +24,12 @@ define('UI/_builder/Tmpl/core/bridge', [
    Annotate
 ) {
    'use strict';
+
+   /**
+    * Модуль предназначен для соединения старой и новой логик разбора и аннотации деревьев.
+    * @author Крылов М.А.
+    */
+
    var USE_TRAVERSE_VISITOR = !false;
    var USE_ANNOTATION_VISITOR = !false;
 

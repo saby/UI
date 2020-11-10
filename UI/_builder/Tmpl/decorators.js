@@ -5,6 +5,7 @@ define('UI/_builder/Tmpl/decorators', [
    'use strict';
 
    /**
+    * Проксирование логики работы декораторов.
     * @author Крылов М.А.
     */
 
