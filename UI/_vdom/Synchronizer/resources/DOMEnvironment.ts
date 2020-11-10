@@ -1036,6 +1036,13 @@ function vdomEventBubbling(
                      ${ err.message }`, fn.control);
                   }
                }
+               /* для событий click отменяем стандартное поведение, если контрол уже задестроен.
+                * актуально для ссылок, когда основное действие делать в mousedown, а он
+                * срабатывает быстрее click'а. Поэтому контрол может быть уже задестроен
+                */
+               if (fn.control._destroyed && eventObject.type === 'click') {
+                  eventObject.preventDefault();
+               }
                /* Проверяем, нужно ли дальше распространять событие по controlNodes */
                if (!eventObject.propagating()) {
                   const needCallNext =
