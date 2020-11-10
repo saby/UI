@@ -138,8 +138,11 @@ function addEventsToElement(
         } else {
             element.eventPropertiesCnt++;
         }
-
-        eventProperties[eventFullName] = eventDescrArray;
+        // не добавляем события если invisible-node, при гидрагции для invisible-node не создается dom-ноды
+        // в итоге обработчик навешивается на родителя, хотя там его никто не ожидает
+        if (controlNode.fullMarkup.type !== 'invisible-node') {
+            eventProperties[eventFullName] = eventDescrArray;
+        }
         environment.addCaptureEventHandler(eventName, element);
     }
 }
