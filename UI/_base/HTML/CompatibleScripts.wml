@@ -1,6 +1,6 @@
 <div>
    <script key="init_script">
-      require(['SbisEnvUI/Compatible', 'Env/Env', 'is!browser?jquery'], function(Compatible, Env, rights){
+      require(['SbisEnvUI/Compatible', 'Env/Env', 'is!browser?jquery', 'SbisEnvUI/Wasaby'], function(Compatible, Env, rights){
          Env.constants.$body = $(document.body);
          Env.constants.$window = $(window);
          Compatible.AppInit();

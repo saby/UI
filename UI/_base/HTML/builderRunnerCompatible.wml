@@ -9,7 +9,8 @@
          'Vdom/Vdom',
          'Lib/Control/BaseCompatible/BaseCompatible',
          'Core/nativeExtensions',
-         'is!browser?jquery'
+         'is!browser?jquery',
+         'SbisEnvUI/Wasaby'
       ], function(path, lc, Compatible, Env) {
          Env.constants.$body = body;
          Env.constants.$window = window;
