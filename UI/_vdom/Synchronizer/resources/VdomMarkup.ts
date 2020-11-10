@@ -401,13 +401,24 @@ export function getMarkupDiff(oldNode: VNode, newNode: VNode,
                result.update.push({ oldNode, newNode });
             }
          } else if (isTemplateVNodeType(newNode)) {
-            // we have to find and reorder by keys existing template nodes
-            // in order to get the best possible diff we can get
-            if (newNode.children && goin) {
-               complexDiffFinder(oldNode, newNode, true, goin);
-            } else {
+            if (!newNode.children && newNode === oldNode) {
+               // Раньше здесь newNode добавлялся в createTemplates, но вроде
+               // бы это не нужно. Если newNode === oldNode и мы попали сюда,
+               // значит включен ignoreLinkEqual, то есть diff вызывают принудительно,
+               // зная что опции обновились.
+               // Если обновились опции, а сами ноды совпадают, нам достаточно обновить
+               // template, а не создавать его. При создании нового утекают старые контролы
                // @ts-ignore
                result.updateTemplates.push({ oldNode, newNode });
+            } else {
+               // we have to find and reorder by keys existing template nodes
+               // in order to get the best possible diff we can get
+               if (newNode.children && goin) {
+                  complexDiffFinder(oldNode, newNode, true, goin);
+               } else {
+                  // @ts-ignore
+                  result.updateTemplates.push({ oldNode, newNode });
+               }
             }
          } else {
             complexDiffFinder(oldNode, newNode, false, false);

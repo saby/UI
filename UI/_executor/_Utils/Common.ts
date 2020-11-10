@@ -437,4 +437,3 @@ export const componentOptsReArray = [
       toReplace: '\\\\u000a'
    }
 ];
-

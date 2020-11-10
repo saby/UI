@@ -89,7 +89,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], fun
          if (needToBeReactive(inst, val)) {
             releaseArray(val._$reactived, prop);
 
-            arrayMethods.forEach(function (methodName) {
+            arrayMethods.forEach(function(methodName) {
                var method = val[methodName];
                var mutator = function mutator() {
                   var res = method.apply(this, arguments);
