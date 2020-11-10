@@ -100,7 +100,7 @@ export interface IConfigIterator extends IConfigBase  {
 
 // Свойства шаблона контрола
 export interface ICreateControlTemplateCfg {
-   data: TObject;
+   data: TDataObject;
    ctx: IControl;
    viewController: IControl;
    pName: string;
@@ -225,6 +225,7 @@ export type GeneratorTemplateOrigin = GeneratorFn | IGeneratorNameObject | Array
 
 // Типы сопоставления для случаев когда однозначно описать тип не можем
 export type TObject = Record<string, unknown>;
+export type TDataObject = Record<string, boolean>;
 export type TOptions = Record<string, unknown>;
 export type TScope = Record<string, unknown>;
 export type TDeps = Record<string, unknown>;
