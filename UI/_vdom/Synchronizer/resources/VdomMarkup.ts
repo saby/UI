@@ -500,10 +500,11 @@ function validateKeys(children: any[]): void {
    }
    const keys = new Set();
    for (let i = 0; i < children.length; ++i) {
-      const key = children[i].key;
+      const child = children[i];
+      const key = child.key;
       if (keys.has(key)) {
-         const markup = getStringVnode(children[i]);
-         Logger.error(`Deoptimizing perfomance due to duplicate node keys. Encountered two children with same key: "${key}". Markup: ${markup}`);
+         const markup = getStringVnode(child);
+         Logger.error(`Встречены несколько детей с одинаковыми ключами: "${key}". Разметка: ${markup}`, child.parentControl);
       } else {
          keys.add(key);
       }
@@ -564,6 +565,8 @@ export function getFullMarkup(
       i = 0;
       children = isTemplateVNodeType(vnode) ? vnode.children : getVNodeChidlren(vnode);
 
+      // Бывает, что среди детей несколько темплейт нод, часть из которых заменятся на нормальные вноды инферно, а часть - нет.
+      // При замене ключ поменяется, поэтому проверим одинаковые сразу.
       validateKeys(children);
 
       ln = children.length;
