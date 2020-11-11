@@ -1044,9 +1044,9 @@ function vdomEventBubbling(
                   const needCallNext =
                      !eventObject.isStopped() &&
                      eventProperty[i + 1] &&
-                     (eventProperty[i + 1].toPartial ||
-                        eventProperty[i + 1].fn.controlDestination ===
-                        eventProperty[i].fn.controlDestination);
+                     (eventProperty[i].toPartial ||
+                        eventProperty[i + 1].toPartial ||
+                        eventProperty[i + 1].fn.controlDestination === eventProperty[i].fn.controlDestination);
                   /* Если подписались на события из HOC'a, и одновременно подписались на контент хока, то прекращать
                    распространение не нужно.
                     Пример sync-tests/vdomEvents/hocContent/hocContent */
