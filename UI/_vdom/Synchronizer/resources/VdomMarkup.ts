@@ -564,6 +564,8 @@ export function getFullMarkup(
       i = 0;
       children = isTemplateVNodeType(vnode) ? vnode.children : getVNodeChidlren(vnode);
 
+      validateKeys(children);
+
       ln = children.length;
 
       while (i !== ln) {
