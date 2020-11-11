@@ -12,9 +12,11 @@ define('UI/_builder/Tmpl/codegen/bridge', [
 
    function initWorkspaceWML(templateNames) {
       processingToFunction.functionNames = { };
-      for (var index = 0; index < templateNames && templateNames.length; ++index) {
-         var name = templateNames[index];
-         processingToFunction.functionNames[name] = 2;
+      if (Array.isArray(templateNames)) {
+         for (var index = 0; index < templateNames.length; ++index) {
+            var name = templateNames[index];
+            processingToFunction.functionNames[name] = 2;
+         }
       }
       processingToFunction.privateFn = [];
       processingToFunction.includedFn = { };
@@ -23,9 +25,11 @@ define('UI/_builder/Tmpl/codegen/bridge', [
 
    function initWorkspaceTMPL(templateNames) {
       processingToFunction.functionNames = { };
-      for (var index = 0; index < templateNames && templateNames.length; ++index) {
-         var name = templateNames[index];
-         processingToFunction.functionNames[name] = 2;
+      if (Array.isArray(templateNames)) {
+         for (var index = 0; index < templateNames.length; ++index) {
+            var name = templateNames[index];
+            processingToFunction.functionNames[name] = 2;
+         }
       }
       processingToFunction.includedFunctions = { };
       processingToFunction.privateFn = null;
