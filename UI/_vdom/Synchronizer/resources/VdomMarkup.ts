@@ -2,7 +2,7 @@
 
 import { ArrayUtils } from 'UI/Utils';
 
-import { coreDebug } from 'Env/Env';
+import { coreDebug, constants } from 'Env/Env';
 import { ListMonad } from '../../Utils/Monad';
 import { setControlNodeHook } from './Hooks';
 import { Logger } from 'UI/Utils';
@@ -491,6 +491,10 @@ function getStringVnode(vnode: any): string {
 }
 
 function validateKeys(children: any[]): void {
+   if (constants.isProduction) {
+      // Do not validate keys in production mode
+      return;
+   }
    if (!Array.isArray(children)) {
       return;
    }
