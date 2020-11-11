@@ -28,9 +28,7 @@ export class Controller {
 
    /**
     * Получение экземпляра CssEntity по имени и теме
-    * В случае отсутсвия сохранненого значения в Store
-    *  - на СП `LinkPS` содержит имя контрола, тему, ссылку, строковое представление outerHtml link элемента
-    *  - на клиенте `Link` содержит HTMLLinkElement, который монтируется в head
+    * В случае отсутсвия сохранненого значения в Store даст команду HEAD API (через посредников) на создание тега
     * При повторном запросе востребованность темы возрастает
     */
    get(cssName: string, themeName?: string, themeType: THEME_TYPE = THEME_TYPE.MULTI): Promise<ICssEntity> {
