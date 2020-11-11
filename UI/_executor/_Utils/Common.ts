@@ -343,8 +343,8 @@ export function splitModule(string) {
 export function extractLibraryModule(library, modulePath, extendedLibrary?) {
    let mod = library;
    modulePath.forEach(function (part) {
-      if (mod && typeof mod === 'object' && part in mod) {
-         mod = mod[part];
+      if (library && typeof library === 'object' && part in library) {
+         mod = library[part];
       } else if (extendedLibrary && typeof extendedLibrary === 'object' && part in extendedLibrary)
          mod = extendedLibrary[part];
       else {
