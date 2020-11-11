@@ -22,7 +22,6 @@ import Environment from './Environment';
 import { SwipeController } from './SwipeController';
 import { LongTapController } from './LongTapController';
 import {
-   onStartSync,
    onEndSync
 } from 'UI/DevtoolsHook';
 import { VNode, render } from 'Inferno/third-party/index';
