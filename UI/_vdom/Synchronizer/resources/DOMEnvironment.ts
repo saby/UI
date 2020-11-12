@@ -543,6 +543,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       if (!this._rootDOMNode) {
          return;
       }
+      // TODO: в 1100 удаляю, уже неактуально (но onEndSync актуален)
       onStartSync(newRootCntNode.rootId);
 
       const vnode = this.decorateRootNode(newVNnode);
@@ -634,19 +635,17 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
 
          mountMethodsCaller.afterRender(controlNodesToCall);
          mountMethodsCaller.beforePaint(controlNodesToCall);
-         // TODO: разобраться почему не работает с requesе animation frame (через delay())
-         // посмотреть на crbug
+         // используется setTimeout вместо delay, т.к. delay работает через rAF
+         // rAF зовётся до того, как браузер отрисует кадр, а _afterUpdate должен вызываться после, чтобы не вызывать forced reflow.
+         // Если делать то же самое через rAF, то нужно звать rAF из rAF, это и дольше, и неудобно.
          setTimeout(() => {
             mountMethodsCaller.afterUpdate(controlNodesToCall);
             onEndSync(newRootCntNode.rootId);
-         }, 0);
-
-         delay(() => {
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
             newRootCntNode.environment._rebuildRequestStarted = false;
             // @ts-ignore FIXME: Property 'runQueue' does not exist
             newRootCntNode.environment.runQueue();
-         });
+         }, 0);
       }
 
       return patch;
@@ -1033,17 +1032,24 @@ function vdomEventBubbling(
                   } catch (err) {
                      // в шаблоне могут указать неверное имя обработчика, следует выводить адекватную ошибку
                      Logger.error(`Ошибка при вызове обработчика "${ eventPropertyName }" из контрола ${ fn.control._moduleName }.
-                     Проверьте существует ли обработчик с таким именем.`, fn.control);
+                     ${ err.message }`, fn.control);
                   }
+               }
+               /* для событий click отменяем стандартное поведение, если контрол уже задестроен.
+                * актуально для ссылок, когда основное действие делать в mousedown, а он
+                * срабатывает быстрее click'а. Поэтому контрол может быть уже задестроен
+                */
+               if (fn.control._destroyed && eventObject.type === 'click') {
+                  eventObject.preventDefault();
                }
                /* Проверяем, нужно ли дальше распространять событие по controlNodes */
                if (!eventObject.propagating()) {
                   const needCallNext =
                      !eventObject.isStopped() &&
                      eventProperty[i + 1] &&
-                     (eventProperty[i + 1].toPartial ||
-                        eventProperty[i + 1].fn.controlDestination ===
-                        eventProperty[i].fn.controlDestination);
+                     (eventProperty[i].toPartial ||
+                        eventProperty[i + 1].toPartial ||
+                        eventProperty[i + 1].fn.controlDestination === eventProperty[i].fn.controlDestination);
                   /* Если подписались на события из HOC'a, и одновременно подписались на контент хока, то прекращать
                    распространение не нужно.
                     Пример sync-tests/vdomEvents/hocContent/hocContent */

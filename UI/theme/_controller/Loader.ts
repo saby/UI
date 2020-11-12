@@ -34,7 +34,8 @@ export default class Loader implements ICssLoader {
       );
    }
 
-   getHref(name: string, theme: string): string {
+   getHref(initialName: string, theme: string): string {
+      let name: string = initialName;
       if (name.indexOf('.css') !== -1) {
          return name;
       }
@@ -47,6 +48,16 @@ export default class Loader implements ICssLoader {
           */
          if (constants.isServerSide) {
             return this.lr.resolveLink(name, { ext: 'css' });
+         }
+         /**
+          * Если нет слешей и заканчивается на .package, то можно добавить превикс из wsConfig
+          * Например: online-page-superbuindle.package
+          * надо превратить в /resources/online-page-superbuindle.package
+          * TODO: Исправится после https://online.sbis.ru/doc/46e18aa9-31a9-418c-9ac1-b15db1de43ce
+          */
+         if (!name.includes('/') && name.endsWith('.package')) {
+            const wsConfig: IConfig = window?.['wsConfig'] || {};
+            name = `${wsConfig.resourceRoot}${name}`;
          }
          return ModulesLoader.getModuleUrl(CSS_MODULE_PREFIX + name);
       }

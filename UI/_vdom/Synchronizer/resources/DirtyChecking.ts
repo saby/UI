@@ -551,7 +551,14 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
 
     let oldMarkup = node.markup;
     newNode.markup = getDecoratedMarkup(newNode);
-    saveChildren(newNode.markup);
+    if (isSelfDirty) {
+       /*
+       TODO: Раньше эта функция была вместе со всем остальным кодом под условием isSelfDirty,
+       большая часть кода из этой функции не выполнялась. После рефакторинга код
+       начал выполняться для всех нод, и по сути разбираться нужно с этим
+       */
+       saveChildren(newNode.markup);
+    }
 
     let diff = getMarkupDiff(oldMarkup, newNode.markup, false, false);
     Logger.debug('DirtyChecking (diff)', diff);
@@ -1036,16 +1043,23 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         selfDirtyNodes.push(newNode);
     }
 
-    // если нода содержит RawMarkupNode - internalOptions не существует
-    const logicParent = newNode.internalOptions?.logicParent || newNode.options?.logicParent;
-    onEndCommit(newNode, {
-        template: newNode.control._template,
-        state: newNode.control.reactiveValues,
-        options: newNode.options,
-        attributes: newNode.attributes,
-        instance: newNode.control,
-        logicParent: logicParent
-    });
+   if (isSelfDirty) {
+      /*
+       TODO: Раньше эта функция была вместе со всем остальным кодом под условием isSelfDirty,
+       большая часть кода из этой функции не выполнялась. После рефакторинга код
+       начал выполняться для всех нод, и по сути разбираться нужно с этим
+       */
+      // если нода содержит RawMarkupNode - internalOptions не существует
+      const logicParent = newNode.internalOptions?.logicParent || newNode.options?.logicParent;
+      onEndCommit(newNode, {
+         template: newNode.control._template,
+         state: newNode.control.reactiveValues,
+         options: newNode.options,
+         attributes: newNode.attributes,
+         instance: newNode.control,
+         logicParent: logicParent
+      });
+   }
 
     const currentMemo: MemoForNode = new MemoForNode({
         createdNodes,
