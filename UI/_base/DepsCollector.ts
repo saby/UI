@@ -1,6 +1,6 @@
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
-import { Logger } from 'UI/Utils';
+import { Logger, Library } from 'UI/Utils';
 import { controller } from 'I18n/i18n';
 
 export type IDeps = string[];
@@ -176,8 +176,9 @@ export function parseModuleName(name: string): IModuleInfo | null {
    } else {
       nameWithoutPlugin = name;
    }
+   const parts = Library.parse(nameWithoutPlugin);
    return {
-      moduleName: nameWithoutPlugin,
+      moduleName: parts.name,
       fullName: name,
       typeInfo
    };
@@ -341,7 +342,7 @@ function recursiveWalker(
                   allDeps[moduleType][module.fullName] = module;
                }
                if (module.typeInfo.hasDeps) {
-                  const nodeDeps = modDeps[node];
+                  const nodeDeps = modDeps[module.moduleName];
                   recursiveWalker(allDeps, nodeDeps, modDeps, modInfo, !!module.typeInfo.packOwnDeps);
                }
             }
