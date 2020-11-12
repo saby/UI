@@ -867,7 +867,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       // Do
    }
 
-   /**
+   /*
     * @param {TOptions} newOptions
     * @deprecated @param {Object} context устаревшая опция с контекстом
     */
