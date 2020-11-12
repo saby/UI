@@ -205,4 +205,8 @@ describe('parseModuleName', () => {
    it('is!Types/_formatter/numberWords ', () => {
       assert.isNotNull(parseModuleName('is!Types/_formatter/numberWords '));
    });
+   it('parse lib name', () => {
+      const moduleInfo = parseModuleName('Lib/Name:Module');
+      assert.strictEqual(moduleInfo.moduleName, 'Lib/Name');
+   });
 });
