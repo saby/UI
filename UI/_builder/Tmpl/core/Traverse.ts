@@ -3044,7 +3044,8 @@ class Traverse implements ITraverse {
                }
             );
          }
-         context.scope.removeTemplate(name);
+         // FIXME: Сначала удалить из дерева, потом из контекста
+         // context.scope.removeTemplate(name);
       }
    }
 
