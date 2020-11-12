@@ -3038,7 +3038,7 @@ class Traverse implements ITraverse {
          }
          if (this.warnUnusedTemplates) {
             this.errorHandler.warn(
-               `Шаблон с именем "${name}" определен, но не был использован`,
+               `Шаблон с именем "${name}" определен, но не был использован. Неиспользуемый шаблон необходимо удалить`,
                {
                   fileName: context.fileName
                }
