@@ -135,6 +135,25 @@ function fillCtx(control: any, vnode: any, resolvedCtx: any): void {
    control.saveFullContext(ContextResolver.wrapContext(control, vnode.context || {}));
 }
 
+function initVersionableArray(array) {
+   Object.defineProperties(array, {
+      '_arrayVersion': {
+         value: 0,
+         enumerable: true,
+         writable: true,
+         configurable: true
+      },
+      'getArrayVersion': {
+         value: function () {
+            return array._arrayVersion;
+         },
+         enumerable: false,
+         writable: false,
+         configurable: true
+      }
+   });
+}
+
 /**
  * Получаем state из сгенерированного script
  * @param controlNode TODO: Describe
@@ -162,8 +181,14 @@ export function getReceivedState(controlNode: IControlNode, vnodeP: GeneratorNod
 
    let data;
    let srec;
+   const controlPropsModified = controlNode.options;
+   for (const index in controlPropsModified) {
+      if(Array.isArray(controlPropsModified[index])) {
+         initVersionableArray(controlPropsModified[index]);
+      }
+   }
    const vnode = {
-      controlProperties: controlNode.options,
+      controlProperties: controlPropsModified,
       context: controlNode.context
    };
 
