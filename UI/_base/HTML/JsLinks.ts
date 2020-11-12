@@ -18,8 +18,7 @@ interface IJsLinksOptions extends IControlOptions {
  * Компонент для вставки ссылок на ресурсы страницы
  */
 class JsLinks extends Control<IJsLinksOptions> {
-   // TODO: rmv
-   _template: TemplateFunction = template;
+   _template: TemplateFunction = template; // TODO: удалить, т.к. удаляем jslinks.wml
 
    js: Record<string, number> = {};
    tmpl: string[] = [];
@@ -49,9 +48,10 @@ class JsLinks extends Control<IJsLinksOptions> {
           */
          this.rtpackModuleNames = JSON.stringify(arrayToObject(res.rtpackModuleNames));
 
-         //TODO: проверить в правильном ли порядке происходит обработка ключей, значений и индексов. смотри в jslinks.wml
-         //TODO: null в биндах
-         [].concat(Object.keys(this.js).map(prepare.bind(null,'js')))
+         // TODO: delete jslinks.wml
+         // TODO: проверить в правильном ли порядке происходит обработка ключей, значений и индексов. смотри в jslinks.wml
+         /** в работе массива js порядок передачи параметров установлен странно, но это сделано осознанно */
+         [].concat(Object.keys(this.js).map((key, index)=>{prepare('js', index, this.js[key])}))
              .concat(this.wml.map(prepare.bind(null,'wml')))
              .concat(this.tmpl.map(prepare.bind(null,'tmpl')))
              .forEach(data => {
@@ -62,8 +62,6 @@ class JsLinks extends Control<IJsLinksOptions> {
                    src: data.type === 'js' ? data.item : options.linkResolver.resolveLink(data.idx, data.type)
                 });
              });
-
-         // TODO: delete jslinks.wml
          this.rsSerialized && HeadAPI.getInstance().createTag('script', {}, `window['receivedStates']=${this.rsSerialized}';`);
          this.rtpackModuleNames && HeadAPI.getInstance().createTag('script', {},  `window['rtpackModuleNames'] = ${this.rtpackModuleNames}';`);
       });
