@@ -89,12 +89,13 @@ class Head extends Control<IHeadOptions> {
                  * Опросим HEAD API на предмет накопленного результата. Он будет массивом JML.
                  * Обработаем и добавим его к userTags
                  * Напоминаю, что HEAD API это накопитель. Его дергают на протяжение всего процесса построения страницы
-                 * */
-                const data: Array<JML> = AppHead.getInstance().getData();
+                 */
+                const data: JML[] = AppHead.getInstance().getData();
                 if (data && data.length) {
                     const markup = new TagMarkup(data.map(fromJML)).outerHTML;
-                    this.userTags+=markup;
+                    this.userTags += markup;
                 }
+                AppHead.getInstance().clear();
                 return promise;
             });
     }
