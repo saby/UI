@@ -2,7 +2,7 @@ import { DepsCollector } from 'UI/Base';
 import { controller } from 'I18n/i18n';
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import { getType, parseModuleName, TYPES } from 'UI/_base/DepsCollector';
+import { getType, parseModuleName, TYPES, recursiveWalker } from 'UI/_base/DepsCollector';
 
 const modDeps = {
    'aaa/aaa': [],
@@ -19,7 +19,9 @@ const modDeps = {
    'xxx/aaa': [],
    'tmpl!xxx/aaa': [],
    'ModuleWithLocalization/test': ['i18n!ModuleWithLocalization'],
-   'ExternalModuleWithLocalization/test': ['i18n!ExternalModuleWithLocalization']
+   'ExternalModuleWithLocalization/test': ['i18n!ExternalModuleWithLocalization'],
+   'Module/Name': ['External/Module', 'wml!External/Module'],
+   'wml!External/Module': ['css!aaa/ddd']
 };
 const modInfo = {
    'css!aaa/ddd': {path: 'resources/aaa/ddd.min.css'},
@@ -208,5 +210,17 @@ describe('parseModuleName', () => {
    it('parse lib name', () => {
       const moduleInfo = parseModuleName('Lib/Name:Module');
       assert.strictEqual(moduleInfo.moduleName, 'Lib/Name');
+   });
+});
+
+
+
+describe('recursiveWalker', () => {
+   it('getting "wml!" dependencies', () => {
+      let allDeps = {};
+      const deps = ['Module/Name'];
+      recursiveWalker(allDeps, deps, modDeps, modInfo)
+      assert.hasAllKeys(allDeps, ['js', 'wml', 'css']);
+      assert.hasAllKeys(allDeps.css, ['css!aaa/ddd'])
    });
 });

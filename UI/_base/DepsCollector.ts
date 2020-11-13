@@ -312,7 +312,7 @@ function mergePacks(result: IDepPackages, addedPackages: Partial<IDepPackages>):
  * @param curNodeDeps
  * @param modDeps
  */
-function recursiveWalker(
+export function recursiveWalker(
    allDeps: ICollectedDeps,
    curNodeDeps: IDeps,
    modDeps: Record<string, IDeps>,
@@ -342,7 +342,7 @@ function recursiveWalker(
                   allDeps[moduleType][module.fullName] = module;
                }
                if (module.typeInfo.hasDeps) {
-                  const nodeDeps = modDeps[module.moduleName];
+                  const nodeDeps = modDeps[node] || modDeps[module.moduleName];
                   recursiveWalker(allDeps, nodeDeps, modDeps, modInfo, !!module.typeInfo.packOwnDeps);
                }
             }
