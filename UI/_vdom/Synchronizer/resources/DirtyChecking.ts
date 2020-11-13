@@ -183,7 +183,7 @@ export function getReceivedState(controlNode: IControlNode, vnodeP: GeneratorNod
    let srec;
    const controlPropsModified = controlNode.options;
    for (const index in controlPropsModified) {
-      if(Array.isArray(controlPropsModified[index]) && index === 'selectedKeys') {
+      if(Array.isArray(controlPropsModified[index])) {
          initVersionableArray(controlPropsModified[index]);
       }
    }
