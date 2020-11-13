@@ -107,7 +107,7 @@ export default class SyntheticEvent<TNativeEvent extends Event = Event> {
    }
 
    /**
-    * Возвращает состояние распространения события (true - значит был событие дальше не распространяем)
+    * Возвращает состояние распространения события (true - событие далее не распространяем)
     * @returns {boolean}
     */
    isStopped(): boolean {
@@ -115,7 +115,7 @@ export default class SyntheticEvent<TNativeEvent extends Event = Event> {
    }
 
    /**
-    * Возвращает состояние всплытия события (true - значит был событие всплывает дальше)
+    * Возвращает состояние всплытия события (true - событие всплывает дальше)
     * @returns {boolean}
     */
    isBubbling(): boolean {
