@@ -379,6 +379,14 @@ export class GeneratorVdom implements IGenerator {
 
       _FocusAttrs.prepareTabindex(mergedAttrs);
 
+      Object.keys(mergedAttrs).forEach((attrName) => {
+         if (mergedAttrs[attrName].indexOf('top:') === 0) {
+            const newAttrName = attrName.replace('top:', '');
+            mergedAttrs[newAttrName] = mergedAttrs[newAttrName] || mergedAttrs[attrName];
+            delete mergedAttrs[attrName];
+         }
+      });
+
       //Убрать внутри обработку event
       const props = {
          attributes: mergedAttrs,
