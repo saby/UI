@@ -193,14 +193,6 @@ export type TControlConstructor<TOptions extends IControlOptions = {}, TState ex
    new(cfg: TOptions): Control<TOptions, TState>;
 }
 
-let _bindToAttribute;
-function bindToAttribute() {
-   if (typeof _bindToAttribute === 'undefined') {
-      _bindToAttribute = cookie.get('bindToAttribute') || 'false';
-   }
-   return _bindToAttribute;
-}
-
 /**
  * Базовый контрол, от которого наследуются все интерфейсные контролы фреймворка Wasaby.
  * Подробнее о работе с классом читайте <a href="/doc/platform/developmentapl/interface-development/ui-library/control/">здесь</a>.
