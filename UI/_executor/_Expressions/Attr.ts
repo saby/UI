@@ -162,7 +162,7 @@ function mergeAttributes(parentAttributes: IAttributes, ownAttributes: IAttribut
    let ownAttrsWithoutPrefix = {};
    let currentValue;
 
-   forEachAttrs(ownAttributes, (value, key, prefix, attrHavePrefix) => {
+   forEachAttrs(ownAttributes, (value, key) => {
       if (key === 'key') {
          ownKey = value;
       }
