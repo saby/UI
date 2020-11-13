@@ -80,7 +80,10 @@ function getModulesDeps(modules: IModules = {}): IModulesDescription {
    /** Список путей до внешних сервисов */
    const externalPaths = Object.keys(modules)
       .filter((name) => !!modules[name].path)
-      .map((name) => modules[name].path);
+      .map((name) => {
+         const moduleParts = modules[name].path.split('/');
+         return moduleParts[moduleParts.length - 1];
+      });
 
    return [root, ...externalPaths]
       .map(requireModuleDeps)
