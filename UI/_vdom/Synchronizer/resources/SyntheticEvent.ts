@@ -53,56 +53,98 @@ interface IEventConfig {
    _bubbling: boolean;
 }
 
+/**
+ * Класс искуссвенных событий Wasaby.
+ * @class UI/_vdom/Synchronizer/resources/SyntheticEvent
+ * @author Тэн В.А.
+ * @remark <a href="/doc/platform/developmentapl/interface-development/ui-library/events/">Работа с событиями</a>
+ * @public
+ */
 export default class SyntheticEvent<TNativeEvent extends Event = Event> {
+   /**
+    * Нативное событие, генерируемое пользователем или API
+    */
    nativeEvent: TNativeEvent;
+
+   /**
+    * Название события
+    */
    type: string;
+
+   /**
+    * Объект на котором произошло событие
+    */
    target: EventTarget;
+
+   /**
+    * Объект на котором обрабатывается событие
+    */
    currentTarget: EventTarget;
 
    private stopped: boolean;
    private _bubbling: boolean;
 
    constructor(nativeEvent: TNativeEvent, eventConfig?: IEventConfig) {
-       var config = nativeEvent ? nativeEvent : eventConfig;
+      var config = nativeEvent ? nativeEvent : eventConfig;
 
-       this.nativeEvent = nativeEvent ? nativeEvent : null;
-       this.type = config.type;
-       this.target = config.target;
-       this.currentTarget = config.target;
-       this._bubbling = nativeEvent ? domEventsBubbling[config.type] : eventConfig && eventConfig._bubbling;
-       this.stopped = false;
+      this.nativeEvent = nativeEvent ? nativeEvent : null;
+      this.type = config.type;
+      this.target = config.target;
+      this.currentTarget = config.target;
+      this._bubbling = nativeEvent ? domEventsBubbling[config.type] : eventConfig && eventConfig._bubbling;
+      this.stopped = false;
    }
 
+   /**
+    * Останавливает распространение события далее
+    * @return void
+    */
    stopPropagation(): void {
-       this.stopped = true;
-       if (this.nativeEvent) {
-           this.nativeEvent.stopPropagation();
-       }
+      this.stopped = true;
+      if (this.nativeEvent) {
+         this.nativeEvent.stopPropagation();
+      }
    }
 
+   /**
+    * Возвращает состояние распространения события (true - значит был событие дальше не распространяем)
+    * @returns {boolean}
+    */
    isStopped(): boolean {
-       return this.stopped;
+      return this.stopped;
    }
 
+   /**
+    * Возвращает состояние всплытия события (true - значит был событие всплывает дальше)
+    * @returns {boolean}
+    */
    isBubbling(): boolean {
-       return this._bubbling;
+      return this._bubbling;
    }
 
+   /**
+    * Отменяет событие (если возможно остановить всплытие у nativeEvent)
+    * @return void
+    */
    preventDefault(): void {
-       if (this.nativeEvent) {
-           this.nativeEvent.preventDefault();
-       }
+      if (this.nativeEvent) {
+         this.nativeEvent.preventDefault();
+      }
    }
 
-    /**
-     * Возвращает true, если событие нужно распространять далее
-     * @returns {boolean}
-     */
+   /**
+    * Возвращает true, если событие нужно распространять далее
+    * @returns {boolean}
+    */
    propagating(): boolean {
-       return this._bubbling === true && this.stopped === false;
+      return this._bubbling === true && this.stopped === false;
    }
 
+   /**
+    * Останавливает распространение события далее
+    * @return void
+    */
    stopImmediatePropagation(): void {
-       this.stopPropagation();
+      this.stopPropagation();
    }
 }
