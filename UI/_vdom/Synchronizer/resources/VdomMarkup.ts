@@ -83,8 +83,7 @@ export function mapVNode(
    controlNode: any,
    vnode: any,
    setHookToVNode?: any,
-   _?: unknown,
-   modify?: any
+   modify?: boolean
 ): any {
    /* mapVNode must be refactor
     * recursive dom with many root kills browser
@@ -126,7 +125,7 @@ export function mapVNode(
          vnode.props === newNodeArgs[1] &&
          vnode.children === newNodeArgs[2] &&
          vnode.key === newNodeArgs[3];
-      if (modify) {
+      if (modify && typeof modify === 'boolean') {
          /**
           * We have to modify exisiting vnode, so we don't lose object link
           */
@@ -547,7 +546,6 @@ export function getFullMarkup(
                controlNodes[vnode.controlNodeIdx],
                parentNode,
                true,
-               false,
                true
             );
          }
