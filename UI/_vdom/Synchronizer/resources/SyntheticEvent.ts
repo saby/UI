@@ -85,14 +85,14 @@ export default class SyntheticEvent<TNativeEvent extends Event = Event> {
    private _bubbling: boolean;
 
    constructor(nativeEvent: TNativeEvent, eventConfig?: IEventConfig) {
-      var config = nativeEvent ? nativeEvent : eventConfig;
+       var config = nativeEvent ? nativeEvent : eventConfig;
 
-      this.nativeEvent = nativeEvent ? nativeEvent : null;
-      this.type = config.type;
-      this.target = config.target;
-      this.currentTarget = config.target;
-      this._bubbling = nativeEvent ? domEventsBubbling[config.type] : eventConfig && eventConfig._bubbling;
-      this.stopped = false;
+       this.nativeEvent = nativeEvent ? nativeEvent : null;
+       this.type = config.type;
+       this.target = config.target;
+       this.currentTarget = config.target;
+       this._bubbling = nativeEvent ? domEventsBubbling[config.type] : eventConfig && eventConfig._bubbling;
+       this.stopped = false;
    }
 
    /**
@@ -100,10 +100,10 @@ export default class SyntheticEvent<TNativeEvent extends Event = Event> {
     * @return void
     */
    stopPropagation(): void {
-      this.stopped = true;
-      if (this.nativeEvent) {
-         this.nativeEvent.stopPropagation();
-      }
+       this.stopped = true;
+       if (this.nativeEvent) {
+           this.nativeEvent.stopPropagation();
+       }
    }
 
    /**
@@ -111,7 +111,7 @@ export default class SyntheticEvent<TNativeEvent extends Event = Event> {
     * @returns {boolean}
     */
    isStopped(): boolean {
-      return this.stopped;
+       return this.stopped;
    }
 
    /**
@@ -119,7 +119,7 @@ export default class SyntheticEvent<TNativeEvent extends Event = Event> {
     * @returns {boolean}
     */
    isBubbling(): boolean {
-      return this._bubbling;
+       return this._bubbling;
    }
 
    /**
@@ -127,9 +127,9 @@ export default class SyntheticEvent<TNativeEvent extends Event = Event> {
     * @return void
     */
    preventDefault(): void {
-      if (this.nativeEvent) {
-         this.nativeEvent.preventDefault();
-      }
+       if (this.nativeEvent) {
+           this.nativeEvent.preventDefault();
+       }
    }
 
    /**
@@ -137,7 +137,7 @@ export default class SyntheticEvent<TNativeEvent extends Event = Event> {
     * @returns {boolean}
     */
    propagating(): boolean {
-      return this._bubbling === true && this.stopped === false;
+       return this._bubbling === true && this.stopped === false;
    }
 
    /**
@@ -145,6 +145,6 @@ export default class SyntheticEvent<TNativeEvent extends Event = Event> {
     * @return void
     */
    stopImmediatePropagation(): void {
-      this.stopPropagation();
+       this.stopPropagation();
    }
 }
