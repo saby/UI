@@ -159,8 +159,47 @@ function forEachAttrs(attributes: IAttributes, callback: Function): boolean {
 function mergeAttributes(parentAttributes: IAttributes, ownAttributes: IAttributes): IAttributes {
    const parentAttr: IAttributes = parentAttributes || {};
    let ownKey: string = '';
+   let ownAttrsWithoutPrefix = {};
+   let currentValue;
 
-   const attributes = ownAttributes || {};
+   forEachAttrs(ownAttributes, (value, key, prefix, attrHavePrefix) => {
+      if (key === 'key') {
+         ownKey = value;
+      }
+
+      currentValue = parentAttr.hasOwnProperty(key) ? parentAttr[key] : value;
+      delete parentAttr[key];
+      //
+      // if (prefix) {
+      //    if (cleanPrefix) {
+      //       ownAttrsWithPrefix[key] = currentValue;
+      //
+      //       return;
+      //    }
+      //
+      //    ownAttrsWithPrefix[attrPrefix + key] = currentValue;
+      //
+      //    return;
+      // }
+      //
+      // if (!attrHavePrefix) {
+      //    if (cleanPrefix) {
+            ownAttrsWithoutPrefix[key] = currentValue;
+      //
+      //       return;
+      //    }
+      //
+      //    if (parentAttrHavePrefix) {
+      //       ownAttrsWithoutPrefix[attrPrefix + key] = currentValue;
+      //
+      //       return;
+      //    }
+      //
+      //    ownAttrsWithoutPrefix[key] = currentValue;
+      // }
+   });
+
+   const attributes = ownAttrsWithoutPrefix;
 
    addAttribute(attributes, 'class', mergeAttr(parentAttributes, ownAttributes, 'class'));
 
