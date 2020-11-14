@@ -11,7 +11,6 @@ export { isAttr, checkAttr };
 const EMPTY_STRING = '';
 const WHITESPACE = ' ';
 const SEMICOLON = ';';
-const attrPrefix = 'attr:';
 const blackListAttr = [
    'class',
    'style'
@@ -24,10 +23,6 @@ export interface IAttributes{
 function getAttributeValue(name: string, collection: IAttributes): string {
    if (collection[name]) {
       return collection[name];
-   }
-   // FIXME: Избавиться от префиксов attr:
-   if (collection[attrPrefix + name]) {
-      return collection[attrPrefix + name];
    }
    return EMPTY_STRING;
 }
@@ -100,13 +95,7 @@ function mergeAttr(parentAttrs: IAttributes, ownAttrs: IAttributes, name: string
  */
 function getAttr(attrs: IAttributes, name: string, separator: string = ''): string {
    if (attrs) {
-      const nameWithPrefix = attrPrefix + name;
-
-      if (attrs.hasOwnProperty(name) && attrs.hasOwnProperty(nameWithPrefix)) {
-         return joinAttrs(attrs[name], attrs[nameWithPrefix], separator);
-      } else {
-         return attrs[name] || attrs[nameWithPrefix];
-      }
+      return attrs[name];
    }
 }
 
@@ -143,8 +132,6 @@ function addAttribute(attributes: IAttributes, name: string, value?: string): IA
  */
 function forEachAttrs(attributes: IAttributes, callback: Function): boolean {
    if (attributes) {
-      let attrHavePrefix = false;
-      let key: string;
       let name;
       let value;
 
@@ -153,26 +140,10 @@ function forEachAttrs(attributes: IAttributes, callback: Function): boolean {
             continue;
          }
 
-         if (name.startsWith(attrPrefix)) {
-            if (!attrHavePrefix) {
-               attrHavePrefix = true;
-            }
-
-            key = name.slice(attrPrefix.length);
-
-            if (blackListAttr.includes(key)) {
-              continue;
-            }
-
-            callback(value, key, attrPrefix, attrHavePrefix);
-
-            continue;
-         }
-
-         callback(value, name, undefined, attrHavePrefix);
+         callback(value, name);
       }
 
-      return attrHavePrefix;
+      return;
    }
 
    return false;
@@ -185,77 +156,29 @@ function forEachAttrs(attributes: IAttributes, callback: Function): boolean {
  * @param cleanPrefix {Boolean} - если true, то отрезаем attr: у всех атрибутов.
  * @returns {IAttributes} - Объект со смерженными атрибутами.
  */
-function mergeAttributes(parentAttributes: IAttributes, ownAttributes: IAttributes, cleanPrefix?: boolean): IAttributes {
-   const parentAttrWithPrefix: IAttributes = {};
-   const parentAttrWithoutPrefix: IAttributes = {};
-   const ownAttrsWithoutPrefix: IAttributes = {};
-   const ownAttrsWithPrefix: IAttributes = {};
-
-   const parentAttrHavePrefix: boolean = forEachAttrs(parentAttributes, (value, key, prefix, attrHavePrefix) => {
-      if (prefix) {
-         parentAttrWithPrefix[key] = value;
-      } else if (!attrHavePrefix) {
-         parentAttrWithoutPrefix[key] = value;
-      }
-   });
-
-   const parentAttr: IAttributes = parentAttrHavePrefix ? parentAttrWithPrefix : parentAttrWithoutPrefix;
-   let currentValue: string;
+function mergeAttributes(parentAttributes: IAttributes, ownAttributes: IAttributes): IAttributes {
+   const parentAttr: IAttributes = parentAttributes || {};
    let ownKey: string = '';
+   let ownAttrsWithoutPrefix = {};
+   let currentValue;
 
-   const ownAttrHavePrefix: boolean = forEachAttrs(ownAttributes, (value, key, prefix, attrHavePrefix) => {
+   forEachAttrs(ownAttributes, (value, key) => {
       if (key === 'key') {
          ownKey = value;
       }
 
       currentValue = parentAttr.hasOwnProperty(key) ? parentAttr[key] : value;
       delete parentAttr[key];
-
-      if (prefix) {
-         if (cleanPrefix) {
-            ownAttrsWithPrefix[key] = currentValue;
-
-            return;
-         }
-
-         ownAttrsWithPrefix[attrPrefix + key] = currentValue;
-
-         return;
-      }
-
-      if (!attrHavePrefix) {
-         if (cleanPrefix) {
-            ownAttrsWithoutPrefix[key] = currentValue;
-
-            return;
-         }
-
-         if (parentAttrHavePrefix) {
-            ownAttrsWithoutPrefix[attrPrefix + key] = currentValue;
-
-            return;
-         }
-
-         ownAttrsWithoutPrefix[key] = currentValue;
-      }
+      ownAttrsWithoutPrefix[key] = currentValue;
    });
 
-   const attributes = ownAttrHavePrefix ? ownAttrsWithPrefix : ownAttrsWithoutPrefix;
-   const prefix = cleanPrefix || !(parentAttrHavePrefix || ownAttrHavePrefix) ? '' : attrPrefix;
+   const attributes = ownAttrsWithoutPrefix;
 
-   addAttribute(attributes, prefix + 'class', mergeAttr(parentAttributes, ownAttributes, 'class'));
+   addAttribute(attributes, 'class', mergeAttr(parentAttributes, ownAttributes, 'class'));
 
-   addAttribute(attributes, prefix + 'style', mergeAttr(parentAttributes, ownAttributes, 'style', ';'));
+   addAttribute(attributes, 'style', mergeAttr(parentAttributes, ownAttributes, 'style', ';'));
 
-   addAttribute(attributes, prefix + 'key', ownKey || parentAttr.key);
-
-   if (prefix) {
-      forEachAttrs(parentAttr, (value, key) => {
-         attributes[attrPrefix + key] = value;
-      });
-
-      return attributes;
-   }
+   addAttribute(attributes, 'key', ownKey || parentAttr.key);
 
    forEachAttrs(parentAttr, (value, key) => {
       attributes[key] = value;
