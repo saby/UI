@@ -102,8 +102,7 @@ export function createTagDefault(tag: string,
 
    let mergedAttrs = Attr.processMergeAttributes(
        attrToDecorate.attributes as IAttributes,
-       attrs.attributes as IAttributes,
-       true
+       attrs.attributes as IAttributes
    );
 
    _FocusAttrs.prepareTabindex(mergedAttrs);
@@ -114,6 +113,14 @@ export function createTagDefault(tag: string,
    } else {
       cutFocusAttributes(mergedAttrs);
    }
+
+   Object.keys(mergedAttrs).forEach((attrName) => {
+      if (attrName.indexOf('top:') === 0) {
+         const newAttrName = attrName.replace('top:', '');
+         mergedAttrs[newAttrName] = mergedAttrs[newAttrName] || mergedAttrs[attrName];
+         delete mergedAttrs[attrName];
+      }
+   });
    const mergedAttrsStr = mergedAttrs
       ? decorateAttrs(mergedAttrs, {})
       : '';
