@@ -81,10 +81,6 @@ function getModulesDeps(modules: IModules = {}): IModulesDescription {
    const externalPaths = Object.keys(modules)
       .filter((name) => !!modules[name].path)
       .map((name) => {
-         // пути внешних сервисов выглядят как /external/resources/ModuleName
-         // в таких случаях файлы module-dependencies и bundlesRoute необходимо искать для указанного модуля
-         // необходимо вырезать только название модуля ModuleName и тогда require поймет, что
-         // ModuleName/module-dependencies необходимо загружать из модуля стороннего сервиса
          const moduleParts = modules[name].path.split('/');
          return moduleParts[moduleParts.length - 1];
       });
