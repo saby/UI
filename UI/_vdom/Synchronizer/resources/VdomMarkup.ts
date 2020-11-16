@@ -125,7 +125,7 @@ export function mapVNode(
          vnode.props === newNodeArgs[1] &&
          vnode.children === newNodeArgs[2] &&
          vnode.key === newNodeArgs[3];
-      if (modify && typeof modify === 'boolean') {
+      if (modify) {
          /**
           * We have to modify exisiting vnode, so we don't lose object link
           */
