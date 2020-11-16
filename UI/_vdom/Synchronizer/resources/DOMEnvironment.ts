@@ -66,7 +66,7 @@ function createRecursiveVNodeMapper(fn: any): any {
 
       childrenRest = newChildren.map(
          (child: VNode) => {
-            return mapVNode.bind(this, recursiveVNodeMapperFn, controlNode, child);
+            return mapVNode(recursiveVNodeMapperFn, controlNode, child);
          }
       );
       fnRes = [fnRes[0], fnRes[1], childrenRest, fnRes[3], fnRes[4]];
