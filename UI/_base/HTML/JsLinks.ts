@@ -8,6 +8,7 @@ import template = require('wml!UI/_base/HTML/JsLinks');
 import { headDataStore } from 'UI/_base/HeadData';
 import { IControlOptions } from 'UI/Base';
 import { Head as HeadAPI } from "Application/Page";
+import { then, isInit } from 'Application/Initializer';
 
 interface IJsLinksOptions extends IControlOptions {
    linkResolver: {
@@ -34,7 +35,7 @@ class JsLinks extends Control<IJsLinksOptions> {
       }
       const resolveJsLink = (js: string) => options.linkResolver.resolveLink(js, 'js');
       return headDataStore.read('waitAppContent')().then((res) => {
-         const jsLinks: string[] = res.js.map(resolveJsLink).concat(res.scripts); // ready
+         const jsLinks: string[] = res.js.map(resolveJsLink).concat(res.scripts);
          this.js = arrayToObject(jsLinks); // конвертируем в hashmap чтобы избавиться от дублей
          this.tmpl = res.tmpl;
          this.wml = res.wml;
@@ -47,24 +48,34 @@ class JsLinks extends Control<IJsLinksOptions> {
           * TODO следует избавится при отказе от rt-паковки
           */
          this.rtpackModuleNames = JSON.stringify(arrayToObject(res.rtpackModuleNames));
+         if (isInit()) {
+            this._mountJsLinks(options);
+         } else {
+            then(() => {
+               this._mountJsLinks(options);
+            });
+         }
 
-         // TODO: delete jslinks.wml
-         // TODO: проверить в правильном ли порядке происходит обработка ключей, значений и индексов. смотри в jslinks.wml
-         /** в работе массива js порядок передачи параметров установлен странно, но это сделано осознанно */
-         [].concat(Object.keys(this.js).map((key, index)=>{prepare('js', index, this.js[key])}))
-             .concat(this.wml.map(prepare.bind(null,'wml')))
-             .concat(this.tmpl.map(prepare.bind(null,'tmpl')))
-             .forEach(data => {
-                HeadAPI.getInstance().createTag('script', {
-                   type: "text/javascript",
-                   defer: 'defer',
-                   key: `scripts_${data.idx}`,
-                   src: data.type === 'js' ? data.item : options.linkResolver.resolveLink(data.idx, data.type)
-                });
-             });
-         this.rsSerialized && HeadAPI.getInstance().createTag('script', {}, `window['receivedStates']=${this.rsSerialized}';`);
-         this.rtpackModuleNames && HeadAPI.getInstance().createTag('script', {},  `window['rtpackModuleNames'] = ${this.rtpackModuleNames}';`);
       });
+   }
+   private _mountJsLinks(options){
+      // TODO: delete jslinks.wml
+      // TODO: проверить в правильном ли порядке происходит обработка ключей, значений и индексов. смотри в jslinks.wml
+      /** в работе массива js порядок передачи параметров установлен странно, но это сделано осознанно */
+      [].concat(Object.keys(this.js).map((key, index)=>{prepare('js', index, this.js[key])}))
+          .concat(this.wml.map(prepare.bind(null,'wml')))
+          .concat(this.tmpl.map(prepare.bind(null,'tmpl')))
+          .forEach(data => {
+             HeadAPI.getInstance().createTag('script', {
+                type: "text/javascript",
+                defer: 'defer',
+                key: `scripts_${data.idx}`,
+                src: data.type === 'js' ? data.item : options.linkResolver.resolveLink(data.idx, data.type)
+             });
+          });
+      // TODO: add link to error with createTag
+      this.rsSerialized && HeadAPI.getInstance().createTag('script', {}, `window['receivedStates']=${this.rsSerialized}';`);
+      this.rtpackModuleNames && HeadAPI.getInstance().createTag('script', {},  `window['rtpackModuleNames'] = ${this.rtpackModuleNames}';`);
    }
 }
 
