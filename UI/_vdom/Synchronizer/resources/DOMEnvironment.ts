@@ -60,7 +60,6 @@ function createRecursiveVNodeMapper(fn: any): any {
       controlNode: any,
       ref: VNode['ref']
    ): any {
-      let i;
       let childrenRest;
       let fnRes = fn(tagName, properties, children, key, controlNode, ref);
       const newChildren = fnRes[2];
