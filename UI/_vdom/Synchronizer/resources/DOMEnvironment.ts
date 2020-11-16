@@ -1,8 +1,6 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DOMEnvironment" />
 // tslint:disable:variable-name no-any
 
-import { ArrayUtils } from 'UI/Utils';
-
 import { constants, detection } from 'Env/Env';
 import { Logger, isNewEnvironment } from 'UI/Utils';
 import { ElementFinder, Events, BoundaryElements, focus, preventFocus, hasNoFocus, goUpByControlTree } from 'UI/Focus';
@@ -62,21 +60,16 @@ function createRecursiveVNodeMapper(fn: any): any {
       controlNode: any,
       ref: VNode['ref']
    ): any {
-      let i;
       let childrenRest;
       let fnRes = fn(tagName, properties, children, key, controlNode, ref);
-      let newChildren = fnRes[2];
+      const newChildren = fnRes[2];
 
-      i = ArrayUtils.findIndex(newChildren, (child: any): any => {
-         const newChild = mapVNode(recursiveVNodeMapperFn, controlNode, child);
-         return child !== newChild;
-      });
-
-      if (i !== -1 && i !== undefined) {
-         childrenRest = newChildren.slice(i).map(mapVNode.bind(this, recursiveVNodeMapperFn, controlNode));
-         newChildren = newChildren.slice(0, i).concat(childrenRest);
-         fnRes = [fnRes[0], fnRes[1], newChildren, fnRes[3], fnRes[4]];
-      }
+      childrenRest = newChildren.map(
+         (child: VNode) => {
+            return mapVNode(recursiveVNodeMapperFn, controlNode, child);
+         }
+      );
+      fnRes = [fnRes[0], fnRes[1], childrenRest, fnRes[3], fnRes[4]];
 
       return fnRes;
    };
