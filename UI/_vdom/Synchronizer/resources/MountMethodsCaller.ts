@@ -63,6 +63,32 @@ export default class MountMethodsCaller {
         return result;
     }
 
+    private beforePaintProcess(controlNode: IControlNode, control: Control): void {
+        // _needSyncAfterMount - специальный флаг для работы beforePaint
+        // TODO: удалить этот флаг и сделать нормальную работу beforePaint
+        // https://online.sbis.ru/doc/4fd6afbb-da9b-4a55-a416-d4325cade9ff
+        // @ts-ignore
+        if (!control._needSyncAfterMount) {
+            return;
+        }
+        // tslint:disable-next-line:ban-ts-ignore
+        // @ts-ignore
+        if (control._destroyed) {
+            return;
+        }
+        try {
+            // tslint:disable-next-line:ban-ts-ignore
+            // @ts-ignore
+            if (control._beforePaint && typeof control._beforePaint === 'function') {
+                // tslint:disable-next-line:ban-ts-ignore
+                // @ts-ignore
+                control._beforePaint(controlNode.oldOptions || controlNode.options, controlNode.oldContext);
+            }
+        } catch (error) {
+            Logger.lifeError('_beforePaint', control, error);
+        }
+    }
+
     private afterMountProcess(controlNode: IControlNode, control: Control): void {
         // tslint:disable-next-line:ban-ts-ignore
         // @ts-ignore
@@ -134,6 +160,8 @@ export default class MountMethodsCaller {
                         // @ts-ignore
                         controlNode.control._beforePaintOnMount();
                     }
+                } else {
+                    this.beforePaintProcess(controlNode, control);
                 }
                 onEndLifecycle(controlNode.vnode || controlNode);
                 continue;
