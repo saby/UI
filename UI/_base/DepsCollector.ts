@@ -17,7 +17,7 @@ export interface ICollectedTemplates {
    tmpl: string[];
    wml: string[];
 }
-interface ICollectedDeps {
+export interface ICollectedDeps {
    js?: {[depName: string]: IModuleInfo};
    i18n?: {[depName: string]: IModuleInfo};
    css?: {[depName: string]: IModuleInfo};

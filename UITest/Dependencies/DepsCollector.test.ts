@@ -2,7 +2,7 @@ import { DepsCollector } from 'UI/Base';
 import { controller } from 'I18n/i18n';
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import { getType, parseModuleName, TYPES, recursiveWalker } from 'UI/_base/DepsCollector';
+import { getType, parseModuleName, TYPES, recursiveWalker, ICollectedDeps } from 'UI/_base/DepsCollector';
 
 const modDeps = {
    'aaa/aaa': [],
@@ -217,7 +217,7 @@ describe('parseModuleName', () => {
 
 describe('recursiveWalker', () => {
    it('getting "wml!" dependencies', () => {
-      let allDeps = {};
+      let allDeps: ICollectedDeps = {};
       const deps = ['Module/Name'];
       recursiveWalker(allDeps, deps, modDeps, modInfo)
       assert.hasAllKeys(allDeps, ['js', 'wml', 'css']);
