@@ -63,19 +63,9 @@ function createRecursiveVNodeMapper(fn: any): any {
       const fnRes = fn(tagName, properties, children, key, controlNode, ref);
       const newChildren = fnRes[2];
       const resultChildren = [];
-      let isFoundNotEqual: boolean = false;
 
       for (let i = 0; i < newChildren.lenght; i++) {
-         if (isFoundNotEqual) {
-            resultChildren.push(mapVNode(recursiveVNodeMapperFn, controlNode, undefined));
-            continue;
-         }
-         const newChild = newChildren[i];
-         const resultChild = mapVNode(recursiveVNodeMapperFn, controlNode, newChild);
-         resultChildren.push(resultChildren);
-         if (newChild !== resultChild) {
-            isFoundNotEqual = true;
-         }
+         resultChildren.push(mapVNode(recursiveVNodeMapperFn, controlNode, newChildren[i]));
       }
 
       return [fnRes[0], fnRes[1], resultChildren, fnRes[3], fnRes[4]];
