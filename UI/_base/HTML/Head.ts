@@ -8,7 +8,6 @@ import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller
 import { constants } from 'Env/Env';
 import { Head as AppHead } from 'Application/Page'
 import { headDataStore } from 'UI/_base/HeadData';
-import { Stack } from 'UI/_base/HTML/meta';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
 import { default as TagMarkup, generateTagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
@@ -17,8 +16,6 @@ import { handlePrefetchModules } from 'UI/_base/HTML/PrefetchLinks';
 
 class Head extends Control<IHeadOptions> {
     _template: TemplateFunction = template;
-
-    metaMarkup: string = Stack.getInstance().lastState.outerHTML;
 
     head: Function[] = null;
     headAdditiveTagsMarkup: string = '';

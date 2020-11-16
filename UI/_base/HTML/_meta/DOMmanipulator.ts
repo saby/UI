@@ -4,7 +4,6 @@ import { Head as HeadAPI } from 'Application/Page'
 import { IHeadTagId } from 'Application/Interface'
 
 export function mountState(state: IMetaStateInternal): IHeadTagId[] {
-   if (typeof document === 'undefined') { return; }
    const { title, og } = state.getMeta();
    return Object.keys(og || [])
       .map((tag) => createOpenGraphTag(tag, og[tag], state.getId()))
@@ -12,7 +11,7 @@ export function mountState(state: IMetaStateInternal): IHeadTagId[] {
 }
 
 export function unmountState(state?: IMetaState): void {
-   if (typeof document === 'undefined' || typeof state === 'undefined') { return; }
+   if (typeof state === 'undefined') { return; }
    const API = HeadAPI.getInstance();
    const tags: IHeadTagId | IHeadTagId[] | null = API.getTag(null, {class: state.getId()});
    if (tags) {
