@@ -1,8 +1,6 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DOMEnvironment" />
 // tslint:disable:variable-name no-any
 
-import { ArrayUtils } from 'UI/Utils';
-
 import { constants, detection } from 'Env/Env';
 import { Logger, isNewEnvironment } from 'UI/Utils';
 import { ElementFinder, Events, BoundaryElements, focus, preventFocus, hasNoFocus, goUpByControlTree } from 'UI/Focus';
