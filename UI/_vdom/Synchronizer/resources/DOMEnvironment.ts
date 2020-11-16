@@ -1040,7 +1040,9 @@ function vdomEventBubbling(
                   const needCallNext =
                      !eventObject.isStopped() &&
                      eventProperty[i + 1] &&
-                     (eventProperty[i].toPartial ||
+                     // при деактивации контролов надо учитывать что событие может распространятся с partial
+                     // если не далать такую проверку то подписка on:deactivated на родителе partial не будет работать
+                     ((eventObject.type === 'deactivated' && eventProperty[i].toPartial) ||
                         eventProperty[i + 1].toPartial ||
                         eventProperty[i + 1].fn.controlDestination === eventProperty[i].fn.controlDestination);
                   /* Если подписались на события из HOC'a, и одновременно подписались на контент хока, то прекращать
