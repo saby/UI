@@ -142,6 +142,10 @@ function resolveTpl(tpl, deps, includedTemplates) {
          controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
       }
 
+      if (controlClass && controlClass.hasOwnProperty('default')) {
+         controlClass = controlClass.default;
+      }
+
       if (!controlClass) {
          if (!isSlashes || wasOptional || Common.isCompat()) {
             /*
