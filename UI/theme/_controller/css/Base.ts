@@ -1,6 +1,6 @@
 /// <amd-module name='UI/theme/_controller/css/Base' />
 import { ICssEntity } from './interface';
-import { DEFAULT_THEME, THEME_TYPE, ELEMENT_ATTR } from './const';
+import { DEFAULT_THEME, THEME_TYPE } from './const';
 
 export abstract class Base implements ICssEntity {
    isMounted: boolean = false;

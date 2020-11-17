@@ -6,12 +6,12 @@ import { ISingleCssEntity, IHTMLElement } from './interface';
  * Немультитемная ссылка на клиенте
  */
 export default class SingleLink extends Link implements ISingleCssEntity {
-   
+   element: IHTMLElement;
    constructor(
       href: string,
       cssName: string,
       themeName: string,
-      element?: IHTMLElement,
+      element?: IHTMLElement
    ) {
       super(href, cssName, themeName, element, THEME_TYPE.SINGLE);
    }
