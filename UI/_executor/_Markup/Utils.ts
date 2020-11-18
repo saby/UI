@@ -19,6 +19,7 @@ import {
 } from './IGeneratorType';
 import * as Common from '../_Utils/Common';
 import voidElements from '../_Utils/VoidTags';
+import { invisibleNodeTagName } from '../Utils';
 // @ts-ignore
 import { NumberUtils } from 'UI/Utils';
 import { INodeAttribute } from './IGeneratorType';
@@ -32,6 +33,9 @@ import { Logger } from 'UI/Utils';
 interface IControlData {
    name?: unknown;
 }
+
+const invisibleNodeRegExp = new RegExp(invisibleNodeTagName, 'g');
+const invisibleNodeHTML = '<' + invisibleNodeTagName + '></' + invisibleNodeTagName + '>';
 
 // joinAttrs = Attr.joinAttrs;
 
@@ -73,8 +77,8 @@ export function asyncRenderErrorTag(inst: TObject, createTag?: Function): string
  * @returns {string}
  */
 export function invisibleNodeCompat(markup: string): string {
-   return markup && markup.indexOf && markup.indexOf('<invisible-node') === 0 ?
-      markup.replace(/invisible-node/g, 'div') : markup;
+   return markup && markup.indexOf && markup.indexOf(invisibleNodeHTML) === 0 ?
+      markup.replace(invisibleNodeRegExp, 'div') : markup;
 }
 
 /**
@@ -93,6 +97,10 @@ export function createTagDefault(tag: string,
                                  attrToDecorate?: TAttributes,
                                  defCollection?: IGeneratorDefCollection,
                                  control?: GeneratorEmptyObject): string {
+   if (tag === invisibleNodeTagName) {
+      return invisibleNodeHTML;
+   }
+
    if (!attrToDecorate) {
       attrToDecorate = {};
    }

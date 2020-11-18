@@ -12,6 +12,7 @@ import { Map, Set } from 'Types/shim';
 import { htmlNode, textNode, GeneratorNode, ITemplateNode } from 'UI/Executor';
 import { IControlNode } from '../interfaces';
 import { TControlConstructor } from 'UI/_base/Control';
+import { invisibleNodeTagName } from 'UI/Executor';
 
 // this.childFlags = childFlags;
 // this.children = children;
@@ -56,7 +57,7 @@ export function isTemplateVNodeType(vnode: any): boolean {
 
 // TODO: Release type flag on virtual nodes to distinguish virtual nodes.
 export function isInvisibleNodeType(vnode: any): any {
-   return vnode && typeof vnode === 'object' && vnode.type && vnode.type === 'invisible-node';
+   return vnode && typeof vnode === 'object' && vnode.type && vnode.type === invisibleNodeTagName;
 }
 
 // TODO модификация этой функции приводит к большим проблемам. Нужно точнее разобрать
