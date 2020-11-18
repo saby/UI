@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import { replace, restore, fake } from 'sinon';
 
 import { IControlNode, IWasabyHTMLElement, TEventsObject, IEvent, IProperties } from 'UI/_vdom/Synchronizer/interfaces';
-import { invisibleNodeTypename } from 'UI/_vdom/Synchronizer/resources/InvisibleNodeChecker';
+import { invisibleNodeTagName } from 'UI/Executor';
 import { TWasabyInputElement, TRef } from 'UI/_vdom/Synchronizer/resources/Hooks';
 
 import { Hooks } from 'UI/Vdom';
@@ -64,7 +64,7 @@ describe('UI/_vdom/Synchronizer/resources/Hooks', () => {
                 'on:event': [{} as IEvent]
             }
             const id = 'inst_1';
-            const controlNode = createMockControlNode(id, invisibleNodeTypename, events);
+            const controlNode = createMockControlNode(id, invisibleNodeTagName, events);
             const props = {} as IProperties;
             const children = [];
 
@@ -85,7 +85,7 @@ describe('UI/_vdom/Synchronizer/resources/Hooks', () => {
         it('invisible node without events', () => {
             const tagName = 'div';
             const element = createMockElement(tagName);
-            const controlNode = createMockControlNode(invisibleNodeTypename);
+            const controlNode = createMockControlNode(invisibleNodeTagName);
             const props = {} as IProperties;
             const children = [];
             const id = 'inst_1';
