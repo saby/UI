@@ -8,6 +8,8 @@
 
 import { IControlElement } from './IFocus';
 
+import { isElementVisible } from 'UI/Utils';
+
 let NODE_NODE_TYPE = 1;
 
 interface IFocusElementProps {
@@ -193,6 +195,9 @@ function findNextElement(element: Element, props: IProps, reverse: boolean, cont
          parent = element.parentNode;
          while (parent !== contextElement && !next) {
             next = reverse ? previousElementSibling(parent) : nextElementSibling(parent);
+            if(!isElementVisible(next)) {
+               next = undefined;
+            }
             if (!next) {
                parent = parent.parentNode;
             }
