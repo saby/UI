@@ -30,7 +30,7 @@ class AppData {
 
       // Need this to pass AppData as context field
    }
-   public unregisterConsumer(control){
+   unregisterConsumer(control){
 
    }
    updateConsumers() {
