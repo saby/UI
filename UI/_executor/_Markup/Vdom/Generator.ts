@@ -7,6 +7,7 @@ import * as Attr from '../../_Expressions/Attr';
 import * as Vdom from '../../_Utils/Vdom';
 import * as Common from '../../_Utils/Common';
 import * as RequireHelper from '../../_Utils/RequireHelper';
+import { invisibleNodeTagName } from '../../Utils';
 import { onElementMount, onElementUnmount } from '../../_Utils/ChildrenManager';
 import { Generator } from '../Generator';
 import { IGenerator } from '../IGenerator';
@@ -37,6 +38,12 @@ import {
 import { GeneratorNode } from './IVdomType';
 import { cutFocusAttributes } from '../Utils';
 import { VNode } from 'Inferno/third-party/index';
+
+const emtpyProps = {
+   attributes: {},
+   hooks: {},
+   events: {}
+};
 
 /**
  * @author Тэн В.А.
@@ -366,6 +373,10 @@ export class GeneratorVdom implements IGenerator {
       defCollection: IGeneratorDefCollection,
       control: GeneratorEmptyObject
    ): string {
+      if (tagName === invisibleNodeTagName) {
+         return Vdom.htmlNode(tagName, emtpyProps, [], attrs.key);
+      }
+
       if (!attrToDecorate) {
          attrToDecorate = {};
       }
