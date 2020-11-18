@@ -10,13 +10,10 @@ import Link from 'UI/theme/_controller/css/Link';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
 import SingleLink from 'UI/theme/_controller/css/SingleLink';
 import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
-import { getHtmlMarkup } from 'UI/theme/_controller/css/Base';
 
 class LinkMock implements IHTMLElement {
    __removed: boolean = false;
-   outerHTML: string = '';
    constructor (href, name, theme, themeType) {
-      this.outerHTML = getHtmlMarkup(href, name, theme, themeType);
    }
    getAttribute(attr) {
       return this[attr] || null;

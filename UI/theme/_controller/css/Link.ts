@@ -51,6 +51,7 @@ export default class Link extends Base implements ICssEntity {
          .then(() => { this.isMounted = true; })
          .catch((e) => {
             if (this.headTagId) {
+               // @ts-ignore
                HeadAPI.getInstance().deleteTag(this.headTagId);
             }
             throw e;
@@ -70,6 +71,7 @@ export default class Link extends Base implements ICssEntity {
    remove(): Promise<boolean> {
       return super.remove().then((isRemoved) => {
          if (isRemoved) {
+            // @ts-ignore
             HeadAPI.getInstance().deleteTag(this.headTagId);
          }
          return isRemoved;
@@ -106,12 +108,14 @@ export default class Link extends Base implements ICssEntity {
             [ELEMENT_ATTR.THEME_TYPE]: this.themeType
          };
          if (isInit()) {
+            // @ts-ignore
             this.headTagId = HeadAPI.getInstance().createTag('link', attrs, null, {
                load: resolve.bind(null),
                error: onerror
             });
          } else {
             then(() => {
+               // @ts-ignore
                this.headTagId = HeadAPI.getInstance().createTag('link', attrs, null, {
                   error: onerror
                });

@@ -4,7 +4,6 @@ import SingleLink from 'UI/theme/_controller/css/SingleLink';
 import { THEME_TYPE } from 'UI/theme/controller';
 import { IHTMLElement } from 'UI/theme/_controller/css/interface';
 import { ELEMENT_ATTR } from 'UI/theme/_controller/css/const';
-import { getHtmlMarkup } from 'UI/theme/_controller/css/Base';
 import { assert } from 'chai';
 // import 'mocha';
 
@@ -15,13 +14,11 @@ const themeType = THEME_TYPE.MULTI;
 
 class LinkElementMock implements IHTMLElement {
    __removed = false;
-   outerHTML = '';
    constructor (
       href: string,
       name: string,
       theme: string,
       themeType: THEME_TYPE) {
-      this.outerHTML = getHtmlMarkup(href, name, theme, themeType);
 
       this[ELEMENT_ATTR.HREF] = href;
       this[ELEMENT_ATTR.NAME] = name;
@@ -52,17 +49,6 @@ describe('UI/theme/_controller/css/SingleLink', () => {
          link = null;
       });
    };
-
-   describe('outerHtml', () => {
-      setHooks();
-      it('outerHtml непустая строка', () => {
-         assert.isString(link.outerHtml);
-      });
-
-      [href, name, theme, THEME_TYPE.SINGLE].forEach((attr) => {
-         it('Разметка содержит ' + attr, () => { assert.include(link.outerHtml, attr, 'Разметка не содержит ' + attr); });
-      });
-   });
 
    describe('removeForce', () => {
       setHooks();

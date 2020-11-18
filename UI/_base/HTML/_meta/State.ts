@@ -11,7 +11,6 @@ const generateGuid = () => `state-${prefix}${id++}`;
  * @author Ибрагимов А.А.
  */
 export default class State extends TagMarkup implements IMetaStateInternal {
-   private _outerHTML: string;
    constructor(
       private _meta: IMeta,
       private readonly _guid: string = generateGuid(),

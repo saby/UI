@@ -58,6 +58,7 @@ class Head extends Control<IHeadOptions> {
                     if (data && data.length) {
                         this.headApiData += new TagMarkup(data.map(fromJML)).outerHTML;
                     }
+                    // @ts-ignore
                     AppHead.getInstance().clear();
                 });
             });
@@ -102,6 +103,7 @@ class Head extends Control<IHeadOptions> {
         }
 
         const API = AppHead.getInstance();
+        // @ts-ignore
         API.createTag('script', {type: 'text/javascript'},
             [
                 'window.wsConfig = {',
@@ -147,16 +149,19 @@ class Head extends Control<IHeadOptions> {
         if (!this.wasServerSide) {
             const API = AppHead.getInstance();
             if (!options.compat) {
+                // @ts-ignore
                 API.createTag('script', {type: 'text/javascript'},
                     'window.themeName = ' + options.theme + ';'
                 );
             }
+            // @ts-ignore
             API.createNoScript(options.noscript);
             [
                 {'http-equiv': 'X-UA-Compatible', content: 'IE=edge'},
                 {name: 'viewport', content: options.viewport || 'width=1024'},
                 {charset: 'utf-8', class: 'head-server-block'}
             ].forEach((attrs) => {
+                // @ts-ignore
                 API.createTag('meta', attrs);
             });
         }
@@ -191,6 +196,7 @@ class Head extends Control<IHeadOptions> {
             .concat((options.scripts || []).map(prepareMetaScriptsAndLinks.bind(null, 'script')))
             .concat((options.links || []).map(prepareMetaScriptsAndLinks.bind(null, 'link')))
             .forEach((item: {tag: string, attrs: object}) => {
+                // @ts-ignore
                 API.createTag(item.tag, item.attrs);
             });
     }

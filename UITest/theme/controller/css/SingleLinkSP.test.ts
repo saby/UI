@@ -1,5 +1,4 @@
 import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
-import { THEME_TYPE } from 'UI/theme/controller';
 import { assert } from 'chai';
 // import 'mocha';
 
@@ -16,16 +15,6 @@ describe('UI/theme/_controller/css/SingleLinkPS', () => {
       beforeEach(() => { link = new SingleLinkPS(href, name, theme); });
       afterEach(() => { link = null; });
    };
-
-   describe('outerHtml', () => {
-      setHooks();
-      it('outerHtml непустая строка', () => {
-         assert.isString(link.outerHtml);
-      });
-      [href, name, theme, THEME_TYPE.SINGLE].forEach((attr) => {
-         it('Разметка содержит ' + attr, () => { assert.include(link.outerHtml, attr, 'Разметка не содержит ' + attr); });
-      });
-   });
 
    describe('removeForce', () => {
       setHooks();

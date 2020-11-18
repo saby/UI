@@ -1,8 +1,6 @@
 import { assert } from 'chai';
 // import 'mocha';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
-import { THEME_TYPE } from 'UI/theme/controller';
-import { getHtmlMarkup } from 'UI/theme/_controller/css/Base';
 const href = '#Some/href';
 const name = 'Some/Control';
 const theme = 'Some-theme';
@@ -26,21 +24,6 @@ describe('UI/theme/_controller/css/LinkPS', () => {
          return link.load()
             .then(() => { assert.isTrue(link.isMounted); })
             .then(() => link.remove());
-      });
-   });
-
-   describe('outerHtml', () => {
-      setHooks();
-      it('outerHtml непустая строка', () => {
-         assert.isString(link.outerHtml);
-      });
-
-      it('outerHtml возвращает html разметку', () => {
-         const html = getHtmlMarkup(href, name, theme, THEME_TYPE.MULTI);
-         assert.strictEqual(link.outerHtml, html);
-      });
-      [href, name, theme, THEME_TYPE.MULTI].forEach((attr) => {
-         it('Разметка содержит ' + attr, () => { assert.include(link.outerHtml, attr, 'Разметка не содержит ' + attr); });
       });
    });
 
