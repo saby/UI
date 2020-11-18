@@ -8,6 +8,7 @@ import * as _IGenerator from './_executor/_Markup/IGenerator';
 import * as _IGeneratorType from './_executor/_Markup/IGeneratorType';
 export { ITemplateNode } from './_executor/_Markup/IGeneratorType';
 import * as _IBuilder from './_executor/_Markup/IBuilder';
+export { invisibleNodeTagName } from './_executor/Utils';
 
 // TODO: для работы executorCompatible
 import * as _ForExecutorCompatible from './_executor/ForExecutorCompatible';

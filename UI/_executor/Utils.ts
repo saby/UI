@@ -13,6 +13,8 @@ import * as RequireHelper from './_Utils/RequireHelper';
 import * as Vdom from './_Utils/Vdom';
 import VoidTags from './_Utils/VoidTags';
 
+export const invisibleNodeTagName = 'invisible-node';
+
 export {
    Class,
    Common,
