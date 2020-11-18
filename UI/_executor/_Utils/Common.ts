@@ -232,8 +232,8 @@ export function plainMergeAttr(inner, object) {
    }
 
    var controlKey;
-   if (object.attributes && object.attributes['attr:key']) {
-      controlKey = object.attributes['attr:key'];
+   if (object.attributes && object.attributes['key']) {
+      controlKey = object.attributes['key'];
    }
    controlKey = controlKey || object.key || inner.key;
 
@@ -257,8 +257,8 @@ export function plainMergeContext(inner, object) {
       object = {};
    }
    var controlKey;
-   if (object.attributes && object.attributes['attr:key']) {
-      controlKey = object.attributes['attr:key'];
+   if (object.attributes && object.attributes['key']) {
+      controlKey = object.attributes['key'];
    }
    controlKey = controlKey || object.key || inner.key;
 
@@ -300,11 +300,19 @@ export function isStringModules(str, config?) {
 }
 
 export function isControlClass(controlClass) {
-   var prototype = controlClass && controlClass.prototype;
+   const prototype = controlClass && controlClass.prototype;
    // Проверка на typeof добавлена в следствии странной ошибки https://inside.tensor.ru/opendoc.html?guid=872a7e36-7487-4362-88d0-eaf0e66cb6b6
    // По какой-то причине проверка controlClass && controlClass.prototype проходила и свойство $constructor вызывалось на undefined.
    if (prototype && typeof prototype !== 'undefined') {
       return prototype.$constructor || prototype._template || controlClass.isWasaby;
+   }
+   return false;
+}
+
+export function isTemplateClass(controlClass) {
+   const prototype = controlClass && controlClass.prototype;
+   if (prototype && typeof prototype !== 'undefined') {
+      return prototype.isWasabyTemplate || controlClass.isWasabyTemplate;
    }
    return false;
 }
@@ -429,4 +437,3 @@ export const componentOptsReArray = [
       toReplace: '\\\\u000a'
    }
 ];
-

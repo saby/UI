@@ -96,10 +96,10 @@ interface IDictionaryItem {
  * FIXME: release interfaces for these nodes.
  */
 interface IAST extends Array<Object> {
-   /**
-    * Array of names of reactive variables.
-    */
+   childrenStorage: string[];
    reactiveProps: string[];
+   templateNames: string[];
+   __newVersion: boolean;
 }
 
 /**
@@ -118,6 +118,8 @@ interface ITraversed {
     * Array of input file dependencies.
     */
    dependencies: string[];
+
+   templateNames: string[];
 }
 
 /**
@@ -140,17 +142,19 @@ function getResolverControls(plugin: string): TResolver {
  * @param rawTraversed Actual traverse result.
  * @param dependencies Array of dependencies.
  */
-function fixTraversed(rawTraversed: any, dependencies: string[]): ITraversed {
+function fixTraversed(rawTraversed: IAST | { astResult: IAST; words: IDictionaryItem[]; }, dependencies: string[]): ITraversed {
    if (Array.isArray(rawTraversed)) {
       return {
          ast: rawTraversed as IAST,
          localizedDictionary: [],
+         templateNames: rawTraversed.templateNames,
          dependencies
       };
    }
    return {
       ast: rawTraversed.astResult as IAST,
       localizedDictionary: rawTraversed.words,
+      templateNames: rawTraversed.astResult.templateNames,
       dependencies
    };
 }
@@ -164,7 +168,7 @@ abstract class BaseCompiler implements ICompiler {
    /**
     * Do initialize before compilation process.
     */
-   abstract initWorkspace(): void;
+   abstract initWorkspace(templateNames: string[]): void;
 
    /**
     * Clean needed variables after compilation process.
@@ -259,7 +263,7 @@ abstract class BaseCompiler implements ICompiler {
             this.traverse(source, options)
                .then((traversed) => {
                   try {
-                     this.initWorkspace();
+                     this.initWorkspace(traversed.templateNames);
                      artifact.text = this.generate(traversed, options);
                      artifact.localizedDictionary = traversed.localizedDictionary;
                      artifact.dependencies = traversed.dependencies;
@@ -297,8 +301,8 @@ class CompilerTmpl extends BaseCompiler {
    /**
     * Do initialize before compilation process.
     */
-   initWorkspace(): void {
-      codegenBridge.initWorkspaceTMPL();
+   initWorkspace(templateNames: string[]): void {
+      codegenBridge.initWorkspaceTMPL(templateNames);
    }
 
    /**
@@ -343,8 +347,8 @@ class CompilerWml extends BaseCompiler {
    /**
     * Do initialize before compilation process.
     */
-   initWorkspace(): void {
-      codegenBridge.initWorkspaceWML();
+   initWorkspace(templateNames: string[]): void {
+      codegenBridge.initWorkspaceWML(templateNames);
    }
 
    /**

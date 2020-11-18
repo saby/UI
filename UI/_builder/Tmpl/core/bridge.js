@@ -24,6 +24,12 @@ define('UI/_builder/Tmpl/core/bridge', [
    Annotate
 ) {
    'use strict';
+
+   /**
+    * Модуль предназначен для соединения старой и новой логик разбора и аннотации деревьев.
+    * @author Крылов М.А.
+    */
+
    var USE_TRAVERSE_VISITOR = !false;
    var USE_ANNOTATION_VISITOR = !false;
 
@@ -73,6 +79,7 @@ define('UI/_builder/Tmpl/core/bridge', [
       PatchVisitorLib.default(traversed, traverseOptions.scope);
       traversed.childrenStorage = annotated.childrenStorage;
       traversed.reactiveProps = annotated.reactiveProps;
+      traversed.templateNames = annotated.templateNames;
       traversed.__newVersion = annotated.__newVersion;
 
       // в случае сбора словаря локализуемых слов отдаем объект

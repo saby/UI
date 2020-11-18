@@ -46,11 +46,11 @@ export class GeneratorVdom implements IGenerator {
    canBeCompatible: boolean;
    generatorBase: Generator;
 
-   private generatorConfig: IGeneratorConfig;
+   private prepareAttrsForPartial: Function;
 
    constructor(config: IGeneratorConfig) {
       if (config) {
-         this.generatorConfig = config;
+         this.prepareAttrsForPartial = config.prepareAttrsForPartial;
       }
       this.cacheModules = {};
       this.generatorBase = new Generator(config);
@@ -291,56 +291,59 @@ export class GeneratorVdom implements IGenerator {
 
       if (Common.isControlClass(fn)) {
          return this.createWsControl(fn, resolvedScope, decorAttribs, context, _deps, data) as GeneratorNode;
+      }
+
+      if (resolvedScope.__notExcessiveRender && Common.isTemplateClass(fn)) {
+         return this.createTemplate(fn, resolvedScope, decorAttribs, context, _deps, data);
+      }
+
+      const nameFunc = isTplString ? tpl : 'InlineFunction';
+      Logger.debug(`createWsControl - "${nameFunc}"`, data.controlProperties);
+      Logger.debug('Context for control', decorAttribs.context);
+      Logger.debug('Inherit options for control', decorAttribs.inheritOptions);
+
+      const parent = data.parent;
+      if (typeof fn === 'function') {
+         return parent ?
+            fn.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial) :
+            fn(resolvedScope, decorAttribs, context, true);
+      } else if (fn && typeof fn.func === 'function') {
+         return parent ?
+            fn.func.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial) :
+            fn.func(resolvedScope, decorAttribs, context, true);
+      } else if (Common.isArray(fn)) {
+         return this.resolveTemplateArray(parent, fn, resolvedScope, decorAttribs, context);
+      } else if (typeof tpl === 'undefined') {
+         const typeTpl = typeof tpl;
+         Logger.error(`${typeTpl} component error - Попытка использовать компонент/шаблон, ` +
+            `но вместо компонента в шаблоне был передан ${typeTpl}! ` +
+            'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
+            `По стеку будет понятно, в каком шаблоне и в какую опцию передается ${typeTpl}`, parent);
+         return this.createText('', decorAttribs.key);
+      } else if (fn === false) {
+         Logger.error(`Контрол ${tpl} отсутствует в зависимостях и не может быть построен."`, parent);
+         return this.createText('', decorAttribs.key);
       } else {
-
-         const nameFunc = isTplString ? tpl : 'InlineFunction';
-         Logger.debug(`createWsControl - "${nameFunc}"`, data.controlProperties);
-         Logger.debug('Context for control', decorAttribs.context);
-         Logger.debug('Inherit options for control', decorAttribs.inheritOptions);
-
-         const parent = data.parent;
-         if (typeof fn === 'function') {
-            return parent ?
-               fn.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
-               fn(resolvedScope, decorAttribs, context, true);
-         } else if (fn && typeof fn.func === 'function') {
-            return parent ?
-               fn.func.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
-               fn.func(resolvedScope, decorAttribs, context, true);
-         } else if (Common.isArray(fn)) {
-            return this.resolveTemplateArray(parent, fn, resolvedScope, decorAttribs, context);
-         } else if (typeof tpl === 'undefined') {
-            const typeTpl = typeof tpl;
-            Logger.error(`${typeTpl} component error - Попытка использовать компонент/шаблон, ` +
-               `но вместо компонента в шаблоне был передан ${typeTpl}! ` +
-               'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
-               `По стеку будет понятно, в каком шаблоне и в какую опцию передается ${typeTpl}`, parent);
-            return this.createText('', decorAttribs.key);
-         } else if (fn === false) {
-            Logger.error(`Контрол ${tpl} отсутствует в зависимостях и не может быть построен."`, parent);
-            return this.createText('', decorAttribs.key);
-         } else {
-            // create text node, if template is some text
-            if (typeof tpl !== 'string') {
-               Logger.error(
-                  `Template error - Invalid value of ws:partial template option: ${tpl} typeof ` + typeof tpl,
-                  parent
-               );
-            }
-            if (Common.isCompat()) {
-               return this.createText('' + tpl, decorAttribs.key);
-            }
-            // TODO: разобраться с правильным использование ws:partial
-            // отключены предупреждения по задаче
-            // https://online.sbis.ru/opendoc.html?guid=04ddc7d0-396a-473b-9a65-ee1ddc6a7243
-            // в целом использование ws:partial сейчас не правильное
-            // https://online.sbis.ru/obj/Meeting/b3e2f39d-1a41-4acd-a8d7-44f4cfc03112
-            // задача https://online.sbis.ru/opendoc.html?guid=f5c07778-2769-414b-afa8-30ad6193770a
-            // const message = `Template warning -  "${tpl}"!` +
-            //    'Options "template" must be control or template not a string';
-            // Logger.warn(message, data.logicParent);
+         // create text node, if template is some text
+         if (typeof tpl !== 'string') {
+            Logger.error(
+               `Template error - Invalid value of ws:partial template option: ${tpl} typeof ` + typeof tpl,
+               parent
+            );
+         }
+         if (Common.isCompat()) {
             return this.createText('' + tpl, decorAttribs.key);
          }
+         // TODO: разобраться с правильным использование ws:partial
+         // отключены предупреждения по задаче
+         // https://online.sbis.ru/opendoc.html?guid=04ddc7d0-396a-473b-9a65-ee1ddc6a7243
+         // в целом использование ws:partial сейчас не правильное
+         // https://online.sbis.ru/obj/Meeting/b3e2f39d-1a41-4acd-a8d7-44f4cfc03112
+         // задача https://online.sbis.ru/opendoc.html?guid=f5c07778-2769-414b-afa8-30ad6193770a
+         // const message = `Template warning -  "${tpl}"!` +
+         //    'Options "template" must be control or template not a string';
+         // Logger.warn(message, data.logicParent);
+         return this.createText('' + tpl, decorAttribs.key);
       }
    }
 
@@ -378,6 +381,14 @@ export class GeneratorVdom implements IGenerator {
       const mergedEvents = Attr.mergeEvents(attrToDecorate.events, attrs.events);
 
       _FocusAttrs.prepareTabindex(mergedAttrs);
+
+      Object.keys(mergedAttrs).forEach((attrName) => {
+         if (attrName.indexOf('top:') === 0) {
+            const newAttrName = attrName.replace('top:', '');
+            mergedAttrs[newAttrName] = mergedAttrs[newAttrName] || mergedAttrs[attrName];
+            delete mergedAttrs[attrName];
+         }
+      });
 
       //Убрать внутри обработку event
       const props = {
@@ -450,9 +461,9 @@ export class GeneratorVdom implements IGenerator {
 
    resolveTemplateFunction(parent: any, template: any, resolvedScope: any, decorAttribs: any, context: any): any {
       if (parent) {
-         return template.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig);
+         return template.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial);
       }
-      return template(resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig);
+      return template(resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial);
    }
 
    resolveTemplate(template: any, parent: any, resolvedScope: any, decorAttribs: any, context: any): any {
