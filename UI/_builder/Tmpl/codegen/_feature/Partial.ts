@@ -29,7 +29,7 @@ export function createConfigNew(
       + `context: context,`
       + `depsLocal: depsLocal,`
       + `includedTemplates: includedTemplates,`
-      + `pName: currentPropertyName,`
+      + `pName: typeof currentPropertyName !== 'undefined' ? currentPropertyName : undefined,`
       + `viewController: viewController,`
       + `key: key + "${key}",`
       + `isRootTag: ${isRootTag},`
