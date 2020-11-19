@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_builder/Tmpl/codegen/Generator" />
+/// <amd-module name="UI/_executor/_Markup/Helper" />
 
 import * as Attr from 'UI/_executor/_Expressions/Attr';
 
