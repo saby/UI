@@ -158,7 +158,7 @@ define('UI/_builder/Tmpl/modules/partial', [
             var tagIsWsControl = isControl(tag);
 
             // TODO: Release new codegen
-            var newConfig = prepareDataForCodeGeneration.call(this, tag, data);
+            // var newConfig = prepareDataForCodeGeneration.call(this, tag, data);
             var decorAttribs = tag.decorAttribs || parse.parseAttributesForDecoration.call(
                this, tag.attribs, data, {}, tagIsWsControl, tag
             );
