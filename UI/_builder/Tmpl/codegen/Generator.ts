@@ -116,3 +116,91 @@ export function genCreateControlTemplate(
    return `${VAR_MODULE_NAME}.createControl("template", ${name}, ${scope}, ${attributes}, ${config}`
       + `, context, depsLocal, includedTemplates, ${getConfig()})`;
 }
+
+/**
+ * -> createControl "wsControl"
+ */
+export function genCreateControlNew(
+   name: string,
+   method: string,
+   attributes: string,
+   events: string,
+   options: string,
+   config: string
+) {
+   // createControlNew(name, method, attributes, events, options, config)
+   return `${VAR_MODULE_NAME}.createControlNew(`
+      + `"${name}",`
+      + `/*${name}*/ ${method},`
+      + `/*attributes*/ ${attributes},`
+      + `/*events*/ ${events},`
+      + `/*options*/ ${options},`
+      + `/*config*/ ${config}`
+      + `)`;
+}
+
+/**
+ * -> createControl "template"
+ */
+export function genCreateTemplateNew(
+   name: string,
+   method: string,
+   attributes: string,
+   events: string,
+   options: string,
+   config: string
+) {
+   // createTemplateNew(name, method, attributes, events, options, config)
+   return `${VAR_MODULE_NAME}.createTemplateNew(`
+      + `"${name}",`
+      + `/*${name}*/ ${method},`
+      + `/*attributes*/ ${attributes},`
+      + `/*events*/ ${events},`
+      + `/*options*/ ${options},`
+      + `/*config*/ ${config}`
+      + `)`;
+}
+
+/**
+ * -> createControl "resolver"
+ */
+export function genResolveControlNew(
+   name: string,
+   method: string,
+   attributes: string,
+   events: string,
+   options: string,
+   config: string
+) {
+   // resolveControlNew(name, method, attributes, events, options, config)
+   return `${VAR_MODULE_NAME}.resolveControlNew(`
+      + `"${name}",`
+      + `/*${name}*/ ${method},`
+      + `/*attributes*/ ${attributes},`
+      + `/*events*/ ${events},`
+      + `/*options*/ ${options},`
+      + `/*config*/ ${config}`
+      + `)`;
+}
+
+/**
+ * -> createControl "resolver"
+ */
+export function genResolveTemplateNew(
+   name: string,
+   method: string,
+   attributes: string,
+   events: string,
+   options: string,
+   config: string
+) {
+   // resolveTemplateNew(name, method, attributes, events, options, config)
+   return `${VAR_MODULE_NAME}.resolveTemplateNew(`
+      + `"${name}",`
+      + `/*${name}*/ ${method},`
+      + `/*attributes*/ ${attributes},`
+      + `/*events*/ ${events},`
+      + `/*options*/ ${options},`
+      + `/*config*/ ${config}`
+      + `)`;
+}

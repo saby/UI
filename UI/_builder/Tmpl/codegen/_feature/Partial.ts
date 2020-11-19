@@ -14,3 +14,18 @@ export function createTemplateConfig(internal: string, isRootTag: boolean): stri
       ${ internal ? `"internal": isVdom ? ${internal} : {}, ` : '' }
    }`;
 }
+
+export function createConfigNew(internal: string, isRootTag: boolean): string {
+   return `{`
+      + `attr: attr,`
+      + `data: data,`
+      + `ctx: this,`
+      + `context: context,`
+      + `depsLocal: depsLocal,`
+      + `includedTemplates: includedTemplates,`
+      + `pName: currentPropertyName,`
+      + `viewController: viewController,`
+      + `isRootTag: ${isRootTag},`
+      + `internal: isVdom && ${internal}`
+      + `}`;
+}
