@@ -27,7 +27,7 @@ class CssLoaderMock implements ICssLoader {
    }
 }
 
-describe('UI/theme/_controller1/Controller', () => {
+describe('UI/theme/_controller/Controller', () => {
    const loader: CssLoaderMock = new CssLoaderMock();
    const controller: Controller = new Controller(loader);
 
