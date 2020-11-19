@@ -174,7 +174,7 @@ define('UI/_builder/Tmpl/modules/partial', [
                tag.children && tag.children[0] && tag.children[0].fn;
 
             // TODO: Release new codegen
-            var isNewProcessing = tagIsWsControl;
+            var isNewProcessing = tagIsWsControl || tagIsTemplate;
             var newConfig = isNewProcessing ? prepareDataForCodeGeneration.call(this, tag, data, decor) : null;
             var decorAttribs = tag.decorAttribs || parse.parseAttributesForDecoration.call(
                this, tag.attribs, data, {}, tagIsWsControl, tag
@@ -203,7 +203,7 @@ define('UI/_builder/Tmpl/modules/partial', [
 
             var createAttribs;
             var createTmplCfg;
-            if (tagIsModule || tagIsWsControl) {
+            if (tagIsModule) {
                strPreparedScope = FSC.getStr(preparedScope);
                createAttribs = decor
                   ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
@@ -218,6 +218,8 @@ define('UI/_builder/Tmpl/modules/partial', [
                      createTmplCfg
                   ) + ',';
                }
+            }
+            if (tagIsWsControl) {
                return Generator.genCreateControlNew(
                   getWsTemplateName(tag),
                   null,
