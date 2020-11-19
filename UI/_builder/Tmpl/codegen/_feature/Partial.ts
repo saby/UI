@@ -15,7 +15,13 @@ export function createTemplateConfig(internal: string, isRootTag: boolean): stri
    }`;
 }
 
-export function createConfigNew(internal: string, isRootTag: boolean): string {
+export function createConfigNew(
+   scope: string,
+   internal: string,
+   isRootTag: boolean,
+   key: string,
+   mergeType: string
+): string {
    return `{`
       + `attr: attr,`
       + `data: data,`
@@ -25,7 +31,9 @@ export function createConfigNew(internal: string, isRootTag: boolean): string {
       + `includedTemplates: includedTemplates,`
       + `pName: currentPropertyName,`
       + `viewController: viewController,`
+      + `key: key + "${key}",`
       + `isRootTag: ${isRootTag},`
-      + `internal: isVdom && ${internal}`
+      + `internal: isVdom && ${internal},`
+      + `mergeType: "${mergeType}"`
       + `}`;
 }

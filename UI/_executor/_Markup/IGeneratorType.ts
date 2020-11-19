@@ -243,6 +243,9 @@ export interface IControlConfig {
    viewController: any;
    isRootTag: boolean;
    internal: any;
+   scope: any;
+   key: any;
+   mergeType: 'none' | 'attribute' | 'context';
 }
 
 // Типы сопоставления для случаем когда однозначно описать тип не можем

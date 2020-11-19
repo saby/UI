@@ -25,6 +25,7 @@ import {
    IControlUserData,
    IControlConfig
 } from 'UI/_executor/_Markup/IGeneratorType';
+import * as Helper from 'UI/_executor/_Markup/Helper';
 
 const defRegExp = /(\[def-[\w\d]+\])/g;
 
@@ -277,10 +278,41 @@ export class Generator {
       method: Function,
       attributes: Record<string, unknown>,
       events: Record<string, unknown>,
-      options: Record<string, unknown>,
+      options: any, // FIXME: Record<string, unknown>
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
-      throw new Error('Not implemented yet');
+      const decorAttribs = {
+         attributes,
+         events,
+         context: config.context,
+         inheritOptions: {},
+         internal: config.internal,
+         key: config.key
+      };
+      const actualAttributes = config.mergeType === 'attribute'
+         ? Helper.plainMergeAttr(config.attr, decorAttribs)
+         : config.mergeType === 'context'
+            ? Helper.plainMergeContext(config.attr, decorAttribs)
+            : decorAttribs;
+      const actualOptions = config.scope === null ? options : Helper.uniteScope(config.scope, options);
+      const actualConfig = {
+         isRootTag: config.isRootTag,
+         data: config.data,
+         ctx: config.ctx,
+         pName: config.pName,
+         viewController: config.viewController,
+         internal: config.internal
+      };
+      return this.createControl(
+         'wsControl',
+         name,
+         actualOptions,
+         actualAttributes,
+         actualConfig,
+         config.context,
+         config.depsLocal,
+         config.includedTemplates, Helper.config
+      );
    }
 
    createTemplateNew(

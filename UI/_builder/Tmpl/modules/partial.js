@@ -102,7 +102,20 @@ define('UI/_builder/Tmpl/modules/partial', [
       return result;
    }
 
-   function prepareDataForCodeGeneration(originTag, data) {
+   function getMergeType(tag, decor) {
+      if (tag.injectedTemplate) {
+         if (decor && decor.isMainAttrs) {
+            return 'attribute';
+         }
+         return 'none';
+      }
+      if (decor) {
+         return 'attribute';
+      }
+      return 'context';
+   }
+
+   function prepareDataForCodeGeneration(originTag, data, decor) {
       var tag = {
          attribs: Object.assign({}, originTag.attribs),
          internal: Object.assign({}, originTag.internal),
@@ -118,9 +131,9 @@ define('UI/_builder/Tmpl/modules/partial', [
          injectedTemplate: originTag.injectedTemplate
       };
       var tagIsWsControl = isControl(tag);
-      var decor = parse.processAttributes.call(this, tag.attribs, data, {}, tagIsWsControl, tag);
-      var attributes = decor.attributes;
-      var events = decor.events;
+      var decorated = parse.processAttributes.call(this, tag.attribs, data, {}, tagIsWsControl, tag);
+      var attributes = decorated.attributes;
+      var events = decorated.events;
       var scope = null;
       if (tag.attribs.hasOwnProperty('scope')) {
          scope = Process.processExpressions(
@@ -139,12 +152,12 @@ define('UI/_builder/Tmpl/modules/partial', [
       var internal = (tag.internal && Object.keys(tag.internal).length > 0)
          ? FSC.getStr(tag.internal)
          : '{}';
-      var config = FeaturePartial.createConfigNew(internal, tag.isRootTag);
+      var mergeType = getMergeType(tag, decor);
+      var config = FeaturePartial.createConfigNew(scope, internal, tag.isRootTag, tag.key, mergeType);
       return {
          attributes: FSC.getStr(cleanAttributes),
          events: FSC.getStr(events),
          options: FSC.getStr(options),
-         scope: scope,
          config: config
       };
    }
@@ -158,7 +171,7 @@ define('UI/_builder/Tmpl/modules/partial', [
             var tagIsWsControl = isControl(tag);
 
             // TODO: Release new codegen
-            // var newConfig = prepareDataForCodeGeneration.call(this, tag, data);
+            var newConfig = tagIsWsControl ? prepareDataForCodeGeneration.call(this, tag, data, decor) : null;
             var decorAttribs = tag.decorAttribs || parse.parseAttributesForDecoration.call(
                this, tag.attribs, data, {}, tagIsWsControl, tag
             );
@@ -202,11 +215,13 @@ define('UI/_builder/Tmpl/modules/partial', [
                      createTmplCfg
                   ) + ',';
                }
-               return Generator.genCreateControl(
-                  '"' + getWsTemplateName(tag) + '"',
-                  strPreparedScope,
-                  createAttribs,
-                  createTmplCfg
+               return Generator.genCreateControlNew(
+                  getWsTemplateName(tag),
+                  null,
+                  newConfig.attributes,
+                  newConfig.events,
+                  newConfig.options,
+                  newConfig.config
                ) + ',';
             }
             if (tag.children && tag.children[0] && tag.children[0].fn) {
