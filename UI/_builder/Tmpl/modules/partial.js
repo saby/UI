@@ -169,15 +169,18 @@ define('UI/_builder/Tmpl/modules/partial', [
             var callFnArgs;
             var tagIsModule = isModule(tag);
             var tagIsWsControl = isControl(tag);
+            var tagIsTemplate = !tagIsModule &&
+               !tagIsWsControl &&
+               tag.children && tag.children[0] && tag.children[0].fn;
 
             // TODO: Release new codegen
-            var newConfig = tagIsWsControl ? prepareDataForCodeGeneration.call(this, tag, data, decor) : null;
+            var isNewProcessing = tagIsWsControl;
+            var newConfig = isNewProcessing ? prepareDataForCodeGeneration.call(this, tag, data, decor) : null;
             var decorAttribs = tag.decorAttribs || parse.parseAttributesForDecoration.call(
                this, tag.attribs, data, {}, tagIsWsControl, tag
             );
             tag.decorAttribs = decorAttribs;
-
-            var preparedScope = prepareScope.call(this, tag, data);
+            var preparedScope = !isNewProcessing ? prepareScope.call(this, tag, data) : null;
 
             // превращаем объекты с экранированными значениями (¥) в строки для добавления в шаблон
             var decorInternal = (tag.internal && Object.keys(tag.internal).length > 0)
@@ -224,7 +227,7 @@ define('UI/_builder/Tmpl/modules/partial', [
                   newConfig.config
                ) + ',';
             }
-            if (tag.children && tag.children[0] && tag.children[0].fn) {
+            if (tagIsTemplate) {
                strPreparedScope = FSC.getStr(preparedScope);
                createAttribs = decor
                   ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
