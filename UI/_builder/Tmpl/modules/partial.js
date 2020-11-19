@@ -94,6 +94,50 @@ define('UI/_builder/Tmpl/modules/partial', [
       };
    }
 
+   function cleanAttributesCollection(attributes) {
+      var result = {};
+      for (var name in attributes) {
+         if (attributes.hasOwnProperty(name)) {
+            var cleanName = name.replace(/^attr:/gi, '');
+            result[cleanName] = attributes[name];
+         }
+      }
+      return result;
+   }
+
+   function prepareDataForCodeGeneration(tag, data) {
+      var tagIsWsControl = isControl(tag);
+      var decor = parse.processAttributes.call(this, tag.attribs, data, {}, tagIsWsControl, tag);
+      var attributes = decor.attributes;
+      var events = decor.events;
+      var scope = null;
+      if (tag.attribs.hasOwnProperty('scope')) {
+         scope = Process.processExpressions(
+            tag.attribs.scope.data[0],
+            data,
+            this.fileName,
+            isControl,
+            {},
+            'scope',
+            false
+         );
+         delete tag.attribs.scope;
+      }
+      var options = prepareScope.call(this, tag, data);
+      var cleanAttributes = cleanAttributesCollection(attributes);
+      var internal = (tag.internal && Object.keys(tag.internal).length > 0)
+         ? FSC.getStr(tag.internal)
+         : '{}';
+      var config = FeaturePartial.createConfigNew(internal, tag.isRootTag);
+      return {
+         attributes: FSC.getStr(cleanAttributes),
+         events: FSC.getStr(events),
+         options: FSC.getStr(options),
+         scope: scope,
+         config: config
+      };
+   }
+
    var partialM = {
       module: function partialModule(tag, data) {
          function resolveStatement(decor) {
