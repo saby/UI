@@ -232,6 +232,19 @@ export type TIncludedTemplate = Record<string, unknown>;
 export type TAttributes = Record<string, unknown>;
 export type TEvents = Record<string, unknown>;
 
+export interface IControlConfig {
+   attr: any;
+   data: any;
+   ctx: any;
+   context: any;
+   depsLocal: any;
+   includedTemplates: any;
+   pName: string;
+   viewController: any;
+   isRootTag: boolean;
+   internal: any;
+}
+
 // Типы сопоставления для случаем когда однозначно описать тип не можем
 export type TProps = Record<string, any>;
 

@@ -22,7 +22,8 @@ import {
    IControl,
    IControlData,
    ICreateControlTemplateCfg,
-   ITemplateNode
+   ITemplateNode,
+   IControlConfig
 } from './IGeneratorType';
 import { VNode } from 'Inferno/third-party/index';
 
@@ -30,6 +31,40 @@ import { VNode } from 'Inferno/third-party/index';
  * @author Тэн В.А.
  */
 export interface IGenerator {
+
+   createControlNew(
+      name: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: Record<string, unknown>,
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error
+   createTemplateNew(
+      name: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: Record<string, unknown>,
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error
+   resolveControlNew(
+      name: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: Record<string, unknown>,
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error
+   resolveTemplateNew(
+      name: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: Record<string, unknown>,
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error
+
    /**
     * Соибирает цепочку Promise
     * @param out

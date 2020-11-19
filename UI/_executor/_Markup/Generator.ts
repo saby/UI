@@ -22,7 +22,8 @@ import {
    TDeps,
    TIncludedTemplate,
    TObject,
-   IControlUserData
+   IControlUserData,
+   IControlConfig
 } from 'UI/_executor/_Markup/IGeneratorType';
 
 const defRegExp = /(\[def-[\w\d]+\])/g;
@@ -269,6 +270,50 @@ export class Generator {
       if (config) {
          this.prepareAttrsForPartial = config.prepareAttrsForPartial;
       }
+   }
+
+   createControlNew(
+      name: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: Record<string, unknown>,
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error {
+      throw new Error('Not implemented yet');
+   }
+
+   createTemplateNew(
+      name: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: Record<string, unknown>,
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error {
+      throw new Error('Not implemented yet');
+   }
+
+   resolveControlNew(
+      name: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: Record<string, unknown>,
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error {
+      throw new Error('Not implemented yet');
+   }
+
+   resolveTemplateNew(
+      name: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: Record<string, unknown>,
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error {
+      throw new Error('Not implemented yet');
    }
 
    chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string | void> | string | Error {
