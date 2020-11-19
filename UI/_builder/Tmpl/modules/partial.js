@@ -102,7 +102,21 @@ define('UI/_builder/Tmpl/modules/partial', [
       return result;
    }
 
-   function prepareDataForCodeGeneration(tag, data) {
+   function prepareDataForCodeGeneration(originTag, data) {
+      var tag = {
+         attribs: Object.assign({}, originTag.attribs),
+         internal: Object.assign({}, originTag.internal),
+         children: originTag.children,
+         injectedData: originTag.injectedData,
+         isRootTag: originTag.isRootTag,
+         key: originTag.key,
+         name: originTag.name,
+         next: originTag.next,
+         prev: originTag.prev,
+         originName: originTag.originName,
+         type: originTag.type,
+         injectedTemplate: originTag.injectedTemplate
+      };
       var tagIsWsControl = isControl(tag);
       var decor = parse.processAttributes.call(this, tag.attribs, data, {}, tagIsWsControl, tag);
       var attributes = decor.attributes;
@@ -142,6 +156,9 @@ define('UI/_builder/Tmpl/modules/partial', [
             var callFnArgs;
             var tagIsModule = isModule(tag);
             var tagIsWsControl = isControl(tag);
+
+            // TODO: Release new codegen
+            var newConfig = prepareDataForCodeGeneration.call(this, tag, data);
             var decorAttribs = tag.decorAttribs || parse.parseAttributesForDecoration.call(
                this, tag.attribs, data, {}, tagIsWsControl, tag
             );
