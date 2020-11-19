@@ -27,7 +27,7 @@ class CssLoaderMock implements ICssLoader {
    }
 }
 
-describe('UI/theme/_controller/Controller', () => {
+describe('UI/theme/_controller1/Controller', () => {
    const loader: CssLoaderMock = new CssLoaderMock();
    const controller: Controller = new Controller(loader);
 
@@ -242,6 +242,6 @@ describe('UI/theme/_controller/Controller', () => {
                assert.isFalse(controller.has(aliasName), 'Алиас остался в хранилище');
                assert.isFalse(controller.has(originalName), 'Оригинал остался в хранилище');
             });
-      }).timeout(4000);
+      });
    });
 });

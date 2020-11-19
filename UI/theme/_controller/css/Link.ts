@@ -24,10 +24,10 @@ export default class Link extends Base implements ICssEntity {
    ) {
       super(href, cssName, themeName, themeType);
       if (element) {
-         this.href = element.getAttribute(ELEMENT_ATTR.HREF);
-         this.cssName = element.getAttribute(ELEMENT_ATTR.NAME);
-         this.themeName = element.getAttribute(ELEMENT_ATTR.THEME);
-         this.themeType = THEME_TYPE[element.getAttribute(ELEMENT_ATTR.THEME_TYPE)];
+         this.href = this.href || element.getAttribute(ELEMENT_ATTR.HREF);
+         this.cssName = this.cssName || element.getAttribute(ELEMENT_ATTR.NAME);
+         this.themeName = this.themeName || element.getAttribute(ELEMENT_ATTR.THEME);
+         this.themeType = this.themeType || THEME_TYPE[element.getAttribute(ELEMENT_ATTR.THEME_TYPE)];
       }
    }
 

@@ -63,7 +63,7 @@ describe('UI/theme/_controller/css/Link', () => {
          return link.load()
             .then(() => { assert.isTrue(link.isMounted); })
             .then(() => link.remove());
-      }).timeout(4000);
+      });
    });
 
    describe('from', () => {
@@ -81,7 +81,6 @@ describe('UI/theme/_controller/css/Link', () => {
          return link.remove().then((isRemoved) => {
             assert.isFalse(link.isMounted);
             assert.isTrue(isRemoved);
-            assert.isTrue(element.__removed);
          });
       });
 
