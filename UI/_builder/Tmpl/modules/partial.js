@@ -4,13 +4,12 @@ define('UI/_builder/Tmpl/modules/partial', [
    'UI/_builder/Tmpl/expressions/_private/Process',
    'UI/_builder/Tmpl/modules/utils/parse',
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
-   'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/codegen/Generator',
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/Tmpl/codegen/TClosure',
    'UI/_builder/Tmpl/codegen/_feature/Partial'
 ], function partialLoader(
-   injectedDataForce, names, Process, parse, FSC, ErrorHandlerLib,
+   injectedDataForce, names, Process, parse, FSC,
    Generator, templates, TClosure, FeaturePartial
 ) {
    'use strict';
@@ -18,8 +17,6 @@ define('UI/_builder/Tmpl/modules/partial', [
    /**
     * @author Крылов М.А.
     */
-
-   var errorHandler = ErrorHandlerLib.createErrorHandler(true);
 
    function calculateData(sequence) {
       var string = '', attrData = sequence.data, i;
@@ -141,7 +138,6 @@ define('UI/_builder/Tmpl/modules/partial', [
    var partialM = {
       module: function partialModule(tag, data) {
          function resolveStatement(decor) {
-            var assignModuleVar;
             var strPreparedScope;
             var callFnArgs;
             var tagIsModule = isModule(tag);
@@ -158,46 +154,18 @@ define('UI/_builder/Tmpl/modules/partial', [
                ? FSC.getStr(tag.internal)
                : null;
 
+            // DynamicPartialNode
             var injectedTemplate;
             if (tag.injectedTemplate) {
                injectedTemplate = Process.processExpressions(
                   tag.injectedTemplate, data, this.fileName, undefined, preparedScope
                );
-
-               // Генерируем внедрённый шаблон с рутовой областью видимости
-               if (!injectedTemplate) {
-                  errorHandler.error(
-                     'Your template variable by the name of "' +
-                     tag.injectedTemplate.name.string + '" is empty',
-                     {
-                        fileName: this.fileName
-                     }
-                  );
-               }
-               assignModuleVar = injectedTemplate.html || injectedTemplate;
-               if (injectedTemplate.data) {
-                  preparedScope.__rootScope = injectedTemplate.data;
-               }
-               if (assignModuleVar) {
-                  if (typeof assignModuleVar === 'function') {
-                     return assignModuleVar(preparedScope, decorAttribs);
-                  }
-                  if (typeof assignModuleVar === 'string') {
-                     return syncRequireTemplateOrControl(assignModuleVar,
-                        FSC.getStr(preparedScope),
-                        decor && decor.isMainAttrs
-                           ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
-                           : FSC.getStr(decorAttribs),
-                        tag);
-                  }
-               }
-               errorHandler.error(
-                  'Your template variable by the name of "' +
-                  tag.injectedTemplate.name.string + '" is empty',
-                  {
-                     fileName: this.fileName
-                  }
-               );
+               return syncRequireTemplateOrControl(injectedTemplate,
+                  FSC.getStr(preparedScope),
+                  decor && decor.isMainAttrs
+                     ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
+                     : FSC.getStr(decorAttribs),
+                  tag);
             }
 
             var createAttribs;
