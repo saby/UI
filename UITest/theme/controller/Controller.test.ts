@@ -242,6 +242,6 @@ describe('UI/theme/_controller/Controller', () => {
                assert.isFalse(controller.has(aliasName), 'Алиас остался в хранилище');
                assert.isFalse(controller.has(originalName), 'Оригинал остался в хранилище');
             });
-      });
+      }).timeout(4000);
    });
 });

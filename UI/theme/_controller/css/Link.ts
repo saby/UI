@@ -3,8 +3,8 @@ import { ModulesLoader } from 'UI/Utils';
 import { Base } from './Base';
 import { ELEMENT_ATTR, THEME_TYPE, CSS_MODULE_PREFIX } from './const';
 import { ICssEntity, IHTMLElement } from './interface';
-import { Head as HeadAPI } from 'Application/Page'
-import { IHeadTagId } from 'Application/Interface'
+import { Head as HeadAPI } from 'Application/Page';
+import { IHeadTagId } from 'Application/Interface';
 import { then, isInit } from 'Application/Initializer';
 
 const TIMEOUT = 30000;

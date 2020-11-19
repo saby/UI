@@ -1,4 +1,5 @@
 /// <amd-module name='UI/theme/_controller/css/SingleLink' />
+import { Head as HeadAPI } from "Application/_Page/Head";
 import Link from './Link';
 import { THEME_TYPE } from './const';
 import { ISingleCssEntity, IHTMLElement } from './interface';
@@ -6,7 +7,6 @@ import { ISingleCssEntity, IHTMLElement } from './interface';
  * Немультитемная ссылка на клиенте
  */
 export default class SingleLink extends Link implements ISingleCssEntity {
-   element: IHTMLElement;
    constructor(
       href: string,
       cssName: string,
@@ -19,7 +19,10 @@ export default class SingleLink extends Link implements ISingleCssEntity {
    removeForce(): Promise<void> {
       this.isMounted = false;
       this.requirement = 0;
-      this.element.remove();
+      if (this.headTagId) {
+         // @ts-ignore
+         HeadAPI.getInstance().deleteTag(this.headTagId);
+      }
       return Promise.resolve();
    }
 }

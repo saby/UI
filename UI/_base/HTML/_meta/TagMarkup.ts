@@ -26,19 +26,20 @@ export function generateTagMarkup(
 
    // decorate all of input links and scripts to redirect requests onto
    // cdn domain if it's configured on current page.
-   const attrMarkup = Object.entries(attrs).map(([key, val]) => {
+   const attrMarkup = Object.entries(attrs || {}).map(([key, val]) => {
       if (key === 'href' || key === 'src') {
          return `${key}="${getResourceUrl(val)}"`;
       }
       return `${key}="${val}"`;
    }).join(' ');
+   const inTagContent = [tagName, attrMarkup].join(' ').trim();
    if (HTML_VOID_ELEMENTS[tagName]) {
-      return `<${tagName} ${attrMarkup}>`;
+      return `<${inTagContent}>`;
    }
 
    let childMarkup = '';
    if (children) {
       childMarkup = (typeof children === 'string') ? children : generateTagMarkup(children);
    }
-   return `<${tagName} ${attrMarkup}>${childMarkup}</${tagName}>`;
+   return `<${inTagContent}>${childMarkup}</${tagName}>`;
 }
