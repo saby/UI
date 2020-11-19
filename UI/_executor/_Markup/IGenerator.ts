@@ -50,6 +50,7 @@ export interface IGenerator {
    ): GeneratorObject | Promise<unknown> | Error
    resolveControlNew(
       name: string,
+      path: { library: string; module: string[]; },
       method: Function,
       attributes: Record<string, unknown>,
       events: Record<string, unknown>,

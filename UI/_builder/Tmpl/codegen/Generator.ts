@@ -166,15 +166,17 @@ export function genCreateTemplateNew(
  */
 export function genResolveControlNew(
    name: string,
+   path: string,
    method: string,
    attributes: string,
    events: string,
    options: string,
    config: string
 ) {
-   // resolveControlNew(name, method, attributes, events, options, config)
+   // resolveControlNew(name, path, method, attributes, events, options, config)
    return `${VAR_MODULE_NAME}.resolveControlNew(`
       + `"${name}",`
+      + `${path},`
       + `/*${name}*/ ${method},`
       + `/*attributes*/ ${attributes},`
       + `/*events*/ ${events},`

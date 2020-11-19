@@ -311,7 +311,8 @@ export class Generator {
          actualConfig,
          config.context,
          config.depsLocal,
-         config.includedTemplates, Helper.config
+         config.includedTemplates,
+         Helper.config
       );
    }
 
@@ -353,19 +354,53 @@ export class Generator {
          actualConfig,
          config.context,
          config.depsLocal,
-         config.includedTemplates, Helper.config
+         config.includedTemplates,
+         Helper.config
       );
    }
 
    resolveControlNew(
       name: string,
+      path: { library: string; module: string[]; },
       method: Function,
       attributes: Record<string, unknown>,
       events: Record<string, unknown>,
-      options: Record<string, unknown>,
+      options: any, // FIXME: Record<string, unknown>
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
-      throw new Error('Not implemented yet');
+      const decorAttribs = {
+         attributes,
+         events,
+         context: config.context,
+         inheritOptions: {},
+         internal: config.internal,
+         key: config.key
+      };
+      const actualAttributes = config.mergeType === 'attribute'
+         ? Helper.plainMergeAttr(config.attr, decorAttribs)
+         : config.mergeType === 'context'
+            ? Helper.plainMergeContext(config.attr, decorAttribs)
+            : decorAttribs;
+      const actualOptions = config.scope === null ? options : Helper.uniteScope(config.scope, options);
+      const actualConfig = {
+         isRootTag: config.isRootTag,
+         data: config.data,
+         ctx: config.ctx,
+         pName: config.pName,
+         viewController: config.viewController,
+         internal: config.internal
+      };
+      return this.createControl(
+         'resolver',
+         path,
+         actualOptions,
+         actualAttributes,
+         actualConfig,
+         config.context,
+         config.depsLocal,
+         config.includedTemplates,
+         Helper.config
+      );
    }
 
    resolveTemplateNew(

@@ -90,13 +90,14 @@ export class GeneratorText implements IGenerator {
 
    resolveControlNew(
       name: string,
+      path: { library: string; module: string[]; },
       method: Function,
       attributes: Record<string, unknown>,
       events: Record<string, unknown>,
       options: Record<string, unknown>,
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.resolveControlNew(name, method, attributes, events, options, config);
+      return this.generatorBase.resolveControlNew(name, path, method, attributes, events, options, config);
    }
 
    resolveTemplateNew(

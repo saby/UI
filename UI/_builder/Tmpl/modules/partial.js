@@ -165,7 +165,6 @@ define('UI/_builder/Tmpl/modules/partial', [
    var partialM = {
       module: function partialModule(tag, data) {
          function resolveStatement(decor) {
-            var strPreparedScope;
             var callFnArgs;
             var tagIsModule = isModule(tag);
             var tagIsWsControl = isControl(tag);
@@ -182,11 +181,6 @@ define('UI/_builder/Tmpl/modules/partial', [
             tag.decorAttribs = decorAttribs;
             var preparedScope = !isNewProcessing ? prepareScope.call(this, tag, data) : null;
 
-            // превращаем объекты с экранированными значениями (¥) в строки для добавления в шаблон
-            var decorInternal = (tag.internal && Object.keys(tag.internal).length > 0)
-               ? FSC.getStr(tag.internal)
-               : null;
-
             // DynamicPartialNode
             var injectedTemplate;
             if (tag.injectedTemplate) {
@@ -201,23 +195,16 @@ define('UI/_builder/Tmpl/modules/partial', [
                   tag);
             }
 
-            var createAttribs;
-            var createTmplCfg;
             if (tagIsModule) {
-               strPreparedScope = FSC.getStr(preparedScope);
-               createAttribs = decor
-                  ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
-                  : TClosure.genPlainMergeContext('attr', FSC.getStr(decorAttribs));
-               createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);
-
-               if (tagIsModule) {
-                  return Generator.genCreateControlModule(
-                     FSC.getStr(getLibraryModulePath(tag)),
-                     strPreparedScope,
-                     createAttribs,
-                     createTmplCfg
-                  ) + ',';
-               }
+               return Generator.genResolveControlNew(
+                  tag.originName,
+                  FSC.getStr(getLibraryModulePath(tag)),
+                  null,
+                  newConfig.attributes,
+                  newConfig.events,
+                  newConfig.options,
+                  newConfig.config
+               ) + ',';
             }
             if (tagIsWsControl) {
                return Generator.genCreateControlNew(
