@@ -228,16 +228,13 @@ define('UI/_builder/Tmpl/modules/partial', [
                ) + ',';
             }
             if (tagIsTemplate) {
-               strPreparedScope = FSC.getStr(preparedScope);
-               createAttribs = decor
-                  ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
-                  : TClosure.genPlainMergeContext('attr', FSC.getStr(decorAttribs));
-               createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);
-               return Generator.genCreateControlTemplate(
-                  '"' + tag.attribs._wstemplatename.data.value + '"',
-                  strPreparedScope,
-                  createAttribs,
-                  createTmplCfg
+               return Generator.genCreateTemplateNew(
+                  tag.attribs._wstemplatename.data.value,
+                  null,
+                  newConfig.attributes,
+                  newConfig.events,
+                  newConfig.options,
+                  newConfig.config
                ) + ',';
             }
 
