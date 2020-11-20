@@ -20,7 +20,6 @@ import Environment from './Environment';
 import { SwipeController } from './SwipeController';
 import { LongTapController } from './LongTapController';
 import {
-   onStartSync,
    onEndSync
 } from 'UI/DevtoolsHook';
 import { VNode, render } from 'Inferno/third-party/index';
@@ -536,8 +535,6 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       if (!this._rootDOMNode) {
          return;
       }
-      // TODO: в 1100 удаляю, уже неактуально (но onEndSync актуален)
-      onStartSync(newRootCntNode.rootId);
 
       const vnode = this.decorateRootNode(newVNnode);
       let control;
@@ -1014,12 +1011,14 @@ function vdomEventBubbling(
                // Добавляем в eventObject поле со ссылкой DOM-элемент, чей обработчик вызываем
                eventObject.currentTarget = curDomNode;
 
-               /* Control can be destroyed, while some of his children emit async event.
-                * we ignore it event*/
+               /* Контрол может быть уничтожен, пока его дочернии элементы нотифаят асинхронные события, 
+                  в таком случае не реагируем на события */
+               /* Асинхронный _afterMount контролов приводит к тому, что события с dom начинают стрелять до маунта, 
+                  в таком случае не реагируем на события */
                /* Также игнорируем обработчики контрола, который выпустил событие.
                 * То есть, сам на себя мы не должны реагировать
                 * */
-               if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control)) {
+               if (fn.control._mounted && !fn.control._destroyed && (!controlNode || fn.control !== controlNode.control)) {
                   try {
                      fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
                   } catch (err) {
