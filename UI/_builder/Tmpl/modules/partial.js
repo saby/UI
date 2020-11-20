@@ -32,19 +32,6 @@ define('UI/_builder/Tmpl/modules/partial', [
       return sequence;
    }
 
-   function syncRequireTemplateOrControl(url, preparedScope, decorAttribs, tag) {
-      var templateName = calculateData(tag.attribs._wstemplatename);
-
-      // превращаем объект с экранированными значениями (¥) в строку для добавления в шаблон
-      var decorInternal = (tag.internal && Object.keys(tag.internal).length > 0) ? FSC.getStr(tag.internal) : null;
-      return Generator.genCreateControlResolver(
-         templateName.slice(1, -1),
-         FSC.getStr(preparedScope),
-         decorAttribs,
-         FeaturePartial.createTemplateConfig(decorInternal, tag.isRootTag)
-      ) + ',';
-   }
-
    function isControl(tag) {
       return !!(
          tag.children &&
@@ -182,17 +169,22 @@ define('UI/_builder/Tmpl/modules/partial', [
             var preparedScope = !isNewProcessing ? prepareScope.call(this, tag, data) : null;
 
             // DynamicPartialNode
-            var injectedTemplate;
             if (tag.injectedTemplate) {
-               injectedTemplate = Process.processExpressions(
-                  tag.injectedTemplate, data, this.fileName, undefined, preparedScope
-               );
-               return syncRequireTemplateOrControl(injectedTemplate,
+               var decorAttribsStr = decor && decor.isMainAttrs
+                  ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
+                  : FSC.getStr(decorAttribs);
+               var templateName = calculateData(tag.attribs._wstemplatename);
+
+               // превращаем объект с экранированными значениями (¥) в строку для добавления в шаблон
+               var decorInternal = (
+                  tag.internal && Object.keys(tag.internal).length > 0
+               ) ? FSC.getStr(tag.internal) : null;
+               return Generator.genCreateControlResolver(
+                  templateName.slice(1, -1),
                   FSC.getStr(preparedScope),
-                  decor && decor.isMainAttrs
-                     ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
-                     : FSC.getStr(decorAttribs),
-                  tag);
+                  decorAttribsStr,
+                  FeaturePartial.createTemplateConfig(decorInternal, tag.isRootTag)
+               ) + ',';
             }
 
             if (tagIsModule) {
