@@ -42,6 +42,7 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
         beforeEach(() => {
             // @ts-ignore
             Head.getInstance().clear();
+            new PrefetchLinksStorePS().clear();
         });
         it('addPrefetchModules', () => {
             const pls = new PrefetchLinksStorePS();
