@@ -18,6 +18,8 @@ define('UI/_builder/Tmpl/modules/partial', [
     * @author Крылов М.А.
     */
 
+   var USE_NEW_GENERATOR_METHODS = true;
+
    function calculateData(sequence) {
       var string = '', attrData = sequence.data, i;
       if (attrData.length) {
@@ -91,6 +93,97 @@ define('UI/_builder/Tmpl/modules/partial', [
       };
    }
 
+   function cleanAttributesCollection(attributes) {
+      var result = {};
+      for (var name in attributes) {
+         if (attributes.hasOwnProperty(name)) {
+            var cleanName = name.replace(/^attr:/gi, '');
+            result[cleanName] = attributes[name];
+         }
+      }
+      return result;
+   }
+
+   function getMergeType(tag, decor) {
+      if (tag.injectedTemplate) {
+         if (decor && decor.isMainAttrs) {
+            return 'attribute';
+         }
+         return 'none';
+      }
+      if (decor) {
+         return 'attribute';
+      }
+      return 'context';
+   }
+
+   function prepareDataForCodeGeneration(tag, data, decor) {
+      var tagIsWsControl = isControl(tag);
+      var scope = null;
+      var compositeAttributes = null;
+      if (tag.attribs.hasOwnProperty('scope')) {
+         scope = Process.processExpressions(
+            tag.attribs.scope.data[0],
+            data,
+            this.fileName,
+            isControl,
+            {},
+            'scope',
+            false
+         );
+         delete tag.attribs.scope;
+      }
+      if (tag.attribs.hasOwnProperty('attributes')) {
+         compositeAttributes = Process.processExpressions(
+            tag.attribs.attributes.data[0],
+            data,
+            this.fileName,
+            isControl,
+            {},
+            'attributes',
+            false
+         );
+         delete tag.attribs.attributes;
+      }
+      var decorated = parse.processAttributes.call(this, tag.attribs, data, {}, tagIsWsControl, tag);
+      var attributes = decorated.attributes;
+      var events = decorated.events;
+      var options = prepareScope.call(this, tag, data);
+      var cleanAttributes = cleanAttributesCollection(attributes);
+      var internal = (tag.internal && Object.keys(tag.internal).length > 0)
+         ? FSC.getStr(tag.internal)
+         : '{}';
+      var mergeType = getMergeType(tag, decor);
+      var config = FeaturePartial.createConfigNew(
+         compositeAttributes, scope, internal, tag.isRootTag, tag.key, mergeType
+      );
+      return {
+         attributes: FSC.getStr(cleanAttributes),
+         events: FSC.getStr(events),
+         options: FSC.getStr(options),
+         config: config
+      };
+   }
+
+   function processNode(tag, data, decor) {
+      var tagIsWsControl = isControl(tag);
+      // var tagIsModule = isModule(tag);
+      // var tagIsTemplate = tag.children && tag.children[0] && tag.children[0].fn;
+      // var tagIsDynamicPartial = !!tag.injectedTemplate;
+      var config = prepareDataForCodeGeneration.call(this, tag, data, decor);
+      if (tagIsWsControl) {
+         return Generator.genCreateControlNew(
+            getWsTemplateName(tag),
+            null,
+            config.attributes,
+            config.events,
+            config.options,
+            config.config
+         ) + ',';
+      }
+      throw new Error('Not implemented yet');
+   }
+
    var partialM = {
       module: function partialModule(tag, data) {
          function resolveStatement(decor) {
@@ -100,6 +193,11 @@ define('UI/_builder/Tmpl/modules/partial', [
                !tagIsWsControl &&
                tag.children && tag.children[0] && tag.children[0].fn;
             var tagIsDynamicPartial = !!tag.injectedTemplate;
+
+            var canUseNewGeneratorMethods = tagIsWsControl;
+            if (canUseNewGeneratorMethods && USE_NEW_GENERATOR_METHODS) {
+               return processNode.call(this, tag, data, decor);
+            }
 
             var decorAttribs = tag.decorAttribs || parse.parseAttributesForDecoration.call(
                this, tag.attribs, data, {}, tagIsWsControl, tag
