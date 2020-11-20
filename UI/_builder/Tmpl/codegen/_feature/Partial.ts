@@ -28,7 +28,7 @@ export function createConfigNew(
       + `data: data,`
       + `ctx: this,`
       + `context: context,`
-      + `depsLocal: depsLocal,`
+      + `depsLocal: typeof depsLocal !== 'undefined' ? depsLocal : {},`
       + `includedTemplates: includedTemplates,`
       + `pName: typeof currentPropertyName !== 'undefined' ? currentPropertyName : undefined,`
       + `viewController: viewController,`
