@@ -173,7 +173,7 @@ define('UI/_builder/Tmpl/modules/partial', [
                tag.children && tag.children[0] && tag.children[0].fn;
 
             // TODO: Release new codegen
-            var isNewProcessing = tagIsWsControl || tagIsTemplate;
+            var isNewProcessing = tagIsWsControl || tagIsTemplate || tagIsModule;
             var newConfig = isNewProcessing ? prepareDataForCodeGeneration.call(this, tag, data, decor) : null;
             var decorAttribs = tag.decorAttribs || parse.parseAttributesForDecoration.call(
                this, tag.attribs, data, {}, tagIsWsControl, tag
