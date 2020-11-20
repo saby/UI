@@ -4,13 +4,12 @@ define('UI/_builder/Tmpl/modules/partial', [
    'UI/_builder/Tmpl/expressions/_private/Process',
    'UI/_builder/Tmpl/modules/utils/parse',
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
-   'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/codegen/Generator',
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/Tmpl/codegen/TClosure',
    'UI/_builder/Tmpl/codegen/_feature/Partial'
 ], function partialLoader(
-   injectedDataForce, names, Process, parse, FSC, ErrorHandlerLib,
+   injectedDataForce, names, Process, parse, FSC,
    Generator, templates, TClosure, FeaturePartial
 ) {
    'use strict';
@@ -18,8 +17,6 @@ define('UI/_builder/Tmpl/modules/partial', [
    /**
     * @author Крылов М.А.
     */
-
-   var errorHandler = ErrorHandlerLib.createErrorHandler(true);
 
    function calculateData(sequence) {
       var string = '', attrData = sequence.data, i;
@@ -97,11 +94,13 @@ define('UI/_builder/Tmpl/modules/partial', [
    var partialM = {
       module: function partialModule(tag, data) {
          function resolveStatement(decor) {
-            var assignModuleVar;
-            var strPreparedScope;
-            var callFnArgs;
             var tagIsModule = isModule(tag);
             var tagIsWsControl = isControl(tag);
+            var tagIsTemplate = !tagIsModule &&
+               !tagIsWsControl &&
+               tag.children && tag.children[0] && tag.children[0].fn;
+            var tagIsDynamicPartial = !!tag.injectedTemplate;
+
             var decorAttribs = tag.decorAttribs || parse.parseAttributesForDecoration.call(
                this, tag.attribs, data, {}, tagIsWsControl, tag
             );
@@ -114,65 +113,35 @@ define('UI/_builder/Tmpl/modules/partial', [
                ? FSC.getStr(tag.internal)
                : null;
 
-            var injectedTemplate;
-            if (tag.injectedTemplate) {
-               injectedTemplate = Process.processExpressions(
+            if (tagIsDynamicPartial) {
+               var injectedTemplate = Process.processExpressions(
                   tag.injectedTemplate, data, this.fileName, undefined, preparedScope
                );
-
-               // Генерируем внедрённый шаблон с рутовой областью видимости
-               if (!injectedTemplate) {
-                  errorHandler.error(
-                     'Your template variable by the name of "' +
-                     tag.injectedTemplate.name.string + '" is empty',
-                     {
-                        fileName: this.fileName
-                     }
-                  );
-               }
-               assignModuleVar = injectedTemplate.html || injectedTemplate;
-               if (injectedTemplate.data) {
-                  preparedScope.__rootScope = injectedTemplate.data;
-               }
-               if (assignModuleVar) {
-                  if (typeof assignModuleVar === 'function') {
-                     return assignModuleVar(preparedScope, decorAttribs);
-                  }
-                  if (typeof assignModuleVar === 'string') {
-                     return syncRequireTemplateOrControl(assignModuleVar,
-                        FSC.getStr(preparedScope),
-                        decor && decor.isMainAttrs
-                           ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
-                           : FSC.getStr(decorAttribs),
-                        tag);
-                  }
-               }
-               errorHandler.error(
-                  'Your template variable by the name of "' +
-                  tag.injectedTemplate.name.string + '" is empty',
-                  {
-                     fileName: this.fileName
-                  }
+               return syncRequireTemplateOrControl(
+                  injectedTemplate,
+                  FSC.getStr(preparedScope),
+                  decor && decor.isMainAttrs
+                     ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
+                     : FSC.getStr(decorAttribs),
+                  tag
                );
             }
 
-            var createAttribs;
-            var createTmplCfg;
-            if (tagIsModule || tagIsWsControl) {
-               strPreparedScope = FSC.getStr(preparedScope);
-               createAttribs = decor
-                  ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
-                  : TClosure.genPlainMergeContext('attr', FSC.getStr(decorAttribs));
-               createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);
+            var createAttribs = decor
+               ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
+               : TClosure.genPlainMergeContext('attr', FSC.getStr(decorAttribs));
+            var strPreparedScope = FSC.getStr(preparedScope);
+            var createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);
 
-               if (tagIsModule) {
-                  return Generator.genCreateControlModule(
-                     FSC.getStr(getLibraryModulePath(tag)),
-                     strPreparedScope,
-                     createAttribs,
-                     createTmplCfg
-                  ) + ',';
-               }
+            if (tagIsModule) {
+               return Generator.genCreateControlModule(
+                  FSC.getStr(getLibraryModulePath(tag)),
+                  strPreparedScope,
+                  createAttribs,
+                  createTmplCfg
+               ) + ',';
+            }
+            if (tagIsWsControl) {
                return Generator.genCreateControl(
                   '"' + getWsTemplateName(tag) + '"',
                   strPreparedScope,
@@ -180,12 +149,7 @@ define('UI/_builder/Tmpl/modules/partial', [
                   createTmplCfg
                ) + ',';
             }
-            if (tag.children && tag.children[0] && tag.children[0].fn) {
-               strPreparedScope = FSC.getStr(preparedScope);
-               createAttribs = decor
-                  ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
-                  : TClosure.genPlainMergeContext('attr', FSC.getStr(decorAttribs));
-               createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);
+            if (tagIsTemplate) {
                return Generator.genCreateControlTemplate(
                   '"' + tag.attribs._wstemplatename.data.value + '"',
                   strPreparedScope,
@@ -201,27 +165,24 @@ define('UI/_builder/Tmpl/modules/partial', [
                'Object.create(data || {})',
                TClosure.genPrepareDataForCreate(
                   '"_$inline_template"',
-                  FSC.getStr(preparedScope),
+                  strPreparedScope,
                   'attrsForTemplate',
                   '{}'
                ),
                'false'
             );
-            var callAttrArg = decor
-               ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
-               : TClosure.genPlainMergeContext('attr', FSC.getStr(decorAttribs));
 
             // признак того, что функции у нас разложены
-            callFnArgs = '.call(this, scopeForTemplate, attrsForTemplate, context, isVdom), ';
+            var callFnArgs = '.call(this, scopeForTemplate, attrsForTemplate, context, isVdom), ';
 
             if (this.includedFn) {
                return '(function() {' +
-                  'attrsForTemplate = ' + callAttrArg + '; scopeForTemplate = ' + callDataArg + ';' +
+                  'attrsForTemplate = ' + createAttribs + '; scopeForTemplate = ' + callDataArg + ';' +
                   '}).apply(this),' + tag.attribs._wstemplatename.data.value + callFnArgs;
             }
             var body = this.getString(tag.children, {}, this.handlers, {}, true);
             return '(function(){' +
-               'attrsForTemplate = ' + callAttrArg + '; scopeForTemplate = ' + callDataArg + '' +
+               'attrsForTemplate = ' + createAttribs + '; scopeForTemplate = ' + callDataArg + '' +
                ';}).apply(this),' + templates.generatePartialTemplate(body) + callFnArgs;
          }
          return resolveStatement;
