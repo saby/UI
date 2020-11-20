@@ -173,6 +173,12 @@ define('UI/_builder/Tmpl/modules/partial', [
                var decorAttribsStr = decor && decor.isMainAttrs
                   ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
                   : FSC.getStr(decorAttribs);
+
+               // FIXME: Side effect - need to process injectedTemplate
+               //  to get generated code fragment from _wstemplatename
+               Process.processExpressions(
+                  tag.injectedTemplate, data, this.fileName, undefined, preparedScope
+               );
                var templateName = calculateData(tag.attribs._wstemplatename);
 
                // превращаем объект с экранированными значениями (¥) в строку для добавления в шаблон
