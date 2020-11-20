@@ -74,7 +74,7 @@ export class GeneratorText implements IGenerator {
       options: Record<string, unknown>,
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.createControlNew(name, method, attributes, events, options, config);
+      return this.generatorBase.createControlNew.call(this, name, method, attributes, events, options, config);
    }
 
    createTemplateNew(
@@ -85,7 +85,7 @@ export class GeneratorText implements IGenerator {
       options: Record<string, unknown>,
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.createTemplateNew(name, method, attributes, events, options, config);
+      return this.generatorBase.createTemplateNew.call(this, name, method, attributes, events, options, config);
    }
 
    resolveControlNew(
@@ -97,7 +97,7 @@ export class GeneratorText implements IGenerator {
       options: Record<string, unknown>,
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.resolveControlNew(name, path, method, attributes, events, options, config);
+      return this.generatorBase.resolveControlNew.call(this, name, path, method, attributes, events, options, config);
    }
 
    resolveTemplateNew(
@@ -108,7 +108,7 @@ export class GeneratorText implements IGenerator {
       options: Record<string, unknown>,
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.resolveTemplateNew(name, method, attributes, events, options, config);
+      return this.generatorBase.resolveTemplateNew.call(this, name, method, attributes, events, options, config);
    }
 
    chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string|void> | string | Error {
