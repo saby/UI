@@ -20,6 +20,7 @@ import Environment from './Environment';
 import { SwipeController } from './SwipeController';
 import { LongTapController } from './LongTapController';
 import {
+   onStartSync,
    onEndSync
 } from 'UI/DevtoolsHook';
 import { VNode, render } from 'Inferno/third-party/index';
@@ -535,7 +536,9 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       if (!this._rootDOMNode) {
          return;
       }
-
+      // TODO: в 1100 удаляю, уже неактуально (но onEndSync актуален)	
+      onStartSync(newRootCntNode.rootId);
+      
       const vnode = this.decorateRootNode(newVNnode);
       let control;
       let patch;
