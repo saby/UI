@@ -118,10 +118,8 @@ define('UI/_builder/Tmpl/modules/partial', [
          injectedTemplate: originTag.injectedTemplate
       };
       var tagIsWsControl = isControl(tag);
-      var decorated = parse.processAttributes.call(this, tag.attribs, data, {}, tagIsWsControl, tag);
-      var attributes = decorated.attributes;
-      var events = decorated.events;
       var scope = null;
+      var compositeAttributes = null;
       if (tag.attribs.hasOwnProperty('scope')) {
          scope = Process.processExpressions(
             tag.attribs.scope.data[0],
@@ -134,13 +132,30 @@ define('UI/_builder/Tmpl/modules/partial', [
          );
          delete tag.attribs.scope;
       }
+      if (tag.attribs.hasOwnProperty('attributes')) {
+         compositeAttributes = Process.processExpressions(
+            tag.attribs.attributes.data[0],
+            data,
+            this.fileName,
+            isControl,
+            {},
+            'attributes',
+            false
+         );
+         delete tag.attribs.attributes;
+      }
+      var decorated = parse.processAttributes.call(this, tag.attribs, data, {}, tagIsWsControl, tag);
+      var attributes = decorated.attributes;
+      var events = decorated.events;
       var options = prepareScope.call(this, tag, data);
       var cleanAttributes = cleanAttributesCollection(attributes);
       var internal = (tag.internal && Object.keys(tag.internal).length > 0)
          ? FSC.getStr(tag.internal)
          : '{}';
       var mergeType = getMergeType(tag, decor);
-      var config = FeaturePartial.createConfigNew(scope, internal, tag.isRootTag, tag.key, mergeType);
+      var config = FeaturePartial.createConfigNew(
+         compositeAttributes, scope, internal, tag.isRootTag, tag.key, mergeType
+      );
       return {
          attributes: FSC.getStr(cleanAttributes),
          events: FSC.getStr(events),

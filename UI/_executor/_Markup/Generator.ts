@@ -281,8 +281,11 @@ export class Generator {
       options: any, // FIXME: Record<string, unknown>
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
+      const fullAttributes = config.compositeAttributes === null
+         ? attributes
+         : Helper.plainMergeContext(config.compositeAttributes, attributes);
       const decorAttribs = {
-         attributes,
+         attributes: fullAttributes,
          events,
          context: config.context,
          inheritOptions: {},
@@ -324,8 +327,11 @@ export class Generator {
       options: any, // FIXME: Record<string, unknown>
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
+      const fullAttributes = config.compositeAttributes === null
+         ? attributes
+         : Helper.plainMergeContext(config.compositeAttributes, attributes);
       const decorAttribs = {
-         attributes,
+         attributes: fullAttributes,
          events,
          context: config.context,
          inheritOptions: {},
@@ -368,8 +374,11 @@ export class Generator {
       options: any, // FIXME: Record<string, unknown>
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
+      const fullAttributes = config.compositeAttributes === null
+         ? attributes
+         : Helper.plainMergeContext(config.compositeAttributes, attributes);
       const decorAttribs = {
-         attributes,
+         attributes: fullAttributes,
          events,
          context: config.context,
          inheritOptions: {},

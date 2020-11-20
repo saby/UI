@@ -233,6 +233,7 @@ export type TAttributes = Record<string, unknown>;
 export type TEvents = Record<string, unknown>;
 
 export interface IControlConfig {
+   compositeAttributes: any;
    attr: any;
    data: any;
    ctx: any;

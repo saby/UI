@@ -16,6 +16,7 @@ export function createTemplateConfig(internal: string, isRootTag: boolean): stri
 }
 
 export function createConfigNew(
+   compositeAttributes: string,
    scope: string,
    internal: string,
    isRootTag: boolean,
@@ -31,6 +32,8 @@ export function createConfigNew(
       + `includedTemplates: includedTemplates,`
       + `pName: typeof currentPropertyName !== 'undefined' ? currentPropertyName : undefined,`
       + `viewController: viewController,`
+      + `compositeAttributes: ${compositeAttributes},`
+      + `scope: ${scope},`
       + `key: key + "${key}",`
       + `isRootTag: ${isRootTag},`
       + `internal: isVdom && ${internal},`
