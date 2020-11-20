@@ -151,7 +151,7 @@ class Head extends Control<IHeadOptions> {
             if (!options.compat) {
                 // @ts-ignore
                 API.createTag('script', {type: 'text/javascript'},
-                    'window.themeName = ' + options.theme + ';'
+                    `window.themeName = '${options.theme}';`
                 );
             }
             // @ts-ignore
