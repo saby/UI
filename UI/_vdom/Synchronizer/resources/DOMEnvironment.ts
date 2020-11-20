@@ -1016,16 +1016,15 @@ function vdomEventBubbling(
 
                /* Контрол может быть уничтожен, пока его дочернии элементы нотифаят асинхронные события,
                   в таком случае не реагируем на события */
+               /* Асинхронный _afterMount контролов приводит к тому, что события с dom начинают стрелять до маунта,
+                  в таком случае не реагируем на события */
                /* Также игнорируем обработчики контрола, который выпустил событие.
                 * То есть, сам на себя мы не должны реагировать
                 * */
-               if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control)) {
+               if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control) &&
+                     ((eventObject.nativeEvent && fn.control._mounted) || !eventObject.nativeEvent)) {
                   try {
-                     /* Асинхронный _afterMount контролов приводит к тому, что события с dom начинают стрелять до маунта,
-                        в таком случае не реагируем на события */
-                     if ((eventObject.nativeEvent && fn.control._mounted) || !eventObject.nativeEvent) {
                         fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
-                     }
                   } catch (err) {
                      // в шаблоне могут указать неверное имя обработчика, следует выводить адекватную ошибку
                      Logger.error(`Ошибка при вызове обработчика "${ eventPropertyName }" из контрола ${ fn.control._moduleName }.
