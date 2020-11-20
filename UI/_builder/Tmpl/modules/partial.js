@@ -167,13 +167,24 @@ define('UI/_builder/Tmpl/modules/partial', [
 
    function processNode(tag, data, decor) {
       var tagIsWsControl = isControl(tag);
-      // var tagIsModule = isModule(tag);
+      var tagIsModule = isModule(tag);
       // var tagIsTemplate = tag.children && tag.children[0] && tag.children[0].fn;
       // var tagIsDynamicPartial = !!tag.injectedTemplate;
       var config = prepareDataForCodeGeneration.call(this, tag, data, decor);
       if (tagIsWsControl) {
          return Generator.genCreateControlNew(
             getWsTemplateName(tag),
+            null,
+            config.attributes,
+            config.events,
+            config.options,
+            config.config
+         ) + ',';
+      }
+      if (tagIsModule) {
+         return Generator.genResolveControlNew(
+            tag.originName,
+            FSC.getStr(getLibraryModulePath(tag)),
             null,
             config.attributes,
             config.events,
@@ -194,7 +205,7 @@ define('UI/_builder/Tmpl/modules/partial', [
                tag.children && tag.children[0] && tag.children[0].fn;
             var tagIsDynamicPartial = !!tag.injectedTemplate;
 
-            var canUseNewGeneratorMethods = tagIsWsControl;
+            var canUseNewGeneratorMethods = tagIsWsControl || tagIsModule;
             if (canUseNewGeneratorMethods && USE_NEW_GENERATOR_METHODS) {
                return processNode.call(this, tag, data, decor);
             }
