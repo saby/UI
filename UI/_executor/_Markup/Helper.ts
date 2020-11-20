@@ -3,6 +3,7 @@
 import * as Attr from 'UI/_executor/_Expressions/Attr';
 
 export { uniteScope } from 'UI/_executor/_Expressions/Scope';
+export { processMergeAttributes } from 'UI/_executor/_Expressions/Attr';
 
 export function plainMergeAttr(inner, object) {
    if (!inner) {

@@ -283,7 +283,7 @@ export class Generator {
    ): GeneratorObject | Promise<unknown> | Error {
       const fullAttributes = config.compositeAttributes === null
          ? attributes
-         : Helper.plainMergeContext(config.compositeAttributes, attributes);
+         : Helper.processMergeAttributes(config.compositeAttributes, <any>attributes);
       const decorAttribs = {
          attributes: fullAttributes,
          events,
@@ -329,7 +329,7 @@ export class Generator {
    ): GeneratorObject | Promise<unknown> | Error {
       const fullAttributes = config.compositeAttributes === null
          ? attributes
-         : Helper.plainMergeContext(config.compositeAttributes, attributes);
+         : Helper.processMergeAttributes(config.compositeAttributes, <any>attributes);
       const decorAttribs = {
          attributes: fullAttributes,
          events,
@@ -376,7 +376,7 @@ export class Generator {
    ): GeneratorObject | Promise<unknown> | Error {
       const fullAttributes = config.compositeAttributes === null
          ? attributes
-         : Helper.plainMergeContext(config.compositeAttributes, attributes);
+         : Helper.processMergeAttributes(config.compositeAttributes, <any>attributes);
       const decorAttribs = {
          attributes: fullAttributes,
          events,
