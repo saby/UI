@@ -175,13 +175,18 @@ define('UI/_builder/Tmpl/modules/partial', [
                tag.children && tag.children[0] && tag.children[0].fn;
 
             // TODO: Release new codegen
-            var isNewProcessing = tagIsWsControl || tagIsTemplate || tagIsModule;
-            var newConfig = isNewProcessing ? prepareDataForCodeGeneration.call(this, tag, data, decor) : null;
+            var isNewProcessing = /*tagIsWsControl || tagIsTemplate || tagIsModule*/!!0;
+            //var newConfig = isNewProcessing ? prepareDataForCodeGeneration.call(this, tag, data, decor) : null;
             var decorAttribs = tag.decorAttribs || parse.parseAttributesForDecoration.call(
                this, tag.attribs, data, {}, tagIsWsControl, tag
             );
             tag.decorAttribs = decorAttribs;
             var preparedScope = !isNewProcessing ? prepareScope.call(this, tag, data) : null;
+
+            // превращаем объект с экранированными значениями (¥) в строку для добавления в шаблон
+            var decorInternal = (
+               tag.internal && Object.keys(tag.internal).length > 0
+            ) ? FSC.getStr(tag.internal) : null;
 
             // DynamicPartialNode
             if (tag.injectedTemplate) {
@@ -195,11 +200,6 @@ define('UI/_builder/Tmpl/modules/partial', [
                   tag.injectedTemplate, data, this.fileName, undefined, preparedScope
                );
                var templateName = calculateData(tag.attribs._wstemplatename);
-
-               // превращаем объект с экранированными значениями (¥) в строку для добавления в шаблон
-               var decorInternal = (
-                  tag.internal && Object.keys(tag.internal).length > 0
-               ) ? FSC.getStr(tag.internal) : null;
                return Generator.genCreateControlResolver(
                   templateName.slice(1, -1),
                   FSC.getStr(preparedScope),
@@ -208,36 +208,71 @@ define('UI/_builder/Tmpl/modules/partial', [
                ) + ',';
             }
 
+            var strPreparedScope;
+            var createAttribs;
+            var createTmplCfg;
+
             if (tagIsModule) {
-               return Generator.genResolveControlNew(
-                  tag.originName,
+               strPreparedScope = FSC.getStr(preparedScope);
+               createAttribs = decor
+                  ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
+                  : TClosure.genPlainMergeContext('attr', FSC.getStr(decorAttribs));
+               createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);
+               return Generator.genCreateControlModule(
                   FSC.getStr(getLibraryModulePath(tag)),
-                  null,
-                  newConfig.attributes,
-                  newConfig.events,
-                  newConfig.options,
-                  newConfig.config
+                  strPreparedScope,
+                  createAttribs,
+                  createTmplCfg
                ) + ',';
+               // FIXME: Temporary disable
+               // return Generator.genResolveControlNew(
+               //    tag.originName,
+               //    FSC.getStr(getLibraryModulePath(tag)),
+               //    null,
+               //    newConfig.attributes,
+               //    newConfig.events,
+               //    newConfig.options,
+               //    newConfig.config
+               // ) + ',';
             }
             if (tagIsWsControl) {
-               return Generator.genCreateControlNew(
-                  getWsTemplateName(tag),
-                  null,
-                  newConfig.attributes,
-                  newConfig.events,
-                  newConfig.options,
-                  newConfig.config
+               return Generator.genCreateControl(
+                  '"' + getWsTemplateName(tag) + '"',
+                  strPreparedScope,
+                  createAttribs,
+                  createTmplCfg
                ) + ',';
+               // FIXME: Temporary disable
+               // return Generator.genCreateControlNew(
+               //    getWsTemplateName(tag),
+               //    null,
+               //    newConfig.attributes,
+               //    newConfig.events,
+               //    newConfig.options,
+               //    newConfig.config
+               // ) + ',';
             }
             if (tagIsTemplate) {
-               return Generator.genCreateTemplateNew(
-                  tag.attribs._wstemplatename.data.value,
-                  null,
-                  newConfig.attributes,
-                  newConfig.events,
-                  newConfig.options,
-                  newConfig.config
+               strPreparedScope = FSC.getStr(preparedScope);
+               createAttribs = decor
+                  ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
+                  : TClosure.genPlainMergeContext('attr', FSC.getStr(decorAttribs));
+               createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);
+               return Generator.genCreateControlTemplate(
+                  '"' + tag.attribs._wstemplatename.data.value + '"',
+                  strPreparedScope,
+                  createAttribs,
+                  createTmplCfg
                ) + ',';
+               // FIXME: Temporary disable
+               // return Generator.genCreateTemplateNew(
+               //    tag.attribs._wstemplatename.data.value,
+               //    null,
+               //    newConfig.attributes,
+               //    newConfig.events,
+               //    newConfig.options,
+               //    newConfig.config
+               // ) + ',';
             }
 
             // Start code generation for construction:
