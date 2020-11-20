@@ -107,18 +107,18 @@ class Head extends Control<IHeadOptions> {
         API.createTag('script', {type: 'text/javascript'},
             [
                 'window.wsConfig = {',
-                    `wsRoot: ${options.wsRoot},`,
-                    `resourceRoot: ${options.resourceRoot},`,
-                    `appRoot: ${options.appRoot},`,
+                    `wsRoot: '${options.wsRoot}',`,
+                    `resourceRoot: '${options.resourceRoot}',`,
+                    `appRoot: '${options.appRoot}',`,
                     `RUMEnabled: ${options.RUMEnabled},`,
-                    `pageName: ${options.pageName},`,
+                    `pageName: '${options.pageName}',`,
                     'userConfigSupport: true,',
-                    `staticDomains: ${this.staticDomainsstringified},`,
-                    `defaultServiceUrl: ${options.servicesPath},`,
+                    `staticDomains: '${this.staticDomainsstringified}',`,
+                    `defaultServiceUrl: '${options.servicesPath}',`,
                     `compatible: ${options.compat},`,
-                    `product: ${options.product}`,
+                    `product: '${options.product}'`,
                 '};',
-                `window.buildnumber = ${options.buildnumber};`,
+                options.buildnumber ? `window.buildnumber = ${options.buildnumber};` : '',
                 options.preInitScript ? options.preInitScript : ''
             ].join('\n')
         );
