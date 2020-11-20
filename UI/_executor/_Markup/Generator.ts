@@ -287,9 +287,9 @@ export class Generator {
       const decorAttribs = {
          attributes: fullAttributes,
          events,
-         context: config.context,
-         inheritOptions: {},
-         internal: config.internal,
+         context: config.attr ? config.attr.context : { },
+         inheritOptions: config.attr ? config.attr.inheritOptions : { },
+         internal: config.attr ? config.attr.internal : { },
          key: config.key
       };
       const actualAttributes = config.mergeType === 'attribute'
@@ -333,9 +333,9 @@ export class Generator {
       const decorAttribs = {
          attributes: fullAttributes,
          events,
-         context: config.context,
-         inheritOptions: {},
-         internal: config.internal,
+         context: config.attr ? config.attr.context : { },
+         inheritOptions: config.attr ? config.attr.inheritOptions : { },
+         internal: config.attr ? config.attr.internal : { },
          key: config.key
       };
       const actualAttributes = config.mergeType === 'attribute'
@@ -380,9 +380,9 @@ export class Generator {
       const decorAttribs = {
          attributes: fullAttributes,
          events,
-         context: config.context,
-         inheritOptions: {},
-         internal: config.internal,
+         context: config.attr ? config.attr.context : { },
+         inheritOptions: config.attr ? config.attr.inheritOptions : { },
+         internal: config.attr ? config.attr.internal : { },
          key: config.key
       };
       const actualAttributes = config.mergeType === 'attribute'
