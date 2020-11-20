@@ -168,7 +168,7 @@ define('UI/_builder/Tmpl/modules/partial', [
    function processNode(tag, data, decor) {
       var tagIsWsControl = isControl(tag);
       var tagIsModule = isModule(tag);
-      // var tagIsTemplate = tag.children && tag.children[0] && tag.children[0].fn;
+      var tagIsTemplate = tag.children && tag.children[0] && tag.children[0].fn;
       // var tagIsDynamicPartial = !!tag.injectedTemplate;
       var config = prepareDataForCodeGeneration.call(this, tag, data, decor);
       if (tagIsWsControl) {
@@ -192,6 +192,16 @@ define('UI/_builder/Tmpl/modules/partial', [
             config.config
          ) + ',';
       }
+      if (tagIsTemplate) {
+         return Generator.genCreateTemplateNew(
+            tag.attribs._wstemplatename.data.value,
+            null,
+            config.attributes,
+            config.events,
+            config.options,
+            config.config
+         ) + ',';
+      }
       throw new Error('Not implemented yet');
    }
 
@@ -205,7 +215,7 @@ define('UI/_builder/Tmpl/modules/partial', [
                tag.children && tag.children[0] && tag.children[0].fn;
             var tagIsDynamicPartial = !!tag.injectedTemplate;
 
-            var canUseNewGeneratorMethods = tagIsWsControl || tagIsModule;
+            var canUseNewGeneratorMethods = tagIsWsControl || tagIsModule || tagIsTemplate;
             if (canUseNewGeneratorMethods && USE_NEW_GENERATOR_METHODS) {
                return processNode.call(this, tag, data, decor);
             }
