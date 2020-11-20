@@ -536,9 +536,9 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       if (!this._rootDOMNode) {
          return;
       }
-      // TODO: в 1100 удаляю, уже неактуально (но onEndSync актуален)	
+      // TODO: в 1100 удаляю, уже неактуально (но onEndSync актуален)
       onStartSync(newRootCntNode.rootId);
-      
+
       const vnode = this.decorateRootNode(newVNnode);
       let control;
       let patch;
@@ -1014,16 +1014,18 @@ function vdomEventBubbling(
                // Добавляем в eventObject поле со ссылкой DOM-элемент, чей обработчик вызываем
                eventObject.currentTarget = curDomNode;
 
-               /* Контрол может быть уничтожен, пока его дочернии элементы нотифаят асинхронные события, 
-                  в таком случае не реагируем на события */
-               /* Асинхронный _afterMount контролов приводит к тому, что события с dom начинают стрелять до маунта, 
+               /* Контрол может быть уничтожен, пока его дочернии элементы нотифаят асинхронные события,
                   в таком случае не реагируем на события */
                /* Также игнорируем обработчики контрола, который выпустил событие.
                 * То есть, сам на себя мы не должны реагировать
                 * */
-               if (fn.control._mounted && !fn.control._destroyed && (!controlNode || fn.control !== controlNode.control)) {
+               if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control)) {
                   try {
-                     fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
+                     /* Асинхронный _afterMount контролов приводит к тому, что события с dom начинают стрелять до маунта,
+                        в таком случае не реагируем на события */
+                     if ((eventObject.nativeEvent && fn.control._mounted) || !eventObject.nativeEvent) {
+                        fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
+                     }
                   } catch (err) {
                      // в шаблоне могут указать неверное имя обработчика, следует выводить адекватную ошибку
                      Logger.error(`Ошибка при вызове обработчика "${ eventPropertyName }" из контрола ${ fn.control._moduleName }.
