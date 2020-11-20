@@ -13,18 +13,19 @@ import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
 
 class LinkMock implements IHTMLElement {
    __removed: boolean = false;
-   constructor (href, name, theme, themeType) {
+   outerHTML: string = '';
+   constructor(href: string, name: string, theme: string, themeType: string) {
    }
-   getAttribute(attr) {
+   getAttribute(attr: string): string | null {
       return this[attr] || null;
    }
-   remove() {
-      this.__removed = true;
+   // tslint:disable-next-line:no-empty
+   remove(): void {
    }
 }
 
 class LinkElementMock extends LinkMock {
-   constructor (
+   constructor(
       href: string,
       name: string,
       theme: string,
@@ -38,7 +39,7 @@ class LinkElementMock extends LinkMock {
 }
 
 class DeprecatedLinkElementMock extends LinkMock {
-   constructor (
+   constructor(
       href: string,
       name: string,
       theme: string,

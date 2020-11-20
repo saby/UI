@@ -12,8 +12,9 @@ const theme = 'Some-theme';
 const themeType = THEME_TYPE.MULTI;
 
 class LinkElementMock implements IHTMLElement {
-   __removed = false;
-   constructor (
+   __removed: boolean = false;
+   outerHTML: string = '';
+   constructor(
       href: string,
       name: string,
       theme: string,
@@ -23,10 +24,10 @@ class LinkElementMock implements IHTMLElement {
       this[ELEMENT_ATTR.THEME] = theme;
       this[ELEMENT_ATTR.THEME_TYPE] = themeType;
    }
-   getAttribute(attr) {
+   getAttribute(attr: string): string {
       return this[attr];
    }
-   remove() {
+   remove(): void {
       this.__removed = true;
    }
 }
