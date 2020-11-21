@@ -168,7 +168,6 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
    private __captureEventHandlers: Record<string, IHandlerInfo[]>;
    private __markupNodeDecorator: TMarkupNodeDecoratorFn;
    private touchendTarget: HTMLElement;
-   private callAfterMount: [{fn: Record<string, Function>, finalArgs: Record<string, []>}];
 
    private _clickState: any = {
       detected: false,
@@ -634,12 +633,6 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          // Если делать то же самое через rAF, то нужно звать rAF из rAF, это и дольше, и неудобно.
          setTimeout(() => {
             mountMethodsCaller.afterUpdate(controlNodesToCall);
-            while (this.callAfterMount.length) {
-               const elem = this.callAfterMount.shift();
-               const fn = elem.fn;
-               const finalArgs = elem.finalArgs;
-               fn.apply(fn.control, finalArgs);
-            }
             onEndSync(newRootCntNode.rootId);
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
             newRootCntNode.environment._rebuildRequestStarted = false;
@@ -1033,7 +1026,7 @@ function vdomEventBubbling(
                         /* Асинхронный _afterMount контролов приводит к тому,
                          * что события с dom начинают стрелять до маунта,
                          * в таком случае их надо вызвать отложено */
-                        this.callAfterMount.push({fn, finalArgs});
+                        fn.control._$callAfterMount.push({fn, finalArgs});
                      } else {
                         fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
                      }

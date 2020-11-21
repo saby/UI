@@ -102,6 +102,12 @@ export default class MountMethodsCaller {
                 // tslint:disable-next-line:ban-ts-ignore
                 // @ts-ignore
                 control._afterMount(controlNode.options, controlNode.context);
+                while (control._$callAfterMount.length) {
+                   const elem = control._$callAfterMount.shift();
+                   const fn = elem.fn;
+                   const finalArgs = elem.finalArgs;
+                   fn.apply(fn.control, finalArgs);
+                }
             }
             // tslint:disable-next-line:ban-ts-ignore
             // @ts-ignore
