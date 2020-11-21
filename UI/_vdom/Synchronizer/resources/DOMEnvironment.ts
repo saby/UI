@@ -637,7 +637,10 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             while (callAfterMount && callAfterMount.length) {
                const elem = callAfterMount.shift();
                const fn = elem.fn;
-               fn.apply(fn.control, elem.finalArgs);
+               // @ts-ignore
+               if (!fn.control._destroyed) {
+                  fn.apply(fn.control, elem.finalArgs);
+               }
             }
             onEndSync(newRootCntNode.rootId);
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
