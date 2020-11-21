@@ -198,7 +198,7 @@ export function genResolveTemplateNew(
 ) {
    // resolveTemplateNew(name, method, attributes, events, options, config)
    return `${VAR_MODULE_NAME}.resolveTemplateNew(`
-      + `"${name}",`
+      + `${name},`
       + `/*${name}*/ ${method},`
       + `/*attributes*/ ${attributes},`
       + `/*events*/ ${events},`
