@@ -5,7 +5,7 @@ import { constants, detection } from 'Env/Env';
 import { Logger, isNewEnvironment } from 'UI/Utils';
 import { ElementFinder, Events, BoundaryElements, focus, preventFocus, hasNoFocus, goUpByControlTree } from 'UI/Focus';
 import {
-   IDOMEnvironment, TControlStateCollback, IControlNode,
+   IDOMEnvironment, TControlStateCollback, IControlNode, IArrayEvent,
    IWasabyHTMLElement, TMarkupNodeDecoratorFn, IHandlerInfo, TModifyHTMLNode
 } from '../interfaces';
 
@@ -130,6 +130,7 @@ function generateClickEventFromTouchend(event: TouchEvent): any {
 }
 
 const clickStateTarget: Array<{ target: HTMLElement, touchId: number }> = [];
+const callAfterMount: IArrayEvent[] = [];
 
 class QueueMixin extends Environment {
    private queue: string[] = null;
@@ -168,7 +169,6 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
    private __captureEventHandlers: Record<string, IHandlerInfo[]>;
    private __markupNodeDecorator: TMarkupNodeDecoratorFn;
    private touchendTarget: HTMLElement;
-   private callAfterMount: [{fn: Record<string, Function>, finalArgs: Record<string, []>}];
 
    private _clickState: any = {
       detected: false,
@@ -634,8 +634,8 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          // Если делать то же самое через rAF, то нужно звать rAF из rAF, это и дольше, и неудобно.
          setTimeout(() => {
             mountMethodsCaller.afterUpdate(controlNodesToCall);
-            while (this.callAfterMount && this.callAfterMount.length) {
-               const elem = this.callAfterMount.shift();
+            while (callAfterMount && callAfterMount.length) {
+               const elem = callAfterMount.shift();
                const fn = elem.fn;
                fn.apply(fn.control, elem.finalArgs);
             }
@@ -1028,11 +1028,13 @@ function vdomEventBubbling(
                if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control) &&
                      ((eventObject.nativeEvent && fn.control._mounted) || !eventObject.nativeEvent)) {
                   try {
+                     // TODO: убрать проверку на тип события - сделать более универсальный метод возможно надо смотреть
+                     //  на eventObject.nativeEvent или вообще для всех?
                      if (!fn.control._mounted && eventObject.type === 'mouseenter') {
                         /* Асинхронный _afterMount контролов приводит к тому,
                          * что события с dom начинают стрелять до маунта,
                          * в таком случае их надо вызвать отложено */
-                        this.callAfterMount.push({fn, finalArgs});
+                        callAfterMount.push({fn, finalArgs});
                      } else {
                         fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
                      }
