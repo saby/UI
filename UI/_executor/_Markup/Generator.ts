@@ -254,6 +254,49 @@ function checkResult(res: GeneratorObject | Promise<unknown> | Error,
    throw new Error('MarkupGenerator: createControl type not resolved');
 }
 
+interface INewArguments {
+   attributes: any;
+   options: any;
+   config: any;
+}
+
+function prepareNewArguments(
+   attributes: any,
+   events: any,
+   options: any, // FIXME: Record<string, unknown>
+   config: IControlConfig
+): INewArguments {
+   const decorAttribs = {
+      attributes: config.compositeAttributes === null
+         ? attributes
+         : Helper.processMergeAttributes(config.compositeAttributes, <any>attributes),
+      events,
+      context: config.attr ? config.attr.context : { },
+      inheritOptions: config.attr ? config.attr.inheritOptions : { },
+      internal: config.attr ? config.attr.internal : { },
+      key: config.key
+   };
+   const actualAttributes = config.mergeType === 'attribute'
+      ? Helper.plainMergeAttr(config.attr, decorAttribs)
+      : config.mergeType === 'context'
+         ? Helper.plainMergeContext(config.attr, decorAttribs)
+         : decorAttribs;
+   const actualOptions = config.scope === null ? options : Helper.uniteScope(config.scope, options);
+   const actualConfig = {
+      isRootTag: config.isRootTag,
+      data: config.data,
+      ctx: config.ctx,
+      pName: config.pName,
+      viewController: config.viewController,
+      internal: config.internal
+   };
+   return {
+      attributes: actualAttributes,
+      options: actualOptions,
+      config: actualConfig
+   }
+}
+
 /**
  * @author Тэн В.А.
  */
@@ -281,37 +324,13 @@ export class Generator {
       options: any, // FIXME: Record<string, unknown>
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
-      const fullAttributes = config.compositeAttributes === null
-         ? attributes
-         : Helper.processMergeAttributes(config.compositeAttributes, <any>attributes);
-      const decorAttribs = {
-         attributes: fullAttributes,
-         events,
-         context: config.attr ? config.attr.context : { },
-         inheritOptions: config.attr ? config.attr.inheritOptions : { },
-         internal: config.attr ? config.attr.internal : { },
-         key: config.key
-      };
-      const actualAttributes = config.mergeType === 'attribute'
-         ? Helper.plainMergeAttr(config.attr, decorAttribs)
-         : config.mergeType === 'context'
-            ? Helper.plainMergeContext(config.attr, decorAttribs)
-            : decorAttribs;
-      const actualOptions = config.scope === null ? options : Helper.uniteScope(config.scope, options);
-      const actualConfig = {
-         isRootTag: config.isRootTag,
-         data: config.data,
-         ctx: config.ctx,
-         pName: config.pName,
-         viewController: config.viewController,
-         internal: config.internal
-      };
+      const args = prepareNewArguments(attributes, events, options, config);
       return this.createControl(
          'wsControl',
          name,
-         actualOptions,
-         actualAttributes,
-         actualConfig,
+         args.options,
+         args.attributes,
+         args.config,
          config.context,
          config.depsLocal,
          config.includedTemplates,
@@ -327,37 +346,13 @@ export class Generator {
       options: any, // FIXME: Record<string, unknown>
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
-      const fullAttributes = config.compositeAttributes === null
-         ? attributes
-         : Helper.processMergeAttributes(config.compositeAttributes, <any>attributes);
-      const decorAttribs = {
-         attributes: fullAttributes,
-         events,
-         context: config.attr ? config.attr.context : { },
-         inheritOptions: config.attr ? config.attr.inheritOptions : { },
-         internal: config.attr ? config.attr.internal : { },
-         key: config.key
-      };
-      const actualAttributes = config.mergeType === 'attribute'
-         ? Helper.plainMergeAttr(config.attr, decorAttribs)
-         : config.mergeType === 'context'
-            ? Helper.plainMergeContext(config.attr, decorAttribs)
-            : decorAttribs;
-      const actualOptions = config.scope === null ? options : Helper.uniteScope(config.scope, options);
-      const actualConfig = {
-         isRootTag: config.isRootTag,
-         data: config.data,
-         ctx: config.ctx,
-         pName: config.pName,
-         viewController: config.viewController,
-         internal: config.internal
-      };
+      const args = prepareNewArguments(attributes, events, options, config);
       return this.createControl(
          'template',
          name,
-         actualOptions,
-         actualAttributes,
-         actualConfig,
+         args.options,
+         args.attributes,
+         args.config,
          config.context,
          config.depsLocal,
          config.includedTemplates,
@@ -374,37 +369,13 @@ export class Generator {
       options: any, // FIXME: Record<string, unknown>
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
-      const fullAttributes = config.compositeAttributes === null
-         ? attributes
-         : Helper.processMergeAttributes(config.compositeAttributes, <any>attributes);
-      const decorAttribs = {
-         attributes: fullAttributes,
-         events,
-         context: config.attr ? config.attr.context : { },
-         inheritOptions: config.attr ? config.attr.inheritOptions : { },
-         internal: config.attr ? config.attr.internal : { },
-         key: config.key
-      };
-      const actualAttributes = config.mergeType === 'attribute'
-         ? Helper.plainMergeAttr(config.attr, decorAttribs)
-         : config.mergeType === 'context'
-            ? Helper.plainMergeContext(config.attr, decorAttribs)
-            : decorAttribs;
-      const actualOptions = config.scope === null ? options : Helper.uniteScope(config.scope, options);
-      const actualConfig = {
-         isRootTag: config.isRootTag,
-         data: config.data,
-         ctx: config.ctx,
-         pName: config.pName,
-         viewController: config.viewController,
-         internal: config.internal
-      };
+      const args = prepareNewArguments(attributes, events, options, config);
       return this.createControl(
          'resolver',
          path,
-         actualOptions,
-         actualAttributes,
-         actualConfig,
+         args.options,
+         args.attributes,
+         args.config,
          config.context,
          config.depsLocal,
          config.includedTemplates,
