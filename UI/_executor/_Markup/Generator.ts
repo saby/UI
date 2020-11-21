@@ -392,7 +392,18 @@ export class Generator {
       options: Record<string, unknown>,
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
-      throw new Error('Not implemented yet');
+      const args = prepareNewArguments(attributes, events, options, config);
+      return this.createControl(
+         'resolver',
+         name,
+         args.options,
+         args.attributes,
+         args.config,
+         config.context,
+         config.depsLocal,
+         config.includedTemplates,
+         Helper.config
+      );
    }
 
    chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string | void> | string | Error {

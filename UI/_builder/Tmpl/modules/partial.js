@@ -107,9 +107,10 @@ define('UI/_builder/Tmpl/modules/partial', [
    function prepareDataForCodeGeneration(tag, data, decor) {
       var tagIsWsControl = isControl(tag);
       var tagIsModule = isModule(tag);
+      var tagIsDynamicPartial = !!tag.injectedTemplate;
       var scope = null;
       var compositeAttributes = null;
-      var context = tagIsModule ? 'isVdom ? context + "part_" + (templateCount++) : context' : 'context';
+      var context = (tagIsModule || tagIsDynamicPartial) ? 'isVdom ? context + "part_" + (templateCount++) : context' : 'context';
       if (tag.attribs.hasOwnProperty('scope')) {
          scope = Process.processExpressions(
             tag.attribs.scope.data[0],
