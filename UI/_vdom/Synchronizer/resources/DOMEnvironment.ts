@@ -1038,7 +1038,6 @@ function vdomEventBubbling(
                      } else {
                         fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
                      }
-                     fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
                   } catch (err) {
                      // в шаблоне могут указать неверное имя обработчика, следует выводить адекватную ошибку
                      Logger.error(`Ошибка при вызове обработчика "${ eventPropertyName }" из контрола ${ fn.control._moduleName }.
