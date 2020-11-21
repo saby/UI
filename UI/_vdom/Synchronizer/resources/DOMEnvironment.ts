@@ -1025,8 +1025,7 @@ function vdomEventBubbling(
                /* Также игнорируем обработчики контрола, который выпустил событие.
                 * То есть, сам на себя мы не должны реагировать
                 * */
-               if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control) &&
-                     ((eventObject.nativeEvent && fn.control._mounted) || !eventObject.nativeEvent)) {
+               if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control)) {
                   try {
                      // TODO: убрать проверку на тип события - сделать более универсальный метод возможно надо смотреть
                      //  на eventObject.nativeEvent или вообще для всех?
