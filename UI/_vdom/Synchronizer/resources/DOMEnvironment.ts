@@ -1028,7 +1028,7 @@ function vdomEventBubbling(
                if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control) &&
                      ((eventObject.nativeEvent && fn.control._mounted) || !eventObject.nativeEvent)) {
                   try {
-                     if (!fn.control._mounted && eventObject.type === 'mouseEnter') {
+                     if (!fn.control._mounted && eventObject.type === 'mouseenter') {
                         /* Асинхронный _afterMount контролов приводит к тому,
                          * что события с dom начинают стрелять до маунта,
                          * в таком случае их надо вызвать отложено */
