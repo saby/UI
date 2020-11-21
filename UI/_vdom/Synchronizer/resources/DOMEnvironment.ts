@@ -637,6 +637,11 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             while (callAfterMount && callAfterMount.length) {
                const elem = callAfterMount.shift();
                const fn = elem.fn;
+               /* в слое совместимости контрол внутри которого построился wasaby-контрол, может быть уничтожен
+                 до того как начнется асинхронный вызов afterMount,
+                 как результат в текущей точку контрол будет уже уничтожен слоем совместимости
+                 нало проверять действительно ли он жив, перед тем как выстрелить событием
+                */
                // @ts-ignore
                if (!fn.control._destroyed) {
                   fn.apply(fn.control, elem.finalArgs);
