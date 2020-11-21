@@ -34,19 +34,6 @@ define('UI/_builder/Tmpl/modules/partial', [
       return sequence;
    }
 
-   function syncRequireTemplateOrControl(url, preparedScope, decorAttribs, tag) {
-      var templateName = calculateData(tag.attribs._wstemplatename);
-
-      // превращаем объект с экранированными значениями (¥) в строку для добавления в шаблон
-      var decorInternal = (tag.internal && Object.keys(tag.internal).length > 0) ? FSC.getStr(tag.internal) : null;
-      return Generator.genCreateControlResolver(
-         templateName.slice(1, -1),
-         FSC.getStr(preparedScope),
-         decorAttribs,
-         FeaturePartial.createTemplateConfig(decorInternal, tag.isRootTag)
-      ) + ',';
-   }
-
    function isControl(tag) {
       return !!(
          tag.children &&
@@ -226,33 +213,33 @@ define('UI/_builder/Tmpl/modules/partial', [
                this, tag.attribs, data, {}, tagIsWsControl, tag
             );
             tag.decorAttribs = decorAttribs;
-
             var preparedScope = prepareScope.call(this, tag, data);
-
-            // превращаем объекты с экранированными значениями (¥) в строки для добавления в шаблон
+            var strPreparedScope = FSC.getStr(preparedScope);
             var decorInternal = (tag.internal && Object.keys(tag.internal).length > 0)
                ? FSC.getStr(tag.internal)
                : null;
+            var createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);
 
             if (tagIsDynamicPartial) {
-               var injectedTemplate = Process.processExpressions(
+               // FIXME: Need to process injectedTemplate to get generated code fragment from _wstemplatename
+               Process.processExpressions(
                   tag.injectedTemplate, data, this.fileName, undefined, preparedScope
                );
-               return syncRequireTemplateOrControl(
-                  injectedTemplate,
-                  FSC.getStr(preparedScope),
-                  decor && decor.isMainAttrs
-                     ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
-                     : FSC.getStr(decorAttribs),
-                  tag
-               );
+               var templateName = calculateData(tag.attribs._wstemplatename).slice(1, -1);
+               var partialAttributes = decor && decor.isMainAttrs
+                  ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
+                  : FSC.getStr(decorAttribs);
+               return Generator.genCreateControlResolver(
+                  templateName,
+                  strPreparedScope,
+                  partialAttributes,
+                  createTmplCfg
+               ) + ',';
             }
 
             var createAttribs = decor
                ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
                : TClosure.genPlainMergeContext('attr', FSC.getStr(decorAttribs));
-            var strPreparedScope = FSC.getStr(preparedScope);
-            var createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);
 
             if (tagIsModule) {
                return Generator.genCreateControlModule(
