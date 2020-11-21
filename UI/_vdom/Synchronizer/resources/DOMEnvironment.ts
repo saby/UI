@@ -634,11 +634,12 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          // Если делать то же самое через rAF, то нужно звать rAF из rAF, это и дольше, и неудобно.
          setTimeout(() => {
             mountMethodsCaller.afterUpdate(controlNodesToCall);
-            while (this.callAfterMount.length) {
-               const elem = this.callAfterMount.shift();
-               const fn = elem.fn;
-               const finalArgs = elem.finalArgs;
-               fn.apply(fn.control, finalArgs);
+            if (this.callAfterMount) {
+               while (this.callAfterMount.length) {
+                  const elem = this.callAfterMount.shift();
+                  const fn = elem.fn;
+                  fn.apply(fn.control, elem.finalArgs);
+               }
             }
             onEndSync(newRootCntNode.rootId);
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
