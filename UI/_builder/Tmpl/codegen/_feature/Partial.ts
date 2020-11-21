@@ -28,6 +28,7 @@ export function createConfigNew(
       + `attr: attr,`
       + `data: data,`
       + `ctx: this,`
+      + `defCollection: defCollection,`
       + `depsLocal: typeof depsLocal !== 'undefined' ? depsLocal : {},`
       + `includedTemplates: includedTemplates,`
       + `pName: typeof currentPropertyName !== 'undefined' ? currentPropertyName : undefined,`

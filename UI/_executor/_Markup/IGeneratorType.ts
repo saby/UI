@@ -246,6 +246,7 @@ export interface IControlConfig {
    internal: any;
    scope: any;
    key: any;
+   defCollection: any;
    mergeType: 'none' | 'attribute' | 'context';
 }
 
