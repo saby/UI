@@ -168,6 +168,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
    private __captureEventHandlers: Record<string, IHandlerInfo[]>;
    private __markupNodeDecorator: TMarkupNodeDecoratorFn;
    private touchendTarget: HTMLElement;
+   private callAfterMount: [{fn: Record<string, Function>, finalArgs: Record<string, []>}];
 
    private _clickState: any = {
       detected: false,
@@ -574,10 +575,10 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          mountMethodsCaller.afterRender(controlNodesToCall);
          mountMethodsCaller.beforePaint(controlNodesToCall);
          delay(() => {
-            //останавливать должны, только если запущено, иначе получается так,
+            // останавливать должны, только если запущено, иначе получается так,
             // что это предыдущая фаза синхронизации и она прерывает следующую
-            //то есть, если  _haveRebuildRequest=true а _rebuildRequestStarted=false
-            //это значит, что мы запланировали перерисовку, но она еще не началась
+            // то есть, если  _haveRebuildRequest=true а _rebuildRequestStarted=false
+            // это значит, что мы запланировали перерисовку, но она еще не началась
             // В случае если мы ждем завершения асинхронных детей и перестроение уже закончены
             // нужно убрать запрос на реквест, чтобы дети рутовой ноды могли перерисовываться независимо
             if (
@@ -633,6 +634,12 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          // Если делать то же самое через rAF, то нужно звать rAF из rAF, это и дольше, и неудобно.
          setTimeout(() => {
             mountMethodsCaller.afterUpdate(controlNodesToCall);
+            while (this.callAfterMount.length) {
+               const elem = this.callAfterMount.shift();
+               const fn = elem.fn;
+               const finalArgs = elem.finalArgs;
+               fn.apply(fn.control, finalArgs);
+            }
             onEndSync(newRootCntNode.rootId);
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
             newRootCntNode.environment._rebuildRequestStarted = false;
@@ -978,7 +985,7 @@ function vdomEventBubbling(
    let templateArgs;
    let finalArgs = [];
 
-   //Если событием стрельнул window или document, то распространение начинаем с body
+   // Если событием стрельнул window или document, то распространение начинаем с body
    if (native) {
       curDomNode =
          eventObject.target === window || eventObject.target === document ? document.body : eventObject.target;
@@ -987,11 +994,11 @@ function vdomEventBubbling(
    }
    curDomNode = native ? curDomNode : controlNode.element;
 
-   //Цикл, в котором поднимаемся по DOM-нодам
+   // Цикл, в котором поднимаемся по DOM-нодам
    while (!stopPropagation) {
       eventProperties = curDomNode.eventProperties;
       if (eventProperties && eventProperties[eventPropertyName]) {
-         //Вызываем обработчики для всех controlNode на этой DOM-ноде
+         // Вызываем обработчики для всех controlNode на этой DOM-ноде
          const eventProperty = eventPropertiesStartArray || eventProperties[eventPropertyName];
          for (let i = 0; i < eventProperty.length && !stopPropagation; i++) {
             fn = eventProperty[i].fn;
@@ -1016,15 +1023,21 @@ function vdomEventBubbling(
 
                /* Контрол может быть уничтожен, пока его дочернии элементы нотифаят асинхронные события,
                   в таком случае не реагируем на события */
-               /* Асинхронный _afterMount контролов приводит к тому, что события с dom начинают стрелять до маунта,
-                  в таком случае не реагируем на события */
                /* Также игнорируем обработчики контрола, который выпустил событие.
                 * То есть, сам на себя мы не должны реагировать
                 * */
                if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control) &&
                      ((eventObject.nativeEvent && fn.control._mounted) || !eventObject.nativeEvent)) {
                   try {
+                     if (!fn.control._mounted) {
+                        /* Асинхронный _afterMount контролов приводит к тому,
+                         * что события с dom начинают стрелять до маунта,
+                         * в таком случае их надо вызвать отложено */
+                        this.callAfterMount.push({fn, finalArgs});
+                     } else {
                         fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
+                     }
+                     fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
                   } catch (err) {
                      // в шаблоне могут указать неверное имя обработчика, следует выводить адекватную ошибку
                      Logger.error(`Ошибка при вызове обработчика "${ eventPropertyName }" из контрола ${ fn.control._moduleName }.
@@ -1177,9 +1190,9 @@ function isMyDOMEnvironment(env: any, event: any): any {
    if (element === window || element === document) {
       return true;
    }
-   const isCompatibleTemplate = requirejs.defined('OnlineSbisRu/CompatibleTemplate')
+   const isCompatibleTemplate = requirejs.defined('OnlineSbisRu/CompatibleTemplate');
    while (element) {
-      //для страниц с CompatibleTemplate вся обработка в checkSameEnvironment
+      // для страниц с CompatibleTemplate вся обработка в checkSameEnvironment
       if (element === env._rootDOMNode && !isCompatibleTemplate) {
          return true;
       }
