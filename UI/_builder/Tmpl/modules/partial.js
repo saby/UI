@@ -18,7 +18,7 @@ define('UI/_builder/Tmpl/modules/partial', [
     * @author Крылов М.А.
     */
 
-   var USE_NEW_GENERATOR_METHODS = true;
+   var USE_NEW_GENERATOR_METHODS = false;
 
    function calculateData(sequence) {
       var string = '', attrData = sequence.data, i;
