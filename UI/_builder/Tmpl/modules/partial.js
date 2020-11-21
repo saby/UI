@@ -119,8 +119,10 @@ define('UI/_builder/Tmpl/modules/partial', [
 
    function prepareDataForCodeGeneration(tag, data, decor) {
       var tagIsWsControl = isControl(tag);
+      var tagIsModule = isModule(tag);
       var scope = null;
       var compositeAttributes = null;
+      var context = tagIsModule ? 'isVdom ? context + "part_" + (templateCount++) : context' : 'context';
       if (tag.attribs.hasOwnProperty('scope')) {
          scope = Process.processExpressions(
             tag.attribs.scope.data[0],
@@ -155,7 +157,7 @@ define('UI/_builder/Tmpl/modules/partial', [
          : '{}';
       var mergeType = getMergeType(tag, decor);
       var config = FeaturePartial.createConfigNew(
-         compositeAttributes, scope, internal, tag.isRootTag, tag.key, mergeType
+         compositeAttributes, scope, context, internal, tag.isRootTag, tag.key, mergeType
       );
       return {
          attributes: FSC.getStr(cleanAttributes),

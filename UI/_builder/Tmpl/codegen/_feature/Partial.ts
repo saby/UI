@@ -18,6 +18,7 @@ export function createTemplateConfig(internal: string, isRootTag: boolean): stri
 export function createConfigNew(
    compositeAttributes: string,
    scope: string,
+   context: string,
    internal: string,
    isRootTag: boolean,
    key: string,
@@ -27,11 +28,11 @@ export function createConfigNew(
       + `attr: attr,`
       + `data: data,`
       + `ctx: this,`
-      + `context: context,`
       + `depsLocal: typeof depsLocal !== 'undefined' ? depsLocal : {},`
       + `includedTemplates: includedTemplates,`
       + `pName: typeof currentPropertyName !== 'undefined' ? currentPropertyName : undefined,`
       + `viewController: viewController,`
+      + `context: ${context},`
       + `compositeAttributes: ${compositeAttributes},`
       + `scope: ${scope},`
       + `key: key + "${key}",`
