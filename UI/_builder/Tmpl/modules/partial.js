@@ -150,7 +150,8 @@ define('UI/_builder/Tmpl/modules/partial', [
          attributes: FSC.getStr(cleanAttributes),
          events: FSC.getStr(events),
          options: FSC.getStr(options),
-         config: config
+         config: config,
+         rawOptions: options
       };
    }
 
@@ -158,7 +159,7 @@ define('UI/_builder/Tmpl/modules/partial', [
       var tagIsWsControl = isControl(tag);
       var tagIsModule = isModule(tag);
       var tagIsTemplate = tag.children && tag.children[0] && tag.children[0].fn;
-      // var tagIsDynamicPartial = !!tag.injectedTemplate;
+      var tagIsDynamicPartial = !!tag.injectedTemplate;
       var config = prepareDataForCodeGeneration.call(this, tag, data, decor);
       if (tagIsWsControl) {
          return Generator.genCreateControlNew(
@@ -191,6 +192,21 @@ define('UI/_builder/Tmpl/modules/partial', [
             config.config
          ) + ',';
       }
+      if (tagIsDynamicPartial) {
+         // FIXME: Need to process injectedTemplate to get generated code fragment from _wstemplatename
+         Process.processExpressions(
+            tag.injectedTemplate, data, this.fileName, undefined, config.rawOptions
+         );
+         var templateName = calculateData(tag.attribs._wstemplatename).slice(1, -1);
+         return Generator.genResolveTemplateNew(
+            templateName,
+            null,
+            config.attributes,
+            config.events,
+            config.options,
+            config.config
+         ) + ',';
+      }
       throw new Error('Not implemented yet');
    }
 
@@ -204,7 +220,7 @@ define('UI/_builder/Tmpl/modules/partial', [
                tag.children && tag.children[0] && tag.children[0].fn;
             var tagIsDynamicPartial = !!tag.injectedTemplate;
 
-            var canUseNewGeneratorMethods = tagIsWsControl || tagIsModule /*|| tagIsTemplate*/;
+            var canUseNewGeneratorMethods = tagIsWsControl || tagIsModule /*|| tagIsTemplate*/ || tagIsDynamicPartial;
             if (canUseNewGeneratorMethods && USE_NEW_GENERATOR_METHODS) {
                return processNode.call(this, tag, data, decor);
             }
