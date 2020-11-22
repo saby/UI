@@ -28,6 +28,9 @@ export function createRootDecoratorObject(dataTemplateid, hasMarkup, componentNa
    }
 
    for (var attr in addingAttributes) {
+      if (attr === 'data-component' && obj.hasOwnProperty('data-component')) {
+         continue;
+      }
       if (addingAttributes.hasOwnProperty(attr)) {
          if (attr === 'config') {
             obj[attr] = addingAttributes[attr] + ',' + obj[attr];
@@ -51,4 +54,3 @@ export function createRootDecoratorObject(dataTemplateid, hasMarkup, componentNa
 
    return obj;
 }
-
