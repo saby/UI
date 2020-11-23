@@ -222,7 +222,6 @@ define('UI/_builder/Tmpl/codegen/templates', [
       return tmpl
          .replace(/\/\*#PROPERTY_NAME#\*\//g, propertyName)
          .replace(/\/\*#TEMPLATE_BODY#\*\//g, templateBody)
-         .replace(/\/\*#LOCALIZATION_INIT#\*\//g, localizationBlock)
          .replace(/\/\*#LOCALIZATION_INIT#\*\//g, localizationBlock);
    }
 
