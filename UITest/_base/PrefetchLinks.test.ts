@@ -45,7 +45,7 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
     describe('server side', () => {
         beforeEach(() => {
             // @ts-ignore
-            Head.getInstance().clear();
+            Head.getInstance()._elements = {};
             new PrefetchLinksStorePS().clear();
         });
         it('addPrefetchModules', () => {
