@@ -21,7 +21,9 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
             const data = Head.getInstance().getData();
             assert.equal(data.length, 1);
             assert.equal(data[0][0], 'link');
+            // @ts-ignore
             assert.equal(data[0][1].rel, 'prefetch');
+            // @ts-ignore
             assert.include(data[0][1].href, module.path);
         });
 
@@ -32,7 +34,9 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
             const data = Head.getInstance().getData();
             assert.equal(data.length, 1);
             assert.equal(data[0][0], 'link');
+            // @ts-ignore
             assert.equal(data[0][1].rel, 'preload');
+            // @ts-ignore
             assert.include(data[0][1].href, module.path);
         });
     });
@@ -70,7 +74,9 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
             const data = Head.getInstance().getData();
             assert.equal(data.length, 1);
             assert.equal(data[0][0], 'link');
+            // @ts-ignore
             assert.equal(data[0][1].rel, 'prefetch');
+            // @ts-ignore
             assert.include(data[0][1].href, module.path);
         });
     });
