@@ -1,5 +1,5 @@
 /// <amd-module name='UI/theme/_controller/css/Link' />
-import { ModulesLoader } from 'UI/Utils';
+import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 import { Base } from './Base';
 import { ELEMENT_ATTR, THEME_TYPE, CSS_MODULE_PREFIX } from './const';
 import { ICssEntity, IHTMLElement } from './interface';
