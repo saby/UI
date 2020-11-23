@@ -39,6 +39,11 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
 
     typeof window === 'undefined' &&
     describe('server side', () => {
+        beforeEach(() => {
+            // @ts-ignore
+            Head.getInstance().clear();
+            new PrefetchLinksStorePS().clear();
+        });
         it('addPrefetchModules', () => {
             const pls = new PrefetchLinksStorePS();
             pls.addPrefetchModules([module.name]);
