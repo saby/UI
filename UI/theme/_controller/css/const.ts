@@ -27,6 +27,7 @@ export enum DEPRECATED_ELEMENT_ATTR {
  * Экспортируемый enum: Controls/itemActions:TItemActionShowType
  * @variant MULTI мультитемные css, нет необходимости удалять другие темы
  * @variant SINGLE немультитемные css, при переключении темы остальные темы должны удаляться
+ * @public
  */
 export enum THEME_TYPE {
    /**

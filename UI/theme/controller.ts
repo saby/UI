@@ -14,6 +14,11 @@
  */
 import { Controller } from './_controller/Controller';
 import LinkResolver from "./_controller/LinkResolver";
+
+/**
+ * Получение инстанса контроллера тем, необходимого для скачивания/удаления/коллекции/переключения тем на странице
+ * @public
+ */
 export const getThemeController = Controller.getInstance;
 export { THEME_TYPE, EMPTY_THEME, DEFAULT_THEME } from './_controller/css/const';
 export { LinkResolver }
