@@ -221,7 +221,7 @@ define('UI/_builder/Tmpl/modules/partial', [
                tag.children && tag.children[0] && tag.children[0].fn;
             var tagIsDynamicPartial = !!tag.injectedTemplate;
 
-            var canUseNewGeneratorMethods = tagIsWsControl || tagIsModule /*|| tagIsTemplate*/ || tagIsDynamicPartial;
+            var canUseNewGeneratorMethods = tagIsWsControl || tagIsModule /*|| tagIsTemplate || tagIsDynamicPartial*/;
             if (canUseNewGeneratorMethods && USE_NEW_GENERATOR_METHODS) {
                return processNode.call(this, tag, data, decor);
             }
