@@ -125,7 +125,6 @@ if (typeof thelpers === "undefined") {
       return this || (0, eval)('this')
    })().requirejs("UI/Executor").TClosure;
 }
-/*#LOCALIZATION_INIT#*/
 if (sets && sets.isSetts) {
    var contextObj = sets.fullContext || {};
 }
@@ -251,7 +250,6 @@ if (typeof thelpers === "undefined") {
       return this || (0, eval)('this')
    })().requirejs("UI/Executor").TClosure;
 }
-/*#LOCALIZATION_INIT#*/
 /*#DELETE IT END#*/
 
 var templateCount = 0;
