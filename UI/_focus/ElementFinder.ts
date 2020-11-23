@@ -26,26 +26,28 @@ interface IProps {
    createsContext: Record<string, unknown>;
 }
 
-let FOCUSABLE_ELEMENTS = {
-      a: true,
-      link: true,
-      button: true,
-      input: true,
-      select: true,
-      textarea: true
-   },
-   CLASS_HIDDEN_FLAG = 1,
-   CLASS_DISABLED_FLAG = 2,
-   CLASS_DELEGATES_TAB_FLAG = 4,
-   CLASS_CREATES_CONTEXT = 8,
-   CLASS_TAB_CYCLING = 16,
-   CLASS_NAME_TO_FLAG = {
-      hidden: CLASS_HIDDEN_FLAG,
-      disabled: CLASS_DISABLED_FLAG,
-      'delegates-tabfocus': CLASS_DELEGATES_TAB_FLAG,
-      'creates-context': CLASS_CREATES_CONTEXT,
-      'tab-cycling': CLASS_TAB_CYCLING
-   };
+const FOCUSABLE_ELEMENTS = {
+   link: true,
+   button: true,
+   input: true,
+   select: true,
+   textarea: true
+};
+const CANDIDATE_SELECTOR = [
+   'a[href]'
+];
+const CLASS_HIDDEN_FLAG = 1;
+const CLASS_DISABLED_FLAG = 2;
+const CLASS_DELEGATES_TAB_FLAG = 4;
+const CLASS_CREATES_CONTEXT = 8;
+const CLASS_TAB_CYCLING = 16;
+const CLASS_NAME_TO_FLAG = {
+   hidden: CLASS_HIDDEN_FLAG,
+   disabled: CLASS_DISABLED_FLAG,
+   'delegates-tabfocus': CLASS_DELEGATES_TAB_FLAG,
+   'creates-context': CLASS_CREATES_CONTEXT,
+   'tab-cycling': CLASS_TAB_CYCLING
+};
 
 function assert(cond: boolean, msg?: Function): void {
    let message;
@@ -65,8 +67,19 @@ function getStyle(element: Element, style: string): string {
 function canAcceptSelfFocus(element: IControlElement): boolean {
    const tabIndex = element.tabIndex;
 
-   return FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase()) ||
+   return getTabStopState(element) ||
       (tabIndex !== -1 && element.hasAttribute('contenteditable'));
+}
+
+function getTabStopState(element: IControlElement): boolean {
+   let tabStopState = false;
+   for (let selector = 0; selector < CANDIDATE_SELECTOR.length; selector++) {
+      if (element.matches(CANDIDATE_SELECTOR[selector])) {
+         tabStopState = true;
+         break;
+      }
+   }
+   return FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase()) || tabStopState;
 }
 
 export function getElementProps(element: HTMLElement): IFocusElementProps {
@@ -110,7 +123,7 @@ export function getElementProps(element: HTMLElement): IFocusElementProps {
          enabled: true,
          tabStop:
             (validTabIndex && tabIndex >= 0) ||
-            (tabIndexAttr === null && FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase())) ||
+            (tabIndexAttr === null && getTabStopState(element)) ||
             (tabIndex !== -1 && isContentEditable),
          createsContext: (flags & CLASS_CREATES_CONTEXT) !== 0,
          tabIndex: tabIndex || 0, // обязательно хоть 0
