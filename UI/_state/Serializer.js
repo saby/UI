@@ -2,12 +2,14 @@ define('UI/_state/Serializer', [
    'require',
    'UI/Utils',
    'Env/Env',
-   'UI/_state/TemplateDeserialization'
+   'UI/_state/TemplateDeserialization',
+   'WasabyLoader/Library'
 ], function(
    require,
    Utils,
    Env,
-   deserializeTemplate
+   deserializeTemplate,
+   Library
 ) {
    /**
     * @author Санников К.
@@ -37,7 +39,7 @@ define('UI/_state/Serializer', [
 
       // Use RequireJS if not registered in Types/di
       if (!module) {
-         var parts = Utils.Library.parse(name);
+         var parts = Library.parse(name);
 
          module = loader(parts.name);
          if (!module) {
@@ -497,7 +499,7 @@ define('UI/_state/Serializer', [
    };
 
    Serializer.parseDeclaration = function(declaration) {
-      return Utils.Library.parse(declaration);
+      return Library.parse(declaration);
    };
 
    /**
