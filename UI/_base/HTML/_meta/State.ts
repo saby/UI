@@ -18,7 +18,6 @@ export default class State extends TagMarkup implements IMetaStateInternal {
       private _prevStateId: string = void 0
    ) {
       super(getOgTagDescriptions(_meta.og, _guid));
-      this.outerHTML = `${getTitleMarkup(_meta.title, _guid)}${this.outerHTML}`;
    }
 
    //#region API
@@ -72,11 +71,6 @@ export default class State extends TagMarkup implements IMetaStateInternal {
    }
 }
 
-function getTitleMarkup(title: string, className: string) {
-   if (!title) { return ''; }
-   return `<title data-vdomignore="true" class="${className}">${title}</title>`;
-}
-
 function getOgTagDescriptions(og: Partial<IOpenGraph> = {}, guid: string): ITagDescription[] {
    return Object
       .entries(og)
@@ -89,7 +83,7 @@ function getOgTagDescription(type: string, content: string, guid: string): ITagD
       attrs: {
          property: `og:${type}`,
          class: guid,
-         content,
+         content
       }
    };
 }
