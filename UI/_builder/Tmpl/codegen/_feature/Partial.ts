@@ -38,7 +38,7 @@ export function createConfigNew(
       + `scope: ${scope},`
       + `key: key + "${key}",`
       + `isRootTag: ${isRootTag},`
-      + internal ? `internal: isVdom ? ${internal} : {},` : ''
+      + (internal ? `internal: isVdom ? ${internal} : {},` : '')
       + `mergeType: "${mergeType}"`
       + `}`;
 }
