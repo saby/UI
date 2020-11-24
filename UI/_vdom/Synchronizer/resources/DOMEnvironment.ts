@@ -5,7 +5,7 @@ import { constants, detection } from 'Env/Env';
 import { Logger, isNewEnvironment } from 'UI/Utils';
 import { ElementFinder, Events, BoundaryElements, focus, preventFocus, hasNoFocus, goUpByControlTree } from 'UI/Focus';
 import {
-   IDOMEnvironment, TControlStateCollback, IControlNode,
+   IDOMEnvironment, TControlStateCollback, IControlNode, IArrayEvent,
    IWasabyHTMLElement, TMarkupNodeDecoratorFn, IHandlerInfo, TModifyHTMLNode
 } from '../interfaces';
 
@@ -129,6 +129,7 @@ function generateClickEventFromTouchend(event: TouchEvent): any {
 }
 
 const clickStateTarget: Array<{ target: HTMLElement, touchId: number }> = [];
+const callAfterMount: IArrayEvent[] = [];
 
 class QueueMixin extends Environment {
    private queue: string[] = null;
@@ -571,10 +572,10 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          mountMethodsCaller.afterRender(controlNodesToCall);
          mountMethodsCaller.beforePaint(controlNodesToCall);
          delay(() => {
-            //останавливать должны, только если запущено, иначе получается так,
+            // останавливать должны, только если запущено, иначе получается так,
             // что это предыдущая фаза синхронизации и она прерывает следующую
-            //то есть, если  _haveRebuildRequest=true а _rebuildRequestStarted=false
-            //это значит, что мы запланировали перерисовку, но она еще не началась
+            // то есть, если  _haveRebuildRequest=true а _rebuildRequestStarted=false
+            // это значит, что мы запланировали перерисовку, но она еще не началась
             // В случае если мы ждем завершения асинхронных детей и перестроение уже закончены
             // нужно убрать запрос на реквест, чтобы дети рутовой ноды могли перерисовываться независимо
             if (
@@ -630,6 +631,19 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          // Если делать то же самое через rAF, то нужно звать rAF из rAF, это и дольше, и неудобно.
          setTimeout(() => {
             mountMethodsCaller.afterUpdate(controlNodesToCall);
+            while (callAfterMount && callAfterMount.length) {
+               const elem = callAfterMount.shift();
+               const fn = elem.fn;
+               /* в слое совместимости контрол внутри которого построился wasaby-контрол, может быть уничтожен
+                 до того как начнется асинхронный вызов afterMount,
+                 как результат в текущей точку контрол будет уже уничтожен слоем совместимости
+                 нало проверять действительно ли он жив, перед тем как выстрелить событием
+                */
+               // @ts-ignore
+               if (!fn.control._destroyed) {
+                  fn.apply(fn.control, elem.finalArgs);
+               }
+            }
             onEndSync(newRootCntNode.rootId);
             // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
             newRootCntNode.environment._rebuildRequestStarted = false;
@@ -975,7 +989,7 @@ function vdomEventBubbling(
    let templateArgs;
    let finalArgs = [];
 
-   //Если событием стрельнул window или document, то распространение начинаем с body
+   // Если событием стрельнул window или document, то распространение начинаем с body
    if (native) {
       curDomNode =
          eventObject.target === window || eventObject.target === document ? document.body : eventObject.target;
@@ -984,11 +998,11 @@ function vdomEventBubbling(
    }
    curDomNode = native ? curDomNode : controlNode.element;
 
-   //Цикл, в котором поднимаемся по DOM-нодам
+   // Цикл, в котором поднимаемся по DOM-нодам
    while (!stopPropagation) {
       eventProperties = curDomNode.eventProperties;
       if (eventProperties && eventProperties[eventPropertyName]) {
-         //Вызываем обработчики для всех controlNode на этой DOM-ноде
+         // Вызываем обработчики для всех controlNode на этой DOM-ноде
          const eventProperty = eventPropertiesStartArray || eventProperties[eventPropertyName];
          for (let i = 0; i < eventProperty.length && !stopPropagation; i++) {
             fn = eventProperty[i].fn;
@@ -1011,14 +1025,23 @@ function vdomEventBubbling(
                // Добавляем в eventObject поле со ссылкой DOM-элемент, чей обработчик вызываем
                eventObject.currentTarget = curDomNode;
 
-               /* Control can be destroyed, while some of his children emit async event.
-                * we ignore it event*/
+               /* Контрол может быть уничтожен, пока его дочернии элементы нотифаят асинхронные события,
+                  в таком случае не реагируем на события */
                /* Также игнорируем обработчики контрола, который выпустил событие.
                 * То есть, сам на себя мы не должны реагировать
                 * */
                if (!fn.control._destroyed && (!controlNode || fn.control !== controlNode.control)) {
                   try {
-                     fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
+                     // TODO: убрать проверку на тип события - сделать более универсальный метод возможно надо смотреть
+                     //  на eventObject.nativeEvent или вообще для всех?
+                     if (!fn.control._mounted && eventObject.type === 'mouseenter') {
+                        /* Асинхронный _afterMount контролов приводит к тому,
+                         * что события с dom начинают стрелять до маунта,
+                         * в таком случае их надо вызвать отложено */
+                        callAfterMount.push({fn, finalArgs});
+                     } else {
+                        fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
+                     }
                   } catch (err) {
                      // в шаблоне могут указать неверное имя обработчика, следует выводить адекватную ошибку
                      Logger.error(`Ошибка при вызове обработчика "${ eventPropertyName }" из контрола ${ fn.control._moduleName }.
@@ -1171,9 +1194,9 @@ function isMyDOMEnvironment(env: any, event: any): any {
    if (element === window || element === document) {
       return true;
    }
-   const isCompatibleTemplate = requirejs.defined('OnlineSbisRu/CompatibleTemplate')
+   const isCompatibleTemplate = requirejs.defined('OnlineSbisRu/CompatibleTemplate');
    while (element) {
-      //для страниц с CompatibleTemplate вся обработка в checkSameEnvironment
+      // для страниц с CompatibleTemplate вся обработка в checkSameEnvironment
       if (element === env._rootDOMNode && !isCompatibleTemplate) {
          return true;
       }

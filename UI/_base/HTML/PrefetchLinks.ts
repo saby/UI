@@ -49,6 +49,14 @@ export class PrefetchLinksStorePS implements IPrefetchLinks {
         return this._store().get(key) as string[] || [];
     }
 
+    /**
+     * Очистка стора для unit-тестов
+     */
+    clear(): void {
+        this._store().set(this._prefetchField, []);
+        this._store().set(this._preloadField, []);
+    }
+
     addPrefetchModules(modules: string[]) {
         this._addModules(this._prefetchField, modules);
     }

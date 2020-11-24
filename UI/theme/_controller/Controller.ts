@@ -200,10 +200,6 @@ export class Controller {
 
    static instance: Controller;
 
-   /**
-    * Получение инстанса контроллера тем, необходимого для скачивания/удаления/коллекции/переключения тем на странице
-    * @public
-    */
    static getInstance(): Controller {
       if (typeof Controller.instance !== 'undefined') {
          return Controller.instance;

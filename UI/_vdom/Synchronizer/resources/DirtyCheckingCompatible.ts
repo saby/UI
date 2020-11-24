@@ -37,7 +37,9 @@ export function createCompoundControlNode(
       parentNode,
       vnode,
       TClosure.createGenerator(false, undefined, {
-         prepareAttrsForPartial: _FocusAttrs.prepareAttrsForFocus
+         prepareAttrsForPartial: function prepareAttrsForPartial(attributes) {
+            return _FocusAttrs.prepareAttrsForFocus(attributes.attributes);
+         }
       })
    );
 }

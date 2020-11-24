@@ -77,13 +77,10 @@ function getRealeseDeps(deps: IDeps, unpack: IDeps): ICollectedFiles {
 function getModulesDeps(modules: IModules = {}): IModulesDescription {
    if (constants.isBrowserPlatform) { return noDescription; }
 
-   /** Список путей до внешних сервисов
-    * файлы module-dependencies и bundlesRoute для модулей сторонних сервисов необходимо брать из этих модулей,
-    * т.к. require'ом не получится достучаться до корня стороннего сервиса
-    */
+   /** Список путей до внешних сервисов */
    const externalPaths = Object.keys(modules)
       .filter((name) => !!modules[name].path)
-      .map((name) => name);
+      .map((name) => modules[name].path);
 
    return [root, ...externalPaths]
       .map(requireModuleDeps)

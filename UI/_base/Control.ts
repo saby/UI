@@ -12,7 +12,7 @@ import { ContextResolver } from 'UI/Contexts';
 import { _FocusAttrs, _IControl, activate } from 'UI/Focus';
 import { Logger, Purifier, needToBeCompatible } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
-import { constants } from 'Env/Env';
+import { constants, cookie } from 'Env/Env';
 
 import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
 import { ReactiveObserver } from 'UI/Reactivity';
@@ -193,6 +193,14 @@ export type TControlConstructor<TOptions extends IControlOptions = {}, TState ex
    new(cfg: TOptions): Control<TOptions, TState>;
 }
 
+let _bindToAttribute;
+function bindToAttribute() {
+   if (typeof _bindToAttribute === 'undefined') {
+      _bindToAttribute = cookie.get('bindToAttribute') || 'false';
+   }
+   return _bindToAttribute;
+}
+
 /**
  * Базовый контрол, от которого наследуются все интерфейсные контролы фреймворка Wasaby.
  * Подробнее о работе с классом читайте <a href="/doc/platform/developmentapl/interface-development/ui-library/control/">здесь</a>.
@@ -362,9 +370,30 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
             }
          }
       }
-      res = this._template(this, attributes, rootKey, isVdom, undefined, undefined, {
-         prepareAttrsForPartial: _FocusAttrs.prepareAttrsForFocus
-      });
+      const generatorConfig = {
+         prepareAttrsForPartial: function prepareAttrsForPartial(attributes) {
+            return _FocusAttrs.prepareAttrsForFocus(attributes.attributes);
+         }
+      };
+      if (bindToAttribute() === 'true') {
+         const oldPrepareAttrsForPartial = generatorConfig.prepareAttrsForPartial;
+         generatorConfig.prepareAttrsForPartial = function(attrs) {
+            oldPrepareAttrsForPartial.apply(this, arguments);
+
+            Object.keys(attrs.events).forEach((key) => {
+               const event = attrs.events[key];
+               return event.forEach((event) => {
+                  if (event.hasOwnProperty('data')) {
+                     let attrName = key.replace('on:', 'binded:');
+                     attrName += '-logicparent:';
+                     attrName += event.viewController._moduleName.replace(/\//g, '_');
+                     attrs.attributes[attrName] = event.bindValue;
+                  }
+               });
+            });
+         };
+      }
+      res = this._template(this, attributes, rootKey, isVdom, undefined, undefined, generatorConfig);
       if (res) {
          if (isVdom) {
             if (res.length !== 1) {

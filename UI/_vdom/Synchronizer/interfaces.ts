@@ -179,3 +179,8 @@ export interface IDOMEnvironment {
     _rebuildRequestStarted?: boolean;
     _haveRebuildRequest?: boolean;
 }
+
+export interface IArrayEvent {
+    fn: Record<string, Function>;
+    finalArgs: Record<string, unknown>[];
+}
