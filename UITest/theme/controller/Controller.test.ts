@@ -128,42 +128,6 @@ describe('UI/theme/_controller/Controller', () => {
       });
    });
 
-   describe('setTheme', () => {
-      setHooks();
-
-      const cssName2 = 'Another/Control';
-      const themeName2 = 'Another/Theme';
-
-      it('При установке темы запрашиваются стили для всех контролов', () => {
-         return controller.get(cssName, themeName)
-            .then(() => controller.get(cssName2, themeName))
-            .then(() => controller.setTheme(themeName2))
-            .then(() => {
-               assert.isTrue(controller.has(cssName, themeName));
-               assert.isTrue(controller.has(cssName2, themeName));
-               assert.isTrue(controller.has(cssName, themeName2));
-               assert.isTrue(controller.has(cssName2, themeName2));
-            });
-      });
-
-      it('При установке темы не запрашиваются нетемизированные стили', () => {
-         return controller.get(cssName, EMPTY_THEME)
-            .then(() => controller.setTheme(themeName))
-            .then(() => {
-               assert.isTrue(controller.has(cssName, EMPTY_THEME));
-               assert.isFalse(controller.has(cssName, themeName));
-            });
-      });
-      it('Немультитемы удаляются при переключении темы', () => {
-         return controller.get(cssName, themeName, THEME_TYPE.SINGLE)
-            .then(() => controller.setTheme(themeName2))
-            .then(() => {
-               assert.isFalse(controller.has(cssName, themeName));
-               assert.isTrue(controller.has(cssName, themeName2));
-            });
-      });
-   });
-
    describe('remove', () => {
       setHooks();
 
