@@ -3,7 +3,6 @@ import { assert } from 'chai';
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { Controller } from 'UI/theme/_controller/Controller';
-import { EMPTY_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
 import Link from 'UI/theme/_controller/css/Link';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
 import { ICssLoader } from 'UI/theme/_controller/Loader';
