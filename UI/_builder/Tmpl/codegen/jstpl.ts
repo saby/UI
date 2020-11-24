@@ -8,7 +8,9 @@ export const BODY = `if (typeof forceCompatible === 'undefined') {
     forceCompatible = false;
 }
 var markupGenerator = thelpers.createGenerator(isVdom, forceCompatible, generatorConfig);
+var filename = "/*#FILE_NAME#*/";
 /*#DELETE IT START#*/
+var rk = thelpers.getRk(filename);
 if (typeof includedTemplates === "undefined") {
    eval("var includedTemplates = undefined;");
    includedTemplates = (this && this.includedTemplates) ? this.includedTemplates : {};
@@ -21,7 +23,7 @@ try {
       defCollection = undefined;
    }
 } catch (e) {
-   thelpers.templateError("/*#FILE_NAME#*/", e, data);
+   thelpers.templateError(filename, e, data);
 }
 return out || markupGenerator.createText("");
 `;
@@ -161,7 +163,6 @@ if (typeof includedTemplates === "undefined") {
    eval("var includedTemplates = undefined;");
    includedTemplates = (this && this.includedTemplates) ? this.includedTemplates : {};
 }
-/*#LOCALIZATION_INIT#*/
 /*#DELETE IT END#*/
 var forCounter = 0;
 var templateCount = 0;
@@ -191,11 +192,6 @@ export const INCLUDED_TEMPLATE = `{
    internal: /*#INTERNAL#*/,
    isWasabyTemplate: /*#IS_WASABY_TEMPLATE#*/
 }
-`;
-
-export const LOCALIZATION = `var rk = typeof rk !== 'undefined' ? rk : (function () {
-   return this || (0, eval)('this')
-})().requirejs("i18n!/*#LOCALIZATION_MODULE#*/");
 `;
 
 export const OBJECT_TEMPLATE = `(new(function () {

@@ -25,7 +25,6 @@ define('UI/_builder/Tmpl/codegen/templates', [
    var foreachTemplate = preprocessRawTemplate(jstpl.FOREACH);
    var headTemplate = preprocessRawTemplate(jstpl.HEAD);
    var bodyTemplate = preprocessRawTemplate(jstpl.BODY);
-   var localizationTemplate = preprocessRawTemplate(jstpl.LOCALIZATION);
    var stringTemplate = preprocessRawTemplate(jstpl.STRING_TEMPLATE);
    var functionTemplate = preprocessRawTemplate(jstpl.FUNCTION_TEMPLATE);
    var objectTemplate = preprocessRawTemplate(jstpl.OBJECT_TEMPLATE);
@@ -173,26 +172,11 @@ define('UI/_builder/Tmpl/codegen/templates', [
    }
 
    /**
-    * Сгенерировать блок инициализации rk-функции.
-    * @param fileName Путь к файлу шаблона.
-    * @returns {string} Сгенерированный блок кода.
-    */
-   function generateLocalization(fileName) {
-      var localizationModule = fileName.split('/')[0];
-      return localizationTemplate
-         .replace(/\/\*#LOCALIZATION_MODULE#\*\//g, localizationModule);
-   }
-
-   /**
     * Сгенерировать заголовок функции шаблона - блок инициализации переменных.
-    * @param fileName Путь к файлу шаблона.
-    * @param initLocalization Метка: необходимо сгенерировать блок инициализации локализации.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generateTemplateHead(fileName, initLocalization) {
-      var localizationBlock = initLocalization ? generateLocalization(fileName) : EMPTY_STRING;
-      return headTemplate
-         .replace(/\/\*#LOCALIZATION_INIT#\*\//g, localizationBlock);
+   function generateTemplateHead() {
+      return headTemplate;
    }
 
    /**
@@ -218,12 +202,9 @@ define('UI/_builder/Tmpl/codegen/templates', [
     */
    function generateTemplate(propertyName, templateBody, fileName, isString) {
       var tmpl = isString ? stringTemplate : functionTemplate;
-      var localizationBlock = generateLocalization(fileName);
       return tmpl
          .replace(/\/\*#PROPERTY_NAME#\*\//g, propertyName)
-         .replace(/\/\*#TEMPLATE_BODY#\*\//g, templateBody)
-         .replace(/\/\*#LOCALIZATION_INIT#\*\//g, localizationBlock)
-         .replace(/\/\*#LOCALIZATION_INIT#\*\//g, localizationBlock);
+         .replace(/\/\*#TEMPLATE_BODY#\*\//g, templateBody);
    }
 
    /**

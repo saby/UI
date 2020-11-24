@@ -311,6 +311,13 @@ var
       //    return key.map(value => `${value}`).toString();
       // }
       return '_';
+   },
+   getRk = function(fileName) {
+      var localizationModule = fileName.split('/')[0]; // можно вынести в билдер и здесь аргумент будет уже результат
+
+      var rk = requirejs("i18n!" + localizationModule);
+
+      return rk;
    };
 
 const isolateScope = Scope.isolateScope;
@@ -350,5 +357,6 @@ export {
    createGenerator,
    getMarkupGenerator,
    validateNodeKey,
+   getRk,
    _isTClosure
 };
