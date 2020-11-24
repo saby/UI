@@ -274,7 +274,8 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             this._rootDOMNode,
             event.target,
             !!event.shiftKey,
-            ElementFinder.getElementProps
+            ElementFinder.getElementProps,
+            true
          );
 
          // Store the tab press state until the next step. _isTabPressed is used to determine if

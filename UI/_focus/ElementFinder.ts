@@ -27,6 +27,7 @@ interface IProps {
 }
 
 const FOCUSABLE_ELEMENTS = {
+   a: true,
    link: true,
    button: true,
    input: true,
@@ -34,7 +35,12 @@ const FOCUSABLE_ELEMENTS = {
    textarea: true
 };
 const CANDIDATE_SELECTOR = [
-   'a[href]'
+   'a[href]',
+   'link',
+   'button',
+   'input',
+   'select',
+   'textarea',
 ];
 const CLASS_HIDDEN_FLAG = 1;
 const CLASS_DISABLED_FLAG = 2;
@@ -67,11 +73,17 @@ function getStyle(element: Element, style: string): string {
 function canAcceptSelfFocus(element: IControlElement): boolean {
    const tabIndex = element.tabIndex;
 
-   return FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase()) ||
-      (tabIndex !== -1 && element.hasAttribute('contenteditable'));
+   return getTabStopState(element) || (tabIndex !== -1 && element.hasAttribute('contenteditable'));
 }
 
-function getTabStopState(element: IControlElement): boolean {
+function getFromFocusableElement(element: IControlElement): boolean {
+   return FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase());
+}
+
+function getTabStopState(element: IControlElement, tabbable: boolean = false): boolean {
+   if (!tabbable){
+      return getFromFocusableElement(element)
+   }
    let tabStopState = false;
    for (let selector = 0; selector < CANDIDATE_SELECTOR.length; selector++) {
       if (element.matches(CANDIDATE_SELECTOR[selector])) {
@@ -79,10 +91,10 @@ function getTabStopState(element: IControlElement): boolean {
          break;
       }
    }
-   return FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase()) || tabStopState;
+   return tabStopState;
 }
 
-export function getElementProps(element: HTMLElement): IFocusElementProps {
+export function getElementProps(element: HTMLElement, tabbable: boolean = false): IFocusElementProps {
    let elementPropsClassRe = /\bws-(hidden|disabled)\b/g;
    let className = element.getAttribute('class');
    let classes;
@@ -123,7 +135,7 @@ export function getElementProps(element: HTMLElement): IFocusElementProps {
          enabled: true,
          tabStop:
             (validTabIndex && tabIndex >= 0) ||
-            (tabIndexAttr === null && getTabStopState(element)) ||
+            (tabIndexAttr === null && getTabStopState(element, tabbable)) ||
             (tabIndex !== -1 && isContentEditable),
          createsContext: (flags & CLASS_CREATES_CONTEXT) !== 0,
          tabIndex: tabIndex || 0, // обязательно хоть 0
@@ -221,8 +233,11 @@ function findNextElement(element: Element, props: IProps, reverse: boolean, cont
    return next || contextElement;
 }
 
-function findInner(elem: Element, reverse: boolean, propsGetter: (Element) => IFocusElementProps) {
-   return find(elem, undefined, reverse ? 0 : 1, reverse, propsGetter);
+function findInner(elem: Element,
+                   reverse: boolean,
+                   propsGetter: (Element, boolean) => IFocusElementProps,
+                   tabbable: boolean = false) {
+   return find(elem, undefined, reverse ? 0 : 1, reverse, propsGetter, tabbable);
 }
 
 function startChildElement(parent, reverse) {
@@ -237,7 +252,8 @@ function find(contextElement: Element,
               fromElement: Element | null,
               fromElementTabIndex: number,
               reverse: boolean,
-              propsGetter:(Element) => IFocusElementProps): HTMLElement {
+              propsGetter:(Element, boolean) => IFocusElementProps,
+              tabbable: boolean = false): HTMLElement {
    assert(
       contextElement &&
       (fromElement || fromElementTabIndex !== undefined) &&
@@ -258,7 +274,7 @@ function find(contextElement: Element,
       savedDelegated;
 
    if (fromElement) {
-      props = propsGetter(fromElement);
+      props = propsGetter(fromElement, tabbable);
       fromElementTabIndex = props.tabIndex;
       next = findNextElement(fromElement, props, reverse, contextElement);
    } else {
@@ -272,7 +288,7 @@ function find(contextElement: Element,
             // todo костыль для совместимости, чтобы когда старый компонент внутри нового окружения, он мог принять фокус
             foundDelegated = next;
          } else {
-            foundDelegated = findInner(next, reverse, propsGetter);
+            foundDelegated = findInner(next, reverse, propsGetter, tabbable);
          }
       }
       // элемент может принять фокус только если он не делегирует внутрь
@@ -288,7 +304,7 @@ function find(contextElement: Element,
    let startFromFirst = false;
    for (stage = 0; stage !== 2 && !result; stage++) {
       while (next !== contextElement && next !== fromElement && !result) {
-         nextProps = propsGetter(next);
+         nextProps = propsGetter(next, tabbable);
 
          if (nextProps.enabled && nextProps.tabStop) {
             cmp = compareIndexes(nextProps.tabIndex, fromElementTabIndex, reverse);
@@ -380,13 +396,15 @@ function find(contextElement: Element,
 
 export function findFirstInContext(contextElement: Element,
                                    reverse: boolean,
-                                   propsGetter:(Element) => IFocusElementProps = getElementProps): HTMLElement {
-   return find(contextElement, undefined, reverse ? 0 : 1, reverse, propsGetter);
+                                   propsGetter:(Element, boolean) => IFocusElementProps = getElementProps,
+                                   tabbable : boolean = false): HTMLElement {
+   return find(contextElement, undefined, reverse ? 0 : 1, reverse, propsGetter, tabbable);
 }
 
 function getValidatedWithContext(element: Element,
                                  rootElement: Element,
-                                 propsGetter: (Element) => IFocusElementProps): {element: Element, context: Element} {
+                                 propsGetter: (Element, boolean) => IFocusElementProps,
+                                 tabbable: boolean = false): {element: Element, context: Element} {
    let
       context,
       lastInvalid = null,
@@ -394,7 +412,7 @@ function getValidatedWithContext(element: Element,
       parent = element;
 
    while (parent && parent !== rootElement) {
-      if (!propsGetter(parent).enabled) {
+      if (!propsGetter(parent, tabbable).enabled) {
          lastInvalid = parent;
       }
       parent = parent.parentElement;
@@ -409,7 +427,7 @@ function getValidatedWithContext(element: Element,
 
    if (validatedElement !== rootElement) {
       parent = validatedElement.parentElement;
-      while (parent !== rootElement && !propsGetter(parent).createsContext) {
+      while (parent !== rootElement && !propsGetter(parent, tabbable).createsContext) {
          parent = parent.parentElement;
       }
       context = parent;
@@ -436,23 +454,29 @@ function checkElement(element: Element, paramName: string): void {
 export function findWithContexts(rootElement: Element,
                                  fromElement: Element,
                                  reverse: boolean,
-                                 propsGetter:(Element) => IFocusElementProps = getElementProps): IControlElement {
+                                 propsGetter:(Element, boolean) => IFocusElementProps = getElementProps,
+                                 tabbable: boolean = false): IControlElement {
 
    checkElement(fromElement, 'fromElement');
    checkElement(rootElement, 'rootElement');
 
    let
-      validated = getValidatedWithContext(fromElement, rootElement, propsGetter),
+      validated = getValidatedWithContext(fromElement, rootElement, propsGetter, tabbable),
       result = validated.element;
 
    if (result !== rootElement) {
       do {
-         result = find(validated.context, validated.element, undefined, reverse, propsGetter);
+         result = find(validated.context,
+            validated.element,
+            undefined,
+            reverse,
+            propsGetter,
+            tabbable);
          if (!result) {
-            if (propsGetter(validated.context).tabCycling) {
+            if (propsGetter(validated.context, tabbable).tabCycling) {
                break;
             } else {
-               validated = getValidatedWithContext(validated.context, rootElement, propsGetter);
+               validated = getValidatedWithContext(validated.context, rootElement, propsGetter, tabbable);
             }
          }
       } while (!result && validated.element !== rootElement);
@@ -460,12 +484,12 @@ export function findWithContexts(rootElement: Element,
 
    // прокомментить
    if (result === rootElement) {
-      result = findFirstInContext(rootElement, reverse, propsGetter);
+      result = findFirstInContext(rootElement, reverse, propsGetter, tabbable);
    }
 
    // прокомментить
-   if (!result && propsGetter(validated.context || rootElement).tabCycling) {
-      result = findFirstInContext(validated.context || rootElement, reverse, propsGetter);
+   if (!result && propsGetter(validated.context || rootElement, tabbable).tabCycling) {
+      result = findFirstInContext(validated.context || rootElement, reverse, propsGetter, tabbable);
       if (result === undefined) {
          result = fromElement;
       }
