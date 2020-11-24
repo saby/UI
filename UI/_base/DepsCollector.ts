@@ -207,7 +207,6 @@ function getPacksNames(
          bundleName = bundlesRoute[SPECIAL_DEPS[moduleName]];
       }
       if (!bundleName) { return; }
-      Logger.info(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${moduleName} in bundle ${bundleName}`);
       delete allDeps[moduleName];
       const ext = getExt(bundleName);
       const packageName = getPackageName(bundleName);
@@ -249,7 +248,6 @@ function getCssPackages(
          const noParamsName = removeThemeParam(key);
          const bundleName = bundlesRoute[noParamsName];
          if (bundleName) {
-            Logger.info(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${key} in bundle ${bundleName}`);
             delete allDeps[key];
             const packageName = getPackageName(bundleName);
             if (unpackBundles.indexOf(packageName) !== -1) { continue; }
