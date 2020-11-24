@@ -65,6 +65,14 @@ export default function isElementVisible(elem, isCheckVisibilityHidden: boolean 
       if (classes && invisibleRe.test(classes)) {
          break;
       }
+      const computedStyle = window.getComputedStyle(elem);
+      if (computedStyle.visibility &&
+            (computedStyle.visibility === 'hidden' || computedStyle.visibility === 'invisible')) {
+         break;
+      }
+      if (computedStyle.display && computedStyle.display === 'none') {
+         break;
+      }
       elem = elem.parentNode;
    }
    result = result && elem === doc;
