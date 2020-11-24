@@ -302,7 +302,7 @@ export class GeneratorVdom implements IGenerator {
 
       if (Common.isTemplateClass(fn)) {
          return this.createTemplate(fn, resolvedScope, decorAttribs, context, _deps, data);
-      } */
+      }
 
       const nameFunc = isTplString ? tpl : 'InlineFunction';
       Logger.debug(`createWsControl - "${nameFunc}"`, data.controlProperties);
