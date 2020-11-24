@@ -3,7 +3,6 @@ import { assert } from 'chai';
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { Controller } from 'UI/theme/_controller/Controller';
-import { EMPTY_THEME, THEME_TYPE } from 'UI/theme/_controller/css/const';
 import Link from 'UI/theme/_controller/css/Link';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
 import { ICssLoader } from 'UI/theme/_controller/Loader';
@@ -125,42 +124,6 @@ describe('UI/theme/_controller/Controller', () => {
          return controller
             .get(cssName)
             .then(() => { assert.isTrue(controller.has(cssName)); });
-      });
-   });
-
-   describe('setTheme', () => {
-      setHooks();
-
-      const cssName2 = 'Another/Control';
-      const themeName2 = 'Another/Theme';
-
-      it('При установке темы запрашиваются стили для всех контролов', () => {
-         return controller.get(cssName, themeName)
-            .then(() => controller.get(cssName2, themeName))
-            .then(() => controller.setTheme(themeName2))
-            .then(() => {
-               assert.isTrue(controller.has(cssName, themeName));
-               assert.isTrue(controller.has(cssName2, themeName));
-               assert.isTrue(controller.has(cssName, themeName2));
-               assert.isTrue(controller.has(cssName2, themeName2));
-            });
-      });
-
-      it('При установке темы не запрашиваются нетемизированные стили', () => {
-         return controller.get(cssName, EMPTY_THEME)
-            .then(() => controller.setTheme(themeName))
-            .then(() => {
-               assert.isTrue(controller.has(cssName, EMPTY_THEME));
-               assert.isFalse(controller.has(cssName, themeName));
-            });
-      });
-      it('Немультитемы удаляются при переключении темы', () => {
-         return controller.get(cssName, themeName, THEME_TYPE.SINGLE)
-            .then(() => controller.setTheme(themeName2))
-            .then(() => {
-               assert.isFalse(controller.has(cssName, themeName));
-               assert.isTrue(controller.has(cssName, themeName2));
-            });
       });
    });
 
