@@ -7,6 +7,7 @@ import * as Attr from '../../_Expressions/Attr';
 import * as Vdom from '../../_Utils/Vdom';
 import * as Common from '../../_Utils/Common';
 import * as RequireHelper from '../../_Utils/RequireHelper';
+import { invisibleNodeTagName } from '../../Utils';
 import { onElementMount, onElementUnmount } from '../../_Utils/ChildrenManager';
 import { Generator } from '../Generator';
 import { IGenerator } from '../IGenerator';
@@ -38,6 +39,12 @@ import { GeneratorNode } from './IVdomType';
 import { cutFocusAttributes } from '../Utils';
 import { VNode } from 'Inferno/third-party/index';
 
+const emtpyProps = {
+   attributes: {},
+   hooks: {},
+   events: {}
+};
+
 /**
  * @author Тэн В.А.
  */
@@ -46,11 +53,11 @@ export class GeneratorVdom implements IGenerator {
    canBeCompatible: boolean;
    generatorBase: Generator;
 
-   private prepareAttrsForPartial: Function;
+   private generatorConfig: IGeneratorConfig;
 
    constructor(config: IGeneratorConfig) {
       if (config) {
-         this.prepareAttrsForPartial = config.prepareAttrsForPartial;
+         this.generatorConfig = config;
       }
       this.cacheModules = {};
       this.generatorBase = new Generator(config);
@@ -295,7 +302,7 @@ export class GeneratorVdom implements IGenerator {
 
       if (Common.isTemplateClass(fn)) {
          return this.createTemplate(fn, resolvedScope, decorAttribs, context, _deps, data);
-      }
+      } */
 
       const nameFunc = isTplString ? tpl : 'InlineFunction';
       Logger.debug(`createWsControl - "${nameFunc}"`, data.controlProperties);
@@ -305,11 +312,11 @@ export class GeneratorVdom implements IGenerator {
       const parent = data.parent;
       if (typeof fn === 'function') {
          return parent ?
-            fn.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial) :
+               fn.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
             fn(resolvedScope, decorAttribs, context, true);
       } else if (fn && typeof fn.func === 'function') {
          return parent ?
-            fn.func.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial) :
+               fn.func.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
             fn.func(resolvedScope, decorAttribs, context, true);
       } else if (Common.isArray(fn)) {
          return this.resolveTemplateArray(parent, fn, resolvedScope, decorAttribs, context);
@@ -366,6 +373,10 @@ export class GeneratorVdom implements IGenerator {
       defCollection: IGeneratorDefCollection,
       control: GeneratorEmptyObject
    ): string {
+      if (tagName === invisibleNodeTagName) {
+         return Vdom.htmlNode(tagName, emtpyProps, [], attrs.key);
+      }
+
       if (!attrToDecorate) {
          attrToDecorate = {};
       }
@@ -381,6 +392,14 @@ export class GeneratorVdom implements IGenerator {
       const mergedEvents = Attr.mergeEvents(attrToDecorate.events, attrs.events);
 
       _FocusAttrs.prepareTabindex(mergedAttrs);
+
+      Object.keys(mergedAttrs).forEach((attrName) => {
+         if (attrName.indexOf('top:') === 0) {
+            const newAttrName = attrName.replace('top:', '');
+            mergedAttrs[newAttrName] = mergedAttrs[newAttrName] || mergedAttrs[attrName];
+            delete mergedAttrs[attrName];
+         }
+      });
 
       //Убрать внутри обработку event
       const props = {
@@ -453,9 +472,9 @@ export class GeneratorVdom implements IGenerator {
 
    resolveTemplateFunction(parent: any, template: any, resolvedScope: any, decorAttribs: any, context: any): any {
       if (parent) {
-         return template.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial);
+         return template.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig);
       }
-      return template(resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial);
+      return template(resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig);
    }
 
    resolveTemplate(template: any, parent: any, resolvedScope: any, decorAttribs: any, context: any): any {

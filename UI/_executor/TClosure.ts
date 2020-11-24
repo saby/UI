@@ -108,7 +108,8 @@ var
          const error = scope['_$' + name];
          if (error instanceof ConfigResolver.UseAutoProxiedOptionError) {
             if (!error.isDestroyed()) {
-               Logger.error(`Попытка использовать опцию, которой не существует: ${path.slice(0, depth + 1).join('.')}
+               Logger.warn(`(Отладочная информация! Игнорируйте!)
+               Попытка использовать опцию, которой не существует: ${path.slice(0, depth + 1).join('.')}
                При вставке контрола/шаблона эта опция не была явно передана, поэтому в текущем дочернем контроле ее использовать нельзя.
                Передача опции не произошла в шаблоне контрола: ${error.upperControlName}.
                Вставляемый контрол/шаблон, в котором должна явно передаваться опция: ${error.lostHere}.

@@ -1,6 +1,6 @@
 {
    "name": "saby-ui",
-   "version": "20.7100.0",
+   "version": "21.1000.0",
    "repository": {
       "type": "git",
       "url": "git@platform-git.sbis.ru:saby/UI.git"
@@ -40,8 +40,7 @@
       "express": "^4.16.3",
       "requirejs": "2.1.18",
       "serve-static": "1.11.x",
-      "wasaby-cli": "git+https://platform-git.sbis.ru/saby/wasaby-cli.git#rc-20.7100",
-      "saby-inferno": "git+https://github.com/saby/inferno.git#rc-20.7100"
+      "wasaby-cli": "git+https://platform-git.sbis.ru/saby/wasaby-cli.git#rc-21.1000"
    },
    "madge": {
       "baseDir": ".",

@@ -232,8 +232,8 @@ export function plainMergeAttr(inner, object) {
    }
 
    var controlKey;
-   if (object.attributes && object.attributes['attr:key']) {
-      controlKey = object.attributes['attr:key'];
+   if (object.attributes && object.attributes['key']) {
+      controlKey = object.attributes['key'];
    }
    controlKey = controlKey || object.key || inner.key;
 
@@ -257,8 +257,8 @@ export function plainMergeContext(inner, object) {
       object = {};
    }
    var controlKey;
-   if (object.attributes && object.attributes['attr:key']) {
-      controlKey = object.attributes['attr:key'];
+   if (object.attributes && object.attributes['key']) {
+      controlKey = object.attributes['key'];
    }
    controlKey = controlKey || object.key || inner.key;
 

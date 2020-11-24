@@ -12,6 +12,7 @@ define('UI/_builder/Tmpl/core/_deprecated/ComponentCollector', [
    'use strict';
 
    /**
+    * Модуль предназначен для сбора зависимостей шаблона путем обхода дерева.
     * @author Крылов М.А.
     */
 

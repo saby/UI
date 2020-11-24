@@ -300,8 +300,9 @@ function getMarkupForTemplatedNode(vnode, controlNodes, environment) {
       /*return controlNodes "as is" without inner full markup
         it must be controlNode for dirty cheking
         */
-      var markup = getFullMarkup(controlNodes, result[k], true);
-      resultsFromTemplate = resultsFromTemplate.concat(Array.isArray(markup) ? markup : [markup]);
+      let markup = getFullMarkup(controlNodes, result[k], true);
+      markup = Array.isArray(markup) ? markup : [markup];
+      resultsFromTemplate.push(...markup);
    }
    for (k = 0; k < resultsFromTemplate.length; k++) {
       resultsFromTemplate[k] = mapVNode(
@@ -360,7 +361,7 @@ function rebuildNodeWriter(environment, node, force, isRoot?) {
             return rebuildNode(environment, node, force, isRoot);
          },
          function (err) {
-            const error = new Error(`Promise со состоянием rejected был возвращен из _beforeMount.
+            const error = new Error(`Promise с состоянием rejected был возвращен из _beforeMount.
             Перед возвратом promise из _beforeMount всегда добавлять catch обработчик. \n Ошибка: ${err}`);
             Logger.asyncRenderErrorLog(error, node);
             /*_beforeMount can return errback
@@ -615,10 +616,8 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             saveChildren(vnode.children);
             for (var i = 0; i < vnode.children.length; i++) {
                 var diffTmplOneNode = getMarkupDiff(null, vnode.children[i]);
-                diffTmpl.create = diffTmpl.create.concat(diffTmplOneNode.create);
-                diffTmpl.createTemplates = diffTmpl.createTemplates.concat(diffTmplOneNode.createTemplates);
-                diffTmpl.update = diffTmpl.update.concat(diffTmplOneNode.update);
-                diffTmpl.updateTemplates = diffTmpl.updateTemplates.concat(diffTmplOneNode.updateTemplates);
+                diffTmpl.create.push(...diffTmplOneNode.create);
+                diffTmpl.createTemplates.push(...diffTmplOneNode.createTemplates);
             }
             onEndCommit(vnode, {
                 template: vnode.template,
@@ -631,7 +630,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         });
 
         diff.createTemplates = diffTmpl.createTemplates;
-        diff.updateTemplates = diff.updateTemplates.concat(diffTmpl.updateTemplates);
+        diff.updateTemplates.push(...diffTmpl.updateTemplates);
 
         diffTmpl.createTemplates = [];
         diffTmpl.updateTemplates = [];
@@ -676,12 +675,12 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                     let newChild = newTemplateNode.children[childrenMap[i].next];
                     if (newChild) {
                         diffTmplOneNode = getMarkupDiff(oldChild, newChild, true, false);
-                        createdNodesSimple = createdNodesSimple.concat(diffTmplOneNode.create);
-                        createdTemplateNodesSimple = createdTemplateNodesSimple.concat(diffTmplOneNode.createTemplates);
-                        updatedNodesSimple = updatedNodesSimple.concat(diffTmplOneNode.update);
-                        updatedTemplateNodesSimple = updatedTemplateNodesSimple.concat(diffTmplOneNode.updateTemplates);
-                        destroyedNodesSimple = destroyedNodesSimple.concat(diffTmplOneNode.destroy);
-                        destroyedTemplateNodesSimple = destroyedTemplateNodesSimple.concat(diffTmplOneNode.destroyTemplates)
+                        createdNodesSimple.push(...diffTmplOneNode.create);
+                        createdTemplateNodesSimple.push(...diffTmplOneNode.createTemplates);
+                        updatedNodesSimple.push(...diffTmplOneNode.update);
+                        updatedTemplateNodesSimple.push(...diffTmplOneNode.updateTemplates);
+                        destroyedNodesSimple.push(...diffTmplOneNode.destroy);
+                        destroyedTemplateNodesSimple.push(...diffTmplOneNode.destroyTemplates)
                     } else if (oldChild) {
                         // В этой ветке находим ноды, которые были задестроены, чтобы вызвать _beforeUnmount у контролов
                         if (isControlVNodeType(oldChild)) {
@@ -694,19 +693,19 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                 // from the two sets of supposed updated template nodes we have to choose
                 // one, which will satisfy our need of minimum operations in one cycle
                 if (updatedTemplateNodesSimple.length > templateNodeDiff.updateTemplates.length) {
-                    diffTmpl.updateTemplates = diffTmpl.updateTemplates.concat(templateNodeDiff.updateTemplates);
-                    diffTmpl.createTemplates = diffTmpl.createTemplates.concat(templateNodeDiff.createTemplates);
-                    diffTmpl.destroyTemplates = diffTmpl.destroyTemplates.concat(templateNodeDiff.destroyTemplates);
-                    diffTmpl.create = diffTmpl.create.concat(templateNodeDiff.create);
-                    diffTmpl.update = diffTmpl.update.concat(templateNodeDiff.update);
-                    diffTmpl.destroy = diffTmpl.destroy.concat(templateNodeDiff.destroy);
+                    diffTmpl.updateTemplates.push(...templateNodeDiff.updateTemplates);
+                    diffTmpl.createTemplates.push(...templateNodeDiff.createTemplates);
+                    diffTmpl.destroyTemplates.push(...templateNodeDiff.destroyTemplates);
+                    diffTmpl.create.push(...templateNodeDiff.create);
+                    diffTmpl.update.push(...templateNodeDiff.update);
+                    diffTmpl.destroy.push(...templateNodeDiff.destroy);
                 } else {
-                    diffTmpl.updateTemplates = diffTmpl.updateTemplates.concat(updatedTemplateNodesSimple);
-                    diffTmpl.createTemplates = diffTmpl.createTemplates.concat(createdTemplateNodesSimple);
-                    diffTmpl.destroyTemplates = diffTmpl.destroyTemplates.concat(destroyedTemplateNodesSimple);
-                    diffTmpl.update = diffTmpl.update.concat(updatedNodesSimple);
-                    diffTmpl.create = diffTmpl.create.concat(createdNodesSimple);
-                    diffTmpl.destroy = diffTmpl.destroy.concat(destroyedNodesSimple);
+                    diffTmpl.updateTemplates.push(...updatedTemplateNodesSimple);
+                    diffTmpl.createTemplates.push(...createdTemplateNodesSimple);
+                    diffTmpl.destroyTemplates.push(...destroyedTemplateNodesSimple);
+                    diffTmpl.update.push(...updatedNodesSimple);
+                    diffTmpl.create.push(...createdNodesSimple);
+                    diffTmpl.destroy.push(...destroyedNodesSimple);
                 }
             } else {
                 newTemplateNode.children = oldTemplateNode.children;
@@ -719,11 +718,11 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                         newTemplateNode.children[i],
                         true
                     );
-                    diffTmpl.create = diffTmpl.create.concat(diffTmplOneNode.create);
-                    diffTmpl.createTemplates = diffTmpl.createTemplates.concat(diffTmplOneNode.createTemplates);
-                    diffTmpl.update = diffTmpl.update.concat(diffTmplOneNode.update);
-                    diffTmpl.updateTemplates = diffTmpl.updateTemplates.concat(diffTmplOneNode.updateTemplates);
-                    diffTmpl.destroy = diffTmpl.destroy.concat(diffTmplOneNode.destroy);
+                    diffTmpl.create.push(...diffTmplOneNode.create);
+                    diffTmpl.createTemplates.push(...diffTmplOneNode.createTemplates);
+                    diffTmpl.update.push(...diffTmplOneNode.update);
+                    diffTmpl.updateTemplates.push(...diffTmplOneNode.updateTemplates);
+                    diffTmpl.destroy.push(...diffTmplOneNode.destroy);
                 }
             }
             onEndCommit(newTemplateNode, {
@@ -739,11 +738,11 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         });
 
         diff.updateTemplates = diffTmpl.updateTemplates;
-        diff.destroyTemplates = diff.destroyTemplates.concat(diffTmpl.destroyTemplates);
-        diff.create = diff.create.concat(diffTmpl.create);
-        diff.destroy = diff.destroy.concat(diffTmpl.destroy);
-        diff.update = diff.update.concat(diffTmpl.update);
-        diff.createTemplates = diff.createTemplates.concat(diffTmpl.createTemplates);
+        diff.destroyTemplates.push(...diffTmpl.destroyTemplates);
+        diff.create.push(...diffTmpl.create);
+        diff.destroy.push(...diffTmpl.destroy);
+        diff.update.push(...diffTmpl.update);
+        diff.createTemplates.push(...diffTmpl.createTemplates);
     }
 
     if (diff.destroyTemplates.length > 0) {
@@ -753,7 +752,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
 
         // Все контрол-ноды внутри уничтожаемых шаблонов добавляем в список на удаление,
         // иначе они зависнут в памяти
-        diff.destroy = diff.destroy.concat(templateControlsToDestroy);
+        diff.destroy.push(...templateControlsToDestroy);
 
         // не знаю что именно исправлял Никита, но я столкнулся с кейсом, что в destroy дублируются значения,
         // а значит будет зваться _beforeUnmount более одного раза на удаляемом контроле
@@ -1034,7 +1033,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         return childControlNode;
     });
 
-    childrenNodes = updatedNodes.concat(createdNodes);
+    childrenNodes = [...updatedNodes, ...createdNodes];
 
     updatedUnchangedNodes = ARR_EMPTY;
     updatedChangedNodes = ARR_EMPTY;

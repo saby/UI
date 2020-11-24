@@ -503,13 +503,14 @@ define('UI/_builder/Tmpl/function', [
                         isAttribute,
                         attrib
                      );
+                     var newAttr = attrib.replace('attr:', '');
                      if (utils.removeAllSpaces(processed) !== '') {
-                        obj.attributes[attrib] = processed;
+                        obj.attributes[newAttr] = processed;
                      } else if (Array.isArray(this.config.booleanAttributes)) {
                         // FIXME: Необходимо проверять все входящие данные перед выполнением сборки шаблона
                         //  Сейчас множественные this, непонятно на что и куда ссылающиеся, мешают. Избавиться от них
                         if (this.config.booleanAttributes.indexOf(attrib.toLowerCase()) !== -1) {
-                           obj.attributes[attrib] = 'true';
+                           obj.attributes[newAttr] = 'true';
                         }
                      }
                   }

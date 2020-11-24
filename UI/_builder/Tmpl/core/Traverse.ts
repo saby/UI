@@ -3038,13 +3038,14 @@ class Traverse implements ITraverse {
          }
          if (this.warnUnusedTemplates) {
             this.errorHandler.warn(
-               `Шаблон с именем "${name}" определен, но не был использован`,
+               `Шаблон с именем "${name}" определен, но не был использован. Неиспользуемый шаблон необходимо удалить`,
                {
                   fileName: context.fileName
                }
             );
          }
-         context.scope.removeTemplate(name);
+         // FIXME: Сначала удалить из дерева, потом из контекста
+         // context.scope.removeTemplate(name);
       }
    }
 

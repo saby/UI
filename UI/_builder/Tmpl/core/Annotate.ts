@@ -101,11 +101,19 @@ function hasBindings(node: Ast.ExpressionNode): boolean {
 
 function appendInternalExpressions(internal: Ast.IInternal, expressions: Ast.ExpressionNode[]): void {
    let expressionIndex = 0;
+   const srcProgramMap = { };
    for (let index = 0; index < expressions.length; ++index) {
       const expression = expressions[index];
       if (hasBindings(expression)) {
          continue;
       }
+
+      // Do not append the same expressions to internal collection
+      const key = '' + expression.__$ws_program.string + '';
+      if (srcProgramMap[key]) {
+         continue;
+      }
+      srcProgramMap[key] = true;
 
       internal[INTERNAL_EXPRESSION_PREFIX + (expressionIndex++)] = {
          data: [

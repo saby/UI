@@ -10,6 +10,8 @@ define('UI/_builder/Tmpl/core/_deprecated/postTraverse', [
    var uniqueArray = Utils.ArrayUtils.uniq;
 
    /**
+    * Модуль предназначен для аннотации дерева - проставления internal коллекций
+    * и сбора реактивных свойств (старый алгоритм)
     * @author Крылов М.А.
     */
 

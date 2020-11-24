@@ -1,13 +1,12 @@
 import { IControlNode } from '../interfaces';
+import { invisibleNodeTagName } from 'UI/Executor';
 
 /**
  * @author Кондаков Р.Н.
  */
 
-export const invisibleNodeTypename: string = 'invisible-node';
-
 function isInvisibleType(typename?: string): boolean {
-    return typename === invisibleNodeTypename;
+    return typename === invisibleNodeTagName;
 }
 
 export default function isInvisibleNode(controlNode: IControlNode, checkChildren: boolean = false): boolean {

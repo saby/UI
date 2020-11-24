@@ -199,6 +199,7 @@ export class Controller {
    }
 
    static instance: Controller;
+
    static getInstance(): Controller {
       if (typeof Controller.instance !== 'undefined') {
          return Controller.instance;
