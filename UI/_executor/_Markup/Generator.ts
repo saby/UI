@@ -380,6 +380,7 @@ export class Generator {
          config.depsLocal,
          config.includedTemplates,
          Helper.config,
+         {},
          config.defCollection
       );
    }
@@ -402,7 +403,9 @@ export class Generator {
          config.context,
          config.depsLocal,
          config.includedTemplates,
-         Helper.config
+         Helper.config,
+         {},
+         config.defCollection
       );
    }
 

@@ -151,13 +151,17 @@ define('UI/_builder/Tmpl/modules/partial', [
          compositeAttributes, scope, context, internal, tag.isRootTag, tag.key, mergeType
       );
 
-      return {
+      var result = {
          attributes: FSC.getStr(cleanAttributes),
          events: FSC.getStr(events),
          options: FSC.getStr(options),
          config: config,
          rawOptions: options
       };
+
+      // FIXME: Multiple processing
+      tag.__$decoratedData = result;
+      return result;
    }
 
    function processNode(tag, data, decor) {
@@ -165,7 +169,7 @@ define('UI/_builder/Tmpl/modules/partial', [
       var tagIsModule = isModule(tag);
       var tagIsTemplate = tag.children && tag.children[0] && tag.children[0].fn;
       var tagIsDynamicPartial = !!tag.injectedTemplate;
-      var config = prepareDataForCodeGeneration.call(this, tag, data, decor);
+      var config = tag.__$decoratedData || prepareDataForCodeGeneration.call(this, tag, data, decor);
       if (tagIsDynamicPartial) {
          // FIXME: Need to process injectedTemplate to get generated code fragment from _wstemplatename
          Process.processExpressions(
