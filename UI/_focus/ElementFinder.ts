@@ -27,16 +27,15 @@ interface IProps {
 }
 
 const FOCUSABLE_ELEMENTS = {
-   a: true,
    link: true,
    button: true,
    input: true,
    select: true,
    textarea: true
 };
-// const CANDIDATE_SELECTOR = [
-//    'a[href]'
-// ];
+const CANDIDATE_SELECTOR = [
+   'a[href]'
+];
 const CLASS_HIDDEN_FLAG = 1;
 const CLASS_DISABLED_FLAG = 2;
 const CLASS_DELEGATES_TAB_FLAG = 4;
@@ -72,16 +71,16 @@ function canAcceptSelfFocus(element: IControlElement): boolean {
       (tabIndex !== -1 && element.hasAttribute('contenteditable'));
 }
 
-// function getTabStopState(element: IControlElement): boolean {
-//    let tabStopState = false;
-//    for (let selector = 0; selector < CANDIDATE_SELECTOR.length; selector++) {
-//       if (element.matches(CANDIDATE_SELECTOR[selector])) {
-//          tabStopState = true;
-//          break;
-//       }
-//    }
-//    return FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase()) || tabStopState;
-// }
+function getTabStopState(element: IControlElement): boolean {
+   let tabStopState = false;
+   for (let selector = 0; selector < CANDIDATE_SELECTOR.length; selector++) {
+      if (element.matches(CANDIDATE_SELECTOR[selector])) {
+         tabStopState = true;
+         break;
+      }
+   }
+   return FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase()) || tabStopState;
+}
 
 export function getElementProps(element: HTMLElement): IFocusElementProps {
    let elementPropsClassRe = /\bws-(hidden|disabled)\b/g;
@@ -124,7 +123,7 @@ export function getElementProps(element: HTMLElement): IFocusElementProps {
          enabled: true,
          tabStop:
             (validTabIndex && tabIndex >= 0) ||
-            (tabIndexAttr === null && FOCUSABLE_ELEMENTS.hasOwnProperty(element.tagName.toLowerCase())) ||
+            (tabIndexAttr === null && getTabStopState(element)) ||
             (tabIndex !== -1 && isContentEditable),
          createsContext: (flags & CLASS_CREATES_CONTEXT) !== 0,
          tabIndex: tabIndex || 0, // обязательно хоть 0
