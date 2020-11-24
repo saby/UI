@@ -6,46 +6,35 @@ const module = {
     name: 'Module/File',
     path: '/Module/File.js'
 };
+const expectedObject = {"data-vdomignore": true, as: 'script', href: module.path}
 describe('UI/_base/HTML/PrefetchLinks', () => {
     typeof window !== 'undefined' &&
     describe('client side', () => {
         beforeEach(() => {
-            // @ts-ignore
-            Head.getInstance()._elements = {};
+            Head.getInstance().clear();
         });
 
         it('addPrefetchModules', () => {
             const pls = new PrefetchLinksStore();
             pls.addPrefetchModules([module.name]);
-            // @ts-ignore
             const data = Head.getInstance().getData();
             assert.equal(data.length, 1);
-            assert.equal(data[0][0], 'link');
-            // @ts-ignore
-            assert.equal(data[0][1].rel, 'prefetch');
-            // @ts-ignore
-            assert.include(data[0][1].href, module.path);
+            assert.deepEqual(data[0], ['link', {...{rel: 'prefetch'}, ...expectedObject}]);
         });
 
         it('addPreloadModules', () => {
             const pls = new PrefetchLinksStore();
             pls.addPreloadModules([module.name]);
-            // @ts-ignore
             const data = Head.getInstance().getData();
             assert.equal(data.length, 1);
-            assert.equal(data[0][0], 'link');
-            // @ts-ignore
-            assert.equal(data[0][1].rel, 'preload');
-            // @ts-ignore
-            assert.include(data[0][1].href, module.path);
+            assert.deepEqual(data[0], ['link', {...{rel: 'preload'}, ...expectedObject}]);
         });
     });
 
     typeof window === 'undefined' &&
     describe('server side', () => {
         beforeEach(() => {
-            // @ts-ignore
-            Head.getInstance()._elements = {};
+            Head.getInstance().clear();
             new PrefetchLinksStorePS().clear();
         });
         it('addPrefetchModules', () => {
@@ -70,14 +59,9 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
             const pls = new PrefetchLinksStorePS();
             pls.addPrefetchModules(prefetchModules);
             handlePrefetchModules(pageDeps);
-            // @ts-ignore
             const data = Head.getInstance().getData();
             assert.equal(data.length, 1);
-            assert.equal(data[0][0], 'link');
-            // @ts-ignore
-            assert.equal(data[0][1].rel, 'prefetch');
-            // @ts-ignore
-            assert.include(data[0][1].href, module.path);
+            assert.deepEqual(data[0], ['link', {...{rel: 'prefetch'}, ...expectedObject}]);
         });
     });
 });
