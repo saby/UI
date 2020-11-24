@@ -162,9 +162,14 @@ define('UI/_builder/Tmpl/modules/partial', [
       var tagIsTemplate = tag.children && tag.children[0] && tag.children[0].fn;
       var tagIsDynamicPartial = !!tag.injectedTemplate;
       var config = prepareDataForCodeGeneration.call(this, tag, data, decor);
-      if (tagIsWsControl) {
-         return Generator.genCreateControlNew(
-            getWsTemplateName(tag),
+      if (tagIsDynamicPartial) {
+         // FIXME: Need to process injectedTemplate to get generated code fragment from _wstemplatename
+         Process.processExpressions(
+            tag.injectedTemplate, data, this.fileName, undefined, config.rawOptions
+         );
+         var templateName = calculateData(tag.attribs._wstemplatename).slice(1, -1);
+         return Generator.genResolveTemplateNew(
+            templateName,
             null,
             config.attributes,
             config.events,
@@ -183,9 +188,9 @@ define('UI/_builder/Tmpl/modules/partial', [
             config.config
          ) + ',';
       }
-      if (tagIsTemplate) {
-         return Generator.genCreateTemplateNew(
-            tag.attribs._wstemplatename.data.value,
+      if (tagIsWsControl) {
+         return Generator.genCreateControlNew(
+            getWsTemplateName(tag),
             null,
             config.attributes,
             config.events,
@@ -193,14 +198,9 @@ define('UI/_builder/Tmpl/modules/partial', [
             config.config
          ) + ',';
       }
-      if (tagIsDynamicPartial) {
-         // FIXME: Need to process injectedTemplate to get generated code fragment from _wstemplatename
-         Process.processExpressions(
-            tag.injectedTemplate, data, this.fileName, undefined, config.rawOptions
-         );
-         var templateName = calculateData(tag.attribs._wstemplatename).slice(1, -1);
-         return Generator.genResolveTemplateNew(
-            templateName,
+      if (tagIsTemplate) {
+         return Generator.genCreateTemplateNew(
+            tag.attribs._wstemplatename.data.value,
             null,
             config.attributes,
             config.events,
@@ -216,9 +216,7 @@ define('UI/_builder/Tmpl/modules/partial', [
          function resolveStatement(decor) {
             var tagIsModule = isModule(tag);
             var tagIsWsControl = isControl(tag);
-            var tagIsTemplate = !tagIsModule &&
-               !tagIsWsControl &&
-               tag.children && tag.children[0] && tag.children[0].fn;
+            var tagIsTemplate = tag.children && tag.children[0] && tag.children[0].fn;
             var tagIsDynamicPartial = !!tag.injectedTemplate;
 
             var canUseNewGeneratorMethods = tagIsWsControl || tagIsModule /*|| tagIsTemplate || tagIsDynamicPartial*/;
