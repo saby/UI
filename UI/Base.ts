@@ -18,6 +18,7 @@ import Start from './_base/Start';
 import HeadController from './_base/HeadController';
 import HeadData, { headDataStore } from 'UI/_base/HeadData';
 import {DepsCollector} from './_base/DepsCollector';
+import { getGeneratorConfig } from "./_base/GeneratorConfig";
 
 //@ts-ignore
 import BaseRoute = require('wml!UI/_base/Route');
@@ -51,5 +52,6 @@ export {
     IHTMLOptions,
     IHTML,
     IRootTemplateOptions,
-    IRootTemplate
+    IRootTemplate,
+    getGeneratorConfig
 };
