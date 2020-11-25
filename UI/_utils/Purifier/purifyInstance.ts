@@ -32,7 +32,7 @@ function releaseQueue(): void {
     isQueueStarted = false;
 }
 
-// Сделаем безопасными обращения вида instance.one.two.funс().tree даже после очистки.
+// Сделаем безопасными обращения вида instance.one.two.funс().three даже после очистки.
 const proxy: TProxy = typeof Proxy !== 'undefined' ? new Proxy(() => {}, {
     get: (target, propName, self) => {
        return self;
