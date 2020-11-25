@@ -13,6 +13,7 @@ import { _FocusAttrs, _IControl, activate } from 'UI/Focus';
 import { Logger, Purifier, needToBeCompatible } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
 import { constants } from 'Env/Env';
+import { getGeneratorConfig } from "./GeneratorConfig";
 
 import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
 import { ReactiveObserver } from 'UI/Reactivity';
@@ -362,9 +363,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
             }
          }
       }
-      res = this._template(this, attributes, rootKey, isVdom, undefined, undefined, {
-         prepareAttrsForPartial: _FocusAttrs.prepareAttrsForFocus
-      });
+      const generatorConfig = getGeneratorConfig();
+      res = this._template(this, attributes, rootKey, isVdom, undefined, undefined, generatorConfig);
       if (res) {
          if (isVdom) {
             if (res.length !== 1) {

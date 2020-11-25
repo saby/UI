@@ -9,12 +9,22 @@ import {EventNode} from "./EventNode";
 import {EventChain} from "./EventChain";
 import {IAttributeValue} from "./IAttributeValue";
 
+import { cookie } from 'Env/Env';
+
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
 /**
  * Паттерн двустороннего связывания для имени атрибута.
  */
 const BIND_NAME_PATTERN = /^(bind:[A-z0-9])\w*$/;
+
+let _bindToAttribute;
+function bindToAttribute() {
+   if (typeof _bindToAttribute === 'undefined') {
+      _bindToAttribute = cookie.get('bindToAttribute') || 'false';
+   }
+   return _bindToAttribute;
+}
 
 /**
  * Проверить по имени, является ли данный атрибут двусторонним связыванием.
@@ -108,12 +118,17 @@ export function processBindAttribute(
    let fn = visitBindExpressionNew(value, data, fileName, attributeName);
    fn = FSC.wrapAroundExec('function(data, value){ return ' + fn + '; }');
    const chain = EventChain.prepareEventChain(eventChain);
-   chain.unshift(new EventNode({
-         value: funcName,
-         viewController: FSC.wrapAroundExec('viewController'),
-         data: FSC.wrapAroundExec('data'),
-         handler: fn,
-         isControl: isControl
-      }));
+   const eventNode = new EventNode({
+      value: funcName,
+      viewController: FSC.wrapAroundExec('viewController'),
+      data: FSC.wrapAroundExec('data'),
+      handler: fn,
+      isControl: isControl
+   });
+   chain.unshift(eventNode);
+
+   if (bindToAttribute() === 'true') {
+      eventNode.bindValue = value.data[0].name.string;
+   }
    return chain;
 }
