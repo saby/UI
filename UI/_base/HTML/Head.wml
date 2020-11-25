@@ -1,64 +1,24 @@
 <head>
-   <ws:if data="{{ !wasServerSide }}">
-      {{ __setHTMLUnsafe(metaMarkup) }}
-      <ws:if data="{{_options.noscript}}">
-         <noscript>
-            <meta http-equiv="refresh" data-vdomignore="true" content="2; URL={{_options.noscript}}"/>
-         </noscript>
-      </ws:if>
-      <meta data-vdomignore="true" http-equiv="X-UA-Compatible" content="IE=edge"/>
-      <meta name="viewport" data-vdomignore="true" content="{{_options.viewport || 'width=1024'}}"/>
-      <meta charset="utf-8" class="head-server-block" data-vdomignore="true"/>
-   </ws:if>
-   <ws:if data="{{ isSSR && userTags }}">
-      {{ __setHTMLUnsafe( userTags ) }}
-   </ws:if>
-   <!--   wsConfig нет смысла рендерить на клиенте. -->
-   <!--   Он обязательно должен прийти с сервера.-->
-   <!--   Потому что необходим для загрузки ресурсов.-->
-   <ws:if data="{{ isSSR }}">
-      <script data-vdomignore="true">
-         window.wsConfig = {
-            wsRoot: '{{_options.wsRoot}}',
-            resourceRoot: '{{_options.resourceRoot}}',
-            appRoot: '{{_options.appRoot}}',
-            RUMEnabled: '{{ _options.RUMEnabled }}',
-            pageName: '{{ _options.pageName }}',
-            userConfigSupport: true,
-            staticDomains: {{ __setHTMLUnsafe(staticDomainsstringified) }},
-         defaultServiceUrl: '{{_options.servicesPath}}',
-            compatible: {{ _options.compat }},
-         product: '{{ _options.product }}'
-         };
-         window.buildnumber = '{{ _options.buildnumber }}';
-         {{__setHTMLUnsafe(_options.preInitScript)}}
-      </script>
-   </ws:if>
-   <ws:if data="{{ !wasServerSide }}">
-      <ws:if data="{{!_options.compat}}">
-         <script data-vdomignore="true">
-            window.themeName = '{{ _options.theme }}';
-         </script>
-      </ws:if>
-   </ws:if>
+<ws:if data="{{ isSSR && headApiData }}">
+  {{ __setHTMLUnsafe( headApiData ) }}
+</ws:if>
 
-   <ws:if data="{{ head }}">
-      <ws:if data="{{ isArray(head) }}">
-         <ws:for data="i in head">
-            <ws:partial template="{{ i }}"  attr:data-vdomignore="true" attr:class="head-custom-block"/>
-         </ws:for>
-      </ws:if>
-      <ws:else>
-         <ws:partial template="{{ head }}"  attr:data-vdomignore="true" attr:class="head-custom-block"/>
-      </ws:else>
-   </ws:if>
+<!-- #region head (он же пользовательский шаблон(ы) для вставки в <head>) -->
+<ws:if data="{{ head }}">
+  <ws:if data="{{ isArray(head) }}">
+    <ws:for data="i in head">
+      <ws:partial template="{{ i }}"  attr:data-vdomignore="true" attr:class="head-custom-block"/>
+    </ws:for>
+  </ws:if>
+  <ws:else>
+    <ws:partial template="{{ head }}"  attr:data-vdomignore="true" attr:class="head-custom-block"/>
+  </ws:else>
+</ws:if>
+<!-- #endregion -->
 
-   <!-- #region headAdditiveTagsMarkup -->
-   <ws:if data="{{ isSSR && headAdditiveTagsMarkup }}">
-      {{ __setHTMLUnsafe( headAdditiveTagsMarkup ) }}
-   </ws:if>
-   <!-- #endregion -->
-   <ws:if data="{{ !_options.builder }}">
-      {{ __setHTMLUnsafe( stylesHtml ) }}
-   </ws:if>
+<!-- #region headAdditiveTagsMarkup (он же headJson) -->
+<ws:if data="{{ isSSR && headAdditiveTagsMarkup }}">
+  {{ __setHTMLUnsafe( headAdditiveTagsMarkup ) }}
+</ws:if>
+<!-- #endregion -->
 </head>
