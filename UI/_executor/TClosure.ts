@@ -313,7 +313,7 @@ var
       return '_';
    },
    getRk = function(fileName) {
-      var localizationModule = fileName.split('/')[0]; // можно вынести в билдер и здесь аргумент будет уже результат
+      var localizationModule = fileName.split('/')[0];
 
       var rk = requirejs("i18n!" + localizationModule);
 
