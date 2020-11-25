@@ -216,7 +216,31 @@ define('UI/_builder/Tmpl/modules/partial', [
             config.config
          ) + ',';
       }
-      throw new Error('Not implemented yet');
+
+      // WML compiler
+      var inlineTemplateName = tag.attribs._wstemplatename.data.value;
+      if (this.includedFn) {
+         return Generator.genCreateInlineTemplate(
+            inlineTemplateName,
+            inlineTemplateName,
+            config.attributes,
+            config.events,
+            config.options,
+            config.config
+         ) + ',';
+      }
+
+      // TMPL compiler
+      var inlineTemplateBody = this.getString(tag.children, {}, this.handlers, {}, true);
+      var inlineTemplateFunction = templates.generatePartialTemplate(inlineTemplateBody);
+      return Generator.genCreateInlineTemplate(
+         inlineTemplateName,
+         inlineTemplateFunction,
+         config.attributes,
+         config.events,
+         config.options,
+         config.config
+      ) + ',';
    }
 
    var partialM = {
@@ -227,7 +251,8 @@ define('UI/_builder/Tmpl/modules/partial', [
             var tagIsTemplate = tag.children && tag.children[0] && tag.children[0].fn;
             var tagIsDynamicPartial = !!tag.injectedTemplate;
 
-            var canUseNewGeneratorMethods = tagIsWsControl || tagIsModule || tagIsTemplate || tagIsDynamicPartial;
+            var canUseNewGeneratorMethods = tagIsWsControl || tagIsModule || tagIsTemplate ||
+               tagIsDynamicPartial || /* inline template */true;
             if (canUseNewGeneratorMethods && USE_NEW_GENERATOR_METHODS) {
                return processNode.call(this, tag, data, decor);
             }

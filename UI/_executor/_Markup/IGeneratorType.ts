@@ -237,6 +237,7 @@ export interface IControlConfig {
    attr: any;
    data: any;
    ctx: any;
+   isVdom: boolean;
    context: any;
    depsLocal: any;
    includedTemplates: any;

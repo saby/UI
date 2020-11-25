@@ -417,7 +417,25 @@ export class Generator {
       options: Record<string, unknown>,
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
-      throw new Error('Not implemented yet');
+      const args = prepareNewArguments(attributes, events, options, config);
+      const attrsForTemplate = args.attributes;
+      const scopeForTemplate = Common.plainMerge(
+         Object.create(config.data || {}),
+         this.prepareDataForCreate(
+            "_$inline_template",
+            args.options,
+            attrsForTemplate,
+            {}
+         ),
+         false
+      );
+      return method.call(
+         /* template *this* */config.ctx,
+         scopeForTemplate,
+         attrsForTemplate,
+         config.context,
+         config.isVdom
+      );
    }
 
    chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string | void> | string | Error {
