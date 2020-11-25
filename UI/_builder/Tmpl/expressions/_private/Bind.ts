@@ -9,8 +9,6 @@ import {EventNode} from "./EventNode";
 import {EventChain} from "./EventChain";
 import {IAttributeValue} from "./IAttributeValue";
 
-import { cookie } from 'Env/Env';
-
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
 /**
