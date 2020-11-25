@@ -8,13 +8,14 @@
             'Application/Env',
 	        'SbisEnvUI/Compatible',
             'UI/Executor',
+            'Application/State',
             'SbisEnvUI/Wasaby'
-         ], function (UI, AppInitializer, AppEnv, Compatible, UIExecutor) {
+         ], function (UI, AppInitializer, AppEnv, Compatible, UIExecutor, AppState) {
          var AppData = UI.AppData,
             headDataStore = UI.headDataStore,
             Core = UI.Control;
          /*Первый шаг - старт Application, иницализация core и темы. Второй шаг - загрузка ресурсов*/
-         AppInitializer.default(window.wsConfig, new AppEnv.EnvBrowser(window['wsConfig']), new UI.StateReceiver());
+         AppInitializer.default(window.wsConfig, new AppEnv.EnvBrowser(window['wsConfig']), new AppState.StateReceiver());
          Compatible.AppInit();
 
          /* Этот же флаг проставляется в UI/Base:Document
