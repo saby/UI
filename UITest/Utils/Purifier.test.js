@@ -5,7 +5,7 @@ define([
             needLog
    ) {
 
-   describe('UI/_utils/Purifier', () => {
+   describe.skip('UI/_utils/Purifier', () => {
       const Purifier = Utils.Purifier;
       const Logger = Utils.Logger;
       describe('purifyInstance', () => {
@@ -17,13 +17,12 @@ define([
          const loggerErrorMock = (msg) => {
             errorMessage += msg;
          };
-         const isDebugMock = () => true;
 
          before(() => {
             instance = {};
             errorMessage = '';
             errorStub = sinon.stub(Logger, 'error').callsFake(loggerErrorMock);
-            isDebugStub = sinon.stub(needLog, 'default').callsFake(isDebugMock);
+            isDebugStub = sinon.stub(needLog, 'default').returns(true);
          });
 
          after(() => {
