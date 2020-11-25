@@ -140,19 +140,17 @@ interface IPrefetchModules {
 function _addModulesToApi(modules: string[], cfg: IPrefetchModules): void {
     const API = AppHead.getInstance();
     modules.forEach(function(moduleName) {
-        let path = ModulesLoader.getModuleUrl(moduleName);
+        let path: string = ModulesLoader.getModuleUrl(moduleName);
         path = path.indexOf('/') !== 0 ? '/' + path : path;
-        const _type = _getTypeString(path);
+        const _type: string = _getTypeString(path);
         if (!_type) {
-            IoC.resolve('ILogger').warn('[Controls/Application.js] Для файла ' + path + ' не удалось получить строку-тип');
+            IoC.resolve('ILogger')
+                .warn('[Controls/Application.js] Для файла ' + path + ' не удалось получить строку-тип');
             return;
         }
 
-        const rel = cfg.prefetch ? 'prefetch' : 'preload';
-        // TODO разобраться, почему не видит метод createTag
-        //      https://online.sbis.ru/opendoc.html?guid=58ed127a-0322-4b63-a2a5-624abba203a9
-        // @ts-ignore
-        API.createTag('link', { rel: rel, as: _type, href: path });
+        const rel: string = cfg.prefetch ? 'prefetch' : 'preload';
+        API.createTag('link', { rel, as: _type, href: path });
     });
 }
 
