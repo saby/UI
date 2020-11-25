@@ -164,6 +164,23 @@ define('UI/_builder/Tmpl/modules/partial', [
       return result;
    }
 
+   function getPrettyTemplateName(attribute) {
+      if (!attribute) {
+         return '[[unknown]]';
+      }
+      if (Array.isArray(attribute.data)) {
+         if (attribute.data.length === 1) {
+            var program = attribute.data[0];
+            if (program.name && program.name.string) {
+               return program.name.string;
+            }
+            return '[[unknown2]]';
+         }
+         return '[[unknown3]]';
+      }
+      return '[[unknown4]]';
+   }
+
    function processNode(tag, data, decor) {
       var tagIsWsControl = isControl(tag);
       var tagIsModule = isModule(tag);
@@ -176,8 +193,10 @@ define('UI/_builder/Tmpl/modules/partial', [
             tag.injectedTemplate, data, this.fileName, undefined, config.rawOptions
          );
          var templateName = calculateData(tag.attribs._wstemplatename).slice(1, -1);
+         var templateNameDescription = getPrettyTemplateName(tag.attribs._wstemplatename);
          return Generator.genResolveTemplateNew(
             templateName,
+            templateNameDescription,
             null,
             config.attributes,
             config.events,
@@ -199,6 +218,7 @@ define('UI/_builder/Tmpl/modules/partial', [
       if (tagIsWsControl) {
          return Generator.genCreateControlNew(
             getWsTemplateName(tag),
+            tag.originName,
             null,
             config.attributes,
             config.events,

@@ -122,6 +122,7 @@ export function genCreateControlTemplate(
  */
 export function genCreateControlNew(
    name: string,
+   nameDescription: string,
    method: string,
    attributes: string,
    events: string,
@@ -131,7 +132,7 @@ export function genCreateControlNew(
    // createControlNew(name, method, attributes, events, options, config)
    return `${VAR_MODULE_NAME}.createControlNew(`
       + `"${name}",`
-      + `/*${name}*/ ${method},`
+      + `/*${nameDescription}*/ ${method},`
       + `/*attributes*/ ${attributes},`
       + `/*events*/ ${events},`
       + `/*options*/ ${options},`
@@ -190,6 +191,7 @@ export function genResolveControlNew(
  */
 export function genResolveTemplateNew(
    name: string,
+   nameDescription: string,
    method: string,
    attributes: string,
    events: string,
@@ -199,7 +201,7 @@ export function genResolveTemplateNew(
    // resolveTemplateNew(name, method, attributes, events, options, config)
    return `${VAR_MODULE_NAME}.resolveTemplateNew(`
       + `${name},`
-      + `/*${name}*/ ${method},`
+      + `/*${nameDescription}*/ ${method},`
       + `/*attributes*/ ${attributes},`
       + `/*events*/ ${events},`
       + `/*options*/ ${options},`
@@ -218,7 +220,7 @@ export function genCreateInlineTemplate(
    options: string,
    config: string
 ) {
-   // resolveTemplateNew(name, method, attributes, events, options, config)
+   // createInlineTemplate(name, method, attributes, events, options, config)
    return `${VAR_MODULE_NAME}.createInlineTemplate(`
       + `'${name}',`
       + `/*${name}*/ ${method},`
