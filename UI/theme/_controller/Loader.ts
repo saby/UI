@@ -4,7 +4,7 @@ import LinkResolver from "./LinkResolver";
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { EMPTY_THEME, CSS_MODULE_PREFIX } from './css/const';
-import { ModulesLoader } from 'UI/Utils';
+import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 type IConfig = {
    buildnumber: string,
    wsRoot: string,
@@ -23,7 +23,7 @@ export default class Loader implements ICssLoader {
       }
       // на клиенте require css! иногда начинается раньше инициализации core-init, поэтому
       // смотрим сразу wsConfig
-      // TODO убрать после завершения проекта Единая точка старта приложения 
+      // TODO убрать после завершения проекта Единая точка старта приложения
       // https://online.sbis.ru/opendoc.html?guid=0f2cfb1c-d0b0-41dc-9fdc-c9fa004ac6d8
       const wsConfig: IConfig = window?.['wsConfig'] || {};
       this.lr = new LinkResolver(isDebug,
