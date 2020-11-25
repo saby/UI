@@ -45,8 +45,8 @@ class Head extends Control<IHeadOptions> {
             .then(({ js, css }) => {
                 return new Promise<void>((resolve) => {
                     collectCSS(options.theme, css.simpleCss, css.themedCss)
-                        .then((html) => { this.headApiData += `\n${html}\n`; })
-                        .catch(onerror);
+                        .then((html) => { this.headApiData += `\n${html}\n`; resolve(); })
+                        .catch((error) => { onerror(error); resolve(); });
                 }).then(() => {
                     handlePrefetchModules(js);
                     /**
