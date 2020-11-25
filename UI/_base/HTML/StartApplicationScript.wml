@@ -3,13 +3,13 @@
       <script key="init_script">
          document.addEventListener('DOMContentLoaded', function() {
             require(['Core/polyfill', 'Env/Env', 'Application/Initializer', 'Application/Env', 'SbisEnvUI/Wasaby'], function (polyfill, Env, AppInit, AppEnv) {
-               require(['UI/Base'], function (UI) {
-                  window.startContextData = { AppData: new UI.AppData({}) };
+                require(['UI/Base', 'UI/State', 'Application/State'], function (UIBase, UIState, AppState) {
+                  window.startContextData = { AppData: new UIBase.AppData({}) };
                   Object.assign(Env.constants, window.wsConfig);
                   require( {{ __setHTMLUnsafe(getDeps()) }}, function () {
-                     var sr = new UI.StateReceiver();
+                     var sr = new AppState.StateReceiver(UIState.Serializer);
                      AppInit.default(window.wsConfig, void 0, sr);
-                     UI.Start({}, document.getElementById('root'));
+                     UIBase.Start({}, document.getElementById('root'));
                   });
                   if (Env.constants.isProduction) {
                      console.log(
