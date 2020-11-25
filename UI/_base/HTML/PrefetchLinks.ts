@@ -1,6 +1,6 @@
 import * as AppEnv from "Application/Env";
 import { Head as AppHead } from "Application/Page";
-import * as ModulesLoader from "WasabyLoader/ModulesLoader";
+import * as ModulesLoader from "UI/_utils/ModulesLoader";
 import { constants, IoC } from "Env/Env";
 import { headDataStore } from "UI/_base/HeadData";
 
