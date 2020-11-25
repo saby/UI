@@ -41,7 +41,7 @@ class Head extends Control<IHeadOptions> {
             this.staticDomainsstringified = JSON.stringify(options.staticDomains);
         }
         this.head = options.head;
-        this.headAdditiveTagsMarkup = _applyHeadJson(this._options);
+        this.headAdditiveTagsMarkup = _applyHeadJson(options);
         this._selfPath();
         this._createHEADTags(options);
 
