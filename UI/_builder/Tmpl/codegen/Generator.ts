@@ -117,11 +117,8 @@ export function genCreateControlTemplate(
       + `, context, depsLocal, includedTemplates, ${getConfig()})`;
 }
 
-/**
- * -> createControl "wsControl"
- */
 export function genCreateControlNew(
-   name: string,
+   type: string,
    nameDescription: string,
    method: string,
    attributes: string,
@@ -129,101 +126,10 @@ export function genCreateControlNew(
    options: string,
    config: string
 ) {
-   // createControlNew(name, method, attributes, events, options, config)
+   // createControlNew(type, method, attributes, events, options, config)
    return `${VAR_MODULE_NAME}.createControlNew(`
-      + `"${name}",`
+      + `"${type}",`
       + `/*${nameDescription}*/ ${method},`
-      + `/*attributes*/ ${attributes},`
-      + `/*events*/ ${events},`
-      + `/*options*/ ${options},`
-      + `/*config*/ ${config}`
-      + `)`;
-}
-
-/**
- * -> createControl "template"
- */
-export function genCreateTemplateNew(
-   name: string,
-   method: string,
-   attributes: string,
-   events: string,
-   options: string,
-   config: string
-) {
-   // createTemplateNew(name, method, attributes, events, options, config)
-   return `${VAR_MODULE_NAME}.createTemplateNew(`
-      + `"${name}",`
-      + `/*${name}*/ ${method},`
-      + `/*attributes*/ ${attributes},`
-      + `/*events*/ ${events},`
-      + `/*options*/ ${options},`
-      + `/*config*/ ${config}`
-      + `)`;
-}
-
-/**
- * -> createControl "resolver"
- */
-export function genResolveControlNew(
-   name: string,
-   path: string,
-   method: string,
-   attributes: string,
-   events: string,
-   options: string,
-   config: string
-) {
-   // resolveControlNew(name, path, method, attributes, events, options, config)
-   return `${VAR_MODULE_NAME}.resolveControlNew(`
-      + `"${name}",`
-      + `${path},`
-      + `/*${name}*/ ${method},`
-      + `/*attributes*/ ${attributes},`
-      + `/*events*/ ${events},`
-      + `/*options*/ ${options},`
-      + `/*config*/ ${config}`
-      + `)`;
-}
-
-/**
- * -> createControl "resolver"
- */
-export function genResolveTemplateNew(
-   name: string,
-   nameDescription: string,
-   method: string,
-   attributes: string,
-   events: string,
-   options: string,
-   config: string
-) {
-   // resolveTemplateNew(name, method, attributes, events, options, config)
-   return `${VAR_MODULE_NAME}.resolveTemplateNew(`
-      + `${name},`
-      + `/*${nameDescription}*/ ${method},`
-      + `/*attributes*/ ${attributes},`
-      + `/*events*/ ${events},`
-      + `/*options*/ ${options},`
-      + `/*config*/ ${config}`
-      + `)`;
-}
-
-/**
- * -> create inline template
- */
-export function genCreateInlineTemplate(
-   name: string,
-   method: string,
-   attributes: string,
-   events: string,
-   options: string,
-   config: string
-) {
-   // createInlineTemplate(name, method, attributes, events, options, config)
-   return `${VAR_MODULE_NAME}.createInlineTemplate(`
-      + `'${name}',`
-      + `/*${name}*/ ${method},`
       + `/*attributes*/ ${attributes},`
       + `/*events*/ ${events},`
       + `/*options*/ ${options},`

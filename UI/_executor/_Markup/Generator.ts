@@ -317,223 +317,115 @@ export class Generator {
    }
 
    createControlNew(
-      name: string,
+      type: string,
       method: Function,
       attributes: Record<string, unknown>,
       events: Record<string, unknown>,
       options: any, // FIXME: Record<string, unknown>
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
-      const type = 'wsControl';
-      const args = prepareNewArguments(attributes, events, options, config);
-      let currentName = name as any;
-      let data = args.options;
-      let attrs = args.attributes;
-      let templateCfg = args.config;
-      let context = config.context;
-      let deps = config.depsLocal;
-      let res;
-      // TODO вынести конфиг ресолвер. пока это кранйе затруднительно, т.к. цепляет кучу всего.
-      data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs, calculateDataComponent(currentName));
-      data.internal.logicParent = data.internal.logicParent || templateCfg.viewController;
-      data.internal.parent = data.internal.parent || templateCfg.viewController;
-
-      attrs.internal = data.internal;
-      const userData = data.user;
-
-      // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
-      if (currentName === null) {
-         return this.createEmptyText();
-      }
-      // конвертирую объект строки в строку, чтобы везде провеять только на строку
-      // объект вместо строки вероятно приходит из-за интернационализации
-      if (currentName instanceof String) {
-         currentName = currentName.toString();
-      }
-
-      if (Common.isCompat()) {
-         res = timing.methodExecutionTime(this.createWsControl, this, [currentName, userData, attrs, context, deps]);
-         return checkResult.call(this, res, type, currentName);
-      }
-      res = this.createWsControl(currentName, userData, attrs, context, deps);
-      return checkResult.call(this, res, type, currentName);
-   }
-
-   createTemplateNew(
-      name: string,
-      method: Function,
-      attributes: Record<string, unknown>,
-      events: Record<string, unknown>,
-      options: any, // FIXME: Record<string, unknown>
-      config: IControlConfig
-   ): GeneratorObject | Promise<unknown> | Error {
-      const type = 'template';
-      const args = prepareNewArguments(attributes, events, options, config);
-      let currentName = name as any;
-      let data = args.options;
-      let attrs = args.attributes;
-      let templateCfg = args.config;
-      let context = config.context;
-      let deps = config.depsLocal;
-      let res;
-      // TODO вынести конфиг ресолвер. пока это кранйе затруднительно, т.к. цепляет кучу всего.
-      data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs, calculateDataComponent(currentName));
-      data.internal.logicParent = data.internal.logicParent || templateCfg.viewController;
-      data.internal.parent = data.internal.parent || templateCfg.viewController;
-
-      attrs.internal = data.internal;
-      const userData = data.user;
-
-      // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
-      if (currentName === null) {
-         return this.createEmptyText();
-      }
-      // конвертирую объект строки в строку, чтобы везде провеять только на строку
-      // объект вместо строки вероятно приходит из-за интернационализации
-      if (currentName instanceof String) {
-         currentName = currentName.toString();
-      }
-
-      if (Common.isCompat()) {
-         res = timing.methodExecutionTime(this.createTemplate, this, [currentName, userData, attrs, context, deps, config]);
-         return checkResult.call(this, res, type, currentName);
-      }
-      res = this.createTemplate(currentName, userData, attrs, context, deps, config);
-      return checkResult.call(this, res, type, currentName);
-   }
-
-   resolveControlNew(
-      name: string,
-      path: { library: string; module: string[]; },
-      method: Function,
-      attributes: Record<string, unknown>,
-      events: Record<string, unknown>,
-      options: any, // FIXME: Record<string, unknown>
-      config: IControlConfig
-   ): GeneratorObject | Promise<unknown> | Error {
-      const type = 'resolver';
-      const args = prepareNewArguments(attributes, events, options, config);
-      let currentName = path as any;
-      let data = args.options;
-      let attrs = args.attributes;
-      let templateCfg = args.config;
-      let context = config.context;
-      let deps = config.depsLocal;
-      let includedTemplates = config.includedTemplates;
-      let defCollection = config.defCollection;
-      let res;
-      // TODO вынести конфиг ресолвер. пока это кранйе затруднительно, т.к. цепляет кучу всего.
-      data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs, calculateDataComponent(currentName));
-      data.internal.logicParent = data.internal.logicParent || templateCfg.viewController;
-      data.internal.parent = data.internal.parent || templateCfg.viewController;
-
-      attrs.internal = data.internal;
-      const userData = data.user;
-
-      let handl, i;
-      if (attrs.events) {
-         for (i in attrs.events) {
-            if (attrs.events.hasOwnProperty(i)) {
-               for (handl = 0; handl < attrs.events[i].length; handl++) {
-                  if (!attrs.events[i][handl].isControl) {
-                     attrs.events[i][handl].toPartial = true;
-                  }
-               }
-            }
-         }
-      }
-      if (Common.isCompat()) {
-         res = timing.methodExecutionTime(this.resolver, this, [currentName, userData, attrs, context, deps, includedTemplates, config, defCollection]);
-         return checkResult.call(this, res, type, currentName);
-      }
-      res = this.resolver(currentName, userData, attrs, context, deps, includedTemplates, config, defCollection);
-      return checkResult.call(this, res, type, currentName);
-   }
-
-   resolveTemplateNew(
-      name: string,
-      method: Function,
-      attributes: Record<string, unknown>,
-      events: Record<string, unknown>,
-      options: Record<string, unknown>,
-      config: IControlConfig
-   ): GeneratorObject | Promise<unknown> | Error {
-      const type = 'resolver';
-      const args = prepareNewArguments(attributes, events, options, config);
-      let currentName = name as any;
-      let data = args.options;
-      let attrs = args.attributes;
-      let templateCfg = args.config;
-      let context = config.context;
-      let deps = config.depsLocal;
-      let includedTemplates = config.includedTemplates;
-      let defCollection = config.defCollection;
-      let res;
-      // TODO вынести конфиг ресолвер. пока это кранйе затруднительно, т.к. цепляет кучу всего.
-      data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs, calculateDataComponent(currentName));
-      data.internal.logicParent = data.internal.logicParent || templateCfg.viewController;
-      data.internal.parent = data.internal.parent || templateCfg.viewController;
-
-      attrs.internal = data.internal;
-      const userData = data.user;
-
-      // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
-      if (currentName === null) {
-         return this.createEmptyText();
-      }
-      // конвертирую объект строки в строку, чтобы везде провеять только на строку
-      // объект вместо строки вероятно приходит из-за интернационализации
-      if (currentName instanceof String) {
-         currentName = currentName.toString();
-      }
-
-      let handl, i;
-      if (attrs.events) {
-         for (i in attrs.events) {
-            if (attrs.events.hasOwnProperty(i)) {
-               for (handl = 0; handl < attrs.events[i].length; handl++) {
-                  if (!attrs.events[i][handl].isControl) {
-                     attrs.events[i][handl].toPartial = true;
-                  }
-               }
-            }
-         }
-      }
-      if (Common.isCompat()) {
-         res = timing.methodExecutionTime(this.resolver, this, [currentName, userData, attrs, context, deps, includedTemplates, config, defCollection]);
-         return checkResult.call(this, res, type, currentName);
-      }
-      res = this.resolver(currentName, userData, attrs, context, deps, includedTemplates, config, defCollection);
-      return checkResult.call(this, res, type, currentName);
-   }
-
-   createInlineTemplate(
-      name: string,
-      method: Function,
-      attributes: Record<string, unknown>,
-      events: Record<string, unknown>,
-      options: Record<string, unknown>,
-      config: IControlConfig
-   ): GeneratorObject | Promise<unknown> | Error {
-      const args = prepareNewArguments(attributes, events, options, config);
-      const attrsForTemplate = args.attributes;
-      const scopeForTemplate = Common.plainMerge(
-         Object.create(config.data || {}),
-         this.prepareDataForCreate(
-            "_$inline_template",
-            args.options,
+      // тип контрола - inline-шаблон
+      if (type === 'inline') {
+         const args = prepareNewArguments(attributes, events, options, config);
+         const attrsForTemplate = args.attributes;
+         const scopeForTemplate = Common.plainMerge(
+            Object.create(config.data || {}),
+            this.prepareDataForCreate(
+               "_$inline_template",
+               args.options,
+               attrsForTemplate,
+               {}
+            ),
+            false
+         );
+         return method.call(
+            /* template *this* */config.ctx,
+            scopeForTemplate,
             attrsForTemplate,
-            {}
-         ),
-         false
-      );
-      return method.call(
-         /* template *this* */config.ctx,
-         scopeForTemplate,
-         attrsForTemplate,
-         config.context,
-         config.isVdom
-      );
+            config.context,
+            config.isVdom
+         );
+      }
+
+      const args = prepareNewArguments(attributes, events, options, config);
+      let name = method as any;
+      let data = args.options;
+      let attrs = args.attributes;
+      let templateCfg = args.config;
+      let context = config.context;
+      let deps = config.depsLocal;
+      let includedTemplates = config.includedTemplates;
+      let defCollection = config.defCollection;
+      let templateConfig = Helper.config;
+      let res;
+      // TODO вынести конфиг ресолвер. пока это кранйе затруднительно, т.к. цепляет кучу всего.
+      data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs, calculateDataComponent(name));
+      data.internal.logicParent = data.internal.logicParent || templateCfg.viewController;
+      data.internal.parent = data.internal.parent || templateCfg.viewController;
+
+      attrs.internal = data.internal;
+      const userData = data.user;
+
+      // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
+      if (name === null) {
+         return this.createEmptyText();
+      }
+      // конвертирую объект строки в строку, чтобы везде провеять только на строку
+      // объект вместо строки вероятно приходит из-за интернационализации
+      if (name instanceof String) {
+         name = name.toString();
+      }
+
+      // тип контрола - компонент с шаблоном
+      if (type === 'wsControl') {
+         if (Common.isCompat()) {
+            res = timing.methodExecutionTime(this.createWsControl, this, [name, userData, attrs, context, deps]);
+            return checkResult.call(this, res, type, name);
+         }
+         res = this.createWsControl(name, userData, attrs, context, deps);
+         return checkResult.call(this, res, type, name);
+      }
+      // типа контрола - шаблон
+      if (type === 'template') {
+         if (Common.isCompat()) {
+            res = timing.methodExecutionTime(this.createTemplate, this, [name, userData, attrs, context, deps, templateConfig]);
+            return checkResult.call(this, res, type, name);
+         }
+         res = this.createTemplate(name, userData, attrs, context, deps, templateConfig);
+         return checkResult.call(this, res, type, name);
+
+      }
+      // тип контрола - компонент без шаблона
+      if (type === 'controller') {
+         if (Common.isCompat()) {
+            res = timing.methodExecutionTime(this.createController, this, [name, userData, attrs, context, deps]);
+            return checkResult.call(this, res, type, name);
+         }
+         res = this.createController(name, userData, attrs, context, deps);
+         return checkResult.call(this, res, type, name);
+
+      }
+      // когда тип вычисляемый, запускаем функцию вычисления типа и там обрабатываем тип
+      if (type === 'resolver') {
+         let handl, i;
+         if (attrs.events) {
+            for (i in attrs.events) {
+               if (attrs.events.hasOwnProperty(i)) {
+                  for (handl = 0; handl < attrs.events[i].length; handl++) {
+                     if (!attrs.events[i][handl].isControl) {
+                        attrs.events[i][handl].toPartial = true;
+                     }
+                  }
+               }
+            }
+         }
+         if (Common.isCompat()) {
+            res = timing.methodExecutionTime(this.resolver, this, [name, userData, attrs, context, deps, includedTemplates, templateConfig, defCollection]);
+            return checkResult.call(this, res, type, name);
+         }
+         res = this.resolver(name, userData, attrs, context, deps, includedTemplates, templateConfig, defCollection);
+         return checkResult.call(this, res, type, name);
+      }
    }
 
    chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string | void> | string | Error {

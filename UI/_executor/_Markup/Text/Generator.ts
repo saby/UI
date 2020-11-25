@@ -67,59 +67,14 @@ export class GeneratorText implements IGenerator {
    }
 
    createControlNew(
-      name: string,
+      type: string,
       method: Function,
       attributes: Record<string, unknown>,
       events: Record<string, unknown>,
       options: Record<string, unknown>,
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.createControlNew.call(this, name, method, attributes, events, options, config);
-   }
-
-   createTemplateNew(
-      name: string,
-      method: Function,
-      attributes: Record<string, unknown>,
-      events: Record<string, unknown>,
-      options: Record<string, unknown>,
-      config: IControlConfig
-   ): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.createTemplateNew.call(this, name, method, attributes, events, options, config);
-   }
-
-   resolveControlNew(
-      name: string,
-      path: { library: string; module: string[]; },
-      method: Function,
-      attributes: Record<string, unknown>,
-      events: Record<string, unknown>,
-      options: Record<string, unknown>,
-      config: IControlConfig
-   ): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.resolveControlNew.call(this, name, path, method, attributes, events, options, config);
-   }
-
-   createInlineTemplate(
-      name: string,
-      method: Function,
-      attributes: Record<string, unknown>,
-      events: Record<string, unknown>,
-      options: Record<string, unknown>,
-      config: IControlConfig
-   ): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.createInlineTemplate.call(this, name, method, attributes, events, options, config);
-   }
-
-   resolveTemplateNew(
-      name: string,
-      method: Function,
-      attributes: Record<string, unknown>,
-      events: Record<string, unknown>,
-      options: Record<string, unknown>,
-      config: IControlConfig
-   ): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.resolveTemplateNew.call(this, name, method, attributes, events, options, config);
+      return this.generatorBase.createControlNew.call(this, type, method, attributes, events, options, config);
    }
 
    chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string|void> | string | Error {

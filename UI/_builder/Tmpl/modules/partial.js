@@ -194,10 +194,10 @@ define('UI/_builder/Tmpl/modules/partial', [
          );
          var templateName = calculateData(tag.attribs._wstemplatename).slice(1, -1);
          var templateNameDescription = getPrettyTemplateName(tag.attribs._wstemplatename);
-         return Generator.genResolveTemplateNew(
-            templateName,
+         return Generator.genCreateControlNew(
+            'resolver',
             templateNameDescription,
-            null,
+            templateName,
             config.attributes,
             config.events,
             config.options,
@@ -205,10 +205,10 @@ define('UI/_builder/Tmpl/modules/partial', [
          ) + ',';
       }
       if (tagIsModule) {
-         return Generator.genResolveControlNew(
+         return Generator.genCreateControlNew(
+            'resolver',
             tag.originName,
             FSC.getStr(getLibraryModulePath(tag)),
-            null,
             config.attributes,
             config.events,
             config.options,
@@ -217,19 +217,21 @@ define('UI/_builder/Tmpl/modules/partial', [
       }
       if (tagIsWsControl) {
          return Generator.genCreateControlNew(
-            getWsTemplateName(tag),
+            'wsControl',
             tag.originName,
-            null,
+            '"' + getWsTemplateName(tag) + '"',
             config.attributes,
             config.events,
             config.options,
             config.config
          ) + ',';
       }
+      var templateValue = tag.attribs._wstemplatename.data.value;
       if (tagIsTemplate) {
-         return Generator.genCreateTemplateNew(
-            tag.attribs._wstemplatename.data.value,
-            null,
+         return Generator.genCreateControlNew(
+            'template',
+            templateValue,
+            '"' + templateValue + '"',
             config.attributes,
             config.events,
             config.options,
@@ -238,11 +240,11 @@ define('UI/_builder/Tmpl/modules/partial', [
       }
 
       // WML compiler
-      var inlineTemplateName = tag.attribs._wstemplatename.data.value;
       if (this.includedFn) {
-         return Generator.genCreateInlineTemplate(
-            inlineTemplateName,
-            inlineTemplateName,
+         return Generator.genCreateControlNew(
+            'inline',
+            templateValue,
+            templateValue,
             config.attributes,
             config.events,
             config.options,
@@ -253,8 +255,9 @@ define('UI/_builder/Tmpl/modules/partial', [
       // TMPL compiler
       var inlineTemplateBody = this.getString(tag.children, {}, this.handlers, {}, true);
       var inlineTemplateFunction = templates.generatePartialTemplate(inlineTemplateBody);
-      return Generator.genCreateInlineTemplate(
-         inlineTemplateName,
+      return Generator.genCreateControlNew(
+         'inline',
+         templateValue,
          inlineTemplateFunction,
          config.attributes,
          config.events,

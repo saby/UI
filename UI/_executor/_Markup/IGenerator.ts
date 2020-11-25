@@ -33,40 +33,7 @@ import { VNode } from 'Inferno/third-party/index';
 export interface IGenerator {
 
    createControlNew(
-      name: string,
-      method: Function,
-      attributes: Record<string, unknown>,
-      events: Record<string, unknown>,
-      options: Record<string, unknown>,
-      config: IControlConfig
-   ): GeneratorObject | Promise<unknown> | Error
-   createTemplateNew(
-      name: string,
-      method: Function,
-      attributes: Record<string, unknown>,
-      events: Record<string, unknown>,
-      options: Record<string, unknown>,
-      config: IControlConfig
-   ): GeneratorObject | Promise<unknown> | Error
-   resolveControlNew(
-      name: string,
-      path: { library: string; module: string[]; },
-      method: Function,
-      attributes: Record<string, unknown>,
-      events: Record<string, unknown>,
-      options: Record<string, unknown>,
-      config: IControlConfig
-   ): GeneratorObject | Promise<unknown> | Error
-   resolveTemplateNew(
-      name: string,
-      method: Function,
-      attributes: Record<string, unknown>,
-      events: Record<string, unknown>,
-      options: Record<string, unknown>,
-      config: IControlConfig
-   ): GeneratorObject | Promise<unknown> | Error
-   createInlineTemplate(
-      name: string,
+      type: string,
       method: Function,
       attributes: Record<string, unknown>,
       events: Record<string, unknown>,
