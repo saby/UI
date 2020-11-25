@@ -413,7 +413,7 @@ export class Generator {
    ): GeneratorObject | Promise<unknown> | Error {
       const type = 'resolver';
       const args = prepareNewArguments(attributes, events, options, config);
-      let currentName = name as any;
+      let currentName = path as any;
       let data = args.options;
       let attrs = args.attributes;
       let templateCfg = args.config;
@@ -429,16 +429,6 @@ export class Generator {
 
       attrs.internal = data.internal;
       const userData = data.user;
-
-      // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
-      if (currentName === null) {
-         return this.createEmptyText();
-      }
-      // конвертирую объект строки в строку, чтобы везде провеять только на строку
-      // объект вместо строки вероятно приходит из-за интернационализации
-      if (currentName instanceof String) {
-         currentName = currentName.toString();
-      }
 
       let handl, i;
       if (attrs.events) {
