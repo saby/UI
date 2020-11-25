@@ -206,3 +206,25 @@ export function genResolveTemplateNew(
       + `/*config*/ ${config}`
       + `)`;
 }
+
+/**
+ * -> create inline template
+ */
+export function genCreateInlineTemplate(
+   name: string,
+   method: string,
+   attributes: string,
+   events: string,
+   options: string,
+   config: string
+) {
+   // resolveTemplateNew(name, method, attributes, events, options, config)
+   return `${VAR_MODULE_NAME}.createInlineTemplate(`
+      + `${name},`
+      + `/*${name}*/ ${method},`
+      + `/*attributes*/ ${attributes},`
+      + `/*events*/ ${events},`
+      + `/*options*/ ${options},`
+      + `/*config*/ ${config}`
+      + `)`;
+}

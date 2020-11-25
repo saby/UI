@@ -111,6 +111,17 @@ export class GeneratorVdom implements IGenerator {
       return this.generatorBase.resolveTemplateNew.call(this, name, method, attributes, events, options, config);
    }
 
+   createInlineTemplate(
+      name: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: Record<string, unknown>,
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error {
+      return this.generatorBase.createInlineTemplate.call(this, name, method, attributes, events, options, config);
+   }
+
    chain(out: string,
          defCollection: IGeneratorDefCollection,
          inst?: IControl): Promise<string | void> | string | Error {

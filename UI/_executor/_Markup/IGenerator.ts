@@ -65,6 +65,14 @@ export interface IGenerator {
       options: Record<string, unknown>,
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error
+   createInlineTemplate(
+      name: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: Record<string, unknown>,
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error
 
    /**
     * Соибирает цепочку Promise
