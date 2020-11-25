@@ -235,7 +235,7 @@ define('UI/_builder/Tmpl/function', [
             str = '' + str.replace(/\n/g, ' ');
          }
          if (!internal) {
-            res += templates.generateTemplateHead(handlers.fileName, true);
+            res += templates.generateTemplateHead();
          }
          res += templates.generateTemplateBody(handlers.fileName, str);
          return res;
