@@ -13,7 +13,7 @@ let isDebug: boolean;
  * @returns { boolean }
  */
 export default function needLog(): boolean {
-    if (isDebug === undefined) {
+    if (typeof isDebug === 'undefined') {
         isDebug = !!cookie.get('s3debug');
     }
     return isDebug;
