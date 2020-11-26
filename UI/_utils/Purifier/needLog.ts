@@ -6,7 +6,6 @@ import { Set } from 'Types/shim';
 import { cookie } from 'Application/Env';
 
 let isDebug: boolean;
-let isDebugInitialized: boolean = false;
 
 /**
  * Отвечает на вопрос, нужно ли отслеживать обращения к полям после очистки.
@@ -14,9 +13,8 @@ let isDebugInitialized: boolean = false;
  * @returns { boolean }
  */
 export default function needLog(): boolean {
-    if (!isDebugInitialized) {
+    if (isDebug === undefined) {
         isDebug = !!cookie.get('s3debug');
-        isDebugInitialized = true;
     }
     return isDebug;
 }

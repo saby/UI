@@ -51,7 +51,7 @@ function addToQueue(instance: TInstance, instanceName: string, stateNamesNoPurif
     }
 }
 
-const commonDefineProfertyAttributes = {
+const commonDefinePropertyAttributes = {
     enumerable: false,
     configurable: false,
     get: function useAfterPurify(): TProxy {
@@ -73,12 +73,12 @@ function isValueToPurify(stateValue: TInstanceValue): boolean {
 }
 
 function purifyState(instance: TInstance, stateName: string, instanceName: string, isDebug: boolean): void {
-    const defineProfertyAttributes = isDebug ? {
+    const definePropertyAttributes = isDebug ? {
         enumerable: false,
         configurable: false,
         get: createUseAfterPurifyErrorFunction(stateName, instanceName)
-    } : commonDefineProfertyAttributes;
-    Object.defineProperty(instance, stateName, defineProfertyAttributes);
+    } : commonDefinePropertyAttributes;
+    Object.defineProperty(instance, stateName, definePropertyAttributes);
 }
 
 function purifyInstanceSync(
