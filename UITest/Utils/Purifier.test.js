@@ -94,8 +94,8 @@ define([
 
             const objectValue = instance.objectValue;
             assert.strictEqual(objectValue, proxyResult);
-            assert.equal(errorMessage, 'Разрушенный контрол test_instance пытается обратиться к своему полю objectValue. Чтобы не было утечки памяти, значение было удалено.' +
-               'Проверьте перед этим обращением, разрушен ли контрол, или добейтесь, чтобы этот код вообще не выполнялся после разрушения');
+            assert.equal(errorMessage, 'Разрушенный контрол test_instance пытается обратиться к своему полю objectValue. Для предотвращения утечки памяти значение было удалено.' +
+               'Избегайте использования полей контрола после его дестроя, дестрой контрола должен быть последней операцией над контролом');
          });
 
          it('function value', () => {
@@ -104,8 +104,8 @@ define([
 
             const functionValue = instance.functionValue;
             assert.strictEqual(functionValue, proxyResult);
-            assert.equal(errorMessage, 'Разрушенный контрол test_instance пытается обратиться к своему полю functionValue. Чтобы не было утечки памяти, значение было удалено.' +
-               'Проверьте перед этим обращением, разрушен ли контрол, или добейтесь, чтобы этот код вообще не выполнялся после разрушения');
+            assert.equal(errorMessage, 'Разрушенный контрол test_instance пытается обратиться к своему полю functionValue. Для предотвращения утечки памяти значение было удалено.' +
+               'Избегайте использования полей контрола после его дестроя, дестрой контрола должен быть последней операцией над контролом');
          });
 
          it('purify instance more than once', () => {
@@ -147,8 +147,8 @@ define([
 
             const getterValue = instance.getterValue;
             assert.strictEqual(getterValue, proxyResult);
-            assert.equal(errorMessage, 'Разрушенный контрол test_instance пытается обратиться к своему полю getterValue. Чтобы не было утечки памяти, значение было удалено.' +
-               'Проверьте перед этим обращением, разрушен ли контрол, или добейтесь, чтобы этот код вообще не выполнялся после разрушения');
+            assert.equal(errorMessage, 'Разрушенный контрол test_instance пытается обратиться к своему полю getterValue. Для предотвращения утечки памяти значение было удалено.' +
+               'Избегайте использования полей контрола после его дестроя, дестрой контрола должен быть последней операцией над контролом');
          });
 
          it('do not purify some state', () => {
@@ -164,8 +164,8 @@ define([
             const unsafeState = instance.unsafeState;
             assert.equal(typeof safeState, 'object');
             assert.equal(typeof unsafeState, typeof proxyResult);
-            assert.equal(errorMessage, 'Разрушенный контрол test_instance пытается обратиться к своему полю unsafeState. Чтобы не было утечки памяти, значение было удалено.' +
-               'Проверьте перед этим обращением, разрушен ли контрол, или добейтесь, чтобы этот код вообще не выполнялся после разрушения');
+            assert.equal(errorMessage, 'Разрушенный контрол test_instance пытается обратиться к своему полю unsafeState. Для предотвращения утечки памяти значение было удалено.' +
+               'Избегайте использования полей контрола после его дестроя, дестрой контрола должен быть последней операцией над контролом');
          });
       });
    });

@@ -62,8 +62,8 @@ const commonDefinePropertyAttributes = {
 
 function createUseAfterPurifyErrorFunction(stateName: string, instanceName: string): () => TProxy {
     return function useAfterPurify(): TProxy {
-        error('Разрушенный контрол ' + instanceName + ' пытается обратиться к своему полю ' + stateName + '. Чтобы не было утечки памяти, значение было удалено.' +
-            'Проверьте перед этим обращением, разрушен ли контрол, или добейтесь, чтобы этот код вообще не выполнялся после разрушения');
+        error('Разрушенный контрол ' + instanceName + ' пытается обратиться к своему полю ' + stateName + '. Для предотвращения утечки памяти значение было удалено.' +
+            'Избегайте использования полей контрола после его дестроя, дестрой контрола должен быть последней операцией над контролом');
         return proxy;
     };
 }
@@ -73,12 +73,21 @@ function isValueToPurify(stateValue: TInstanceValue): boolean {
 }
 
 function purifyState(instance: TInstance, stateName: string, instanceName: string, isDebug: boolean): void {
-    const definePropertyAttributes = isDebug ? {
-        enumerable: false,
-        configurable: false,
-        get: createUseAfterPurifyErrorFunction(stateName, instanceName)
-    } : commonDefinePropertyAttributes;
-    Object.defineProperty(instance, stateName, definePropertyAttributes);
+    if (isDebug) {
+        Object.defineProperty(instance, stateName, {
+            enumerable: false,
+            configurable: false,
+            get: createUseAfterPurifyErrorFunction(stateName, instanceName)
+        });
+        return;
+    }
+    try {
+        // Быстрее всего просто переприсвоить.
+        instance[stateName] = proxy;
+    } catch {
+        // Может быть только getter, не переприсвоить.
+        Object.defineProperty(instance, stateName, commonDefinePropertyAttributes);
+    }
 }
 
 function purifyInstanceSync(
