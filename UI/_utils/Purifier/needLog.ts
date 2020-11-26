@@ -3,9 +3,7 @@
  */
 
 import { Set } from 'Types/shim';
-import { cookie } from 'Application/Env';
-
-let isDebug: boolean;
+import { constants } from 'Env/Env'
 
 /**
  * Отвечает на вопрос, нужно ли отслеживать обращения к полям после очистки.
@@ -13,10 +11,7 @@ let isDebug: boolean;
  * @returns { boolean }
  */
 export default function needLog(): boolean {
-    if (typeof isDebug === 'undefined') {
-        isDebug = !!cookie.get('s3debug');
-    }
-    return isDebug;
+    return constants.isProduction;
 }
 
 /**

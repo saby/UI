@@ -18,6 +18,17 @@ const typesToPurify: string[] = ['object', 'function'];
 const queue: TQueueElement[] = [];
 let isQueueStarted: boolean = false;
 
+// Сделаем безопасными обращения вида instance.one.two.funс().three даже после очистки.
+const proxy: TProxy = typeof Proxy !== 'undefined' ? new Proxy(() => {}, {
+    get: (target, propName, self) => {
+       return self;
+    }, set: () => {
+       return false;
+    }, apply: (target, self) => {
+       return self;
+    }
+ }) : () => {};
+
 function releaseQueue(): void {
     const currentTimestamp: number = Date.now();
     while (queue.length) {
@@ -32,17 +43,6 @@ function releaseQueue(): void {
     isQueueStarted = false;
 }
 
-// Сделаем безопасными обращения вида instance.one.two.funс().three даже после очистки.
-const proxy: TProxy = typeof Proxy !== 'undefined' ? new Proxy(() => {}, {
-    get: (target, propName, self) => {
-       return self;
-    }, set: () => {
-       return false;
-    }, apply: (target, self) => {
-       return self;
-    }
- }) : () => {};
-
 function addToQueue(instance: TInstance, instanceName: string, stateNamesNoPurify?: Record<string, boolean>): void {
     queue.push([instance, instanceName, stateNamesNoPurify, Date.now()]);
     if (!isQueueStarted) {
@@ -55,7 +55,6 @@ const commonDefinePropertyAttributes = {
     enumerable: false,
     configurable: false,
     get: function useAfterPurify(): TProxy {
-        error('Какой-то разрушенный контрол пытается обратиться к своему полю. В режиме отладки можно увидеть больше информации.');
         return proxy;
     }
 };
@@ -73,12 +72,21 @@ function isValueToPurify(stateValue: TInstanceValue): boolean {
 }
 
 function purifyState(instance: TInstance, stateName: string, instanceName: string, isDebug: boolean): void {
-    const definePropertyAttributes = isDebug ? {
-        enumerable: false,
-        configurable: false,
-        get: createUseAfterPurifyErrorFunction(stateName, instanceName)
-    } : commonDefinePropertyAttributes;
-    Object.defineProperty(instance, stateName, definePropertyAttributes);
+    if (isDebug) {
+        Object.defineProperty(instance, stateName, {
+            enumerable: false,
+            configurable: false,
+            get: createUseAfterPurifyErrorFunction(stateName, instanceName)
+        });
+        return;
+    }
+    try {
+        // Быстрее всего просто присвоить.
+        instance[stateName] = proxy;
+    } catch {
+        // Может быть только getter, тогда приходится использовать defineProperty. Редкий случай.
+        Object.defineProperty(instance, stateName, commonDefinePropertyAttributes);
+    }
 }
 
 function purifyInstanceSync(
