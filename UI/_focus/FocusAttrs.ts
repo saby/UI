@@ -5,8 +5,6 @@
  * @author Тэн В.А.
  */
 
-import { checkAttr } from './AttrHelper';
-
 export function prepareAttrsForFocus(attributes) {
    if (!attributes) {
       return;
