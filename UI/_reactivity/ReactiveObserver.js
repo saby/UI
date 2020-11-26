@@ -322,6 +322,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], fun
    return {
       observeProperties: observeProperties,
       releaseProperties: releaseProperties,
-      pauseReactive: pauseReactive
+      pauseReactive: pauseReactive,
+      observeArray: observeArray
    };
 });
