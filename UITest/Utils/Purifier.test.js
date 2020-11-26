@@ -5,7 +5,7 @@ define([
             needLog
    ) {
 
-   describe.skip('UI/_utils/Purifier', () => {
+   describe('UI/_utils/Purifier', () => {
       const Purifier = Utils.Purifier;
       const Logger = Utils.Logger;
       describe('purifyInstance', () => {
@@ -13,16 +13,22 @@ define([
          let errorMessage;
          let errorStub;
          let isDebugStub;
+         let proxyResult;
          const purifyInstance = Purifier.purifyInstance;
          const loggerErrorMock = (msg) => {
             errorMessage += msg;
          };
 
          before(() => {
-            instance = {};
-            errorMessage = '';
             errorStub = sinon.stub(Logger, 'error').callsFake(loggerErrorMock);
             isDebugStub = sinon.stub(needLog, 'default').returns(true);
+            instance = {
+               a: {}
+            };
+            purifyInstance(instance);
+            proxyResult = instance.a;
+            instance = {};
+            errorMessage = '';
          });
 
          after(() => {
@@ -87,8 +93,9 @@ define([
             assert.equal(errorMessage, '');
 
             const objectValue = instance.objectValue;
-            assert.strictEqual(objectValue, undefined);
-            assert.equal(errorMessage, 'Попытка получить поле objectValue в очищенном test_instance');
+            assert.strictEqual(objectValue, proxyResult);
+            assert.equal(errorMessage, 'Разрушенный контрол test_instance пытается обратиться к своему полю objectValue. Чтобы не было утечки памяти, значение было удалено.' +
+               'Проверьте перед этим обращением, разрушен ли контрол, или добейтесь, чтобы этот код вообще не выполнялся после разрушения');
          });
 
          it('function value', () => {
@@ -96,8 +103,9 @@ define([
             assert.equal(errorMessage, '');
 
             const functionValue = instance.functionValue;
-            assert.strictEqual(functionValue, undefined);
-            assert.equal(errorMessage, 'Попытка получить поле functionValue в очищенном test_instance');
+            assert.strictEqual(functionValue, proxyResult);
+            assert.equal(errorMessage, 'Разрушенный контрол test_instance пытается обратиться к своему полю functionValue. Чтобы не было утечки памяти, значение было удалено.' +
+               'Проверьте перед этим обращением, разрушен ли контрол, или добейтесь, чтобы этот код вообще не выполнялся после разрушения');
          });
 
          it('purify instance more than once', () => {
@@ -138,8 +146,9 @@ define([
             purifyInstance(instance, 'test_instance');
 
             const getterValue = instance.getterValue;
-            assert.strictEqual(getterValue, undefined);
-            assert.equal(errorMessage, 'Попытка получить поле getterValue в очищенном test_instance');
+            assert.strictEqual(getterValue, proxyResult);
+            assert.equal(errorMessage, 'Разрушенный контрол test_instance пытается обратиться к своему полю getterValue. Чтобы не было утечки памяти, значение было удалено.' +
+               'Проверьте перед этим обращением, разрушен ли контрол, или добейтесь, чтобы этот код вообще не выполнялся после разрушения');
          });
 
          it('do not purify some state', () => {
@@ -154,8 +163,9 @@ define([
             const safeState = instance.safeState;
             const unsafeState = instance.unsafeState;
             assert.equal(typeof safeState, 'object');
-            assert.equal(typeof unsafeState, 'undefined');
-            assert.equal(errorMessage, 'Попытка получить поле unsafeState в очищенном test_instance');
+            assert.equal(typeof unsafeState, typeof proxyResult);
+            assert.equal(errorMessage, 'Разрушенный контрол test_instance пытается обратиться к своему полю unsafeState. Чтобы не было утечки памяти, значение было удалено.' +
+               'Проверьте перед этим обращением, разрушен ли контрол, или добейтесь, чтобы этот код вообще не выполнялся после разрушения');
          });
       });
    });

@@ -91,9 +91,9 @@ function purifyInstanceSync(
     }
 
     const isDebug: boolean = needLog();
-    const instanceStateNamesToPurify = Object.keys(instance).filter(
-        (stateName) => !(stateNamesNoPurify && stateNamesNoPurify[stateName]) && isValueToPurify(instance[stateName])
-    );
+    const instanceStateNamesToPurify = Object.keys(instance).filter(function filterKeysToPurify(stateName: string) : boolean {
+        return  !(stateNamesNoPurify && stateNamesNoPurify[stateName]) && isValueToPurify(instance[stateName]);
+    });
     for (let i = 0; i < instanceStateNamesToPurify.length; i++) {
         purifyState(instance, instanceStateNamesToPurify[i], instanceName, isDebug);
     }
