@@ -34,8 +34,17 @@ class Head extends Control<IHeadOptions> {
 
     _beforeMount(options: IHeadOptions): Promise<void> {
         this.isSSR = !constants.isBrowserPlatform;
-        this._prepareSelf();
-        this._prepareOptions(options);
+        /** Написано Д. Зуевым в 2019 году. Просто перенес при реструктуризации. */
+        if (typeof options.staticDomains === 'string') {
+            this.staticDomainsstringified = options.staticDomains;
+        } else if (options.staticDomains instanceof Array) {
+            this.staticDomainsstringified = JSON.stringify(options.staticDomains);
+        }
+        this.head = options.head;
+        this.headAdditiveTagsMarkup = applyHeadJSON(options);
+
+        this._selfPath();
+        this._createHEADTags(options);
 
         if (!this.isSSR) {
             this._checkServerSide(options);
@@ -69,59 +78,16 @@ class Head extends Control<IHeadOptions> {
      * Зачем-то на инстансе перебивается метод _forceUpdate с прототипа
      * Но сделал это человек, который придумал Wasaby. Ему видней.
      */
-    _prepareSelf(): void {
+    private _selfPath(): void {
         /** Написано Д. Зуевым в 2019 году. Просто перенес при реструктуризации. */
         // tslint:disable-next-line:only-arrow-functions
         this._forceUpdate = function(): void {
             // do nothing
         };
     }
-    _prepareOptions(options: IHeadOptions): void {
-        /** Написано Д. Зуевым в 2019 году. Просто перенес при реструктуризации. */
-        if (typeof options.staticDomains === 'string') {
-            this.staticDomainsstringified = options.staticDomains;
-        } else if (options.staticDomains instanceof Array) {
-            this.staticDomainsstringified = JSON.stringify(options.staticDomains);
-        }
-        this.head = options.head;
-
-        this._prepareWsConfig(options);
-        this._applyMetaScriptsAndLinks(options);
-        this._applyHeadJson(options);
-    }
-
-    /**
-     * Подготовка когфига, который прилетит с сервака на клиент
-     * wsConfig нет смысла рендерить на клиенте.
-     * Он обязательно должен прийти с сервера.
-     * Потому что необходим для загрузки ресурсов
-     * @param options
-     */
-    _prepareWsConfig(options: IHeadOptions): void {
-        if (!this.isSSR) {
-            return;
-        }
-
-        const API = AppHead.getInstance();
-        // @ts-ignore
-        API.createTag('script', {type: 'text/javascript'},
-            [
-                'window.wsConfig = {',
-                `wsRoot: '${options.wsRoot}',`,
-                `resourceRoot: '${options.resourceRoot}',`,
-                `appRoot: '${options.appRoot}',`,
-                `RUMEnabled: ${options.RUMEnabled},`,
-                `pageName: '${options.pageName}',`,
-                'userConfigSupport: true,',
-                `staticDomains: '${this.staticDomainsstringified}',`,
-                `defaultServiceUrl: '${options.servicesPath}',`,
-                `compatible: ${options.compat},`,
-                `product: '${options.product}'`,
-                '};',
-                options.buildnumber ? `window.buildnumber = ${options.buildnumber};` : '',
-                options.preInitScript ? options.preInitScript : ''
-            ].join('\n')
-        );
+    _createHEADTags(options: IHeadOptions): void {
+        createWsConfig(options);
+        createMetaScriptsAndLinks(options);
     }
 
     /**
@@ -165,40 +131,6 @@ class Head extends Control<IHeadOptions> {
                 API.createTag('meta', attrs);
             });
         }
-    }
-
-    /**
-     * Поддержка старой опции
-     * Запустил процесс отказа от нее
-     * https://online.sbis.ru/opendoc.html?guid=fe14fe59-a564-4904-9a87-c38a5a22b924
-     * @param options
-     * @deprecated
-     */
-    _applyHeadJson(options: IHeadOptions): void {
-        /** Deprecated опция в формате JML.Нет смысла гнать ее через HEAD API */
-        if (options.headJson) {
-            const tagDescriptions = options.headJson
-                .map(fromJML)
-                // не вставляем переданные link css, это обязанность theme_controller'a
-                .filter(({ attrs }) => attrs.rel !== 'stylesheet' && attrs.type !== 'text/css');
-            this.headAdditiveTagsMarkup = new TagMarkup(tagDescriptions).outerHTML;
-        }
-    }
-
-    /**
-     * Применим опции meta, scripts и links к странице
-     * @param options
-     */
-    _applyMetaScriptsAndLinks(options: IHeadOptions): void {
-        const API = AppHead.getInstance();
-        []
-            .concat((options.meta || []).map(prepareMetaScriptsAndLinks.bind(null, 'meta')))
-            .concat((options.scripts || []).map(prepareMetaScriptsAndLinks.bind(null, 'script')))
-            .concat((options.links || []).map(prepareMetaScriptsAndLinks.bind(null, 'link')))
-            .forEach((item: {tag: string, attrs: object}) => {
-                // @ts-ignore
-                API.createTag(item.tag, item.attrs);
-            });
     }
 
     // @ts-ignore
@@ -256,6 +188,74 @@ function prepareMetaScriptsAndLinks(tag: string, attrs: object): object {
         tag,
         attrs
     };
+}
+
+/**
+ * Подготовка когфига, который прилетит с сервака на клиент
+ * wsConfig нет смысла рендерить на клиенте.
+ * Он обязательно должен прийти с сервера.
+ * Потому что необходим для загрузки ресурсов
+ * @param options
+ */
+function createWsConfig(options: IHeadOptions): void {
+    if (constants.isBrowserPlatform) {
+        return;
+    }
+
+    const API = AppHead.getInstance();
+    // @ts-ignore
+    API.createTag('script', {type: 'text/javascript'},
+        [
+            'window.wsConfig = {',
+            `wsRoot: '${options.wsRoot}',`,
+            `resourceRoot: '${options.resourceRoot}',`,
+            `appRoot: '${options.appRoot}',`,
+            `RUMEnabled: ${options.RUMEnabled},`,
+            `pageName: '${options.pageName}',`,
+            'userConfigSupport: true,',
+            `staticDomains: '${this.staticDomainsstringified}',`,
+            `defaultServiceUrl: '${options.servicesPath}',`,
+            `compatible: ${options.compat},`,
+            `product: '${options.product}'`,
+            '};',
+            options.buildnumber ? `window.buildnumber = ${options.buildnumber};` : '',
+            options.preInitScript ? options.preInitScript : ''
+        ].join('\n')
+    );
+}
+
+/**
+ * Применим опции meta, scripts и links к странице
+ * @param options
+ */
+function createMetaScriptsAndLinks(options: IHeadOptions): void {
+    const API = AppHead.getInstance();
+    []
+        .concat((options.meta || []).map(prepareMetaScriptsAndLinks.bind(null, 'meta')))
+        .concat((options.scripts || []).map(prepareMetaScriptsAndLinks.bind(null, 'script')))
+        .concat((options.links || []).map(prepareMetaScriptsAndLinks.bind(null, 'link')))
+        .forEach((item: {tag: string, attrs: object}) => {
+            // @ts-ignore
+            API.createTag(item.tag, item.attrs);
+        });
+}
+
+/**
+ * Поддержка старой опции
+ * Запустил процесс отказа от нее
+ * https://online.sbis.ru/opendoc.html?guid=fe14fe59-a564-4904-9a87-c38a5a22b924
+ * @param options
+ * @deprecated
+ */
+function applyHeadJSON(options: IHeadOptions): string {
+    /** Deprecated опция в формате JML.Нет смысла гнать ее через HEAD API */
+    if (options.headJson) {
+        const tagDescriptions = options.headJson
+            .map(fromJML)
+            // не вставляем переданные link css, это обязанность theme_controller'a
+            .filter(({ attrs }) => attrs.rel !== 'stylesheet' && attrs.type !== 'text/css');
+        return new TagMarkup(tagDescriptions).outerHTML;
+    }
 }
 
 interface IHeadOptions extends IControlOptions {
