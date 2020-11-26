@@ -136,6 +136,9 @@ function fillCtx(control: any, vnode: any, resolvedCtx: any): void {
 }
 
 function initVersionableArray(array) {
+   if (array.hasOwnProperty('isDataArray') && array.isDataArray){
+      return;
+   }
    Object.defineProperties(array, {
       '_arrayVersion': {
          value: 0,
