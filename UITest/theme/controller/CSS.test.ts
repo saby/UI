@@ -10,28 +10,25 @@ import Link from 'UI/theme/_controller/css/Link';
 import LinkPS from 'UI/theme/_controller/css/LinkPS';
 import SingleLink from 'UI/theme/_controller/css/SingleLink';
 import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
-import { getHtmlMarkup } from 'UI/theme/_controller/css/Base';
 
 class LinkMock implements IHTMLElement {
-   __removed: boolean = false;
    outerHTML: string = '';
-   constructor (href, name, theme, themeType) {
-      this.outerHTML = getHtmlMarkup(href, name, theme, themeType);
-   }
-   getAttribute(attr) {
+   // tslint:disable-next-line:no-empty
+   constructor(href: string, name: string, theme: string, themeType: string) {}
+   getAttribute(attr: string): string | null {
       return this[attr] || null;
    }
-   remove() {
-      this.__removed = true;
+   // tslint:disable-next-line:no-empty
+   remove(): void {
    }
 }
 
 class LinkElementMock extends LinkMock {
-   constructor (
-      href: string,
-      name: string,
-      theme: string,
-      themeType: THEME_TYPE) {
+   constructor(
+       href: string,
+       name: string,
+       theme: string,
+       themeType: THEME_TYPE) {
       super(href, name, theme, themeType);
       this[ELEMENT_ATTR.HREF] = href;
       this[ELEMENT_ATTR.NAME] = name;
@@ -41,11 +38,11 @@ class LinkElementMock extends LinkMock {
 }
 
 class DeprecatedLinkElementMock extends LinkMock {
-   constructor (
-      href: string,
-      name: string,
-      theme: string,
-      themeType: DEPRECATED_THEME_TYPE) {
+   constructor(
+       href: string,
+       name: string,
+       theme: string,
+       themeType: DEPRECATED_THEME_TYPE) {
       super(href, name, theme, themeType);
       this[DEPRECATED_ELEMENT_ATTR.HREF] = href;
       this[DEPRECATED_ELEMENT_ATTR.NAME] = name;
@@ -121,10 +118,10 @@ describe('UI/theme/_controller/CSS', () => {
       });
 
       it('Возвращает SingleLink при отсутствии аттрибута cssName', () => {
-         const element = new LinkElementMock(href, undefined, themeName, THEME_TYPE.SINGLE);
+         const element = new LinkElementMock(href, cssName, themeName, THEME_TYPE.SINGLE);
          const entity = restoreEntity(element);
          assert.instanceOf(entity, SingleLink);
-         assert.equal(entity.cssName, href);
+         assert.equal(entity.cssName, cssName);
       });
    });
 
@@ -150,10 +147,10 @@ describe('UI/theme/_controller/CSS', () => {
       });
 
       it('Возвращает SingleLink при отсутствии аттрибута cssName', () => {
-         const element = new DeprecatedLinkElementMock(href, undefined, themeName, DEPRECATED_THEME_TYPE.SINGLE);
+         const element = new DeprecatedLinkElementMock(href, cssName, themeName, DEPRECATED_THEME_TYPE.SINGLE);
          const entity = restoreDeprecatedEntity(element);
          assert.instanceOf(entity, SingleLink);
-         assert.equal(entity.cssName, href);
+         assert.equal(entity.cssName, cssName);
       });
 
       it('Возвращает SingleLink EMPTY_THEME при отсутствии темы', () => {

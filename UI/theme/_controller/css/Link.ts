@@ -3,22 +3,32 @@ import { ModulesLoader } from 'UI/Utils';
 import { Base } from './Base';
 import { ELEMENT_ATTR, THEME_TYPE, CSS_MODULE_PREFIX } from './const';
 import { ICssEntity, IHTMLElement } from './interface';
+import { Head as HeadAPI } from 'Application/Page';
+import { IHeadTagId } from 'Application/Interface';
+import { then, isInit } from 'Application/Initializer';
+
+const TIMEOUT = 30000;
 
 /**
  * Мультитемная ссылка на клиенте
  */
 export default class Link extends Base implements ICssEntity {
-   element: IHTMLElement;
+   headTagId: IHeadTagId;
 
    constructor(
-      href: string,
-      cssName: string,
-      themeName: string,
-      element?: IHTMLElement,
-      public themeType: THEME_TYPE = THEME_TYPE.MULTI
+       href: string,
+       cssName: string,
+       themeName: string,
+       element?: IHTMLElement,
+       public themeType: THEME_TYPE = THEME_TYPE.MULTI
    ) {
       super(href, cssName, themeName, themeType);
-      this.element = element || createElement(href, cssName, themeName, themeType);
+      if (element) {
+         this.href = this.href || element.getAttribute(ELEMENT_ATTR.HREF);
+         this.cssName = this.cssName || element.getAttribute(ELEMENT_ATTR.NAME);
+         this.themeName = this.themeName || element.getAttribute(ELEMENT_ATTR.THEME);
+         this.themeType = this.themeType || THEME_TYPE[element.getAttribute(ELEMENT_ATTR.THEME_TYPE)];
+      }
    }
 
    load(): Promise<void> {
@@ -26,7 +36,6 @@ export default class Link extends Base implements ICssEntity {
        * CSS файл, который не привязан к теме, может прилететь внутри какого-то бандла
        * https://online.sbis.ru/opendoc.html?guid=e5ea8fc8-f6de-4684-af44-5461ceef8990
        * Проблема в том, что мы не знаем: прилетел этот бандл уже или не прилетел.
-       * TODO: Удалить в процессе внедрения HEAD API (он решит проблему дублей)
        */
       if (ModulesLoader.isLoaded(CSS_MODULE_PREFIX + this.cssName)) {
          return new Promise<void>((resolve) => {
@@ -38,9 +47,14 @@ export default class Link extends Base implements ICssEntity {
        * На клиенте делаем fetch для новых стилей и игнориуем результат т.к монтируем в head стили как link элемент.
        * Браузер кэширует запрошенные через fetch стили, повторной загрузки не будет, а ошибки загрузки перехватываются.
        */
-      this.loading = mountElement(this.element)
-         .then(() => { this.isMounted = true; })
-         .catch((e) => { this.element.remove(); throw e; });
+      this.loading = this.mountElement()
+          .then(() => { this.isMounted = true; })
+          .catch((e) => {
+             if (this.headTagId) {
+                HeadAPI.getInstance().deleteTag(this.headTagId);
+             }
+             throw e;
+          });
       return this.loading;
    }
 
@@ -56,47 +70,57 @@ export default class Link extends Base implements ICssEntity {
    remove(): Promise<boolean> {
       return super.remove().then((isRemoved) => {
          if (isRemoved) {
-            this.element.remove();
+            HeadAPI.getInstance().deleteTag(this.headTagId);
          }
          return isRemoved;
       });
    }
-}
-
-function createElement(href: string, cssName: string, themeName: string, themeType: THEME_TYPE): HTMLLinkElement {
-   const element = document.createElement('link');
-   element.setAttribute('data-vdomignore', 'true');
-   element.setAttribute('rel', 'stylesheet');
-   element.setAttribute('type', 'text/css');
-   element.setAttribute(ELEMENT_ATTR.HREF, href);
-   element.setAttribute(ELEMENT_ATTR.NAME, cssName);
-   element.setAttribute(ELEMENT_ATTR.THEME, themeName);
-   element.setAttribute(ELEMENT_ATTR.THEME_TYPE, `${themeType}`);
-   return element;
-}
-
-const TIMEOUT = 30000;
-/**
- * Монтирование link-элемента со стилями в head,
- */
-function mountElement(el: IHTMLElement): Promise<void> {
-   return new Promise((resolve, reject) => {
-      const timestamp = Date.now();
-      const onerror = () => {
-         reject(new Error(
-            'Couldn\'t load ' + el.getAttribute(ELEMENT_ATTR.HREF) + ' in ' + (Date.now() - timestamp) + ' ms.\n\t' +
-            el.getAttribute(ELEMENT_ATTR.THEME_TYPE) + ' css ' +
-            el.getAttribute(ELEMENT_ATTR.NAME) + ' for ' +
-            el.getAttribute(ELEMENT_ATTR.THEME) + ' theme.')
-         );
-      };
-      try {
-         document.head.appendChild(el as HTMLLinkElement);
-         (el as HTMLLinkElement).addEventListener('load', resolve.bind(null));
-         (el as HTMLLinkElement).addEventListener('error', onerror);
+   /**
+    * Монтирование link-элемента со стилями в head
+    * Поскольку работа с head идет через HEAD API, то есть одно ограничение:
+    * HEAD API готов работать только после инициализации Application
+    * До инициализации Application уже кто-то может позвать themeController
+    * Например, css! плагин requirejs грузит css!Controls/Application/oldCss
+    * Поэтому смотрим: если Application готов, зовем HEAD API
+    * Если он не готов, подписываемся на готовность и тогда зовем HEAD API
+    * Но в этом случае еще и переводим Pomise в состояние готовности.
+    * Без готовности Promise requirejs не выполнит callback, потому что не все зависимости готовы
+    */
+   mountElement(): Promise<void> {
+      return new Promise((resolve, reject) => {
+         const timestamp = Date.now();
+         const onerror = () => {
+            reject(new Error(
+                'Couldn\'t load ' + this.href + ' in ' + (Date.now() - timestamp) + ' ms.\n\t' +
+                this.themeType + ' css ' +
+                this.cssName + ' for ' +
+                this.themeName + ' theme.')
+            );
+         };
+         const attrs = {
+            rel: 'stylesheet',
+            type: 'text/css',
+            [ELEMENT_ATTR.HREF]: this.href,
+            [ELEMENT_ATTR.NAME]: this.cssName,
+            [ELEMENT_ATTR.THEME]: this.themeName,
+            [ELEMENT_ATTR.THEME_TYPE]: this.themeType
+         };
+         if (isInit()) {
+            // @ts-ignore
+            this.headTagId = HeadAPI.getInstance().createTag('link', attrs, null, {
+               load: resolve.bind(null),
+               error: onerror
+            });
+         } else {
+            then(() => {
+               // @ts-ignore
+               this.headTagId = HeadAPI.getInstance().createTag('link', attrs, null, {
+                  error: onerror
+               });
+            });
+            resolve();
+         }
          setTimeout(onerror, TIMEOUT);
-      } catch (_) {
-         onerror();
-      }
-   });
+      });
+   }
 }

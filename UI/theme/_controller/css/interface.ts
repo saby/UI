@@ -11,18 +11,6 @@ export interface ICssEntity {
    /** Процесс загрузки css */
    loading: Promise<void>;
    /**
-    * HTML- разметка сущности
-    * @example
-    * // ts
-    * this.styles = cssNames.map((name) => new Link(name).outerHtml)
-    *                       .join('\n');
-    * // wml
-    * <head>
-    *    {{ styles }}
-    * </head>
-    */
-   outerHtml: string;
-   /**
     * Ссылка на css
     */
    href: string;
@@ -63,7 +51,6 @@ export interface ISingleCssEntity extends ICssEntity {
    removeForce(): Promise<void>;
 }
 export interface IHTMLElement {
-   outerHTML: string;
    remove(): void;
    getAttribute(a: string): string;
 }
