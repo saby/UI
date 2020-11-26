@@ -1,7 +1,6 @@
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
-import { Logger } from 'UI/Utils';
-import * as Library from 'WasabyLoader/Library';
+import { Logger, Library } from 'UI/Utils';
 import { controller } from 'I18n/i18n';
 
 export type IDeps = string[];

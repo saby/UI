@@ -10,6 +10,8 @@
 
 import * as Logger from './_utils/Logger';
 import * as Purifier from './_utils/Purifier';
+import * as Library from './_utils/Library';
+import * as ModulesLoader from './_utils/ModulesLoader';
 import isNewEnvironment from "./_utils/IsNewEnvironment";
 import needToBeCompatible from "./_utils/NeedToBeCompatible";
 import getResourceUrl from "./_utils/GetResourceUrl";
@@ -46,6 +48,8 @@ const ArrayUtils = {
 export {
    Logger,
    Purifier,
+   Library,
+   ModulesLoader,
    isNewEnvironment,
    needToBeCompatible,
    getResourceUrl,

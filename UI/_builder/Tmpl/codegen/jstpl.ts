@@ -8,6 +8,8 @@ export const BODY = `if (typeof forceCompatible === 'undefined') {
     forceCompatible = false;
 }
 var markupGenerator = thelpers.createGenerator(isVdom, forceCompatible, generatorConfig);
+var filename = "/*#FILE_NAME#*/";
+var rk = thelpers.getRk(filename);
 /*#DELETE IT START#*/
 if (typeof includedTemplates === "undefined") {
    eval("var includedTemplates = undefined;");
@@ -21,7 +23,7 @@ try {
       defCollection = undefined;
    }
 } catch (e) {
-   thelpers.templateError("/*#FILE_NAME#*/", e, data);
+   thelpers.templateError(filename, e, data);
 }
 return out || markupGenerator.createText("");
 `;
@@ -125,7 +127,6 @@ if (typeof thelpers === "undefined") {
       return this || (0, eval)('this')
    })().requirejs("UI/Executor").TClosure;
 }
-/*#LOCALIZATION_INIT#*/
 if (sets && sets.isSetts) {
    var contextObj = sets.fullContext || {};
 }
@@ -162,7 +163,6 @@ if (typeof includedTemplates === "undefined") {
    eval("var includedTemplates = undefined;");
    includedTemplates = (this && this.includedTemplates) ? this.includedTemplates : {};
 }
-/*#LOCALIZATION_INIT#*/
 /*#DELETE IT END#*/
 var forCounter = 0;
 var templateCount = 0;
@@ -192,11 +192,6 @@ export const INCLUDED_TEMPLATE = `{
    internal: /*#INTERNAL#*/,
    isWasabyTemplate: /*#IS_WASABY_TEMPLATE#*/
 }
-`;
-
-export const LOCALIZATION = `var rk = typeof rk !== 'undefined' ? rk : (function () {
-   return this || (0, eval)('this')
-})().requirejs("i18n!/*#LOCALIZATION_MODULE#*/");
 `;
 
 export const OBJECT_TEMPLATE = `(new(function () {
@@ -251,7 +246,6 @@ if (typeof thelpers === "undefined") {
       return this || (0, eval)('this')
    })().requirejs("UI/Executor").TClosure;
 }
-/*#LOCALIZATION_INIT#*/
 /*#DELETE IT END#*/
 
 var templateCount = 0;
