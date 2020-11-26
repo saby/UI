@@ -14,6 +14,7 @@ import {
    GeneratorObject,
    GeneratorTemplateOrigin,
    IControl,
+   IControlConfig,
    IControlData,
    IControlProperties,
    ICreateControlTemplateCfg,
@@ -63,6 +64,17 @@ export class GeneratorText implements IGenerator {
                                 deps: TDeps,
                                 includedTemplates?: TIncludedTemplate): IPrepareDataForCreate {
       return this.generatorBase.prepareDataForCreate.call(this, tplOrigin, scope, attrs, deps, includedTemplates);
+   }
+
+   createControlNew(
+      type: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: Record<string, unknown>,
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error {
+      return this.generatorBase.createControlNew.call(this, type, method, attributes, events, options, config);
    }
 
    chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string|void> | string | Error {
