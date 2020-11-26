@@ -86,7 +86,7 @@ class Head extends Control<IHeadOptions> {
         };
     }
     _createHEADTags(options: IHeadOptions): void {
-        createWsConfig(options);
+        createWsConfig(options, this.staticDomainsstringified);
         createMetaScriptsAndLinks(options);
     }
 
@@ -197,7 +197,7 @@ function prepareMetaScriptsAndLinks(tag: string, attrs: object): object {
  * Потому что необходим для загрузки ресурсов
  * @param options
  */
-function createWsConfig(options: IHeadOptions): void {
+function createWsConfig(options: IHeadOptions, staticDomainsstringified: string): void {
     if (constants.isBrowserPlatform) {
         return;
     }
@@ -213,7 +213,7 @@ function createWsConfig(options: IHeadOptions): void {
             `RUMEnabled: ${options.RUMEnabled},`,
             `pageName: '${options.pageName}',`,
             'userConfigSupport: true,',
-            `staticDomains: '${this.staticDomainsstringified}',`,
+            `staticDomains: '${staticDomainsstringified}',`,
             `defaultServiceUrl: '${options.servicesPath}',`,
             `compatible: ${options.compat},`,
             `product: '${options.product}'`,
