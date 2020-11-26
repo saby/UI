@@ -235,26 +235,24 @@ export function mergeAttrs(attr1, attr2) {
    attr2 = attr2 || {};
 
    var finalAttr: any = {},
-      empt,
       name;
    for (name in attr1) {
       if (attr1.hasOwnProperty(name) && attr1[name] !== undefined && attr1[name] !== null) {
-         finalAttr[name.replace('attr:', '')] = attr1[name] !== '' ? attr1[name] : undefined;
+         finalAttr[name] = attr1[name] !== '' ? attr1[name] : undefined;
       }
    }
    for (name in attr2) {
       if (attr2.hasOwnProperty(name) && attr2[name] !== undefined && attr2[name] !== null) {
-         if (name === 'attr:class' || name === 'class') {
+         if (name === 'class') {
             finalAttr.class = getClass(finalAttr, attr2);
-         } else if (name === 'attr:style' || name === 'style') {
+         } else if (name === 'style') {
             finalAttr.style = getStyle(finalAttr, attr2);
          // children key value should be always preferable over parent
-         } else if (name === 'attr:key' || name === 'key') {
+         } else if (name === 'key') {
             finalAttr.key = attr2[name];
          } else {
-            empt = name.replace('attr:', '');
-            if (!finalAttr.hasOwnProperty(empt)) {
-               finalAttr[empt] = attr2[name] || undefined;
+            if (!finalAttr.hasOwnProperty(name)) {
+               finalAttr[name] = attr2[name] || undefined;
             }
          }
       }

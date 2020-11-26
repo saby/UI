@@ -12,14 +12,12 @@ export function prepareAttrsForFocus(attributes) {
       return;
    }
 
-   const prefix = checkAttr(attributes) ? 'attr:' : '';
-
-   if (!attributes[prefix + 'ws-creates-context']) {
-      attributes[prefix + 'ws-creates-context'] = 'true';
+   if (!attributes['ws-creates-context']) {
+      attributes['ws-creates-context'] = 'true';
    }
 
-   if(!attributes[prefix + 'ws-delegates-tabfocus']) {
-      attributes[prefix + 'ws-delegates-tabfocus'] = 'true';
+   if(!attributes['ws-delegates-tabfocus']) {
+      attributes['ws-delegates-tabfocus'] = 'true';
    }
 }
 
