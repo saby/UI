@@ -26,6 +26,8 @@ import {IHTMLOptions, IHTML} from './_base/interface/IHTML';
 import {IRootTemplateOptions, IRootTemplate} from './_base/interface/IRootTemplate';
 import Creator, { async as AsyncCreator } from './_base/Creator';
 export { default as startApplication } from 'UI/_base/startApplication';
+export { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
+export { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 
 //#region meta data
 export { getMetaStack, IMeta, IMetaState } from 'UI/_base/HTML/meta';

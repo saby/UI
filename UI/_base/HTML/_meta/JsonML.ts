@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_base/HTML/_meta/TagMarkup" />
+/// <amd-module name="UI/_base/HTML/_meta/JsonML" />
 import { ITagDescription, JML, FullJML } from 'UI/_base/HTML/_meta/interface';
 /**
  * Конвертация из JsonML в ITagDescription
