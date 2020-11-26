@@ -114,7 +114,7 @@ export const FOREACH = `(function forTemplate() {
       }
    }).call(data);
    return out;
-})(),
+}).call(this),
 `;
 
 export const FUNCTION_TEMPLATE = `/*#DELETE IT START#*/
