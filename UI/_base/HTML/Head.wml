@@ -1,10 +1,13 @@
 <head>
 <ws:if data="{{ isSSR && headApiData }}">
+  <meta data-vdomignore="true" data-start="headApiData"/>
   {{ __setHTMLUnsafe( headApiData ) }}
+  <meta data-vdomignore="true" data-end="headApiData"/>
 </ws:if>
 
 <!-- #region head (он же пользовательский шаблон(ы) для вставки в <head>) -->
 <ws:if data="{{ head }}">
+  <meta data-vdomignore="true" data-start="head"/>
   <ws:if data="{{ isArray(head) }}">
     <ws:for data="i in head">
       <ws:partial template="{{ i }}"  attr:data-vdomignore="true" attr:class="head-custom-block"/>
@@ -13,12 +16,15 @@
   <ws:else>
     <ws:partial template="{{ head }}"  attr:data-vdomignore="true" attr:class="head-custom-block"/>
   </ws:else>
+  <meta data-vdomignore="true" data-end="head"/>
 </ws:if>
 <!-- #endregion -->
 
 <!-- #region headAdditiveTagsMarkup (он же headJson) -->
 <ws:if data="{{ isSSR && headAdditiveTagsMarkup }}">
+  <meta data-vdomignore="true" data-start="headJSON"/>
   {{ __setHTMLUnsafe( headAdditiveTagsMarkup ) }}
+  <meta data-vdomignore="true" data-start="headJSON"/>
 </ws:if>
 <!-- #endregion -->
 </head>
