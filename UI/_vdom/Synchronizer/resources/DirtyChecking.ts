@@ -162,14 +162,8 @@ export function getReceivedState(controlNode: IControlNode, vnodeP: GeneratorNod
 
    let data;
    let srec;
-   const controlPropsModified = controlNode.options;
-   for (const index in controlPropsModified) {
-      if(Array.isArray(controlPropsModified[index])) {
-         // ReactiveObserver.observeArray(controlNode.control, index, controlPropsModified[index]);
-      }
-   }
    const vnode = {
-      controlProperties: controlPropsModified,
+      controlProperties: controlNode.options,
       context: controlNode.context
    };
 
