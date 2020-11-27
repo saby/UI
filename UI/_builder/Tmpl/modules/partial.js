@@ -229,13 +229,6 @@ define('UI/_builder/Tmpl/modules/partial', [
             config.config
          ) + ',';
       }
-      if (tag.name !== 'ws:partial') {
-         // FIXME: Сюда может попасть узел <ws:.> из-за того, что на этапе
-         //  анализа не выработаны требования к именам опций, а на этапе генерации кода
-         //  выполняется некорректная проверка на тип узла (контрол, шаблон и тд).
-         //  Нужно исправлять генерацию кода - переводить на посетителей.
-         throw new Error('Ошибка обработки тега "' + tag.name + '". Ожидался ws:partial');
-      }
       var templateValue = tag.attribs._wstemplatename.data.value;
       if (tagIsTemplate) {
          return Generator.genCreateControlNew(
