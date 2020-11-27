@@ -3,7 +3,6 @@ import { THEME_TYPE, ELEMENT_ATTR, DEPRECATED_ELEMENT_ATTR, EMPTY_THEME, DEPRECA
 import { ICssEntity, IHTMLElement } from './css/interface';
 import SingleLinkPS from './css/SingleLinkPS';
 import SingleLink from './css/SingleLink';
-import LinkPS from './css/LinkPS';
 import Link from './css/Link';
 // @ts-ignore
 import { constants } from 'Env/Env';
@@ -12,8 +11,7 @@ const isNull = (prop: string) => prop === null || typeof prop === 'undefined';
 
 export function createEntity(href: string, cssName: string, themeName: string, themeType: THEME_TYPE): ICssEntity {
    if (themeType === THEME_TYPE.MULTI) {
-      const LinkClass = constants.isServerSide ? LinkPS : Link;
-      return new LinkClass(href, cssName, themeName);
+      return new Link(href, cssName, themeName);
    }
    const SingleLinkClass = constants.isServerSide ? SingleLinkPS : SingleLink;
    return new SingleLinkClass(href, cssName, themeName);

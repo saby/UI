@@ -7,7 +7,6 @@ import { createEntity, restoreDeprecatedEntity, restoreEntity } from 'UI/theme/_
 import { DEPRECATED_ELEMENT_ATTR, DEPRECATED_THEME_TYPE, ELEMENT_ATTR, EMPTY_THEME } from 'UI/theme/_controller/css/const';
 import { IHTMLElement } from 'UI/theme/_controller/css/interface';
 import Link from 'UI/theme/_controller/css/Link';
-import LinkPS from 'UI/theme/_controller/css/LinkPS';
 import SingleLink from 'UI/theme/_controller/css/SingleLink';
 import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
 
@@ -73,9 +72,9 @@ describe('UI/theme/_controller/CSS', () => {
    describe('createEntity на СП', () => {
       if (!constants.isServerSide) { return; }
 
-      it('Создает экземпляр LinkPS для мультитемы', () => {
+      it('Создает экземпляр Link для мультитемы', () => {
          const entity = createEntity(href, cssName, themeName, THEME_TYPE.MULTI);
-         assert.instanceOf(entity, LinkPS);
+         assert.instanceOf(entity, Link);
       });
 
       it('Создает экземпляр SingleLinkPS для немультитемы', () => {
