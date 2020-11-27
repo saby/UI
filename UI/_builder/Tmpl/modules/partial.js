@@ -110,37 +110,40 @@ define('UI/_builder/Tmpl/modules/partial', [
       var tagIsDynamicPartial = !!tag.injectedTemplate;
       var scope = null;
       var compositeAttributes = null;
-      // FIXME: Temporary disable
-      // if (tag.attribs.hasOwnProperty('scope')) {
-      //    scope = Process.processExpressions(
-      //       tag.attribs.scope.data[0],
-      //       data,
-      //       this.fileName,
-      //       isControl,
-      //       {},
-      //       'scope',
-      //       false
-      //    );
-      //    delete tag.attribs.scope;
-      // }
-      if (tag.attribs.hasOwnProperty('attributes')) {
-         compositeAttributes = Process.processExpressions(
-            tag.attribs.attributes.data[0],
-            data,
-            this.fileName,
-            isControl,
-            {},
-            'attributes',
-            true
-         );
-         delete tag.attribs.attributes;
+      var cleanAttributes = { };
+      var events = { };
+      if (tag.attribs) {
+         // FIXME: Temporary disable
+         // if (tag.attribs.hasOwnProperty('scope')) {
+         //    scope = Process.processExpressions(
+         //       tag.attribs.scope.data[0],
+         //       data,
+         //       this.fileName,
+         //       isControl,
+         //       {},
+         //       'scope',
+         //       false
+         //    );
+         //    delete tag.attribs.scope;
+         // }
+         if (tag.attribs.hasOwnProperty('attributes')) {
+            compositeAttributes = Process.processExpressions(
+               tag.attribs.attributes.data[0],
+               data,
+               this.fileName,
+               isControl,
+               {},
+               'attributes',
+               true
+            );
+            delete tag.attribs.attributes;
+         }
+         var decorated = parse.processAttributes.call(this, tag.attribs, data, {}, tagIsWsControl, tag);
+         var attributes = decorated.attributes;
+         cleanAttributes = cleanAttributesCollection(attributes);
+         events = decorated.events;
       }
-
-      var decorated = parse.processAttributes.call(this, tag.attribs, data, {}, tagIsWsControl, tag);
-      var attributes = decorated.attributes;
-      var events = decorated.events;
       var options = prepareScope.call(this, tag, data);
-      var cleanAttributes = cleanAttributesCollection(attributes);
       var internal = (tag.internal && Object.keys(tag.internal).length > 0)
          ? FSC.getStr(tag.internal)
          : '{}';
@@ -225,6 +228,13 @@ define('UI/_builder/Tmpl/modules/partial', [
             config.options,
             config.config
          ) + ',';
+      }
+      if (tag.name !== 'ws:partial') {
+         // FIXME: Сюда может попасть узел <ws:.> из-за того, что на этапе
+         //  анализа не выработаны требования к именам опций, а на этапе генерации кода
+         //  выполняется некорректная проверка на тип узла (контрол, шаблон и тд).
+         //  Нужно исправлять генерацию кода - переводить на посетителей.
+         throw new Error('Ошибка обработки тега "' + tag.name + '". Ожидался ws:partial');
       }
       var templateValue = tag.attribs._wstemplatename.data.value;
       if (tagIsTemplate) {
