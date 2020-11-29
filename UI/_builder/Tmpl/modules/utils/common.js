@@ -145,7 +145,7 @@ define('UI/_builder/Tmpl/modules/utils/common', ['Env/Env'], function utilsLoade
    var unicodeRegExp = /&#(\w*);?/g;
 
    function unescapeASCII(str) {
-      if (typeof str !== 'string') {
+      if (!str || !str.replace) {
          return str;
       }
       return str.replace(unicodeRegExp, function(match, entity) {
@@ -164,7 +164,7 @@ define('UI/_builder/Tmpl/modules/utils/common', ['Env/Env'], function utilsLoade
    };
 
    function unescape(str) {
-      if (!str || typeof str !== 'string') {
+      if (!str || !str.replace) {
          return str;
       }
       return unescapeASCII(str).replace(unescapeRegExp, function(match, entity) {
