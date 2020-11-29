@@ -1896,7 +1896,7 @@ export class TranslationNode extends Ast {
     */
    constructor(text: string, context: string = '') {
       super();
-      this.__$ws_text = text;
+      this.__$ws_text = typeof window === 'undefined' ? text : unescape(text);
       this.__$ws_context = context;
    }
 
