@@ -13,6 +13,7 @@ define('UI/_builder/Tmpl/function', [
    'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/modules/utils/parse',
    'UI/_builder/Tmpl/codegen/templates',
+   'UI/_builder/Tmpl/modules/utils/common',
    'UI/_builder/Tmpl/codegen/Generator',
    'UI/_builder/Tmpl/codegen/TClosure'
 ], function processingModule(
@@ -30,6 +31,7 @@ define('UI/_builder/Tmpl/function', [
    ErrorHandlerLib,
    parseUtils,
    templates,
+   common,
    Generator,
    TClosure
 ) {
