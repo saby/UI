@@ -1824,7 +1824,7 @@ export class TextDataNode extends Ast {
     */
    constructor(content: string) {
       super();
-      this.__$ws_content = typeof window === 'undefined' ? content : unescape(content);
+      this.__$ws_content = unescape(content);
    }
 
    /**
@@ -1896,7 +1896,7 @@ export class TranslationNode extends Ast {
     */
    constructor(text: string, context: string = '') {
       super();
-      this.__$ws_text = typeof window === 'undefined' ? text : unescape(text);
+      this.__$ws_text = unescape(text);
       this.__$ws_context = context;
    }
 
