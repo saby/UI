@@ -1824,7 +1824,7 @@ export class TextDataNode extends Ast {
     */
    constructor(content: string) {
       super();
-      this.__$ws_content = content;
+      this.__$ws_content = typeof window === 'undefined' ? content : unescape(content);
    }
 
    /**
