@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/utils/Source" />
 
 /**
+ * @description Модуль-обертка над входным исходным текстом шаблона.
  * @author Крылов М.А.
  */
 
@@ -18,6 +19,11 @@ export interface ISource {
    readonly fileName: string;
 }
 
+/**
+ * Validate value type is string.
+ * @param value {*} Some value.
+ * @param message {string} Value description.
+ */
 function validateString(value: any, message: string): void {
    const type = typeof(value);
    if (type !== 'string') {

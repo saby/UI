@@ -1,12 +1,24 @@
 /// <amd-module name="UI/_builder/utils/ModulePath" />
 
-const P_EXTENSION: RegExp = /\.(wml|tmpl|xhtml)$/i;
-const EMPTY_STRING: string = '';
-const SOLIDUS: string = '/';
-
 /**
+ * @description Модуль предоставляет обертку над путем к файлу внутри UI-модуля.
  * @author Крылов М.А.
  */
+
+/**
+ * Regular expression for supported template file extension.
+ */
+const P_EXTENSION: RegExp = /\.(wml|tmpl|xhtml)$/i;
+
+/**
+ * Empty string constant.
+ */
+const EMPTY_STRING: string = '';
+
+/**
+ * Solidus constant.
+ */
+const SOLIDUS: string = '/';
 
 /**
  * Known interface module substitutions for outdated and deprecated modules.
@@ -20,6 +32,12 @@ const SUBSTITUTIONS = [
    ['WS.Deprecated', 'Deprecated']
 ];
 
+/**
+ * Get supported RequireJS plugin name by its extension.
+ * @param extension {string} Supported template file extension.
+ * @returns {string} RequireJS plugin name.
+ * @throws Throws exception in case of unsupported template file extension.
+ */
 function getPluginNameByExtension(extension: string): string {
    switch (extension) {
       case 'wml':
@@ -36,10 +54,12 @@ function getPluginNameByExtension(extension: string): string {
  * Represents methods to work with a file name as a module name.
  */
 export class ModulePath {
+
    /**
     * Module path.
     */
    readonly module: string;
+
    /**
     * File extension.
     */

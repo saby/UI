@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Compiler" />
 
 /**
+ * @description Точка входа в шаблонизатор.
  * @author Крылов М.А.
  */
 
@@ -96,9 +97,25 @@ interface IDictionaryItem {
  * FIXME: release interfaces for these nodes.
  */
 interface IAST extends Array<Object> {
+
+   /**
+    * Collection of child names.
+    */
    childrenStorage: string[];
+
+   /**
+    * Collection of reactive property names.
+    */
    reactiveProps: string[];
+
+   /**
+    * Collection of inline template names.
+    */
    templateNames: string[];
+
+   /**
+    * Legacy flag. Always true.
+    */
    __newVersion: boolean;
 }
 

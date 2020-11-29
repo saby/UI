@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Tmpl/i18n/Dictionary" />
 
 /**
+ * @description Предоставляет интерфейс и класс для работы со словарем ключей локализации.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/i18n/Dictionary.ts
  */

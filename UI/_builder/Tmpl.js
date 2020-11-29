@@ -22,6 +22,8 @@ define('UI/_builder/Tmpl', [
    'use strict';
 
    /**
+    * @description Точка входа в шаблонизатор.
+    * @deprecated
     * @author Крылов М.А.
     */
 
@@ -283,6 +285,12 @@ define('UI/_builder/Tmpl', [
       return compatibleFunction;
    }
 
+   /**
+    * Сгенерировать шаблонную функцию в режиме jit.
+    * @param ast AST-дерево
+    * @param config Конфигурация
+    * @returns {Function} Шаблонная функция
+    */
    function outerFunc(ast, config) {
       try {
          codegenBridge.initWorkspaceTMPL(ast.templateNames);
