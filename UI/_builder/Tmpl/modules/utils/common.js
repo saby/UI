@@ -124,6 +124,54 @@ define('UI/_builder/Tmpl/modules/utils/common', ['Env/Env'], function utilsLoade
       }
       return entity;
    }
+
+   // умеет конвертировать не только ansii символы, но и unicode
+   function fixedFromCharCode(codePt) {
+      //Код может быть в 16тиричной форме
+      if (codePt && codePt.indexOf){
+         if (codePt.indexOf('x') === 0){
+            var trueCode = codePt.split('x')[1];
+            codePt = parseInt(trueCode, 16);
+         }
+      }
+      if (codePt > 0xFFFF) {
+         codePt -= 0x10000;
+         return String.fromCharCode(0xD800 + (codePt >> 10), 0xDC00 + (codePt & 0x3FF));
+      } else {
+         return String.fromCharCode(codePt);
+      }
+   }
+
+   var unicodeRegExp = /&#(\w*);?/g;
+
+   function unescapeASCII(str) {
+      if (typeof str !== 'string') {
+         return str;
+      }
+      return str.replace(unicodeRegExp, function(match, entity) {
+         return fixedFromCharCode(entity);
+      });
+   };
+
+   var unescapeRegExp = /&(nbsp|amp|quot|apos|lt|gt);/g;
+   var unescapeDict = {
+      "nbsp": String.fromCharCode(160),
+      "amp": "&",
+      "quot": "\"",
+      "apos": "'",
+      "lt": "<",
+      "gt": ">"
+   };
+
+   function unescape(str) {
+      if (!str || typeof str !== 'string') {
+         return str;
+      }
+      return unescapeASCII(str).replace(unescapeRegExp, function(match, entity) {
+         return unescapeDict[entity];
+      });
+   }
+
    function isEmpty(obj) {
       for (var prop in obj) {
          if (obj.hasOwnProperty(prop))
@@ -181,6 +229,8 @@ define('UI/_builder/Tmpl/modules/utils/common', ['Env/Env'], function utilsLoade
       eachObject: eachObject,
       bindingArrayHolder: bindingArrayHolder,
       escape: escape,
+      unescapeASCII: unescapeASCII,
+      unescape: unescape,
       isEmpty: isEmpty,
       plainMergeAttrs: plainMergeAttrs,
       hasResolver: hasResolver,

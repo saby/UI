@@ -7,7 +7,7 @@
 
 import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { IPath } from 'UI/_builder/Tmpl/core/Resolvers';
-
+import { unescape } from '../modules/utils/common';
 // tslint:disable:max-classes-per-file
 // Намеренно отключаю правило max-classes-per-file
 
@@ -1795,7 +1795,7 @@ export class TextNode extends Ast {
     */
    constructor(content: TText[] = []) {
       super();
-      this.__$ws_content = content;
+      this.__$ws_content = typeof window === 'undefined' ? content : unescape(content);
    }
 
    /**

@@ -10,7 +10,6 @@ import { ProgramNode, ExpressionVisitor } from './Nodes';
 import { genEscape } from 'UI/_builder/Tmpl/codegen/Generator';
 import { genSanitize } from 'UI/_builder/Tmpl/codegen/TClosure';
 
-import * as common from 'UI/_builder/Tmpl/modules/utils/common';
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
 const EMPTY_STRING = '';
@@ -148,15 +147,6 @@ export function processExpressions(
          );
          return undefined;
       }
-   }
-
-   if (expressionRaw.value && isAttribute) {
-      res = expressionRaw.value;
-      res = res
-         .replace(/\\/g, '\\\\')
-         .replace(/"/g, '\\"');
-      res = common.escape(res);
-      return res;
    }
 
    return expressionRaw.value;
