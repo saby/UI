@@ -13,7 +13,6 @@ import * as Attr from '../_Expressions/Attr';
 import * as RequireHelper from './RequireHelper';
 
 import { ReactiveObserver } from 'UI/Reactivity';
-import { ValueNode } from '../../_builder/Tmpl/core/Ast';
 
 var
    requireIfDefined = function requireIfDefined(tpl) {
