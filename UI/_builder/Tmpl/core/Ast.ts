@@ -1795,7 +1795,7 @@ export class TextNode extends Ast {
     */
    constructor(content: TText[] = []) {
       super();
-      this.__$ws_content = typeof window === 'undefined' ? content : unescape(content);
+      this.__$ws_content = content;
    }
 
    /**
