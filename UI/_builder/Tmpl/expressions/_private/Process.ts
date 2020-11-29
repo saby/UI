@@ -150,14 +150,5 @@ export function processExpressions(
       }
    }
 
-   if (expressionRaw.value && isAttribute) {
-      res = expressionRaw.value;
-      res = res
-         .replace(/\\/g, '\\\\')
-         .replace(/"/g, '\\"');
-      res = common.escape(res);
-      return res;
-   }
-
    return expressionRaw.value;
 }

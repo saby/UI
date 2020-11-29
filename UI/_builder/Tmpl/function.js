@@ -464,7 +464,7 @@ define('UI/_builder/Tmpl/function', [
             );
          }
          if (typeof result === 'string') {
-            result = FSC.escapeRawYens(common.unescape(result));
+            result = FSC.escapeRawYens(typeof window === 'undefined' ? result : common.unescape(result));
          }
          return result;
       },
