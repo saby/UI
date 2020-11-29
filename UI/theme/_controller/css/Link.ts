@@ -1,10 +1,13 @@
 /// <amd-module name='UI/theme/_controller/css/Link' />
+import { IAttrsDescription } from "UI/_base/HTML/_meta/interface";
+import { fromJML } from "UI/_base/HTML/_meta/JsonML";
+import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { ModulesLoader } from 'UI/Utils';
 import { Base } from './Base';
 import { ELEMENT_ATTR, THEME_TYPE, CSS_MODULE_PREFIX } from './const';
 import { ICssEntity, IHTMLElement } from './interface';
 import { Head as HeadAPI } from 'Application/Page';
-import { IHeadTagId } from 'Application/Interface';
+import { IHeadTagId, IHeadTagAttrs } from 'Application/Interface';
 import { then, isInit } from 'Application/Initializer';
 
 const TIMEOUT = 30000;
@@ -14,6 +17,25 @@ const TIMEOUT = 30000;
  */
 export default class Link extends Base implements ICssEntity {
    headTagId: IHeadTagId;
+
+   /**
+    * Если кто-то попросил outerHtml, значит это старая страница
+    * Я даже не уверен, что она с Application строится, поэтому описал ВСЕ варианты
+    */
+   get outerHtml(): string {
+      let result = '';
+      let data;
+      if (isInit) {
+         if (this.headTagId) {
+            data = HeadAPI.getInstance().getData(this.headTagId);
+            result = new TagMarkup(data.map(fromJML)).outerHTML;
+         }
+      } else {
+         result = new TagMarkup([{tagName: 'link', attrs: (generateAttrs(this) as IAttrsDescription)}]).outerHTML;
+      }
+
+      return result;
+   }
 
    constructor(
        href: string,
@@ -97,14 +119,7 @@ export default class Link extends Base implements ICssEntity {
                 this.themeName + ' theme.')
             );
          };
-         const attrs = {
-            rel: 'stylesheet',
-            type: 'text/css',
-            [ELEMENT_ATTR.HREF]: this.href,
-            [ELEMENT_ATTR.NAME]: this.cssName,
-            [ELEMENT_ATTR.THEME]: this.themeName,
-            [ELEMENT_ATTR.THEME_TYPE]: this.themeType
-         };
+         const attrs = generateAttrs(this);
          if (isInit()) {
             // @ts-ignore
             this.headTagId = HeadAPI.getInstance().createTag('link', attrs, null, {
@@ -123,4 +138,15 @@ export default class Link extends Base implements ICssEntity {
          setTimeout(onerror, TIMEOUT);
       });
    }
+}
+
+function generateAttrs(item: ICssEntity): IHeadTagAttrs {
+   return {
+      rel: 'stylesheet',
+      type: 'text/css',
+      [ELEMENT_ATTR.HREF]: item.href,
+      [ELEMENT_ATTR.NAME]: item.cssName,
+      [ELEMENT_ATTR.THEME]: item.themeName,
+      [ELEMENT_ATTR.THEME_TYPE]: item.themeType
+   };
 }
