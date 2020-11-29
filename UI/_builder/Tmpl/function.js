@@ -50,22 +50,6 @@ define('UI/_builder/Tmpl/function', [
       };
    }
 
-   var tagsToReplace = {
-      "'": "\\'",
-      '"': '\\"',
-      '\\': '\\\\'
-   };
-   var regExpToReplace = /['"\\]/g;
-
-   function escape(entity) {
-      if (entity && entity.replace) {
-         return entity.replace(regExpToReplace, function escapeReplace(tag) {
-            return tagsToReplace[tag] || tag;
-         });
-      }
-      return entity;
-   }
-
    function getFuncNameByFile(fileName) {
       return fileName && fileName.replace && fileName
 
@@ -431,15 +415,15 @@ define('UI/_builder/Tmpl/function', [
                         string += '\' + (' + expressionResult + ') + \'';
                      }
                   } else {
-                     string += escape(expressionResult);
+                     string += expressionResult;
                   }
                } else {
                   string += '';
                }
             }
             result = string;
-         } else if (needEscape !== false && textData.type === 'text') {
-            result = escape(textData.value);
+         } else if (textData.type === 'text') {
+            result = textData.value;
          } else if (bindingObject) {
             result = Process.processExpressions(
                textData,
@@ -462,7 +446,7 @@ define('UI/_builder/Tmpl/function', [
             );
          }
          if (typeof result === 'string') {
-            result = FSC.escapeRawYens(result);
+            result = FSC.escapeRawYens(common.unescape(result));
          }
          return result;
       },
