@@ -12,6 +12,10 @@ export function genEscape(data: string): string {
    return `${VAR_MODULE_NAME}.escape(${data})`;
 }
 
+export function genUnescape(data: string): string {
+   return `${VAR_MODULE_NAME}.unescape(${data})`;
+}
+
 export function genCreateText(data: string = "''", keyExpression?: string): string {
    if (keyExpression === undefined) {
       return `${VAR_MODULE_NAME}.createText(${data})`;

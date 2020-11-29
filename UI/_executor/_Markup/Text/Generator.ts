@@ -351,6 +351,10 @@ export class GeneratorText implements IGenerator {
       return Common.escape(value);
    };
 
+   unescape(value) {
+      return value;
+   };
+
    createDirective(text) {
       return '<' + text + '>';
    };

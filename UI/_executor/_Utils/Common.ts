@@ -13,6 +13,7 @@ import * as Attr from '../_Expressions/Attr';
 import * as RequireHelper from './RequireHelper';
 
 import { ReactiveObserver } from 'UI/Reactivity';
+import { ValueNode } from '../../_builder/Tmpl/core/Ast';
 
 var
    requireIfDefined = function requireIfDefined(tpl) {
@@ -113,10 +114,11 @@ function fixedFromCharCode(codePt) {
 
 var unicodeRegExp = /&#(\w*);?/g;
 
-export function unescapeASCII(str: any): any {
-   if (typeof str !== 'string') {
-      return str;
-   }
+function isStringValue(value: any): value is string {
+   return value && value.replace;
+}
+
+export function unescapeASCII(str: string): string {
    return str.replace(unicodeRegExp, (_, entity) => fixedFromCharCode(entity));
 };
 
@@ -131,7 +133,7 @@ const unescapeDict = {
 };
 
 export function unescape(str: any): any {
-   if (typeof str !== 'string') {
+   if (!isStringValue(str)) {
       return str;
    }
    return unescapeASCII(str).replace(unescapeRegExp, (_, entity: string) => unescapeDict[entity]);

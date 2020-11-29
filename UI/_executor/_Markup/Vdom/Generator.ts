@@ -473,6 +473,10 @@ export class GeneratorVdom implements IGenerator {
       return value;
    }
 
+   unescape(value: GeneratorObject): GeneratorObject {
+      return Common.unescape(value);
+   }
+
    createDirective(text: any): any {
       try {
          throw new Error('vdomMarkupGenerator createDirective not realized');

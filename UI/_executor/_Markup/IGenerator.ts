@@ -291,6 +291,13 @@ export interface IGenerator {
    escape(value: GeneratorObject): GeneratorObject;
 
    /**
+    * Анэскейп тегов
+    * @param value
+    * @return {object | string} value
+    */
+   unescape(value: GeneratorObject): GeneratorObject;
+
+   /**
     * Создает кастомный тег (в VDOM генераторе должен выбрасывать ошибку)
     * @param text
     * @returns {string}
