@@ -277,7 +277,10 @@ define('UI/_builder/Tmpl/modules/partial', [
             var tagIsTemplate = tag.children && tag.children[0] && tag.children[0].fn;
             var tagIsDynamicPartial = !!tag.injectedTemplate;
 
-            if (USE_NEW_GENERATOR_METHODS) {
+            // FIXME: включить метод для inline-шаблонов
+            var canUseNewMethods = tagIsModule || tagIsWsControl || tagIsTemplate || tagIsDynamicPartial;
+
+            if (canUseNewMethods && USE_NEW_GENERATOR_METHODS) {
                return processNode.call(this, tag, data, decor);
             }
 
