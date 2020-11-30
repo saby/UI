@@ -47,7 +47,6 @@ class Head extends Control<IHeadOptions> {
         this._createHEADTags(options);
 
         if (!this.isSSR) {
-            this._checkServerSide(options);
             return;
         }
         return headDataStore.read('waitAppContent')()
@@ -88,49 +87,50 @@ class Head extends Control<IHeadOptions> {
     _createHEADTags(options: IHeadOptions): void {
         createWsConfig(options, this.staticDomainsstringified);
         createMetaScriptsAndLinks(options);
+        this._createMeta(options);
     }
 
     /**
      * Проверим: была ли серверная верстка.
      */
-    _checkServerSide(options: IHeadOptions): void {
-        if (this.isSSR) {
+    _createMeta(options: IHeadOptions): void {
+        this.wasServerSide = false;
+        if (!this.isSSR) {
+            // tslint:disable-next-line:max-line-length
+            // Проверяем наличие серверной верстки, чтобы решить, нужно ли нам рендерить ссылки на ресурсы внутри тега <head>.
+            // Если серверная верстка была, то никакие ссылки больше рендериться не будут.
+            // А на всех ссылках, пришедших с сервера, будет висеть атрибут data-vdomignore.
+            // Из-за этого инферно не будет учитывать их при пересинхронизации. Это сделано для того,
+            // tslint:disable-next-line:max-line-length
+            // чтобы инферно ни в каком случае не стал перерисовывать ссылки, т.к. это приводит к "морганию" стилей на странице.
+            if (document.getElementsByClassName('head-server-block').length > 0) {
+                this.wasServerSide = true;
+            }
+
+            if (document.getElementsByClassName('head-custom-block').length > 0) {
+                this.head = undefined;
+            }
+        }
+        if (this.wasServerSide) {
             return;
         }
-        this.wasServerSide = false;
-        // tslint:disable-next-line:max-line-length
-        // Проверяем наличие серверной верстки, чтобы решить, нужно ли нам рендерить ссылки на ресурсы внутри тега <head>.
-        // Если серверная верстка была, то никакие ссылки больше рендериться не будут.
-        // А на всех ссылках, пришедших с сервера, будет висеть атрибут data-vdomignore.
-        // Из-за этого инферно не будет учитывать их при пересинхронизации. Это сделано для того,
-        // tslint:disable-next-line:max-line-length
-        // чтобы инферно ни в каком случае не стал перерисовывать ссылки, т.к. это приводит к "морганию" стилей на странице.
-        if (document.getElementsByClassName('head-server-block').length > 0) {
-            this.wasServerSide = true;
-        }
-
-        if (document.getElementsByClassName('head-custom-block').length > 0) {
-            this.head = undefined;
-        }
-        if (!this.wasServerSide) {
-            const API = AppHead.getInstance();
-            if (!options.compat) {
-                // @ts-ignore
-                API.createTag('script', {type: 'text/javascript'},
-                    `window.themeName = '${options.theme}';`
-                );
-            }
+        const API = AppHead.getInstance();
+        if (!options.compat) {
             // @ts-ignore
-            API.createNoScript(options.noscript);
-            [
-                {'http-equiv': 'X-UA-Compatible', content: 'IE=edge'},
-                {name: 'viewport', content: options.viewport || 'width=1024'},
-                {charset: 'utf-8', class: 'head-server-block'}
-            ].forEach((attrs) => {
-                // @ts-ignore
-                API.createTag('meta', attrs);
-            });
+            API.createTag('script', {type: 'text/javascript'},
+                `window.themeName = '${options.theme}';`
+            );
         }
+        // @ts-ignore
+        API.createNoScript(options.noscript);
+        [
+            {'http-equiv': 'X-UA-Compatible', content: 'IE=edge'},
+            {name: 'viewport', content: options.viewport || 'width=1024'},
+            {charset: 'utf-8', class: 'head-server-block'}
+        ].forEach((attrs) => {
+            // @ts-ignore
+            API.createTag('meta', attrs);
+        });
     }
 
     // @ts-ignore
