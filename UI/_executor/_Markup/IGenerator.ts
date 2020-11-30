@@ -163,10 +163,9 @@ export interface IGenerator {
     * Создание текста
     * @param text
     * @param key?
-    * @param isVar?
     * @return {string} text
     */
-   createText(text: string, key?: string, isVar?: boolean): VNode;
+   createText(text: string, key?: string): VNode;
 
    /**
     * Создание компонента с шаблоном

@@ -162,7 +162,7 @@ export function processExpressions(
          return undefined;
       }
    }
-   
+
    if (expressionRaw.value && isAttribute) {
       return escapeQuotesInString(expressionRaw.value);
    }
