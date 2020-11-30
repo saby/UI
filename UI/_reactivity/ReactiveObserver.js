@@ -202,7 +202,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env
 
                      // возможно эта проверка - костыль. не зову методы если объект уже привязан к какому-то контролу и присваивание идет из служебных мест
                      // добавляется по ошибке, в которой как раз это происходит, перебивается привязка контрола когда не следует
-                     if (!pauseReactiveMap.has(inst) || !value || !value._$reactived) {
+                     if (!pauseReactiveMap.has(inst) || !value._$reactived) {
                         observeVersion(inst, prop, value);
                         observeArray(inst, prop, value);
                         checkForbiddenReactive(inst, prop);
