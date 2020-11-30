@@ -322,13 +322,20 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env
          }
       }
    }
+   var FORBIDDEN_WHITE_LIST = [
+      // FIXME: https://online.sbis.ru/opendoc.html?guid=eaca5447-85b3-43c8-9df4-6649ece334de
+      'Controls/input:Field'
+   ];
+   // TODO: Пока что нужен стек в чистом виде (но небольшой, иначе будут полотна),
+   //  чтобы видеть, какие происходили вычисления внутри. После разбора полетов убрать
+   var MAX_STACK_LENGTH = 15;
    function checkForbiddenReactive(instance, property) {
-      if (forbidReactiveMap.has(instance)) {
-         var error = new Error(
-            'Произведена попытка изменения состояния контрола "' + instance._moduleName +
-            '" при вычислении верстки. Изменяется свойство "' + property + '"'
-         );
-         Env.IoC.resolve('ILogger').warn(error);
+      if (forbidReactiveMap.has(instance) && FORBIDDEN_WHITE_LIST.indexOf(instance._moduleName) === -1) {
+         var error = new Error();
+         var text = 'Произведена попытка изменения состояния контрола "' + instance._moduleName +
+            '" при вычислении верстки. Изменяется свойство "' + property + '"' +
+            '\n' + error.stack.split('\n').slice(3, MAX_STACK_LENGTH).join('\n');
+         Env.IoC.resolve('ILogger').warn(text);
       }
    }
 
