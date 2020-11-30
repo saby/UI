@@ -95,19 +95,21 @@ class Head extends Control<IHeadOptions> {
      */
     _createMeta(options: IHeadOptions): void {
         this.wasServerSide = false;
-        // tslint:disable-next-line:max-line-length
-        // Проверяем наличие серверной верстки, чтобы решить, нужно ли нам рендерить ссылки на ресурсы внутри тега <head>.
-        // Если серверная верстка была, то никакие ссылки больше рендериться не будут.
-        // А на всех ссылках, пришедших с сервера, будет висеть атрибут data-vdomignore.
-        // Из-за этого инферно не будет учитывать их при пересинхронизации. Это сделано для того,
-        // tslint:disable-next-line:max-line-length
-        // чтобы инферно ни в каком случае не стал перерисовывать ссылки, т.к. это приводит к "морганию" стилей на странице.
-        if (document.getElementsByClassName('head-server-block').length > 0) {
-            this.wasServerSide = true;
-        }
+        if (!this.isSSR) {
+            // tslint:disable-next-line:max-line-length
+            // Проверяем наличие серверной верстки, чтобы решить, нужно ли нам рендерить ссылки на ресурсы внутри тега <head>.
+            // Если серверная верстка была, то никакие ссылки больше рендериться не будут.
+            // А на всех ссылках, пришедших с сервера, будет висеть атрибут data-vdomignore.
+            // Из-за этого инферно не будет учитывать их при пересинхронизации. Это сделано для того,
+            // tslint:disable-next-line:max-line-length
+            // чтобы инферно ни в каком случае не стал перерисовывать ссылки, т.к. это приводит к "морганию" стилей на странице.
+            if (document.getElementsByClassName('head-server-block').length > 0) {
+                this.wasServerSide = true;
+            }
 
-        if (document.getElementsByClassName('head-custom-block').length > 0) {
-            this.head = undefined;
+            if (document.getElementsByClassName('head-custom-block').length > 0) {
+                this.head = undefined;
+            }
         }
         if (this.wasServerSide) {
             return;
