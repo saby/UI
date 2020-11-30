@@ -149,5 +149,7 @@ export function processExpressions(
       }
    }
 
-   return genUnescape(expressionRaw.value);
+   res = genUnescape(expressionRaw.value);
+   expressionRaw.value = FSC.wrapAroundExec(res);
+   return res;
 }

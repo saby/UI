@@ -421,18 +421,10 @@ define('UI/_builder/Tmpl/function', [
                // todo если считаем значение по умолчанию для биндинга,
                //  и пришел скажем 0 или null, все равно вернется пустая строка.
                if (expressionResult !== undefined && expressionResult !== null) {
-                  if (textData[i].type === 'var') {
-                     if (textData[i].localized === true) {
-                        string += '\' + (' + expressionResult + ') + \'';
-                     } else {
-                        if (wrapUndef) {
-                           expressionResult = TClosure.genWrapUndef(expressionResult);
-                        }
-                        string += '\' + (' + expressionResult + ') + \'';
-                     }
-                  } else {
-                     string += escape(expressionResult);
+                  if (textData[i].localized !== true && wrapUndef) {
+                     expressionResult = TClosure.genWrapUndef(expressionResult);
                   }
+                  string += '\' + (' + expressionResult + ') + \'';
                } else {
                   string += '';
                }
