@@ -9,8 +9,8 @@ export const BODY = `if (typeof forceCompatible === 'undefined') {
 }
 var markupGenerator = thelpers.createGenerator(isVdom, forceCompatible, generatorConfig);
 var filename = "/*#FILE_NAME#*/";
-/*#DELETE IT START#*/
 var rk = thelpers.getRk(filename);
+/*#DELETE IT START#*/
 if (typeof includedTemplates === "undefined") {
    eval("var includedTemplates = undefined;");
    includedTemplates = (this && this.includedTemplates) ? this.includedTemplates : {};

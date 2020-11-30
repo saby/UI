@@ -172,7 +172,7 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
       return internal;
    }
 
-   function parseAttributesForDecoration(attribs, data, decor, isControl, tag) {
+   function processAttributes(attribs, data, decor, isControl, tag) {
       var attrs;
       var mayBeToMerge = { };
       var needMerge = true;
@@ -184,107 +184,111 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
          internal: FSC.wrapAroundExec('attr?attr.internal:{}'),
          context: FSC.wrapAroundExec('attr?attr.context:{}')
       };
-      if (attribs) {
-         if (utils.checkProp(attribs, 'attributes')) {
-            attrs = processDataSequence.call(this, attribs.attributes, data, undefined, { composite: true });
+      if (utils.checkProp(attribs, 'attributes')) {
+         attrs = processDataSequence.call(this, attribs.attributes, data, undefined, { composite: true });
 
-            // delete attribs['attributes'];
-         }
-         for (var attr in attribs) {
-            if (bindExpressions.isBind(attr)) {
-               var cleanAttributeName = bindExpressions.getBindAttributeName(attr);
-               try {
-                  // Processing bind expression ("bind:...")
-                  var eventAttributeName = bindExpressions.getEventAttributeName(attr);
-                  var eventChain = result.events[eventAttributeName.toLowerCase()];
-                  result.events[eventAttributeName.toLowerCase()] = bindExpressions.processBindAttribute(
-                     attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage, eventChain
-                  );
-               } catch (error) {
-                  errorHandler.error(
-                     'На теге "' + tag.originName + '" значение атрибута "' + attr + '" некорректно "' +
-                     attribs[attr].data[0].name.string + '": ' + error.message +
-                     '. Данный атрибут будет обработан как опция. ' +
-                     'Строка ' + (tag.attributes[attr].position.line + 1) + ', ' +
-                     'столбец ' + (tag.attributes[attr].position.column + 1),
-                     {
-                        fileName: this.fileName
-                     }
-                  );
-               } finally {
-                  // Create attribute object
-                  attribs[cleanAttributeName] = attribs[attr];
-                  delete attribs[attr];
-               }
-            } else if (eventExpressions.isEvent(attr)) {
-               try {
-                  var eventObject = eventExpressions.processEventAttribute(
-                     attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage
-                  );
-                  var eventName = attr.toLowerCase();
-                  if (result.events[eventName] === undefined) {
-                     result.events[eventName] = eventObject;
-                  } else {
-                     // If event with the same name already present, add object to the array
-                     result.events[eventName].push(eventObject[0]);
-                  }
-               } catch (error) {
-                  errorHandler.error(
-                     'На теге "' + tag.originName + '" значение атрибута "' + attr + '" некорректно "' +
-                     attribs[attr].data[0].name.string + '": ' + error.message +
-                     '. Игнорирую данное выражение. ' +
-                     'Строка ' + (tag.attributes[attr].position.line + 1) + ', ' +
-                     'столбец ' + (tag.attributes[attr].position.column + 1),
-                     {
-                        fileName: this.fileName
-                     }
-                  );
-               } finally {
-                  delete attribs[attr];
-               }
-            } else if (isAttr(attr)) {
-               needMerge = false;
-               var newAttr = attr.replace('attr:', '');
-               result.attributes[newAttr] = processDataSequence.call(this,
-                  attribs[attr],
-                  data,
-                  isControl,
-                  attribs,
-                  attr,
-                  true);
-               delete attribs[attr];
-            } else if (SPECIAL_ATTRIBUTES_COLLECTION.indexOf(attr) > -1) {
-               mayBeToMerge[attr] = processDataSequence.call(this,
-                  attribs[attr],
-                  data,
-                  isControl,
-                  attribs,
-                  attr,
-                  true);
-            }
-         }
-
-         if (needMerge) {
-            for (var one in mayBeToMerge) {
-               if (mayBeToMerge.hasOwnProperty(one)) {
-                  result.attributes[one] = mayBeToMerge[one];
-                  delete attribs[one.split('attr:')[1]];
-               }
-            }
-         }
-         if (typeof attrs === 'string') {
-            result.attributes = FSC.wrapAroundExec(
-               TClosure.genProcessMergeAttributes(
-                  attrs,
-                  FSC.getStr(result.attributes)
-               ),
-               true
-            );
-         }
-         result.events = FSC.wrapAroundExec('typeof window === "undefined"?{}:' + FSC.getStr(result.events));
-         return result;
+         // delete attribs['attributes'];
       }
-      return undefined;
+      for (var attr in attribs) {
+         if (bindExpressions.isBind(attr)) {
+            var cleanAttributeName = bindExpressions.getBindAttributeName(attr);
+            try {
+               // Processing bind expression ("bind:...")
+               var eventAttributeName = bindExpressions.getEventAttributeName(attr);
+               var eventChain = result.events[eventAttributeName.toLowerCase()];
+               result.events[eventAttributeName.toLowerCase()] = bindExpressions.processBindAttribute(
+                  attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage, eventChain
+               );
+            } catch (error) {
+               errorHandler.error(
+                  'На теге "' + tag.originName + '" значение атрибута "' + attr + '" некорректно "' +
+                  attribs[attr].data[0].name.string + '": ' + error.message +
+                  '. Данный атрибут будет обработан как опция. ' +
+                  'Строка ' + (tag.attributes[attr].position.line + 1) + ', ' +
+                  'столбец ' + (tag.attributes[attr].position.column + 1),
+                  {
+                     fileName: this.fileName
+                  }
+               );
+            } finally {
+               // Create attribute object
+               attribs[cleanAttributeName] = attribs[attr];
+               delete attribs[attr];
+            }
+         } else if (eventExpressions.isEvent(attr)) {
+            try {
+               var eventObject = eventExpressions.processEventAttribute(
+                  attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage
+               );
+               var eventName = attr.toLowerCase();
+               if (result.events[eventName] === undefined) {
+                  result.events[eventName] = eventObject;
+               } else {
+                  // If event with the same name already present, add object to the array
+                  result.events[eventName].push(eventObject[0]);
+               }
+            } catch (error) {
+               errorHandler.error(
+                  'На теге "' + tag.originName + '" значение атрибута "' + attr + '" некорректно "' +
+                  attribs[attr].data[0].name.string + '": ' + error.message +
+                  '. Игнорирую данное выражение. ' +
+                  'Строка ' + (tag.attributes[attr].position.line + 1) + ', ' +
+                  'столбец ' + (tag.attributes[attr].position.column + 1),
+                  {
+                     fileName: this.fileName
+                  }
+               );
+            } finally {
+               delete attribs[attr];
+            }
+         } else if (isAttr(attr)) {
+            needMerge = false;
+            var newAttr = attr.replace('attr:', '');
+            result.attributes[newAttr] = processDataSequence.call(this,
+               attribs[attr],
+               data,
+               isControl,
+               attribs,
+               attr,
+               true);
+            delete attribs[attr];
+         } else if (SPECIAL_ATTRIBUTES_COLLECTION.indexOf(attr) > -1) {
+            mayBeToMerge[attr] = processDataSequence.call(this,
+               attribs[attr],
+               data,
+               isControl,
+               attribs,
+               attr,
+               true);
+         }
+      }
+      if (needMerge) {
+         for (var one in mayBeToMerge) {
+            if (mayBeToMerge.hasOwnProperty(one)) {
+               result.attributes[one] = mayBeToMerge[one];
+               delete attribs[one.split('attr:')[1]];
+            }
+         }
+      }
+      if (typeof attrs === 'string') {
+         result.attributes = FSC.wrapAroundExec(
+            TClosure.genProcessMergeAttributes(
+               attrs,
+               FSC.getStr(result.attributes)
+            ),
+            true
+         );
+      }
+      return result;
+   }
+
+   function parseAttributesForDecoration(attribs, data, decor, isControl, tag) {
+      if (!attribs) {
+         return undefined;
+      }
+      var result = processAttributes.call(this, attribs, data, decor, isControl, tag);
+      result.events = FSC.wrapAroundExec('typeof window === "undefined"?{}:' + FSC.getStr(result.events));
+      return result;
    }
 
    /**
@@ -300,6 +304,7 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
    }
 
    return {
+      processAttributes: processAttributes,
       parseAttributesForData: parseAttributesForData,
       parseInternalForData: parseInternalForData,
       parseAttributesForDecoration: parseAttributesForDecoration,
