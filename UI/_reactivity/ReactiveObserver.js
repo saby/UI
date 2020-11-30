@@ -306,14 +306,15 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env
    var forbidReactiveMap = new Map();
    function forbidReactive(instance, action) {
       if (!instance) {
-         return action();
+         action();
+         return;
       }
       if (!forbidReactiveMap.has(instance)) {
          forbidReactiveMap.set(instance, 0);
       }
       forbidReactiveMap.set(instance, forbidReactiveMap.get(instance) + 1);
       try {
-         return action();
+         action();
       } finally {
          forbidReactiveMap.set(instance, forbidReactiveMap.get(instance) - 1);
          if (forbidReactiveMap.get(instance) === 0) {
