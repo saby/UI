@@ -3,8 +3,7 @@
  */
 
 import { Set } from 'Types/shim';
-
-const isNotProduction: boolean = isTestDomain();
+import { constants } from 'Env/Env'
 
 /**
  * Отвечает на вопрос, нужно ли отслеживать обращения к полям после очистки.
@@ -12,7 +11,7 @@ const isNotProduction: boolean = isTestDomain();
  * @returns { boolean }
  */
 export default function needLog(): boolean {
-    return isNotProduction;
+    return constants.isProduction;
 }
 
 /**
@@ -25,29 +24,6 @@ export function canPurifyInstanceSync(instanceName: string): boolean {
     let indexOfColon: number = instanceName.indexOf(':');
     const libName = indexOfColon === -1 ? instanceName : instanceName.substr(0, indexOfColon);
     return isLibAllowed(libName);
-}
-
-// Возможно, это должно быть где-то отдельно.
-function isTestDomain(): boolean {
-    const testPrefixes = [
-       'wi.sbis.ru',
-       'platform-',
-       'dev-',
-       'test-',
-       'localhost',
-       '127.0.0.1',
-       'fix-',
-       'dev.',
-       'test.',
-       'fix.',
-       'rc-',
-       'rc.'
-    ];
-    const hasTestPreffixRegExp = new RegExp(testPrefixes.join('|'));
-
-    const location = typeof window === 'object' && window.location;
-
-    return !!location && (hasTestPreffixRegExp.test(location.host) || !!location.port);
 }
 
 // На данный момент - все из wasaby-controls, кроме явно использующих поля после уничтожения.

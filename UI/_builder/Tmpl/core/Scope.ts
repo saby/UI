@@ -11,10 +11,8 @@ import { IPath } from 'UI/_builder/Tmpl/core/Resolvers';
 import { Dictionary, ITranslationKey } from 'UI/_builder/Tmpl/i18n/Dictionary';
 // @ts-ignore TODO: This module can only be referenced with ECMAScript imports/exports
 //             by turning on the 'esModuleInterop' flag and referencing its default export.
-import * as Deferred from 'Core/Deferred';
-// @ts-ignore TODO: This module can only be referenced with ECMAScript imports/exports
-//             by turning on the 'esModuleInterop' flag and referencing its default export.
 import * as ParallelDeferred from 'Core/ParallelDeferred';
+import createController, { IDependenciesController } from 'UI/_builder/Tmpl/core/Dependencies';
 
 /**
  * Interface of inner representation of template nodes.
@@ -40,13 +38,6 @@ interface ITemplates {
 }
 
 /**
- * Interface of collection of dependencies.
- */
-interface IDependencies {
-   [fullPath: string]: IPath;
-}
-
-/**
  * Represents methods to work with object that depends on scope.
  */
 export default class Scope implements ITranslationsRegistrar {
@@ -57,19 +48,9 @@ export default class Scope implements ITranslationsRegistrar {
    private readonly templates: ITemplates;
 
    /**
-    * Flag for loading registered dependencies for only JIT compilation.
+    * Controller of dependencies.
     */
-   private readonly loadDependencies: boolean;
-
-   /**
-    * Collection of dependencies.
-    */
-   private readonly dependencies: IDependencies;
-
-   /**
-    * Collection of requested dependencies.
-    */
-   private readonly dependencyRequests: Deferred<unknown>[];
+   private readonly dependenciesController: IDependenciesController;
 
    /**
     * Translations dictionary.
@@ -82,9 +63,7 @@ export default class Scope implements ITranslationsRegistrar {
     */
    constructor(loadDependencies: boolean = false) {
       this.templates = { };
-      this.dependencies = { };
-      this.loadDependencies = loadDependencies;
-      this.dependencyRequests = [];
+      this.dependenciesController = createController(loadDependencies);
       this.dictionary = new Dictionary();
    }
 
@@ -93,42 +72,14 @@ export default class Scope implements ITranslationsRegistrar {
     * @param path {IPath} Dependency path.
     */
    registerDependency(path: IPath): void {
-      const fullPath = path.getFullPhysicalPath();
-      if (!this.dependencies.hasOwnProperty(fullPath)) {
-         this.dependencies[fullPath] = path;
-      }
-      if (!this.loadDependencies || requirejs.defined(fullPath)) {
-         return;
-      }
-      const deferred = new Deferred();
-      this.dependencyRequests.push(deferred);
-      if (require.defined(fullPath)) {
-         deferred.callback(require(fullPath));
-         return;
-      }
-      require([fullPath], (module) => {
-         if (module || module === null) {
-            deferred.callback(module);
-            return;
-         }
-         deferred.errback(new Error(`Не удалось загрузить файл "${fullPath}"`));
-      }, (error) => {
-         deferred.errback(error);
-      });
+      this.dependenciesController.registerDependency(path);
    }
 
    /**
     * Request all registered dependencies.
     */
    requestDependencies(): ParallelDeferred<unknown> {
-      const parallelDeferred = new ParallelDeferred();
-      if (!this.loadDependencies || this.dependencyRequests.length === 0) {
-         return parallelDeferred.done().getResult();
-      }
-      this.dependencyRequests.forEach((deferred) => {
-         parallelDeferred.push(deferred);
-      });
-      return parallelDeferred.done().getResult();
+      return this.dependenciesController.requestDependencies();
    }
 
    /**

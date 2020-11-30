@@ -33,7 +33,7 @@ import {
    TIncludedTemplate,
    ITemplateNode,
    TObject,
-   TScope
+   TScope, IControlConfig
 } from '../IGeneratorType';
 import { GeneratorNode } from './IVdomType';
 import { cutFocusAttributes } from '../Utils';
@@ -64,6 +64,17 @@ export class GeneratorVdom implements IGenerator {
       this.canBeCompatible = false;
       this.generatorBase.bindGeneratorFunction(this.createEmptyText, this.createWsControl,
          this.createTemplate, this.createController, this.resolver, this);
+   }
+
+   createControlNew(
+      type: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: Record<string, unknown>,
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error {
+      return this.generatorBase.createControlNew.call(this, type, method, attributes, events, options, config);
    }
 
    chain(out: string,

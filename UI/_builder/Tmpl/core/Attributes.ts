@@ -665,6 +665,7 @@ class AttributeProcessor implements IAttributeProcessor {
    private processOption(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions, nodeDescription?: INodeDescription): Ast.OptionNode {
       try {
          const attributeValue = attributeNode.value;
+         let value = null;
          if (attributeValue === null) {
             if (this.warnBooleanAttributesAndOptions) {
                this.errorHandler.warn(
@@ -675,25 +676,19 @@ class AttributeProcessor implements IAttributeProcessor {
                   }
                );
             }
-            return new Ast.OptionNode(
-               attributeNode.name,
-               new Ast.ValueNode(
-                  [
-                     new Ast.TextDataNode('')
-                  ]
-               )
+            value = [new Ast.TextDataNode('')];
+         } else {
+            value = this.textProcessor.process(
+               attributeValue,
+               {
+                  fileName: options.fileName,
+                  allowedContent: TextContentFlags.FULL_TEXT,
+                  translateText: nodeDescription ? nodeDescription.isOptionTranslatable(attributeNode.name) : false,
+                  translationsRegistrar: options.translationsRegistrar,
+                  position: attributeNode.position
+               }
             );
          }
-         const value = this.textProcessor.process(
-            attributeValue,
-            {
-               fileName: options.fileName,
-               allowedContent: TextContentFlags.FULL_TEXT,
-               translateText: nodeDescription ? nodeDescription.isOptionTranslatable(attributeNode.name) : false,
-               translationsRegistrar: options.translationsRegistrar,
-               position: attributeNode.position
-            }
-         );
          const valueNode = new Ast.ValueNode(value);
          valueNode.setFlag(Ast.Flags.TYPE_CASTED);
          const option = new Ast.OptionNode(

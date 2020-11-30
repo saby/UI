@@ -116,3 +116,23 @@ export function genCreateControlTemplate(
    return `${VAR_MODULE_NAME}.createControl("template", ${name}, ${scope}, ${attributes}, ${config}`
       + `, context, depsLocal, includedTemplates, ${getConfig()})`;
 }
+
+export function genCreateControlNew(
+   type: string,
+   nameDescription: string,
+   method: string,
+   attributes: string,
+   events: string,
+   options: string,
+   config: string
+) {
+   // createControlNew(type, method, attributes, events, options, config)
+   return `${VAR_MODULE_NAME}.createControlNew(`
+      + `"${type}",`
+      + `/*${nameDescription}*/ ${method},`
+      + `/*attributes*/ ${attributes},`
+      + `/*events*/ ${events},`
+      + `/*options*/ ${options},`
+      + `/*config*/ ${config}`
+      + `)`;
+}
