@@ -204,7 +204,7 @@ define('UI/_builder/Tmpl/codegen/templates', [
    function generateTemplateBody(fileName, markupGeneration) {
       return bodyTemplate
          .replace(jstpl.fileNameRegExp, fileName)
-         .replace(jstpl.markupGenerationRegExp, markupGeneration);
+         .replace(jstpl.markupGenerationRegExp, generateReturnValueFunction(markupGeneration));
    }
 
    /**
