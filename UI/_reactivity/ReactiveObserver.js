@@ -191,6 +191,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env
                                  if (prop !== '__lastGetterPath') {
                                     inst._forceUpdate();
                                     DevtoolsHook.saveChangedProps(inst, prop);
+                                    checkForbiddenReactive(inst, prop);
                                  }
                               }
                            }
@@ -205,7 +206,6 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env
                      if (!pauseReactiveMap.has(inst) || !value._$reactived) {
                         observeVersion(inst, prop, value);
                         observeArray(inst, prop, value);
-                        checkForbiddenReactive(inst, prop);
                      }
                   }
                }
