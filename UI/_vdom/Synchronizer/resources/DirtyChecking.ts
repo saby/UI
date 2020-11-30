@@ -260,9 +260,12 @@ function shallowMerge(dest, src) {
 }
 
 function getMarkupForTemplatedNode(vnode, controlNodes, environment) {
-   var result = vnode.parentControl
-      ? vnode.template.call(vnode.parentControl, vnode.controlProperties, vnode.attributes, vnode.context, true)
-      : vnode.template(vnode.controlProperties, vnode.attributes, vnode.context, true);
+   var result;
+   ReactiveObserver.forbidReactive(vnode.parentControl, () => {
+      result = vnode.parentControl
+         ? vnode.template.call(vnode.parentControl, vnode.controlProperties, vnode.attributes, vnode.context, true)
+         : vnode.template(vnode.controlProperties, vnode.attributes, vnode.context, true);
+   });
 
    var
       resultsFromTemplate = [],
@@ -551,7 +554,9 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     newNode.control.saveInheritOptions(newNode.inheritOptions);
 
     let oldMarkup = node.markup;
-    newNode.markup = getDecoratedMarkup(newNode);
+    ReactiveObserver.forbidReactive(newNode.control, () => {
+       newNode.markup = getDecoratedMarkup(newNode);
+    });
     if (isSelfDirty) {
        /*
        TODO: Раньше эта функция была вместе со всем остальным кодом под условием isSelfDirty,

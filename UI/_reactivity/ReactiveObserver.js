@@ -172,14 +172,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env
                   return this.reactiveValues[prop];
                },
                set: function reactiveSetter(value) {
-                  if (inst._isGeneratingMarkup) {
-                     var error = new Error(
-                        'Произведена попытка изменения состояния контрола "' + inst._moduleName +
-                        '" при вычислении верстки. Изменяется свойство "' + prop + '"'
-                     );
-                     Env.IoC.resolve('ILogger').warn(error);
-                  }
-
+                  checkForbiddenReactive(inst, prop);
                   if (desc && desc.set) {
                      desc.set.apply(this, arguments);
                   }
@@ -310,9 +303,38 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env
       }
    }
 
+   var forbidReactiveMap = new Map();
+   function forbidReactive(instance, action) {
+      if (!instance) {
+         return action();
+      }
+      if (!forbidReactiveMap.has(instance)) {
+         forbidReactiveMap.set(instance, 0);
+      }
+      forbidReactiveMap.set(instance, forbidReactiveMap.get(instance) + 1);
+      try {
+         return action();
+      } finally {
+         forbidReactiveMap.set(instance, forbidReactiveMap.get(instance) - 1);
+         if (forbidReactiveMap.get(instance) === 0) {
+            forbidReactiveMap.delete(instance);
+         }
+      }
+   }
+   function checkForbiddenReactive(instance, property) {
+      if (forbidReactiveMap.has(instance)) {
+         var error = new Error(
+            'Произведена попытка изменения состояния контрола "' + instance._moduleName +
+            '" при вычислении верстки. Изменяется свойство "' + property + '"'
+         );
+         Env.IoC.resolve('ILogger').warn(error);
+      }
+   }
+
    return {
       observeProperties: observeProperties,
       releaseProperties: releaseProperties,
-      pauseReactive: pauseReactive
+      pauseReactive: pauseReactive,
+      forbidReactive: forbidReactive
    };
 });
