@@ -214,6 +214,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
    private _$needForceUpdate: boolean;
    private _isPendingBeforeMount: boolean = false;
 
+   // TODO: временное решение. Необходимо перевести работу с реактивными свойствами
+   //  на состояние, вместо свойств на базовом контроле
+   private _isGeneratingMarkup: boolean = false;
+
    // TODO: удалить этот флаг и сделать нормальную работу beforePaint
    // https://online.sbis.ru/doc/4fd6afbb-da9b-4a55-a416-d4325cade9ff
    _needSyncAfterMount: boolean = false;
@@ -364,7 +368,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
          }
       }
       const generatorConfig = getGeneratorConfig();
+      this._isGeneratingMarkup = true;
       res = this._template(this, attributes, rootKey, isVdom, undefined, undefined, generatorConfig);
+      this._isGeneratingMarkup = false;
       if (res) {
          if (isVdom) {
             if (res.length !== 1) {

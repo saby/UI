@@ -1,4 +1,4 @@
-define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], function(DevtoolsHook, TypesShim) {
+define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env/Env'], function(DevtoolsHook, TypesShim, Env) {
    /**
     * @author Шипин А.А.
     */
@@ -172,6 +172,14 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], fun
                   return this.reactiveValues[prop];
                },
                set: function reactiveSetter(value) {
+                  if (inst._isGeneratingMarkup) {
+                     var error = new Error(
+                        'Произведена попытка изменения состояния контрола "' + inst._moduleName +
+                        '" при вычислении верстки. Изменяется свойство "' + prop + '"'
+                     );
+                     Env.IoC.resolve('ILogger').warn(error);
+                  }
+
                   if (desc && desc.set) {
                      desc.set.apply(this, arguments);
                   }
