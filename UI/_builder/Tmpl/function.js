@@ -405,7 +405,7 @@ define('UI/_builder/Tmpl/function', [
                // todo если считаем значение по умолчанию для биндинга,
                //  и пришел скажем 0 или null, все равно вернется пустая строка.
                if (expressionResult !== undefined && expressionResult !== null) {
-                  if (textData[i].localized !== true && wrapUndef) {
+                  if (wrapUndef && textData[i].localized !== true && textData[i].type === 'var') {
                      expressionResult = TClosure.genWrapUndef(expressionResult);
                   }
                   string += '\' + (' + expressionResult + ') + \'';
