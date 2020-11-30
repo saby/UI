@@ -15,6 +15,20 @@ import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator'
 const EMPTY_STRING = '';
 const errorHandler = createErrorHandler(true);
 
+const tagsToReplace = {
+   "'": "\\'",
+   '"': '\\"',
+   '\\': '\\\\'
+};
+const regExpToReplace = /['"\\]/g;
+
+export function escapeQuotesInString(entity: any): any {
+   if (entity && entity.replace) {
+      return entity.replace(regExpToReplace, (tag: string) =>  tagsToReplace[tag] || tag);
+   }
+   return entity;
+}
+
 function splitLocalizationText(text: string, fileName: string): { text: string, context: string } {
    const pair = text.split('@@');
    if (pair.length > 2) {
@@ -147,6 +161,10 @@ export function processExpressions(
          );
          return undefined;
       }
+   }
+   
+   if (expressionRaw.value && isAttribute) {
+      return escapeQuotesInString(expressionRaw.value);
    }
 
    return expressionRaw.value;
