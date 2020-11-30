@@ -107,7 +107,7 @@ function appendFocusesElements(environment: IDOMEnvironment, vnode: VNode): void
 
 export function insertBoundaryElements(environment: IDOMEnvironment, vnode: VNode): void {
    const dom = vnode.dom || environment._rootDOMNode;
-   if (vnode.type === "html") {
+   if (vnode.type === 'html') {
       for (var i = 0; i < vnode.children.length; i++) {
          if (vnode.children[i].type === 'body') {
             appendFocusesElements(environment, vnode.children[i]);
