@@ -228,7 +228,7 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
          }
          const args = this.buildArgumentsArray(node.arguments, context);
          // FIXME: Use instanceof
-         let object: string = 'this';
+         let object: string = 'funcContext';
          if (node.callee.type === 'MemberExpression') {
             const calleeNode = node.callee as MemberExpressionNode;
             object = <string>calleeNode.object.accept(this, context);
