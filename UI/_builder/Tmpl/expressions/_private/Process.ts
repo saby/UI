@@ -31,6 +31,20 @@ function splitLocalizationText(text: string, fileName: string): { text: string, 
    };
 }
 
+ const tagsToReplace = {
+   "'": "\\'",
+   '"': '\\"',
+   '\\': '\\\\'
+};
+const regExpToReplace = /['"\\]/g;
+
+export function escapeQuotesInsideString(entity: any): any {
+   if (entity && entity.replace) {
+      return entity.replace(regExpToReplace, (tag: string) => tagsToReplace[tag] || tag);
+   }
+   return entity;
+}
+
 function wrapWithLocalization(data: string, fileName: string): string {
    // FIXME: строковые литералы идут сразу в кавычках.
    //  Так не должно быть! Убираем их перед разбором.
