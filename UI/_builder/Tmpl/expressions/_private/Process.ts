@@ -163,7 +163,7 @@ export function processExpressions(
       }
    }
 
-   res = genUnescape(expressionRaw.value);
+   res = genUnescape(escapeQuotesInsideString(expressionRaw.value));
    expressionRaw.value = FSC.wrapAroundExec(res);
    return res;
 }
