@@ -384,7 +384,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
    }
 
    render(empty?: any, attributes?: any): any {
-      const markup = this._getMarkup(null, attributes, false);
+      let markup;
+      ReactiveObserver.forbidReactive(this, () => {
+         markup = this._getMarkup(null, attributes, false);
+      });
       this._isRendered = true;
       return markup;
    }
