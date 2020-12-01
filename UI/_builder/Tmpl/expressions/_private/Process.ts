@@ -40,8 +40,8 @@ function splitLocalizationText(text: string, fileName: string): { text: string, 
       );
    }
    return {
-      text: (pair.pop() || EMPTY_STRING),
-      context: (pair.pop() || EMPTY_STRING)
+      text: (pair.pop() || EMPTY_STRING).trim(),
+      context: (pair.pop() || EMPTY_STRING).trim()
    };
 }
 
