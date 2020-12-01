@@ -156,13 +156,11 @@ export class GeneratorVdom implements IGenerator {
                                              defCollection);
    }
 
-   createText(text: string, key: string, isVar: boolean = false): VNode {
+   createText(text: string, key: string): VNode {
       if (!text) {
          return undefined;
       }
-      const textNode = Vdom.textNode(text, key);
-      textNode.noNeedUnescape = isVar;
-      return textNode;
+      return Vdom.textNode(text, key);
    }
 
    createWsControl(name: GeneratorTemplateOrigin,

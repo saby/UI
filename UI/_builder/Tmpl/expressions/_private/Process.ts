@@ -10,26 +10,46 @@ import { ProgramNode, ExpressionVisitor } from './Nodes';
 import { genEscape } from 'UI/_builder/Tmpl/codegen/Generator';
 import { genSanitize } from 'UI/_builder/Tmpl/codegen/TClosure';
 
-import * as common from 'UI/_builder/Tmpl/modules/utils/common';
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
 const EMPTY_STRING = '';
 const errorHandler = createErrorHandler(true);
 
+const tagsToReplace = {
+   "'": "\\'",
+   '"': '\\"',
+   '\\': '\\\\'
+};
+const regExpToReplace = /['"\\]/g;
+
+export function escapeQuotesInString(entity: any): any {
+   if (entity && entity.replace) {
+      return entity.replace(regExpToReplace, (tag: string) =>  tagsToReplace[tag] || tag);
+   }
+   return entity;
+}
+
 function splitLocalizationText(text: string, fileName: string): { text: string, context: string } {
    const pair = text.split('@@');
-   if (pair.length > 2) {
-      errorHandler.error(
-         `Ожидался только 1 @@-разделитель в конструкции локализации, а обнаружено ${pair.length - 1} разделителей в тексте "${text}"`,
-         {
-            fileName
+   switch (pair.length) {
+      case 1:
+         return {
+            text: pair[0] || EMPTY_STRING,
+            context: EMPTY_STRING
          }
-      );
+      default:
+         errorHandler.error(
+            `Ожидался только 1 @@-разделитель в конструкции локализации, а обнаружено ${pair.length - 1} разделителей в тексте "${text}"`,
+            {
+               fileName
+            }
+         );
+      case 2:
+         return {
+            text: (pair[1] || EMPTY_STRING).trim(),
+            context: (pair[0] || EMPTY_STRING).trim()
+         }
    }
-   return {
-      text: (pair.pop() || EMPTY_STRING).trim(),
-      context: (pair.pop() || EMPTY_STRING).trim()
-   };
 }
 
 function wrapWithLocalization(data: string, fileName: string): string {
@@ -151,12 +171,7 @@ export function processExpressions(
    }
 
    if (expressionRaw.value && isAttribute) {
-      res = expressionRaw.value;
-      res = res
-         .replace(/\\/g, '\\\\')
-         .replace(/"/g, '\\"');
-      res = common.escape(res);
-      return res;
+      return escapeQuotesInString(expressionRaw.value);
    }
 
    return expressionRaw.value;

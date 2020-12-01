@@ -256,3 +256,41 @@ var currentPropertyName = "/*#PROPERTY_NAME#*/";
 
 /*#TEMPLATE_BODY#*/
 `;
+
+export const templateRegExp = /\/\*#TEMPLATE#\*\//g;
+
+export const moduleExtensionRegExp = /\/\*#MODULE_EXTENSION#\*\//g;
+
+export const privateTemplatesRegExp = /\/\*#PRIVATE_TEMPLATES#\*\//g;
+
+export const includedTemplatesRegExp = /\/\*#INCLUDED_TEMPLATES#\*\//g;
+
+export const isWasabyTemplateRegExp = /\/\*#IS_WASABY_TEMPLATE#\*\//g;
+
+export const moduleNameRegExp = /\/\*#MODULE_NAME#\*\//g;
+
+export const localDependenciesRegExp = /\/\*#LOCAL_DEPENDENCIES#\*\//g;
+
+export const dependenciesRegExp = /\/\*#DEPENDENCIES#\*\//g;
+
+export const reactivePropertiesRegExp = /\/\*#REACTIVE_PROPERTIES#\*\//g;
+
+export const initRegExp = /\/\*#INIT#\*\//g;
+
+export const testRegExp = /\/\*#TEST#\*\//g;
+
+export const updateRegExp = /\/\*#UPDATE#\*\//g;
+
+export const processedRegExp = /\/\*#PROCESSED#\*\//g;
+
+export const scopeArrayRegExp = /\/\*#SCOPE_ARRAY#\*\//g;
+
+export const iteratorScopeRegExp = /\/\*#ITERATOR_SCOPE#\*\//g;
+
+export const fileNameRegExp = /\/\*#FILE_NAME#\*\//g;
+
+export const markupGenerationRegExp = /\/\*#MARKUP_GENERATION#\*\//g;
+
+export const propertyNameRegExp = /\/\*#PROPERTY_NAME#\*\//g;
+
+export const templateBodyRegExp = /\/\*#TEMPLATE_BODY#\*\//g;
