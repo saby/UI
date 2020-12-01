@@ -297,6 +297,15 @@ function prepareNewArguments(
    }
 }
 
+function getRejectedPromise(): Promise<unknown> {
+   if (!(Promise as any).__getRequestUUID) {
+       return;
+   }
+   return new Promise((resolve, reject) => {
+       reject(new Error('Oops!'));
+   });
+}
+
 /**
  * @author Тэн В.А.
  */
@@ -324,6 +333,8 @@ export class Generator {
       options: any, // FIXME: Record<string, unknown>
       config: IControlConfig
    ): GeneratorObject | Promise<unknown> | Error {
+      getRejectedPromise();
+
       // тип контрола - inline-шаблон
       if (type === 'inline') {
          const args = prepareNewArguments(attributes, events, options, config);
