@@ -9,6 +9,7 @@ import { LocalizationNode, TextNode, VariableNode } from './Statement';
 import { ProgramNode, ExpressionVisitor } from './Nodes';
 import { genEscape } from 'UI/_builder/Tmpl/codegen/Generator';
 import { genSanitize } from 'UI/_builder/Tmpl/codegen/TClosure';
+import { unescape } from '../../modules/utils/common';
 
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
@@ -120,6 +121,7 @@ export function processExpressions(
          .replace(/"/g, '\\"');
       res = FSC.wrapAroundQuotes(res);
       res = wrapWithLocalization(res, fileName);
+      unescape(res);
       exprAsLocalization.value = FSC.wrapAroundExec(res, true);
       return res;
    }
@@ -148,6 +150,7 @@ export function processExpressions(
          if (!exprAsVariable.noEscape) {
             res = calculateResultOfExpression(res, context.escape, context.sanitize);
          }
+         res = unescape(res);
          exprAsVariable.value = resolveExpressionValue(
             exprAsVariable.name.body[0], res, context.configObject.composite
          );
@@ -167,5 +170,5 @@ export function processExpressions(
       return escapeQuotesInString(expressionRaw.value);
    }
 
-   return expressionRaw.value;
+   return unescape(expressionRaw.value);
 }
