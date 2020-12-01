@@ -8,7 +8,7 @@ import { ELEMENT_ATTR, THEME_TYPE, CSS_MODULE_PREFIX } from './const';
 import { ICssEntity, IHTMLElement } from './interface';
 import { Head as HeadAPI } from 'Application/Page';
 import { IHeadTagId, IHeadTagAttrs } from 'Application/Interface';
-import { then, isInit } from 'Application/Initializer';
+import { isInit } from 'Application/Initializer';
 
 const TIMEOUT = 30000;
 
@@ -97,14 +97,6 @@ export default class Link extends Base implements ICssEntity {
    }
    /**
     * Монтирование link-элемента со стилями в head
-    * Поскольку работа с head идет через HEAD API, то есть одно ограничение:
-    * HEAD API готов работать только после инициализации Application
-    * До инициализации Application уже кто-то может позвать themeController
-    * Например, css! плагин requirejs грузит css!Controls/Application/oldCss
-    * Поэтому смотрим: если Application готов, зовем HEAD API
-    * Если он не готов, подписываемся на готовность и тогда зовем HEAD API
-    * Но в этом случае еще и переводим Pomise в состояние готовности.
-    * Без готовности Promise requirejs не выполнит callback, потому что не все зависимости готовы
     */
    mountElement(): Promise<void> {
       return new Promise((resolve, reject) => {
@@ -118,21 +110,10 @@ export default class Link extends Base implements ICssEntity {
             );
          };
          const attrs = generateAttrs(this);
-         if (isInit()) {
-            // @ts-ignore
-            this.headTagId = HeadAPI.getInstance().createTag('link', attrs, null, {
-               load: resolve.bind(null),
-               error: onerror
-            });
-         } else {
-            then(() => {
-               // @ts-ignore
-               this.headTagId = HeadAPI.getInstance().createTag('link', attrs, null, {
-                  error: onerror
-               });
-            });
-            resolve();
-         }
+         this.headTagId = HeadAPI.getInstance().createTag('link', attrs, null, {
+            load: resolve.bind(null),
+            error: onerror
+         });
          setTimeout(onerror, TIMEOUT);
       });
    }
