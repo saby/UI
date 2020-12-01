@@ -1448,15 +1448,12 @@ class Traverse implements ITraverse {
             array
          );
       }
-      const processedAttributes = this.attributeProcessor.processOptions(node.attributes, {
+      const properties = this.attributeProcessor.processOptions(node.attributes, {
          fileName: context.fileName,
          hasAttributesOnly: false,
          parentTagName: node.name,
          translationsRegistrar: context.scope
       });
-      const properties: Ast.IObjectProperties = {
-         ...processedAttributes
-      };
       for (let index = 0; index < content.length; ++index) {
          const property = content[index];
          if (!(property instanceof Ast.OptionNode || property instanceof Ast.ContentOptionNode)) {
@@ -2260,15 +2257,12 @@ class Traverse implements ITraverse {
          state: TraverseState.OBJECT_DATA_TYPE
       };
       const processedChildren = this.visitAll(node.children, propertiesContext);
-      const processedAttributes = this.attributeProcessor.processOptions(attributes, {
+      const properties = this.attributeProcessor.processOptions(attributes, {
          fileName: context.fileName,
          hasAttributesOnly: false,
          parentTagName: node.name,
          translationsRegistrar: context.scope
       });
-      const properties: Ast.IObjectProperties = {
-         ...processedAttributes
-      };
       for (let index = 0; index < processedChildren.length; ++index) {
          const child = processedChildren[index];
          if (!(child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode)) {
@@ -2906,9 +2900,6 @@ class Traverse implements ITraverse {
     * @param node {Tag} Base html tag node of processing component or partial node.
     */
    private applyOptionsToComponentOrPartial(ast: Ast.BaseWasabyElement, options: Array<Ast.OptionNode | Ast.ContentOptionNode>, context: ITraverseContext, node: Nodes.Tag): void {
-      const processedAttributes = {
-         ...ast.__$ws_options
-      };
       for (let index = 0; index < options.length; ++index) {
          const child = options[index];
          if (ast.hasOption(child.__$ws_name)) {
