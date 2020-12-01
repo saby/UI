@@ -567,8 +567,7 @@ export abstract class BaseWasabyElement extends BaseHtmlElement {
    setOption(option: OptionNode | ContentOptionNode): void {
       const name = option.__$ws_name;
       if (this.hasOption(name)) {
-         // FIXME: this already checked before set
-         // throw new Error(`Опция "${name}" уже определена на компоненте`);
+         throw new Error(`Опция "${name}" уже определена на компоненте`);
       }
       if (option instanceof OptionNode) {
          this.__$ws_options[name] = option;

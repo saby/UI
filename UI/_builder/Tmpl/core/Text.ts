@@ -253,27 +253,27 @@ function markDataByRegex(items: IRawTextItem[], regex: RegExp, targetWrapper: TW
    return collection;
 }
 
-// /**
-//  * Get processing expectation for handling an error.
-//  * @param flags {TextContentFlags} Enabled flags.
-//  */
-// function whatExpected(flags: TextContentFlags): string {
-//    if (!(flags ^ TextContentFlags.TEXT_AND_EXPRESSION)) {
-//       return 'ожидался текст и/или Mustache-выражение';
-//    }
-//    if (!(flags ^ TextContentFlags.TEXT_AND_TRANSLATION)) {
-//       return 'ожидался текст и/или конструкция локализации';
-//    }
-//    if (!(flags ^ TextContentFlags.EXPRESSION)) {
-//       return 'ожидалось только Mustache-выражение';
-//    }
-//    if (!(flags ^ TextContentFlags.TRANSLATION)) {
-//       return 'ожидалась только конструкция локализации';
-//    }
-//    if (!(flags ^ TextContentFlags.TEXT_AND_EXPRESSION)) {
-//       return 'ожидался только текст';
-//    }
-// }
+/**
+ * Get processing expectation for handling an error.
+ * @param flags {TextContentFlags} Enabled flags.
+ */
+function whatExpected(flags: TextContentFlags): string {
+   if (!(flags ^ TextContentFlags.TEXT_AND_EXPRESSION)) {
+      return 'ожидался текст и/или Mustache-выражение';
+   }
+   if (!(flags ^ TextContentFlags.TEXT_AND_TRANSLATION)) {
+      return 'ожидался текст и/или конструкция локализации';
+   }
+   if (!(flags ^ TextContentFlags.EXPRESSION)) {
+      return 'ожидалось только Mustache-выражение';
+   }
+   if (!(flags ^ TextContentFlags.TRANSLATION)) {
+      return 'ожидалась только конструкция локализации';
+   }
+   if (!(flags ^ TextContentFlags.TEXT_AND_EXPRESSION)) {
+      return 'ожидался только текст';
+   }
+}
 
 /**
  *
@@ -309,9 +309,7 @@ function createTextNode(data: string, options: ITextProcessorOptions): Ast.TextD
          // Ignore tabulation spaces
          return null;
       }
-      // FIXME: Temporary disable
-      // throw new Error(`${whatExpected(options.allowedContent)}. Обнаружен текст "${data}"`);
-      return null;
+      throw new Error(`${whatExpected(options.allowedContent)}. Обнаружен текст "${data}"`);
    }
    return new Ast.TextDataNode(data);
 }
@@ -325,9 +323,7 @@ function createTextNode(data: string, options: ITextProcessorOptions): Ast.TextD
  */
 function createTranslationNode(data: string, options: ITextProcessorOptions): Ast.TranslationNode {
    if ((options.allowedContent & TextContentFlags.TRANSLATION) === 0) {
-      // FIXME: Temporary disable
-      // throw new Error(`${whatExpected(options.allowedContent)}. Обнаружена конструкция локализации "${data}"`);
-      return null;
+      throw new Error(`${whatExpected(options.allowedContent)}. Обнаружена конструкция локализации "${data}"`);
    }
    const { text, context } = splitLocalizationText(data);
    options.translationsRegistrar.registerTranslation(options.fileName, text, context);
@@ -476,9 +472,7 @@ class TextProcessor implements ITextProcessor {
     */
    private createExpressionNode(data: string, options: ITextProcessorOptions): Ast.ExpressionNode {
       if ((options.allowedContent & TextContentFlags.EXPRESSION) === 0) {
-         // FIXME: Temporary disable
-         // throw new Error(`${whatExpected(options.allowedContent)}. Обнаружено Mustache-выражение "${data}"`);
-         return null;
+         throw new Error(`${whatExpected(options.allowedContent)}. Обнаружено Mustache-выражение "${data}"`);
       }
       try {
          JAVASCRIPT_COMMENT_PATTERN.lastIndex = 0;
