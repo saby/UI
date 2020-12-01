@@ -23,7 +23,9 @@ import startApplication from 'UI/_base/startApplication';
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
                                 forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
 
-type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
+type IControlChildren = {
+   [index: string]: Element | Control | Control<IControlOptions, {}>
+};
 
 /**
  * @event UI/_base/Control#activated Происходит при активации контрола.
