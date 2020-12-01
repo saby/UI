@@ -1,4 +1,4 @@
-define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], function(DevtoolsHook, TypesShim) {
+define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env/Env'], function(DevtoolsHook, TypesShim, Env) {
    /**
     * @author Шипин А.А.
     */
@@ -191,6 +191,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], fun
                                  if (prop !== '__lastGetterPath') {
                                     inst._forceUpdate();
                                     DevtoolsHook.saveChangedProps(inst, prop);
+                                    checkForbiddenReactive(inst, prop);
                                  }
                               }
                            }
@@ -302,9 +303,42 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], fun
       }
    }
 
+   var forbidReactiveMap = new Map();
+   function forbidReactive(instance, action) {
+      if (!instance) {
+         action();
+         return;
+      }
+      if (!forbidReactiveMap.has(instance)) {
+         forbidReactiveMap.set(instance, 0);
+      }
+      forbidReactiveMap.set(instance, forbidReactiveMap.get(instance) + 1);
+      try {
+         action();
+      } finally {
+         forbidReactiveMap.set(instance, forbidReactiveMap.get(instance) - 1);
+         if (forbidReactiveMap.get(instance) === 0) {
+            forbidReactiveMap.delete(instance);
+         }
+      }
+   }
+   // TODO: Пока что нужен стек в чистом виде (но небольшой, иначе будут полотна),
+   //  чтобы видеть, какие происходили вычисления внутри. После разбора полетов убрать
+   var MAX_STACK_LENGTH = 15;
+   function checkForbiddenReactive(instance, property) {
+      if (forbidReactiveMap.has(instance)) {
+         var error = new Error();
+         var text = 'Произведена попытка изменения состояния контрола "' + instance._moduleName +
+            '" при вычислении верстки. Изменяется свойство "' + property + '"' +
+            '\n' + error.stack.split('\n').slice(3, MAX_STACK_LENGTH).join('\n');
+         Env.IoC.resolve('ILogger').warn(text);
+      }
+   }
+
    return {
       observeProperties: observeProperties,
       releaseProperties: releaseProperties,
-      pauseReactive: pauseReactive
+      pauseReactive: pauseReactive,
+      forbidReactive: forbidReactive
    };
 });
