@@ -1,3 +1,11 @@
+import { IGeneratorControlNode as IControlNode } from 'UI/Executor';
+
+export interface ICompoundControl {
+   canAcceptFocus: Function;
+   setActive: Function;
+   isActive: Function;
+}
+
 export interface IFocusElement extends Element {
    setActive?: Function;
    focus?: Function;
@@ -10,8 +18,7 @@ export interface IMatchesElement extends Element {
    oMatchesSelector?: Function;
 }
 
-// FIXME: после переезда View - wsControl: IControlCompatible, controlNodes: IGeneratorControlNode
 export interface IControlElement extends HTMLElement {
-   wsControl?: any;
-   controlNodes?: any;
+   wsControl?: ICompoundControl;
+   controlNodes?: IControlNode;
 }
