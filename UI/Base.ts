@@ -11,7 +11,6 @@
 import {default as Control, IControlOptions, TemplateFunction} from './_base/Control';
 import HTML from './_base/HTML';
 import Document from './_base/Document';
-import StateReceiver from './_state/StateReceiver';
 
 import AppData from './_base/AppData';
 import Start from './_base/Start';
@@ -40,7 +39,6 @@ export {
     IControlOptions,
     HTML,
     Document,
-    StateReceiver,
     AppData,
     Start,
     BaseRoute,
