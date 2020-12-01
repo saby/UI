@@ -31,18 +31,25 @@ export function escapeQuotesInString(entity: any): any {
 
 function splitLocalizationText(text: string, fileName: string): { text: string, context: string } {
    const pair = text.split('@@');
-   if (pair.length > 2) {
-      errorHandler.error(
-         `Ожидался только 1 @@-разделитель в конструкции локализации, а обнаружено ${pair.length - 1} разделителей в тексте "${text}"`,
-         {
-            fileName
+   switch (pair.length) {
+      case 1:
+         return {
+            text: pair[0] || EMPTY_STRING,
+            context: EMPTY_STRING
          }
-      );
+      default:
+         errorHandler.error(
+            `Ожидался только 1 @@-разделитель в конструкции локализации, а обнаружено ${pair.length - 1} разделителей в тексте "${text}"`,
+            {
+               fileName
+            }
+         );
+      case 2:
+         return {
+            text: (pair[0] || EMPTY_STRING).trim(),
+            context: (pair[1] || EMPTY_STRING).trim()
+         }
    }
-   return {
-      text: (pair.pop() || EMPTY_STRING).trim(),
-      context: (pair.pop() || EMPTY_STRING).trim()
-   };
 }
 
 function wrapWithLocalization(data: string, fileName: string): string {
