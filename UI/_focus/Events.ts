@@ -121,7 +121,7 @@ function fixNotifyArguments(env: IDOMEnvironment,
 export function notifyActivationEvents(env: IDOMEnvironment,
                                        target: Element,
                                        relatedTarget: Element,
-                                       isTabPressed: TTabPressesd): boolean | void {
+                                       isTabPressed?: TTabPressesd): boolean | void {
    [target, relatedTarget, isTabPressed] = fixNotifyArguments(env, target, relatedTarget, isTabPressed);
    if (detectStrangeElement(target)) {
       return;

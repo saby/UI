@@ -1,11 +1,8 @@
-/// <amd-module name="UI/_focus/Focus" />
-
 /**
  * @author Тэн В.А.
  * Утилита для кроссбраузерной фокусировки, с возможностью отключить вызов экранной клавиатуре и отменить скролл при фокусировке
  */
 
-// @ts-ignore
 import { detection } from 'Env/Env';
 
 import { Logger } from 'UI/Utils';
@@ -14,7 +11,8 @@ import { collectScrollPositions } from './_ResetScrolling';
 import * as ElementFinder from './ElementFinder';
 import { notifyActivationEvents } from 'UI/_focus/Events';
 
-import { IFocusElement, IMatchesElement, IControlElement } from './IFocus';
+import { IFocusElement, IMatchesElement, IControlElement, ICompoundControl } from './IFocus';
+import { IGeneratorControlNode } from 'UI/Executor';
 
 interface IFocusConfig {
    enableScreenKeyboard?: boolean;
@@ -207,19 +205,22 @@ function checkInput(el: Element): boolean {
 }
 
 // FIXME: после переезда View - IGeneratorControlNode
-function hasControl(element: IControlElement): any {
+function hasControl(element: IControlElement): IGeneratorControlNode | ICompoundControl {
    return element.controlNodes || element.wsControl;
 }
 
-function getContainerWithControlNode(element: IControlElement): Element {
-   while (element) {
+function getContainerWithControlNode(element: IControlElement): IControlElement {
+   let currentElement = element;
+   while (currentElement) {
       // ищем ближайший элемент, который может быть сфокусирован и не является полем ввода
-      if (hasControl(element) && ElementFinder.getElementProps(element).tabStop && !checkInput(element)) {
+      if (hasControl(currentElement) &&
+         ElementFinder.getElementProps(currentElement).tabStop &&
+         !checkInput(currentElement)) {
          break;
       }
-      element = element.parentElement;
+      currentElement = currentElement.parentElement;
    }
-   return element;
+   return currentElement;
 }
 
 function checkEnableScreenKeyboard(): boolean {
@@ -270,6 +271,7 @@ function focusInner(element: Element, cfg: IFocusConfig): boolean {
 }
 
 function fireActivationEvents(target: Element, relatedTarget: Element): void {
+   // TODO: разобраться
    // @ts-ignore
    notifyActivationEvents(target, relatedTarget, false);
 }
@@ -281,13 +283,13 @@ function focus(element: IControlElement, {enableScreenKeyboard = false, enableSc
    let res;
    const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard};
    const lastFocused: Element = document.activeElement;
-   element = fixElementForMobileInputs(element, cfg);
+   const elementFixed = fixElementForMobileInputs(element, cfg);
    if (focusingState) {
-      nativeFocus.call(element);
+      nativeFocus.call(elementFixed);
    } else {
       focusingState = true;
       try {
-         res = focusInner.call(this, element, cfg);
+         res = focusInner.call(this, elementFixed, cfg);
       } finally {
          focusingState = false;
       }

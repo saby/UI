@@ -1,13 +1,12 @@
-// @ts-ignore
-import { goUpByControlTree } from 'UI/NodeCollector';
-import { isElementVisible } from 'UI/Utils';
-import { notifyActivationEvents } from 'UI/_focus/Events';
-
 /**
  * @author Тэн В.А.
  * Содержит логику восстановление фокуса, если фокус слетает на body
  */
 
+import { goUpByControlTree } from 'UI/NodeCollector';
+import { isElementVisible } from 'UI/Utils';
+
+import { notifyActivationEvents } from './Events';
 import { focus } from './Focus';
 import { IControl } from './IControl';
 
@@ -37,39 +36,38 @@ function isTreeVisible(element: HTMLElement): boolean {
 }
 
 let prevControls = [];
-let savedActiveElement;
+let lastSavedActiveElement;
 export function restoreFocus(control: IControl, action: Function): void {
    if ( document.activeElement !== document.body ) {
       // Если фокус не улетел в Body, сохраним контрол, который был в фокусе и список контролов
-      savedActiveElement = document.activeElement;
+      lastSavedActiveElement = document.activeElement;
       // нужно вычислять родительские контролы заранее, во время перерисовки эти контролы могут быть
       // разрушены и мы потеряем реальную иерархию, и не сможем восстановить фокус куда надо.
       // метод должен отрабатывать супер быстро, не должно влиять на скорость
-      prevControls = goUpByControlTree(savedActiveElement);
+      prevControls = goUpByControlTree(lastSavedActiveElement);
    }
 
-   // @ts-ignore
+   // @ts-ignore private method
    const environment = control._getEnvironment();
-
    action();
-
    environment._restoreFocusState = true;
    // если сразу после изменения DOM-дерева фокус слетел в body, пытаемся восстановить фокус на ближайший элемент от
    // предыдущего активного, чтобы сохранить контекст фокуса и дать возможность управлять с клавиатуры
-   if (checkActiveElement(savedActiveElement)) {
-      prevControls.find((control) => {
+   if (checkActiveElement(lastSavedActiveElement)) {
+      //@ts-ignore need es6 on tsconfig
+      prevControls.find((currentControl) => {
          // в списке контролов может остаться очищенный контрол, делать в NodeCollector'е не можем,
          // т.к.замедлит выполнение goUpByControlTree
-         if (isDestroyedControl(control)) {
+         if (isDestroyedControl(currentControl)) {
             return false;
          }
-         if (!control._template && !control._container) {
+         if (!currentControl._template && !currentControl._container) {
             // СОВМЕСТИМОСТЬ: у старых невизуальных контролов может не быть контейнера
             // (например, SBIS3.CONTROLS/Action/OpenDialog)
             return false;
          }
          // совместимость. среди контролов могут встретиться ws3
-         const container = control._template ? control._container : control.getContainer()[0];
+         const container = currentControl._template ? currentControl._container : currentControl.getContainer()[0];
          // @ts-ignore
          focus.__restoreFocusPhase = true;
          const containerVisible = isElementVisible(container) && isTreeVisible(container);

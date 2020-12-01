@@ -5,8 +5,7 @@
  * Модуль, в котором находится логика по активации контролов
  */
 
-// @ts-ignore
-import * as ElementFinder from './ElementFinder';
+import { getElementProps, findFirstInContext, findWithContexts } from './ElementFinder';
 import { focus } from './Focus';
 import { goUpByControlTree } from 'UI/NodeCollector';
 
@@ -33,7 +32,7 @@ function doFocus(container: IControlElement,
          res = false;
       }
    } else {
-      if (ElementFinder.getElementProps(container).tabStop) {
+      if (getElementProps(container).tabStop) {
          res = focus(container, cfg);
          if (res) {
             // поддерживаем совместимость. нужно отстрелять старые события чтобы область в WindowManager стала
@@ -72,20 +71,20 @@ export function activate(
    // если не получилось найти по автофокусу, поищем первый элемент по табиндексам и сфокусируем его.
    // причем если это будет конейнер старого компонента, активируем его по старому тоже
    // так ищем DOMEnvironment для текущего компонента. В нем сосредоточен код по работе с фокусами.
-   let next = ElementFinder.findFirstInContext(container, false);
+   let next = findFirstInContext(container, false);
    if (next) {
       // при поиске первого элемента игнорируем vdom-focus-in и vdom-focus-out
       const startElem = 'vdom-focus-in';
       const finishElem = 'vdom-focus-out';
       if (next.classList.contains(startElem)) {
-         next = ElementFinder.findWithContexts(container, next, false);
+         next = findWithContexts(container, next, false);
       }
       if (next.classList.contains(finishElem)) {
          next = null;
       }
    }
    if (next) {
-      return doFocus(next, cfg);;
+      return doFocus(next, cfg);
    }
    if (isElementVisible(container)) {
      return doFocus(container, cfg);
