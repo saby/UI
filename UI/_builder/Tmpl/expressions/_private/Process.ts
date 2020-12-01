@@ -46,8 +46,8 @@ function splitLocalizationText(text: string, fileName: string): { text: string, 
          );
       case 2:
          return {
-            text: (pair[0] || EMPTY_STRING).trim(),
-            context: (pair[1] || EMPTY_STRING).trim()
+            text: (pair[1] || EMPTY_STRING).trim(),
+            context: (pair[0] || EMPTY_STRING).trim()
          }
    }
 }
