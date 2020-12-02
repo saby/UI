@@ -373,45 +373,52 @@ export class GeneratorText implements IGenerator {
       return Scope.calculateScope(scope, Scope.controlPropMerge);
    };
 
+   private isValidTemplateError(fn: any, tpl: GeneratorTemplateOrigin, reason: string): void {
+      Logger.error(`Не удалось построить верстку.` +
+         `В качестве шаблона контрола ${tpl} была передана структура не поддерживаемая генератором.` +
+         `${reason}`, fn);
+   }
+
    private isValidTemplate(fn: any,
                            tpl: GeneratorTemplateOrigin,
                            isTplString: boolean,
                            isTplModule: boolean,
                            isTemplateWrapper: boolean): boolean {
       let reason = '';
-      let isValid = true;
       // высчитали функцию как число
       if (isTplString && typeof fn === 'number') {
-         isValid = false;
          reason = `В качестве компонента/шаблона было передано число.`
+         this.isValidTemplateError(fn, tpl, reason);
+         return false
       }
       // из библиотеки вернули строку
       if (isTplModule && typeof fn === 'string') {
-         isValid = false;
          reason = `Из библиотеки ${tpl} в качестве компонента была передана строка.`
+         this.isValidTemplateError(fn, tpl, reason);
+         return false
+
       }
       // автоматически передевенные странаци на wasaby игнорируем
       // массимы функций игнорируем, они будут проверены в fn.map()
       // isTplString === true в случае если в генератор отдлали строку, в partial это может быть просто текст
-      if (!isTemplateWrapper && typeof fn === 'object' && !Common.isArray(fn) && !isTplString) {
-         if (fn === null) {
-            isValid = false;
-            reason = 'В качества шаблона/компонента передан "null"';
-         }
-         // если в fn есть свойство func, то все ок
-         if (isValid && !fn.hasOwnProperty('func')) {
-            isValid = false;
-            // export default не поддерживается следует вывести ошибку или странциа построится как [object Objcet]
-            if (fn.hasOwnProperty('default')) {
-               reason = 'В модуле экспортируется объект по-умолчанию (export default ControlName).'
-            }
-         }
+      const unknownFnType = !isTemplateWrapper && typeof fn === 'object' && !Common.isArray(fn) && !isTplString;
+      if (unknownFnType && fn === null) {
+         reason = 'В качества шаблона/компонента передан "null"';
+         this.isValidTemplateError(fn, tpl, reason);
+         return false
       }
-      if (!isValid) {
-         Logger.error(`Не удалось построить верстку.` +
-            `В качестве шаблона контрола ${tpl} была передана структура не поддерживаемая генератором.` +
-            `${reason}`, fn);
+      // export default не поддерживается следует вывести ошибку или странциа построится как [object Objcet]
+      if (unknownFnType && fn.hasOwnProperty('default')) {
+         this.isValidTemplateError(fn, tpl, reason);
+         return false
       }
-      return isValid;
+
+      // если в fn есть свойство func, то все ок
+      if (unknownFnType && !fn.hasOwnProperty('func')) {
+         reason = 'В модуле экспортируется объект по-умолчанию (export default ControlName).'
+         this.isValidTemplateError(fn, tpl, reason);
+         return false
+      }
+      return true;
    }
 }
