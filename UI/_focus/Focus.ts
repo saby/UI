@@ -270,12 +270,6 @@ function focusInner(element: Element, cfg: IFocusConfig): boolean {
    return result;
 }
 
-function fireActivationEvents(target: Element, relatedTarget: Element): void {
-   // TODO: разобраться
-   // @ts-ignore
-   notifyActivationEvents(target, relatedTarget, false);
-}
-
 let focusingState;
 let nativeFocus: Function;
 function focus(element: IControlElement, {enableScreenKeyboard = false, enableScrollToElement = false}:
@@ -293,13 +287,6 @@ function focus(element: IControlElement, {enableScreenKeyboard = false, enableSc
       } finally {
          focusingState = false;
       }
-   }
-   // @ts-ignore
-   // мы не должны стрелять событиями активации во время восстановления фокуса после перерисовки
-   // но делать это публичным апи тоже нельзя,
-   // т.к. фокусировка без событий активации может сломать систему фокусов
-   if (res && !focus.__restoreFocusPhase) {
-      fireActivationEvents(document.activeElement, lastFocused);
    }
    return res;
 }
