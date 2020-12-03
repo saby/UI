@@ -5,6 +5,9 @@ import LinkResolver from "./LinkResolver";
 import { constants } from 'Env/Env';
 import { EMPTY_THEME, CSS_MODULE_PREFIX } from './css/const';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
+// @ts-ignore
+import { memoize } from '/Types/function';
+
 type IConfig = {
    buildnumber: string,
    wsRoot: string,
@@ -32,6 +35,7 @@ export default class Loader implements ICssLoader {
          wsConfig.appRoot || appRoot,
          wsConfig.resourceRoot || resourceRoot
       );
+      this.getHref = memoize(this.getHref);
    }
 
    getHref(initialName: string, theme: string): string {
