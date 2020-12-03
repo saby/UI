@@ -1,24 +1,54 @@
 /// <amd-module name='UI/theme/_controller/css/Link' />
+import { IAttrsDescription } from "UI/_base/HTML/_meta/interface";
+import { fromJML } from "UI/_base/HTML/_meta/JsonML";
+import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 import { Base } from './Base';
 import { ELEMENT_ATTR, THEME_TYPE, CSS_MODULE_PREFIX } from './const';
 import { ICssEntity, IHTMLElement } from './interface';
+import { Head as HeadAPI } from 'Application/Page';
+import { IHeadTagId, IHeadTagAttrs } from 'Application/Interface';
+import { isInit } from 'Application/Initializer';
+
+const TIMEOUT = 30000;
 
 /**
  * Мультитемная ссылка на клиенте
  */
 export default class Link extends Base implements ICssEntity {
-   element: IHTMLElement;
+   headTagId: IHeadTagId;
+
+   /**
+    * Если кто-то попросил outerHtml, значит это старая страница
+    * Я даже не уверен, что она с Application строится, поэтому описал ВСЕ варианты
+    */
+   get outerHtml(): string {
+      let result = '';
+      let data;
+      if (isInit && this.headTagId) {
+         data = HeadAPI.getInstance().getData(this.headTagId);
+         result = new TagMarkup(data.map(fromJML)).outerHTML;
+      } else {
+         result = new TagMarkup([{tagName: 'link', attrs: (generateAttrs(this) as IAttrsDescription)}]).outerHTML;
+      }
+
+      return result;
+   }
 
    constructor(
-      href: string,
-      cssName: string,
-      themeName: string,
-      element?: IHTMLElement,
-      public themeType: THEME_TYPE = THEME_TYPE.MULTI
+       href: string,
+       cssName: string,
+       themeName: string,
+       element?: IHTMLElement,
+       public themeType: THEME_TYPE = THEME_TYPE.MULTI
    ) {
       super(href, cssName, themeName, themeType);
-      this.element = element || createElement(href, cssName, themeName, themeType);
+      if (element) {
+         this.href = this.href || element.getAttribute(ELEMENT_ATTR.HREF);
+         this.cssName = this.cssName || element.getAttribute(ELEMENT_ATTR.NAME);
+         this.themeName = this.themeName || element.getAttribute(ELEMENT_ATTR.THEME);
+         this.themeType = this.themeType || THEME_TYPE[element.getAttribute(ELEMENT_ATTR.THEME_TYPE)];
+      }
    }
 
    load(): Promise<void> {
@@ -26,7 +56,6 @@ export default class Link extends Base implements ICssEntity {
        * CSS файл, который не привязан к теме, может прилететь внутри какого-то бандла
        * https://online.sbis.ru/opendoc.html?guid=e5ea8fc8-f6de-4684-af44-5461ceef8990
        * Проблема в том, что мы не знаем: прилетел этот бандл уже или не прилетел.
-       * TODO: Удалить в процессе внедрения HEAD API (он решит проблему дублей)
        */
       if (ModulesLoader.isLoaded(CSS_MODULE_PREFIX + this.cssName)) {
          return new Promise<void>((resolve) => {
@@ -38,9 +67,14 @@ export default class Link extends Base implements ICssEntity {
        * На клиенте делаем fetch для новых стилей и игнориуем результат т.к монтируем в head стили как link элемент.
        * Браузер кэширует запрошенные через fetch стили, повторной загрузки не будет, а ошибки загрузки перехватываются.
        */
-      this.loading = mountElement(this.element)
-         .then(() => { this.isMounted = true; })
-         .catch((e) => { this.element.remove(); throw e; });
+      this.loading = this.mountElement()
+          .then(() => { this.isMounted = true; })
+          .catch((e) => {
+             if (this.headTagId) {
+                HeadAPI.getInstance().deleteTag(this.headTagId);
+             }
+             throw e;
+          });
       return this.loading;
    }
 
@@ -56,47 +90,42 @@ export default class Link extends Base implements ICssEntity {
    remove(): Promise<boolean> {
       return super.remove().then((isRemoved) => {
          if (isRemoved) {
-            this.element.remove();
+            HeadAPI.getInstance().deleteTag(this.headTagId);
          }
          return isRemoved;
       });
    }
-}
-
-function createElement(href: string, cssName: string, themeName: string, themeType: THEME_TYPE): HTMLLinkElement {
-   const element = document.createElement('link');
-   element.setAttribute('data-vdomignore', 'true');
-   element.setAttribute('rel', 'stylesheet');
-   element.setAttribute('type', 'text/css');
-   element.setAttribute(ELEMENT_ATTR.HREF, href);
-   element.setAttribute(ELEMENT_ATTR.NAME, cssName);
-   element.setAttribute(ELEMENT_ATTR.THEME, themeName);
-   element.setAttribute(ELEMENT_ATTR.THEME_TYPE, `${themeType}`);
-   return element;
-}
-
-const TIMEOUT = 30000;
-/**
- * Монтирование link-элемента со стилями в head,
- */
-function mountElement(el: IHTMLElement): Promise<void> {
-   return new Promise((resolve, reject) => {
-      const timestamp = Date.now();
-      const onerror = () => {
-         reject(new Error(
-            'Couldn\'t load ' + el.getAttribute(ELEMENT_ATTR.HREF) + ' in ' + (Date.now() - timestamp) + ' ms.\n\t' +
-            el.getAttribute(ELEMENT_ATTR.THEME_TYPE) + ' css ' +
-            el.getAttribute(ELEMENT_ATTR.NAME) + ' for ' +
-            el.getAttribute(ELEMENT_ATTR.THEME) + ' theme.')
-         );
-      };
-      try {
-         document.head.appendChild(el as HTMLLinkElement);
-         (el as HTMLLinkElement).addEventListener('load', resolve.bind(null));
-         (el as HTMLLinkElement).addEventListener('error', onerror);
+   /**
+    * Монтирование link-элемента со стилями в head
+    */
+   mountElement(): Promise<void> {
+      return new Promise((resolve, reject) => {
+         const timestamp = Date.now();
+         const onerror = () => {
+            reject(new Error(
+                'Couldn\'t load ' + this.href + ' in ' + (Date.now() - timestamp) + ' ms.\n\t' +
+                this.themeType + ' css ' +
+                this.cssName + ' for ' +
+                this.themeName + ' theme.')
+            );
+         };
+         const attrs = generateAttrs(this);
+         this.headTagId = HeadAPI.getInstance().createTag('link', attrs, null, {
+            load: resolve.bind(null),
+            error: onerror
+         });
          setTimeout(onerror, TIMEOUT);
-      } catch (_) {
-         onerror();
-      }
-   });
+      });
+   }
+}
+
+function generateAttrs(item: ICssEntity): IHeadTagAttrs {
+   return {
+      rel: 'stylesheet',
+      type: 'text/css',
+      [ELEMENT_ATTR.HREF]: item.href,
+      [ELEMENT_ATTR.NAME]: item.cssName,
+      [ELEMENT_ATTR.THEME]: item.themeName,
+      [ELEMENT_ATTR.THEME_TYPE]: item.themeType
+   };
 }
