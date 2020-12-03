@@ -6,7 +6,7 @@ import { constants } from 'Env/Env';
 import { EMPTY_THEME, CSS_MODULE_PREFIX } from './css/const';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 // @ts-ignore
-import { memoize } from '/Types/function';
+import { memoize } from 'Types/function';
 
 type IConfig = {
    buildnumber: string,
