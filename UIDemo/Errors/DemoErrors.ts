@@ -1,13 +1,13 @@
-/// <amd-module name="UIDemo/DemoErrors" />
+/// <amd-module name="UIDemo/Errors/DemoErrors" />
 
 // @ts-ignore
 import {Control, TemplateFunction} from 'UI/Base';
 
 // @ts-ignore
-import template = require('wml!UIDemo/DemoErrors');
+import template = require('wml!UIDemo/Errors/DemoErrors');
 
 // для упрощения, чтобы не мешать демо с темизацией используем обычную css
-import 'css!UIDemo/DemoErrors';
+import 'css!UIDemo/Errors/DemoErrors';
 
 class DemoErrors extends Control {
    public _template: TemplateFunction = template;
@@ -70,8 +70,8 @@ class DemoErrors extends Control {
     * @param {String} typeError - признак типа ошибки
     */
    public _loadPartial(e, typeError): void {
-      let badTemplateName = 'wml!UIDemo/resources/badTemplate';
-      let foundTemplateName = 'wml!UIDemo/resources/found';
+      let badTemplateName = 'wml!UIDemo/Errors/resources/badTemplate';
+      let foundTemplateName = 'wml!UIDemo/Errors/resources/found';
       switch (typeError) {
          case 'found':
             // первый клик не грузит контрол
@@ -83,7 +83,7 @@ class DemoErrors extends Control {
             break;
 
          case 'notFound':
-            this._notFoundTemplate = 'wml!UIDemo/resources/errorsNotFound';
+            this._notFoundTemplate = 'wml!UIDemo/Errors/resources/errorsNotFound';
             break;
 
          case 'errorTemplate':

@@ -1,0 +1,15 @@
+<ws:template name="myTemplate">
+   <UIDemo.Synchronizer.Demo1.InnerControl
+      bind:value="_value"
+   />
+</ws:template>
+
+<div>
+   <UIDemo.Synchronizer.Demo1.Container>
+      <ws:partial template="myTemplate"/>
+   </UIDemo.Synchronizer.Demo1.Container>
+
+   <div>
+      <button on:click="_click()">Update from Main</button>
+   </div>
+</div>
