@@ -2,6 +2,7 @@
 import { default as AppInit, isInit } from 'Application/Initializer';
 import { StateReceiver } from 'Application/State';
 import { Serializer } from 'UI/State';
+import { Logger } from 'UI/Utils';
 
 /**
  * Инициализация Application/Env для Sbis приложения
@@ -14,7 +15,7 @@ export default function startApplication(cfg?: Record<string, any>) {
 
     let config = cfg || window && window['wsConfig'];
 
-    const stateReceiverInst = new StateReceiver(Serializer);
+    const stateReceiverInst = new StateReceiver(Serializer, Logger);
     AppInit(config, void 0, stateReceiverInst);
 
     if (typeof window !== 'undefined' && window['receivedStates']) {

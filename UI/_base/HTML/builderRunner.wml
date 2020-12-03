@@ -10,13 +10,14 @@
             'UI/Executor',
             'Application/State',
             'UI/State',
+            'UI/Utils'
             'SbisEnvUI/Wasaby'
-         ], function (UI, AppInitializer, AppEnv, Compatible, UIExecutor, AppState, UIState) {
+         ], function (UI, AppInitializer, AppEnv, Compatible, UIExecutor, AppState, UIState, UIUtils) {
          var AppData = UI.AppData,
             headDataStore = UI.headDataStore,
             Core = UI.Control;
          /*Первый шаг - старт Application, иницализация core и темы. Второй шаг - загрузка ресурсов*/
-         AppInitializer.default(window.wsConfig, new AppEnv.EnvBrowser(window['wsConfig']), new AppState.StateReceiver(UIState.Serializer));
+         AppInitializer.default(window.wsConfig, new AppEnv.EnvBrowser(window['wsConfig']), new AppState.StateReceiver(UIState.Serializer, UIUtils.Logger));
          Compatible.AppInit();
 
          /* Этот же флаг проставляется в UI/Base:Document
