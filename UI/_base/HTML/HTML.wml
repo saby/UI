@@ -94,6 +94,7 @@
       preInitScript="{{ _options.preInitScript }}"
       builder="{{ !!_options.builder }}"
       servicesPath="{{ servicesPath }}"
+      defaultTheme="{{ _options.defaultTheme }}"
       product="{{ product }}">
    </UI._base.HTML.Head>
    <ws:if data="{{_options.bodyTemplate}}">
