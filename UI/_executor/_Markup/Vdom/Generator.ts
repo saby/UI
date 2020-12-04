@@ -540,7 +540,7 @@ export class GeneratorVdom implements IGenerator {
    }
 
    private anonymousFnError(fn: Function, parent: IControl): void {
-      Logger.error(`В генератор была передана функция, которая не является шаблонной.
+      Logger.error(`Ошибка построения разметки. Была передана функция, которая не является шаблонной.
                Функция: ${fn.toString()}`, parent);
    }
 
