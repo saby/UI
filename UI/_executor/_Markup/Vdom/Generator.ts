@@ -309,9 +309,9 @@ export class GeneratorVdom implements IGenerator {
          return this.createWsControl(fn, resolvedScope, decorAttribs, context, _deps, data) as GeneratorNode;
       }
 
-      /* if (resolvedScope.__notExcessiveRender && Common.isTemplateClass(fn)) {
+      if (Common.isTemplateClass(fn)) {
          return this.createTemplate(fn, resolvedScope, decorAttribs, context, _deps, data);
-      } */
+      }
 
       const nameFunc = isTplString ? tpl : 'InlineFunction';
       Logger.debug(`createWsControl - "${nameFunc}"`, data.controlProperties);
