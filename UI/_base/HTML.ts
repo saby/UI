@@ -25,6 +25,7 @@ import { Stack as MetaStack, IMetaStackInternal } from 'UI/_base/HTML/meta';
 mountChecker.start();
 
 interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
+    defaultTheme: string;
     // Добавим здесь поля для RUM-статистики Потому что их нам нужно сериализовать в wsConfig, чтобы потом получить на клиенте.
     RUMEnabled: boolean;
     pageName: string;

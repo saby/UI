@@ -118,7 +118,7 @@ class Head extends Control<IHeadOptions> {
         if (!options.compat) {
             // @ts-ignore
             API.createTag('script', {type: 'text/javascript'},
-                `window.themeName = '${options.theme}';`
+                `window.themeName = '${options.theme || options.defaultTheme || ''}';`
             );
         }
         // @ts-ignore
@@ -259,6 +259,7 @@ function applyHeadJSON(options: IHeadOptions): string {
 }
 
 interface IHeadOptions extends IControlOptions {
+    defaultTheme?: string;
     wsRoot: string;
     resourceRoot: string;
     appRoot: string;
