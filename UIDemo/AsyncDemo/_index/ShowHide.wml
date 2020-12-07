@@ -1,0 +1,16 @@
+<div>
+    <div class="UIDemo-AsyncDemo__buttonContainer">
+        <input type="button" value="{{buttonCaption}}" on:click="toggleAsync()" class="UIDemo-AsyncDemo__navigationButton demo-AsyncDemo__showHideButton" />
+    </div>
+    <ws:if data="{{showAsync}}">
+        <UIDemo.AsyncDemo.Async templateName="UIDemo/AsyncDemo/_index/InvisibleNode" attr:class="UIDemo-AsyncDemo__container">
+            <ws:content>
+                <ws:partial template="{{ content.resolvedTemplate }}"></ws:partial>
+            </ws:content>
+        </UIDemo.AsyncDemo.Async>
+        Шаблон виден.
+    </ws:if>
+    <ws:else>
+        Шаблон скрыт.
+    </ws:else>
+</div>

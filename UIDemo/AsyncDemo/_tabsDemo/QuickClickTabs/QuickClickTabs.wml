@@ -1,0 +1,33 @@
+<div class="TabsDemo">
+   <div class="TabsDemo__Tabs">
+      <ul>
+         <li class="TabsDemo__Tabs--Item {{ _asyncTabId == 0 ? 'TabsDemo__Tabs--ItemActive' }}">
+            <Router.router:Reference state="asyncTab/:asyncTab" asyncTab="0" attr:class="TabsDemo__Tabs--Link">
+               <a href="{{ content.href }}">Tab 0</a>
+            </Router.router:Reference>
+         </li>
+         <li class="TabsDemo__Tabs--Item {{ _asyncTabId == 1 ? 'TabsDemo__Tabs--ItemActive' }}">
+            <Router.router:Reference state="asyncTab/:asyncTab" asyncTab="1" attr:class="TabsDemo__Tabs--Link">
+               <a href="{{ content.href }}">Tab 1</a>
+            </Router.router:Reference>
+         </li>
+         <li class="TabsDemo__Tabs--Item {{ _asyncTabId == 2 ? 'TabsDemo__Tabs--ItemActive' }}">
+            <Router.router:Reference state="asyncTab/:asyncTab" asyncTab="2" attr:class="TabsDemo__Tabs--Link">
+               <a href="{{ content.href }}">Tab 2</a>
+            </Router.router:Reference>
+         </li>
+         <li class="TabsDemo__Tabs--Item {{ _asyncTabId == 3 ? 'TabsDemo__Tabs--ItemActive' }}">
+            <Router.router:Reference state="asyncTab/:asyncTab" asyncTab="3" attr:class="TabsDemo__Tabs--Link">
+               <a href="{{ content.href }}">Tab 3</a>
+            </Router.router:Reference>
+         </li>
+      </ul>
+   </div>
+   <div class="TabsDemo__Content">
+      <UIDemo.AsyncDemo.Async templateName="{{ _asyncTabTemplate }}">
+         <ws:content>
+            <ws:partial template="{{ content.resolvedTemplate }}"></ws:partial>
+         </ws:content>
+      </UIDemo.AsyncDemo.Async>
+   </div>
+</div>
