@@ -402,6 +402,14 @@ export function isCompat() {
       return constants.compat;
    }
 }
+
+export function isAnonymousFn(fn) {
+   if (fn.name === '') {
+      return true;
+   }
+   return false;
+}
+
 //todo перенести в Serializer
 export const componentOptsReArray = [
    {
