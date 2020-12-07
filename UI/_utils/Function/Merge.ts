@@ -40,6 +40,9 @@ function canBeRepalcedWith(value: any, config: IConfig): boolean {
 }
 
 function cloneOrCopy(hash: object, hashExtender: object, key: string, config: IConfig, path: IPath): void {
+   if (config.ignoreRegExp && config.ignoreRegExp.test(key)) {
+      return;
+   }
    if ((typeof (hashExtender[key]) === 'object' && hashExtender[key] !== null) && config.clone) {
       /**
        * Если к нам пришел объект и можно клонировать
