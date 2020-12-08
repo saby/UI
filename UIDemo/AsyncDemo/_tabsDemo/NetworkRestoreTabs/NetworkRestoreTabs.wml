@@ -1,0 +1,44 @@
+<div class="TabsDemo">
+   <div class="TabsDemo__Tabs">
+      <ul>
+         <li class="TabsDemo__Tabs--Item {{ _selectedTabId == 0 ? 'TabsDemo__Tabs--ItemActive' }}">
+            <Router.router:Reference state="selectedTab/:selectedTab" selectedTab="0" attr:class="TabsDemo__Tabs--Link">
+               <a href="{{ content.href }}">Tab 0</a>
+            </Router.router:Reference>
+         </li>
+         <li class="TabsDemo__Tabs--Item {{ _selectedTabId == 1 ? 'TabsDemo__Tabs--ItemActive' }}">
+            <Router.router:Reference state="selectedTab/:selectedTab" selectedTab="1" attr:class="TabsDemo__Tabs--Link">
+               <a href="{{ content.href }}">Tab 1</a>
+            </Router.router:Reference>
+         </li>
+         <li class="TabsDemo__Tabs--Item {{ _selectedTabId == 2 ? 'TabsDemo__Tabs--ItemActive' }}">
+            <Router.router:Reference state="selectedTab/:selectedTab" selectedTab="2" attr:class="TabsDemo__Tabs--Link">
+               <a href="{{ content.href }}">Tab 2</a>
+            </Router.router:Reference>
+         </li>
+      </ul>
+   </div>
+   <div class="TabsDemo__Content">
+      <ws:if data="{{ _selectedTabId == 0 }}">
+         <UIDemo.AsyncDemo.Async templateName="UIDemo/AsyncDemo/_tabsDemo/NetworkRestoreTabs/Tab0">
+            <ws:content>
+               <ws:partial template="{{ content.resolvedTemplate }}"></ws:partial>
+            </ws:content>
+         </UIDemo.AsyncDemo.Async>
+      </ws:if>
+      <ws:else data="{{ _selectedTabId == 1}}">
+         <UIDemo.AsyncDemo.Async templateName="UIDemo/AsyncDemo/_tabsDemo/NetworkRestoreTabs/Tab1">
+            <ws:content>
+               <ws:partial template="{{ content.resolvedTemplate }}"></ws:partial>
+            </ws:content>
+         </UIDemo.AsyncDemo.Async>
+      </ws:else>
+      <ws:else data="{{ _selectedTabId == 2}}">
+         <UIDemo.AsyncDemo.Async templateName="UIDemo/AsyncDemo/testLibAsync:TestModule">
+            <ws:content>
+               <ws:partial template="{{ content.resolvedTemplate }}"></ws:partial>
+            </ws:content>
+         </UIDemo.AsyncDemo.Async>
+      </ws:else>
+   </div>
+</div>

@@ -1,0 +1,35 @@
+<div>
+    <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__loadModule">
+        <span class="UIDemo-AsyncDemo__subHeader">1. Асинхронная загрузка модуля (не библиотека)</span>
+        <div class="UIDemo-AsyncDemo__row">
+            Асинхронно загружается модуль. После успешной загрузки меняется шаблонная опция на значение "true".
+        </div>
+        <UIDemo.AsyncDemo.Async templateName="{{ templateName1 }}" class="UIDemo-AsyncDemo__container">
+            <ws:templateOptions
+                    isOK="{{isOK}}">
+            </ws:templateOptions>
+            <ws:content>
+                <div>
+                    <ws:partial template="{{ content.resolvedTemplate }}"></ws:partial>
+                </div>
+            </ws:content>
+        </UIDemo.AsyncDemo.Async>
+    </div>
+
+    <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__loadLibrary">
+        <span class="UIDemo-AsyncDemo__subHeader">2. Асинхронная загрузка библиотеки</span>
+        <div class="UIDemo-AsyncDemo__row">
+            Асинхронно загружается библиотека. После успешной загрузки меняется шаблонная опция на значение "true".
+        </div>
+        <UIDemo.AsyncDemo.Async templateName="{{ templateName2 }}" class="UIDemo-AsyncDemo__container">
+            <ws:templateOptions
+                    isOK="{{isOK}}">
+            </ws:templateOptions>
+            <ws:content>
+                <div>
+                    <ws:partial template="{{ content.resolvedTemplate }}"></ws:partial>
+                </div>
+            </ws:content>
+        </UIDemo.AsyncDemo.Async>
+    </div>
+</div>
