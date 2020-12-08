@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_executor/_Markup/Generator" />
 /* tslint:disable */
 
-import { coreDebug as timing } from 'Env/Env';
+import { coreDebug as timing, cookie } from 'Env/Env';
 import { Logger } from 'UI/Utils';
 import * as Common from '../_Utils/Common';
 import * as RequireHelper from '../_Utils/RequireHelper';
@@ -149,7 +149,7 @@ function resolveTpl(tpl, deps, includedTemplates) {
       }
 
       if (!controlClass) {
-         if (!isSlashes || wasOptional || Common.isCompat()) {
+         if (!isSlashes || wasOptional || (Common.isCompat() && !(cookie.get('disableCompat') === 'true'))) {
             /*
                * it can be "optional"
                * can be tmpl!
@@ -307,10 +307,12 @@ export class Generator {
    private createTemplate: Function;
    private createController: Function;
    private resolver: Function;
+   private readonly disableCompat: boolean;
 
-   private generatorConfig: IGeneratorConfig;
+   private readonly generatorConfig: IGeneratorConfig;
 
    constructor(config: IGeneratorConfig) {
+      this.disableCompat = cookie.get('disableCompat') === 'true' || false;
       if (config) {
          this.generatorConfig = config;
       }
@@ -378,7 +380,7 @@ export class Generator {
 
       // тип контрола - компонент с шаблоном
       if (type === 'wsControl') {
-         if (Common.isCompat()) {
+         if (Common.isCompat() && !this.disableCompat) {
             res = timing.methodExecutionTime(this.createWsControl, this, [name, userData, attrs, context, deps]);
             return checkResult.call(this, res, type, name);
          }
@@ -387,7 +389,7 @@ export class Generator {
       }
       // типа контрола - шаблон
       if (type === 'template') {
-         if (Common.isCompat()) {
+         if (Common.isCompat() && !this.disableCompat) {
             res = timing.methodExecutionTime(this.createTemplate, this, [name, userData, attrs, context, deps, templateConfig]);
             return checkResult.call(this, res, type, name);
          }
@@ -397,7 +399,7 @@ export class Generator {
       }
       // тип контрола - компонент без шаблона
       if (type === 'controller') {
-         if (Common.isCompat()) {
+         if (Common.isCompat() && !this.disableCompat) {
             res = timing.methodExecutionTime(this.createController, this, [name, userData, attrs, context, deps]);
             return checkResult.call(this, res, type, name);
          }
@@ -419,7 +421,7 @@ export class Generator {
                }
             }
          }
-         if (Common.isCompat()) {
+         if (Common.isCompat() && !this.disableCompat) {
             res = timing.methodExecutionTime(this.resolver, this, [name, userData, attrs, context, deps, includedTemplates, templateConfig, defCollection]);
             return checkResult.call(this, res, type, name);
          }
@@ -460,7 +462,7 @@ export class Generator {
       name = nameResolver.call(this, name);
       let res;
       const type = 'wsControl';
-      if (Common.isCompat()) {
+      if (Common.isCompat() && !this.disableCompat) {
          res = timing.methodExecutionTime(this.createWsControl, this, [name, userData, attrs, context, deps]);
          return checkResult.call(this, res, type, name);
       }
@@ -481,7 +483,7 @@ export class Generator {
       name = nameResolver.call(this, name);
       let res;
       const type = 'template';
-      if (Common.isCompat()) {
+      if (Common.isCompat() && !this.disableCompat) {
          res = timing.methodExecutionTime(this.createTemplate, this, [name, userData, attrs, context, deps, config]);
          return checkResult.call(this, res, type, name);
       }
@@ -501,7 +503,7 @@ export class Generator {
       name = nameResolver(name);
       let res;
       const type = 'controller';
-      if (Common.isCompat()) {
+      if (Common.isCompat() && !this.disableCompat) {
          res = timing.methodExecutionTime(this.createController, this, [name, userData, attrs, context, deps]);
          return checkResult.call(this, res, type, name);
       }
@@ -537,7 +539,7 @@ export class Generator {
             }
          }
       }
-      if (Common.isCompat()) {
+      if (Common.isCompat() && !this.disableCompat) {
          res = timing.methodExecutionTime(this.resolver, this, [name, userData, attrs, context, deps, includedTemplates, config, defCollection]);
          return checkResult.call(this, res, type, name);
       }
@@ -578,7 +580,7 @@ export class Generator {
 
       // тип контрола - компонент с шаблоном
       if (type === 'wsControl') {
-         if (Common.isCompat()) {
+         if (Common.isCompat() && !this.disableCompat) {
             res = timing.methodExecutionTime(this.createWsControl, this, [name, userData, attrs, context, deps]);
             return checkResult.call(this, res, type, name);
          }
@@ -587,7 +589,7 @@ export class Generator {
       }
       // типа контрола - шаблон
       if (type === 'template') {
-         if (Common.isCompat()) {
+         if (Common.isCompat() && !this.disableCompat) {
             res = timing.methodExecutionTime(this.createTemplate, this, [name, userData, attrs, context, deps, config]);
             return checkResult.call(this, res, type, name);
          }
@@ -597,7 +599,7 @@ export class Generator {
       }
       // тип контрола - компонент без шаблона
       if (type === 'controller') {
-         if (Common.isCompat()) {
+         if (Common.isCompat() && !this.disableCompat) {
             res = timing.methodExecutionTime(this.createController, this, [name, userData, attrs, context, deps]);
             return checkResult.call(this, res, type, name);
          }
@@ -619,7 +621,7 @@ export class Generator {
                }
             }
          }
-         if (Common.isCompat()) {
+         if (Common.isCompat() && !this.disableCompat) {
             res = timing.methodExecutionTime(this.resolver, this, [name, userData, attrs, context, deps, includedTemplates, config, defCollection]);
             return checkResult.call(this, res, type, name);
          }
@@ -707,7 +709,7 @@ export class Generator {
       parent = (attrs.internal && attrs.internal.parent) ? attrs.internal.parent : null;
       OptionsResolver.resolveInheritOptions(controlClass, attrs, controlProperties);
 
-      if (Common.isCompat()) {
+      if (Common.isCompat() && !this.disableCompat) {
          controlProperties = isCompatPatch(controlClass, controlProperties, attrs, fromOld);
       }
 

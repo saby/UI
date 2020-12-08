@@ -25,6 +25,7 @@ import { NumberUtils } from 'UI/Utils';
 import { INodeAttribute } from './IGeneratorType';
 import { IAttributes } from '../_Expressions/Attr';
 import { Logger } from 'UI/Utils';
+import { cookie } from 'Env/Env';
 
 /**
  * @author Тэн В.А.
@@ -115,7 +116,7 @@ export function createTagDefault(tag: string,
 
    _FocusAttrs.prepareTabindex(mergedAttrs);
    // remove focus attributes from object
-   if (Common.isCompat()) {
+   if (Common.isCompat() && !(cookie.get('disableCompat') === 'true')) {
       // ! не вырезаем фокусные атрибуты, для совместимости. чтобы старые компоненты могли работать в новом окружении
       // textMarkupGenerator.cutFocusAttributes(mergedAttrs);
    } else {
