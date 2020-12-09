@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_executor/_Markup/Generator" />
 /* tslint:disable */
 
-import { coreDebug as timing, cookie } from 'Env/Env';
+import { coreDebug as timing } from 'Env/Env';
 import { Logger } from 'UI/Utils';
 import * as Common from '../_Utils/Common';
 import * as RequireHelper from '../_Utils/RequireHelper';
@@ -149,7 +149,7 @@ function resolveTpl(tpl, deps, includedTemplates) {
       }
 
       if (!controlClass) {
-         if (!isSlashes || wasOptional || (Common.isCompat() && !(cookie.get('disableCompat') === 'true'))) {
+         if (!isSlashes || wasOptional || Common.isCompat()) {
             /*
                * it can be "optional"
                * can be tmpl!
@@ -312,7 +312,7 @@ export class Generator {
    private readonly generatorConfig: IGeneratorConfig;
 
    constructor(config: IGeneratorConfig) {
-      this.disableCompat = cookie.get('disableCompat') === 'true' || false;
+      this.disableCompat = Common.disableCompat();
       if (config) {
          this.generatorConfig = config;
       }

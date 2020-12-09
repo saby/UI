@@ -6,7 +6,7 @@
  */
 
 // @ts-ignore
-import { constants } from 'Env/Env';
+import { constants, cookie } from 'Env/Env';
 
 import * as Attr from '../_Expressions/Attr';
 
@@ -404,10 +404,11 @@ export function isCompat() {
 }
 
 export function isAnonymousFn(fn) {
-   if (fn.name === '') {
-      return true;
-   }
-   return false;
+   return fn.name === '';
+}
+
+export function disableCompat() {
+   return typeof(cookie.get('disableCompat')) !== "undefined" && cookie.get('disableCompat') === 'true' ;
 }
 
 //todo перенести в Serializer
