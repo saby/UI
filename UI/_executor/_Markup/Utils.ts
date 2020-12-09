@@ -25,7 +25,6 @@ import { NumberUtils } from 'UI/Utils';
 import { INodeAttribute } from './IGeneratorType';
 import { IAttributes } from '../_Expressions/Attr';
 import { Logger } from 'UI/Utils';
-import { cookie } from 'Env/Env';
 
 /**
  * @author Тэн В.А.
