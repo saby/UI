@@ -2,6 +2,7 @@
 import { IStateReceiver } from 'Application/Interface';
 import Serializer = require('UI/_state/Serializer');
 import { Logger } from 'UI/Utils';
+import {IConsole} from "Application/_Interface/IConsole";
 
 /**
  * @author Санников К.
@@ -40,6 +41,10 @@ function getDepsFromSerializer(slr: any): any {
 class StateReceiver implements IStateReceiver {
    private receivedStateObjectsArray: any = {};
    private deserialized: any = {};
+
+   setLogger(Logger: IConsole): void{
+      return;
+   }
 
    serialize(): ISerializedType {
       const slr = new Serializer();
