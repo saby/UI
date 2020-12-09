@@ -17,7 +17,7 @@
    "scripts": {
       "build": "npm run build:typescript && npm run build:app",
       "build:typescript": "wasaby-cli --tasks=prepare",
-      "build:app": "wasaby-cli --tasks=build --wasaby-app=21.1000/bugfix/statereceiver-logger",
+      "build:app": "wasaby-cli --tasks=build",
       "compile": "saby-typescript --compiler",
       "start": "wasaby-cli --tasks=app",
       "start:units": "wasaby-cli --tasks=startTest --server",
