@@ -14,6 +14,17 @@ import * as RequireHelper from './RequireHelper';
 
 import { ReactiveObserver } from 'UI/Reactivity';
 
+import { cookie } from 'Application/Env';
+
+let needWaitAsyncValue: boolean;
+
+export function needWaitAsync(): boolean {
+   if (typeof needWaitAsyncValue === 'undefined') {
+      needWaitAsyncValue = cookie.get('stopWaitAsync') !== 'true';
+   }
+   return needWaitAsyncValue;
+}
+
 var
    requireIfDefined = function requireIfDefined(tpl) {
       return RequireHelper.defined(tpl) && RequireHelper.require(tpl, true);
