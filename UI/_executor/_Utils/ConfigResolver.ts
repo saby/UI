@@ -8,6 +8,7 @@ import { FunctionUtils } from 'UI/Utils';
 import { constants, cookie } from 'Env/Env';
 import { plainMerge } from './Common';
 import * as Scope from '../_Expressions/Scope';
+import {InheritOptionsError} from "./OptionsResolver";
 
 /**
  * todo: describe method
@@ -157,8 +158,10 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
                      // вмерживать будем опции кроме on: и content
                      if (!mergeRegExp.test(prop)) {
                         insertedDataCloned[prop] = insertedData[prop];
-                        if (!(insertedData[prop] instanceof UseAutoProxiedOptionError)) {
-                           insertedDataCloned['_$' + prop] = new UseAutoProxiedOptionError({
+                        const newProp = '_$' + prop;
+                        if (!(insertedData[newProp] instanceof UseAutoProxiedOptionError)
+                           && !(insertedData[newProp] instanceof InheritOptionsError)) {
+                           insertedDataCloned[newProp] = new UseAutoProxiedOptionError({
                               upperControlName,
                               lostHere
                            });

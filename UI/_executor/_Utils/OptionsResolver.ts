@@ -9,7 +9,6 @@
 import { constants } from 'Env/Env';
 // @ts-ignore
 import { Logger } from 'UI/Utils';
-import { UseAutoProxiedOptionError } from './ConfigResolver';
 import { TControlConstructor } from 'UI/_base/Control'
 
 /**
@@ -20,9 +19,8 @@ export function resolveDefaultOptions(cfg, defaultOptions) {
    for (var key in defaultOptions) {
       if (typeof cfg[key] === 'undefined' && typeof defaultOptions[key] !== 'undefined') {
          cfg[key] = defaultOptions[key];
-         if (cfg['_$'+key] instanceof UseAutoProxiedOptionError) {
-            cfg['_$'+key].destroy();
-         }
+
+         createInheritOptionError(cfg, key);
       }
    }
    return cfg;
@@ -64,6 +62,41 @@ export function validateOptions(controlClass, cfg, parentName: string): boolean 
    return _validateOptions(controlClass, cfg, optionsTypes, parentName);
 }
 
+let _canGetInheritOption: boolean = false;
+export function canGetInheritOption(value: boolean) {
+   _canGetInheritOption = value;
+}
+
+export class InheritOptionsError {
+}
+
+function createInheritOptionError(controlProperties, propertyName: string) {
+   const name = '_$' + propertyName;
+   if (controlProperties[name] instanceof InheritOptionsError) {
+      return;
+   }
+
+   controlProperties[name] = new InheritOptionsError();
+
+   // let controlProperty = controlProperties[propertyName];
+   // Object.defineProperty(controlProperties, propertyName, {
+   //    get: () => {
+   //       if (!_canGetInheritOption) {
+   //          let message = `
+   //                Попытка получить опцию по умолчанию ${propertyName}.
+   //                Не стоит брать наследуемые опции из опций контрола.
+   //                Необходимо получать опции по умолчанию согласно инструкции.
+   //                ???????????????????????????????`;
+   //          Logger.error(message);
+   //       }
+   //       return controlProperty;
+   //    },
+   //    set: (v) => {
+   //       controlProperty = v;
+   //    }
+   // });
+}
+
 export function resolveInheritOptions(controlClass, attrs, controlProperties, fromCreateControl?) {
    if (!controlClass) {
       return;
@@ -80,9 +113,7 @@ export function resolveInheritOptions(controlClass, attrs, controlProperties, fr
          if (controlProperties[i] === undefined) {
             controlProperties[i] = attrs.inheritOptions[i];
 
-            if (controlProperties['_$'+i] instanceof UseAutoProxiedOptionError) {
-               controlProperties['_$'+i].destroy();
-            }
+            createInheritOptionError(controlProperties, i);
          }
          newInherit[i] = controlProperties[i];
       }
@@ -95,9 +126,7 @@ export function resolveInheritOptions(controlClass, attrs, controlProperties, fr
          newInherit[j] = inheritOptions[j];
          controlProperties[j] = inheritOptions[j];
 
-         if (controlProperties['_$'+j] instanceof UseAutoProxiedOptionError) {
-            controlProperties['_$'+j].destroy();
-         }
+         createInheritOptionError(controlProperties, j);
       }
    }
    attrs.inheritOptions = newInherit;
