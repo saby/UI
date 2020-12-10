@@ -36,18 +36,27 @@ import {
 import { IControlNode, IDOMEnvironment} from '../interfaces';
 import { getChangedOptions, collectObjectVersions } from './Options';
 import { createNode } from './ControlNode';
-import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
 import { GeneratorNode } from 'UI/Executor';
 // import { VNode } from 'Inferno/third-party/index';
 import { ITemplateNode } from 'UI/_executor/_Markup/IGeneratorType';
 import { getCompatibleUtils } from 'UI/_vdom/Synchronizer/resources/DirtyCheckingCompatible';
+import { cookie, getStateReceiver } from 'Application/Env';
 
 type TDirtyCheckingTemplate = ITemplateNode & {
     children: GeneratorNode[];  // нужно понять почему у нас такое ограничение
 };
 
-var Slr = new Serializer();
+const Slr = new Serializer();
+
+let needWaitAsyncValue: boolean;
+
+function needWaitAsync(): boolean {
+    if (typeof needWaitAsyncValue === 'undefined') {
+        needWaitAsyncValue = cookie.get('stopWaitAsync') !== 'true';
+    }
+    return needWaitAsyncValue;
+}
 
 interface IMemoForNode {
     createdNodes: Array<any>;
@@ -168,7 +177,7 @@ export function getReceivedState(controlNode: IControlNode, vnodeP: GeneratorNod
    };
 
    if (AppInit.isInit()) {
-      srec = AppEnv.getStateReceiver();
+      srec = getStateReceiver();
    }
 
    if (srec && srec.register) {
@@ -332,7 +341,7 @@ function collectChildrenKeys(next: { key }[], prev: { key }[]): { prev, next }[]
 }
 
 function rebuildNodeWriter(environment, node, force, isRoot?) {
-   if (node.receivedState && node.receivedState.then) {
+   if (needWaitAsync() && node.receivedState && node.receivedState.then) {
       return node.receivedState.then(
          function rebuildNodeWriterCbk(state) {
             node.receivedState = state;
