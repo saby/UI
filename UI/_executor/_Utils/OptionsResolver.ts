@@ -62,11 +62,6 @@ export function validateOptions(controlClass, cfg, parentName: string): boolean 
    return _validateOptions(controlClass, cfg, optionsTypes, parentName);
 }
 
-let _canGetInheritOption: boolean = false;
-export function canGetInheritOption(value: boolean) {
-   _canGetInheritOption = value;
-}
-
 export class InheritOptionsError {
 }
 
