@@ -408,7 +408,9 @@ export function isAnonymousFn(fn) {
 }
 
 export function disableCompat() {
-   return typeof(cookie.get('disableCompat')) !== "undefined" && cookie.get('disableCompat') === 'true' ;
+   const req = process && process.domain && process.domain.req;
+   const disableCompat = req ? req.cookies['disableCompat'] : cookie.get('disableCompat');
+   return typeof(disableCompat) !== "undefined" && disableCompat === 'true' ;
 }
 
 //todo перенести в Serializer

@@ -115,7 +115,7 @@ export function createTagDefault(tag: string,
 
    _FocusAttrs.prepareTabindex(mergedAttrs);
    // remove focus attributes from object
-   if (Common.isCompat() && !Common.disableCompat()) {
+   if (Common.isCompat()) {
       // ! не вырезаем фокусные атрибуты, для совместимости. чтобы старые компоненты могли работать в новом окружении
       // textMarkupGenerator.cutFocusAttributes(mergedAttrs);
    } else {

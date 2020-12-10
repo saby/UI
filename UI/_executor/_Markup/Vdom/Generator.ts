@@ -358,7 +358,7 @@ export class GeneratorVdom implements IGenerator {
             parent
          );
       }
-      if (Common.isCompat() && Common.disableCompat()) {
+      if (Common.isCompat()) {
          return this.createText('' + tpl, decorAttribs.key);
       }
       // TODO: разобраться с правильным использование ws:partial
