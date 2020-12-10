@@ -1,9 +1,18 @@
-import {assert} from 'chai';
-import {IoC, constants} from 'Env/Env';
+import { assert } from 'chai';
+import { IoC, constants } from 'Env/Env';
+import { IAsyncOptions } from 'UI/Base';
 import { default as Async }  from 'UITest/_async/Async';
 import TestControlSync = require('UITest/_async/TestControlSync');
 
+function getOptions(templateName: string): IAsyncOptions {
+    return {
+        templateName,
+        templateOptions: {}
+    };
+}
+
 describe('UI/Base:Async', () => {
+    // переопределяем логгер, чтобы при ошибках загрузки не упали тесты из-за сообщений логгера
     const warns = [];
     const originalLogger = IoC.resolve('ILogger');
 
@@ -23,10 +32,7 @@ describe('UI/Base:Async', () => {
 
     if (typeof window === 'undefined') {
         it('Loading synchronous server-side', () => {
-            const options = {
-                templateName: 'UITest/_async/TestControlSync',
-                templateOptions: {}
-            };
+            const options = getOptions('UITest/_async/TestControlSync');
             const oldCompat = constants.compat;
             constants.compat = false;
 
@@ -40,11 +46,7 @@ describe('UI/Base:Async', () => {
         });
 
         it('Loading synchronous server-side failed', () => {
-            const options = {
-                templateName: 'UITest/_async/Fail/TestControlSync',
-                templateOptions: {}
-            };
-
+            const options = getOptions('UITest/_async/Fail/TestControlSync');
             const ERROR_TEXT = 'Ошибка загрузки контрола "UITest/_async/Fail/TestControlSync"'
                 + '\nВозможны следующие причины:\n\t                   • '
                 + 'Ошибка в самом контроле\n\t                   • '
@@ -62,10 +64,7 @@ describe('UI/Base:Async', () => {
     }
 
     it('Loading synchronous client-side', () => {
-        const options = {
-            templateName: 'UITest/_async/TestControlSync',
-            templateOptions: {}
-        };
+        const options = getOptions('UITest/_async/TestControlSync');
         const oldCompat = constants.compat;
         constants.compat = false;
 
@@ -81,10 +80,7 @@ describe('UI/Base:Async', () => {
     });
 
     it('Loading synchronous client-side failed', () => {
-        const options = {
-            templateName: 'UITest/_async/Fail/TestControlSync',
-            templateOptions: {}
-        };
+        const options = getOptions('UITest/_async/Fail/TestControlSync');
         const ERROR_TEXT = 'Ошибка загрузки контрола "UITest/_async/Fail/TestControlSync"\n'
             + 'Возможны следующие причины:\n\t                   • '
             + 'Ошибка в самом контроле\n\t                   • '
@@ -101,11 +97,7 @@ describe('UI/Base:Async', () => {
     }).timeout(4000);
 
     it('Loading asynchronous client-side', () => {
-        const options = {
-            templateName: 'UITest/_async/TestControlAsync',
-            templateOptions: {}
-        };
-
+        const options = getOptions('UITest/_async/TestControlAsync');
         const async = new Async(options);
         // @ts-ignore Хак: Почему-то нет опций после конструктора
         async._options = options;
@@ -120,11 +112,7 @@ describe('UI/Base:Async', () => {
     }).timeout(3000);
 
     it('Loading asynchronous from library client-side', () => {
-        const options = {
-            templateName: 'UITest/_async/TestLibraryAsync:ExportControl',
-            templateOptions: {}
-        };
-
+        const options = getOptions('UITest/_async/TestLibraryAsync:ExportControl');
         const async = new Async(options);
         // @ts-ignore Хак: Почему-то нет опций после конструктора
         async._options = options;
@@ -139,11 +127,7 @@ describe('UI/Base:Async', () => {
     }).timeout(3000);
 
     it('Loading asynchronous client-side failed', () => {
-        const options = {
-            templateName: 'UITest/_async/Fail/TestControlAsync',
-            templateOptions: {}
-        };
-
+        const options = getOptions('UITest/_async/Fail/TestControlAsync');
         const ERROR_TEXT = 'Ошибка загрузки контрола "UITest/_async/Fail/TestControlAsync"\n'
             + 'Возможны следующие причины:\n\t                   • '
             + 'Ошибка в самом контроле\n\t                   • '
