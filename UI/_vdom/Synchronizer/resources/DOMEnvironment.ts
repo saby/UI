@@ -625,7 +625,10 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             delete newRootCntNode.environment._asyncOngoing;
          }
 
+         mountMethodsCaller.componentDidMount(controlNodesToCall);
+         // TODO: rename
          mountMethodsCaller.afterRender(controlNodesToCall);
+         // TODO: remove
          mountMethodsCaller.beforePaint(controlNodesToCall);
          // используется setTimeout вместо delay, т.к. delay работает через rAF
          // rAF зовётся до того, как браузер отрисует кадр, а _afterUpdate должен вызываться после, чтобы не вызывать forced reflow.
