@@ -5,10 +5,10 @@
  */
 
 import { FunctionUtils } from 'UI/Utils';
-import { constants, cookie } from 'Env/Env';
+import { constants } from 'Env/Env';
 import { plainMerge } from './Common';
 import * as Scope from '../_Expressions/Scope';
-import {InheritOptionsError} from "./OptionsResolver";
+import {getFixScopeMergingInContent} from "./FixScopeMergingContent";
 
 /**
  * todo: describe method
@@ -100,7 +100,6 @@ export function calcParent(obj: any, currentPropertyName: any, data: any): any {
 }
 
 const mergeRegExp = /(^on:|^content$)/ig;
-let fixScopeMergingInContent;
 
 /**
  * todo: describe method
@@ -136,11 +135,7 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
          if (!insertedData.hasOwnProperty('parent') &&
             (!insertedData.hasOwnProperty('element') || !insertedData.element || insertedData.element.length === 0)) {
 
-            // @ts-ignore
-            if (fixScopeMergingInContent === undefined && !constants.isProduction) {
-               fixScopeMergingInContent = cookie.get('fixScopeMergingInContent');
-            }
-            if (!templateCfg.isRootTag && fixScopeMergingInContent === 'true') {
+            if (!templateCfg.isRootTag && getFixScopeMergingInContent()) {
                const lostHere = name !== 'Controls/Container/Async' ?
                   `${name}` :
                   `${name} (${data.templateName})`;
@@ -159,8 +154,10 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
                      if (!mergeRegExp.test(prop)) {
                         insertedDataCloned[prop] = insertedData[prop];
                         const newProp = '_$' + prop;
-                        if (!(insertedData[newProp] instanceof UseAutoProxiedOptionError)
-                           && !(insertedData[newProp] instanceof InheritOptionsError)) {
+                        if (!(insertedData[prop] instanceof UseAutoProxiedOptionError)
+                           && !(insertedData[newProp] instanceof UseAutoProxiedOptionError)
+                           && !(insertedData[prop] === 'InheritOptionsError')
+                           && !(insertedData[newProp] === 'InheritOptionsError')) {
                            insertedDataCloned[newProp] = new UseAutoProxiedOptionError({
                               upperControlName,
                               lostHere
