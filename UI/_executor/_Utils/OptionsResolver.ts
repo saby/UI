@@ -10,7 +10,6 @@ import { constants } from 'Env/Env';
 // @ts-ignore
 import { Logger } from 'UI/Utils';
 import { TControlConstructor } from 'UI/_base/Control'
-import {getFixScopeMergingInContent} from "./FixScopeMergingContent";
 
 /**
  * Применить дефолтные опции конструктора
