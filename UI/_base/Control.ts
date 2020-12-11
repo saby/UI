@@ -1082,9 +1082,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       // Do
    }
 
-   private  __afterRender(oldOptions?: TOptions, oldContext?: any): void {
-      Logger.warn(`Хук "_afterRender" больше не поддерживает. 
-         Следует переименовать хук "_afterRender" в "_componentDidUpdate"`, this);
+   private __afterRender(oldOptions?: TOptions, oldContext?: any): void {
+      Logger.warn(`Хук "_afterRender" более не поддерживает. 
+         Следует переименовать хук в "_componentDidUpdate"
+         Контрол: ${ this._moduleName }`, this);
       this._afterRender.apply(this, arguments);
    }
 
