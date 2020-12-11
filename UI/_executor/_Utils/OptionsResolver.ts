@@ -10,6 +10,7 @@ import { constants } from 'Env/Env';
 // @ts-ignore
 import { Logger } from 'UI/Utils';
 import { TControlConstructor } from 'UI/_base/Control'
+import {getFixScopeMergingInContent} from "./FixScopeMergingContent";
 
 /**
  * Применить дефолтные опции конструктора
@@ -63,9 +64,9 @@ export function validateOptions(controlClass, cfg, parentName: string): boolean 
 }
 
 function createInheritOptionError(controlProperties, propertyName: string) {
-   // if (!getFixScopeMergingInContent()) {
-   //    return;
-   // }
+   if (!getFixScopeMergingInContent()) {
+      return;
+   }
 
    const name = '_$' + propertyName;
    if (controlProperties[name] === 'InheritOptionsError') {
