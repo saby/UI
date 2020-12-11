@@ -16,13 +16,19 @@ import { ReactiveObserver } from 'UI/Reactivity';
 
 import { cookie } from 'Application/Env';
 
-let needWaitAsyncValue: boolean;
+let needWaitAsyncStorage: { needWaitAsync?: boolean };
+
+if (constants.isServerSide && typeof process !== 'undefined') {
+   needWaitAsyncStorage = process.domain.req;
+} else {
+   needWaitAsyncStorage = {};
+}
 
 export function needWaitAsync(): boolean {
-   if (typeof needWaitAsyncValue === 'undefined') {
-      needWaitAsyncValue = cookie.get('stopWaitAsync') !== 'true';
+   if (typeof needWaitAsyncStorage.needWaitAsync === 'undefined') {
+      needWaitAsyncStorage.needWaitAsync = cookie.get('stopWaitAsync') !== 'true';
    }
-   return needWaitAsyncValue;
+   return needWaitAsyncStorage.needWaitAsync;
 }
 
 var
