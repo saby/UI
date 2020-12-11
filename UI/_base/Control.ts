@@ -214,6 +214,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
    private _$needForceUpdate: boolean;
    private _isPendingBeforeMount: boolean = false;
 
+   // TODO: удалить этот флаг и сделать нормальную работу beforePaint
+   // https://online.sbis.ru/doc/4fd6afbb-da9b-4a55-a416-d4325cade9ff
+   _needSyncAfterMount: boolean = false;
+
    private readonly _instId: string = 'inst_' + countInst++;
    protected _options: TOptions = {} as TOptions;
    private _internalOptions: Record<string, unknown>;

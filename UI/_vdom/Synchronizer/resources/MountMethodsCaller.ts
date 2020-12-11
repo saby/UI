@@ -141,8 +141,6 @@ export default class MountMethodsCaller {
             this.forceUpdateIfNeed(control);
         } catch (error) {
             Logger.lifeError('_componentDidUpdate', control, error);
-        } finally {
-            delete controlNode.oldOptions;
         }
     }
 
