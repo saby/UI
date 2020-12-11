@@ -120,12 +120,10 @@ export default class MountMethodsCaller {
             // tslint:disable-next-line:ban-ts-ignore
             // @ts-ignore
             // TODO: remove it
-            if (typeof control._componentDidUpdate === 'function') {
-                Logger.warn(`Хук "_afterRender" более не поддерживает.
-                    Следует переименовать хук в "_componentDidUpdate"`, control);
+            if (typeof control.__afterRender === 'function') {
                 // tslint:disable-next-line:ban-ts-ignore
                 // @ts-ignore
-                control._afterRender(
+                control.__afterRender(
                    controlNode.oldOptions || controlNode.options,
                    controlNode.context
                 );
