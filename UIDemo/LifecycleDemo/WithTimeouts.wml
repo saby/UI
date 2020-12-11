@@ -1,0 +1,7 @@
+<div>
+    <button on:click="_forceUpdateHandler()">Force Update</button>
+    <div>_componentDidMountCalled: {{ _componentDidMountCalled }}</div>
+    <div>_afterMountCalled: {{ _afterMountCalled }}</div>
+    <div>_componentDidUpdateCalled: {{ _componentDidUpdateCalled }}</div>
+    <div>_afterUpdateCalled: {{ _afterUpdateCalled }}</div>
+</div>

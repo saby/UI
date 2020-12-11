@@ -214,10 +214,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
    private _$needForceUpdate: boolean;
    private _isPendingBeforeMount: boolean = false;
 
-   // TODO: удалить этот флаг и сделать нормальную работу beforePaint
-   // https://online.sbis.ru/doc/4fd6afbb-da9b-4a55-a416-d4325cade9ff
-   _needSyncAfterMount: boolean = false;
-
    private readonly _instId: string = 'inst_' + countInst++;
    protected _options: TOptions = {} as TOptions;
    private _internalOptions: Record<string, unknown>;
@@ -1068,7 +1064,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * <pre>
     *    Control.extend({
     *       ...
-    *       _afterRender() {
+    *       __componentDidUpdate() {
     *
     *          // Accessing DOM elements to some fix after render.
     *          this._container.scrollTop = this._savedScrollTop;
@@ -1080,6 +1076,16 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     */
    protected _afterRender(oldOptions?: TOptions, oldContext?: any): void {
       // Do
+   }
+
+   protected _componentDidUpdate(oldOptions?: TOptions, oldContext?: any): void {
+      // Do
+   }
+
+   private  __afterRender(oldOptions?: TOptions, oldContext?: any): void {
+      Logger.warn(`Хук "_afterRender" больше не поддерживает. 
+         Следует переименовать хук "_afterRender" в "_componentDidUpdate"`, this);
+      this._afterRender.apply(this, arguments);
    }
 
    /**

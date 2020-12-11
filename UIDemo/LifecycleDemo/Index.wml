@@ -1,0 +1,5 @@
+<div>
+    <UIDemo.LifecycleDemo.AllHooks />
+    <UIDemo.LifecycleDemo.OnlyNew />
+    <UIDemo.LifecycleDemo.WithTimeouts />
+</div>
