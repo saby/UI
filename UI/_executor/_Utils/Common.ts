@@ -18,7 +18,7 @@ import { cookie } from 'Application/Env';
 
 let needWaitAsyncStorage: { needWaitAsync?: boolean };
 
-if (constants.isServerSide && typeof process !== 'undefined') {
+if (typeof process !== 'undefined' && process?.domain?.req) {
    needWaitAsyncStorage = process.domain.req;
 } else {
    needWaitAsyncStorage = {};
