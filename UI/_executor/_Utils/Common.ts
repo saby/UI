@@ -407,9 +407,19 @@ export function isAnonymousFn(fn) {
    return fn.name === '';
 }
 
+let disableCompatCache;
 export function disableCompat() {
-   const req = process && process.domain && process.domain.req;
-   const disableCompat = req ? req.cookies['disableCompat'] : cookie.get('disableCompat');
+   let disableCompat = (process && process.domain && process.domain.req.disableCompat) || disableCompatCache;
+   if (typeof disableCompat === 'undefined') {
+      const getValueFromCookie = cookie.get('disableCompat');
+      if (constants.isServerSide && typeof process !== 'undefined') {
+         if (process && process.domain && process.domain.req) {
+            process.domain.req.disableCompat = getValueFromCookie;
+         }
+      } else {
+         disableCompatCache = getValueFromCookie;
+      }
+   }
    return typeof(disableCompat) !== "undefined" && disableCompat === 'true' ;
 }
 
