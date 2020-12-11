@@ -411,13 +411,13 @@ let disableCompatCache;
 export function disableCompat() {
    let disableCompat = (process && process.domain && process.domain.req.disableCompat) || disableCompatCache;
    if (typeof disableCompat === 'undefined') {
-      const getValueFromCookie = cookie.get('disableCompat');
+      disableCompat = cookie.get('disableCompat');
       if (constants.isServerSide && typeof process !== 'undefined') {
          if (process && process.domain && process.domain.req) {
-            process.domain.req.disableCompat = getValueFromCookie;
+            process.domain.req.disableCompat = disableCompat;
          }
       } else {
-         disableCompatCache = getValueFromCookie;
+         disableCompatCache = disableCompat;
       }
    }
    return typeof(disableCompat) !== "undefined" && disableCompat === 'true' ;
