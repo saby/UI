@@ -319,9 +319,8 @@ export default class MountMethodsCaller {
                 }
                 onEndLifecycle(controlNode.vnode || controlNode);
                 continue;
-            } else {
-                this.afterUpdateProcess(controlNode, control);
             }
+            this.afterUpdateProcess(controlNode, control);
             onEndLifecycle(controlNode.vnode || controlNode);
         }
     }

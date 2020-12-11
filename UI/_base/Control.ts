@@ -829,7 +829,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * <pre class="brush: js">
     *    Control.extend({
     *       ...
-    *       _afterMount(options, context) {
+    *       _componentDidMount(options, context) {
     *          this.subscribeToServerEvents();
     *          this.buttonHeight = this._children.myButton.offsetHeight;
     *       }
@@ -847,10 +847,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * @param {Object} options Control's options.
     * @param {Object} context Context fields that controls requested. See "Context in Wasaby controls."
     * @example
-    * <pre>
+    * <pre class="brush: js">
     *    Control.extend({
     *       ...
-    *       _beforeMount(options, context) {
+    *       _componentDidMount(options, context) {
     *          this.subscribeToServerEvents();
     *          this.buttonHeight = this._children.myButton.offsetHeight;
     *       }
@@ -861,10 +861,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * At this stage, you can access options and context at this._options and this._context.
     * This hook is frequently used to access DOM elements and to subscribe to server events.
     * Detailed description of lifecycle hooks can be found here.
-    * @see Documentation: Control lifecycle
-    * @see Documentation: Options
-    * @see Documentation: Context
-    * @see Documentation: Server render
+   * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
+
     */
    protected _componentDidMount(options?: TOptions, contexts?: any): void {
       // Do
@@ -899,7 +897,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * <pre>
     *    Control.extend({
     *       ...
-    *       _beforeMount(options, context) {
+    *        _afterMount(options, context) {
     *          this.subscribeToServerEvents();
     *          this.buttonHeight = this._children.myButton.offsetHeight;
     *       }
@@ -910,10 +908,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * At this stage, you can access options and context at this._options and this._context.
     * This hook is frequently used to access DOM elements and to subscribe to server events.
     * Detailed description of lifecycle hooks can be found here.
-    * @see Documentation: Control lifecycle
-    * @see Documentation: Options
-    * @see Documentation: Context
-    * @see Documentation: Server render
+   * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
    protected _afterMount(options?: TOptions, contexts?: any): void {
       // Do
@@ -1064,7 +1059,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * <pre>
     *    Control.extend({
     *       ...
-    *       __componentDidUpdate() {
+    *       _componentDidUpdate() {
     *
     *          // Accessing DOM elements to some fix after render.
     *          this._container.scrollTop = this._savedScrollTop;
@@ -1074,11 +1069,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * </pre>
     * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
-   protected _afterRender(oldOptions?: TOptions, oldContext?: any): void {
+   protected _componentDidUpdate(oldOptions?: TOptions, oldContext?: any): void {
       // Do
    }
 
-   protected _componentDidUpdate(oldOptions?: TOptions, oldContext?: any): void {
+   protected _afterRender(oldOptions?: TOptions, oldContext?: any): void {
       // Do
    }
 
@@ -1090,7 +1085,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
    }
 
    /**
-    * Хук жизненного цикла контрола. Вызывается после обновления контрола.
+    * Асинхронный хук жизненного цикла контрола. Вызывается после обновления контрола.
     *
     * @param {Object} oldOptions Опции контрола до обновления.
     * Текущие опции можно найти в this._options.
@@ -1115,7 +1110,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     */
 
    /*
-    * Control’s lifecycle hook. Called after control was updated.
+    * Control’s lifecycle async hook. Called after control was updated.
     *
     * @param {Object} oldOptions Options that control had before the update.
     * Current options can be found in this._options.
@@ -1136,9 +1131,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     *       ...
     *    });
     * </pre>
-    * @see Documentation: Control lifecycle
-    * @see Documentation: Options
-    * @see Documentation: Context
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
    protected _afterUpdate(oldOptions?: TOptions, oldContext?: any): void {
       // Do
