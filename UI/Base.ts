@@ -11,7 +11,6 @@
 import {default as Control, IControlOptions, TemplateFunction} from './_base/Control';
 import HTML from './_base/HTML';
 import Document from './_base/Document';
-import StateReceiver from './_state/StateReceiver';
 
 import AppData from './_base/AppData';
 import Start from './_base/Start';
@@ -33,14 +32,14 @@ export { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 export { getMetaStack, IMeta, IMetaState } from 'UI/_base/HTML/meta';
 //#endregion
 
-export { default as PrefetchLinksStore } from 'UI/_base/HTML/PrefetchLinks'
+export { default as PrefetchLinksStore } from 'UI/_base/HTML/PrefetchLinks';
+export { default as Async, IAsyncOptions, TAsyncStateReceived } from 'UI/_async/Async';
 
 export {
     Control,
     IControlOptions,
     HTML,
     Document,
-    StateReceiver,
     AppData,
     Start,
     BaseRoute,
