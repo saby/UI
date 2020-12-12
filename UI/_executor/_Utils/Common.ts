@@ -6,7 +6,7 @@
  */
 
 // @ts-ignore
-import { constants } from 'Env/Env';
+import { constants, cookie } from 'Env/Env';
 
 import * as Attr from '../_Expressions/Attr';
 
@@ -404,10 +404,23 @@ export function isCompat() {
 }
 
 export function isAnonymousFn(fn) {
-   if (fn.name === '') {
-      return true;
+   return fn.name === '';
+}
+
+let disableCompatCache;
+export function disableCompat() {
+   let disableCompat = (process && process.domain && process.domain.req.disableCompat) || disableCompatCache;
+   if (typeof disableCompat === 'undefined') {
+      disableCompat = cookie.get('disableCompat');
+      if (constants.isServerSide && typeof process !== 'undefined') {
+         if (process && process.domain && process.domain.req) {
+            process.domain.req.disableCompat = disableCompat;
+         }
+      } else {
+         disableCompatCache = disableCompat;
+      }
    }
-   return false;
+   return typeof(disableCompat) !== "undefined" && disableCompat === 'true' ;
 }
 
 //todo перенести в Serializer
