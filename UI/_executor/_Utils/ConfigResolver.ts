@@ -136,9 +136,13 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
             (!insertedData.hasOwnProperty('element') || !insertedData.element || insertedData.element.length === 0)) {
 
             // убираем все контентные опции - их не мержим, они задаются для каждого контрола явно
-            insertedData = insertedData.filter((option) => {
-               return !isTemplateClass(option);
+            const insertedDataCloned = {};
+            Object.keys(insertedData).forEach((prop) => {
+               if (!isTemplateClass(insertedData[prop])) {
+                  insertedDataCloned[prop] = insertedData[prop];
+               }
             });
+            insertedData = insertedDataCloned;
 
             // @ts-ignore
             if (fixScopeMergingInContent === undefined && !constants.isProduction) {
@@ -152,7 +156,7 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
                   templateCfg.viewController._moduleName :
                   '???';
 
-               const insertedDataCloned = {};
+               const insertedDataCloned2 = {};
                Object.keys(insertedData).forEach((prop) => {
                   // вмерживать будем только опции которых нет или объекты рекурсивно для ws3 контролов
                   if (data[prop] === undefined ||
@@ -161,9 +165,9 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
 
                      // вмерживать будем опции кроме on: и content
                      if (!mergeRegExp.test(prop)) {
-                        insertedDataCloned[prop] = insertedData[prop];
+                        insertedDataCloned2[prop] = insertedData[prop];
                         if (!(insertedData[prop] instanceof UseAutoProxiedOptionError)) {
-                           insertedDataCloned['_$' + prop] = new UseAutoProxiedOptionError({
+                           insertedDataCloned2['_$' + prop] = new UseAutoProxiedOptionError({
                               upperControlName,
                               lostHere
                            });
@@ -171,7 +175,7 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
                      }
                   }
                });
-               insertedData = insertedDataCloned;
+               insertedData = insertedDataCloned2;
             }
 
             data = FunctionUtils.merge(data, insertedData, {
