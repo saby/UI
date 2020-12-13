@@ -96,6 +96,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env
                   if (inst._reactiveStart) {
                      if (inst._destroyed !== true) {
                         if (!pauseReactiveMap.has(inst)) {
+                           this._arrayVersion++;
                            inst._forceUpdate();
                            DevtoolsHook.saveChangedProps(inst, prop);
                         }
@@ -110,11 +111,27 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env
                   configurable: true
                });
             });
-            Object.defineProperty(val, '_$reactived', {
-               value: inst,
-               enumerable: false,
-               writable: true,
-               configurable: true
+            Object.defineProperties(val, {
+               '_arrayVersion': {
+                  value: 0,
+                  enumerable: true,
+                  writable: true,
+                  configurable: true
+               },
+               'getArrayVersion': {
+                  value: function () {
+                     return val._arrayVersion;
+                  },
+                  enumerable: false,
+                  writable: false,
+                  configurable: true
+               },
+               '_$reactived': {
+                  value: inst,
+                  enumerable: false,
+                  writable: true,
+                  configurable: true
+               }
             });
          }
       }

@@ -2952,13 +2952,13 @@ class Traverse implements ITraverse {
     * @throws {Error} Throws error if attribute value is invalid.
     */
    private getAttributeValue(node: Nodes.Tag, attribute: string, allowedContent: TextContentFlags, context: ITraverseContext): Ast.TText {
+      const dataValue = this.attributeProcessor.validateValue(node.attributes, attribute, {
+         fileName: context.fileName,
+         hasAttributesOnly: true,
+         parentTagName: node.name,
+         translationsRegistrar: context.scope
+      });
       try {
-         const dataValue = this.attributeProcessor.validateValue(node.attributes, attribute, {
-            fileName: context.fileName,
-            hasAttributesOnly: true,
-            parentTagName: node.name,
-            translationsRegistrar: context.scope
-         });
          const textValue = this.textProcessor.process(
             dataValue,
             {
@@ -2970,7 +2970,7 @@ class Traverse implements ITraverse {
             }
          );
          return textValue[0];
-      } catch (error){
+      } catch (error) {
          throw new Error(`в атрибуте "${attribute}" ${error.message}`);
       }
    }

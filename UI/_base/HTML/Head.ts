@@ -53,7 +53,7 @@ class Head extends Control<IHeadOptions> {
             .then(({ js, css }) => {
                 return new Promise<void>((resolve) => {
                     collectCSS(options.theme, css.simpleCss, css.themedCss)
-                        .then((html) => { this.headApiData += `\n${html}\n`; resolve(); })
+                        .then(() => { resolve(); })
                         .catch((error) => { onerror(error); resolve(); });
                 }).then(() => {
                     handlePrefetchModules(js);
@@ -118,7 +118,7 @@ class Head extends Control<IHeadOptions> {
         if (!options.compat) {
             // @ts-ignore
             API.createTag('script', {type: 'text/javascript'},
-                `window.themeName = '${options.theme}';`
+                `window.themeName = '${options.theme || options.defaultTheme || ''}';`
             );
         }
         // @ts-ignore
@@ -171,10 +171,10 @@ function collectCSS(theme: string, styles: string[] = [], themes: string[] = [])
     const tc = getThemeController();
     const gettingStyles = styles.filter((name) => !!name).map((name) => tc.get(name, EMPTY_THEME));
     const gettingThemes = themes.filter((name) => !!name).map((name) => tc.get(name, theme, THEME_TYPE.SINGLE));
-    return Promise.all(gettingStyles.concat(gettingThemes)).then(() => {
-        const markup = tc.getAll().map((entity) => entity.outerHtml).join('\n');
-        tc.clear();
-        return markup;
+    return new Promise((resolve) => {
+        Promise.all(gettingStyles.concat(gettingThemes)).then(() => {
+            resolve();
+        });
     });
 
 }
@@ -259,6 +259,7 @@ function applyHeadJSON(options: IHeadOptions): string {
 }
 
 interface IHeadOptions extends IControlOptions {
+    defaultTheme?: string;
     wsRoot: string;
     resourceRoot: string;
     appRoot: string;

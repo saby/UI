@@ -214,7 +214,7 @@ var
       if (isVdom) {
          return Vdom(config);
       }
-      if (Common.isCompat() || forceCompatible) {
+      if (!Common.disableCompat() && (Common.isCompat() || forceCompatible)) {
          const Compatible = getGeneratorCompatible(config);
          if (Compatible) {
             return Compatible;

@@ -50,22 +50,6 @@ define('UI/_builder/Tmpl/function', [
       };
    }
 
-   var tagsToReplace = {
-      "'": "\\'",
-      '"': '\\"',
-      '\\': '\\\\'
-   };
-   var regExpToReplace = /['"\\]/g;
-
-   function escape(entity) {
-      if (entity && entity.replace) {
-         return entity.replace(regExpToReplace, function escapeReplace(tag) {
-            return tagsToReplace[tag] || tag;
-         });
-      }
-      return entity;
-   }
-
    function getFuncNameByFile(fileName) {
       return fileName && fileName.replace && fileName
 
@@ -431,7 +415,7 @@ define('UI/_builder/Tmpl/function', [
                         string += '\' + (' + expressionResult + ') + \'';
                      }
                   } else {
-                     string += escape(expressionResult);
+                     string += Process.escapeQuotesInString(expressionResult);
                   }
                } else {
                   string += '';
@@ -439,7 +423,7 @@ define('UI/_builder/Tmpl/function', [
             }
             result = string;
          } else if (needEscape !== false && textData.type === 'text') {
-            result = escape(textData.value);
+            result = Process.escapeQuotesInString(textData.value);
          } else if (bindingObject) {
             result = Process.processExpressions(
                textData,

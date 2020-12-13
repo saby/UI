@@ -6,32 +6,27 @@ import Link from 'UI/theme/_controller/css/Link';
 import { THEME_TYPE } from 'UI/theme/controller';
 import { IHTMLElement } from 'UI/theme/_controller/css/interface';
 import { ELEMENT_ATTR } from 'UI/theme/_controller/css/const';
-import { getHtmlMarkup } from 'UI/theme/_controller/css/Base';
 const href = '#Some/href';
 const name = 'Some/Control';
 const theme = 'Some-theme';
 const themeType = THEME_TYPE.MULTI;
 
 class LinkElementMock implements IHTMLElement {
-   __removed = false;
-   outerHTML: string = '';
-   constructor (
-      href: string,
-      name: string,
-      theme: string,
-      themeType: THEME_TYPE) {
-      this.outerHTML = getHtmlMarkup(href, name, theme, themeType);
+   constructor(
+       href: string,
+       name: string,
+       theme: string,
+       themeType: THEME_TYPE) {
       this[ELEMENT_ATTR.HREF] = href;
       this[ELEMENT_ATTR.NAME] = name;
       this[ELEMENT_ATTR.THEME] = theme;
       this[ELEMENT_ATTR.THEME_TYPE] = themeType;
    }
-   getAttribute(attr) {
+   getAttribute(attr: string): string {
       return this[attr];
    }
-   remove() {
-      this.__removed = true;
-   }
+   // tslint:disable-next-line:no-empty
+   remove(): void {}
 }
 
 let element: LinkElementMock;
@@ -64,21 +59,8 @@ describe('UI/theme/_controller/css/Link', () => {
       it('isMounted true after load', () => {
          const link = new Link(href, name, theme);
          return link.load()
-            .then(() => { assert.isTrue(link.isMounted); })
-            .then(() => link.remove());
-      });
-   });
-
-   describe('outerHtml', () => {
-      setHooks();
-      it('outerHtml непустая строка', () => {
-         assert.isString(link.outerHtml);
-      });
-
-      [href, name, theme, THEME_TYPE.MULTI].forEach((attr) => {
-         it('Разметка содержит ' + attr, () => {
-            assert.include(link.outerHtml, attr, 'Разметка не содержит ' + attr);
-         });
+             .then(() => { assert.isTrue(link.isMounted); })
+             .then(() => link.remove());
       });
    });
 
@@ -97,7 +79,6 @@ describe('UI/theme/_controller/css/Link', () => {
          return link.remove().then((isRemoved) => {
             assert.isFalse(link.isMounted);
             assert.isTrue(isRemoved);
-            assert.isTrue(element.__removed);
          });
       });
 
@@ -105,7 +86,6 @@ describe('UI/theme/_controller/css/Link', () => {
          link.require();
          return link.remove().then((isRemoved) => {
             assert.isFalse(isRemoved);
-            assert.isFalse(element.__removed);
          });
       });
    });

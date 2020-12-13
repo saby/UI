@@ -1,0 +1,14 @@
+<div>
+    <div class="UIDemo-AsyncDemo__buttonContainer">
+        <input type="button" value="Изменить шаблонные опции" on:click="changeTemplateOptions()" class="UIDemo-AsyncDemo__navigationButton demo-AsyncDemo__templateOpt"/>
+        <input type="button" value="Изменить внутренние опции" on:click="changeInternalOptions()" class="UIDemo-AsyncDemo__navigationButton demo-AsyncDemo__internalOpt"/>
+    </div>
+    <UIDemo.AsyncDemo.Async templateName="UIDemo/AsyncDemo/_index/InternalOptionsTmpl" attr:class="UIDemo-AsyncDemo__container demo-AsyncDemo__internalOptContainer">
+        <ws:templateOptions
+            tmplOption="{{tmplOption}}">
+        </ws:templateOptions>
+        <ws:content>
+            <ws:partial template="{{ content.resolvedTemplate }}" internalOption="{{internalOption}}"></ws:partial>
+        </ws:content>
+    </UIDemo.AsyncDemo.Async>
+</div>
