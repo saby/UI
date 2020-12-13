@@ -6,9 +6,8 @@
 
 import { FunctionUtils } from 'UI/Utils';
 import { constants, cookie } from 'Env/Env';
-import { plainMerge } from './Common';
+import { plainMerge, isTemplateClass } from './Common';
 import * as Scope from '../_Expressions/Scope';
-import {Common} from "../Utils";
 
 /**
  * todo: describe method
@@ -138,7 +137,7 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
 
             // убираем все контентные опции - их не мержим, они задаются для каждого контрола явно
             insertedData = insertedData.filter((option) => {
-               return !Common.isTemplateClass(option);
+               return !isTemplateClass(option);
             });
 
             // @ts-ignore
