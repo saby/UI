@@ -2969,6 +2969,9 @@ class Traverse implements ITraverse {
                translationsRegistrar: context.scope
             }
          );
+         if (textValue.length !== 1) {
+            throw new Error(`некорректное значение. Ожидалось значение 1 типа, получена последовательность из ${textValue.length} значений`);
+         }
          return textValue[0];
       } catch (error) {
          throw new Error(`в атрибуте "${attribute}" ${error.message}`);
