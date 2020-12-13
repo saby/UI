@@ -8,6 +8,7 @@ import { FunctionUtils } from 'UI/Utils';
 import { constants, cookie } from 'Env/Env';
 import { plainMerge } from './Common';
 import * as Scope from '../_Expressions/Scope';
+import {Common} from "../Utils";
 
 /**
  * todo: describe method
@@ -134,6 +135,11 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
          // через ... будут инициализировать контрол, который лежит внутри такого шаблона
          if (!insertedData.hasOwnProperty('parent') &&
             (!insertedData.hasOwnProperty('element') || !insertedData.element || insertedData.element.length === 0)) {
+
+            // убираем все контентные опции - их не мержим, они задаются для каждого контрола явно
+            insertedData = insertedData.filter((option) => {
+               return !Common.isTemplateClass(option);
+            });
 
             // @ts-ignore
             if (fixScopeMergingInContent === undefined && !constants.isProduction) {
