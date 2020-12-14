@@ -2970,7 +2970,12 @@ class Traverse implements ITraverse {
             }
          );
          if (textValue.length !== 1) {
-            throw new Error(`некорректное значение. Ожидалось значение 1 типа, получена последовательность из ${textValue.length} значений`);
+            this.errorHandler.warn(
+               `Атрибут "${attribute}" тега "${node.name}" содержит некорректное значение. Ожидалось значение 1 типа, получена последовательность из ${textValue.length} значений`,
+               {
+                  fileName: context.fileName
+               }
+            );
          }
          return textValue[0];
       } catch (error) {
