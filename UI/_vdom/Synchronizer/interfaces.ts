@@ -124,6 +124,20 @@ export interface IHandlerInfo {
     processingHandler: boolean;
     count: number;
 }
+export interface IMemoForNode {
+    createdNodes: Array<any>;
+    createdTemplateNodes: Array<any>;
+    destroyedNodes: Array<any>;
+    selfDirtyNodes: Array<any>;
+    updatedChangedNodes: Array<any>;
+    updatedChangedTemplateNodes: Array<any>;
+    updatedNodes: Array<any>;
+    updatedUnchangedNodes: Array<any>;
+}
+export interface IMemoNode {
+    memo: IMemoForNode
+    value: IControlNode
+}
 
 export interface IDOMEnvironment {
     addTabListener(e?: any): void;
@@ -141,7 +155,7 @@ export interface IDOMEnvironment {
     _handleTouchend(event: any): void;
     _shouldUseClickByTap(): boolean;
 
-    applyNewVNode(newVNnode: any, rebuildChanges: any, newRootCntNode: any): void;
+    updateByNodeMemo(rootRebuildVal: IMemoNode): void;
     decorateFullMarkup(vnode: VNode, controlNode: any): VNode;
     getMarkupNodeDecorator(): TMarkupNodeDecoratorFn;
     getDOMNode(): HTMLElement;

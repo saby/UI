@@ -33,7 +33,7 @@ import {
    OperationType,
    getNodeName
 } from 'UI/DevtoolsHook';
-import { IControlNode, IDOMEnvironment} from '../interfaces';
+import { IControlNode, IDOMEnvironment, IMemoNode, IMemoForNode } from '../interfaces';
 import { getChangedOptions, collectObjectVersions } from './Options';
 import { createNode } from './ControlNode';
 import { getStateReceiver } from 'Application/Env';
@@ -50,17 +50,6 @@ type TDirtyCheckingTemplate = ITemplateNode & {
 };
 
 const Slr = new Serializer();
-
-interface IMemoForNode {
-    createdNodes: Array<any>;
-    createdTemplateNodes: Array<any>;
-    destroyedNodes: Array<any>;
-    selfDirtyNodes: Array<any>;
-    updatedChangedNodes: Array<any>;
-    updatedChangedTemplateNodes: Array<any>;
-    updatedNodes: Array<any>;
-    updatedUnchangedNodes: Array<any>;
-}
 
 export class MemoForNode implements IMemoForNode {
     createdNodes: Array<any>;
@@ -114,11 +103,6 @@ export class MemoForNode implements IMemoForNode {
             target.push(source[i]);
         }
     }
-}
-
-export interface IMemoNode {
-    memo: MemoForNode
-    value: IControlNode
 }
 
 const configName = 'cfg-';
@@ -448,6 +432,10 @@ function addTemplateChildrenRecursive(node, result) {
 }
 
 export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, force: boolean, isRoot): IMemoNode | Promise<IMemoNode> {
+
+    environment._currentDirties = environment._nextDirties;
+    environment._nextDirties = {};
+
     let id = node.id;
     let dirty = environment._currentDirties[id] || DirtyKind.NONE;
     let isDirty = dirty !== DirtyKind.NONE || force;

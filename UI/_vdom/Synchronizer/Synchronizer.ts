@@ -2,19 +2,18 @@
 /* tslint:disable */
 
 import { createNode } from './resources/ControlNode';
-import { DirtyKind, rebuildNode, destroyReqursive, IMemoNode, getReceivedState } from './resources/DirtyChecking';
+import { DirtyKind, rebuildNode, destroyReqursive, getReceivedState } from './resources/DirtyChecking';
 import DOMEnvironment from './resources/DOMEnvironment';
 import { delay } from 'Types/function';
 // @ts-ignore
 import { ObjectUtils } from 'UI/Utils';
 // @ts-ignore
 import { Serializer } from 'UI/State';
-import { Set } from 'Types/shim';
 import { Control, IControlOptions } from 'UI/Base';
 
 // @ts-ignore
 import { Logger } from 'UI/Utils';
-import { IOptions, IControlNode, IWasabyHTMLElement, IDOMEnvironment, IRootAttrs } from './interfaces';
+import { IOptions, IControlNode, IMemoNode, IWasabyHTMLElement, IDOMEnvironment, IRootAttrs } from './interfaces';
 
 import {
    injectHook,
@@ -51,38 +50,6 @@ function forEachNodeParents(node: IControlNode, fn: (node:IControlNode) => void)
    }
 }
 
-function checkIsControlNodesParentDestroyed(controlNode: any) {
-   return (
-      controlNode.control &&
-      controlNode.control._parent &&
-      controlNode.control._parent.isDestroyed &&
-      controlNode.control._parent.isDestroyed()
-   );
-}
-
-// class RebuildQueue {
-//    private nodes: IControlNode[];
-
-//    constructor(private env: DOMEnvironment) {
-//    }
-
-//    add(node: IControlNode) {
-//       // @ts-ignore
-//       if (node.control._destroyed ||
-//          node.environment !== this.env) {
-//          return;
-//       }
-//       this.nodes.push(node);
-//    }
-
-//    run() {
-//       while (this.nodes.length > 0) {
-//          let rebuild = new Rebuild(this.nodes.shift());
-//          rebuild.run().then()
-//       }
-//    }
-// }
-
 // Идентификатор для корней, который используется в девтулзах.
 // Нельзя использовать inst_id, т.к. замеры начинаются раньше, чем создаётся корень
 let rootCount = 0;
@@ -105,77 +72,6 @@ class VDomSynchronizer {
    _controlNodes: Record<string, IControlNode> = {};
 
    constructor() {
-   }
-
-   private __rebuildRoots(rootRebuildVal: IMemoNode): void {
-      // In the case of asynchronous controls we have to check
-      // is parent of those destroyed or not. If it is, that means, that we don't have a place
-      // to mount our rootNodes
-      let newRoot: IControlNode = rootRebuildVal.value;
-      if (_environments.indexOf(newRoot.environment) === -1 || !!checkIsControlNodesParentDestroyed(newRoot)) {
-         return;
-      }
-
-      // after promise callback fired, we have to make sure, that async control will be rebuilded
-      // in the current cycle
-      //@ts-ignore runtime hack
-      if (newRoot.environment._asyncOngoing) {
-         newRoot.environment._haveRebuildRequest = true;
-         //@ts-ignore runtime hack
-         newRoot.environment._asyncOngoing = false;
-      }
-
-      let rebuildChanges = rootRebuildVal.memo;
-      // Some controls might have already been destroyed, but they are
-      // still in rootsRebuild because they were in oldRoots when
-      // rebuild started. Filter them out if their environment does
-      // not exist anymore
-      let rebuildChangesIds = new Set();
-      if (newRoot.environment._currentDirties[newRoot.id] & DirtyKind.DIRTY) {
-         rebuildChangesIds.add(newRoot.id)
-      };
-
-      /**
-       * Типы нод, для которых нужно запустить _afterUpdate
-       * @type {{createdNodes: boolean, updatedChangedNodes: boolean, selfDirtyNodes: boolean}}
-       */
-      let rebuildChangesFields = [
-         "createdNodes",
-         "updatedChangedNodes",
-         "selfDirtyNodes",
-         "createdTemplateNodes",
-         "updatedChangedTemplateNodes",
-      ];
-
-      //Сохраняем id созданных/обновленных контрол нод, чтобы вызвать afterUpdate или afterMound только у них
-      for (let i = 0; i < rebuildChangesFields.length; i++) {
-         let field = rebuildChangesFields[i]
-         for (let j = 0; j < rebuildChanges[field].length; j++) {
-            let node: IControlNode = rebuildChanges[field][j];
-            rebuildChangesIds.add(node.id);
-         }
-      }
-
-      rebuildChanges.createdNodes.forEach((node: IControlNode) => {
-         this._controlNodes[node.id] = node;
-      });
-
-      rebuildChanges.destroyedNodes.forEach((node: IControlNode) => {
-         delete this._controlNodes[node.id];
-      });
-
-      /* Запускать генерацию можно только у нод, которых эта генерация запущена
-            * через rebuildRequest
-            * Все случайно попавшие ноды игнорируются до следующего тика*/
-      // Для того чтобы соблюдался порядок вызова applyNewVNode всех корневая нод. Нам нужно вызывать данный метод
-      // на конкретном окружении, с которым связана конкретная корневая нода.
-      if (newRoot.environment
-         && newRoot.environment._haveRebuildRequest
-         && newRoot.fullMarkup) {
-         newRoot.environment.applyNewVNode(newRoot.fullMarkup, rebuildChangesIds, newRoot);
-      }
-
-      return;
    }
 
    private __rebuildOneRootNode(node: IControlNode): IMemoNode | PromiseLike<IMemoNode> {
@@ -202,7 +98,17 @@ class VDomSynchronizer {
             // вызывается UnmountControlFromDom
             //@ts-ignore
             currentRoot.environment._asyncOngoing = true;
-            this.__rebuildRoots(val);
+
+            val.memo.createdNodes.forEach((node: IControlNode) => {
+               this._controlNodes[node.id] = node;
+            });
+
+            val.memo.destroyedNodes.forEach((node: IControlNode) => {
+               delete this._controlNodes[node.id];
+            });
+
+            val.value.environment._haveRebuildRequest = true;
+            val.value.environment.updateByNodeMemo(val)
          },
             function (err: any) {
                Logger.asyncRenderErrorLog(err);
@@ -213,7 +119,15 @@ class VDomSynchronizer {
          return;
       }
 
-      this.__rebuildRoots(rootsRebuild);
+      rootsRebuild.memo.createdNodes.forEach((node: IControlNode) => {
+         this._controlNodes[node.id] = node;
+      });
+
+      rootsRebuild.memo.destroyedNodes.forEach((node: IControlNode) => {
+         delete this._controlNodes[node.id];
+      });
+
+      rootsRebuild.value.environment.updateByNodeMemo(rootsRebuild)
    }
 
    private __rebuild(controlNode: IControlNode) {
