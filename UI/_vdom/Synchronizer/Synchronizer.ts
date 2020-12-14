@@ -51,11 +51,6 @@ function forEachNodeParents(node: IControlNode, fn: (node:IControlNode) => void)
    }
 }
 
-function updateCurrentDirties(environment: IDOMEnvironment) {
-   environment._currentDirties = environment._nextDirties;
-   environment._nextDirties = {};
-}
-
 function checkIsControlNodesParentDestroyed(controlNode: any) {
    return (
       controlNode.control &&
@@ -185,7 +180,8 @@ class VDomSynchronizer {
 
    private __rebuildOneRootNode(node: IControlNode): IMemoNode | PromiseLike<IMemoNode> {
       onStartSync(node.rootId);
-      updateCurrentDirties(node.environment);
+      node.environment._currentDirties = node.environment._nextDirties;
+      node.environment._nextDirties = {};
 
       let rebuildedNode: IMemoNode | Promise<IMemoNode> = rebuildNode(node.environment, node, undefined, true);
       if (!node.environment._haveRebuildRequest) {
@@ -518,46 +514,44 @@ class VDomSynchronizer {
       //@ts-ignore используется runtime hack
       let canUpdate = controlNode && !controlNode.environment._rebuildRequestStarted;
 
-      if (canUpdate) {
-         controlNode.environment._nextDirties[controlId] |= DirtyKind.DIRTY;
-
-         forEachNodeParents(controlNode, function (parent: IControlNode) {
-            controlNode.environment._nextDirties[parent.id] |= DirtyKind.CHILD_DIRTY;
-         });
-
-         if (!controlNode.environment._haveRebuildRequest) {
-            controlNode.environment._haveRebuildRequest = true;
-            const requestRebuildDelayed = () => {
-               if (!controlNode.environment._haveRebuildRequest) {
-
-                  /*Если _haveRebuildRequest=false значит
-                  * циклы синхронизации смешались и в предыдущем тике у
-                  * всех контролов был вызван _afterUpdate
-                  * Такое может случиться только в слое совместимости,
-                  * когда динамически удаляются и добавляются контрол ноды
-                  * */
-                  return;
-               }
-               //@ts-ignore используется runtime hack
-               controlNode.environment._rebuildRequestStarted = true;
-
-               restoreFocus(controlNode.control, () => this.__rebuild(controlNode));
-
-               controlNode.environment.addTabListener();
-            };
-            delay(requestRebuildDelayed);
+      if (!canUpdate) {
+         if (controlNode && controlNode.environment) {
+            if (!controlNode.environment.queue) {
+               controlNode.environment.queue = [];
+            }
+            if (!controlNode.environment.queue.includes(controlId)) {
+               controlNode.environment.queue.push(controlId);
+            }
          }
-
          return;
       }
 
-      if (controlNode && controlNode.environment) {
-         if (!controlNode.environment.queue) {
-            controlNode.environment.queue = [];
-         }
-         if (!controlNode.environment.queue.includes(controlId)) {
-            controlNode.environment.queue.push(controlId);
-         }
+      controlNode.environment._nextDirties[controlId] |= DirtyKind.DIRTY;
+      forEachNodeParents(controlNode, function (parent: IControlNode) {
+         controlNode.environment._nextDirties[parent.id] |= DirtyKind.CHILD_DIRTY;
+      });
+
+      if (!controlNode.environment._haveRebuildRequest) {
+         controlNode.environment._haveRebuildRequest = true;
+         const requestRebuildDelayed = () => {
+            if (!controlNode.environment._haveRebuildRequest) {
+
+               /*Если _haveRebuildRequest=false значит
+               * циклы синхронизации смешались и в предыдущем тике у
+               * всех контролов был вызван _afterUpdate
+               * Такое может случиться только в слое совместимости,
+               * когда динамически удаляются и добавляются контрол ноды
+               * */
+               return;
+            }
+            //@ts-ignore используется runtime hack
+            controlNode.environment._rebuildRequestStarted = true;
+
+            restoreFocus(controlNode.control, () => this.__rebuild(controlNode));
+
+            controlNode.environment.addTabListener();
+         };
+         delay(requestRebuildDelayed);
       }
    }
 }
