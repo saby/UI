@@ -32,6 +32,7 @@ const SUCCESS_BUILDED = 's';
  * @class UI/Base:Async
  * @extends Core/Control
  *
+ * @private
  * @author Санников К.А.
  */
 export default abstract class Async extends Control<IAsyncOptions, TAsyncStateReceived> {
