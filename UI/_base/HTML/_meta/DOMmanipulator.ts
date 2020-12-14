@@ -13,22 +13,18 @@ export function mountState(state: IMetaStateInternal): IHeadTagId[] {
 export function unmountState(state?: IMetaState): void {
    if (typeof state === 'undefined') { return; }
    const API = HeadAPI.getInstance();
-   // @ts-ignore
    const tags: IHeadTagId | IHeadTagId[] | null = API.getTag(null, {class: state.getId()});
    if (tags) {
       [].concat(tags).forEach((tag: IHeadTagId) => {
-         // @ts-ignore
          API.deleteTag(tag);
       });
    }
 }
 
 function createTitleElement(val: string, guid: string): IHeadTagId {
-   // @ts-ignore
    return HeadAPI.getInstance().createTag('title', {class: guid}, val);
 }
 
 function createOpenGraphTag(type: string, val: string, guid: string): IHeadTagId {
-   // @ts-ignore
    return HeadAPI.getInstance().createTag('meta', {property: `og:${type}`, content: val, class: guid});
 }

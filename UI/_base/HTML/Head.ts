@@ -66,7 +66,6 @@ class Head extends Control<IHeadOptions> {
                     if (data && data.length) {
                         this.headApiData += new TagMarkup(data.map(fromJML)).outerHTML;
                     }
-                    // @ts-ignore
                     AppHead.getInstance().clear();
                 });
             });
@@ -116,19 +115,16 @@ class Head extends Control<IHeadOptions> {
         }
         const API = AppHead.getInstance();
         if (!options.compat) {
-            // @ts-ignore
             API.createTag('script', {type: 'text/javascript'},
                 `window.themeName = '${options.theme || options.defaultTheme || ''}';`
             );
         }
-        // @ts-ignore
         API.createNoScript(options.noscript);
         [
             {'http-equiv': 'X-UA-Compatible', content: 'IE=edge'},
             {name: 'viewport', content: options.viewport || 'width=1024'},
             {charset: 'utf-8', class: 'head-server-block'}
         ].forEach((attrs) => {
-            // @ts-ignore
             API.createTag('meta', attrs);
         });
     }
@@ -171,11 +167,7 @@ function collectCSS(theme: string, styles: string[] = [], themes: string[] = [])
     const tc = getThemeController();
     const gettingStyles = styles.filter((name) => !!name).map((name) => tc.get(name, EMPTY_THEME));
     const gettingThemes = themes.filter((name) => !!name).map((name) => tc.get(name, theme, THEME_TYPE.SINGLE));
-    return new Promise((resolve) => {
-        Promise.all(gettingStyles.concat(gettingThemes)).then(() => {
-            resolve();
-        });
-    });
+    return Promise.all(gettingStyles.concat(gettingThemes)).then();
 
 }
 
@@ -203,7 +195,6 @@ function createWsConfig(options: IHeadOptions, staticDomainsstringified: string)
     }
 
     const API = AppHead.getInstance();
-    // @ts-ignore
     API.createTag('script', {type: 'text/javascript'},
         [
             'window.wsConfig = {',
@@ -235,7 +226,6 @@ function createMetaScriptsAndLinks(options: IHeadOptions): void {
         .concat((options.scripts || []).map(prepareMetaScriptsAndLinks.bind(null, 'script')))
         .concat((options.links || []).map(prepareMetaScriptsAndLinks.bind(null, 'link')))
         .forEach((item: {tag: string, attrs: object}) => {
-            // @ts-ignore
             API.createTag(item.tag, item.attrs);
         });
 }
