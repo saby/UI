@@ -14,8 +14,6 @@ import * as RequireHelper from './RequireHelper';
 
 import { ReactiveObserver } from 'UI/Reactivity';
 
-import { cookie } from 'Application/Env';
-
 let needWaitAsyncStorage: { needWaitAsync?: boolean };
 
 if (typeof process !== 'undefined' && process?.domain?.req) {
