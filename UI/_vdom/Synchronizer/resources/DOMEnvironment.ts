@@ -571,7 +571,6 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             control._container = window.$ ? $(newRootDOMNode) : newRootDOMNode;
          }
          mountMethodsCaller.componentDidUpdate(controlNodesToCall);
-         // todo: remove
          mountMethodsCaller.beforePaint(controlNodesToCall);
          delay(() => {
             // останавливать должны, только если запущено, иначе получается так,
@@ -627,7 +626,6 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          }
 
          mountMethodsCaller.componentDidUpdate(controlNodesToCall);
-         // TODO: remove
          mountMethodsCaller.beforePaint(controlNodesToCall);
          // используется setTimeout вместо delay, т.к. delay работает через rAF
          // rAF зовётся до того, как браузер отрисует кадр, а _afterUpdate должен вызываться после, чтобы не вызывать forced reflow.
