@@ -169,10 +169,14 @@ export default class MountMethodsCaller {
         for (let i = 0; i < controlNodes.length; i++) {
             const controlNode: IControlNode = controlNodes[i];
             const control: Control = controlNode.control;
-            Logger.error(`Хук "_beforePaint" был удален.
+            // tslint:disable-next-line:ban-ts-ignore
+            // @ts-ignore
+            if (control._beforePaint && typeof control._beforePaint === 'function') {
+                Logger.error(`Хук "_beforePaint" был удален.
                 Вместо него следует использовать:
                 _componentDidMount - вызывается после монтирования контрола в DOM
                 _componentDidUpdate - вызывается после каждого обновления DOM`, control);
+            }
         }
     }
 
