@@ -433,8 +433,8 @@ function addTemplateChildrenRecursive(node, result) {
 
 export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, force: boolean, isRoot): IMemoNode | Promise<IMemoNode> {
 
-    environment._currentDirties = environment._nextDirties;
-    environment._nextDirties = {};
+    // environment._currentDirties = environment._nextDirties;
+    // environment._nextDirties = {};
 
     let id = node.id;
     let dirty = environment._currentDirties[id] || DirtyKind.NONE;
