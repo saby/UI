@@ -1,0 +1,23 @@
+<div>
+    <div class="UIDemo-AsyncDemo__buttonContainer">
+        <input type="button" value="Изменить шаблонные опции" on:click="changeTemplateOptions()" class="UIDemo-AsyncDemo__navigationButton"/>
+        <input type="button" value="Изменить внутренние опции" on:click="changeInternalOptions()" class="UIDemo-AsyncDemo__navigationButton"/>
+    </div>
+
+    <div class="UIDemo-AsyncDemo__flexbox">
+        <UIDemo.AsyncDemo._index.LoopInternalOptions.Informers informers="{{ _informers }}"/>
+
+        <div class="UIDemo-AsyncDemo__informers">
+            Построение прямо в родительском шаблоне в цикле.<br/>
+            &nbsp;
+            <ws:for data="index, item in _informers">
+                <UIDemo.AsyncDemo.Async templateName="{{item.template}}">
+                    <ws:templateOptions property="{{item.property}}"/>
+                    <ws:content>
+                        <ws:partial template="{{content.resolvedTemplate}}" data="{{item.data}}"/>
+                    </ws:content>
+                </UIDemo.AsyncDemo.Async>
+            </ws:for>
+        </div>
+    </div>
+</div>
