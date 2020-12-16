@@ -9,13 +9,11 @@ import {
    IWasabyHTMLElement, TMarkupNodeDecoratorFn, IHandlerInfo, TModifyHTMLNode,
    TComponentAttrs,
    IMemoNode,
-   IControlNode, TControlId
+   IControlNode
 } from '../interfaces';
 
 import { delay } from 'Types/function';
-import { Set } from 'Types/shim';
 import { mapVNode } from './VdomMarkup';
-import { DirtyKind } from './DirtyChecking';
 import { setControlNodeHook, setEventHook } from './Hooks';
 import SyntheticEvent from './SyntheticEvent';
 import { EventUtils } from 'UI/Events';
@@ -173,6 +171,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
    private __markupNodeDecorator: TMarkupNodeDecoratorFn;
    private touchendTarget: HTMLElement;
 
+   _rebuildRequestStarted: boolean = false;
    _haveRebuildRequest: boolean = false;
 
    private _clickState: any = {
@@ -540,77 +539,27 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       );
    }
 
-   updateByNodeMemo(rootRebuildVal: IMemoNode): void {
-      // In the case of asynchronous controls we have to check
-      // is parent of those destroyed or not. If it is, that means, that we don't have a place
-      // to mount our rootNodes
-      const newRoot: IControlNode = rootRebuildVal.value;
-      // @ts-ignore
-      if (!!newRoot?.control?._parent?.isDestroyed()) {
-         return;
-      }
-
-      // after promise callback fired, we have to make sure, that async control will be rebuilded
-      // in the current cycle
-      // @ts-ignore runtime hack
-      if (this._asyncOngoing) {
-         // @ts-ignore runtime hack
-         this._asyncOngoing = false;
-      }
-
-      /* Запускать генерацию можно только у нод, которых эта генерация запущена
-       * через rebuildRequest
-       * Все случайно попавшие ноды игнорируются до следующего тика
-       * Для того чтобы соблюдался порядок вызова applyNewVNode всех корневая нод. Нам нужно вызывать данный метод
-       * на конкретном окружении, с которым связана конкретная корневая нода.
-       */
-      if (!newRoot.fullMarkup || !this._haveRebuildRequest) {
-         return;
-      }
-
-      // Some controls might have already been destroyed, but they are
-      // still in rootsRebuild because they were in oldRoots when
-      // rebuild started. Filter them out if their environment does
-      // not exist anymore
-      const rebuildChangesIds: Set<TControlId> = new Set();
-      // tslint:disable:no-bitwise
-      if (this._currentDirties[newRoot.id] & DirtyKind.DIRTY) {
-         rebuildChangesIds.add(newRoot.id);
-      }
-
-      /**
-       * Типы нод, для которых нужно запустить _afterUpdate
-       * @type {{createdNodes: boolean, updatedChangedNodes: boolean, selfDirtyNodes: boolean}}
-       */
-      const rebuildChangesFields = [
-         'createdNodes',
-         'updatedChangedNodes',
-         'selfDirtyNodes',
-         'createdTemplateNodes',
-         'updatedChangedTemplateNodes'
-      ];
-
-      const rebuildChanges = rootRebuildVal.memo;
-      // Сохраняем id созданных/обновленных контрол нод, чтобы вызвать afterUpdate или afterMound только у них
-      for (let i = 0; i < rebuildChangesFields.length; i++) {
-         const field = rebuildChangesFields[i]
-         for (let j = 0; j < rebuildChanges[field].length; j++) {
-            const node: IControlNode = rebuildChanges[field][j];
-            rebuildChangesIds.add(node.id);
-         }
-      }
-
-      this.applyNewVNode(newRoot, rebuildChangesIds);
-   }
-
-   private applyNewVNode(newNode: IControlNode, rebuildChanges: Set<TControlId | 0>): any {
+   applyNodeMemo(rebuildMemoNode: IMemoNode): void {
       if (!this._rootDOMNode) {
          return;
       }
 
+      const newNode: IControlNode = rebuildMemoNode.value;
+      // @ts-ignore
+      if (!!newNode?.control?._parent?.isDestroyed()) {
+         return;
+      }
+      if (!newNode.fullMarkup || !this._haveRebuildRequest) {
+         if (typeof console !== 'undefined') {
+            // tslint:disable:no-console
+            console.warn("node haven't fullMarkup", new Error().stack);
+         }
+         return;
+      }
+
+      const rebuildChanges = rebuildMemoNode.getNodeIds();
       const vnode = newNode.fullMarkup;
       let control;
-      let patch;
       const newRootDOMNode = undefined;
 
       // добавляем vdom-focus-in и vdom-focus-out
@@ -624,9 +573,9 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       try {
          // Свойство $V вешает движок inferno. Если его нет, значит пришли с сервера.
          if (this._rootDOMNode.hasOwnProperty('$V') || !this._rootDOMNode.firstChild) {
-            patch = render(vnode, this._rootDOMNode, undefined, undefined, true);
+            render(vnode, this._rootDOMNode, undefined, undefined, true);
          } else {
-            patch = hydrate(vnode, this._rootDOMNode, undefined, true);
+            hydrate(vnode, this._rootDOMNode, undefined, true);
          }
       } catch (e) {
          Logger.error('Ошибка оживления Inferno', undefined, e);
@@ -649,22 +598,10 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             // это значит, что мы запланировали перерисовку, но она еще не началась
             // В случае если мы ждем завершения асинхронных детей и перестроение уже закончены
             // нужно убрать запрос на реквест, чтобы дети рутовой ноды могли перерисовываться независимо
-            if (
-               // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-               newNode.environment._rebuildRequestStarted ||
-               // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-               newNode.environment._asyncOngoing === false
-            ) {
+            // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
+            if (this._rebuildRequestStarted) {
                // @ts-ignore FIXME: Property '_haveRebuildRequest' does not exist
-               newNode.environment._haveRebuildRequest = false;
-            }
-            // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-            if (newNode.environment._asyncOngoing === false) {
-               // we have to delete property from environment, cause if we don't we'll be at the same point
-               // even if async request didn't happen. So we have to make sure every time, that async request
-               // really did happen
-               // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-               delete newNode.environment._asyncOngoing;
+               this._haveRebuildRequest = false;
             }
 
             if (!control._destroyed) {
@@ -674,56 +611,45 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             }
             mountMethodsCaller.afterUpdate(mountMethodsCaller.collectControlNodesToCall(newNode, rebuildChanges));
 
-            // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-            newNode.environment._rebuildRequestStarted = false;
-            // @ts-ignore FIXME: Property 'runQueue' does not exist
-            newNode.environment.runQueue();
+            this._rebuildRequestStarted = false;
+            this.runQueue();
             onEndSync(newNode.rootId);
          });
-      } else {
-         // @ts-ignore FIXME: Properties '_haveRebuildRequest' and '_asyncOngoing' do not exist
-         if (newNode.environment._rebuildRequestStarted || newNode.environment._asyncOngoing === false) {
-            // @ts-ignore FIXME: Property '_haveRebuildRequest' does not exist
-            newNode.environment._haveRebuildRequest = false;
-         }
-         // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-         if (newNode.environment._asyncOngoing === false) {
-            // we have to delete property from environment, cause if we don't we'll be at the same point
-            // even if async request didn't happen. So we have to make sure every time, that async request
-            // really did happen
-            // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-            delete newNode.environment._asyncOngoing;
-         }
 
-         mountMethodsCaller.afterRender(controlNodesToCall);
-         mountMethodsCaller.beforePaint(controlNodesToCall);
-         // используется setTimeout вместо delay, т.к. delay работает через rAF
-         // rAF зовётся до того, как браузер отрисует кадр, а _afterUpdate должен вызываться после, чтобы не вызывать forced reflow.
-         // Если делать то же самое через rAF, то нужно звать rAF из rAF, это и дольше, и неудобно.
-         setTimeout(() => {
-            mountMethodsCaller.afterUpdate(controlNodesToCall);
-            while (callAfterMount && callAfterMount.length) {
-               const elem = callAfterMount.shift();
-               const fn = elem.fn;
-               /* в слое совместимости контрол внутри которого построился wasaby-контрол, может быть уничтожен
-                 до того как начнется асинхронный вызов afterMount,
-                 как результат в текущей точку контрол будет уже уничтожен слоем совместимости
-                 нало проверять действительно ли он жив, перед тем как выстрелить событием
-                */
-               // @ts-ignore
-               if (!fn.control._destroyed) {
-                  fn.apply(fn.control, elem.finalArgs);
-               }
-            }
-            onEndSync(newNode.rootId);
-            // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-            newNode.environment._rebuildRequestStarted = false;
-            // @ts-ignore FIXME: Property 'runQueue' does not exist
-            newNode.environment.runQueue();
-         }, 0);
+         return;
       }
 
-      return patch;
+      // @ts-ignore FIXME: Properties '_haveRebuildRequest' and '_asyncOngoing' do not exist
+      if (this._rebuildRequestStarted || this._asyncOngoing === false) {
+         // @ts-ignore FIXME: Property '_haveRebuildRequest' does not exist
+         this._haveRebuildRequest = false;
+      }
+
+      mountMethodsCaller.afterRender(controlNodesToCall);
+      mountMethodsCaller.beforePaint(controlNodesToCall);
+      // используется setTimeout вместо delay, т.к. delay работает через rAF
+      // rAF зовётся до того, как браузер отрисует кадр,
+      //    а _afterUpdate должен вызываться после, чтобы не вызывать forced reflow.
+      // Если делать то же самое через rAF, то нужно звать rAF из rAF, это и дольше, и неудобно.
+      setTimeout(() => {
+         mountMethodsCaller.afterUpdate(controlNodesToCall);
+         while (callAfterMount && callAfterMount.length) {
+            const elem = callAfterMount.shift();
+            const fn = elem.fn;
+            /* в слое совместимости контрол внутри которого построился wasaby-контрол, может быть уничтожен
+               до того как начнется асинхронный вызов afterMount,
+               как результат в текущей точку контрол будет уже уничтожен слоем совместимости
+               нало проверять действительно ли он жив, перед тем как выстрелить событием
+               */
+            // @ts-ignore
+            if (!fn.control._destroyed) {
+               fn.apply(fn.control, elem.finalArgs);
+            }
+         }
+         onEndSync(newNode.rootId);
+         this._rebuildRequestStarted = false;
+         this.runQueue();
+      }, 0);
    }
 
    decorateFullMarkup(vnode: VNode | VNode[], controlNode: IControlNode): any {

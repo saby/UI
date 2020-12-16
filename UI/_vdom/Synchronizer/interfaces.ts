@@ -73,8 +73,8 @@ export interface IControlNode extends IRebuildNode {
 
 export interface ICompatableControl {
     _parent?: ICompatableControl;
-    hasCompatible(): () => boolean;
-    isDestroyed: () => any;
+    hasCompatible(): boolean;
+    isDestroyed(): boolean;
 }
 
 export interface ICompatableNode {
@@ -125,18 +125,19 @@ export interface IHandlerInfo {
     count: number;
 }
 export interface IMemoForNode {
-    createdNodes: Array<any>;
+    createdNodes: IControlNode[];
     createdTemplateNodes: Array<any>;
     destroyedNodes: Array<any>;
-    selfDirtyNodes: Array<any>;
-    updatedChangedNodes: Array<any>;
+    selfDirtyNodes: IControlNode[];
+    updatedChangedNodes: IControlNode[];
     updatedChangedTemplateNodes: Array<any>;
-    updatedNodes: Array<any>;
-    updatedUnchangedNodes: Array<any>;
+    updatedNodes: IControlNode[];
+    updatedUnchangedNodes: IControlNode[];
 }
 export interface IMemoNode {
-    memo: IMemoForNode
-    value: IControlNode
+    memo: IMemoForNode;
+    value: IControlNode;
+    getNodeIds(): Set<TControlId | 0>;
 }
 
 export interface IDOMEnvironment {
@@ -155,7 +156,6 @@ export interface IDOMEnvironment {
     _handleTouchend(event: any): void;
     _shouldUseClickByTap(): boolean;
 
-    updateByNodeMemo(rootRebuildVal: IMemoNode): void;
     decorateFullMarkup(vnode: VNode, controlNode: any): VNode;
     getMarkupNodeDecorator(): TMarkupNodeDecoratorFn;
     getDOMNode(): HTMLElement;
@@ -181,11 +181,12 @@ export interface IDOMEnvironment {
 
     setupControlNode(controlNode: IControlNode): void;
 
+    applyNodeMemo(nodeMemo: IMemoNode): void;
+
     queue?: string[];
 
     _currentDirties: Record<string, number>;
     _nextDirties: Record<string, number>;
-    activateSubQueue: undefined;
 
     // FIXME это не должно быть публичным. Найти все ссылки и разобраться
     _rootDOMNode: TModifyHTMLNode;

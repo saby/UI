@@ -52,14 +52,14 @@ type TDirtyCheckingTemplate = ITemplateNode & {
 const Slr = new Serializer();
 
 export class MemoForNode implements IMemoForNode {
-    createdNodes: Array<any>;
+    createdNodes: IControlNode[];
     createdTemplateNodes: Array<any>;
     destroyedNodes: Array<any>;
-    selfDirtyNodes: Array<any>;
-    updatedChangedNodes: Array<any>;
+    selfDirtyNodes: IControlNode[];
+    updatedChangedNodes: IControlNode[];
     updatedChangedTemplateNodes: Array<any>;
-    updatedNodes: Array<any>;
-    updatedUnchangedNodes: Array<any>;
+    updatedNodes: IControlNode[];
+    updatedUnchangedNodes: IControlNode[];
 
     constructor(start?: Partial<IMemoForNode>) {
         if (!start) {
@@ -102,6 +102,41 @@ export class MemoForNode implements IMemoForNode {
         for (let i = 0; i < source.length; i++) {
             target.push(source[i]);
         }
+    }
+}
+
+class MemoNode implements IMemoNode {
+    constructor(
+        private value: IControlNode,
+        private memo: IMemoForNode) {}
+
+    getNodeIds(): Set<TControlId | 0> {
+        const newRoot: IControlNode = this.value;
+        const rebuildChangesIds: Set<TControlId> = new Set();
+        // tslint:disable:no-bitwise
+        if (this._currentDirties[newRoot.id] & DirtyKind.DIRTY) {
+            rebuildChangesIds.add(newRoot.id);
+        }
+
+        const rebuildChangesFields = [
+            'createdNodes',
+            'updatedChangedNodes',
+            'selfDirtyNodes',
+            'createdTemplateNodes',
+            'updatedChangedTemplateNodes'
+        ];
+
+        const rebuildChanges = this.memo;
+        // Сохраняем id созданных/обновленных контрол нод, чтобы вызвать afterUpdate или afterMound только у них
+        for (let i = 0; i < rebuildChangesFields.length; i++) {
+            const field = rebuildChangesFields[i];
+            for (let j = 0; j < rebuildChanges[field].length; j++) {
+                const node: IControlNode = rebuildChanges[field][j];
+                rebuildChangesIds.add(node.id);
+            }
+        }
+
+        return rebuildChangesIds;
     }
 }
 
@@ -432,10 +467,6 @@ function addTemplateChildrenRecursive(node, result) {
 }
 
 export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, force: boolean, isRoot): IMemoNode | Promise<IMemoNode> {
-
-    // environment._currentDirties = environment._nextDirties;
-    // environment._nextDirties = {};
-
     let id = node.id;
     let dirty = environment._currentDirties[id] || DirtyKind.NONE;
     let isDirty = dirty !== DirtyKind.NONE || force;
@@ -1081,14 +1112,11 @@ function createChildrenResult(childrenRebuildResults: IMemoNode[]): { value: ICo
     return { value, memo };
 }
 
-function mapChildren(currentMemo: MemoForNode, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty) {
+function generateFullMarkup(currentMemo: MemoForNode, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty) {
     const childrenRebuild = createChildrenResult(childrenRebuildFinalResults);
     if (!newNode.markup) {
         // Во время ожидания асинхронного ребилда контрол уничтожился, обновлять его уже не нужно.
-        return {
-            value: newNode,
-            memo: childrenRebuild.memo
-        };
+        return new MemoNode(newNode, childrenRebuild.memo);
     }
 
     newNode.childrenNodes = childrenRebuild.value;
@@ -1112,10 +1140,7 @@ function mapChildren(currentMemo: MemoForNode, newNode, childrenRebuildFinalResu
     }
 
     currentMemo.concat(childrenRebuild.memo);
-    return {
-        value: newNode,
-        memo: currentMemo
-    };
+    return new MemoNode(newNode, currentMemo);
 }
 
 function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode, needRenderMarkup: boolean,
@@ -1136,11 +1161,11 @@ function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode,
     }
 
     if (!haveAsync) {
-        return mapChildren(currentMemo, newNode, childrenRebuildResults, environment, needRenderMarkup, isSelfDirty);
+        return generateFullMarkup(currentMemo, newNode, childrenRebuildResults, environment, needRenderMarkup, isSelfDirty);
     }
 
     return Promise.all(childrenRebuildResults).then(
-        (res) => mapChildren(currentMemo, newNode, res, environment, needRenderMarkup, isSelfDirty),
+        (res) => generateFullMarkup(currentMemo, newNode, res, environment, needRenderMarkup, isSelfDirty),
         (err) => {
             Logger.asyncRenderErrorLog(err);
             return err;

@@ -91,14 +91,6 @@ class VDomSynchronizer {
 
       if ('then' in rootsRebuild) {
          rootsRebuild.then((val) => {
-            // Костыль из-за compatible
-            // TODO удалить
-            // Проверим наличие environment
-            // Он мог быть удален, если среди контролов будет BaseCompatible. Потому что у него в destroy
-            // вызывается UnmountControlFromDom
-            //@ts-ignore
-            currentRoot.environment._asyncOngoing = true;
-
             val.memo.createdNodes.forEach((node: IControlNode) => {
                this._controlNodes[node.id] = node;
             });
@@ -108,7 +100,7 @@ class VDomSynchronizer {
             });
 
             val.value.environment._haveRebuildRequest = true;
-            val.value.environment.updateByNodeMemo(val)
+            val.value.environment.applyNodeMemo(val)
          },
             function (err: any) {
                Logger.asyncRenderErrorLog(err);
@@ -127,7 +119,7 @@ class VDomSynchronizer {
          delete this._controlNodes[node.id];
       });
 
-      rootsRebuild.value.environment.updateByNodeMemo(rootsRebuild)
+      rootsRebuild.value.environment.applyNodeMemo(rootsRebuild)
    }
 
    private __rebuild(controlNode: IControlNode) {
@@ -445,28 +437,28 @@ class VDomSynchronizer {
          controlNode.environment._nextDirties[parent.id] |= DirtyKind.CHILD_DIRTY;
       });
 
-      if (!controlNode.environment._haveRebuildRequest) {
-         controlNode.environment._haveRebuildRequest = true;
-         const requestRebuildDelayed = () => {
-            if (!controlNode.environment._haveRebuildRequest) {
-
-               /*Если _haveRebuildRequest=false значит
-               * циклы синхронизации смешались и в предыдущем тике у
-               * всех контролов был вызван _afterUpdate
-               * Такое может случиться только в слое совместимости,
-               * когда динамически удаляются и добавляются контрол ноды
-               * */
-               return;
-            }
-            //@ts-ignore используется runtime hack
-            controlNode.environment._rebuildRequestStarted = true;
-
-            restoreFocus(controlNode.control, () => this.__rebuild(controlNode));
-
-            controlNode.environment.addTabListener();
-         };
-         delay(requestRebuildDelayed);
+      if (controlNode.environment._haveRebuildRequest) {
+         return;
       }
+
+      controlNode.environment._haveRebuildRequest = true;
+      const requestRebuildDelayed = () => {
+         if (!controlNode.environment._haveRebuildRequest) {
+            /*Если _haveRebuildRequest=false значит
+            * циклы синхронизации смешались и в предыдущем тике у
+            * всех контролов был вызван _afterUpdate
+            * Такое может случиться только в слое совместимости,
+            * когда динамически удаляются и добавляются контрол ноды
+            * */
+            return;
+         }
+
+         //@ts-ignore используется runtime hack
+         controlNode.environment._rebuildRequestStarted = true;
+         restoreFocus(controlNode.control, () => this.__rebuild(controlNode));
+         controlNode.environment.addTabListener();
+      };
+      delay(requestRebuildDelayed);
    }
 }
 
