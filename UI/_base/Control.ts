@@ -214,10 +214,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
    private _$needForceUpdate: boolean;
    private _isPendingBeforeMount: boolean = false;
 
-   // TODO: удалить этот флаг и сделать нормальную работу beforePaint
-   // https://online.sbis.ru/doc/4fd6afbb-da9b-4a55-a416-d4325cade9ff
-   _needSyncAfterMount: boolean = false;
-
    private readonly _instId: string = 'inst_' + countInst++;
    protected _options: TOptions = {} as TOptions;
    private _internalOptions: Record<string, unknown>;
@@ -824,8 +820,56 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       return this.constructor['loadStyles'](styles).catch(logError);
    }
    //#endregion
+
    /**
-    * Хук жизненного цикла контрола. Вызывается сразу после установки контрола в DOM-окружение.
+    * Синхронный хук жизненного цикла контрола. Вызывается сразу после установки контрола в DOM-окружение.
+    * @param {Object} options Опции контрола.
+    * @param {Object} context Поле контекста, запрошенное контролом.
+    * @example
+    * <pre class="brush: js">
+    *    Control.extend({
+    *       ...
+    *       _componentDidMount(options, context) {
+    *          this.subscribeToServerEvents();
+    *          this.buttonHeight = this._children.myButton.offsetHeight;
+    *       }
+    *       ...
+    *    });
+    * </pre>
+    * @remark
+    * Первый хук жизненного цикла контрола, который вызывается после подключения контрола к DOM-окружению.
+    * На этом этапе вы можете получить доступ к параметрам и контексту this._options.
+    * Этот хук жизненного цикла часто используется для доступа к DOM-элементам и подписки на события сервера.
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
+    */
+   /*
+    * Control’s sync lifecycle hook. Called right after component was mounted to DOM.
+    * @param {Object} options Control's options.
+    * @param {Object} context Context fields that controls requested. See "Context in Wasaby controls."
+    * @example
+    * <pre class="brush: js">
+    *    Control.extend({
+    *       ...
+    *       _componentDidMount(options, context) {
+    *          this.subscribeToServerEvents();
+    *          this.buttonHeight = this._children.myButton.offsetHeight;
+    *       }
+    *       ...
+    *    });
+    * </pre>
+    * @remark This is the first lifecycle hook called after control was mounted to DOM.
+    * At this stage, you can access options and context at this._options and this._context.
+    * This hook is frequently used to access DOM elements and to subscribe to server events.
+    * Detailed description of lifecycle hooks can be found here.
+   * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
+
+    */
+   protected _componentDidMount(options?: TOptions, contexts?: any): void {
+      // Do
+   }
+
+   /**
+    * Асинхронный хук жизненного цикла контрола. Вызывается сразу после установки контрола в DOM-окружение.
     * @param {Object} options Опции контрола.
     * @param {Object} context Поле контекста, запрошенное контролом.
     * @example
@@ -845,16 +889,15 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * Этот хук жизненного цикла часто используется для доступа к DOM-элементам и подписки на события сервера.
     * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
-
    /*
-    * Control’s lifecycle hook. Called right after component was mounted to DOM.
+    * Control’s async lifecycle hook. Called right after component was mounted to DOM.
     * @param {Object} options Control's options.
     * @param {Object} context Context fields that controls requested. See "Context in Wasaby controls."
     * @example
     * <pre>
     *    Control.extend({
     *       ...
-    *       _beforeMount(options, context) {
+    *        _afterMount(options, context) {
     *          this.subscribeToServerEvents();
     *          this.buttonHeight = this._children.myButton.offsetHeight;
     *       }
@@ -865,10 +908,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * At this stage, you can access options and context at this._options and this._context.
     * This hook is frequently used to access DOM elements and to subscribe to server events.
     * Detailed description of lifecycle hooks can be found here.
-    * @see Documentation: Control lifecycle
-    * @see Documentation: Options
-    * @see Documentation: Context
-    * @see Documentation: Server render
+   * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
    protected _afterMount(options?: TOptions, contexts?: any): void {
       // Do
@@ -1019,7 +1059,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * <pre>
     *    Control.extend({
     *       ...
-    *       _afterRender() {
+    *       _componentDidUpdate() {
     *
     *          // Accessing DOM elements to some fix after render.
     *          this._container.scrollTop = this._savedScrollTop;
@@ -1029,12 +1069,23 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * </pre>
     * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
+   protected _componentDidUpdate(oldOptions?: TOptions, oldContext?: any): void {
+      // Do
+   }
+
    protected _afterRender(oldOptions?: TOptions, oldContext?: any): void {
       // Do
    }
 
+   private __afterRender(oldOptions?: TOptions, oldContext?: any): void {
+      Logger.warn(`Хук "_afterRender" более не поддерживает. 
+         Следует переименовать хук в "_componentDidUpdate"
+         Контрол: ${ this._moduleName }`, this);
+      this._afterRender.apply(this, arguments);
+   }
+
    /**
-    * Хук жизненного цикла контрола. Вызывается после обновления контрола.
+    * Асинхронный хук жизненного цикла контрола. Вызывается после обновления контрола.
     *
     * @param {Object} oldOptions Опции контрола до обновления.
     * Текущие опции можно найти в this._options.
@@ -1059,7 +1110,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     */
 
    /*
-    * Control’s lifecycle hook. Called after control was updated.
+    * Control’s lifecycle async hook. Called after control was updated.
     *
     * @param {Object} oldOptions Options that control had before the update.
     * Current options can be found in this._options.
@@ -1080,9 +1131,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     *       ...
     *    });
     * </pre>
-    * @see Documentation: Control lifecycle
-    * @see Documentation: Options
-    * @see Documentation: Context
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
    protected _afterUpdate(oldOptions?: TOptions, oldContext?: any): void {
       // Do

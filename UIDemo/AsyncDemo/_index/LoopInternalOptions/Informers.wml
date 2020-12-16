@@ -1,0 +1,12 @@
+<div class="UIDemo-AsyncDemo__informers">
+   Построение в шаблоне, в который передаются данные целиком.<br/>
+   А в нем уже строится в цикле.
+   <ws:for data="index, item in _options.informers">
+      <UIDemo.AsyncDemo.Async templateName="{{item.template}}">
+         <ws:templateOptions property="{{item.property}}"/>
+         <ws:content>
+            <ws:partial template="{{content.resolvedTemplate}}" data="{{item.data}}"/>
+         </ws:content>
+      </UIDemo.AsyncDemo.Async>
+   </ws:for>
+</div>

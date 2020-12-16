@@ -63,14 +63,7 @@ export default class MountMethodsCaller {
         return result;
     }
 
-    private beforePaintProcess(controlNode: IControlNode, control: Control): void {
-        // _needSyncAfterMount - специальный флаг для работы beforePaint
-        // TODO: удалить этот флаг и сделать нормальную работу beforePaint
-        // https://online.sbis.ru/doc/4fd6afbb-da9b-4a55-a416-d4325cade9ff
-        // @ts-ignore
-        if (!control._needSyncAfterMount) {
-            return;
-        }
+    private componentDidMountProcess(controlNode: IControlNode, control: Control): void {
         // tslint:disable-next-line:ban-ts-ignore
         // @ts-ignore
         if (control._destroyed) {
@@ -79,13 +72,48 @@ export default class MountMethodsCaller {
         try {
             // tslint:disable-next-line:ban-ts-ignore
             // @ts-ignore
-            if (control._beforePaint && typeof control._beforePaint === 'function') {
+            if (typeof control._componentDidMount === 'function') {
                 // tslint:disable-next-line:ban-ts-ignore
                 // @ts-ignore
-                control._beforePaint(controlNode.oldOptions || controlNode.options, controlNode.oldContext);
+                control._componentDidMount(controlNode.options, controlNode.context);
             }
+            this.forceUpdateIfNeed(control);
         } catch (error) {
-            Logger.lifeError('_beforePaint', control, error);
+            Logger.lifeError('_componentDidMount', control, error);
+        }
+    }
+
+    private componentDidUpdateProcess(controlNode: IControlNode, control: Control): void {
+        // tslint:disable-next-line:ban-ts-ignore
+        // @ts-ignore
+        if (control._destroyed) {
+            return;
+        }
+        try {
+            // tslint:disable-next-line:ban-ts-ignore
+            // @ts-ignore
+            // TODO: remove it
+            if (typeof control.__afterRender === 'function') {
+                // tslint:disable-next-line:ban-ts-ignore
+                // @ts-ignore
+                control.__afterRender(
+                   controlNode.oldOptions || controlNode.options,
+                   controlNode.context
+                );
+            }
+            // tslint:disable-next-line:ban-ts-ignore
+            // @ts-ignore
+            if (typeof control._componentDidUpdate === 'function') {
+                // tslint:disable-next-line:ban-ts-ignore
+                // @ts-ignore
+                control._componentDidUpdate(
+                   controlNode.oldOptions || controlNode.options,
+                   controlNode.context
+                );
+            }
+            this.forceUpdateIfNeed(control);
+        } catch (error) {
+            Logger.lifeError('_componentDidUpdate', control, error);
         }
     }
 
@@ -124,7 +152,10 @@ export default class MountMethodsCaller {
             if (typeof control._afterUpdate === 'function') {
                 // tslint:disable-next-line:ban-ts-ignore
                 // @ts-ignore
-                control._afterUpdate(controlNode.oldOptions || controlNode.options, controlNode.oldContext);
+                control._afterUpdate(
+                   controlNode.oldOptions || controlNode.options,
+                   controlNode.oldContext
+                );
             }
             this.forceUpdateIfNeed(control);
         } catch (error) {
@@ -134,50 +165,18 @@ export default class MountMethodsCaller {
         }
     }
 
-    /**
-     * @function UI/_vdom/Synchronizer/resources/MountMethodsCaller#beforePaint
-     * @param controlNodes Массив контрол нод.
-     */
     beforePaint: TMountMethod = (controlNodes: IControlNode[]) => {
         for (let i = 0; i < controlNodes.length; i++) {
             const controlNode: IControlNode = controlNodes[i];
             const control: Control = controlNode.control;
-            onStartLifecycle(controlNode.vnode || controlNode);
-            if (this.isBeforeMount(control)) {
-                // FIXME: костыль, нужно чтобы попап синхронно отреагировал после вставки в дом.
-                //  нужно чтобы одновременно открывалась панель и скрывался аккордеон.
-                //  либо оставлять хук и удалять условие, либо другое решение (Красильников)
-                // tslint:disable-next-line:ban-ts-ignore
-                // @ts-ignore
-                if (control._moduleName === 'Controls/_popup/Manager/Popup' ||
-                    // tslint:disable-next-line:ban-ts-ignore
-                    // @ts-ignore
-                    control._moduleName === 'Controls/_scroll/StickyHeader/_StickyHeader') {
-                    // tslint:disable-next-line:ban-ts-ignore
-                    // @ts-ignore
-                    if (!control._destroyed && typeof controlNode.control._beforePaintOnMount === 'function') {
-                        // tslint:disable-next-line:ban-ts-ignore
-                        // @ts-ignore
-                        controlNode.control._beforePaintOnMount();
-                    }
-                } else {
-                    this.beforePaintProcess(controlNode, control);
-                }
-                onEndLifecycle(controlNode.vnode || controlNode);
-                continue;
+            // tslint:disable-next-line:ban-ts-ignore
+            // @ts-ignore
+            if (control._beforePaint && typeof control._beforePaint === 'function') {
+                Logger.error(`Хук "_beforePaint" был удален.
+                Вместо него следует использовать:
+                _componentDidMount - вызывается после монтирования контрола в DOM
+                _componentDidUpdate - вызывается после каждого обновления DOM`, control);
             }
-            try {
-                // tslint:disable-next-line:ban-ts-ignore
-                // @ts-ignore
-                if (!control._destroyed && typeof control._beforePaint === 'function') {
-                    // tslint:disable-next-line:ban-ts-ignore
-                    // @ts-ignore
-                    control._beforePaint();
-                }
-            } catch (error) {
-                Logger.lifeError('_beforePaint', control, error);
-            }
-            onEndLifecycle(controlNode.vnode || controlNode);
         }
     }
 
@@ -208,35 +207,38 @@ export default class MountMethodsCaller {
     }
 
     /**
-     * @function UI/_vdom/Synchronizer/resources/MountMethodsCaller#afterRender
+     * Запускает вызов _componentDidUpdate для каждого элемента массива controlNodes,
+     * если в массиве встречается еще не замаунченный контрол,
+     * то для него вызывается _componentDidMount.
+     * Вызов _componentDidUpdate/_componentDidMount происходит синхронно.
+     * @function UI/_vdom/Synchronizer/resources/MountMethodsCaller#componentDidUpdate
      * @param controlNodes Массив контрол нод.
      */
-    afterRender: TMountMethod = (controlNodes: IControlNode[]) => {
+    componentDidUpdate: TMountMethod = (controlNodes: IControlNode[]) => {
         for (let i = 0; i < controlNodes.length; i++) {
             const controlNode: IControlNode = controlNodes[i];
             const control: Control = controlNode.control;
             onStartLifecycle(controlNode.vnode || controlNode);
-            if (!this.isBeforeMount(control)) {
-                try {
-                    // tslint:disable-next-line:ban-ts-ignore
-                    // @ts-ignore
-                    if (!control._destroyed && typeof control._afterRender === 'function') {
-                        // tslint:disable-next-line:ban-ts-ignore
-                        // @ts-ignore
-                        control._afterRender(
-                            controlNode.oldOptions || controlNode.options,
-                            controlNode.oldContext
-                        );
-                    }
-                } catch (error) {
-                    Logger.lifeError('_afterRender', control, error);
+            if (this.isBeforeMount(control)) {
+                if (controlNode.hasCompound || control.getPendingBeforeMountState()) {
+                    delay((): void => {
+                        this.componentDidMountProcess(controlNode, control);
+                    });
+                } else {
+                    this.componentDidMountProcess(controlNode, control);
                 }
+            } else {
+                this.componentDidUpdateProcess(controlNode, control);
             }
             onEndLifecycle(controlNode.vnode || controlNode);
         }
     }
 
     /**
+     * Запускает вызов _afterUpdate для каждого элемента массива controlNodes,
+     * если в массиве встречается еще не замаунченный контрол,
+     * то для него вызывается _afterMount.
+     * Вызов _afterUpdate/_afterMount происходит асинхронно.
      * @function UI/_vdom/Synchronizer/resources/MountMethodsCaller#afterUpdate
      * @param controlNodes Массив контрол нод.
      */

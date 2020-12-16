@@ -65,11 +65,6 @@ export interface ITraverseConfig {
    warnBooleanAttributesAndOptions?: boolean;
 
    /**
-    * Warn about declared but unused templates.
-    */
-   warnUnusedTemplates?: boolean;
-
-   /**
     * Warn about empty component content if component tag was not self-closing.
     */
    warnEmptyComponentContent?: boolean;
@@ -625,11 +620,6 @@ class Traverse implements ITraverse {
    private readonly textTranslator: ITextTranslator;
 
    /**
-    * Warn about declared but unused templates.
-    */
-   private readonly warnUnusedTemplates: boolean;
-
-   /**
     * Warn about empty component content if component tag was not self-closing.
     */
    private readonly warnEmptyComponentContent: boolean;
@@ -664,7 +654,6 @@ class Traverse implements ITraverse {
          expressionValidator: this.expressionValidator
       });
       this.textTranslator = config.textTranslator;
-      this.warnUnusedTemplates = !!config.warnUnusedTemplates;
       this.warnEmptyComponentContent = !!config.warnEmptyComponentContent;
    }
 
@@ -933,8 +922,7 @@ class Traverse implements ITraverse {
                      position: node.position
                   }
                );
-               // FIXME: Must return broken node
-               // return null;
+               return null;
             }
             return this.checkDirectiveInAttribute(node, context);
       }
@@ -1030,8 +1018,7 @@ class Traverse implements ITraverse {
                position: node.position
             }
          );
-         // FIXME: Must return broken node
-         // return null;
+         return null;
       }
       return this.processTagInMarkup(node, context);
    }
@@ -1159,8 +1146,7 @@ class Traverse implements ITraverse {
                position: node.position
             }
          );
-         // FIXME: Must return broken node
-         // return null;
+         return null;
       }
       return this.processTagInMarkup(node, context);
    }
@@ -1462,15 +1448,12 @@ class Traverse implements ITraverse {
             array
          );
       }
-      const processedAttributes = this.attributeProcessor.processOptions(node.attributes, {
+      const properties = this.attributeProcessor.processOptions(node.attributes, {
          fileName: context.fileName,
          hasAttributesOnly: false,
          parentTagName: node.name,
          translationsRegistrar: context.scope
       });
-      const properties: Ast.IObjectProperties = {
-         ...processedAttributes
-      };
       for (let index = 0; index < content.length; ++index) {
          const property = content[index];
          if (!(property instanceof Ast.OptionNode || property instanceof Ast.ContentOptionNode)) {
@@ -1491,11 +1474,6 @@ class Traverse implements ITraverse {
                   position: node.position
                }
             );
-            // FIXME: take the last property
-            // continue;
-         }
-         if (processedAttributes.hasOwnProperty(property.__$ws_name)) {
-            // FIXME: take the last property but attribute have the highest priority
             continue;
          }
          properties[property.__$ws_name] = property;
@@ -2279,15 +2257,12 @@ class Traverse implements ITraverse {
          state: TraverseState.OBJECT_DATA_TYPE
       };
       const processedChildren = this.visitAll(node.children, propertiesContext);
-      const processedAttributes = this.attributeProcessor.processOptions(attributes, {
+      const properties = this.attributeProcessor.processOptions(attributes, {
          fileName: context.fileName,
          hasAttributesOnly: false,
          parentTagName: node.name,
          translationsRegistrar: context.scope
       });
-      const properties: Ast.IObjectProperties = {
-         ...processedAttributes
-      };
       for (let index = 0; index < processedChildren.length; ++index) {
          const child = processedChildren[index];
          if (!(child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode)) {
@@ -2308,11 +2283,6 @@ class Traverse implements ITraverse {
                   position: node.position
                }
             );
-            // FIXME: take the last property
-            // continue;
-         }
-         if (processedAttributes.hasOwnProperty(child.__$ws_name)) {
-            // FIXME: take the last property but attribute have the highest priority
             continue;
          }
          properties[child.__$ws_name] = child;
@@ -2563,17 +2533,6 @@ class Traverse implements ITraverse {
                   position: node.position
                }
             );
-         }
-         // FIXME: Remove this check
-         if (context.scope.hasTemplate(name)) {
-            this.errorHandler.error(
-               `Шаблон с именем "${name}" уже был определен`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
          }
          context.scope.registerTemplate(name, ast);
          return ast;
@@ -2941,9 +2900,6 @@ class Traverse implements ITraverse {
     * @param node {Tag} Base html tag node of processing component or partial node.
     */
    private applyOptionsToComponentOrPartial(ast: Ast.BaseWasabyElement, options: Array<Ast.OptionNode | Ast.ContentOptionNode>, context: ITraverseContext, node: Nodes.Tag): void {
-      const processedAttributes = {
-         ...ast.__$ws_options
-      };
       for (let index = 0; index < options.length; ++index) {
          const child = options[index];
          if (ast.hasOption(child.__$ws_name)) {
@@ -2954,11 +2910,6 @@ class Traverse implements ITraverse {
                   position: node.position
                }
             );
-            // FIXME: take the last property
-            // continue;
-         }
-         if (processedAttributes.hasOwnProperty(child.__$ws_name)) {
-            // FIXME: take the last property but attribute have the highest priority
             continue;
          }
          ast.setOption(options[index]);
@@ -3018,6 +2969,14 @@ class Traverse implements ITraverse {
                translationsRegistrar: context.scope
             }
          );
+         if (textValue.length !== 1) {
+            this.errorHandler.warn(
+               `Атрибут "${attribute}" тега "${node.name}" содержит некорректное значение. Ожидалось значение 1 типа, получена последовательность из ${textValue.length} значений`,
+               {
+                  fileName: context.fileName
+               }
+            );
+         }
          return textValue[0];
       } catch (error) {
          throw new Error(`в атрибуте "${attribute}" ${error.message}`);
@@ -3036,14 +2995,12 @@ class Traverse implements ITraverse {
          if (context.scope.getTemplateUsages(name) > 0) {
             continue;
          }
-         if (this.warnUnusedTemplates) {
-            this.errorHandler.warn(
-               `Шаблон с именем "${name}" определен, но не был использован. Неиспользуемый шаблон необходимо удалить`,
-               {
-                  fileName: context.fileName
-               }
-            );
-         }
+         this.errorHandler.warn(
+            `Шаблон с именем "${name}" определен, но не был использован. Неиспользуемый шаблон необходимо удалить`,
+            {
+               fileName: context.fileName
+            }
+         );
          // FIXME: Сначала удалить из дерева, потом из контекста
          // context.scope.removeTemplate(name);
       }

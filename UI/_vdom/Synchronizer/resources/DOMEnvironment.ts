@@ -589,7 +589,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             // @ts-ignore FIXME: Unknown $
             control._container = window.$ ? $(newRootDOMNode) : newRootDOMNode;
          }
-         mountMethodsCaller.afterRender(controlNodesToCall);
+         mountMethodsCaller.componentDidUpdate(controlNodesToCall);
          mountMethodsCaller.beforePaint(controlNodesToCall);
          delay(() => {
             // останавливать должны, только если запущено, иначе получается так,
@@ -632,7 +632,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       //    а _afterUpdate должен вызываться после, чтобы не вызывать forced reflow.
       // Если делать то же самое через rAF, то нужно звать rAF из rAF, это и дольше, и неудобно.
       setTimeout(() => {
-         mountMethodsCaller.afterUpdate(controlNodesToCall);
+         mountMethodsCaller.componentDidUpdate(controlNodesToCall);
          while (callAfterMount && callAfterMount.length) {
             const elem = callAfterMount.shift();
             const fn = elem.fn;
