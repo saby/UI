@@ -2,6 +2,7 @@
 
 import { ITagDescription } from 'UI/_base/HTML/_meta/interface';
 import getResourceUrl = require('Core/helpers/getResourceUrl');
+import escapeHtml = require('Core/helpers/String/escapeHtml');
 
 export const DEFAULT_ATTRS = {
    'data-vdomignore': 'true'
@@ -35,7 +36,7 @@ export function generateTagMarkup(
       if (key === 'href' || key === 'src') {
          return `${key}="${getResourceUrl(val)}"`;
       }
-      return `${key}="${val}"`;
+      return `${key}="${escapeHtml(val)}"`;
    }).join(' ');
    if (HTML_VOID_ELEMENTS[tagName]) {
       return `<${tagName} ${attrMarkup}>`;
