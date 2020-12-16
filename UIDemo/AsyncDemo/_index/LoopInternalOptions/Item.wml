@@ -1,0 +1,4 @@
+<div class="UIDemo-AsyncDemo__item">
+   <p>_informers.data.field: {{ _options.data.field }}</p>
+   <p>_informers.property: {{ _options.property }}</p>
+</div>

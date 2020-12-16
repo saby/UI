@@ -11,6 +11,14 @@
         <UIDemo.AsyncDemo._index.InternalOptions/>
     </div>
 
+    <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__internalOptColumn">
+        <span class="UIDemo-AsyncDemo__subHeader">3.1. Internal options in loop</span>
+        <div class="UIDemo-AsyncDemo__row">
+            Демонстрация перестроения компонента, <b>построенного в цикле</b>, при изменении шаблонных и внутренних опций.
+        </div>
+        <UIDemo.AsyncDemo._index.LoopInternalOptions/>
+    </div>
+
     <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__loadFailColumn">
         <span class="UIDemo-AsyncDemo__subHeader">4. 'Дружелюбная ошибка' (просто текст) при проблеме загрузки</span>
         <div class="UIDemo-AsyncDemo__row">
