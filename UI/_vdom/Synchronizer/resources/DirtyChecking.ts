@@ -336,6 +336,11 @@ function collectChildrenKeys(next: { key }[], prev: { key }[]): { prev, next }[]
 function rebuildNodeWriter(environment, node, force, isRoot?) {
    if (node.receivedState && node.receivedState.then) {
       if (!needWaitAsync()) {
+          node.receivedState.then(() => {
+              rebuildNode(environment, node, true, isRoot)
+          }, () => {
+              rebuildNode(environment, node, true, isRoot)
+          });
           return rebuildNode(environment, node, force, isRoot, true);
       }
       return node.receivedState.then(
