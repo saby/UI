@@ -93,9 +93,9 @@ export class Builder implements IBuilder {
                var message = '[UI/_executor/GeneratorDefault:buildForNewControl()] You are using asynchronous rendering inside of the old environment.';
                Logger.warn(message, inst);
             }
-            if (!needWaitAsync()) {
+            /*if (!needWaitAsync()) {
                return AsyncWaiterHTML;
-            }
+            }*/
             return new Promise(function (resolve) {
                dfd.then(function (receivedState) {
                   inst._saveContextObject(ContextResolver.resolveContext(cnstr, scope.templateContext || {}, inst));
