@@ -1,4 +1,6 @@
 import { assert } from 'chai';
+import { stub } from 'sinon';
+
 import { IoC, constants } from 'Env/Env';
 import { IAsyncOptions } from 'UI/Base';
 import { default as Async }  from 'UITest/_async/Async';
@@ -64,18 +66,27 @@ describe('UI/Base:Async', () => {
     }
 
     it('Loading synchronous client-side', () => {
-        const options = getOptions('UITest/_async/TestControlSync');
         const oldCompat = constants.compat;
         constants.compat = false;
+        const options = getOptions('UITest/_async/TestControlSync');
+        const BUILDED_ON_SERVER = true;
 
         const async = new Async(options);
-        const BUILDED_ON_SERVER = true;
+        // @ts-ignore Хак: Почему-то нет опций после конструктора
+        async._options = options;
+        // @ts-ignore
+        const notifyStub = stub(async, '_notify');
+
         async._beforeMount(options, undefined, BUILDED_ON_SERVER);
-        async._beforeUpdate(options);
+        async._componentDidMount();
 
         assert.isNotOk(async.getError(), 'error state should be empty');
         assert.equal(async.getCurrentTemplateName(), 'UITest/_async/TestControlSync');
         assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, TestControlSync);
+
+        assert(notifyStub.called, 'Ожидалось, что будет вызван метод публикации события "_notify"');
+        assert.includeMembers(notifyStub.getCall(0).args, ['load'], 'Не было опубликовано событие "load"');
+
         constants.compat = oldCompat;
     });
 
