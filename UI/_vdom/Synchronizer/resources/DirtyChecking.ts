@@ -23,7 +23,7 @@ import { delay } from 'Types/function';
 // @ts-ignore
 import { Serializer } from 'UI/State';
 // @ts-ignore
-import { FunctionUtils, Logger, needToBeCompatible } from 'UI/Utils';
+import { AsyncWaiterTemplate, FunctionUtils, Logger, needToBeCompatible } from 'UI/Utils';
 import { clearNotChangedOptions } from './DirtyCheckingCompatible';
 import { ReactiveObserver } from 'UI/Reactivity';
 import {
@@ -334,7 +334,17 @@ function collectChildrenKeys(next: { key }[], prev: { key }[]): { prev, next }[]
 }
 
 function rebuildNodeWriter(environment, node, force, isRoot?) {
-   if (needWaitAsync() && node.receivedState && node.receivedState.then) {
+   if (node.receivedState && node.receivedState.then) {
+      if (!needWaitAsync()) {
+          const control = node.control;
+          const controlTemplate = control._template.bind(control);
+          control._template = AsyncWaiterTemplate.bind(control);
+          function restoreTemplate() {
+              control._template = controlTemplate;
+          }
+          node.receivedState.then(restoreTemplate, restoreTemplate);
+          return rebuildNode(environment, node, force, isRoot);
+      }
       return node.receivedState.then(
          function rebuildNodeWriterCbk(state) {
             node.receivedState = state;

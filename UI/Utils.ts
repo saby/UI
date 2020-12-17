@@ -43,6 +43,9 @@ const ArrayUtils = {
    uniq
 };
 
+import AsyncWaiterTemplate = require('wml!UI/_utils/AsyncWaiter');
+export const AsyncWaiterHTML = '<div>Временная заглушка для ожидания асинхронного маунта</div>';
+
 export {
    Logger,
    Purifier,
@@ -50,6 +53,7 @@ export {
    needToBeCompatible,
    getResourceUrl,
    isElementVisible,
+   AsyncWaiterTemplate,
    FunctionUtils,
    ObjectUtils,
    NumberUtils,
