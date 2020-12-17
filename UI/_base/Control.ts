@@ -2,7 +2,7 @@
 
 // @ts-ignore
 import template = require('wml!UI/_base/Control');
-import AsyncWaiterTemplate = require('wml!UI/_utils/AsyncWaiter');
+import AsyncWaiterTemplate = require('wml!UI/_base/AsyncWaiter');
 
 // @ts-ignore FIXME: убрал зависимость от шаблонизатора - core перестал тянуться. Исследовать и исправить
 import cExtend = require('Core/core-extend');
