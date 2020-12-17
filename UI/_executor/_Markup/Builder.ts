@@ -6,7 +6,7 @@ import { ContextResolver } from 'UI/Contexts';
 import * as OptionsResolver from '../_Utils/OptionsResolver';
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
-import { isNewEnvironment, Logger, AsyncWaiterHTML } from 'UI/Utils';
+import { isNewEnvironment, Logger, /*AsyncWaiterHTML*/ } from 'UI/Utils';
 import { IBuilder } from './IBuilder';
 
 import { invisibleNodeCompat, isInstOfPromise, asyncRenderErrorTag } from './Utils'
