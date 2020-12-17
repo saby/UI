@@ -362,8 +362,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
          }
       }
       const generatorConfig = getGeneratorConfig();
-      const template = needAsyncWaiter ? AsyncWaiterTemplate : this._template;
-      res = template(this, attributes, rootKey, isVdom, undefined, undefined, generatorConfig);
+      const curTemplate = needAsyncWaiter ? AsyncWaiterTemplate : this._template;
+      res = curTemplate.call(this, this, attributes, rootKey, isVdom, undefined, undefined, generatorConfig);
       if (res) {
          if (isVdom) {
             if (res.length !== 1) {
