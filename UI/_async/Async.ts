@@ -36,6 +36,10 @@ const SUCCESS_BUILDED = 's';
  * @author Санников К.А.
  */
 export default abstract class Async extends Control<IAsyncOptions, TAsyncStateReceived> {
+   /**
+    * @event UI/Base:Async#load Событие оповещения, что указанный в templateName шаблон загружен и вставлен в DOM
+    */
+
    protected _template: TemplateFunction = template;
    protected currentTemplateName: string;
    protected optionsForComponent: Record<string, unknown> = {};
@@ -50,6 +54,12 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
    protected error: TAsyncStateReceived | void;
    protected userErrorMessage: string | void;
    protected defaultErrorMessage: string = 'У СБИС возникла проблема';
+   /**
+    * Флаг чтобы понимать, что был загружен контрол и вставлен на страницу -
+    * т.к. после монтирования в DOM нужно будет опубликовать событие load
+    * @private
+    */
+   private needNotifyOnLoad: boolean = false;
 
    protected _beforeMount(options: IAsyncOptions, _: unknown, receivedState: TAsyncStateReceived): Promise<TAsyncStateReceived> {
       if (!options.templateName) {
@@ -74,6 +84,10 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
       }
 
       return Promise.resolve(SUCCESS_BUILDED);
+   }
+
+   protected _componentDidMount(): void {
+      this._notifyOnLoad();
    }
 
    /**
@@ -110,6 +124,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
          return;
       }
       if (this.currentTemplateName === this._options.templateName) {
+         this._notifyOnLoad();
          return;
       }
 
@@ -118,12 +133,20 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
       });
    }
 
+   protected _notifyOnLoad(): void {
+      if (this.needNotifyOnLoad && !this.error && !this.asyncLoading) {
+         this.needNotifyOnLoad = false;
+         this._notify('load');
+      }
+   }
+
    protected _loadContentSync(name: string, options: IControlOptions): TAsyncStateReceived {
       const loaded = this._loadSync(name);
       if (loaded === null) {
          return generateErrorMsg(name);
       }
 
+      this.needNotifyOnLoad = true;
       this._insertComponent(loaded, options, name);
       this._pushDepToHeadData(Library.parse(name).name);
       return false;
@@ -157,6 +180,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
             return this.error;
          }
 
+         this.needNotifyOnLoad = true;
          this._insertComponent(loaded, options, name);
          return true;
       }, (err) => {
