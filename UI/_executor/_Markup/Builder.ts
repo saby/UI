@@ -89,10 +89,13 @@ export class Builder implements IBuilder {
          /**
           * Понимаем асинхронная ветка или нет
           */
-         if (needWaitAsync() && dfd && isInstOfPromise(dfd)) {
+         if (dfd && isInstOfPromise(dfd)) {
             if(!isNewEnvironment()) {
                var message = '[UI/_executor/GeneratorDefault:buildForNewControl()] You are using asynchronous rendering inside of the old environment.';
                Logger.warn(message, inst);
+            }
+            if (!needWaitAsync()) {
+               return inst._template ? inst.render(null, decOptions, true) : '';
             }
             return new Promise(function (resolve) {
                dfd.then(function (receivedState) {

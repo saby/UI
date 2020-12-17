@@ -2,6 +2,7 @@
 
 // @ts-ignore
 import template = require('wml!UI/_base/Control');
+import AsyncWaiterTemplate = require('wml!UI/_utils/AsyncWaiter');
 
 // @ts-ignore FIXME: убрал зависимость от шаблонизатора - core перестал тянуться. Исследовать и исправить
 import cExtend = require('Core/core-extend');
@@ -334,7 +335,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
    _getMarkup(
       rootKey?: string,
       attributes?: ITemplateAttrs,
-      isVdom: boolean = true
+      isVdom: boolean = true,
+      needAsyncWaiter?: boolean
    ): any {
       if (!(this._template as any).stable) {
          Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
@@ -360,7 +362,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
          }
       }
       const generatorConfig = getGeneratorConfig();
-      res = this._template(this, attributes, rootKey, isVdom, undefined, undefined, generatorConfig);
+      const template = needAsyncWaiter ? AsyncWaiterTemplate : this._template;
+      res = template(this, attributes, rootKey, isVdom, undefined, undefined, generatorConfig);
       if (res) {
          if (isVdom) {
             if (res.length !== 1) {
@@ -379,10 +382,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       return res;
    }
 
-   render(empty?: any, attributes?: any): any {
+   render(empty?: any, attributes?: any, needAsyncWaiter?: boolean): any {
       let markup;
       ReactiveObserver.forbidReactive(this, () => {
-         markup = this._getMarkup(null, attributes, false);
+         markup = this._getMarkup(null, attributes, false, needAsyncWaiter);
       });
       this._isRendered = true;
       return markup;

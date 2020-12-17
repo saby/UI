@@ -688,7 +688,7 @@ function createErrVNode(err: any, key: any): any {
    );
 }
 
-export function getDecoratedMarkup(controlNode: IControlNode): any {
+export function getDecoratedMarkup(controlNode: IControlNode, needAsyncWaiter?: boolean): any {
    //Теперь передададим еще и атрибуты, которые нам дали сверху для построения верстки
    //там они будут мержиться
    const markupRes = controlNode.control._getMarkup(controlNode.key, {
@@ -702,7 +702,7 @@ export function getDecoratedMarkup(controlNode: IControlNode): any {
       internal: controlNode.internal,
       // @ts-ignore
       domNodeProps: controlNode.domNodeProps
-   });
+   }, true, needAsyncWaiter);
    let result;
 
    if (isVNodeType(markupRes)) {

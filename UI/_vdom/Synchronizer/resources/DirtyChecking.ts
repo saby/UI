@@ -334,7 +334,10 @@ function collectChildrenKeys(next: { key }[], prev: { key }[]): { prev, next }[]
 }
 
 function rebuildNodeWriter(environment, node, force, isRoot?) {
-   if (needWaitAsync() && node.receivedState && node.receivedState.then) {
+   if (node.receivedState && node.receivedState.then) {
+      if (!needWaitAsync()) {
+          return rebuildNode(environment, node, force, isRoot, true);
+      }
       return node.receivedState.then(
          function rebuildNodeWriterCbk(state) {
             node.receivedState = state;
@@ -447,7 +450,7 @@ function addTemplateChildrenRecursive(node, result) {
    }
 }
 
-export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, force: boolean, isRoot): IMemoNode | Promise<IMemoNode> {
+export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, force: boolean, isRoot, needAsyncWaiter?: boolean): IMemoNode | Promise<IMemoNode> {
     let id = node.id;
     let dirty = environment._currentDirties[id] || DirtyKind.NONE;
     let isDirty = dirty !== DirtyKind.NONE || force;
@@ -557,7 +560,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
 
     let oldMarkup = node.markup;
     ReactiveObserver.forbidReactive(newNode.control, () => {
-       newNode.markup = getDecoratedMarkup(newNode);
+       newNode.markup = getDecoratedMarkup(newNode, needAsyncWaiter);
     });
     if (isSelfDirty) {
        /*
