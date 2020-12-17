@@ -10,7 +10,7 @@ import { isNewEnvironment, Logger, AsyncWaiterHTML } from 'UI/Utils';
 import { IBuilder } from './IBuilder';
 
 import { invisibleNodeCompat, isInstOfPromise, asyncRenderErrorTag } from './Utils'
-import { needWaitAsync } from '../_Utils/Common';
+//import { needWaitAsync } from '../_Utils/Common';
 
 /**
  * @author Тэн В.А.
