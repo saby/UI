@@ -619,20 +619,16 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          return;
       }
 
-      // @ts-ignore FIXME: Properties '_haveRebuildRequest' and '_asyncOngoing' do not exist
-      if (this._rebuildRequestStarted || this._asyncOngoing === false) {
-         // @ts-ignore FIXME: Property '_haveRebuildRequest' does not exist
-         this._haveRebuildRequest = false;
-      }
+      this._haveRebuildRequest = false;
 
-      mountMethodsCaller.afterRender(controlNodesToCall);
+      mountMethodsCaller.componentDidUpdate(controlNodesToCall);
       mountMethodsCaller.beforePaint(controlNodesToCall);
       // используется setTimeout вместо delay, т.к. delay работает через rAF
       // rAF зовётся до того, как браузер отрисует кадр,
       //    а _afterUpdate должен вызываться после, чтобы не вызывать forced reflow.
       // Если делать то же самое через rAF, то нужно звать rAF из rAF, это и дольше, и неудобно.
       setTimeout(() => {
-         mountMethodsCaller.componentDidUpdate(controlNodesToCall);
+         mountMethodsCaller.afterUpdate(controlNodesToCall);
          while (callAfterMount && callAfterMount.length) {
             const elem = callAfterMount.shift();
             const fn = elem.fn;
