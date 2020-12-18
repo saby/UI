@@ -23,7 +23,8 @@ import { delay } from 'Types/function';
 // @ts-ignore
 import { Serializer } from 'UI/State';
 // @ts-ignore
-import { AsyncWaiterTemplate, FunctionUtils, Logger, needToBeCompatible } from 'UI/Utils';
+import { FunctionUtils, Logger, needToBeCompatible } from 'UI/Utils';
+import { AsyncWaiterTemplate } from 'UI/Base';
 import { clearNotChangedOptions } from './DirtyCheckingCompatible';
 import { ReactiveObserver } from 'UI/Reactivity';
 import {

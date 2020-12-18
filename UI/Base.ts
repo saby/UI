@@ -28,6 +28,9 @@ export { default as startApplication } from 'UI/_base/startApplication';
 export { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 export { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 
+//@ts-ignore
+import AsyncWaiterTemplate = require('wml!UI/_base/AsyncWaiter');
+
 //#region meta data
 export { getMetaStack, IMeta, IMetaState } from 'UI/_base/HTML/meta';
 //#endregion
@@ -46,6 +49,7 @@ export {
     HeadController,
     Creator,
     AsyncCreator,
+    AsyncWaiterTemplate,
     DepsCollector,
     HeadData,
     headDataStore,
