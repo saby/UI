@@ -46,6 +46,17 @@ import { getCompatibleUtils } from 'UI/_vdom/Synchronizer/resources/DirtyCheckin
 
 const needWaitAsync = CommonUtils.needWaitAsync;
 
+function createBindedTemplate(control, template) {
+    const templateKeys: string[] = Object.keys(template);
+    const bindedTemplate = template.bind(control);
+
+    for (let i = 0; i < templateKeys.length; i++) {
+        const key = templateKeys[i];
+        bindedTemplate[key] = template[key];
+    }
+    return bindedTemplate;
+}
+
 type TDirtyCheckingTemplate = ITemplateNode & {
     children: GeneratorNode[];  // нужно понять почему у нас такое ограничение
 };
@@ -338,8 +349,8 @@ function rebuildNodeWriter(environment, node, force, isRoot?) {
    if (node.receivedState && node.receivedState.then) {
       if (!needWaitAsync()) {
           const control = node.control;
-          const controlTemplate = control._template.bind(control);
-          control._template = AsyncWaiterTemplate.bind(control);
+          const controlTemplate = createBindedTemplate(control, control._template);
+          control._template = createBindedTemplate(control, AsyncWaiterTemplate);
           const restoreTemplateFunction = () => {
               control._template = controlTemplate;
           };
