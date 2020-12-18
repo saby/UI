@@ -54,6 +54,7 @@ function createBindedTemplate(control, template) {
         const key = templateKeys[i];
         bindedTemplate[key] = template[key];
     }
+    bindedTemplate.wasBindedForAsync = true;
     return bindedTemplate;
 }
 
@@ -349,12 +350,15 @@ function rebuildNodeWriter(environment, node, force, isRoot?) {
    if (node.receivedState && node.receivedState.then) {
       if (!needWaitAsync()) {
           const control = node.control;
-          const controlTemplate = createBindedTemplate(control, control._template);
-          control._template = createBindedTemplate(control, AsyncWaiterTemplate);
-          const restoreTemplateFunction = () => {
-              control._template = controlTemplate;
-          };
-          node.receivedState.then(restoreTemplateFunction, restoreTemplateFunction);
+          const template = control._template;
+          if (!template.wasBindedForAsync) {
+            const controlTemplate = createBindedTemplate(control, template);
+            control._template = createBindedTemplate(control, AsyncWaiterTemplate);
+            const restoreTemplateFunction = () => {
+                control._template = controlTemplate;
+            };
+            node.receivedState.then(restoreTemplateFunction, restoreTemplateFunction);
+          }
           return rebuildNode(environment, node, force, isRoot);
       }
       return node.receivedState.then(
