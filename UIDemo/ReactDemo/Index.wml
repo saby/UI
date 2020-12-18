@@ -1,0 +1,4 @@
+<div>
+  <h1>React-Wasaby Demo</h1>
+  <div id="app"></div>
+</div>

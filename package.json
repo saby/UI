@@ -31,13 +31,16 @@
    "wasaby-cli": {
       "port": 777
    },
-   "dependencies": {},
    "devDependencies": {
       "@tensor-corp/eslint-config": "^2.0.3",
+      "@types/react": "17.0.0",
+      "@types/react-dom": "17.0.0",
       "body-parser": "^1.18.3",
       "cookie-parser": "^1.4.3",
       "eslint": "^5.6.1",
       "express": "^4.16.3",
+      "react": "17.0.1",
+      "react-dom": "17.0.1",
       "requirejs": "2.1.18",
       "serve-static": "1.11.x",
       "wasaby-cli": "git+https://platform-git.sbis.ru/saby/wasaby-cli.git#rc-21.1000"
