@@ -26,13 +26,14 @@ export interface IAsyncOptions extends IControlOptions {
 const SUCCESS_BUILDED = 's';
 
 /**
- * Контейнер для асинхронной загрузки контролов.
+ * Абстрактная реализация контейнера для асинхронной загрузки контролов.
+ * !Важно: нельзя использовать этот контейнер напрямую! Необходимо использовать {@link Controls/Container/Async}
+ * @see Controls/Container/Async
  * Подробное описание и примеры вы можете найти <a href='/doc/platform/developmentapl/interface-development/pattern-and-practice/async-load/'>здесь</a>.
  *
  * @class UI/Base:Async
- * @extends Core/Control
  *
- * @private
+ * @public
  * @author Санников К.А.
  */
 export default abstract class Async extends Control<IAsyncOptions, TAsyncStateReceived> {
