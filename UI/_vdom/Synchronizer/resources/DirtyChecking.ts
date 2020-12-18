@@ -24,7 +24,7 @@ import { delay } from 'Types/function';
 import { Serializer } from 'UI/State';
 // @ts-ignore
 import { FunctionUtils, Logger, needToBeCompatible } from 'UI/Utils';
-import { AsyncWaiterTemplate } from 'UI/Base';
+import AsyncWaiterTemplate = require('wml!UI/_vdom/Synchronizer/resources/AsyncWaiter');
 import { clearNotChangedOptions } from './DirtyCheckingCompatible';
 import { ReactiveObserver } from 'UI/Reactivity';
 import {

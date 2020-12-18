@@ -10,6 +10,7 @@ import { isNewEnvironment, Logger } from 'UI/Utils';
 import { IBuilder } from './IBuilder';
 
 import { invisibleNodeCompat, isInstOfPromise, asyncRenderErrorTag } from './Utils';
+import { needWaitAsync } from '../_Utils/Common';
 
 /**
  * @author Тэн В.А.
@@ -88,6 +89,9 @@ export class Builder implements IBuilder {
           * Понимаем асинхронная ветка или нет
           */
          if (dfd && isInstOfPromise(dfd)) {
+            if (!needWaitAsync()) {
+               return '<div>Временная заглушка для ожидания асинхронного маунта</div>';
+            }
             if(!isNewEnvironment()) {
                var message = '[UI/_executor/GeneratorDefault:buildForNewControl()] You are using asynchronous rendering inside of the old environment.';
                Logger.warn(message, inst);
