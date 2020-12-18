@@ -13,6 +13,7 @@ import {
 } from '../interfaces';
 
 import { delay } from 'Types/function';
+import { DirtyKind } from './DirtyChecking';
 import { mapVNode } from './VdomMarkup';
 import { setControlNodeHook, setEventHook } from './Hooks';
 import SyntheticEvent from './SyntheticEvent';
@@ -556,10 +557,12 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          }
          return;
       }
-
       const rebuildChanges = rebuildMemoNode.getNodeIds();
+      // tslint:disable:no-bitwise
+      if (this._currentDirties[newNode.id] & DirtyKind.DIRTY) {
+         rebuildChanges.add(newNode.id);
+      }
       const vnode = newNode.fullMarkup;
-      let control;
       const newRootDOMNode = undefined;
 
       // добавляем vdom-focus-in и vdom-focus-out
@@ -581,6 +584,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
          Logger.error('Ошибка оживления Inferno', undefined, e);
       }
 
+      let control;
       // @ts-ignore
       const isCompatible = newNode.control.hasCompatible && newNode.control.hasCompatible();
       if (isCompatible) {
