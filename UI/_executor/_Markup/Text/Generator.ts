@@ -260,10 +260,19 @@ export class GeneratorText implements IGenerator {
 
       if (isTplString) {
          fn = stringTemplateResolver(tpl, includedTemplates, _deps, config, data.parent);
-      } else if (isTplModule) {
-         fn = data.controlClass;
       } else {
-         fn = tpl;
+         fn = data.controlClass;
+      }
+
+      if (!fn) {
+         if (typeof tpl === 'function') {
+            fn = tpl;
+            // @ts-ignore
+         } else if (tpl && typeof tpl.func === 'function') {
+            fn = tpl;
+         } else if (Common.isArray(tpl)) {
+            fn = tpl;
+         }
       }
 
       // FIXME: Для OnlineSbisRu/CompatibleTemplate необходимо использовать default export,
@@ -409,13 +418,13 @@ export class GeneratorText implements IGenerator {
       }
       // export default не поддерживается следует вывести ошибку или странциа построится как [object Objcet]
       if (unknownFnType && fn.hasOwnProperty('default')) {
-         this.isValidTemplateError(fn, tpl, reason);
+         reason = 'В модуле экспортируется объект по-умолчанию (export default ControlName).'
+         this.isValidTemplateError(fn.default, tpl, reason);
          return false
       }
 
       // если в fn есть свойство func, то все ок
       if (unknownFnType && !fn.hasOwnProperty('func')) {
-         reason = 'В модуле экспортируется объект по-умолчанию (export default ControlName).'
          this.isValidTemplateError(fn, tpl, reason);
          return false
       }
