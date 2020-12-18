@@ -5,6 +5,7 @@
  * @includes HTML UI/_base/HTML
  * @includes getMetaStack UI/_base/HTML/meta#getMetaStack
  * @includes Creator UI/_base/Creator
+ * @includes Async UI/_async/Async
  * @public
  * @author Шипин А.А.
  */

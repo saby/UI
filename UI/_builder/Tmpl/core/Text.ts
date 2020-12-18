@@ -270,7 +270,7 @@ function whatExpected(flags: TextContentFlags): string {
    if (!(flags ^ TextContentFlags.TRANSLATION)) {
       return 'ожидалась только конструкция локализации';
    }
-   if (!(flags ^ TextContentFlags.TEXT_AND_EXPRESSION)) {
+   if (!(flags ^ TextContentFlags.TEXT)) {
       return 'ожидался только текст';
    }
 }
