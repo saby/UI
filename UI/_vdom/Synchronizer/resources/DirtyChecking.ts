@@ -340,10 +340,10 @@ function rebuildNodeWriter(environment, node, force, isRoot?) {
           const control = node.control;
           const controlTemplate = control._template.bind(control);
           control._template = AsyncWaiterTemplate.bind(control);
-          function restoreTemplate() {
+          const restoreTemplateFunction = () => {
               control._template = controlTemplate;
-          }
-          node.receivedState.then(restoreTemplate, restoreTemplate);
+          };
+          node.receivedState.then(restoreTemplateFunction, restoreTemplateFunction);
           return rebuildNode(environment, node, force, isRoot);
       }
       return node.receivedState.then(
