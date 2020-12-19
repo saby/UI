@@ -103,7 +103,6 @@ interface ILinkInfo {
    extension: string;
    needTheme: boolean;
    theme: string;
-   isVdomSuperbundle: boolean;
    isPackage: boolean;
 }
 
@@ -255,7 +254,7 @@ class LinkResolver {
 
    postProcessing(resultLink: string, linkInfo: ILinkInfo): string {
       let result = resultLink;
-      if (linkInfo.theme && linkInfo.isPackage && !linkInfo.isVdomSuperbundle) {
+      if (linkInfo.theme && linkInfo.isPackage) {
          const splitted = resultLink.split('.package');
          splitted[0] = splitted[0] + '_' + linkInfo.theme;
          result = splitted.join('.package');
@@ -278,13 +277,6 @@ class LinkResolver {
       return false;
    }
 
-   isVdomSuperbundle(moduleName: string): boolean {
-      if (moduleName.indexOf('vdom-superbundle') !== -1) {
-         return true;
-      }
-      return false;
-   }
-
    generateFullConfig(moduleName: string, linkConfig: any): ILinkInfo {
       let resourceRoot;
       const isAbsolute = this.isAbsolute(moduleName);
@@ -295,7 +287,6 @@ class LinkResolver {
       const isPackage = this.isPackage(moduleName);
       const needTheme = linkConfig.theme && linkConfig.ext === 'css' && !isPackage;
       const oldFixed = this.fixOld(moduleName);
-      const isVdomSuperbundle = this.isVdomSuperbundle(moduleName);
       return {
          moduleName: oldFixed,
          relative: !isAbsolute,
@@ -303,7 +294,6 @@ class LinkResolver {
          extension: linkConfig.ext,
          needTheme,
          theme: linkConfig.theme,
-         isVdomSuperbundle,
          isPackage
       };
    }
