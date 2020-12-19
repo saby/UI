@@ -1,19 +1,22 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DOMEnvironment" />
-// tslint:disable:variable-name no-any
+// tslint:disable:variable-name no-any ban-ts-ignore
 
 import { constants, detection } from 'Env/Env';
 import { Logger, isNewEnvironment } from 'UI/Utils';
 import { ElementFinder, Events, BoundaryElements, focus, preventFocus, hasNoFocus, goUpByControlTree } from 'UI/Focus';
 import {
-   IDOMEnvironment, TControlStateCollback, IControlNode, IArrayEvent,
-   IWasabyHTMLElement, TMarkupNodeDecoratorFn, IHandlerInfo, TModifyHTMLNode
+   IDOMEnvironment, TControlStateCollback, IArrayEvent,
+   IWasabyHTMLElement, TMarkupNodeDecoratorFn, IHandlerInfo, TModifyHTMLNode,
+   TComponentAttrs,
+   IMemoNode,
+   IControlNode
 } from '../interfaces';
 
 import { delay } from 'Types/function';
+import { DirtyKind } from './DirtyChecking';
 import { mapVNode } from './VdomMarkup';
 import { setControlNodeHook, setEventHook } from './Hooks';
 import SyntheticEvent from './SyntheticEvent';
-import { TComponentAttrs } from '../interfaces';
 import { EventUtils } from 'UI/Events';
 import { RawMarkupNode } from 'UI/Executor';
 import Environment from './Environment';
@@ -169,6 +172,9 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
    private __markupNodeDecorator: TMarkupNodeDecoratorFn;
    private touchendTarget: HTMLElement;
 
+   _rebuildRequestStarted: boolean = false;
+   _haveRebuildRequest: boolean = false;
+
    private _clickState: any = {
       detected: false,
       stage: '',
@@ -185,6 +191,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
    };
 
    constructor(
+      // она нужна что бы выполнить функцию render VDOM библиотеки от неё
       public _rootDOMNode: TModifyHTMLNode,
       controlStateChangedCallback: TControlStateCollback,
       rootAttrs: TComponentAttrs
@@ -533,39 +540,55 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       );
    }
 
-   applyNewVNode(newVNnode: IControlNode, rebuildChanges: any, newRootCntNode: IControlNode): any {
+   applyNodeMemo(rebuildMemoNode: IMemoNode): void {
       if (!this._rootDOMNode) {
          return;
       }
 
-      const vnode = this.decorateRootNode(newVNnode);
-      let control;
-      let patch;
+      const newNode: IControlNode = rebuildMemoNode.value;
+      // @ts-ignore
+      if (!!newNode?.control?._parent?.isDestroyed()) {
+         return;
+      }
+      if (!newNode.fullMarkup || !this._haveRebuildRequest) {
+         if (typeof console !== 'undefined') {
+            // tslint:disable:no-console
+            console.warn("node haven't fullMarkup", new Error().stack);
+         }
+         return;
+      }
+      const rebuildChanges = rebuildMemoNode.getNodeIds();
+      // tslint:disable:no-bitwise
+      if (this._currentDirties[newNode.id] & DirtyKind.DIRTY) {
+         rebuildChanges.add(newNode.id);
+      }
+      const vnode = newNode.fullMarkup;
       const newRootDOMNode = undefined;
 
       // добавляем vdom-focus-in и vdom-focus-out
       // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
       BoundaryElements.insertBoundaryElements(this, vnode);
 
-      const controlNodesToCall = mountMethodsCaller.collectControlNodesToCall(newRootCntNode, rebuildChanges);
+      const controlNodesToCall = mountMethodsCaller.collectControlNodesToCall(newNode, rebuildChanges);
       mountMethodsCaller.beforeRender(controlNodesToCall);
 
       this._rootDOMNode.isRoot = true;
       try {
          // Свойство $V вешает движок inferno. Если его нет, значит пришли с сервера.
          if (this._rootDOMNode.hasOwnProperty('$V') || !this._rootDOMNode.firstChild) {
-            patch = render(vnode, this._rootDOMNode, undefined, undefined, true);
+            render(vnode, this._rootDOMNode, undefined, undefined, true);
          } else {
-            patch = hydrate(vnode, this._rootDOMNode, undefined, true);
+            hydrate(vnode, this._rootDOMNode, undefined, true);
          }
       } catch (e) {
          Logger.error('Ошибка оживления Inferno', undefined, e);
       }
 
+      let control;
       // @ts-ignore
-      const isCompatible = newRootCntNode.control.hasCompatible && newRootCntNode.control.hasCompatible();
+      const isCompatible = newNode.control.hasCompatible && newNode.control.hasCompatible();
       if (isCompatible) {
-         control = atLeasOneControl([newRootCntNode]);
+         control = atLeasOneControl([newNode]);
          if (newRootDOMNode) {
             // @ts-ignore FIXME: Unknown $
             control._container = window.$ ? $(newRootDOMNode) : newRootDOMNode;
@@ -579,22 +602,10 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             // это значит, что мы запланировали перерисовку, но она еще не началась
             // В случае если мы ждем завершения асинхронных детей и перестроение уже закончены
             // нужно убрать запрос на реквест, чтобы дети рутовой ноды могли перерисовываться независимо
-            if (
-               // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-               newRootCntNode.environment._rebuildRequestStarted ||
-               // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-               newRootCntNode.environment._asyncOngoing === false
-            ) {
+            // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
+            if (this._rebuildRequestStarted) {
                // @ts-ignore FIXME: Property '_haveRebuildRequest' does not exist
-               newRootCntNode.environment._haveRebuildRequest = false;
-            }
-            // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-            if (newRootCntNode.environment._asyncOngoing === false) {
-               // we have to delete property from environment, cause if we don't we'll be at the same point
-               // even if async request didn't happen. So we have to make sure every time, that async request
-               // really did happen
-               // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-               delete newRootCntNode.environment._asyncOngoing;
+               this._haveRebuildRequest = false;
             }
 
             if (!control._destroyed) {
@@ -602,61 +613,46 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
                   control.reviveSuperOldControls();
                }
             }
-            mountMethodsCaller.afterUpdate(mountMethodsCaller.collectControlNodesToCall(newRootCntNode, rebuildChanges));
+            mountMethodsCaller.afterUpdate(mountMethodsCaller.collectControlNodesToCall(newNode, rebuildChanges));
 
-            // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-            newRootCntNode.environment._rebuildRequestStarted = false;
-            // @ts-ignore FIXME: Property 'runQueue' does not exist
-            newRootCntNode.environment.runQueue();
-            onEndSync(newRootCntNode.rootId);
+            this._rebuildRequestStarted = false;
+            this.runQueue();
+            onEndSync(newNode.rootId);
          });
-      } else {
-         // @ts-ignore FIXME: Properties '_haveRebuildRequest' and '_asyncOngoing' do not exist
-         if (newRootCntNode.environment._rebuildRequestStarted || newRootCntNode.environment._asyncOngoing === false) {
-            // @ts-ignore FIXME: Property '_haveRebuildRequest' does not exist
-            newRootCntNode.environment._haveRebuildRequest = false;
-         }
-         // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-         if (newRootCntNode.environment._asyncOngoing === false) {
-            // we have to delete property from environment, cause if we don't we'll be at the same point
-            // even if async request didn't happen. So we have to make sure every time, that async request
-            // really did happen
-            // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-            delete newRootCntNode.environment._asyncOngoing;
-         }
 
-         mountMethodsCaller.componentDidUpdate(controlNodesToCall);
-         mountMethodsCaller.beforePaint(controlNodesToCall);
-         // используется setTimeout вместо delay, т.к. delay работает через rAF
-         // rAF зовётся до того, как браузер отрисует кадр, а _afterUpdate должен вызываться после, чтобы не вызывать forced reflow.
-         // Если делать то же самое через rAF, то нужно звать rAF из rAF, это и дольше, и неудобно.
-         setTimeout(() => {
-            mountMethodsCaller.afterUpdate(controlNodesToCall);
-            while (callAfterMount && callAfterMount.length) {
-               const elem = callAfterMount.shift();
-               const fn = elem.fn;
-               /* в слое совместимости контрол внутри которого построился wasaby-контрол, может быть уничтожен
-                 до того как начнется асинхронный вызов afterMount,
-                 как результат в текущей точку контрол будет уже уничтожен слоем совместимости
-                 нало проверять действительно ли он жив, перед тем как выстрелить событием
-                */
-               // @ts-ignore
-               if (!fn.control._destroyed) {
-                  fn.apply(fn.control, elem.finalArgs);
-               }
-            }
-            onEndSync(newRootCntNode.rootId);
-            // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-            newRootCntNode.environment._rebuildRequestStarted = false;
-            // @ts-ignore FIXME: Property 'runQueue' does not exist
-            newRootCntNode.environment.runQueue();
-         }, 0);
+         return;
       }
 
-      return patch;
+      this._haveRebuildRequest = false;
+
+      mountMethodsCaller.componentDidUpdate(controlNodesToCall);
+      mountMethodsCaller.beforePaint(controlNodesToCall);
+      // используется setTimeout вместо delay, т.к. delay работает через rAF
+      // rAF зовётся до того, как браузер отрисует кадр,
+      //    а _afterUpdate должен вызываться после, чтобы не вызывать forced reflow.
+      // Если делать то же самое через rAF, то нужно звать rAF из rAF, это и дольше, и неудобно.
+      setTimeout(() => {
+         mountMethodsCaller.afterUpdate(controlNodesToCall);
+         while (callAfterMount && callAfterMount.length) {
+            const elem = callAfterMount.shift();
+            const fn = elem.fn;
+            /* в слое совместимости контрол внутри которого построился wasaby-контрол, может быть уничтожен
+               до того как начнется асинхронный вызов afterMount,
+               как результат в текущей точку контрол будет уже уничтожен слоем совместимости
+               нало проверять действительно ли он жив, перед тем как выстрелить событием
+               */
+            // @ts-ignore
+            if (!fn.control._destroyed) {
+               fn.apply(fn.control, elem.finalArgs);
+            }
+         }
+         onEndSync(newNode.rootId);
+         this._rebuildRequestStarted = false;
+         this.runQueue();
+      }, 0);
    }
 
-   decorateFullMarkup(vnode: any, controlNode: any): any {
+   decorateFullMarkup(vnode: VNode | VNode[], controlNode: IControlNode): any {
       if (Array.isArray(vnode)) {
          vnode = vnode[0];
       }
