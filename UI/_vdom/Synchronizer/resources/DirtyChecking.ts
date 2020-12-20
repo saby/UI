@@ -56,15 +56,37 @@ function createBindedTemplate(control) {
     return bindedTemplate;
 }
 
-function createRestoreFunction(control) {
-    const controlTemplate = control._template;
-    const controlAfterMount = control._afterMount;
-    control._template = createBindedTemplate(control, AsyncWaiterTemplate);
-    controlTemplate._afterMount = () => {};
+function replaceFunctionAndCreateRestore(control, functionName, replacer): () => any {
+    let oldFunction = control[functionName];
+
+    Object.defineProperty(control, functionName, {
+        enumerable: true,
+        configurable: true,
+        get: () => replacer,
+        set: (value) => {
+            oldFunction = value;
+        }
+    });
     return () => {
+        Object.defineProperty(control, functionName, {
+            enumerable: true,
+            configurable: true,
+            value: oldFunction
+        });
+    }
+}
+
+const functionsDelayCall = ['_afterMount', '_componentDidMount', '_template'];
+const emptyFunction = () => {};
+function createRestoreFunction(control) {
+    const restoreTemplate = replaceFunctionAndCreateRestore(control, '_template', AsyncWaiterTemplate.bind(control));
+    const restoreDidMount = replaceFunctionAndCreateRestore(control, '_componentDidMount', emptyFunction);
+    const restoreAfterMount = replaceFunctionAndCreateRestore(control, '_afterMount', emptyFunction);
+    return () => {
+        restoreTemplate();
+        restoreDidMount();
+        restoreAfterMount();
         control._mounted = false;
-        control._afterMount = controlAfterMount;
-        control._template = controlTemplate;
     };
 }
 
