@@ -59,6 +59,7 @@ function createBindedTemplate(control) {
 function replaceFunctionAndCreateRestore(control, functionName, replacer): () => any {
     let oldFunction = control[functionName];
 
+    // Не даём переприсваивать, пока не стрельнет промиз, сохраняем присваивания.
     Object.defineProperty(control, functionName, {
         enumerable: true,
         configurable: true,
@@ -68,6 +69,7 @@ function replaceFunctionAndCreateRestore(control, functionName, replacer): () =>
         }
     });
     return () => {
+        // Когда стрельнет - возвращаем последнее присваивание.
         Object.defineProperty(control, functionName, {
             enumerable: true,
             configurable: true,
@@ -76,7 +78,6 @@ function replaceFunctionAndCreateRestore(control, functionName, replacer): () =>
     }
 }
 
-const functionsDelayCall = ['_afterMount', '_componentDidMount', '_template'];
 const emptyFunction = () => {};
 function createRestoreFunction(control) {
     const restoreTemplate = replaceFunctionAndCreateRestore(control, '_template', AsyncWaiterTemplate.bind(control));
@@ -384,8 +385,8 @@ function rebuildNodeWriter(environment, node, force, isRoot?) {
       if (!needWaitAsync(node.control._moduleName)) {
          if (!node.wasAsyncMount) {
             node.wasAsyncMount = true;
-            const restoreTemplateFunction = createRestoreFunction(control);
-            node.receivedState.then(restoreTemplateFunction, restoreTemplateFunction);
+            const restoreFunction = createRestoreFunction(control);
+            node.receivedState.then(restoreFunction, restoreFunction);
          }
          return rebuildNode(environment, node, force, isRoot);
       }
