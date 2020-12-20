@@ -32,18 +32,18 @@ export function escapeQuotesInString(entity: any): any {
 const localizationRegExp = /^(\s*)(?:(.*?)\s*@@\s*)?(.*?)(\s*)$/;
 
 function splitLocalizationText(text: string, fileName: string): { text: string, context: string, spacesBefore: string, spacesAfter: string } {
-   const [_, spacesBefore, context, splitedText, spacesAfter]: string[] = localizationRegExp.exec(text);
+   const [match, spacesBefore, context, splitedText, spacesAfter]: string[] = localizationRegExp.exec(text);
    if (splitedText.indexOf('@@') !== -1) {
       errorHandler.error(
-         `Ожидался только 1 @@-разделитель в конструкции локализации, в тексте "${text}" найдено больше`,
+         `Ожидался только 1 @@-разделитель в конструкции локализации, в тексте "${match}" найдено больше`,
          {
             fileName
          }
       )
    }
    return {
-      text: splitedText || '',
-      context: context || '',
+      text: splitedText || EMPTY_STRING,
+      context: context || EMPTY_STRING,
       spacesBefore,
       spacesAfter
    }
@@ -56,10 +56,10 @@ function wrapWithLocalization(data: string, fileName: string): string {
       .replace(/^"/gi, '')
       .replace(/"$/gi, '');
    const prepared = splitLocalizationText(text, fileName);
-   const context = prepared.context ? `, "${prepared.context}"` : '';
-   const spacesBefore = prepared.spacesBefore ? `"spacesBefore" + ` : '';
-   const spacesAfter = prepared.spacesAfter ? `+ "spacesAfter"` : '';
-   return `${spacesBefore}rk("${prepared.text}"{${context})${spacesAfter}`;
+   const context = prepared.context ? `, "${prepared.context}"` : EMPTY_STRING;
+   const spacesBefore = prepared.spacesBefore ? `"${prepared.spacesBefore}" + ` : EMPTY_STRING;
+   const spacesAfter = prepared.spacesAfter ? `+ "${prepared.spacesAfter}"` : EMPTY_STRING;
+   return `${spacesBefore}rk("${prepared.text}"${context})${spacesAfter}`;
 }
 
 function calculateResultOfExpression(data: any, escape: boolean, sanitize: boolean): any {
