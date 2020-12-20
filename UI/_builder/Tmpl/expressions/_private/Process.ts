@@ -29,26 +29,23 @@ export function escapeQuotesInString(entity: any): any {
    return entity;
 }
 
-function splitLocalizationText(text: string, fileName: string): { text: string, context: string } {
-   const pair = text.split('@@');
-   switch (pair.length) {
-      case 1:
-         return {
-            text: pair[0] || EMPTY_STRING,
-            context: EMPTY_STRING
+const localizationRegExp = /^(\s*)(?:(.*?)\s*@@\s*)?(.*?)(\s*)$/;
+
+function splitLocalizationText(text: string, fileName: string): { text: string, context: string, spacesBefore: string, spacesAfter: string } {
+   const [_, spacesBefore, context, splitedText, spacesAfter]: string[] = localizationRegExp.exec(text);
+   if (splitedText.indexOf('@@') !== -1) {
+      errorHandler.error(
+         `Ожидался только 1 @@-разделитель в конструкции локализации, в тексте "${text}" найдено больше`,
+         {
+            fileName
          }
-      default:
-         errorHandler.error(
-            `Ожидался только 1 @@-разделитель в конструкции локализации, а обнаружено ${pair.length - 1} разделителей в тексте "${text}"`,
-            {
-               fileName
-            }
-         );
-      case 2:
-         return {
-            text: (pair[1] || EMPTY_STRING).trim(),
-            context: (pair[0] || EMPTY_STRING).trim()
-         }
+      )
+   }
+   return {
+      text: splitedText || '',
+      context: context || '',
+      spacesBefore,
+      spacesAfter
    }
 }
 
