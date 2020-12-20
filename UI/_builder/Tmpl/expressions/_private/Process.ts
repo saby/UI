@@ -56,10 +56,10 @@ function wrapWithLocalization(data: string, fileName: string): string {
       .replace(/^"/gi, '')
       .replace(/"$/gi, '');
    const prepared = splitLocalizationText(text, fileName);
-   if (prepared.context) {
-      return `rk("${prepared.text}", "${prepared.context}")`;
-   }
-   return `rk("${prepared.text}")`;
+   const context = prepared.context ? `, "${prepared.context}"` : '';
+   const spacesBefore = prepared.spacesBefore ? `"spacesBefore" + ` : '';
+   const spacesAfter = prepared.spacesAfter ? `+ "spacesAfter"` : '';
+   return `${spacesBefore}rk("${prepared.text}"{${context})${spacesAfter}`;
 }
 
 function calculateResultOfExpression(data: any, escape: boolean, sanitize: boolean): any {
