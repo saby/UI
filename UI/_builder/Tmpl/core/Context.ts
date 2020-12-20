@@ -18,7 +18,7 @@ const ALLOW_PROGRAM_DUPLICATES = true;
 
 const PROGRAM_PREFIX = '$p';
 
-const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
+const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars';
 
 const FILE_NAME = '[[context]]';
 
@@ -45,6 +45,11 @@ export interface ILexicalContextOptions {
    identifiers?: string[];
 }
 
+export interface IProgramMeta {
+   key: TProgramKey;
+   node: ProgramNode;
+}
+
 export interface IContext {
    createContext(config?: ILexicalContextConfig): IContext;
 
@@ -58,8 +63,8 @@ export interface IContext {
    getProgram(key: TProgramKey): ProgramNode | null;
 
    getIdentifiers(localOnly: boolean): string[];
-   getPrograms(localOnly: boolean): ProgramNode[];
-   getInternalPrograms(): ProgramNode[];
+   getPrograms(localOnly: boolean): IProgramMeta[];
+   getInternalPrograms(): IProgramMeta[];
 }
 
 export function createGlobalContext(): IContext {
@@ -71,8 +76,35 @@ export function createGlobalContext(): IContext {
 
 // <editor-fold desc="Internal interfaces and functions">
 
+interface IProgramsMap {
+
+   // Reflection: program text -> program index in collection
+   [program: string]: number;
+}
+
+interface IProgramDescription {
+   index: number;
+   node: ProgramNode;
+   originContext: IContext;
+   isSynthetic: boolean;
+}
+
 interface ILexicalContext extends IContext {
    // TODO: Implement
+}
+
+function createProgramDescription(
+   index: number,
+   node: ProgramNode,
+   originContext: IContext,
+   isSynthetic: boolean
+): IProgramDescription {
+   return {
+      index,
+      node,
+      originContext,
+      isSynthetic
+   };
 }
 
 function prepareContextConfig(config?: ILexicalContextConfig): ILexicalContextConfig {
@@ -90,6 +122,27 @@ function prepareContextConfig(config?: ILexicalContextConfig): ILexicalContextCo
       cfg.identifiers = config.identifiers;
    }
    return cfg;
+}
+
+function createProgramMeta(key: string, node: ProgramNode): IProgramMeta {
+   return {
+      key,
+      node
+   };
+}
+
+function zipProgramMeta(description: IProgramDescription): IProgramMeta {
+   return createProgramMeta(
+      `${PROGRAM_PREFIX}_${description.index}`,
+      description.node
+   );
+}
+
+function zipInternalProgramMeta(description: IProgramDescription): IProgramMeta {
+   return createProgramMeta(
+      `${INTERNAL_PROGRAM_PREFIX}_${description.index}`,
+      description.node
+   );
 }
 
 // </editor-fold>
@@ -175,12 +228,21 @@ class LexicalContext implements ILexicalContext {
    private readonly allowHoisting: boolean;
    private readonly identifiers: string[];
 
+   private readonly programs: IProgramDescription[];
+   private readonly programsMap: IProgramsMap;
+   private readonly internals: IProgramDescription[];
+   private readonly internalsMap: IProgramsMap;
+
    // </editor-fold>
 
    constructor(parent: IContext | null, config: ILexicalContextConfig) {
       this.parent = parent;
       this.allowHoisting = config.allowHoisting;
       this.identifiers = config.identifiers;
+      this.programs = [];
+      this.programsMap = { };
+      this.internals = [];
+      this.internalsMap = { };
    }
 
    // <editor-fold desc="Public methods">
@@ -229,12 +291,28 @@ class LexicalContext implements ILexicalContext {
       return identifiers;
    }
 
-   getPrograms(localOnly: boolean): ProgramNode[] {
-      throw new Error('Not implemented yet');
+   getPrograms(localOnly: boolean): IProgramMeta[] {
+      const collection: IProgramMeta[] = [];
+      for (let index = 0; index < this.programs.length; ++index) {
+         const description = this.programs[index];
+         const meta = zipProgramMeta(description);
+         collection.push(meta);
+      }
+      if (localOnly || this.parent === null) {
+         return collection;
+      }
+      const parentCollection = this.parent.getPrograms(localOnly);
+      return parentCollection.concat(collection);
    }
 
-   getInternalPrograms(): ProgramNode[] {
-      throw new Error('Not implemented yet');
+   getInternalPrograms(): IProgramMeta[] {
+      const collection: IProgramMeta[] = [];
+      for (let index = 0; index < this.internals.length; ++index) {
+         const description = this.internals[index];
+         const meta = zipInternalProgramMeta(description);
+         collection.push(meta);
+      }
+      return collection;
    }
 
    // </editor-fold>
