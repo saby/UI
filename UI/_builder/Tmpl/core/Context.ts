@@ -146,6 +146,10 @@ function zipInternalProgramMeta(description: IProgramDescription): IProgramMeta 
    );
 }
 
+function isForbiddenIdentifier(name: string): boolean {
+   return FORBIDDEN_IDENTIFIERS.indexOf(name) > -1;
+}
+
 // </editor-fold>
 
 // <editor-fold desc="Mustache expression functions">
@@ -346,7 +350,31 @@ class LexicalContext implements ILexicalContext {
 
    // <editor-fold desc="Private methods">
 
-   // TODO: Implement
+   private commitIdentifier(identifier: string): void {
+      if (this.identifiers.indexOf(identifier) > -1) {
+         return;
+      }
+      if (isForbiddenIdentifier(identifier)) {
+         return;
+      }
+      this.identifiers.push(identifier);
+   }
+
+   private commitProgram(description: IProgramDescription): void {
+      // Description index in collection that will be set.
+      const index: number = this.programs.length;
+      const source = description.node.string;
+      this.programsMap[source] = index;
+      this.programs.push(description);
+   }
+
+   private commitInternalProgram(description: IProgramDescription): void {
+      // Description index in collection that will be set.
+      const index: number = this.internals.length;
+      const source = description.node.string;
+      this.internalsMap[source] = index;
+      this.internals.push(description);
+   }
 
    // </editor-fold>
 
