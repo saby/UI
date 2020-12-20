@@ -46,16 +46,26 @@ import { getCompatibleUtils } from 'UI/_vdom/Synchronizer/resources/DirtyCheckin
 
 const needWaitAsync = CommonUtils.needWaitAsync;
 
-function createBindedTemplate(control, template) {
-    const templateKeys: string[] = Object.keys(template);
-    const bindedTemplate = template.bind(control);
-
+const templateKeys: string[] = Object.keys(AsyncWaiterTemplate);
+function createBindedTemplate(control) {
+    const bindedTemplate = AsyncWaiterTemplate.bind(control);
     for (let i = 0; i < templateKeys.length; i++) {
         const key = templateKeys[i];
-        bindedTemplate[key] = template[key];
+        bindedTemplate[key] = AsyncWaiterTemplate[key];
     }
-    bindedTemplate.wasBindedForAsync = true;
     return bindedTemplate;
+}
+
+function createRestoreFunction(control) {
+    const controlTemplate = control._template;
+    const controlAfterMount = control._afterMount;
+    control._template = createBindedTemplate(control, AsyncWaiterTemplate);
+    controlTemplate._afterMount = () => {};
+    return () => {
+        control._mounted = false;
+        control._afterMount = controlAfterMount;
+        control._template = controlTemplate;
+    };
 }
 
 type TDirtyCheckingTemplate = ITemplateNode & {
@@ -348,18 +358,14 @@ function collectChildrenKeys(next: { key }[], prev: { key }[]): { prev, next }[]
 
 function rebuildNodeWriter(environment, node, force, isRoot?) {
    if (node.receivedState && node.receivedState.then) {
-      if (!needWaitAsync()) {
-          const control = node.control;
-          const template = control._template;
-          if (!template.wasBindedForAsync) {
-            const controlTemplate = createBindedTemplate(control, template);
-            control._template = createBindedTemplate(control, AsyncWaiterTemplate);
-            const restoreTemplateFunction = () => {
-                control._template = controlTemplate;
-            };
+    const control = node.control;
+      if (!needWaitAsync(node.control._moduleName)) {
+         if (!node.wasAsyncMount) {
+            node.wasAsyncMount = true;
+            const restoreTemplateFunction = createRestoreFunction(control);
             node.receivedState.then(restoreTemplateFunction, restoreTemplateFunction);
-          }
-          return rebuildNode(environment, node, force, isRoot);
+         }
+         return rebuildNode(environment, node, force, isRoot);
       }
       return node.receivedState.then(
          function rebuildNodeWriterCbk(state) {

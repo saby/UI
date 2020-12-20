@@ -89,7 +89,7 @@ export class Builder implements IBuilder {
           * Понимаем асинхронная ветка или нет
           */
          if (dfd && isInstOfPromise(dfd)) {
-            if (!needWaitAsync()) {
+            if (!needWaitAsync(inst._moduleName)) {
                return '<div>Временная заглушка для ожидания асинхронного маунта</div>';
             }
             if(!isNewEnvironment()) {

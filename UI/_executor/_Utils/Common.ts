@@ -22,7 +22,16 @@ if (typeof process !== 'undefined' && process?.domain?.req) {
    needWaitAsyncStorage = {};
 }
 
-export function needWaitAsync(): boolean {
+
+const waitAsyncAllowlist = [
+   'UI/_base/HTML/Head',
+   'UI/_base/HTML/Wait'
+];
+export function needWaitAsync(moduleName: string): boolean {
+   if (waitAsyncAllowlist.indexOf(moduleName) !== -1) {
+      // Пока не может отказаться от асинхронности некоторых контролов.
+      return true;
+   }
    if (typeof needWaitAsyncStorage.needWaitAsync === 'undefined') {
       needWaitAsyncStorage.needWaitAsync = cookie.get('stopWaitAsync') !== 'true';
    }
