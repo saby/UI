@@ -16,6 +16,8 @@ const PARSER = new Parser();
 
 const ALLOW_PROGRAM_DUPLICATES = true;
 
+const EMPTY_STRING = '';
+
 const PROGRAM_PREFIX = '$p';
 
 const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars';
@@ -152,6 +154,16 @@ function isForbiddenIdentifier(name: string): boolean {
    return FORBIDDEN_IDENTIFIERS.indexOf(name) > -1;
 }
 
+function validateProgramKey(key: TProgramKey): void {
+   const stringIndex = key
+      .replace(PROGRAM_PREFIX, EMPTY_STRING)
+      .replace(INTERNAL_PROGRAM_PREFIX, EMPTY_STRING);
+   const index = parseInt(stringIndex, 10);
+   if (key.indexOf(PROGRAM_PREFIX) !== 0 || key.indexOf(INTERNAL_PROGRAM_PREFIX) !== 0 || isNaN(index)) {
+      throw new Error(`Получен некорректный ключ выражения "${key}". Ожидался program или internal program ключ`);
+   }
+}
+
 // </editor-fold>
 
 // <editor-fold desc="Mustache expression functions">
@@ -239,8 +251,11 @@ class LexicalContext implements ILexicalContext {
 
    private readonly programs: IProgramDescription[];
    private readonly programsMap: IProgramsMap;
+   private readonly programKeysMap: IProgramsMap;
+
    private readonly internals: IProgramDescription[];
    private readonly internalsMap: IProgramsMap;
+   private readonly internalKeysMap: IProgramsMap;
 
    // </editor-fold>
 
@@ -251,8 +266,10 @@ class LexicalContext implements ILexicalContext {
       this.identifiers = config.identifiers;
       this.programs = [];
       this.programsMap = { };
+      this.programKeysMap = { };
       this.internals = [];
       this.internalsMap = { };
+      this.internalKeysMap = { };
    }
 
    // <editor-fold desc="Public methods">
@@ -294,7 +311,17 @@ class LexicalContext implements ILexicalContext {
    }
 
    getProgram(key: TProgramKey): ProgramNode | null {
-      throw new Error('Not implemented yet');
+      validateProgramKey(key);
+      let collectionIndex;
+      if (this.programKeysMap.hasOwnProperty(key)) {
+         collectionIndex = this.programKeysMap[key];
+         return this.programs[collectionIndex].node;
+      }
+      if (this.internalKeysMap.hasOwnProperty(key)) {
+         collectionIndex = this.internalKeysMap[key];
+         return this.internals[collectionIndex].node;
+      }
+      throw new Error(`Выражение с ключем "${key}" не было зарегистрировано в текущем контексте`);
    }
 
    getIdentifiers(localOnly: boolean): string[] {
