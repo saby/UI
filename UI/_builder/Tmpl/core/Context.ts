@@ -92,6 +92,8 @@ interface IProgramDescription {
 interface ILexicalContext extends IContext {
    allocateProgramIndex(): number;
    findProgramIndex(program: ProgramNode): number | null;
+
+   hoistIdentifier(identifier: string): void;
 }
 
 function createProgramDescription(
@@ -261,11 +263,22 @@ class LexicalContext implements ILexicalContext {
    }
 
    registerBindProgram(program: ProgramNode): TProgramKey {
-      throw new Error('Not implemented yet');
+      const programs = dropBindProgram(program);
+      let key = null;
+      for (let index = 0; index < programs.length; ++index) {
+         const program = programs[index];
+         // Actual (input) program is last program in collection and its program key must be returned.
+         key = this.registerProgram(program);
+      }
+      return key;
    }
 
    registerEventProgram(program: ProgramNode): void {
-      throw new Error('Not implemented yet');
+      const identifiers = collectIdentifiers(program);
+      for (let index = 0; index < identifiers.length; ++index) {
+         const identifier = identifiers[index];
+         this.hoistIdentifier(identifier);
+      }
    }
 
    registerFloatProgram(program: ProgramNode): void {
@@ -344,6 +357,17 @@ class LexicalContext implements ILexicalContext {
          return this.programs[collectionIndex].index;
       }
       return null;
+   }
+
+   hoistIdentifier(identifier: string): void {
+      if (this.identifiers.indexOf(identifier) > -1 || isForbiddenIdentifier(identifier)) {
+         return;
+      }
+      if (this.parent === null || !this.allowHoisting) {
+         this.commitIdentifier(identifier);
+         return;
+      }
+      this.parent.hoistIdentifier(identifier);
    }
 
    // </editor-fold>
