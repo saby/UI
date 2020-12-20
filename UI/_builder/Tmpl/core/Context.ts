@@ -186,7 +186,8 @@ class LexicalContext implements ILexicalContext {
    // <editor-fold desc="Public methods">
 
    createContext(config?: ILexicalContextConfig): IContext {
-      throw new Error('Not implemented yet');
+      const cfg = prepareContextConfig(config);
+      return new LexicalContext(this, cfg);
    }
 
    registerBindProgram(program: ProgramNode): TProgramKey {
@@ -214,7 +215,18 @@ class LexicalContext implements ILexicalContext {
    }
 
    getIdentifiers(localOnly: boolean): string[] {
-      throw new Error('Not implemented yet');
+      const identifiers = Array(...this.identifiers);
+      if (localOnly || this.parent === null) {
+         return identifiers;
+      }
+      const parentIdentifiers = this.parent.getIdentifiers(localOnly);
+      for (let index = 0; index < parentIdentifiers.length; ++index) {
+         const parentIdentifier = parentIdentifiers[index];
+         if (identifiers.indexOf(parentIdentifier) === -1) {
+            identifiers.push(parentIdentifier);
+         }
+      }
+      return identifiers;
    }
 
    getPrograms(localOnly: boolean): ProgramNode[] {
