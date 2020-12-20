@@ -80,7 +80,7 @@ function replaceFunctionAndCreateRestore(control, functionName, replacer): () =>
 
 const emptyFunction = () => {};
 function createRestoreFunction(control) {
-    const restoreTemplate = replaceFunctionAndCreateRestore(control, '_template', AsyncWaiterTemplate.bind(control));
+    const restoreTemplate = replaceFunctionAndCreateRestore(control, '_template', createBindedTemplate(control));
     const restoreDidMount = replaceFunctionAndCreateRestore(control, '_componentDidMount', emptyFunction);
     const restoreAfterMount = replaceFunctionAndCreateRestore(control, '_afterMount', emptyFunction);
     return () => {
