@@ -20,7 +20,7 @@ function getNeedWaitAsyncValue(): boolean|undefined {
    return hasRequest ? process.domain.req.needWaitAsyncValue : needWaitAsyncValue;
 }
 function setNeedWaitAsyncValue(newValue: boolean) {
-   if (this.hasRequest) {
+   if (hasRequest) {
       process.domain.req.needWaitAsyncValue = newValue;
    } else {
       needWaitAsyncValue = newValue;
