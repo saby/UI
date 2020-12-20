@@ -78,8 +78,8 @@ export function createGlobalContext(): IContext {
 
 interface IProgramsMap {
 
-   // Reflection: program text -> program index in collection
-   [program: string]: number;
+   // Reflection: program source text -> program index in collection
+   [source: string]: number;
 }
 
 interface IProgramDescription {
@@ -90,7 +90,8 @@ interface IProgramDescription {
 }
 
 interface ILexicalContext extends IContext {
-   // TODO: Implement
+   allocateProgramIndex(): number;
+   findProgramIndex(program: ProgramNode): number | null;
 }
 
 function createProgramDescription(
@@ -224,7 +225,9 @@ class LexicalContext implements ILexicalContext {
 
    // <editor-fold desc="Properties">
 
-   private readonly parent: IContext | null;
+   private programIndex: number;
+
+   private readonly parent: ILexicalContext | null;
    private readonly allowHoisting: boolean;
    private readonly identifiers: string[];
 
@@ -235,7 +238,8 @@ class LexicalContext implements ILexicalContext {
 
    // </editor-fold>
 
-   constructor(parent: IContext | null, config: ILexicalContextConfig) {
+   constructor(parent: ILexicalContext | null, config: ILexicalContextConfig) {
+      this.programIndex = 0;
       this.parent = parent;
       this.allowHoisting = config.allowHoisting;
       this.identifiers = config.identifiers;
@@ -319,7 +323,24 @@ class LexicalContext implements ILexicalContext {
 
    // <editor-fold desc="Internal methods">
 
-   // TODO: Implement
+   allocateProgramIndex(): number {
+      if (this.parent === null) {
+         return this.programIndex++;
+      }
+      return this.parent.allocateProgramIndex();
+   }
+
+   findProgramIndex(program: ProgramNode): number | null {
+      if (ALLOW_PROGRAM_DUPLICATES) {
+         return null;
+      }
+      const source = program.string;
+      if (this.programsMap.hasOwnProperty(source)) {
+         const collectionIndex = this.programsMap[source];
+         return this.programs[collectionIndex].index;
+      }
+      return null;
+   }
 
    // </editor-fold>
 
