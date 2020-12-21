@@ -17,7 +17,7 @@ import { DirtyKind } from './DirtyChecking';
 import { mapVNode } from './VdomMarkup';
 import { setControlNodeHook, setEventHook } from './Hooks';
 import SyntheticEvent from './SyntheticEvent';
-import { EventUtils } from 'UI/Events';
+import { EventUtils, FastTouchEndController } from 'UI/Events';
 import { RawMarkupNode } from 'UI/Executor';
 import Environment from './Environment';
 import { SwipeController } from './SwipeController';
@@ -523,6 +523,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       this.touchendTarget = event.target;
       setTimeout(() => { this.touchendTarget = null; }, 300);
 
+      FastTouchEndController.clickEmulate(event.target, event);
       SwipeController.resetState();
       LongTapController.resetState();
    }
