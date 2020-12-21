@@ -5,7 +5,7 @@ const fastEventList = ['mousedown', 'mouseup', 'click'];
 
 export class FastTouchEndController {
    static clickEmulate(targetElement: Element, nativeEvent: TouchEvent): void {
-      if (!nativeEvent) {
+      if (!nativeEvent || !nativeEvent.preventDefault) {
          return;
       }
       nativeEvent.preventDefault();
