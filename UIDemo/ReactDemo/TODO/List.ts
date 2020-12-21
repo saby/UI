@@ -1,5 +1,5 @@
 import {createElement} from 'react';
-import {Control} from 'UI/ReactComponent';
+import {Control, ITemplateFunction} from 'UI/ReactComponent';
 import {IList} from './interfaces';
 import Item, {IItem} from './Item';
 
@@ -12,7 +12,7 @@ export default class List extends Control<IList> {
         });
     }
 
-    protected _template = (props: IList) => {
+    protected _template: ITemplateFunction = (props: IList) => {
         return props.items.length ? createElement('ul', null,
             props.items.map((el) => createElement<IItem>(Item, {
                 key: el.id,

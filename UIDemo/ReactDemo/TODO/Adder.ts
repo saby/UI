@@ -1,5 +1,5 @@
 import {ChangeEvent, createElement} from 'react';
-import {Control, IControlOptions} from 'UI/ReactComponent';
+import {Control, IControlOptions, ITemplateFunction} from 'UI/ReactComponent';
 
 interface IAdder extends IControlOptions<Adder> {
     addNewHandler: Function;
@@ -7,7 +7,13 @@ interface IAdder extends IControlOptions<Adder> {
 
 export default class Adder extends Control<IAdder> {
     protected _value: string = '';
-    protected _template = (props: IAdder) => {
+
+    constructor(props: IAdder) {
+        super(props);
+        this._template.reactiveProps = ['_value'];
+    }
+
+    protected _template: ITemplateFunction = (props: IAdder) => {
         return createElement('div', null, [
             createElement('input', {
                 key: 'input',
@@ -25,12 +31,10 @@ export default class Adder extends Control<IAdder> {
 
     protected changeHandler(e: ChangeEvent<HTMLInputElement>): void {
         this._value = e.target.value;
-        this.forceUpdate();
     }
 
     protected addNew(): void {
         this._options.addNewHandler(this._value);
         this._value = '';
-        this.forceUpdate();
     }
 }

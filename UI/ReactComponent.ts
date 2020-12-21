@@ -1,5 +1,5 @@
-import {Control, IControlOptions} from './_react/Control/Compatible';
+import {Control, IControlOptions, ITemplateFunction} from './_react/Control/Compatible';
 
 export {
-    Control, IControlOptions
+    Control, IControlOptions, ITemplateFunction
 };

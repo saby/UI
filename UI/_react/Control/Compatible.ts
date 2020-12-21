@@ -1,13 +1,13 @@
-import {Component, createElement, ReactElement} from 'react';
+import {Component, createElement, ReactElement, FunctionComponent} from 'react';
 
 /**
  * TODO: Список задача
  * 1. Контексты для опций (theme и readonly)
- * 2. Реактивные свойства для перерисовок (Сейчас используется forceUpdate вручную)
- * 3. Объявить болванки для методов _notify, activate
- * 4. Опции по умолчанию
- * 5. Избавиться от any
- * 6. Recieved State
+ * 2. Объявить болванки для методов _notify, activate
+ * 3. Опции по умолчанию
+ * 4. Избавиться от any
+ * 5. Recieved State
+ * 6. reactiveProps навешивается вручную + не проверяет сложные объекты
  */
 
 export interface IControlOptions<C = Control> {
@@ -19,6 +19,30 @@ interface IControlState {
     loading: boolean;
 }
 
+export interface ITemplateFunction<P = IControlOptions, S = {}> extends FunctionComponent<IControlOptions> {
+    reactiveProps?: string[];
+}
+
+function observe<P = IControlOptions, S = {}>(inst: Control<P, S>, reactiveProps: string[]): void {
+    const reactiveValues = {};
+    reactiveProps.forEach((prop) => {
+        reactiveValues[prop] = inst[prop];
+        Object.defineProperty(inst, prop, {
+            enumerable: true,
+            configurable: true,
+            get: function reactiveGetter(): unknown {
+                return reactiveValues[prop];
+            },
+            set: function reactiveSetter(value: unknown): void {
+                if (reactiveValues[prop] !== value) {
+                    reactiveValues[prop] = value;
+                    inst.forceUpdate();
+                }
+            }
+        });
+    });
+}
+
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
  * @class UIDemo/_react/Control
@@ -27,7 +51,8 @@ interface IControlState {
 export class Control<P extends IControlOptions = {}, T = {}> extends Component<P, IControlState> {
     private _firstRender: boolean = true;
     private _asyncMount: boolean = false;
-    protected _template: any;
+    private _$observer: Function = observe;
+    protected _template: ITemplateFunction;
     protected _options: P;
 
     constructor(props: P) {
@@ -138,6 +163,9 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
                     loading: false
                 }, () => this._afterMount(this.props));
             });
+        }
+        if (this._template.reactiveProps) {
+            this._$observer(this, this._template.reactiveProps);
         }
     }
 
