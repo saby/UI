@@ -1,7 +1,5 @@
 /// <amd-module name="UI/_builder/Tmpl/core/Context" />
 
-// @ts-nocheck TODO: Remove after dev
-
 /**
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/core/Context.ts
