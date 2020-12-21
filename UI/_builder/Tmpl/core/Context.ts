@@ -18,9 +18,9 @@ const EMPTY_STRING = '';
 
 const EMPTY_ARRAY = [];
 
-const PROGRAM_PREFIX = '$p';
+const PROGRAM_PREFIX = '$p_';
 
-const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars';
+const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
 
 const FILE_NAME = '[[context]]';
 
@@ -142,7 +142,7 @@ function createProgramMeta(key: string, node: ProgramNode): IProgramMeta {
 }
 
 function generateProgramKey(index: number): string {
-   return `${PROGRAM_PREFIX}_${index}`;
+   return `${PROGRAM_PREFIX}${index}`;
 }
 
 function zipProgramMeta(description: IProgramDescription): IProgramMeta {
@@ -153,7 +153,7 @@ function zipProgramMeta(description: IProgramDescription): IProgramMeta {
 }
 
 function generateInternalProgramKey(index: number): string {
-   return `${INTERNAL_PROGRAM_PREFIX}_${index}`;
+   return `${INTERNAL_PROGRAM_PREFIX}${index}`;
 }
 
 function zipInternalProgramMeta(description: IProgramDescription): IProgramMeta {
@@ -172,7 +172,7 @@ function validateProgramKey(key: TProgramKey): void {
       .replace(PROGRAM_PREFIX, EMPTY_STRING)
       .replace(INTERNAL_PROGRAM_PREFIX, EMPTY_STRING);
    const index = parseInt(stringIndex, 10);
-   if (key.indexOf(PROGRAM_PREFIX) !== 0 || key.indexOf(INTERNAL_PROGRAM_PREFIX) !== 0 || isNaN(index)) {
+   if ((key.indexOf(PROGRAM_PREFIX) !== 0 && key.indexOf(INTERNAL_PROGRAM_PREFIX) !== 0) || isNaN(index)) {
       throw new Error(`Получен некорректный ключ выражения "${key}". Ожидался program или internal program ключ`);
    }
 }
@@ -297,9 +297,17 @@ class LexicalContext implements ILexicalContext {
       let key = null;
       for (let index = 0; index < programs.length; ++index) {
          const program = programs[index];
-         // Actual (input) program is last program in collection and its program key must be returned.
-         key = this.registerProgram(program);
+         key = null;
+         if (!canRegisterProgram(program)) {
+            continue;
+         }
+         if (!this.processIdentifiers(program)) {
+            continue;
+         }
+         const isSynthetic = index + 1 < programs.length;
+         key = this.processProgram(program, isSynthetic);
       }
+      // Actual (input) program is last program in collection and its program key must be returned.
       return key;
    }
 
@@ -438,9 +446,13 @@ class LexicalContext implements ILexicalContext {
 
    hoistInternalProgram(description: IProgramDescription): void {
       const programContainsLocalIdentifiers = containsIdentifiers(description.node, this.identifiers);
-      const isHoistingAllowed = !programContainsLocalIdentifiers && this.allowHoisting;
-      if (isHoistingAllowed && this.parent !== null) {
-         this.parent.hoistInternalProgram(description);
+      if (this.allowHoisting && this.parent !== null) {
+         if (programContainsLocalIdentifiers) {
+            const identifiers = collectIdentifiers(description.node);
+            this.hoistIdentifiersAsPrograms(identifiers, this.identifiers);
+         } else {
+            this.parent.hoistInternalProgram(description);
+         }
       }
       this.commitInternalProgram(description);
    }
@@ -480,6 +492,8 @@ class LexicalContext implements ILexicalContext {
       // Description index in collection that will be set.
       const index: number = this.programs.length;
       const source = description.node.string;
+      const key = generateProgramKey(description.index);
+      this.programKeysMap[key] = index;
       this.programsMap[source] = index;
       this.programs.push(description);
    }
@@ -499,10 +513,10 @@ class LexicalContext implements ILexicalContext {
       for (let index = 0; index < identifiers.length; ++index) {
          const identifier = identifiers[index];
          if (this.identifiers.indexOf(identifier) > -1) {
-            return;
+            continue;
          }
          if (localIdentifiers.indexOf(identifier) > -1) {
-            return;
+            continue;
          }
          const program = PARSER.parse(identifier);
          this.parent.processProgram(program, true);
