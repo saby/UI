@@ -101,6 +101,8 @@ interface ILexicalContext extends IContext {
 
    hoistIdentifier(identifier: string): void;
    hoistInternalProgram(description: IProgramDescription): void;
+
+   getInternalProgramDescriptions(): IProgramDescription[];
 }
 
 function createProgramDescription(
@@ -332,7 +334,10 @@ class LexicalContext implements ILexicalContext {
    }
 
    joinContext(context: IContext, options?: ILexicalContextOptions): void {
-      throw new Error('Not implemented yet');
+      const lexicalContext = context as ILexicalContext;
+      const localIdentifiers = Array.isArray(options && options.identifiers) ? options.identifiers : EMPTY_ARRAY;
+      this.joinIdentifiers(lexicalContext, localIdentifiers);
+      this.joinInternalPrograms(lexicalContext, localIdentifiers);
    }
 
    getProgram(key: TProgramKey): ProgramNode | null {
@@ -442,6 +447,10 @@ class LexicalContext implements ILexicalContext {
       this.commitInternalProgram(description);
    }
 
+   getInternalProgramDescriptions(): IProgramDescription[] {
+      return this.internals;
+   }
+
    // </editor-fold>
 
    // <editor-fold desc="Private methods">
@@ -499,6 +508,32 @@ class LexicalContext implements ILexicalContext {
          }
          const program = PARSER.parse(identifier);
          this.parent.processProgram(program, true);
+      }
+   }
+
+   private joinIdentifiers(context: ILexicalContext, localIdentifiers: string[]): void {
+      const identifiers = context.getIdentifiers(true);
+      for (let index = 0; index < identifiers.length; ++index) {
+         const identifier = identifiers[index];
+         if (localIdentifiers.indexOf(identifier) > -1) {
+            continue;
+         }
+         this.hoistIdentifier(identifier);
+      }
+   }
+
+   private joinInternalPrograms(context: ILexicalContext, localIdentifiers: string[]): void {
+      const internals = context.getInternalProgramDescriptions();
+      for (let index = 0; index < internals.length; ++index) {
+         const description = internals[index];
+         const program = description.node;
+         const programContainsLocalIdentifiers = containsIdentifiers(program, localIdentifiers);
+         if (programContainsLocalIdentifiers) {
+            const identifiers = collectIdentifiers(program);
+            this.hoistIdentifiersAsPrograms(identifiers, localIdentifiers);
+            continue;
+         }
+         this.hoistInternalProgram(description);
       }
    }
 
