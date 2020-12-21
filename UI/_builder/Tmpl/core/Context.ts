@@ -18,6 +18,8 @@ const ALLOW_PROGRAM_DUPLICATES = true;
 
 const EMPTY_STRING = '';
 
+const EMPTY_ARRAY = [];
+
 const PROGRAM_PREFIX = '$p';
 
 const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars';
@@ -94,6 +96,8 @@ interface IProgramDescription {
 interface ILexicalContext extends IContext {
    allocateProgramIndex(): number;
    findProgramIndex(program: ProgramNode): number | null;
+
+   processProgram(program: ProgramNode, isSynthetic: boolean): TProgramKey;
 
    hoistIdentifier(identifier: string): void;
    hoistInternalProgram(description: IProgramDescription): void;
@@ -308,7 +312,13 @@ class LexicalContext implements ILexicalContext {
    }
 
    registerFloatProgram(program: ProgramNode): void {
-      throw new Error('Not implemented yet');
+      const identifiers = collectIdentifiers(program);
+      this.hoistIdentifiersAsPrograms(identifiers, EMPTY_ARRAY);
+      for (let index = 0; index < identifiers.length; ++index) {
+         const identifier = identifiers[index];
+         this.hoistIdentifier(identifier);
+         this.commitIdentifier(identifier);
+      }
    }
 
    registerProgram(program: ProgramNode): TProgramKey {
@@ -318,7 +328,7 @@ class LexicalContext implements ILexicalContext {
       if (!this.processIdentifiers(program)) {
          return null;
       }
-      return this.processProgram(program);
+      return this.processProgram(program, false);
    }
 
    joinContext(context: IContext, options?: ILexicalContextOptions): void {
@@ -401,6 +411,17 @@ class LexicalContext implements ILexicalContext {
       return null;
    }
 
+   processProgram(program: ProgramNode, isSynthetic: boolean): TProgramKey {
+      let index = this.findProgramIndex(program);
+      if (index === null) {
+         index = this.allocateProgramIndex();
+      }
+      const description = createProgramDescription(index, program, this, isSynthetic);
+      this.commitProgram(description);
+      this.hoistInternalProgram(description);
+      return generateProgramKey(index);
+   }
+
    hoistIdentifier(identifier: string): void {
       if (this.identifiers.indexOf(identifier) > -1 || isForbiddenIdentifier(identifier)) {
          return;
@@ -438,17 +459,6 @@ class LexicalContext implements ILexicalContext {
       return true;
    }
 
-   private processProgram(program: ProgramNode): TProgramKey {
-      let index = this.findProgramIndex(program);
-      if (index === null) {
-         index = this.allocateProgramIndex();
-      }
-      const description = createProgramDescription(index, program, this, false);
-      this.commitProgram(description);
-      this.hoistInternalProgram(description);
-      return generateProgramKey(index);
-   }
-
    private commitIdentifier(identifier: string): void {
       if (this.identifiers.indexOf(identifier) > -1) {
          return;
@@ -473,6 +483,23 @@ class LexicalContext implements ILexicalContext {
       const source = description.node.string;
       this.internalsMap[source] = index;
       this.internals.push(description);
+   }
+
+   private hoistIdentifiersAsPrograms(identifiers: string[], localIdentifiers: string[]): void {
+      if (this.parent === null || !this.allowHoisting) {
+         return;
+      }
+      for (let index = 0; index < identifiers.length; ++index) {
+         const identifier = identifiers[index];
+         if (this.identifiers.indexOf(identifier) > -1) {
+            return;
+         }
+         if (localIdentifiers.indexOf(identifier) > -1) {
+            return;
+         }
+         const program = PARSER.parse(identifier);
+         this.parent.processProgram(program, true);
+      }
    }
 
    // </editor-fold>
