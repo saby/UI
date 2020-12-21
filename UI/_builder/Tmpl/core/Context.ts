@@ -80,8 +80,8 @@ export function createGlobalContext(): IContext {
 
 interface IProgramsMap {
 
-   // Reflection: program source text -> program index in collection
-   [source: string]: number;
+   // Reflection: feature (program source text or public program key) -> program index in collection
+   [feature: string]: number;
 }
 
 interface IProgramDescription {
@@ -96,6 +96,7 @@ interface ILexicalContext extends IContext {
    findProgramIndex(program: ProgramNode): number | null;
 
    hoistIdentifier(identifier: string): void;
+   hoistInternalProgram(description: IProgramDescription): void;
 }
 
 function createProgramDescription(
@@ -136,16 +137,24 @@ function createProgramMeta(key: string, node: ProgramNode): IProgramMeta {
    };
 }
 
+function generateProgramKey(index: number): string {
+   return `${PROGRAM_PREFIX}_${index}`;
+}
+
 function zipProgramMeta(description: IProgramDescription): IProgramMeta {
    return createProgramMeta(
-      `${PROGRAM_PREFIX}_${description.index}`,
+      generateProgramKey(description.index),
       description.node
    );
 }
 
+function generateInternalProgramKey(index: number): string {
+   return `${INTERNAL_PROGRAM_PREFIX}_${index}`;
+}
+
 function zipInternalProgramMeta(description: IProgramDescription): IProgramMeta {
    return createProgramMeta(
-      `${INTERNAL_PROGRAM_PREFIX}_${description.index}`,
+      generateInternalProgramKey(description.index),
       description.node
    );
 }
@@ -303,7 +312,13 @@ class LexicalContext implements ILexicalContext {
    }
 
    registerProgram(program: ProgramNode): TProgramKey {
-      throw new Error('Not implemented yet');
+      if (!canRegisterProgram(program)) {
+         return null;
+      }
+      if (!this.processIdentifiers(program)) {
+         return null;
+      }
+      return this.processProgram(program);
    }
 
    joinContext(context: IContext, options?: ILexicalContextOptions): void {
@@ -397,9 +412,42 @@ class LexicalContext implements ILexicalContext {
       this.parent.hoistIdentifier(identifier);
    }
 
+   hoistInternalProgram(description: IProgramDescription): void {
+      const programContainsLocalIdentifiers = containsIdentifiers(description.node, this.identifiers);
+      const isHoistingAllowed = !programContainsLocalIdentifiers && this.allowHoisting;
+      if (isHoistingAllowed && this.parent !== null) {
+         this.parent.hoistInternalProgram(description);
+      }
+      this.commitInternalProgram(description);
+   }
+
    // </editor-fold>
 
    // <editor-fold desc="Private methods">
+
+   private processIdentifiers(program: ProgramNode): boolean {
+      const identifiers = collectIdentifiers(program);
+      // Do not register program without identifiers.
+      if (identifiers.length === 0) {
+         return false;
+      }
+      for (let index = 0; index < identifiers.length; ++index) {
+         const identifier = identifiers[index];
+         this.hoistIdentifier(identifier);
+      }
+      return true;
+   }
+
+   private processProgram(program: ProgramNode): TProgramKey {
+      let index = this.findProgramIndex(program);
+      if (index === null) {
+         index = this.allocateProgramIndex();
+      }
+      const description = createProgramDescription(index, program, this, false);
+      this.commitProgram(description);
+      this.hoistInternalProgram(description);
+      return generateProgramKey(index);
+   }
 
    private commitIdentifier(identifier: string): void {
       if (this.identifiers.indexOf(identifier) > -1) {
