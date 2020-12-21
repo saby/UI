@@ -1,23 +1,24 @@
 import {ChangeEvent, createElement} from 'react';
 import {Control, IControlOptions} from 'UI/ReactComponent';
 
-interface IAdder extends IControlOptions {
+interface IAdder extends IControlOptions<Adder> {
     addNewHandler: Function;
 }
 
 export default class Adder extends Control<IAdder> {
     protected _value: string = '';
-    protected _template = () => {
+    protected _template = (props: IAdder) => {
         return createElement('div', null, [
             createElement('input', {
                 key: 'input',
                 type: 'text',
-                value: this._value,
-                onChange: (e: ChangeEvent<HTMLInputElement>) => this.changeHandler(e)
+                value: props._$wasabyInstance._value,
+                onChange: (e: ChangeEvent<HTMLInputElement>) => props._$wasabyInstance.changeHandler(e)
             }),
             createElement('button', {
                 key: 'button',
-                onClick: () => this.addNew()
+                disabled: !props._$wasabyInstance._value,
+                onClick: () => props._$wasabyInstance.addNew()
             }, 'Add new')
         ]);
     };
@@ -31,13 +32,5 @@ export default class Adder extends Control<IAdder> {
         this._options.addNewHandler(this._value);
         this._value = '';
         this.forceUpdate();
-    }
-
-    protected _beforeMount(): void {
-        console.log('adder beforeMount');
-    }
-
-    protected _afterMount(): void {
-        console.log('adder afterMount');
     }
 }

@@ -9,14 +9,6 @@ import {IItem} from './interfaces';
 export default class Todo extends Control {
     protected list: IItem[] = [{id: 1, title: 'Hello'}];
 
-    protected _beforeMount(): void {
-        console.log('TODO beforeMount');
-    }
-
-    protected _afterMount(): void {
-        console.log('TODO afterMount');
-    }
-
     protected _template = (props: any) => {
         return createElement('div', {className: 'demo-Todo'}, [
             createElement(List, {items: this.list, key: 'list', removeHandler: (id) => this.removeHandler(id)}),

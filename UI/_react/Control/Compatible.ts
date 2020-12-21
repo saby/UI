@@ -1,14 +1,18 @@
-import {Component, createElement, DetailedReactHTMLElement, HTMLAttributes} from 'react';
+import {Component, createElement, ReactElement} from 'react';
 
 /**
  * TODO: Список задача
- * 1. Контексты для опций
- * 2. Реактивные свойства для перерисовок
+ * 1. Контексты для опций (theme и readonly)
+ * 2. Реактивные свойства для перерисовок (Сейчас используется forceUpdate вручную)
  * 3. Объявить болванки для методов _notify, activate
+ * 4. Опции по умолчанию
+ * 5. Избавиться от any
+ * 6. Recieved State
  */
 
-export interface IControlOptions {
-    _$wasabyInstance?: Component;
+export interface IControlOptions<C = Control> {
+    // Ссылка на инстанс для корректной работы шаблонов
+    _$wasabyInstance?: C;
 }
 
 interface IControlState {
@@ -118,8 +122,10 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
         this._beforeUnmount.apply(this);
     }
 
-    private _getLoadingComponent(): DetailedReactHTMLElement<HTMLAttributes<HTMLElement>, HTMLElement> {
-        return createElement('div', null, 'loading...');
+    private _getLoadingComponent(): ReactElement {
+        return createElement('img', {
+            src: '/cdn/LoaderIndicator/1.0.0/ajax-loader-indicator.gif'
+        });
     }
 
     private __beforeMount(): void {

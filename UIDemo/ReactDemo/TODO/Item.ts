@@ -13,21 +13,14 @@ export default class Item extends Control<IItem> {
         return [createElement('li', {
             className: this.checked ? 'item-checked item' : 'item',
             onClick: () => this._changeHandler()
-        }, props.title), createElement('button', {
+        }, [props.title, createElement('button', {
+            className: 'item__button',
             onClick: () => this.props.removeHandler()
-        }, 'Удалить')];
+        }, 'Удалить')])];
     };
 
     protected _changeHandler(): void {
         this.checked = !this.checked;
         this.forceUpdate();
-    }
-
-    protected _beforeMount(): void {
-        console.log('Item beforeMount');
-    }
-
-    protected _afterMount(): void {
-        console.log('Item afterMount');
     }
 }
