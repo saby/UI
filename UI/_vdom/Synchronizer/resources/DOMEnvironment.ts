@@ -700,7 +700,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       const startArray = getEventPropertiesStartArray(controlNode, eventName);
       // @ts-ignore FIXME: Argument 'eventConfig' of type {} is not assignable to parameter of type IEventConfig
       eventObject = new SyntheticEvent(null, eventConfig);
-      vdomEventBubbling(eventObject, controlNode, startArray, handlerArgs, false);
+      vdomEventBubbling.call(this, eventObject, controlNode, startArray, handlerArgs, false);
       return eventObject.result;
    }
 
@@ -1285,7 +1285,7 @@ function captureEventHandler(event: any): any {
          this.touchendTarget = null;
       }
 
-      vdomEventBubbling(synthEvent, null, undefined, [], true);
+      vdomEventBubbling.call(this, synthEvent, null, undefined, [], true);
    }
 }
 
