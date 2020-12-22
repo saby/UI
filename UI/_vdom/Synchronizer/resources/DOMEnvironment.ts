@@ -468,7 +468,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             }
          }
       }
-
+      FastTouchEndController.preventClickEmulate();
       SwipeController.detectState(event);
       LongTapController.resetState();
    }
