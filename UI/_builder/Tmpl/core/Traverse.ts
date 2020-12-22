@@ -675,9 +675,7 @@ class Traverse implements ITraverse {
          componentPath: null,
          explicitDataType: null
       };
-      const tree = this.visitAll(nodes, context);
-      this.removeUnusedTemplates(context);
-      return tree;
+      return this.visitAll(nodes, context);
    }
 
    /**
@@ -2860,9 +2858,7 @@ class Traverse implements ITraverse {
          return new Ast.StaticPartialNode(path, attributes.attributes, attributes.events, attributes.options);
       }
       // TODO: Validate inline template name
-      const inlineTemplate = new Ast.InlineTemplateNode(template, attributes.attributes, attributes.events, attributes.options);
-      context.scope.registerTemplateUsage(inlineTemplate.__$ws_name);
-      return inlineTemplate;
+      return new Ast.InlineTemplateNode(template, attributes.attributes, attributes.events, attributes.options);
    }
 
    // </editor-fold>
@@ -2980,29 +2976,6 @@ class Traverse implements ITraverse {
          return textValue[0];
       } catch (error) {
          throw new Error(`в атрибуте "${attribute}" ${error.message}`);
-      }
-   }
-
-   /**
-    * Remove all unused templates from scope.
-    * @private
-    * @param context {ITraverseContext} Processing context.
-    */
-   private removeUnusedTemplates(context: ITraverseContext): void {
-      const templates = context.scope.getTemplateNames();
-      for (let index = 0; index < templates.length; ++index) {
-         const name = templates[index];
-         if (context.scope.getTemplateUsages(name) > 0) {
-            continue;
-         }
-         this.errorHandler.warn(
-            `Шаблон с именем "${name}" определен, но не был использован. Неиспользуемый шаблон необходимо удалить`,
-            {
-               fileName: context.fileName
-            }
-         );
-         // FIXME: Сначала удалить из дерева, потом из контекста
-         // context.scope.removeTemplate(name);
       }
    }
 
