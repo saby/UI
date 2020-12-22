@@ -1,24 +1,23 @@
-import * as AppEnv from "Application/Env";
-import { Head as AppHead } from "Application/Page";
-import * as ModulesLoader from "WasabyLoader/ModulesLoader";
-import { constants, IoC } from "Env/Env";
-import { headDataStore } from "UI/_base/HeadData";
-
+import * as AppEnv from 'Application/Env';
+import { Head as AppHead } from 'Application/Page';
+import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
+import { constants, IoC } from 'Env/Env';
+import { headDataStore } from 'UI/_base/HeadData';
 
 interface IPrefetchLinks {
-    addPrefetchModules(modules: string[]);
-    addPreloadModules(modules: string[]);
+    addPrefetchModules(modules: string[]): void;
+    addPreloadModules(modules: string[]): void;
 }
 
 /**
  * Класс для добавления модулей для prefetch|preload на клиенте
  */
 export class PrefetchLinksStore implements IPrefetchLinks {
-    addPrefetchModules(modules: string[]) {
+    addPrefetchModules(modules: string[]): void {
         _addModulesToApi(modules, { prefetch: true});
     }
 
-    addPreloadModules(modules: string[]) {
+    addPreloadModules(modules: string[]): void {
         _addModulesToApi(modules, { preload: true});
     }
 }
@@ -33,15 +32,17 @@ export class PrefetchLinksStorePS implements IPrefetchLinks {
     private _preloadField: string = 'preloadModules';
 
     /** Создание инстанса стора */
-    private _createStore() {
+    // tslint:disable-next-line:no-any
+    private _createStore(): Store<any> {
         return new Store();
     }
 
-    private _store() {
+    // tslint:disable-next-line:no-any
+    private _store(): Store<any> {
         return AppEnv.getStore(this._storeName, this._createStore);
     }
 
-    private _addModules(key: string, modules: string[]) {
+    private _addModules(key: string, modules: string[]): void {
         this._store().set(key, [...this._getModules(key), ...modules]);
     }
 
@@ -57,7 +58,7 @@ export class PrefetchLinksStorePS implements IPrefetchLinks {
         this._store().set(this._preloadField, []);
     }
 
-    addPrefetchModules(modules: string[]) {
+    addPrefetchModules(modules: string[]): void {
         this._addModules(this._prefetchField, modules);
     }
 
@@ -65,7 +66,7 @@ export class PrefetchLinksStorePS implements IPrefetchLinks {
         return this._getModules(this._prefetchField);
     }
 
-    addPreloadModules(modules: string[]) {
+    addPreloadModules(modules: string[]): void {
         this._addModules(this._preloadField, modules);
     }
 
@@ -105,7 +106,7 @@ class Store<T> {
  */
 export function handlePrefetchModules(pageModules: string[]): void {
     if (!constants.isServerSide) {
-        return
+        return;
     }
 
     const pls = new PrefetchLinksStorePS();
@@ -139,7 +140,7 @@ interface IPrefetchModules {
  */
 function _addModulesToApi(modules: string[], cfg: IPrefetchModules): void {
     const API = AppHead.getInstance();
-    modules.forEach(function(moduleName) {
+    modules.forEach((moduleName) => {
         let path: string = ModulesLoader.getModuleUrl(moduleName);
         path = path.indexOf('/') !== 0 ? '/' + path : path;
         const _type: string = _getTypeString(path);
@@ -160,7 +161,7 @@ function _addModulesToApi(modules: string[], cfg: IPrefetchModules): void {
  * @param modules
  * @private
  */
-function _getModuleDeps(modules) {
+function _getModuleDeps(modules: string[]): string[] {
     const dependencies = headDataStore.read('pageDeps').collect(modules, []);
     return dependencies.js;
 }
@@ -170,11 +171,11 @@ function _getModuleDeps(modules) {
  * @param path
  * @private
  */
-function _getTypeString(path) {
+function _getTypeString(path: string): string | null {
     const types = {
-        'script': new RegExp('\.js'),
-        'fetch': new RegExp('\.wml'),
-        'style': new RegExp('\.css')
+        script: new RegExp('\.js'),
+        fetch: new RegExp('\.wml'),
+        style: new RegExp('\.css')
     };
     for (const _type in types) {
         if (types.hasOwnProperty(_type) && types[_type].test(path)) {

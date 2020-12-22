@@ -10,13 +10,15 @@ import { DepsCollector, ICollectedFiles, IDeps } from 'UI/_base/DepsCollector';
 let root = 'resources';
 let contents: Partial<IContents> = {};
 try {
-   // @ts-ignore tslint:disable-next-line:no-var-requires
-   contents = require(`json!${root}/contents`) || {};
+   // tslint:disable-next-line:ban-ts-ignore
+   // @ts-ignore
+   contents = require(`json!${root}/contents`) || {}; // tslint:disable-line:no-var-requires
 } catch {
    try {
       root = constants.resourceRoot;
-      // @ts-ignore tslint:disable-next-line:no-var-requires
-      contents = require(`json!${root}contents`) || {};
+      // tslint:disable-next-line:ban-ts-ignore
+      // @ts-ignore
+      contents = require(`json!${root}contents`) || {}; // tslint:disable-line:no-var-requires
    } catch {
       contents = {};
    }
@@ -102,10 +104,12 @@ function collect(prev: IModulesDescription, next: IModulesDescription): IModules
 
 function requireModuleDeps(path: string): IModulesDescription {
    try {
+      // tslint:disable-next-line:ban-ts-ignore
       // @ts-ignore
       const deps: IModulesDeps = require(`json!${path}/module-dependencies`);
+      // tslint:disable-next-line:ban-ts-ignore
       // @ts-ignore
-      const bundles: IBundlesRoute = require(`json!${path}/bundlesRoute`);
+      const bundles: IBundlesRoute = require(`json!${path}/bundlesRoute`); // tslint:disable-line:no-shadowed-variable
       return { ...deps, bundles };
    } catch {
       /** Ошибка игнорируется т.к module-dependencies может отсутствовать */

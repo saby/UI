@@ -30,6 +30,7 @@ export default class State extends TagMarkup implements IMetaStateInternal {
    //#endregion
 
    serialize(): string {
+      // tslint:disable-next-line:no-this-assignment
       const { _meta, _guid, _nextStateId, _prevStateId } = this;
       return JSON.stringify({ _meta, _guid, _nextStateId, _prevStateId });
    }
