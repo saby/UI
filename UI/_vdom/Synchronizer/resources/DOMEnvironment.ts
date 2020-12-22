@@ -132,7 +132,6 @@ function generateClickEventFromTouchend(event: TouchEvent): any {
 }
 
 const clickStateTarget: Array<{ target: HTMLElement, touchId: number }> = [];
-const callAfterMount: IArrayEvent[] = [];
 
 class QueueMixin extends Environment {
    private queue: string[] = null;
@@ -159,6 +158,8 @@ interface IDires {
 
 // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
 export default class DOMEnvironment extends QueueMixin implements IDOMEnvironment {
+
+   callAfterMount: IArrayEvent[] = [];
    // FIXME: костыль для Synchronizer и DirtyChecking
    _currentDirties: IDires;
    // FIXME: костыль для UI\_focus\RestoreFocus.ts
@@ -633,8 +634,8 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       // Если делать то же самое через rAF, то нужно звать rAF из rAF, это и дольше, и неудобно.
       setTimeout(() => {
          mountMethodsCaller.afterUpdate(controlNodesToCall);
-         while (callAfterMount && callAfterMount.length) {
-            const elem = callAfterMount.shift();
+         while (this.callAfterMount && this.callAfterMount.length) {
+            const elem = this.callAfterMount.shift();
             const fn = elem.fn;
             /* в слое совместимости контрол внутри которого построился wasaby-контрол, может быть уничтожен
                до того как начнется асинхронный вызов afterMount,
@@ -1035,7 +1036,7 @@ function vdomEventBubbling(
                         /* Асинхронный _afterMount контролов приводит к тому,
                          * что события с dom начинают стрелять до маунта,
                          * в таком случае их надо вызвать отложено */
-                        callAfterMount.push({fn, finalArgs});
+                        this.callAfterMount.push({fn, finalArgs});
                      } else {
                         fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
                      }
