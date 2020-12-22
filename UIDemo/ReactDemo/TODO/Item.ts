@@ -46,7 +46,7 @@ export default class Item extends Control<IItem> {
             onClick: () => props.removeHandler()
           },
           'Удалить'
-        ),
+        )
       ]
     );
   };
