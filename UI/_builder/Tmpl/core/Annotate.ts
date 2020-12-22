@@ -60,25 +60,16 @@ function collectInlineTemplateIdentifiers(node: Ast.InlineTemplateNode): string[
    for (const name in node.__$ws_events) {
       const event = node.__$ws_events[name];
       if (event instanceof Ast.BindNode) {
-         // bind:option="option" is simple alias and deep usages exist in current scope
-         if (event.__$ws_property !== event.__$ws_value.string) {
-            identifiers.push(event.__$ws_property);
-         }
+         identifiers.push(event.__$ws_property);
       }
    }
    for (const name in node.__$ws_options) {
       const option = node.__$ws_options[name];
-      if (option.hasFlag(Ast.Flags.TYPE_CASTED | Ast.Flags.UNPACKED) && option.__$ws_value instanceof Ast.ValueNode) {
-         const value = option.__$ws_value;
-         const valuePart = value.__$ws_data[0];
-         if (value.__$ws_data.length === 1 && valuePart instanceof Ast.ExpressionNode) {
-            if (option.__$ws_name === valuePart.__$ws_program.string) {
-               // Skip only case option="{{ option }}"
-               continue;
-            }
-         }
-      }
       identifiers.push(option.__$ws_name);
+   }
+   for (const name in node.__$ws_contents) {
+      const content = node.__$ws_contents[name];
+      identifiers.push(content.__$ws_name);
    }
    return identifiers;
 }
