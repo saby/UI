@@ -1,4 +1,4 @@
-<head attr:data-vdomignore="true">
+<head data-vdomignore="true">
 <ws:if data="{{ isSSR && headApiData }}">
   {{ __setHTMLUnsafe( headApiData ) }}
 </ws:if>
