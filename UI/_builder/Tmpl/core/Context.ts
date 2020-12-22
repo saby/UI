@@ -489,9 +489,9 @@ class LexicalContext implements ILexicalContext {
    }
 
    private commitProgram(description: IProgramDescription): void {
+      const source = description.node.string;
       // Description index in collection that will be set.
       const index: number = this.programs.length;
-      const source = description.node.string;
       const key = generateProgramKey(description.index);
       this.programKeysMap[key] = index;
       this.programsMap[source] = index;
@@ -499,10 +499,13 @@ class LexicalContext implements ILexicalContext {
    }
 
    private commitInternalProgram(description: IProgramDescription): void {
-      // Description index in collection that will be set.
-      const index: number = this.internals.length;
       const source = description.node.string;
-      this.internalsMap[source] = index;
+      // Do not commit internal programs that already exists
+      if (this.internalsMap.hasOwnProperty(source))  {
+         return;
+      }
+      // Description index in collection that will be set.
+      this.internalsMap[source] = this.internals.length;
       this.internals.push(description);
    }
 
