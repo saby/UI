@@ -1,30 +1,24 @@
-import {createElement} from 'react';
-import {Control, IControlOptions, ITemplateFunction} from 'UI/ReactComponent';
+import {Control, IControlOptions} from 'UI/ReactComponent';
+
+// @ts-ignore
+import template = require('wml!UIDemo/ReactDemo/TODO/Item');
 
 export interface IItem extends IControlOptions {
     title: string;
     removeHandler: Function;
 }
 
-export default class Item extends Control<IItem> {
+class Item extends Control<IItem> {
     protected checked: boolean = false;
+    protected removeHandler;
 
     constructor(props: IItem) {
         super(props);
-        this._template.reactiveProps = ['checked'];
-    }
-
-    protected _template: ITemplateFunction = (props: IItem) => {
-        return createElement('li', {
-            className: this.checked ? 'item-checked item' : 'item',
-            onClick: () => this._changeHandler()
-        }, [props.title, createElement('button', {
-            className: 'item__button',
-            onClick: () => this.props.removeHandler()
-        }, 'Удалить')]);
-    };
-
-    protected _changeHandler(): void {
-        this.checked = !this.checked;
+        this.removeHandler = props.removeHandler;
     }
 }
+
+// @ts-ignore
+Item.prototype._template = template;
+
+export default Item;

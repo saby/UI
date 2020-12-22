@@ -2,6 +2,7 @@ import { cookie, constants } from 'Env/Env';
 
 let fixScopeMergingInContent;
 export function getFixScopeMergingInContent() {
+   return false;
    let result;
    try {
       result = process.domain.req.fixScopeMergingInContent;
@@ -16,6 +17,7 @@ export function getFixScopeMergingInContent() {
    return result && !constants.isProduction && constants.browser.chrome;
 }
 export function setFixScopeMergingInContent(value) {
+   return;
    try {
       process.domain.req.fixScopeMergingInContent = value;
    } catch (e) {

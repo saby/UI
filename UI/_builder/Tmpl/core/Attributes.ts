@@ -635,7 +635,7 @@ class AttributeProcessor implements IAttributeProcessor {
             cleanValue,
             {
                fileName: options.fileName,
-               allowedContent: TextContentFlags.FULL_TEXT,
+               allowedContent: TextContentFlags.TEXT_AND_EXPRESSION,
                translateText,
                translationsRegistrar: options.translationsRegistrar,
                position: attributeNode.position

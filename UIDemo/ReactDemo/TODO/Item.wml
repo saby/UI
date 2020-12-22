@@ -1,0 +1,4 @@
+<li className="{{checked ? 'item-checked item' : 'item'}}">
+   {{_options.title}}
+   <button className="item__button" on:onClick="removeHandler()">Удалить</button>
+</li>

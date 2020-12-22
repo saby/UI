@@ -1,4 +1,6 @@
 import {Component, createElement, ReactElement, FunctionComponent} from 'react';
+import {_IGeneratorType} from "UI/Executor";
+import {getGeneratorConfig} from "UI/Base";
 
 /**
  * TODO: Список задача
@@ -18,6 +20,9 @@ export interface IControlOptions<C = Control> {
 interface IControlState {
     loading: boolean;
 }
+
+export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
+                                forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
 
 export interface ITemplateFunction<P = IControlOptions, S = {}> extends FunctionComponent<IControlOptions> {
     reactiveProps?: string[];
@@ -52,7 +57,7 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
     private _firstRender: boolean = true;
     private _asyncMount: boolean = false;
     private _$observer: Function = observe;
-    protected _template: ITemplateFunction;
+    protected _template: TemplateFunction;
     protected _options: P;
 
     constructor(props: P) {
@@ -164,9 +169,22 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
                 }, () => this._afterMount(this.props));
             });
         }
+
+        //@ts-ignore
         if (this._template.reactiveProps) {
+            //@ts-ignore
             this._$observer(this, this._template.reactiveProps);
         }
+    }
+
+    saveInheritOptions(): any {
+
+    }
+    _saveContextObject(): any {
+
+    }
+    saveFullContext(): any {
+
     }
 
     render(): unknown {
@@ -174,8 +192,17 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
             this.__beforeMount();
         }
 
-        return this._asyncMount && this.state.loading ?
-            this._getLoadingComponent() :
-            createElement<IControlOptions>(this._template, {_$wasabyInstance: this, ...this.props});
+        if (this._asyncMount && this.state.loading) {
+            return this._getLoadingComponent();
+        }
+
+        const generatorConfig = getGeneratorConfig();
+        //@ts-ignore
+        window.reactGenerator = true;
+        const ctx = {...this, _options: {...this.props}};
+        const res = this._template(ctx, {}, undefined, undefined, undefined, undefined, generatorConfig);
+        //@ts-ignore
+        window.reactGenerator = false;
+        return res;
     }
 }
