@@ -4,6 +4,10 @@ import { ITagDescription } from 'UI/_base/HTML/_meta/interface';
 import getResourceUrl = require('Core/helpers/getResourceUrl');
 import escapeHtml = require('Core/helpers/String/escapeHtml');
 
+interface ITagMarkupConfig {
+   withOutDataVdomIgnore?: boolean;
+}
+
 export const DEFAULT_ATTRS = {
    'data-vdomignore': 'true'
 };
@@ -19,16 +23,18 @@ const HTML_VOID_ELEMENTS = {
 export default class {
    outerHTML: string = '';
 
-   constructor(tags: ITagDescription[]) {
+   constructor(tags: ITagDescription[], config?: ITagMarkupConfig) {
       this.outerHTML = tags
-         .map(generateTagMarkup)
+         .map((tag: ITagDescription) => generateTagMarkup(tag, config))
          .join('\n');
    }
 }
 
 export function generateTagMarkup(
-   { tagName, attrs, children }: ITagDescription = { tagName: 'no_tag', attrs: {} }): string {
+   { tagName, attrs, children }: ITagDescription = { tagName: 'no_tag', attrs: {} },
+   config?: ITagMarkupConfig): string {
    const _atts = { ...DEFAULT_ATTRS, ...attrs };
+   if (config?.withOutDataVdomIgnore) { delete _atts['data-vdomignore']; }
 
    // decorate all of input links and scripts to redirect requests onto
    // cdn domain if it's configured on current page.

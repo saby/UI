@@ -9,7 +9,7 @@ import { constants } from 'Env/Env';
 import { Head as AppHead } from 'Application/Page';
 import { headDataStore } from 'UI/_base/HeadData';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
-import { default as TagMarkup, generateTagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
+import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 import { JML } from 'UI/_base/HTML/_meta/interface';
 import { handlePrefetchModules } from 'UI/_base/HTML/PrefetchLinks';
@@ -64,7 +64,7 @@ class Head extends Control<IHeadOptions> {
                      */
                     const data = AppHead.getInstance().getData();
                     if (data && data.length) {
-                        this.headApiData += new TagMarkup(data.map(fromJML)).outerHTML;
+                        this.headApiData += new TagMarkup(data.map(fromJML), {withOutDataVdomIgnore: true}).outerHTML;
                     }
                     AppHead.getInstance().clear();
                 });
@@ -244,7 +244,7 @@ function applyHeadJSON(options: IHeadOptions): string {
             .map(fromJML)
             // не вставляем переданные link css, это обязанность theme_controller'a
             .filter(({ attrs }) => attrs.rel !== 'stylesheet' && attrs.type !== 'text/css');
-        return new TagMarkup(tagDescriptions).outerHTML;
+        return new TagMarkup(tagDescriptions, {withOutDataVdomIgnore: true}).outerHTML;
     }
 }
 

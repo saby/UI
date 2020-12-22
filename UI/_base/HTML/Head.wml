@@ -1,4 +1,4 @@
-<head>
+<head attr:data-vdomignore="true">
 <ws:if data="{{ isSSR && headApiData }}">
   {{ __setHTMLUnsafe( headApiData ) }}
 </ws:if>
@@ -7,11 +7,11 @@
 <ws:if data="{{ head }}">
   <ws:if data="{{ isArray(head) }}">
     <ws:for data="i in head">
-      <ws:partial template="{{ i }}"  attr:data-vdomignore="true" attr:class="head-custom-block"/>
+      <ws:partial template="{{ i }}" attr:class="head-custom-block"/>
     </ws:for>
   </ws:if>
   <ws:else>
-    <ws:partial template="{{ head }}"  attr:data-vdomignore="true" attr:class="head-custom-block"/>
+    <ws:partial template="{{ head }}" attr:class="head-custom-block"/>
   </ws:else>
 </ws:if>
 <!-- #endregion -->
