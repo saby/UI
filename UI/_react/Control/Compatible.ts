@@ -8,7 +8,7 @@ interface IControlState {
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
- * @class UIDemo/_react/Control
+ * @class UI/ReactComponent/Control
  * @author Mogilevsky Ivan
  * @public
  */
@@ -27,6 +27,9 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
         };
     }
 
+
+    /* Start: Compatible lifecicle hooks */
+
     /**
      * Хук жизненного цикла контрола. Вызывается непосредственно перед установкой контрола в DOM-окружение.
      * @param {Object} options Опции контрола.
@@ -39,6 +42,32 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
      */
     protected _beforeMount(options?: P, contexts?: object, receivedState?: T): Promise<T | void> | void {
         // Do
+    }
+
+    private __beforeMount(): void {
+        const beforeMountResult = this._beforeMount(this.props);
+        if (beforeMountResult && beforeMountResult.then) {
+            this._asyncMount = true;
+            beforeMountResult.then(() => {
+                this._firstRender = false;
+                this.setState({
+                    loading: false
+                }, () => this._afterMount(this.props));
+            });
+        } else {
+            this._firstRender = false;
+        }
+        // TODO: Вынести работу с reactiveProps в генераторы
+        if (this._template.reactiveProps) {
+            this._$observer(this, this._template.reactiveProps);
+        }
+    }
+
+    // На данном этапе рисуем индикатор вместо компонента в момен загрузки асинхронного beforeMount
+    private _getLoadingComponent(): ReactElement {
+        return createElement('img', {
+            src: '/cdn/LoaderIndicator/1.0.0/ajax-loader-indicator.gif'
+        });
     }
 
     /**
@@ -89,6 +118,10 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
         // Do
     }
 
+    /* End: Compatible lifecicle hooks */
+
+    /* Start: React lifecicle hooks */
+
     componentDidMount(): void {
         if (!this._asyncMount) {
             this._afterMount.apply(this);
@@ -111,31 +144,6 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
         this._beforeUnmount.apply(this);
     }
 
-    // На данном этапе рисуем индикатор вместо компонента в момен загрузки асинхронного beforeMount
-    private _getLoadingComponent(): ReactElement {
-        return createElement('img', {
-            src: '/cdn/LoaderIndicator/1.0.0/ajax-loader-indicator.gif'
-        });
-    }
-
-    private __beforeMount(): void {
-        const beforeMountResult = this._beforeMount(this.props);
-        if (beforeMountResult && beforeMountResult.then) {
-            this._asyncMount = true;
-            beforeMountResult.then(() => {
-                this._firstRender = false;
-                this.setState({
-                    loading: false
-                }, () => this._afterMount(this.props));
-            });
-        } else {
-            this._firstRender = false;
-        }
-        if (this._template.reactiveProps) {
-            this._$observer(this, this._template.reactiveProps);
-        }
-    }
-
     render(): unknown {
         if (this._firstRender) {
             this.__beforeMount();
@@ -145,4 +153,6 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
             this._getLoadingComponent() :
             createElement<IControlOptions>(this._template, {_$wasabyInstance: this, ...this.props});
     }
+
+    /* End: React lifecicle hooks */
 }

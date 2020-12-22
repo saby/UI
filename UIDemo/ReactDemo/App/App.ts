@@ -4,6 +4,6 @@ import Todo from '../TODO/TODO';
 
 export default class App extends Control {
     render() {
-        return createElement('div', null, createElement(Todo));
+        return createElement('div', {className: 'demo-ReactWasaby__app'}, createElement(Todo));
     }
 }
