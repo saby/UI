@@ -1,8 +1,9 @@
+import {Control} from 'UI/ReactComponent';
+import {createElement} from 'react';
 import Todo from '../TODO/TODO';
-import {createElement, Component} from 'react';
 
-export default class App extends Component<{}, {}> {
-    render(): unknown {
+export default class App extends Control {
+    render() {
         return createElement('div', null, createElement(Todo));
     }
 }
