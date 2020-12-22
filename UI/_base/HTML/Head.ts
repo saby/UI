@@ -2,6 +2,7 @@
 
 import Control from '../Control';
 
+/* tslint:disable:deprecated-anywhere */
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Head');
@@ -231,7 +232,6 @@ function createMetaScriptsAndLinks(options: IHeadOptions): void {
             API.createTag(item.tag, item.attrs);
         });
 }
-
 /**
  * Поддержка старой опции
  * Запустил процесс отказа от нее

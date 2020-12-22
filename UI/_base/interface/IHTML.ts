@@ -1,3 +1,5 @@
+/* tslint:disable:deprecated-anywhere */
+
 import {IControlOptions} from '../Control';
 
 /**
