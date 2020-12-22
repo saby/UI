@@ -451,6 +451,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       // flag to true to avoid event triggering twice.
       event.addedToClickState = true;
 
+      FastTouchEndController.setClickEmulateState(true);
       SwipeController.initState(event);
       LongTapController.initState(event);
    }
@@ -468,7 +469,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             }
          }
       }
-      FastTouchEndController.preventClickEmulate();
+      FastTouchEndController.setClickEmulateState(false);
       SwipeController.detectState(event);
       LongTapController.resetState();
    }

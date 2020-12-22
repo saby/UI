@@ -15,8 +15,8 @@ interface IMouseEventInitExtend extends MouseEventInit {
 export class FastTouchEndController {
    private static needClickEmulate: boolean = true;
 
-   static preventClickEmulate(): void {
-      this.needClickEmulate = false;
+   static setClickEmulateState(state: boolean): void {
+      this.needClickEmulate = state;
    }
 
    static clickEmulate(targetElement: Element, nativeEvent: TouchEvent): void {
