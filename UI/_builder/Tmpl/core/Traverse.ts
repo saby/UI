@@ -2858,7 +2858,11 @@ class Traverse implements ITraverse {
          return new Ast.StaticPartialNode(path, attributes.attributes, attributes.events, attributes.options);
       }
       // TODO: Validate inline template name
-      return new Ast.InlineTemplateNode(template, attributes.attributes, attributes.events, attributes.options);
+      const inlineTemplate = new Ast.InlineTemplateNode(template, attributes.attributes, attributes.events, attributes.options);
+      if (!context.scope.hasTemplate(template)) {
+         throw new Error(`шаблон с именем "${template}" не был определен`);
+      }
+      return inlineTemplate;
    }
 
    // </editor-fold>
