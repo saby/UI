@@ -7,6 +7,7 @@ import Control, { TemplateFunction } from 'UI/_base/Control';
 import template = require('wml!UI/_base/HTML/JsLinks');
 import { headDataStore } from 'UI/_base/HeadData';
 import { IControlOptions } from 'UI/Base';
+import { Head as HeadAPI } from "Application/Page";
 
 interface IJsLinksOptions extends IControlOptions {
    linkResolver: {
@@ -17,7 +18,7 @@ interface IJsLinksOptions extends IControlOptions {
  * Компонент для вставки ссылок на ресурсы страницы
  */
 class JsLinks extends Control<IJsLinksOptions> {
-   _template: TemplateFunction = template;
+   _template: TemplateFunction = template; // TODO: удалить, т.к. удаляем jslinks.wml
 
    js: Record<string, number> = {};
    tmpl: string[] = [];
@@ -33,7 +34,7 @@ class JsLinks extends Control<IJsLinksOptions> {
       }
       const resolveJsLink = (js: string) => options.linkResolver.resolveLink(js, 'js');
       return headDataStore.read('waitAppContent')().then((res) => {
-         const jsLinks: string[] = res.js.map(resolveJsLink).concat(res.scripts);
+         const jsLinks: string[] = res.js.map(resolveJsLink).concat(res.scripts); // ready
          this.js = arrayToObject(jsLinks); // конвертируем в hashmap чтобы избавиться от дублей
          this.tmpl = res.tmpl;
          this.wml = res.wml;
@@ -46,11 +47,37 @@ class JsLinks extends Control<IJsLinksOptions> {
           * TODO следует избавится при отказе от rt-паковки
           */
          this.rtpackModuleNames = JSON.stringify(arrayToObject(res.rtpackModuleNames));
+
+         // TODO: delete jslinks.wml
+         // TODO: проверить в правильном ли порядке происходит обработка ключей, значений и индексов. смотри в jslinks.wml
+         /** в работе массива js порядок передачи параметров установлен странно, но это сделано осознанно */
+         [].concat(Object.keys(this.js).map((key, index)=>{prepare('js', index, this.js[key])}))
+             .concat(this.wml.map(prepare.bind(null,'wml')))
+             .concat(this.tmpl.map(prepare.bind(null,'tmpl')))
+             .forEach(data => {
+                HeadAPI.getInstance().createTag('script', {
+                   type: "text/javascript",
+                   defer: 'defer',
+                   key: `scripts_${data.idx}`,
+                   src: data.type === 'js' ? data.item : options.linkResolver.resolveLink(data.idx, data.type)
+                });
+             });
+         this.rsSerialized && HeadAPI.getInstance().createTag('script', {}, `window['receivedStates']=${this.rsSerialized}';`);
+         this.rtpackModuleNames && HeadAPI.getInstance().createTag('script', {},  `window['rtpackModuleNames'] = ${this.rtpackModuleNames}';`);
       });
    }
 }
 
 export default JsLinks;
+
+/** подготавливаем аттрибуты в нужный нам вид для более удобной работы */
+function prepare(type, item, idx){
+   return {
+      type: type,
+      item: item,
+      idx: idx
+   }
+}
 
 /** Конвертируем в hashmap для быстрого поиска имени модуля */
 function arrayToObject(arr: string[]): Record<string, number> {
