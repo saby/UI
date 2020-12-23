@@ -32,14 +32,12 @@ export class PrefetchLinksStorePS implements IPrefetchLinks {
     private _preloadField: string = 'preloadModules';
 
     /** Создание инстанса стора */
-    // tslint:disable-next-line:no-any
-    private _createStore(): Store<any> {
-        return new Store();
+    private _createStore<T>(): Store<T> {
+        return new Store<T>();
     }
 
-    // tslint:disable-next-line:no-any
-    private _store(): Store<any> {
-        return AppEnv.getStore(this._storeName, this._createStore);
+    private _store<T>(): Store<T> {
+        return AppEnv.getStore(this._storeName, this._createStore) as Store<T>;
     }
 
     private _addModules(key: string, modules: string[]): void {
