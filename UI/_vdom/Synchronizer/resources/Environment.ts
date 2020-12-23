@@ -34,8 +34,8 @@ abstract class Environment {
    private queue: string[] = null;
 
    constructor(public _rootDOMNode: TModifyHTMLNode, private _controlStateChangedCallback: Function) {
-      // @ts-ignore FIXME: Condition
-      if (_rootDOMNode !== document) {
+      // @ts-ignore
+      if (_rootDOMNode === document) {
          throw new Error('Корневой контрол нельзя монтировать на document');
       }
 
