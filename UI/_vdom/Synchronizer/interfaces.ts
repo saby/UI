@@ -7,6 +7,7 @@ export type TComponentAttrs = Record<string, unknown>;
 
 export type TControlId = string;
 // VdomMarkup.getDecoratedMark
+// tslint:disable: member-ordering
 
 type IControlConstructor = () => Control;
 type TContext = Record<string, object>;
@@ -183,7 +184,7 @@ export interface IDOMEnvironment {
 
     applyNodeMemo(nodeMemo: IMemoNode): void;
 
-    queue?: string[];
+    queue: TControlId[];
 
     _currentDirties: Record<string, number>;
     _nextDirties: Record<string, number>;

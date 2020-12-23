@@ -71,23 +71,20 @@ class VDomSynchronizer {
    private _rootNodes: IControlNode[] = [];
    _controlNodes: Record<string, IControlNode> = {};
 
-   constructor() {
-   }
-
-   private __rebuildOneRootNode(node: IControlNode): IMemoNode | PromiseLike<IMemoNode> {
-      onStartSync(node.rootId);
-      node.environment._currentDirties = node.environment._nextDirties;
-      node.environment._nextDirties = {};
-
-      let rebuildedNode: IMemoNode | Promise<IMemoNode> = rebuildNode(node.environment, node, undefined, true);
-      if (!node.environment._haveRebuildRequest) {
-         onEndSync(node.rootId);
+   private _nextDirtiesRunCheck(controlNode: IControlNode) {
+      let self = this;
+      let currentRoot = self._rootNodes[0];
+      for (let i = 1; i < self._rootNodes.length; i++) {
+         if (controlNode.environment === self._rootNodes[i].environment) {
+            currentRoot = self._rootNodes[i];
+            break;
+         }
       }
-      return rebuildedNode;
-   }
 
-   private __doRebuild(currentRoot: IControlNode) {
-      let rootsRebuild = this.__rebuildOneRootNode(currentRoot);
+      currentRoot.environment._currentDirties = currentRoot.environment._nextDirties;
+      currentRoot.environment._nextDirties = {};
+      onStartSync(currentRoot.rootId);
+      let rootsRebuild: IMemoNode | Promise<IMemoNode> = rebuildNode(currentRoot.environment, currentRoot, undefined, true);
 
       if ('then' in rootsRebuild) {
          rootsRebuild.then((val) => {
@@ -101,6 +98,7 @@ class VDomSynchronizer {
 
             val.value.environment._haveRebuildRequest = true;
             val.value.environment.applyNodeMemo(val)
+            onEndSync(currentRoot.rootId);
          },
             function (err: any) {
                Logger.asyncRenderErrorLog(err);
@@ -120,53 +118,7 @@ class VDomSynchronizer {
       });
 
       rootsRebuild.value.environment.applyNodeMemo(rootsRebuild)
-   }
-
-   private __rebuild(controlNode: IControlNode) {
-      let self = this;
-
-      if (self._rootNodes.length === 0 || !controlNode.environment) {
-         throw new Error("Ошибка в логике перестройки. Как я сюда попал?");
-      }
-
-      let currentRoot = self._rootNodes[0];
-      for (let i = 1; i < self._rootNodes.length; i++) {
-         if (controlNode.environment === self._rootNodes[i].environment) {
-            currentRoot = self._rootNodes[i];
-            break;
-         }
-      }
-
-      let i: number;
-      for (i = 0; i !== MAX_REBUILD; i++) {
-         this.__doRebuild(currentRoot);
-         if (ObjectUtils.isEmpty(currentRoot.environment._nextDirties)) {
-            break;
-         }
-      }
-      if (i === MAX_REBUILD) {
-         var j: number;
-
-         // If we reached MAX_REBUILD, we can assume that something went
-         // wrong - nodes were rebuilt many times, but they are still dirty,
-         // so we are stuck in an infinite loop.
-         // To be able to debug the error, we enable view logs (to see which
-         // components are being rebuilt) and run rebuild a couple of times
-         // with logs enabled.
-         // After we've logged the problematic components, we disable view
-         // logs and throw an error to exit the infinite rebuild loop.
-         Logger.setDebug(true);
-
-         // make some rebuild iterations with logging
-         for (j = 1; j <= MAX_REBUILD_LOGGED_ITERS; j++) {
-            Logger.debug(`MAX_REBUILD error - Logged iteration: ' + ${j}`, []);
-            this.__doRebuild(currentRoot);
-         }
-
-         Logger.setDebug(false);
-
-         throw new Error('SBIS3.CORE.VDOM.Synchronizer: i === MAX_REBUILD');
-      }
+      onEndSync(currentRoot.rootId);
    }
 
    mountControlToDOM(
@@ -443,8 +395,11 @@ class VDomSynchronizer {
 
       controlNode.environment._haveRebuildRequest = true;
       const requestRebuildDelayed = () => {
-         if (!controlNode.environment._haveRebuildRequest) {
-            /*Если _haveRebuildRequest=false значит
+         if (this._rootNodes.length === 0 || !controlNode.environment._haveRebuildRequest) {
+            /*
+            * При _rootNodes.length === 0 - кто-то сделал unmount
+            *
+            * Если _haveRebuildRequest=false значит
             * циклы синхронизации смешались и в предыдущем тике у
             * всех контролов был вызван _afterUpdate
             * Такое может случиться только в слое совместимости,
@@ -455,7 +410,7 @@ class VDomSynchronizer {
 
          //@ts-ignore используется runtime hack
          controlNode.environment._rebuildRequestStarted = true;
-         restoreFocus(controlNode.control, () => this.__rebuild(controlNode));
+         restoreFocus(controlNode.control, () => this._nextDirtiesRunCheck(controlNode));
          controlNode.environment.addTabListener();
       };
       delay(requestRebuildDelayed);
