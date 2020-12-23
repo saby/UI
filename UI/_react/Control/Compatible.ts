@@ -1,21 +1,8 @@
-import {Component, createElement, ReactElement, FunctionComponent} from 'react';
+import {Component, createElement, ReactElement} from 'react';
+import { IControlOptions, ITemplateFunction } from './interfaces';
+import {reactiveObserve} from './ReactiveObserver';
 import {_IGeneratorType} from "UI/Executor";
 import {getGeneratorConfig} from "UI/Base";
-
-/**
- * TODO: Список задача
- * 1. Контексты для опций (theme и readonly)
- * 2. Объявить болванки для методов _notify, activate
- * 3. Опции по умолчанию
- * 4. Избавиться от any
- * 5. Recieved State
- * 6. reactiveProps навешивается вручную + не проверяет сложные объекты
- */
-
-export interface IControlOptions<C = Control> {
-    // Ссылка на инстанс для корректной работы шаблонов
-    _$wasabyInstance?: C;
-}
 
 interface IControlState {
     loading: boolean;
@@ -24,40 +11,17 @@ interface IControlState {
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
                                 forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
 
-export interface ITemplateFunction<P = IControlOptions, S = {}> extends FunctionComponent<IControlOptions> {
-    reactiveProps?: string[];
-}
-
-function observe<P = IControlOptions, S = {}>(inst: Control<P, S>, reactiveProps: string[]): void {
-    const reactiveValues = {};
-    reactiveProps.forEach((prop) => {
-        reactiveValues[prop] = inst[prop];
-        Object.defineProperty(inst, prop, {
-            enumerable: true,
-            configurable: true,
-            get: function reactiveGetter(): unknown {
-                return reactiveValues[prop];
-            },
-            set: function reactiveSetter(value: unknown): void {
-                if (reactiveValues[prop] !== value) {
-                    reactiveValues[prop] = value;
-                    inst.forceUpdate();
-                }
-            }
-        });
-    });
-}
-
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
- * @class UIDemo/_react/Control
+ * @class UI/ReactComponent/Control
+ * @author Mogilevsky Ivan
  * @public
  */
 export class Control<P extends IControlOptions = {}, T = {}> extends Component<P, IControlState> {
     private _firstRender: boolean = true;
     private _asyncMount: boolean = false;
-    private _$observer: Function = observe;
-    protected _template: TemplateFunction;
+    private _$observer: Function = reactiveObserve;
+    protected _template: ITemplateFunction;
     protected _options: P;
 
     constructor(props: P) {
@@ -67,6 +31,9 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
             loading: true
         };
     }
+
+
+    /* Start: Compatible lifecicle hooks */
 
     /**
      * Хук жизненного цикла контрола. Вызывается непосредственно перед установкой контрола в DOM-окружение.
@@ -79,7 +46,33 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
      * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
      */
     protected _beforeMount(options?: P, contexts?: object, receivedState?: T): Promise<T | void> | void {
-        return undefined;
+        // Do
+    }
+
+    private __beforeMount(): void {
+        const beforeMountResult = this._beforeMount(this.props);
+        if (beforeMountResult && beforeMountResult.then) {
+            this._asyncMount = true;
+            beforeMountResult.then(() => {
+                this._firstRender = false;
+                this.setState({
+                    loading: false
+                }, () => this._afterMount(this.props));
+            });
+        } else {
+            this._firstRender = false;
+        }
+        // TODO: Вынести работу с reactiveProps в генераторы
+        if (this._template.reactiveProps) {
+            this._$observer(this, this._template.reactiveProps);
+        }
+    }
+
+    // На данном этапе рисуем индикатор вместо компонента в момен загрузки асинхронного beforeMount
+    private _getLoadingComponent(): ReactElement {
+        return createElement('img', {
+            src: '/cdn/LoaderIndicator/1.0.0/ajax-loader-indicator.gif'
+        });
     }
 
     /**
@@ -112,8 +105,8 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
     /**
      * Хук жизненного цикла контрола. Вызывается после обновления контрола.
      *
-     * @param {Object} oldOptions
-     * @param {Object} oldContext
+     * @param {Object} oldOptions Опции контрола до обновления контрола.
+     * @param {Object} oldContext Поля контекста до обновления контрола.
      * @protected
      */
     protected _afterUpdate(oldOptions?: P, oldContext?: object): void {
@@ -130,6 +123,10 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
         // Do
     }
 
+    /* End: Compatible lifecicle hooks */
+
+    /* Start: React lifecicle hooks */
+
     componentDidMount(): void {
         if (!this._asyncMount) {
             this._afterMount.apply(this);
@@ -141,8 +138,8 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
         this._afterUpdate.apply(this, [prevProps]);
     }
 
-    getSnapshotBeforeUpdate(prevProps: P): void {
-        if (prevProps !== this.props) {
+    getSnapshotBeforeUpdate(): void {
+        if (!this._firstRender) {
             this._beforeUpdate.apply(this, [this.props]);
         }
         return null;
@@ -150,31 +147,6 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
 
     componentWillUnmount(): void {
         this._beforeUnmount.apply(this);
-    }
-
-    private _getLoadingComponent(): ReactElement {
-        return createElement('img', {
-            src: '/cdn/LoaderIndicator/1.0.0/ajax-loader-indicator.gif'
-        });
-    }
-
-    private __beforeMount(): void {
-        this._firstRender = false;
-        const beforeMountResult = this._beforeMount(this.props);
-        if (beforeMountResult && beforeMountResult.then) {
-            this._asyncMount = true;
-            beforeMountResult.then(() => {
-                this.setState({
-                    loading: false
-                }, () => this._afterMount(this.props));
-            });
-        }
-
-        //@ts-ignore
-        if (this._template.reactiveProps) {
-            //@ts-ignore
-            this._$observer(this, this._template.reactiveProps);
-        }
     }
 
     saveInheritOptions(): any {
@@ -200,6 +172,7 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
         //@ts-ignore
         window.reactGenerator = true;
         const ctx = {...this, _options: {...this.props}};
+        //@ts-ignore
         const res = this._template(ctx, {}, undefined, undefined, undefined, undefined, generatorConfig);
         //@ts-ignore
         window.reactGenerator = false;

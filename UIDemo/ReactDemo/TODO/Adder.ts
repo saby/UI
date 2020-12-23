@@ -4,8 +4,10 @@ import {Control} from 'UI/ReactComponent';
 // @ts-ignore
 import template = require('wml!UIDemo/ReactDemo/TODO/Adder');
 
+const defaultMessage: string = 'text';
+
 class Adder extends Control {
-    protected _value: string = '???';
+    protected _value: string = defaultMessage;
 
     constructor(props) {
         super(props);
@@ -20,7 +22,7 @@ class Adder extends Control {
     protected addNew(): void {
         //@ts-ignore
         this._options.addNewItem(this._value);
-        this._value = '';
+        this._value = defaultMessage;
     }
 }
 

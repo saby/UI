@@ -1,4 +1,7 @@
-<li className="{{checked ? 'item-checked item' : 'item'}}">
-   {{_options.title}}
+<div className="item">
+   <input type="checkbox" checked="{{checked}}" className="item-checkbox" on:onClick="_changeHandler()">
+   <span className="item-caption {{checked ? 'item-caption__checked'}}" on:onClick="_changeHandler()">
+      {{_options.title}}
+   </span>
    <button className="item__button" on:onClick="removeHandler()">Удалить</button>
-</li>
+</div>

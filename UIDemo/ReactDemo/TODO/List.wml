@@ -1,13 +1,15 @@
-<ws:if data="{{_options.items}}">
-   <ul>
+<ws:if data="{{_options.items.length}}">
+   <div className="todo-List">
       <ws:for data="i in _options.items">
          <UIDemo.ReactDemo.TODO.Item
                key="{{i.id}}"
                title="{{i.title}}"
                removeHandler="{{_options.removeHandler.bind(undefined, i.id)}}"/>
       </ws:for>
-   </ul>
+   </div>
 </ws:if>
 <ws:else>
-   Список пуст
+   <div>
+      Список пуст
+   </div>
 </ws:else>

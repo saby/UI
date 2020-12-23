@@ -1,6 +1,8 @@
 import {Control} from 'UI/ReactComponent';
 import {IList} from './interfaces';
 
+const SLEEP_TIME = 1500;
+
 // @ts-ignore
 import template = require('wml!UIDemo/ReactDemo/TODO/List');
 
@@ -9,7 +11,7 @@ class List extends Control<IList> {
         return new Promise((resolve) => {
             setTimeout(() => {
                 resolve();
-            }, 1500);
+      }, SLEEP_TIME);
         });
     }
 }
