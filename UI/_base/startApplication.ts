@@ -7,17 +7,21 @@ import { Serializer } from 'UI/State';
  * Инициализация Application/Env для Sbis приложения
  * @param {Record<string, any>} Настройки приложения
  */
-export default function startApplication(cfg?: Record<string, any>) {
+
+// tslint:disable-next-line:no-any
+export default function startApplication(cfg?: Record<string, any>): void {
     if (isInit()) {
         return;
     }
 
-    let config = cfg || window && window['wsConfig'];
+    // tslint:disable-next-line:no-string-literal
+    const config = cfg || window && window['wsConfig'];
 
     const stateReceiverInst = new StateReceiver(Serializer);
     AppInit(config, void 0, stateReceiverInst);
-
+    // tslint:disable-next-line:no-string-literal
     if (typeof window !== 'undefined' && window['receivedStates']) {
+        // tslint:disable-next-line:no-string-literal
         stateReceiverInst.deserialize(window['receivedStates']);
     }
 }

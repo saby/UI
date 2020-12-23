@@ -17,7 +17,7 @@
  * @cfg {string}
  */
 
-/** 
+/**
  * @name UI/_base/interface/IRootTemplate#wsRoot
  * @cfg {String} Путь к корню интерфейсного модуля WS.Core. Например, "/resources/WS.Core/".
  * @remark
@@ -26,7 +26,7 @@
  * Данная настройка попадает в свойство wsRoot объекта window.wsConfig.
  */
 
-/** 
+/**
  * @name UI/_base/interface/IRootTemplate#wsRoot
  * @cfg {String} Path to ws root url
  */
@@ -40,11 +40,10 @@
  * Данная настройка попадает в свойство resourceRoot объекта window.wsConfig.
  */
 
-/** 
+/**
  * @name UI/_base/interface/IRootTemplate#resourceRoot
  * @cfg {String} Path to resource root url
  */
-
 
 /**
  * @name UI/_base/interface/IRootTemplate#appRoot
@@ -79,15 +78,15 @@
  */
 
 export interface IRootTemplate {
-    readonly '[UI/_base/interface/IRootTemplate]': boolean
-};
+    readonly '[UI/_base/interface/IRootTemplate]': boolean;
+}
 
 export interface IRootTemplateOptions {
-    buildnumber?: string,
-    product?: string,
-    wsRoot?: string,
-    resourceRoot?: string,
-    appRoot?: string,
-    staticDomains: Array<string>,
-    servicesPath: string
+    buildnumber?: string;
+    product?: string;
+    wsRoot?: string;
+    resourceRoot?: string;
+    appRoot?: string;
+    staticDomains: string[];
+    servicesPath: string;
 }
