@@ -31,15 +31,6 @@ import { restoreFocus } from 'UI/Focus';
  * @author Кондаков Р.Н.
  */
 
-   // A number of rebuild iterations we can run, before we assume that
-   // it's stuck in an infinite loop
-const MAX_REBUILD = 50;
-   // A number of rebuild iterations to run with view logs enabled if it is
-   // stuck in an infinite loop, before throwing an error. We should do
-   // multiple iterations to see if the components rebuild are different
-   // each time or the same
-const MAX_REBUILD_LOGGED_ITERS = 2;
-
 injectHook();
 
 function forEachNodeParents(node: IControlNode, fn: (node:IControlNode) => void) {
