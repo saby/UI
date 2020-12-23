@@ -1,16 +1,15 @@
 /// <amd-module name="UI/_executor/_Markup/Builder" />
 /* tslint:disable */
 
-import { Logger } from 'UI/Utils';
 import { Subscriber } from 'UI/Events';
 import { ContextResolver } from 'UI/Contexts';
 import * as OptionsResolver from '../_Utils/OptionsResolver';
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
-import { isNewEnvironment } from 'UI/Utils';
+import { isNewEnvironment, Logger } from 'UI/Utils';
 import { IBuilder } from './IBuilder';
 
-import { invisibleNodeCompat, isInstOfPromise, asyncRenderErrorTag } from './Utils'
+import { invisibleNodeCompat, isInstOfPromise, asyncRenderErrorTag } from './Utils';
 import { needWaitAsync } from '../_Utils/Common';
 
 /**
@@ -89,7 +88,10 @@ export class Builder implements IBuilder {
          /**
           * Понимаем асинхронная ветка или нет
           */
-         if (needWaitAsync() && dfd && isInstOfPromise(dfd)) {
+         if (dfd && isInstOfPromise(dfd)) {
+            if (!needWaitAsync(inst._moduleName)) {
+               return '<div>Временная заглушка для ожидания асинхронного маунта</div>';
+            }
             if(!isNewEnvironment()) {
                var message = '[UI/_executor/GeneratorDefault:buildForNewControl()] You are using asynchronous rendering inside of the old environment.';
                Logger.warn(message, inst);

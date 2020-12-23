@@ -14,19 +14,33 @@ import * as RequireHelper from './RequireHelper';
 
 import { ReactiveObserver } from 'UI/Reactivity';
 
-let needWaitAsyncStorage: { needWaitAsync?: boolean };
-
-if (typeof process !== 'undefined' && process?.domain?.req) {
-   needWaitAsyncStorage = process.domain.req;
-} else {
-   needWaitAsyncStorage = {};
+const hasRequest = typeof process !== 'undefined' && !!(process?.domain?.req);
+let needWaitAsyncValue: boolean|undefined;
+function getNeedWaitAsyncValue(): boolean|undefined {
+   return hasRequest ? process.domain.req.needWaitAsyncValue : needWaitAsyncValue;
+}
+function setNeedWaitAsyncValue(newValue: boolean) {
+   if (hasRequest) {
+      process.domain.req.needWaitAsyncValue = newValue;
+   } else {
+      needWaitAsyncValue = newValue;
+   }
+   return newValue;
 }
 
-export function needWaitAsync(): boolean {
-   if (typeof needWaitAsyncStorage.needWaitAsync === 'undefined') {
-      needWaitAsyncStorage.needWaitAsync = cookie.get('stopWaitAsync') !== 'true';
+
+
+const waitAllowRegExp = /UI.(B|_b)ase.HTML/;
+export function needWaitAsync(moduleName: string): boolean {
+   if (waitAllowRegExp.test(moduleName)) {
+      // Пока не можем отказаться от асинхронности некоторых контролов.
+      return true;
    }
-   return needWaitAsyncStorage.needWaitAsync;
+   const currentNeedWaitAsyncValue = getNeedWaitAsyncValue();
+   if (typeof currentNeedWaitAsyncValue === 'undefined') {
+      return setNeedWaitAsyncValue(cookie.get('stopWaitAsync') !== 'true');
+   }
+   return currentNeedWaitAsyncValue;
 }
 
 var

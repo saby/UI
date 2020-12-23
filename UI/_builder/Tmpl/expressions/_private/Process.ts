@@ -29,26 +29,23 @@ export function escapeQuotesInString(entity: any): any {
    return entity;
 }
 
-function splitLocalizationText(text: string, fileName: string): { text: string, context: string } {
-   const pair = text.split('@@');
-   switch (pair.length) {
-      case 1:
-         return {
-            text: pair[0] || EMPTY_STRING,
-            context: EMPTY_STRING
+const localizationRegExp = /^(\s*)(?:(.*?)\s*@@\s*)?(.*?)(\s*)$/;
+
+function splitLocalizationText(text: string, fileName: string): { text: string, context: string, spacesBefore: string, spacesAfter: string } {
+   const [match, spacesBefore, context, splitedText, spacesAfter]: string[] = localizationRegExp.exec(text);
+   if (splitedText.indexOf('@@') !== -1) {
+      errorHandler.error(
+         `Ожидался только 1 @@-разделитель в конструкции локализации, в тексте "${match}" найдено больше`,
+         {
+            fileName
          }
-      default:
-         errorHandler.error(
-            `Ожидался только 1 @@-разделитель в конструкции локализации, а обнаружено ${pair.length - 1} разделителей в тексте "${text}"`,
-            {
-               fileName
-            }
-         );
-      case 2:
-         return {
-            text: (pair[1] || EMPTY_STRING).trim(),
-            context: (pair[0] || EMPTY_STRING).trim()
-         }
+      )
+   }
+   return {
+      text: splitedText || EMPTY_STRING,
+      context: context || EMPTY_STRING,
+      spacesBefore,
+      spacesAfter
    }
 }
 
@@ -59,10 +56,10 @@ function wrapWithLocalization(data: string, fileName: string): string {
       .replace(/^"/gi, '')
       .replace(/"$/gi, '');
    const prepared = splitLocalizationText(text, fileName);
-   if (prepared.context) {
-      return `rk("${prepared.text}", "${prepared.context}")`;
-   }
-   return `rk("${prepared.text}")`;
+   const context = prepared.context ? `, "${prepared.context}"` : EMPTY_STRING;
+   const spacesBefore = prepared.spacesBefore ? `"${prepared.spacesBefore}" + ` : EMPTY_STRING;
+   const spacesAfter = prepared.spacesAfter ? `+ "${prepared.spacesAfter}"` : EMPTY_STRING;
+   return `${spacesBefore}rk("${prepared.text}"${context})${spacesAfter}`;
 }
 
 function calculateResultOfExpression(data: any, escape: boolean, sanitize: boolean): any {

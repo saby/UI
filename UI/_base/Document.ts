@@ -2,6 +2,7 @@
 
 import Control from './Control';
 
+// tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/Document/Document');
 import { getThemeController } from 'UI/theme/controller';
@@ -11,15 +12,16 @@ import AppData from './AppData';
 import startApplication from 'UI/_base/startApplication';
 
 class Document extends Control {
-    _template = template;
+    _template: Function = template;
 
+    // tslint:disable-next-line:no-any
     private ctxData: any = null;
     private application: string = '';
     private applicationForChange: string = '';
 
     private coreTheme: string = '';
 
-    constructor (cfg: object) {
+    constructor(cfg: object) {
         super(cfg);
 
         /*
@@ -29,6 +31,7 @@ class Document extends Control {
         * */
         try {
             process.domain.req.compatible = false;
+            // tslint:disable-next-line:no-empty
         } catch (e) {
         }
 
@@ -41,10 +44,12 @@ class Document extends Control {
         this.ctxData = new AppData(cfg);
         }
 
+    // tslint:disable-next-line:no-any
     _beforeMount(cfg: any): void {
         this.application = cfg.application;
     }
 
+    // tslint:disable-next-line:no-any
     _beforeUpdate(cfg: any): void {
         if (this.applicationForChange) {
             this.application = this.applicationForChange;
