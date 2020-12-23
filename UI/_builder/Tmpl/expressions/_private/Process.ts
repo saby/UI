@@ -29,7 +29,7 @@ export function escapeQuotesInString(entity: any): any {
    return entity;
 }
 
-const localizationRegExp = /^(\s*)(?:(.*?)\s*@@\s*)?(.*?)(\s*)$/;
+const localizationRegExp = /^(\s*)(?:([\S\s]*?)\s*@@\s*)?([\S\s]*?)(\s*)$/;
 
 function splitLocalizationText(text: string, fileName: string): { text: string, context: string, spacesBefore: string, spacesAfter: string } {
    const [match, spacesBefore, context, splitedText, spacesAfter]: string[] = localizationRegExp.exec(text);
