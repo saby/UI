@@ -6,10 +6,8 @@
  */
 
 /**
- * Create function for event binding.
- *
+ * Создание функции для привязки событий
  * @param func - function for launch
- * @param ctx - context launching
  * @param args - arguments for mix
  * @returns {Function}
  */
@@ -27,8 +25,7 @@ export function getBindFunc(func, args) {
 }
 
 /**
- * Extract events from options object.
- *
+ * Извлекает события из опции объекта
  * @param _options
  * @returns {{}}
  */
@@ -45,11 +42,11 @@ export function getEventsListFromOptions(_options) {
 }
 
 /**
- * Iterate over event objects in event list.
- *
+ * Перебирает события в списке событий
  * @param eventsList
  * @param func
  *    - executes for each (key, object) pair
+ * @returns {void}
  */
 export function forEventObjects(eventsList, func) {
    for (var key in eventsList) {
@@ -63,11 +60,11 @@ export function forEventObjects(eventsList, func) {
 }
 
 /**
- * Subscribe instance to all events in the list.
- *
+ * Подписка инстанаса на все события в списке
  * @param inst
  * @param parent
  * @param eventsList
+ * @returns {void}
  */
 export function subscribeEvents(inst, parent, eventsList) {
    forEventObjects(eventsList, function (key, eventObject) {
@@ -79,11 +76,12 @@ export function subscribeEvents(inst, parent, eventsList) {
 }
 
 /**
- * Unsubscribe instance from all events in the list.
+ * Отписка инстанаса на все события в списке
  *
  * @param inst
  * @param parent
  * @param eventsList
+ * @returns {void}
  */
 export function unsubscribeEvents(inst, parent, eventsList) {
    forEventObjects(eventsList, function (key, eventObject) {
@@ -94,13 +92,14 @@ export function unsubscribeEvents(inst, parent, eventsList) {
 }
 
 /**
- * Apply events to the given instance:
- *    1. Subscribe events to the instance
- *    2. Unsubscribe events when instance is destroyed
+ * Применяет события к инстансу:
+ *    1. Подписка событий на инстансе
+ *    2. Отписка от событий при разрушении инстанса
  *
  * @param inst
  * @param parent
  * @param eventsList
+ * @returns {void}
  */
 export function applyEvents(inst, parent, eventsList) {
    subscribeEvents(inst, parent, eventsList);

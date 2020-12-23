@@ -13,10 +13,20 @@ const originDOMEventNames = {
 const passiveFalseEvents = ["wheel", "mousewheel", "touchstart", "touchmove"];
 const specialBodyEvents = ["scroll", "resize"];
 
+/**
+ * Проверка атрибута что это подписка на событие (on:event)
+ * @param titleAttribute
+ * @returns {boolean}
+ */
 export function isEvent(titleAttribute) {
    return /^(on:[A-z0-9])\w*$/.test(titleAttribute);
 }
 
+/**
+ * Получение имени события
+ * @param eventAttribute
+ * @returns {string}
+ */
 export function getEventName(eventAttribute) {
    return eventAttribute.slice(3).toLowerCase();
 }
@@ -42,17 +52,23 @@ export function isSpecialBodyEvent(eventName): boolean {
    return specialBodyEvents.indexOf(eventName) !== -1;
 }
 
+/**
+ * Исправление регистра в имени событий для из списка originDOMEventNames
+ * @param name
+ * @returns {boolean}
+ */
 export function fixUppercaseDOMEventName(name) {
    var fixedName = originDOMEventNames[name];
    return fixedName || name;
 }
 
-
 //TODO: https://online.sbis.ru/opendoc.html?guid=9f8133e8-5aaf-4b95-897f-00160c512daf
 /**
- * A handler to use in templates to proxy events to the logic parent.
+ * Обработчик используется в шаблонах для проксирования событий логическому родителю.
+ * @param event
+ * @param eventName
+ * returns {Function}
  */
-
 export function tmplNotify(event: Event, eventName: string) {
    /**
     * We can't ignore bubbling events here, because no one guarantees they're the same.
@@ -63,6 +79,13 @@ export function tmplNotify(event: Event, eventName: string) {
    return this._notify(eventName, args);
 }
 
+/**
+ * Транслирует переданные события модели от переданного контрола
+ * @param component
+ * @param model
+ * @param eventNames
+ * returns {void}
+ */
 export function proxyModelEvents(component, model, eventNames: string[]) {
    eventNames.forEach((eventName: string) => {
       model.subscribe(eventName, (event, value) => {
@@ -72,7 +95,13 @@ export function proxyModelEvents(component, model, eventNames: string[]) {
 }
 
 /**
- * This used in control to handle keyDown events.
+ * Используется в контролах для обработки события keyDown
+ * @param event
+ * @param keys
+ * @param handlerSet
+ * @param scope
+ * @param dontStop
+ * returns {void}
  */
 export function keysHandler(event, keys, handlerSet, scope: object, dontStop: boolean): void {
    for (const action in keys) {
