@@ -314,9 +314,9 @@ var
    },
    getRk = function(fileName) {
       var localizationModule = fileName.split('/')[0];
-
-      var rk = requirejs("i18n!" + localizationModule);
-
+      this.getRkCache = this.getRkCache || {};
+      var rk = this.getRkCache[localizationModule] || requirejs("i18n!" + localizationModule);
+      this.getRkCache[localizationModule] = rk;
       return rk;
    };
 
