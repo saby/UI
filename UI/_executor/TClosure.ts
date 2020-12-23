@@ -10,7 +10,7 @@ import { Serializer } from 'UI/State';
 // @ts-ignore
 import { Logger } from 'UI/Utils';
 // @ts-ignore
-import {Config as config} from 'UI/BuilderConfig';
+import { Config as config } from 'UI/BuilderConfig';
 // @ts-ignore
 import { ObjectUtils } from 'UI/Utils';
 import { object } from 'Types/util';
@@ -21,17 +21,6 @@ import { Text, Vdom } from './Markup';
 import * as Scope from './_Expressions/Scope';
 import * as Attr from './_Expressions/Attr';
 import { Common, ConfigResolver } from './Utils';
-
-var decorators;
-function getDecorators() {
-   if (decorators) {
-      return decorators;
-   } else {
-      // @ts-ignore
-      decorators = require('View/decorators');
-      return decorators;
-   }
-}
 
 let generatorCompatible;
 function getGeneratorCompatible(config) {
@@ -284,7 +273,7 @@ var
    sanitizeContent = function sanitizeContent(content) {
       // @ts-ignore
       var Sanitize = require('Core/Sanitize');
-      var opts = getDecorators()._sanitizeOpts();
+      var opts = Common.sanitizeOpts();
 
       // экранируем скобки только если код выполняется в сервисе представления, только там может dot дважды эскейпиться
       // @ts-ignore
@@ -340,7 +329,6 @@ export {
    filterOptions,
    calcParent,
    wrapUndef,
-   getDecorators,
    sanitizeContent as Sanitize,
    ITERATORS as iterators,
    templateError,

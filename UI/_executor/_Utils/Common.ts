@@ -452,6 +452,20 @@ export function disableCompat() {
    return typeof(disableCompat) !== "undefined" && disableCompat === 'true' ;
 }
 
+
+export function sanitizeOpts() {
+   let opts = {};
+   return function(val) {
+      if (val) {
+         opts = val;
+      } else {
+         const res = opts;
+         opts = {};
+         return res;
+      }
+   };
+}
+
 //todo перенести в Serializer
 export const componentOptsReArray = [
    {
