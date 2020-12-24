@@ -3,7 +3,7 @@
 /**
  * Библиотека для работы с зависимостями на странице
  * @library UI/Deps
- * @includes addPageDeps
+ * @includes addPageDeps UI/_deps/PageDependencies
  * @author Мустафин Л.И.
  */
 
