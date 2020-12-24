@@ -307,7 +307,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          lexicalContext.registerFloatProgram(node.__$ws_init);
       }
       lexicalContext.registerFloatProgram(node.__$ws_test);
-      if (node.__$ws_init) {
+      if (node.__$ws_update) {
          lexicalContext.registerFloatProgram(node.__$ws_update);
       }
       this.processNodes(node.__$ws_content, contentContext);
