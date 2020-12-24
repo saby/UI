@@ -14,6 +14,8 @@ const PARSER = new Parser();
 
 const ALLOW_PROGRAM_DUPLICATES = true;
 
+const USE_GLOBAL_INTERNAL_PROGRAM_INDEX = false;
+
 const EMPTY_STRING = '';
 
 const EMPTY_ARRAY = [];
@@ -156,9 +158,10 @@ function generateInternalProgramKey(index: number): string {
    return `${INTERNAL_PROGRAM_PREFIX}${index}`;
 }
 
-function zipInternalProgramMeta(description: IProgramDescription): IProgramMeta {
+function zipInternalProgramMeta(description: IProgramDescription, index: number): IProgramMeta {
+   const programIndex = USE_GLOBAL_INTERNAL_PROGRAM_INDEX ? description.index : index;
    return createProgramMeta(
-      generateInternalProgramKey(description.index),
+      generateInternalProgramKey(programIndex),
       description.node
    );
 }
@@ -393,7 +396,7 @@ class LexicalContext implements ILexicalContext {
       const collection: IProgramMeta[] = [];
       for (let index = 0; index < this.internals.length; ++index) {
          const description = this.internals[index];
-         const meta = zipInternalProgramMeta(description);
+         const meta = zipInternalProgramMeta(description, index);
          collection.push(meta);
       }
       return collection;
