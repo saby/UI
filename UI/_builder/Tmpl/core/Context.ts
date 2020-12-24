@@ -357,7 +357,7 @@ class LexicalContext implements ILexicalContext {
          collectionIndex = this.internalKeysMap[key];
          return this.internals[collectionIndex].node;
       }
-      throw new Error(`Выражение с ключем "${key}" не было зарегистрировано в текущем контексте`);
+      throw new Error(`Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
    }
 
    getIdentifiers(localOnly: boolean): string[] {
