@@ -118,6 +118,8 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
    private __markupNodeDecorator: TMarkupNodeDecoratorFn;
    private touchendTarget: HTMLElement;
 
+   private wasNotifyList: string[] = [];
+
    private _clickState: any = {
       detected: false,
       stage: '',
@@ -532,8 +534,20 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
       const startArray = getEventPropertiesStartArray(controlNode, eventName);
       // @ts-ignore FIXME: Argument 'eventConfig' of type {} is not assignable to parameter of type IEventConfig
       eventObject = new SyntheticEvent(null, eventConfig);
-      vdomEventBubbling(eventObject, controlNode, startArray, handlerArgs, false);
+      vdomEventBubbling.call(this, eventObject, controlNode, startArray, handlerArgs, false);
       return eventObject.result;
+   }
+
+   clearWasNotifyList(): void {
+      this.wasNotifyList = [];
+   }
+
+   setWasNotifyList(instId: string, eventType: string): void {
+      this.wasNotifyList.push(`${ instId }_${ eventType }`);
+   }
+
+   wasNotified(instId: string, eventType: string): boolean {
+      return this.wasNotifyList.indexOf(`${ instId }_${ eventType }`) !== -1;
    }
 
    private __getWindowObject(): any {
@@ -870,7 +884,13 @@ function vdomEventBubbling(
                          * в таком случае их надо вызвать отложено */
                         callAfterMount.push({fn, finalArgs});
                      } else {
-                        fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
+                        const needCallAfterNotify = !this.wasNotified(fn.control._instId, eventObject.type) && !native;
+                        if (needCallAfterNotify && eventObject.type.indexOf('mouse') === -1) {
+                           this.setWasNotifyList(fn.control._instId, eventObject.type);
+                        }
+                        if (needCallAfterNotify || native) {
+                           fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
+                        }
                      }
                   } catch (err) {
                      // в шаблоне могут указать неверное имя обработчика, следует выводить адекватную ошибку
@@ -1117,7 +1137,7 @@ function captureEventHandler(event: any): any {
          this.touchendTarget = null;
       }
 
-      vdomEventBubbling(synthEvent, null, undefined, [], true);
+      vdomEventBubbling.call(this, synthEvent, null, undefined, [], true);
    }
 }
 

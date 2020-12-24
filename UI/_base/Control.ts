@@ -322,7 +322,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
          Logger.error(error, this);
          throw new Error(error);
       }
-      return this._environment && this._environment.startEvent(this._controlNode, arguments);
+      if (!this._environment) {
+         return;
+      }
+      this._environment.startEvent(this._controlNode, arguments);
+      return this._environment.clearWasNotifyList();
    }
 
    /**
