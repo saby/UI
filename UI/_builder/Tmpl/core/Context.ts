@@ -504,8 +504,11 @@ class LexicalContext implements ILexicalContext {
       if (this.internalsMap.hasOwnProperty(source))  {
          return;
       }
+      const index: number = this.programs.length;
+      const key = generateInternalProgramKey(description.index);
       // Description index in collection that will be set.
-      this.internalsMap[source] = this.internals.length;
+      this.internalKeysMap[key] = index;
+      this.internalsMap[source] = index;
       this.internals.push(description);
    }
 
