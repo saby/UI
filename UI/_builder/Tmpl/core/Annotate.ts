@@ -38,18 +38,16 @@ interface IContext {
    scope: Scope;
 }
 
-const INTERNAL_EXPRESSION_PREFIX = '__dirtyCheckingVars_';
-
 // </editor-fold>
 
 // <editor-fold desc="Private annotation functions">
 
 function appendInternalExpressions(internal: Ast.IInternal, programs: IProgramMeta[]): void {
-   let expressionIndex = 0;
    for (let index = 0; index < programs.length; ++index) {
-      internal[INTERNAL_EXPRESSION_PREFIX + (expressionIndex++)] = {
+      const program = programs[index];
+      internal[program.key] = {
          data: [
-            new Ast.ExpressionNode(programs[index].node)
+            new Ast.ExpressionNode(program.node)
          ],
          type: 'text'
       };
