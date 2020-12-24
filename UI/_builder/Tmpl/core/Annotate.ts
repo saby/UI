@@ -14,6 +14,7 @@ import { createGlobalContext, IContext as ILexicalContext, IProgramMeta } from '
 export interface IAnnotatedTree extends Array<Ast.Ast> {
    childrenStorage: string[];
    reactiveProps: string[];
+   templateNames: string[];
    lexicalContext: ILexicalContext;
    __newVersion: boolean;
 }
@@ -183,6 +184,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       result.lexicalContext = global;
       result.childrenStorage = childrenStorage;
       result.reactiveProps = reactiveProperties;
+      result.templateNames = scope.getTemplateNames();
       result.__newVersion = true;
       return result;
    }
