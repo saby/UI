@@ -549,6 +549,10 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
       this.wasNotifyList = [];
    }
 
+   needBlockNotifyState(): boolean {
+      return this.needBlockNotify;
+   }
+
    setWasNotifyList(instId: string, eventType: string): void {
       this.wasNotifyList.push(`${ instId }_${ eventType }`);
    }
@@ -894,7 +898,7 @@ function vdomEventBubbling(
                         let needCallHandler = native;
                         if (!needCallHandler) {
                            needCallHandler = !this.wasNotified(fn.control._instId, eventObject.type);
-                           if (needCallHandler && this.needBlockNotify && eventObject.type.indexOf('mouse') === -1) {
+                           if (needCallHandler && this.needBlockNotifyState() && eventObject.type.indexOf('mouse') === -1) {
                               this.setWasNotifyList(fn.control._instId, eventObject.type);
                            }
                         }
