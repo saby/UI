@@ -168,7 +168,7 @@ define('UI/_builder/Tmpl/codegen/templates', [
          .replace(/\/\*#TEST#\*\//g, generateReturnValueFunction(test))
          .replace(/\/\*#UPDATE#\*\//g, generateReturnValueFunction(update))
          .replace(/\/\*#PROCESSED#\*\//g, generateReturnValueFunction(processedBlock))
-         .replace(/\/\*#PROCESSED_EXPRESSIONS#\*\//g, (processedExpressions || EMPTY_STRING));
+         .replace(/\/\*#PROCESSED_EXPRESSIONS#\*\//g, generateReturnValueFunction(processedExpressions || EMPTY_STRING));
    }
 
    /**
@@ -188,7 +188,7 @@ define('UI/_builder/Tmpl/codegen/templates', [
          .replace(/\/\*#SCOPE_ARRAY#\*\//g, generateReturnValueFunction(scopeArray))
          .replace(/\/\*#ITERATOR_SCOPE#\*\//g, generateReturnValueFunction(iteratorScope))
          .replace(/\/\*#PROCESSED#\*\//g, generateReturnValueFunction(processedBlock))
-         .replace(/\/\*#PROCESSED_EXPRESSIONS#\*\//g, (processedExpressions || EMPTY_STRING));
+         .replace(/\/\*#PROCESSED_EXPRESSIONS#\*\//g, generateReturnValueFunction(processedExpressions || EMPTY_STRING));
    }
 
    /**
@@ -210,7 +210,7 @@ define('UI/_builder/Tmpl/codegen/templates', [
       return bodyTemplate
          .replace(/\/\*#FILE_NAME#\*\//g, fileName)
          .replace(/\/\*#MARKUP_GENERATION#\*\//g, generateReturnValueFunction(markupGeneration))
-         .replace(/\/\*#PROCESSED_EXPRESSIONS#\*\//g, (processedExpressions || EMPTY_STRING));
+         .replace(/\/\*#PROCESSED_EXPRESSIONS#\*\//g, generateReturnValueFunction(processedExpressions || EMPTY_STRING));
    }
 
    /**
