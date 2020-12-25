@@ -119,6 +119,8 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
    private touchendTarget: HTMLElement;
 
    private wasNotifyList: string[] = [];
+   private lastNotifyEvent: string = '';
+   private needBlockNotify: boolean = false;
 
    private _clickState: any = {
       detected: false,
@@ -534,6 +536,10 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
       const startArray = getEventPropertiesStartArray(controlNode, eventName);
       // @ts-ignore FIXME: Argument 'eventConfig' of type {} is not assignable to parameter of type IEventConfig
       eventObject = new SyntheticEvent(null, eventConfig);
+      this.needBlockNotify = false;
+      if (this.lastNotifyEvent === eventName) {
+         this.needBlockNotify = true;
+      }
       vdomEventBubbling.call(this, eventObject, controlNode, startArray, handlerArgs, false);
       this.clearWasNotifyList();
       return eventObject.result;
@@ -885,11 +891,15 @@ function vdomEventBubbling(
                          * в таком случае их надо вызвать отложено */
                         callAfterMount.push({fn, finalArgs});
                      } else {
-                        const needCallAfterNotify = !this.wasNotified(fn.control._instId, eventObject.type) && !native;
-                        if (needCallAfterNotify && eventObject.type.indexOf('mouse') === -1) {
-                           this.setWasNotifyList(fn.control._instId, eventObject.type);
+                        let needCallHandler = native;
+                        if (!needCallHandler) {
+                           needCallHandler = !this.wasNotified(fn.control._instId, eventObject.type);
+                           if (needCallHandler && this.needBlockNotify && eventObject.type.indexOf('mouse') === -1) {
+                              this.setWasNotifyList(fn.control._instId, eventObject.type);
+                           }
                         }
-                        if (needCallAfterNotify || native) {
+
+                        if (needCallHandler) {
                            fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
                         }
                      }
