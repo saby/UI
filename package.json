@@ -26,7 +26,7 @@
       "lint": "node ./node_modules/eslint/bin/eslint --color --no-eslintrc -c=.eslintrc -f=stylish .",
       "lintless": "stylelint \"Controls/**/*.less\"",
       "prepare": "npm run update-cli-store && npm run build:typescript",
-      "update-cli-store": "wasaby-cli --tasks=initStore",
+      "update-cli-store": "wasaby-cli --tasks=initStore"
    },
    "wasaby-cli": {
       "port": 777
