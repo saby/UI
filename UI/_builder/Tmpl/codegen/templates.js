@@ -8,7 +8,6 @@ define('UI/_builder/Tmpl/codegen/templates', [
     */
 
    var EMPTY_STRING = '';
-   var newlineRegExp = /\r|\n/g;
 
    /**
     * Предобработать текст шаблона.
@@ -17,7 +16,7 @@ define('UI/_builder/Tmpl/codegen/templates', [
     */
    function preprocessRawTemplate(text) {
       return text
-         .replace(newlineRegExp, EMPTY_STRING);
+         .replace(/\r|\n/g, EMPTY_STRING);
    }
 
    // Если второй аргумент функции replace - строка, то там могут быть специальные шаблоны замены.
