@@ -35,6 +35,10 @@ export function genGetScope(expression: string): string {
    return `${VAR_MODULE_NAME}.getScope(${expression})`;
 }
 
+export function genPrepareDataForCreate(tpl: string, scope: string, attributes: string, deps: string): string {
+   return `${VAR_MODULE_NAME}.prepareDataForCreate(${tpl}, ${scope}, ${attributes}, ${deps})`;
+}
+
 /**
  * Для создания вызовов от конструкций:
  * <ws:partial template="{{ templateFunction }}" />
