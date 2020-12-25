@@ -40,7 +40,7 @@ export class Builder implements IBuilder {
       OptionsResolver.resolveOptions(cnstr, defaultOpts, _options, parentName);
 
       //@ts-ignore
-      if (window.reactGenerator) {
+      if (typeof window !== 'undefined' && window.reactGenerator) {
          return createElement(cnstr, _options);
       }
       var inst = new cnstr(_options),
