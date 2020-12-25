@@ -8,7 +8,6 @@ import { FunctionUtils } from 'UI/Utils';
 import { constants } from 'Env/Env';
 import { plainMerge } from './Common';
 import * as Scope from '../_Expressions/Scope';
-import {getFixScopeMergingInContent} from "./FixScopeMergingContent";
 
 /**
  * todo: describe method
@@ -56,28 +55,6 @@ function isParentEnabled(parent: any, obj: any, currentPropertyName: any, data: 
       return attrs.internal.parentEnabled;
    }
    return defaultValue;
-}
-
-interface IUseAutoProxiedOptionErrorConfig {
-   upperControlName: string;
-   lostHere: string;
-}
-export class UseAutoProxiedOptionError {
-   upperControlName: string;
-   lostHere: string;
-
-   private _destroyed: boolean;
-
-   constructor(cfg: IUseAutoProxiedOptionErrorConfig) {
-      this.upperControlName = cfg.upperControlName;
-      this.lostHere = cfg.lostHere;
-   }
-   destroy(): void {
-      this._destroyed = true;
-   }
-   isDestroyed(): boolean {
-      return this._destroyed;
-   }
 }
 
 var global = (function() {
@@ -134,40 +111,6 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
          // через ... будут инициализировать контрол, который лежит внутри такого шаблона
          if (!insertedData.hasOwnProperty('parent') &&
             (!insertedData.hasOwnProperty('element') || !insertedData.element || insertedData.element.length === 0)) {
-
-            if (!templateCfg.isRootTag && getFixScopeMergingInContent()) {
-               const lostHere = name !== 'Controls/Container/Async' ?
-                  `${name}` :
-                  `${name} (${data.templateName})`;
-               const upperControlName = templateCfg.viewController ?
-                  templateCfg.viewController._moduleName :
-                  '???';
-
-               const insertedDataCloned = {};
-               Object.keys(insertedData).forEach((prop) => {
-                  // вмерживать будем только опции которых нет или объекты рекурсивно для ws3 контролов
-                  if (data[prop] === undefined ||
-                        !(templateCfg.viewController && templateCfg.viewController._template) &&
-                        typeof data[prop] === 'object' && typeof insertedData[prop] === 'object') {
-
-                     // вмерживать будем опции кроме on: и content
-                     if (!mergeRegExp.test(prop)) {
-                        insertedDataCloned[prop] = insertedData[prop];
-                        const newProp = '_$' + prop;
-                        if (!(insertedData[prop] instanceof UseAutoProxiedOptionError)
-                           && !(insertedData[newProp] instanceof UseAutoProxiedOptionError)
-                           && !(insertedData[prop] === 'InheritOptionsError')
-                           && !(insertedData[newProp] === 'InheritOptionsError')) {
-                           insertedDataCloned[newProp] = new UseAutoProxiedOptionError({
-                              upperControlName,
-                              lostHere
-                           });
-                        }
-                     }
-                  }
-               });
-               insertedData = insertedDataCloned;
-            }
 
             data = FunctionUtils.merge(data, insertedData, {
                rec: !(templateCfg.viewController && templateCfg.viewController._template),

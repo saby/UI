@@ -36,11 +36,11 @@ export function getConfig(): string {
 }
 
 export function genGetter(data: string, path: string[]): string {
-   return `${VAR_MODULE_NAME}.getter(${data}, [${path.join()}], viewController)`;
+   return `${VAR_MODULE_NAME}.getter(${data}, [${path.join()}])`;
 }
 
 export function genSetter(data: string, path: string[]): string {
-   return `${VAR_MODULE_NAME}.setter(${data}, [${path.join()}], viewController, value)`;
+   return `${VAR_MODULE_NAME}.setter(${data}, [${path.join()}], value)`;
 }
 
 export function genDecorate(name: string, args: string[]): string {
