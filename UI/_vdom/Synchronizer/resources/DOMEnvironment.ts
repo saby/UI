@@ -535,6 +535,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
       // @ts-ignore FIXME: Argument 'eventConfig' of type {} is not assignable to parameter of type IEventConfig
       eventObject = new SyntheticEvent(null, eventConfig);
       vdomEventBubbling.call(this, eventObject, controlNode, startArray, handlerArgs, false);
+      this.clearWasNotifyList();
       return eventObject.result;
    }
 
