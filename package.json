@@ -27,8 +27,6 @@
       "lintless": "stylelint \"Controls/**/*.less\"",
       "prepare": "npm run update-cli-store && npm run build:typescript",
       "update-cli-store": "wasaby-cli --tasks=initStore",
-      "tslint": "saby-typescript --lint"
-
    },
    "wasaby-cli": {
       "port": 777
