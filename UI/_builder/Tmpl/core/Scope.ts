@@ -15,26 +15,10 @@ import * as ParallelDeferred from 'Core/ParallelDeferred';
 import createController, { IDependenciesController } from 'UI/_builder/Tmpl/core/Dependencies';
 
 /**
- * Interface of inner representation of template nodes.
- */
-interface ITemplate {
-
-   /**
-    * Template node.
-    */
-   template: Ast.TemplateNode;
-
-   /**
-    * Template usages count.
-    */
-   usages: number;
-}
-
-/**
  * Interface of collection of inner template representations.
  */
 interface ITemplates {
-   [name: string]: ITemplate;
+   [name: string]: Ast.TemplateNode;
 }
 
 /**
@@ -109,10 +93,7 @@ export default class Scope implements ITranslationsRegistrar {
       if (this.templates.hasOwnProperty(name)) {
          throw new Error(`шаблон с именем "${name}" уже был определен`);
       }
-      this.templates[name] = {
-         template: ast,
-         usages: 0
-      };
+      this.templates[name] = ast;
    }
 
    /**
@@ -123,18 +104,6 @@ export default class Scope implements ITranslationsRegistrar {
     */
    hasTemplate(name: string): boolean {
       return this.templates.hasOwnProperty(name);
-   }
-
-   /**
-    * Register template usage.
-    * @param name {string} Template name.
-    * @throws {Error} Throws error in case of template is undefined.
-    */
-   registerTemplateUsage(name: string): void {
-      if (!this.templates.hasOwnProperty(name)) {
-         throw new Error(`шаблон с именем "${name}" не был определен`);
-      }
-      ++this.templates[name].usages;
    }
 
    /**
@@ -155,27 +124,6 @@ export default class Scope implements ITranslationsRegistrar {
       if (!this.templates.hasOwnProperty(name)) {
          throw new Error(`шаблон с именем "${name}" не был определен`);
       }
-      return this.templates[name].template;
-   }
-
-   /**
-    * Get template usages by its name.
-    * @param name {string} Template name.
-    * @returns {number} Template usages count.
-    * @throws {Error} Throws error in case of template is undefined.
-    */
-   getTemplateUsages(name: string): number {
-      if (!this.templates.hasOwnProperty(name)) {
-         throw new Error(`шаблон с именем "${name}" не был определен`);
-      }
-      return this.templates[name].usages;
-   }
-
-   /**
-    * Remove template by its name.
-    * @param name
-    */
-   removeTemplate(name: string): void {
-      delete this.templates[name];
+      return this.templates[name];
    }
 }

@@ -27,7 +27,7 @@ export default class Link extends Base implements ICssEntity {
       let data;
       if (isInit && this.headTagId) {
          data = HeadAPI.getInstance().getData(this.headTagId);
-         result = new TagMarkup(data.map(fromJML)).outerHTML;
+         result = new TagMarkup([fromJML(data)]).outerHTML;
       } else {
          result = new TagMarkup([{tagName: 'link', attrs: (generateAttrs(this) as IAttrsDescription)}]).outerHTML;
       }

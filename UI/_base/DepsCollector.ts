@@ -66,8 +66,8 @@ enum DEPTYPES {
  * но DepsCollector не знает об этом ничего.
  */
 const SPECIAL_DEPS = {
-   'i18n': 'I18n/i18n'
-}
+   i18n: 'I18n/i18n'
+};
 
 export const TYPES: Record<RequireJSPlugin | 'css', object> = {
    tmpl: {

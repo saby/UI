@@ -1,32 +1,27 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/DOMEnvironment" />
-// tslint:disable:variable-name no-any
+// tslint:disable:variable-name no-any ban-ts-ignore
 
 import { constants, detection } from 'Env/Env';
 import { Logger, isNewEnvironment } from 'UI/Utils';
-import { ElementFinder, Events, BoundaryElements, focus, preventFocus, hasNoFocus, goUpByControlTree } from 'UI/Focus';
+import { ElementFinder, Events, focus, preventFocus, hasNoFocus, goUpByControlTree } from 'UI/Focus';
 import {
-   IDOMEnvironment, TControlStateCollback, IControlNode, IArrayEvent,
-   IWasabyHTMLElement, TMarkupNodeDecoratorFn, IHandlerInfo, TModifyHTMLNode
+   IDOMEnvironment, TControlStateCollback, IArrayEvent,
+   IWasabyHTMLElement, TMarkupNodeDecoratorFn, IHandlerInfo, TModifyHTMLNode,
+   TComponentAttrs,
+   IControlNode
 } from '../interfaces';
 
-import { delay } from 'Types/function';
 import { mapVNode } from './VdomMarkup';
 import { setControlNodeHook, setEventHook } from './Hooks';
 import SyntheticEvent from './SyntheticEvent';
-import { TComponentAttrs } from '../interfaces';
-import { EventUtils } from 'UI/Events';
+import { EventUtils, FastTouchEndController } from 'UI/Events';
 import { RawMarkupNode } from 'UI/Executor';
 import Environment from './Environment';
 import { SwipeController } from './SwipeController';
 import { LongTapController } from './LongTapController';
-import {
-   onEndSync
-} from 'UI/DevtoolsHook';
-import { VNode, render } from 'Inferno/third-party/index';
-import { hydrate } from 'Inferno/third-party/hydrate';
+import { VNode } from 'Inferno/third-party/index';
 
 import isInvisibleNode from './InvisibleNodeChecker';
-import MountMethodsCaller from './MountMethodsCaller';
 
 /**
  * TODO: Изыгин
@@ -37,18 +32,8 @@ import MountMethodsCaller from './MountMethodsCaller';
 /**
  * @author Кондаков Р.Н.
  */
-
-function checkAssertion(assert: boolean, message?: string): any {
-   if (assert) {
-      return;
-   }
-   throw new Error(message || 'Ошибка логики');
-}
-
 const TAB_KEY = 9;
 let touchId = 0;
-
-const mountMethodsCaller: MountMethodsCaller = new MountMethodsCaller();
 
 function createRecursiveVNodeMapper(fn: any): any {
    return function recursiveVNodeMapperFn(
@@ -72,14 +57,6 @@ function createRecursiveVNodeMapper(fn: any): any {
 
       return fnRes;
    };
-}
-
-function atLeastOneControlReduce(prev: any, next: any): any {
-   return next.control;
-}
-
-function atLeasOneControl(controlNodes: any): any {
-   return controlNodes.reduce(atLeastOneControlReduce, true);
 }
 
 function generateClickEventFromTouchend(event: TouchEvent): any {
@@ -131,38 +108,10 @@ function generateClickEventFromTouchend(event: TouchEvent): any {
 const clickStateTarget: Array<{ target: HTMLElement, touchId: number }> = [];
 const callAfterMount: IArrayEvent[] = [];
 
-class QueueMixin extends Environment {
-   private queue: string[] = null;
-
-   /**
-    * Кейс: в панели идет перерисовка. Панель что-то сообщает опенеру
-    * опенер передает данные в контрол, который лежит вне панели
-    * контрол дергает _forceUpdate и попадает в очередь перерисовки панели
-    * затем панель разрушается и заказанной перерисовки контрола вне панели не случается
-    */
-   runQueue(): void {
-      if (this.queue) {
-         for (let i = 0; i < this.queue.length; i++) {
-            this.forceRebuild(this.queue[i]);
-         }
-      }
-      this.queue = null;
-   }
-}
-
-interface IDires {
-   [key: string]: number;
-}
-
 // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
-export default class DOMEnvironment extends QueueMixin implements IDOMEnvironment {
-   // FIXME: костыль для Synchronizer и DirtyChecking
-   _currentDirties: IDires;
+export default class DOMEnvironment extends Environment implements IDOMEnvironment {
    // FIXME: костыль для UI\_focus\RestoreFocus.ts
    _restoreFocusState: boolean = false;
-   // FIXME: костыль для Synchronizer
-   _nextDirties: IDires;
-
    // FIXME вернуть private
    __captureEventHandler: Function;
    private __captureEventHandlers: Record<string, IHandlerInfo[]>;
@@ -185,16 +134,12 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
    };
 
    constructor(
-      public _rootDOMNode: TModifyHTMLNode,
+      // она нужна что бы выполнить функцию render VDOM библиотеки от неё
+      _rootDOMNode: TModifyHTMLNode,
       controlStateChangedCallback: TControlStateCollback,
       rootAttrs: TComponentAttrs
    ) {
-      // @ts-ignore FIXME: Expected 1 argument but got 2
-      super(controlStateChangedCallback, rootAttrs);
-      // @ts-ignore FIXME: Condition
-      checkAssertion(_rootDOMNode !== document, 'Корневой контрол нельзя монтировать на document');
-      this._currentDirties = {};
-      this._nextDirties = {};
+      super(_rootDOMNode, controlStateChangedCallback);
       this.__captureEventHandlers = {};
       this.__captureEventHandler = captureEventHandler.bind(this);
       this.__markupNodeDecorator = createRecursiveVNodeMapper(setEventHook);
@@ -208,10 +153,6 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
    }
 
    destroy(): any {
-      this.runQueue();
-
-      // @ts-ignore FIXME: Property '_haveRebuildRequest' does not exist
-      this._haveRebuildRequest = false;
       this.removeTabListener();
       // TODO раскомментить после https://online.sbis.ru/opendoc.html?guid=450170bd-6322-4c3c-b6bd-3520ce3cba8a
       // this.removeProcessiingEventHandler('focus');
@@ -222,13 +163,26 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       // this.removeProcessiingEventHandler('touchmove');
       // this.removeProcessiingEventHandler('touchend');
       this.removeAllCaptureHandlers();
-      this._rootDOMNode = undefined;
-      this._currentDirties = {};
-      this._nextDirties = {};
       this.__captureEventHandlers = {};
       delete this.__captureEventHandler;
       this._handleTabKey = undefined;
       super.destroy();
+   }
+
+   protected callEventsToDOM(): void {
+      while (callAfterMount && callAfterMount.length) {
+         const elem = callAfterMount.shift();
+         const fn = elem.fn;
+         /* в слое совместимости контрол внутри которого построился wasaby-контрол, может быть уничтожен
+            до того как начнется асинхронный вызов afterMount,
+            как результат в текущей точку контрол будет уже уничтожен слоем совместимости
+            нало проверять действительно ли он жив, перед тем как выстрелить событием
+            */
+         // @ts-ignore
+         if (!fn.control._destroyed) {
+            fn.apply(fn.control, elem.finalArgs);
+         }
+      }
    }
 
    initProcessingHandlers(): any {
@@ -444,6 +398,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       // flag to true to avoid event triggering twice.
       event.addedToClickState = true;
 
+      FastTouchEndController.setClickEmulateState(true);
       SwipeController.initState(event);
       LongTapController.initState(event);
    }
@@ -461,7 +416,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
             }
          }
       }
-
+      FastTouchEndController.setClickEmulateState(false);
       SwipeController.detectState(event);
       LongTapController.resetState();
    }
@@ -516,6 +471,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       this.touchendTarget = event.target;
       setTimeout(() => { this.touchendTarget = null; }, 300);
 
+      FastTouchEndController.clickEmulate(event.target, event);
       SwipeController.resetState();
       LongTapController.resetState();
    }
@@ -533,130 +489,7 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
       );
    }
 
-   applyNewVNode(newVNnode: IControlNode, rebuildChanges: any, newRootCntNode: IControlNode): any {
-      if (!this._rootDOMNode) {
-         return;
-      }
-
-      const vnode = this.decorateRootNode(newVNnode);
-      let control;
-      let patch;
-      const newRootDOMNode = undefined;
-
-      // добавляем vdom-focus-in и vdom-focus-out
-      // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
-      BoundaryElements.insertBoundaryElements(this, vnode);
-
-      const controlNodesToCall = mountMethodsCaller.collectControlNodesToCall(newRootCntNode, rebuildChanges);
-      mountMethodsCaller.beforeRender(controlNodesToCall);
-
-      this._rootDOMNode.isRoot = true;
-      try {
-         // Свойство $V вешает движок inferno. Если его нет, значит пришли с сервера.
-         if (this._rootDOMNode.hasOwnProperty('$V') || !this._rootDOMNode.firstChild) {
-            patch = render(vnode, this._rootDOMNode, undefined, undefined, true);
-         } else {
-            patch = hydrate(vnode, this._rootDOMNode, undefined, true);
-         }
-      } catch (e) {
-         Logger.error('Ошибка оживления Inferno', undefined, e);
-      }
-
-      // @ts-ignore
-      const isCompatible = newRootCntNode.control.hasCompatible && newRootCntNode.control.hasCompatible();
-      if (isCompatible) {
-         control = atLeasOneControl([newRootCntNode]);
-         if (newRootDOMNode) {
-            // @ts-ignore FIXME: Unknown $
-            control._container = window.$ ? $(newRootDOMNode) : newRootDOMNode;
-         }
-         mountMethodsCaller.componentDidUpdate(controlNodesToCall);
-         mountMethodsCaller.beforePaint(controlNodesToCall);
-         delay(() => {
-            // останавливать должны, только если запущено, иначе получается так,
-            // что это предыдущая фаза синхронизации и она прерывает следующую
-            // то есть, если  _haveRebuildRequest=true а _rebuildRequestStarted=false
-            // это значит, что мы запланировали перерисовку, но она еще не началась
-            // В случае если мы ждем завершения асинхронных детей и перестроение уже закончены
-            // нужно убрать запрос на реквест, чтобы дети рутовой ноды могли перерисовываться независимо
-            if (
-               // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-               newRootCntNode.environment._rebuildRequestStarted ||
-               // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-               newRootCntNode.environment._asyncOngoing === false
-            ) {
-               // @ts-ignore FIXME: Property '_haveRebuildRequest' does not exist
-               newRootCntNode.environment._haveRebuildRequest = false;
-            }
-            // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-            if (newRootCntNode.environment._asyncOngoing === false) {
-               // we have to delete property from environment, cause if we don't we'll be at the same point
-               // even if async request didn't happen. So we have to make sure every time, that async request
-               // really did happen
-               // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-               delete newRootCntNode.environment._asyncOngoing;
-            }
-
-            if (!control._destroyed) {
-               if (typeof control.reviveSuperOldControls === 'function') {
-                  control.reviveSuperOldControls();
-               }
-            }
-            mountMethodsCaller.afterUpdate(mountMethodsCaller.collectControlNodesToCall(newRootCntNode, rebuildChanges));
-
-            // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-            newRootCntNode.environment._rebuildRequestStarted = false;
-            // @ts-ignore FIXME: Property 'runQueue' does not exist
-            newRootCntNode.environment.runQueue();
-            onEndSync(newRootCntNode.rootId);
-         });
-      } else {
-         // @ts-ignore FIXME: Properties '_haveRebuildRequest' and '_asyncOngoing' do not exist
-         if (newRootCntNode.environment._rebuildRequestStarted || newRootCntNode.environment._asyncOngoing === false) {
-            // @ts-ignore FIXME: Property '_haveRebuildRequest' does not exist
-            newRootCntNode.environment._haveRebuildRequest = false;
-         }
-         // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-         if (newRootCntNode.environment._asyncOngoing === false) {
-            // we have to delete property from environment, cause if we don't we'll be at the same point
-            // even if async request didn't happen. So we have to make sure every time, that async request
-            // really did happen
-            // @ts-ignore FIXME: Property '_asyncOngoing' does not exist
-            delete newRootCntNode.environment._asyncOngoing;
-         }
-
-         mountMethodsCaller.componentDidUpdate(controlNodesToCall);
-         mountMethodsCaller.beforePaint(controlNodesToCall);
-         // используется setTimeout вместо delay, т.к. delay работает через rAF
-         // rAF зовётся до того, как браузер отрисует кадр, а _afterUpdate должен вызываться после, чтобы не вызывать forced reflow.
-         // Если делать то же самое через rAF, то нужно звать rAF из rAF, это и дольше, и неудобно.
-         setTimeout(() => {
-            mountMethodsCaller.afterUpdate(controlNodesToCall);
-            while (callAfterMount && callAfterMount.length) {
-               const elem = callAfterMount.shift();
-               const fn = elem.fn;
-               /* в слое совместимости контрол внутри которого построился wasaby-контрол, может быть уничтожен
-                 до того как начнется асинхронный вызов afterMount,
-                 как результат в текущей точку контрол будет уже уничтожен слоем совместимости
-                 нало проверять действительно ли он жив, перед тем как выстрелить событием
-                */
-               // @ts-ignore
-               if (!fn.control._destroyed) {
-                  fn.apply(fn.control, elem.finalArgs);
-               }
-            }
-            onEndSync(newRootCntNode.rootId);
-            // @ts-ignore FIXME: Property '_rebuildRequestStarted' does not exist
-            newRootCntNode.environment._rebuildRequestStarted = false;
-            // @ts-ignore FIXME: Property 'runQueue' does not exist
-            newRootCntNode.environment.runQueue();
-         }, 0);
-      }
-
-      return patch;
-   }
-
-   decorateFullMarkup(vnode: any, controlNode: any): any {
+   decorateFullMarkup(vnode: VNode | VNode[], controlNode: IControlNode): any {
       if (Array.isArray(vnode)) {
          vnode = vnode[0];
       }
@@ -665,10 +498,6 @@ export default class DOMEnvironment extends QueueMixin implements IDOMEnvironmen
 
    getMarkupNodeDecorator(): any {
       return this.__markupNodeDecorator;
-   }
-
-   getDOMNode(): HTMLElement {
-      return this._rootDOMNode;
    }
 
    /**

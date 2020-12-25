@@ -1,18 +1,20 @@
 import * as AppEnv from 'Application/Env';
 
 class AppData {
-   public RUMEnabled: Boolean = false;
-   public buildnumber: string = '';
-   public appRoot: string = '';
-   public staticDomains: string = '[]';
-   public wsRoot: string = '';
-   public resourceRoot: string = '';
-   public servicesPath: string = '';
-   public application: string = '';
-   public product: string = '';
-   public pageName: string = '';
-   public cssBundles: any = null;
+   RUMEnabled: Boolean = false;
+   buildnumber: string = '';
+   appRoot: string = '';
+   staticDomains: string = '[]';
+   wsRoot: string = '';
+   resourceRoot: string = '';
+   servicesPath: string = '';
+   application: string = '';
+   product: string = '';
+   pageName: string = '';
+   // tslint:disable-next-line:no-any
+   cssBundles: any = null;
 
+   // tslint:disable-next-line:no-any
    constructor(cfg: any) {
       this.appRoot = cfg.appRoot;
       this.application = cfg.application;
@@ -26,22 +28,24 @@ class AppData {
       this.servicesPath = cfg.servicesPath;
       this.staticDomains = cfg.staticDomains;
    }
-   public registerConsumer() {
-
+   registerConsumer(): void {
       // Need this to pass AppData as context field
    }
-   unregisterConsumer(control){
-
-   }
-   updateConsumers() {
-
+   // tslint:disable-next-line:no-any
+   unregisterConsumer(control: any): void {
       // Need this to pass AppData as context field
    }
-   static initAppData(cfg: any) {
+   updateConsumers(): void {
+      // Need this to pass AppData as context field
+   }
+   // tslint:disable-next-line:no-any
+   static initAppData(cfg: any): void {
+      // tslint:disable-next-line:ban-ts-ignore
       // @ts-ignore
       AppEnv.setStore('AppData', new AppData(cfg));
    }
    static getAppData(): AppData {
+      // tslint:disable-next-line:ban-ts-ignore
       // @ts-ignore
       return AppEnv.getStore('AppData');
    }
