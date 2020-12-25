@@ -16,10 +16,10 @@ const _generatorConfig2 = {
          const event = attributes.events[key];
          return event.forEach((event) => {
             if (event.hasOwnProperty('data')) {
-               let attrName = key.replace('on:', 'binded:');
-               attrName += '-logicparent:';
-               attrName += event.viewController._moduleName.replace(/\//g, '_');
-               attributes.attributes[attrName] = event.bindValue;
+               let attrName = key.replace('on:', 'data-qa-');
+               // attrName += '-logicparent:';
+               // attrName += event.viewController._moduleName.replace(/\//g, '_');
+               attributes.attributes[attrName] = attributes.attributes[attrName] || event.bindValue;
             }
          });
       });
