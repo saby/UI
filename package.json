@@ -1,72 +1,68 @@
 {
-    "name": "saby-ui",
-    "version": "21.1000.0",
-    "repository": {
-        "type": "git",
-        "url": "git@platform-git.sbis.ru:saby/UI.git"
-    },
-    "files": [
-        "UI/*",
-        "Markup/*",
-        "TextMarkup/*",
-        "VirtualTreeMarkup/*",
-        "VirtualDom/*",
-        "WmlBuilder/*",
-        "Compiler/*"
-    ],
-    "scripts": {
-        "build": "npm run build:typescript && npm run build:app",
-        "build:typescript": "wasaby-cli --tasks=prepare",
-        "build:app": "wasaby-cli --tasks=build",
-        "compile": "saby-typescript --compiler",
-        "start": "wasaby-cli --tasks=app",
-        "start:units": "wasaby-cli --tasks=startTest --server",
-        "test": "wasaby-cli --tasks=startTest --node --report=console",
-        "test:coverage": "wasaby-cli --tasks=startTest --node --coverage",
-        "lint": "node ./node_modules/eslint/bin/eslint --color --no-eslintrc -c=.eslintrc -f=stylish .",
-        "lintless": "stylelint \"Controls/**/*.less\"",
-        "prepare": "npm run update-cli-store && npm run build:typescript",
-        "update-cli-store": "wasaby-cli --tasks=initStore"
-    },
-    "wasaby-cli": {
-        "port": 777
-    },
-    "dependencies": {},
-    "devDependencies": {
-        "@tensor-corp/eslint-config": "^2.0.3",
-        "@types/react": "17.0.0",
-        "@types/react-dom": "17.0.0",
-        "body-parser": "^1.18.3",
-        "cookie-parser": "^1.4.3",
-        "eslint": "^5.6.1",
-        "express": "^4.16.3",
-        "react": "17.0.1",
-        "react-dom": "17.0.1",
-        "requirejs": "2.1.18",
-        "serve-static": "1.11.x",
-        "wasaby-cli": "git+https://platform-git.sbis.ru/saby/wasaby-cli.git#rc-21.1000"
-    },
-    "madge": {
-        "baseDir": ".",
-        "excludeRegExp": [
-            "^application",
-            "^Compiler",
-            "^Markup",
-            "^UIDemo",
-            "^UITest",
-            "^WmlBuilder",
-            "^UI/DevtoolsHook"
-        ],
-        "fontSize": "26px",
-        "graphVizOptions": {
-            "G": {
-                "rankdir": "LR"
-            }
-        },
-        "detectiveOptions": {
-            "ts": {
-                "skipTypeImports": true
-            }
-        }
-    }
+   "name": "saby-ui",
+   "version": "21.1000.0",
+   "repository": {
+      "type": "git",
+      "url": "git@platform-git.sbis.ru:saby/UI.git"
+   },
+   "files": [
+      "UI/*",
+      "Markup/*",
+      "TextMarkup/*",
+      "VirtualTreeMarkup/*",
+      "VirtualDom/*",
+      "WmlBuilder/*",
+      "Compiler/*"
+   ],
+   "scripts": {
+      "build": "npm run build:typescript && npm run build:app",
+      "build:typescript": "wasaby-cli --tasks=prepare",
+      "build:app": "wasaby-cli --tasks=build",
+      "compile": "saby-typescript --compiler",
+      "start": "wasaby-cli --tasks=app",
+      "start:units": "wasaby-cli --tasks=startTest --server",
+      "test": "wasaby-cli --tasks=startTest --node --report=console",
+      "test:coverage": "wasaby-cli --tasks=startTest --node --coverage",
+      "lint": "node ./node_modules/eslint/bin/eslint --color --no-eslintrc -c=.eslintrc -f=stylish .",
+      "lintless": "stylelint \"Controls/**/*.less\"",
+      "prepare": "npm run update-cli-store && npm run build:typescript",
+      "update-cli-store": "wasaby-cli --tasks=initStore"
+   },
+   "wasaby-cli": {
+      "port": 777
+   },
+   "dependencies": {},
+   "devDependencies": {
+      "@tensor-corp/eslint-config": "^2.0.3",
+      "body-parser": "^1.18.3",
+      "cookie-parser": "^1.4.3",
+      "eslint": "^5.6.1",
+      "express": "^4.16.3",
+      "requirejs": "2.1.18",
+      "serve-static": "1.11.x",
+      "wasaby-cli": "git+https://platform-git.sbis.ru/saby/wasaby-cli.git#rc-21.1000"
+   },
+   "madge": {
+      "baseDir": ".",
+      "excludeRegExp": [
+         "^application",
+         "^Compiler",
+         "^Markup",
+         "^UIDemo",
+         "^UITest",
+         "^WmlBuilder",
+         "^UI/DevtoolsHook"
+      ],
+      "fontSize": "26px",
+      "graphVizOptions": {
+         "G": {
+            "rankdir": "LR"
+         }
+      },
+      "detectiveOptions": {
+         "ts": {
+            "skipTypeImports": true
+         }
+      }
+   }
 }
