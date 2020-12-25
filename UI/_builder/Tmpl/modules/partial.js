@@ -349,6 +349,9 @@ define('UI/_builder/Tmpl/modules/partial', [
             // Start code generation for construction:
             // <ws:partial template="inline_template_name" />
 
+            // FIXME: tmpl-файл, генерация содержимого ws:template нужно взять настоящий контекст
+            tag.children.lexicalContext = tag.__ws_templateRef.__$ws_lexicalContext;
+
             var callDataArg = TClosure.genPlainMerge(
                'Object.create(data || {})',
                Generator.genPrepareDataForCreate(
