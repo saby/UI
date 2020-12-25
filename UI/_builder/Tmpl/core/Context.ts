@@ -54,6 +54,7 @@ export interface ILexicalContextOptions {
 export interface IProgramMeta {
    key: TProgramKey;
    node: ProgramNode;
+   code: string | null;
 }
 
 export interface IContext {
@@ -63,6 +64,8 @@ export interface IContext {
    registerEventProgram(program: ProgramNode): void;
    registerFloatProgram(program: ProgramNode): void;
    registerProgram(program: ProgramNode): TProgramKey;
+
+   commitCode(key: TProgramKey, code: string): void;
 
    joinContext(context: IContext, options?: ILexicalContextOptions): void;
 
@@ -95,6 +98,7 @@ interface IProgramsMap {
 interface IProgramDescription {
    index: number;
    node: ProgramNode;
+   code: string | null;
    originContext: IContext;
    isSynthetic: boolean;
 }
@@ -120,6 +124,7 @@ function createProgramDescription(
    return {
       index,
       node,
+      code: null,
       originContext,
       isSynthetic
    };
@@ -142,10 +147,11 @@ function prepareContextConfig(config?: ILexicalContextConfig): ILexicalContextCo
    return cfg;
 }
 
-function createProgramMeta(key: string, node: ProgramNode): IProgramMeta {
+function createProgramMeta(key: string, node: ProgramNode, code: string | null): IProgramMeta {
    return {
       key,
-      node
+      node,
+      code
    };
 }
 
@@ -156,7 +162,8 @@ function generateProgramKey(index: number): string {
 function zipProgramMeta(description: IProgramDescription): IProgramMeta {
    return createProgramMeta(
       generateProgramKey(description.index),
-      description.node
+      description.node,
+      description.code
    );
 }
 
@@ -168,7 +175,8 @@ function zipInternalProgramMeta(description: IProgramDescription, index: number)
    const programIndex = USE_GLOBAL_INTERNAL_PROGRAM_INDEX ? description.index : index;
    return createProgramMeta(
       generateInternalProgramKey(programIndex),
-      description.node
+      description.node,
+      description.code
    );
 }
 
@@ -346,6 +354,25 @@ class LexicalContext implements ILexicalContext {
          return null;
       }
       return this.processProgram(program, false);
+   }
+
+   commitCode(key: TProgramKey, code: string): void {
+      validateProgramKey(key);
+      let collectionIndex;
+      let meta;
+      if (this.programKeysMap.hasOwnProperty(key)) {
+         collectionIndex = this.programKeysMap[key];
+         meta = this.programs[collectionIndex];
+         meta.code = code;
+         return;
+      }
+      if (this.internalKeysMap.hasOwnProperty(key)) {
+         collectionIndex = this.internalKeysMap[key];
+         meta = this.internals[collectionIndex];
+         meta.code = code;
+         return;
+      }
+      throw new Error(`Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
    }
 
    joinContext(context: IContext, options?: ILexicalContextOptions): void {
