@@ -164,8 +164,55 @@ export const _private = {
    }
 };
 
+/**
+ * Базовый контрол, от которого наследуются все интерфейсные контролы фреймворка Wasaby.
+ * @public
+ */
 export interface IControlOptions {
+   /**
+    * Определяет, может ли пользователь изменить значение контрола.
+    * (или взаимодействовать с контролом, если его значение не редактируется).
+    * @variant true Пользователь не может изменить значение контрола. (или взаимодействовать с контролом, если его значение не редактируется).
+    * @variant false  Пользователь может изменить значение контрола. (или взаимодействовать с контролом, если его значение не редактируется).
+    * @variant inherited Значение контрола унаследовано от родителя.
+    * @default Inherited
+    * @example
+    * Рассмотрим на примере контролов List и Input. Текст будет отображаться со стилем "только для чтения", и пользователь не сможет его редактировать.
+    * Однако, у кнопки есть опция readOnly, которая имеет значение false, поэтому кнопка не унаследует эту опцию из списка, и пользователь сможет кликнуть по ней.
+    * <pre>
+    *    <Controls.list:View readOnly="{{true}}">
+    *       <ws:itemTemplate>
+    *          <Controls.input:Text />
+    *          <Controls.buttons:Path readOnly="{{false}}" />
+    *       </ws:itemTemplate>
+    *    </Controls.list:View>
+    * </pre>
+    * @remark Эта опция наследуется. Если параметр не задан явно, значение параметра наследуется от родительского контрола. По умолчанию все контролы активны.
+    * @see Inherited options
+    */
    readOnly?: boolean;
+
+   /**
+    * Название темы оформления. В зависимости от темы загружаются различные таблицы стилей и применяются различные стили к контролу.
+    * @default default
+    * @example
+    * В следующем примере {@link Controls/Application} и все его дочерние контролы будут иметь стиль темы оформления "carry". Однако контрол Carry.Head будет иметь тему "presto".
+    * Если вы поместите контролы в Carry.Head и не укажите опцию theme, они унаследуют ее значение от родителей и тоже построятся в теме "presto".
+    * <pre>
+    *    <Controls.Application theme="carry">
+    *       <Carry.Head theme="presto" />
+    *       <Carry.Workspace>
+    *          <Controls.Tree />
+    *       </Carry.Workspace>
+    *    </Controls.Application>
+    * </pre>
+    * @remark
+    * default — это тема оформления "по умолчанию", которая распространяется вместе с исходным кодом контролов Wasaby и используется для их стилевого оформления.
+    *
+    * Когда значение опции не задано явно, оно будет взято от родительского контрола. Это продемонстрировано в примере.
+    *
+    * Подробнее о работе с темами оформления читайте {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/ здесь}.
+    */
    theme?: string;
 }
 
@@ -265,6 +312,10 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
 
    private _isRendered: boolean;
 
+   /**
+    * Конструктор компонента.
+    * @param {IControlOptions} cfg интерфейс опций компонента
+    */
    constructor(cfg: TControlConfig) {
       if (!cfg) {
          cfg = {};
@@ -1398,29 +1449,6 @@ Object.assign(Control.prototype, {
 function logError(e: Error) {
    Logger.error(e.message);
 }
-/**
- * @name UI/_base/Control#readOnly
- * @cfg {Boolean} Определяет, может ли пользователь изменить значение контрола.
- * (или взаимодействовать с контролом, если его значение не редактируется).
- * @variant true Пользователь не может изменить значение контрола. (или взаимодействовать с контролом, если его значение не редактируется).
- * @variant false  Пользователь может изменить значение контрола. (или взаимодействовать с контролом, если его значение не редактируется).
- * @variant inherited Значение контрола унаследовано от родителя.
- * @default Inherited
- * @example
- * Рассмотрим на примере контролов List и Input. Текст будет отображаться со стилем "только для чтения", и пользователь не сможет его редактировать.
- * Однако, у кнопки есть опция readOnly, которая имеет значение false, поэтому кнопка не унаследует эту опцию из списка, и пользователь сможет кликнуть по ней.
- * <pre>
- *    <Controls.list:View readOnly="{{true}}">
- *       <ws:itemTemplate>
- *          <Controls.input:Text />
- *          <Controls.buttons:Path readOnly="{{false}}" />
- *       </ws:itemTemplate>
- *    </Controls.list:View>
- * </pre>
- * @remark Эта опция наследуется. Если параметр не задан явно, значение параметра наследуется от родительского контрола. По умолчанию все контролы активны.
- * @see Inherited options
- */
-
 /*
  * @name UI/_base/Control#readOnly
  * @cfg {Boolean} Determines whether user can change control's value
@@ -1444,29 +1472,6 @@ function logError(e: Error) {
  * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
  * from the parent control. By default, all controls are active.
  * @see Inherited options
- */
-
-/**
- * @name UI/_base/Control#theme
- * @cfg {String} Название темы оформления. В зависимости от темы загружаются различные таблицы стилей и применяются различные стили к контролу.
- * @default default
- * @example
- * В следующем примере {@link Controls/Application} и все его дочерние контролы будут иметь стиль темы оформления "carry". Однако контрол Carry.Head будет иметь тему "presto".
- * Если вы поместите контролы в Carry.Head и не укажите опцию theme, они унаследуют ее значение от родителей и тоже построятся в теме "presto".
- * <pre>
- *    <Controls.Application theme="carry">
- *       <Carry.Head theme="presto" />
- *       <Carry.Workspace>
- *          <Controls.Tree />
- *       </Carry.Workspace>
- *    </Controls.Application>
- * </pre>
- * @remark
- * default — это тема оформления "по умолчанию", которая распространяется вместе с исходным кодом контролов Wasaby и используется для их стилевого оформления.
- *
- * Когда значение опции не задано явно, оно будет взято от родительского контрола. Это продемонстрировано в примере.
- *
- * Подробнее о работе с темами оформления читайте {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/ здесь}.
  */
 
 /*
