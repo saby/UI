@@ -16,6 +16,8 @@ const ALLOW_PROGRAM_DUPLICATES = true;
 
 const USE_GLOBAL_INTERNAL_PROGRAM_INDEX = false;
 
+const ALLOW_PRELIMINARY_CALCULATION = false;
+
 const EMPTY_STRING = '';
 
 const EMPTY_ARRAY = [];
@@ -74,6 +76,10 @@ export interface IContext {
 export function createGlobalContext(): IContext {
    const cfg = prepareContextConfig();
    return new LexicalContext(null, cfg);
+}
+
+export function isPreliminaryCalculationAllowed(): boolean {
+   return ALLOW_PRELIMINARY_CALCULATION;
 }
 
 // </editor-fold>
