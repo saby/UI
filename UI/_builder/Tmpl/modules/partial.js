@@ -346,7 +346,7 @@ define('UI/_builder/Tmpl/modules/partial', [
 
             var callDataArg = TClosure.genPlainMerge(
                'Object.create(data || {})',
-               TClosure.genPrepareDataForCreate(
+               Generator.genPrepareDataForCreate(
                   '"_$inline_template"',
                   strPreparedScope,
                   'attrsForTemplate',
