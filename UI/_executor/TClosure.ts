@@ -27,6 +27,7 @@ function getDecorators() {
    if (decorators) {
       return decorators;
    } else {
+      // eslint-disable-next-line
       // @ts-ignore
       decorators = require('View/decorators');
       return decorators;
@@ -40,6 +41,7 @@ function getGeneratorCompatible(config) {
    } else {
       //@ts-ignore
       if (require.defined('View/ExecutorCompatible')) {
+         // eslint-disable-next-line
          generatorCompatible = require('View/ExecutorCompatible').Compatible(config);
          return generatorCompatible;
       } else {
@@ -314,9 +316,9 @@ var
    },
    getRk = function(fileName) {
       var localizationModule = fileName.split('/')[0];
-
-      var rk = requirejs("i18n!" + localizationModule);
-
+      this.getRkCache = this.getRkCache || {};
+      var rk = this.getRkCache[localizationModule] || requirejs("i18n!" + localizationModule);
+      this.getRkCache[localizationModule] = rk;
       return rk;
    };
 

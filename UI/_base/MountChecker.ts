@@ -1,6 +1,8 @@
 import {constants} from 'Env/Env';
 
+// tslint:disable-next-line:no-magic-numbers
 const PAGE_CHECK_INTERVAL = 2 * 1000;
+// tslint:disable-next-line:no-magic-numbers
 const MAX_PAGE_MOUNT_TIME = 2 * 60 * 1000;
 let reloadPageInterval;
 let pageDontMounted;
@@ -16,8 +18,9 @@ const visibilityChangeHandler = () => {
 export default {
    start: () => {
       if (constants.isBrowserPlatform) {
-         // Интервал запускаем только на новых страницах, т.к. этот файл может прилететь в пакете на старые страницы и запустить
-         // интервал. Но т.к. файл грузится просто как зависимость, то интервал никто не удалит и страница обновится.
+         // Интервал запускаем только на новых страницах,
+         // т.к. этот файл может прилететь в пакете на старые страницы и запустить интервал.
+         // Но т.к. файл грузится просто как зависимость, то интервал никто не удалит и страница обновится.
          const isNewEnvironment = !!document.getElementsByClassName('ui-HTML').length;
 
          if (isNewEnvironment) {

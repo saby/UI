@@ -174,7 +174,7 @@ function resolveTpl(tpl, deps, includedTemplates) {
       }
       return [controlClass, dataComponent];
    }
-   return isLibraryTpl(tpl, deps);
+   return isLibraryTpl.call(this, tpl, deps);
 }
 
 function isCompatPatch(controlClass, controlProperties, attrs, fromOld) {

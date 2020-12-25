@@ -3,7 +3,7 @@ import { ITagDescription, JML, FullJML } from 'UI/_base/HTML/_meta/interface';
 /**
  * Конвертация из JsonML в ITagDescription
  * https://wi.sbis.ru/doc/platform/developmentapl/service-development/service-contract/logic/json-markup-language/
- * @param param0 
+ * @param param0
  */
 export function fromJML([tagName, attrs, children]: JML): ITagDescription {
    if (!attrs || attrs.constructor !== Object) {
