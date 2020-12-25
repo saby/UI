@@ -408,6 +408,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       const template = context.scope.getTemplate(node.__$ws_name);
       const identifiers = collectInlineTemplateIdentifiers(node);
       const lexicalContext = context.lexicalContext.createContext();
+      node.__ws_templateRef = template;
       lexicalContext.joinContext(template.__$ws_lexicalContext, { identifiers });
       const contentContext: IContext = {
          ...context,

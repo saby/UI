@@ -40,8 +40,14 @@ define('UI/_builder/Tmpl/modules/for', [
             tag.attribs.CUSTOM_ITERATOR = undefined;
 
             var processed = this._process(fromAttr ? [statelessTag] : statelessTag.children, data);
-
-            return templates.generateFor(START_FROM, CUSTOM_CONDITION, CUSTOM_ITERATOR, processed);
+            var processedExpressions = Process.generateExpressionsBlock(tag.__$ws_lexicalContext, this.fileName);
+            return templates.generateFor(
+               START_FROM,
+               CUSTOM_CONDITION,
+               CUSTOM_ITERATOR,
+               processed,
+               processedExpressions
+            );
          }
 
          function resolveStatement() {
@@ -57,8 +63,13 @@ define('UI/_builder/Tmpl/modules/for', [
             }
 
             var processed = this._process(fromAttr ? [statelessTag] : statelessTag.children, data);
-
-            return templates.generateForeach(scopeArray, tag.forSource, processed);
+            var processedExpressions = Process.generateExpressionsBlock(tag.__$ws_lexicalContext, this.fileName);
+            return templates.generateForeach(
+               scopeArray,
+               tag.forSource,
+               processed,
+               processedExpressions
+            );
          }
 
          return function forModuleReturnable() {

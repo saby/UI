@@ -21,6 +21,8 @@ define('UI/_builder/Tmpl/modules/data/array', [
    function generateFunction(htmlPropertyName, html, string, injected) {
       var generatedString, cleanPropertyName = clearPropertyName(htmlPropertyName);
       var wsTemplateName = injected && injected.attribs && injected.attribs._wstemplatename;
+      // FIXME: Нужно пробросить настоящий контекст контентной опции
+      html.lexicalContext = injected.lexicalContext;
       var generatedTemplate = this.getString(html, { }, this.handlers, { }, true);
       var fileName = this.handlers.fileName;
       var funcText = templates.generateTemplate(cleanPropertyName, generatedTemplate, fileName, !!string);

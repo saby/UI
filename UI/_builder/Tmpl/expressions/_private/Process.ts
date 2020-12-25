@@ -9,8 +9,8 @@ import { LocalizationNode, TextNode, VariableNode } from './Statement';
 import { ProgramNode, ExpressionVisitor } from './Nodes';
 import { genEscape } from 'UI/_builder/Tmpl/codegen/Generator';
 import { genSanitize } from 'UI/_builder/Tmpl/codegen/TClosure';
-
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
+import { isPreliminaryCalculationAllowed, IContext } from 'UI/_builder/Tmpl/core/Context';
 
 const EMPTY_STRING = '';
 const errorHandler = createErrorHandler(true);
@@ -133,8 +133,11 @@ export function processExpressions(
          if (configObject && !isAttribute) {
             exprAsVariable.noEscape = true;
          }
+         const programKey = exprAsVariable.name.__$ws_id;
+         const usePreliminaryCalculation = programKey !== null && isPreliminaryCalculationAllowed();
          const context = {
             fileName,
+            generateSafeFunctionCall: usePreliminaryCalculation,
             attributeName,
             isControl,
             isExprConcat: false,
@@ -149,6 +152,10 @@ export function processExpressions(
             checkChildren: false
          };
          res = exprAsVariable.name.accept(visitor, context);
+         if (usePreliminaryCalculation) {
+            exprAsVariable.name.__$ws_lexicalContext.commitCode(programKey, res);
+            res = programKey;
+         }
          if (!exprAsVariable.noEscape) {
             res = calculateResultOfExpression(res, context.escape, context.sanitize);
          }
@@ -172,4 +179,43 @@ export function processExpressions(
    }
 
    return expressionRaw.value;
+}
+
+function processProgramNode(program: ProgramNode, fileName: string): string {
+   const context = {
+      fileName,
+      attributeName: undefined,
+      isControl: undefined,
+      generateSafeFunctionCall: true,
+      isExprConcat: false,
+      configObject: {},
+      escape: undefined,
+      sanitize: true,
+      getterContext: 'data',
+      forbidComputedMembers: false,
+
+      // TODO: есть ли необходимость в этих знаниях следующему кодогенератору???
+      childrenStorage: [],
+      checkChildren: false
+   };
+   const visitor = new ExpressionVisitor();
+   return <string>program.accept(visitor, context);
+}
+
+export function generateExpressionsBlock(context: IContext, fileName: string): string {
+   if (!isPreliminaryCalculationAllowed()) {
+      return EMPTY_STRING;
+   }
+   const initializers: string[] = [];
+   const programs = context.getPrograms(true);
+   for (let index = 0; index < programs.length; ++index) {
+      const meta = programs[index];
+      let code = meta.code;
+      if (meta.code === null) {
+         code = processProgramNode(meta.node, fileName);
+         context.commitCode(meta.key, code);
+      }
+      initializers.push(`var ${meta.key} = ${code};`);
+   }
+   return initializers.join(EMPTY_STRING);
 }

@@ -56,7 +56,9 @@ define('UI/_builder/Tmpl/modules/partial', [
          children: tag.injectedData,
          attribs: tag.attribs,
          isControl: isControl(tag),
-         internal: tag.internal
+         internal: tag.internal,
+         // FIXME: Нужно прокинуть контекст
+         lexicalContext: tag.__$ws_lexicalContext
       }, data, {
          partial: tag.name === 'ws:partial'
       });
@@ -254,6 +256,9 @@ define('UI/_builder/Tmpl/modules/partial', [
             config.config
          ) + ',';
       }
+
+      // FIXME: tmpl-файл, генерация содержимого ws:template нужно взять настоящий контекст
+      tag.children.lexicalContext = tag.__ws_templateRef.__$ws_lexicalContext;
 
       // TMPL compiler
       var inlineTemplateBody = this.getString(tag.children, {}, this.handlers, {}, true);

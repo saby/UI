@@ -117,7 +117,8 @@ define('UI/_builder/Tmpl/modules/data/object', [
                            internal: injected[i].internal,
                            children: injected[i].children,
                            isControl: realInjected.isControl,
-                           rootConfig: realInjected.rootConfig
+                           rootConfig: realInjected.rootConfig,
+                           lexicalContext: injected[i].__$ws_lexicalContext || realInjected.lexicalContex
                         },
                         types,
                         scopeData,
@@ -137,7 +138,8 @@ define('UI/_builder/Tmpl/modules/data/object', [
                      internal: realInjected.internal,
                      children: injected,
                      isControl: realInjected.isControl,
-                     rootConfig: realInjected.rootConfig
+                     rootConfig: realInjected.rootConfigg,
+                     lexicalContext: realInjected.lexicalContext
                   },
                   types,
                   scopeData,
@@ -147,6 +149,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
             }
 
             if (nameExists && !typeFunction && useful) {
+               // FIXME: Нужно передать настоящий контекст контентной опции injected[i]
                tObject[nameExists] = writeObjectEntity.call(
                   this,
                   types.Object,
@@ -156,7 +159,8 @@ define('UI/_builder/Tmpl/modules/data/object', [
                      children: injected[i].children,
                      isControl: realInjected.isControl,
                      rootConfig: realInjected.rootConfig || curatedScope,
-                     rPropName: nameExists
+                     rPropName: nameExists,
+                     lexicalContext: injected[i].__$ws_lexicalContext || realInjected.lexicalContext
                   },
                   types,
                   scopeData,
@@ -177,7 +181,8 @@ define('UI/_builder/Tmpl/modules/data/object', [
                      children: injected,
                      isControl: realInjected.isControl,
                      rootConfig: realInjected.rootConfig || curatedScope,
-                     rPropName: nameExists
+                     rPropName: nameExists,
+                     lexicalContext: realInjected.lexicalContex
                   }, types, scopeData, propName
                );
                break;
@@ -212,6 +217,8 @@ define('UI/_builder/Tmpl/modules/data/object', [
          html = templateObject.html;
 
          if (tObject.type === 'string') {
+            // FIXME: Контентная опция с типом string. Прокинем контекст контентной опции
+            html.lexicalContext = realInjected.lexicalContext;
             result = FSC.wrapAroundObject(
                '(' +
                this.getFunction(
@@ -251,6 +258,9 @@ define('UI/_builder/Tmpl/modules/data/object', [
                parseUtils.parseAttributesForData
             );
          }
+
+         // FIXME: Нужно прокинуть контекст
+         html.lexicalContext = realInjected.lexicalContext;
 
          // Сделано для того чтобы попадала родительская область видимости при применении инлайн-шаблона
          var generatedTemplate = this.getString(html, {}, this.handlers, {}, true);

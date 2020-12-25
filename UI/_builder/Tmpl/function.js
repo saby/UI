@@ -221,7 +221,8 @@ define('UI/_builder/Tmpl/function', [
          if (!internal) {
             res += templates.generateTemplateHead();
          }
-         res += templates.generateTemplateBody(handlers.fileName, str);
+         var processedExpressions = Process.generateExpressionsBlock(ast.lexicalContext, this.fileName);
+         res += templates.generateTemplateBody(handlers.fileName, str, processedExpressions);
          return res;
       },
       getFunction: function getFunction(ast, data, handlers, attributes, internal) {
@@ -242,8 +243,8 @@ define('UI/_builder/Tmpl/function', [
             func.includedFn = this.includedFn;
             func.functionNames = this.functionNames;
          } catch (error) {
-            errorHandler.info(
-               '[UI/_builder/Tmpl/function:getFunction()] generating function: \n' + str,
+            errorHandler.error(
+               'Ошибка построения функции: ' + error.message,
                {
                   fileName: handlers.fileName
                }
@@ -251,7 +252,7 @@ define('UI/_builder/Tmpl/function', [
             throw error;
          }
          this.setFunctionName(func, undefined, this.fileName);
-         this.childrenStorage = [ ];
+         this.childrenStorage = [];
          return func;
       },
 
