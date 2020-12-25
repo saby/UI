@@ -118,7 +118,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
                            children: injected[i].children,
                            isControl: realInjected.isControl,
                            rootConfig: realInjected.rootConfig,
-                           lexicalContext: injected[i].__$ws_lexicalContext || realInjected.lexicalContex
+                           lexicalContext: injected[i].__$ws_lexicalContext || realInjected.lexicalContext
                         },
                         types,
                         scopeData,
@@ -182,7 +182,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
                      isControl: realInjected.isControl,
                      rootConfig: realInjected.rootConfig || curatedScope,
                      rPropName: nameExists,
-                     lexicalContext: realInjected.lexicalContex
+                     lexicalContext: realInjected.lexicalContext
                   }, types, scopeData, propName
                );
                break;
