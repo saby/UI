@@ -5,7 +5,6 @@
  */
 
 const VAR_MODULE_NAME = 'thelpers';
-const VAR_GENERATOR_NAME = 'markupGenerator';
 
 export function genSanitize(data: string): string {
    return `${VAR_MODULE_NAME}.Sanitize.apply(undefined, [${data}])`;
@@ -36,11 +35,11 @@ export function getConfig(): string {
 }
 
 export function genGetter(data: string, path: string[]): string {
-   return `${VAR_MODULE_NAME}.getter(${data}, [${path.join()}], viewController)`;
+   return `${VAR_MODULE_NAME}.getter(${data}, [${path.join()}])`;
 }
 
 export function genSetter(data: string, path: string[]): string {
-   return `${VAR_MODULE_NAME}.setter(${data}, [${path.join()}], viewController, value)`;
+   return `${VAR_MODULE_NAME}.setter(${data}, [${path.join()}], value)`;
 }
 
 export function genDecorate(name: string, args: string[]): string {
@@ -65,8 +64,4 @@ export function genPlainMergeContext(inner: string, outer: string): string {
 
 export function genPlainMerge(inner: string, outer: string, cloneFirst?: string): string {
    return `${VAR_MODULE_NAME}.plainMerge(${inner}, ${outer}, ${cloneFirst})`;
-}
-
-export function genPrepareDataForCreate(tpl, scope, attributes, deps) {
-   return `${VAR_GENERATOR_NAME}.prepareDataForCreate(${tpl}, ${scope}, ${attributes}, ${deps})`;
 }
