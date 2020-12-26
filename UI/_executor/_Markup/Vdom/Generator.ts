@@ -202,8 +202,7 @@ export class GeneratorVdom implements IGenerator {
       scope: IControlProperties,
       attributes: IGeneratorAttrs,
       context: string,
-      _deps?: TDeps,
-      config?: IGeneratorConfig): string | ITemplateNode | GeneratorNode {
+      _deps?: TDeps): string | ITemplateNode | GeneratorNode {
       let resultingFn;
       if (Common.isString(name)) {
          // @ts-ignore
@@ -309,7 +308,7 @@ export class GeneratorVdom implements IGenerator {
       }
 
       if (Common.isTemplateClass(fn)) {
-         return this.createTemplate(fn, resolvedScope, decorAttribs, context, _deps, data);
+         return this.createTemplate(fn, resolvedScope, decorAttribs, context, _deps);
       }
 
       const nameFunc = isTplString ? tpl : 'InlineFunction';

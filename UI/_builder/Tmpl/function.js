@@ -463,7 +463,7 @@ define('UI/_builder/Tmpl/function', [
                if (attribs.hasOwnProperty(attrib) && attribs[attrib]) {
                   if (eventExpressions.isEvent(attrib)) {
                      try {
-                        obj.events[attrib.toLowerCase()] = eventExpressions.processEventAttribute(
+                        obj.events[attrib] = eventExpressions.processEventAttribute(
                            attribs[attrib], attrib, data, false, this.fileName, this.childrenStorage
                         );
                      } catch (error) {
@@ -547,6 +547,8 @@ define('UI/_builder/Tmpl/function', [
          var processedStr = FSC.getStr(processed)
             .replace(/\\("|')/g, '$1')
             .replace(/\\\\/g, '\\')
+            .replace(/"' \+ /g, '')
+            .replace(/ \+ '"/g, '')
             .replace(/' \+ /g, '" + ')
             .replace(/ \+ '/g, ' + "');
          var children = this._process(tag.children, data, undefined, currentParentNS);
