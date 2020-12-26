@@ -136,8 +136,8 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     }
     // tslint:disable-next-line:no-empty
     remove(): void { }
-    getKeys(): Array<keyof HeadData> {
-        return Object.keys(this) as Array<keyof HeadData>;
+    getKeys(): KeyHeadData[] {
+        return Object.keys(this) as KeyHeadData[];
     }
     // tslint:disable-next-line:no-any
     toObject(): Record<keyof HeadData, any> {
@@ -172,8 +172,8 @@ interface ISerializedData {
 }
 
 interface IResources {
-    links: Array<{ href: string; }>;
-    scripts: Array<{ src: string; }>;
+    links: ILinksAttrsResources[];
+    scripts: IScriptsAttrsResources[];
 }
 
 interface ICollectedDeps {
@@ -191,3 +191,11 @@ interface ICollectedDeps {
     rtpackModuleNames: IDeps;
     additionalDeps: IDeps;
 }
+
+interface ILinksAttrsResources  {
+    href: string;
+}
+interface IScriptsAttrsResources  {
+    src: string;
+}
+type KeyHeadData = keyof HeadData;

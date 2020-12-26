@@ -268,7 +268,7 @@ interface IHeadOptions extends IControlOptions {
     builder: boolean;
     servicesPath: string;
     product: string;
-    meta?: Array<{}>;
-    links?: Array<{}>;
-    scripts?: Array<{}>;
+    meta?: Object[];
+    links?: Object[];
+    scripts?: Object[];
 }

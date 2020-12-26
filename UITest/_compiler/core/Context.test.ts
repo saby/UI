@@ -589,8 +589,8 @@ describe('Compiler/core/Context', () => {
          assert.deepEqual(returnedKeys, standardKeys);
       });
       it('Check global identifiers', () => {
-         assert.deepEqual(global.getIdentifiers(true), ['a', 'e', 'b']);
-         assert.deepEqual(global.getIdentifiers(false), ['a', 'e', 'b']);
+         assert.deepEqual(global.getIdentifiers(true), [ 'a', 'b', 'c', 'd', 'e' ]);
+         assert.deepEqual(global.getIdentifiers(false), [ 'a', 'b', 'c', 'd', 'e' ]);
       });
       it('Check first child identifiers', () => {
          assert.deepEqual(firstChild.getIdentifiers(true), ['b', 'c', 'd']);
@@ -598,7 +598,7 @@ describe('Compiler/core/Context', () => {
       });
       it('Check second child identifiers', () => {
          assert.isEmpty(secondChild.getIdentifiers(true));
-         assert.deepEqual(secondChild.getIdentifiers(false), ['a', 'e', 'b']);
+         assert.deepEqual(secondChild.getIdentifiers(false), [ 'a', 'b', 'c', 'd', 'e' ]);
       });
       it('Check global internal programs', () => {
          const stringInternalPrograms = ['a.property', 'e.property', 'b'];
@@ -920,16 +920,16 @@ describe('Compiler/core/Context', () => {
             assert.deepEqual(returnedKeys, standardKeys);
          });
          it('Check global identifiers', () => {
-            assert.deepEqual(global.getIdentifiers(true), ['a']);
-            assert.deepEqual(global.getIdentifiers(false), ['a']);
+            assert.deepEqual(global.getIdentifiers(true), [ 'a', 'c', 'e' ]);
+            assert.deepEqual(global.getIdentifiers(false), [ 'a', 'c', 'e' ]);
          });
          it('Check first child identifiers', () => {
             assert.deepEqual(firstChild.getIdentifiers(true), ['c']);
-            assert.deepEqual(firstChild.getIdentifiers(false), ['c', 'a']);
+            assert.deepEqual(firstChild.getIdentifiers(false), ['c', 'a', 'e']);
          });
          it('Check second child identifiers', () => {
             assert.deepEqual(secondChild.getIdentifiers(true), ['e']);
-            assert.deepEqual(secondChild.getIdentifiers(false), ['e', 'a']);
+            assert.deepEqual(secondChild.getIdentifiers(false), ['e', 'a', 'c']);
          });
          it('Check global internal programs', () => {
             const stringInternalPrograms = ['a.b'];

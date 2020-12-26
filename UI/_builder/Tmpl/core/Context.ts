@@ -112,6 +112,8 @@ interface ILexicalContext extends IContext {
    hoistIdentifier(identifier: string): void;
    hoistInternalProgram(description: IProgramDescription): void;
 
+   hoistReactiveIdentifier(identifier: string): void;
+
    getInternalProgramDescriptions(): IProgramDescription[];
 }
 
@@ -475,6 +477,7 @@ class LexicalContext implements ILexicalContext {
       }
       if (this.parent === null || !this.allowHoisting) {
          this.commitIdentifier(identifier);
+         this.hoistReactiveIdentifier(identifier);
          return;
       }
       this.parent.hoistIdentifier(identifier);
@@ -491,6 +494,14 @@ class LexicalContext implements ILexicalContext {
          }
       }
       this.commitInternalProgram(description);
+   }
+
+   hoistReactiveIdentifier(identifier: string): void {
+      if (this.parent === null) {
+         this.commitIdentifier(identifier);
+         return;
+      }
+      this.parent.hoistReactiveIdentifier(identifier);
    }
 
    getInternalProgramDescriptions(): IProgramDescription[] {
