@@ -69,7 +69,7 @@ export interface IContext {
 
    joinContext(context: IContext, options?: IContextOptions): void;
 
-   getProgram(key: TProgramKey): ProgramNode | null;
+   getProgram(key: TProgramKey): ProgramNode;
 
    getIdentifiers(localOnly: boolean): string[];
    getPrograms(localOnly: boolean): IProgramMeta[];
@@ -312,21 +312,15 @@ class LexicalContext implements ILexicalContext {
    }
 
    registerBindProgram(program: ProgramNode): TProgramKey {
-      const programs = dropBindProgram(program);
       let key = null;
+      const programs = dropBindProgram(program);
       for (let index = 0; index < programs.length; ++index) {
-         const program = programs[index];
-         key = null;
-         if (!canRegisterProgram(program)) {
-            continue;
-         }
-         if (!this.processIdentifiers(program)) {
-            continue;
-         }
          const isSynthetic = index + 1 < programs.length;
-         key = this.processProgram(program, isSynthetic);
+         const program = programs[index];
+         // Actual (input) program is last program in collection
+         // and its program key must be returned.
+         key = this.applyProgram(program, isSynthetic);
       }
-      // Actual (input) program is last program in collection and its program key must be returned.
       return key;
    }
 
@@ -349,29 +343,13 @@ class LexicalContext implements ILexicalContext {
    }
 
    registerProgram(program: ProgramNode): TProgramKey {
-      if (!canRegisterProgram(program)) {
-         return null;
-      }
-      if (!this.processIdentifiers(program)) {
-         return null;
-      }
-      return this.processProgram(program, false);
+      return this.applyProgram(program, false);
    }
 
    commitCode(key: TProgramKey, code: string): void {
-      validateProgramKey(key);
-      let collectionIndex;
-      let meta;
-      if (this.programKeysMap.hasOwnProperty(key)) {
-         collectionIndex = this.programKeysMap[key];
-         meta = this.programs[collectionIndex];
-         meta.code = code;
-         return;
-      }
-      if (this.internalKeysMap.hasOwnProperty(key)) {
-         collectionIndex = this.internalKeysMap[key];
-         meta = this.internals[collectionIndex];
-         meta.code = code;
+      const description = this.getProgramDescription(key);
+      if (description !== null) {
+         description.code = code;
          return;
       }
       throw new Error(`Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
@@ -384,16 +362,10 @@ class LexicalContext implements ILexicalContext {
       this.joinInternalPrograms(lexicalContext, localIdentifiers);
    }
 
-   getProgram(key: TProgramKey): ProgramNode | null {
-      validateProgramKey(key);
-      let collectionIndex;
-      if (this.programKeysMap.hasOwnProperty(key)) {
-         collectionIndex = this.programKeysMap[key];
-         return this.programs[collectionIndex].node;
-      }
-      if (this.internalKeysMap.hasOwnProperty(key)) {
-         collectionIndex = this.internalKeysMap[key];
-         return this.internals[collectionIndex].node;
+   getProgram(key: TProgramKey): ProgramNode {
+      const description = this.getProgramDescription(key);
+      if (description !== null) {
+         return description.node;
       }
       throw new Error(`Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
    }
@@ -511,6 +483,30 @@ class LexicalContext implements ILexicalContext {
    // </editor-fold>
 
    // <editor-fold desc="Private methods">
+
+   private getProgramDescription(key: TProgramKey): IProgramDescription | null {
+      validateProgramKey(key);
+      let collectionIndex;
+      if (this.programKeysMap.hasOwnProperty(key)) {
+         collectionIndex = this.programKeysMap[key];
+         return this.programs[collectionIndex];
+      }
+      if (this.internalKeysMap.hasOwnProperty(key)) {
+         collectionIndex = this.internalKeysMap[key];
+         return this.internals[collectionIndex];
+      }
+      return null;
+   }
+
+   private applyProgram(program: ProgramNode, isSynthetic: boolean): TProgramKey {
+      if (!canRegisterProgram(program)) {
+         return null;
+      }
+      if (!this.processIdentifiers(program)) {
+         return null;
+      }
+      return this.processProgram(program, isSynthetic);
+   }
 
    private processIdentifiers(program: ProgramNode): boolean {
       const identifiers = collectIdentifiers(program);
