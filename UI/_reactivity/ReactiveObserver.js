@@ -139,7 +139,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env
 
    /**
     * set observer of properties of control
-    * @param {Core/Control} inst Instance of control which will be updated
+    * @param {UI/Base:Control} inst Instance of control which will be updated
     */
    function observeProperties(inst) {
       var templateFunction = inst._template;
