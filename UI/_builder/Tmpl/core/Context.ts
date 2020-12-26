@@ -42,12 +42,12 @@ const FORBIDDEN_IDENTIFIERS = [
 
 export declare type TProgramKey = string;
 
-export interface ILexicalContextConfig {
+export interface IContextConfig {
    allowHoisting?: boolean;
    identifiers?: string[];
 }
 
-export interface ILexicalContextOptions {
+export interface IContextOptions {
    identifiers?: string[];
 }
 
@@ -58,7 +58,7 @@ export interface IProgramMeta {
 }
 
 export interface IContext {
-   createContext(config?: ILexicalContextConfig): IContext;
+   createContext(config?: IContextConfig): IContext;
 
    registerBindProgram(program: ProgramNode): TProgramKey;
    registerEventProgram(program: ProgramNode): void;
@@ -67,7 +67,7 @@ export interface IContext {
 
    commitCode(key: TProgramKey, code: string): void;
 
-   joinContext(context: IContext, options?: ILexicalContextOptions): void;
+   joinContext(context: IContext, options?: IContextOptions): void;
 
    getProgram(key: TProgramKey): ProgramNode | null;
 
@@ -132,8 +132,8 @@ function createProgramDescription(
    };
 }
 
-function prepareContextConfig(config?: ILexicalContextConfig): ILexicalContextConfig {
-   const cfg: ILexicalContextConfig = {
+function prepareContextConfig(config?: IContextConfig): IContextConfig {
+   const cfg: IContextConfig = {
       allowHoisting: true,
       identifiers: []
    };
@@ -291,7 +291,7 @@ class LexicalContext implements ILexicalContext {
 
    // </editor-fold>
 
-   constructor(parent: ILexicalContext | null, config: ILexicalContextConfig) {
+   constructor(parent: ILexicalContext | null, config: IContextConfig) {
       this.programIndex = 0;
       this.parent = parent;
       this.allowHoisting = config.allowHoisting;
@@ -306,7 +306,7 @@ class LexicalContext implements ILexicalContext {
 
    // <editor-fold desc="Public methods">
 
-   createContext(config?: ILexicalContextConfig): IContext {
+   createContext(config?: IContextConfig): IContext {
       const cfg = prepareContextConfig(config);
       return new LexicalContext(this, cfg);
    }
@@ -377,7 +377,7 @@ class LexicalContext implements ILexicalContext {
       throw new Error(`Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
    }
 
-   joinContext(context: IContext, options?: ILexicalContextOptions): void {
+   joinContext(context: IContext, options?: IContextOptions): void {
       const lexicalContext = context as ILexicalContext;
       const localIdentifiers = Array.isArray(options && options.identifiers) ? options.identifiers : EMPTY_ARRAY;
       this.joinIdentifiers(lexicalContext, localIdentifiers);
