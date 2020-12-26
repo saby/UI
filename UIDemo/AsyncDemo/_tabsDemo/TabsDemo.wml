@@ -1,7 +1,7 @@
 <div class="UIDemo-AsyncDemo">
     <h3 class="UIDemo-AsyncDemo__headerMain">Демо асинхронной загрузки содержимого табов UI/Base:Async</h3>
 
-    <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__showHideColumn">
+    <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__showHideColumn UIDemo-AsyncDemo__column_quick-switch">
         <span class="UIDemo-AsyncDemo__subHeader">1. Асинхронная загрузка шаблона при быстром прокликивании по табам</span>
         <div class="UIDemo-AsyncDemo__row">
             Демонстрация асинхронной загрузки шаблона при быстром прокликивании табов.
@@ -22,7 +22,7 @@
         </div>
     </div>
 
-    <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__showHideColumn">
+    <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__showHideColumn UIDemo-AsyncDemo__column_restore-network">
         <span class="UIDemo-AsyncDemo__subHeader">2. Асинхронная загрузка шаблона после восстановления сети</span>
         <div class="UIDemo-AsyncDemo__row">
             Демонстрация асинхронной загрузки модуля/библиотеки после первой неудачной попытки загрузить их.<br/>
