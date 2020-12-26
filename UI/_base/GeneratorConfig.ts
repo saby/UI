@@ -18,7 +18,7 @@ const _generatorConfig2 = {
          // tslint:disable-next-line:no-shadowed-variable
          return event.forEach((event) => {
             if (event.hasOwnProperty('data')) {
-               let attrName = key.replace('on:', 'data-qa-');
+               const attrName = key.replace('on:', 'data-qa-');
                // attrName += '-logicparent:';
                // attrName += event.viewController._moduleName.replace(/\//g, '_');
                attributes.attributes[attrName] = attributes.attributes[attrName] || event.bindValue;
