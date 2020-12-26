@@ -1,5 +1,3 @@
-/* tslint:disable:deprecated-anywhere */
-
 import {IControlOptions} from '../Control';
 
 /**
@@ -127,4 +125,12 @@ export interface IHTMLOptions extends IControlOptions {
     builder?: boolean;
     builderCompatible?: boolean;
     width?: string;
+}
+
+export interface IScriptsAttrsHTML {
+    src: string;
+}
+export interface ILinksAttrsHTML {
+    href: string;
+    type: string;
 }
