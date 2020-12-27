@@ -1,14 +1,10 @@
 /// <amd-module name='UI/theme/_controller/css/Link' />
-import { IAttrsDescription } from "UI/_base/HTML/_meta/interface";
-import { fromJML } from "UI/_base/HTML/_meta/JsonML";
-import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 import { Base } from './Base';
 import { ELEMENT_ATTR, THEME_TYPE, CSS_MODULE_PREFIX } from './const';
 import { ICssEntity, IHTMLElement } from './interface';
 import { Head as HeadAPI } from 'Application/Page';
 import { IHeadTagId, IHeadTagAttrs } from 'Application/Interface';
-import { isInit } from 'Application/Initializer';
 
 const TIMEOUT = 30000;
 
@@ -17,23 +13,6 @@ const TIMEOUT = 30000;
  */
 export default class Link extends Base implements ICssEntity {
    headTagId: IHeadTagId;
-
-   /**
-    * Если кто-то попросил outerHtml, значит это старая страница
-    * Я даже не уверен, что она с Application строится, поэтому описал ВСЕ варианты
-    */
-   get outerHtml(): string {
-      let result = '';
-      let data;
-      if (isInit && this.headTagId) {
-         data = HeadAPI.getInstance().getData(this.headTagId);
-         result = new TagMarkup([fromJML(data)]).outerHTML;
-      } else {
-         result = new TagMarkup([{tagName: 'link', attrs: (generateAttrs(this) as IAttrsDescription)}]).outerHTML;
-      }
-
-      return result;
-   }
 
    constructor(
        href: string,
