@@ -463,7 +463,7 @@ define('UI/_builder/Tmpl/function', [
                if (attribs.hasOwnProperty(attrib) && attribs[attrib]) {
                   if (eventExpressions.isEvent(attrib)) {
                      try {
-                        obj.events[attrib] = eventExpressions.processEventAttribute(
+                        obj.events[attrib.toLowerCase()] = eventExpressions.processEventAttribute(
                            attribs[attrib], attrib, data, false, this.fileName, this.childrenStorage
                         );
                      } catch (error) {

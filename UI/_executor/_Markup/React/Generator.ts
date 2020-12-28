@@ -38,6 +38,7 @@ import { cutFocusAttributes } from '../Utils';
 import { VNode } from 'Inferno/third-party/index';
 import {ResolveControlName} from "../ResolveControlName";
 import {Builder} from "../Builder";
+import {repairEventName} from './eventMap';
 
 const markupBuilder = new Builder();
 
@@ -205,20 +206,6 @@ export class GeneratorReact implements IGenerator {
          inheritOptions: attrs.inheritOptions,
          key: data.controlProperties.__key || attrs.key
       }, controlClass, decOptions);
-      // return {
-      //    compound,
-      //    invisible: false,
-      //    controlClass,
-      //    controlProperties, // прикладные опции контрола
-      //    controlInternalProperties: data.internal, // служебные опции контрола
-      //    controlAttributes: data.attrs,
-      //    controlEvents: attrs.events,
-      //    key: controlProperties.__key || attrs.key,
-      //    controlNodeIdx: -1,
-      //    context: attrs.context,
-      //    inheritOptions: attrs.inheritOptions,
-      //    flags: 131072
-      // };
    }
 
    createTemplate(
@@ -506,7 +493,8 @@ export class GeneratorReact implements IGenerator {
             Array.prototype.push.apply(finalArgs, eventObject.args);
             // Добавляем в eventObject поле со ссылкой DOM-элемент, чей обработчик вызываем
             // eventObject.currentTarget = curDomNode;
-            convertedEvents[eventName.replace('on:','')] = (eventObject.fn);
+            const newEventName = repairEventName(eventName.replace('on:',''));
+            convertedEvents[newEventName] = (eventObject.fn);
          });
       });
 
