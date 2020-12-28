@@ -35,6 +35,50 @@ function isTemplateType(fullPath: string): boolean {
    return hasTemplatePlugin || !hasTemplatePlugin && hasOptionalPlugin && !hasSlashes;
 }
 
+function createConditionAttributes(node: any): any {
+   return {
+      data: {
+         data: [{
+            isBind: false,
+            isEvent: false,
+            localized: false,
+            name: node.__$ws_test,
+            noEscape: false,
+            type: 'var',
+            value: ''
+         }],
+         key: undefined,
+         type: 'text'
+      }
+   };
+}
+
+function processAttributesAndEvents(node: any): any {
+   const chain = [];
+   for (const attributeName in node.__$ws_attributes) {
+      const attribute = node.__$ws_attributes[attributeName];
+      // rm prefix for elements only
+      const cleanName = attributeName.replace('attr:', '');
+      const name = !attribute.__$ws_hasAttributePrefix ? cleanName : attributeName;
+      const processedAttribute = {
+         node: attribute.accept(this, context),
+         key: attribute.__$ws_key,
+         name
+      };
+      chain.push(processedAttribute);
+   }
+   for (const name in node.__$ws_events) {
+      const event = node.__$ws_events[name];
+      const processedEvent = {
+         node: event.accept(this, context),
+         key: event.__$ws_key,
+         name
+      };
+      chain.push(processedEvent);
+   }
+   return chain;
+}
+
 class PatchVisitor implements Ast.IAstVisitor {
    // done.
    visitDoctype(node: Ast.DoctypeNode, context: INavigationContext): any {
@@ -397,21 +441,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.children = this.visitAll(node.__$ws_consequent, context);
       // @ts-ignore
-      node.attribs = {
-         data: {
-            data: [{
-               isBind: false,
-               isEvent: false,
-               localized: false,
-               name: node.__$ws_test,
-               noEscape: false,
-               type: 'var',
-               value: ''
-            }],
-            key: undefined,
-            type: 'text'
-         }
-      };
+      node.attribs = createConditionAttributes(node);
       // @ts-ignore
       node.name = 'ws:if';
       // @ts-ignore
@@ -434,21 +464,7 @@ class PatchVisitor implements Ast.IAstVisitor {
       // @ts-ignore
       node.children = this.visitAll(node.__$ws_consequent, context);
       // @ts-ignore
-      node.attribs = node.__$ws_test ? {
-         data: {
-            data: [{
-               isBind: false,
-               isEvent: false,
-               localized: false,
-               name: node.__$ws_test,
-               noEscape: false,
-               type: 'var',
-               value: ''
-            }],
-            key: undefined,
-            type: 'text'
-         }
-      } : undefined;
+      node.attribs = node.__$ws_test ? createConditionAttributes(node) : undefined;
       // @ts-ignore
       node.name = 'ws:else';
       // @ts-ignore
@@ -1025,28 +1041,7 @@ class PatchVisitor implements Ast.IAstVisitor {
    // done.
    private getElementAttributesCollection(node: Ast.BaseHtmlElement, context: INavigationContext): any {
       const attributes = { };
-      const chain = [];
-      for (const attributeName in node.__$ws_attributes) {
-         const attribute = node.__$ws_attributes[attributeName];
-         // rm prefix for elements only
-         const cleanName = attributeName.replace('attr:', '');
-         const name = !attribute.__$ws_hasAttributePrefix ? cleanName : attributeName;
-         const processedAttribute = {
-            node: attribute.accept(this, context),
-            key: attribute.__$ws_key,
-            name
-         };
-         chain.push(processedAttribute);
-      }
-      for (const name in node.__$ws_events) {
-         const event = node.__$ws_events[name];
-         const processedEvent = {
-            node: event.accept(this, context),
-            key: event.__$ws_key,
-            name
-         };
-         chain.push(processedEvent);
-      }
+      const chain = processAttributesAndEvents(node);
       chain.sort((prev: any, next: any) => prev.key - next.key);
       chain.forEach((element: any) => {
          attributes[element.name] = element.node;
@@ -1057,28 +1052,7 @@ class PatchVisitor implements Ast.IAstVisitor {
    // done.
    private getComponentAttributesCollection(node: Ast.BaseWasabyElement, context: INavigationContext, initChain?: any[]): any {
       const attributes = { };
-      const chain = [];
-      for (const attributeName in node.__$ws_attributes) {
-         const attribute = node.__$ws_attributes[attributeName];
-         // rm prefix for elements only
-         const cleanName = attributeName.replace('attr:', '');
-         const name = !attribute.__$ws_hasAttributePrefix ? cleanName : attributeName;
-         const processedAttribute = {
-            node: attribute.accept(this, context),
-            key: attribute.__$ws_key,
-            name
-         };
-         chain.push(processedAttribute);
-      }
-      for (const name in node.__$ws_events) {
-         const event = node.__$ws_events[name];
-         const processedEvent = {
-            node: event.accept(this, context),
-            key: event.__$ws_key,
-            name
-         };
-         chain.push(processedEvent);
-      }
+      const chain = processAttributesAndEvents(node);
       for (const name in node.__$ws_options) {
          const option = node.__$ws_options[name];
          if (!option.hasFlag(Ast.Flags.UNPACKED)) {
