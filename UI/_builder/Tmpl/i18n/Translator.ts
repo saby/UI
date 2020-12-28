@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Tmpl/i18n/Translator" />
 
 /**
+ * @description Represents interfaces and methods to work with ast node translations.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/i18n/Translator.ts
  */
@@ -8,45 +9,50 @@
 import createJSDocProcessor, { IJSDocProcessor, IJSDocSchema, IComponentDescription } from 'UI/_builder/Tmpl/i18n/JSDoc';
 
 /**
- * @todo
+ * Interface for raw tag node description.
  */
 export interface INodeDescription {
 
    /**
-    * @todo
-    * @param name {string}
+    * Check if tag attribute is translatable.
+    * @param name {string} Tag attribute name.
+    * @returns {boolean} Returns true in case of translatable tag attribute.
     */
    isAttributeTranslatable(name: string): boolean;
 
    /**
-    * @todo
-    * @param name {string}
+    * Check if tag option is translatable.
+    * @param name {string} Tag option name.
+    * @returns {boolean} Returns true in case of translatable tag option.
     */
    isOptionTranslatable(name: string): boolean;
 }
 
 /**
- * @todo
+ * Interface for text translator.
  */
 export interface ITextTranslator {
 
    /**
-    * @todo
-    * @param name {string}
+    * Check if content of element is translatable.
+    * @param name {string} Element name.
+    * @returns {boolean} Returns true in case of translatable element content.
     */
    isElementContentTranslatable(name: string): boolean;
 
    /**
-    * @todo
-    * @param name {string}
+    * Get tag node description.
+    * @param name {string} Tag node name.
+    * @returns {INodeDescription} Returns tag node description.
     */
    getElementDescription(name: string): INodeDescription;
 
    /**
-    * @todo
-    * @param name {string}
+    * Get component node description.
+    * @param componentPath {string} Component tag name.
+    * @returns {INodeDescription} Returns component node description.
     */
-   getComponentDescription(name: string): INodeDescription;
+   getComponentDescription(componentPath: string): INodeDescription;
 }
 
 /**
@@ -58,34 +64,36 @@ const FORBIDDEN_CONTENT_TRANSLATION = [
 ];
 
 /**
- * @todo
+ * Represents element node description.
  */
 class ElementDescription implements INodeDescription {
 
    /**
-    * @todo
+    * Collection of translatable attribute names.
     */
    private readonly translatableAttributeNames: string[];
 
    /**
-    * @todo
-    * @param translatableAttributeNames {string[]}
+    * Initialize new instance of element node description.
+    * @param translatableAttributeNames {string[]} Collection of translatable attribute names.
     */
    constructor(translatableAttributeNames: string[]) {
       this.translatableAttributeNames = translatableAttributeNames;
    }
 
    /**
-    * @todo
-    * @param name {string}
+    * Check if tag attribute is translatable.
+    * @param name {string} Tag attribute name.
+    * @returns {boolean} Returns true in case of translatable tag attribute.
     */
    isAttributeTranslatable(name: string): boolean {
       return this.translatableAttributeNames.indexOf(name) > -1;
    }
 
    /**
-    * @todo
-    * @param name {string}
+    *Check if tag option is translatable.
+    * @param name {string} Tag option name.
+    * @returns {boolean} Returns true in case of translatable tag option.
     */
    isOptionTranslatable(name: string): boolean {
       return false;
@@ -93,19 +101,19 @@ class ElementDescription implements INodeDescription {
 }
 
 /**
- * @todo
+ * Represents component node description.
  */
 class ComponentDescription extends ElementDescription {
 
    /**
-    * @todo
+    * Component description.
     */
    private readonly componentDescription: IComponentDescription;
 
    /**
-    * @todo
-    * @param translatableAttributeNames {string[]}
-    * @param componentDescription {IComponentDescription}
+    * Initialize new instance of element node description.
+    * @param translatableAttributeNames {string[]} Collection of translatable attribute names.
+    * @param componentDescription {IComponentDescription} Component description.
     */
    constructor(translatableAttributeNames: string[], componentDescription: IComponentDescription) {
       super(translatableAttributeNames);
@@ -113,8 +121,9 @@ class ComponentDescription extends ElementDescription {
    }
 
    /**
-    * @todo
-    * @param name {string}
+    * Check if tag option is translatable.
+    * @param name {string} Tag option name.
+    * @returns {boolean} Returns true in case of translatable tag option.
     */
    isOptionTranslatable(name: string): boolean {
       return this.componentDescription.isPropertyTranslatable(name);
@@ -122,50 +131,57 @@ class ComponentDescription extends ElementDescription {
 }
 
 /**
- * @todo
+ * Collection of element node names which content is translatable.
  */
 const TRANSLATABLE_ELEMENT_ATTRIBUTES = [
    'title'
 ];
 
 /**
- * @todo
+ * Default element node description.
  */
 const ELEMENT_DESCRIPTION = new ElementDescription(TRANSLATABLE_ELEMENT_ATTRIBUTES);
 
 /**
- * @todo
+ * Represents methods to work with JSDOC data.
  */
 class TextTranslator implements ITextTranslator {
 
+   /**
+    * JSDoc processor.
+    */
    private readonly jsDocProcessor: IJSDocProcessor;
 
    /**
-    * @todo
+    * Initialize new instance of text translator.
+    * @param jsDocSchema {IJSDocSchema} JSDOC schema.
     */
    constructor(jsDocSchema: IJSDocSchema) {
       this.jsDocProcessor = createJSDocProcessor(jsDocSchema);
    }
 
    /**
-    * @todo
-    * @param name {string}
+    * Check if content of element is translatable.
+    * @param name {string} Element name.
+    * @returns {boolean} Returns true in case of translatable element content.
     */
    isElementContentTranslatable(name: string): boolean {
       return FORBIDDEN_CONTENT_TRANSLATION.indexOf(name) === -1;
    }
 
    /**
-    * @todo
-    * @param name {string}
+    * Get tag node description.
+    * @param name {string} Tag node name.
+    * @returns {INodeDescription} Returns tag node description.
     */
    getElementDescription(name: string): INodeDescription {
       return ELEMENT_DESCRIPTION;
    }
 
    /**
-    * @todo
-    * @param componentPath {string}
+    * Get component node description.
+    * @param componentPath {string} Component tag name.
+    * @returns {INodeDescription} Returns component node description.
     */
    getComponentDescription(componentPath: string): INodeDescription {
       const componentDescription = this.jsDocProcessor.getComponentDescription(componentPath);
@@ -174,7 +190,9 @@ class TextTranslator implements ITextTranslator {
 }
 
 /**
- * @todo
+ * Create text translator.
+ * @param jsDocSchema {IJSDocSchema} JSDOC schema.
+ * @returns {ITextTranslator} Returns text translator.
  */
 export function createTextTranslator(jsDocSchema: IJSDocSchema): ITextTranslator {
    return new TextTranslator(jsDocSchema);

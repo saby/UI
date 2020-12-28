@@ -1,3 +1,11 @@
+/// <amd-module name="UI/_builder/Tmpl/expressions/_private/EventNode" />
+
+/**
+ * @description Represents class for event node.
+ * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/EventNode.ts
+ */
+
 interface IEventNodeCfg {
    args?: string,
    value: string,

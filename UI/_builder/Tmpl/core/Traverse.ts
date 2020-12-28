@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Tmpl/core/Traverse" />
 
 /**
+ * @description Represents traverse machine.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/core/Traverse.ts
  */

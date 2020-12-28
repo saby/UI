@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Tmpl/core/Dependencies" />
 
 /**
+ * @description Represents dependencies controller.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/core/Dependencies.ts
  */
@@ -13,26 +14,68 @@ import * as Deferred from 'Core/Deferred';
 //             by turning on the 'esModuleInterop' flag and referencing its default export.
 import * as ParallelDeferred from 'Core/ParallelDeferred';
 
+/**
+ * Interface for dependencies controller.
+ */
 export interface IDependenciesController {
+
+   /**
+    * Register dependency.
+    * @param path {IPath} Dependency path.
+    */
    registerDependency(path: IPath): void;
+
+   /**
+    * Request all dependencies.
+    */
    requestDependencies(): ParallelDeferred<unknown>;
 }
 
+/**
+ * Dependencies collection.
+ */
 interface IDependencies {
+
+   /**
+    * Dependency item.
+    */
    [fullPath: string]: IPath;
 }
 
+/**
+ * Implements dependencies controller interface.
+ */
 class DependenciesController implements IDependenciesController {
+
+   /**
+    * Flag - load all dependencies (for JIT only)
+    */
    private readonly loadDependencies: boolean;
+
+   /**
+    * Dependencies collection.
+    */
    private readonly dependencies: IDependencies;
+
+   /**
+    * Dependency requests collection.
+    */
    private readonly dependencyRequests: Deferred<unknown>[];
 
+   /**
+    * Initialize new instance of controller.
+    * @param loadDependencies {boolean} Load requested dependencies.
+    */
    constructor(loadDependencies: boolean) {
       this.loadDependencies = loadDependencies;
       this.dependencies = { };
       this.dependencyRequests = [];
    }
 
+   /**
+    * Register dependency.
+    * @param path {IPath} Dependency path.
+    */
    registerDependency(path: IPath): void {
       const fullPath = path.getFullPhysicalPath();
       if (!this.dependencies.hasOwnProperty(fullPath)) {
@@ -58,6 +101,9 @@ class DependenciesController implements IDependenciesController {
       });
    }
 
+   /**
+    * Request all dependencies.
+    */
    requestDependencies(): ParallelDeferred<unknown> {
       const parallelDeferred = new ParallelDeferred();
       if (!this.loadDependencies || this.dependencyRequests.length === 0) {
@@ -70,6 +116,10 @@ class DependenciesController implements IDependenciesController {
    }
 }
 
+/**
+ * Create dependencies controller.
+ * @param loadDependencies {boolean} Load requested dependencies.
+ */
 export default function createController(loadDependencies: boolean): IDependenciesController {
    return new DependenciesController(loadDependencies);
 }
