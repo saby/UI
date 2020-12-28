@@ -37,6 +37,7 @@ export function processEventAttribute(
    const eventContext = {
       data,
       fileName,
+      generateSafeFunctionCall: false, // Useless for events
       attributeName,
       isControl,
       isExprConcat: false,

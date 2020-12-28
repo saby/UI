@@ -19,6 +19,7 @@ if (typeof includedTemplates === "undefined") {
 }
 /*#DELETE IT END#*/
 try {
+   /*#PROCESSED_EXPRESSIONS#*/
    var out = markupGenerator.joinElements([ /*#MARKUP_GENERATION#*/ ], key, defCollection);
    if (defCollection && defCollection.def) {
       out = markupGenerator.chain(out, defCollection, this);
@@ -78,6 +79,7 @@ export const FOR = `(function customForTemplate() {
       for ( /*#INIT#*/ ; /*#TEST#*/ ; /*#UPDATE#*/ ) {
          key = contextInput + "_for_" + itCount + "_";
          itCount++;
+         /*#PROCESSED_EXPRESSIONS#*/
          var processed = [ /*#PROCESSED#*/ ];
          out = out.concat(processed);
       }
@@ -107,6 +109,7 @@ export const FOREACH = `(function forTemplate() {
             thelpers.presetScope(entity, data, key, /*#ITERATOR_SCOPE#*/ );
             key = contextInput + "_for_" + itCount + "_";
             itCount++;
+            /*#PROCESSED_EXPRESSIONS#*/
             var processed = [ /*#PROCESSED#*/ ];
             out = out.concat(processed);
             data = originData;

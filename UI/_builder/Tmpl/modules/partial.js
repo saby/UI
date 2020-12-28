@@ -56,7 +56,9 @@ define('UI/_builder/Tmpl/modules/partial', [
          children: tag.injectedData,
          attribs: tag.attribs,
          isControl: isControl(tag),
-         internal: tag.internal
+         internal: tag.internal,
+         // FIXME: Нужно прокинуть контекст
+         lexicalContext: tag.__$ws_lexicalContext
       }, data, {
          partial: tag.name === 'ws:partial'
       });
@@ -255,6 +257,9 @@ define('UI/_builder/Tmpl/modules/partial', [
          ) + ',';
       }
 
+      // FIXME: tmpl-файл, генерация содержимого ws:template нужно взять настоящий контекст
+      tag.children.lexicalContext = tag.__ws_templateRef.__$ws_lexicalContext;
+
       // TMPL compiler
       var inlineTemplateBody = this.getString(tag.children, {}, this.handlers, {}, true);
       var inlineTemplateFunction = templates.generatePartialTemplate(inlineTemplateBody);
@@ -343,6 +348,9 @@ define('UI/_builder/Tmpl/modules/partial', [
 
             // Start code generation for construction:
             // <ws:partial template="inline_template_name" />
+
+            // FIXME: tmpl-файл, генерация содержимого ws:template нужно взять настоящий контекст
+            tag.children.lexicalContext = tag.__ws_templateRef.__$ws_lexicalContext;
 
             var callDataArg = TClosure.genPlainMerge(
                'Object.create(data || {})',

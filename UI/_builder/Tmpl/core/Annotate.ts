@@ -7,7 +7,8 @@
 
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import Scope from 'UI/_builder/Tmpl/core/Scope';
-import { createGlobalContext, IContext as ILexicalContext, IProgramMeta } from 'UI/_builder/Tmpl/core/Context';
+import { createGlobalContext, IContext as ILexicalContext, IProgramMeta, TProgramKey } from 'UI/_builder/Tmpl/core/Context';
+import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 
 // <editor-fold desc="Public interfaces and functions">
 
@@ -41,6 +42,11 @@ interface IContext {
 // </editor-fold>
 
 // <editor-fold desc="Private annotation functions">
+
+function patchProgram(program: ProgramNode, key: TProgramKey, context: ILexicalContext): void {
+   program.__$ws_id = key;
+   program.__$ws_lexicalContext = context;
+}
 
 function appendInternalExpressions(internal: Ast.IInternal, programs: IProgramMeta[]): void {
    for (let index = 0; index < programs.length; ++index) {
@@ -227,7 +233,8 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    }
 
    visitBind(node: Ast.BindNode, context: IContext): void {
-      node.__$ws_value.__$ws_id = context.lexicalContext.registerBindProgram(node.__$ws_value);
+      const programKey = context.lexicalContext.registerBindProgram(node.__$ws_value);
+      patchProgram(node.__$ws_value, programKey, context.lexicalContext);
    }
 
    visitEvent(node: Ast.EventNode, context: IContext): void {
@@ -288,7 +295,8 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    visitElse(node: Ast.ElseNode, context: IContext): void {
       this.processNodes(node.__$ws_consequent, context);
       if (node.__$ws_test) {
-         node.__$ws_test.__$ws_id = context.lexicalContext.registerProgram(node.__$ws_test);
+         const programKey = context.lexicalContext.registerProgram(node.__$ws_test);
+         patchProgram(node.__$ws_test, programKey, context.lexicalContext);
       }
       if (node.__$ws_alternate) {
          node.__$ws_alternate.accept(this, context);
@@ -325,14 +333,16 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          ...context,
          lexicalContext
       };
-      node.__$ws_collection.__$ws_id = lexicalContext.registerProgram(node.__$ws_collection);
+      const programKey = context.lexicalContext.registerProgram(node.__$ws_collection);
+      patchProgram(node.__$ws_collection, programKey, context.lexicalContext);
       this.processNodes(node.__$ws_content, contentContext);
       node.__$ws_lexicalContext = lexicalContext;
    }
 
    visitIf(node: Ast.IfNode, context: IContext): void {
       this.processNodes(node.__$ws_consequent, context);
-      node.__$ws_test.__$ws_id = context.lexicalContext.registerProgram(node.__$ws_test);
+      const programKey = context.lexicalContext.registerProgram(node.__$ws_test);
+      patchProgram(node.__$ws_test, programKey, context.lexicalContext);
       if (node.__$ws_alternate) {
          node.__$ws_alternate.accept(this, context);
       }
@@ -358,7 +368,8 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    // <editor-fold desc="Extended text">
 
    visitExpression(node: Ast.ExpressionNode, context: IContext): void {
-      node.__$ws_program.__$ws_id = context.lexicalContext.registerProgram(node.__$ws_program);
+      const programKey = context.lexicalContext.registerProgram(node.__$ws_program);
+      patchProgram(node.__$ws_program, programKey, context.lexicalContext);
    }
 
    visitText(node: Ast.TextNode, context: IContext): void {
@@ -389,13 +400,15 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          lexicalContext
       };
       this.processComponentContent(node, contentContext);
-      node.__$ws_expression.__$ws_id = lexicalContext.registerProgram(node.__$ws_expression);
+      const programKey = context.lexicalContext.registerProgram(node.__$ws_expression);
+      patchProgram(node.__$ws_expression, programKey, context.lexicalContext);
    }
 
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): void {
       const template = context.scope.getTemplate(node.__$ws_name);
       const identifiers = collectInlineTemplateIdentifiers(node);
       const lexicalContext = context.lexicalContext.createContext();
+      node.__ws_templateRef = template;
       lexicalContext.joinContext(template.__$ws_lexicalContext, { identifiers });
       const contentContext: IContext = {
          ...context,

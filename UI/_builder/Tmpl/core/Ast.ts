@@ -1140,6 +1140,11 @@ export class InlineTemplateNode extends BaseWasabyElement {
    __$ws_name: string;
 
    /**
+    * Inline template reference.
+    */
+   __ws_templateRef: TemplateNode | null;
+
+   /**
     * Initialize new instance of inline template node.
     * @param name {string} Partial template name or expression.
     * @param attributes {IAttributes} Collection of abstract syntax node attributes.
@@ -1150,6 +1155,7 @@ export class InlineTemplateNode extends BaseWasabyElement {
    constructor(name: string, attributes: IAttributes, events: IEvents, options: IOptions, contents: IContents = { }) {
       super(attributes, events, options, contents);
       this.__$ws_name = name;
+      this.__ws_templateRef = null;
    }
 
    /**
