@@ -63,9 +63,11 @@ interface IContext extends IOptions {
 class BaseValidator implements Nodes.IExpressionVisitor<IContext, void> {
 
    private readonly errorHandler: IErrorHandler;
+   private readonly isDecoratorForbidden: boolean;
 
-   protected constructor(errorHandler: IErrorHandler) {
+   protected constructor(errorHandler: IErrorHandler, isDecoratorForbidden: boolean) {
       this.errorHandler = errorHandler;
+      this.isDecoratorForbidden = isDecoratorForbidden;
    }
 
    visitArrayExpressionNode(node: Nodes.ArrayExpressionNode, context: IContext): void {
@@ -111,6 +113,9 @@ class BaseValidator implements Nodes.IExpressionVisitor<IContext, void> {
    }
 
    visitDecoratorCallNode(node: Nodes.DecoratorCallNode, context: IContext): void {
+      if (this.isDecoratorForbidden) {
+         throw new Error('Использование декораторов запрещено');
+      }
       const childContext: IContext = {
          ...context,
          state: State.IN_DECORATOR_CALL
@@ -122,6 +127,9 @@ class BaseValidator implements Nodes.IExpressionVisitor<IContext, void> {
    }
 
    visitDecoratorChainCallNode(node: Nodes.DecoratorChainCallNode, context: IContext): void {
+      if (this.isDecoratorForbidden) {
+         throw new Error('Использование декораторов запрещено');
+      }
       const childContext: IContext = {
          ...context,
          state: State.IN_DECORATOR_CHAIN_CALL
@@ -132,6 +140,9 @@ class BaseValidator implements Nodes.IExpressionVisitor<IContext, void> {
    }
 
    visitDecoratorChainContext(node: Nodes.DecoratorChainContext, context: IContext): void {
+      if (this.isDecoratorForbidden) {
+         throw new Error('Использование декораторов запрещено');
+      }
       const childContext: IContext = {
          ...context,
          state: State.IN_DECORATOR_CHAIN_CONTEXT
@@ -238,7 +249,7 @@ class BaseValidator implements Nodes.IExpressionVisitor<IContext, void> {
 class BindValidator extends BaseValidator {
 
    constructor(errorHandler: IErrorHandler) {
-      super(errorHandler);
+      super(errorHandler, true);
    }
 
    visitProgramNode(node: Nodes.ProgramNode, context: IContext): void {
@@ -343,18 +354,6 @@ class BindValidator extends BaseValidator {
       obj.object.accept(this, childContext);
    }
 
-   visitDecoratorChainCallNode(node: Nodes.DecoratorChainCallNode, context: IContext): void {
-      throw new Error('Использование декораторов запрещено');
-   }
-
-   visitDecoratorChainContext(node: Nodes.DecoratorChainContext, context: IContext): void {
-      throw new Error('Использование декораторов запрещено');
-   }
-
-   visitDecoratorCallNode(node: Nodes.DecoratorCallNode, context: IContext): void {
-      throw new Error('Использование декораторов запрещено');
-   }
-
    visitLiteralNode(node: Nodes.LiteralNode, context: IContext): void {
       if (context.contextState === BindContextState.INITIAL) {
          throw new Error('Использование литералов запрещено');
@@ -366,7 +365,7 @@ class BindValidator extends BaseValidator {
 class EventValidator extends BaseValidator {
 
    constructor(errorHandler: IErrorHandler) {
-      super(errorHandler);
+      super(errorHandler, true);
    }
 
    visitProgramNode(node: Nodes.ProgramNode, context: IContext): void {
@@ -461,18 +460,6 @@ class EventValidator extends BaseValidator {
       super.visitMemberExpressionNode(node, argumentsContext);
    }
 
-   visitDecoratorChainCallNode(node: Nodes.DecoratorChainCallNode, context: IContext): void {
-      throw new Error('Использование декораторов запрещено');
-   }
-
-   visitDecoratorChainContext(node: Nodes.DecoratorChainContext, context: IContext): void {
-      throw new Error('Использование декораторов запрещено');
-   }
-
-   visitDecoratorCallNode(node: Nodes.DecoratorCallNode, context: IContext): void {
-      throw new Error('Использование декораторов запрещено');
-   }
-
    visitLiteralNode(node: Nodes.LiteralNode, context: IContext): void {
       if (context.contextState === BindContextState.INITIAL) {
          throw new Error('Использование литералов запрещено');
@@ -483,7 +470,7 @@ class EventValidator extends BaseValidator {
 
 class TextValidator extends BaseValidator {
    constructor(errorHandler: IErrorHandler) {
-      super(errorHandler);
+      super(errorHandler, false);
    }
 }
 

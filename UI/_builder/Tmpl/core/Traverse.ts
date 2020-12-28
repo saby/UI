@@ -344,11 +344,11 @@ function cleanPrimitiveValue(children: Ast.TextNode[]): Ast.TextNode[] {
 }
 
 /**
- * Validate processed boolean node content.
- * @param children {TextNode[]} Processed boolean node content.
- * @throws {Error} Throws Error in case of invalid boolean semantics.
+ * Get validated text data from text node.
+ * @param children {TextNode[]} Text node.
+ * @returns {TText[]} Text nodes collection.
  */
-function validateBoolean(children: Ast.TextNode[]): void {
+function getTextData(children: Ast.TextNode[]): Ast.TText[] {
    if (children.length === 0) {
       throw new Error('не задано значение');
    }
@@ -359,6 +359,16 @@ function validateBoolean(children: Ast.TextNode[]): void {
    if (data.length !== 1) {
       throw new Error('данные некорректного типа - ожидался текст или Mustache-выражение');
    }
+   return data;
+}
+
+/**
+ * Validate processed boolean node content.
+ * @param children {TextNode[]} Processed boolean node content.
+ * @throws {Error} Throws Error in case of invalid boolean semantics.
+ */
+function validateBoolean(children: Ast.TextNode[]): void {
+   const data = getTextData(children);
    for (let index = 0; index < data.length; ++index) {
       const child = data[index];
       if (child instanceof Ast.TextDataNode) {
@@ -378,16 +388,7 @@ function validateBoolean(children: Ast.TextNode[]): void {
  * @throws {Error} Throws Error in case of invalid number semantics.
  */
 function validateNumber(children: Ast.TextNode[]): void {
-   if (children.length === 0) {
-      throw new Error('не задано значение');
-   }
-   if (children.length !== 1) {
-      throw new Error('данные некорректного типа');
-   }
-   const data = children[0].__$ws_content;
-   if (data.length !== 1) {
-      throw new Error('данные некорректного типа - ожидался текст или Mustache-выражение');
-   }
+   const data = getTextData(children);
    for (let index = 0; index < data.length; ++index) {
       const child = data[index];
       if (child instanceof Ast.TextDataNode) {
@@ -896,22 +897,10 @@ class Traverse implements ITraverse {
             return this.processTemplate(node, context);
          case 'ws:partial':
             return this.checkDirectiveInAttribute(node, context);
-         case 'ws:Array':
-         case 'ws:Boolean':
-         case 'ws:Function':
-         case 'ws:Number':
-         case 'ws:Object':
-         case 'ws:String':
-         case 'ws:Value':
-            this.errorHandler.critical(
-               `Использование директив типа данных разрешено только внутри опции и массива. Обнаружена директива типа данных "${node.name}"`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
          default:
+            if (this.validateForbiddenDataTypeNode(node, context)) {
+               return null;
+            }
             if (Resolvers.isOption(node.name)) {
                this.errorHandler.error(
                   `Обнаружена неизвестная директива "${node.name}"`,
@@ -975,22 +964,10 @@ class Traverse implements ITraverse {
          case 'ws:for':
          case 'ws:partial':
             return this.processTagInComponentWithContent(node, context);
-         case 'ws:Array':
-         case 'ws:Boolean':
-         case 'ws:Function':
-         case 'ws:Number':
-         case 'ws:Object':
-         case 'ws:String':
-         case 'ws:Value':
-            this.errorHandler.critical(
-               `Использование директив типа данных разрешено только внутри опции и массива. Обнаружена директива типа данных "${node.name}"`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
          default:
+            if (this.validateForbiddenDataTypeNode(node, context)) {
+               return null;
+            }
             if (Resolvers.isOption(node.name)) {
                return this.processTagInComponentWithOptions(node, context);
             }
@@ -1067,22 +1044,10 @@ class Traverse implements ITraverse {
                }
             );
             return null;
-         case 'ws:Array':
-         case 'ws:Boolean':
-         case 'ws:Function':
-         case 'ws:Number':
-         case 'ws:Object':
-         case 'ws:String':
-         case 'ws:Value':
-            this.errorHandler.critical(
-               `Использование директив типа данных разрешено только внутри опции и массива. Обнаружена директива типа данных "${node.name}"`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
          default:
+            if (this.validateForbiddenDataTypeNode(node, context)) {
+               return null;
+            }
             if (Resolvers.isOption(node.name)) {
                return this.processProperty(node, context);
             }
@@ -3019,6 +2984,27 @@ class Traverse implements ITraverse {
             }
          );
       }
+   }
+
+   private validateForbiddenDataTypeNode(node: Nodes.Tag, context: ITraverseContext): boolean {
+      switch (node.name) {
+         case 'ws:Array':
+         case 'ws:Boolean':
+         case 'ws:Function':
+         case 'ws:Number':
+         case 'ws:Object':
+         case 'ws:String':
+         case 'ws:Value':
+            this.errorHandler.critical(
+               `Использование директив типа данных разрешено только внутри опции и массива. Обнаружена директива типа данных "${node.name}"`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return true;
+      }
+      return false;
    }
 
    // </editor-fold>
