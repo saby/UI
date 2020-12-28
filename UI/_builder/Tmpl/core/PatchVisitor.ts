@@ -53,32 +53,6 @@ function createConditionAttributes(node: any): any {
    };
 }
 
-function processAttributesAndEvents(node: any): any {
-   const chain = [];
-   for (const attributeName in node.__$ws_attributes) {
-      const attribute = node.__$ws_attributes[attributeName];
-      // rm prefix for elements only
-      const cleanName = attributeName.replace('attr:', '');
-      const name = !attribute.__$ws_hasAttributePrefix ? cleanName : attributeName;
-      const processedAttribute = {
-         node: attribute.accept(this, context),
-         key: attribute.__$ws_key,
-         name
-      };
-      chain.push(processedAttribute);
-   }
-   for (const name in node.__$ws_events) {
-      const event = node.__$ws_events[name];
-      const processedEvent = {
-         node: event.accept(this, context),
-         key: event.__$ws_key,
-         name
-      };
-      chain.push(processedEvent);
-   }
-   return chain;
-}
-
 class PatchVisitor implements Ast.IAstVisitor {
    // done.
    visitDoctype(node: Ast.DoctypeNode, context: INavigationContext): any {
@@ -1041,7 +1015,7 @@ class PatchVisitor implements Ast.IAstVisitor {
    // done.
    private getElementAttributesCollection(node: Ast.BaseHtmlElement, context: INavigationContext): any {
       const attributes = { };
-      const chain = processAttributesAndEvents(node);
+      const chain = this.processAttributesAndEvents(node, context);
       chain.sort((prev: any, next: any) => prev.key - next.key);
       chain.forEach((element: any) => {
          attributes[element.name] = element.node;
@@ -1052,7 +1026,7 @@ class PatchVisitor implements Ast.IAstVisitor {
    // done.
    private getComponentAttributesCollection(node: Ast.BaseWasabyElement, context: INavigationContext, initChain?: any[]): any {
       const attributes = { };
-      const chain = processAttributesAndEvents(node);
+      const chain = this.processAttributesAndEvents(node, context);
       for (const name in node.__$ws_options) {
          const option = node.__$ws_options[name];
          if (!option.hasFlag(Ast.Flags.UNPACKED)) {
@@ -1178,6 +1152,33 @@ class PatchVisitor implements Ast.IAstVisitor {
          copy[property] = FunctionUtils.shallowClone(internal[property]);
       }
       return copy;
+   }
+
+   // done.
+   private processAttributesAndEvents(node: Ast.BaseHtmlElement, context: INavigationContext): any {
+      const chain = [];
+      for (const attributeName in node.__$ws_attributes) {
+         const attribute = node.__$ws_attributes[attributeName];
+         // rm prefix for elements only
+         const cleanName = attributeName.replace('attr:', '');
+         const name = !attribute.__$ws_hasAttributePrefix ? cleanName : attributeName;
+         const processedAttribute = {
+            node: attribute.accept(this, context),
+            key: attribute.__$ws_key,
+            name
+         };
+         chain.push(processedAttribute);
+      }
+      for (const name in node.__$ws_events) {
+         const event = node.__$ws_events[name];
+         const processedEvent = {
+            node: event.accept(this, context),
+            key: event.__$ws_key,
+            name
+         };
+         chain.push(processedEvent);
+      }
+      return chain;
    }
 }
 
