@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Tmpl/core/Ast" />
 
 /**
+ * @description Represents abstract syntax tree node classes.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/core/Ast.ts
  */

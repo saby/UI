@@ -1,7 +1,9 @@
 /// <amd-module name="UI/_builder/Tmpl/expressions/_private/Nodes" />
 
 /**
+ * @description Represents abstract syntax nodes of mustache expression tree.
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/Nodes.ts
  */
 
 import { createErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';

@@ -1,7 +1,10 @@
 /// <amd-module name="UI/_builder/Tmpl/expressions/_private/i18n" />
 
 /**
+ * @deprecated
+ * @description Represents i18n methods.
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/i18n.ts
  *
  * @todo https://online.sbis.ru/opendoc.html?guid=72013f58-3b1b-4838-ba79-b8a75b6e9436
  */

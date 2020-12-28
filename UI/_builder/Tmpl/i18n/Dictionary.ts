@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Tmpl/i18n/Dictionary" />
 
 /**
+ * @description Represents interface and class to work with translation keys.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/i18n/Dictionary.ts
  */

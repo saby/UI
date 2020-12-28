@@ -1,7 +1,10 @@
 /// <amd-module name="UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch" />
 
 /**
+ * @deprecated
+ * @description Annotating abstract syntax tree.
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch.ts
  */
 
 import { isBind } from './Bind';

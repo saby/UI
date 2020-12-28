@@ -1,6 +1,8 @@
 /// <amd-module name="UI/_builder/Tmpl/core/PatchVisitor" />
 
 /**
+ * @deprecated
+ * @description Prepares abstract syntax tree for generating code (bad patch!)
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/core/PatchVisitor.ts
  *

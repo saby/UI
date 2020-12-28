@@ -1,21 +1,55 @@
 /// <amd-module name="UI/_builder/Tmpl/expressions/_private/Validator" />
 
 /**
+ * @description Represents mustache expression validators.
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/Validator.ts
  */
 
 import * as Nodes from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { SourcePosition } from 'UI/_builder/Tmpl/html/Reader';
 
+/**
+ * Interface for processing options.
+ */
 export interface IOptions {
+
+   /**
+    * Processing template file name.
+    */
    fileName: string;
+
+   /**
+    * Position in source template file.
+    */
    position: SourcePosition;
 }
 
+/**
+ * Represents validator interface.
+ */
 export interface IValidator {
+
+   /**
+    * Check mustache-expression for bind attribute.
+    * @param program {ProgramNode} Mustache expression program node.
+    * @param options {IOptions} Processing options.
+    */
    checkBindExpression(program: Nodes.ProgramNode, options: IOptions): void;
+
+   /**
+    * Check mustache-expression for event attribute.
+    * @param program {ProgramNode} Mustache expression program node.
+    * @param options {IOptions} Processing options.
+    */
    checkEventExpression(program: Nodes.ProgramNode, options: IOptions): void;
+
+   /**
+    * Check mustache-expression for text node.
+    * @param program {ProgramNode} Mustache expression program node.
+    * @param options {IOptions} Processing options.
+    */
    checkTextExpression(program: Nodes.ProgramNode, options: IOptions): void;
 }
 
@@ -522,6 +556,10 @@ class Validator implements IValidator {
    }
 }
 
+/**
+ * Create new instance of mustache-expression validator.
+ * @param errorHandler {IErrorHandler} Error handler instance.
+ */
 export default function createValidator(errorHandler: IErrorHandler): IValidator {
    return new Validator(errorHandler);
 }

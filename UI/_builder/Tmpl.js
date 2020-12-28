@@ -22,6 +22,8 @@ define('UI/_builder/Tmpl', [
    'use strict';
 
    /**
+    * @description Главный модуль tmpl шаблонизатора.
+    * @deprecated
     * @author Крылов М.А.
     */
 
@@ -283,6 +285,12 @@ define('UI/_builder/Tmpl', [
       return compatibleFunction;
    }
 
+   /**
+    * Получить функцию шаблона.
+    * @param ast Абстрактное синтаксическое дерево.
+    * @param config Конфигурация сборки.
+    * @returns {function} Функция шаблона, либо функция-пустышка в случае ошибки разбора.
+    */
    function outerFunc(ast, config) {
       try {
          codegenBridge.initWorkspaceTMPL(ast.templateNames);

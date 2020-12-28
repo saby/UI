@@ -1,4 +1,12 @@
-import {VariableNode} from "./Statement";
+/// <amd-module name="UI/_builder/Tmpl/expressions/_private/IAttributeValue" />
+
+/**
+ * @description Represents interface for attribute value.
+ * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/IAttributeValue.ts
+ */
+
+import { VariableNode } from "./Statement";
 
 /**
  * Интерфейст значения атрибута.
