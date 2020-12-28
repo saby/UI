@@ -473,9 +473,9 @@ class LexicalContext implements ILexicalContext {
          index = this.allocateProgramIndex();
       }
       const description = createProgramDescription(index, program, this, isSynthetic);
-      this.commitProgram(description);
+      const key = this.commitProgram(description);
       this.hoistInternalProgram(description);
-      return generateProgramKey(index);
+      return key;
    }
 
    hoistIdentifier(identifier: string): void {
@@ -563,9 +563,10 @@ class LexicalContext implements ILexicalContext {
       this.identifiers.push(identifier);
    }
 
-   private commitProgram(description: IProgramDescription): void {
+   private commitProgram(description: IProgramDescription): TProgramKey {
       const key = generateProgramKey(description.index);
       this.programs.set(description, key);
+      return key;
    }
 
    private commitInternalProgram(description: IProgramDescription): void {
