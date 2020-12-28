@@ -28,7 +28,7 @@ export function isEvent(titleAttribute) {
  * @returns {string}
  */
 export function getEventName(eventAttribute) {
-   return eventAttribute.slice(3).toLowerCase();
+   return eventAttribute.slice(3);
 }
 
 /**

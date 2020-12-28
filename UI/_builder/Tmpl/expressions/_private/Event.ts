@@ -77,5 +77,5 @@ export function isEvent(attributeName: string): boolean {
  * @param attributeName {string} Имя атрибута.
  */
 export function getEventName(attributeName: string): string {
-   return attributeName.slice(3).toLowerCase();
+   return attributeName.slice(3);
 }

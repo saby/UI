@@ -511,7 +511,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
     * @param args
     */
    startEvent(controlNode: any, args: any): any {
-      const eventName = args[0].toLowerCase();
+      const eventName = args[0];
       const handlerArgs = args[1] || [];
       const eventDescription = args[2];
       const eventConfig = {};
@@ -837,7 +837,7 @@ function vdomEventBubbling(
 ): any {
    let eventProperties;
    let stopPropagation = false;
-   const eventPropertyName = 'on:' + eventObject.type.toLowerCase();
+   const eventPropertyName = 'on:' + eventObject.type;
    let curDomNode;
    let fn;
    let evArgs;

@@ -195,8 +195,8 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
             try {
                // Processing bind expression ("bind:...")
                var eventAttributeName = bindExpressions.getEventAttributeName(attr);
-               var eventChain = result.events[eventAttributeName.toLowerCase()];
-               result.events[eventAttributeName.toLowerCase()] = bindExpressions.processBindAttribute(
+               var eventChain = result.events[eventAttributeName];
+               result.events[eventAttributeName] = bindExpressions.processBindAttribute(
                   attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage, eventChain
                );
             } catch (error) {
@@ -220,7 +220,7 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
                var eventObject = eventExpressions.processEventAttribute(
                   attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage
                );
-               var eventName = attr.toLowerCase();
+               var eventName = attr;
                if (result.events[eventName] === undefined) {
                   result.events[eventName] = eventObject;
                } else {
