@@ -1329,6 +1329,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       const inherit = (ctor.getInheritOptions && ctor.getInheritOptions()) || {};
       if (!inherit.hasOwnProperty('readOnly')) {
          inherit.readOnly = false;
+         inherit.readOnly = false;
       }
       if (!inherit.hasOwnProperty('theme')) {
          inherit.theme = 'default';
