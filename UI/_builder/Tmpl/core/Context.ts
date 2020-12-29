@@ -42,12 +42,12 @@ const FORBIDDEN_IDENTIFIERS = [
 
 export declare type TProgramKey = string;
 
-export interface IContextConfig {
+export interface IConfig {
    allowHoisting?: boolean;
    identifiers?: string[];
 }
 
-export interface IContextOptions {
+export interface IOptions {
    identifiers?: string[];
 }
 
@@ -58,7 +58,7 @@ export interface IProgramMeta {
 }
 
 export interface IContext {
-   createContext(config?: IContextConfig): IContext;
+   createContext(config?: IConfig): IContext;
 
    registerBindProgram(program: ProgramNode): TProgramKey;
    registerEventProgram(program: ProgramNode): void;
@@ -67,7 +67,7 @@ export interface IContext {
 
    commitCode(key: TProgramKey, code: string): void;
 
-   joinContext(context: IContext, options?: IContextOptions): void;
+   joinContext(context: IContext, options?: IOptions): void;
 
    getProgram(key: TProgramKey): ProgramNode;
 
@@ -132,8 +132,8 @@ function createProgramDescription(
    };
 }
 
-function prepareContextConfig(config?: IContextConfig): IContextConfig {
-   const cfg: IContextConfig = {
+function prepareContextConfig(config?: IConfig): IConfig {
+   const cfg: IConfig = {
       allowHoisting: true,
       identifiers: []
    };
@@ -347,7 +347,7 @@ class LexicalContext implements ILexicalContext {
 
    // </editor-fold>
 
-   constructor(parent: ILexicalContext | null, config: IContextConfig) {
+   constructor(parent: ILexicalContext | null, config: IConfig) {
       this.programIndex = 0;
       this.parent = parent;
       this.allowHoisting = config.allowHoisting;
@@ -358,7 +358,7 @@ class LexicalContext implements ILexicalContext {
 
    // <editor-fold desc="Public methods">
 
-   createContext(config?: IContextConfig): IContext {
+   createContext(config?: IConfig): IContext {
       const cfg = prepareContextConfig(config);
       return new LexicalContext(this, cfg);
    }
@@ -407,7 +407,7 @@ class LexicalContext implements ILexicalContext {
       throw new Error(`Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
    }
 
-   joinContext(context: IContext, options?: IContextOptions): void {
+   joinContext(context: IContext, options?: IOptions): void {
       const lexicalContext = context as ILexicalContext;
       const localIdentifiers = Array.isArray(options && options.identifiers) ? options.identifiers : EMPTY_ARRAY;
       this.joinIdentifiers(lexicalContext, localIdentifiers);
