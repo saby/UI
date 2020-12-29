@@ -1313,7 +1313,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
    }
    //#endregion
 
-   static extend(mixinsList: any, classExtender: any): Function {
+   static extend(mixinsList: any, classExtender?: any): Function {
       // // @ts-ignore
       // if (!require.defined('Core/core-extend')) {
       //    throw new ReferenceError(
