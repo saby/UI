@@ -1,4 +1,5 @@
-import { getResourceUrl } from 'RequireJsLoader/conduct';
+import { getResourceUrl as requireGetResourceUrl } from 'RequireJsLoader/conduct';
+import { cookie } from 'Application/Env';
 
 /**
  * Возвращает обработанный URL ресураса с указанием домена и версии.
@@ -14,4 +15,6 @@ import { getResourceUrl } from 'RequireJsLoader/conduct';
  * @public
  * @author Мальцев А.А.
  */
-export default getResourceUrl;
+export default function getResourceUrl(url: string): string {
+    return requireGetResourceUrl(url, cookie.get('s3debug'))
+}

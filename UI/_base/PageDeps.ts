@@ -1,5 +1,6 @@
 /// <amd-module name='UI/_base/PageDeps' />
-import { cookie, constants } from 'Env/Env';
+import { cookie } from 'Application/Env';
+import { constants } from 'Env/Env';
 import { DepsCollector, ICollectedFiles, IDeps } from 'UI/_base/DepsCollector';
 
 /**
