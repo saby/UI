@@ -534,7 +534,7 @@ export function getFullMarkup(
       result = controlNodes[vnode.controlNodeIdx].fullMarkup;
       const controlNode: IControlNode = controlNodes[vnode.controlNodeIdx];
       if (!controlNode || controlNode.key !== vnode.key) {
-         Logger.error('TODO', vnode?.controlClass?.prototype);
+         Logger.error('Ошибка синхронизации: отсутствует элемент в дереве controlNodes или неверное значение поля controlNodeIdx у vnode', vnode?.controlClass?.prototype);
          result = textNode('', vnode.key);
       } else if (isInvisibleNodeType(result)) {
          /**
