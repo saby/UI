@@ -41,12 +41,12 @@ const FORBIDDEN_IDENTIFIERS = [
 
 export declare type TProgramKey = string;
 
-export interface ILexicalContextConfig {
+export interface IConfig {
    allowHoisting?: boolean;
    identifiers?: string[];
 }
 
-export interface ILexicalContextOptions {
+export interface IOptions {
    identifiers?: string[];
 }
 
@@ -56,14 +56,14 @@ export interface IProgramMeta {
 }
 
 export interface IContext {
-   createContext(config?: ILexicalContextConfig): IContext;
+   createContext(config?: IConfig): IContext;
 
    registerBindProgram(program: ProgramNode): TProgramKey;
    registerEventProgram(program: ProgramNode): void;
    registerFloatProgram(program: ProgramNode): void;
    registerProgram(program: ProgramNode): TProgramKey;
 
-   joinContext(context: IContext, options?: ILexicalContextOptions): void;
+   joinContext(context: IContext, options?: IOptions): void;
 
    getProgram(key: TProgramKey): ProgramNode | null;
 
@@ -73,7 +73,7 @@ export interface IContext {
 }
 
 export function createGlobalContext(): IContext {
-   const cfg = prepareContextConfig();
+   const cfg = prepareConfig();
    return new LexicalContext(null, cfg);
 }
 
@@ -122,8 +122,8 @@ function createProgramDescription(
    };
 }
 
-function prepareContextConfig(config?: ILexicalContextConfig): ILexicalContextConfig {
-   const cfg: ILexicalContextConfig = {
+function prepareConfig(config?: IConfig): IConfig {
+   const cfg: IConfig = {
       allowHoisting: true,
       identifiers: []
    };
@@ -214,7 +214,7 @@ class LexicalContext implements ILexicalContext {
 
    // </editor-fold>
 
-   constructor(parent: ILexicalContext | null, config: ILexicalContextConfig) {
+   constructor(parent: ILexicalContext | null, config: IConfig) {
       this.programIndex = 0;
       this.parent = parent;
       this.allowHoisting = config.allowHoisting;
@@ -229,8 +229,8 @@ class LexicalContext implements ILexicalContext {
 
    // <editor-fold desc="Public methods">
 
-   createContext(config?: ILexicalContextConfig): IContext {
-      const cfg = prepareContextConfig(config);
+   createContext(config?: IConfig): IContext {
+      const cfg = prepareConfig(config);
       return new LexicalContext(this, cfg);
    }
 
@@ -281,7 +281,7 @@ class LexicalContext implements ILexicalContext {
       return this.processProgram(program, false);
    }
 
-   joinContext(context: IContext, options?: ILexicalContextOptions): void {
+   joinContext(context: IContext, options?: IOptions): void {
       const lexicalContext = context as ILexicalContext;
       const localIdentifiers = Array.isArray(options && options.identifiers) ? options.identifiers : EMPTY_ARRAY;
       this.joinIdentifiers(lexicalContext, localIdentifiers);
