@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Tmpl/core/Attributes" />
 
 /**
+ * @description Represents attribute processor.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/core/Attributes.ts
  */

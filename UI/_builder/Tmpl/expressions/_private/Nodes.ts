@@ -1,7 +1,9 @@
 /// <amd-module name="UI/_builder/Tmpl/expressions/_private/Nodes" />
 
 /**
+ * @description Represents abstract syntax nodes of mustache expression tree.
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/Nodes.ts
  */
 
 import { createErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
@@ -107,12 +109,12 @@ function calculateContext(identifier: string, context: IExpressionVisitorContext
    return defaultContext;
 }
 
-function resolveIdentifier(
+function resolveIdentifierBase(
    node: IdentifierNode,
    data: IExpressionVisitorContext['data'],
    forMemberExpression: boolean,
    context: string
-): string {
+): string | null {
    if (IDENTIFIER_EXPRESSIONS[node.name]) {
       return IDENTIFIER_EXPRESSIONS[node.name];
    }
@@ -127,6 +129,19 @@ function resolveIdentifier(
    }
    if (forMemberExpression) {
       return context;
+   }
+   return null;
+}
+
+function resolveIdentifier(
+   node: IdentifierNode,
+   data: IExpressionVisitorContext['data'],
+   forMemberExpression: boolean,
+   context: string
+): string {
+   const result = resolveIdentifierBase(node, data, forMemberExpression, context);
+   if (result !== null) {
+      return result;
    }
    return genGetter(context, ['"' + node.name + '"']);
 }
@@ -137,20 +152,9 @@ function resolveIdentifierSetter(
    forMemberExpression: boolean,
    context: string
 ): string {
-   if (IDENTIFIER_EXPRESSIONS[node.name]) {
-      return IDENTIFIER_EXPRESSIONS[node.name];
-   }
-   if (data) {
-      return data + '[' + FSC.wrapAroundQuotes(node.name) + ']';
-   }
-   if (node.name === 'context') {
-      // context может перекрываться в scope'е, поэтому вставляем проверку, так ли это
-      // Если он перекрыт, возвращаем перекрытое поле, иначе сам контекст
-      // может быть заменить getter на data.context? значительное сокращение
-      return `(!${genGetter(context, ['"context"'])} ? context : ${genGetter('data', ['"context"'])})`;
-   }
-   if (forMemberExpression) {
-      return context;
+   const result = resolveIdentifierBase(node, data, forMemberExpression, context);
+   if (result !== null) {
+      return result;
    }
    return genSetter(context, ['"' + node.name + '"']);
 }
@@ -189,6 +193,41 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
          context.sanitize = false;
       }
       return res;
+   }
+
+   processMemberProperty(node: MemberExpressionNode, context: IExpressionVisitorContext): { arr: string[]; dataSource: string; } {
+      const arr = [];
+      let obj = node;
+      let dataSource = '';
+      while (obj.type === 'MemberExpression') {
+         if (obj.computed) {
+            if (context.forbidComputedMembers) {
+               throw new Error('Вычисляемые member-выражения запрещены');
+            }
+            arr.unshift(obj.property.accept(this, context));
+         } else {
+            arr.unshift(FSC.wrapAroundQuotes((obj.property as IdentifierNode).name));
+         }
+         obj = obj.object as MemberExpressionNode;
+      }
+      if (obj.type === 'Identifier') {
+         const identifierNode = ((obj as unknown) as IdentifierNode);
+         dataSource = resolveIdentifier(identifierNode, context.data, true, context.getterContext);
+         if (dataSource === context.getterContext) {
+            const identifierName = identifierNode.name;
+            dataSource = calculateContext(identifierName, context, dataSource);
+            // Значение любого data-идентификатора будет получено из scope'а, поэтому ставим
+            // data в качестве источника, а сам идентификтор ставим первым в списке полей
+            arr.unshift(FSC.wrapAroundQuotes(identifierName));
+         }
+      } else {
+         // Если источник данных - сложное выражение, его нужно будет вычислять
+         dataSource = obj.accept(this, context) as string;
+      }
+      return {
+         arr,
+         dataSource
+      };
    }
 
    buildArgumentsArray(args: Node[], context: IExpressionVisitorContext): string {
@@ -373,38 +412,11 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
    }
 
    visitMemberExpressionNode(node: MemberExpressionNode, context: IExpressionVisitorContext): string {
-      let obj = node;
-      const arr = [];
-      let dataSource = '';
-      if (obj.property) {
-         while (obj.type === 'MemberExpression') {
-            if (obj.computed) {
-               if (context.forbidComputedMembers) {
-                  throw new Error('Вычисляемые member-выражения запрещены');
-               }
-               arr.unshift(obj.property.accept(this, context));
-            } else {
-               arr.unshift(FSC.wrapAroundQuotes((obj.property as IdentifierNode).name));
-            }
-            obj = obj.object as MemberExpressionNode;
-         }
-         if (obj.type === 'Identifier') {
-            const identifierNode = ((obj as unknown) as IdentifierNode);
-            dataSource = resolveIdentifier(identifierNode, context.data, true, context.getterContext);
-            if (dataSource === context.getterContext) {
-               const identifierName = identifierNode.name;
-               dataSource = calculateContext(identifierName, context, dataSource);
-               // Значение любого data-идентификатора будет получено из scope'а, поэтому ставим
-               // data в качестве источника, а сам идентификтор ставим первым в списке полей
-               arr.unshift(FSC.wrapAroundQuotes(identifierName));
-            }
-         } else {
-            // Если источник данных - сложное выражение, его нужно будет вычислять
-            dataSource = obj.accept(this, context) as string;
-         }
+      if (node.property) {
+         const { arr, dataSource } = this.processMemberProperty(node, context);
          return genGetter(dataSource, arr);
       }
-      return obj.object.accept(this, context) as string;
+      return node.object.accept(this, context) as string;
    }
 
    visitObjectExpressionNode(node: ObjectExpressionNode, context: IExpressionVisitorContext): string {
@@ -632,35 +644,8 @@ export class BindExpressionVisitor extends ExpressionVisitor {
       this.state = BindVisitorState.MEMBER;
       // Далее копипаста метода visitMemberExpressionNode @ ExpressionVisitor
       // TODO: нужно выпрямить обход дерева
-      let obj = node;
-      const arr = [];
-      let dataSource = '';
-      if (obj.property) {
-         while (obj.type === 'MemberExpression') {
-            if (obj.computed) {
-               if (context.forbidComputedMembers) {
-                  throw new Error('Computed member expressions are forbidden');
-               }
-               arr.unshift(obj.property.accept(this, context));
-            } else {
-               arr.unshift(FSC.wrapAroundQuotes((obj.property as IdentifierNode).name));
-            }
-            obj = obj.object as MemberExpressionNode;
-         }
-         if (obj.type === 'Identifier') {
-            const identifierNode = ((obj as unknown) as IdentifierNode);
-            dataSource = resolveIdentifier(identifierNode, context.data, true, context.getterContext);
-            if (dataSource === context.getterContext) {
-               const identifierName = identifierNode.name;
-               dataSource = calculateContext(identifierName, context, dataSource);
-               // Значение любого data-идентификатора будет получено из scope'а, поэтому ставим
-               // data в качестве источника, а сам идентификтор ставим первым в списке полей
-               arr.unshift(FSC.wrapAroundQuotes(identifierName));
-            }
-         } else {
-            // Если источник данных - сложное выражение, его нужно будет вычислять
-            dataSource = obj.accept(this, context) as string;
-         }
+      if (node.property) {
+         const { arr, dataSource } = super.processMemberProperty(node, context);
          if (arr.length === 2 && arr[0].slice(1, -1) === '_options') {
             throw new Error(
                'Запрещено использовать bind на свойства объекта _options: данный объект заморожен'
@@ -668,7 +653,7 @@ export class BindExpressionVisitor extends ExpressionVisitor {
          }
          return genSetter(dataSource, arr);
       }
-      return obj.object.accept(this, context) as string;
+      return node.object.accept(this, context) as string;
    }
 
    visitDecoratorChainCallNode(node: DecoratorChainCallNode, context: IExpressionVisitorContext): string {

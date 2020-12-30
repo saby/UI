@@ -8,13 +8,25 @@ define('UI/_builder/Tmpl/codegen/bridge', [
    'use strict';
 
    /**
-    * Модуль предназначен для соединения старой и новой логик генерации кода шаблона.
+    * @description Модуль предназначен для соединения старой и новой логик генерации кода шаблона.
     * @author Крылов М.А.
+    * @file UI/_builder/Tmpl/codegen/bridge.js
     */
 
+   /**
+    * Флаг включения посетителей генерации кода.
+    */
    var CODEGEN_VISITORS = false;
+
+   /**
+    * Флаг - использовать посетителей генерации кода.
+    */
    var USE_CODEGEN_VISITORS = CODEGEN_VISITORS && coreBridge.canUseCodegenVisitors();
 
+   /**
+    * Инициализировать окружение для wml.
+    * @param templateNames {string[]} Коллекция имен inline-шаблонов.
+    */
    function initWorkspaceWML(templateNames) {
       processingToFunction.functionNames = { };
       if (Array.isArray(templateNames)) {
@@ -28,6 +40,10 @@ define('UI/_builder/Tmpl/codegen/bridge', [
       processingToFunction.includedFunctions = { };
    }
 
+   /**
+    * Инициализировать окружение для tmpl.
+    * @param templateNames {string[]} Коллекция имен inline-шаблонов.
+    */
    function initWorkspaceTMPL(templateNames) {
       processingToFunction.functionNames = { };
       if (Array.isArray(templateNames)) {
@@ -41,6 +57,9 @@ define('UI/_builder/Tmpl/codegen/bridge', [
       processingToFunction.includedFn = null;
    }
 
+   /**
+    * Очистить окружение
+    */
    function cleanWorkspace() {
       processingToFunction.functionNames = null;
       processingToFunction.includedFunctions = null;
@@ -48,6 +67,15 @@ define('UI/_builder/Tmpl/codegen/bridge', [
       processingToFunction.includedFn = null;
    }
 
+   /**
+    * Выполнить генерацию шаблона.
+    * @param ast AST-дерево
+    * @param data Данные
+    * @param handlers Обработчики
+    * @param attributes Атрибуты
+    * @param internal Коллекция internal-выражений
+    * @returns {*} Возвращает шаблонную функцию.
+    */
    function getFunction(ast, data, handlers, attributes, internal) {
       if (USE_CODEGEN_VISITORS) {
          // TODO: Release

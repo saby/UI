@@ -10,7 +10,6 @@ import { constants } from 'Env/Env';
 // @ts-ignore
 import { Logger } from 'UI/Utils';
 import { TControlConstructor } from 'UI/_base/Control'
-import {getFixScopeMergingInContent} from "./FixScopeMergingContent";
 
 /**
  * Применить дефолтные опции конструктора
@@ -20,8 +19,6 @@ export function resolveDefaultOptions(cfg, defaultOptions) {
    for (var key in defaultOptions) {
       if (typeof cfg[key] === 'undefined' && typeof defaultOptions[key] !== 'undefined') {
          cfg[key] = defaultOptions[key];
-
-         createInheritOptionError(cfg, key);
       }
    }
    return cfg;
@@ -63,40 +60,6 @@ export function validateOptions(controlClass, cfg, parentName: string): boolean 
    return _validateOptions(controlClass, cfg, optionsTypes, parentName);
 }
 
-function createInheritOptionError(controlProperties, propertyName: string) {
-   if (!getFixScopeMergingInContent()) {
-      return;
-   }
-
-   const name = '_$' + propertyName;
-   if (controlProperties[name] === 'InheritOptionsError') {
-      return;
-   }
-   if (controlProperties[propertyName] === 'InheritOptionsError') {
-      return;
-   }
-
-   controlProperties[name] = 'InheritOptionsError';
-
-   // let controlProperty = controlProperties[propertyName];
-   // Object.defineProperty(controlProperties, propertyName, {
-   //    get: () => {
-   //       if (!_canGetInheritOption) {
-   //          let message = `
-   //                Попытка получить опцию по умолчанию ${propertyName}.
-   //                Не стоит брать наследуемые опции из опций контрола.
-   //                Необходимо получать опции по умолчанию согласно инструкции.
-   //                ???????????????????????????????`;
-   //          Logger.error(message);
-   //       }
-   //       return controlProperty;
-   //    },
-   //    set: (v) => {
-   //       controlProperty = v;
-   //    }
-   // });
-}
-
 export function resolveInheritOptions(controlClass, attrs, controlProperties, fromCreateControl?) {
    if (!controlClass) {
       return;
@@ -112,8 +75,6 @@ export function resolveInheritOptions(controlClass, attrs, controlProperties, fr
       if (attrs.inheritOptions.hasOwnProperty(i)) {
          if (controlProperties[i] === undefined) {
             controlProperties[i] = attrs.inheritOptions[i];
-
-            createInheritOptionError(controlProperties, i);
          }
          newInherit[i] = controlProperties[i];
       }
@@ -125,8 +86,6 @@ export function resolveInheritOptions(controlClass, attrs, controlProperties, fr
          }
          newInherit[j] = inheritOptions[j];
          controlProperties[j] = inheritOptions[j];
-
-         createInheritOptionError(controlProperties, j);
       }
    }
    attrs.inheritOptions = newInherit;

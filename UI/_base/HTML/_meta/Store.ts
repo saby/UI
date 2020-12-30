@@ -6,6 +6,7 @@ import { IStore } from 'Application/Interface';
 import { IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
 
 export type IStates = Record<string, IMetaStateInternal>;
+type KeyIState = keyof IStates & string;
 
 class StateStore implements IStore<IStates> {
    constructor(
@@ -21,8 +22,8 @@ class StateStore implements IStore<IStates> {
    remove(id: keyof IStates): void {
       delete this.data[id];
    }
-   getKeys(): Array<keyof IStates & string> {
-      return Object.keys(this.data) as Array<keyof IStates & string>;
+   getKeys(): KeyIState[] {
+      return Object.keys(this.data) as KeyIState[];
    }
    toObject(): { [key in keyof IStates]: IStates[key] } {
       return this.data;

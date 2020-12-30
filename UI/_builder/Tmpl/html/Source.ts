@@ -43,54 +43,6 @@ export interface ISource {
 /**
  *
  */
-class NormalizedSource implements ISource {
-
-   /**
-    *
-    */
-   private readonly content: string;
-
-   /**
-    *
-    */
-   private readonly path: string;
-
-   /**
-    *
-    * @param content {string}
-    * @param path {string}
-    */
-   constructor(content: string, path: string) {
-      this.content = normalizeNewLines(content);
-      this.path = path;
-   }
-
-   /**
-    *
-    */
-   getPath(): string {
-      return this.path;
-   }
-
-   /**
-    *
-    * @param offset {number}
-    */
-   getChar(offset: number): string {
-      return this.content[offset];
-   }
-
-   /**
-    *
-    */
-   getLength(): number {
-      return this.content.length;
-   }
-}
-
-/**
- *
- */
 class Source implements ISource {
 
    /**
@@ -144,7 +96,7 @@ class Source implements ISource {
  */
 export function createSource(content: string, path: string, normalizeLineFeed: boolean = true): ISource {
    if (normalizeLineFeed) {
-      return new NormalizedSource(content, path);
+      return new Source(normalizeNewLines(content), path);
    }
    return new Source(content, path);
 }

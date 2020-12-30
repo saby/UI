@@ -13,7 +13,7 @@ import {constants, detection} from 'Env/Env';
 import { LinkResolver } from 'UI/theme/controller';
 import { getResourceUrl } from 'UI/Utils';
 import AppData from './AppData';
-import { IHTMLOptions } from './interface/IHTML';
+import {IHTMLOptions, ILinksAttrsHTML, IScriptsAttrsHTML} from './interface/IHTML';
 import { IRootTemplateOptions } from './interface/IRootTemplate';
 import { headDataStore } from 'UI/_base/HeadData';
 import mountChecker from 'UI/_base/MountChecker';
@@ -38,8 +38,8 @@ interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
     rtpackCssModuleNames: string[];
     rtpackJsModuleNames: string[];
     /** Ссылки подключенных ресурсов */
-    scripts: Array<{ src: string; }>;
-    links: Array<{ href: string; type: string; }>;
+    scripts: IScriptsAttrsHTML[];
+    links: ILinksAttrsHTML[];
 }
 
 /**

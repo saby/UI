@@ -1,7 +1,9 @@
 /// <amd-module name="UI/_builder/Tmpl/expressions/_private/Event" />
 
 /**
+ * @description Represents methods for generating code for events.
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/Event.ts
  */
 
 import { EventExpressionVisitor } from './Nodes';

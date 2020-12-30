@@ -1,21 +1,55 @@
 /// <amd-module name="UI/_builder/Tmpl/expressions/_private/Validator" />
 
 /**
+ * @description Represents mustache expression validators.
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/Validator.ts
  */
 
 import * as Nodes from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { IErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
 import { SourcePosition } from 'UI/_builder/Tmpl/html/Reader';
 
+/**
+ * Interface for processing options.
+ */
 export interface IOptions {
+
+   /**
+    * Processing template file name.
+    */
    fileName: string;
+
+   /**
+    * Position in source template file.
+    */
    position: SourcePosition;
 }
 
+/**
+ * Represents validator interface.
+ */
 export interface IValidator {
+
+   /**
+    * Check mustache-expression for bind attribute.
+    * @param program {ProgramNode} Mustache expression program node.
+    * @param options {IOptions} Processing options.
+    */
    checkBindExpression(program: Nodes.ProgramNode, options: IOptions): void;
+
+   /**
+    * Check mustache-expression for event attribute.
+    * @param program {ProgramNode} Mustache expression program node.
+    * @param options {IOptions} Processing options.
+    */
    checkEventExpression(program: Nodes.ProgramNode, options: IOptions): void;
+
+   /**
+    * Check mustache-expression for text node.
+    * @param program {ProgramNode} Mustache expression program node.
+    * @param options {IOptions} Processing options.
+    */
    checkTextExpression(program: Nodes.ProgramNode, options: IOptions): void;
 }
 
@@ -63,9 +97,11 @@ interface IContext extends IOptions {
 class BaseValidator implements Nodes.IExpressionVisitor<IContext, void> {
 
    private readonly errorHandler: IErrorHandler;
+   private readonly isDecoratorForbidden: boolean;
 
-   protected constructor(errorHandler: IErrorHandler) {
+   protected constructor(errorHandler: IErrorHandler, isDecoratorForbidden: boolean) {
       this.errorHandler = errorHandler;
+      this.isDecoratorForbidden = isDecoratorForbidden;
    }
 
    visitArrayExpressionNode(node: Nodes.ArrayExpressionNode, context: IContext): void {
@@ -111,6 +147,9 @@ class BaseValidator implements Nodes.IExpressionVisitor<IContext, void> {
    }
 
    visitDecoratorCallNode(node: Nodes.DecoratorCallNode, context: IContext): void {
+      if (this.isDecoratorForbidden) {
+         throw new Error('Использование декораторов запрещено');
+      }
       const childContext: IContext = {
          ...context,
          state: State.IN_DECORATOR_CALL
@@ -122,6 +161,9 @@ class BaseValidator implements Nodes.IExpressionVisitor<IContext, void> {
    }
 
    visitDecoratorChainCallNode(node: Nodes.DecoratorChainCallNode, context: IContext): void {
+      if (this.isDecoratorForbidden) {
+         throw new Error('Использование декораторов запрещено');
+      }
       const childContext: IContext = {
          ...context,
          state: State.IN_DECORATOR_CHAIN_CALL
@@ -132,6 +174,9 @@ class BaseValidator implements Nodes.IExpressionVisitor<IContext, void> {
    }
 
    visitDecoratorChainContext(node: Nodes.DecoratorChainContext, context: IContext): void {
+      if (this.isDecoratorForbidden) {
+         throw new Error('Использование декораторов запрещено');
+      }
       const childContext: IContext = {
          ...context,
          state: State.IN_DECORATOR_CHAIN_CONTEXT
@@ -238,7 +283,7 @@ class BaseValidator implements Nodes.IExpressionVisitor<IContext, void> {
 class BindValidator extends BaseValidator {
 
    constructor(errorHandler: IErrorHandler) {
-      super(errorHandler);
+      super(errorHandler, true);
    }
 
    visitProgramNode(node: Nodes.ProgramNode, context: IContext): void {
@@ -343,18 +388,6 @@ class BindValidator extends BaseValidator {
       obj.object.accept(this, childContext);
    }
 
-   visitDecoratorChainCallNode(node: Nodes.DecoratorChainCallNode, context: IContext): void {
-      throw new Error('Использование декораторов запрещено');
-   }
-
-   visitDecoratorChainContext(node: Nodes.DecoratorChainContext, context: IContext): void {
-      throw new Error('Использование декораторов запрещено');
-   }
-
-   visitDecoratorCallNode(node: Nodes.DecoratorCallNode, context: IContext): void {
-      throw new Error('Использование декораторов запрещено');
-   }
-
    visitLiteralNode(node: Nodes.LiteralNode, context: IContext): void {
       if (context.contextState === BindContextState.INITIAL) {
          throw new Error('Использование литералов запрещено');
@@ -366,7 +399,7 @@ class BindValidator extends BaseValidator {
 class EventValidator extends BaseValidator {
 
    constructor(errorHandler: IErrorHandler) {
-      super(errorHandler);
+      super(errorHandler, true);
    }
 
    visitProgramNode(node: Nodes.ProgramNode, context: IContext): void {
@@ -461,18 +494,6 @@ class EventValidator extends BaseValidator {
       super.visitMemberExpressionNode(node, argumentsContext);
    }
 
-   visitDecoratorChainCallNode(node: Nodes.DecoratorChainCallNode, context: IContext): void {
-      throw new Error('Использование декораторов запрещено');
-   }
-
-   visitDecoratorChainContext(node: Nodes.DecoratorChainContext, context: IContext): void {
-      throw new Error('Использование декораторов запрещено');
-   }
-
-   visitDecoratorCallNode(node: Nodes.DecoratorCallNode, context: IContext): void {
-      throw new Error('Использование декораторов запрещено');
-   }
-
    visitLiteralNode(node: Nodes.LiteralNode, context: IContext): void {
       if (context.contextState === BindContextState.INITIAL) {
          throw new Error('Использование литералов запрещено');
@@ -483,7 +504,7 @@ class EventValidator extends BaseValidator {
 
 class TextValidator extends BaseValidator {
    constructor(errorHandler: IErrorHandler) {
-      super(errorHandler);
+      super(errorHandler, false);
    }
 }
 
@@ -535,6 +556,10 @@ class Validator implements IValidator {
    }
 }
 
+/**
+ * Create new instance of mustache-expression validator.
+ * @param errorHandler {IErrorHandler} Error handler instance.
+ */
 export default function createValidator(errorHandler: IErrorHandler): IValidator {
    return new Validator(errorHandler);
 }

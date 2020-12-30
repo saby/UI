@@ -1,7 +1,10 @@
 /// <amd-module name="UI/_builder/Tmpl/expressions/_private/Statement" />
 
 /**
+ * @deprecated
+ * @description Represents mustache expression processing.
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/Statement.ts
  *
  * @todo реализовать восстановление разбора при ошибке, например, разбор
  *   выражения {{ { a: { b: 1 }} }} завершится ошибкой, поскольку будет

@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Tmpl/core/Resolvers" />
 
 /**
+ * @description Represents interfaces, methods and classes to work with UI paths.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/core/Resolvers.ts
  */
@@ -70,62 +71,62 @@ function findSpecialUIModulePrefix(physicalPath: string): string {
 }
 
 /**
- * @todo
+ * Complex path interface.
  */
 export interface IPath {
 
    /**
-    * @todo
+    * Get full path.
     */
    getFullPath(): string;
 
    /**
-    * @todo
+    * Get full physical path.
     */
    getFullPhysicalPath(): string;
 
    /**
-    * @todo
+    * Get logical path.
     */
    getLogicalPath(): string[];
 
    /**
-    * @todo
+    * Check if path has logical part.
     */
    hasLogicalPath(): boolean;
 
    /**
-    * @todo
+    * Check if path has plugins.
     */
    hasPlugins(): boolean;
 }
 
 
 /**
- * @todo
+ * Represents complex path.
  */
 class Path implements IPath {
 
    /**
-    * @todo
+    * Physical part path.
     */
    private readonly physicalPath: string[];
 
    /**
-    * @todo
+    * Logical part path.
     */
    private readonly logicalPath: string[];
 
    /**
-    * @todo
+    * Sequence of plugin names.
     */
    private readonly plugins: string[];
 
    /**
-    * @todo
-    * @param physicalPath {string[]} @todo
-    * @param logicalPath {string[]} @todo
-    * @param plugins {string[]} @todo
+    * Initialize new instance of complex path.
+    * @param physicalPath {string[]} Physical part path.
+    * @param logicalPath {string[]} Logical part path.
+    * @param plugins {string[]} Sequence of plugin names.
     */
    constructor(physicalPath: string[], logicalPath: string[], plugins: string[]) {
       this.physicalPath = physicalPath;
@@ -134,7 +135,7 @@ class Path implements IPath {
    }
 
    /**
-    * @todo
+    * Get full path.
     */
    getFullPath(): string {
       const fullPhysicalPath = this.getFullPhysicalPath();
@@ -145,7 +146,7 @@ class Path implements IPath {
    }
 
    /**
-    * @todo
+    * Get full physical path.
     */
    getFullPhysicalPath(): string {
       const plugins = this.plugins.length > 0
@@ -156,21 +157,21 @@ class Path implements IPath {
    }
 
    /**
-    * @todo
+    * Get logical path.
     */
    getLogicalPath(): string[] {
       return this.logicalPath;
    }
 
    /**
-    * @todo
+    * Check if path has logical part.
     */
    hasLogicalPath(): boolean {
       return this.logicalPath.length > 0;
    }
 
    /**
-    * @todo
+    * Check if path has plugins.
     */
    hasPlugins(): boolean {
       return this.plugins.length > 0;
@@ -178,8 +179,8 @@ class Path implements IPath {
 }
 
 /**
- * @todo
- * @param path {string} @todo
+ * Split plugins.
+ * @param path {string} Path.
  */
 function splitPlugins(path: string): { plugins: string[]; fullPath: string; } {
    const plugins = path.split(REQUIRE_JS_PLUGIN_SEPARATOR);
@@ -191,8 +192,8 @@ function splitPlugins(path: string): { plugins: string[]; fullPath: string; } {
 }
 
 /**
- * @todo
- * @param componentName {string} @todo
+ * Parse component name.
+ * @param componentName {string} Component name.
  */
 export function parseComponentName(componentName: string): IPath {
    // FIXME: Check if tag node name is component name with prefix "ws:"
@@ -221,8 +222,8 @@ export function parseComponentName(componentName: string): IPath {
 }
 
 /**
- * @todo
- * @param functionPath {string} @todo
+ * Parse function path.
+ * @param functionPath {string} Function path.
  */
 export function parseFunctionPath(functionPath: string): IPath {
    const { plugins, fullPath } = splitPlugins(functionPath);
@@ -262,8 +263,8 @@ export function parseFunctionPath(functionPath: string): IPath {
 }
 
 /**
- * @todo
- * @param templatePath {string} @todo
+ * Parse template path.
+ * @param templatePath {string} Template path.
  */
 export function parseTemplatePath(templatePath: string): IPath {
    const { plugins, fullPath } = splitPlugins(templatePath);

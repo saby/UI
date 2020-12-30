@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Tmpl/core/Annotate" />
 
 /**
+ * @description Represents interfaces, methods and classes to annotate AST.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/core/Annotate.ts
  */
@@ -11,18 +12,56 @@ import { createGlobalContext, IContext as ILexicalContext, IProgramMeta } from '
 
 // <editor-fold desc="Public interfaces and functions">
 
+/**
+ * Interface for annotated abstract syntax tree.
+ */
 export interface IAnnotatedTree extends Array<Ast.Ast> {
+
+   /**
+    * Child names collection.
+    */
    childrenStorage: string[];
+
+   /**
+    * Reactive property names collection.
+    */
    reactiveProps: string[];
+
+   /**
+    * Inline template names collection.
+    */
    templateNames: string[];
+
+   /**
+    * Global lexical context.
+    */
    lexicalContext: ILexicalContext;
+
+   /**
+    * Special flag.
+    * @deprecated
+    */
    __newVersion: boolean;
 }
 
+/**
+ * Annotate processor interface.
+ */
 export interface IAnnotateProcessor {
+
+   /**
+    * Annotate abstract syntax tree.
+    * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
+    * @param scope {Scope} Processing scope object.
+    */
    annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree;
 }
 
+/**
+ * Annotate abstract syntax tree.
+ * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
+ * @param scope {Scope} Processing scope object.
+ */
 export default function annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree {
    return new AnnotateProcessor()
       .annotate(nodes, scope);
@@ -32,9 +71,24 @@ export default function annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree
 
 // <editor-fold desc="Private interfaces and constants">
 
+/**
+ * Annotating context.
+ */
 interface IContext {
+
+   /**
+    * Child names collection.
+    */
    childrenStorage: string[];
+
+   /**
+    * Lexical context.
+    */
    lexicalContext: ILexicalContext;
+
+   /**
+    * Processing scope object.
+    */
    scope: Scope;
 }
 
@@ -42,6 +96,11 @@ interface IContext {
 
 // <editor-fold desc="Private annotation functions">
 
+/**
+ * Append internal expressions.
+ * @param internal {IInternal} Internal collection.
+ * @param programs {IProgramMeta[]} Collection of program meta information.
+ */
 function appendInternalExpressions(internal: Ast.IInternal, programs: IProgramMeta[]): void {
    for (let index = 0; index < programs.length; ++index) {
       const program = programs[index];
@@ -54,6 +113,11 @@ function appendInternalExpressions(internal: Ast.IInternal, programs: IProgramMe
    }
 }
 
+/**
+ * Collect identifiers for inline template node.
+ * @param node {InlineTemplateNode} Inline template node.
+ * @return {string[]} Identifier names collection.
+ */
 function collectInlineTemplateIdentifiers(node: Ast.InlineTemplateNode): string[] {
    const identifiers = [];
    for (const name in node.__$ws_events) {
@@ -82,6 +146,10 @@ function collectInlineTemplateIdentifiers(node: Ast.InlineTemplateNode): string[
    return identifiers;
 }
 
+/**
+ * Set root node flag.
+ * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
+ */
 function setRootNodeFlags(nodes: Ast.Ast[]): void {
    nodes.forEach((node) => {
       if (node instanceof Ast.IfNode) {
@@ -104,6 +172,11 @@ function setRootNodeFlags(nodes: Ast.Ast[]): void {
    });
 }
 
+/**
+ * Get string value from text.
+ * @param value {TText[]} Collection of text nodes.
+ * @return {string | null} Returns string in case of collection has single text node.
+ */
 function getStringValueFromText(value: Ast.TText[]): string | null {
    if (value.length !== 1) {
       return null;
@@ -115,6 +188,11 @@ function getStringValueFromText(value: Ast.TText[]): string | null {
    return valueNode.__$ws_content;
 }
 
+/**
+ * Get element name.
+ * @param element {BaseHtmlElement} Element node.
+ * @return {string | null} Returns element name if it exists.
+ */
 function getElementName(element: Ast.BaseHtmlElement): string | null {
    if (element.__$ws_attributes.hasOwnProperty('attr:name')) {
       return getStringValueFromText(element.__$ws_attributes['attr:name'].__$ws_value);
@@ -125,6 +203,11 @@ function getElementName(element: Ast.BaseHtmlElement): string | null {
    return null;
 }
 
+/**
+ * Get string value from string or value node.
+ * @param value {TData} Data node.
+ * @return {string | null} Returns string value for string or value node.
+ */
 function getStringValueFromData(value: Ast.TData): string | null {
    if (value instanceof Ast.ValueNode) {
       return getStringValueFromText(value.__$ws_data);
@@ -135,6 +218,11 @@ function getStringValueFromData(value: Ast.TData): string | null {
    return null;
 }
 
+/**
+ * Get component name.
+ * @param component {BaseWasabyElement} Component node.
+ * @return {string | null} Returns component name if it exists.
+ */
 function getComponentName(component: Ast.BaseWasabyElement): string | null {
    const elementName = getElementName(component);
    if (elementName !== null) {
@@ -151,8 +239,16 @@ function getComponentName(component: Ast.BaseWasabyElement): string | null {
 
 // </editor-fold>
 
+/**
+ * Annotate processor.
+ */
 class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
+   /**
+    * Annotate abstract syntax tree.
+    * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
+    * @param scope {Scope} Processing scope object.
+    */
    annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree {
       const childrenStorage: string[] = [ ];
       const global = createGlobalContext();
@@ -189,31 +285,66 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    // <editor-fold desc="Data types">
 
+   /**
+    * Visit array data node.
+    * @param node {ArrayNode} Concrete array data node.
+    * @param context {IContext} Annotating context.
+    */
    visitArray(node: Ast.ArrayNode, context: IContext): void {
       this.processNodes(node.__$ws_elements, context);
    }
 
+   /**
+    * Visit boolean data node.
+    * @param node {BooleanNode} Concrete boolean data node.
+    * @param context {IContext} Annotating context.
+    */
    visitBoolean(node: Ast.BooleanNode, context: IContext): void {
       this.processNodes(node.__$ws_data, context);
    }
 
+   /**
+    * Visit function data node.
+    * @param node {FunctionNode} Concrete function data node.
+    * @param context {IContext} Annotating context.
+    */
    visitFunction(node: Ast.FunctionNode, context: IContext): void {
       this.processCollection(node.__$ws_options, context);
       this.processNodes(node.__$ws_functionExpression, context);
    }
 
+   /**
+    * Visit number data node.
+    * @param node {NumberNode} Concrete number data node.
+    * @param context {IContext} Annotating context.
+    */
    visitNumber(node: Ast.NumberNode, context: IContext): void {
       this.processNodes(node.__$ws_data, context);
    }
 
+   /**
+    * Visit object data node.
+    * @param node {ObjectNode} Concrete object data node.
+    * @param context {IContext} Annotating context.
+    */
    visitObject(node: Ast.ObjectNode, context: IContext): void {
       this.processCollection(node.__$ws_properties, context);
    }
 
+   /**
+    * Visit string data node.
+    * @param node {StringNode} Concrete string data node.
+    * @param context {IContext} Annotating context.
+    */
    visitString(node: Ast.StringNode, context: IContext): void {
       this.processNodes(node.__$ws_data, context);
    }
 
+   /**
+    * Visit value data node.
+    * @param node {ValueNode} Concrete value data node.
+    * @param context {IContext} Annotating context.
+    */
    visitValue(node: Ast.ValueNode, context: IContext): void {
       this.processNodes(node.__$ws_data, context);
    }
@@ -222,18 +353,38 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    // <editor-fold desc="Attributes and options">
 
+   /**
+    * Visit attribute node.
+    * @param node {AttributeNode} Concrete attribute node.
+    * @param context {IContext} Annotating context.
+    */
    visitAttribute(node: Ast.AttributeNode, context: IContext): void {
       this.processNodes(node.__$ws_value, context);
    }
 
+   /**
+    * Visit bind node.
+    * @param node {BindNode} Concrete bind node.
+    * @param context {IContext} Annotating context.
+    */
    visitBind(node: Ast.BindNode, context: IContext): void {
       node.__$ws_value.__$ws_id = context.lexicalContext.registerBindProgram(node.__$ws_value);
    }
 
+   /**
+    * Visit event handler node.
+    * @param node {EventNode} Concrete event handler node.
+    * @param context {IContext} Annotating context.
+    */
    visitEvent(node: Ast.EventNode, context: IContext): void {
       context.lexicalContext.registerEventProgram(node.__$ws_handler);
    }
 
+   /**
+    * Visit option node.
+    * @param node {OptionNode} Concrete option node.
+    * @param context {IContext} Annotating context.
+    */
    visitOption(node: Ast.OptionNode, context: IContext): void {
       node.__$ws_value.accept(this, context);
    }
@@ -242,10 +393,25 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    // <editor-fold desc="HTML nodes">
 
+   /**
+    * Visit CData section node.
+    * @param node {CDataNode} Concrete CData section node.
+    * @param context {IContext} Annotating context.
+    */
    visitCData(node: Ast.CDataNode, context: IContext): void { }
 
+   /**
+    * Visit comment node.
+    * @param node {CommentNode} Concrete comment node.
+    * @param context {IContext} Annotating context.
+    */
    visitComment(node: Ast.CommentNode, context: IContext): void { }
 
+   /**
+    * Visit content option node.
+    * @param node {ContentOptionNode} Concrete content option node.
+    * @param context {IContext} Annotating context.
+    */
    visitContentOption(node: Ast.ContentOptionNode, context: IContext): void {
       const lexicalContext = context.lexicalContext.createContext({
          identifiers: [node.__$ws_name]
@@ -261,8 +427,18 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       appendInternalExpressions(node.__$ws_internal, lexicalContext.getInternalPrograms());
    }
 
+   /**
+    * Visit doctype node.
+    * @param node {DoctypeNode} Concrete doctype node.
+    * @param context {IContext} Annotating context.
+    */
    visitDoctype(node: Ast.DoctypeNode, context: IContext): void { }
 
+   /**
+    * Visit doctype node.
+    * @param node {DoctypeNode} Concrete doctype node.
+    * @param context {IContext} Annotating context.
+    */
    visitElement(node: Ast.ElementNode, context: IContext): void {
       const name = getElementName(node);
       if (name !== null) {
@@ -279,12 +455,22 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       }
    }
 
+   /**
+    * Visit instruction node.
+    * @param node {InstructionNode} Concrete instruction node.
+    * @param context {IContext} Annotating context.
+    */
    visitInstruction(node: Ast.InstructionNode, context: IContext): void { }
 
    // </editor-fold>
 
    // <editor-fold desc="Directives">
 
+   /**
+    * Visit conditional "else" node.
+    * @param node {ElseNode} Concrete conditional "else" node.
+    * @param context {IContext} Annotating context.
+    */
    visitElse(node: Ast.ElseNode, context: IContext): void {
       this.processNodes(node.__$ws_consequent, context);
       if (node.__$ws_test) {
@@ -295,6 +481,11 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       }
    }
 
+   /**
+    * Visit "for" cycle node.
+    * @param node {ForNode} Concrete "for" cycle node.
+    * @param context {IContext} Annotating context.
+    */
    visitFor(node: Ast.ForNode, context: IContext): void {
       const lexicalContext = context.lexicalContext.createContext();
       const contentContext: IContext = {
@@ -312,6 +503,11 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       node.__$ws_lexicalContext = lexicalContext;
    }
 
+   /**
+    * Visit "foreach" cycle node.
+    * @param node {ForeachNode} Concrete "foreach" cycle node.
+    * @param context {IContext} Annotating context.
+    */
    visitForeach(node: Ast.ForeachNode, context: IContext): void {
       const identifiers = [];
       if (node.__$ws_index) {
@@ -330,6 +526,11 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       node.__$ws_lexicalContext = lexicalContext;
    }
 
+   /**
+    * Visit conditional "if" node.
+    * @param node {IfNode} Concrete conditional "if" node.
+    * @param context {IContext} Annotating context.
+    */
    visitIf(node: Ast.IfNode, context: IContext): void {
       this.processNodes(node.__$ws_consequent, context);
       node.__$ws_test.__$ws_id = context.lexicalContext.registerProgram(node.__$ws_test);
@@ -338,6 +539,11 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       }
    }
 
+   /**
+    * Visit template node.
+    * @param node {TemplateNode} Concrete template node.
+    * @param context {IContext} Annotating context.
+    */
    visitTemplate(node: Ast.TemplateNode, context: IContext): void {
       const lexicalContext = context.lexicalContext.createContext({
          allowHoisting: false
@@ -357,22 +563,47 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    // <editor-fold desc="Extended text">
 
+   /**
+    * Visit mustache expression node.
+    * @param node {ExpressionNode} Concrete mustache expression node.
+    * @param context {IContext} Annotating context.
+    */
    visitExpression(node: Ast.ExpressionNode, context: IContext): void {
       node.__$ws_program.__$ws_id = context.lexicalContext.registerProgram(node.__$ws_program);
    }
 
+   /**
+    * Visit shared text node.
+    * @param node {TextNode} Concrete shared text node.
+    * @param context {IContext} Annotating context.
+    */
    visitText(node: Ast.TextNode, context: IContext): void {
       this.processNodes(node.__$ws_content, context);
    }
 
+   /**
+    * Visit text data node.
+    * @param node {TextDataNode} Concrete text data node.
+    * @param context {IContext} Annotating context.
+    */
    visitTextData(node: Ast.TextDataNode, context: IContext): void { }
 
+   /**
+    * Visit translation node.
+    * @param node {TranslationNode} Concrete translation node.
+    * @param context {IContext} Annotating context.
+    */
    visitTranslation(node: Ast.TranslationNode, context: IContext): void { }
 
    // </editor-fold>
 
    // <editor-fold desc="Components and templates">
 
+   /**
+    * Visit component node.
+    * @param node {ComponentNode} Concrete component node.
+    * @param context {IContext} Annotating context.
+    */
    visitComponent(node: Ast.ComponentNode, context: IContext): void {
       const lexicalContext = context.lexicalContext.createContext();
       const contentContext: IContext = {
@@ -382,6 +613,11 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       this.processComponentContent(node, contentContext);
    }
 
+   /**
+    * Visit dynamic partial node.
+    * @param node {DynamicPartialNode} Concrete dynamic partial node.
+    * @param context {IContext} Annotating context.
+    */
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): void {
       const lexicalContext = context.lexicalContext.createContext();
       const contentContext: IContext = {
@@ -392,6 +628,11 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       node.__$ws_expression.__$ws_id = lexicalContext.registerProgram(node.__$ws_expression);
    }
 
+   /**
+    * Visit inline template node.
+    * @param node {InlineTemplateNode} Concrete inline template node.
+    * @param context {IContext} Annotating context.
+    */
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): void {
       const template = context.scope.getTemplate(node.__$ws_name);
       const identifiers = collectInlineTemplateIdentifiers(node);
@@ -404,6 +645,11 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       this.processComponentContent(node, contentContext);
    }
 
+   /**
+    * Visit static template node.
+    * @param node {StaticPartialNode} Concrete static template node.
+    * @param context {IContext} Annotating context.
+    */
    visitStaticPartial(node: Ast.StaticPartialNode, context: IContext): void {
       const lexicalContext = context.lexicalContext.createContext();
       const contentContext: IContext = {
@@ -415,6 +661,11 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
 
    // </editor-fold>
 
+   /**
+    * Process collection of options or object properties.
+    * @param collection {IOptions | IObjectProperties} Collection of options or object properties.
+    * @param context {IContext} Annotating context.
+    */
    private processCollection(collection: Ast.IOptions | Ast.IObjectProperties, context: IContext): void {
       for (const name in collection) {
          const property = collection[name];
@@ -422,12 +673,22 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       }
    }
 
+   /**
+    * Process collection of nodes of abstract syntax tree.
+    * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
+    * @param context {IContext} Annotating context.
+    */
    private processNodes(nodes: Ast.Ast[], context: IContext): void {
       nodes.forEach((node: Ast.Ast) => {
          node.accept(this, context);
       });
    }
 
+   /**
+    * Process component content.
+    * @param node {BaseWasabyElement} Component node.
+    * @param context {IContext} Annotating context.
+    */
    private processComponentContent(node: Ast.BaseWasabyElement, context: IContext): void {
       const name = getComponentName(node);
       if (name !== null) {
