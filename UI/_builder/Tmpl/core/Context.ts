@@ -12,11 +12,11 @@ import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 
 const PARSER = new Parser();
 
-const ALLOW_PROGRAM_DUPLICATES = true;
+const ALLOW_PROGRAM_DUPLICATES = false;
 
-const USE_GLOBAL_INTERNAL_PROGRAM_INDEX = false;
+const USE_GLOBAL_INTERNAL_PROGRAM_INDEX = true;
 
-const ALLOW_PRELIMINARY_CALCULATION = false;
+const ALLOW_PRELIMINARY_CALCULATION = true;
 
 const EMPTY_STRING = '';
 
@@ -45,6 +45,7 @@ export declare type TProgramKey = string;
 export interface IConfig {
    allowHoisting?: boolean;
    identifiers?: string[];
+   isIntermediate?: boolean;
 }
 
 export interface IOptions {
@@ -108,6 +109,7 @@ interface ILexicalContext extends IContext {
    findProgramIndex(program: ProgramNode): number | null;
 
    processProgram(program: ProgramNode, isSynthetic: boolean): TProgramKey;
+   commitProgram(description: IProgramDescription): TProgramKey;
 
    hoistIdentifier(identifier: string): void;
    hoistInternalProgram(description: IProgramDescription): void;
@@ -135,7 +137,8 @@ function createProgramDescription(
 function prepareContextConfig(config?: IConfig): IConfig {
    const cfg: IConfig = {
       allowHoisting: true,
-      identifiers: []
+      identifiers: [],
+      isIntermediate: false
    };
    if (typeof config === 'undefined') {
       return cfg;
@@ -145,6 +148,9 @@ function prepareContextConfig(config?: IConfig): IConfig {
    }
    if (Array.isArray(config.identifiers)) {
       cfg.identifiers = config.identifiers;
+   }
+   if (typeof config.isIntermediate === 'boolean') {
+      cfg.isIntermediate = config.isIntermediate;
    }
    return cfg;
 }
@@ -340,6 +346,7 @@ class LexicalContext implements ILexicalContext {
 
    private readonly parent: ILexicalContext | null;
    private readonly allowHoisting: boolean;
+   private readonly isIntermediate: boolean;
 
    private readonly identifiers: string[];
    private readonly programs: ProgramStorage;
@@ -352,6 +359,7 @@ class LexicalContext implements ILexicalContext {
       this.parent = parent;
       this.allowHoisting = config.allowHoisting;
       this.identifiers = config.identifiers;
+      this.isIntermediate = config.isIntermediate;
       this.programs = new ProgramStorage();
       this.internals = new ProgramStorage();
    }
@@ -464,6 +472,9 @@ class LexicalContext implements ILexicalContext {
       if (ALLOW_PROGRAM_DUPLICATES) {
          return null;
       }
+      if (this.isIntermediate && this.parent !== null) {
+         return this.parent.findProgramIndex(program);
+      }
       return this.programs.findIndex(program);
    }
 
@@ -475,6 +486,15 @@ class LexicalContext implements ILexicalContext {
       const description = createProgramDescription(index, program, this, isSynthetic);
       const key = this.commitProgram(description);
       this.hoistInternalProgram(description);
+      return key;
+   }
+
+   commitProgram(description: IProgramDescription): TProgramKey {
+      const key = generateProgramKey(description.index);
+      this.programs.set(description, key);
+      if (this.isIntermediate && this.parent !== null) {
+         this.parent.commitProgram(description);
+      }
       return key;
    }
 
@@ -563,14 +583,9 @@ class LexicalContext implements ILexicalContext {
       this.identifiers.push(identifier);
    }
 
-   private commitProgram(description: IProgramDescription): TProgramKey {
-      const key = generateProgramKey(description.index);
-      this.programs.set(description, key);
-      return key;
-   }
-
    private commitInternalProgram(description: IProgramDescription): void {
       const key = generateInternalProgramKey(description.index);
+      this.commitProgram(description);
       this.internals.set(description, key);
    }
 
