@@ -532,10 +532,14 @@ export function getFullMarkup(
          return vnode;
       }
       result = controlNodes[vnode.controlNodeIdx].fullMarkup;
-      /**
-       * In case of invisible node we have to hold on to parent dom node
-       */
-      if (isInvisibleNodeType(result)) {
+      const controlNode: IControlNode = controlNodes[vnode.controlNodeIdx];
+      if (!controlNode || controlNode.key !== vnode.key) {
+         Logger.error('Ошибка синхронизации: отсутствует элемент в дереве controlNodes или неверное значение поля controlNodeIdx у vnode', vnode?.controlClass?.prototype);
+         result = textNode('', vnode.key);
+      } else if (isInvisibleNodeType(result)) {
+         /**
+         * In case of invisible node we have to hold on to parent dom node
+         */
          if (parentNode && parentNode.type) {
             // Invisible control node is attached to a parent vnode, which
             // should keep track of every invisible control attached to it
@@ -544,13 +548,13 @@ export function getFullMarkup(
             }
             mapVNode(
                setControlNodeHook,
-               controlNodes[vnode.controlNodeIdx],
+               controlNode,
                parentNode,
                true,
                true
             );
          }
-         result = textNode('', controlNodes[vnode.controlNodeIdx].key);
+         result = textNode('', controlNode.key);
       }
    } else if (isTemplateVNodeType(vnode) && !vnode.children) {
       result = vnode;
