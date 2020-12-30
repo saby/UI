@@ -19,11 +19,12 @@ import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
 import { ReactiveObserver } from 'UI/Reactivity';
 
 import startApplication from 'UI/_base/startApplication';
+import { getProxyChildren } from './ProxyChildren';
+
+export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
                                 forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
-
-type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
 /**
  * @event UI/_base/Control#activated Происходит при активации контрола.
@@ -255,7 +256,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
    // Ссылка: https://online.sbis.ru/opendoc.html?guid=5f576e21-6606-4a55-94fd-6979c6bfcb53.
    private _logicParent: Control<IControlOptions, void>;
 
-   protected _children: IControlChildren = {};
+   protected _children: IControlChildren;
 
    private _savedInheritOptions: unknown;
 
@@ -273,6 +274,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       if (cfg._logicParent && !(cfg._logicParent instanceof Control)) {
          Logger.error('Option "_logicParent" is not instance of "Control"', this);
       }
+
+      this._children = getProxyChildren.apply(this);
+
       //@ts-ignore
       this._logicParent = cfg._logicParent;
 

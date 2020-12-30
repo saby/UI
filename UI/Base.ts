@@ -9,7 +9,7 @@
  * @public
  * @author Шипин А.А.
  */
-import {default as Control, IControlOptions, TemplateFunction} from './_base/Control';
+import {default as Control, IControlOptions, TemplateFunction, IControlChildren} from './_base/Control';
 import HTML from './_base/HTML';
 import Document from './_base/Document';
 
@@ -53,6 +53,7 @@ export {
     TemplateFunction,
     IHTMLOptions,
     IHTML,
+    IControlChildren,
     IRootTemplateOptions,
     IRootTemplate,
     getGeneratorConfig
