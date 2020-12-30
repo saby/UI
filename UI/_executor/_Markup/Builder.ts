@@ -85,11 +85,13 @@ export class Builder implements IBuilder {
          //TODO пропустить через contextResolver(где взять класс?)
          inst.saveInheritOptions(scope.inheritOptions || {});
 
+         const needWaitAsyncValue = needWaitAsync(inst._moduleName);
+
          /**
           * Понимаем асинхронная ветка или нет
           */
          if (dfd && isInstOfPromise(dfd)) {
-            if (!needWaitAsync(inst._moduleName)) {
+            if (!needWaitAsyncValue) {
                return '<div>Временная заглушка для ожидания асинхронного маунта</div>';
             }
             if(!isNewEnvironment()) {
