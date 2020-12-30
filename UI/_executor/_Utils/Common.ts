@@ -14,7 +14,10 @@ import * as RequireHelper from './RequireHelper';
 
 import { ReactiveObserver } from 'UI/Reactivity';
 
+import { Map } from 'Types/shim';
+
 const hasRequest = typeof process !== 'undefined' && !!(process?.domain?.req);
+
 let needWaitAsyncValue: boolean|undefined;
 function getNeedWaitAsyncValue(): boolean|undefined {
    return hasRequest ? process.domain.req.needWaitAsyncValue : needWaitAsyncValue;
@@ -28,11 +31,46 @@ function setNeedWaitAsyncValue(newValue: boolean) {
    return newValue;
 }
 
+let moduleNamesMask: number|undefined;
+const mustAsyncNames: string[] = ['UI/_base/HTML/Head', 'UI/_base/HTML/Wait', 'UI/_base/HTML/JsLinks', 'UI/_base/HTML/StartApplicationScript'];
+const expectedMask: number = (1 << mustAsyncNames.length) - 1;
+const maskUpdates = new Map();
+for (let i = 0; i < mustAsyncNames.length; i++) {
+   maskUpdates.set(mustAsyncNames[i], 1 << i);
+}
 
+/**
+ * Проверяет, что все необходимые асинхронные модули (а значит и все их предки, кто бы они ни были) прошли.
+ * Тогда можно начинать выключать асинронный маунт.
+ * Необходимость в этом должна пропасть, если старт приложения перейдёт в body.
+ * @param moduleName Имя контрола
+ */
+function canDoNoAsync(moduleName: string): boolean {
+   const lastMask = (hasRequest ? process.domain.req.moduleNamesMask : moduleNamesMask) || 0;
+   return setModuleNamesMask(updateMask(lastMask, moduleName)) === expectedMask;
+}
 
-const waitAllowRegExp = /UI.(B|_b)ase.HTML/;
+function updateMask(lastMask: number, moduleName: string) {
+   const maskUpdate = maskUpdates.get(moduleName) || 0;
+   return lastMask | maskUpdate;
+}
+
+function setModuleNamesMask(newValue: number) {
+   if (hasRequest) {
+      process.domain.req.moduleNamesMask = newValue;
+   } else {
+      moduleNamesMask = newValue;
+   }
+   return newValue;
+}
+
+/**
+ * Истина, если синхронизатор ждёт промиз из _beforeMount.
+ * Ложь, если синхронизатор не ждёт, должен показать заглушку, и после отстрела промиза перерисовать.
+ * @param moduleName Имя контрола
+ */
 export function needWaitAsync(moduleName: string): boolean {
-   if (waitAllowRegExp.test(moduleName)) {
+   if (!canDoNoAsync(moduleName)) {
       // Пока не можем отказаться от асинхронности некоторых контролов.
       return true;
    }
