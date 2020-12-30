@@ -393,9 +393,10 @@ function collectChildrenKeys(next: Array<{ key }>, prev: Array<{ key }>): Array<
 }
 
 function rebuildNodeWriter(environment, node, force, isRoot?) {
+   const control = node.control;
+   const needWaitAsyncValue = needWaitAsync(control._moduleName);
    if (node.receivedState && node.receivedState.then) {
-    const control = node.control;
-      if (!needWaitAsync(node.control._moduleName)) {
+      if (!needWaitAsyncValue) {
          if (!node.wasAsyncMount) {
             node.wasAsyncMount = true;
             const restoreFunction = createRestoreFunction(control);
