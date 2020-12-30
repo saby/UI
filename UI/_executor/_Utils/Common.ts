@@ -79,7 +79,7 @@ export function needWaitAsync(moduleName: string): boolean {
    if (typeof currentNeedWaitAsyncValue === 'undefined') {
       return setNeedWaitAsyncValue(cookie.get('stopWaitAsync') !== 'true');
    }
-   return currentNeedWaitAsyncValue;
+   return currentNeedWaitAsyncValue && false;
 }
 
 var
