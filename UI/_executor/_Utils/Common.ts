@@ -42,12 +42,13 @@ for (let i = 0; i < mustAsyncNames.length; i++) {
 /**
  * Проверяет, что все необходимые асинхронные модули (а значит и все их предки, кто бы они ни были) прошли.
  * Тогда можно начинать выключать асинронный маунт.
- * Необходимость в этом должна пропасть, если старт приложения перейдёт в body.
+ * Необходимость в этом должна пропасть, если скрипты старта приложения и зависимости будут вне контрола.
  * @param moduleName Имя контрола
  */
 function canDoNoAsync(moduleName: string): boolean {
    const lastMask = (hasRequest ? process.domain.req.moduleNamesMask : moduleNamesMask) || 0;
-   return setModuleNamesMask(updateMask(lastMask, moduleName)) === expectedMask;
+   setModuleNamesMask(updateMask(lastMask, moduleName));
+   return lastMask === expectedMask;
 }
 
 function updateMask(lastMask: number, moduleName: string) {
