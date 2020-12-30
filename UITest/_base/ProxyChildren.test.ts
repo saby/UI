@@ -1,9 +1,9 @@
 import { assert } from 'chai';
 import { getProxyChildren } from 'UI/_base/ProxyChildren';
-import { Control } from 'UI/Base';
+import { Control, IControlChildren } from 'UI/Base';
 
 describe('UI/_base/ProxyChildren', () => {
-  const _children = getProxyChildren();
+  const _children = getProxyChildren<IControlChildren>() as IControlChildren;
   const testChild = new Control<{}, {}>({});
   _children.firstChild = testChild;
 

@@ -21,7 +21,7 @@ import { ReactiveObserver } from 'UI/Reactivity';
 import startApplication from 'UI/_base/startApplication';
 import { getProxyChildren } from './ProxyChildren';
 
-type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
+export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
                                 forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
