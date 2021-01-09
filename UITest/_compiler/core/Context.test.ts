@@ -64,14 +64,10 @@ describe('Compiler/core/Context', () => {
             const standardIdentifiers = [
                'a', 'e', 'h', 'j'
             ];
-            assert.deepEqual(global.getIdentifiers(true), standardIdentifiers);
-            assert.deepEqual(global.getIdentifiers(false), standardIdentifiers);
+            assert.deepEqual(global.getOwnIdentifiers(), standardIdentifiers);
          });
          it('Check programs', () => {
-            global.getPrograms(true).forEach((meta: IProgramMeta, index: number): void => {
-               assert.strictEqual(meta.node.string, stringPrograms[index]);
-            });
-            global.getPrograms(false).forEach((meta: IProgramMeta, index: number): void => {
+            global.getOwnPrograms().forEach((meta: IProgramMeta, index: number): void => {
                assert.strictEqual(meta.node.string, stringPrograms[index]);
             });
          });
@@ -102,12 +98,10 @@ describe('Compiler/core/Context', () => {
             const standardIdentifiers = [
                'a', 'b', 'h', 'i', 'j', 'm', 'n', 'k'
             ];
-            assert.deepEqual(global.getIdentifiers(true), standardIdentifiers);
-            assert.deepEqual(global.getIdentifiers(false), standardIdentifiers);
+            assert.deepEqual(global.getOwnIdentifiers(), standardIdentifiers);
          });
          it('Check programs', () => {
-            assert.isEmpty(global.getPrograms(true));
-            assert.isEmpty(global.getPrograms(false));
+            assert.isEmpty(global.getOwnPrograms());
          });
          it('Check internal programs', () => {
             assert.isEmpty(global.getInternalPrograms());
@@ -139,12 +133,10 @@ describe('Compiler/core/Context', () => {
                'f',
                'i'
             ];
-            assert.deepEqual(global.getIdentifiers(true), standardIdentifiers);
-            assert.deepEqual(global.getIdentifiers(false), standardIdentifiers);
+            assert.deepEqual(global.getOwnIdentifiers(), standardIdentifiers);
          });
          it('Check programs', () => {
-            assert.isEmpty(global.getPrograms(true));
-            assert.isEmpty(global.getPrograms(false));
+            assert.isEmpty(global.getOwnPrograms());
          });
          it('Check internal programs', () => {
             assert.isEmpty(global.getInternalPrograms());
@@ -184,15 +176,10 @@ describe('Compiler/core/Context', () => {
             const standardIdentifiers = [
                'a', 'c', 'd', 'e', 'g', 'i', 'j', 'k', 'n', 'm'
             ];
-            assert.deepEqual(global.getIdentifiers(true), standardIdentifiers);
-            assert.deepEqual(global.getIdentifiers(false), standardIdentifiers);
+            assert.deepEqual(global.getOwnIdentifiers(), standardIdentifiers);
          });
          it('Check programs', () => {
-            global.getPrograms(true).forEach((meta: IProgramMeta, index: number): void => {
-               const program = programs[index];
-               assert.strictEqual(meta.node, program);
-            });
-            global.getPrograms(false).forEach((meta: IProgramMeta, index: number): void => {
+            global.getOwnPrograms().forEach((meta: IProgramMeta, index: number): void => {
                const program = programs[index];
                assert.strictEqual(meta.node, program);
             });
@@ -242,32 +229,19 @@ describe('Compiler/core/Context', () => {
             const standardIdentifiers = [
                'a', 'c', 'd', 'e', 'g', 'i', 'j', 'k', 'n', 'm'
             ];
-            assert.deepEqual(global.getIdentifiers(true), standardIdentifiers);
-            assert.deepEqual(global.getIdentifiers(false), standardIdentifiers);
+            assert.deepEqual(global.getOwnIdentifiers(), standardIdentifiers);
          });
          it('Check child identifiers', () => {
-            const standardIdentifiers = [
-               'a', 'c', 'd', 'e', 'g', 'i', 'j', 'k', 'n', 'm'
-            ];
-            assert.isEmpty(child.getIdentifiers(true));
-            assert.deepEqual(child.getIdentifiers(false), standardIdentifiers);
+            assert.isEmpty(child.getOwnIdentifiers());
          });
          it('Check global programs', () => {
-            global.getPrograms(true).forEach((meta: IProgramMeta, index: number): void => {
-               const program = programs[index];
-               assert.strictEqual(meta.node, program);
-            });
-            global.getPrograms(false).forEach((meta: IProgramMeta, index: number): void => {
+            global.getOwnPrograms().forEach((meta: IProgramMeta, index: number): void => {
                const program = programs[index];
                assert.strictEqual(meta.node, program);
             });
          });
          it('Check child programs', () => {
-            child.getPrograms(true).forEach((meta: IProgramMeta, index: number): void => {
-               const program = programs[index];
-               assert.strictEqual(meta.node, program);
-            });
-            child.getPrograms(false).forEach((meta: IProgramMeta, index: number): void => {
+            child.getOwnPrograms().forEach((meta: IProgramMeta, index: number): void => {
                const program = programs[index];
                assert.strictEqual(meta.node, program);
             });
@@ -318,12 +292,10 @@ describe('Compiler/core/Context', () => {
             assert.deepEqual(returnedKeys, standardKeys);
          });
          it('Check global identifiers', () => {
-            assert.deepEqual(global.getIdentifiers(true), ['a', 'e']);
-            assert.deepEqual(global.getIdentifiers(false), ['a', 'e']);
+            assert.deepEqual(global.getOwnIdentifiers(), ['a', 'e']);
          });
          it('Check child identifiers', () => {
-            assert.deepEqual(child.getIdentifiers(true), ['b']);
-            assert.deepEqual(child.getIdentifiers(false), ['b', 'a', 'e']);
+            assert.deepEqual(child.getOwnIdentifiers(), ['b']);
          });
          it('Check global internal programs', () => {
             const stringInternalPrograms = [
@@ -346,25 +318,15 @@ describe('Compiler/core/Context', () => {
          });
          it('Check global programs', () => {
             const globalStringPrograms = ['e'];
-            global.getPrograms(true).forEach((meta: IProgramMeta, index: number): void => {
+            global.getOwnPrograms().forEach((meta: IProgramMeta, index: number): void => {
                const stringProgram = globalStringPrograms[index];
-               assert.strictEqual(meta.node.string, stringProgram);
-            });
-            const localStringPrograms = ['e'];
-            global.getPrograms(false).forEach((meta: IProgramMeta, index: number): void => {
-               const stringProgram = localStringPrograms[index];
                assert.strictEqual(meta.node.string, stringProgram);
             });
          });
          it('Check child programs', () => {
             const globalStringPrograms = ['a', 'b.c', 'b.d+e'];
-            child.getPrograms(true).forEach((meta: IProgramMeta, index: number): void => {
+            child.getOwnPrograms().forEach((meta: IProgramMeta, index: number): void => {
                const stringProgram = globalStringPrograms[index];
-               assert.strictEqual(meta.node.string, stringProgram);
-            });
-            const localStringPrograms = ['e', 'a', 'b.c', 'b.d+e'];
-            child.getPrograms(false).forEach((meta: IProgramMeta, index: number): void => {
-               const stringProgram = localStringPrograms[index];
                assert.strictEqual(meta.node.string, stringProgram);
             });
          });
@@ -409,15 +371,13 @@ describe('Compiler/core/Context', () => {
             const standardIdentifiers = [
                'a', 'b', 'c', 'e', 'f', 'i'
             ];
-            assert.deepEqual(global.getIdentifiers(true), standardIdentifiers);
-            assert.deepEqual(global.getIdentifiers(false), standardIdentifiers);
+            assert.deepEqual(global.getOwnIdentifiers(), standardIdentifiers);
          });
          it('Check child identifiers', () => {
             const standardIdentifiers = [
                'a', 'b', 'c', 'e', 'f', 'i'
             ];
-            assert.deepEqual(child.getIdentifiers(true), standardIdentifiers);
-            assert.deepEqual(child.getIdentifiers(false), standardIdentifiers);
+            assert.deepEqual(child.getOwnIdentifiers(), standardIdentifiers);
          });
          it('Check global internal programs', () => {
             const stringInternalPrograms = [
@@ -434,23 +394,14 @@ describe('Compiler/core/Context', () => {
             const stringPrograms = [
                'a', 'b', 'c', 'e', 'f', 'i'
             ];
-            const actualLocalStringPrograms = global.getPrograms(true)
-               .map((meta: IProgramMeta): string => meta.node.string);
-            const actualStringPrograms = global.getPrograms(false)
+            const actualLocalStringPrograms = global.getOwnPrograms()
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.deepEqual(actualLocalStringPrograms, stringPrograms);
-            assert.deepEqual(actualStringPrograms, stringPrograms);
          });
          it('Check child programs', () => {
-            const stringPrograms = [
-               'a', 'b', 'c', 'e', 'f', 'i'
-            ];
-            const actualStringLocalPrograms = child.getPrograms(true)
-               .map((meta: IProgramMeta): string => meta.node.string);
-            const actualStringPrograms = child.getPrograms(false)
+            const actualStringLocalPrograms = child.getOwnPrograms()
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.isEmpty(actualStringLocalPrograms);
-            assert.deepEqual(actualStringPrograms, stringPrograms);
          });
          it('Check global programs by key', () => {
             const standardKeys = [
@@ -489,15 +440,13 @@ describe('Compiler/core/Context', () => {
             const standardIdentifiers = [
                'a', 'b', 'e', 'f', 'i'
             ];
-            assert.deepEqual(global.getIdentifiers(true), standardIdentifiers);
-            assert.deepEqual(global.getIdentifiers(false), standardIdentifiers);
+            assert.deepEqual(global.getOwnIdentifiers(), standardIdentifiers);
          });
          it('Check child identifiers', () => {
             const standardIdentifiers = [
                'c', 'a', 'b', 'e', 'f', 'i'
             ];
-            assert.deepEqual(child.getIdentifiers(true), standardIdentifiers);
-            assert.deepEqual(child.getIdentifiers(false), standardIdentifiers);
+            assert.deepEqual(child.getOwnIdentifiers(), standardIdentifiers);
          });
          it('Check global internal programs', () => {
             const stringInternalPrograms = [
@@ -514,23 +463,14 @@ describe('Compiler/core/Context', () => {
             const stringPrograms = [
                'a', 'b', 'e', 'f', 'i'
             ];
-            const actualLocalStringPrograms = global.getPrograms(true)
-               .map((meta: IProgramMeta): string => meta.node.string);
-            const actualStringPrograms = global.getPrograms(false)
+            const actualLocalStringPrograms = global.getOwnPrograms()
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.deepEqual(actualLocalStringPrograms, stringPrograms);
-            assert.deepEqual(actualStringPrograms, stringPrograms);
          });
          it('Check child programs', () => {
-            const stringPrograms = [
-               'a', 'b', 'e', 'f', 'i'
-            ];
-            const actualStringLocalPrograms = child.getPrograms(true)
-               .map((meta: IProgramMeta): string => meta.node.string);
-            const actualStringPrograms = child.getPrograms(false)
+            const actualStringLocalPrograms = child.getOwnPrograms()
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.isEmpty(actualStringLocalPrograms);
-            assert.deepEqual(actualStringPrograms, stringPrograms);
          });
          it('Check global programs by key', () => {
             const standardKeys = [
@@ -589,16 +529,13 @@ describe('Compiler/core/Context', () => {
          assert.deepEqual(returnedKeys, standardKeys);
       });
       it('Check global identifiers', () => {
-         assert.deepEqual(global.getIdentifiers(true), [ 'a', 'b', 'c', 'd', 'e' ]);
-         assert.deepEqual(global.getIdentifiers(false), [ 'a', 'b', 'c', 'd', 'e' ]);
+         assert.deepEqual(global.getOwnIdentifiers(), [ 'a', 'b', 'c', 'd', 'e' ]);
       });
       it('Check first child identifiers', () => {
-         assert.deepEqual(firstChild.getIdentifiers(true), ['b', 'c', 'd']);
-         assert.deepEqual(firstChild.getIdentifiers(false), ['b', 'c', 'd', 'a', 'e']);
+         assert.deepEqual(firstChild.getOwnIdentifiers(), ['b', 'c', 'd']);
       });
       it('Check second child identifiers', () => {
-         assert.isEmpty(secondChild.getIdentifiers(true));
-         assert.deepEqual(secondChild.getIdentifiers(false), [ 'a', 'b', 'c', 'd', 'e' ]);
+         assert.isEmpty(secondChild.getOwnIdentifiers());
       });
       it('Check global internal programs', () => {
          const stringInternalPrograms = ['a.property', 'e.property', 'b'];
@@ -619,28 +556,19 @@ describe('Compiler/core/Context', () => {
          assert.deepEqual(actualStringInternalPrograms, stringInternalPrograms);
       });
       it('Check global programs', () => {
-         const actualLocalStringPrograms = global.getPrograms(true)
-            .map((meta: IProgramMeta): string => meta.node.string);
-         const actualStringPrograms = global.getPrograms(false)
+         const actualLocalStringPrograms = global.getOwnPrograms()
             .map((meta: IProgramMeta): string => meta.node.string);
          assert.deepEqual(actualLocalStringPrograms, ['a.property', 'b']);
-         assert.deepEqual(actualStringPrograms, ['a.property', 'b']);
       });
       it('Check first child programs', () => {
-         const actualLocalStringPrograms = firstChild.getPrograms(true)
-            .map((meta: IProgramMeta): string => meta.node.string);
-         const actualStringPrograms = firstChild.getPrograms(false)
+         const actualLocalStringPrograms = firstChild.getOwnPrograms()
             .map((meta: IProgramMeta): string => meta.node.string);
          assert.deepEqual(actualLocalStringPrograms, ['b.property+c.property', 'd.property']);
-         assert.deepEqual(actualStringPrograms, ['a.property', 'b', 'b.property+c.property', 'd.property']);
       });
       it('Check second child programs', () => {
-         const actualLocalStringPrograms = secondChild.getPrograms(true)
-            .map((meta: IProgramMeta): string => meta.node.string);
-         const actualStringPrograms = secondChild.getPrograms(false)
+         const actualLocalStringPrograms = secondChild.getOwnPrograms()
             .map((meta: IProgramMeta): string => meta.node.string);
          assert.deepEqual(actualLocalStringPrograms, ['e.property']);
-         assert.deepEqual(actualStringPrograms, ['a.property', 'b', 'e.property']);
       });
    });
    describe('Intersections in context', () => {
@@ -674,16 +602,13 @@ describe('Compiler/core/Context', () => {
             assert.deepEqual(returnedKeys, standardKeys);
          });
          it('Check global identifiers', () => {
-            assert.deepEqual(global.getIdentifiers(true), ['a']);
-            assert.deepEqual(global.getIdentifiers(false), ['a']);
+            assert.deepEqual(global.getOwnIdentifiers(), ['a']);
          });
          it('Check first child identifiers', () => {
-            assert.deepEqual(firstChild.getIdentifiers(true), ['a']);
-            assert.deepEqual(firstChild.getIdentifiers(false), ['a']);
+            assert.deepEqual(firstChild.getOwnIdentifiers(), ['a']);
          });
          it('Check second child identifiers', () => {
-            assert.deepEqual(secondChild.getIdentifiers(true), ['a']);
-            assert.deepEqual(secondChild.getIdentifiers(false), ['a']);
+            assert.deepEqual(secondChild.getOwnIdentifiers(), ['a']);
          });
          it('Check global internal programs', () => {
             const stringInternalPrograms = ['a.b'];
@@ -704,28 +629,19 @@ describe('Compiler/core/Context', () => {
             assert.deepEqual(actualStringInternalPrograms, stringInternalPrograms);
          });
          it('Check global programs', () => {
-            const actualLocalStringPrograms = global.getPrograms(true)
-               .map((meta: IProgramMeta): string => meta.node.string);
-            const actualStringPrograms = global.getPrograms(false)
+            const actualLocalStringPrograms = global.getOwnPrograms()
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.deepEqual(actualLocalStringPrograms, ['a.b']);
-            assert.deepEqual(actualStringPrograms, ['a.b']);
          });
          it('Check first child programs', () => {
-            const actualLocalStringPrograms = firstChild.getPrograms(true)
-               .map((meta: IProgramMeta): string => meta.node.string);
-            const actualStringPrograms = firstChild.getPrograms(false)
+            const actualLocalStringPrograms = firstChild.getOwnPrograms()
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.deepEqual(actualLocalStringPrograms, ['a.b']);
-            assert.deepEqual(actualStringPrograms, ['a.b', 'a.b']);
          });
          it('Check second child programs', () => {
-            const actualLocalStringPrograms = secondChild.getPrograms(true)
-               .map((meta: IProgramMeta): string => meta.node.string);
-            const actualStringPrograms = secondChild.getPrograms(false)
+            const actualLocalStringPrograms = secondChild.getOwnPrograms()
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.deepEqual(actualLocalStringPrograms, ['a.b']);
-            assert.deepEqual(actualStringPrograms, ['a.b', 'a.b', 'a.b']);
          });
          it('Check global programs by key', () => {
             const unreachableKeys = ['$p_1', '$p_2'];
@@ -797,16 +713,13 @@ describe('Compiler/core/Context', () => {
             assert.deepEqual(returnedKeys, standardKeys);
          });
          it('Check global identifiers', () => {
-            assert.deepEqual(global.getIdentifiers(true), ['a']);
-            assert.deepEqual(global.getIdentifiers(false), ['a']);
+            assert.deepEqual(global.getOwnIdentifiers(), ['a']);
          });
          it('Check first child identifiers', () => {
-            assert.deepEqual(firstChild.getIdentifiers(true), ['a']);
-            assert.deepEqual(firstChild.getIdentifiers(false), ['a']);
+            assert.deepEqual(firstChild.getOwnIdentifiers(), ['a']);
          });
          it('Check second child identifiers', () => {
-            assert.deepEqual(secondChild.getIdentifiers(true), ['a']);
-            assert.deepEqual(secondChild.getIdentifiers(false), ['a']);
+            assert.deepEqual(secondChild.getOwnIdentifiers(), ['a']);
          });
          it('Check global internal programs', () => {
             const stringInternalPrograms = ['a.b'];
@@ -827,28 +740,19 @@ describe('Compiler/core/Context', () => {
             assert.deepEqual(actualStringInternalPrograms, stringInternalPrograms);
          });
          it('Check global programs', () => {
-            const actualLocalStringPrograms = global.getPrograms(true)
-               .map((meta: IProgramMeta): string => meta.node.string);
-            const actualStringPrograms = global.getPrograms(false)
+            const actualLocalStringPrograms = global.getOwnPrograms()
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.deepEqual(actualLocalStringPrograms, ['a.b']);
-            assert.deepEqual(actualStringPrograms, ['a.b']);
          });
          it('Check first child programs', () => {
-            const actualLocalStringPrograms = firstChild.getPrograms(true)
-               .map((meta: IProgramMeta): string => meta.node.string);
-            const actualStringPrograms = firstChild.getPrograms(false)
+            const actualLocalStringPrograms = firstChild.getOwnPrograms()
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.deepEqual(actualLocalStringPrograms, ['a.b']);
-            assert.deepEqual(actualStringPrograms, ['a.b', 'a.b']);
          });
          it('Check second child programs', () => {
-            const actualLocalStringPrograms = secondChild.getPrograms(true)
-               .map((meta: IProgramMeta): string => meta.node.string);
-            const actualStringPrograms = secondChild.getPrograms(false)
+            const actualLocalStringPrograms = secondChild.getOwnPrograms()
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.deepEqual(actualLocalStringPrograms, ['a.b']);
-            assert.deepEqual(actualStringPrograms, ['a.b', 'a.b']);
          });
          it('Check global programs by key', () => {
             const unreachableKeys = ['$p_1', '$p_2'];
@@ -920,16 +824,13 @@ describe('Compiler/core/Context', () => {
             assert.deepEqual(returnedKeys, standardKeys);
          });
          it('Check global identifiers', () => {
-            assert.deepEqual(global.getIdentifiers(true), [ 'a', 'c', 'e' ]);
-            assert.deepEqual(global.getIdentifiers(false), [ 'a', 'c', 'e' ]);
+            assert.deepEqual(global.getOwnIdentifiers(), [ 'a', 'c', 'e' ]);
          });
          it('Check first child identifiers', () => {
-            assert.deepEqual(firstChild.getIdentifiers(true), ['c']);
-            assert.deepEqual(firstChild.getIdentifiers(false), ['c', 'a', 'e']);
+            assert.deepEqual(firstChild.getOwnIdentifiers(), ['c']);
          });
          it('Check second child identifiers', () => {
-            assert.deepEqual(secondChild.getIdentifiers(true), ['e']);
-            assert.deepEqual(secondChild.getIdentifiers(false), ['e', 'a', 'c']);
+            assert.deepEqual(secondChild.getOwnIdentifiers(), ['e']);
          });
          it('Check global internal programs', () => {
             const stringInternalPrograms = ['a.b'];
@@ -950,28 +851,19 @@ describe('Compiler/core/Context', () => {
             assert.deepEqual(actualStringInternalPrograms, stringInternalPrograms);
          });
          it('Check global programs', () => {
-            const actualLocalStringPrograms = global.getPrograms(true)
-               .map((meta: IProgramMeta): string => meta.node.string);
-            const actualStringPrograms = global.getPrograms(false)
+            const actualLocalStringPrograms = global.getOwnPrograms()
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.deepEqual(actualLocalStringPrograms, ['a.b']);
-            assert.deepEqual(actualStringPrograms, ['a.b']);
          });
          it('Check first child programs', () => {
-            const actualLocalStringPrograms = firstChild.getPrograms(true)
-               .map((meta: IProgramMeta): string => meta.node.string);
-            const actualStringPrograms = firstChild.getPrograms(false)
+            const actualLocalStringPrograms = firstChild.getOwnPrograms()
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.deepEqual(actualLocalStringPrograms, ['c.d']);
-            assert.deepEqual(actualStringPrograms, ['a.b', 'c.d']);
          });
          it('Check second child programs', () => {
-            const actualLocalStringPrograms = secondChild.getPrograms(true)
-               .map((meta: IProgramMeta): string => meta.node.string);
-            const actualStringPrograms = secondChild.getPrograms(false)
+            const actualLocalStringPrograms = secondChild.getOwnPrograms()
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.deepEqual(actualLocalStringPrograms, ['e.f']);
-            assert.deepEqual(actualStringPrograms, ['a.b', 'e.f']);
          });
          it('Check global programs by key', () => {
             const unreachableKeys = ['$p_1', '$p_2'];

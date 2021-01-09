@@ -273,7 +273,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          node.__$ws_internal = {};
          appendInternalExpressions(node.__$ws_internal, lexicalContext.getInternalPrograms());
       });
-      const reactiveProperties: string[] = global.getIdentifiers(true);
+      const reactiveProperties: string[] = global.getOwnIdentifiers();
       const result = <IAnnotatedTree>nodes;
       result.lexicalContext = global;
       result.childrenStorage = childrenStorage;

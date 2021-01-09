@@ -62,18 +62,17 @@ export interface IProgramMeta {
 
 export interface IContext {
    createContext(config?: IConfig): IContext;
+   joinContext(context: IContext, options?: IOptions): void;
 
    registerBindProgram(program: ProgramNode): TProgramKey;
    registerEventProgram(program: ProgramNode): void;
    registerFloatProgram(program: ProgramNode): void;
    registerProgram(program: ProgramNode): TProgramKey;
 
-   joinContext(context: IContext, options?: IOptions): void;
-
    getProgram(key: TProgramKey): ProgramNode | null;
 
-   getIdentifiers(localOnly: boolean): string[];
-   getPrograms(localOnly: boolean): IProgramMeta[];
+   getOwnIdentifiers(): string[];
+   getOwnPrograms(): IProgramMeta[];
    getInternalPrograms(): IProgramMeta[];
 }
 
@@ -307,6 +306,13 @@ class LexicalContext implements ILexicalContext {
       return new LexicalContext(this, cfg);
    }
 
+   joinContext(context: IContext, options?: IOptions): void {
+      const lexicalContext = context as ILexicalContext;
+      const localIdentifiers = Array.isArray(options && options.identifiers) ? options.identifiers : EMPTY_ARRAY;
+      this.joinIdentifiers(lexicalContext, localIdentifiers);
+      this.joinInternalPrograms(lexicalContext, localIdentifiers);
+   }
+
    registerBindProgram(program: ProgramNode): TProgramKey {
       const programs = dropBindProgram(program);
       let key = null;
@@ -354,13 +360,6 @@ class LexicalContext implements ILexicalContext {
       return this.processProgram(program, false);
    }
 
-   joinContext(context: IContext, options?: IOptions): void {
-      const lexicalContext = context as ILexicalContext;
-      const localIdentifiers = Array.isArray(options && options.identifiers) ? options.identifiers : EMPTY_ARRAY;
-      this.joinIdentifiers(lexicalContext, localIdentifiers);
-      this.joinInternalPrograms(lexicalContext, localIdentifiers);
-   }
-
    getProgram(key: TProgramKey): ProgramNode | null {
       validateProgramKey(key);
       let collectionIndex;
@@ -375,33 +374,12 @@ class LexicalContext implements ILexicalContext {
       throw new Error(`Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
    }
 
-   getIdentifiers(localOnly: boolean): string[] {
-      const identifiers = Array(...this.identifiers);
-      if (localOnly || this.parent === null) {
-         return identifiers;
-      }
-      const parentIdentifiers = this.parent.getIdentifiers(localOnly);
-      for (let index = 0; index < parentIdentifiers.length; ++index) {
-         const parentIdentifier = parentIdentifiers[index];
-         if (identifiers.indexOf(parentIdentifier) === -1) {
-            identifiers.push(parentIdentifier);
-         }
-      }
-      return identifiers;
+   getOwnIdentifiers(): string[] {
+      return Array(...this.identifiers);
    }
 
-   getPrograms(localOnly: boolean): IProgramMeta[] {
-      const collection: IProgramMeta[] = [];
-      for (let index = 0; index < this.programs.length; ++index) {
-         const description = this.programs[index];
-         const meta = zipProgramMeta(description);
-         collection.push(meta);
-      }
-      if (localOnly || this.parent === null) {
-         return collection;
-      }
-      const parentCollection = this.parent.getPrograms(localOnly);
-      return parentCollection.concat(collection);
+   getOwnPrograms(): IProgramMeta[] {
+      return this.programs.map(zipProgramMeta);
    }
 
    getInternalPrograms(): IProgramMeta[] {
@@ -554,7 +532,7 @@ class LexicalContext implements ILexicalContext {
    }
 
    private joinIdentifiers(context: ILexicalContext, localIdentifiers: string[]): void {
-      const identifiers = context.getIdentifiers(true);
+      const identifiers = context.getOwnIdentifiers();
       for (let index = 0; index < identifiers.length; ++index) {
          const identifier = identifiers[index];
          if (localIdentifiers.indexOf(identifier) > -1) {
