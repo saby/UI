@@ -90,12 +90,6 @@ export function createGlobalContext(): IContext {
 
 // <editor-fold desc="Internal interfaces and functions">
 
-interface IProgramsMap {
-
-   // Reflection: feature (program source text or public program key) -> program index in collection
-   [feature: string]: number;
-}
-
 interface IProgramDescription {
    index: number;
    node: ProgramNode;
@@ -210,6 +204,67 @@ function canRegisterProgram(program: ProgramNode): boolean {
 
 // </editor-fold>
 
+// <editor-fold desc="Program storage">
+
+declare type TZipProgramFunction = (description: IProgramDescription, index?: number) => IProgramMeta;
+
+class ProgramStorage {
+
+   private readonly programs: IProgramDescription[];
+   private readonly programsMap: Map<string, number>;
+   private readonly programKeysMap: Map<string, number>;
+
+   constructor() {
+      this.programs = [];
+      this.programsMap = new Map<string, number>();
+      this.programKeysMap = new Map<string, number>();
+   }
+
+   zip(func: TZipProgramFunction): IProgramMeta[] {
+      return this.programs.map(func);
+   }
+
+   findIndex(program: ProgramNode): number | null {
+      const source = program.string;
+      if (this.programsMap.has(source)) {
+         const index = this.programsMap.get(source);
+         return this.programs[index].index;
+      }
+      return null;
+   }
+
+   get(key: TProgramKey): IProgramDescription {
+      if (this.has(key)) {
+         const index = this.programKeysMap.get(key);
+         return this.programs[index];
+      }
+      return null;
+   }
+
+   has(key: TProgramKey): boolean {
+      return this.programKeysMap.has(key);
+   }
+
+   set(description: IProgramDescription, key: string): void {
+      const source = description.node.string;
+      // Do not append program that already exists
+      if (this.programsMap.has(source))  {
+         return;
+      }
+      // Description index in collection that will be set
+      const index: number = this.programs.length;
+      this.programKeysMap.set(key, index);
+      this.programsMap.set(source, index);
+      this.programs.push(description);
+   }
+
+   getDescriptions(): IProgramDescription[] {
+      return Array(...this.programs);
+   }
+}
+
+// </editor-fold>
+
 class LexicalContext implements ILexicalContext {
 
    // <editor-fold desc="Properties">
@@ -220,13 +275,8 @@ class LexicalContext implements ILexicalContext {
    private readonly allowHoisting: boolean;
    private readonly identifiers: string[];
 
-   private readonly programs: IProgramDescription[];
-   private readonly programsMap: IProgramsMap;
-   private readonly programKeysMap: IProgramsMap;
-
-   private readonly internals: IProgramDescription[];
-   private readonly internalsMap: IProgramsMap;
-   private readonly internalKeysMap: IProgramsMap;
+   private readonly programs: ProgramStorage;
+   private readonly internals: ProgramStorage;
 
    // </editor-fold>
 
@@ -235,12 +285,8 @@ class LexicalContext implements ILexicalContext {
       this.parent = parent;
       this.allowHoisting = isHoistingAllowed(config.type);
       this.identifiers = config.identifiers;
-      this.programs = [];
-      this.programsMap = { };
-      this.programKeysMap = { };
-      this.internals = [];
-      this.internalsMap = { };
-      this.internalKeysMap = { };
+      this.programs = new ProgramStorage();
+      this.internals = new ProgramStorage();
    }
 
    // <editor-fold desc="Public methods">
@@ -276,14 +322,11 @@ class LexicalContext implements ILexicalContext {
 
    getProgram(key: TProgramKey): ProgramNode | null {
       validateProgramKey(key);
-      let collectionIndex;
-      if (this.programKeysMap.hasOwnProperty(key)) {
-         collectionIndex = this.programKeysMap[key];
-         return this.programs[collectionIndex].node;
+      if (this.programs.has(key)) {
+         return this.programs.get(key).node;
       }
-      if (this.internalKeysMap.hasOwnProperty(key)) {
-         collectionIndex = this.internalKeysMap[key];
-         return this.internals[collectionIndex].node;
+      if (this.internals.has(key)) {
+         return this.internals.get(key).node;
       }
       throw new Error(`Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
    }
@@ -293,17 +336,11 @@ class LexicalContext implements ILexicalContext {
    }
 
    getOwnPrograms(): IProgramMeta[] {
-      return this.programs.map(zipProgramMeta);
+      return this.programs.zip(zipProgramMeta);
    }
 
    getInternalPrograms(): IProgramMeta[] {
-      const collection: IProgramMeta[] = [];
-      for (let index = 0; index < this.internals.length; ++index) {
-         const description = this.internals[index];
-         const meta = zipInternalProgramMeta(description, index);
-         collection.push(meta);
-      }
-      return collection;
+      return this.internals.zip(zipInternalProgramMeta);
    }
 
    // </editor-fold>
@@ -321,12 +358,7 @@ class LexicalContext implements ILexicalContext {
       if (ALLOW_PROGRAM_DUPLICATES) {
          return null;
       }
-      const source = program.string;
-      if (this.programsMap.hasOwnProperty(source)) {
-         const collectionIndex = this.programsMap[source];
-         return this.programs[collectionIndex].index;
-      }
-      return null;
+      return this.programs.findIndex(program);
    }
 
    commitIdentifier(identifier: string): void {
@@ -340,28 +372,14 @@ class LexicalContext implements ILexicalContext {
    }
 
    commitProgram(description: IProgramDescription): TProgramKey {
-      const source = description.node.string;
-      // Description index in collection that will be set.
-      const index: number = this.programs.length;
       const key = generateProgramKey(description.index);
-      this.programKeysMap[key] = index;
-      this.programsMap[source] = index;
-      this.programs.push(description);
+      this.programs.set(description, key);
       return key;
    }
 
    commitInternalProgram(description: IProgramDescription): TProgramKey {
-      const source = description.node.string;
-      // Do not commit internal programs that already exists
-      if (this.internalsMap.hasOwnProperty(source))  {
-         return;
-      }
-      const index: number = this.programs.length;
       const key = generateInternalProgramKey(description.index);
-      // Description index in collection that will be set.
-      this.internalKeysMap[key] = index;
-      this.internalsMap[source] = index;
-      this.internals.push(description);
+      this.internals.set(description, key);
       return key;
    }
 
@@ -410,7 +428,7 @@ class LexicalContext implements ILexicalContext {
    }
 
    getInternalProgramDescriptions(): IProgramDescription[] {
-      return this.internals;
+      return this.internals.getDescriptions();
    }
 
    // </editor-fold>
