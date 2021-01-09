@@ -1,4 +1,4 @@
-import { createGlobalContext, IContext, IProgramMeta, ContextType } from 'UI/_builder/Tmpl/core/Context';
+import { createGlobalContext, IContext, IProgramMeta, ContextType, SpecialProgramType } from 'UI/_builder/Tmpl/core/Context';
 import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { assert } from 'chai';
@@ -30,10 +30,10 @@ describe('Compiler/core/Context', () => {
             ];
             programs = stringPrograms.map((stringProgram: string): ProgramNode => parse(stringProgram));
             returnedKeys = [
-               global.registerBindProgram(programs[1]),
-               global.registerBindProgram(programs[3]),
-               global.registerBindProgram(programs[5]),
-               global.registerBindProgram(programs[6])
+               global.registerProgram(programs[1], SpecialProgramType.BIND),
+               global.registerProgram(programs[3], SpecialProgramType.BIND),
+               global.registerProgram(programs[5], SpecialProgramType.BIND),
+               global.registerProgram(programs[6], SpecialProgramType.BIND)
             ];
          });
 
@@ -90,7 +90,7 @@ describe('Compiler/core/Context', () => {
             ];
             programs = stringPrograms.map((strProgram: string): ProgramNode => parse(strProgram));
             programs.forEach((program: ProgramNode): void => {
-               global.registerEventProgram(program);
+               global.registerProgram(program, SpecialProgramType.EVENT);
             });
          });
 
@@ -120,7 +120,7 @@ describe('Compiler/core/Context', () => {
             ];
             programs = stringPrograms.map((strProgram: string): ProgramNode => parse(strProgram));
             programs.forEach((program: ProgramNode): void => {
-               global.registerFloatProgram(program);
+               global.registerProgram(program, SpecialProgramType.FLOAT);
             });
          });
 
@@ -363,7 +363,7 @@ describe('Compiler/core/Context', () => {
             ];
             const programs = stringPrograms.map((stringProgram: string): ProgramNode => parse(stringProgram));
             programs.forEach((program: ProgramNode): void => {
-               child.registerFloatProgram(program);
+               child.registerProgram(program, SpecialProgramType.FLOAT);
             });
          });
 
@@ -432,7 +432,7 @@ describe('Compiler/core/Context', () => {
             ];
             const programs = stringPrograms.map((stringProgram: string): ProgramNode => parse(stringProgram));
             programs.forEach((program: ProgramNode): void => {
-               child.registerFloatProgram(program);
+               child.registerProgram(program, SpecialProgramType.FLOAT);
             });
          });
 

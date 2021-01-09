@@ -8,7 +8,7 @@
 
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import Scope from 'UI/_builder/Tmpl/core/Scope';
-import { createGlobalContext, IContext as ILexicalContext, IProgramMeta, ContextType } from 'UI/_builder/Tmpl/core/Context';
+import { createGlobalContext, IContext as ILexicalContext, IProgramMeta, ContextType, SpecialProgramType } from 'UI/_builder/Tmpl/core/Context';
 
 // <editor-fold desc="Public interfaces and functions">
 
@@ -368,7 +368,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
     * @param context {IContext} Annotating context.
     */
    visitBind(node: Ast.BindNode, context: IContext): void {
-      node.__$ws_value.__$ws_id = context.lexicalContext.registerBindProgram(node.__$ws_value);
+      node.__$ws_value.__$ws_id = context.lexicalContext.registerProgram(node.__$ws_value, SpecialProgramType.BIND);
    }
 
    /**
@@ -377,7 +377,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
     * @param context {IContext} Annotating context.
     */
    visitEvent(node: Ast.EventNode, context: IContext): void {
-      context.lexicalContext.registerEventProgram(node.__$ws_handler);
+      context.lexicalContext.registerProgram(node.__$ws_handler, SpecialProgramType.EVENT);
    }
 
    /**
@@ -493,11 +493,11 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          lexicalContext
       };
       if (node.__$ws_init) {
-         lexicalContext.registerFloatProgram(node.__$ws_init);
+         lexicalContext.registerProgram(node.__$ws_init, SpecialProgramType.FLOAT);
       }
-      lexicalContext.registerFloatProgram(node.__$ws_test);
+      lexicalContext.registerProgram(node.__$ws_test, SpecialProgramType.FLOAT);
       if (node.__$ws_update) {
-         lexicalContext.registerFloatProgram(node.__$ws_update);
+         lexicalContext.registerProgram(node.__$ws_update, SpecialProgramType.FLOAT);
       }
       this.processNodes(node.__$ws_content, contentContext);
       node.__$ws_lexicalContext = lexicalContext;

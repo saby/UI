@@ -60,14 +60,18 @@ export interface IProgramMeta {
    node: ProgramNode;
 }
 
+export enum SpecialProgramType {
+   NONE = 0,
+   BIND = 1,
+   EVENT= 2,
+   FLOAT = 4
+}
+
 export interface IContext {
    createContext(config?: IConfig): IContext;
    joinContext(context: IContext, options?: IOptions): void;
 
-   registerBindProgram(program: ProgramNode): TProgramKey;
-   registerEventProgram(program: ProgramNode): void;
-   registerFloatProgram(program: ProgramNode): void;
-   registerProgram(program: ProgramNode): TProgramKey;
+   registerProgram(program: ProgramNode, specialProgramType?: SpecialProgramType): TProgramKey | null;
 
    getProgram(key: TProgramKey): ProgramNode | null;
 
@@ -316,51 +320,21 @@ class LexicalContext implements ILexicalContext {
       this.joinInternalPrograms(lexicalContext, localIdentifiers);
    }
 
-   registerBindProgram(program: ProgramNode): TProgramKey {
-      const programs = dropBindProgram(program);
-      let key = null;
-      for (let index = 0; index < programs.length; ++index) {
-         const program = programs[index];
-         key = null;
-         if (!canRegisterProgram(program)) {
-            continue;
-         }
-         if (!this.processIdentifiers(program)) {
-            continue;
-         }
-         const isSynthetic = index + 1 < programs.length;
-         key = this.processProgram(program, isSynthetic);
+   registerProgram(program: ProgramNode, specialProgramType: SpecialProgramType = SpecialProgramType.NONE): TProgramKey | null {
+      switch (specialProgramType) {
+         case SpecialProgramType.BIND:
+            return this.registerBindProgram(program);
+         case SpecialProgramType.EVENT:
+            this.registerEventProgram(program);
+            return null;
+         case SpecialProgramType.FLOAT:
+            this.registerFloatProgram(program);
+            return null;
+         case SpecialProgramType.NONE:
+            return this.registerNoneProgram(program);
+         default:
+            throw new Error('Получен неизвестный тип program-выражения');
       }
-      // Actual (input) program is last program in collection and its program key must be returned.
-      return key;
-   }
-
-   registerEventProgram(program: ProgramNode): void {
-      const identifiers = collectIdentifiers(program);
-      for (let index = 0; index < identifiers.length; ++index) {
-         const identifier = identifiers[index];
-         this.hoistIdentifier(identifier);
-      }
-   }
-
-   registerFloatProgram(program: ProgramNode): void {
-      const identifiers = collectIdentifiers(program);
-      this.hoistIdentifiersAsPrograms(identifiers, EMPTY_ARRAY);
-      for (let index = 0; index < identifiers.length; ++index) {
-         const identifier = identifiers[index];
-         this.hoistIdentifier(identifier);
-         this.commitIdentifier(identifier);
-      }
-   }
-
-   registerProgram(program: ProgramNode): TProgramKey {
-      if (!canRegisterProgram(program)) {
-         return null;
-      }
-      if (!this.processIdentifiers(program)) {
-         return null;
-      }
-      return this.processProgram(program, false);
    }
 
    getProgram(key: TProgramKey): ProgramNode | null {
@@ -505,6 +479,53 @@ class LexicalContext implements ILexicalContext {
    // </editor-fold>
 
    // <editor-fold desc="Private methods">
+
+   private registerBindProgram(program: ProgramNode): TProgramKey {
+      const programs = dropBindProgram(program);
+      let key = null;
+      for (let index = 0; index < programs.length; ++index) {
+         const program = programs[index];
+         key = null;
+         if (!canRegisterProgram(program)) {
+            continue;
+         }
+         if (!this.processIdentifiers(program)) {
+            continue;
+         }
+         const isSynthetic = index + 1 < programs.length;
+         key = this.processProgram(program, isSynthetic);
+      }
+      // Actual (input) program is last program in collection and its program key must be returned.
+      return key;
+   }
+
+   private registerEventProgram(program: ProgramNode): void {
+      const identifiers = collectIdentifiers(program);
+      for (let index = 0; index < identifiers.length; ++index) {
+         const identifier = identifiers[index];
+         this.hoistIdentifier(identifier);
+      }
+   }
+
+   private registerFloatProgram(program: ProgramNode): void {
+      const identifiers = collectIdentifiers(program);
+      this.hoistIdentifiersAsPrograms(identifiers, EMPTY_ARRAY);
+      for (let index = 0; index < identifiers.length; ++index) {
+         const identifier = identifiers[index];
+         this.hoistIdentifier(identifier);
+         this.commitIdentifier(identifier);
+      }
+   }
+
+   private registerNoneProgram(program: ProgramNode): TProgramKey | null {
+      if (!canRegisterProgram(program)) {
+         return null;
+      }
+      if (!this.processIdentifiers(program)) {
+         return null;
+      }
+      return this.processProgram(program, false);
+   }
 
    private processIdentifiers(program: ProgramNode): boolean {
       const identifiers = collectIdentifiers(program);
