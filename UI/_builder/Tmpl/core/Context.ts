@@ -102,12 +102,15 @@ interface ILexicalContext extends IContext {
    allocateProgramIndex(): number;
    findProgramIndex(program: ProgramNode): number | null;
 
-   processProgram(program: ProgramNode, isSynthetic: boolean): TProgramKey;
+   commitIdentifier(identifier: string): void;
+   commitProgram(description: IProgramDescription): TProgramKey;
+   commitInternalProgram(description: IProgramDescription): TProgramKey;
 
    hoistIdentifier(identifier: string): void;
+   hoistReactiveIdentifier(identifier: string): void;
    hoistInternalProgram(description: IProgramDescription): void;
 
-   hoistReactiveIdentifier(identifier: string): void;
+   processProgram(program: ProgramNode, isSynthetic: boolean): TProgramKey;
 
    getInternalProgramDescriptions(): IProgramDescription[];
 }
@@ -415,15 +418,40 @@ class LexicalContext implements ILexicalContext {
       return null;
    }
 
-   processProgram(program: ProgramNode, isSynthetic: boolean): TProgramKey {
-      let index = this.findProgramIndex(program);
-      if (index === null) {
-         index = this.allocateProgramIndex();
+   commitIdentifier(identifier: string): void {
+      if (this.identifiers.indexOf(identifier) > -1) {
+         return;
       }
-      const description = createProgramDescription(index, program, this, isSynthetic);
-      this.commitProgram(description);
-      this.hoistInternalProgram(description);
-      return generateProgramKey(index);
+      if (isForbiddenIdentifier(identifier)) {
+         return;
+      }
+      this.identifiers.push(identifier);
+   }
+
+   commitProgram(description: IProgramDescription): TProgramKey {
+      const source = description.node.string;
+      // Description index in collection that will be set.
+      const index: number = this.programs.length;
+      const key = generateProgramKey(description.index);
+      this.programKeysMap[key] = index;
+      this.programsMap[source] = index;
+      this.programs.push(description);
+      return key;
+   }
+
+   commitInternalProgram(description: IProgramDescription): TProgramKey {
+      const source = description.node.string;
+      // Do not commit internal programs that already exists
+      if (this.internalsMap.hasOwnProperty(source))  {
+         return;
+      }
+      const index: number = this.programs.length;
+      const key = generateInternalProgramKey(description.index);
+      // Description index in collection that will be set.
+      this.internalKeysMap[key] = index;
+      this.internalsMap[source] = index;
+      this.internals.push(description);
+      return key;
    }
 
    hoistIdentifier(identifier: string): void {
@@ -436,6 +464,14 @@ class LexicalContext implements ILexicalContext {
          return;
       }
       this.parent.hoistIdentifier(identifier);
+   }
+
+   hoistReactiveIdentifier(identifier: string): void {
+      if (this.parent === null) {
+         this.commitIdentifier(identifier);
+         return;
+      }
+      this.parent.hoistReactiveIdentifier(identifier);
    }
 
    hoistInternalProgram(description: IProgramDescription): void {
@@ -451,12 +487,15 @@ class LexicalContext implements ILexicalContext {
       this.commitInternalProgram(description);
    }
 
-   hoistReactiveIdentifier(identifier: string): void {
-      if (this.parent === null) {
-         this.commitIdentifier(identifier);
-         return;
+   processProgram(program: ProgramNode, isSynthetic: boolean): TProgramKey {
+      let index = this.findProgramIndex(program);
+      if (index === null) {
+         index = this.allocateProgramIndex();
       }
-      this.parent.hoistReactiveIdentifier(identifier);
+      const description = createProgramDescription(index, program, this, isSynthetic);
+      this.commitProgram(description);
+      this.hoistInternalProgram(description);
+      return generateProgramKey(index);
    }
 
    getInternalProgramDescriptions(): IProgramDescription[] {
@@ -478,40 +517,6 @@ class LexicalContext implements ILexicalContext {
          this.hoistIdentifier(identifier);
       }
       return true;
-   }
-
-   private commitIdentifier(identifier: string): void {
-      if (this.identifiers.indexOf(identifier) > -1) {
-         return;
-      }
-      if (isForbiddenIdentifier(identifier)) {
-         return;
-      }
-      this.identifiers.push(identifier);
-   }
-
-   private commitProgram(description: IProgramDescription): void {
-      const source = description.node.string;
-      // Description index in collection that will be set.
-      const index: number = this.programs.length;
-      const key = generateProgramKey(description.index);
-      this.programKeysMap[key] = index;
-      this.programsMap[source] = index;
-      this.programs.push(description);
-   }
-
-   private commitInternalProgram(description: IProgramDescription): void {
-      const source = description.node.string;
-      // Do not commit internal programs that already exists
-      if (this.internalsMap.hasOwnProperty(source))  {
-         return;
-      }
-      const index: number = this.programs.length;
-      const key = generateInternalProgramKey(description.index);
-      // Description index in collection that will be set.
-      this.internalKeysMap[key] = index;
-      this.internalsMap[source] = index;
-      this.internals.push(description);
    }
 
    private hoistIdentifiersAsPrograms(identifiers: string[], localIdentifiers: string[]): void {
