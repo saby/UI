@@ -8,7 +8,13 @@
 
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import Scope from 'UI/_builder/Tmpl/core/Scope';
-import { createGlobalContext, IContext as ILexicalContext, IProgramMeta, ContextType, SpecialProgramType } from 'UI/_builder/Tmpl/core/Context';
+import {
+   ContextType,
+   createGlobalContext,
+   IContext as ILexicalContext,
+   IProgramMeta,
+   SpecialProgramType
+} from 'UI/_builder/Tmpl/core/Context';
 
 // <editor-fold desc="Public interfaces and functions">
 
@@ -250,10 +256,12 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
     * @param scope {Scope} Processing scope object.
     */
    annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree {
-      const childrenStorage: string[] = [ ];
+      const childrenStorage: string[] = [];
       const global = createGlobalContext();
       nodes.forEach((node: Ast.Ast) => {
-         const lexicalContext = global.createContext();
+         const lexicalContext = global.createContext({
+            type: ContextType.INTERMEDIATE
+         });
          const context: IContext = {
             childrenStorage,
             lexicalContext,
@@ -605,7 +613,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
     * @param context {IContext} Annotating context.
     */
    visitComponent(node: Ast.ComponentNode, context: IContext): void {
-      const lexicalContext = context.lexicalContext.createContext();
+      const lexicalContext = context.lexicalContext.createContext({
+         type: ContextType.INTERMEDIATE
+      });
       const contentContext: IContext = {
          ...context,
          lexicalContext
@@ -619,7 +629,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
     * @param context {IContext} Annotating context.
     */
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): void {
-      const lexicalContext = context.lexicalContext.createContext();
+      const lexicalContext = context.lexicalContext.createContext({
+         type: ContextType.INTERMEDIATE
+      });
       const contentContext: IContext = {
          ...context,
          lexicalContext
@@ -636,7 +648,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): void {
       const template = context.scope.getTemplate(node.__$ws_name);
       const identifiers = collectInlineTemplateIdentifiers(node);
-      const lexicalContext = context.lexicalContext.createContext();
+      const lexicalContext = context.lexicalContext.createContext({
+         type: ContextType.INTERMEDIATE
+      });
       lexicalContext.joinContext(template.__$ws_lexicalContext, { identifiers });
       const contentContext: IContext = {
          ...context,
@@ -651,7 +665,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
     * @param context {IContext} Annotating context.
     */
    visitStaticPartial(node: Ast.StaticPartialNode, context: IContext): void {
-      const lexicalContext = context.lexicalContext.createContext();
+      const lexicalContext = context.lexicalContext.createContext({
+         type: ContextType.INTERMEDIATE
+      });
       const contentContext: IContext = {
          ...context,
          lexicalContext

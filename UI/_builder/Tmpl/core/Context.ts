@@ -149,6 +149,10 @@ function isHoistingAllowed(contextType: ContextType): boolean {
    return contextType !== ContextType.ISOLATED;
 }
 
+function isCommittingAllowed(contextType: ContextType): boolean {
+   return contextType !== ContextType.INTERMEDIATE;
+}
+
 function createProgramMeta(key: string, node: ProgramNode): IProgramMeta {
    return {
       key,
@@ -273,8 +277,9 @@ class LexicalContext implements ILexicalContext {
 
    private readonly parent: ILexicalContext | null;
    private readonly allowHoisting: boolean;
-   private readonly identifiers: string[];
+   private readonly allowCommitting: boolean;
 
+   private readonly identifiers: string[];
    private readonly programs: ProgramStorage;
    private readonly internals: ProgramStorage;
 
@@ -284,6 +289,7 @@ class LexicalContext implements ILexicalContext {
       this.programIndex = 0;
       this.parent = parent;
       this.allowHoisting = isHoistingAllowed(config.type);
+      this.allowCommitting = isCommittingAllowed(config.type);
       this.identifiers = config.identifiers;
       this.programs = new ProgramStorage();
       this.internals = new ProgramStorage();
@@ -362,6 +368,9 @@ class LexicalContext implements ILexicalContext {
    }
 
    commitIdentifier(identifier: string): void {
+      if (this.parent !== null && !this.allowCommitting) {
+         return this.parent.commitIdentifier(identifier);
+      }
       if (this.identifiers.indexOf(identifier) > -1) {
          return;
       }
@@ -372,12 +381,18 @@ class LexicalContext implements ILexicalContext {
    }
 
    commitProgram(description: IProgramDescription): TProgramKey {
+      if (this.parent !== null && !this.allowCommitting) {
+         return this.parent.commitProgram(description);
+      }
       const key = generateProgramKey(description.index);
       this.programs.set(description, key);
       return key;
    }
 
    commitInternalProgram(description: IProgramDescription): TProgramKey {
+      if (this.parent !== null && !this.allowCommitting) {
+         return this.parent.commitInternalProgram(description);
+      }
       const key = generateInternalProgramKey(description.index);
       this.internals.set(description, key);
       return key;
