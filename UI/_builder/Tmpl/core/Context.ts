@@ -40,9 +40,15 @@ const FORBIDDEN_IDENTIFIERS = [
 
 export declare type TProgramKey = string;
 
+export enum ContextType {
+   USUAL = 0,
+   ISOLATED = 1,
+   INTERMEDIATE = 2
+}
+
 export interface IConfig {
-   allowHoisting?: boolean;
    identifiers?: string[];
+   type?: ContextType;
 }
 
 export interface IOptions {
@@ -123,19 +129,23 @@ function createProgramDescription(
 
 function prepareContextConfig(config?: IConfig): IConfig {
    const cfg: IConfig = {
-      allowHoisting: true,
-      identifiers: []
+      identifiers: [],
+      type: ContextType.USUAL
    };
    if (typeof config === 'undefined') {
       return cfg;
    }
-   if (typeof config.allowHoisting === 'boolean') {
-      cfg.allowHoisting = config.allowHoisting;
-   }
    if (Array.isArray(config.identifiers)) {
-      cfg.identifiers = config.identifiers;
+      cfg.identifiers = Array(...config.identifiers);
+   }
+   if (typeof config.type === 'number') {
+      cfg.type = config.type;
    }
    return cfg;
+}
+
+function isHoistingAllowed(contextType: ContextType): boolean {
+   return contextType !== ContextType.ISOLATED;
 }
 
 function createProgramMeta(key: string, node: ProgramNode): IProgramMeta {
@@ -280,7 +290,7 @@ class LexicalContext implements ILexicalContext {
    constructor(parent: ILexicalContext | null, config: IConfig) {
       this.programIndex = 0;
       this.parent = parent;
-      this.allowHoisting = config.allowHoisting;
+      this.allowHoisting = isHoistingAllowed(config.type);
       this.identifiers = config.identifiers;
       this.programs = [];
       this.programsMap = { };

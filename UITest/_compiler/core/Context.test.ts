@@ -1,4 +1,4 @@
-import { createGlobalContext, IContext, IProgramMeta } from 'UI/_builder/Tmpl/core/Context';
+import { createGlobalContext, IContext, IProgramMeta, ContextType } from 'UI/_builder/Tmpl/core/Context';
 import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { assert } from 'chai';
@@ -567,7 +567,7 @@ describe('Compiler/core/Context', () => {
       before(() => {
          global = createGlobalContext();
          firstChild = global.createContext({
-            allowHoisting: false
+            type: ContextType.ISOLATED
          });
          secondChild = global.createContext();
          returnedKeys = [
@@ -899,10 +899,10 @@ describe('Compiler/core/Context', () => {
          before(() => {
             global = createGlobalContext();
             firstChild = global.createContext({
-               allowHoisting: false
+               type: ContextType.ISOLATED
             });
             secondChild = global.createContext({
-               allowHoisting: false
+               type: ContextType.ISOLATED
             });
             returnedKeys = [
                global.registerProgram(parse('a.b')),

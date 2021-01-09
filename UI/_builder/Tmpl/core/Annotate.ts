@@ -8,7 +8,7 @@
 
 import * as Ast from 'UI/_builder/Tmpl/core/Ast';
 import Scope from 'UI/_builder/Tmpl/core/Scope';
-import { createGlobalContext, IContext as ILexicalContext, IProgramMeta } from 'UI/_builder/Tmpl/core/Context';
+import { createGlobalContext, IContext as ILexicalContext, IProgramMeta, ContextType } from 'UI/_builder/Tmpl/core/Context';
 
 // <editor-fold desc="Public interfaces and functions">
 
@@ -546,7 +546,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
     */
    visitTemplate(node: Ast.TemplateNode, context: IContext): void {
       const lexicalContext = context.lexicalContext.createContext({
-         allowHoisting: false
+         type: ContextType.ISOLATED
       });
       const contentContext: IContext = {
          ...context,
