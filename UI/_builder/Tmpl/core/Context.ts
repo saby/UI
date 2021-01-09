@@ -439,27 +439,16 @@ class LexicalContext implements ILexicalContext {
       const programs = Helpers.dropBindProgram(program, PARSER, FILE_NAME);
       let key = null;
       for (let index = 0; index < programs.length; ++index) {
-         const program = programs[index];
-         key = null;
-         if (!canRegisterProgram(program)) {
-            continue;
-         }
-         if (!this.processIdentifiers(program)) {
-            continue;
-         }
          const isSynthetic = index + 1 < programs.length;
-         key = this.processProgram(program, isSynthetic);
+         const program = programs[index];
+         key = this.applyProgram(program, isSynthetic);
       }
       // Actual (input) program is last program in collection and its program key must be returned.
       return key;
    }
 
    private registerEventProgram(program: ProgramNode): void {
-      const identifiers = Helpers.collectIdentifiers(program, FILE_NAME);
-      for (let index = 0; index < identifiers.length; ++index) {
-         const identifier = identifiers[index];
-         this.hoistIdentifier(identifier);
-      }
+      this.processIdentifiers(program);
    }
 
    private registerFloatProgram(program: ProgramNode): void {
@@ -473,13 +462,17 @@ class LexicalContext implements ILexicalContext {
    }
 
    private registerNoneProgram(program: ProgramNode): TProgramKey | null {
+      return this.applyProgram(program, false);
+   }
+
+   private applyProgram(program: ProgramNode, isSynthetic: boolean): TProgramKey {
       if (!canRegisterProgram(program)) {
          return null;
       }
       if (!this.processIdentifiers(program)) {
          return null;
       }
-      return this.processProgram(program, false);
+      return this.processProgram(program, isSynthetic);
    }
 
    private processIdentifiers(program: ProgramNode): boolean {
