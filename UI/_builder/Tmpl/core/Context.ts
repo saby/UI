@@ -382,7 +382,7 @@ class LexicalContext implements ILexicalContext {
 
    commitProgram(description: IProgramDescription): TProgramKey {
       if (this.parent !== null && !this.allowCommitting) {
-         return this.parent.commitProgram(description);
+         this.parent.commitProgram(description);
       }
       const key = generateProgramKey(description.index);
       this.programs.set(description, key);
@@ -390,9 +390,6 @@ class LexicalContext implements ILexicalContext {
    }
 
    commitInternalProgram(description: IProgramDescription): TProgramKey {
-      if (this.parent !== null && !this.allowCommitting) {
-         return this.parent.commitInternalProgram(description);
-      }
       const key = generateInternalProgramKey(description.index);
       this.internals.set(description, key);
       return key;
