@@ -110,6 +110,7 @@ interface ILexicalContext extends IContext {
    hoistInternalProgram(description: IProgramDescription): void;
 
    processProgram(program: ProgramNode, isSynthetic: boolean): TProgramKey;
+   getProgramDescription(key: TProgramKey): IProgramDescription | null;
 
    getInternalProgramDescriptions(): IProgramDescription[];
 }
@@ -327,12 +328,9 @@ class LexicalContext implements ILexicalContext {
    }
 
    getProgram(key: TProgramKey): ProgramNode | null {
-      validateProgramKey(key);
-      if (this.programs.has(key)) {
-         return this.programs.get(key).node;
-      }
-      if (this.internals.has(key)) {
-         return this.internals.get(key).node;
+      const description = this.getProgramDescription(key);
+      if (description !== null) {
+         return description.node;
       }
       throw new Error(`Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
    }
@@ -437,6 +435,20 @@ class LexicalContext implements ILexicalContext {
       this.commitProgram(description);
       this.hoistInternalProgram(description);
       return generateProgramKey(index);
+   }
+
+   getProgramDescription(key: TProgramKey): IProgramDescription | null {
+      validateProgramKey(key);
+      if (this.programs.has(key)) {
+         return this.programs.get(key);
+      }
+      if (this.internals.has(key)) {
+         return this.internals.get(key);
+      }
+      if (this.parent !== null && !this.allowCommitting) {
+         return this.parent.getProgramDescription(key);
+      }
+      return null;
    }
 
    getInternalProgramDescriptions(): IProgramDescription[] {
