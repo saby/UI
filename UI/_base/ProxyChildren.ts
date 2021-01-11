@@ -6,7 +6,7 @@ import { Logger } from 'UI/Utils';
 export function getProxyChildren<T>(): T | {} {
   const moduleName = this._moduleName;
   // IE11 не поддерживает Proxy, возвращаем в таком случае простой объект
-  if (Proxy === undefined) {
+  if (typeof Proxy === 'undefined') {
     return {};
   }
   return new Proxy({}, {
