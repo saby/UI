@@ -28,7 +28,6 @@ function getDecorators() {
       return decorators;
    } else {
       // eslint-disable-next-line
-      // @ts-ignore
       decorators = require('View/decorators');
       return decorators;
    }
