@@ -8,6 +8,8 @@ interface IControlState {
     loading: boolean;
 }
 
+let countInst = 1;
+
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
                                 forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
 
@@ -24,6 +26,8 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
     protected _template: ITemplateFunction;
     protected _options: P;
 
+    private readonly _instId: string = 'inst_' + countInst++;
+
     constructor(props: P) {
         super(props);
         this._options = props;
@@ -32,6 +36,13 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
         };
     }
 
+    getInstanceId(): string {
+        return this._instId;
+    }
+
+    _notify(): void {
+        // nothing for a while...
+    }
 
     /* Start: Compatible lifecicle hooks */
 

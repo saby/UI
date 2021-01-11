@@ -40,27 +40,10 @@ import {ResolveControlName} from "../ResolveControlName";
 import {Builder} from "../Builder";
 import {repairEventName} from './eventMap';
 import {convertAttributes} from './Attributes';
+import {voidElementTags} from './VoidElementTags';
+import {addControlNode, removeControlNode} from './ControlNodes';
 
 const markupBuilder = new Builder();
-
-const voidElementTags = {
-   area: true,
-   base: true,
-   br: true,
-   col: true,
-   embed: true,
-   hr: true,
-   img: true,
-   input: true,
-   keygen: true,
-   link: true,
-   menuitem: true,
-   meta: true,
-   param: true,
-   source: true,
-   track: true,
-   wbr: true
-};
 
 /**
  * @author Тэн В.А.
@@ -471,10 +454,21 @@ export class GeneratorReact implements IGenerator {
                   node[attrName] = attrValue;
                }, node);
             }
+
+            node.controlNodes = node.controlNodes || [];
+            addControlNode(node.controlNodes, {
+               control: this.control,
+               element: node,
+               id: this.control.getInstanceId(),
+               environment: null // ???
+            });
+            this.control._container = node;
          } else {
             if (this.control && !this.control._destroyed && this.attrs && this.attrs.name) {
                onElementUnmount(this.control._children, this.attrs.name);
             }
+
+            removeControlNode(node.controlNodes, this.control);
          }
       }.bind({
          control,
