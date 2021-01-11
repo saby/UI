@@ -1,5 +1,5 @@
 <ws:if data="{{_options.items.length}}">
-   <div className="todo-List">
+   <div class="todo-List" style="border: 1px solid red; display: block;">
       <ws:for data="i in _options.items">
          <UIDemo.ReactDemo.TODO.Item
                key="{{i.id}}"

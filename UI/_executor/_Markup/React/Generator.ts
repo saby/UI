@@ -39,6 +39,7 @@ import { VNode } from 'Inferno/third-party/index';
 import {ResolveControlName} from "../ResolveControlName";
 import {Builder} from "../Builder";
 import {repairEventName} from './eventMap';
+import {convertAttributes} from './Attributes';
 
 const markupBuilder = new Builder();
 
@@ -498,12 +499,14 @@ export class GeneratorReact implements IGenerator {
          });
       });
 
+      const convertedAttributes = convertAttributes(mergedAttrs);
+
       const newProps = {
-         ...mergedAttrs,
+         ...convertedAttributes,
          ...convertedEvents,
          ref,
          key
-      }
+      };
       return createElement(tagName, newProps, children);
    }
 
