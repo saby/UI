@@ -1,4 +1,4 @@
-import {createElement, Fragment} from 'react';
+import {createElement} from 'react';
 import { ArrayUtils } from 'UI/Utils';
 import { Logger } from 'UI/Utils';
 import { _FocusAttrs } from 'UI/Focus';
@@ -404,7 +404,7 @@ export class GeneratorReact implements IGenerator {
    ): any {
       if (tagName === invisibleNodeTagName) {
          //here
-         return createElement(Fragment, null);
+         return null;
       }
 
       if (!attrToDecorate) {
