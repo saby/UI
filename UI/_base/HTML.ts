@@ -87,13 +87,17 @@ class HTML extends Control<IHTMLCombinedOptions> {
         this.compat = cfg.compat || false;
     }
 
+    private isFocusNode(node: Element): boolean {
+        return node.className === 'vdom-focus-in' || node.className === 'vdom-focus-out';
+    }
+
     private markForeignContent(): void {
         if (this.onServer) {
             return;
         }
         const bodyChildren: HTMLCollection = document.body.children;
         for (let i = 0; i < bodyChildren.length; i++) {
-            if (bodyChildren[i].id !== 'wasaby-content') {
+            if (bodyChildren[i].id !== 'wasaby-content' && !this.isFocusNode(bodyChildren[i])) {
                 bodyChildren[i].setAttribute('data-vdomignore', 'true');
             }
         }
