@@ -1,4 +1,4 @@
-import {EventNode} from "./EventNode";
+import { EventNode } from './EventNode';
 
 /**
  * Класс цепочки обработчиков. Содержит коллекцию узлов EventNode для конкретного события.
@@ -24,4 +24,4 @@ EventChain.prepareEventChain = function prepareEventChain(originChain?: EventCha
       return new EventChain();
    }
    return originChain;
-}
+};

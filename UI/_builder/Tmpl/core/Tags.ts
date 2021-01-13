@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Tmpl/core/Tags" />
 
 /**
+ * @description Represents wasaby tag descriptor.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/core/Tags.ts
  */
@@ -8,11 +9,16 @@
 import getTagDescription, { TagDescription, ITagsDescription } from 'UI/_builder/Tmpl/html/Tags';
 
 // tslint:disable:object-literal-key-quotes
+
+/**
+ * Wasaby tag descriptions.
+ */
 const TAGS_DESCRIPTIONS: ITagsDescription = {
    'ws:template': new TagDescription({
       allowSelfClosing: false
    })
 };
+
 // tslint:enable:object-literal-key-quotes
 
 /**

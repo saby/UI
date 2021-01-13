@@ -36,7 +36,10 @@ define('UI/_builder/Tmpl/core/_deprecated/traverse', [
    'use strict';
 
    /**
+    * @deprecated
+    * @description Старый механизм traverse.
     * @author Крылов М.А.
+    * @file UI/_builder/Tmpl/core/_deprecated/traverse.js
     */
 
    var errorHandler = ErrorHandlerLib.createErrorHandler(true);

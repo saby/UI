@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Compiler" />
 
 /**
+ * @description Main wml compiler module.
  * @author Крылов М.А.
  */
 
@@ -31,27 +32,33 @@ export interface ICompiler {
  * Represents artifact interface.
  */
 export interface IArtifact {
+
    /**
     * Node name for require.
     */
    nodeName: string;
+
    /**
     * Array of happened errors.
     * FIXME: release error handler.
     */
    errors: Error[];
+
    /**
     * Compile result: Javascript source code.
     */
    text: string;
+
    /**
     * Translations dictionary.
     */
    localizedDictionary: IDictionaryItem[];
+
    /**
     * Array of input file dependencies.
     */
    dependencies: string[];
+
    /**
     * Flag whether compile result is stable.
     * It is stable if and only if there were not fatal errors.
@@ -77,14 +84,17 @@ function createArtifact(options: IOptions): IArtifact {
  * Record in translations dictionary.
  */
 interface IDictionaryItem {
+
    /**
     * Text to translate.
     */
    key: string;
+
    /**
     * Translation context.
     */
    context: string;
+
    /**
     * Template module that contains this translation.
     */
@@ -106,19 +116,25 @@ interface IAST extends Array<Object> {
  * Represents interface for traverse resulting object.
  */
 interface ITraversed {
+
    /**
     * Abstract syntax tree.
     */
    ast: IAST;
+
    /**
     * Translations dictionary.
     */
    localizedDictionary: IDictionaryItem[];
+
    /**
     * Array of input file dependencies.
     */
    dependencies: string[];
 
+   /**
+    * Collection of inline template names.
+    */
    templateNames: string[];
 }
 

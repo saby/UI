@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Tmpl/i18n/Helpers" />
 
 /**
+ * @description Represents i18n helper functions.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/i18n/Helpers.ts
  */

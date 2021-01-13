@@ -1,7 +1,10 @@
 /// <amd-module name="UI/_builder/Tmpl/expressions/_private/Process" />
 
 /**
+ * @deprecated
+ * @description Represents mustache expression processing.
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/Process.ts
  */
 
 import { createErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';

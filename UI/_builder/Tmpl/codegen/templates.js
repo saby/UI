@@ -4,9 +4,15 @@ define('UI/_builder/Tmpl/codegen/templates', [
    'use strict';
 
    /**
+    * @description Предоставляет методы генерации кода для конкретных узлов AST-дерева.
     * @author Крылов М.А.
+    * @file UI/_builder/Tmpl/codegen/templates.js
     */
 
+   /**
+    * Пустая строка.
+    * @type {string}
+    */
    var EMPTY_STRING = '';
 
    /**
@@ -259,17 +265,33 @@ define('UI/_builder/Tmpl/codegen/templates', [
          .replace('/*#INTERNAL#*/', generateReturnValueFunction(internal)) + postfixCall;
    }
 
+   /**
+    * Сгенерировать private шаблон
+    * @param body {string} Тело шаблона.
+    * @returns {string} Сгенерированный блок кода.
+    */
    function generatePrivateTemplate(body) {
       return privateTemplate
          .replace('/*#BODY#*/', generateReturnValueFunction(body));
    }
 
+   /**
+    * Сгенерировать заголовок private шаблона
+    * @param name {string} Имя шаблона.
+    * @param body {string} Тело шаблона.
+    * @returns {string} Сгенерированный блок кода.
+    */
    function generatePrivateTemplateHeader(name, body) {
       return privateTemplateHeader
          .replace('/*#NAME#*/', generateReturnValueFunction(name))
          .replace('/*#BODY#*/', generateReturnValueFunction(body));
    }
 
+   /**
+    * Сгенерировать partial шаблон
+    * @param body {string} Тело шаблона.
+    * @returns {string} Сгенерированный блок кода.
+    */
    function generatePartialTemplate(body) {
       return partialTemplate
          .replace('/*#BODY#*/', generateReturnValueFunction(body));
