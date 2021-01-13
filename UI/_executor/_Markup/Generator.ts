@@ -407,6 +407,23 @@ export class Generator {
       }
       // когда тип вычисляемый, запускаем функцию вычисления типа и там обрабатываем тип
       if (type === 'resolver') {
+
+         let handl, i;
+         if (attrs.events) {
+            for (i in attrs.events) {
+               if (attrs.events.hasOwnProperty(i)) {
+                  for (handl = 0; handl < attrs.events[i].length; handl++) {
+                     if (!attrs.events[i][handl].isControl) {
+                        if (!attrs.events[i][handl].toPartial) {
+                           // FIXME: На время тестов!!!
+                           throw new Error('[generator] Флаг toPartial не был проставлен!!!');
+                        }
+                     }
+                  }
+               }
+            }
+         }
+
          if (Common.isCompat()) {
             res = timing.methodExecutionTime(this.resolver, this, [name, userData, attrs, context, deps, includedTemplates, templateConfig, defCollection]);
             return checkResult.call(this, res, type, name);
