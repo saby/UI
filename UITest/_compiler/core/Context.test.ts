@@ -46,20 +46,6 @@ describe('Compiler/core/Context', () => {
             ];
             assert.deepEqual(returnedKeys, standardKeys);
          });
-         it('Check programs by key', () => {
-            const standardKeys = [
-               '$p_0',
-               '$p_1',
-               '$p_2',
-               '$p_3',
-               '$p_4',
-               '$p_5',
-               '$p_6'
-            ];
-            standardKeys.forEach((key: string, index: number): void => {
-               assert.strictEqual(global.getProgram(key).string, stringPrograms[index]);
-            });
-         });
          it('Check identifiers', () => {
             const standardIdentifiers = [
                'a', 'e', 'h', 'j'
@@ -166,12 +152,6 @@ describe('Compiler/core/Context', () => {
             ];
             assert.deepEqual(returnedKeys, standardKeys);
          });
-         it('Check programs by key', () => {
-            returnedKeys.forEach((key: string, index: number): void => {
-               const program = programs[index];
-               assert.strictEqual(global.getProgram(key), program);
-            });
-         });
          it('Check identifiers', () => {
             const standardIdentifiers = [
                'a', 'c', 'd', 'e', 'g', 'i', 'j', 'k', 'n', 'm'
@@ -218,12 +198,6 @@ describe('Compiler/core/Context', () => {
                '$p_2'
             ];
             assert.deepEqual(returnedKeys, standardKeys);
-         });
-         it('Check child programs by key', () => {
-            returnedKeys.forEach((key: string, index: number): void => {
-               const program = programs[index];
-               assert.strictEqual(child.getProgram(key), program);
-            });
          });
          it('Check global identifiers', () => {
             const standardIdentifiers = [
@@ -330,22 +304,6 @@ describe('Compiler/core/Context', () => {
                assert.strictEqual(meta.node.string, stringProgram);
             });
          });
-         it('Check global programs by key', () => {
-            const childKeys = ['$p_3'];
-            const stringPrograms = ['e'];
-            childKeys.forEach((key: string, index: number): void => {
-               const stringProgram = stringPrograms[index];
-               assert.strictEqual(global.getProgram(key).string, stringProgram);
-            });
-         });
-         it('Check child programs by key', () => {
-            const childKeys = ['$p_0', '$p_1', '$p_2'];
-            const stringPrograms = ['a', 'b.c', 'b.d+e'];
-            childKeys.forEach((key: string, index: number): void => {
-               const stringProgram = stringPrograms[index];
-               assert.strictEqual(child.getProgram(key).string, stringProgram);
-            });
-         });
       });
    });
    describe('Isolated context', () => {
@@ -403,18 +361,6 @@ describe('Compiler/core/Context', () => {
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.isEmpty(actualStringLocalPrograms);
          });
-         it('Check global programs by key', () => {
-            const standardKeys = [
-               '$p_0', '$p_1', '$p_2', '$p_3', '$p_4', '$p_5'
-            ];
-            const stringPrograms = [
-               'a', 'b', 'c', 'e', 'f', 'i'
-            ];
-            standardKeys.forEach((key: string, index: number): void => {
-               const stringProgram = stringPrograms[index];
-               assert.strictEqual(global.getProgram(key).string, stringProgram);
-            });
-         });
       });
       describe('Child context with identifiers', () => {
          let global: IContext;
@@ -471,18 +417,6 @@ describe('Compiler/core/Context', () => {
             const actualStringLocalPrograms = child.getOwnPrograms()
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.isEmpty(actualStringLocalPrograms);
-         });
-         it('Check global programs by key', () => {
-            const standardKeys = [
-               '$p_0', '$p_1', '$p_2', '$p_3', '$p_4'
-            ];
-            const stringPrograms = [
-               'a', 'b', 'e', 'f', 'i'
-            ];
-            standardKeys.forEach((key: string, index: number): void => {
-               const stringProgram = stringPrograms[index];
-               assert.strictEqual(global.getProgram(key).string, stringProgram);
-            });
          });
       });
    });
@@ -643,45 +577,6 @@ describe('Compiler/core/Context', () => {
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.deepEqual(actualLocalStringPrograms, ['a.b']);
          });
-         it('Check global programs by key', () => {
-            const unreachableKeys = ['$p_1', '$p_2'];
-            assert.strictEqual(global.getProgram('$p_0').string, 'a.b');
-            unreachableKeys.forEach((key: string): void => {
-               try {
-                  global.getProgram(key);
-               } catch (error) {
-                  assert.strictEqual(error.message, `Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
-                  return;
-               }
-               throw new Error(`Выражение с ключом "${key}" не должно существовать в данном контексте`);
-            });
-         });
-         it('Check first child programs by key', () => {
-            const unreachableKeys = ['$p_0', '$p_2'];
-            assert.strictEqual(firstChild.getProgram('$p_1').string, 'a.b');
-            unreachableKeys.forEach((key: string): void => {
-               try {
-                  firstChild.getProgram(key);
-               } catch (error) {
-                  assert.strictEqual(error.message, `Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
-                  return;
-               }
-               throw new Error(`Выражение с ключом "${key}" не должно существовать в данном контексте`);
-            });
-         });
-         it('Check second child programs by key', () => {
-            const unreachableKeys = ['$p_0', '$p_1'];
-            assert.strictEqual(secondChild.getProgram('$p_2').string, 'a.b');
-            unreachableKeys.forEach((key: string): void => {
-               try {
-                  secondChild.getProgram(key);
-               } catch (error) {
-                  assert.strictEqual(error.message, `Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
-                  return;
-               }
-               throw new Error(`Выражение с ключом "${key}" не должно существовать в данном контексте`);
-            });
-         });
       });
       describe('Sibling', () => {
          let global: IContext;
@@ -754,45 +649,6 @@ describe('Compiler/core/Context', () => {
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.deepEqual(actualLocalStringPrograms, ['a.b']);
          });
-         it('Check global programs by key', () => {
-            const unreachableKeys = ['$p_1', '$p_2'];
-            assert.strictEqual(global.getProgram('$p_0').string, 'a.b');
-            unreachableKeys.forEach((key: string): void => {
-               try {
-                  global.getProgram(key);
-               } catch (error) {
-                  assert.strictEqual(error.message, `Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
-                  return;
-               }
-               throw new Error(`Выражение с ключом "${key}" не должно существовать в данном контексте`);
-            });
-         });
-         it('Check first child programs by key', () => {
-            const unreachableKeys = ['$p_0', '$p_2'];
-            assert.strictEqual(firstChild.getProgram('$p_1').string, 'a.b');
-            unreachableKeys.forEach((key: string): void => {
-               try {
-                  firstChild.getProgram(key);
-               } catch (error) {
-                  assert.strictEqual(error.message, `Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
-                  return;
-               }
-               throw new Error(`Выражение с ключом "${key}" не должно существовать в данном контексте`);
-            });
-         });
-         it('Check second child programs by key', () => {
-            const unreachableKeys = ['$p_0', '$p_1'];
-            assert.strictEqual(secondChild.getProgram('$p_2').string, 'a.b');
-            unreachableKeys.forEach((key: string): void => {
-               try {
-                  secondChild.getProgram(key);
-               } catch (error) {
-                  assert.strictEqual(error.message, `Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
-                  return;
-               }
-               throw new Error(`Выражение с ключом "${key}" не должно существовать в данном контексте`);
-            });
-         });
       });
       describe('Isolated', () => {
          let global: IContext;
@@ -864,45 +720,6 @@ describe('Compiler/core/Context', () => {
             const actualLocalStringPrograms = secondChild.getOwnPrograms()
                .map((meta: IProgramMeta): string => meta.node.string);
             assert.deepEqual(actualLocalStringPrograms, ['e.f']);
-         });
-         it('Check global programs by key', () => {
-            const unreachableKeys = ['$p_1', '$p_2'];
-            assert.strictEqual(global.getProgram('$p_0').string, 'a.b');
-            unreachableKeys.forEach((key: string): void => {
-               try {
-                  global.getProgram(key);
-               } catch (error) {
-                  assert.strictEqual(error.message, `Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
-                  return;
-               }
-               throw new Error(`Выражение с ключом "${key}" не должно существовать в данном контексте`);
-            });
-         });
-         it('Check first child programs by key', () => {
-            const unreachableKeys = ['$p_0', '$p_2'];
-            assert.strictEqual(firstChild.getProgram('$p_1').string, 'c.d');
-            unreachableKeys.forEach((key: string): void => {
-               try {
-                  firstChild.getProgram(key);
-               } catch (error) {
-                  assert.strictEqual(error.message, `Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
-                  return;
-               }
-               throw new Error(`Выражение с ключом "${key}" не должно существовать в данном контексте`);
-            });
-         });
-         it('Check second child programs by key', () => {
-            const unreachableKeys = ['$p_0', '$p_1'];
-            assert.strictEqual(secondChild.getProgram('$p_2').string, 'e.f');
-            unreachableKeys.forEach((key: string): void => {
-               try {
-                  secondChild.getProgram(key);
-               } catch (error) {
-                  assert.strictEqual(error.message, `Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
-                  return;
-               }
-               throw new Error(`Выражение с ключом "${key}" не должно существовать в данном контексте`);
-            });
          });
       });
    });

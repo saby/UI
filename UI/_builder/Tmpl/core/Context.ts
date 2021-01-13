@@ -17,8 +17,6 @@ const ALLOW_PROGRAM_DUPLICATES = true;
 
 const USE_GLOBAL_INTERNAL_PROGRAM_INDEX = false;
 
-const EMPTY_STRING = '';
-
 const EMPTY_ARRAY = [];
 
 const PROGRAM_PREFIX = '$p_';
@@ -74,8 +72,6 @@ export interface IContext {
 
    registerProgram(program: ProgramNode, specialProgramType?: SpecialProgramType): TProgramKey | null;
 
-   getProgram(key: TProgramKey): ProgramNode | null;
-
    getOwnIdentifiers(): string[];
    getOwnPrograms(): IProgramMeta[];
    getInternalPrograms(): IProgramMeta[];
@@ -110,7 +106,6 @@ interface ILexicalContext extends IContext {
    hoistInternalProgram(description: IProgramDescription): void;
 
    processProgram(program: ProgramNode, isSynthetic: boolean): TProgramKey;
-   getProgramDescription(key: TProgramKey): IProgramDescription | null;
 
    getInternalProgramDescriptions(): IProgramDescription[];
 }
@@ -188,16 +183,6 @@ function isForbiddenIdentifier(name: string): boolean {
    return FORBIDDEN_IDENTIFIERS.indexOf(name) > -1;
 }
 
-function validateProgramKey(key: TProgramKey): void {
-   const stringIndex = key
-      .replace(PROGRAM_PREFIX, EMPTY_STRING)
-      .replace(INTERNAL_PROGRAM_PREFIX, EMPTY_STRING);
-   const index = parseInt(stringIndex, 10);
-   if ((key.indexOf(PROGRAM_PREFIX) !== 0 && key.indexOf(INTERNAL_PROGRAM_PREFIX) !== 0) || isNaN(index)) {
-      throw new Error(`Получен некорректный ключ выражения "${key}". Ожидался program или internal program ключ`);
-   }
-}
-
 // </editor-fold>
 
 // <editor-fold desc="Mustache expression functions">
@@ -217,12 +202,10 @@ class ProgramStorage {
 
    private readonly programs: IProgramDescription[];
    private readonly programsMap: Map<string, number>;
-   private readonly programKeysMap: Map<string, number>;
 
    constructor() {
       this.programs = [];
       this.programsMap = new Map<string, number>();
-      this.programKeysMap = new Map<string, number>();
    }
 
    zip(func: TZipProgramFunction): IProgramMeta[] {
@@ -238,27 +221,23 @@ class ProgramStorage {
       return null;
    }
 
-   get(key: TProgramKey): IProgramDescription {
-      if (this.has(key)) {
-         const index = this.programKeysMap.get(key);
-         return this.programs[index];
+   get(program: ProgramNode): IProgramDescription | null {
+      const source = program.string;
+      if (!this.programsMap.has(source))  {
+         return null;
       }
-      return null;
+      const index = this.programsMap.get(source);
+      return this.programs[index];
    }
 
-   has(key: TProgramKey): boolean {
-      return this.programKeysMap.has(key);
-   }
-
-   set(description: IProgramDescription, key: string): void {
+   set(description: IProgramDescription): void {
       const source = description.node.string;
       // Do not append program that already exists
-      if (this.programsMap.has(source))  {
+      if (this.programsMap.has(source)) {
          return;
       }
       // Description index in collection that will be set
       const index: number = this.programs.length;
-      this.programKeysMap.set(key, index);
       this.programsMap.set(source, index);
       this.programs.push(description);
    }
@@ -310,7 +289,7 @@ class LexicalContext implements ILexicalContext {
       this.joinInternalPrograms(lexicalContext, localIdentifiers);
    }
 
-   registerProgram(program: ProgramNode, specialProgramType: SpecialProgramType = SpecialProgramType.NONE): TProgramKey | null {
+   registerProgram(program: ProgramNode, specialProgramType: SpecialProgramType = SpecialProgramType.NONE): TProgramKey {
       switch (specialProgramType) {
          case SpecialProgramType.BIND:
             return this.registerBindProgram(program);
@@ -325,14 +304,6 @@ class LexicalContext implements ILexicalContext {
          default:
             throw new Error('Получен неизвестный тип program-выражения');
       }
-   }
-
-   getProgram(key: TProgramKey): ProgramNode | null {
-      const description = this.getProgramDescription(key);
-      if (description !== null) {
-         return description.node;
-      }
-      throw new Error(`Выражение с ключом "${key}" не было зарегистрировано в текущем контексте`);
    }
 
    getOwnIdentifiers(): string[] {
@@ -382,15 +353,13 @@ class LexicalContext implements ILexicalContext {
       if (this.parent !== null && !this.allowCommitting) {
          this.parent.commitProgram(description);
       }
-      const key = generateProgramKey(description.index);
-      this.programs.set(description, key);
-      return key;
+      this.programs.set(description);
+      return generateProgramKey(description.index);
    }
 
    commitInternalProgram(description: IProgramDescription): TProgramKey {
-      const key = generateInternalProgramKey(description.index);
-      this.internals.set(description, key);
-      return key;
+      this.internals.set(description);
+      return generateInternalProgramKey(description.index);
    }
 
    hoistIdentifier(identifier: string): void {
@@ -435,20 +404,6 @@ class LexicalContext implements ILexicalContext {
       this.commitProgram(description);
       this.hoistInternalProgram(description);
       return generateProgramKey(index);
-   }
-
-   getProgramDescription(key: TProgramKey): IProgramDescription | null {
-      validateProgramKey(key);
-      if (this.programs.has(key)) {
-         return this.programs.get(key);
-      }
-      if (this.internals.has(key)) {
-         return this.internals.get(key);
-      }
-      if (this.parent !== null && !this.allowCommitting) {
-         return this.parent.getProgramDescription(key);
-      }
-      return null;
    }
 
    getInternalProgramDescriptions(): IProgramDescription[] {
