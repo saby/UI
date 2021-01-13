@@ -287,7 +287,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
       // запускаем обработчик только для правильного DOMEnvironment, в который прилетел фокус
       if (this._rootDOMNode && this._rootDOMNode.contains(e.target)) {
          // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
-         Events.notifyActivationEvents(this, e.target, e.relatedTarget, this._isTabPressed);
+         Events.notifyActivationEvents(e.target, e.relatedTarget, this, this._isTabPressed);
       }
    }
 
@@ -326,7 +326,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
          const isVdom = isVdomEnvironment(relatedTarget);
          if (!isVdom) {
             // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
-            Events.notifyActivationEvents(this, relatedTarget, target, this._isTabPressed);
+            Events.notifyActivationEvents(relatedTarget, target, this, this._isTabPressed);
          }
       }
    }
