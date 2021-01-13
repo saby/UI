@@ -50,10 +50,7 @@ function createRequireRoutes(): any {
 
       router: 'router',
 
-      jquery: '/cdn/JQuery/jquery/3.3.1/jquery-min',
-
-      react: '/cdn/React/17.0.1/react.production.min',
-      'react-dom': '/cdn/React/17.0.1/react-dom.production.min'
+      jquery: '/cdn/JQuery/jquery/3.3.1/jquery-min'
    };
 }
 
