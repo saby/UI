@@ -1,4 +1,4 @@
-import {createElement} from 'react';
+import * as react from 'browser!react';
 import { ArrayUtils } from 'UI/Utils';
 import { Logger } from 'UI/Utils';
 import { _FocusAttrs } from 'UI/Focus';
@@ -503,7 +503,7 @@ export class GeneratorReact implements IGenerator {
          ref,
          key
       };
-      return createElement(tagName, newProps, children);
+      return react.createElement(tagName, newProps, children);
    }
 
    createEmptyText(key: string): string {

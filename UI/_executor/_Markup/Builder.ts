@@ -11,7 +11,7 @@ import { IBuilder } from './IBuilder';
 
 import { invisibleNodeCompat, isInstOfPromise, asyncRenderErrorTag } from './Utils';
 import { needWaitAsync } from '../_Utils/Common';
-import {createElement} from 'browser!react';
+import * as react from 'browser!react';
 
 /**
  * @author Тэн В.А.
@@ -41,7 +41,7 @@ export class Builder implements IBuilder {
 
       //@ts-ignore
       if (typeof window !== 'undefined' && window.reactGenerator) {
-         return createElement(cnstr, _options);
+         return react.createElement(cnstr, _options);
       }
       var inst = new cnstr(_options),
          actualOptions = _options;
