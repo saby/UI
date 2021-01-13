@@ -18,6 +18,7 @@
       "build": "npm run build:typescript && npm run build:app",
       "build:typescript": "wasaby-cli --tasks=prepare",
       "build:app": "wasaby-cli --tasks=build",
+      "wacth:app": "wasaby-cli --tasks=build --watcher",
       "compile": "saby-typescript --compiler",
       "start": "wasaby-cli --tasks=app",
       "start:units": "wasaby-cli --tasks=startTest --server",
@@ -31,7 +32,6 @@
    "wasaby-cli": {
       "port": 777
    },
-   "dependencies": {},
    "devDependencies": {
       "@tensor-corp/eslint-config": "^2.0.3",
       "@types/react": "17.0.0",
