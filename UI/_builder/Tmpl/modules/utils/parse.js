@@ -197,7 +197,7 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
 
          // delete attribs['attributes'];
       }
-      var isResolver = !!tag.injectedTemplate && isModule(tag);
+      var isResolver = !!tag.injectedTemplate || isModule(tag);
 
       for (var attr in attribs) {
          if (bindExpressions.isBind(attr)) {

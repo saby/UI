@@ -466,7 +466,7 @@ define('UI/_builder/Tmpl/function', [
             events: { },
             key: FSC.wrapAroundExec('key+"' + tag.key + '"')
          };
-         var isResolver = !!tag.injectedTemplate && isModule(tag);
+         var isResolver = !!tag.injectedTemplate || isModule(tag);
          if (attribs) {
             for (attrib in attribs) {
                if (attribs.hasOwnProperty(attrib) && attribs[attrib]) {
