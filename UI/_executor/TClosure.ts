@@ -17,7 +17,7 @@ import { object } from 'Types/util';
 // @ts-ignore
 import { constants } from 'Env/Env';
 
-import { Text, Vdom } from './Markup';
+import { Text, Vdom, React } from './Markup';
 import * as Scope from './_Expressions/Scope';
 import * as Attr from './_Expressions/Attr';
 import { Common, ConfigResolver } from './Utils';
@@ -191,6 +191,10 @@ var
       }
    },
    createGenerator = function (isVdom, forceCompatible = false, config) {
+      // @ts-ignore
+      if (typeof window !== 'undefined' && window.reactGenerator) {
+         return React(config);
+      }
       if (isVdom) {
          return Vdom(config);
       }
