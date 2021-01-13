@@ -32,6 +32,7 @@ export function processEventAttribute(
    attributeName: string,
    data: any,
    isControl: boolean,
+   isResolver: boolean,
    fileName: string,
    childrenStorage: string[]
 ): EventChain {
@@ -56,12 +57,13 @@ export function processEventAttribute(
    const eventArguments = FSC.wrapAroundExec(`[${artifact.args.join(',')}]`);
    const chain = EventChain.prepareEventChain();
    chain.push(new EventNode({
-         args: eventArguments,
-         value: artifact.handlerName,
-         viewController: FSC.wrapAroundExec('viewController'),
-         handler: handler,
-         isControl: isControl,
-         context: FSC.wrapAroundExec('(function(){ return ' + artifact.context + '; })')
+      args: eventArguments,
+      value: artifact.handlerName,
+      viewController: FSC.wrapAroundExec('viewController'),
+      handler: handler,
+      isControl: !!isControl,
+      context: FSC.wrapAroundExec('(function(){ return ' + artifact.context + '; })'),
+      toPartial: !!(isResolver && !isControl)
       }));
    return chain;
 }

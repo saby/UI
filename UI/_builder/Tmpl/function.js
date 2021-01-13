@@ -43,6 +43,14 @@ define('UI/_builder/Tmpl/function', [
 
    var errorHandler = ErrorHandlerLib.createErrorHandler(true);
 
+   function isModule(tag) {
+      return !!(
+         tag.children &&
+         tag.children[0] &&
+         tag.children[0].type === 'module'
+      );
+   }
+
    function createAttrObject(val) {
       return {
          type: 'text',
@@ -458,13 +466,14 @@ define('UI/_builder/Tmpl/function', [
             events: { },
             key: FSC.wrapAroundExec('key+"' + tag.key + '"')
          };
+         var isResolver = !!tag.injectedTemplate && isModule(tag);
          if (attribs) {
             for (attrib in attribs) {
                if (attribs.hasOwnProperty(attrib) && attribs[attrib]) {
                   if (eventExpressions.isEvent(attrib)) {
                      try {
                         obj.events[attrib.toLowerCase()] = eventExpressions.processEventAttribute(
-                           attribs[attrib], attrib, data, false, this.fileName, this.childrenStorage
+                           attribs[attrib], attrib, data, false, isResolver, this.fileName, this.childrenStorage
                         );
                      } catch (error) {
                         throw new Error('На теге "' + tag.name + '" значение атрибута "' + attrib + '" некорректно "' + attribs[attrib].data[0].name.string + '": ' + error.message);

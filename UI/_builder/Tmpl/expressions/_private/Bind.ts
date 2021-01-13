@@ -107,6 +107,7 @@ export function processBindAttribute(
    attributeName: string,
    data: any,
    isControl: boolean,
+   isResolver: boolean,
    fileName: string,
    childrenStorage: string[],
    eventChain?: EventChain
@@ -121,7 +122,8 @@ export function processBindAttribute(
       viewController: FSC.wrapAroundExec('viewController'),
       data: FSC.wrapAroundExec('data'),
       handler: fn,
-      isControl: isControl
+      isControl: !!isControl,
+      toPartial: !!(isResolver && !isControl)
    });
    chain.unshift(eventNode);
 
