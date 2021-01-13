@@ -547,6 +547,8 @@ define('UI/_builder/Tmpl/function', [
          var processedStr = FSC.getStr(processed)
             .replace(/\\("|')/g, '$1')
             .replace(/\\\\/g, '\\')
+            .replace(/"' \+ /g, '')
+            .replace(/ \+ '"/g, '')
             .replace(/' \+ /g, '" + ')
             .replace(/ \+ '/g, ' + "');
          var children = this._process(tag.children, data, undefined, currentParentNS);
