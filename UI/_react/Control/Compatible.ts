@@ -3,6 +3,7 @@ import { IControlOptions, ITemplateFunction } from './interfaces';
 import {reactiveObserve} from './ReactiveObserver';
 import {_IGeneratorType} from "UI/Executor";
 import {getGeneratorConfig} from "UI/Base";
+import {makeRelation, removeRelation} from 'UI/_react/Control/ParentFinder';
 
 interface IControlState {
     loading: boolean;
@@ -12,6 +13,8 @@ let countInst = 1;
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
                                 forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
+
+type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
@@ -23,6 +26,8 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
     private _firstRender: boolean = true;
     private _asyncMount: boolean = false;
     private _$observer: Function = reactiveObserve;
+    protected _container: HTMLElement = null;
+    protected _children: IControlChildren = {};
     protected _template: ITemplateFunction;
     protected _options: P;
 
@@ -140,13 +145,19 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
 
     componentDidMount(): void {
         if (!this._asyncMount) {
-            this._afterMount.apply(this);
+            setTimeout(() => {
+                makeRelation(this);
+                this._afterMount.apply(this);
+            }, 0);
         }
     }
 
     componentDidUpdate(prevProps: P): void {
         this._options = this.props;
-        this._afterUpdate.apply(this, [prevProps]);
+        setTimeout(() => {
+            makeRelation(this);
+            this._afterUpdate.apply(this, [prevProps]);
+        }, 0);
     }
 
     getSnapshotBeforeUpdate(): void {
@@ -157,6 +168,7 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
     }
 
     componentWillUnmount(): void {
+        removeRelation(this);
         this._beforeUnmount.apply(this);
     }
 
@@ -185,6 +197,11 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
         const ctx = {...this, _options: {...this.props}};
         //@ts-ignore
         const res = this._template(ctx, {}, undefined, undefined, undefined, undefined, generatorConfig);
+        // прокидываю тут аргумент isCompatible, но можно вынести в билдер
+        const originRef = res[0].ref;
+        res[0] = {...res[0], ref: (node) => {
+            return originRef.apply(this, [node, true]);
+        }};
         //@ts-ignore
         window.reactGenerator = false;
         return res;

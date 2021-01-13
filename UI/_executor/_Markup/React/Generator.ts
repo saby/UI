@@ -384,7 +384,7 @@ export class GeneratorReact implements IGenerator {
       children: GeneratorStringArray,
       attrToDecorate: TAttributes,
       defCollection: IGeneratorDefCollection,
-      control: GeneratorEmptyObject
+      control: any
    ): any {
       if (tagName === invisibleNodeTagName) {
          //here
@@ -432,9 +432,10 @@ export class GeneratorReact implements IGenerator {
       }
 
       //here
-      const ref = function(node: any): any {
+      const ref = function(node: any, isContainer: boolean): any {
+         const attrs = props.attributes;
          if (node) {
-            if (Common.isControl(this.control) && this.attrs && this.attrs.name) {
+            if (Common.isControl(control) && attrs && attrs.name) {
                /*
                * Если мы в слое совместимости, то имя компонента, которое передали сверху
                * попадает в атрибуты и записывается в _children
@@ -442,38 +443,39 @@ export class GeneratorReact implements IGenerator {
                * После синхронизации корневой элемент в шаблоне
                * перетирает нужного нам ребенка
                * */
-               if (this.control._options.name === this.attrs.name && node.tagName === 'DIV' &&
-                  this.control.hasCompatible && this.control.hasCompatible()) {
-                  this.attrs.name += '_fix';
+               if (control._options.name === attrs.name && node.tagName === 'DIV' &&
+                  control.hasCompatible && control.hasCompatible()) {
+                  attrs.name += '_fix';
                }
-               this.control._children[this.attrs.name] = node;
-               onElementMount(this.control._children[this.attrs.name]);
+               control._children[attrs.name] = node;
+               onElementMount(control._children[attrs.name]);
             }
-            if (this.attrs) {
-               cutFocusAttributes(this.attrs, (attrName: any, attrValue: any): void => {
+            if (attrs) {
+               cutFocusAttributes(attrs, (attrName: any, attrValue: any): void => {
                   node[attrName] = attrValue;
                }, node);
             }
 
-            node.controlNodes = node.controlNodes || [];
-            addControlNode(node.controlNodes, {
-               control: this.control,
-               element: node,
-               id: this.control.getInstanceId(),
-               environment: null // ???
-            });
-            this.control._container = node;
+            if (isContainer) {
+               node.controlNodes = node.controlNodes || [];
+               addControlNode(node.controlNodes, {
+                  control,
+                  element: node,
+                  id: control.getInstanceId(),
+                  environment: null // ???
+               });
+               control._container = node;
+            }
          } else {
-            if (this.control && !this.control._destroyed && this.attrs && this.attrs.name) {
-               onElementUnmount(this.control._children, this.attrs.name);
+            if (control && !control._destroyed && attrs && attrs.name) {
+               onElementUnmount(control._children, attrs.name);
             }
 
-            removeControlNode(node.controlNodes, this.control);
+            if (isContainer) {
+               removeControlNode(control._container.controlNodes, control);
+            }
          }
-      }.bind({
-         control,
-         attrs: props.attributes
-      });
+      };
 
       const convertedEvents = {};
       Object.keys(mergedEvents).forEach((eventName) => {
