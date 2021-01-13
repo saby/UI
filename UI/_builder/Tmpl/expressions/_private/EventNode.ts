@@ -7,13 +7,14 @@
  */
 
 interface IEventNodeCfg {
-   args?: string,
-   value: string,
-   viewController: string,
-   data?: string,
-   handler: string,
-   isControl: boolean,
-   context?: string
+   args?: string;
+   value: string;
+   viewController: string;
+   data?: string;
+   handler: string;
+   isControl: boolean;
+   toPartial: boolean;
+   context?: string;
 }
 
 /**
@@ -33,6 +34,7 @@ export class EventNode {
    data: string;
    handler: string;
    isControl: boolean;
+   toPartial: boolean;
    context: string;
 
    bindValue: string;
@@ -48,6 +50,7 @@ export class EventNode {
       this.data = cfg.data;
       this.handler = cfg.handler;
       this.isControl = cfg.isControl;
+      this.toPartial = cfg.toPartial;
       this.context = cfg.context;
    }
 }
