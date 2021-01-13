@@ -33,7 +33,7 @@ class JsLinks extends Control<IJsLinksOptions> {
       }
       const resolveJsLink = (js: string) => options.linkResolver.resolveLink(js, 'js');
       return headDataStore.read('waitAppContent')().then((res) => {
-         const jsLinks: string[] = res.js.filter(js => !js.includes('react')).map(resolveJsLink).concat(res.scripts);
+         const jsLinks: string[] = res.js.map(resolveJsLink).concat(res.scripts);
          this.js = arrayToObject(jsLinks); // конвертируем в hashmap чтобы избавиться от дублей
          this.tmpl = res.tmpl;
          this.wml = res.wml;
