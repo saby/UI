@@ -1,9 +1,8 @@
-// @ts-nocheck
+import {createElement} from 'react';
 import { ArrayUtils } from 'UI/Utils';
 import { Logger } from 'UI/Utils';
 import { _FocusAttrs } from 'UI/Focus';
 import * as Attr from '../../_Expressions/Attr';
-import * as Vdom from '../../_Utils/Vdom';
 import * as Common from '../../_Utils/Common';
 import * as RequireHelper from '../../_Utils/RequireHelper';
 import { invisibleNodeTagName } from '../../Utils';
@@ -34,20 +33,22 @@ import {
    TObject,
    TScope, IControlConfig
 } from '../IGeneratorType';
-import { GeneratorNode } from './IVdomType';
+import { GeneratorNode } from '../Vdom/IVdomType';
 import { cutFocusAttributes } from '../Utils';
 import { VNode } from 'Inferno/third-party/index';
+import {ResolveControlName} from "../ResolveControlName";
+import {Builder} from "../Builder";
+import {repairEventName} from './eventMap';
+import {convertAttributes} from './Attributes';
+import {voidElementTags} from './VoidElementTags';
+import {addControlNode, removeControlNode} from './ControlNodes';
 
-const emtpyProps = {
-   attributes: {},
-   hooks: {},
-   events: {}
-};
+const markupBuilder = new Builder();
 
 /**
  * @author Тэн В.А.
  */
-export class GeneratorVdom implements IGenerator {
+export class GeneratorReact implements IGenerator {
    cacheModules: TObject;
    canBeCompatible: boolean;
    generatorBase: Generator;
@@ -144,22 +145,23 @@ export class GeneratorVdom implements IGenerator {
                    contextObj?: GeneratorEmptyObject,
                    defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error {
       return this.generatorBase.prepareResolver(name,
-                                             data,
-                                             attrs,
-                                             templateCfg,
-                                             context,
-                                             deps,
-                                             includedTemplates,
-                                             config,
-                                             contextObj,
-                                             defCollection);
+         data,
+         attrs,
+         templateCfg,
+         context,
+         deps,
+         includedTemplates,
+         config,
+         contextObj,
+         defCollection);
    }
 
    createText(text: string, key: string): VNode {
       if (!text) {
-         return undefined;
+         return '';
       }
-      return Vdom.textNode(text, key);
+      //here
+      return text;
    }
 
    createWsControl(name: GeneratorTemplateOrigin,
@@ -179,22 +181,15 @@ export class GeneratorVdom implements IGenerator {
          return this.createText('', data.controlProperties && data.controlProperties.__key || attrs.key);
       }
 
-      const compound = data.compound;
-      const controlProperties = data.controlProperties;
-      return {
-         compound,
-         invisible: false,
-         controlClass,
-         controlProperties, // прикладные опции контрола
-         controlInternalProperties: data.internal, // служебные опции контрола
-         controlAttributes: data.attrs,
-         controlEvents: attrs.events,
-         key: controlProperties.__key || attrs.key,
-         controlNodeIdx: -1,
-         context: attrs.context,
+      //here
+      let decOptions = ResolveControlName.resolveControlName(data.controlProperties, <any>attrs);
+      return markupBuilder.buildForNewControl({
+         user: data.controlProperties,
+         internal: data.internal,
+         templateContext: attrs.context,
          inheritOptions: attrs.inheritOptions,
-         flags: 131072
-      };
+         key: data.controlProperties.__key || attrs.key
+      }, controlClass, decOptions);
    }
 
    createTemplate(
@@ -229,6 +224,7 @@ export class GeneratorVdom implements IGenerator {
          return this.resolver(resultingFn, data.controlProperties, attributes, context, _deps);
       }
 
+      //here
       const obj = {
          compound: false,
          template: resultingFn,
@@ -258,9 +254,8 @@ export class GeneratorVdom implements IGenerator {
             }
          }
       });
-
-      // @ts-ignore
-      return obj;
+      return obj.template.call(obj.parentControl, obj.controlProperties, obj.attributes, obj.context,
+         true, undefined, undefined, this.generatorConfig);
    }
 
    createController(name: string,
@@ -323,7 +318,7 @@ export class GeneratorVdom implements IGenerator {
             return this.createText('', decorAttribs.key);
          }
          return parent ?
-               fn.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
+            fn.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
             fn(resolvedScope, decorAttribs, context, true);
       }
       if (fn && typeof fn.func === 'function') {
@@ -332,7 +327,7 @@ export class GeneratorVdom implements IGenerator {
             return this.createText('', decorAttribs.key);
          }
          return parent ?
-               fn.func.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
+            fn.func.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
             fn.func(resolvedScope, decorAttribs, context, true);
       }
       if (Common.isArray(fn)) {
@@ -360,7 +355,7 @@ export class GeneratorVdom implements IGenerator {
       if (Common.isCompat()) {
          return this.createText('' + tpl, decorAttribs.key);
       }
-      // TODO: разобраться с правильным использование ws:partial
+      // TODO: разобраться с правильным использованием ws:partial
       // отключены предупреждения по задаче
       // https://online.sbis.ru/opendoc.html?guid=04ddc7d0-396a-473b-9a65-ee1ddc6a7243
       // в целом использование ws:partial сейчас не правильное
@@ -389,10 +384,11 @@ export class GeneratorVdom implements IGenerator {
       children: GeneratorStringArray,
       attrToDecorate: TAttributes,
       defCollection: IGeneratorDefCollection,
-      control: GeneratorEmptyObject
-   ): string {
+      control: any
+   ): any {
       if (tagName === invisibleNodeTagName) {
-         return Vdom.htmlNode(tagName, emtpyProps, [], attrs.key);
+         //here
+         return null;
       }
 
       if (!attrToDecorate) {
@@ -430,9 +426,16 @@ export class GeneratorVdom implements IGenerator {
 
       // выпрямляем массив детей, чтобы не было вложенных массивов (они образуются из-за for)
       children = ArrayUtils.flatten(children, true);
-      return Vdom.htmlNode(tagName, props, children, key, function(node: any): any {
+      // в случае void тегов не должно быть детей, иначе реакт ругается
+      if (voidElementTags[tagName]) {
+         children = null;
+      }
+
+      //here
+      const ref = function(node: any, isContainer: boolean): any {
+         const attrs = props.attributes;
          if (node) {
-            if (Common.isControl(this.control) && this.attrs && this.attrs.name) {
+            if (Common.isControl(control) && attrs && attrs.name) {
                /*
                * Если мы в слое совместимости, то имя компонента, которое передали сверху
                * попадает в атрибуты и записывается в _children
@@ -440,27 +443,67 @@ export class GeneratorVdom implements IGenerator {
                * После синхронизации корневой элемент в шаблоне
                * перетирает нужного нам ребенка
                * */
-               if (this.control._options.name === this.attrs.name && node.tagName === 'DIV' &&
-                  this.control.hasCompatible && this.control.hasCompatible()) {
-                  this.attrs.name += '_fix';
+               if (control._options.name === attrs.name && node.tagName === 'DIV' &&
+                  control.hasCompatible && control.hasCompatible()) {
+                  attrs.name += '_fix';
                }
-               this.control._children[this.attrs.name] = node;
-               onElementMount(this.control._children[this.attrs.name]);
+               control._children[attrs.name] = node;
+               onElementMount(control._children[attrs.name]);
             }
-            if (this.attrs) {
-               cutFocusAttributes(this.attrs, (attrName: any, attrValue: any): void => {
+            if (attrs) {
+               cutFocusAttributes(attrs, (attrName: any, attrValue: any): void => {
                   node[attrName] = attrValue;
                }, node);
             }
+
+            if (isContainer) {
+               node.controlNodes = node.controlNodes || [];
+               addControlNode(node.controlNodes, {
+                  control,
+                  element: node,
+                  id: control.getInstanceId(),
+                  environment: null // ???
+               });
+               control._container = node;
+            }
          } else {
-            if (this.control && !this.control._destroyed && this.attrs && this.attrs.name) {
-               onElementUnmount(this.control._children, this.attrs.name);
+            if (control && !control._destroyed && attrs && attrs.name) {
+               onElementUnmount(control._children, attrs.name);
+            }
+
+            if (isContainer) {
+               removeControlNode(control._container.controlNodes, control);
             }
          }
-      }.bind({
-         control,
-         attrs: props.attributes
-      }));
+      };
+
+      const convertedEvents = {};
+      Object.keys(mergedEvents).forEach((eventName) => {
+         const eventObjects = mergedEvents[eventName];
+         eventObjects.forEach((eventObject) => {
+            let finalArgs = [];
+
+            /* Составляем массив аргументов для обаботчика. Первым аргументом будет объект события. Затем будут
+             * аргументы, переданные в обработчик в шаблоне, и последними - аргументы в _notify */
+            finalArgs = [eventObject];
+            // Array.prototype.push.apply(finalArgs, templateArgs);
+            Array.prototype.push.apply(finalArgs, eventObject.args);
+            // Добавляем в eventObject поле со ссылкой DOM-элемент, чей обработчик вызываем
+            // eventObject.currentTarget = curDomNode;
+            const newEventName = repairEventName(eventName.replace('on:',''));
+            convertedEvents[newEventName] = (eventObject.fn);
+         });
+      });
+
+      const convertedAttributes = convertAttributes(mergedAttrs);
+
+      const newProps = {
+         ...convertedAttributes,
+         ...convertedEvents,
+         ref,
+         key
+      };
+      return createElement(tagName, newProps, children);
    }
 
    createEmptyText(key: string): string {

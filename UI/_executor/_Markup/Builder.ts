@@ -11,6 +11,7 @@ import { IBuilder } from './IBuilder';
 
 import { invisibleNodeCompat, isInstOfPromise, asyncRenderErrorTag } from './Utils';
 import { needWaitAsync } from '../_Utils/Common';
+import {createElement} from 'react';
 
 /**
  * @author Тэн В.А.
@@ -38,6 +39,10 @@ export class Builder implements IBuilder {
       var defaultOpts = OptionsResolver.getDefaultOptions(cnstr);
       OptionsResolver.resolveOptions(cnstr, defaultOpts, _options, parentName);
 
+      //@ts-ignore
+      if (typeof window !== 'undefined' && window.reactGenerator) {
+         return createElement(cnstr, _options);
+      }
       var inst = new cnstr(_options),
          actualOptions = _options;
 

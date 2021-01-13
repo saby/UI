@@ -1,32 +1,22 @@
-import { createElement } from 'react';
-import { Control, ITemplateFunction } from 'UI/ReactComponent';
-import { IList } from './interfaces';
-import Item, { IItem } from './Item';
+import {Control} from 'UI/ReactComponent';
+import {IList} from './interfaces';
 
 const SLEEP_TIME = 1500;
 
-export default class List extends Control<IList> {
-  protected _beforeMount(): Promise<void> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve();
-      }, SLEEP_TIME);
-    });
-  }
+// @ts-ignore
+import template = require('wml!UIDemo/ReactDemo/TODO/List');
 
-  protected _template: ITemplateFunction = (props: IList) => {
-    return props.items.length
-      ? createElement(
-          'div',
-          { className: 'todo-List' },
-          props.items.map((el) =>
-            createElement<IItem>(Item, {
-              key: el.id,
-              title: el.title,
-              removeHandler: () => props.removeHandler(el.id),
-            })
-          )
-        )
-      : createElement('div', null, 'Список пуст');
-  };
+class List extends Control<IList> {
+    protected _beforeMount(): Promise<void> {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve();
+      }, SLEEP_TIME);
+        });
+    }
 }
+
+// @ts-ignore
+List.prototype._template = template;
+
+export default List;
