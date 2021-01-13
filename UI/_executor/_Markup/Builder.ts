@@ -11,7 +11,7 @@ import { IBuilder } from './IBuilder';
 
 import { invisibleNodeCompat, isInstOfPromise, asyncRenderErrorTag } from './Utils';
 import { needWaitAsync } from '../_Utils/Common';
-import {createElement} from 'react';
+import {createElement} from 'browser!react';
 
 /**
  * @author Тэн В.А.
