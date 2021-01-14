@@ -239,13 +239,14 @@ export function getChangedOptions(
                   hasChanges = true;
                   changes[property] = next[property];
                } else {
-                  if (!prev[property]) {
-                     hasChanges = true;
-                     changes[property] = next[property];
-                  }
+                  // Template array - always changed
+                  hasChanges = true;
+                  changes[property] = next[property];
                }
             } else if (isTemplateObject(next[property] as ITemplateObject)) {
-               // TODO: Skip
+               // Template array - always changed
+               hasChanges = true;
+               changes[property] = next[property];
             } else if (isVersionable(next[property] as IVersionable) && next[property][PREFER_VERSIONS_API_FLAG]) {
                /*
                 * Есть такой кейс, когда объекты всегда новые, но они равны
