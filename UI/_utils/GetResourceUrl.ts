@@ -1,5 +1,5 @@
 import { getResourceUrl as requireGetResourceUrl } from 'RequireJsLoader/conduct';
-import { cookie } from 'Application/Env';
+import { cookie } from 'Env/Env';
 
 /**
  * Возвращает обработанный URL ресураса с указанием домена и версии.
