@@ -281,8 +281,10 @@ function focus(element: IControlElement, {enableScreenKeyboard = false, enableSc
    IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}, isOldControl?: boolean): boolean {
    let res;
    const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard};
-   lastFocused = document.activeElement.tagName === 'BODY' ? lastFocused : document.activeElement as IControlElement;
-   if (document.activeElement.tagName === 'BODY' && lastFocused && isOldControl) {
+   // в ie фокус может быть null
+   const isBodyFocused = document.activeElement && document.activeElement.tagName === 'BODY';
+   lastFocused = isBodyFocused ? lastFocused : document.activeElement as IControlElement;
+   if (isBodyFocused && lastFocused && isOldControl) {
       element = lastFocused;
    }
    element = fixElementForMobileInputs(element, cfg);
