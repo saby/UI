@@ -172,6 +172,14 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
       return internal;
    }
 
+   function isModule(tag) {
+      return !!(
+         tag.children &&
+         tag.children[0] &&
+         tag.children[0].type === 'module'
+      );
+   }
+
    function processAttributes(attribs, data, decor, isControl, tag) {
       var attrs;
       var mayBeToMerge = { };
@@ -189,6 +197,8 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
 
          // delete attribs['attributes'];
       }
+      var isResolver = !!tag.injectedTemplate || isModule(tag);
+
       for (var attr in attribs) {
          if (bindExpressions.isBind(attr)) {
             var cleanAttributeName = bindExpressions.getBindAttributeName(attr);
@@ -197,7 +207,7 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
                var eventAttributeName = bindExpressions.getEventAttributeName(attr);
                var eventChain = result.events[eventAttributeName.toLowerCase()];
                result.events[eventAttributeName.toLowerCase()] = bindExpressions.processBindAttribute(
-                  attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage, eventChain
+                  attribs[attr], attr, data, isControl, isResolver, this.fileName, this.childrenStorage, eventChain
                );
             } catch (error) {
                errorHandler.error(
@@ -218,7 +228,7 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
          } else if (eventExpressions.isEvent(attr)) {
             try {
                var eventObject = eventExpressions.processEventAttribute(
-                  attribs[attr], attr, data, isControl, this.fileName, this.childrenStorage
+                  attribs[attr], attr, data, isControl, isResolver, this.fileName, this.childrenStorage
                );
                var eventName = attr.toLowerCase();
                if (result.events[eventName] === undefined) {
