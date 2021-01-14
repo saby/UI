@@ -288,6 +288,12 @@ function focus(element: IControlElement, {enableScreenKeyboard = false, enableSc
          focusingState = false;
       }
    }
+   // @ts-ignore
+   // в ie нельзя стрелять событиями активации во время восстановления фокуса после перерисовки
+   // если так сделать, то будет вызван нотифай события deactivated и выстрялет все подписанные на него обработчики
+   if (detection.isIE && res && !focus.__restoreFocusPhase) {
+      notifyActivationEvents(document.activeElement, lastFocused);
+   }
    return res;
 }
 

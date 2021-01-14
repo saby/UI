@@ -118,9 +118,9 @@ function fixNotifyArguments(env: IDOMEnvironment,
  * @param isTabPressed - true, если фокус перешел по нажатию tab
  */
 
-export function notifyActivationEvents(env: IDOMEnvironment,
-                                       target: Element,
+export function notifyActivationEvents(target: Element,
                                        relatedTarget: Element,
+                                       env?: IDOMEnvironment,
                                        isTabPressed?: TTabPressesd): boolean | void {
    [target, relatedTarget, isTabPressed] = fixNotifyArguments(env, target, relatedTarget, isTabPressed);
    if (detectStrangeElement(target)) {
