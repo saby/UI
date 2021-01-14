@@ -70,7 +70,7 @@ export function restoreFocus(control: IControl, action: Function): void {
          }
          // совместимость. среди контролов могут встретиться ws3
          let container = control._container;
-         const isOldControl = false;
+         let isOldControl = false;
          if (!control._template) {
             container = control.getContainer()[0];
             isOldControl = true;
