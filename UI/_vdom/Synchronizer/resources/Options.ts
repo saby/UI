@@ -268,8 +268,7 @@ export function getChangedOptions(
          if (next[property] === prev[property]) {
             if (isVersionable(next[property] as IVersionable) && versionsStorage) {
                const newVersion = (next[property] as IVersionable).getVersion();
-               if (versionsStorage[prefix + property] !== undefined &&
-                   versionsStorage[prefix + property] !== newVersion) {
+               if (versionsStorage[prefix + property] !== newVersion) {
                   hasChanges = true;
                   changes[property] = next[property];
                }
@@ -329,8 +328,7 @@ export function getChangedOptions(
                 * FIXME: исправить костыль
                 */
                const newVersion = (next[property] as IVersionable).getVersion();
-               if (versionsStorage[prefix + property] !== undefined &&
-                   versionsStorage[prefix + property] !== newVersion) {
+               if (versionsStorage[prefix + property] !== newVersion) {
                   hasChanges = true;
                   changes[property] = next[property];
                }
