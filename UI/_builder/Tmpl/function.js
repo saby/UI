@@ -544,6 +544,12 @@ define('UI/_builder/Tmpl/function', [
          }
          var attribs = typeof decor === 'function' ? decor(tag.attribs) : tag.attribs;
          var processed = this._processAttributesObj(attribs, data, tag);
+         Object.keys(processed.attributes).forEach(function(attributeName) {
+            processed.attributes[attributeName] = processed.attributes[attributeName]
+               .replace(/^' \+ (.*?) \+ '$/g, function(str, p) {
+                  return '¥' + p.replace(/\\/g, '\\\\') + '¥';
+               });
+         });
          var processedStr = FSC.getStr(processed)
             .replace(/\\("|')/g, '$1')
             .replace(/\\\\/g, '\\')
