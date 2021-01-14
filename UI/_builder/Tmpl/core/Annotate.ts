@@ -102,15 +102,7 @@ interface IContext {
  * @param programs {IProgramMeta[]} Collection of program meta information.
  */
 function appendInternalExpressions(internal: Ast.IInternal, programs: IProgramMeta[]): void {
-   for (let index = 0; index < programs.length; ++index) {
-      const program = programs[index];
-      internal[program.key] = {
-         data: [
-            new Ast.ExpressionNode(program.node)
-         ],
-         type: 'text'
-      };
-   }
+   // TODO: Remove
 }
 
 /**

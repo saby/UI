@@ -148,56 +148,6 @@ function isPossiblyScopeObject(
       !isVersionable((nextValue as unknown) as IVersionable);
 }
 
-function isTemplateArrayChanged(
-   next: ITemplateArray,
-   prev: ITemplateArray,
-   versionsStorage: object = EMPTY_OBJECT,
-   checkPrevValue: boolean = false,
-   prefix: string = EMPTY_STRING,
-   isCompound: boolean = false
-): boolean {
-   if (next.length !== prev.length) {
-      return true;
-   }
-   for (let kfn = 0; kfn < next.length; kfn++) {
-      const localPrefix = prefix + ';' + kfn + ';';
-      const ch = getChangedOptions(
-         getTemplateInternal(next[kfn]),
-         getTemplateInternal(prev[kfn]),
-         false,
-         versionsStorage,
-         checkPrevValue,
-         localPrefix,
-         isCompound
-      );
-      if (ch) {
-         return true;
-      }
-   }
-   return false;
-}
-
-function isTemplateObjectChanged(
-   next: ITemplateObject,
-   prev: ITemplateObject,
-   versionsStorage: object = EMPTY_OBJECT,
-   checkPrevValue: boolean = false,
-   prefix: string = EMPTY_STRING,
-   isCompound: boolean = false
-): boolean {
-   const localPrefix = prefix + ';' + ';';
-   const ch = getChangedOptions(
-      getTemplateInternal(next),
-      getTemplateInternal(prev),
-      false,
-      versionsStorage,
-      checkPrevValue,
-      localPrefix,
-      isCompound
-   );
-   return !!ch;
-}
-
 function getKeys(first: object, second: object): string[] {
    const keys = new Set();
    const firstKeys = Object.keys(first);
@@ -292,34 +242,10 @@ export function getChangedOptions(
                   if (!prev[property]) {
                      hasChanges = true;
                      changes[property] = next[property];
-                     continue;
-                  }
-                  if (isTemplateArrayChanged(
-                     next[property] as ITemplateArray,
-                     prev[property] as ITemplateArray,
-                     versionsStorage,
-                     checkPrevValue,
-                     prefix + property,
-                     isCompound
-                  )) {
-                     hasChanges = true;
-                     changes[property] = next[property];
                   }
                }
             } else if (isTemplateObject(next[property] as ITemplateObject)) {
-               // Inner template with internal options. We only need to check internal options
-               // cause function is bound and it can lead to useless redraws.
-               if (isTemplateObjectChanged(
-                  next[property] as ITemplateObject,
-                  prev[property] as ITemplateObject,
-                  versionsStorage,
-                  checkPrevValue,
-                  prefix + property,
-                  isCompound
-               )) {
-                  hasChanges = true;
-                  changes[property] = next[property];
-               }
+               // TODO: Skip
             } else if (isVersionable(next[property] as IVersionable) && next[property][PREFER_VERSIONS_API_FLAG]) {
                /*
                 * Есть такой кейс, когда объекты всегда новые, но они равны

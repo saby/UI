@@ -1002,23 +1002,12 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             }
             childControlNode.options = newOptions;
         } else {
-            // для не-compound контролов делаем проверку изменения служебных опций
-            changedInternalOptions = getChangedOptions(
-                newVNode.controlInternalProperties,
-                childControlNode.internalOptions,
-                false,
-                oldInternalVersions
-            );
-            // @ts-ignore
-            childControlNode.internalVersions = collectObjectVersions(newVNode.controlInternalProperties);
+           let resolvedContext;
+           let data = changedOptions || changedAttrs || changedContext;
 
             // @ts-ignore Атрибуты тоже учавствуют в DirtyChecking
-            if ((changedOptions || changedInternalOptions || changedAttrs || changedContext)
-                // @ts-ignore
-                && !childControl._destroyed) {
+            if ((changedOptions || changedAttrs || changedContext) && !childControl._destroyed) {
                 try {
-                    let resolvedContext;
-                    let data = changedOptions || changedInternalOptions || changedAttrs || changedContext;
                     Logger.debug('DirtyChecking (update node with changed)', data);
 
                     environment.setRebuildIgnoreId(childControlNode.id);
@@ -1057,11 +1046,8 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                     childControl._options = newOptions;
                     // @ts-ignore
                     shouldUpdate = (childControl._shouldUpdate ? childControl._shouldUpdate(newOptions, resolvedContext) : true) ||
-                        changedInternalOptions ||
                         changedAttrs ||
                         changedContext;
-
-                    childControl._setInternalOptions(changedInternalOptions || {});
 
                     childControlNode.oldOptions = oldOptions; // TODO Для afterUpdate подумать, как еще можно передать
                     childControlNode.oldContext = oldChildNodeContext; // TODO Для afterUpdate подумать, как еще можно передать
