@@ -5,9 +5,8 @@
  * @file UI/_builder/Tmpl/core/Context.ts
  */
 
-import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
-import * as Helpers from 'UI/_builder/Tmpl/expressions/_private/Helpers';
-import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
+import { ProgramNode, IdentifierNode, MemberExpressionNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
+import { Parser, IParser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 
 // <editor-fold desc="Constants">
 
@@ -189,7 +188,7 @@ function isForbiddenIdentifier(name: string): boolean {
 
 function canRegisterProgram(program: ProgramNode): boolean {
    // Do not register program with bind and mutable decorators
-   return !Helpers.hasBindings(program);
+   return !hasBindings(program);
 }
 
 // </editor-fold>
@@ -248,6 +247,70 @@ class ProgramStorage {
 }
 
 // </editor-fold>
+
+function hasBindings(program: ProgramNode): boolean {
+   if (typeof program.string !== 'string') {
+      return false;
+   }
+   return program.string.indexOf('|mutable') > -1 || program.string.indexOf('|bind') > -1;
+}
+
+function containsIdentifiers(program: ProgramNode, identifiers: string[], fileName: string): boolean {
+   let hasLocalIdentifier = false;
+   const callbacks = {
+      Identifier: (data: IdentifierNode): void => {
+         if (identifiers.indexOf(data.name) > -1) {
+            hasLocalIdentifier = true;
+         }
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName
+   });
+   return hasLocalIdentifier;
+}
+
+function collectIdentifiers(program: ProgramNode, fileName: string): string[] {
+   const identifiers: string[] = [];
+   const callbacks = {
+      Identifier: (node: IdentifierNode): void => {
+         const identifier = node.name;
+         // Do not produce duplicates
+         if (identifiers.indexOf(identifier) === -1) {
+            identifiers.push(node.name);
+         }
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName
+   });
+   return identifiers;
+}
+
+function dropBindProgram(program: ProgramNode, parser: IParser, fileName: string): ProgramNode[] {
+   const programs: ProgramNode[] = [];
+   const callbacks = {
+      Identifier: (node: IdentifierNode): void => {
+         programs.push(
+            parser.parse(node.name)
+         );
+      },
+      MemberExpression: (node: MemberExpressionNode): void => {
+         programs.push(
+            parser.parse(node.string)
+         );
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName
+   });
+   // We need to return value-program and object-program.
+   // Ex. for "a.b.c.d.e" we only return "a.b.c.d" and "a.b.c.d.e".
+   return programs.slice(-2);
+}
 
 class LexicalContext implements ILexicalContext {
 
@@ -383,10 +446,10 @@ class LexicalContext implements ILexicalContext {
    }
 
    hoistInternalProgram(description: IProgramDescription): void {
-      const programContainsLocalIdentifiers = Helpers.containsIdentifiers(description.node, this.identifiers, FILE_NAME);
+      const programContainsLocalIdentifiers = containsIdentifiers(description.node, this.identifiers, FILE_NAME);
       if (this.allowHoisting && this.parent !== null) {
          if (programContainsLocalIdentifiers) {
-            const identifiers = Helpers.collectIdentifiers(description.node, FILE_NAME);
+            const identifiers = collectIdentifiers(description.node, FILE_NAME);
             this.hoistIdentifiersAsPrograms(identifiers, this.identifiers);
          } else {
             this.parent.hoistInternalProgram(description);
@@ -415,7 +478,7 @@ class LexicalContext implements ILexicalContext {
    // <editor-fold desc="Private methods">
 
    private registerBindProgram(program: ProgramNode): TProgramKey {
-      const programs = Helpers.dropBindProgram(program, PARSER, FILE_NAME);
+      const programs = dropBindProgram(program, PARSER, FILE_NAME);
       let key = null;
       for (let index = 0; index < programs.length; ++index) {
          const isSynthetic = index + 1 < programs.length;
@@ -431,7 +494,7 @@ class LexicalContext implements ILexicalContext {
    }
 
    private registerFloatProgram(program: ProgramNode): void {
-      const identifiers = Helpers.collectIdentifiers(program, FILE_NAME);
+      const identifiers = collectIdentifiers(program, FILE_NAME);
       this.hoistIdentifiersAsPrograms(identifiers, EMPTY_ARRAY);
       for (let index = 0; index < identifiers.length; ++index) {
          const identifier = identifiers[index];
@@ -455,7 +518,7 @@ class LexicalContext implements ILexicalContext {
    }
 
    private processIdentifiers(program: ProgramNode): boolean {
-      const identifiers = Helpers.collectIdentifiers(program, FILE_NAME);
+      const identifiers = collectIdentifiers(program, FILE_NAME);
       // Do not register program without identifiers.
       if (identifiers.length === 0) {
          return false;
@@ -500,9 +563,9 @@ class LexicalContext implements ILexicalContext {
       for (let index = 0; index < internals.length; ++index) {
          const description = internals[index];
          const program = description.node;
-         const programContainsLocalIdentifiers = Helpers.containsIdentifiers(program, localIdentifiers, FILE_NAME);
+         const programContainsLocalIdentifiers = containsIdentifiers(program, localIdentifiers, FILE_NAME);
          if (programContainsLocalIdentifiers) {
-            const identifiers = Helpers.collectIdentifiers(program, FILE_NAME);
+            const identifiers = collectIdentifiers(program, FILE_NAME);
             this.hoistIdentifiersAsPrograms(identifiers, localIdentifiers);
             continue;
          }
