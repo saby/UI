@@ -67,11 +67,16 @@ export function restoreFocus(control: IControl, action: Function): void {
             return false;
          }
          // совместимость. среди контролов могут встретиться ws3
-         const container = currentControl._template ? currentControl._container : currentControl.getContainer()[0];
+         let container = currentControl._container;
+         let isOldControl = false;
+         if (!currentControl._template) {
+            container = currentControl.getContainer()[0];
+            isOldControl = true;
+         }
          // @ts-ignore
          focus.__restoreFocusPhase = true;
          const containerVisible = isElementVisible(container) && isTreeVisible(container);
-         const result = containerVisible && focus(container);
+         const result = containerVisible && focus(container, {}, isOldControl);
          // @ts-ignore
          delete focus.__restoreFocusPhase;
          return result;
