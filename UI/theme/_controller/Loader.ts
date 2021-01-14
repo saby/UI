@@ -40,6 +40,10 @@ export default class Loader implements ICssLoader {
 
    getHref(initialName: string, theme: string): string {
       let name: string = initialName;
+      if (!name && theme !== EMPTY_THEME) {
+         // TODO: Задача к require https://online.sbis.ru/opendoc.html?guid=698733df-9d93-472c-b704-2869900b4633
+         return `/resources/themes/${theme}.css`;
+      }
       if (name.indexOf('.css') !== -1) {
          return name;
       }

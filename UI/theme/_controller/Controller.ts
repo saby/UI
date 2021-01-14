@@ -2,11 +2,12 @@
 // @ts-ignore
 import { cookie } from 'Env/Env';
 import { Logger } from 'UI/Utils';
-import { createEntity, restoreEntity, isSingleEntity } from './CSS';
+import { createEntity, isSingleEntity, restoreEntity } from './CSS';
 import { DEFAULT_THEME, EMPTY_THEME, THEME_TYPE } from './css/const';
 import { ICssEntity } from './css/interface';
 import Loader, { ICssLoader } from './Loader';
-import { EntityStorage, AliasStorage, IAliases } from './Storage';
+import { AliasStorage, EntityStorage, IAliases } from './Storage';
+
 /**
  * Контроллер тем, необходим для скачивания/удаления/коллекции/переключения тем на странице
  * @class UI/theme/_controller/Controller
@@ -35,6 +36,20 @@ export class Controller {
       const name = this.aliases.get(cssName);
       const theme = themeName || this.appTheme;
       const href = this.cssLoader.getHref(name, theme);
+      return this._get(name, theme, href, themeType);
+   }
+
+   /**
+    * Получает файл с коэффициентами (CSS переменными) для тем.
+    * @param themeName
+    */
+   getVariables(themeName: string): Promise<void> {
+      debugger;
+      const href = this.cssLoader.getHref(null, themeName);
+      return this._get(themeName, themeName, href, THEME_TYPE.MULTI).then();
+   }
+
+   private _get(name: string, theme: string, href: string, themeType: THEME_TYPE): Promise<ICssEntity> {
       // в случаях дополнительных безымянных css, cssName равно href, см. UI/theme/_controller/CSS:49
       const registeredName = this.has(name, theme) && name
           || this.has(href, theme) && href
