@@ -942,7 +942,6 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             : newVNode.controlProperties, childControlNode.defaultOptions);
         let oldOptionsVersions = childControlNode.optionsVersions;
         let oldOptions = childControlNode.options;
-        let oldInternalVersions = childControlNode.internalVersions;
         let newChildNodeContext = newVNode.context || {};
         let oldChildNodeContext = childControlNode.context;
         let oldContextVersions = childControlNode.contextVersions;
