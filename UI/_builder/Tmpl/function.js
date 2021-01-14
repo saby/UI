@@ -547,7 +547,7 @@ define('UI/_builder/Tmpl/function', [
          Object.keys(processed.attributes).forEach(function(attributeName) {
             processed.attributes[attributeName] = processed.attributes[attributeName]
                .replace(/^' \+ (.*?) \+ '$/g, function(str, p) {
-                  return '¥' + p + '¥';
+                  return '¥' + p.replace(/\\/g, '\\\\') + '¥';
                });
          });
          var processedStr = FSC.getStr(processed)
