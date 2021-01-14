@@ -276,11 +276,15 @@ function fireActivationEvents(target: Element, relatedTarget: Element): void {
 
 let focusingState;
 let nativeFocus: Function;
+let lastFocused: IControlElement;
 function focus(element: IControlElement, {enableScreenKeyboard = false, enableScrollToElement = false}:
-   IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}): boolean {
+   IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}, isOldControl?: boolean): boolean {
    let res;
    const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard};
-   const lastFocused: Element = document.activeElement;
+   lastFocused = document.activeElement.tagName === 'BODY' ? lastFocused : document.activeElement as IControlElement;
+   if (document.activeElement.tagName === 'BODY' && lastFocused && isOldControl) {
+      element = lastFocused;
+   }
    element = fixElementForMobileInputs(element, cfg);
    if (focusingState) {
       nativeFocus.call(element);
