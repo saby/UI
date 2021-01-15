@@ -275,6 +275,10 @@ export function getChangedOptions(
             }
             if (isVersionableArray(next[property] as IVersionableArray) && versionsStorage) {
                const newVersion = (next[property] as IVersionableArray).getArrayVersion();
+               // возможно ситуация, когда на контентную опцию навешивается версионирование
+               // это связано с тем, что контентная опция является массивом
+               // но т.к. версионирование вешается снизу, то при поверке получаем ситуацию undefined !== 0
+               // из-за этого вызываются лишние перерисовки, для этого сделана жесткая проверка
                if (versionsStorage[prefix + property] !== undefined &&
                    versionsStorage[prefix + property] !== newVersion) {
                   hasChanges = true;
