@@ -1,15 +1,19 @@
 import {ChangeEvent} from 'react';
-import {Control} from 'UI/ReactComponent';
-
+import {Control, TemplateFunction, IControlOptions} from 'UI/ReactComponent';
 // @ts-ignore
 import template = require('wml!UIDemo/ReactDemo/TODO/Adder');
 
+interface IAdderOptions extends IControlOptions {
+    addNewItem: Function;
+}
+
 const defaultMessage: string = 'text';
 
-class Adder extends Control {
+export default class Adder extends Control<IAdderOptions> {
     protected _value: string = defaultMessage;
+    protected _template: TemplateFunction = template;
 
-    constructor(props) {
+    constructor(props: IAdderOptions) {
         super(props);
         this.changeHandler = this.changeHandler.bind(this);
         this.addNew = this.addNew.bind(this);
@@ -20,13 +24,7 @@ class Adder extends Control {
     }
 
     protected addNew(): void {
-        //@ts-ignore
         this._options.addNewItem(this._value);
         this._value = defaultMessage;
     }
 }
-
-// @ts-ignore
-Adder.prototype._template = template;
-
-export default Adder;
