@@ -25,6 +25,7 @@ export type IControlChildren = Record<string, Element | Control | Control<IContr
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
                                 forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
+import { DisposeControl, IOwnedDisposable } from 'Env/Disposable';
 
 /**
  * @event UI/_base/Control#activated Происходит при активации контрола.
@@ -109,12 +110,12 @@ export const _private = {
       if (executeTime > customBLExecuteTime) {
          const message = `Долгое выполнение _beforeMount на клиенте!
             Promise, который вернули из метода _beforeMount контрола ${moduleName} ` +
-            `завершился за ${executeTime} миллисекунд.
+             `завершился за ${executeTime} миллисекунд.
             Необходимо:
             - ускорить работу БЛ или
             - перенести работу в _afterMount контрола ${moduleName} или
             - увеличить константу ожидания по согласованию с Бегуновым А. ` +
-            `прикреплять согласование комментарием к константе, чтобы проект прошел ревью`;
+             `прикреплять согласование комментарием к константе, чтобы проект прошел ревью`;
          Logger.warn(message, instance);
       }
    },
@@ -125,7 +126,7 @@ export const _private = {
       let asyncTimer = setTimeout(() => {
          const message = `Ошибка построения на клиенте!
             Promise, который вернули из метода _beforeMount контрола ${moduleName} ` +
-            `не завершился за ${time} миллисекунд.
+             `не завершился за ${time} миллисекунд.
             Необходимо проверить правильность написания асинхронных вызовов в _beforeMount контрола ${moduleName}.
             Возможные причины:
             - Promise не вернул результат/причину отказа
@@ -134,9 +135,9 @@ export const _private = {
       }, time);
 
       return resultBeforeMount.finally(() => {
-            clearTimeout(asyncTimer);
-            _private._checkAsyncExecuteTime(startTime, customBLExecuteTime, moduleName, instance);
-         }
+             clearTimeout(asyncTimer);
+             _private._checkAsyncExecuteTime(startTime, customBLExecuteTime, moduleName, instance);
+          }
       );
    },
    configureCompatibility(domElement: HTMLElement, cfg: any, ctor: any): boolean {
@@ -152,9 +153,9 @@ export const _private = {
 
          if (parent && parent._options === cfg) {
             Logger.error('Для создания контрола ' + ctor.prototype._moduleName +
-               ' в качестве конфига был передан объект с опциями его родителя ' + parent._moduleName +
-               '. Не нужно передавать чужие опции для создания контрола, потому что они могут ' +
-               'изменяться в процессе создания!', this);
+                ' в качестве конфига был передан объект с опциями его родителя ' + parent._moduleName +
+                '. Не нужно передавать чужие опции для создания контрола, потому что они могут ' +
+                'изменяться в процессе создания!', this);
          } else {
             cfg.parent = cfg.parent || parent;
          }
@@ -179,7 +180,7 @@ export interface ITemplateAttrs {
    context?: Record<string, any>;
    domNodeProps?: Record<string, any>;
    events?: Record<string, any>;
-};
+}
 
 type TControlConfig = IControlOptions & {
    [key: string]: any;
@@ -218,11 +219,11 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
    private readonly _instId: string = 'inst_' + countInst++;
    protected _options: TOptions = {} as TOptions;
    private _internalOptions: Record<string, unknown>;
-
+   private _resources = new DisposeControl(this);
    /**
     * TODO: delete it
     */
-   // @ts-ignore
+       // @ts-ignore
    private _fullContext: Record<string, any>;
 
    private _evaluatedContext: IContext;
@@ -315,6 +316,12 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
    private _getEnvironment(): any {
       return this._environment;
    }
+   protected attach(resource: IOwnedDisposable): void {
+      this._resources.track(resource);
+   }
+   protected _beforeUnmountLimited(): void {
+      this._resources.dispose();
+   }
 
    protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): unknown {
       if (args && !(args instanceof Array)) {
@@ -336,9 +343,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
     * @param isVdom
     */
    _getMarkup(
-      rootKey?: string,
-      attributes?: ITemplateAttrs,
-      isVdom: boolean = true
+       rootKey?: string,
+       attributes?: ITemplateAttrs,
+       isVdom: boolean = true
    ): any {
       if (!(this._template as any).stable) {
          Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
@@ -355,8 +362,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
          if (attributes.events.hasOwnProperty(i)) {
             for (let handl = 0; handl < attributes.events[i].length; handl++) {
                if (
-                  attributes.events[i][handl].isControl &&
-                  !attributes.events[i][handl].fn.controlDestination
+                   attributes.events[i][handl].isControl &&
+                   !attributes.events[i][handl].fn.controlDestination
                ) {
                   attributes.events[i][handl].fn.controlDestination = this;
                }
@@ -819,8 +826,8 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       return this.constructor['loadThemes'](themeName, themes).catch(logError);
    }
    private loadStyles(): Promise<void> {
-       // @ts-ignore
-       const styles = this._styles instanceof Array ? this._styles : [];
+      // @ts-ignore
+      const styles = this._styles instanceof Array ? this._styles : [];
       return this.constructor['loadStyles'](styles).catch(logError);
    }
    //#endregion
@@ -1313,7 +1320,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
          return true;
       }
       return themes.every((cssName) => themeController.isMounted(cssName, themeName)) &&
-         styles.every((cssName) => themeController.isMounted(cssName, EMPTY_THEME));
+          styles.every((cssName) => themeController.isMounted(cssName, EMPTY_THEME));
    }
    //#endregion
 
