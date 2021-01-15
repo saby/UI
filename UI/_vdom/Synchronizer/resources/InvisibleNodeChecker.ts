@@ -2,7 +2,7 @@ import { IControlNode } from '../interfaces';
 import { invisibleNodeTagName } from 'UI/Executor';
 
 /**
- * @author Кондаков Р.Н.
+ * @author Санников К.А.
  */
 
 function isInvisibleType(typename?: string): boolean {
