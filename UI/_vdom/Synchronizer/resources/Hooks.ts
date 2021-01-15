@@ -5,7 +5,7 @@ import { constants } from 'Env/Env';
 import { Set } from 'Types/shim';
 
 /**
- * @author Кондаков Р.Н.
+ * @author Санников К.А.
  */
 
 export type TRef = (element?: IWasabyHTMLElement) => void;
