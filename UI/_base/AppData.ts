@@ -1,5 +1,9 @@
 import * as AppEnv from 'Application/Env';
 
+/**
+ * @author Санников К.А.
+ */
+
 class AppData {
    RUMEnabled: Boolean = false;
    buildnumber: string = '';
