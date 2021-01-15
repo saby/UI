@@ -291,7 +291,7 @@ define('UI/_builder/Tmpl/function', [
          if (this._modules[modName] && modName !== 'partial') {
             return this._processModule;
          }
-         return this._checkForManageableAttributes;
+         return this._processEntity;
       },
       _processEntity: function(tag, data, decor, parentNS) {
          if (this._modules[tagUtils.splitWs(tag.name)]) {
@@ -544,11 +544,15 @@ define('UI/_builder/Tmpl/function', [
          }
          var attribs = typeof decor === 'function' ? decor(tag.attribs) : tag.attribs;
          var processed = this._processAttributesObj(attribs, data, tag);
+         Object.keys(processed.attributes).forEach(function(attributeName) {
+            processed.attributes[attributeName] = processed.attributes[attributeName]
+               .replace(/^' \+ (.*?) \+ '$/g, function(str, p) {
+                  return '¥' + p.replace(/\\/g, '\\\\') + '¥';
+               });
+         });
          var processedStr = FSC.getStr(processed)
             .replace(/\\("|')/g, '$1')
             .replace(/\\\\/g, '\\')
-            .replace(/"' \+ /g, '')
-            .replace(/ \+ '"/g, '')
             .replace(/' \+ /g, '" + ')
             .replace(/ \+ '/g, ' + "');
          var children = this._process(tag.children, data, undefined, currentParentNS);
@@ -556,71 +560,6 @@ define('UI/_builder/Tmpl/function', [
             ? 'attr'
             : 'attr?{context: attr.context, key: key+"' + tag.key + '"}:{}';
          return Generator.genCreateTag("'" + tag.name + "'", processedStr, children, attrToDecorate) + ', \n';
-      },
-
-      /**
-       * Разбор управляющих атрибутов
-       * @param attribs
-       * @returns {Array}
-       */
-      _processManageableAttributes: function processManageableAttributes(attribs) {
-         var constructArray = [];
-         for (var attrib in attribs) {
-            if (this._attributeModules.hasOwnProperty(attrib) && attribs[attrib]) {
-               if (attrib === 'if') {
-                  constructArray.unshift({
-                     module: attrib,
-                     value: attribs[attrib]
-                  });
-               } else {
-                  constructArray.push({
-                     module: attrib,
-                     value: utils.clone(attribs[attrib])
-                  });
-               }
-            }
-         }
-         return constructArray;
-      },
-
-      /**
-       * Генерация тэга, если присутствует управляющий атрибут <div if="{{true}}">...
-       * @param tag
-       * @param data
-       * @param decor
-       * @param parentNS
-       * @returns {*}
-       */
-      _useManageableAttributes: function useManageableAttributes(tag, data, decor, parentNS) {
-         var constructArray = this._processManageableAttributes(tag.attribs);
-         if (constructArray.length) {
-            var moduleName = constructArray.shift().module;
-
-            // если элемент - label, нужно рассматривать его атрибут for как
-            // уникальный идентификатор http://htmlbook.ru/html/label/for , а не как цикл в tmpl
-            if (moduleName === 'for' && tag.name === 'label') {
-               return this._processEntity(tag, data, decor, parentNS);
-            }
-            var moduleFunction = parseUtils.attributeParserMatcherByName.call(this, moduleName);
-            var tagModule = moduleFunction.call(this, tag, data, decor);
-            return tagModule.call(this, decor);
-         }
-         return this._processEntity(tag, data, decor, parentNS);
-      },
-
-      /**
-       * Проверяем, есть ли атрибуты, для ускорения генерации
-       * @param tag
-       * @param data
-       * @param decor
-       * @param parentNS
-       * @returns {*}
-       */
-      _checkForManageableAttributes: function checkForManageableAttributes(tag, data, decor, parentNS) {
-         if (tag.attribs) {
-            return this._useManageableAttributes(tag, data, decor, parentNS);
-         }
-         return this._processEntity(tag, data, decor, parentNS);
       },
 
       /**

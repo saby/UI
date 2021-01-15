@@ -272,11 +272,17 @@ function focusInner(element: Element, cfg: IFocusConfig): boolean {
 
 let focusingState;
 let nativeFocus: Function;
+let lastFocused: IControlElement;
 function focus(element: IControlElement, {enableScreenKeyboard = false, enableScrollToElement = false}:
-   IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}): boolean {
+   IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}, isOldControl?: boolean): boolean {
    let res;
    const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard};
-   const lastFocused: Element = document.activeElement;
+   // в ie фокус может быть null
+   const isBodyFocused = document.activeElement && document.activeElement.tagName === 'BODY';
+   lastFocused = isBodyFocused ? lastFocused : document.activeElement as IControlElement;
+   if (isBodyFocused && lastFocused && isOldControl) {
+      element = lastFocused;
+   }
    const elementFixed = fixElementForMobileInputs(element, cfg);
    if (focusingState) {
       nativeFocus.call(elementFixed);
