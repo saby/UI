@@ -1,15 +1,17 @@
-<ws:if data="{{_options.items.length}}">
+<ws:if data="{{_options.items.length || (_options.items.getCount && _options.items.getCount())}}">
    <div class="todo-List">
       <ws:for data="i in _options.items">
          <UIDemo.ReactDemo.TODO.Item
-               key="{{i.id}}"
-               title="{{i.title}}"
-               removeHandler="{{_options.removeHandler.bind(undefined, i.id)}}"/>
+            key="{{i.id}}"
+            title="{{i.title}}"
+            checked="{{i.checked}}"
+            changeHandler="{{_options.changeHandler.bind(undefined, i)}}"
+            removeHandler="{{_options.removeHandler.bind(undefined, i)}}"/>
       </ws:for>
    </div>
 </ws:if>
 <ws:else>
-   <div>
+   <div class="todo-List__empty">
       Список пуст
    </div>
 </ws:else>

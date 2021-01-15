@@ -1,4 +1,5 @@
 import {Control, TemplateFunction} from 'UI/Base';
+// @ts-ignore
 import * as template from 'wml!UIDemo/ReactDemo/Index';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
