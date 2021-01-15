@@ -1,8 +1,8 @@
 import {Component, createElement, ReactElement} from 'react';
-import { IControlOptions, ITemplateFunction } from './interfaces';
-import {reactiveObserve} from './ReactiveObserver';
-import {_IGeneratorType} from "UI/Executor";
-import {getGeneratorConfig} from "UI/Base";
+import {IControlOptions} from './interfaces';
+import {reactiveObserve, releaseProperties} from './ReactiveObserver';
+import {_IGeneratorType} from 'UI/Executor';
+import {getGeneratorConfig} from 'UI/Base';
 import {makeRelation, removeRelation} from 'UI/_react/Control/ParentFinder';
 
 interface IControlState {
@@ -11,8 +11,9 @@ interface IControlState {
 
 let countInst = 1;
 
-export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
-                                forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
+export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean,
+                                sets?: any, forceCompatible?: boolean,
+                                generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
 
 type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
@@ -28,8 +29,9 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
     private _$observer: Function = reactiveObserve;
     protected _container: HTMLElement = null;
     protected _children: IControlChildren = {};
-    protected _template: ITemplateFunction;
+    protected _template: TemplateFunction;
     protected _options: P;
+    reactiveValues: object;
 
     private readonly _instId: string = 'inst_' + countInst++;
 
@@ -78,10 +80,7 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
         } else {
             this._firstRender = false;
         }
-        // TODO: Вынести работу с reactiveProps в генераторы
-        if (this._template.reactiveProps) {
-            this._$observer(this, this._template.reactiveProps);
-        }
+        this._$observer(this, this._template);
     }
 
     // На данном этапе рисуем индикатор вместо компонента в момен загрузки асинхронного beforeMount
@@ -139,6 +138,16 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
         // Do
     }
 
+    protected _shouldUpdate(newOptions: P): boolean {
+        return true;
+    }
+
+    protected _componentDidUpdate(oldOptions: P): void {
+        // Do
+    }
+    protected _afterRender(oldOptions: P): void {
+        // Do
+    }
     /* End: Compatible lifecicle hooks */
 
     /* Start: React lifecicle hooks */
@@ -147,13 +156,15 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
         if (!this._asyncMount) {
             setTimeout(() => {
                 makeRelation(this);
-                this._afterMount.apply(this);
+                this._afterMount.apply(this, [this.props]);
             }, 0);
         }
     }
 
     componentDidUpdate(prevProps: P): void {
         this._options = this.props;
+        this._componentDidUpdate(prevProps);
+        this._afterRender(prevProps);
         setTimeout(() => {
             makeRelation(this);
             this._afterUpdate.apply(this, [prevProps]);
@@ -169,17 +180,26 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
 
     componentWillUnmount(): void {
         removeRelation(this);
+        releaseProperties(this);
         this._beforeUnmount.apply(this);
     }
 
-    saveInheritOptions(): any {
-
+    shouldComponentUpdate(nextProps: Readonly<P>): boolean {
+        return this._shouldUpdate(nextProps);
     }
-    _saveContextObject(): any {
 
+    /* End: React lifecicle hooks */
+
+    saveInheritOptions(): void {
+        // Do
     }
-    saveFullContext(): any {
 
+    _saveContextObject(): void {
+        // Do
+    }
+
+    saveFullContext(): void {
+        // Do
     }
 
     render(): unknown {
@@ -192,17 +212,21 @@ export class Control<P extends IControlOptions = {}, T = {}> extends Component<P
         }
 
         const generatorConfig = getGeneratorConfig();
-        //@ts-ignore
+        // @ts-ignore
         window.reactGenerator = true;
         const ctx = {...this, _options: {...this.props}};
-        //@ts-ignore
         const res = this._template(ctx, {}, undefined, undefined, undefined, undefined, generatorConfig);
         // прокидываю тут аргумент isCompatible, но можно вынести в билдер
+        // @ts-ignore
         const originRef = res[0].ref;
-        res[0] = {...res[0], ref: (node) => {
-            return originRef.apply(this, [node, true]);
-        }};
-        //@ts-ignore
+        // @ts-ignore
+        res[0] = {
+            // @ts-ignore
+            ...res[0], ref: (node) => {
+                return originRef.apply(this, [node, true]);
+            }
+        };
+        // @ts-ignore
         window.reactGenerator = false;
         return res;
     }
