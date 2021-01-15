@@ -1,0 +1,14 @@
+<div class="demo-ReactWasaby__app">
+   <div class="demo-ReactWasaby__block">
+      <h2 class="demo-ReactWasaby__title">Реактивные свойства массив</h2>
+      <UIDemo.ReactDemo.TODO.TODO
+         changeHandler="{{_changeHandlerArray}}"
+         items="{{_itemsArray}}"/>
+   </div>
+   <div class="demo-ReactWasaby__block">
+      <h2 class="demo-ReactWasaby__title">Реактивные свойства RecordSet</h2>
+      <UIDemo.ReactDemo.TODO.TODO
+         changeHandler="{{_changeHandlerRS}}"
+         items="{{_itemsRs}}"/>
+   </div>
+</div>
