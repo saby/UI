@@ -1,6 +1,6 @@
 const eventMap = {
-    onclick: 'onClick',
-    onchange: 'onChange'
+    'on:click': 'onClick',
+    'on:change': 'onChange'
 };
 function repairEventName(eventName: string): string {
     return eventMap[eventName] || eventName;
