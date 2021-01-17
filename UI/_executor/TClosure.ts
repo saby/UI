@@ -17,7 +17,7 @@ import { object } from 'Types/util';
 // @ts-ignore
 import { constants } from 'Env/Env';
 
-import { Text, Vdom } from './Markup';
+import { Text, Vdom, React } from './Markup';
 import * as Scope from './_Expressions/Scope';
 import * as Attr from './_Expressions/Attr';
 import { Common, ConfigResolver } from './Utils';
@@ -27,7 +27,7 @@ function getDecorators() {
    if (decorators) {
       return decorators;
    } else {
-      // @ts-ignore
+      // eslint-disable-next-line
       decorators = require('View/decorators');
       return decorators;
    }
@@ -40,6 +40,7 @@ function getGeneratorCompatible(config) {
    } else {
       //@ts-ignore
       if (require.defined('View/ExecutorCompatible')) {
+         // eslint-disable-next-line
          generatorCompatible = require('View/ExecutorCompatible').Compatible(config);
          return generatorCompatible;
       } else {
@@ -102,23 +103,9 @@ const ITERATORS = [
 
 var lastGetterPath;
 var
-   getter = function getter(obj, path, viewController) {
+   getter = function getter(obj, path) {
       lastGetterPath = path;
-      const extractValueFn = constants.isProduction ? null : (name: string, scope: unknown, depth: number): void => {
-         const error = scope['_$' + name];
-         if (error instanceof ConfigResolver.UseAutoProxiedOptionError) {
-            if (!error.isDestroyed()) {
-               Logger.warn(`(Отладочная информация! Игнорируйте!)
-               Попытка использовать опцию, которой не существует: ${path.slice(0, depth + 1).join('.')}
-               При вставке контрола/шаблона эта опция не была явно передана, поэтому в текущем дочернем контроле ее использовать нельзя.
-               Передача опции не произошла в шаблоне контрола: ${error.upperControlName}.
-               Вставляемый контрол/шаблон, в котором должна явно передаваться опция: ${error.lostHere}.
-               Попытка использовать опцию`, viewController);
-               error.destroy();
-            }
-         }
-      }
-      return object.extractValue(obj, path, extractValueFn);
+      return object.extractValue(obj, path);
    },
 
    /**
@@ -128,14 +115,7 @@ var
     * @param path
     * @param value
     */
-   setter = function setter(obj, path, viewController, value) {
-      // костыль, удалить
-      // есть сервис который работает в 515 версии, и там еще нет аргумента viewController
-      if (value === undefined) {
-         if (typeof viewController !== 'object' || Array.isArray(viewController)) {
-            value = viewController;
-         }
-      }
+   setter = function setter(obj, path, value) {
       return object.implantValue(obj, path, value);
    },
    wrapUndef = function wrapUndef(value) {
@@ -211,6 +191,10 @@ var
       }
    },
    createGenerator = function (isVdom, forceCompatible = false, config) {
+      // @ts-ignore
+      if (typeof window !== 'undefined' && window.reactGenerator) {
+         return React(config);
+      }
       if (isVdom) {
          return Vdom(config);
       }
@@ -314,9 +298,9 @@ var
    },
    getRk = function(fileName) {
       var localizationModule = fileName.split('/')[0];
-
-      var rk = requirejs("i18n!" + localizationModule);
-
+      this.getRkCache = this.getRkCache || {};
+      var rk = this.getRkCache[localizationModule] || requirejs("i18n!" + localizationModule);
+      this.getRkCache[localizationModule] = rk;
       return rk;
    };
 

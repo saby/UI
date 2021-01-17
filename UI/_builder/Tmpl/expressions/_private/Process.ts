@@ -1,7 +1,10 @@
 /// <amd-module name="UI/_builder/Tmpl/expressions/_private/Process" />
 
 /**
+ * @deprecated
+ * @description Represents mustache expression processing.
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/Process.ts
  */
 
 import { createErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
@@ -29,7 +32,7 @@ export function escapeQuotesInString(entity: any): any {
    return entity;
 }
 
-const localizationRegExp = /^(\s*)(?:(.*?)\s*@@\s*)?(.*?)(\s*)$/;
+const localizationRegExp = /^(\s*)(?:([\S\s]*?)\s*@@\s*)?([\S\s]*?)(\s*)$/;
 
 function splitLocalizationText(text: string, fileName: string): { text: string, context: string, spacesBefore: string, spacesAfter: string } {
    const [match, spacesBefore, context, splitedText, spacesAfter]: string[] = localizationRegExp.exec(text);

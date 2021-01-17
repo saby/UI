@@ -94,21 +94,6 @@ function findClosestEnvironment(sourceElement: Element): IDOMEnvironment | null 
    return null;
 }
 
-function fixNotifyArguments(env: IDOMEnvironment,
-                            target: Element,
-                            relatedTarget: Element,
-                            isTabPressed: TTabPressesd): [Element, Element, TTabPressesd] {
-   // Пока не смержили правку в ws, не можем поменять сигнатуру функции.
-   // Поэтому будем менять в три доброски, с совместимостью в ui
-   if (env && env.__captureEventHandler) {
-      return [target, relatedTarget, isTabPressed];
-   } else {
-      // @ts-ignore
-      // FIXME: по проекту изменния системы событий
-      return [env, target, relatedTarget];
-   }
-}
-
 /**
  * Вычисляем состояние активности компонентов, и стреляем событием активности у тех компонентов,
  * что поменяли свое состояние
@@ -118,11 +103,10 @@ function fixNotifyArguments(env: IDOMEnvironment,
  * @param isTabPressed - true, если фокус перешел по нажатию tab
  */
 
-export function notifyActivationEvents(env: IDOMEnvironment,
-                                       target: Element,
+export function notifyActivationEvents(target: Element,
                                        relatedTarget: Element,
+                                       env?: IDOMEnvironment,
                                        isTabPressed?: TTabPressesd): boolean | void {
-   [target, relatedTarget, isTabPressed] = fixNotifyArguments(env, target, relatedTarget, isTabPressed);
    if (detectStrangeElement(target)) {
       return;
    }
@@ -206,8 +190,8 @@ export function notifyActivationEvents(env: IDOMEnvironment,
 
    prevControl = null;
    // Меняем состояние у тех компонентов, которые реально получили активность
+   let found = undefined;
    arrayMaker.find(function (control) {
-      let found = undefined;
       if (control !== mutualTarget) {
          // не стреляем событием для HOC, события сейчас так работают что если
          // стрельнем событием на контроле, обработчик позовутся и для контрола, и для его хоков.
@@ -233,9 +217,10 @@ export function notifyActivationEvents(env: IDOMEnvironment,
 
       return found;
    });
-
-   let environment = findClosestEnvironment(target);
-   if(environment) {
-      compatibleActivationEvents(environment, arrayMaker);
+   if (!found) {
+      let environment = findClosestEnvironment(target);
+      if (environment) {
+         compatibleActivationEvents(environment, arrayMaker);
+      }
    }
 }

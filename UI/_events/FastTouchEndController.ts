@@ -1,7 +1,6 @@
 /**
  * @author Тэн В.А.
  */
-const fastEventList = ['mousedown', 'mouseup', 'click'];
 
 interface IMouseEventInitExtend extends MouseEventInit {
    type: string;
@@ -12,6 +11,9 @@ interface IMouseEventInitExtend extends MouseEventInit {
    preventDefault?: Function;
 }
 
+const fastEventList = ['mousedown', 'mouseup', 'click'];
+const useNativeEventList = ['input'];
+
 export class FastTouchEndController {
    private static needClickEmulate: boolean = true;
 
@@ -20,7 +22,7 @@ export class FastTouchEndController {
    }
 
    static clickEmulate(targetElement: Element, nativeEvent: TouchEvent): void {
-      if (!nativeEvent || !nativeEvent.preventDefault || !this.needClickEmulate) {
+      if (this.useNativeTouchEnd(targetElement, nativeEvent)) {
          return;
       }
       nativeEvent.preventDefault();
@@ -30,6 +32,22 @@ export class FastTouchEndController {
          clickEvent = new MouseEvent(fastEventList[i], this.createMouseEvent(fastEventList[i], nativeEvent, touch));
          targetElement.dispatchEvent(clickEvent);
       }
+   }
+
+   private static useNativeTouchEnd(targetElement: Element, nativeEvent: TouchEvent): boolean {
+      if (!nativeEvent) {
+         return true;
+      }
+      if (!nativeEvent.preventDefault) {
+         return true;
+      }
+      if (!this.needClickEmulate) {
+         return true;
+      }
+      if (useNativeEventList.indexOf(targetElement.tagName.toLowerCase()) > -1) {
+         return true;
+      }
+      return false;
    }
 
    private static createMouseEvent(eventName: string, event: TouchEvent, touch: Touch): IMouseEventInitExtend {

@@ -1,9 +1,15 @@
 /// <amd-module name="UI/_builder/Tmpl/codegen/jstpl" />
 
 /**
+ * @description Code generation templates.
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/codegen/jstpl.ts
  */
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const BODY = `if (typeof forceCompatible === 'undefined') {
     forceCompatible = false;
 }
@@ -30,6 +36,10 @@ try {
 return out || markupGenerator.createText("");
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const DEFINE = `define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEPENDENCIES#*/, function(Executor, rk) {
    function debug() {
       debugger;
@@ -68,6 +78,10 @@ export const DEFINE = `define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEP
 });
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const FOR = `(function customForTemplate() {
    var out = [];
    data.viewController = viewController || null;
@@ -86,6 +100,10 @@ export const FOR = `(function customForTemplate() {
 })(),
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const FOREACH = `(function forTemplate() {
    var iterator = undefined;
    for (var i = 0; i < thelpers.iterators.length && !iterator; i++) {
@@ -119,6 +137,10 @@ export const FOREACH = `(function forTemplate() {
 }).call(this),
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const FUNCTION_TEMPLATE = `/*#DELETE IT START#*/
 if (typeof context === "undefined") {
    var context = arguments[2];
@@ -148,6 +170,10 @@ var viewController = thelpers.calcParent(this, typeof currentPropertyName === 'u
 /*#TEMPLATE_BODY#*/
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const HEAD = `/*#DELETE IT START#*/
 function debug() {
    debugger;
@@ -176,6 +202,10 @@ var defCollection = {
 var viewController = thelpers.calcParent(this, typeof currentPropertyName === 'undefined' ? undefined : currentPropertyName, data);
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const INCLUDED_TEMPLATE = `{
    func: (function () {
       var scope = Object.create(data);
@@ -196,6 +226,10 @@ export const INCLUDED_TEMPLATE = `{
 }
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const OBJECT_TEMPLATE = `(new(function () {
    var scope = Object.create(data);
    scope.viewController = viewController || null;
@@ -206,6 +240,10 @@ export const OBJECT_TEMPLATE = `(new(function () {
 })).func
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const PARTIAL_TEMPLATE = `(function f2(data, attr) {
   var key = thelpers.validateNodeKey(attr && attr.key);
   var defCollection = {
@@ -216,6 +254,10 @@ export const PARTIAL_TEMPLATE = `(function f2(data, attr) {
 })
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const PRIVATE_TEMPLATE = `{
   var key = thelpers.validateNodeKey(attr && attr.key);
   var forCounter = 0;
@@ -229,6 +271,10 @@ export const PRIVATE_TEMPLATE = `{
 }
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const PRIVATE_TEMPLATE_HEADER = `(function () {
   includedTemplates["/*#NAME#*/"] = (function (data, attr, context, isVdom) {
     /*#BODY#*/
@@ -238,6 +284,10 @@ export const PRIVATE_TEMPLATE_HEADER = `(function () {
 })(),
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const STRING_TEMPLATE = `/*#DELETE IT START#*/
 if (typeof context === "undefined") {
    var context = arguments[2];
@@ -256,41 +306,3 @@ var currentPropertyName = "/*#PROPERTY_NAME#*/";
 
 /*#TEMPLATE_BODY#*/
 `;
-
-export const templateRegExp = /\/\*#TEMPLATE#\*\//g;
-
-export const moduleExtensionRegExp = /\/\*#MODULE_EXTENSION#\*\//g;
-
-export const privateTemplatesRegExp = /\/\*#PRIVATE_TEMPLATES#\*\//g;
-
-export const includedTemplatesRegExp = /\/\*#INCLUDED_TEMPLATES#\*\//g;
-
-export const isWasabyTemplateRegExp = /\/\*#IS_WASABY_TEMPLATE#\*\//g;
-
-export const moduleNameRegExp = /\/\*#MODULE_NAME#\*\//g;
-
-export const localDependenciesRegExp = /\/\*#LOCAL_DEPENDENCIES#\*\//g;
-
-export const dependenciesRegExp = /\/\*#DEPENDENCIES#\*\//g;
-
-export const reactivePropertiesRegExp = /\/\*#REACTIVE_PROPERTIES#\*\//g;
-
-export const initRegExp = /\/\*#INIT#\*\//g;
-
-export const testRegExp = /\/\*#TEST#\*\//g;
-
-export const updateRegExp = /\/\*#UPDATE#\*\//g;
-
-export const processedRegExp = /\/\*#PROCESSED#\*\//g;
-
-export const scopeArrayRegExp = /\/\*#SCOPE_ARRAY#\*\//g;
-
-export const iteratorScopeRegExp = /\/\*#ITERATOR_SCOPE#\*\//g;
-
-export const fileNameRegExp = /\/\*#FILE_NAME#\*\//g;
-
-export const markupGenerationRegExp = /\/\*#MARKUP_GENERATION#\*\//g;
-
-export const propertyNameRegExp = /\/\*#PROPERTY_NAME#\*\//g;
-
-export const templateBodyRegExp = /\/\*#TEMPLATE_BODY#\*\//g;

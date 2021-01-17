@@ -12,10 +12,17 @@ define('UI/_builder/Tmpl/core/_deprecated/ComponentCollector', [
    'use strict';
 
    /**
-    * Модуль предназначен для сбора зависимостей шаблона путем обхода дерева.
+    * @deprecated
+    * @description Модуль предназначен для сбора зависимостей шаблона путем обхода дерева.
     * @author Крылов М.А.
+    * @file UI/_builder/Tmpl/core/_deprecated/ComponentCollector.js
     */
 
+   /**
+    * Create template dependency.
+    * @param template {*} Template node.
+    * @returns {string|undefined|*}
+    */
    function createTemplate(template) {
       // FIXME: разбор-сборка по плагинам require.
 
@@ -51,6 +58,12 @@ define('UI/_builder/Tmpl/core/_deprecated/ComponentCollector', [
       return undefined;
    }
 
+   /**
+    * Check component.
+    * @param name {*} Component name.
+    * @param types {*} Special types.
+    * @param entity {*} Component node.
+    */
    function checkIfComponent(name, types, entity) {
       var wsComponent = tagUtils.checkForControl(name, true, false, true);
       if (wsComponent) {
@@ -62,6 +75,11 @@ define('UI/_builder/Tmpl/core/_deprecated/ComponentCollector', [
       return undefined;
    }
 
+   /**
+    * Get component dependencies.
+    * @param cArray {*} Dependencies collection.
+    * @param ast {*} Ast array.
+    */
    function getComponentsRec(cArray, ast) {
       var componentName;
       for (var i = 0; i < ast.length; i++) {
@@ -81,12 +99,23 @@ define('UI/_builder/Tmpl/core/_deprecated/ComponentCollector', [
       }
    }
 
+   /**
+    * Get component dependencies.
+    * @param ast {*} Ast array.
+    * @returns {[]} Component dependencies.
+    */
    function getComponents(ast) {
       var cArray = [];
       getComponentsRec(cArray, ast);
       return cArray;
    }
 
+   /**
+    * Get component dependencies with 'UI/Executor'.
+    * @param ast {*} Ast array.
+    * @param error {*} Error instance.
+    * @returns {[]} Component dependencies.
+    */
    function getDependencies(ast, error) {
       if (!error) {
          return [

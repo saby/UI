@@ -11,6 +11,7 @@ import { IBuilder } from './IBuilder';
 
 import { invisibleNodeCompat, isInstOfPromise, asyncRenderErrorTag } from './Utils';
 import { needWaitAsync } from '../_Utils/Common';
+import * as react from 'browser!react';
 
 /**
  * @author Тэн В.А.
@@ -38,6 +39,10 @@ export class Builder implements IBuilder {
       var defaultOpts = OptionsResolver.getDefaultOptions(cnstr);
       OptionsResolver.resolveOptions(cnstr, defaultOpts, _options, parentName);
 
+      //@ts-ignore
+      if (typeof window !== 'undefined' && window.reactGenerator) {
+         return react.createElement(cnstr, _options);
+      }
       var inst = new cnstr(_options),
          actualOptions = _options;
 
@@ -85,11 +90,13 @@ export class Builder implements IBuilder {
          //TODO пропустить через contextResolver(где взять класс?)
          inst.saveInheritOptions(scope.inheritOptions || {});
 
+         const needWaitAsyncValue = needWaitAsync(inst._moduleName);
+
          /**
           * Понимаем асинхронная ветка или нет
           */
          if (dfd && isInstOfPromise(dfd)) {
-            if (!needWaitAsync(inst._moduleName)) {
+            if (!needWaitAsyncValue) {
                return '<div>Временная заглушка для ожидания асинхронного маунта</div>';
             }
             if(!isNewEnvironment()) {

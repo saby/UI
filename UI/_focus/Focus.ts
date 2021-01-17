@@ -272,11 +272,17 @@ function focusInner(element: Element, cfg: IFocusConfig): boolean {
 
 let focusingState;
 let nativeFocus: Function;
+let lastFocused: IControlElement;
 function focus(element: IControlElement, {enableScreenKeyboard = false, enableScrollToElement = false}:
-   IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}): boolean {
+   IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}, isOldControl?: boolean): boolean {
    let res;
    const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard};
-   const lastFocused: Element = document.activeElement;
+   // в ie фокус может быть null
+   const isBodyFocused = document.activeElement && document.activeElement.tagName === 'BODY';
+   lastFocused = isBodyFocused ? lastFocused : document.activeElement as IControlElement;
+   if (isBodyFocused && lastFocused && isOldControl) {
+      element = lastFocused;
+   }
    const elementFixed = fixElementForMobileInputs(element, cfg);
    if (focusingState) {
       nativeFocus.call(elementFixed);
@@ -287,6 +293,12 @@ function focus(element: IControlElement, {enableScreenKeyboard = false, enableSc
       } finally {
          focusingState = false;
       }
+   }
+   // @ts-ignore
+   // в ie нельзя стрелять событиями активации во время восстановления фокуса после перерисовки
+   // если так сделать, то будет вызван нотифай события deactivated и выстрялет все подписанные на него обработчики
+   if (detection.isIE && res && !focus.__restoreFocusPhase) {
+      notifyActivationEvents(document.activeElement, lastFocused);
    }
    return res;
 }

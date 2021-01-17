@@ -1,9 +1,9 @@
 /// <amd-module name="UI/_builder/Tmpl/expressions/_private/Decorators" />
 
 /**
- * Decorators used by pipe notation in template expressions. For example: value|trim|toUpperCase
- *
+ * @description Decorators used by pipe notation in template expressions. For example: value|trim|toUpperCase
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/Decorators.ts
  */
 
 import { createErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';

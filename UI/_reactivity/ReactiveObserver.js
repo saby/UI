@@ -139,7 +139,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env
 
    /**
     * set observer of properties of control
-    * @param {Core/Control} inst Instance of control which will be updated
+    * @param {UI/Base:Control} inst Instance of control which will be updated
     */
    function observeProperties(inst) {
       var templateFunction = inst._template;
@@ -161,7 +161,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env
             }
          }
       });
-      var reactiveProps = inst._template.reactiveProps;
+      var reactiveProps = inst._template && inst._template.reactiveProps;
 
       if (reactiveProps && inst._getChildContext) {
          // изменение полей контекста тоже влияет на верстку и надо звать _forceUpdate

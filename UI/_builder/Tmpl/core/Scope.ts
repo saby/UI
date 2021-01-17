@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Tmpl/core/Scope" />
 
 /**
+ * @description Represents processing scope mechanism.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/core/Scope.ts
  */

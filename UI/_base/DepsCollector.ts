@@ -69,6 +69,17 @@ const SPECIAL_DEPS = {
    i18n: 'I18n/i18n'
 };
 
+
+/**
+ * Название модуля WS.Core, который будет указан в s3debug при частичном дебаге
+ */
+const WSCORE_MODULE_NAME = 'WS.Core';
+/**
+ * Префиксы модулей из "семейства" модулей WS.Core
+ * При частичном дебаге WS.Core необходимо выбрасывать модули с префиксом из списка
+ */
+const WSCORE_MODULES_PREFIXES = ['Core/', 'Lib/', 'Transport/'];
+
 export const TYPES: Record<RequireJSPlugin | 'css', object> = {
    tmpl: {
       type: 'tmpl',
@@ -280,13 +291,35 @@ function getCssPackages(
 
 function getAllPackagesNames(all: ICollectedDeps, unpack: IDeps, bRoute: Record<string, string>): IDepPackages {
    const packs = getEmptyPackages();
-   const isUnpackModule = (key: string) => unpack.some((moduleName) => key.indexOf(moduleName) !== -1);
+   const isUnpackModule = getIsUnpackModule(unpack);
    mergePacks(packs, getPacksNames(all.js, isUnpackModule, bRoute));
    mergePacks(packs, getPacksNames(all.tmpl, isUnpackModule, bRoute));
    mergePacks(packs, getPacksNames(all.wml, isUnpackModule, bRoute));
 
    packs.css = getCssPackages(all.css, isUnpackModule, bRoute);
    return packs;
+}
+
+/**
+ * Возвращает метод, который для переданного модуля будет выяснять нужно его бандл добавлять в страницу или нет
+ * Нужен при частичном дебаге, когда в s3debug указан список модулей
+ * @param unpack список модулей, которые указаны в s3debug
+ */
+function getIsUnpackModule(unpack: IDeps): (moduleName: string) => boolean {
+   // проверка модуля из семейства WS.Core
+   const isWsCore = (unpackModuleName, dependModuleName): boolean => {
+      if (unpackModuleName !== WSCORE_MODULE_NAME) {
+         return false;
+      }
+      return WSCORE_MODULES_PREFIXES.some((modulePrefix: string) => dependModuleName.startsWith(modulePrefix));
+   };
+
+   return (dependModuleName: string): boolean => {
+      return unpack.some((unpackModuleName) =>  {
+         return dependModuleName.indexOf(unpackModuleName) !== -1
+                || isWsCore(unpackModuleName, dependModuleName);
+      });
+   };
 }
 
 function mergePacks(result: IDepPackages, addedPackages: Partial<IDepPackages>): void {

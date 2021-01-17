@@ -2,6 +2,10 @@
 
 import { IEventState, IMobileEvent, ILongTapEvent, MobileEvent } from "./MobileEvents";
 
+/**
+ * @author Санников К.А.
+ */
+
 let longTapState;
 let handlerName;
 

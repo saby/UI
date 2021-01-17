@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Tmpl/core/Text" />
 
 /**
+ * @description Represents text processor.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/core/Text.ts
  */
@@ -276,8 +277,8 @@ function whatExpected(flags: TextContentFlags): string {
 }
 
 /**
- *
- * @param text
+ * Replace new lines.
+ * @param text {string} Input source text.
  */
 function replaceNewLines(text: string): string {
    return text
@@ -287,6 +288,10 @@ function replaceNewLines(text: string): string {
       .replace(/\n/g, WHITESPACE);
 }
 
+/**
+ * Clean text from whitespaces.
+ * @param text {string} Input source text.
+ */
 function cleanText(text: string): string {
    SAFE_REPLACE_CASE_PATTERN.lastIndex = 0;
    SAFE_WHITESPACE_REMOVE_PATTERN.lastIndex = 0;
