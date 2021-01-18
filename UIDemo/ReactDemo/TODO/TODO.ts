@@ -1,4 +1,4 @@
-import {Control} from 'UI/ReactComponent';
+import {Control} from 'UI/Base';
 import 'css!UIDemo/ReactDemo/TODO/TODO';
 import {IItem} from './interfaces';
 

@@ -1,5 +1,5 @@
 import { Control } from './Compatible';
-import { IControlOptions } from './interfaces';
+import { IControlOptions } from './Compatible';
 
 // Следим за изменением свойств инстанса для обновления контрола
 export function reactiveObserve<P = IControlOptions, S = {}>(inst: Control<P, S>, reactiveProps: string[]): void {
@@ -14,8 +14,11 @@ export function reactiveObserve<P = IControlOptions, S = {}>(inst: Control<P, S>
           },
           set: function reactiveSetter(value: unknown): void {
               if (reactiveValues[prop] !== value) {
-                  reactiveValues[prop] = value;
-                  inst.forceUpdate();
+                 //@ts-ignore
+                  if (inst._reactiveStart) {
+                      reactiveValues[prop] = value;
+                      inst.forceUpdate();
+                  }
               }
           }
       });
