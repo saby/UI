@@ -5,6 +5,10 @@ import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
 import startApplication from 'UI/_base/startApplication';
 
+/**
+ * @author Санников К.А.
+ */
+
 // tslint:disable-next-line:no-any
 function createControl(control: any, config: any, dom: any): void {
     const configReady = config || {};

@@ -94,21 +94,6 @@ function findClosestEnvironment(sourceElement: Element): IDOMEnvironment | null 
    return null;
 }
 
-function fixNotifyArguments(env: IDOMEnvironment,
-                            target: Element,
-                            relatedTarget: Element,
-                            isTabPressed: TTabPressesd): [Element, Element, TTabPressesd] {
-   // Пока не смержили правку в ws, не можем поменять сигнатуру функции.
-   // Поэтому будем менять в три доброски, с совместимостью в ui
-   if (env && env.__captureEventHandler) {
-      return [target, relatedTarget, isTabPressed];
-   } else {
-      // @ts-ignore
-      // FIXME: по проекту изменния системы событий
-      return [env, target, relatedTarget];
-   }
-}
-
 /**
  * Вычисляем состояние активности компонентов, и стреляем событием активности у тех компонентов,
  * что поменяли свое состояние
@@ -122,7 +107,6 @@ export function notifyActivationEvents(target: Element,
                                        relatedTarget: Element,
                                        env?: IDOMEnvironment,
                                        isTabPressed?: TTabPressesd): boolean | void {
-   [target, relatedTarget, isTabPressed] = fixNotifyArguments(env, target, relatedTarget, isTabPressed);
    if (detectStrangeElement(target)) {
       return;
    }

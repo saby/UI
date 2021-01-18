@@ -1,6 +1,10 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/MobileEvents" />
 /* tslint:disable */
 
+/**
+ * @author Санников К.А.
+ */
+
 export interface IMobileEvent extends Event {
    touches: TouchList;
    clientX: number;
