@@ -73,17 +73,14 @@ export function restoreFocus(control: IControl, action: Function): void {
             container = currentControl.getContainer()[0];
             isOldControl = true;
          }
-         // @ts-ignore
          focus.__restoreFocusPhase = true;
          const containerVisible = isElementVisible(container) && isTreeVisible(container);
          const result = containerVisible && focus(container, {}, isOldControl);
-         // @ts-ignore
          delete focus.__restoreFocusPhase;
          return result;
       });
       // следим за состоянием _savedFocusedElement. хотелось бы делать это в environment в обработчике
       // на focus, но как минимум в IE на вызов фокуса туда не попадеам
-      // @ts-ignore
       notifyActivationEvents._savedFocusedElement = document.activeElement;
 
       // Попытаемся восстановить фокус, только если он действительно слетел с контрола, помеченного __$focusing

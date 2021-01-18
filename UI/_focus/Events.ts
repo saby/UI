@@ -7,21 +7,30 @@ export interface IDOMEnvironment {
    __captureEventHandler: Function;
 }
 
+interface INotifyActivationEvents {
+      (target: IControlElement,
+       relatedTarget: Element,
+       env?: IDOMEnvironment,
+       isTabPressed?: ITabPressed): boolean | void;
+      _savedFocusedElement?: Element;
+}
+
 /**
  * @author Тэн В.А.
  * Модуль содержит логику вызова событий активации у контролов
  */
 
-// @ts-ignore
 import { constants, detection } from 'Env/Env';
 import { Logger } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
+
+import { IControlElement } from './IFocus';
 
 interface ITabPressed {
    isShiftKey: boolean
    tabTarget: HTMLElement
 }
-type TTabPressesd = null | ITabPressed;
+
 // иногда фокус уходит на какой-то фейковый элемент в боди. и наша система реагирует по делу что фокус улетел.
 // например, когда нужно скопировать текст в буфер обмена, текст вставляется в фейковое поле ввода на боди.
 // пытаюсь исправить ситуацию, угадывая странный элемент и не обращая внимание на то что он фокусируется.
@@ -56,7 +65,7 @@ function compatibleActivationEvents(environment: IDOMEnvironment, arrayMaker: an
             environment._rootDOMNode.controlNodes[0].control._callOnFocusInside();
          } else {
             // если еще не активен, активируем
-            // @ts-ignore
+            // eslint-disable-next-line
             const areaAbstract = require('Lib/Control/AreaAbstract/AreaAbstract.compatible');
             areaAbstract._storeActiveChildInner.apply(
                environment._rootDOMNode.controlNodes[0].control
@@ -77,11 +86,10 @@ function compatibleActivationEvents(environment: IDOMEnvironment, arrayMaker: an
    }
 }
 
-function getEnvironment(element: Element): IDOMEnvironment | null {
-   // @ts-ignore
+function getEnvironment(element: IControlElement): IDOMEnvironment | null {
    return element.controlNodes && element.controlNodes.length > 0 && element.controlNodes[0].environment || null;
 }
-function findClosestEnvironment(sourceElement: Element): IDOMEnvironment | null {
+function findClosestEnvironment(sourceElement: IControlElement): IDOMEnvironment | null {
    let currentElement = sourceElement;
    while(currentElement.parentElement) {
       let env = getEnvironment(currentElement);
@@ -102,26 +110,24 @@ function findClosestEnvironment(sourceElement: Element): IDOMEnvironment | null 
  * @param relatedTarget - откуда ушел фокус
  * @param isTabPressed - true, если фокус перешел по нажатию tab
  */
-
-export function notifyActivationEvents(target: Element,
+let notifyActivationEvents : INotifyActivationEvents;
+notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
                                        relatedTarget: Element,
                                        env?: IDOMEnvironment,
-                                       isTabPressed?: TTabPressesd): boolean | void {
+                                       isTabPressed?: ITabPressed): boolean | void  => {
    if (detectStrangeElement(target)) {
       return;
    }
 
    // странные элементы вообще проигнорируем, возьмем вместо него предыдущий активный
    const realRelatedTarget = (!detectStrangeElement(relatedTarget) && relatedTarget) ||
-      // @ts-ignore
-      notifyActivationEvents._savedFocusedElement;
+       notifyActivationEvents._savedFocusedElement;
 
    const
       arrayMaker = goUpByControlTree(target), // Массив активированных компонентов
       relatedArrayMaker = goUpByControlTree(realRelatedTarget); // Массив деактивированных компонентов
 
    // последний активный элемент, который не странный
-   // @ts-ignore
    notifyActivationEvents._savedFocusedElement = target;
 
    // Вычисляем общего предка
@@ -136,6 +142,7 @@ export function notifyActivationEvents(target: Element,
       let found = undefined;
 
       if (control !== mutualTarget) {
+         // @ts-ignore
          let container = control._container;
 
          // jquery
@@ -171,7 +178,6 @@ export function notifyActivationEvents(target: Element,
                      // to: arrayMaker[0],
                      // from: relatedArrayMaker[0],
                      isTabPressed: !!isTabPressed,
-                     // @ts-ignore
                      isShiftKey: isTabPressed && isTabPressed.isShiftKey
                   }
                ]);
@@ -202,7 +208,6 @@ export function notifyActivationEvents(target: Element,
                   _$to: arrayMaker[0],
                   // from: relatedArrayMaker[0],
                   isTabPressed: !!isTabPressed,
-                  // @ts-ignore
                   isShiftKey: isTabPressed && isTabPressed.isShiftKey
                }
             ]);
@@ -224,3 +229,4 @@ export function notifyActivationEvents(target: Element,
       }
    }
 }
+export { notifyActivationEvents };
