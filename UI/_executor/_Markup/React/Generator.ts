@@ -490,7 +490,7 @@ export class GeneratorReact implements IGenerator {
             Array.prototype.push.apply(finalArgs, eventObject.args);
             // Добавляем в eventObject поле со ссылкой DOM-элемент, чей обработчик вызываем
             // eventObject.currentTarget = curDomNode;
-            const newEventName = repairEventName(eventName.replace('on:',''));
+            const newEventName = repairEventName(eventName);
             convertedEvents[newEventName] = (eventObject.fn);
          });
       });

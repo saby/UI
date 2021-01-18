@@ -1,5 +1,5 @@
 import {ChangeEvent} from 'react';
-import {Control} from 'UI/ReactComponent';
+import {Control} from 'UI/Base';
 
 // @ts-ignore
 import template = require('wml!UIDemo/ReactDemo/TODO/Adder');

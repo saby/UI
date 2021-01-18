@@ -5,9 +5,11 @@ import { Control, IControlChildren } from 'UI/Base';
 describe('UI/_base/ProxyChildren', () => {
   const _children = getProxyChildren<IControlChildren>() as IControlChildren;
   const testChild = new Control<{}, {}>({});
+  // @ts-ignore
   _children.firstChild = testChild;
 
   it('check simple get child', () => {
+    // @ts-ignore
     assert.equal(testChild, _children.firstChild as Control<{}, {}>);
   });
 
