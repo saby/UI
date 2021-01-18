@@ -7,11 +7,10 @@ import Control, { TemplateFunction } from 'UI/_base/Control';
 import template = require('wml!UI/_base/HTML/JsLinks');
 import { headDataStore } from 'UI/_base/HeadData';
 import { IControlOptions } from 'UI/Base';
+import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 
 interface IJsLinksOptions extends IControlOptions {
-   linkResolver: {
-      resolveLink(l: string, ext: string): string;
-   };
+   resourceRoot: string;
 }
 /**
  * Компонент для вставки ссылок на ресурсы страницы
@@ -31,7 +30,19 @@ class JsLinks extends Control<IJsLinksOptions> {
       if (typeof window !== 'undefined') {
          return;
       }
-      const resolveJsLink = (js: string) => options.linkResolver.resolveLink(js, 'js');
+      const resolveJsLink = (initialJs: string) => {
+         let js: string = initialJs;
+         /**
+          * Если нет слешей и заканчивается на .package, то можно добавить превикс из wsConfig
+          * Например: online-page-superbuindle.package
+          * надо превратить в /resources/online-page-superbuindle.package
+          * TODO: Исправится после https://online.sbis.ru/doc/46e18aa9-31a9-418c-9ac1-b15db1de43ce
+          */
+         if (!js.includes('/') && js.endsWith('.package')) {
+            js = `${options.resourceRoot}${js}`;
+         }
+         return ModulesLoader.getModuleUrl(js);
+      };
       return headDataStore.read('waitAppContent')().then((res) => {
          const jsLinks: string[] = res.js.map(resolveJsLink).concat(res.scripts);
          this.js = arrayToObject(jsLinks); // конвертируем в hashmap чтобы избавиться от дублей
