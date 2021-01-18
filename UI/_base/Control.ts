@@ -21,11 +21,12 @@ import { ReactiveObserver } from 'UI/Reactivity';
 import startApplication from 'UI/_base/startApplication';
 import { getProxyChildren } from './ProxyChildren';
 
+import { DisposeControl, IOwnedDisposable } from 'Env/Disposable';
+
 export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
                                 forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
-import { DisposeControl, IOwnedDisposable } from 'Env/Disposable';
 
 /**
  * @event UI/_base/Control#activated Происходит при активации контрола.
@@ -316,6 +317,7 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
    private _getEnvironment(): any {
       return this._environment;
    }
+   /** добавить ресурс, за которым будет происходить слежка */
    protected attach(resource: IOwnedDisposable): void {
       this._resources.track(resource);
    }
