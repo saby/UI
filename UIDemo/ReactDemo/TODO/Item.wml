@@ -1,7 +1,7 @@
 <div class="item">
-   <input type="checkbox" checked="{{checked}}" class="item-checkbox" on:onClick="_changeHandler()">
-   <span class="item-caption {{checked ? 'item-caption__checked'}}" on:onClick="_changeHandler()">
+   <input type="checkbox" checked="{{checked}}" class="item-checkbox" on:click="_changeHandler()">
+   <span class="item-caption {{checked ? 'item-caption__checked'}}" on:click="_changeHandler()">
       {{_options.title}}
    </span>
-   <button class="item__button" on:onClick="removeHandler()">Удалить</button>
+   <button class="item__button" on:click="removeHandler()">Удалить</button>
 </div>
