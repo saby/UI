@@ -4,8 +4,7 @@
  * @file Compiler/utils/ErrorHandler.ts
  */
 
-// @ts-ignore
-import { IoC } from 'Env/Env';
+import { logger } from 'Application/Env';
 import { SourcePosition } from 'Compiler/html/Reader';
 
 /**
@@ -13,7 +12,7 @@ import { SourcePosition } from 'Compiler/html/Reader';
  * @param message {string} Diagnostic message.
  */
 function log(message: string): void {
-   IoC.resolve('ILogger').log(message);
+   logger.log(message);
 }
 
 /**
@@ -21,7 +20,7 @@ function log(message: string): void {
  * @param message {string} Diagnostic message.
  */
 function warn(message: string): void {
-   IoC.resolve('ILogger').warn(message);
+   logger.warn(message);
 }
 
 /**
@@ -29,7 +28,7 @@ function warn(message: string): void {
  * @param message {string} Diagnostic message.
  */
 function error(message: string): void {
-   IoC.resolve('ILogger').error(message);
+   logger.error(message);
 }
 
 /**
