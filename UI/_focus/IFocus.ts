@@ -4,6 +4,7 @@ export interface ICompoundControl {
    canAcceptFocus: Function;
    setActive: Function;
    isActive: Function;
+   isDestroyed: Function;
 }
 
 export interface IFocusElement extends Element {
