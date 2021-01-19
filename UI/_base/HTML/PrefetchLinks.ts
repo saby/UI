@@ -1,8 +1,9 @@
 import * as AppEnv from 'Application/Env';
 import { Head as AppHead } from 'Application/Page';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
-import { constants, IoC } from 'Env/Env';
+import { constants } from 'Env/Env';
 import { headDataStore } from 'UI/_base/HeadData';
+import { logger } from 'Application/Env';
 
 interface IPrefetchLinks {
     addPrefetchModules(modules: string[]): void;
@@ -143,8 +144,7 @@ function _addModulesToApi(modules: string[], cfg: IPrefetchModules): void {
         path = path.indexOf('/') !== 0 ? '/' + path : path;
         const _type: string = _getTypeString(path);
         if (!_type) {
-            IoC.resolve('ILogger')
-                .warn('[Controls/Application.js] Для файла ' + path + ' не удалось получить строку-тип');
+            logger.warn('[Controls/Application.js] Для файла ' + path + ' не удалось получить строку-тип');
             return;
         }
 
