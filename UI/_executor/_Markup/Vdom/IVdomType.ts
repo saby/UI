@@ -30,6 +30,7 @@ export interface IGeneratorControlNode {
     context: IGeneratorAttrsContext;
     inheritOptions: IGeneratorInheritOptions;
     flags: number;
+    length?: number;
 }
 
 // Тип для генераторов Vdom-нод
