@@ -298,21 +298,34 @@ export interface IErrorFormatter {
 }
 
 /**
- * Diagnostic message formatter for JIT compile mode.
+ * Diagnostic message decorator type.
  */
-export class ErrorFormatterJIT implements IErrorFormatter {
+declare type TDecoratorFunction = (title: string, message: string, meta: IMetaInfo) => string;
+
+/**
+ * Diagnostic message formatter for compiler.
+ */
+export class ErrorFormatter implements IErrorFormatter {
 
    /**
     * Diagnostic message title.
     */
-   private readonly title: string;
+   private title: string;
+
+   /**
+    * Diagnostic message decorator.
+    */
+   private decorator: TDecoratorFunction;
+
 
    /**
     * Initialize new instance of diagnostic message formatter.
     * @param title {string} Diagnostic message title.
+    * @param decorator {TDecoratorFunction} Diagnostic message decorator.
     */
-   constructor(title: string) {
+   constructor(title: string, decorator: TDecoratorFunction) {
       this.title = title;
+      this.decorator = decorator;
    }
 
    /**
@@ -321,7 +334,7 @@ export class ErrorFormatterJIT implements IErrorFormatter {
     * @param meta {IMetaInfo} Auxiliary diagnostic info.
     */
    debug(message: string, meta: IMetaInfo): string {
-      return this.decorateMessage(message, meta);
+      return this.decorator(this.title, message, meta);
    }
 
    /**
@@ -330,7 +343,7 @@ export class ErrorFormatterJIT implements IErrorFormatter {
     * @param meta {IMetaInfo} Auxiliary diagnostic info.
     */
    info(message: string, meta: IMetaInfo): string {
-      return this.decorateMessage(message, meta);
+      return this.decorator(this.title, message, meta);
    }
 
    /**
@@ -339,7 +352,7 @@ export class ErrorFormatterJIT implements IErrorFormatter {
     * @param meta {IMetaInfo} Auxiliary diagnostic info.
     */
    warn(message: string, meta: IMetaInfo): string {
-      return this.decorateMessage(message, meta);
+      return this.decorator(this.title, message, meta);
    }
 
    /**
@@ -348,7 +361,7 @@ export class ErrorFormatterJIT implements IErrorFormatter {
     * @param meta {IMetaInfo} Auxiliary diagnostic info.
     */
    error(message: string, meta: IMetaInfo): string {
-      return this.decorateMessage(message, meta);
+      return this.decorator(this.title, message, meta);
    }
 
    /**
@@ -357,7 +370,7 @@ export class ErrorFormatterJIT implements IErrorFormatter {
     * @param meta {IMetaInfo} Auxiliary diagnostic info.
     */
    critical(message: string, meta: IMetaInfo): string {
-      return this.decorateMessage(message, meta);
+      return this.decorator(this.title, message, meta);
    }
 
    /**
@@ -366,111 +379,40 @@ export class ErrorFormatterJIT implements IErrorFormatter {
     * @param meta {IMetaInfo} Auxiliary diagnostic info.
     */
    fatal(message: string, meta: IMetaInfo): string {
-      return this.decorateMessage(message, meta);
-   }
-
-   /**
-    * Decorate diagnostic message.
-    * @param message {string} Message text.
-    * @param meta {string} Auxiliary diagnostic info.
-    */
-   private decorateMessage(message: string, meta: IMetaInfo): string {
-      let decoratedMessage = `${this.title}: `;
-      if (meta.fileName) {
-         decoratedMessage += `${meta.fileName} `;
-      }
-      if (meta.position) {
-         decoratedMessage += `(${meta.position.line + 1}:${meta.position.column + 1}) `;
-      }
-      decoratedMessage += message;
-      return decoratedMessage;
+      return this.decorator(this.title, message, meta);
    }
 }
 
 /**
- * Diagnostic message formatter for AOT compile mode.
+ * Decorate diagnostic message for JIT compile mode.
+ * @param title {string} Compiler diagnostic message title.
+ * @param message {string} Diagnostic message text.
+ * @param meta {IMetaInfo} Meta information object.
  */
-export class ErrorFormatterAOT implements IErrorFormatter {
-
-   /**
-    * Diagnostic message title.
-    */
-   private readonly title: string;
-
-   /**
-    * Initialize new instance of diagnostic message formatter.
-    * @param title {string} Diagnostic message title.
-    */
-   constructor(title: string) {
-      this.title = title;
+function decorateMessageJIT(title: string, message: string, meta: IMetaInfo): string {
+   let decoratedMessage = `${title}: `;
+   if (meta.fileName) {
+      decoratedMessage += `${meta.fileName} `;
    }
-
-   /**
-    * Format debug message.
-    * @param message {string} Message text.
-    * @param meta {IMetaInfo} Auxiliary diagnostic info.
-    */
-   debug(message: string, meta: IMetaInfo): string {
-      return this.decorateMessage(message, meta);
+   if (meta.position) {
+      decoratedMessage += `(${meta.position.line + 1}:${meta.position.column + 1}) `;
    }
+   decoratedMessage += message;
+   return decoratedMessage;
+}
 
-   /**
-    * Format info message.
-    * @param message {string} Message text.
-    * @param meta {IMetaInfo} Auxiliary diagnostic info.
-    */
-   info(message: string, meta: IMetaInfo): string {
-      return this.decorateMessage(message, meta);
+/**
+ * Decorate diagnostic message for AOT compile mode.
+ * @param title {string} Compiler diagnostic message title.
+ * @param message {string} Diagnostic message text.
+ * @param meta {IMetaInfo} Meta information object.
+ */
+function decorateMessageAOT(title: string, message: string, meta: IMetaInfo): string {
+   let decoratedMessage = `${title}: ${message}`;
+   if (meta.position) {
+      decoratedMessage += `. Строка: ${meta.position.line + 1}, столбец: ${meta.position.column + 1}`;
    }
-
-   /**
-    * Format warning message.
-    * @param message {string} Message text.
-    * @param meta {IMetaInfo} Auxiliary diagnostic info.
-    */
-   warn(message: string, meta: IMetaInfo): string {
-      return this.decorateMessage(message, meta);
-   }
-
-   /**
-    * Format error message.
-    * @param message {string} Message text.
-    * @param meta {IMetaInfo} Auxiliary diagnostic info.
-    */
-   error(message: string, meta: IMetaInfo): string {
-      return this.decorateMessage(message, meta);
-   }
-
-   /**
-    * Format critical message.
-    * @param message {string} Message text.
-    * @param meta {IMetaInfo} Auxiliary diagnostic info.
-    */
-   critical(message: string, meta: IMetaInfo): string {
-      return this.decorateMessage(message, meta);
-   }
-
-   /**
-    * Format fatal message.
-    * @param message {string} Message text.
-    * @param meta {IMetaInfo} Auxiliary diagnostic info.
-    */
-   fatal(message: string, meta: IMetaInfo): string {
-      return this.decorateMessage(message, meta);
-   }
-
-   /**
-    * Decorate diagnostic message.
-    * @param message {string} Message text.
-    * @param meta {string} Auxiliary diagnostic info.
-    */
-   private decorateMessage(message: string, meta: IMetaInfo): string {
-      let decoratedMessage = `${this.title}: ${message}`;
-      if (meta.position) {
-         decoratedMessage += `. Строка: ${meta.position.line + 1}, столбец: ${meta.position.column + 1}`;
-      }
-      return decoratedMessage;
-   }
+   return decoratedMessage;
 }
 
 /**
@@ -659,10 +601,10 @@ const COMPILER_DIAGNOSTIC_TITLE = 'Template Compiler';
 export function createErrorHandler(isJIT: boolean, title: string = COMPILER_DIAGNOSTIC_TITLE): IErrorHandler {
    if (isJIT) {
       const logger = new Logger();
-      const formatter = new ErrorFormatterJIT(title);
+      const formatter = new ErrorFormatter(title, decorateMessageJIT);
       return new ErrorHandler(logger, formatter);
    }
    const logger = new StackLogger();
-   const formatter = new ErrorFormatterAOT(title);
+   const formatter = new ErrorFormatter(title, decorateMessageAOT);
    return new ErrorHandler(logger, formatter);
 }
