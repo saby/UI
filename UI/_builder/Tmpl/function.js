@@ -11,7 +11,6 @@ define('UI/_builder/Tmpl/function', [
    'UI/_builder/Tmpl/modules/utils/tag',
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
    'UI/_builder/Tmpl/utils/ErrorHandler',
-   'UI/_builder/Tmpl/modules/utils/parse',
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/Tmpl/codegen/Generator',
    'UI/_builder/Tmpl/codegen/TClosure'
@@ -28,7 +27,6 @@ define('UI/_builder/Tmpl/function', [
    tagUtils,
    FSC,
    ErrorHandlerLib,
-   parseUtils,
    templates,
    Generator,
    TClosure
