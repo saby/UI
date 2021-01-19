@@ -56,7 +56,7 @@
             <div>
                <UI._base.HTML.JsLinks attr:tabindex="-1"
                                       appRoot="{{ appRoot }}"
-                                      linkResolver="{{ linkResolver }}"/>
+                                      resourceRoot="{{ resourceRoot }}"/>
                <ws:if data="{{ scripts && !_options.beforeScripts }}">
                   <ws:for data="i in scripts">
                      <ws:partial template="{{ i }}"/>
