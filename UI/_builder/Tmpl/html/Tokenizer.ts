@@ -891,6 +891,7 @@ export class Tokenizer implements ITokenizer {
                }
                break;
             case State.BOGUS_COMMENT:
+            case State.BOGUS_COMMENT_HYPHEN:
                // Consume every character up to and including the first GREATER-THAN SIGN character (>)
                // or the end of the file (EOF), whichever comes first.
                // Emit a comment token whose data is the concatenation of all the characters starting from
@@ -915,27 +916,6 @@ export class Tokenizer implements ITokenizer {
                      this.appendCharBuffer(Characters.NULL_REPLACEMENT);
                      break;
                   default:
-                     this.appendCharBuffer(char);
-                     break;
-               }
-               break;
-            case State.BOGUS_COMMENT_HYPHEN:
-               // Consume the next input character.
-               switch (char) {
-                  case Characters.GREATER_THAN_SIGN:
-                     this.state = State.DATA;
-                     this.emitComment(0);
-                     break;
-                  case Characters.HYPHEN_MINUS:
-                     this.state = State.BOGUS_COMMENT_HYPHEN;
-                     this.appendCharBuffer(char);
-                     break;
-                  case Characters.NULL:
-                     // Parse error. Append a REPLACEMENT CHARACTER character to the current attribute's value.
-                     this.appendCharBuffer(Characters.NULL_REPLACEMENT);
-                     break;
-                  default:
-                     this.state = State.BOGUS_COMMENT;
                      this.appendCharBuffer(char);
                      break;
                }
@@ -1536,43 +1516,7 @@ export class Tokenizer implements ITokenizer {
                }
                break;
             case State.RAW_TEXT_DOUBLE_ESCAPE_START:
-               // Consume the next input character.
-               if (char >= 'A' && char <= 'Z' || char >= 'a' && char <= 'z') {
-                  // Append the current input character to the temporary buffer.
-                  // Emit the current input character as a character token.
-                  this.appendCharBuffer(char);
-                  break;
-               }
-               switch (char) {
-                  case Characters.CHARACTER_TABULATION:
-                  case Characters.LINE_FEED:
-                  case Characters.FORM_FEED:
-                  case Characters.SPACE:
-                  case Characters.SOLIDUS:
-                  case Characters.GREATER_THAN_SIGN:
-                     // If the temporary buffer is the string "script",
-                     // then switch to the raw text double escaped state.
-                     // Otherwise, switch to the sraw text escaped state.
-                     // Emit the current input character as a character token.
-                     if (this.index < this.expectingEndTagName.length) {
-                        char = char.toUpperCase();
-                        if (char === this.expectingEndTagName[this.index]) {
-                           this.index++;
-                        } else {
-                           this.state = State.RAW_TEXT_ESCAPED;
-                           reader.reconsume();
-                        }
-                     } else {
-                        this.state = State.RAW_TEXT_DOUBLE_ESCAPED;
-                        this.index = Number.MAX_VALUE;
-                     }
-                     break;
-                  default:
-                     // Reconsume the current input character in the raw text escaped state.
-                     this.state = State.RAW_TEXT_ESCAPED;
-                     reader.reconsume();
-                     break;
-               }
+               this.processRawText(char, reader, State.RAW_TEXT_DOUBLE_ESCAPED, State.RAW_TEXT_ESCAPED);
                break;
             case State.RAW_TEXT_DOUBLE_ESCAPED:
                // Consume the next input character.
@@ -1668,42 +1612,7 @@ export class Tokenizer implements ITokenizer {
                }
                break;
             case State.RAW_TEXT_DOUBLE_ESCAPE_END:
-               // Consume the next input character.
-               if (char >= 'A' && char <= 'Z' || char >= 'a' && char <= 'z') {
-                  // Append the current input character to the temporary buffer.
-                  // Emit the current input character as a character token.
-                  this.appendCharBuffer(char);
-                  break;
-               }
-               switch (char) {
-                  case Characters.CHARACTER_TABULATION:
-                  case Characters.LINE_FEED:
-                  case Characters.FORM_FEED:
-                  case Characters.SPACE:
-                  case Characters.SOLIDUS:
-                  case Characters.GREATER_THAN_SIGN:
-                     // If the temporary buffer is the string "script", then switch to the raw text escaped state.
-                     // Otherwise, switch to the raw text double escaped state.
-                     // Emit the current input character as a character token.
-                     if (this.index < this.expectingEndTagName.length) {
-                        char = char.toUpperCase();
-                        if (char === this.expectingEndTagName[this.index]) {
-                           this.index++;
-                        } else {
-                           this.state = State.RAW_TEXT_DOUBLE_ESCAPED;
-                           reader.reconsume();
-                        }
-                     } else {
-                        this.state = State.RAW_TEXT_ESCAPED;
-                        this.index = Number.MAX_VALUE;
-                     }
-                     break;
-                  default:
-                     // Reconsume the current input character in the raw text double escaped state.
-                     this.state = State.RAW_TEXT_DOUBLE_ESCAPED;
-                     reader.reconsume();
-                     break;
-               }
+               this.processRawText(char, reader, State.RAW_TEXT_ESCAPED, State.RAW_TEXT_DOUBLE_ESCAPED);
                break;
             case State.ESCAPABLE_RAW_TEXT:
                // Consume the next input character.
@@ -1816,6 +1725,46 @@ export class Tokenizer implements ITokenizer {
          }
       }
       this.finalize();
+   }
+
+   private processRawText(char: string, reader: SourceReader, successState: State, failureState: State): void {
+      // Consume the next input character.
+      if (char >= 'A' && char <= 'Z' || char >= 'a' && char <= 'z') {
+         // Append the current input character to the temporary buffer.
+         // Emit the current input character as a character token.
+         this.appendCharBuffer(char);
+         return;
+      }
+      switch (char) {
+         case Characters.CHARACTER_TABULATION:
+         case Characters.LINE_FEED:
+         case Characters.FORM_FEED:
+         case Characters.SPACE:
+         case Characters.SOLIDUS:
+         case Characters.GREATER_THAN_SIGN:
+            // If the temporary buffer is the string "script",
+            // then switch to the raw text double escaped state.
+            // Otherwise, switch to the sraw text escaped state.
+            // Emit the current input character as a character token.
+            if (this.index < this.expectingEndTagName.length) {
+               char = char.toUpperCase();
+               if (char === this.expectingEndTagName[this.index]) {
+                  this.index++;
+               } else {
+                  this.state = failureState;
+                  reader.reconsume();
+               }
+            } else {
+               this.state = successState;
+               this.index = Number.MAX_VALUE;
+            }
+            break;
+         default:
+            // Reconsume the current input character in the raw text escaped state.
+            this.state = failureState;
+            reader.reconsume();
+            break;
+      }
    }
 
    /**
