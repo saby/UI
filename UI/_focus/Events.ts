@@ -142,7 +142,6 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
       let found = undefined;
 
       if (control !== mutualTarget) {
-         // @ts-ignore
          let container = control._container;
 
          // jquery
