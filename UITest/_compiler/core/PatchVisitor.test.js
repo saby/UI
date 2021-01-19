@@ -1,13 +1,13 @@
 /* global describe, it, assert */
 define([
-   'UI/_builder/Tmpl/html/Parser',
-   'UI/_builder/Tmpl/core/Tags',
-   'UI/_builder/Tmpl/utils/ErrorHandler',
-   'UI/_builder/Tmpl/core/Traverse',
-   'UI/_builder/Tmpl/core/PatchVisitor',
-   'UI/_builder/Tmpl/core/Scope',
-   'UI/_builder/Tmpl/i18n/Translator',
-   'UI/_builder/Tmpl/expressions/_private/Parser'
+   'Compiler/html/Parser',
+   'Compiler/core/Tags',
+   'Compiler/utils/ErrorHandler',
+   'Compiler/core/Traverse',
+   'Compiler/core/PatchVisitor',
+   'Compiler/core/Scope',
+   'Compiler/i18n/Translator',
+   'Compiler/expressions/_private/Parser'
 ], function(
    Parser,
    Tags,
