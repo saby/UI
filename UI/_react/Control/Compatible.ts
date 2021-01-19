@@ -147,6 +147,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
         return this._evaluatedContext;
     }
 
+    // @ts-ignore
     private set wasabyContext(value: IContext) {
         this._evaluatedContext = value;
     }
