@@ -134,6 +134,8 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
     private _controlNode: any;
     private _environment: any;
 
+    // @ts-ignore
+    private _logicParent: any;
 
     private readonly _instId: string = 'inst_' + countInst++;
 
@@ -158,6 +160,8 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
         this.state = {
             loading: true
         };
+        //@ts-ignore
+        this._logicParent = props._logicParent;
     }
 
     getInstanceId(): string {
@@ -514,23 +518,46 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
             {
                 let container;
                 if (node instanceof HTMLElement) {
+                    // если у контрола отрисовался контейнер, используем его
                     container = node;
                 }
-                else if (node instanceof Control) {
+                else if (node && node._container instanceof HTMLElement) {
+                    // если строим хок и дочерний контрол уже построен, используем его элемент как контейнер
                     container = node._container;
+                }
+                if (node instanceof Control) {
+                    // храним родительский хок, чтобы потом ему установить контейнер тоже
+                    //@ts-ignore
+                    node._parentHoc = control;
                 }
                 if (container) {
                     if (node) {
-                        container.controlNodes = container.controlNodes || [];
-                        const controlNode = {
-                            control,
-                            element: container,
-                            id: control.getInstanceId(),
-                            environment: control._getEnvironment()
-                        };
-                        addControlNode(container.controlNodes, controlNode);
-                        control._container = container;
-                        control._controlNode = controlNode;
+                        let environment;
+                        let curControl = control;
+                        while (curControl) {
+                            if (curControl._getEnvironment()) {
+                                environment = curControl._getEnvironment();
+                                break;
+                            }
+                            curControl = curControl._logicParent;
+                        }
+
+                        curControl = control;
+                        while (curControl && (!curControl._container || !curControl._container.parentNode)) {
+                            container.controlNodes = container.controlNodes || [];
+                            const controlNode = {
+                                control: curControl,
+                                element: container,
+                                id: curControl.getInstanceId(),
+                                environment: environment
+                            };
+                            addControlNode(container.controlNodes, controlNode);
+                            curControl._container = container;
+                            curControl._controlNode = controlNode;
+
+                            //@ts-ignore
+                            curControl = curControl._parentHoc;
+                        }
                     } else {
                         // @ts-ignore
                         removeControlNode(control._container.controlNodes, control);
