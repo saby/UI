@@ -14,6 +14,8 @@ import * as React from "react";
 // @ts-ignore
 import template = require('wml!UI/_react/Control/Compatible');
 import {ReactiveObserver} from "UI/Reactivity";
+import {createEnvironment} from "UI/_react/Control/EnvironmentStorage";
+import {addControlNode, removeControlNode} from './ControlNodes';
 
 let countInst = 1;
 
@@ -45,6 +47,33 @@ type TIState = void | IState;
 export interface IControlOptions {
     readOnly?: boolean;
     theme?: string;
+}
+interface IContext {
+    scope: unknown;
+    get(field: string): Record<string, unknown>;
+    set(): void;
+    has(): boolean;
+}
+
+function createContext(): IContext {
+    let _scope: unknown = null;
+    return {
+        set scope(value: unknown) {
+            _scope = value;
+        },
+        get(field: string): Record<string, unknown> {
+            if (_scope && _scope.hasOwnProperty(field)) {
+                return _scope[field];
+            }
+            return null;
+        },
+        set(): void {
+            throw new Error("Can't set data to context. Context is readonly!");
+        },
+        has(): boolean {
+            return true;
+        }
+    };
 }
 
 // const BL_MAX_EXECUTE_TIME = 5000;
@@ -95,10 +124,33 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
     //@ts-ignore
     private _reactiveStart: boolean = false;
 
+    private _savedInheritOptions: unknown;
+    private _fullContext: Record<string, any>;
+    private _evaluatedContext: IContext;
+    // @ts-ignore
+    private _context: any;
+
+    // @ts-ignore
+    private _controlNode: any;
+    private _environment: any;
+
+
     private readonly _instId: string = 'inst_' + countInst++;
 
     // @ts-ignore
     private _isRendered: boolean;
+
+    private get wasabyContext(): IContext {
+        if (!this._evaluatedContext) {
+            this._evaluatedContext = createContext();
+        }
+        return this._evaluatedContext;
+    }
+
+    // @ts-ignore
+    private set wasabyContext(value: IContext) {
+        this._evaluatedContext = value;
+    }
 
     constructor(props: TOptions) {
         super(props);
@@ -120,6 +172,15 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
     }
     _forceUpdate(): void {
         this.forceUpdate();
+    }
+
+    private _saveEnvironment(env: unknown): void {
+        this._environment = env;
+    }
+
+    // @ts-ignore
+    private _getEnvironment(): any {
+        return this._environment;
     }
 
     /* Start: Compatible lifecicle hooks */
@@ -410,14 +471,16 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
         this._beforeUnmount.apply(this);
     }
 
-    saveInheritOptions(): any {
-
+    private saveInheritOptions(opts: any): void {
+        this._savedInheritOptions = opts;
     }
-    _saveContextObject(): any {
-
+    // @ts-ignore
+    private _saveContextObject(ctx: unknown):void {
+        this.wasabyContext.scope = ctx;
+        this._context = ctx;
     }
-    saveFullContext(): any {
-
+    private saveFullContext(ctx: unknown): void {
+        this._fullContext = ctx;
     }
 
     render(empty?: any, attributes?: any): unknown {
@@ -446,17 +509,64 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
         const res = this._template(ctx, {}, undefined, undefined, undefined, undefined, generatorConfig);
         // прокидываю тут аргумент isCompatible, но можно вынести в билдер
         const originRef = res[0].ref;
-        if (originRef) {
-            res[0] = {...res[0], ref: (node) => {
-                    return originRef.apply(this, [node, true]);
+        const control = this;
+        res[0] = {...res[0], ref: (node) =>
+            {
+                let container;
+                if (node instanceof HTMLElement) {
+                    container = node;
                 }
-            };
-        }
+                else if (node instanceof Control) {
+                    container = node._container;
+                }
+                if (container) {
+                    if (node) {
+                        container.controlNodes = container.controlNodes || [];
+                        const controlNode = {
+                            control,
+                            element: container,
+                            id: control.getInstanceId(),
+                            environment: control._getEnvironment()
+                        };
+                        addControlNode(container.controlNodes, controlNode);
+                        control._container = container;
+                        control._controlNode = controlNode;
+                    } else {
+                        // @ts-ignore
+                        removeControlNode(control._container.controlNodes, control);
+                    }
+                }
+
+                return originRef && originRef.apply(this, [node]);
+            }
+        };
+
         //@ts-ignore
         window.reactGenerator = false;
         return res;
     }
-    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
+    static configureControl(parameters: {
+        control: Control,
+        attrs: any,
+        domElement: HTMLElement,
+        cfg: any,
+        compatible: boolean,
+        environment: any
+    }): void {
+        parameters.control.saveInheritOptions(parameters.attrs.inheritOptions);
+        _FocusAttrs.patchDom(parameters.domElement, parameters.cfg);
+        parameters.control.saveFullContext(ContextResolver.wrapContext(parameters.control, { asd: 123 }));
+
+        if (parameters.compatible) {
+            if (requirejs.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
+                const makeInstanceCompatible = requirejs('Core/helpers/Hcontrol/makeInstanceCompatible');
+                makeInstanceCompatible(parameters.control, parameters.cfg);
+            }
+        }
+
+        parameters.control._saveEnvironment(parameters.environment);
+    }
+    static createControl(ctor: any, cfg: any, domElement: HTMLElement): void {
         if (domElement) {
             // если пришел jquery, вытащим оттуда элемент
             domElement = domElement[0] || domElement;
@@ -482,36 +592,35 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
         // @ts-ignore
         OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
         const attrs = { inheritOptions: {} };
-        let ctr;
         OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
-        try {
-            ctr = new ctor(cfg);
-        } catch (error) {
-            ctr = new Control({});
-            Logger.lifeError('constructor', ctor.prototype, error)
-        }
-        ctr.saveInheritOptions(attrs.inheritOptions);
-        ctr._container = domElement;
-        _FocusAttrs.patchDom(domElement, cfg);
-        ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
 
-        if (compatible) {
-            if (requirejs.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
-                const makeInstanceCompatible = requirejs('Core/helpers/Hcontrol/makeInstanceCompatible');
-                makeInstanceCompatible(ctr, cfg);
-            }
-        }
+        const environment = createEnvironment(domElement);
 
         if (document.documentElement.classList.contains('pre-load')) {
-            ReactDOM.hydrate(React.createElement(ctor, cfg, null), ctr._container.parentNode);
+            // @ts-ignore
+            ReactDOM.hydrate(React.createElement(ctor, cfg, null), domElement.parentNode, function(): void {
+                Control.configureControl({
+                    control: this,
+                    compatible,
+                    cfg,
+                    attrs,
+                    domElement,
+                    environment
+                });
+            });
         } else {
-            ReactDOM.render(React.createElement(ctor, cfg, null), ctr._container.parentNode);
+            // @ts-ignore
+            ReactDOM.render(React.createElement(ctor, cfg, null), domElement.parentNode, function(): void {
+                Control.configureControl({
+                    control: this,
+                    compatible,
+                    cfg,
+                    attrs,
+                    domElement,
+                    environment
+                });
+            });
         }
-        //TODO надо дожидаться создания контрола
-        // и когда появится ссылка на инстанс выполнять
-        // те действия которые в этом методе описаны
-
-        return ctr;
     }
 }
 
