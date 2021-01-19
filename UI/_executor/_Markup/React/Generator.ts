@@ -41,7 +41,6 @@ import {Builder} from "../Builder";
 import {repairEventName} from './eventMap';
 import {convertAttributes} from './Attributes';
 import {voidElementTags} from './VoidElementTags';
-import {addControlNode, removeControlNode} from './ControlNodes';
 
 const markupBuilder = new Builder();
 
@@ -432,7 +431,7 @@ export class GeneratorReact implements IGenerator {
       }
 
       //here
-      const ref = function(node: any, isContainer: boolean): any {
+      const ref = function(node: any): any {
          const attrs = props.attributes;
          if (node) {
             if (Common.isControl(control) && attrs && attrs.name) {
@@ -455,24 +454,9 @@ export class GeneratorReact implements IGenerator {
                   node[attrName] = attrValue;
                }, node);
             }
-
-            if (isContainer) {
-               node.controlNodes = node.controlNodes || [];
-               addControlNode(node.controlNodes, {
-                  control,
-                  element: node,
-                  id: control.getInstanceId(),
-                  environment: null // ???
-               });
-               control._container = node;
-            }
          } else {
             if (control && !control._destroyed && attrs && attrs.name) {
                onElementUnmount(control._children, attrs.name);
-            }
-
-            if (isContainer) {
-               removeControlNode(control._container.controlNodes, control);
             }
          }
       };
