@@ -12,7 +12,6 @@ import {
    ContextType,
    createGlobalContext,
    IContext as ILexicalContext,
-   IProgramMeta,
    SpecialProgramType
 } from 'UI/_builder/Tmpl/core/Context';
 
@@ -101,15 +100,6 @@ interface IContext {
 // </editor-fold>
 
 // <editor-fold desc="Private annotation functions">
-
-/**
- * Append internal expressions.
- * @param internal {IInternal} Internal collection.
- * @param programs {IProgramMeta[]} Collection of program meta information.
- */
-function appendInternalExpressions(internal: Ast.IInternal, programs: IProgramMeta[]): void {
-   // TODO: Remove
-}
 
 /**
  * Collect identifiers for inline template node.
@@ -271,7 +261,6 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
             node.__$ws_lexicalContext = lexicalContext;
          }
          node.__$ws_internal = {};
-         appendInternalExpressions(node.__$ws_internal, lexicalContext.getInternalPrograms());
       });
       const reactiveProperties: string[] = global.getOwnIdentifiers();
       const result = <IAnnotatedTree>nodes;
@@ -424,7 +413,6 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       setRootNodeFlags(node.__$ws_content);
       node.__$ws_lexicalContext = lexicalContext;
       node.__$ws_internal = { };
-      appendInternalExpressions(node.__$ws_internal, lexicalContext.getInternalPrograms());
    }
 
    /**
@@ -556,7 +544,6 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       setRootNodeFlags(node.__$ws_content);
       node.__$ws_lexicalContext = lexicalContext;
       node.__$ws_internal = { };
-      appendInternalExpressions(node.__$ws_internal, lexicalContext.getInternalPrograms());
    }
 
    // </editor-fold>
@@ -729,7 +716,6 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       }
       node.__$ws_lexicalContext = context.lexicalContext;
       node.__$ws_internal = { };
-      appendInternalExpressions(node.__$ws_internal, context.lexicalContext.getInternalPrograms());
       afterInternalNodes.forEach((node: Ast.Ast): void => {
          node.accept(this, context);
       });
