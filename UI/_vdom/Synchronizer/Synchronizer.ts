@@ -94,7 +94,7 @@ class VDomSynchronizer {
       );
    }
 
-   private afterRebuildVdomTree(rootsRebuild) {
+/*    private afterRebuildVdomTree(rootsRebuild) {
       rootsRebuild.memo.createdNodes.forEach((node: IControlNode) => {
          this._controlNodes[node.id] = node;
       });
@@ -105,7 +105,7 @@ class VDomSynchronizer {
 
       rootsRebuild.value.environment.applyNodeMemo(rootsRebuild)
       onEndSync(rootsRebuild.value.rootId);
-   }
+   } */
 
    mountControlToDOM(
       control: TRequredControl,

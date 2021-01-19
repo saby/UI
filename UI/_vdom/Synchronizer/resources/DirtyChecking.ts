@@ -4,7 +4,7 @@
  */
 
 /* tslint:disable:ban-ts-ignore no-any */
-// @ts-nocheck1
+// @ts-nocheck
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { Subscriber } from 'UI/Events';
