@@ -127,6 +127,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
     private _savedInheritOptions: unknown;
     private _fullContext: Record<string, any>;
     private _evaluatedContext: IContext;
+    // @ts-ignore
     private _context: any;
 
     // @ts-ignore
@@ -472,6 +473,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
     private saveInheritOptions(opts: any): void {
         this._savedInheritOptions = opts;
     }
+    // @ts-ignore
     private _saveContextObject(ctx: unknown):void {
         this.wasabyContext.scope = ctx;
         this._context = ctx;
