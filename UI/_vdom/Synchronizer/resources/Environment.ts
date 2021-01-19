@@ -31,9 +31,9 @@ abstract class Environment {
    _nextDirties: IDires;
    _rebuildRequestStarted: boolean = false;
    _haveRebuildRequest: boolean = false;
-   private queue: string[] = null;
+   private queue: string[] = [];
 
-   constructor(public _rootDOMNode: TModifyHTMLNode, private _controlStateChangedCallback: Function) {
+   constructor(public _rootDOMNode: TModifyHTMLNode, private __requestRebuild: Function) {
       // @ts-ignore
       if (_rootDOMNode === document) {
          throw new Error('Корневой контрол нельзя монтировать на document');
@@ -52,13 +52,13 @@ abstract class Environment {
       this._nextDirties = {};
       // Clean up the saved stateChanged handler so it (and its closure)
       // don't get stuck in memory
-      this._controlStateChangedCallback = null;
+      this.__requestRebuild = null;
       this._destroyed = true;
    }
 
    forceRebuild(id: string): void {
-      if (this._rebuildIgnoreId !== id && this._controlStateChangedCallback) {
-         this._controlStateChangedCallback(id);
+      if (this._rebuildIgnoreId !== id && this.__requestRebuild) {
+         this.__requestRebuild(id);
       }
    }
 
@@ -88,12 +88,9 @@ abstract class Environment {
     * затем панель разрушается и заказанной перерисовки контрола вне панели не случается
     */
    private runQueue(): void {
-      if (this.queue) {
-         for (let i = 0; i < this.queue.length; i++) {
-            this.forceRebuild(this.queue[i]);
-         }
+      for (let i = 0; i < this.queue.length; i++) {
+         this.forceRebuild(this.queue[i]);
       }
-      this.queue = null;
    }
 
    applyNodeMemo(rebuildMemoNode: IMemoNode): void {
@@ -106,20 +103,21 @@ abstract class Environment {
       if (!!newNode?.control?._parent?.isDestroyed()) {
          return;
       }
-      if (!newNode.fullMarkup || !this._haveRebuildRequest) {
+
+      if (!newNode.fullMarkup) {
          if (typeof console !== 'undefined') {
             // tslint:disable:no-console
             console.warn("node haven't fullMarkup", new Error().stack);
          }
          return;
       }
+
       const rebuildChanges = rebuildMemoNode.getNodeIds();
       // tslint:disable:no-bitwise
       if (this._currentDirties[newNode.id] & DirtyKind.DIRTY) {
          rebuildChanges.add(newNode.id);
       }
       const vnode = newNode.fullMarkup;
-      const newRootDOMNode = undefined;
 
       // добавляем vdom-focus-in и vdom-focus-out
       // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
@@ -145,10 +143,6 @@ abstract class Environment {
       const isCompatible = newNode.control.hasCompatible && newNode.control.hasCompatible();
       if (isCompatible) {
          control = newNode.control;
-         if (newRootDOMNode) {
-            // @ts-ignore FIXME: Unknown $
-            control._container = window.$ ? $(newRootDOMNode) : newRootDOMNode;
-         }
          mountMethodsCaller.componentDidUpdate(controlNodesToCall);
          mountMethodsCaller.beforePaint(controlNodesToCall);
          delay(() => {
@@ -164,10 +158,8 @@ abstract class Environment {
                this._haveRebuildRequest = false;
             }
 
-            if (!control._destroyed) {
-               if (typeof control.reviveSuperOldControls === 'function') {
-                  control.reviveSuperOldControls();
-               }
+            if (!control._destroyed && typeof control.reviveSuperOldControls === 'function') {
+               control.reviveSuperOldControls();
             }
             mountMethodsCaller.afterUpdate(mountMethodsCaller.collectControlNodesToCall(newNode, rebuildChanges));
 

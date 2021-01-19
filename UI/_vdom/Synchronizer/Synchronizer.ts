@@ -63,43 +63,38 @@ class VDomSynchronizer {
    _controlNodes: Record<string, IControlNode> = {};
 
    private _nextDirtiesRunCheck(controlNode: IControlNode) {
-      let self = this;
-      let currentRoot = self._rootNodes[0];
-      for (let i = 1; i < self._rootNodes.length; i++) {
-         if (controlNode.environment === self._rootNodes[i].environment) {
-            currentRoot = self._rootNodes[i];
+      let currentRoot = this._rootNodes[0];
+      for (let i = 1; i < this._rootNodes.length; i++) {
+         if (controlNode.environment === this._rootNodes[i].environment) {
+            currentRoot = this._rootNodes[i];
             break;
          }
       }
 
+      currentRoot.environment._rebuildRequestStarted = true;
       currentRoot.environment._currentDirties = currentRoot.environment._nextDirties;
       currentRoot.environment._nextDirties = {};
       onStartSync(currentRoot.rootId);
-      let rootsRebuild: IMemoNode | Promise<IMemoNode> = rebuildNode(currentRoot.environment, currentRoot, undefined, true);
+      let rootsRebuild: PromiseLike<IMemoNode> = rebuildNode(currentRoot.environment, currentRoot, undefined, true);
+      rootsRebuild.then((val) => {
+         val.memo.createdNodes.forEach((node: IControlNode) => {
+            this._controlNodes[node.id] = node;
+         });
 
-      if ('then' in rootsRebuild) {
-         rootsRebuild.then((val) => {
-            val.memo.createdNodes.forEach((node: IControlNode) => {
-               this._controlNodes[node.id] = node;
-            });
+         val.memo.destroyedNodes.forEach((node: IControlNode) => {
+            delete this._controlNodes[node.id];
+         });
 
-            val.memo.destroyedNodes.forEach((node: IControlNode) => {
-               delete this._controlNodes[node.id];
-            });
+         val.value.environment.applyNodeMemo(val)
+         onEndSync(currentRoot.rootId);
+      }, (err: any) => {
+            Logger.asyncRenderErrorLog(err);
+            return err;
+         }
+      );
+   }
 
-            val.value.environment._haveRebuildRequest = true;
-            val.value.environment.applyNodeMemo(val)
-            onEndSync(currentRoot.rootId);
-         },
-            function (err: any) {
-               Logger.asyncRenderErrorLog(err);
-               return err;
-            }
-         );
-
-         return;
-      }
-
+   private afterRebuildVdomTree(rootsRebuild) {
       rootsRebuild.memo.createdNodes.forEach((node: IControlNode) => {
          this._controlNodes[node.id] = node;
       });
@@ -109,7 +104,7 @@ class VDomSynchronizer {
       });
 
       rootsRebuild.value.environment.applyNodeMemo(rootsRebuild)
-      onEndSync(currentRoot.rootId);
+      onEndSync(rootsRebuild.value.rootId);
    }
 
    mountControlToDOM(
@@ -355,23 +350,20 @@ class VDomSynchronizer {
    }
 
    private __requestRebuild(controlId: string): void {
-      //контрол здесь точно должен найтись, или быть корневым - 2 варианта попадания сюда:
-      //    из конструктора компонента (тогда его нет, но тогда синхронизация активна) - тогда не нужно с ним ничего делать
-      //    из внутреннего события компонента, меняющего его состояние, и вызывающего requestRebuild
+      // контрол здесь точно должен найтись, или быть корневым - 2 варианта попадания сюда:
+      // из конструктора компонента (тогда его нет, но тогда синхронизация активна) - тогда не нужно с ним ничего делать
+      // из внутреннего события компонента, меняющего его состояние, и вызывающего requestRebuild
       let controlNode = this._controlNodes[controlId];
+      if (!controlNode) {
+         return;
+      }
 
-      //@ts-ignore используется runtime hack
-      let canUpdate = controlNode && !controlNode.environment._rebuildRequestStarted;
-
-      if (!canUpdate) {
-         if (controlNode && controlNode.environment) {
-            if (!controlNode.environment.queue) {
-               controlNode.environment.queue = [];
-            }
-            if (!controlNode.environment.queue.includes(controlId)) {
-               controlNode.environment.queue.push(controlId);
-            }
+      // @ts-ignore используется runtime hack
+      if (controlNode.environment?._rebuildRequestStarted) {
+         if (!controlNode.environment.queue.includes(controlId)) {
+            controlNode.environment.queue.push(controlId);
          }
+
          return;
       }
 
@@ -399,8 +391,6 @@ class VDomSynchronizer {
             return;
          }
 
-         //@ts-ignore используется runtime hack
-         controlNode.environment._rebuildRequestStarted = true;
          restoreFocus(controlNode.control, () => this._nextDirtiesRunCheck(controlNode));
          controlNode.environment.addTabListener();
       };

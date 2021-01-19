@@ -41,7 +41,7 @@ import { getStateReceiver } from 'Application/Env';
 import { isInit } from 'Application/Initializer';
 import { GeneratorNode, CommonUtils } from 'UI/Executor';
 // import { VNode } from 'Inferno/third-party/index';
-import { ITemplateNode } from 'UI/_executor/_Markup/IGeneratorType';
+import { IControl, ITemplateNode } from 'UI/_executor/_Markup/IGeneratorType';
 import { getCompatibleUtils } from 'UI/_vdom/Synchronizer/resources/DirtyCheckingCompatible';
 
 const needWaitAsync = CommonUtils.needWaitAsync;
@@ -408,16 +408,16 @@ function rebuildNodeWriter(environment, node, force, isRoot?) {
             node.receivedState = state;
             return rebuildNode(environment, node, force, isRoot);
          },
-         function (err) {
-            const error = new Error(`Promise с состоянием rejected был возвращен из _beforeMount.
+         (err) => {
+              const error = new Error(`Promise с состоянием rejected был возвращен из _beforeMount.
             Перед возвратом promise из _beforeMount всегда добавлять catch обработчик. \n Ошибка: ${err}`);
-            Logger.asyncRenderErrorLog(error, node);
-            /*_beforeMount can return errback
-             * send error and create control
-             */
-            node.receivedState = null;
-            return rebuildNode(environment, node, force, isRoot);
-         }
+              Logger.asyncRenderErrorLog(error, node);
+              /*_beforeMount can return errback
+               * send error and create control
+               */
+              node.receivedState = null;
+              return rebuildNode(environment, node, force, isRoot);
+          }
       );
    } else {
       return rebuildNode(environment, node, force, isRoot);
@@ -494,7 +494,7 @@ export function destroyReqursive(childControlNode, environment) {
    }
 }
 
-function setChangedForNode(node) {
+function setChangedForNode(node: IControlNode) {
    if (node.fullMarkup) {
       node.fullMarkup.changed = true;
    }
@@ -515,14 +515,24 @@ function addTemplateChildrenRecursive(node, result) {
    }
 }
 
-export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, force: boolean, isRoot): IMemoNode | Promise<IMemoNode> {
+function PromiseLikeSync<T = unknown>(value: T): PromiseLike<T> {
+    return {
+        then: <TR = T>(onfulfilled?: (val: T) => any): PromiseLike<TR> => {
+            return PromiseLikeSync<TR>(onfulfilled(value));
+        }
+    };
+}
+
+export function rebuildNode(
+    environment: IDOMEnvironment, node: IControlNode,
+    force: boolean, isRoot: boolean): PromiseLike<IMemoNode> {
     let id = node.id;
     let dirty = environment._currentDirties[id] || DirtyKind.NONE;
     let isDirty = dirty !== DirtyKind.NONE || force;
     let isSelfDirty = !!(dirty & DirtyKind.DIRTY) || force;
 
     if (!isDirty) {
-        return new MemoNode(node, new MemoForNode());
+        return PromiseLikeSync(new MemoNode(node, new MemoForNode()));
     }
 
     let newNode = node;
@@ -609,7 +619,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
 
     // @ts-ignore
     Logger.debug(`[DirtyChecking:rebuildNode()] - requestRebuild "${id}" for "${newNode.control._moduleName}"`);
-    let parentNode = newNode;
+    const parentNode = newNode;
 
     // @ts-ignore
     newNode.control.saveFullContext(ContextResolver.wrapContext(newNode.control, newNode.context || {}));
@@ -620,7 +630,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     // @ts-ignore
     newNode.control.saveInheritOptions(newNode.inheritOptions);
 
-    let oldMarkup = node.markup;
+    const oldMarkup = node.markup;
     ReactiveObserver.forbidReactive(newNode.control, () => {
        newNode.markup = getDecoratedMarkup(newNode);
     });
@@ -633,7 +643,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
        saveChildren(newNode.markup);
     }
 
-    let diff = getMarkupDiff(oldMarkup, newNode.markup, false, false);
+    const diff = getMarkupDiff(oldMarkup, newNode.markup, false, false);
     Logger.debug('DirtyChecking (diff)', diff);
 
     let needRenderMarkup = false;
@@ -1200,7 +1210,7 @@ function generateFullMarkup(currentMemo: MemoForNode, newNode, childrenRebuildFi
 
     newNode.childrenNodes = childrenRebuild.value;
     if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
-        let wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
+        const wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
         newNode.fullMarkup = environment.decorateFullMarkup(
             getFullMarkup(
                 newNode.childrenNodes,
@@ -1223,7 +1233,8 @@ function generateFullMarkup(currentMemo: MemoForNode, newNode, childrenRebuildFi
 }
 
 function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode, needRenderMarkup: boolean,
-    changedNodes, childrenNodes, currentMemo: MemoForNode, isSelfDirty: boolean): IMemoNode | Promise<IMemoNode> {
+    changedNodes: IControlNode[], childrenNodes: IControlNode[],
+    currentMemo: MemoForNode, isSelfDirty: boolean): PromiseLike<IMemoNode> {
 
     const childrenRebuildResults: IMemoNode[] = [];
 
@@ -1240,8 +1251,12 @@ function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode,
     }
 
     if (!haveAsync) {
-        return generateFullMarkup(currentMemo, newNode, childrenRebuildResults,
-            environment, needRenderMarkup, isSelfDirty);
+        return PromiseLikeSync(
+            generateFullMarkup(
+                currentMemo, newNode, childrenRebuildResults,
+                environment, needRenderMarkup, isSelfDirty
+            )
+        );
     }
 
     return Promise.all(childrenRebuildResults).then(
