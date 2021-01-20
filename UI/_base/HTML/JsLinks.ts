@@ -30,21 +30,8 @@ class JsLinks extends Control<IJsLinksOptions> {
       if (typeof window !== 'undefined') {
          return;
       }
-      const resolveJsLink = (initialJs: string) => {
-         let js: string = initialJs;
-         /**
-          * Если нет слешей и заканчивается на .package, то можно добавить превикс из wsConfig
-          * Например: online-page-superbuindle.package
-          * надо превратить в /resources/online-page-superbuindle.package
-          * TODO: Исправится после https://online.sbis.ru/doc/46e18aa9-31a9-418c-9ac1-b15db1de43ce
-          */
-         if (!js.includes('/') && js.endsWith('.package')) {
-            js = `${options.resourceRoot}${js}`;
-         }
-         return ModulesLoader.getModuleUrl(js);
-      };
       return headDataStore.read('waitAppContent')().then((res) => {
-         const jsLinks: string[] = res.js.map(resolveJsLink).concat(res.scripts);
+         const jsLinks: string[] = res.js.map(this.resolveLink).concat(res.scripts);
          this.js = arrayToObject(jsLinks); // конвертируем в hashmap чтобы избавиться от дублей
          this.tmpl = res.tmpl;
          this.wml = res.wml;
@@ -58,6 +45,10 @@ class JsLinks extends Control<IJsLinksOptions> {
           */
          this.rtpackModuleNames = JSON.stringify(arrayToObject(res.rtpackModuleNames));
       });
+   }
+
+   resolveLink(path: string, type?: string = ''): string {
+      return ModulesLoader.getModuleUrl(path + type);
    }
 }
 
