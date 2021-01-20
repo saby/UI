@@ -10,16 +10,6 @@ export interface IItem extends IControlOptions {
 }
 
 class Item extends Control<IItem> {
-    protected checked: boolean = false;
-    protected removeHandler;
-
-    constructor(props: IItem) {
-        super(props);
-        this.removeHandler = props.removeHandler;
-    }
-    protected _changeHandler(): void {
-        this.checked = !this.checked;
-    }
 }
 
 // @ts-ignore
