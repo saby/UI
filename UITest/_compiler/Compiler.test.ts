@@ -1,5 +1,7 @@
-import { Compiler } from 'Compiler/Compiler';
+import { Compiler } from 'UI/_builder/Compiler';
 import { assert } from 'chai';
+
+// TODO: UI/_builder/Tmpl/* -> Compiler/*
 
 describe('Compiler/Compiler', () => {
    let compiler;

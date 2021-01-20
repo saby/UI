@@ -1,6 +1,8 @@
-import { createSource } from 'Compiler/html/Source';
-import Reader from 'Compiler/html/Reader';
+import { createSource } from 'UI/_builder/Tmpl/html/Source';
+import Reader from 'UI/_builder/Tmpl/html/Reader';
 import { assert } from 'chai';
+
+// TODO: UI/_builder/Tmpl/* -> Compiler/*
 
 const EOF = null;
 
