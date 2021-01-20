@@ -1,7 +1,9 @@
-import { createGlobalContext, IContext, IProgramMeta, ContextType, SpecialProgramType } from 'Compiler/core/Context';
-import { ProgramNode } from 'Compiler/expressions/_private/Nodes';
-import { Parser } from 'Compiler/expressions/_private/Parser';
+import { createGlobalContext, IContext, IProgramMeta, ContextType, SpecialProgramType } from 'UI/_builder/Tmpl/core/Context';
+import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
+import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import { assert } from 'chai';
+
+// TODO: UI/_builder/Tmpl/* -> Compiler/*
 
 function parse(source: string): ProgramNode {
    return new Parser().parse(source);

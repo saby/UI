@@ -1,12 +1,14 @@
-import traverse from 'Compiler/core/Traverse';
-import { Parser } from 'Compiler/expressions/_private/Parser';
+import traverse from 'UI/_builder/Tmpl/core/Traverse';
+import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 import createErrorHandler from '../NullLogger';
-import Scope from 'Compiler/core/Scope';
-import { parse } from 'Compiler/html/Parser';
-import getWasabyTagDescription from 'Compiler/core/Tags';
-import * as Ast from 'Compiler/core/Ast';
-import { createTextTranslator } from 'Compiler/i18n/Translator';
+import Scope from 'UI/_builder/Tmpl/core/Scope';
+import { parse } from 'UI/_builder/Tmpl/html/Parser';
+import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';
+import * as Ast from 'UI/_builder/Tmpl/core/Ast';
+import { createTextTranslator } from 'UI/_builder/Tmpl/i18n/Translator';
 import { assert } from 'chai';
+
+// TODO: UI/_builder/Tmpl/* -> Compiler/*
 
 const traverseConfig = {
    allowComments: false,

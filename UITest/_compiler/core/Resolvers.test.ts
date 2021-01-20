@@ -1,5 +1,7 @@
-import * as Resolvers from 'Compiler/core/Resolvers';
+import * as Resolvers from 'UI/_builder/Tmpl/core/Resolvers';
 import { assert } from 'chai';
+
+// TODO: UI/_builder/Tmpl/* -> Compiler/*
 
 describe('Compiler/core/Resolvers', () => {
    describe('parseComponentName() Simple', () => {

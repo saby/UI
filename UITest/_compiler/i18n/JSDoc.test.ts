@@ -1,5 +1,7 @@
-import createJSDocProcessor from 'Compiler/i18n/JSDoc';
+import createJSDocProcessor from 'UI/_builder/Tmpl/i18n/JSDoc';
 import { assert } from 'chai';
+
+// TODO: UI/_builder/Tmpl/* -> Compiler/*
 
 const JSDoc = {
    'UIModule/Component': {
