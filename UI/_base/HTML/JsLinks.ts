@@ -47,8 +47,8 @@ class JsLinks extends Control<IJsLinksOptions> {
       });
    }
 
-   resolveLink(path: string, type?: string = ''): string {
-      return ModulesLoader.getModuleUrl(path + type);
+   resolveLink(path: string, type: string = ''): string {
+      return ModulesLoader.getModuleUrl(type ? `${type}!${path}` : path);
    }
 }
 
