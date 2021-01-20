@@ -21,16 +21,13 @@ export class FastTouchEndController {
       this.needClickEmulate = state;
    }
 
-   static clickEmulate(targetElement: Element, nativeEvent: TouchEvent): void {
+   static clickEmulate(targetElement: Element, nativeEvent: TouchEvent, captureEventHandler: Function): void {
       if (this.useNativeTouchEnd(targetElement, nativeEvent)) {
          return;
       }
-      nativeEvent.preventDefault();
       const touch = nativeEvent.changedTouches[0];
-      let clickEvent;
       for (let i = 0; i < fastEventList.length; i++) {
-         clickEvent = new MouseEvent(fastEventList[i], this.createMouseEvent(fastEventList[i], nativeEvent, touch));
-         targetElement.dispatchEvent(clickEvent);
+         captureEventHandler(this.createMouseEvent(fastEventList[i], nativeEvent, touch));
       }
    }
 
@@ -45,6 +42,12 @@ export class FastTouchEndController {
          return true;
       }
       if (useNativeEventList.indexOf(targetElement.tagName.toLowerCase()) > -1) {
+         return true;
+      }
+      // БТР - это div c contentEditable, поэтому выделяя его или элементы внутри него мы не должны
+      // менять поведение тача (напримре выделение текста по двойному тапу);
+      if (targetElement.hasAttribute('contentEditable') ||
+          (targetElement.parentElement && targetElement.parentElement.hasAttribute('contentEditable'))) {
          return true;
       }
       return false;
