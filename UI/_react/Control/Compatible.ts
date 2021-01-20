@@ -4,7 +4,7 @@ import {_IGeneratorType, OptionsResolver} from "UI/Executor";
 import {getGeneratorConfig} from './GeneratorConfig';
 import startApplication from './startApplication';
 import {makeRelation, removeRelation} from './ParentFinder';
-import {Logger, needToBeCompatible} from "UI/Utils";
+import {Logger, needToBeCompatible, Purifier} from "UI/Utils";
 import {_FocusAttrs, _IControl, goUpByControlTree} from "UI/Focus";
 import {ContextResolver} from "UI/Contexts";
 import {constants} from "Env/Env";
@@ -114,6 +114,7 @@ const _private = {
  */
 export class Control<TOptions extends IControlOptions = {}, TState extends TIState = void>
    extends Component<TOptions, IControlState> implements _IControl {
+    _moduleName: string;
     private _firstRender: boolean = true;
     private _asyncMount: boolean = false;
     private _$observer: Function = reactiveObserve;
@@ -473,6 +474,11 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
     componentWillUnmount(): void {
         removeRelation(this);
         this._beforeUnmount.apply(this);
+        const isWS3Compatible: boolean = this.hasOwnProperty('getParent');
+        if (!isWS3Compatible) {
+           const async: boolean = !Purifier.canPurifyInstanceSync(this._moduleName);
+           Purifier.purifyInstance(this, this._moduleName, async);
+        }
     }
 
     private saveInheritOptions(opts: any): void {
