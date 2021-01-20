@@ -220,6 +220,7 @@ export default class MountMethodsCaller {
             const control: Control = controlNode.control;
             onStartLifecycle(controlNode.vnode || controlNode);
             if (this.isBeforeMount(control)) {
+                // @ts-ignore
                 if (controlNode.hasCompound || control.getPendingBeforeMountState()) {
                     delay((): void => {
                         this.componentDidMountProcess(controlNode, control);
@@ -248,6 +249,7 @@ export default class MountMethodsCaller {
             const control: Control = controlNode.control;
             onStartLifecycle(controlNode.vnode || controlNode);
             if (this.isBeforeMount(control)) {
+                // @ts-ignore
                 if (controlNode.hasCompound || control.getPendingBeforeMountState()) {
                     delay((): void => {
                         this.afterMountProcess(controlNode, control);

@@ -1,12 +1,10 @@
 import {Component} from 'react';
 import {reactiveObserve} from './ReactiveObserver';
-import {_IGeneratorType, OptionsResolver} from "UI/Executor";
+import {_IGeneratorType} from "UI/Executor";
 import {getGeneratorConfig} from './GeneratorConfig';
-import startApplication from './startApplication';
 import {makeRelation, removeRelation} from './ParentFinder';
-import {Logger, needToBeCompatible} from "UI/Utils";
-import {_FocusAttrs, _IControl, goUpByControlTree} from "UI/Focus";
-import {ContextResolver} from "UI/Contexts";
+import {Logger} from "UI/Utils";
+import {_IControl} from "UI/Focus";
 import {constants} from "Env/Env";
 import * as ReactDOM from "react-dom";
 import * as React from "react";
@@ -34,7 +32,7 @@ export interface ITemplateAttrs {
     context?: Record<string, any>;
     domNodeProps?: Record<string, any>;
     events?: Record<string, any>;
-};
+}
 
 interface IControlState {
     loading: boolean;
@@ -48,63 +46,8 @@ export interface IControlOptions {
     readOnly?: boolean;
     theme?: string;
 }
-interface IContext {
-    scope: unknown;
-    get(field: string): Record<string, unknown>;
-    set(): void;
-    has(): boolean;
-}
 
-function createContext(): IContext {
-    let _scope: unknown = null;
-    return {
-        set scope(value: unknown) {
-            _scope = value;
-        },
-        get(field: string): Record<string, unknown> {
-            if (_scope && _scope.hasOwnProperty(field)) {
-                return _scope[field];
-            }
-            return null;
-        },
-        set(): void {
-            throw new Error("Can't set data to context. Context is readonly!");
-        },
-        has(): boolean {
-            return true;
-        }
-    };
-}
-
-// const BL_MAX_EXECUTE_TIME = 5000;
 const CONTROL_WAIT_TIMEOUT = 20000;
-
-const _private = {
-    configureCompatibility(domElement: HTMLElement, cfg: any, ctor: any): boolean {
-        if (!constants.compat) {
-            return false;
-        }
-
-        // вычисляем родителя физически - ближайший к элементу родительский контрол
-        const parent = goUpByControlTree(domElement)[0];
-
-        if (needToBeCompatible(ctor, parent)) {
-            cfg.element = domElement;
-
-            if (parent && parent._options === cfg) {
-                Logger.error('Для создания контрола ' + ctor.prototype._moduleName +
-                   ' в качестве конфига был передан объект с опциями его родителя ' + parent._moduleName +
-                   '. Не нужно передавать чужие опции для создания контрола, потому что они могут ' +
-                   'изменяться в процессе создания!', this);
-            } else {
-                cfg.parent = cfg.parent || parent;
-            }
-            return true;
-        } else {
-            return false;
-        }
-    }
-};
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
@@ -124,16 +67,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
     //@ts-ignore
     private _reactiveStart: boolean = false;
 
-    private _savedInheritOptions: unknown;
-    private _fullContext: Record<string, any>;
-    private _evaluatedContext: IContext;
-    // @ts-ignore
-    private _context: any;
-
     // @ts-ignore
     private _controlNode: any;
     private _environment: any;
-
     // @ts-ignore
     private _logicParent: any;
 
@@ -141,18 +77,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
     // @ts-ignore
     private _isRendered: boolean;
-
-    private get wasabyContext(): IContext {
-        if (!this._evaluatedContext) {
-            this._evaluatedContext = createContext();
-        }
-        return this._evaluatedContext;
-    }
-
-    // @ts-ignore
-    private set wasabyContext(value: IContext) {
-        this._evaluatedContext = value;
-    }
 
     constructor(props: TOptions) {
         super(props);
@@ -297,35 +221,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
             this._$observer(this, this._template.reactiveProps);
         }
     }
-    __beforeUpdate(newOptions: TOptions, context?: Record<string, any>): void {
-        // nothing
-    }
-    private _setInternalOption(name: string, value: unknown): void {
-        // @ts-ignore
-        if (!this._internalOptions) {
-            // @ts-ignore
-            this._internalOptions = {};
-        }
-        // @ts-ignore
-        this._internalOptions[name] = value;
-    }
-    _setInternalOptions(internal: Record<string, unknown>): void {
-        for (const name in internal) {
-            if (internal.hasOwnProperty(name)) {
-                this._setInternalOption(name, internal[name]);
-            }
-        }
-    }
-    getPendingBeforeMountState(): boolean {
-        return false;
-    }
-    saveOptions(options: TOptions, controlNode: any = null): boolean {
-        this._options = options as TOptions;
-        if (controlNode) {
-            this._container = controlNode.element;
-        }
-        return true;
-    }
     _getMarkup(rootKey?: string,
                attributes?: ITemplateAttrs,
                isVdom: boolean = true): void {
@@ -376,11 +271,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
         }
         return res;
     }
-    destroy(): void {
-        // nothing
-    }
-    static _styles: string[] = [];
-    static _theme: string[] = [];
     static isWasaby: boolean = true;
 
     // На данном этапе рисуем индикатор вместо компонента в момен загрузки асинхронного beforeMount
@@ -475,18 +365,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
         this._beforeUnmount.apply(this);
     }
 
-    private saveInheritOptions(opts: any): void {
-        this._savedInheritOptions = opts;
-    }
-    // @ts-ignore
-    private _saveContextObject(ctx: unknown):void {
-        this.wasabyContext.scope = ctx;
-        this._context = ctx;
-    }
-    private saveFullContext(ctx: unknown): void {
-        this._fullContext = ctx;
-    }
-
     render(empty?: any, attributes?: any): unknown {
         if (typeof window === 'undefined') {
             let markup;
@@ -549,7 +427,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
                                 control: curControl,
                                 element: container,
                                 id: curControl.getInstanceId(),
-                                environment: environment
+                                environment
                             };
                             addControlNode(container.controlNodes, controlNode);
                             curControl._container = container;
@@ -574,65 +452,18 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
     }
     static configureControl(parameters: {
         control: Control,
-        attrs: any,
-        domElement: HTMLElement,
-        cfg: any,
-        compatible: boolean,
-        environment: any
+        domElement: HTMLElement
     }): void {
-        parameters.control.saveInheritOptions(parameters.attrs.inheritOptions);
-        _FocusAttrs.patchDom(parameters.domElement, parameters.cfg);
-        parameters.control.saveFullContext(ContextResolver.wrapContext(parameters.control, { asd: 123 }));
-
-        if (parameters.compatible) {
-            if (requirejs.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
-                const makeInstanceCompatible = requirejs('Core/helpers/Hcontrol/makeInstanceCompatible');
-                makeInstanceCompatible(parameters.control, parameters.cfg);
-            }
-        }
-
-        parameters.control._saveEnvironment(parameters.environment);
+        const environment = createEnvironment(parameters.domElement);
+        parameters.control._saveEnvironment(environment);
     }
     static createControl(ctor: any, cfg: any, domElement: HTMLElement): void {
-        if (domElement) {
-            // если пришел jquery, вытащим оттуда элемент
-            domElement = domElement[0] || domElement;
-        }
-        if (!(ctor && ctor.prototype)) {
-            const message = '[UI/_base/Control:createControl] Аргумент ctor должен являться классом контрола!';
-            Logger.error(message, ctor.prototype);
-        }
-        if (!(domElement instanceof HTMLElement)) {
-            const message = '[UI/_base/Control:createControl] domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.';
-            Logger.error(message, ctor.prototype);
-        }
-        if (!document.documentElement.contains(domElement)) {
-            const message = '[UI/_base/Control:createControl] domElement parameter is not contained in document. You should pass the correct dom element to control creation function.';
-            Logger.error(message, ctor.prototype);
-        }
-
-        const compatible = _private.configureCompatibility(domElement, cfg, ctor);
-        cfg._$createdFromCode = true;
-
-        startApplication();
-        const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
-        // @ts-ignore
-        OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
-        const attrs = { inheritOptions: {} };
-        OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
-
-        const environment = createEnvironment(domElement);
-
         if (document.documentElement.classList.contains('pre-load')) {
             // @ts-ignore
             ReactDOM.hydrate(React.createElement(ctor, cfg, null), domElement.parentNode, function(): void {
                 Control.configureControl({
                     control: this,
-                    compatible,
-                    cfg,
-                    attrs,
-                    domElement,
-                    environment
+                    domElement
                 });
             });
         } else {
@@ -640,11 +471,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
             ReactDOM.render(React.createElement(ctor, cfg, null), domElement.parentNode, function(): void {
                 Control.configureControl({
                     control: this,
-                    compatible,
-                    cfg,
-                    attrs,
-                    domElement,
-                    environment
+                    domElement
                 });
             });
         }

@@ -89,7 +89,7 @@ export class Builder implements IBuilder {
          }
 
          //TODO пропустить через contextResolver(где взять класс?)
-         inst.saveInheritOptions(scope.inheritOptions || {});
+         inst.saveInheritOptions && inst.saveInheritOptions(scope.inheritOptions || {});
 
          const needWaitAsyncValue = needWaitAsync(inst._moduleName);
 
@@ -106,8 +106,8 @@ export class Builder implements IBuilder {
             }
             return new Promise(function (resolve) {
                dfd.then(function (receivedState) {
-                  inst._saveContextObject(ContextResolver.resolveContext(cnstr, scope.templateContext || {}, inst));
-                  inst.saveFullContext(ContextResolver.wrapContext(inst, scope.templateContext || {}));
+                  inst._saveContextObject && inst._saveContextObject(ContextResolver.resolveContext(cnstr, scope.templateContext || {}, inst));
+                  inst.saveFullContext && inst.saveFullContext(ContextResolver.wrapContext(inst, scope.templateContext || {}));
                   if (AppInit.isInit()) {
                      let sr = AppEnv.getStateReceiver();
                      sr && sr.register(scope.key, {
@@ -147,8 +147,8 @@ export class Builder implements IBuilder {
                });
             });
          } else {
-            inst._saveContextObject(ContextResolver.resolveContext(cnstr, scope.templateContext || {}, inst));
-            inst.saveFullContext(ContextResolver.wrapContext(inst, scope.templateContext || {}));
+            inst._saveContextObject && inst._saveContextObject(ContextResolver.resolveContext(cnstr, scope.templateContext || {}, inst));
+            inst.saveFullContext && inst.saveFullContext(ContextResolver.wrapContext(inst, scope.templateContext || {}));
          }
       }
       result = inst._template ? invisibleNodeCompat(inst.render(undefined, decOptions)) : '';

@@ -205,7 +205,9 @@ class VDomSynchronizer {
       /**
        * Сделать final проверку
        */
+      // @ts-ignore
       if (controlNode.control.saveOptions) {
+         // @ts-ignore
          controlNode.control.saveOptions(controlNode.options, controlNode);
       } else {
          /**
@@ -332,6 +334,7 @@ class VDomSynchronizer {
       const isControlDestroyed = control._destroyed;
       if (!foundControlNode) {
          if (!isControlDestroyed) {
+            // @ts-ignore
             control.destroy();
          }
          //@ts-ignore используется runtime hack
