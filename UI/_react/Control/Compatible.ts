@@ -12,7 +12,7 @@ import * as React from 'react';
 // @ts-ignore
 import template = require('wml!UI/_react/Control/Compatible');
 import {ReactiveObserver} from 'UI/Reactivity';
-import {createEnvironment} from "UI/_react/Control/EnvironmentStorage";
+import {createEnvironment} from 'UI/_react/Control/EnvironmentStorage';
 import {addControlNode, removeControlNode} from './ControlNodes';
 
 let countInst = 1;
@@ -22,17 +22,6 @@ export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: b
                                 generatorConfig?: _IGeneratorType.IGeneratorConfig) => string | object;
 
 type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
-
-export interface ITemplateAttrs {
-   key?: string;
-   internal?: Record<string, any>;
-   inheritOptions?: Record<string, any>;
-   attributes?: Record<string, any>;
-   templateContext?: Record<string, any>;
-   context?: Record<string, any>;
-   domNodeProps?: Record<string, any>;
-   events?: Record<string, any>;
-}
 
 interface IControlState {
    loading: boolean;
@@ -64,6 +53,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    protected _options: TOptions = {} as TOptions;
    // @ts-ignore
    private _reactiveStart: boolean = false;
+   reactiveValues: object;
 
    // @ts-ignore
    private _controlNode: any;
@@ -225,7 +215,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
 
    _getMarkup(rootKey?: string,
-              attributes?: ITemplateAttrs,
+              attributes?: any,
               isVdom: boolean = true): void {
 
       if (!(this._template as any).stable) {
@@ -239,10 +229,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       if (!attributes) {
          attributes = {};
       }
-      // @ts-ignore
-      attributes.context = this._fullContext;
-      // @ts-ignore
-      attributes.inheritOptions = this._savedInheritOptions;
       for (const i in attributes.events) {
          if (attributes.events.hasOwnProperty(i)) {
             for (let handl = 0; handl < attributes.events[i].length; handl++) {
@@ -274,8 +260,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       }
       return res;
    }
-
-   static isWasaby: boolean = true;
 
    // На данном этапе рисуем индикатор вместо компонента в момент загрузки асинхронного beforeMount
    // private _getLoadingComponent(): ReactElement {
