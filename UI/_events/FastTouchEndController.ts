@@ -21,13 +21,18 @@ export class FastTouchEndController {
       this.needClickEmulate = state;
    }
 
-   static clickEmulate(targetElement: Element, nativeEvent: TouchEvent, captureEventHandler: Function): void {
+   static clickEmulate(targetElement: Element, nativeEvent: TouchEvent): void {
       if (this.useNativeTouchEnd(targetElement, nativeEvent)) {
          return;
       }
+      nativeEvent.preventDefault();
       const touch = nativeEvent.changedTouches[0];
+      let clickEvent;
       for (let i = 0; i < fastEventList.length; i++) {
-         captureEventHandler(this.createMouseEvent(fastEventList[i], nativeEvent, touch));
+         // надо создавать новое событие мыши, а не отдавать объект в систему событий, т.к.
+         // в некоторых случаях события всплывают не правильно (например аккордеон)
+         clickEvent = new MouseEvent(fastEventList[i], this.createMouseEvent(fastEventList[i], nativeEvent, touch));
+         targetElement.dispatchEvent(clickEvent);
       }
    }
 
@@ -41,16 +46,30 @@ export class FastTouchEndController {
       if (!this.needClickEmulate) {
          return true;
       }
-      if (useNativeEventList.indexOf(targetElement.tagName.toLowerCase()) > -1) {
+      if (this.isNativeList(targetElement)) {
          return true;
       }
       // БТР - это div c contentEditable, поэтому выделяя его или элементы внутри него мы не должны
       // менять поведение тача (напримре выделение текста по двойному тапу);
-      if (targetElement.hasAttribute('contentEditable') ||
-          (targetElement.parentElement && targetElement.parentElement.hasAttribute('contentEditable'))) {
+      if (this.isContentEditable(targetElement)) {
          return true;
       }
+      // надо учитывать, что поведение при клике в элемент который должен работать с нативным touchend
+      // и клике вне него (когда он в фокусе) должны работать нативно (например фокус в input и открыть popup)
+      if (this.isNativeList(document.activeElement) || this.isContentEditable(document.activeElement)) {
+         return true;
+
+      }
       return false;
+   }
+
+   private static isNativeList(element: Element): boolean {
+      return useNativeEventList.indexOf(element.tagName.toLowerCase()) > -1;
+   }
+
+   private static isContentEditable(element: Element): boolean {
+      return (element.hasAttribute('contentEditable') ||
+          (element.parentElement && element.parentElement.hasAttribute('contentEditable')));
    }
 
    private static createMouseEvent(eventName: string, event: TouchEvent, touch: Touch): IMouseEventInitExtend {
