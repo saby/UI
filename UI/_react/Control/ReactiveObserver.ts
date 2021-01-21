@@ -31,7 +31,9 @@ export function reactiveObserve(inst: Control, template: any): void {
         }
     });
     const templateProps = template.reactiveProps;
-    if (templateProps) {
+   if (!templateProps) {
+      return;
+   }
         templateProps.forEach((prop) => {
             const desc = getDescriptor(inst, prop);
             inst.reactiveValues[prop] = inst[prop];
@@ -57,7 +59,6 @@ export function reactiveObserve(inst: Control, template: any): void {
                 }
             });
         });
-    }
 }
 
 /**
@@ -169,26 +170,30 @@ function needToBeReactive(value: IReactiveProp): boolean {
  */
 export function releaseProperties(inst: Control<any, any>): void {
     const reactiveValues = inst.reactiveValues;
-    if (reactiveValues) {
+   if (!reactiveValues) {
+      return;
+   }
         const reactiveKeys = Object.keys(reactiveValues);
         for (let i = 0; i < reactiveKeys.length; ++i) {
             releaseProperty(inst, reactiveKeys[i]);
         }
-    }
 }
 
-function releaseProperty(inst: Control, prop: string, fromReactiveSetter?: Function): void {
-    releaseVersion(inst, prop);
-    releaseArray(inst, prop);
-    releaseValue(inst, prop, fromReactiveSetter);
+function releaseProperty(inst: Control, prop: string): void {
+   const value = inst && inst.reactiveValues[prop];
+   if (value && value._$reactived === inst) {
+      releaseVersion(inst, value);
+      releaseArray(inst, value);
+      releaseValue(inst, value);
+   }
     delete inst.reactiveValues[prop];
 }
 
-function releaseVersion(inst: Control, prop: string): void {
-    const value = inst && inst.reactiveValues[prop];
-    if (value && value._$reactived === inst) {
+function releaseVersion(inst: Control, value: any): void {
         const version = value._version;
-        if (typeof version !== 'undefined') {
+   if (typeof version === 'undefined') {
+      return;
+   }
             value._$reactived = null;
             Object.defineProperty(value, '_version', {
                 value: version,
@@ -196,14 +201,12 @@ function releaseVersion(inst: Control, prop: string): void {
                 configurable: true,
                 writable: true
             });
-        }
-    }
 }
 
-function releaseArray(inst: Control, prop: string): void {
-    const value: IReactiveProp = inst && inst.reactiveValues[prop];
-    if (value && value._$reactived === inst) {
-        if (Array.isArray(value)) {
+function releaseArray(inst: Control, value: IReactiveProp): void {
+   if (!Array.isArray(value)) {
+      return;
+   }
             value._$reactived = null;
             for (let i = 0; i < arrayMethods.length; i++) {
                 Object.defineProperty(value, arrayMethods[i], {
@@ -213,15 +216,9 @@ function releaseArray(inst: Control, prop: string): void {
                     enumerable: false
                 });
             }
-        }
-    }
 }
 
-function releaseValue(inst: Control, prop: string, fromReactiveSetter: Function): void {
-    if (fromReactiveSetter) {
-        return;
-    }
-    if (inst.reactiveValues.hasOwnProperty(prop)) {
+function releaseValue(inst: Control, prop: string): void {
         const value = inst.reactiveValues[prop];
         Object.defineProperty(inst, prop, {
             value,
@@ -229,5 +226,4 @@ function releaseValue(inst: Control, prop: string, fromReactiveSetter: Function)
             writable: true,
             enumerable: true
         });
-    }
 }
