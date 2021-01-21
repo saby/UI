@@ -394,13 +394,17 @@ export function depsTemplateResolver(tpl, includedTemplates, _deps, config) {
    return result;
 }
 
+let compat;
 export function isCompat() {
-   if (constants.isServerSide && typeof process !== 'undefined') {
-      // @ts-ignore
-      return !process.domain || process.domain.req && process.domain.req.compatible !== false;
-   } else {
-      return constants.compat;
+   if (typeof compat === 'undefined') {
+      if (constants.isServerSide && typeof process !== 'undefined') {
+         // @ts-ignore
+         compat = !process.domain || process.domain.req && process.domain.req.compatible !== false;
+      } else {
+         compat = constants.compat;
+      }
    }
+   return compat;
 }
 //todo перенести в Serializer
 export const componentOptsReArray = [
