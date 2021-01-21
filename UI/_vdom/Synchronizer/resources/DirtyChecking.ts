@@ -24,7 +24,6 @@ import { delay } from 'Types/function';
 import { Serializer } from 'UI/State';
 // @ts-ignore
 import { FunctionUtils, Logger, needToBeCompatible } from 'UI/Utils';
-import AsyncWaiterTemplate = require('wml!UI/_vdom/Synchronizer/resources/AsyncWaiter');
 import { clearNotChangedOptions } from './DirtyCheckingCompatible';
 import { ReactiveObserver } from 'UI/Reactivity';
 import {
@@ -39,56 +38,10 @@ import { getChangedOptions, collectObjectVersions } from './Options';
 import { createNode } from './ControlNode';
 import { getStateReceiver } from 'Application/Env';
 import { isInit } from 'Application/Initializer';
-import { GeneratorNode, CommonUtils } from 'UI/Executor';
+import { GeneratorNode } from 'UI/Executor';
 // import { VNode } from 'Inferno/third-party/index';
 import { ITemplateNode } from 'UI/_executor/_Markup/IGeneratorType';
 import { getCompatibleUtils } from 'UI/_vdom/Synchronizer/resources/DirtyCheckingCompatible';
-
-const templateKeys: string[] = Object.keys(AsyncWaiterTemplate);
-function createBindedTemplate(control) {
-    const bindedTemplate = AsyncWaiterTemplate.bind(control);
-    for (let i = 0; i < templateKeys.length; i++) {
-        const key = templateKeys[i];
-        bindedTemplate[key] = AsyncWaiterTemplate[key];
-    }
-    return bindedTemplate;
-}
-
-function replaceFunctionAndCreateRestore(control, functionName, replacer): () => any {
-    let oldFunction = control[functionName];
-
-    // Не даём переприсваивать, пока не стрельнет промиз, сохраняем присваивания.
-    Object.defineProperty(control, functionName, {
-        enumerable: true,
-        configurable: true,
-        get: () => replacer,
-        set: (value) => {
-            oldFunction = value;
-        }
-    });
-    return () => {
-        // Когда стрельнет - возвращаем последнее присваивание.
-        Object.defineProperty(control, functionName, {
-            enumerable: true,
-            configurable: true,
-            value: oldFunction
-        });
-    }
-}
-
-const emptyFunction = () => {};
-function createRestoreFunction(control) {
-    const oldTemplate = control._template;
-    control._template = createBindedTemplate(control);
-    const restoreDidMount = replaceFunctionAndCreateRestore(control, '_componentDidMount', emptyFunction);
-    const restoreAfterMount = replaceFunctionAndCreateRestore(control, '_afterMount', emptyFunction);
-    return () => {
-        control._template = oldTemplate;
-        restoreDidMount();
-        restoreAfterMount();
-        control._mounted = false;
-    };
-}
 
 type TDirtyCheckingTemplate = ITemplateNode & {
     children: GeneratorNode[];  // нужно понять почему у нас такое ограничение
