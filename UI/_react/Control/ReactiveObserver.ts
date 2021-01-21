@@ -1,8 +1,8 @@
 import {Control} from './Compatible';
 
 interface IReactiveProp {
-    _$reactived: Control;
-    _arrayVersion?: number;
+   _$reactived: Control;
+   _arrayVersion?: number;
 }
 
 const arrayMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
@@ -13,52 +13,52 @@ const arrayMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reve
  * @param template
  */
 export function reactiveObserve(inst: Control, template: any): void {
-    if (!inst.reactiveValues) {
-        inst.reactiveValues = {};
-    }
-    Object.defineProperty(inst, '_template', {
-        enumerable: true,
-        configurable: true,
-        get: () => {
-            return template;
-        },
-        set: (newTemplateFunction) => {
-            if (newTemplateFunction !== template && newTemplateFunction && newTemplateFunction.reactiveProps) {
-                releaseProperties(inst);
-                reactiveObserve(inst, newTemplateFunction);
-                inst._forceUpdate();
-            }
-        }
-    });
-    const templateProps = template.reactiveProps;
+   if (!inst.reactiveValues) {
+      inst.reactiveValues = {};
+   }
+   Object.defineProperty(inst, '_template', {
+      enumerable: true,
+      configurable: true,
+      get: () => {
+         return template;
+      },
+      set: (newTemplateFunction) => {
+         if (newTemplateFunction !== template && newTemplateFunction && newTemplateFunction.reactiveProps) {
+            releaseProperties(inst);
+            reactiveObserve(inst, newTemplateFunction);
+            inst._forceUpdate();
+         }
+      }
+   });
+   const templateProps = template.reactiveProps;
    if (!templateProps) {
       return;
    }
-        templateProps.forEach((prop) => {
-            const desc = getDescriptor(inst, prop);
-            inst.reactiveValues[prop] = inst[prop];
-            observeVersion(inst, prop);
-            observeArray(inst, prop);
-            Object.defineProperty(inst, prop, {
-                enumerable: true,
-                configurable: true,
-                get: function reactiveGetter(): unknown {
-                    if (desc && desc.get) {
-                        return desc.get.apply(this, arguments);
-                    }
-                    return inst.reactiveValues[prop];
-                },
-                set: function reactiveSetter(value: unknown): void {
-                    if (inst.reactiveValues[prop] !== value  && inst._reactiveStart) {
-                        inst.reactiveValues[prop] = value;
-                        if (Array.isArray(value)) {
-                            observeArray(inst, prop);
-                        }
-                        inst._forceUpdate();
-                    }
-                }
-            });
-        });
+   templateProps.forEach((prop) => {
+      const desc = getDescriptor(inst, prop);
+      inst.reactiveValues[prop] = inst[prop];
+      observeVersion(inst, prop);
+      observeArray(inst, prop);
+      Object.defineProperty(inst, prop, {
+         enumerable: true,
+         configurable: true,
+         get: function reactiveGetter(): unknown {
+            if (desc && desc.get) {
+               return desc.get.apply(this, arguments);
+            }
+            return inst.reactiveValues[prop];
+         },
+         set: function reactiveSetter(value: unknown): void {
+            if (inst.reactiveValues[prop] !== value && inst._reactiveStart) {
+               inst.reactiveValues[prop] = value;
+               if (Array.isArray(value)) {
+                  observeArray(inst, prop);
+               }
+               inst._forceUpdate();
+            }
+         }
+      });
+   });
 }
 
 /**
@@ -67,25 +67,25 @@ export function reactiveObserve(inst: Control, template: any): void {
  * @param {string} prop
  */
 function observeVersion(inst: Control, prop: string): void {
-    const value = inst[prop];
-    if (value && typeof value === 'object' && typeof value._version === 'number' && needToBeReactive(value)) {
-        let version = value._version;
-        Object.defineProperty(value, '_version', {
-            enumerable: true,
-            configurable: true,
-            get: function reactiveGetter(): number {
-                return version;
-            },
-            set: function reactiveSetter(newVal: unknown): void {
-                // @ts-ignore
-                if (version !== newVal && inst._reactiveStart) {
-                    inst._forceUpdate();
-                    version = newVal;
-                }
+   const value = inst[prop];
+   if (value && typeof value === 'object' && typeof value._version === 'number' && needToBeReactive(value)) {
+      let version = value._version;
+      Object.defineProperty(value, '_version', {
+         enumerable: true,
+         configurable: true,
+         get: function reactiveGetter(): number {
+            return version;
+         },
+         set: function reactiveSetter(newVal: unknown): void {
+            // @ts-ignore
+            if (version !== newVal && inst._reactiveStart) {
+               inst._forceUpdate();
+               version = newVal;
             }
-        });
-        value._$reactived = inst;
-    }
+         }
+      });
+      value._$reactived = inst;
+   }
 }
 
 /**
@@ -94,60 +94,60 @@ function observeVersion(inst: Control, prop: string): void {
  * @param {string} prop
  */
 function observeArray(inst: Control, prop: string): void {
-    const value: IReactiveProp = inst[prop];
-    if (value && Array.isArray(value) && needToBeReactive(value)) {
-        arrayMethods.forEach((methodName) => {
-            const method = value[methodName];
-            const mutator = function(): unknown {
-                const res = method.apply(this, arguments);
-                this._arrayVersion++;
-                inst._forceUpdate();
-                return res;
-            };
-            Object.defineProperty(value, methodName, {
-                value: mutator,
-                enumerable: false,
-                writable: true,
-                configurable: true
-            });
-        });
-        Object.defineProperties(value, {
-            _arrayVersion: {
-                value: 0,
-                enumerable: true,
-                writable: true,
-                configurable: true
+   const value: IReactiveProp = inst[prop];
+   if (value && Array.isArray(value) && needToBeReactive(value)) {
+      arrayMethods.forEach((methodName) => {
+         const method = value[methodName];
+         const mutator = function (): unknown {
+            const res = method.apply(this, arguments);
+            this._arrayVersion++;
+            inst._forceUpdate();
+            return res;
+         };
+         Object.defineProperty(value, methodName, {
+            value: mutator,
+            enumerable: false,
+            writable: true,
+            configurable: true
+         });
+      });
+      Object.defineProperties(value, {
+         _arrayVersion: {
+            value: 0,
+            enumerable: true,
+            writable: true,
+            configurable: true
+         },
+         getArrayVersion: {
+            value: () => {
+               return value._arrayVersion;
             },
-            getArrayVersion: {
-                value: () => {
-                    return value._arrayVersion;
-                },
-                enumerable: false,
-                writable: false,
-                configurable: true
-            },
-            _$reactived: {
-                value: inst,
-                enumerable: false,
-                writable: true,
-                configurable: true
-            }
-        });
-    }
+            enumerable: false,
+            writable: false,
+            configurable: true
+         },
+         _$reactived: {
+            value: inst,
+            enumerable: false,
+            writable: true,
+            configurable: true
+         }
+      });
+   }
 }
 
 function getDescriptor(_obj: object, prop: string): PropertyDescriptor {
-    let descriptor = null;
-    let obj = _obj;
-    while (obj) {
-        descriptor = Object.getOwnPropertyDescriptor(obj, prop);
-        obj = Object.getPrototypeOf(obj);
+   let descriptor = null;
+   let obj = _obj;
+   while (obj) {
+      descriptor = Object.getOwnPropertyDescriptor(obj, prop);
+      obj = Object.getPrototypeOf(obj);
 
-        if (descriptor) {
-            break;
-        }
-    }
-    return descriptor;
+      if (descriptor) {
+         break;
+      }
+   }
+   return descriptor;
 }
 
 /**
@@ -157,7 +157,7 @@ function getDescriptor(_obj: object, prop: string): PropertyDescriptor {
  * @returns {boolean}
  */
 function needToBeReactive(value: IReactiveProp): boolean {
-    return !value._$reactived;
+   return !value._$reactived;
 }
 
 /**
@@ -169,14 +169,14 @@ function needToBeReactive(value: IReactiveProp): boolean {
  * @param {Control} inst
  */
 export function releaseProperties(inst: Control<any, any>): void {
-    const reactiveValues = inst.reactiveValues;
+   const reactiveValues = inst.reactiveValues;
    if (!reactiveValues) {
       return;
    }
-        const reactiveKeys = Object.keys(reactiveValues);
-        for (let i = 0; i < reactiveKeys.length; ++i) {
-            releaseProperty(inst, reactiveKeys[i]);
-        }
+   const reactiveKeys = Object.keys(reactiveValues);
+   for (let i = 0; i < reactiveKeys.length; ++i) {
+      releaseProperty(inst, reactiveKeys[i]);
+   }
 }
 
 function releaseProperty(inst: Control, prop: string): void {
@@ -186,44 +186,44 @@ function releaseProperty(inst: Control, prop: string): void {
       releaseArray(inst, value);
       releaseValue(inst, value);
    }
-    delete inst.reactiveValues[prop];
+   delete inst.reactiveValues[prop];
 }
 
 function releaseVersion(inst: Control, value: any): void {
-        const version = value._version;
+   const version = value._version;
    if (typeof version === 'undefined') {
       return;
    }
-            value._$reactived = null;
-            Object.defineProperty(value, '_version', {
-                value: version,
-                enumerable: true,
-                configurable: true,
-                writable: true
-            });
+   value._$reactived = null;
+   Object.defineProperty(value, '_version', {
+      value: version,
+      enumerable: true,
+      configurable: true,
+      writable: true
+   });
 }
 
 function releaseArray(inst: Control, value: IReactiveProp): void {
    if (!Array.isArray(value)) {
       return;
    }
-            value._$reactived = null;
-            for (let i = 0; i < arrayMethods.length; i++) {
-                Object.defineProperty(value, arrayMethods[i], {
-                    value: Array.prototype[arrayMethods[i]],
-                    configurable: true,
-                    writable: true,
-                    enumerable: false
-                });
-            }
+   value._$reactived = null;
+   for (let i = 0; i < arrayMethods.length; i++) {
+      Object.defineProperty(value, arrayMethods[i], {
+         value: Array.prototype[arrayMethods[i]],
+         configurable: true,
+         writable: true,
+         enumerable: false
+      });
+   }
 }
 
 function releaseValue(inst: Control, prop: string): void {
-        const value = inst.reactiveValues[prop];
-        Object.defineProperty(inst, prop, {
-            value,
-            configurable: true,
-            writable: true,
-            enumerable: true
-        });
+   const value = inst.reactiveValues[prop];
+   Object.defineProperty(inst, prop, {
+      value,
+      configurable: true,
+      writable: true,
+      enumerable: true
+   });
 }
