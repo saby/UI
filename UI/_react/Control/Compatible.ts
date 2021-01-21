@@ -2,8 +2,10 @@ import {Component, createElement} from 'react';
 import {reactiveObserve} from './ReactiveObserver';
 import {getGeneratorConfig} from './GeneratorConfig';
 import {makeRelation, removeRelation} from './ParentFinder';
+import { EMPTY_THEME, getThemeController } from 'UI/theme/controller';
 import {Logger} from 'UI/Utils';
 import {_IControl} from 'UI/Focus';
+import {constants} from 'Env/Env';
 import * as ReactDOM from 'react-dom';
 import * as React from 'react';
 import {ReactiveObserver} from 'UI/Reactivity';
@@ -43,8 +45,13 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    protected _children: IControlChildren = {};
    // шаблон контрола
    protected _template: TemplateFunction;
+
    // опции контрола (пропсы)
    _options: TOptions = {} as TOptions;
+   /** @deprecated */
+   protected _theme: string[];
+   /** @deprecated */
+   protected _styles: string[];
    // флаг показывает, работает ли реактивность у контрола
    _reactiveStart: boolean = false;
    // хранилище значений реактивных полей
@@ -143,24 +150,28 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    __beforeMount(options?: TOptions,
                  contexts?: object,
                  receivedState?: TState): void {
+      /** Загрузка стилей и тем оформления - это обязательно асинхронный процесс */
+      const cssLoading = Promise.all([this.loadThemes(options.theme), this.loadStyles()]);
+      const promisesToWait = [];
+      if (!constants.isServerSide && !this.isDeprecatedCSS() && !this.isCSSLoaded(options.theme)) {
+         promisesToWait.push(cssLoading.then(nop));
+      }
       if (typeof window === 'undefined') {
-         return this.__beforeMountSSR.apply(this, arguments);
+         promisesToWait.push(this.__beforeMountSSR.apply(this, arguments));
+         Promise.all(promisesToWait).then(nop);
+         return;
       }
 
-      const beforeMountResult = this._beforeMount(this.props);
-      if (beforeMountResult && beforeMountResult.then) {
+      promisesToWait.push(this._beforeMount(this.props));
+
          this._asyncMount = true;
-         beforeMountResult.then(() => {
+      Promise.all(promisesToWait).then(() => {
             this._firstRender = false;
             this._reactiveStart = true;
             this.setState({
                loading: false
             }, () => this._afterMount(this.props));
          });
-      } else {
-         this._firstRender = false;
-         this._reactiveStart = true;
-      }
       this._$observer(this, this._template);
    }
 
@@ -269,6 +280,137 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
    /* End: Compatible lifecycle hooks */
 
+   /* Start: CSS region */
+
+   private isDeprecatedCSS(): boolean {
+      const isDeprecatedCSS = this._theme instanceof Array || this._styles instanceof Array;
+      if (isDeprecatedCSS) {
+         Logger.warn(`Стили и темы должны перечисляться в статическом свойстве класса ${this._moduleName}`);
+      }
+      return isDeprecatedCSS;
+   }
+   private isCSSLoaded(themeName?: string): boolean {
+      const themes = this._theme instanceof Array ? this._theme : [];
+      const styles = this._styles instanceof Array ? this._styles : [];
+      return Control.isCSSLoaded(themeName, themes, styles);
+   }
+   private loadThemes(themeName?: string): Promise<void> {
+      const themes = this._theme instanceof Array ? this._theme : [];
+      return Control.loadThemes(themeName, themes).catch(logError);
+   }
+   private loadStyles(): Promise<void> {
+      const styles = this._styles instanceof Array ? this._styles : [];
+      return Control.loadStyles(styles).catch(logError);
+   }
+
+   /* End: CSS region */
+
+   /* Start: CSS static region */
+
+   /**
+    * Загрузка стилей и тем контрола
+    * @param {String} themeName имя темы (по-умолчанию тема приложения)
+    * @param {Array<String>} themes массив доп тем для скачивания
+    * @param {Array<String>} styles массив доп стилей для скачивания
+    * @returns {Promise<void>}
+    * @static
+    * @public
+    * @method
+    * @example
+    * <pre class="brush: js">
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadCSS('saby__dark'))
+    * </pre>
+    */
+   static loadCSS(themeName?: string, themes: string[] = [], styles: string[] = []): Promise<void> {
+      return Promise.all([
+         this.loadStyles(styles),
+         this.loadThemes(themeName, themes)
+      ]).then(nop);
+   }
+   /**
+    * Загрузка тем контрола
+    * @param instThemes опционально дополнительные темы экземпляра
+    * @param themeName имя темы (по-умолчанию тема приложения)
+    * @static
+    * @private
+    * @method
+    * @example
+    * <pre>
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadThemes('saby__dark'))
+    * </pre>
+    */
+   static loadThemes(themeName?: string, instThemes: string[] = []): Promise<void> {
+      const themeController = getThemeController();
+      const themes = instThemes.concat(this._theme);
+      if (themes.length === 0) {
+         return Promise.resolve();
+      }
+      return Promise.all(themes.map((name) => themeController.get(name, themeName))).then(nop);
+   }
+   /**
+    * Загрузка стилей контрола
+    * @param instStyles (опционально) дополнительные стили экземпляра
+    * @static
+    * @private
+    * @method
+    * @example
+    * <pre>
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadStyles())
+    * </pre>
+    */
+   static loadStyles(instStyles: string[] = []): Promise<void> {
+      const themeController = getThemeController();
+      const styles = instStyles.concat(this._styles);
+      if (styles.length === 0) {
+         return Promise.resolve();
+      }
+      return Promise.all(styles.map((name) => themeController.get(name, EMPTY_THEME))).then(nop);
+   }
+   /**
+    * Удаление link элементов из DOM
+    * @param themeName имя темы (по-умолчанию тема приложения)
+    * @param instThemes опционально собственные темы экземпляра
+    * @param instStyles опционально собственные стили экземпляра
+    * @static
+    * @method
+    */
+   static removeCSS(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): Promise<void> {
+      const themeController = getThemeController();
+      const styles = instStyles.concat(this._styles);
+      const themes = instThemes.concat(this._theme);
+      if (styles.length === 0 && themes.length === 0) {
+         return Promise.resolve();
+      }
+      const removingStyles = Promise.all(styles.map((name) => themeController.remove(name, EMPTY_THEME)));
+      const removingThemed = Promise.all(themes.map((name) => themeController.remove(name, themeName)));
+      return Promise.all([removingStyles, removingThemed]).then(nop);
+   }
+   /**
+    * Проверка загрузки стилей и тем контрола
+    * @param {String} themeName имя темы (по-умолчанию тема приложения)
+    * @param {Array<String>} instThemes массив доп тем для скачивания
+    * @param {Array<String>} instStyles массив доп стилей для скачивания
+    * @returns {Boolean}
+    * @static
+    * @public
+    * @method
+    */
+   static isCSSLoaded(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): boolean {
+      const themeController = getThemeController();
+      const themes = instThemes.concat(this._theme);
+      const styles = instStyles.concat(this._styles);
+      if (styles.length === 0 && themes.length === 0) {
+         return true;
+      }
+      return themes.every((cssName) => themeController.isMounted(cssName, themeName)) &&
+         styles.every((cssName) => themeController.isMounted(cssName, EMPTY_THEME));
+   }
+
+   /* End: CSS static region */
+
    /* Start: React lifecycle hooks */
 
    componentDidMount(): void {
@@ -349,7 +491,28 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       return res;
    }
 
-   // для определения что это базовый класс wasaby, а не ws3, используется в генераторах
+   /**
+    * Массив имен нетемизированных стилей, необходимых контролу.
+    * Все стили будут скачаны при создании
+    *
+    * @static
+    * @example
+    * <pre>
+    *   static _styles: string[] = ['Controls/Utils/getWidth'];
+    * </pre>
+    */
+   static _styles: string[] = [];
+   /**
+    * Массив имен темизированных стилей, необходимых контролу.
+    * Все стили будут скачаны при создании
+    *
+    * @static
+    * @example
+    * <pre>
+    *   static _theme: string[] = ['Controls/popupConfirmation'];
+    * </pre>
+    */
+   static _theme: string[] = [];
    static isWasaby: boolean = true;
 
    // конфигурация созданного контрола
@@ -386,3 +549,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 Object.assign(Control.prototype, {
    _template: template
 });
+
+function logError(e: Error): void {
+   Logger.error(e.message);
+}
+
+const nop = () => undefined;

@@ -1,5 +1,4 @@
 import {Control, IControlOptions} from 'UI/Base';
-import 'css!UIDemo/ReactDemo/TODO/TODO';
 import {IItem} from './interfaces';
 
 // @ts-ignore
@@ -52,4 +51,7 @@ export default class Todo extends Control<ITodoOptions> {
          items.add(Model.fromObject(newItem));
       }
    }
+
+   static _styles: string[] = ['UIDemo/ReactDemo/TODO/TODO'];
+   static _theme: string[] = ['UIDemo/ThemesDemo/ThemedControl'];
 }
