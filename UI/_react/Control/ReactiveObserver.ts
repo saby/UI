@@ -47,7 +47,6 @@ export function reactiveObserve(inst: Control, template: any): void {
                     return inst.reactiveValues[prop];
                 },
                 set: function reactiveSetter(value: unknown): void {
-                    // @ts-ignore
                     if (inst.reactiveValues[prop] !== value  && inst._reactiveStart) {
                         inst.reactiveValues[prop] = value;
                         if (Array.isArray(value)) {

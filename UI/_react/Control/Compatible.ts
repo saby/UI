@@ -1,11 +1,10 @@
-import {Component} from 'react';
+import {Component, createElement} from 'react';
 import {reactiveObserve} from './ReactiveObserver';
 import {_IGeneratorType} from 'UI/Executor';
 import {getGeneratorConfig} from './GeneratorConfig';
 import {makeRelation, removeRelation} from './ParentFinder';
 import {Logger} from 'UI/Utils';
 import {_IControl} from 'UI/Focus';
-import {constants} from 'Env/Env';
 import * as ReactDOM from 'react-dom';
 import * as React from 'react';
 
@@ -13,7 +12,7 @@ import * as React from 'react';
 import template = require('wml!UI/_react/Control/Compatible');
 import {ReactiveObserver} from 'UI/Reactivity';
 import {createEnvironment} from 'UI/_react/Control/EnvironmentStorage';
-import {addControlNode, removeControlNode} from './ControlNodes';
+import {prepareControlNodes} from './ControlNodes';
 
 let countInst = 1;
 
@@ -34,8 +33,6 @@ export interface IControlOptions {
    theme?: string;
 }
 
-const CONTROL_WAIT_TIMEOUT = 20000;
-
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
  * @class UI/ReactComponent/Control
@@ -47,24 +44,19 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    private _firstRender: boolean = true;
    private _asyncMount: boolean = false;
    private _$observer: Function = reactiveObserve;
-   protected _container: HTMLElement = null;
+   _container: HTMLElement = null;
    protected _children: IControlChildren = {};
    protected _template: TemplateFunction;
    protected _options: TOptions = {} as TOptions;
-   // @ts-ignore
-   private _reactiveStart: boolean = false;
+   _reactiveStart: boolean = false;
    reactiveValues: object;
 
-   // @ts-ignore
-   private _controlNode: any;
    private _environment: any;
-   // @ts-ignore
-   private _logicParent: any;
+   _logicParent: any;
+   private _$resultBeforeMount: any;
+   _parentHoc: any;
 
    private readonly _instId: string = 'inst_' + countInst++;
-
-   // @ts-ignore
-   private _isRendered: boolean;
 
    constructor(props: TOptions) {
       super(props);
@@ -72,10 +64,11 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       this.state = {
          loading: true
       };
-      //@ts-ignore
+      // @ts-ignore
       this._logicParent = props._logicParent;
    }
 
+   // возвращает id, используется пользователями
    getInstanceId(): string {
       return this._instId;
    }
@@ -96,8 +89,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       this._environment = env;
    }
 
-   // @ts-ignore
-   private _getEnvironment(): any {
+   _getEnvironment(): any {
       return this._environment;
    }
 
@@ -121,9 +113,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    __beforeMountSSR(options?: TOptions,
                     contexts?: object,
                     receivedState?: TState): Promise<TState | void> | void {
-      // @ts-ignore
       if (this._$resultBeforeMount) {
-         // @ts-ignore
          return this._$resultBeforeMount;
       }
 
@@ -136,58 +126,13 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          this._options = {} as TOptions;
       }
 
-      // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
-      // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
-      // _template на экземпляре, _template устанавливается сразу после вызова базового конструктора
-      if (!(typeof process !== 'undefined' && !process.versions)) {
-         ReactiveObserver.observeProperties(this);
-      }
-
       const resultBeforeMount = this._beforeMount.apply(this, arguments);
 
       if (hasCompatible) {
          this._options = savedOptions;
       }
 
-      // prevent start reactive properties if beforeMount return Promise.
-      // Reactive properties will be started in Synchronizer
-      if (resultBeforeMount && resultBeforeMount.callback) {
-         // @ts-ignore
-         this._isPendingBeforeMount = true;
-         resultBeforeMount.then(() => {
-            // @ts-ignore
-            this._reactiveStart = true;
-            // @ts-ignore
-            this._isPendingBeforeMount = false;
-         }).catch(() => {
-            // nothing
-         });
-
-         // start client render
-         if (typeof window !== 'undefined') {
-            // @ts-ignore
-            const clientTimeout = this._clientTimeout ? (this._clientTimeout > CONTROL_WAIT_TIMEOUT
-               // @ts-ignore
-               ? this._clientTimeout : CONTROL_WAIT_TIMEOUT) : CONTROL_WAIT_TIMEOUT;
-            // @ts-ignore
-            _private._asyncClientBeforeMount(resultBeforeMount, clientTimeout,
-               // @ts-ignore
-               this._clientTimeout, this._moduleName, this);
-         }
-      } else {
-         // _reactiveStart means starting of monitor change in properties
-         // @ts-ignore
-         this._reactiveStart = true;
-      }
-      // @ts-ignore
-      const cssLoading = Promise.resolve(); // Promise.all([this.loadThemes(options.theme), this.loadStyles()]);
-      // @ts-ignore
-      if (constants.isServerSide/* || this.isDeprecatedCSS() || this.isCSSLoaded(options.theme) */) {
-         // @ts-ignore
-         return this._$resultBeforeMount = resultBeforeMount;
-      }
-      // @ts-ignore
-      return this._$resultBeforeMount = cssLoading.then(() => resultBeforeMount);
+      return this._$resultBeforeMount = resultBeforeMount;
    }
 
    __beforeMount(options?: TOptions,
@@ -216,12 +161,11 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
    _getMarkup(rootKey?: string,
               attributes?: any,
-              isVdom: boolean = true): void {
+              isVdom: boolean = true): any {
 
       if (!(this._template as any).stable) {
          // @ts-ignore
          Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
-         // @ts-ignore
          return '';
       }
       let res;
@@ -262,11 +206,11 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
 
    // На данном этапе рисуем индикатор вместо компонента в момент загрузки асинхронного beforeMount
-   // private _getLoadingComponent(): ReactElement {
-   //     return createElement('img', {
-   //         src: '/cdn/LoaderIndicator/1.0.0/ajax-loader-indicator.gif'
-   //     });
-   // }
+   private _getLoadingComponent(): any {
+       return createElement('img', {
+           src: '/cdn/LoaderIndicator/1.0.0/ajax-loader-indicator.gif'
+       });
+   }
 
    /**
     * Хук жизненного цикла контрола. Вызывается сразу после установки контрола в DOM-окружение.
@@ -341,8 +285,11 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       if (!this._firstRender) {
          if (document.documentElement && !document.documentElement.classList.contains('pre-load')) {
             this._reactiveStart = false;
-            this._beforeUpdate.apply(this, [this.props]);
-            this._reactiveStart = true;
+            try {
+               this._beforeUpdate.apply(this, [this.props]);
+            } finally {
+               this._reactiveStart = true;
+            }
          }
       }
       return null;
@@ -359,7 +306,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          ReactiveObserver.forbidReactive(this, () => {
             markup = this._getMarkup(null, attributes, false);
          });
-         this._isRendered = true;
          return markup;
       }
 
@@ -367,8 +313,14 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          this.__beforeMount();
       }
 
+      // @ts-ignore
       if (this._asyncMount && this.state.loading) {
-         return null; // this._getLoadingComponent();
+         // @ts-ignore
+         if (this._moduleName === 'UI/Base:HTML') {
+            return null;
+         } else {
+            return this._getLoadingComponent();
+         }
       }
 
       const generatorConfig = getGeneratorConfig();
@@ -379,56 +331,11 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       const res = this._template(ctx, {}, undefined, undefined, undefined, undefined, generatorConfig);
       // прокидываю тут аргумент isCompatible, но можно вынести в builder
       const originRef = res[0].ref;
+      // tslint:disable-next-line:no-this-assignment
       const control = this;
       res[0] = {
          ...res[0], ref: (node) => {
-            let container;
-            if (node instanceof HTMLElement) {
-               // если у контрола отрисовался контейнер, используем его
-               container = node;
-            } else if (node && node._container instanceof HTMLElement) {
-               // если строим хок и дочерний контрол уже построен, используем его элемент как контейнер
-               container = node._container;
-            }
-            if (node instanceof Control) {
-               // храним родительский хок, чтобы потом ему установить контейнер тоже
-               //@ts-ignore
-               node._parentHoc = control;
-            }
-            if (container) {
-               if (node) {
-                  let environment;
-                  let curControl = control;
-                  while (curControl) {
-                     if (curControl._getEnvironment()) {
-                        environment = curControl._getEnvironment();
-                        break;
-                     }
-                     curControl = curControl._logicParent;
-                  }
-
-                  curControl = control;
-                  while (curControl && (!curControl._container || !curControl._container.parentNode)) {
-                     container.controlNodes = container.controlNodes || [];
-                     const controlNode = {
-                        control: curControl,
-                        element: container,
-                        id: curControl.getInstanceId(),
-                        environment
-                     };
-                     addControlNode(container.controlNodes, controlNode);
-                     curControl._container = container;
-                     curControl._controlNode = controlNode;
-
-                     //@ts-ignore
-                     curControl = curControl._parentHoc;
-                  }
-               } else {
-                  // @ts-ignore
-                  removeControlNode(control._container.controlNodes, control);
-               }
-            }
-
+            prepareControlNodes(node, control, Control);
             return originRef && originRef.apply(this, [node]);
          }
       };
@@ -438,8 +345,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       return res;
    }
 
-   static _styles: string[] = [];
-   static _theme: string[] = [];
+   // для определения что это базовый класс wasaby, а не ws3, используется в генераторах
    static isWasaby: boolean = true;
 
    static configureControl(parameters: {
@@ -471,7 +377,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
 }
 
-// @ts-ignore
 Object.assign(Control.prototype, {
    _template: template
 });

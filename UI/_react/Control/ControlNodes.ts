@@ -1,4 +1,3 @@
-
 function getNumberId(id: string | 0): number {
     return parseInt((id + '').replace('inst_', ''), 10);
 }
@@ -18,14 +17,14 @@ function sortedAddControlNode(controlNodes: any[], newControlNode: any): void {
     }
     controlNodes.splice(newIndex, 0, newControlNode);
 }
-export function addControlNode(controlNodes: any[], controlNode: any): void {
+function addControlNode(controlNodes: any[], controlNode: any): void {
     const controlNodeIdx = controlNodes.indexOf(controlNode);
     const haveNode = controlNodeIdx !== -1;
     if (!haveNode) {
         sortedAddControlNode(controlNodes, controlNode);
     }
 }
-export function removeControlNode(controlNodes: any[], controlToRemove: any): void {
+function removeControlNode(controlNodes: any[], controlToRemove: any): void {
     if (!controlNodes) {
         return;
     }
@@ -34,5 +33,50 @@ export function removeControlNode(controlNodes: any[], controlToRemove: any): vo
     });
     if (foundControlNode) {
         controlNodes.splice(controlNodes.indexOf(foundControlNode), 1);
+    }
+}
+
+export function prepareControlNodes(node: any, control: any, Control: any): void {
+    let container;
+    if (node instanceof HTMLElement) {
+        // если у контрола отрисовался контейнер, используем его
+        container = node;
+    } else if (node && node._container instanceof HTMLElement) {
+        // если строим хок и дочерний контрол уже построен, используем его элемент как контейнер
+        container = node._container;
+    }
+    if (node instanceof Control) {
+        // храним родительский хок, чтобы потом ему установить контейнер тоже
+        node._parentHoc = control;
+    }
+    if (container) {
+        if (node) {
+            let environment;
+            let curControl = control;
+            while (curControl) {
+                if (curControl._getEnvironment()) {
+                    environment = curControl._getEnvironment();
+                    break;
+                }
+                curControl = curControl._logicParent;
+            }
+
+            curControl = control;
+            while (curControl && (!curControl._container || !curControl._container.parentNode)) {
+                container.controlNodes = container.controlNodes || [];
+                const controlNode = {
+                    control: curControl,
+                    element: container,
+                    environment
+                };
+                addControlNode(container.controlNodes, controlNode);
+                curControl._container = container;
+
+                curControl = curControl._parentHoc;
+            }
+        } else {
+            // @ts-ignore
+            removeControlNode(control._container.controlNodes, control);
+        }
     }
 }
