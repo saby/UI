@@ -10,7 +10,6 @@ import { isNewEnvironment, Logger } from 'UI/Utils';
 import { IBuilder } from './IBuilder';
 
 import { invisibleNodeCompat, isInstOfPromise, asyncRenderErrorTag } from './Utils';
-import { needWaitAsync } from '../_Utils/Common';
 import * as react from 'browser!react';
 
 /**
@@ -90,15 +89,10 @@ export class Builder implements IBuilder {
          //TODO пропустить через contextResolver(где взять класс?)
          inst.saveInheritOptions(scope.inheritOptions || {});
 
-         const needWaitAsyncValue = needWaitAsync(inst._moduleName);
-
          /**
           * Понимаем асинхронная ветка или нет
           */
          if (dfd && isInstOfPromise(dfd)) {
-            if (!needWaitAsyncValue) {
-               return '<div>Временная заглушка для ожидания асинхронного маунта</div>';
-            }
             if(!isNewEnvironment()) {
                var message = '[UI/_executor/GeneratorDefault:buildForNewControl()] You are using asynchronous rendering inside of the old environment.';
                Logger.warn(message, inst);
