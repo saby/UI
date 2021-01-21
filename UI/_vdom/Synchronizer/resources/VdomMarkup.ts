@@ -698,7 +698,9 @@ export function getDecoratedMarkup(controlNode: IControlNode): any {
    const markupRes = controlNode.control._getMarkup(controlNode.key, {
       key: controlNode.key,
       attributes: controlNode.attributes,
+      // @ts-ignore
       events: controlNode.events,
+      // @ts-ignore
       inheritOptions: controlNode.inheritOptions,
       // @ts-ignore
       templateContext: controlNode.templateContext,

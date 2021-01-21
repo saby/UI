@@ -1,37 +1,27 @@
 import {Component, createElement} from 'react';
 import {reactiveObserve} from './ReactiveObserver';
-import {_IGeneratorType} from 'UI/Executor';
 import {getGeneratorConfig} from './GeneratorConfig';
 import {makeRelation, removeRelation} from './ParentFinder';
 import {Logger} from 'UI/Utils';
 import {_IControl} from 'UI/Focus';
 import * as ReactDOM from 'react-dom';
 import * as React from 'react';
-
-// @ts-ignore
-import template = require('wml!UI/_react/Control/Compatible');
 import {ReactiveObserver} from 'UI/Reactivity';
 import {createEnvironment} from 'UI/_react/Control/EnvironmentStorage';
 import {prepareControlNodes} from './ControlNodes';
 
+// @ts-ignore
+import template = require('wml!UI/_react/Control/Compatible');
+import {
+   IControlChildren,
+   IControlOptions,
+   IControlState,
+   TIState,
+   TemplateFunction,
+   IDOMEnvironment, ITemplateAttrs, TControlConstructor, IControl
+} from './interfaces';
+
 let countInst = 1;
-
-export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
-                                forceCompatible?: boolean,
-                                generatorConfig?: _IGeneratorType.IGeneratorConfig) => string | object;
-
-type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
-
-interface IControlState {
-   loading: boolean;
-}
-
-type TIState = void | {};
-
-export interface IControlOptions {
-   readOnly?: boolean;
-   theme?: string;
-}
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
@@ -40,24 +30,39 @@ export interface IControlOptions {
  * @public
  */
 export class Control<TOptions extends IControlOptions = {}, TState extends TIState = void>
-   extends Component<TOptions, IControlState> implements _IControl {
+   extends Component<TOptions, IControlState> implements _IControl, IControl {
+   // флаг показывает что идет первая отрисовка
    private _firstRender: boolean = true;
+   // флаг показывает: что идет разрешение асинхронного beforeMount
    private _asyncMount: boolean = false;
+   // метод инициализации реактивности
    private _$observer: Function = reactiveObserve;
+   // контейнер контрола
    _container: HTMLElement = null;
+   // набор детей контрола, элементы или контролы, которым задан атрибут name (является ключом)
    protected _children: IControlChildren = {};
+   // шаблон контрола
    protected _template: TemplateFunction;
-   protected _options: TOptions = {} as TOptions;
+   // опции контрола (пропсы)
+   _options: TOptions = {} as TOptions;
+   // флаг показывает, работает ли реактивность у контрола
    _reactiveStart: boolean = false;
+   // хранилище значений реактивных полей
    reactiveValues: object;
-
-   private _environment: any;
-   _logicParent: any;
-   private _$resultBeforeMount: any;
-   _parentHoc: any;
-
+   // окружение DOMEnvironment контрола
+   private _environment: IDOMEnvironment;
+   // логический родитель контрола
+   _logicParent: IControl;
+   // результат выполнения beforeMount
+   private _$resultBeforeMount: TState | void;
+   // родительский ход (если есть)
+   _parentHoc: IControl;
+   // название модуля контрола
+   _moduleName: string;
+   // id контрола
    private readonly _instId: string = 'inst_' + countInst++;
 
+   // конструктор контрола
    constructor(props: TOptions) {
       super(props);
       this._options = props;
@@ -72,24 +77,24 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    getInstanceId(): string {
       return this._instId;
    }
-
+   // запуск события - сейчас заглушка. удалить нельзя, это самое простое решение
    _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): void {
       // nothing for a while...
    }
-
+   // активация контрола - сейчас заглушка. удалить нельзя, это самое простое решение
    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): void {
       // nothing for a while...
    }
-
+   // запускает перерисовку
    _forceUpdate(): void {
       this.forceUpdate();
    }
-
-   private _saveEnvironment(env: unknown): void {
+   // сохраняет окружение контрола
+   private _saveEnvironment(env: IDOMEnvironment): void {
       this._environment = env;
    }
-
-   _getEnvironment(): any {
+   // возвращает окружение контрола
+   _getEnvironment(): IDOMEnvironment {
       return this._environment;
    }
 
@@ -109,10 +114,10 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       Promise<TState | void> | void {
       // Do
    }
-
+   // beforeMount зовется на сервере для поддержки серверной верстки (с учетом промисов)
    __beforeMountSSR(options?: TOptions,
                     contexts?: object,
-                    receivedState?: TState): Promise<TState | void> | void {
+                    receivedState?: TState): Promise<TState | void> | TState | void {
       if (this._$resultBeforeMount) {
          return this._$resultBeforeMount;
       }
@@ -134,7 +139,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
       return this._$resultBeforeMount = resultBeforeMount;
    }
-
+   // точка входа в beforeMount
    __beforeMount(options?: TOptions,
                  contexts?: object,
                  receivedState?: TState): void {
@@ -159,12 +164,12 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       this._$observer(this, this._template);
    }
 
+   // построение верстки контрола
    _getMarkup(rootKey?: string,
-              attributes?: any,
-              isVdom: boolean = true): any {
-
-      if (!(this._template as any).stable) {
-         // @ts-ignore
+              attributes?: ITemplateAttrs,
+              isVdom: boolean = true): string|object {
+      // @ts-ignore
+      if (!(this._template).stable) {
          Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
          return '';
       }
@@ -178,8 +183,10 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
             for (let handl = 0; handl < attributes.events[i].length; handl++) {
                if (
                   attributes.events[i][handl].isControl &&
+                  // @ts-ignore
                   !attributes.events[i][handl].fn.controlDestination
                ) {
+                  // @ts-ignore
                   attributes.events[i][handl].fn.controlDestination = this;
                }
             }
@@ -206,7 +213,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
 
    // На данном этапе рисуем индикатор вместо компонента в момент загрузки асинхронного beforeMount
-   private _getLoadingComponent(): any {
+   private _getLoadingComponent(): React.ReactElement {
        return createElement('img', {
            src: '/cdn/LoaderIndicator/1.0.0/ajax-loader-indicator.gif'
        });
@@ -300,9 +307,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       this._beforeUnmount.apply(this);
    }
 
-   render(empty?: any, attributes?: any): unknown {
+   render(attributes?: ITemplateAttrs): string|object {
       if (typeof window === 'undefined') {
-         let markup;
+         let markup: string | object = '';
          ReactiveObserver.forbidReactive(this, () => {
             markup = this._getMarkup(null, attributes, false);
          });
@@ -313,9 +320,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          this.__beforeMount();
       }
 
-      // @ts-ignore
       if (this._asyncMount && this.state.loading) {
-         // @ts-ignore
          if (this._moduleName === 'UI/Base:HTML') {
             return null;
          } else {
@@ -327,7 +332,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       // @ts-ignore
       window.reactGenerator = true;
       const ctx = {...this, _options: {...this.props}};
-      // @ts-ignore
       const res = this._template(ctx, {}, undefined, undefined, undefined, undefined, generatorConfig);
       // прокидываю тут аргумент isCompatible, но можно вынести в builder
       const originRef = res[0].ref;
@@ -348,6 +352,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // для определения что это базовый класс wasaby, а не ws3, используется в генераторах
    static isWasaby: boolean = true;
 
+   // конфигурация созданного контрола
    static configureControl(parameters: {
       control: Control,
       domElement: HTMLElement
@@ -356,7 +361,8 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       parameters.control._saveEnvironment(environment);
    }
 
-   static createControl(ctor: any, cfg: any, domElement: HTMLElement): void {
+   // создание и монтирование контрола в элемент
+   static createControl(ctor: TControlConstructor, cfg: IControlOptions, domElement: HTMLElement): void {
       if (document.documentElement.classList.contains('pre-load')) {
          // @ts-ignore
          ReactDOM.hydrate(React.createElement(ctor, cfg, null), domElement.parentNode, function (): void {

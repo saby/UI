@@ -1,7 +1,9 @@
+import {IControl, IControlNode, TControlConstructor} from './interfaces';
+
 function getNumberId(id: string | 0): number {
     return parseInt((id + '').replace('inst_', ''), 10);
 }
-function sortedAddControlNode(controlNodes: any[], newControlNode: any): void {
+function sortedAddControlNode(controlNodes: IControlNode[], newControlNode: IControlNode): void {
     const newId: number = getNumberId(newControlNode.id);
 
     // Если массив пустой или все айди не меньше, чем у новой ноды - добавляем в конец.
@@ -17,14 +19,14 @@ function sortedAddControlNode(controlNodes: any[], newControlNode: any): void {
     }
     controlNodes.splice(newIndex, 0, newControlNode);
 }
-function addControlNode(controlNodes: any[], controlNode: any): void {
+function addControlNode(controlNodes: IControlNode[], controlNode: IControlNode): void {
     const controlNodeIdx = controlNodes.indexOf(controlNode);
     const haveNode = controlNodeIdx !== -1;
     if (!haveNode) {
         sortedAddControlNode(controlNodes, controlNode);
     }
 }
-function removeControlNode(controlNodes: any[], controlToRemove: any): void {
+function removeControlNode(controlNodes: IControlNode[], controlToRemove: IControl): void {
     if (!controlNodes) {
         return;
     }
@@ -36,7 +38,7 @@ function removeControlNode(controlNodes: any[], controlToRemove: any): void {
     }
 }
 
-export function prepareControlNodes(node: any, control: any, Control: any): void {
+export function prepareControlNodes(node: any, control: IControl, Control: TControlConstructor): void {
     let container;
     if (node instanceof HTMLElement) {
         // если у контрола отрисовался контейнер, используем его
@@ -67,7 +69,8 @@ export function prepareControlNodes(node: any, control: any, Control: any): void
                 const controlNode = {
                     control: curControl,
                     element: container,
-                    environment
+                    environment,
+                    id: curControl.getInstanceId()
                 };
                 addControlNode(container.controlNodes, controlNode);
                 curControl._container = container;
