@@ -44,8 +44,6 @@ import { GeneratorNode, CommonUtils } from 'UI/Executor';
 import { ITemplateNode } from 'UI/_executor/_Markup/IGeneratorType';
 import { getCompatibleUtils } from 'UI/_vdom/Synchronizer/resources/DirtyCheckingCompatible';
 
-const needWaitAsync = CommonUtils.needWaitAsync;
-
 const templateKeys: string[] = Object.keys(AsyncWaiterTemplate);
 function createBindedTemplate(control) {
     const bindedTemplate = AsyncWaiterTemplate.bind(control);
@@ -393,17 +391,7 @@ function collectChildrenKeys(next: Array<{ key }>, prev: Array<{ key }>): Array<
 }
 
 function rebuildNodeWriter(environment, node, force, isRoot?) {
-   const control = node.control;
-   const needWaitAsyncValue = needWaitAsync(control._moduleName);
    if (node.receivedState && node.receivedState.then) {
-      if (!needWaitAsyncValue) {
-         if (!node.wasAsyncMount) {
-            node.wasAsyncMount = true;
-            const restoreFunction = createRestoreFunction(control);
-            node.receivedState.then(restoreFunction, restoreFunction);
-         }
-         return rebuildNode(environment, node, force, isRoot);
-      }
       return node.receivedState.then(
          function rebuildNodeWriterCbk(state) {
             node.receivedState = state;
