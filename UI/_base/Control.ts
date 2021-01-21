@@ -270,8 +270,8 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
       if (!cfg) {
          cfg = {};
       }
-
-      if (cfg._logicParent && !(cfg._logicParent instanceof Control)) {
+      //@ts-ignore
+      if (cfg._logicParent && !(cfg._logicParent instanceof Control) && (cfg._logicParent.hasOwnProperty('_reactCompatible') && !cfg._logicParent._reactCompatible)) {
          Logger.error('Option "_logicParent" is not instance of "Control"', this);
       }
 

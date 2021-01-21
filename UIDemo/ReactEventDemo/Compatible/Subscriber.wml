@@ -1,0 +1,15 @@
+<div>
+    <div>
+        Это наследник UI/ReactComponent
+    </div>
+    <div>
+        userEventWasCalled: {{ userEventWasCalled }}
+    </div>
+    <div>
+        userEventWithBubblingWasCalled: {{ userEventWithBubblingWasCalled }}
+    </div>
+    <button class="item__button" on:click="_userEventCallback()">self add</button>
+    <div on:userEventBubbling="_userEventCallbackWithBubbling()">
+        <UIDemo.ReactEventDemo.Compatible.Notifier on:userEvent="_userEventCallback()" />
+    </div>
+</div>

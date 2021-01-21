@@ -160,6 +160,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
         };
         //@ts-ignore
         this._logicParent = props._logicParent;
+
+        //@ts-ignore
+        this._reactCompatible = true;
     }
 
    getInstanceId(): string {
@@ -167,7 +170,16 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
 
    _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): void {
-      // nothing for a while...
+       if (args && !(args instanceof Array)) {
+           const error = `Ошибка использования API событий. В метод _notify() в качестве второго аргументов необходимо передавать массив (была передан объект типа ${typeof args})
+                     Контрол:
+                     Событие: ${eventName}
+                     Аргументы: ${args}
+                     Подробнее о событиях: https://wasaby.dev/doc/platform/ui-library/events/#params-from-notify`;
+           Logger.error(error, this);
+           throw new Error(error);
+       }
+       return this._environment && this._environment.startEvent(this._controlNode, arguments);
    }
 
    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): void {
@@ -178,8 +190,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       this.forceUpdate();
    }
 
-   private _saveEnvironment(env: unknown): void {
+    private _saveEnvironment(env: unknown, controlNode?: unknown): void {
         this._environment = env;
+        this._controlNode = controlNode;
     }
 
     // @ts-ignore
