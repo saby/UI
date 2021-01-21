@@ -1,5 +1,4 @@
 import {Control, IControlOptions} from 'UI/Base';
-import 'css!UIDemo/ReactDemo/TODO/Item';
 
 // @ts-ignore
 import template = require('wml!UIDemo/ReactDemo/TODO/Item');
@@ -10,6 +9,7 @@ export interface IItem extends IControlOptions {
 }
 
 class Item extends Control<IItem> {
+    static _styles: string[] = ['UIDemo/ReactDemo/TODO/Item'];
 }
 
 // @ts-ignore
