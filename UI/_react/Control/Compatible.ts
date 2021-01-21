@@ -289,11 +289,11 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       const cssLoading = Promise.all([this.loadThemes(options.theme), this.loadStyles()]);
       const promisesToWait = [];
       if (!constants.isServerSide && !this.isDeprecatedCSS() && !this.isCSSLoaded(options.theme)) {
-         promisesToWait.push(cssLoading.then(() => void 0));
+         promisesToWait.push(cssLoading.then(nop));
       }
       if (typeof window === 'undefined') {
          promisesToWait.push(this.__beforeMountSSR.apply(this, arguments));
-         Promise.all(promisesToWait).then(() => void 0);
+         Promise.all(promisesToWait).then(nop);
          return;
       }
 
@@ -502,7 +502,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       return Promise.all([
          this.loadStyles(styles),
          this.loadThemes(themeName, themes)
-      ]).then(() => void 0);
+      ]).then(nop);
    }
    /**
     * Загрузка тем контрола
@@ -523,7 +523,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       if (themes.length === 0) {
          return Promise.resolve();
       }
-      return Promise.all(themes.map((name) => themeController.get(name, themeName))).then(() => void 0);
+      return Promise.all(themes.map((name) => themeController.get(name, themeName))).then(nop);
    }
    /**
     * Загрузка стилей контрола
@@ -543,7 +543,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       if (styles.length === 0) {
          return Promise.resolve();
       }
-      return Promise.all(styles.map((name) => themeController.get(name, EMPTY_THEME))).then(() => void 0);
+      return Promise.all(styles.map((name) => themeController.get(name, EMPTY_THEME))).then(nop);
    }
    /**
     * Удаление link элементов из DOM
@@ -562,7 +562,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       }
       const removingStyles = Promise.all(styles.map((name) => themeController.remove(name, EMPTY_THEME)));
       const removingThemed = Promise.all(themes.map((name) => themeController.remove(name, themeName)));
-      return Promise.all([removingStyles, removingThemed]).then(() => void 0);
+      return Promise.all([removingStyles, removingThemed]).then(nop);
    }
    /**
     * Проверка загрузки стилей и тем контрола
@@ -832,3 +832,5 @@ Object.assign(Control.prototype, {
 function logError(e: Error): void {
    Logger.error(e.message);
 }
+
+const nop = () => undefined;
