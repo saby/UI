@@ -85,16 +85,11 @@ class Head extends Control<IHeadOptions> {
             // do nothing
         };
     }
-    _createHEADTags(options: IHeadOptions): void {
-        createWsConfig(options, this.staticDomainsstringified);
-        createMetaScriptsAndLinks(options);
-        this._createMeta(options);
-    }
 
     /**
      * Проверим: была ли серверная верстка.
      */
-    _createMeta(options: IHeadOptions): void {
+    _createHEADTags(options: IHeadOptions): void {
         this.wasServerSide = false;
         if (!this.isSSR) {
             // tslint:disable-next-line:max-line-length
@@ -129,6 +124,8 @@ class Head extends Control<IHeadOptions> {
         ].forEach((attrs) => {
             API.createTag('meta', attrs);
         });
+        createWsConfig(options, this.staticDomainsstringified);
+        createMetaScriptsAndLinks(options);
     }
 
     // tslint:disable-next-line:ban-ts-ignore
