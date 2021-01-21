@@ -118,7 +118,7 @@ export class Builder implements IBuilder {
                         }
                      });
                   }
-                  result = inst._template ? inst.render(decOptions) : '';
+                  result = inst._template ? inst.render(null, decOptions) : '';
                   if (result.then) {
                      result.then(function (res) {
                         resolve({
@@ -151,7 +151,7 @@ export class Builder implements IBuilder {
             inst.saveFullContext && inst.saveFullContext(ContextResolver.wrapContext(inst, scope.templateContext || {}));
          }
       }
-      result = inst._template ? invisibleNodeCompat(inst.render(decOptions)) : '';
+      result = inst._template ? invisibleNodeCompat(inst.render(undefined, decOptions)) : '';
       return result;
    };
 }

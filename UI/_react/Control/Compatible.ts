@@ -1,5 +1,5 @@
 import {Component, createElement} from 'react';
-import {reactiveObserve} from './ReactiveObserver';
+import {reactiveObserve, releaseProperties} from './ReactiveObserver';
 import {getGeneratorConfig} from './GeneratorConfig';
 import {makeRelation, removeRelation} from './ParentFinder';
 import { EMPTY_THEME, getThemeController } from 'UI/theme/controller';
@@ -446,10 +446,11 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
    componentWillUnmount(): void {
       removeRelation(this);
+      releaseProperties(this);
       this._beforeUnmount.apply(this);
    }
 
-   render(attributes?: ITemplateAttrs): string|object {
+   render(empty?: unknown, attributes?: ITemplateAttrs): string|object {
       if (typeof window === 'undefined') {
          let markup: string | object = '';
          ReactiveObserver.forbidReactive(this, () => {
