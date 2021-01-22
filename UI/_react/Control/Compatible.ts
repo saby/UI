@@ -181,8 +181,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
    _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): void {
        if (args && !(args instanceof Array)) {
-           const error = `Ошибка использования API событий. В метод _notify() в качестве второго аргументов необходимо передавать массив (была передан объект типа ${typeof args})
-                     Контрол:
+           const error = `Ошибка использования API событий. 
+                     В метод _notify() в качестве второго аргументов необходимо передавать массив
+                     Была передан объект типа ${typeof args}
                      Событие: ${eventName}
                      Аргументы: ${args}
                      Подробнее о событиях: https://wasaby.dev/doc/platform/ui-library/events/#params-from-notify`;
