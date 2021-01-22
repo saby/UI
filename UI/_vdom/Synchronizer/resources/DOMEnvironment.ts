@@ -474,7 +474,6 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
       // https://online.sbis.ru/opendoc.html?guid=99861178-2bd8-40dc-8307-bda1080a91f5
       this.touchendTarget = event.target;
       setTimeout(() => { this.touchendTarget = null; }, 300);
-
       FastTouchEndController.clickEmulate(event.target, event);
       SwipeController.resetState();
       LongTapController.resetState();
