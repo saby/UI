@@ -7,6 +7,7 @@ export type TemplateFunction = (data: object, attr?: object, context?: string, i
 export interface IControlOptions {
    readOnly?: boolean;
    theme?: string;
+   _logicParent?: IControl;
 }
 export interface IEvent {
    args: any[];

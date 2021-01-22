@@ -12,12 +12,13 @@ import {ReactiveObserver} from 'UI/Reactivity';
 import {createEnvironment} from 'UI/_react/Control/EnvironmentStorage';
 import {prepareControlNodes} from './ControlNodes';
 
-// @ts-ignore
+// @ts-ignore путь не определяется
 import template = require('wml!UI/_react/Control/Compatible');
 import {
    IControlChildren, IControlOptions, IControlState, TIState, TemplateFunction,
    IDOMEnvironment, ITemplateAttrs, TControlConstructor, IControl
 } from './interfaces';
+import {setReact} from "UI/_executor/TClosure";
 
 let countInst = 1;
 
@@ -27,6 +28,10 @@ function configureControl(parameters: {
       domElement: HTMLElement
 }): void {
    parameters.control._saveEnvironment(createEnvironment(parameters.domElement));
+}
+// вычисляет является ли сейчас фаза оживления страницы
+function isHydrating(): boolean {
+   return document?.documentElement.classList.contains('pre-load');
 }
 
 /**
@@ -67,7 +72,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // добавлено чтобы при создании ControlNode вычислять поле environment, которое хранится среди родителей
    // также используется в прикладных и платформенных wasaby-контролах в качестве костылей
    _logicParent: IControl;
-   // родительский ход (если есть)
+   // родительский хок (если есть)
    // используется чтобы расставить на родительских хоках _container
    // в реф хока мы попадем в момент, когда контейнера еще нет, так что надо отложить инициализацию
    _parentHoc: IControl;
@@ -84,7 +89,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       this.state = {
          loading: true
       };
-      // @ts-ignore
       this._logicParent = props._logicParent;
    }
 
@@ -138,7 +142,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
                     contexts?: object,
                     receivedState?: TState): Promise<TState | void> | TState | void {
       let savedOptions;
-      // @ts-ignore
+      // @ts-ignore навешивается в слое совместимости, в чистом контроле такого нет
       const hasCompatible = this.hasCompatible && this.hasCompatible();
       // в совместимости опции добавились и их нужно почистить
       if (hasCompatible) {
@@ -146,7 +150,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          this._options = {} as TOptions;
       }
 
-      const resultBeforeMount = this._beforeMount.apply(this, arguments);
+      const resultBeforeMount = this._beforeMount(options, contexts, receivedState);
 
       if (hasCompatible) {
          this._options = savedOptions;
@@ -163,15 +167,15 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       if (!constants.isServerSide && !this.isDeprecatedCSS() && !this.isCSSLoaded(options.theme)) {
          promisesToWait.push(cssLoading.then(nop));
       }
-      if (typeof window === 'undefined') {
-         promisesToWait.push(this.__beforeMountSSR.apply(this, arguments));
+      if (constants.isServerSide) {
+         promisesToWait.push(this.__beforeMountSSR(options, contexts, receivedState));
          Promise.all(promisesToWait).then(nop);
          return;
       }
 
       promisesToWait.push(this._beforeMount(this.props));
 
-         this._asyncMount = true;
+      this._asyncMount = true;
       Promise.all(promisesToWait).then(() => {
             this._firstRender = false;
             this._reactiveStart = true;
@@ -186,7 +190,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // добавлено потому что используется в render для построения верстки на сервере
    _getMarkup(rootKey?: string,
               attributes?: ITemplateAttrs): string|object {
-      // @ts-ignore
+      // @ts-ignore флага stable нет на шаблоне и я не знаю как объявить
       if (!(this._template).stable) {
          Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
          return '';
@@ -409,14 +413,14 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
    getSnapshotBeforeUpdate(): void {
       if (!this._firstRender) {
-         if (document.documentElement && !document.documentElement.classList.contains('pre-load')) {
+//         if (!isHydrating) {
             this._reactiveStart = false;
             try {
                this._beforeUpdate.apply(this, [this.props]);
             } finally {
                this._reactiveStart = true;
             }
-         }
+//         }
       }
       return null;
    }
@@ -428,7 +432,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
 
    render(empty?: unknown, attributes?: ITemplateAttrs): string|object {
-      if (typeof window === 'undefined') {
+      if (constants.isServerSide) {
          let markup: string | object = '';
          ReactiveObserver.forbidReactive(this, () => {
             markup = this._getMarkup(null, attributes);
@@ -449,23 +453,25 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       }
 
       const generatorConfig = getGeneratorConfig();
-      // @ts-ignore
-      window.reactGenerator = true;
-      const ctx = {...this, _options: {...this.props}};
-      const res = this._template(ctx, {}, undefined, undefined, undefined, undefined, generatorConfig);
-      // прокидываю тут аргумент isCompatible, но можно вынести в builder
-      const originRef = res[0].ref;
-      // tslint:disable-next-line:no-this-assignment
-      const control = this;
-      res[0] = {
-         ...res[0], ref: (node) => {
-            prepareControlNodes(node, control, Control);
-            return originRef && originRef.apply(this, [node]);
-         }
-      };
+      setReact(true);
+      let res;
+      try {
+         const ctx = {...this, _options: {...this.props}};
+         res = this._template(ctx, {}, undefined, undefined, undefined, undefined, generatorConfig);
+         // прокидываю тут аргумент isCompatible, но можно вынести в builder
+         const originRef = res[0].ref;
+         // tslint:disable-next-line:no-this-assignment
+         const control = this;
+         res[0] = {
+            ...res[0], ref: (node) => {
+               prepareControlNodes(node, control, Control);
+               return originRef && originRef.apply(this, [node]);
+            }
+         };
+      } finally {
+         setReact(false);
+      }
 
-      // @ts-ignore
-      window.reactGenerator = false;
       return res;
    }
 
@@ -498,23 +504,18 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // создание и монтирование контрола в элемент
    // добавляется потому что используемое апи контрола
    static createControl(ctor: TControlConstructor, cfg: IControlOptions, domElement: HTMLElement): void {
-      if (document.documentElement.classList.contains('pre-load')) {
-         // @ts-ignore
-         ReactDOM.hydrate(React.createElement(ctor, cfg, null), domElement.parentNode, function (): void {
-            configureControl({
-               control: this,
-               domElement
-            });
+      const updateMarkup = isHydrating ?
+         ReactDOM.hydrate :
+         ReactDOM.render;
+
+      // @ts-ignore проблема что родитель может быть document как сейчас в демке.
+      // проблема уйдет когда рисовать будем не от html
+      updateMarkup(React.createElement(ctor, cfg, null), domElement.parentNode, function (): void {
+         configureControl({
+            control: this,
+            domElement
          });
-      } else {
-         // @ts-ignore
-         ReactDOM.render(React.createElement(ctor, cfg, null), domElement.parentNode, function (): void {
-            configureControl({
-               control: this,
-               domElement
-            });
-         });
-      }
+      });
    }
 }
 
