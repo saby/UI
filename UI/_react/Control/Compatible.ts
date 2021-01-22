@@ -141,6 +141,8 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
     // @ts-ignore
     private _logicParent: any;
 
+   private _reactControl: boolean;
+
     private readonly _instId: string = 'inst_' + countInst++;
 
    // @ts-ignore
@@ -158,6 +160,10 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
         this._evaluatedContext = value;
     }
 
+    isReactControl() {
+      return this._reactControl;
+    }
+
     constructor(props: TOptions) {
         super(props);
         this._options = props;
@@ -166,9 +172,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
         };
         //@ts-ignore
         this._logicParent = props._logicParent;
-
-        //@ts-ignore
-        this._reactCompatible = true;
+        this._reactControl = true;
     }
 
    getInstanceId(): string {
