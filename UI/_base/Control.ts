@@ -12,7 +12,7 @@ import { ContextResolver } from 'UI/Contexts';
 import { _FocusAttrs, _IControl, activate } from 'UI/Focus';
 import { Logger, Purifier, needToBeCompatible } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
-import { constants } from 'Env/Env';
+import {constants, detection} from 'Env/Env';
 import { getGeneratorConfig } from "./GeneratorConfig";
 
 import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
@@ -578,7 +578,6 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
       document.body.focus();
       if (this._$active) {
          const env = this._getEnvironment();
-
          // если DOMEnvironment не перехватил переход фокуса, вызовем обработчик ухода фокуса вручную
          env._handleFocusEvent({ target: document.body, relatedTarget: activeElement });
       }
@@ -669,7 +668,9 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
       // но с которого уходили у него изменилось
       if (res && !this._$active) {
          const env = this._getEnvironment();
-         env._handleFocusEvent({ target: document.activeElement, relatedTarget: activeElement });
+         if ((detection.isIE && !env._$active) || !detection.isIE) {
+            env._handleFocusEvent({ target: document.activeElement, relatedTarget: activeElement });
+         }
       }
 
       return res;
