@@ -3,7 +3,7 @@ import {reactiveObserve, releaseProperties} from './ReactiveObserver';
 import {getGeneratorConfig} from './GeneratorConfig';
 import {makeRelation, removeRelation} from './ParentFinder';
 import { EMPTY_THEME, getThemeController } from 'UI/theme/controller';
-import {Logger} from 'UI/Utils';
+import {Logger, Purifier} from 'UI/Utils';
 import {_IControl} from 'UI/Focus';
 import {constants} from 'Env/Env';
 import * as ReactDOM from 'react-dom';
@@ -11,6 +11,7 @@ import * as React from 'react';
 import {ReactiveObserver} from 'UI/Reactivity';
 import {createEnvironment} from 'UI/_react/Control/EnvironmentStorage';
 import {prepareControlNodes} from './ControlNodes';
+import {TClosure} from 'UI/Executor';
 
 // @ts-ignore путь не определяется
 import template = require('wml!UI/_react/Control/Compatible');
@@ -18,7 +19,6 @@ import {
    IControlChildren, IControlOptions, IControlState, TIState, TemplateFunction,
    IDOMEnvironment, ITemplateAttrs, TControlConstructor, IControl
 } from './interfaces';
-import {setReact} from "UI/_executor/TClosure";
 
 let countInst = 1;
 
@@ -429,6 +429,11 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       removeRelation(this);
       releaseProperties(this);
       this._beforeUnmount.apply(this);
+      const isWS3Compatible: boolean = this.hasOwnProperty('getParent');
+      if (!isWS3Compatible) {
+         const async: boolean = !Purifier.canPurifyInstanceSync(this._moduleName);
+         Purifier.purifyInstance(this, this._moduleName, async);
+      }
    }
 
    render(empty?: unknown, attributes?: ITemplateAttrs): string|object {
@@ -453,7 +458,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       }
 
       const generatorConfig = getGeneratorConfig();
-      setReact(true);
+      TClosure.setReact(true);
       let res;
       try {
          const ctx = {...this, _options: {...this.props}};
@@ -469,7 +474,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
             }
          };
       } finally {
-         setReact(false);
+         TClosure.setReact(false);
       }
 
       return res;
