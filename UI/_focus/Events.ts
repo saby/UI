@@ -181,6 +181,9 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
                   }
                ]);
                control._$active = false;
+               if (detection.isIE) {
+                  control._environment._$active = true;
+               }
             }
             found = false;
          }
@@ -211,6 +214,9 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
                }
             ]);
             control._$active = true;
+            if (detection.isIE) {
+               control._environment._$active = true;
+            }
          }
          found = false;
 
