@@ -413,14 +413,14 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
    getSnapshotBeforeUpdate(): void {
       if (!this._firstRender) {
-//         if (!isHydrating) {
+         if (!isHydrating) {
             this._reactiveStart = false;
             try {
                this._beforeUpdate.apply(this, [this.props]);
             } finally {
                this._reactiveStart = true;
             }
-//         }
+         }
       }
       return null;
    }
