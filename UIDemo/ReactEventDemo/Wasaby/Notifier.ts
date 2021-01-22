@@ -1,10 +1,10 @@
-import {Control, TemplateFunction} from 'UI/Base';
+import {Control} from 'UI/Base';
 
 // @ts-ignore
 import template = require('wml!UIDemo/ReactEventDemo/Wasaby/Notifier');
 
 class Notifier extends Control {
-    _template: TemplateFunction = template;
+    _template = template;
 
     protected _notifyHandler(): void {
         this._notify('userEvent', []);

@@ -1,4 +1,4 @@
-import {Control} from 'UI/Base';
+import {Control} from 'UI/ReactComponent';
 
 // @ts-ignore
 import * as template from 'wml!UIDemo/ReactEventDemo/App/App';

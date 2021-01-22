@@ -11,11 +11,14 @@ class Subscriber extends Control {
 
     constructor(props) {
         super(props);
-        this._userEventCallback = this._userEventCallback.bind(this);
-        this._userEventCallbackWithBubbling = this._userEventCallbackWithBubbling.bind(this);
         this.addNewHandler = props.addNewHandler;
     }
 
+    protected _beforeMount(): void {
+        this._userEventCallback = this._userEventCallback.bind(this);
+        this._userEventCallbackWithBubbling = this._userEventCallbackWithBubbling.bind(this);
+    }
+    
     protected _userEventCallback(): void {
         this.userEventWasCalled += 1;
     }

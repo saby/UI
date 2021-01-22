@@ -7,6 +7,9 @@ import template = require('wml!UIDemo/ReactEventDemo/Compatible/Notifier');
 class Notifier extends Control {
     constructor(props) {
         super(props);
+    }
+
+    protected _beforeMount(): void {
         this._notifyHandler = this._notifyHandler.bind(this);
         this._notifyHandlerWithBubbling = this._notifyHandlerWithBubbling.bind(this);
     }

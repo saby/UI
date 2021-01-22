@@ -1,10 +1,10 @@
-import {Control, TemplateFunction} from 'UI/Base';
+import {Control} from 'UI/Base';
 
 // @ts-ignore
 import template = require('wml!UIDemo/ReactEventDemo/Wasaby/Subscriber');
 
 class Subscriber extends Control {
-    _template: TemplateFunction = template;
+    _template = template;
     protected userEventWasCalled: number = 0;
     protected userEventWithBubblingWasCalled: number = 0;
 

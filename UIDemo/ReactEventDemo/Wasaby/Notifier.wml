@@ -1,6 +1,6 @@
 <div>
     <div>
-        Это наследник UI/Base
+        Это наследник UI/ReactComponent
     </div>
     <button class="item__button" on:click="_notifyHandler()">Вызвать _notify</button>
     <button class="item__button" on:click="_notifyHandlerWithBubbling()">Вызвать _notify с bubbling</button>
