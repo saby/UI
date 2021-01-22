@@ -111,28 +111,30 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env
                   configurable: true
                });
             });
-            Object.defineProperties(val, {
-               '_arrayVersion': {
-                  value: 0,
-                  enumerable: true,
-                  writable: true,
-                  configurable: true
-               },
-               'getArrayVersion': {
-                  value: function () {
-                     return val._arrayVersion;
+            if (!val.isWasabyTemplate) {
+               Object.defineProperties(val, {
+                  '_arrayVersion': {
+                     value: 0,
+                     enumerable: true,
+                     writable: true,
+                     configurable: true
                   },
-                  enumerable: false,
-                  writable: false,
-                  configurable: true
-               },
-               '_$reactived': {
-                  value: inst,
-                  enumerable: false,
-                  writable: true,
-                  configurable: true
-               }
-            });
+                  'getArrayVersion': {
+                     value: function () {
+                        return val._arrayVersion;
+                     },
+                     enumerable: false,
+                     writable: false,
+                     configurable: true
+                  },
+                  '_$reactived': {
+                     value: inst,
+                     enumerable: false,
+                     writable: true,
+                     configurable: true
+                  }
+               });
+            }
          }
       }
    }
