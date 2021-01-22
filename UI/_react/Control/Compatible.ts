@@ -5,7 +5,7 @@ import {getGeneratorConfig} from './GeneratorConfig';
 import startApplication from './startApplication';
 import {makeRelation, removeRelation} from './ParentFinder';
 import { EMPTY_THEME, getThemeController } from "UI/theme/controller";
-import {Logger, needToBeCompatible} from 'UI/Utils';
+import { Logger, needToBeCompatible, Purifier } from 'UI/Utils';
 import {_FocusAttrs, _IControl, goUpByControlTree} from 'UI/Focus';
 import {ContextResolver} from 'UI/Contexts';
 import {constants} from 'Env/Env';
@@ -620,7 +620,11 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    componentWillUnmount(): void {
       removeRelation(this);
       releaseProperties(this);
-      this._beforeUnmount.apply(this);
+      this._beforeUnmount.apply(this);const isWS3Compatible: boolean = this.hasOwnProperty('getParent');
+      if (!isWS3Compatible) {
+         const async: boolean = !Purifier.canPurifyInstanceSync(this._moduleName);
+         Purifier.purifyInstance(this, this._moduleName, async);
+      }
    }
 
     private saveInheritOptions(opts: any): void {
