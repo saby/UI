@@ -15,15 +15,19 @@ import {prepareControlNodes} from './ControlNodes';
 // @ts-ignore
 import template = require('wml!UI/_react/Control/Compatible');
 import {
-   IControlChildren,
-   IControlOptions,
-   IControlState,
-   TIState,
-   TemplateFunction,
+   IControlChildren, IControlOptions, IControlState, TIState, TemplateFunction,
    IDOMEnvironment, ITemplateAttrs, TControlConstructor, IControl
 } from './interfaces';
 
 let countInst = 1;
+
+// конфигурация созданного контрола, часть метода createControl
+function configureControl(parameters: {
+   control: Control,
+      domElement: HTMLElement
+}): void {
+   parameters.control._saveEnvironment(createEnvironment(parameters.domElement));
+}
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
@@ -33,43 +37,47 @@ let countInst = 1;
  */
 export class Control<TOptions extends IControlOptions = {}, TState extends TIState = void>
    extends Component<TOptions, IControlState> implements _IControl, IControl {
-   // флаг показывает что идет первая отрисовка
    private _firstRender: boolean = true;
-   // флаг показывает: что идет разрешение асинхронного beforeMount
    private _asyncMount: boolean = false;
-   // метод инициализации реактивности
    private _$observer: Function = reactiveObserve;
    // контейнер контрола
+   // добавлено потому что это используемое api контрола
    _container: HTMLElement = null;
    // набор детей контрола, элементы или контролы, которым задан атрибут name (является ключом)
+   // добавлено потому что это используемое api контрола
    protected _children: IControlChildren = {};
    // шаблон контрола
+   // добавлен потому что используемое апи контрола
    protected _template: TemplateFunction;
-
-   // опции контрола (пропсы)
    _options: TOptions = {} as TOptions;
    /** @deprecated */
    protected _theme: string[];
    /** @deprecated */
    protected _styles: string[];
    // флаг показывает, работает ли реактивность у контрола
+   // добавлено потому что используется в реактивных свойствах
    _reactiveStart: boolean = false;
    // хранилище значений реактивных полей
+   // добавлено потому что используется в реактивных свойствах
    reactiveValues: object;
    // окружение DOMEnvironment контрола
-   private _environment: IDOMEnvironment;
+   // добавлено потому что используется в системе фокусов (_getEnvironment)
+   _environment: IDOMEnvironment;
    // логический родитель контрола
+   // добавлено чтобы при создании ControlNode вычислять поле environment, которое хранится среди родителей
+   // также используется в прикладных и платформенных wasaby-контролах в качестве костылей
    _logicParent: IControl;
-   // результат выполнения beforeMount
-   private _$resultBeforeMount: TState | void;
    // родительский ход (если есть)
+   // используется чтобы расставить на родительских хоках _container
+   // в реф хока мы попадем в момент, когда контейнера еще нет, так что надо отложить инициализацию
    _parentHoc: IControl;
    // название модуля контрола
+   // добавлено потому что используется при выводе логов и для костылей
    _moduleName: string;
    // id контрола
+   // добавлено чтобы выводиться в getInstanceId, а getInstanceId это используемое апи контрола
    private readonly _instId: string = 'inst_' + countInst++;
 
-   // конструктор контрола
    constructor(props: TOptions) {
       super(props);
       this._options = props;
@@ -81,6 +89,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
 
    // возвращает id, используется пользователями
+   // добавлено потому что это используемое api контрола
    getInstanceId(): string {
       return this._instId;
    }
@@ -93,14 +102,17 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       // nothing for a while...
    }
    // запускает перерисовку
+   // добавлено потому что используемое апи контрола
    _forceUpdate(): void {
       this.forceUpdate();
    }
    // сохраняет окружение контрола
-   private _saveEnvironment(env: IDOMEnvironment): void {
+   // добавлено потому что используется в configureControl для инициализации environment
+   _saveEnvironment(env: IDOMEnvironment): void {
       this._environment = env;
    }
    // возвращает окружение контрола
+   // добавлено потому что используется в системе фокусов
    _getEnvironment(): IDOMEnvironment {
       return this._environment;
    }
@@ -125,10 +137,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    __beforeMountSSR(options?: TOptions,
                     contexts?: object,
                     receivedState?: TState): Promise<TState | void> | TState | void {
-      if (this._$resultBeforeMount) {
-         return this._$resultBeforeMount;
-      }
-
       let savedOptions;
       // @ts-ignore
       const hasCompatible = this.hasCompatible && this.hasCompatible();
@@ -144,9 +152,8 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          this._options = savedOptions;
       }
 
-      return this._$resultBeforeMount = resultBeforeMount;
+      return resultBeforeMount;
    }
-   // точка входа в beforeMount
    __beforeMount(options?: TOptions,
                  contexts?: object,
                  receivedState?: TState): void {
@@ -176,51 +183,21 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
 
    // построение верстки контрола
+   // добавлено потому что используется в render для построения верстки на сервере
    _getMarkup(rootKey?: string,
-              attributes?: ITemplateAttrs,
-              isVdom: boolean = true): string|object {
+              attributes?: ITemplateAttrs): string|object {
       // @ts-ignore
       if (!(this._template).stable) {
          Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
          return '';
       }
       let res;
-
       if (!attributes) {
          attributes = {};
       }
-      for (const i in attributes.events) {
-         if (attributes.events.hasOwnProperty(i)) {
-            for (let handl = 0; handl < attributes.events[i].length; handl++) {
-               if (
-                  attributes.events[i][handl].isControl &&
-                  // @ts-ignore
-                  !attributes.events[i][handl].fn.controlDestination
-               ) {
-                  // @ts-ignore
-                  attributes.events[i][handl].fn.controlDestination = this;
-               }
-            }
-         }
-      }
       const generatorConfig = getGeneratorConfig();
-      res = this._template(this, attributes, rootKey, isVdom, undefined, undefined, generatorConfig);
-      if (res) {
-         if (isVdom) {
-            if (res.length !== 1) {
-               const message = `В шаблоне может быть только один корневой элемент. Найдено ${res.length} корня(ей).`;
-               Logger.error(message, this);
-            }
-            for (let k = 0; k < res.length; k++) {
-               if (res[k]) {
-                  return res[k];
-               }
-            }
-         }
-      } else {
-         res = '';
-      }
-      return res;
+      res = this._template(this, attributes, rootKey, false, undefined, undefined, generatorConfig);
+      return res || '';
    }
 
    // На данном этапе рисуем индикатор вместо компонента в момент загрузки асинхронного beforeMount
@@ -454,7 +431,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       if (typeof window === 'undefined') {
          let markup: string | object = '';
          ReactiveObserver.forbidReactive(this, () => {
-            markup = this._getMarkup(null, attributes, false);
+            markup = this._getMarkup(null, attributes);
          });
          return markup;
       }
@@ -514,23 +491,17 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
     * </pre>
     */
    static _theme: string[] = [];
+   // флаг определяет, что класс является wasaby-контролом, а не ws3
+   // используется в шаблонизаторе для определения типа создаваемого контрола для совместимости
    static isWasaby: boolean = true;
 
-   // конфигурация созданного контрола
-   static configureControl(parameters: {
-      control: Control,
-      domElement: HTMLElement
-   }): void {
-      const environment = createEnvironment(parameters.domElement);
-      parameters.control._saveEnvironment(environment);
-   }
-
    // создание и монтирование контрола в элемент
+   // добавляется потому что используемое апи контрола
    static createControl(ctor: TControlConstructor, cfg: IControlOptions, domElement: HTMLElement): void {
       if (document.documentElement.classList.contains('pre-load')) {
          // @ts-ignore
          ReactDOM.hydrate(React.createElement(ctor, cfg, null), domElement.parentNode, function (): void {
-            Control.configureControl({
+            configureControl({
                control: this,
                domElement
             });
@@ -538,7 +509,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       } else {
          // @ts-ignore
          ReactDOM.render(React.createElement(ctor, cfg, null), domElement.parentNode, function (): void {
-            Control.configureControl({
+            configureControl({
                control: this,
                domElement
             });
