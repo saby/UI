@@ -620,7 +620,8 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    componentWillUnmount(): void {
       removeRelation(this);
       releaseProperties(this);
-      this._beforeUnmount.apply(this);const isWS3Compatible: boolean = this.hasOwnProperty('getParent');
+      this._beforeUnmount.apply(this);
+      const isWS3Compatible: boolean = this.hasOwnProperty('getParent');
       if (!isWS3Compatible) {
          const async: boolean = !Purifier.canPurifyInstanceSync(this._moduleName);
          Purifier.purifyInstance(this, this._moduleName, async);
