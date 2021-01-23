@@ -14,6 +14,7 @@ class TestControl extends TestBaseControl {
         detection.isMobilePlatform = true;
     }
     destroy() {
+        // @ts-ignore
         TestBaseControl.prototype.destroy.apply(this, arguments);
         detection.isMobilePlatform = this.isMobilePlatform;
     }
