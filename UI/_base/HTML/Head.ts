@@ -161,6 +161,15 @@ class Head extends Control<IHeadOptions> {
     }
 }
 
+Object.defineProperty(Head, 'defaultProps', {
+   enumerable: true,
+   configurable: true,
+
+   get(): ReturnType<Head['getDefaultOptions']> {
+      return Head.getDefaultOptions();
+   }
+});
+
 export default Head;
 
 function collectCSS(theme: string, styles: string[] = [], themes: string[] = []): Promise<string> {
