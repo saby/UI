@@ -165,7 +165,7 @@ Object.defineProperty(Head, 'defaultProps', {
    enumerable: true,
    configurable: true,
 
-   get(): ReturnType<Head['getDefaultOptions']> {
+   get(): object {
       return Head.getDefaultOptions();
    }
 });
