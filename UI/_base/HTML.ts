@@ -249,7 +249,7 @@ Object.defineProperty(HTML, 'defaultProps', {
    enumerable: true,
    configurable: true,
 
-   get(): ReturnType<HTML['getDefaultOptions']> {
+   get(): object {
       return HTML.getDefaultOptions();
    }
 });
