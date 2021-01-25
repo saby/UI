@@ -35,6 +35,8 @@ export interface ITemplateAttrs {
 export interface IDOMEnvironment {
    _rootDOMNode: HTMLElement;
    __captureEventHandlers: object;
+   _$active: boolean;
+   _handleFocusEvent: (e: { target: Element, relatedTarget: Element }) => void;
 }
 export interface IControlNode {
    control: IControl;

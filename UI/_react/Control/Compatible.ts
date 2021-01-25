@@ -4,8 +4,8 @@ import {getGeneratorConfig} from './GeneratorConfig';
 import {makeRelation, removeRelation} from './ParentFinder';
 import { EMPTY_THEME, getThemeController } from 'UI/theme/controller';
 import {Logger, Purifier} from 'UI/Utils';
-import {_IControl} from 'UI/Focus';
-import {constants} from 'Env/Env';
+import { _IControl, activate } from 'UI/Focus';
+import { constants, detection } from 'Env/Env';
 import * as ReactDOM from 'react-dom';
 import * as React from 'react';
 import {ReactiveObserver} from 'UI/Reactivity';
@@ -48,6 +48,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // контейнер контрола
    // добавлено потому что это используемое api контрола
    _container: HTMLElement = null;
+   // Активирован ли контрол
+   // Нужно для поддержки текущей системы фокусов
+   private _$active: boolean = false;
    // набор детей контрола, элементы или контролы, которым задан атрибут name (является ключом)
    // добавлено потому что это используемое api контрола
    protected _children: IControlChildren = {};
@@ -102,7 +105,8 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       // nothing for a while...
    }
    
-   activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): void {
+   
+   activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
       const container = this._container;
       const activeElement = document.activeElement;
 
