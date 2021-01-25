@@ -1404,10 +1404,10 @@ function logError(e: Error) {
    Logger.error(e.message);
 }
 
-export default Control;
+// export default Control;
 // TODO придумать как возвращать ReactControl под условием
-// import {Control as ReactControl} from 'UI/ReactComponent';
-// export default ReactControl;
+import {Control as ReactControl} from 'UI/ReactComponent';
+export default ReactControl;
 
 /**
  * @name UI/_base/Control#readOnly

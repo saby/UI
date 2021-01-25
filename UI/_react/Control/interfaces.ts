@@ -35,6 +35,7 @@ export interface ITemplateAttrs {
 export interface IDOMEnvironment {
    _rootDOMNode: HTMLElement;
    __captureEventHandlers: object;
+   startEvent: (controlNode: IControlNode, args: IArguments) => void;
 }
 export interface IControlNode {
    control: IControl;

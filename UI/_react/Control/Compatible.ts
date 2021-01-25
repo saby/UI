@@ -17,7 +17,7 @@ import {TClosure} from 'UI/Executor';
 import template = require('wml!UI/_react/Control/Compatible');
 import {
    IControlChildren, IControlOptions, IControlState, TIState, TemplateFunction,
-   IDOMEnvironment, ITemplateAttrs, TControlConstructor, IControl
+   IDOMEnvironment, ITemplateAttrs, TControlConstructor, IControl, IControlNode
 } from './interfaces';
 
 let countInst = 1;
@@ -68,6 +68,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // окружение DOMEnvironment контрола
    // добавлено потому что используется в системе фокусов (_getEnvironment)
    _environment: IDOMEnvironment;
+   // текущая controlNode контрола
+   // добавлено для работы системы событий, т.к должны всплывать с учетом controlNode
+   _controlNode: IControlNode;
    // логический родитель контрола
    // добавлено чтобы при создании ControlNode вычислять поле environment, которое хранится среди родителей
    // также используется в прикладных и платформенных wasaby-контролах в качестве костылей
@@ -99,7 +102,17 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
    // запуск события - сейчас заглушка. удалить нельзя, это самое простое решение
    _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): void {
-      // nothing for a while...
+      if (args && !(args instanceof Array)) {
+         var error = `Ошибка использования API событий.
+                     В метод _notify() в качестве второго аргументов необходимо передавать массив 
+                     Был передан объект типа ${typeof args}
+                     Событие: ${eventName}
+                     Аргументы: ${args}
+                     Подробнее о событиях: https://wasaby.dev/doc/platform/ui-library/events/#params-from-notify`;
+             Logger.error(error, this);
+         throw new Error(error);
+      }
+      return this._environment && this._environment.startEvent(this._controlNode, arguments);
    }
    // активация контрола - сейчас заглушка. удалить нельзя, это самое простое решение
    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): void {
@@ -112,8 +125,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
    // сохраняет окружение контрола
    // добавлено потому что используется в configureControl для инициализации environment
-   _saveEnvironment(env: IDOMEnvironment): void {
+   _saveEnvironment(env: IDOMEnvironment, controlNode?: IControlNode): void {
       this._environment = env;
+      this._controlNode = controlNode;
    }
    // возвращает окружение контрола
    // добавлено потому что используется в системе фокусов
@@ -173,16 +187,26 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          return;
       }
 
-      promisesToWait.push(this._beforeMount(this.props));
+      const res = this._beforeMount(this.props);
+      if (res && res.then) {
+         promisesToWait.push(res);
+         promisesToWait.push(cssLoading);
+      }
 
-      this._asyncMount = true;
-      Promise.all(promisesToWait).then(() => {
-            this._firstRender = false;
-            this._reactiveStart = true;
-            this.setState({
-               loading: false
-            }, () => this._afterMount(this.props));
-         });
+      if (promisesToWait.length) {
+         this._asyncMount = true;
+         Promise.all(promisesToWait).then(() => {
+               this._firstRender = false;
+               this._reactiveStart = true;
+               this.setState({
+                  loading: false
+               }, () => this._afterMount(this.props));
+            });
+      } else {
+         this._firstRender = false;
+         this._reactiveStart = true;
+      }
+
       this._$observer(this, this._template);
    }
 
@@ -281,7 +305,8 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
    private loadStyles(): Promise<void> {
       const styles = this._styles instanceof Array ? this._styles : [];
-      return Control.loadStyles(styles).catch(logError);
+      // tslint:disable-next-line:no-string-literal
+      return this.constructor['loadStyles'](styles).catch(logError);
    }
 
    /* End: CSS region */
@@ -446,8 +471,11 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       }
 
       if (this._firstRender) {
-         this.__beforeMount();
+         this.__beforeMount(this.props);
       }
+
+      // @ts-ignore
+      window.reactGenerator = true;
 
       if (this._asyncMount && this.state.loading) {
          if (this._moduleName === 'UI/Base:HTML') {
@@ -457,12 +485,20 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          }
       }
 
+      if (this._moduleName === 'UI/_base/HTML/Head') {
+         // FIXME: Пересоздаем head на клиенте, так как гидрация реакта его стирает
+         return createElement('head', {
+            // @ts-ignore
+            dangerouslySetInnerHTML: {__html: window.veryBadHack}
+         });
+      }
+
       const generatorConfig = getGeneratorConfig();
       TClosure.setReact(true);
       let res;
       try {
          const ctx = {...this, _options: {...this.props}};
-         res = this._template(ctx, {}, undefined, undefined, undefined, undefined, generatorConfig);
+         res = this._template(ctx, {}, undefined, true, undefined, undefined, generatorConfig);
          // прокидываю тут аргумент isCompatible, но можно вынести в builder
          const originRef = res[0].ref;
          // tslint:disable-next-line:no-this-assignment
@@ -509,15 +545,23 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // создание и монтирование контрола в элемент
    // добавляется потому что используемое апи контрола
    static createControl(ctor: TControlConstructor, cfg: IControlOptions, domElement: HTMLElement): void {
+      //@ts-ignore
+      window.veryBadHack = domElement.getElementsByTagName('head')[0].innerHTML;
       const updateMarkup = isHydrating ?
          ReactDOM.hydrate :
          ReactDOM.render;
 
+      // @ts-ignore
+      // FIXME: Кладем в window содержимое head для отрисовки его на клиенте после гидрации
+      window.veryBadHack = domElement.getElementsByTagName('head')[0].innerHTML;
+
+
       // @ts-ignore проблема что родитель может быть document как сейчас в демке.
       // проблема уйдет когда рисовать будем не от html
-      updateMarkup(React.createElement(ctor, cfg, null), domElement.parentNode, function (): void {
+      updateMarkup(React.createElement(ctor, cfg, null), domElement.parentNode, (): void => {
          configureControl({
-            control: this,
+            //@ts-ignore
+            control: new ctor(cfg),
             domElement
          });
       });
