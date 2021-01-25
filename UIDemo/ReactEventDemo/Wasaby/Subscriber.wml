@@ -10,6 +10,8 @@
     </div>
     <button class="item__button" on:click="_userEventCallback()">self add</button>
     <div>
-        <UIDemo.ReactEventDemo.Wasaby.Notifier on:userEvent="_userEventCallback()"  on:userEventBubbling="_userEventCallbackWithBubbling()"/>
+        <UIDemo.ReactEventDemo.Wasaby.Notifier
+                on:userEvent="_userEventCallback()"
+                on:userEventBubbling="_userEventCallbackWithBubbling()"/>
     </div>
 </div>

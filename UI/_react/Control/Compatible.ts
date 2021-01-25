@@ -24,6 +24,8 @@ let countInst = 1;
 /**
  * Храним html тега head для того, чтобы отрисовать его после гидрации
  */
+let _innerHeadHtml: string;
+
 // конфигурация созданного контрола, часть метода createControl
 function configureControl(parameters: {
    control: Control,
