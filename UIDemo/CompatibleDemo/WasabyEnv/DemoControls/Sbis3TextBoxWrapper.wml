@@ -1,0 +1,3 @@
+<div>
+    <UIDemo.CompatibleDemo.Compat.WS3.TextBox  name="TextBoxWrapper" text="{{ _text }}"/>
+</div>
