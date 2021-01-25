@@ -20,6 +20,13 @@ import {
    IDOMEnvironment, ITemplateAttrs, TControlConstructor, IControl
 } from './interfaces';
 
+interface IControlFunction extends Function {
+   /**
+    * Имя react компонента выводимое в DevTools
+    */
+   displayName: string;
+}
+
 let countInst = 1;
 /**
  * Храним html тега head для того, чтобы отрисовать его после гидрации
@@ -94,6 +101,13 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       this.state = {
          loading: true
       };
+      const constructor = this.constructor as IControlFunction;
+      /**
+       * Записываем в статическое поле компонента имя для удобной работы через React DevTools
+       */
+      if (!constructor.displayName) {
+         constructor.displayName = this._moduleName;
+      }
       this._logicParent = props._logicParent;
    }
 
