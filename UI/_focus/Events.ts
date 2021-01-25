@@ -16,7 +16,7 @@ interface INotifyActivationEvents {
 }
 
 /**
- * @author Тэн В.А.
+ * @author Кондаков Р.Н.
  * Модуль содержит логику вызова событий активации у контролов
  */
 
