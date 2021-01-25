@@ -1,5 +1,5 @@
 import * as Ast from './Ast';
-import { ProgramNode } from "UI/_builder/Tmpl/expressions/_private/Nodes";
+import { IdentifierNode, ProgramNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 
 interface IContext {
    isProcessingAttribute?: boolean;
@@ -32,6 +32,94 @@ enum ContainerType {
    CYCLE
 }
 
+const FILE_NAME = '[[internal]]';
+
+const FORBIDDEN_IDENTIFIERS = [
+   '...',
+   '_options',
+   '_container',
+   '_children',
+   'rk'
+];
+
+function hasBindings(program: ProgramNode): boolean {
+   if (typeof program.string !== 'string') {
+      return false;
+   }
+   return program.string.indexOf('|mutable') > -1 || program.string.indexOf('|bind') > -1;
+}
+
+function canRegisterProgram(program: ProgramNode): boolean {
+   // Do not register program with bind and mutable decorators
+   return !hasBindings(program);
+}
+
+function isForbiddenIdentifier(name: string): boolean {
+   return FORBIDDEN_IDENTIFIERS.indexOf(name) > -1;
+}
+
+function collectIdentifiers(program: ProgramNode, fileName: string): string[] {
+   const identifiers: string[] = [];
+   const callbacks = {
+      Identifier: (node: IdentifierNode): void => {
+         const identifier = node.name;
+         // Do not produce duplicates
+         if (identifiers.indexOf(identifier) === -1) {
+            identifiers.push(node.name);
+         }
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName
+   });
+   return identifiers;
+}
+
+class ProgramStorage {
+   private readonly programs: IProgramMeta[];
+   private readonly programsMap: Map<string, number>;
+
+   constructor() {
+      this.programs = [];
+      this.programsMap = new Map<string, number>();
+   }
+
+   findIndex(program: ProgramNode): number | null {
+      const source = program.string;
+      if (this.programsMap.has(source)) {
+         const index = this.programsMap.get(source);
+         return this.programs[index].index;
+      }
+      return null;
+   }
+
+   get(program: ProgramNode): IProgramMeta | null {
+      const source = program.string;
+      if (!this.programsMap.has(source))  {
+         return null;
+      }
+      const index = this.programsMap.get(source);
+      return this.programs[index];
+   }
+
+   set(meta: IProgramMeta): void {
+      const source = meta.node.string;
+      // Do not append program that already exists
+      if (this.programsMap.has(source)) {
+         return;
+      }
+      // Description index in collection that will be set
+      const index: number = this.programs.length;
+      this.programsMap.set(source, index);
+      this.programs.push(meta);
+   }
+
+   getMeta(): IProgramMeta[] {
+      return Array(...this.programs);
+   }
+}
+
 class Container {
    public readonly typeName: string;
    public meta: string;
@@ -44,7 +132,7 @@ class Container {
    public readonly parent: Container | null;
    public condition: ProgramNode | null;
    public readonly identifiers: Array<string>;
-   public readonly programs: Array<IProgramMeta>;
+   public readonly storage: ProgramStorage;
    public readonly children: Array<Container>;
 
    constructor(parent: Container | null, type: ContainerType) {
@@ -57,7 +145,7 @@ class Container {
       this.parent = parent;
       this.condition = null;
       this.identifiers = new Array<string>();
-      this.programs = new Array<IProgramMeta>();
+      this.storage = new ProgramStorage();
       this.children = new Array<Container>();
 
       this.index = this.globalContainers.length;
@@ -73,11 +161,22 @@ class Container {
    }
 
    registerProgram(program: ProgramNode, type: ProgramType): void {
-      this.programs.push(createProgramMeta(
+      if (!canRegisterProgram(program)) {
+         return;
+      }
+      if (!this.processIdentifiers(program)) {
+         return;
+      }
+      const meta = createProgramMeta(
          type,
          program,
          this.allocateProgramIndex()
-      ))
+      );
+      this.commitProgram(meta);
+   }
+
+   getOwnIdentifiers(): string[] {
+      return Array(...this.identifiers);
    }
 
    private allocateProgramIndex(): number {
@@ -85,6 +184,50 @@ class Container {
          return this.programIndex++;
       }
       return this.parent.allocateProgramIndex();
+   }
+
+   private processIdentifiers(program: ProgramNode): boolean {
+      const identifiers = collectIdentifiers(program, FILE_NAME);
+      // Do not register program without identifiers.
+      if (identifiers.length === 0) {
+         return false;
+      }
+      for (let index = 0; index < identifiers.length; ++index) {
+         const identifier = identifiers[index];
+         this.hoistIdentifier(identifier);
+      }
+      return true;
+   }
+
+   private hoistIdentifier(identifier: string): void {
+      if (this.identifiers.indexOf(identifier) > -1 || isForbiddenIdentifier(identifier)) {
+         return;
+      }
+      if (this.parent !== null && this.type !== ContainerType.TEMPLATE) {
+         this.parent.hoistIdentifier(identifier);
+         return;
+      }
+      this.commitIdentifier(identifier);
+      this.hoistReactiveIdentifier(identifier);
+   }
+
+   private commitIdentifier(identifier: string): void {
+      if (this.identifiers.indexOf(identifier) > -1) {
+         return;
+      }
+      this.identifiers.push(identifier);
+   }
+
+   private hoistReactiveIdentifier(identifier: string): void {
+      if (this.parent === null) {
+         this.commitIdentifier(identifier);
+         return;
+      }
+      this.parent.hoistReactiveIdentifier(identifier);
+   }
+
+   private commitProgram(meta: IProgramMeta): void {
+      this.storage.set(meta);
    }
 }
 
