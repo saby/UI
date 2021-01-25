@@ -496,10 +496,12 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
       if (this._moduleName === 'UI/_base/HTML/Head') {
          // FIXME: Пересоздаем head на клиенте, так как гидрация реакта его стирает
-         return createElement('head', {
+         const newHead = createElement('head', {
             // @ts-ignore
             dangerouslySetInnerHTML: {__html: _innerHeadHtml}
          });
+         _innerHeadHtml = null;
+         return newHead;
       }
 
       const generatorConfig = getGeneratorConfig();
