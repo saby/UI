@@ -2,6 +2,7 @@ import * as Ast from './Ast';
 import { IdentifierNode, ProgramNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 
 interface IContext {
+   attributeName?: string;
    isProcessingAttribute?: boolean;
    isProcessingOption?: boolean;
    container: Container;
@@ -17,10 +18,12 @@ enum ProgramType {
 }
 
 interface IProgramMeta {
+   name: string | null;
    typeName: string;
    type: ProgramType;
    node: ProgramNode;
    index: number;
+   isSynthetic: boolean;
 }
 
 enum ContainerType {
@@ -160,7 +163,7 @@ class Container {
       return new Container(this, type);
    }
 
-   registerProgram(program: ProgramNode, type: ProgramType): void {
+   registerProgram(program: ProgramNode, type: ProgramType, name: string | null): void {
       if (!canRegisterProgram(program)) {
          return;
       }
@@ -168,9 +171,11 @@ class Container {
          return;
       }
       const meta = createProgramMeta(
+         name,
          type,
          program,
-         this.allocateProgramIndex()
+         this.allocateProgramIndex(),
+         false
       );
       this.commitProgram(meta);
    }
@@ -231,12 +236,14 @@ class Container {
    }
 }
 
-function createProgramMeta(type: ProgramType, node: ProgramNode, index: number): IProgramMeta {
+function createProgramMeta(name: string | null, type: ProgramType, node: ProgramNode, index: number, isSynthetic: boolean): IProgramMeta {
    return {
+      name,
       typeName: ProgramType[type],
       type,
       node,
-      index
+      index,
+      isSynthetic
    };
 }
 
@@ -270,6 +277,7 @@ class InternalVisitor implements Ast.IAstVisitor {
    visitAttribute(node: Ast.AttributeNode, context: IContext): void {
       const childContext: IContext = {
          ...context,
+         attributeName: node.__$ws_name,
          isProcessingAttribute: true
       };
       visitAll(node.__$ws_value, this, childContext);
@@ -278,6 +286,7 @@ class InternalVisitor implements Ast.IAstVisitor {
    visitOption(node: Ast.OptionNode, context: IContext): void {
       const childContext: IContext = {
          ...context,
+         attributeName: node.__$ws_name,
          isProcessingOption: true
       };
       node.__$ws_value.accept(this, childContext);
@@ -296,11 +305,11 @@ class InternalVisitor implements Ast.IAstVisitor {
    }
 
    visitBind(node: Ast.BindNode, context: IContext): void {
-      context.container.registerProgram(node.__$ws_value, ProgramType.BIND);
+      context.container.registerProgram(node.__$ws_value, ProgramType.BIND, node.__$ws_property);
    }
 
    visitEvent(node: Ast.EventNode, context: IContext): void {
-      context.container.registerProgram(node.__$ws_handler, ProgramType.BIND);
+      context.container.registerProgram(node.__$ws_handler, ProgramType.EVENT, node.__$ws_event);
    }
 
    visitElement(node: Ast.ElementNode, context: IContext): void {
@@ -334,7 +343,7 @@ class InternalVisitor implements Ast.IAstVisitor {
 
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): void {
       const childContainer = this.processComponent(node, context);
-      childContainer.registerProgram(node.__$ws_expression, ProgramType.SIMPLE);
+      childContainer.registerProgram(node.__$ws_expression, ProgramType.SIMPLE, 'template');
       childContainer.meta = `<ws:partial> directive @@ dynamic "${node.__$ws_expression.string}"`;
    }
 
@@ -353,7 +362,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       const container = context.container.createContainer(ContainerType.CONDITIONAL);
       container.meta = `<ws:if> "${node.__$ws_test.string}"`;
       container.condition = node.__$ws_test;
-      container.registerProgram(node.__$ws_test, ProgramType.SIMPLE);
+      container.registerProgram(node.__$ws_test, ProgramType.SIMPLE, 'data');
       const childContext: IContext = {
          container
       };
@@ -368,7 +377,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       if (node.__$ws_test !== null) {
          container.meta = `<ws:else> "${node.__$ws_test.string}"`;
          container.condition = node.__$ws_test;
-         container.registerProgram(node.__$ws_test, ProgramType.SIMPLE);
+         container.registerProgram(node.__$ws_test, ProgramType.SIMPLE, 'data');
       }
       const childContext: IContext = {
          container
@@ -385,11 +394,11 @@ class InternalVisitor implements Ast.IAstVisitor {
          container
       };
       if (node.__$ws_init) {
-         container.registerProgram(node.__$ws_init, ProgramType.FLOAT);
+         container.registerProgram(node.__$ws_init, ProgramType.FLOAT, 'data');
       }
-      container.registerProgram(node.__$ws_test, ProgramType.FLOAT);
+      container.registerProgram(node.__$ws_test, ProgramType.FLOAT, 'data');
       if (node.__$ws_update) {
-         container.registerProgram(node.__$ws_update, ProgramType.FLOAT);
+         container.registerProgram(node.__$ws_update, ProgramType.FLOAT, 'data');
       }
       visitAll(node.__$ws_content, this, childContext);
       // @ts-ignore
@@ -406,7 +415,7 @@ class InternalVisitor implements Ast.IAstVisitor {
          container.identifiers.push(node.__$ws_index.string);
       }
       container.identifiers.push(node.__$ws_iterator.string);
-      container.registerProgram(node.__$ws_collection, ProgramType.SIMPLE);
+      container.registerProgram(node.__$ws_collection, ProgramType.SIMPLE, 'data');
       visitAll(node.__$ws_content, this, childContext);
       // @ts-ignore
       node.$$container = container;
@@ -449,14 +458,14 @@ class InternalVisitor implements Ast.IAstVisitor {
 
    visitExpression(node: Ast.ExpressionNode, context: IContext): void {
       if (context.isProcessingAttribute) {
-         context.container.registerProgram(node.__$ws_program, ProgramType.ATTRIBUTE);
+         context.container.registerProgram(node.__$ws_program, ProgramType.ATTRIBUTE, context.attributeName);
          return;
       }
       if (context.isProcessingOption) {
-         context.container.registerProgram(node.__$ws_program, ProgramType.OPTION);
+         context.container.registerProgram(node.__$ws_program, ProgramType.OPTION, context.attributeName);
          return;
       }
-      context.container.registerProgram(node.__$ws_program, ProgramType.SIMPLE);
+      context.container.registerProgram(node.__$ws_program, ProgramType.SIMPLE, null);
    }
 
    visitTranslation(node: Ast.TranslationNode, context: IContext): void { }
