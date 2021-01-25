@@ -101,9 +101,29 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): void {
       // nothing for a while...
    }
-   // активация контрола - сейчас заглушка. удалить нельзя, это самое простое решение
+   
    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): void {
-      // nothing for a while...
+      const container = this._container;
+      const activeElement = document.activeElement;
+
+      // проверим не пустой ли контейнер.
+      const res = container && activate(container, cfg);
+
+      // Пока что приходится перетаскивать костыли сюда...
+
+      // может случиться так, что на focus() сработает обработчик в DOMEnvironment,
+      // и тогда тут ничего не надо делать
+      // todo делать проверку не на _$active а на то, что реально состояние изменилось.
+      // например переходим от компонента к его предку, у предка состояние не изменилось.
+      // но с которого уходили у него изменилось
+      if (res && !this._$active) {
+         const env = this._getEnvironment();
+         if (!(detection.isIE && env._$active)) {
+            env._handleFocusEvent({ target: document.activeElement, relatedTarget: activeElement });
+         }
+      }
+
+      return res;
    }
    // запускает перерисовку
    // добавлено потому что используемое апи контрола
