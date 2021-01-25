@@ -115,10 +115,13 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
                                        relatedTarget: Element,
                                        env?: IDOMEnvironment,
                                        isTabPressed?: ITabPressed): boolean | void  => {
-   if (detectStrangeElement(target) || notifyActivationEvents._savedFocusedElement === relatedTarget) {
+   if (detectStrangeElement(target)) {
       return;
    }
-
+   // предотвращает двойную активацию в ie
+   if (detection.isIE && notifyActivationEvents._savedFocusedElement === relatedTarget){
+       return;
+   }
    // странные элементы вообще проигнорируем, возьмем вместо него предыдущий активный
    const realRelatedTarget = (!detectStrangeElement(relatedTarget) && relatedTarget) ||
        notifyActivationEvents._savedFocusedElement;
