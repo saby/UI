@@ -8,6 +8,7 @@ export interface IControlOptions {
    readOnly?: boolean;
    theme?: string;
    _logicParent?: IControl;
+   events?: IEvent;
 }
 export interface IEvent {
    args: any[];
@@ -35,6 +36,7 @@ export interface ITemplateAttrs {
 export interface IDOMEnvironment {
    _rootDOMNode: HTMLElement;
    __captureEventHandlers: object;
+   startEvent: (controlNode: IControlNode, args: IArguments) => void;
 }
 export interface IControlNode {
    control: IControl;
@@ -62,4 +64,5 @@ export interface IControl<TOptions extends IControlOptions = {}, TState extends 
    _container: HTMLElement;
    getInstanceId: () => string;
    _options: IControlOptions;
+   _saveEnvironment: (env: IDOMEnvironment, controlNode?: IControlNode) => void;
 }

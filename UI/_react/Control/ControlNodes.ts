@@ -1,4 +1,5 @@
 import {IControl, IControlNode, TControlConstructor} from './interfaces';
+import {createEnvironment} from 'UI/_react/Control/EnvironmentStorage';
 
 function getNumberId(id: string | 0): number {
     return parseInt((id + '').replace('inst_', ''), 10);
@@ -55,17 +56,27 @@ export function prepareControlNodes(node: any, control: IControl, Control: TCont
         if (node) {
             let environment;
             let curControl = control;
+            let lastContainer = control._container;
             while (curControl) {
                 if (curControl._getEnvironment()) {
                     environment = curControl._getEnvironment();
+                }
+                if (environment) {
                     break;
                 }
                 curControl = curControl._logicParent;
             }
-
+            if (typeof (environment) === 'undefined') {
+                environment = createEnvironment(lastContainer);
+            }
             curControl = control;
             while (curControl && (!curControl._container || !curControl._container.parentNode)) {
                 container.controlNodes = container.controlNodes || [];
+                // если на контроле есть подписки на кастомные события, то нужно положить их
+                // на элемент в eventProperties, чтобы работал _notify
+                if(control._options.events) {
+                    container.eventProperties = control._options.events;
+                }
                 const controlNode = {
                     control: curControl,
                     element: container,
@@ -73,6 +84,8 @@ export function prepareControlNodes(node: any, control: IControl, Control: TCont
                     id: curControl.getInstanceId()
                 };
                 addControlNode(container.controlNodes, controlNode);
+
+                curControl._saveEnvironment(environment, controlNode);
                 curControl._container = container;
 
                 curControl = curControl._parentHoc;
