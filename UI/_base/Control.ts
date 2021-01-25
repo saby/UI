@@ -271,7 +271,8 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
          cfg = {};
       }
 
-      if (cfg._logicParent && !(cfg._logicParent instanceof Control)) {
+      //@ts-ignore
+      if (cfg._logicParent && !(cfg._logicParent instanceof Control) && !cfg._logicParent.isReactControl()) {
          Logger.error('Option "_logicParent" is not instance of "Control"', this);
       }
 

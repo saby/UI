@@ -22,7 +22,6 @@ class NestedLongOther extends Control<IControlOptions, INestedState> {
     }
 }
 
-// @ts-ignore
 NestedLongOther._styles = ['UIDemo/LimitedDemo/NestedLongOther'];
 
 export default NestedLongOther;

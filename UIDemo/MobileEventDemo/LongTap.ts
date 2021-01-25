@@ -30,7 +30,6 @@ class LongTap extends Control {
    }
 }
 
-// @ts-ignore
 LongTap._styles = ['UIDemo/MobileEventDemo/MobileEventDemo'];
 
 export default LongTap;
