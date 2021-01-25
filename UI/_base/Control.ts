@@ -668,7 +668,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
       // но с которого уходили у него изменилось
       if (res && !this._$active) {
          const env = this._getEnvironment();
-         if ((detection.isIE && !env._$active) || !detection.isIE) {
+         if ((detection.isIE && env && !env._$active) || !detection.isIE) {
             env._handleFocusEvent({ target: document.activeElement, relatedTarget: activeElement });
          }
       }

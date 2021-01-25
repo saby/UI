@@ -181,7 +181,7 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
                   }
                ]);
                control._$active = false;
-               if (detection.isIE) {
+               if (detection.isIE && control._environment) {
                   control._environment._$active = true;
                }
             }
@@ -214,7 +214,7 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
                }
             ]);
             control._$active = true;
-            if (detection.isIE) {
+            if (detection.isIE && control._environment) {
                control._environment._$active = true;
             }
          }
