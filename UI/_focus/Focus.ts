@@ -9,7 +9,7 @@ import { Logger } from 'UI/Utils';
 
 import { collectScrollPositions } from './_ResetScrolling';
 import * as ElementFinder from './ElementFinder';
-import { notifyActivationEvents } from 'UI/_focus/Events';
+import {IDOMEnvironment, notifyActivationEvents} from 'UI/_focus/Events';
 
 import { IFocusElement, IMatchesElement, IControlElement, ICompoundControl } from './IFocus';
 import { IGeneratorControlNode } from 'UI/Executor';
@@ -17,6 +17,14 @@ import { IGeneratorControlNode } from 'UI/Executor';
 interface IFocusConfig {
    enableScreenKeyboard?: boolean;
    enableScrollToElement?: boolean;
+}
+
+
+interface IFocus {
+   (element: IControlElement,
+    {enableScreenKeyboard, enableScrollToElement}?: IFocusConfig,
+    isOldControl?: boolean): boolean;
+   __restoreFocusPhase?: boolean;
 }
 
 let isTouchInterface = false;
@@ -272,11 +280,19 @@ function focusInner(element: Element, cfg: IFocusConfig): boolean {
 
 let focusingState;
 let nativeFocus: Function;
-function focus(element: IControlElement, {enableScreenKeyboard = false, enableScrollToElement = false}:
-   IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}): boolean {
+let lastFocused: IControlElement;
+
+let focus : IFocus;
+focus = <IFocus>(element: IControlElement, {enableScreenKeyboard = false, enableScrollToElement = false}:
+   IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}, isOldControl?: boolean): boolean => {
    let res;
    const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard};
-   const lastFocused: Element = document.activeElement;
+   // в ie фокус может быть null
+   const isBodyFocused = document.activeElement && document.activeElement.tagName === 'BODY';
+   lastFocused = isBodyFocused ? lastFocused : document.activeElement as IControlElement;
+   if (isBodyFocused && lastFocused && isOldControl) {
+      element = lastFocused;
+   }
    const elementFixed = fixElementForMobileInputs(element, cfg);
    if (focusingState) {
       nativeFocus.call(elementFixed);
@@ -288,11 +304,10 @@ function focus(element: IControlElement, {enableScreenKeyboard = false, enableSc
          focusingState = false;
       }
    }
-   // @ts-ignore
    // в ie нельзя стрелять событиями активации во время восстановления фокуса после перерисовки
    // если так сделать, то будет вызван нотифай события deactivated и выстрялет все подписанные на него обработчики
    if (detection.isIE && res && !focus.__restoreFocusPhase) {
-      notifyActivationEvents(document.activeElement, lastFocused);
+      notifyActivationEvents(document.activeElement as IControlElement, lastFocused);
    }
    return res;
 }

@@ -109,7 +109,7 @@ define('UI/_builder/Tmpl/modules/utils/parse', [
          if (attrs[root] && attrs[root].data) {
             attrData = attrs[root].data;
             obj = Process.processExpressions(
-               attrData[0], data, this.calculators, this.fileName
+               attrData[0], data, this.fileName
             );
             if (typeof obj === 'string') {
                if (utils.isOptionsExpression(attrData[0])) {

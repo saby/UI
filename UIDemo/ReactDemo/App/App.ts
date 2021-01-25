@@ -1,9 +1,12 @@
-import {Control} from 'UI/ReactComponent';
-import {createElement} from 'react';
-import Todo from '../TODO/TODO';
+import {Control} from 'UI/Base';
 
-export default class App extends Control {
-    render() {
-        return createElement('div', {className: 'demo-ReactWasaby__app'}, createElement(Todo));
-    }
+// @ts-ignore
+import template = require('wml!UIDemo/ReactDemo/App/App');
+
+class App extends Control {
 }
+
+// @ts-ignore
+App.prototype._template = template;
+
+export default App;

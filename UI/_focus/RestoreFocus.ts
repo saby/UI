@@ -67,18 +67,20 @@ export function restoreFocus(control: IControl, action: Function): void {
             return false;
          }
          // совместимость. среди контролов могут встретиться ws3
-         const container = currentControl._template ? currentControl._container : currentControl.getContainer()[0];
-         // @ts-ignore
+         let container = currentControl._container;
+         let isOldControl = false;
+         if (!currentControl._template) {
+            container = currentControl.getContainer()[0];
+            isOldControl = true;
+         }
          focus.__restoreFocusPhase = true;
          const containerVisible = isElementVisible(container) && isTreeVisible(container);
-         const result = containerVisible && focus(container);
-         // @ts-ignore
+         const result = containerVisible && focus(container, {}, isOldControl);
          delete focus.__restoreFocusPhase;
          return result;
       });
       // следим за состоянием _savedFocusedElement. хотелось бы делать это в environment в обработчике
       // на focus, но как минимум в IE на вызов фокуса туда не попадеам
-      // @ts-ignore
       notifyActivationEvents._savedFocusedElement = document.activeElement;
 
       // Попытаемся восстановить фокус, только если он действительно слетел с контрола, помеченного __$focusing

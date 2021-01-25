@@ -1,4 +1,4 @@
-import {IControlOptions} from 'UI/ReactComponent';
+import {IControlOptions} from 'UI/Base';
 
 export interface IList extends IControlOptions {
     items: IItem[];

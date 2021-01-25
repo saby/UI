@@ -1,6 +1,6 @@
-import {Control} from './_react/Control/Compatible';
-import { IControlOptions, ITemplateFunction } from './_react/Control/interfaces';
+import {Control, IControlOptions} from './_react/Control/Compatible';
 
 export {
-    Control, IControlOptions, ITemplateFunction
+   Control,
+   IControlOptions
 };

@@ -311,15 +311,15 @@ function getIsUnpackModule(unpack: IDeps): (moduleName: string) => boolean {
       if (unpackModuleName !== WSCORE_MODULE_NAME) {
          return false;
       }
-      return WSCORE_MODULES_PREFIXES.some((modulePrefix: string) => dependModuleName.startsWith(modulePrefix))
+      return WSCORE_MODULES_PREFIXES.some((modulePrefix: string) => dependModuleName.startsWith(modulePrefix));
    };
 
    return (dependModuleName: string): boolean => {
       return unpack.some((unpackModuleName) =>  {
          return dependModuleName.indexOf(unpackModuleName) !== -1
-                || isWsCore(unpackModuleName, dependModuleName)
+                || isWsCore(unpackModuleName, dependModuleName);
       });
-   }
+   };
 }
 
 function mergePacks(result: IDepPackages, addedPackages: Partial<IDepPackages>): void {

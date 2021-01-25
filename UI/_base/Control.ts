@@ -12,7 +12,7 @@ import { ContextResolver } from 'UI/Contexts';
 import { _FocusAttrs, _IControl, activate } from 'UI/Focus';
 import { Logger, Purifier, needToBeCompatible } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
-import { constants } from 'Env/Env';
+import {constants, detection} from 'Env/Env';
 import { getGeneratorConfig } from "./GeneratorConfig";
 
 import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
@@ -204,7 +204,7 @@ export type TControlConstructor<TOptions extends IControlOptions = {}, TState ex
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
-export default class Control<TOptions extends IControlOptions = {}, TState extends TIState = void> implements _IControl {
+class Control<TOptions extends IControlOptions = {}, TState extends TIState = void> implements _IControl {
    protected _moduleName: string;
 
    private _mounted: boolean = false;
@@ -578,7 +578,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       document.body.focus();
       if (this._$active) {
          const env = this._getEnvironment();
-
          // если DOMEnvironment не перехватил переход фокуса, вызовем обработчик ухода фокуса вручную
          env._handleFocusEvent({ target: document.body, relatedTarget: activeElement });
       }
@@ -669,7 +668,9 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       // но с которого уходили у него изменилось
       if (res && !this._$active) {
          const env = this._getEnvironment();
-         env._handleFocusEvent({ target: document.activeElement, relatedTarget: activeElement });
+         if ((detection.isIE && !env._$active) || !detection.isIE) {
+            env._handleFocusEvent({ target: document.activeElement, relatedTarget: activeElement });
+         }
       }
 
       return res;
@@ -1427,6 +1428,12 @@ Object.assign(Control.prototype, {
 function logError(e: Error) {
    Logger.error(e.message);
 }
+
+export default Control;
+// TODO придумать как возвращать ReactControl под условием
+// import {Control as ReactControl} from 'UI/ReactComponent';
+// export default ReactControl;
+
 /**
  * @name UI/_base/Control#readOnly
  * @cfg {Boolean} Определяет, может ли пользователь изменить значение контрола.

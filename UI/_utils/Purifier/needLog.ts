@@ -11,7 +11,8 @@ import { constants } from 'Env/Env'
  * @returns { boolean }
  */
 export default function needLog(): boolean {
-    return constants.isProduction;
+    // Нужно отслеживать НЕ на бою.
+    return !constants.isProduction;
 }
 
 /**
