@@ -9,7 +9,6 @@ import { Logger } from 'UI/Utils';
 
 import { collectScrollPositions } from './_ResetScrolling';
 import * as ElementFinder from './ElementFinder';
-import {IDOMEnvironment, notifyActivationEvents} from 'UI/_focus/Events';
 
 import { IFocusElement, IMatchesElement, IControlElement, ICompoundControl } from './IFocus';
 import { IGeneratorControlNode } from 'UI/Executor';

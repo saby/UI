@@ -12,7 +12,7 @@ import { ContextResolver } from 'UI/Contexts';
 import { _FocusAttrs, _IControl, activate } from 'UI/Focus';
 import { Logger, Purifier, needToBeCompatible } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
-import {constants, detection} from 'Env/Env';
+import { constants } from 'Env/Env';
 import { getGeneratorConfig } from "./GeneratorConfig";
 
 import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
