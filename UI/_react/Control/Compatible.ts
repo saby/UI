@@ -21,6 +21,10 @@ import {
 } from './interfaces';
 
 let countInst = 1;
+/**
+ * Храним html тега head для того, чтобы отрисовать его после гидрации
+ */
+let _innerHeadHtml: string;
 
 // конфигурация созданного контрола, часть метода createControl
 function configureControl(parameters: {
@@ -494,7 +498,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          // FIXME: Пересоздаем head на клиенте, так как гидрация реакта его стирает
          return createElement('head', {
             // @ts-ignore
-            dangerouslySetInnerHTML: {__html: window.veryBadHack}
+            dangerouslySetInnerHTML: {__html: _innerHeadHtml}
          });
       }
 
@@ -552,20 +556,19 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // создание и монтирование контрола в элемент
    // добавляется потому что используемое апи контрола
    static createControl(ctor: TControlConstructor, cfg: IControlOptions, domElement: HTMLElement): void {
-      window.veryBadHack = domElement.getElementsByTagName('head')[0].innerHTML;
       const updateMarkup = isHydrating ?
          ReactDOM.hydrate :
          ReactDOM.render;
 
       // @ts-ignore
       // FIXME: Кладем в window содержимое head для отрисовки его на клиенте после гидрации
-      window.veryBadHack = domElement.getElementsByTagName('head')[0].innerHTML;
+      _innerHeadHtml = domElement.getElementsByTagName('head')[0].innerHTML;
 
       // @ts-ignore проблема что родитель может быть document как сейчас в демке.
       // проблема уйдет когда рисовать будем не от html
-      updateMarkup(React.createElement(ctor, cfg, null), domElement.parentNode, (): void => {
+      updateMarkup(React.createElement(ctor, cfg, null), domElement.parentNode, function (): void {
          configureControl({
-            control: new ctor(cfg),
+            control: this,
             domElement
          });
       });
