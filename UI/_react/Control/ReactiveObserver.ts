@@ -49,7 +49,6 @@ export function reactiveObserve(inst: Control, template: any): void {
             return inst.reactiveValues[prop];
          },
          set: function reactiveSetter(value: unknown): void {
-            // @ts-ignore
             if (inst.reactiveValues[prop] !== value && inst._reactiveStart) {
                inst.reactiveValues[prop] = value;
                if (Array.isArray(value)) {
@@ -99,7 +98,7 @@ function observeArray(inst: Control, prop: string): void {
    if (value && Array.isArray(value) && needToBeReactive(value)) {
       arrayMethods.forEach((methodName) => {
          const method = value[methodName];
-         const mutator = function(): unknown {
+         const mutator = function (): unknown {
             const res = method.apply(this, arguments);
             this._arrayVersion++;
             inst._forceUpdate();

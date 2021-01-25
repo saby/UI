@@ -245,4 +245,13 @@ class HTML extends Control<IHTMLCombinedOptions> {
     }
 }
 
+Object.defineProperty(HTML, 'defaultProps', {
+   enumerable: true,
+   configurable: true,
+
+   get(): object {
+      return HTML.getDefaultOptions();
+   }
+});
+
 export default HTML;

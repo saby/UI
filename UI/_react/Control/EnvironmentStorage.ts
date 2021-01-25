@@ -1,10 +1,12 @@
-const _environments = [];
+import {IDOMEnvironment} from './interfaces';
+
+const _environments: IDOMEnvironment[] = [];
 let DOMEnvironment;
 
-export function createEnvironment(element: HTMLElement): any {
+export function createEnvironment(element: HTMLElement): IDOMEnvironment {
    DOMEnvironment = DOMEnvironment || requirejs('UI/Vdom').DOMEnvironment;
 
-   let environment: any;
+   let environment: IDOMEnvironment;
    const foundEnvironment = _environments.find((env) => {
       //@ts-ignore
       return env instanceof DOMEnvironment && env.getDOMNode() === mountPoint;
