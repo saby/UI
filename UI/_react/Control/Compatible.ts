@@ -291,16 +291,21 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    private isCSSLoaded(themeName?: string): boolean {
       const themes = this._theme instanceof Array ? this._theme : [];
       const styles = this._styles instanceof Array ? this._styles : [];
-      return Control.isCSSLoaded(themeName, themes, styles);
+      // FIXME: Поддержка старых контролов с подгрузкой тем и стелей из статических полей
+      // tslint:disable-next-line:no-string-literal
+      return this.constructor['isCSSLoaded'](themeName, themes, styles);
    }
 
    private loadThemes(themeName?: string): Promise<void> {
       const themes = this._theme instanceof Array ? this._theme : [];
-      return Control.loadThemes(themeName, themes).catch(logError);
+      // FIXME: Поддержка старых контролов с подгрузкой тем и стелей из статических полей
+      // tslint:disable-next-line:no-string-literal
+      return this.constructor['loadThemes'](themeName, themes).catch(logError);
    }
 
    private loadStyles(): Promise<void> {
       const styles = this._styles instanceof Array ? this._styles : [];
+      // FIXME: Поддержка старых контролов с подгрузкой тем и стелей из статических полей
       // tslint:disable-next-line:no-string-literal
       return this.constructor['loadStyles'](styles).catch(logError);
    }
