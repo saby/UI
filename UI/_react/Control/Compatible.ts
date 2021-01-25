@@ -31,7 +31,7 @@ function configureControl(parameters: {
    control: Control,
    domElement: HTMLElement
 }): void {
-    parameters.control._saveEnvironment && parameters.control._saveEnvironment(createEnvironment(parameters.domElement));
+    parameters.control._saveEnvironment(createEnvironment(parameters.domElement));
 }
 
 // вычисляет является ли сейчас фаза оживления страницы
