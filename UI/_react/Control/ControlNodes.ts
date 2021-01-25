@@ -56,18 +56,12 @@ export function prepareControlNodes(node: any, control: IControl, Control: TCont
         if (node) {
             let environment;
             let curControl = control;
-            let lastContainer = control._container;
             while (curControl) {
                 if (curControl._getEnvironment()) {
                     environment = curControl._getEnvironment();
-                }
-                if (environment) {
                     break;
                 }
                 curControl = curControl._logicParent;
-            }
-            if (typeof (environment) === 'undefined') {
-                environment = createEnvironment(lastContainer);
             }
             curControl = control;
             while (curControl && (!curControl._container || !curControl._container.parentNode)) {
