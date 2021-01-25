@@ -156,35 +156,37 @@ function patchProgramNode(meta: IProgramMeta): void {
 
 class Container {
    public readonly typeName: string;
-   public meta: string;
+   public desc: string;
 
    public readonly globalContainers: Array<Container>;
-   public programIndex: number;
+   public programCounter: number;
 
-   public index: number;
+   public readonly index: number;
    public readonly type: ContainerType;
    public readonly parent: Container | null;
-   public condition: ProgramNode | null;
+   public readonly children: Array<Container>;
+
+   public test: ProgramNode | null;
    public readonly identifiers: Array<string>;
    public readonly storage: ProgramStorage;
-   public readonly children: Array<Container>;
 
    constructor(parent: Container | null, type: ContainerType) {
       this.typeName = ContainerType[type];
-      this.meta = '';
+      this.desc = '';
 
       this.globalContainers = parent === null ? new Array<Container>() : parent.globalContainers;
-      this.programIndex = 0;
+      this.programCounter = 0;
+
       this.type = type;
+      this.index = this.globalContainers.length;
       this.parent = parent;
-      this.condition = null;
-      this.identifiers = new Array<string>();
-      this.storage = new ProgramStorage();
       this.children = new Array<Container>();
 
-      this.index = this.globalContainers.length;
-      this.globalContainers.push(this);
+      this.test = null;
+      this.identifiers = new Array<string>();
+      this.storage = new ProgramStorage();
 
+      this.globalContainers.push(this);
       if (this.parent !== null) {
          this.parent.children.push(this);
       }
@@ -257,7 +259,7 @@ class Container {
 
    private allocateProgramIndex(): number {
       if (this.parent === null) {
-         return this.programIndex++;
+         return this.programCounter++;
       }
       return this.parent.allocateProgramIndex();
    }
@@ -371,7 +373,7 @@ class InternalVisitor implements Ast.IAstVisitor {
    visitContentOption(node: Ast.ContentOptionNode, context: IContext): void {
       const container = context.container.createContainer(ContainerType.CONTENT_OPTION);
       container.identifiers.push(node.__$ws_name);
-      container.meta = node.__$ws_name;
+      container.desc = node.__$ws_name;
       const childContext: IContext = {
          container
       };
@@ -404,28 +406,28 @@ class InternalVisitor implements Ast.IAstVisitor {
 
    visitComponent(node: Ast.ComponentNode, context: IContext): void {
       const childContainer = this.processComponent(node, context);
-      childContainer.meta = `<Component> @@ ${node.__$ws_path.getFullPath()}`;
+      childContainer.desc = `<${node.__$ws_path.getFullPath()}>`;
    }
 
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): void {
       const childContainer = this.processComponent(node, context);
-      childContainer.meta = `<ws:partial> @@ inline "${node.__$ws_name}"`;
+      childContainer.desc = `<ws:partial> @@ inline "${node.__$ws_name}"`;
    }
 
    visitStaticPartial(node: Ast.StaticPartialNode, context: IContext): void {
       const childContainer = this.processComponent(node, context);
-      childContainer.meta = `<ws:partial> directive @@ static "${node.__$ws_path.getFullPath()}"`;
+      childContainer.desc = `<ws:partial> @@ static "${node.__$ws_path.getFullPath()}"`;
    }
 
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): void {
       const childContainer = this.processComponent(node, context);
       childContainer.registerProgram(node.__$ws_expression, ProgramType.SIMPLE, 'template');
-      childContainer.meta = `<ws:partial> directive @@ dynamic "${node.__$ws_expression.string}"`;
+      childContainer.desc = `<ws:partial> @@ dynamic "${node.__$ws_expression.string}"`;
    }
 
    visitTemplate(node: Ast.TemplateNode, context: IContext): void {
       const container = context.container.createContainer(ContainerType.TEMPLATE);
-      container.meta = `<ws:template> directive @@ ${node.__$ws_name}`;
+      container.desc = `<ws:template> @@ "${node.__$ws_name}"`;
       const childContext: IContext = {
          container
       };
@@ -436,8 +438,8 @@ class InternalVisitor implements Ast.IAstVisitor {
 
    visitIf(node: Ast.IfNode, context: IContext): void {
       const container = context.container.createContainer(ContainerType.CONDITIONAL);
-      container.meta = `<ws:if> "${node.__$ws_test.string}"`;
-      container.condition = node.__$ws_test;
+      container.desc = `<ws:if> "${node.__$ws_test.string}"`;
+      container.test = node.__$ws_test;
       container.registerProgram(node.__$ws_test, ProgramType.SIMPLE, 'data');
       const childContext: IContext = {
          container
@@ -449,10 +451,10 @@ class InternalVisitor implements Ast.IAstVisitor {
 
    visitElse(node: Ast.ElseNode, context: IContext): void {
       const container = context.container.createContainer(ContainerType.CONDITIONAL);
-      container.meta = '<ws:else>';
+      container.desc = '<ws:else>';
       if (node.__$ws_test !== null) {
-         container.meta = `<ws:else> "${node.__$ws_test.string}"`;
-         container.condition = node.__$ws_test;
+         container.desc = `<ws:else> "${node.__$ws_test.string}"`;
+         container.test = node.__$ws_test;
          container.registerProgram(node.__$ws_test, ProgramType.SIMPLE, 'data');
       }
       const childContext: IContext = {
@@ -465,7 +467,7 @@ class InternalVisitor implements Ast.IAstVisitor {
 
    visitFor(node: Ast.ForNode, context: IContext): void {
       const container = context.container.createContainer(ContainerType.CYCLE);
-      container.meta = '<ws:for> aka for';
+      container.desc = '<ws:for> aka for';
       const childContext: IContext = {
          container
       };
@@ -483,7 +485,7 @@ class InternalVisitor implements Ast.IAstVisitor {
 
    visitForeach(node: Ast.ForeachNode, context: IContext): void {
       const container = context.container.createContainer(ContainerType.CYCLE);
-      container.meta = '<ws:for> aka foreach';
+      container.desc = '<ws:for> aka foreach';
       const childContext: IContext = {
          container
       };
