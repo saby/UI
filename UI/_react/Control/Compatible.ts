@@ -4,7 +4,7 @@ import {getGeneratorConfig} from './GeneratorConfig';
 import {makeRelation, removeRelation} from './ParentFinder';
 import { EMPTY_THEME, getThemeController } from 'UI/theme/controller';
 import {Logger, Purifier} from 'UI/Utils';
-import { _IControl, activate } from 'UI/Focus';
+import { _IControl, activate, subscribeRestoreFocus } from 'UI/Focus';
 import { constants, detection } from 'Env/Env';
 import * as ReactDOM from 'react-dom';
 import * as React from 'react';
@@ -425,6 +425,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
             this._afterMount.apply(this);
          }, 0);
       }
+      subscribeRestoreFocus(this, 'setState');
+      subscribeRestoreFocus(this, 'replaceState');
+      subscribeRestoreFocus(this, 'forceUpdate');
    }
 
    componentDidUpdate(prevProps: TOptions): void {
