@@ -1,17 +1,16 @@
-define('Controls-demo/Compatible/Events/WasabyChild', [
-    'Core/Control',
-    'wml!Controls-demo/Compatible/Events/WasabyChild'
- ], function(Control, template) {
+define('UIDemo/Compatible/Events/WasabyChild', [
+    'UI/Base',
+    'wml!UIDemo/Compatible/Events/WasabyChild'
+ ], function(UIBase, template) {
     'use strict';
- 
-    var ModuleClass = Control.extend(
+
+    var ModuleClass = UIBase.Control.extend(
        {
           _template: template,
           handler: function(e, key) {
-             this._notify('myEvent', [], { bubbling: true });     
+             this._notify('myEvent', [], { bubbling: true });
           }
        }
     );
     return ModuleClass;
  });
- 

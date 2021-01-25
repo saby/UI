@@ -13,7 +13,7 @@
     </div>
     <div class="compatibleDemo__row">
         <Controls.heading:Title caption="DemoControls/WS3Container:" readOnly="{{true}}" fontColorStyle="secondary" fontSize="l" attr:class="compatibleDemo__row__fill"/>
-        <Core.CompoundContainer component="Controls-demo/CompatibleDemo/WasabyEnv/DemoControls/WS3Container">
+        <Core.CompoundContainer component="UIDemo/CompatibleDemo/WasabyEnv/DemoControls/WS3Container">
             <ws:componentOptions text="{{ _text }}">
                 <ws:handlers onTextChange="{{ _setTextOld }}"/>
             </ws:componentOptions>

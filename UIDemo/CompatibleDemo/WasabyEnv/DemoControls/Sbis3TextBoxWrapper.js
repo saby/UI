@@ -1,6 +1,6 @@
-define('Controls-demo/CompatibleDemo/WasabyEnv/DemoControls/Sbis3TextBoxWrapper', [
+define('UIDemo/CompatibleDemo/WasabyEnv/DemoControls/Sbis3TextBoxWrapper', [
    'Lib/Control/CompoundControl/CompoundControl',
-   'wml!Controls-demo/CompatibleDemo/WasabyEnv/DemoControls/Sbis3TextBoxWrapper'
+   'wml!UIDemo/CompatibleDemo/WasabyEnv/DemoControls/Sbis3TextBoxWrapper'
 ], function(CompoundControl, template) {
 
    var CompatibleDemo = CompoundControl.extend({

@@ -1,4 +1,4 @@
 <div>
-    <SBIS3.CONTROLS.Label caption="DemoControls.TextBoxWrapperStyled" owner="myTextBox" class="compatibleDemo__row__fill"/>
-    <SBIS3.CONTROLS.TextBox  name="myTextBox" text="{{ _text }}"/>
+    <UIDemo.CompatibleDemo.Compat.WS3.Label caption="DemoControls.TextBoxWrapperStyled" owner="myTextBox" class="compatibleDemo__row__fill"/>
+    <UIDemo.CompatibleDemo.Compat.WS3.TextBox  name="myTextBox" text="{{ _text }}"/>
 </div>

@@ -1,14 +1,14 @@
-define('Controls-demo/Compound/CompoundDemo', [
-   'Core/Control',
-   'wml!Controls-demo/Compound/CompoundDemo',
+define('UIDemo/Compound/CompoundDemo', [
+   'UI/Base',
+   'wml!UIDemo/Compound/CompoundDemo',
    'Types/source',
    'Lib/Control/LayerCompatible/LayerCompatible',
    'Env/Env',
-   'css!Controls-demo/Compound/CompoundDemo'
-], function(Control, template, source, LayerCompatible, Env) {
+   'css!UIDemo/Compound/CompoundDemo'
+], function(UIBase, template, source, LayerCompatible, Env) {
    'use strict';
 
-   var CompoundDemo = Control.extend({
+   var CompoundDemo = UIBase.Control.extend({
       _template: template,
       _compatibleReady: false,
       _rebuildTypeItems: null,

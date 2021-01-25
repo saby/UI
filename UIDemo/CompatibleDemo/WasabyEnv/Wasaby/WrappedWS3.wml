@@ -13,6 +13,6 @@
     </div>
     <div class="compatibleDemo__row">
         <Controls.heading:Title caption="DemoControls/Sbis3ContainWasaby:" readOnly="{{true}}" fontColorStyle="secondary" fontSize="l" attr:class="compatibleDemo__row__fill"/>
-        <Core.CompoundContainer component="Controls-demo/CompatibleDemo/WasabyEnv/DemoControls/Sbis3ContainWasaby" _text="{{ _text }}" />
+        <Core.CompoundContainer component="UIDemo/CompatibleDemo/WasabyEnv/DemoControls/Sbis3ContainWasaby" _text="{{ _text }}" />
     </div>
 </div>

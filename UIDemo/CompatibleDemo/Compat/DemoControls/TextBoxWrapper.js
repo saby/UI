@@ -1,6 +1,6 @@
-define('Controls-demo/CompatibleDemo/Compat/DemoControls/TextBoxWrapper', [
+define('UIDemo/CompatibleDemo/Compat/DemoControls/TextBoxWrapper', [
    'Lib/Control/CompoundControl/CompoundControl',
-   'wml!Controls-demo/CompatibleDemo/Compat/DemoControls/TextBoxWrapper'
+   'wml!UIDemo/CompatibleDemo/Compat/DemoControls/TextBoxWrapper'
 ], function(CompoundControl, template) {
    'use strict';
    var CompatibleDemo = CompoundControl.extend({

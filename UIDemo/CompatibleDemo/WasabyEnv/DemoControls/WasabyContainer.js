@@ -1,14 +1,14 @@
-define('Controls-demo/CompatibleDemo/WasabyEnv/DemoControls/WasabyContainer',
+define('UIDemo/CompatibleDemo/WasabyEnv/DemoControls/WasabyContainer',
    [
-      'Core/Control',
-      'wml!Controls-demo/CompatibleDemo/WasabyEnv/DemoControls/WasabyContainer',
+      'UI/Base',
+      'wml!UIDemo/CompatibleDemo/WasabyEnv/DemoControls/WasabyContainer',
       'Lib/Control/LayerCompatible/LayerCompatible',
-      'css!Controls-demo/CompatibleDemo/CompatibleDemo'
+      'css!UIDemo/CompatibleDemo/CompatibleDemo'
    ],
-   function(Control, template, CompatibleLayer) {
+   function(UIBase, template, CompatibleLayer) {
       'use strict';
 
-      var WasabyContainer = Control.extend({
+      var WasabyContainer = UIBase.Control.extend({
          _template: template,
          _compatibleReady: false,
          _text: null,

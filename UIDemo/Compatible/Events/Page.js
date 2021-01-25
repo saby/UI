@@ -1,15 +1,14 @@
-define('Controls-demo/Compatible/Events/Page', [
-    'Core/Control',
-    'wml!Controls-demo/Compatible/Events/Page',
-    'Controls-demo/Compatible/Events/CompatibleParent'
- ], function(Control, template) {
+define('UIDemo/Compatible/Events/Page', [
+    'UI/Base',
+    'wml!UIDemo/Compatible/Events/Page',
+    'UIDemo/Compatible/Events/CompatibleParent'
+ ], function(UIBase, template) {
     'use strict';
- 
-    var ModuleClass = Control.extend(
+
+    var ModuleClass = UIBase.Control.extend(
        {
           _template: template
        }
     );
     return ModuleClass;
  });
- 

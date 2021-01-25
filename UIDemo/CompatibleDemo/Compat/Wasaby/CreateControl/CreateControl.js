@@ -1,7 +1,7 @@
-define('Controls-demo/CompatibleDemo/Compat/Wasaby/CreateControl/CreateControl', [
+define('UIDemo/CompatibleDemo/Compat/Wasaby/CreateControl/CreateControl', [
    'Lib/Control/CompoundControl/CompoundControl',
-   'wml!Controls-demo/CompatibleDemo/Compat/Wasaby/CreateControl/CreateControl',
-   'css!Controls-demo/CompatibleDemo/CompatibleDemo'
+   'wml!UIDemo/CompatibleDemo/Compat/Wasaby/CreateControl/CreateControl',
+   'css!UIDemo/CompatibleDemo/CompatibleDemo'
 ], function(CompoundControl, template) {
    'use strict';
 

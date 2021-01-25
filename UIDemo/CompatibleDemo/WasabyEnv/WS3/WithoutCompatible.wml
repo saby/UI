@@ -13,6 +13,6 @@
     </div>
     <div class="compatibleDemo__row">
         <Controls.heading:Title caption="Без совместимости!" readOnly="{{true}}" fontColorStyle="primary" fontSize="l" attr:class="compatibleDemo__row__fill"/>
-        <SBIS3.CONTROLS.TextBox text="{{ _text }}" />
+        <UIDemo.CompatibleDemo.Compat.WS3.TextBox text="{{ _text }}" />
     </div>
 </div>

@@ -1,6 +1,6 @@
-define('Controls-demo/CompatibleDemo/Compat/DemoControls/OldWrapperForWasabyEditable', [
+define('UIDemo/CompatibleDemo/Compat/DemoControls/OldWrapperForWasabyEditable', [
    'Lib/Control/CompoundControl/CompoundControl',
-   'wml!Controls-demo/CompatibleDemo/Compat/DemoControls/OldWrapperForWasabyEditable',
+   'wml!UIDemo/CompatibleDemo/Compat/DemoControls/OldWrapperForWasabyEditable',
    'UI/Base',
    'Vdom/Vdom',
    'Controls/_input/Text',

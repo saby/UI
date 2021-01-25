@@ -1,8 +1,8 @@
-define('Controls-demo/CompatibleDemo/Compat/Wasaby/WithoutCompatible/WithoutCompatible',
+define('UIDemo/CompatibleDemo/Compat/Wasaby/WithoutCompatible/WithoutCompatible',
    [
       'Lib/Control/CompoundControl/CompoundControl',
-      'wml!Controls-demo/CompatibleDemo/Compat/Wasaby/WithoutCompatible/WithoutCompatible',
-      'css!Controls-demo/CompatibleDemo/CompatibleDemo'
+      'wml!UIDemo/CompatibleDemo/Compat/Wasaby/WithoutCompatible/WithoutCompatible',
+      'css!UIDemo/CompatibleDemo/CompatibleDemo'
    ],
    function(CompoundControl, template) {
       'use strict';

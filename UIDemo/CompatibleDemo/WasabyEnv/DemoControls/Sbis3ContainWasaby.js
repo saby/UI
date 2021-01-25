@@ -1,6 +1,6 @@
-define('Controls-demo/CompatibleDemo/WasabyEnv/DemoControls/Sbis3ContainWasaby', [
+define('UIDemo/CompatibleDemo/WasabyEnv/DemoControls/Sbis3ContainWasaby', [
    'Lib/Control/CompoundControl/CompoundControl',
-   'wml!Controls-demo/CompatibleDemo/WasabyEnv/DemoControls/Sbis3ContainWasaby',
+   'wml!UIDemo/CompatibleDemo/WasabyEnv/DemoControls/Sbis3ContainWasaby',
    'UI/Base',
    'Vdom/Vdom',
    'Controls/_input/Text',

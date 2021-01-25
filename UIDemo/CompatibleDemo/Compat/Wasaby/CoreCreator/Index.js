@@ -1,10 +1,10 @@
-define('Controls-demo/CompatibleDemo/Compat/Wasaby/CoreCreator/Index', [
-   'Core/Control',
-   'wml!Controls-demo/CompatibleDemo/Compat/Wasaby/CoreCreator/Index'
-], function(BaseControl, template) {
+define('UIDemo/CompatibleDemo/Compat/Wasaby/CoreCreator/Index', [
+   'UI/Base',
+   'wml!UIDemo/CompatibleDemo/Compat/Wasaby/CoreCreator/Index'
+], function(UIBase, template) {
    'use strict';
 
-   var ModuleClass = BaseControl.extend(
+   var ModuleClass = UIBase.Control.extend(
       {
          _template: template,
          _beforeMount: function() {

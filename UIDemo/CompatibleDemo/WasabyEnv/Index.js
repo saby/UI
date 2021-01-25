@@ -1,13 +1,13 @@
-define('Controls-demo/CompatibleDemo/WasabyEnv/Index', [
-   'Core/Control',
-   'wml!Controls-demo/CompatibleDemo/WasabyEnv/Index',
+define('UIDemo/CompatibleDemo/WasabyEnv/Index', [
+   'UI/Base',
+   'wml!UIDemo/CompatibleDemo/WasabyEnv/Index',
    'Application/Initializer',
    'Application/Env',
    'Core/Deferred'
-], function(BaseControl, template, AppInit, AppEnv, Deferred) {
+], function(UIBase, template, AppInit, AppEnv, Deferred) {
    'use strict';
 
-   var ModuleClass = BaseControl.extend(
+   var ModuleClass = UIBase.Control.extend(
       {
          _template: template,
          _beforeMount: function() {
@@ -52,7 +52,7 @@ define('Controls-demo/CompatibleDemo/WasabyEnv/Index', [
             return null;
          },
          goHomeHandler: function() {
-            window.location = "/Controls-demo%2FCompatibleDemo%2FWasabyEnv%2FDemo";
+            window.location = "/UIDemo%2FCompatibleDemo%2FWasabyEnv%2FDemo";
          }
       }
    );

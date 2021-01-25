@@ -88,7 +88,7 @@
          <ws:if data="{{ _hasComponentOptionsOption }}">
             <Core.CompoundContainer
                attr:class="CompoundDemo-CompoundContainer"
-               component="{{ _rebuildType === 5 ? 'Lib/Control/CompoundControl/CompoundControl' : 'Controls-demo/Compound/CompoundControl' }}"
+               component="{{ _rebuildType === 5 ? 'Lib/Control/CompoundControl/CompoundControl' : 'UIDemo/Compound/CompoundControl' }}"
                handlers="{{ lifecycleHooks }}"
                redrawOnOptionsChange="{{ _redrawOnOptionsChangeOption }}"
                name="compoundContainer"
@@ -106,7 +106,7 @@
          <ws:else>
             <Core.CompoundContainer
                attr:class="CompoundDemo-CompoundContainer"
-               component="Controls-demo/Compound/CompoundControl"
+               component="UIDemo/Compound/CompoundControl"
                handlers="{{ lifecycleHooks }}"
                redrawOnOptionsChange="{{ _redrawOnOptionsChangeOption }}"
                name="compoundContainer"

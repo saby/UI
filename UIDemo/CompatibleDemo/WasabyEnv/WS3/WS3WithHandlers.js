@@ -1,14 +1,14 @@
-define('Controls-demo/CompatibleDemo/WasabyEnv/WS3/WS3WithHandlers',
+define('UIDemo/CompatibleDemo/WasabyEnv/WS3/WS3WithHandlers',
    [
-      'Core/Control',
-      'wml!Controls-demo/CompatibleDemo/WasabyEnv/WS3/WS3WithHandlers',
+      'UI/Base',
+      'wml!UIDemo/CompatibleDemo/WasabyEnv/WS3/WS3WithHandlers',
       'Lib/Control/LayerCompatible/LayerCompatible',
-      'css!Controls-demo/CompatibleDemo/CompatibleDemo'
+      'css!UIDemo/CompatibleDemo/CompatibleDemo'
    ],
-   function(Control, template, CompatibleLayer) {
+   function(UIBase, template, CompatibleLayer) {
       'use strict';
 
-      var WS3WithHandlers = Control.extend({
+      var WS3WithHandlers = UIBase.Control.extend({
          _template: template,
          _compatibleReady: false,
          _text: null,

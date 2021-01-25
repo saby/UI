@@ -1,14 +1,14 @@
-define('Controls-demo/CompatibleDemo/WasabyEnv/WS3/WithoutCompatible',
+define('UIDemo/CompatibleDemo/WasabyEnv/WS3/WithoutCompatible',
    [
-      'Core/Control',
-      'wml!Controls-demo/CompatibleDemo/WasabyEnv/WS3/WithoutCompatible',
+      'UI/Base',
+      'wml!UIDemo/CompatibleDemo/WasabyEnv/WS3/WithoutCompatible',
       'Lib/Control/LayerCompatible/LayerCompatible',
-      'css!Controls-demo/CompatibleDemo/CompatibleDemo'
+      'css!UIDemo/CompatibleDemo/CompatibleDemo'
    ],
-   function(Control, template, CompatibleLayer) {
+   function(UIBase, template, CompatibleLayer) {
       'use strict';
 
-      var WithoutCompatible = Control.extend({
+      var WithoutCompatible = UIBase.Control.extend({
          _template: template,
          _compatibleReady: false,
          _text: null,

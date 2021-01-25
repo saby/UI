@@ -3,6 +3,6 @@
    <div if="{{ someOption }}" class="ControlsDemo-CompoundControl__someOption">Value: {{ someOption }}</div>
    <div if="{{ newOption }}" class="ControlsDemo-CompoundControl__newOption">Got new option</div>
    <ws:if data="{{ buildChild }}">
-      <Controls-demo.Compound.CompoundChild name="innerNestedChild" />
+      <UIDemo.Compound.CompoundChild name="innerNestedChild" />
    </ws:if>
 </div>

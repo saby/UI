@@ -1,13 +1,13 @@
-define('Controls-demo/CompatibleDemo/Compat/Index', [
-   'Core/Control',
-   'wml!Controls-demo/CompatibleDemo/Compat/Index',
+define('UIDemo/CompatibleDemo/Compat/Index', [
+   'UI/Base',
+   'wml!UIDemo/CompatibleDemo/Compat/Index',
    'Application/Initializer',
    'Application/Env',
    'Core/Deferred'
-], function(BaseControl, template, AppInit, AppEnv, Deferred) {
+], function(UIBase, template, AppInit, AppEnv, Deferred) {
    'use strict';
 
-   var ModuleClass = BaseControl.extend(
+   var ModuleClass = UIBase.Control.extend(
       {
          _template: template,
          _beforeMount: function() {
@@ -57,7 +57,7 @@ define('Controls-demo/CompatibleDemo/Compat/Index', [
             return null;
          },
          goHomeHandler: function() {
-            window.location = "/Controls-demo%2FCompatibleDemo%2FCompat%2FDemo";
+            window.location = "/UIDemo%2FCompatibleDemo%2FCompat%2FDemo";
          }
       }
    );

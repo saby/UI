@@ -1,7 +1,7 @@
-define('Controls-demo/CompatibleDemo/Compat/WS3UnderWrapper/WS3UnderWrapper', [
+define('UIDemo/CompatibleDemo/Compat/WS3UnderWrapper/WS3UnderWrapper', [
    'Lib/Control/CompoundControl/CompoundControl',
-   'wml!Controls-demo/CompatibleDemo/Compat/WS3UnderWrapper/WS3UnderWrapper',
-   'css!Controls-demo/CompatibleDemo/CompatibleDemo'
+   'wml!UIDemo/CompatibleDemo/Compat/WS3UnderWrapper/WS3UnderWrapper',
+   'css!UIDemo/CompatibleDemo/CompatibleDemo'
 ], function(CompoundControl, template) {
    'use strict';
 

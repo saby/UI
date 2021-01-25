@@ -1,9 +1,9 @@
-define('Controls-demo/CompatibleDemo/WasabyEnv/DemoControls/WS3Container', [
+define('UIDemo/CompatibleDemo/WasabyEnv/DemoControls/WS3Container', [
    'Lib/Control/CompoundControl/CompoundControl',
-   'wml!Controls-demo/CompatibleDemo/WasabyEnv/DemoControls/WS3Container',
+   'wml!UIDemo/CompatibleDemo/WasabyEnv/DemoControls/WS3Container',
    'UI/Base',
    'Vdom/Vdom',
-   'Controls-demo/CompatibleDemo/WasabyEnv/DemoControls/WasabyContainer',
+   'UIDemo/CompatibleDemo/WasabyEnv/DemoControls/WasabyContainer',
    'Core/helpers/Hcontrol/makeInstanceCompatible'
 ], function(CompoundControl, template, Base, Vdom, WasabyContainer, makeInstanceCompatible) {
 

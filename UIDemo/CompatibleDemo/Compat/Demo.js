@@ -1,8 +1,8 @@
-define('Controls-demo/CompatibleDemo/Compat/Demo',
+define('UIDemo/CompatibleDemo/Compat/Demo',
    [
       'Lib/Control/CompoundControl/CompoundControl',
-      'wml!Controls-demo/CompatibleDemo/Compat/Demo',
-      'css!Controls-demo/CompatibleDemo/CompatibleDemo'
+      'wml!UIDemo/CompatibleDemo/Compat/Demo',
+      'css!UIDemo/CompatibleDemo/CompatibleDemo'
    ],
    function(CompoundControl, template) {
       'use strict';

@@ -1,13 +1,13 @@
-define('Controls-demo/CompatibleDemo/WasabyEnv/Demo',
+define('UIDemo/CompatibleDemo/WasabyEnv/Demo',
    [
-      'Core/Control',
-      'wml!Controls-demo/CompatibleDemo/WasabyEnv/Demo',
-      'css!Controls-demo/CompatibleDemo/CompatibleDemo'
+      'UI/Base',
+      'wml!UIDemo/CompatibleDemo/WasabyEnv/Demo',
+      'css!UIDemo/CompatibleDemo/CompatibleDemo'
    ],
-   function(Control, template) {
+   function(UIBase, template) {
       'use strict';
 
-      var CompatibleDemo = Control.extend({
+      var CompatibleDemo = UIBase.Control.extend({
          _template: template,
       });
       return CompatibleDemo;

@@ -1,10 +1,10 @@
-define('Controls-demo/Compatible/Events/WasabyContainer', [
-    'Core/Control',
-    'wml!Controls-demo/Compatible/Events/WasabyContainer'
- ], function(Control, template) {
+define('UIDemo/Compatible/Events/WasabyContainer', [
+    'UI/Base',
+    'wml!UIDemo/Compatible/Events/WasabyContainer'
+ ], function(UIBase, template) {
     'use strict';
- 
-    var ModuleClass = Control.extend(
+
+    var ModuleClass = UIBase.Control.extend(
        {
           _template: template,
           value: "false"
@@ -12,4 +12,3 @@ define('Controls-demo/Compatible/Events/WasabyContainer', [
     );
     return ModuleClass;
  });
- 

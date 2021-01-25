@@ -1,14 +1,14 @@
-define('Controls-demo/CompatibleDemo/WasabyEnv/Wasaby/WrappedWS3WithOptions',
+define('UIDemo/CompatibleDemo/WasabyEnv/Wasaby/WrappedWS3WithOptions',
    [
-      'Core/Control',
-      'wml!Controls-demo/CompatibleDemo/WasabyEnv/Wasaby/WrappedWS3WithOptions',
+      'UI/Base',
+      'wml!UIDemo/CompatibleDemo/WasabyEnv/Wasaby/WrappedWS3WithOptions',
       'Lib/Control/LayerCompatible/LayerCompatible',
-      'css!Controls-demo/CompatibleDemo/CompatibleDemo'
+      'css!UIDemo/CompatibleDemo/CompatibleDemo'
    ],
-   function(Control, template, CompatibleLayer) {
+   function(UIBase, template, CompatibleLayer) {
       'use strict';
 
-      var WrappedWS3WithOptions = Control.extend({
+      var WrappedWS3WithOptions = UIBase.Control.extend({
          _template: template,
          _compatibleReady: false,
          _text: null,

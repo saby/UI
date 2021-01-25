@@ -1,6 +1,6 @@
-define('Controls-demo/Compound/CompoundControl', [
+define('UIDemo/Compound/CompoundControl', [
    'Lib/Control/CompoundControl/CompoundControl',
-   'wml!Controls-demo/Compound/CompoundControl',
+   'wml!UIDemo/Compound/CompoundControl',
    'Core/CommandDispatcher'
 ], function(Control, dotTplFn, CommandDispatcher) {
    'use strict';
