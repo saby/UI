@@ -1,18 +1,15 @@
-import {Control, IControlOptions} from 'UI/Base';
+import {Control, IControlOptions, TemplateFunction} from 'UI/Base';
 
 // @ts-ignore
 import template = require('wml!UIDemo/ReactDemo/TODO/Item');
 
 export interface IItem extends IControlOptions {
-    title: string;
-    removeHandler: Function;
+   title: string;
+   removeHandler: Function;
 }
 
-class Item extends Control<IItem> {
-    static _styles: string[] = ['UIDemo/ReactDemo/TODO/Item'];
+export default class Item extends Control<IItem> {
+   protected _template: TemplateFunction = template;
+   static _styles: string[] = ['UIDemo/ReactDemo/TODO/Item'];
+   static displayName: string = 'MyTodoItem';
 }
-
-// @ts-ignore
-Item.prototype._template = template;
-
-export default Item;
