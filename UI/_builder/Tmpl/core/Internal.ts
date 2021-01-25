@@ -1,5 +1,6 @@
 import * as Ast from './Ast';
-import { IdentifierNode, ProgramNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
+import { IdentifierNode, MemberExpressionNode, ProgramNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
+import { IParser, Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 
 interface IContext {
    attributeName?: string;
@@ -34,6 +35,8 @@ enum ContainerType {
    CONDITIONAL,
    CYCLE
 }
+
+const PARSER = new Parser();
 
 const FILE_NAME = '[[internal]]';
 
@@ -77,6 +80,29 @@ function collectIdentifiers(program: ProgramNode, fileName: string): string[] {
       fileName
    });
    return identifiers;
+}
+
+function dropBindProgram(program: ProgramNode, parser: IParser, fileName: string): ProgramNode[] {
+   const programs: ProgramNode[] = [];
+   const callbacks = {
+      Identifier: (node: IdentifierNode): void => {
+         programs.push(
+            parser.parse(node.name)
+         );
+      },
+      MemberExpression: (node: MemberExpressionNode): void => {
+         programs.push(
+            parser.parse(node.string)
+         );
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName
+   });
+   // We need to return value-program and object-program.
+   // Ex. for "a.b.c.d.e" we only return "a.b.c.d" and "a.b.c.d.e".
+   return programs.slice(-2);
 }
 
 class ProgramStorage {
@@ -123,6 +149,11 @@ class ProgramStorage {
    }
 }
 
+function patchProgramNode(meta: IProgramMeta): void {
+   // @ts-ignore FIXME: Set unique index for program node
+   meta.node.__$ws_index = meta.index;
+}
+
 class Container {
    public readonly typeName: string;
    public meta: string;
@@ -164,6 +195,27 @@ class Container {
    }
 
    registerProgram(program: ProgramNode, type: ProgramType, name: string | null): void {
+      switch (type) {
+         case ProgramType.SIMPLE:
+         case ProgramType.ATTRIBUTE:
+         case ProgramType.OPTION:
+            return this.applyProgram(program, type, name, false);
+         case ProgramType.BIND:
+            return this.registerBindProgram(program, type, name);
+         case ProgramType.EVENT:
+            return this.registerEventProgram(program);
+         case ProgramType.FLOAT:
+            return this.registerFloatProgram(program, type, name);
+         default:
+            throw new Error('Получен неизвестный тип Mustache-выражения');
+      }
+   }
+
+   getOwnIdentifiers(): string[] {
+      return Array(...this.identifiers);
+   }
+
+   private applyProgram(program: ProgramNode, type: ProgramType, name: string | null, isSynthetic: boolean): void {
       if (!canRegisterProgram(program)) {
          return;
       }
@@ -175,13 +227,32 @@ class Container {
          type,
          program,
          this.allocateProgramIndex(),
-         false
+         isSynthetic
       );
       this.commitProgram(meta);
    }
 
-   getOwnIdentifiers(): string[] {
-      return Array(...this.identifiers);
+   private registerBindProgram(program: ProgramNode, type: ProgramType, name: string | null): void {
+      const programs = dropBindProgram(program, PARSER, FILE_NAME);
+      for (let index = 0; index < programs.length; ++index) {
+         const isSynthetic = index + 1 < programs.length;
+         const program = programs[index];
+         this.applyProgram(program, type, name, isSynthetic);
+      }
+   }
+
+   private registerEventProgram(program: ProgramNode): void {
+      this.processIdentifiers(program);
+   }
+
+   private registerFloatProgram(program: ProgramNode, type: ProgramType, name: string | null): void {
+      const identifiers = collectIdentifiers(program, FILE_NAME);
+      // TODO: hoistIdentifiersAsPrograms
+      for (let index = 0; index < identifiers.length; ++index) {
+         const identifier = identifiers[index];
+         this.hoistIdentifier(identifier);
+         this.commitIdentifier(identifier);
+      }
    }
 
    private allocateProgramIndex(): number {
@@ -208,12 +279,16 @@ class Container {
       if (this.identifiers.indexOf(identifier) > -1 || isForbiddenIdentifier(identifier)) {
          return;
       }
-      if (this.parent !== null && this.type !== ContainerType.TEMPLATE) {
+      if (this.isIdentifierHoistingAllowed()) {
          this.parent.hoistIdentifier(identifier);
          return;
       }
       this.commitIdentifier(identifier);
       this.hoistReactiveIdentifier(identifier);
+   }
+
+   private isIdentifierHoistingAllowed(): boolean {
+      return this.parent !== null && this.type !== ContainerType.TEMPLATE;
    }
 
    private commitIdentifier(identifier: string): void {
@@ -233,6 +308,7 @@ class Container {
 
    private commitProgram(meta: IProgramMeta): void {
       this.storage.set(meta);
+      patchProgramNode(meta);
    }
 }
 
@@ -269,7 +345,7 @@ class InternalVisitor implements Ast.IAstVisitor {
          container
       };
       visitAll(nodes, this, context);
-      // @ts-ignore
+      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
       nodes.$$container = container;
       return container;
    }
@@ -299,7 +375,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       const childContext: IContext = {
          container
       };
-      // @ts-ignore
+      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
       node.$$container = container;
       visitAll(node.__$ws_content, this, childContext);
    }
@@ -354,7 +430,7 @@ class InternalVisitor implements Ast.IAstVisitor {
          container
       };
       visitAll(node.__$ws_content, this, childContext);
-      // @ts-ignore
+      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
       node.$$container = container;
    }
 
@@ -367,7 +443,7 @@ class InternalVisitor implements Ast.IAstVisitor {
          container
       };
       visitAll(node.__$ws_consequent, this, childContext);
-      // @ts-ignore
+      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
       node.$$container = container;
    }
 
@@ -383,7 +459,7 @@ class InternalVisitor implements Ast.IAstVisitor {
          container
       };
       visitAll(node.__$ws_consequent, this, childContext);
-      // @ts-ignore
+      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
       node.$$container = container;
    }
 
@@ -401,7 +477,7 @@ class InternalVisitor implements Ast.IAstVisitor {
          container.registerProgram(node.__$ws_update, ProgramType.FLOAT, 'data');
       }
       visitAll(node.__$ws_content, this, childContext);
-      // @ts-ignore
+      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
       node.$$container = container;
    }
 
@@ -417,7 +493,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       container.identifiers.push(node.__$ws_iterator.string);
       container.registerProgram(node.__$ws_collection, ProgramType.SIMPLE, 'data');
       visitAll(node.__$ws_content, this, childContext);
-      // @ts-ignore
+      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
       node.$$container = container;
    }
 
@@ -479,7 +555,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       visitAllProperties(node.__$ws_contents, this, childContext);
       visitAllProperties(node.__$ws_attributes, this, childContext);
       visitAllProperties(node.__$ws_events, this, childContext);
-      // @ts-ignore
+      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
       node.$$container = container;
       return container;
    }
