@@ -115,7 +115,7 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
                                        relatedTarget: Element,
                                        env?: IDOMEnvironment,
                                        isTabPressed?: ITabPressed): boolean | void  => {
-   if (detectStrangeElement(target)) {
+   if (detectStrangeElement(target) || notifyActivationEvents._savedFocusedElement === relatedTarget) {
       return;
    }
 
@@ -181,9 +181,6 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
                   }
                ]);
                control._$active = false;
-               if (detection.isIE && control._environment) {
-                  control._environment._$active = true;
-               }
             }
             found = false;
          }
@@ -214,9 +211,6 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
                }
             ]);
             control._$active = true;
-            if (detection.isIE && control._environment) {
-               control._environment._$active = true;
-            }
          }
          found = false;
 
