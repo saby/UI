@@ -2,7 +2,7 @@ import {Component, createElement} from 'react';
 import {reactiveObserve, releaseProperties} from './ReactiveObserver';
 import {getGeneratorConfig} from './GeneratorConfig';
 import {makeRelation, removeRelation} from './ParentFinder';
-import { EMPTY_THEME, getThemeController } from 'UI/theme/controller';
+import {EMPTY_THEME, getThemeController} from 'UI/theme/controller';
 import {Logger, Purifier} from 'UI/Utils';
 import { _IControl, activate, subscribeRestoreFocus } from 'UI/Focus';
 import { constants, detection } from 'Env/Env';
@@ -20,15 +20,27 @@ import {
    IDOMEnvironment, ITemplateAttrs, TControlConstructor, IControl
 } from './interfaces';
 
+interface IControlFunction extends Function {
+   /**
+    * Имя react компонента выводимое в DevTools
+    */
+   displayName: string;
+}
+
 let countInst = 1;
+/**
+ * Храним html тега head для того, чтобы отрисовать его после гидрации
+ */
+let _innerHeadHtml: string;
 
 // конфигурация созданного контрола, часть метода createControl
 function configureControl(parameters: {
    control: Control,
-      domElement: HTMLElement
+   domElement: HTMLElement
 }): void {
    parameters.control._saveEnvironment(createEnvironment(parameters.domElement));
 }
+
 // вычисляет является ли сейчас фаза оживления страницы
 function isHydrating(): boolean {
    return document?.documentElement.classList.contains('pre-load');
@@ -92,6 +104,13 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       this.state = {
          loading: true
       };
+      const constructor = this.constructor as IControlFunction;
+      /**
+       * Записываем в статическое поле компонента имя для удобной работы через React DevTools
+       */
+      if (!constructor.displayName) {
+         constructor.displayName = this._moduleName;
+      }
       this._logicParent = props._logicParent;
    }
 
@@ -100,12 +119,12 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    getInstanceId(): string {
       return this._instId;
    }
+
    // запуск события - сейчас заглушка. удалить нельзя, это самое простое решение
    _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): void {
       // nothing for a while...
    }
-   
-   
+
    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
       const container = this._container;
       const activeElement = document.activeElement;
@@ -129,16 +148,19 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
       return res;
    }
+
    // запускает перерисовку
    // добавлено потому что используемое апи контрола
    _forceUpdate(): void {
       this.forceUpdate();
    }
+
    // сохраняет окружение контрола
    // добавлено потому что используется в configureControl для инициализации environment
    _saveEnvironment(env: IDOMEnvironment): void {
       this._environment = env;
    }
+
    // возвращает окружение контрола
    // добавлено потому что используется в системе фокусов
    _getEnvironment(): IDOMEnvironment {
@@ -161,6 +183,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       Promise<TState | void> | void {
       // Do
    }
+
    // beforeMount зовется на сервере для поддержки серверной верстки (с учетом промисов)
    __beforeMountSSR(options?: TOptions,
                     contexts?: object,
@@ -182,6 +205,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
       return resultBeforeMount;
    }
+
    __beforeMount(options?: TOptions,
                  contexts?: object,
                  receivedState?: TState): void {
@@ -192,28 +216,37 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          promisesToWait.push(cssLoading.then(nop));
       }
       if (constants.isServerSide) {
-         promisesToWait.push(this.__beforeMountSSR(options, contexts, receivedState));
-         Promise.all(promisesToWait).then(nop);
-         return;
+         return this.__beforeMountSSR(options, contexts, receivedState) as void;
       }
 
-      promisesToWait.push(this._beforeMount(this.props));
+      const res = this._beforeMount(this.props);
 
-      this._asyncMount = true;
-      Promise.all(promisesToWait).then(() => {
+      if (res && res.then) {
+         promisesToWait.push(res);
+         promisesToWait.push(cssLoading);
+      }
+
+      if (promisesToWait.length) {
+         this._asyncMount = true;
+         Promise.all(promisesToWait).then(() => {
             this._firstRender = false;
             this._reactiveStart = true;
             this.setState({
                loading: false
             }, () => this._afterMount(this.props));
          });
+      } else {
+         this._firstRender = false;
+         this._reactiveStart = true;
+      }
+
       this._$observer(this, this._template);
    }
 
    // построение верстки контрола
    // добавлено потому что используется в render для построения верстки на сервере
    _getMarkup(rootKey?: string,
-              attributes?: ITemplateAttrs): string|object {
+              attributes?: ITemplateAttrs): string | object {
       // @ts-ignore флага stable нет на шаблоне и я не знаю как объявить
       if (!(this._template).stable) {
          Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
@@ -230,9 +263,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
    // На данном этапе рисуем индикатор вместо компонента в момент загрузки асинхронного beforeMount
    private _getLoadingComponent(): React.ReactElement {
-       return createElement('img', {
-           src: '/cdn/LoaderIndicator/1.0.0/ajax-loader-indicator.gif'
-       });
+      return createElement('img', {
+         src: '/cdn/LoaderIndicator/1.0.0/ajax-loader-indicator.gif'
+      });
    }
 
    /**
@@ -294,18 +327,27 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       }
       return isDeprecatedCSS;
    }
+
    private isCSSLoaded(themeName?: string): boolean {
       const themes = this._theme instanceof Array ? this._theme : [];
       const styles = this._styles instanceof Array ? this._styles : [];
-      return Control.isCSSLoaded(themeName, themes, styles);
+      // FIXME: Поддержка старых контролов с подгрузкой тем и стелей из статических полей
+      // tslint:disable-next-line:no-string-literal
+      return this.constructor['isCSSLoaded'](themeName, themes, styles);
    }
+
    private loadThemes(themeName?: string): Promise<void> {
       const themes = this._theme instanceof Array ? this._theme : [];
-      return Control.loadThemes(themeName, themes).catch(logError);
+      // FIXME: Поддержка старых контролов с подгрузкой тем и стелей из статических полей
+      // tslint:disable-next-line:no-string-literal
+      return this.constructor['loadThemes'](themeName, themes).catch(logError);
    }
+
    private loadStyles(): Promise<void> {
       const styles = this._styles instanceof Array ? this._styles : [];
-      return Control.loadStyles(styles).catch(logError);
+      // FIXME: Поддержка старых контролов с подгрузкой тем и стелей из статических полей
+      // tslint:disable-next-line:no-string-literal
+      return this.constructor['loadStyles'](styles).catch(logError);
    }
 
    /* End: CSS region */
@@ -333,6 +375,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          this.loadThemes(themeName, themes)
       ]).then(nop);
    }
+
    /**
     * Загрузка тем контрола
     * @param instThemes опционально дополнительные темы экземпляра
@@ -354,6 +397,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       }
       return Promise.all(themes.map((name) => themeController.get(name, themeName))).then(nop);
    }
+
    /**
     * Загрузка стилей контрола
     * @param instStyles (опционально) дополнительные стили экземпляра
@@ -374,6 +418,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       }
       return Promise.all(styles.map((name) => themeController.get(name, EMPTY_THEME))).then(nop);
    }
+
    /**
     * Удаление link элементов из DOM
     * @param themeName имя темы (по-умолчанию тема приложения)
@@ -393,6 +438,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       const removingThemed = Promise.all(themes.map((name) => themeController.remove(name, themeName)));
       return Promise.all([removingStyles, removingThemed]).then(nop);
    }
+
    /**
     * Проверка загрузки стилей и тем контрола
     * @param {String} themeName имя темы (по-умолчанию тема приложения)
@@ -463,7 +509,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       }
    }
 
-   render(empty?: unknown, attributes?: ITemplateAttrs): string|object {
+   render(empty?: unknown, attributes?: ITemplateAttrs): string | object {
       if (constants.isServerSide) {
          let markup: string | object = '';
          ReactiveObserver.forbidReactive(this, () => {
@@ -473,8 +519,11 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       }
 
       if (this._firstRender) {
-         this.__beforeMount();
+         this.__beforeMount(this.props);
       }
+
+      // @ts-ignore
+      window.reactGenerator = true;
 
       if (this._asyncMount && this.state.loading) {
          if (this._moduleName === 'UI/Base:HTML') {
@@ -484,12 +533,23 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          }
       }
 
+      if (this._moduleName === 'UI/_base/HTML/Head') {
+         // FIXME: Пересоздаем head на клиенте, так как гидрация реакта его стирает
+         const newHead = createElement('head', {
+            // @ts-ignore
+            dangerouslySetInnerHTML: {__html: _innerHeadHtml}
+         });
+         _innerHeadHtml = null;
+         return newHead;
+      }
+
       const generatorConfig = getGeneratorConfig();
       TClosure.setReact(true);
+
       let res;
       try {
          const ctx = {...this, _options: {...this.props}};
-         res = this._template(ctx, {}, undefined, undefined, undefined, undefined, generatorConfig);
+         res = this._template(ctx, {}, undefined, true, undefined, undefined, generatorConfig);
          // прокидываю тут аргумент isCompatible, но можно вынести в builder
          const originRef = res[0].ref;
          // tslint:disable-next-line:no-this-assignment
@@ -505,6 +565,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       }
 
       return res;
+
    }
 
    /**
@@ -539,6 +600,10 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       const updateMarkup = isHydrating ?
          ReactDOM.hydrate :
          ReactDOM.render;
+
+      // @ts-ignore
+      // FIXME: Кладем в window содержимое head для отрисовки его на клиенте после гидрации
+      _innerHeadHtml = domElement.getElementsByTagName('head')[0].innerHTML;
 
       // @ts-ignore проблема что родитель может быть document как сейчас в демке.
       // проблема уйдет когда рисовать будем не от html

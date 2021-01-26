@@ -4,7 +4,7 @@
  * @includes Focus UI/_focus/Focus
  * @includes Activate UI/_focus/Activate
  * @public
- * @author Тэн В.А.
+ * @author Кондаков Р.Н.
  */
 
 import * as ElementFinder from './_focus/ElementFinder';
