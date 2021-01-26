@@ -9,7 +9,8 @@ define('UI/_builder/Tmpl/core/bridge', [
    'UI/_builder/Tmpl/i18n/Translator',
    'UI/_builder/Tmpl/expressions/_private/DirtyCheckingPatch',
    'UI/Utils',
-   'UI/_builder/Tmpl/core/Annotate'
+   'UI/_builder/Tmpl/core/Annotate',
+   'UI/_builder/Tmpl/core/Internal'
 ], function(
    traversing,
    TraverseLib,
@@ -21,7 +22,8 @@ define('UI/_builder/Tmpl/core/bridge', [
    Translator,
    dirtyCheckingPatch,
    Utils,
-   Annotate
+   Annotate,
+   Internal
 ) {
    'use strict';
 
@@ -101,6 +103,8 @@ define('UI/_builder/Tmpl/core/bridge', [
       traversed.reactiveProps = annotated.reactiveProps;
       traversed.templateNames = annotated.templateNames;
       traversed.__newVersion = annotated.__newVersion;
+
+      Internal.process(annotated, traverseOptions.scope);
 
       // в случае сбора словаря локализуемых слов отдаем объект
       // { astResult - ast-дерево, words - словарь локализуемых слов }
