@@ -170,9 +170,9 @@ class Container {
    public readonly children: Array<Container>;
 
    public test: ProgramNode | null;
+   public isElse: boolean;
    public readonly identifiers: Array<string>;
    public readonly storage: ProgramStorage;
-   public join: Container | null;
 
    constructor(parent: Container | null, type: ContainerType) {
       this.typeName = ContainerType[type];
@@ -187,6 +187,7 @@ class Container {
       this.children = new Array<Container>();
 
       this.test = null;
+      this.isElse = false;
       this.identifiers = new Array<string>();
       this.storage = new ProgramStorage();
 
@@ -194,7 +195,6 @@ class Container {
       if (this.parent !== null) {
          this.parent.children.push(this);
       }
-      this.join = null;
    }
 
    createContainer(type: ContainerType): Container {
@@ -223,12 +223,13 @@ class Container {
    }
 
    joinContainer(container: Container, identifiers: string[]): void {
-      this.join = new Container(this, ContainerType.JOIN);
-      this.join.desc = `JOIN @${container.index}`;
+      const join = new Container(this, ContainerType.JOIN);
+      join.desc = `JOIN @${container.index}`;
       for (let index = 0; index < identifiers.length; ++index) {
-         this.join.identifiers.push(identifiers[index]);
+         join.identifiers.push(identifiers[index]);
       }
-      this.join.children.push(container);
+      join.children.push(container);
+      this.children.push(join);
    }
 
    private applyProgram(program: ProgramNode, type: ProgramType, name: string | null, isSynthetic: boolean): void {
@@ -351,12 +352,12 @@ class Container {
 
 function createProgramMeta(name: string | null, type: ProgramType, node: ProgramNode, index: number, isSynthetic: boolean): IProgramMeta {
    return {
-      name,
       typeName: ProgramType[type],
-      type,
-      node,
       index,
-      isSynthetic
+      name,
+      node,
+      isSynthetic,
+      type
    };
 }
 
@@ -523,6 +524,7 @@ class InternalVisitor implements Ast.IAstVisitor {
    visitElse(node: Ast.ElseNode, context: IContext): void {
       const container = context.container.createContainer(ContainerType.CONDITIONAL);
       container.desc = '<ws:else>';
+      container.isElse = true;
       if (node.__$ws_test !== null) {
          container.desc = `<ws:else> "${node.__$ws_test.string}"`;
          container.test = node.__$ws_test;
