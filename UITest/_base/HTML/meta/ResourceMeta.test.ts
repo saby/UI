@@ -1,5 +1,5 @@
 import { assert } from 'chai';
-import { ResourceMeta } from 'UI/_base/HTML/meta';
+import { getMetaStack, ResourceMeta } from 'UI/_base/HTML/meta';
 
 describe('Env/Disposable', () => {
     describe('ResourceMeta', () => {
@@ -7,16 +7,19 @@ describe('Env/Disposable', () => {
             const TITLE_CONTENT = 'ResourceMetaTitle1';
             const resource = new ResourceMeta({title: TITLE_CONTENT});
             resource.enter();
-            assert.isTrue(document.title === TITLE_CONTENT, 'title не был изменен');
+            assert.isTrue(getMetaStack().lastState._meta.title === TITLE_CONTENT,
+                'В stack не был добавлен актуальный state');
+            assert.isTrue(document.title === TITLE_CONTENT,
+                'title не был изменен');
         });
         it('проверка метода dispose', () => {
-            const PREV_CONTENT = document.title;
             const TITLE_CONTENT = 'ResourceMetaTitle2';
             const resource = new ResourceMeta({title: TITLE_CONTENT});
             resource.enter();
-            assert.isTrue(document.title === TITLE_CONTENT, 'title не был изменен');
             resource.dispose();
-            assert.isTrue(document.title === PREV_CONTENT, 'title не был удалён');
+            assert.isFalse(getMetaStack().lastState._meta.title === TITLE_CONTENT,
+                'В stack не был удален текущий state');
+            assert.isFalse(document.title === TITLE_CONTENT, 'title не был удалён');
         });
     });
 });
