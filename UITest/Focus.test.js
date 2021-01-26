@@ -65,7 +65,7 @@ define([
 
       beforeEach(function(done) {
          // Run these tests in browser only
-         if (!fromNode) {
+         if (fromNode) {
             this.skip();
             return;
          }
