@@ -1,4 +1,5 @@
 import * as Ast from './Ast';
+import Scope from 'UI/_builder/Tmpl/core/Scope';
 import { IdentifierNode, MemberExpressionNode, ProgramNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { IParser, Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 
@@ -7,6 +8,7 @@ interface IContext {
    isProcessingAttribute?: boolean;
    isProcessingOption?: boolean;
    container: Container;
+   scope: Scope;
 }
 
 enum ProgramType {
@@ -33,7 +35,8 @@ enum ContainerType {
    CONTENT_OPTION,
    TEMPLATE,
    CONDITIONAL,
-   CYCLE
+   CYCLE,
+   JOIN
 }
 
 const PARSER = new Parser();
@@ -169,6 +172,7 @@ class Container {
    public test: ProgramNode | null;
    public readonly identifiers: Array<string>;
    public readonly storage: ProgramStorage;
+   public join: Container | null;
 
    constructor(parent: Container | null, type: ContainerType) {
       this.typeName = ContainerType[type];
@@ -190,6 +194,7 @@ class Container {
       if (this.parent !== null) {
          this.parent.children.push(this);
       }
+      this.join = null;
    }
 
    createContainer(type: ContainerType): Container {
@@ -215,6 +220,15 @@ class Container {
 
    getOwnIdentifiers(): string[] {
       return Array(...this.identifiers);
+   }
+
+   joinContainer(container: Container, identifiers: string[]): void {
+      this.join = new Container(this, ContainerType.JOIN);
+      this.join.desc = `JOIN @${container.index}`;
+      for (let index = 0; index < identifiers.length; ++index) {
+         this.join.identifiers.push(identifiers[index]);
+      }
+      this.join.children.push(container);
    }
 
    private applyProgram(program: ProgramNode, type: ProgramType, name: string | null, isSynthetic: boolean): void {
@@ -249,7 +263,7 @@ class Container {
 
    private registerFloatProgram(program: ProgramNode, type: ProgramType, name: string | null): void {
       const identifiers = collectIdentifiers(program, FILE_NAME);
-      // TODO: hoistIdentifiersAsPrograms
+      this.commitIdentifiersAsPrograms(identifiers, this.identifiers);
       for (let index = 0; index < identifiers.length; ++index) {
          const identifier = identifiers[index];
          this.hoistIdentifier(identifier);
@@ -312,6 +326,27 @@ class Container {
       this.storage.set(meta);
       patchProgramNode(meta);
    }
+
+   private commitIdentifiersAsPrograms(identifiers: string[], localIdentifiers: string[]): void {
+      for (let index = 0; index < identifiers.length; ++index) {
+         const identifier = identifiers[index];
+         if (this.identifiers.indexOf(identifier) > -1) {
+            continue;
+         }
+         if (localIdentifiers.indexOf(identifier) > -1) {
+            continue;
+         }
+         const program = PARSER.parse(identifier);
+         const meta = createProgramMeta(
+            null,
+            ProgramType.SIMPLE,
+            program,
+            this.allocateProgramIndex(),
+            true
+         );
+         this.commitProgram(meta);
+      }
+   }
 }
 
 function createProgramMeta(name: string | null, type: ProgramType, node: ProgramNode, index: number, isSynthetic: boolean): IProgramMeta {
@@ -339,12 +374,41 @@ function visitAllProperties(properties: IProperties, visitor: Ast.IAstVisitor, c
    }
 }
 
+function collectInlineTemplateIdentifiers(node: Ast.InlineTemplateNode): string[] {
+   const identifiers = [];
+   for (const name in node.__$ws_events) {
+      const event = node.__$ws_events[name];
+      if (event instanceof Ast.BindNode) {
+         // bind:option="option" is simple alias and deep usages exist in current scope
+         if (event.__$ws_property !== event.__$ws_value.string) {
+            identifiers.push(event.__$ws_property);
+         }
+      }
+   }
+   for (const name in node.__$ws_options) {
+      const option = node.__$ws_options[name];
+      if (option.hasFlag(Ast.Flags.TYPE_CASTED | Ast.Flags.UNPACKED) && option.__$ws_value instanceof Ast.ValueNode) {
+         const value = option.__$ws_value;
+         const valuePart = value.__$ws_data[0];
+         if (value.__$ws_data.length === 1 && valuePart instanceof Ast.ExpressionNode) {
+            if (option.__$ws_name === valuePart.__$ws_program.string) {
+               // Skip only case option="{{ option }}"
+               continue;
+            }
+         }
+      }
+      identifiers.push(option.__$ws_name);
+   }
+   return identifiers;
+}
+
 class InternalVisitor implements Ast.IAstVisitor {
 
-   process(nodes: Ast.Ast[]): Container {
+   process(nodes: Ast.Ast[], scope: Scope): Container {
       const container = new Container(null, ContainerType.GLOBAL);
       const context: IContext = {
-         container
+         container,
+         scope
       };
       visitAll(nodes, this, context);
       // @ts-ignore FIXME: Save container onto node of abstract syntax tree
@@ -375,6 +439,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       container.identifiers.push(node.__$ws_name);
       container.desc = node.__$ws_name;
       const childContext: IContext = {
+         ...context,
          container
       };
       // @ts-ignore FIXME: Save container onto node of abstract syntax tree
@@ -411,6 +476,10 @@ class InternalVisitor implements Ast.IAstVisitor {
 
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): void {
       const childContainer = this.processComponent(node, context);
+      const template = context.scope.getTemplate(node.__$ws_name);
+      const identifiers = collectInlineTemplateIdentifiers(node);
+      // @ts-ignore FIXME: Get container from node of abstract syntax tree
+      childContainer.joinContainer(template.$$container, identifiers);
       childContainer.desc = `<ws:partial> @@ inline "${node.__$ws_name}"`;
    }
 
@@ -429,6 +498,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       const container = context.container.createContainer(ContainerType.TEMPLATE);
       container.desc = `<ws:template> @@ "${node.__$ws_name}"`;
       const childContext: IContext = {
+         ...context,
          container
       };
       visitAll(node.__$ws_content, this, childContext);
@@ -442,6 +512,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       container.test = node.__$ws_test;
       container.registerProgram(node.__$ws_test, ProgramType.SIMPLE, 'data');
       const childContext: IContext = {
+         ...context,
          container
       };
       visitAll(node.__$ws_consequent, this, childContext);
@@ -458,6 +529,7 @@ class InternalVisitor implements Ast.IAstVisitor {
          container.registerProgram(node.__$ws_test, ProgramType.SIMPLE, 'data');
       }
       const childContext: IContext = {
+         ...context,
          container
       };
       visitAll(node.__$ws_consequent, this, childContext);
@@ -469,6 +541,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       const container = context.container.createContainer(ContainerType.CYCLE);
       container.desc = '<ws:for> aka for';
       const childContext: IContext = {
+         ...context,
          container
       };
       if (node.__$ws_init) {
@@ -487,6 +560,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       const container = context.container.createContainer(ContainerType.CYCLE);
       container.desc = '<ws:for> aka foreach';
       const childContext: IContext = {
+         ...context,
          container
       };
       if (node.__$ws_index) {
@@ -551,6 +625,7 @@ class InternalVisitor implements Ast.IAstVisitor {
    private processComponent(node: Ast.BaseWasabyElement, context: IContext): Container {
       const container = context.container.createContainer(ContainerType.COMPONENT);
       const childContext: IContext = {
+         ...context,
          container
       };
       visitAllProperties(node.__$ws_options, this, childContext);
@@ -563,6 +638,6 @@ class InternalVisitor implements Ast.IAstVisitor {
    }
 }
 
-export function process(nodes: Ast.Ast[]): void {
-   new InternalVisitor().process(nodes);
+export function process(nodes: Ast.Ast[], scope: Scope): void {
+   new InternalVisitor().process(nodes, scope);
 }
