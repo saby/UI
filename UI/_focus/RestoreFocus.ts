@@ -35,10 +35,10 @@ function isTreeVisible(element: HTMLElement): boolean {
    return true;
 }
 
-export function subscribeRestoreFocus(control: IControl, methodName: string) {
+export function subscribeRestoreFocus(control: IControl, methodName: string): void {
    const originalMethod = control[methodName].bind(control);
 
-   control[methodName] = function callMethodWithRestoreFocus(...args: unknown[]) {
+   control[methodName] = function callMethodWithRestoreFocus(...args: unknown[]): unknown {
       let originalMethodResult: unknown;
       restoreFocus(control, function callOriginalMethod(): void {
          originalMethodResult = originalMethod(...args);
