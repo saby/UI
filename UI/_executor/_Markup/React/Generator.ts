@@ -489,6 +489,8 @@ export class GeneratorReact implements IGenerator {
       };
 
       if (Array.isArray(children)) {
+         // Если передавать реакту детей массивом, он будет считать это списком и просить уникальные ключи каждому,
+         // Мы же просто создаем вложенные элементы и поэтому разворачиваем массив
          return react.createElement(tagName, newProps, ...children);
       } else {
          return react.createElement(tagName, newProps);

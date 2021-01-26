@@ -310,21 +310,21 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    private isCSSLoaded(themeName?: string): boolean {
       const themes = this._theme instanceof Array ? this._theme : [];
       const styles = this._styles instanceof Array ? this._styles : [];
-      // FIXME: Поддержка старых контролов с подгрузкой тем и стелей из статических полей
+      // FIXME: Поддержка старых контролов с подгрузкой тем и стилей из статических полей
       // tslint:disable-next-line:no-string-literal
       return this.constructor['isCSSLoaded'](themeName, themes, styles);
    }
 
    private loadThemes(themeName?: string): Promise<void> {
       const themes = this._theme instanceof Array ? this._theme : [];
-      // FIXME: Поддержка старых контролов с подгрузкой тем и стелей из статических полей
+      // FIXME: Поддержка старых контролов с подгрузкой тем и стилей из статических полей
       // tslint:disable-next-line:no-string-literal
       return this.constructor['loadThemes'](themeName, themes).catch(logError);
    }
 
    private loadStyles(): Promise<void> {
       const styles = this._styles instanceof Array ? this._styles : [];
-      // FIXME: Поддержка старых контролов с подгрузкой тем и стелей из статических полей
+      // FIXME: Поддержка старых контролов с подгрузкой тем и стилей из статических полей
       // tslint:disable-next-line:no-string-literal
       return this.constructor['loadStyles'](styles).catch(logError);
    }
@@ -461,14 +461,13 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
 
    getSnapshotBeforeUpdate(): void {
-      if (!this._firstRender) {
-         if (!isHydrating()) {
-            this._reactiveStart = false;
-            try {
-               this._beforeUpdate.apply(this, [this.props]);
-            } finally {
-               this._reactiveStart = true;
-            }
+      // FIXME: Удалить проверку на isHydrating при переводе демки на оживление на диве
+      if (!this._firstRender && isHydrating()) {
+         this._reactiveStart = false;
+         try {
+            this._beforeUpdate.apply(this, [this.props]);
+         } finally {
+            this._reactiveStart = true;
          }
       }
       return null;
@@ -577,13 +576,12 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          ReactDOM.hydrate :
          ReactDOM.render;
 
-      // @ts-ignore
-      // FIXME: Кладем в window содержимое head для отрисовки его на клиенте после гидрации
+      // FIXME: Кладем в локальную переменную содержимое head для отрисовки его на клиенте после гидрации
       _innerHeadHtml = domElement.getElementsByTagName('head')[0].innerHTML;
 
-      // @ts-ignore проблема что родитель может быть document как сейчас в демке.
-      // проблема уйдет когда рисовать будем не от html
-      updateMarkup(React.createElement(ctor, cfg, null), domElement.parentNode, function (): void {
+      // @ts-ignore
+      // проблема что родитель может быть document как сейчас в демке проблема уйдет когда рисовать будем не от html
+      updateMarkup(React.createElement(ctor, cfg), domElement.parentNode, function (): void {
          configureControl({
             control: this,
             domElement
