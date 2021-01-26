@@ -44,7 +44,6 @@ export class Controller {
     * @param themeName
     */
    getVariables(themeName: string): Promise<void> {
-      debugger;
       const href = this.cssLoader.getHref(null, themeName);
       return this._get(themeName, themeName, href, THEME_TYPE.MULTI).then();
    }
