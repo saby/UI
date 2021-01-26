@@ -184,6 +184,7 @@ export class GeneratorReact implements IGenerator {
       let decOptions = ResolveControlName.resolveControlName(data.controlProperties, <any>attrs);
       return markupBuilder.buildForNewControl({
          user: data.controlProperties,
+         events: attrs.events,
          internal: data.internal,
          templateContext: attrs.context,
          inheritOptions: attrs.inheritOptions,

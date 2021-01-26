@@ -17,7 +17,7 @@ import {TClosure} from 'UI/Executor';
 import template = require('wml!UI/_react/Control/Compatible');
 import {
    IControlChildren, IControlOptions, IControlState, TIState, TemplateFunction,
-   IDOMEnvironment, ITemplateAttrs, TControlConstructor, IControl
+   IDOMEnvironment, ITemplateAttrs, TControlConstructor, IControl, IControlNode
 } from './interfaces';
 
 interface IControlFunction extends Function {
@@ -38,7 +38,7 @@ function configureControl(parameters: {
    control: Control,
    domElement: HTMLElement
 }): void {
-   parameters.control._saveEnvironment(createEnvironment(parameters.domElement));
+    parameters.control._saveEnvironment(createEnvironment(parameters.domElement));
 }
 
 // вычисляет является ли сейчас фаза оживления страницы
@@ -80,6 +80,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // окружение DOMEnvironment контрола
    // добавлено потому что используется в системе фокусов (_getEnvironment)
    _environment: IDOMEnvironment;
+   // текущая controlNode контрола
+   // добавлено для работы системы событий, т.к должны всплывать с учетом controlNode
+   _controlNode: IControlNode;
    // логический родитель контрола
    // добавлено чтобы при создании ControlNode вычислять поле environment, которое хранится среди родителей
    // также используется в прикладных и платформенных wasaby-контролах в качестве костылей
@@ -119,9 +122,18 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
    // запуск события - сейчас заглушка. удалить нельзя, это самое простое решение
    _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): void {
-      // nothing for a while...
+      if (args && !(args instanceof Array)) {
+         var error = `Ошибка использования API событий.
+                     В метод _notify() в качестве второго аргументов необходимо передавать массив 
+                     Был передан объект типа ${typeof args}
+                     Событие: ${eventName}
+                     Аргументы: ${args}
+                     Подробнее о событиях: https://wasaby.dev/doc/platform/ui-library/events/#params-from-notify`;
+             Logger.error(error, this);
+         throw new Error(error);
+      }
+      return this._environment && this._environment.startEvent(this._controlNode, arguments);
    }
-
    // активация контрола - сейчас заглушка. удалить нельзя, это самое простое решение
    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): void {
       // nothing for a while...
@@ -135,8 +147,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
    // сохраняет окружение контрола
    // добавлено потому что используется в configureControl для инициализации environment
-   _saveEnvironment(env: IDOMEnvironment): void {
+   _saveEnvironment(env: IDOMEnvironment, controlNode?: IControlNode): void {
       this._environment = env;
+      this._controlNode = controlNode;
    }
 
    // возвращает окружение контрола
