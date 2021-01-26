@@ -472,7 +472,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          }, 0);
       }
       subscribeRestoreFocus(this, 'setState');
-      subscribeRestoreFocus(this, 'replaceState');
       subscribeRestoreFocus(this, 'forceUpdate');
    }
 
