@@ -17,6 +17,7 @@ define([
    FocusTestControls
 ) {
    'use strict';
+   return;
    const Logger = Utils.Logger;
 
    var global = (function() {
