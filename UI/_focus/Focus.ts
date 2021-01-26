@@ -9,7 +9,6 @@ import { Logger } from 'UI/Utils';
 
 import { collectScrollPositions } from './_ResetScrolling';
 import * as ElementFinder from './ElementFinder';
-import {IDOMEnvironment, notifyActivationEvents} from 'UI/_focus/Events';
 
 import { IFocusElement, IMatchesElement, IControlElement, ICompoundControl } from './IFocus';
 import { IGeneratorControlNode } from 'UI/Executor';
@@ -303,11 +302,6 @@ focus = <IFocus>(element: IControlElement, {enableScreenKeyboard = false, enable
       } finally {
          focusingState = false;
       }
-   }
-   // в ie нельзя стрелять событиями активации во время восстановления фокуса после перерисовки
-   // если так сделать, то будет вызван нотифай события deactivated и выстрялет все подписанные на него обработчики
-   if (detection.isIE && res && !focus.__restoreFocusPhase) {
-      notifyActivationEvents(document.activeElement as IControlElement, lastFocused);
    }
    return res;
 }
