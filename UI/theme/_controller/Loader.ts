@@ -3,7 +3,7 @@
 import LinkResolver from "./LinkResolver";
 // @ts-ignore
 import { constants } from 'Env/Env';
-import { EMPTY_THEME, CSS_MODULE_PREFIX } from './css/const';
+import { EMPTY_THEME, CSS_MODULE_PREFIX, THEMED_CSS_MODULE_PREFIX } from './css/const';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 // @ts-ignore
 import { memoize } from 'Types/function';
@@ -41,8 +41,7 @@ export default class Loader implements ICssLoader {
    getHref(initialName: string, theme: string): string {
       let name: string = initialName;
       if (!name && theme !== EMPTY_THEME) {
-         // TODO: Задача к require https://online.sbis.ru/opendoc.html?guid=698733df-9d93-472c-b704-2869900b4633
-         return `/resources/themes/${theme}.css`;
+         return ModulesLoader.getModuleUrl(`${THEMED_CSS_MODULE_PREFIX}/${theme}`);
       }
       if (name.indexOf('.css') !== -1) {
          return name;
