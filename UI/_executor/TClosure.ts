@@ -55,6 +55,11 @@ function isObject(obj: any): boolean {
    return Object.prototype.toString.call(obj) === '[object Object]';
 }
 
+let isReact = false;
+export function setReact(value: boolean) {
+   isReact = value;
+}
+
 const ITERATORS = [
    {
       type: 'recordset',
@@ -191,12 +196,12 @@ var
       }
    },
    createGenerator = function (isVdom, forceCompatible = false, config) {
-      // @ts-ignore
-      if (typeof window !== 'undefined' && window.reactGenerator) {
-         return React(config);
-      }
       if (isVdom) {
-         return Vdom(config);
+         if (isReact) {
+            return React(config);
+         } else {
+            return Vdom(config);
+         }
       }
       if (!Common.disableCompat() && (Common.isCompat() || forceCompatible)) {
          const Compatible = getGeneratorCompatible(config);

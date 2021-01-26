@@ -1,0 +1,4 @@
+<div>
+    <UIDemo.Compatible.Events.WasabyChild />
+    <div class="result-container">{{value}}</div>
+</div>

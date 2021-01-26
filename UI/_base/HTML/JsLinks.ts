@@ -7,11 +7,10 @@ import Control, { TemplateFunction } from 'UI/_base/Control';
 import template = require('wml!UI/_base/HTML/JsLinks');
 import { headDataStore } from 'UI/_base/HeadData';
 import { IControlOptions } from 'UI/Base';
+import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 
 interface IJsLinksOptions extends IControlOptions {
-   linkResolver: {
-      resolveLink(l: string, ext: string): string;
-   };
+   resourceRoot: string;
 }
 /**
  * Компонент для вставки ссылок на ресурсы страницы
@@ -31,9 +30,8 @@ class JsLinks extends Control<IJsLinksOptions> {
       if (typeof window !== 'undefined') {
          return;
       }
-      const resolveJsLink = (js: string) => options.linkResolver.resolveLink(js, 'js');
       return headDataStore.read('waitAppContent')().then((res) => {
-         const jsLinks: string[] = res.js.map(resolveJsLink).concat(res.scripts);
+         const jsLinks: string[] = res.js.map((js) => this.resolveLink(js)).concat(res.scripts);
          this.js = arrayToObject(jsLinks); // конвертируем в hashmap чтобы избавиться от дублей
          this.tmpl = res.tmpl;
          this.wml = res.wml;
@@ -47,6 +45,10 @@ class JsLinks extends Control<IJsLinksOptions> {
           */
          this.rtpackModuleNames = JSON.stringify(arrayToObject(res.rtpackModuleNames));
       });
+   }
+
+   resolveLink(path: string, type: string = ''): string {
+      return ModulesLoader.getModuleUrl(type ? `${type}!${path}` : path);
    }
 }
 

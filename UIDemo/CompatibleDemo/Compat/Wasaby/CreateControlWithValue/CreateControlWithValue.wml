@@ -1,0 +1,3 @@
+<div class="compatibleDemo__row">
+    <UIDemo.CompatibleDemo.Compat.DemoControls.OldWrapperForWasaby _text="{{ _text }}"/>
+</div>

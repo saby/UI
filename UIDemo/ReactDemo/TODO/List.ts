@@ -1,4 +1,4 @@
-import {Control} from 'UI/ReactComponent';
+import {Control} from 'UI/Base';
 import {IList} from './interfaces';
 
 const SLEEP_TIME = 1500;

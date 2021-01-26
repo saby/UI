@@ -206,7 +206,7 @@ export type TControlConstructor<TOptions extends IControlOptions = {}, TState ex
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
-export default class Control<TOptions extends IControlOptions = {}, TState extends TIState = void> implements _IControl {
+class Control<TOptions extends IControlOptions = {}, TState extends TIState = void> implements _IControl {
    protected _moduleName: string;
 
    private _mounted: boolean = false;
@@ -587,7 +587,6 @@ export default class Control<TOptions extends IControlOptions = {}, TState exten
       document.body.focus();
       if (this._$active) {
          const env = this._getEnvironment();
-
          // если DOMEnvironment не перехватил переход фокуса, вызовем обработчик ухода фокуса вручную
          env._handleFocusEvent({ target: document.body, relatedTarget: activeElement });
       }
@@ -1411,6 +1410,12 @@ Object.assign(Control.prototype, {
 function logError(e: Error) {
    Logger.error(e.message);
 }
+
+export default Control;
+// TODO придумать как возвращать ReactControl под условием
+// import {Control as ReactControl} from 'UI/ReactComponent';
+// export default ReactControl;
+
 /**
  * @name UI/_base/Control#readOnly
  * @cfg {Boolean} Определяет, может ли пользователь изменить значение контрола.

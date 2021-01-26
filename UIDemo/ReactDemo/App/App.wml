@@ -1,0 +1,10 @@
+<div class="demo-ReactWasaby__app">
+   <h2>Реактивные свойства "Array"</h2>
+   <UIDemo.ReactDemo.TODO.TODO
+      changeHandler="{{_changeHandlerArray}}"
+      items="{{_itemsArray}}"/>
+   <h2>Реактивные свойства "RecordSet"</h2>
+   <UIDemo.ReactDemo.TODO.TODO
+      changeHandler="{{_changeHandlerRS}}"
+      items="{{_itemsRS}}"/>
+</div>

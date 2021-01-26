@@ -1,28 +1,15 @@
-import {Control, IControlOptions} from 'UI/ReactComponent';
-import 'css!UIDemo/ReactDemo/TODO/Item';
+import {Control, IControlOptions, TemplateFunction} from 'UI/Base';
 
 // @ts-ignore
 import template = require('wml!UIDemo/ReactDemo/TODO/Item');
 
-export interface IItem extends IControlOptions<Item> {
-    title: string;
-    removeHandler: Function;
+export interface IItem extends IControlOptions {
+   title: string;
+   removeHandler: Function;
 }
 
-class Item extends Control<IItem> {
-    protected checked: boolean = false;
-    protected removeHandler;
-
-    constructor(props: IItem) {
-        super(props);
-        this.removeHandler = props.removeHandler;
-    }
-    protected _changeHandler(): void {
-        this.checked = !this.checked;
-    }
+export default class Item extends Control<IItem> {
+   protected _template: TemplateFunction = template;
+   static _styles: string[] = ['UIDemo/ReactDemo/TODO/Item'];
+   static displayName: string = 'MyTodoItem';
 }
-
-// @ts-ignore
-Item.prototype._template = template;
-
-export default Item;
