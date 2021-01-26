@@ -43,7 +43,8 @@ function configureControl(parameters: {
 
 // вычисляет является ли сейчас фаза оживления страницы
 function isHydrating(): boolean {
-   return document?.documentElement.classList.contains('pre-load');
+   const docElement = document?.documentElement;
+   return !docElement || docElement.classList.contains('pre-load');
 }
 
 /**
@@ -446,7 +447,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       if (!this._asyncMount) {
          setTimeout(() => {
             makeRelation(this);
-            this._afterMount.apply(this);
+            this._afterMount(this.props);
          }, 0);
       }
    }
@@ -461,7 +462,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
    getSnapshotBeforeUpdate(): void {
       if (!this._firstRender) {
-         if (!isHydrating) {
+         if (!isHydrating()) {
             this._reactiveStart = false;
             try {
                this._beforeUpdate.apply(this, [this.props]);
@@ -539,7 +540,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          TClosure.setReact(false);
       }
 
-      return res;
+      return res[0];
 
    }
 
@@ -572,7 +573,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // создание и монтирование контрола в элемент
    // добавляется потому что используемое апи контрола
    static createControl(ctor: TControlConstructor, cfg: IControlOptions, domElement: HTMLElement): void {
-      const updateMarkup = isHydrating ?
+      const updateMarkup = isHydrating() ?
          ReactDOM.hydrate :
          ReactDOM.render;
 

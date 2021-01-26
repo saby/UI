@@ -487,7 +487,12 @@ export class GeneratorReact implements IGenerator {
          ref,
          key
       };
-      return react.createElement(tagName, newProps, children);
+
+      if (Array.isArray(children)) {
+         return react.createElement(tagName, newProps, ...children);
+      } else {
+         return react.createElement(tagName, newProps);
+      }
    }
 
    createEmptyText(key: string): string {
