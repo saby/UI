@@ -1,5 +1,5 @@
-import { getMetaStack, IMeta, IMetaState } from 'UI/_base/HTML/meta';
-
+import { IMeta, IMetaState, IMetaStack } from 'UI/_base/HTML/_meta/interface';
+import { default as Stack } from 'UI/_base/HTML/_meta/Stack';
 
 /**
  * Интерфейс ресурса
@@ -8,6 +8,8 @@ interface IOwnedDisposable {
     enter(owner: unknown): void;
     dispose(owner: unknown): void;
 }
+
+const getMetaStack: () => IMetaStack = Stack.getInstance;
 /**
  * Класс-Ресурс, который отвечает за обновление, удаление метаданных
  */
