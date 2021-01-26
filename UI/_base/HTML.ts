@@ -54,7 +54,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
     // @ts-ignore
     _template: Function = template;
 
-    private _bodyClasses: string = '';
+    private _bodyClasses: string = '__htmlBodyClasses';
     private onServer: Boolean = false;
     // tslint:disable-next-line:ban-ts-ignore
     // @ts-ignore
@@ -87,7 +87,9 @@ class HTML extends Control<IHTMLCombinedOptions> {
     private initState(cfg: any): void {
         this.templateConfig = cfg.templateConfig;
         this.compat = cfg.compat || false;
-        this._bodyClasses = cfg.bodyClasses || '';
+        if (!this.onServer) {
+            this._bodyClasses = cfg.bodyClasses || '';
+        }
     }
 
     private isFocusNode(node: Element): boolean {
@@ -186,7 +188,6 @@ class HTML extends Control<IHTMLCombinedOptions> {
             return;
         }
         return new Promise((resolve) => {
-            this._bodyClasses = AppBody.getInstance().getClassString();
             resolve({
                 bodyClasses: this._bodyClasses,
                 buildnumber: this.buildnumber,
