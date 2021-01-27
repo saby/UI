@@ -5,7 +5,7 @@ import {makeRelation, removeRelation} from './ParentFinder';
 import {EMPTY_THEME, getThemeController} from 'UI/theme/controller';
 import {Logger, Purifier} from 'UI/Utils';
 import { _IControl, activate, subscribeRestoreFocus } from 'UI/Focus';
-import { constants, detection } from 'Env/Env';
+import { constants } from 'Env/Env';
 import * as ReactDOM from 'react-dom';
 import * as React from 'react';
 import {ReactiveObserver} from 'UI/Reactivity';
@@ -154,10 +154,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       // например переходим от компонента к его предку, у предка состояние не изменилось.
       // но с которого уходили у него изменилось
       if (res && !this._$active) {
-         const env = this._getEnvironment();
-         if (!(detection.isIE && env._$active)) {
-            env._handleFocusEvent({ target: document.activeElement, relatedTarget: activeElement });
-         }
+         this._getEnvironment()._handleFocusEvent({ target: document.activeElement, relatedTarget: activeElement });
       }
 
       return res;
