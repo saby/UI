@@ -62,10 +62,14 @@ export function prepareControlNodes(node: any, control: IControl, Control: TCont
                 }
                 curControl = curControl._logicParent;
             }
-
             curControl = control;
             while (curControl && (!curControl._container || !curControl._container.parentNode)) {
                 container.controlNodes = container.controlNodes || [];
+                // если на контроле есть подписки на кастомные события, то нужно положить их
+                // на элемент в eventProperties, чтобы работал _notify
+                if(control._options.events) {
+                    container.eventProperties = control._options.events;
+                }
                 const controlNode = {
                     control: curControl,
                     element: container,
@@ -73,6 +77,8 @@ export function prepareControlNodes(node: any, control: IControl, Control: TCont
                     id: curControl.getInstanceId()
                 };
                 addControlNode(container.controlNodes, controlNode);
+
+                curControl._saveEnvironment(environment, controlNode);
                 curControl._container = container;
 
                 curControl = curControl._parentHoc;

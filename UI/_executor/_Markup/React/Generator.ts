@@ -184,6 +184,7 @@ export class GeneratorReact implements IGenerator {
       let decOptions = ResolveControlName.resolveControlName(data.controlProperties, <any>attrs);
       return markupBuilder.buildForNewControl({
          user: data.controlProperties,
+         events: attrs.events,
          internal: data.internal,
          templateContext: attrs.context,
          inheritOptions: attrs.inheritOptions,
@@ -487,7 +488,14 @@ export class GeneratorReact implements IGenerator {
          ref,
          key
       };
-      return react.createElement(tagName, newProps, children);
+
+      if (Array.isArray(children)) {
+         // Если передавать реакту детей массивом, он будет считать это списком и просить уникальные ключи каждому,
+         // Мы же просто создаем вложенные элементы и поэтому разворачиваем массив
+         return react.createElement(tagName, newProps, ...children);
+      } else {
+         return react.createElement(tagName, newProps);
+      }
    }
 
    createEmptyText(key: string): string {
