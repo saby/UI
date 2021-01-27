@@ -1,5 +1,4 @@
 import {IControl, IControlNode, TControlConstructor} from './interfaces';
-import {createEnvironment} from 'UI/_react/Control/EnvironmentStorage';
 
 function getNumberId(id: string | 0): number {
     return parseInt((id + '').replace('inst_', ''), 10);
