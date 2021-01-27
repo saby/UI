@@ -47,7 +47,15 @@ export function resolveOptions(controlClass: TControlConstructor, defaultOpts, c
 }
 
 export function getDefaultOptions(controlClass) {
-   return controlClass.getDefaultOptions ? controlClass.getDefaultOptions() : {};
+   const defaultProps = controlClass.defaultProps;
+   if (typeof defaultProps === 'object' && defaultProps !== null) {
+      return defaultProps;
+   }
+   if (controlClass.getDefaultOptions) {
+      Logger.error('Метод getDefaultOptions устарел, используйте статическое поле defaultProps.', controlClass.prototype);
+      return controlClass.getDefaultOptions();
+   }
+   return {};
 }
 
 export function validateOptions(controlClass, cfg, parentName: string): boolean {
