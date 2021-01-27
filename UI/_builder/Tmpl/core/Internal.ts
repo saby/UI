@@ -157,6 +157,22 @@ function patchProgramNode(meta: IProgramMeta): void {
    meta.node.__$ws_index = meta.index;
 }
 
+function containsIdentifiers(program: ProgramNode, identifiers: string[], fileName: string): boolean {
+   let hasLocalIdentifier = false;
+   const callbacks = {
+      Identifier: (data: IdentifierNode): void => {
+         if (identifiers.indexOf(data.name) > -1) {
+            hasLocalIdentifier = true;
+         }
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName
+   });
+   return hasLocalIdentifier;
+}
+
 class Container {
    public readonly typeName: string;
    public desc: string;
@@ -230,6 +246,24 @@ class Container {
       }
       join.children.push(container);
       this.children.push(join);
+   }
+
+   getInternal(): IProgramMeta[] {
+      return this.collectInternal(0);
+   }
+
+   private collectInternal(depth: number): IProgramMeta[] {
+      let selfPrograms = this.storage.getMeta();
+      if (depth === 0) {
+         selfPrograms = selfPrograms.filter((meta: IProgramMeta) => meta.type !== ProgramType.OPTION);
+      }
+      for (let index = 0; index < this.children.length; ++index) {
+         selfPrograms = selfPrograms.concat(
+            this.children[index].collectInternal(depth + 1)
+         );
+      }
+      selfPrograms = selfPrograms.filter((meta: IProgramMeta) => !containsIdentifiers(meta.node, this.identifiers, FILE_NAME));
+      return selfPrograms;
    }
 
    private applyProgram(program: ProgramNode, type: ProgramType, name: string | null, isSynthetic: boolean): void {
@@ -403,6 +437,22 @@ function collectInlineTemplateIdentifiers(node: Ast.InlineTemplateNode): string[
    return identifiers;
 }
 
+const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
+
+function wrapInternalExpressions(programs: IProgramMeta[]): any {
+   const internal = { };
+   for (let index = 0; index < programs.length; ++index) {
+      const program = programs[index];
+      internal[INTERNAL_PROGRAM_PREFIX + index] = {
+         data: [
+            new Ast.ExpressionNode(program.node)
+         ],
+         type: 'text'
+      };
+   }
+   return internal;
+}
+
 class InternalVisitor implements Ast.IAstVisitor {
 
    process(nodes: Ast.Ast[], scope: Scope): Container {
@@ -446,6 +496,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       // @ts-ignore FIXME: Save container onto node of abstract syntax tree
       node.$$container = container;
       visitAll(node.__$ws_content, this, childContext);
+      node.__$ws_internal = wrapInternalExpressions(container.getInternal());
    }
 
    visitBind(node: Ast.BindNode, context: IContext): void {
@@ -473,6 +524,7 @@ class InternalVisitor implements Ast.IAstVisitor {
    visitComponent(node: Ast.ComponentNode, context: IContext): void {
       const childContainer = this.processComponent(node, context);
       childContainer.desc = `<${node.__$ws_path.getFullPath()}>`;
+      node.__$ws_internal = wrapInternalExpressions(childContainer.getInternal());
    }
 
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): void {
@@ -482,17 +534,20 @@ class InternalVisitor implements Ast.IAstVisitor {
       // @ts-ignore FIXME: Get container from node of abstract syntax tree
       childContainer.joinContainer(template.$$container, identifiers);
       childContainer.desc = `<ws:partial> @@ inline "${node.__$ws_name}"`;
+      node.__$ws_internal = wrapInternalExpressions(childContainer.getInternal());
    }
 
    visitStaticPartial(node: Ast.StaticPartialNode, context: IContext): void {
       const childContainer = this.processComponent(node, context);
       childContainer.desc = `<ws:partial> @@ static "${node.__$ws_path.getFullPath()}"`;
+      node.__$ws_internal = wrapInternalExpressions(childContainer.getInternal());
    }
 
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): void {
       const childContainer = this.processComponent(node, context);
       childContainer.registerProgram(node.__$ws_expression, ProgramType.SIMPLE, 'template');
       childContainer.desc = `<ws:partial> @@ dynamic "${node.__$ws_expression.string}"`;
+      node.__$ws_internal = wrapInternalExpressions(childContainer.getInternal());
    }
 
    visitTemplate(node: Ast.TemplateNode, context: IContext): void {
@@ -505,6 +560,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       visitAll(node.__$ws_content, this, childContext);
       // @ts-ignore FIXME: Save container onto node of abstract syntax tree
       node.$$container = container;
+      node.__$ws_internal = wrapInternalExpressions(container.getInternal());
    }
 
    visitIf(node: Ast.IfNode, context: IContext): void {
