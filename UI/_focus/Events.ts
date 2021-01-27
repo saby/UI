@@ -118,8 +118,8 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
    if (detectStrangeElement(target)) {
       return;
    }
-   // предотвращает двойную активацию в ie
-   if (detection.isIE && notifyActivationEvents._savedFocusedElement === relatedTarget){
+   // предотвращает двойную активацию в ie 11 и ниже
+   if (detection.isIE && detection.IEVersion <= 11 && notifyActivationEvents._savedFocusedElement === relatedTarget){
        return;
    }
    // странные элементы вообще проигнорируем, возьмем вместо него предыдущий активный
