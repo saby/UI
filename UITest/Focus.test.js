@@ -57,6 +57,7 @@ define([
          necessaryWindowNames.forEach((name) => {
             global[name] = jsdomWindow[name];
          })
+         focusMethod = HTMLElement.prototype.focus;
          Focus._initFocus();
 
          currentCase = globalCases.shift();
@@ -84,7 +85,7 @@ define([
          }
          document.body.removeChild(div);
 
-         HTMLElement.prototype.focus = Focus.nativeFocus;
+         HTMLElement.prototype.focus = focusMethod;
          constants.isBrowserPlatform = isBrowserPlatform;
          constants.isServerSide = isServerSide;
          constants.compat = compat;
