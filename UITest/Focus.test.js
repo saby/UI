@@ -17,8 +17,7 @@ define([
    FocusTestControls
 ) {
    'use strict';
-   return;
-   const Logger = Utils.Logger;
+   const constants = Env.constants;
 
    var global = (function() {
       return this || (0, eval)('this');
@@ -30,45 +29,36 @@ define([
       var globalCases = [];
       var currentCase;
       var fromNode = typeof document === 'undefined';
+      const jsdomBrowser = fromNode && new jsdom.JSDOM('', { pretendToBeVisual: true });
+      let focusMethod;
       let purifierStub;
-
-      before(function() {
-         this.compat = require('Env/Env').constants.compat;
-         require('Env/Env').constants.compat = false;
-         purifierStub = sinon.stub(Utils.Purifier, 'purifyInstance').callsFake(() => {});
-         if (fromNode) {
-            var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
-            global.window = browser.window;
-            global.document = window.document;
-            global.Element = window.Element;
-            global.HTMLElement = window.HTMLElement;
-            global.SVGElement = window.SVGElement;
-            global.Node = window.Node;
-            global.getComputedStyle = window.getComputedStyle;
-            Focus._initFocus();
-         }
-      });
-
-      after(function() {
-         require('Env/Env').constants.compat = this.compat;
-         purifierStub.restore();
-         if (fromNode) {
-            delete global.window;
-            delete global.document;
-            delete global.Element;
-            delete global.HTMLElement;
-            delete global.SVGElement;
-            delete global.Node;
-            delete global.getComputedStyle;
-         }
-      });
+      let isBrowserPlatform;
+      let isServerSide;
+      let compat;
+      const necessaryWindowNames = ['document', 'Element', 'HTMLElement', 'SVGElement', 'Node', 'getComputedStyle'];
 
       beforeEach(function(done) {
-         // Run these tests in browser only
-         if (fromNode) {
+         // Run these tests in node only
+         if (!fromNode) {
             this.skip();
             return;
          }
+
+         isBrowserPlatform = constants.isBrowserPlatform;
+         isServerSide = constants.isServerSide;
+         compat = constants.compat;
+         constants.isBrowserPlatform = true;
+         constants.isServerSide = false;
+         constants.compat = false;
+         purifierStub = sinon.stub(Utils.Purifier, 'purifyInstance').callsFake(() => {});
+
+         const jsdomWindow = jsdomBrowser.window;
+         global.window = jsdomWindow;
+         necessaryWindowNames.forEach((name) => {
+            global[name] = jsdomWindow[name];
+         })
+         focusMethod = HTMLElement.prototype.focus;
+         Focus._initFocus();
 
          currentCase = globalCases.shift();
          div = document.createElement('div');
@@ -94,6 +84,17 @@ define([
             control.destroy();
          }
          document.body.removeChild(div);
+
+         HTMLElement.prototype.focus = focusMethod;
+         constants.isBrowserPlatform = isBrowserPlatform;
+         constants.isServerSide = isServerSide;
+         constants.compat = compat;
+         purifierStub.restore();
+
+         delete global.window;
+         necessaryWindowNames.forEach((name) => {
+            delete global[name];
+         })
       });
 
       describe('activate', function() {

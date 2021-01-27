@@ -118,7 +118,10 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
    if (detectStrangeElement(target)) {
       return;
    }
-
+   // предотвращает двойную активацию в ie
+   if (detection.isIE && notifyActivationEvents._savedFocusedElement === relatedTarget){
+       return;
+   }
    // странные элементы вообще проигнорируем, возьмем вместо него предыдущий активный
    const realRelatedTarget = (!detectStrangeElement(relatedTarget) && relatedTarget) ||
        notifyActivationEvents._savedFocusedElement;
@@ -181,9 +184,6 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
                   }
                ]);
                control._$active = false;
-               if (detection.isIE) {
-                  control._environment._$active = true;
-               }
             }
             found = false;
          }
@@ -214,9 +214,6 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
                }
             ]);
             control._$active = true;
-            if (detection.isIE) {
-               control._environment._$active = true;
-            }
          }
          found = false;
 
