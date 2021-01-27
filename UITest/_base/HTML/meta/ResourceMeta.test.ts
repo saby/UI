@@ -9,8 +9,6 @@ describe('Env/Disposable', () => {
             resource.enter();
             assert.isTrue(getMetaStack().lastState._meta.title === TITLE_CONTENT,
                 'В stack не был добавлен актуальный state');
-            assert.isTrue(document.title === TITLE_CONTENT,
-                'title не был изменен');
         });
         it('проверка метода dispose', () => {
             const TITLE_CONTENT = 'ResourceMetaTitle2';
@@ -19,7 +17,6 @@ describe('Env/Disposable', () => {
             resource.dispose();
             assert.isFalse(getMetaStack().lastState._meta.title === TITLE_CONTENT,
                 'В stack не был удален текущий state');
-            assert.isFalse(document.title === TITLE_CONTENT, 'title не был удалён');
         });
     });
 });
