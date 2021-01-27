@@ -462,7 +462,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
    getSnapshotBeforeUpdate(): void {
       // FIXME: Удалить проверку на isHydrating при переводе демки на оживление на диве
-      if (!this._firstRender && isHydrating()) {
+      if (!this._firstRender && !isHydrating()) {
          this._reactiveStart = false;
          try {
             this._beforeUpdate.apply(this, [this.props]);
