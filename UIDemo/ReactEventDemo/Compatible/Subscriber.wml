@@ -9,9 +9,13 @@
         userEventWithBubblingWasCalled: {{ userEventWithBubblingWasCalled }}
     </div>
     <button class="item__button" on:click="_userEventCallback()">self add</button>
-    <div >
+    <div>
         <UIDemo.ReactEventDemo.Compatible.Notifier
                 on:userEvent="_userEventCallback()"
                 on:userEventBubbling="_userEventCallbackWithBubbling()"/>
     </div>
+    <div>
+        <UIDemo.ReactEventDemo.Compatible.Binder />
+    </div>
 </div>
+
