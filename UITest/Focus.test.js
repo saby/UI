@@ -30,7 +30,7 @@ define([
       var globalCases = [];
       var currentCase;
       var fromNode = typeof document === 'undefined';
-      const jsdomBrowser = fromnode && new jsdom.JSDOM('', { pretendToBeVisual: true });;
+      const jsdomBrowser = fromNode && new jsdom.JSDOM('', { pretendToBeVisual: true });;
       let purifierStub;
       let isBrowserPlatform;
       let isServerSide;
