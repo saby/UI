@@ -1,0 +1,6 @@
+<div>
+   <ws:partial template="wml!UIDemo/ReactDemo/InheritedOptions/TemplateOneLevelDeep" />
+   <ws:partial template="wml!UIDemo/ReactDemo/InheritedOptions/TemplateTwoLevelsDeep" />
+   <UIDemo.ReactDemo.InheritedOptions.ControlOneLevelDeep />
+   <UIDemo.ReactDemo.InheritedOptions.ControlTwoLevelsDeep />
+</div>

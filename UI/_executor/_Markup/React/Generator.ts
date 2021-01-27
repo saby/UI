@@ -42,7 +42,6 @@ import {repairEventName} from './eventMap';
 import {convertAttributes} from './Attributes';
 import {voidElementTags} from './VoidElementTags';
 import { WasabyContextManager } from 'UI/_react/WasabyContext/WasabyContextManager';
-
 const markupBuilder = new Builder();
 
 /**
@@ -215,14 +214,18 @@ export class GeneratorReact implements IGenerator {
       Контролы берут наследуемые опции из контекста.
       Шаблоны так не могут, потому что они не полноценные реактовские компоненты.
       Поэтому берём значения либо из опций, либо из родителя.
-      Если берём из родителя, то берём напрямую из _options, т.к. там уже вычисленное значение.
        */
-      data.controlProperties.readOnly =
-         data.controlProperties.readOnly ??
-         data.parent._options.readOnly as boolean;
-      data.controlProperties.theme =
-         data.controlProperties.theme ??
-         data.parent._options.theme as string;
+      // FIXME: тип для data тянется из старого генератора, который ничего не знает про реакт
+      if (typeof data.controlProperties.readOnly === 'undefined') {
+         data.controlProperties.readOnly =
+            (data.parent as unknown as react.Component).props.readOnly ??
+            (data.parent as unknown as react.Component).context.readOnly;
+      }
+      if (typeof data.controlProperties.theme === 'undefined') {
+         data.controlProperties.theme =
+            (data.parent as unknown as react.Component).props.theme ??
+            (data.parent as unknown as react.Component).context.theme as string;
+      }
 
       // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
       if (resultingFn == null) {
