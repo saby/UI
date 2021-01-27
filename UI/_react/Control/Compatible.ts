@@ -127,8 +127,8 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // запуск события - сейчас заглушка. удалить нельзя, это самое простое решение
    _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): void {
       if (args && !(args instanceof Array)) {
-         var error = `Ошибка использования API событий.
-                     В метод _notify() в качестве второго аргументов необходимо передавать массив 
+         const error = `Ошибка использования API событий.
+                     В метод _notify() в качестве второго аргументов необходимо передавать массив
                      Был передан объект типа ${typeof args}
                      Событие: ${eventName}
                      Аргументы: ${args}
@@ -258,16 +258,13 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // построение верстки контрола
    // добавлено потому что используется в render для построения верстки на сервере
    _getMarkup(rootKey?: string,
-              attributes?: ITemplateAttrs): string | object {
+              attributes: ITemplateAttrs = {}): string | object {
       // @ts-ignore флага stable нет на шаблоне и я не знаю как объявить
       if (!(this._template).stable) {
          Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
          return '';
       }
       let res;
-      if (!attributes) {
-         attributes = {};
-      }
       const generatorConfig = getGeneratorConfig();
       res = this._template(this, attributes, rootKey, false, undefined, undefined, generatorConfig);
       return res || '';
