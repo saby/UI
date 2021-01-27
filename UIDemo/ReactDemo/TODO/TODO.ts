@@ -1,20 +1,25 @@
-import {Control, IControlOptions} from 'UI/Base';
+import {
+   Control,
+   IControlOptions,
+   TemplateFunction
+} from 'UI/Base';
 import {IItem} from './interfaces';
 
 // @ts-ignore
 import template = require('wml!UIDemo/ReactDemo/TODO/TODO');
 import {Model, Guid, ReactiveObject} from 'Types/entity';
 import {RecordSet} from 'Types/collection';
+import { IWasabyContextValue } from 'UI/_react/WasabyContext/WasabyContext';
 
 interface ITodoOptions extends IControlOptions {
    items: IItem[] | RecordSet;
 }
 
 export default class Todo extends Control<ITodoOptions> {
-   protected _template: any = template;
+   protected _template: TemplateFunction = template;
 
-   constructor(props: ITodoOptions) {
-      super(props);
+   constructor(...args: [ITodoOptions, IWasabyContextValue]) {
+      super(...args);
       this.removeHandler = this.removeHandler.bind(this);
       this.addNewItem = this.addNewItem.bind(this);
       this.changeHandler = this.changeHandler.bind(this);
