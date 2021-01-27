@@ -17,7 +17,6 @@ define([
    FocusTestControls
 ) {
    'use strict';
-   const Logger = Utils.Logger;
    const constants = Env.constants;
 
    var global = (function() {
@@ -30,7 +29,8 @@ define([
       var globalCases = [];
       var currentCase;
       var fromNode = typeof document === 'undefined';
-      const jsdomBrowser = fromNode && new jsdom.JSDOM('', { pretendToBeVisual: true });;
+      const jsdomBrowser = fromNode && new jsdom.JSDOM('', { pretendToBeVisual: true });
+      let focusMethod;
       let purifierStub;
       let isBrowserPlatform;
       let isServerSide;
