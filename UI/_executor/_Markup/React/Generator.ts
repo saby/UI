@@ -41,7 +41,6 @@ import {Builder} from "../Builder";
 import {repairEventName} from './eventMap';
 import {convertAttributes} from './Attributes';
 import {voidElementTags} from './VoidElementTags';
-import {addControlNode, removeControlNode} from './ControlNodes';
 
 const markupBuilder = new Builder();
 
@@ -185,6 +184,7 @@ export class GeneratorReact implements IGenerator {
       let decOptions = ResolveControlName.resolveControlName(data.controlProperties, <any>attrs);
       return markupBuilder.buildForNewControl({
          user: data.controlProperties,
+         events: attrs.events,
          internal: data.internal,
          templateContext: attrs.context,
          inheritOptions: attrs.inheritOptions,
@@ -432,7 +432,7 @@ export class GeneratorReact implements IGenerator {
       }
 
       //here
-      const ref = function(node: any, isContainer: boolean): any {
+      const ref = function(node: any): any {
          const attrs = props.attributes;
          if (node) {
             if (Common.isControl(control) && attrs && attrs.name) {
@@ -455,24 +455,9 @@ export class GeneratorReact implements IGenerator {
                   node[attrName] = attrValue;
                }, node);
             }
-
-            if (isContainer) {
-               node.controlNodes = node.controlNodes || [];
-               addControlNode(node.controlNodes, {
-                  control,
-                  element: node,
-                  id: control.getInstanceId(),
-                  environment: null // ???
-               });
-               control._container = node;
-            }
          } else {
             if (control && !control._destroyed && attrs && attrs.name) {
                onElementUnmount(control._children, attrs.name);
-            }
-
-            if (isContainer) {
-               removeControlNode(control._container.controlNodes, control);
             }
          }
       };
@@ -503,7 +488,14 @@ export class GeneratorReact implements IGenerator {
          ref,
          key
       };
-      return react.createElement(tagName, newProps, children);
+
+      if (Array.isArray(children)) {
+         // Если передавать реакту детей массивом, он будет считать это списком и просить уникальные ключи каждому,
+         // Мы же просто создаем вложенные элементы и поэтому разворачиваем массив
+         return react.createElement(tagName, newProps, ...children);
+      } else {
+         return react.createElement(tagName, newProps);
+      }
    }
 
    createEmptyText(key: string): string {

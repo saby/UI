@@ -1,11 +1,13 @@
 import {IControlOptions} from 'UI/Base';
+import {Guid} from 'Types/entity';
 
 export interface IList extends IControlOptions {
-    items: IItem[];
-    removeHandler: Function;
+   items: IItem[];
+   removeHandler: Function;
 }
 
 export interface IItem {
-    id: number;
-    title: string;
+   id: Guid;
+   title: string;
+   checked: boolean;
 }

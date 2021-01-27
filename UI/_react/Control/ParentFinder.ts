@@ -1,6 +1,7 @@
 import {goUpByControlTree} from 'UI/NodeCollector';
+import {IControl, IControlOptions, TIState} from './interfaces';
 
-export function makeRelation(currentControl: any): void {
+export function makeRelation(currentControl: IControl<IControlOptions, TIState>): void {
     if (!currentControl._container) {
         return;
     }
@@ -26,7 +27,7 @@ export function makeRelation(currentControl: any): void {
     }
 }
 
-export function removeRelation(currentControl: any): void {
+export function removeRelation(currentControl: IControl): void {
     if (!currentControl._container) {
         return;
     }
@@ -39,5 +40,9 @@ export function removeRelation(currentControl: any): void {
 
     const parent = foundControlNode.parent;
     foundControlNode.parent = null;
-    delete parent._children[currentControl._options.name];
+    // @ts-ignore
+    if (currentControl._options.name) {
+        // @ts-ignore
+        delete parent._children[currentControl._options.name];
+    }
 }

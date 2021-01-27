@@ -18,6 +18,7 @@ import { IRootTemplateOptions } from './interface/IRootTemplate';
 import { headDataStore } from 'UI/_base/HeadData';
 import mountChecker from 'UI/_base/MountChecker';
 import { Stack as MetaStack, IMetaStackInternal } from 'UI/_base/HTML/meta';
+import { Body as AppBody } from 'Application/Page';
 
 // Бывают ситуации, когда страницу открыли и сразу перешли на другую вкладку или перевели компьютер в режим сна.
 // У открытой страницы в фоновом режиме начинают по таймауту отваливаться запросы и страница в итоге не оживает.
@@ -53,6 +54,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
     // @ts-ignore
     _template: Function = template;
 
+    private _bodyClasses: string = '';
     private onServer: Boolean = false;
     // tslint:disable-next-line:ban-ts-ignore
     // @ts-ignore
@@ -85,6 +87,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
     private initState(cfg: any): void {
         this.templateConfig = cfg.templateConfig;
         this.compat = cfg.compat || false;
+        this._bodyClasses = cfg.bodyClasses || '';
     }
 
     private isFocusNode(node: Element): boolean {
@@ -183,7 +186,9 @@ class HTML extends Control<IHTMLCombinedOptions> {
             return;
         }
         return new Promise((resolve) => {
+            this._bodyClasses = AppBody.getInstance().getClassString();
             resolve({
+                bodyClasses: this._bodyClasses,
                 buildnumber: this.buildnumber,
                 metaStackSer: this.metaStack.serialize(),
                 appRoot: this.appRoot,
@@ -244,5 +249,14 @@ class HTML extends Control<IHTMLCombinedOptions> {
         };
     }
 }
+
+Object.defineProperty(HTML, 'defaultProps', {
+   enumerable: true,
+   configurable: true,
+
+   get(): object {
+      return HTML.getDefaultOptions();
+   }
+});
 
 export default HTML;
