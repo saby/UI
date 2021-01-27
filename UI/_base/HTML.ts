@@ -122,6 +122,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
     // tslint:disable-next-line:no-any
     _beforeMount(cfg: IHTMLCombinedOptions, context: any, receivedState: any): Promise<any> {
         this.onServer = typeof window === 'undefined';
+        this._pathBodyAPI();
         this.isCompatible = cfg.compat;
         this.initState(receivedState || cfg);
         this.metaStack = MetaStack.restore(receivedState?.metaStackSer);
@@ -231,6 +232,28 @@ class HTML extends Control<IHTMLCombinedOptions> {
         if (!detection.isMobilePlatform && !inIframe()) {
             this.activate();
         }
+    }
+
+    /** Удалить после полного перехода на построение от шаблона */
+    _pathBodyAPI(): void {
+        if (this.onServer) {
+            return;
+        }
+        const BodyAPI = AppBody.getInstance();
+        // @ts-ignore
+        BodyAPI.addClassOrig = BodyAPI.addClass;
+        // @ts-ignore
+        BodyAPI.removeClassOrig = BodyAPI.removeClass;
+        BodyAPI.addClass = (...tokens) => {
+            // @ts-ignore
+            BodyAPI.addClassOrig.apply(BodyAPI, tokens);
+            this._bodyClasses = BodyAPI.getClassString();
+        };
+        BodyAPI.removeClass = (...tokens) => {
+            // @ts-ignore
+            BodyAPI.removeClassOrig.apply(BodyAPI, tokens);
+            this._bodyClasses = BodyAPI.getClassString();
+        };
     }
 
     // tslint:disable-next-line:no-any
