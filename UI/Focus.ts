@@ -13,7 +13,6 @@ import * as BoundaryElements from './_focus/BoundaryElements';
 import { focus, _initFocus, nativeFocus } from './_focus/Focus';
 import { activate } from './_focus/Activate';
 import { preventFocus, hasNoFocus } from './_focus/PreventFocus';
-import { restoreFocus, subscribeRestoreFocus } from './_focus/RestoreFocus';
 import { prepareRestoreFocusBeforeRedraw, restoreFocusAfterRedraw } from './_focus/RestoreFocus';
 
 import { goUpByControlTree } from 'UI/NodeCollector';
@@ -35,8 +34,6 @@ export {
    activate,
    preventFocus,
    hasNoFocus,
-   restoreFocus,
-   subscribeRestoreFocus,
    goUpByControlTree,
    DefaultOpenerFinder
 };

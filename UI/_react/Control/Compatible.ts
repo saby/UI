@@ -4,7 +4,7 @@ import {getGeneratorConfig} from './GeneratorConfig';
 import {makeRelation, removeRelation} from './ParentFinder';
 import {EMPTY_THEME, getThemeController} from 'UI/theme/controller';
 import {Logger, Purifier} from 'UI/Utils';
-import { _IControl, activate, subscribeRestoreFocus } from 'UI/Focus';
+import { _IControl, activate, prepareRestoreFocusBeforeRedraw, restoreFocusAfterRedraw } from 'UI/Focus';
 import { constants } from 'Env/Env';
 import * as ReactDOM from 'react-dom';
 import * as React from 'react';
@@ -483,8 +483,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
             this._afterMount(this.props);
          }, 0);
       }
-      subscribeRestoreFocus(this, 'setState');
-      subscribeRestoreFocus(this, 'forceUpdate');
    }
 
    componentDidUpdate(prevProps: TOptions): void {
@@ -493,6 +491,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          makeRelation(this);
          this._afterUpdate.apply(this, [prevProps]);
       }, 0);
+      if (this._getEnvironment()) {
+         restoreFocusAfterRedraw(this);
+      }
    }
 
    getSnapshotBeforeUpdate(): void {
@@ -504,6 +505,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          } finally {
             this._reactiveStart = true;
          }
+      }
+      if (this._getEnvironment()) {
+         prepareRestoreFocusBeforeRedraw(this);
       }
       return null;
    }

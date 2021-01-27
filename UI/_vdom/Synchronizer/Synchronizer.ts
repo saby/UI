@@ -25,7 +25,7 @@ import {
    getNodeName
 } from 'UI/DevtoolsHook';
 // @ts-ignore
-import { restoreFocus } from 'UI/Focus';
+import { prepareRestoreFocusBeforeRedraw, restoreFocusAfterRedraw } from 'UI/Focus';
 
 /**
  * @author Кондаков Р.Н.
@@ -404,7 +404,9 @@ class VDomSynchronizer {
 
          //@ts-ignore используется runtime hack
          controlNode.environment._rebuildRequestStarted = true;
-         restoreFocus(controlNode.control, () => this._nextDirtiesRunCheck(controlNode));
+         prepareRestoreFocusBeforeRedraw(controlNode.control);
+         this._nextDirtiesRunCheck(controlNode);
+         restoreFocusAfterRedraw(controlNode.control);
          controlNode.environment.addTabListener();
       };
       delay(requestRebuildDelayed);
