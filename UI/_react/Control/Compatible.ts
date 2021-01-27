@@ -274,6 +274,38 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       // Do
    }
 
+
+   /**
+    * Определяет, должен ли контрол обновляться. Вызывается каждый раз перед обновлением контрола.
+    *
+    * @param {Object} options Опции контрола.
+    * @param {Object} [context] Поле контекста, запрошенное контролом. Параметр считается deprecated, поэтому откажитесь от его использования.
+    * @returns {Boolean}
+    * * true (значание по умолчанию): контрол будет обновлен.
+    * * false: контрол не будет обновлен.
+    * @example
+    * Например, если employeeSalary является единственным параметром, используемым в шаблоне контрола,
+    * можно обновлять контрол только при изменении параметра employeeSalary.
+    * <pre class="brush: html">
+    *    Control.extend({
+    *       ...
+    *       _shouldUpdate: function(newOptions, newContext) {
+    *          if (newOptions.employeeSalary === this._options.employeeSalary) {
+    *             return false;
+    *          }
+    *       }
+    *       ...
+    *    });
+    * </pre>
+    * @remark
+    * Хук жизненного цикла контрола вызывается после хука _beforeUpdate перед перестроением шаблона. Этот хук можно использовать для оптимизаций.
+    * Вы можете сравнить новые и текущие параметры и вернуть false, если нет необходимости пересчитывать DOM-дерево контрола.
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
+    */
+   protected _shouldUpdate(options: TOptions, context?: object): boolean {
+      return true;
+   }
+
    /**
     * Хук жизненного цикла контрола. Вызывается перед обновлением контрола.
     *
@@ -463,6 +495,10 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
             this._afterMount(this.props);
          }, 0);
       }
+   }
+
+   shouldComponentUpdate(newProps: TOptions): boolean {
+      return this._shouldUpdate(newProps);
    }
 
    componentDidUpdate(prevProps: TOptions): void {
