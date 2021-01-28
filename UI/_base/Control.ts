@@ -21,7 +21,7 @@ import { ReactiveObserver } from 'UI/Reactivity';
 import startApplication from 'UI/_base/startApplication';
 import { getProxyChildren } from './ProxyChildren';
 
-import { DisposeControl, IOwnedDisposable } from 'Env/Disposable';
+import { DisposeControl, IResourceDisposable } from 'Application/State';
 
 export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
@@ -318,7 +318,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
       return this._environment;
    }
    /** добавить ресурс, за которым будет происходить слежка */
-   protected attach(resource: IOwnedDisposable): void {
+   protected attach(resource: IResourceDisposable): void {
       this._resources.track(resource);
    }
    protected _beforeUnmountLimited(): void {
