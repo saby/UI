@@ -47,7 +47,8 @@ export function resolveOptions(controlClass: TControlConstructor, defaultOpts, c
 }
 
 export function getDefaultOptions(controlClass) {
-   const defaultProps = controlClass.defaultProps;
+   // нужно именно своё свойство defaultProps, чтобы случайно не взять с родителя
+   const defaultProps = controlClass.hasOwnProperty('defaultProps') ? controlClass.defaultProps : undefined;
    if (typeof defaultProps === 'object' && defaultProps !== null) {
       return defaultProps;
    }
