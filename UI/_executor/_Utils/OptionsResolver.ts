@@ -52,7 +52,12 @@ export function getDefaultOptions(controlClass) {
       return defaultProps;
    }
    if (controlClass.getDefaultOptions) {
-      Logger.error('Метод getDefaultOptions устарел, используйте статическое поле defaultProps.', controlClass.prototype);
+      /*
+      В прикладных репах изменения попали только в 2100, поэтому до 2100 вместо ошибки кидаю предупреждение.
+      По задаче поменяю на ошибку:
+      https://online.sbis.ru/opendoc.html?guid=17c93482-eab6-4f43-be1f-8f244490d2cf
+       */
+      Logger.warn('Метод getDefaultOptions устарел, используйте статическое поле defaultProps.', controlClass.prototype);
       return controlClass.getDefaultOptions();
    }
    return {};
