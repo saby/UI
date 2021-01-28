@@ -1,4 +1,4 @@
-import * as react from 'browser!react';
+import * as react from 'react';
 import { ArrayUtils } from 'UI/Utils';
 import { Logger } from 'UI/Utils';
 import { _FocusAttrs } from 'UI/Focus';
