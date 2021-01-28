@@ -798,7 +798,11 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
          // _reactiveStart means starting of monitor change in properties
          this._reactiveStart = true;
       }
-      const cssLoading = Promise.all([this.loadThemes(options.theme), this.loadStyles()]);
+      const cssLoading = Promise.all([
+         this.loadThemes(options.theme),
+         this.loadStyles(),
+         this.loadThemeVariables(options.theme)
+      ]);
       if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded(options.theme)) {
          return this._$resultBeforeMount = resultBeforeMount;
       }
@@ -830,6 +834,9 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
       // @ts-ignore
       const styles = this._styles instanceof Array ? this._styles : [];
       return this.constructor['loadStyles'](styles).catch(logError);
+   }
+   private loadThemeVariables(themeName?: string): Promise<void> {
+      return this.constructor['loadThemeVariables'](themeName).catch(logError);
    }
    //#endregion
 
@@ -1222,6 +1229,24 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
    static isWasaby: boolean = true;
 
    //#region CSS static
+   /**
+    * Вызовет загрузку коэффициентов (CSS переменных) для тем.
+    * @param {String} themeName имя темы. Например: "default", "default__cola" или "retail__light-medium"
+    * @static
+    * @public
+    * @method
+    * @example
+    * <pre>
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadThemeVariables('default__cola'))
+    * </pre>
+    */
+   static loadThemeVariables(themeName?: string): Promise<void> {
+      if (!themeName) {
+         return Promise.resolve();
+      }
+      return getThemeController().getVariables(themeName);
+   }
    /**
     * Загрузка стилей и тем контрола
     * @param {String} themeName имя темы (по-умолчанию тема приложения)

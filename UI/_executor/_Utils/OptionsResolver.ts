@@ -47,7 +47,21 @@ export function resolveOptions(controlClass: TControlConstructor, defaultOpts, c
 }
 
 export function getDefaultOptions(controlClass) {
-   return controlClass.getDefaultOptions ? controlClass.getDefaultOptions() : {};
+   // нужно именно своё свойство defaultProps, чтобы случайно не взять с родителя
+   const defaultProps = controlClass.hasOwnProperty('defaultProps') ? controlClass.defaultProps : undefined;
+   if (typeof defaultProps === 'object' && defaultProps !== null) {
+      return defaultProps;
+   }
+   if (controlClass.getDefaultOptions) {
+      /*
+      В прикладных репах изменения попали только в 2100, поэтому до 2100 вместо ошибки кидаю предупреждение.
+      По задаче поменяю на ошибку:
+      https://online.sbis.ru/opendoc.html?guid=17c93482-eab6-4f43-be1f-8f244490d2cf
+       */
+      Logger.warn('Метод getDefaultOptions устарел, используйте статическое поле defaultProps.', controlClass.prototype);
+      return controlClass.getDefaultOptions();
+   }
+   return {};
 }
 
 export function validateOptions(controlClass, cfg, parentName: string): boolean {
