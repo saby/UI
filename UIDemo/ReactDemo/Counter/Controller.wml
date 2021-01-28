@@ -1,0 +1,6 @@
+<UIDemo.ReactDemo.Counter.Counter
+        count="{{_count}}"
+        color="{{_color}}"
+        addHandler="{{add}}"
+        removeHandler="{{remove}}"
+        changeColor="{{changeColor}}"/>
