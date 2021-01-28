@@ -32,7 +32,9 @@ import {
    TIncludedTemplate,
    ITemplateNode,
    TObject,
-   TScope, IControlConfig
+   TScope,
+   IControlConfig,
+   IGeneratorNameObject
 } from '../IGeneratorType';
 import { GeneratorNode } from './IVdomType';
 import { cutFocusAttributes } from '../Utils';
@@ -352,10 +354,15 @@ export class GeneratorVdom implements IGenerator {
       }
       // create text node, if template is some text
       if (typeof tpl !== 'string') {
-         Logger.error(
-            `Template error - Invalid value of ws:partial template option: ${tpl} typeof ` + typeof tpl,
-            parent
-         );
+         let errorText = 'Ошибка в шаблоне! ';
+         if (tpl.hasOwnProperty('library')) {
+            errorText += `Контрол не найден в библиотеке.
+                Библиотека: ${(tpl as IGeneratorNameObject).library}. 
+                Контрол: ${(tpl as IGeneratorNameObject).module}`;
+         } else {
+            errorText += `Неверное значение в ws:partial. Опция шаблона: ${tpl} имеет тип ${typeof tpl}`;
+         }
+         Logger.error(errorText, parent);
       }
       if (Common.isCompat()) {
          return this.createText('' + tpl, decorAttribs.key);
