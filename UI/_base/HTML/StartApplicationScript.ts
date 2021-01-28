@@ -19,7 +19,7 @@ class StartApplicationScript extends Control {
          return;
       }
       const def = headDataStore.read('waitAppContent')();
-      return new Promise((resolve) => {
+      return new Promise<void>((resolve) => {
          def.then((res) => {
             this.additionalDeps = res.additionalDeps;
             resolve();
