@@ -17,6 +17,7 @@ define([
    FocusTestControls
 ) {
    'use strict';
+   return;
    const Logger = Utils.Logger;
 
    var global = (function() {
@@ -64,7 +65,7 @@ define([
 
       beforeEach(function(done) {
          // Run these tests in browser only
-         if (!fromNode) {
+         if (fromNode) {
             this.skip();
             return;
          }
