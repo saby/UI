@@ -1,4 +1,5 @@
 import * as react from 'browser!react';
+import type { Component } from 'react';
 import { ArrayUtils } from 'UI/Utils';
 import { Logger } from 'UI/Utils';
 import { _FocusAttrs } from 'UI/Focus';
@@ -218,13 +219,13 @@ export class GeneratorReact implements IGenerator {
       // FIXME: тип для data тянется из старого генератора, который ничего не знает про реакт
       if (typeof data.controlProperties.readOnly === 'undefined') {
          data.controlProperties.readOnly =
-            (data.parent as unknown as react.Component).props.readOnly ??
-            (data.parent as unknown as react.Component).context.readOnly;
+            (data.parent as unknown as Component<{ readOnly: boolean }>).props.readOnly ??
+            (data.parent as unknown as Component).context.readOnly;
       }
       if (typeof data.controlProperties.theme === 'undefined') {
          data.controlProperties.theme =
-            (data.parent as unknown as react.Component).props.theme ??
-            (data.parent as unknown as react.Component).context.theme as string;
+            (data.parent as unknown as Component<{ theme: 'string' }>).props.theme ??
+            (data.parent as unknown as Component).context.theme;
       }
 
       // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''

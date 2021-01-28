@@ -9,7 +9,6 @@ import {IItem} from './interfaces';
 import template = require('wml!UIDemo/ReactDemo/TODO/TODO');
 import {Model, Guid, ReactiveObject} from 'Types/entity';
 import {RecordSet} from 'Types/collection';
-import { IWasabyContextValue } from 'UI/_react/WasabyContext/WasabyContext';
 
 interface ITodoOptions extends IControlOptions {
    items: IItem[] | RecordSet;
@@ -18,7 +17,7 @@ interface ITodoOptions extends IControlOptions {
 export default class Todo extends Control<ITodoOptions> {
    protected _template: TemplateFunction = template;
 
-   constructor(...args: [ITodoOptions, IWasabyContextValue]) {
+   constructor(...args: [ITodoOptions]) {
       super(...args);
       this.removeHandler = this.removeHandler.bind(this);
       this.addNewItem = this.addNewItem.bind(this);

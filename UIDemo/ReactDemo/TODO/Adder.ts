@@ -7,7 +7,6 @@ import {
 
 // @ts-ignore
 import template = require('wml!UIDemo/ReactDemo/TODO/Adder');
-import { IWasabyContextValue } from 'UI/_react/WasabyContext/WasabyContext';
 
 interface IAdderOptions extends IControlOptions {
     addNewItem: Function;
@@ -19,7 +18,7 @@ export default class Adder extends Control<IAdderOptions> {
     protected _value: string = defaultMessage;
     protected _template: TemplateFunction = template;
 
-    constructor(...args: [IAdderOptions, IWasabyContextValue]) {
+    constructor(...args: [IAdderOptions]) {
         super(...args);
         this.changeHandler = this.changeHandler.bind(this);
         this.addNew = this.addNew.bind(this);
