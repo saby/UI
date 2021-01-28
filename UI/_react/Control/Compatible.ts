@@ -202,7 +202,11 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
                  contexts?: object,
                  receivedState?: TState): void {
       /** Загрузка стилей и тем оформления - это обязательно асинхронный процесс */
-      const cssLoading = Promise.all([this.loadThemes(options.theme), this.loadStyles()]);
+      const cssLoading = Promise.all([
+         this.loadThemes(options.theme),
+         this.loadStyles(),
+         this.loadThemeVariables(options.theme)
+      ]);
       const promisesToWait = [];
       if (!constants.isServerSide && !this.isDeprecatedCSS() && !this.isCSSLoaded(options.theme)) {
          promisesToWait.push(cssLoading.then(nop));
@@ -341,6 +345,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       // tslint:disable-next-line:no-string-literal
       return this.constructor['loadStyles'](styles).catch(logError);
    }
+   private loadThemeVariables(themeName?: string): Promise<void> {
+      return this.constructor['loadThemeVariables'](themeName).catch(logError);
+   }
 
    /* End: CSS region */
 
@@ -388,6 +395,25 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          return Promise.resolve();
       }
       return Promise.all(themes.map((name) => themeController.get(name, themeName))).then(nop);
+   }
+
+   /**
+    * Вызовет загрузку коэффициентов (CSS переменных) для тем.
+    * @param {String} themeName имя темы. Например: "default", "default__cola" или "retail__light-medium"
+    * @static
+    * @public
+    * @method
+    * @example
+    * <pre>
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadThemeVariables('default__cola'))
+    * </pre>
+    */
+   static loadThemeVariables(themeName?: string): Promise<void> {
+      if (!themeName) {
+         return Promise.resolve();
+      }
+      return getThemeController().getVariables(themeName);
    }
 
    /**
