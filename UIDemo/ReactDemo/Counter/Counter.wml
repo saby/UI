@@ -1,7 +1,9 @@
 <div style="color:{{_options.color}};">
-    <div>{{_options.count}}</div>
-    <button on:click="_options.addHandler()">Add counter</button>
-    <button on:click="_options.removeHandler()">Minus counter</button>
+    <div name="Content">{{_options.count}}</div>
+    <Controls.buttons:Button on:click="_options.addHandler()" caption="Add counter"
+                             theme="default"/>
+    <Controls.buttons:Button on:click="_options.removeHandler()" caption="Minus counter"
+                             theme="default"/>
     <Controls.buttons:Button name="Btn" on:click="_options.changeColor()" caption="ChangeColor without rerender"
                              theme="default"/>
 </div>
