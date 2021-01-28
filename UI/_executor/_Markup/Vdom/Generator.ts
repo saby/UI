@@ -360,7 +360,7 @@ export class GeneratorVdom implements IGenerator {
                 Библиотека: ${(tpl as IGeneratorNameObject).library}. 
                 Контрол: ${(tpl as IGeneratorNameObject).module}`;
          } else {
-            errorText += `Неверное значение в ws:partial. Опция шаблона: ${tpl} имеет тип ${typeof tpl}`;
+            errorText += `Неверное значение в ws:partial. Шаблон: ${tpl} имеет тип ${typeof tpl}`;
          }
          Logger.error(errorText, parent);
       }
