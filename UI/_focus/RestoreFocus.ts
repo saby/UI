@@ -64,6 +64,31 @@ export const prepareRestoreFocusBeforeRedraw: (control: IControl) => void = debo
    true
 );
 
+function findRestoreFocusControl(currentControl): boolean {
+   // в списке контролов может остаться очищенный контрол, делать в NodeCollector'е не можем,
+   // т.к.замедлит выполнение goUpByControlTree
+   if (isDestroyedControl(currentControl)) {
+      return false;
+   }
+   if (!currentControl._template && !currentControl._container) {
+      // СОВМЕСТИМОСТЬ: у старых невизуальных контролов может не быть контейнера
+      // (например, SBIS3.CONTROLS/Action/OpenDialog)
+      return false;
+   }
+   // совместимость. среди контролов могут встретиться ws3
+   let container = currentControl._container;
+   let isOldControl = false;
+   if (!currentControl._template) {
+      container = currentControl.getContainer()[0];
+      isOldControl = true;
+   }
+   focus.__restoreFocusPhase = true;
+   const containerVisible = isElementVisible(container) && isTreeVisible(container);
+   const result = containerVisible && focus(container, {}, isOldControl);
+   delete focus.__restoreFocusPhase;
+   return result;
+}
+
 export const restoreFocusAfterRedraw: (control: IControl) => void = debounce(
    function restoreFocusAfterRedrawOnce(control: IControl): void {
       lastSavedEnvironment._restoreFocusState = true;
@@ -71,30 +96,7 @@ export const restoreFocusAfterRedraw: (control: IControl) => void = debounce(
       // если сразу после изменения DOM-дерева фокус слетел в body, пытаемся восстановить фокус на ближайший элемент от
       // предыдущего активного, чтобы сохранить контекст фокуса и дать возможность управлять с клавиатуры
       if (checkActiveElement(lastSavedActiveElement)) {
-         prevControls.find((currentControl) => {
-            // в списке контролов может остаться очищенный контрол, делать в NodeCollector'е не можем,
-            // т.к.замедлит выполнение goUpByControlTree
-            if (isDestroyedControl(currentControl)) {
-               return false;
-            }
-            if (!currentControl._template && !currentControl._container) {
-               // СОВМЕСТИМОСТЬ: у старых невизуальных контролов может не быть контейнера
-               // (например, SBIS3.CONTROLS/Action/OpenDialog)
-               return false;
-            }
-            // совместимость. среди контролов могут встретиться ws3
-            let container = currentControl._container;
-            let isOldControl = false;
-            if (!currentControl._template) {
-               container = currentControl.getContainer()[0];
-               isOldControl = true;
-            }
-            focus.__restoreFocusPhase = true;
-            const containerVisible = isElementVisible(container) && isTreeVisible(container);
-            const result = containerVisible && focus(container, {}, isOldControl);
-            delete focus.__restoreFocusPhase;
-            return result;
-         });
+         prevControls.find(findRestoreFocusControl);
          // следим за состоянием _savedFocusedElement. хотелось бы делать это в environment в обработчике
          // на focus, но как минимум в IE на вызов фокуса туда не попадеам
          notifyActivationEvents._savedFocusedElement = document.activeElement;
