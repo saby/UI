@@ -147,6 +147,20 @@ class ProgramStorage {
       this.programs.push(meta);
    }
 
+   remove(meta: IProgramMeta): void {
+      const source = meta.node.string;
+      if (!this.programsMap.has(source))  {
+         return;
+      }
+      const index = this.programsMap.get(source);
+      this.programs.splice(index, 1);
+      this.programsMap.forEach((value: number, key: string) => {
+         if (value >= index) {
+            this.programsMap.set(key, value - 1);
+         }
+      });
+   }
+
    getMeta(): IProgramMeta[] {
       return Array(...this.programs);
    }
@@ -173,6 +187,152 @@ function containsIdentifiers(program: ProgramNode, identifiers: string[], fileNa
    return hasLocalIdentifier;
 }
 
+enum InternalNodeType {
+   IF,
+   ELSE_IF,
+   ELSE,
+   SIMPLE
+}
+
+class InternalNode {
+   public readonly index: number;
+
+   public type: InternalNodeType;
+   public typeName: string;
+
+   public parent: InternalNode;
+   public prev: InternalNode | null;
+   public next: InternalNode | null;
+   public children: Array<InternalNode>;
+
+   public test: ProgramNode | null;
+   public storage: ProgramStorage;
+
+   constructor(index: number, type: InternalNodeType) {
+      this.index = index;
+      this.type = type;
+      this.typeName = InternalNodeType[type];
+
+      this.parent = null;
+      this.prev = null;
+      this.next = null;
+      this.children = new Array<InternalNode>();
+
+      this.test = null;
+      this.storage = new ProgramStorage();
+   }
+
+   setParent(parent: InternalNode): void {
+      this.parent = parent;
+   }
+
+   removeIfContains(identifiers: string[], allocator: IndexAllocator): void {
+      for (let index = 0; index < this.children.length; ++index) {
+         this.children[index].removeIfContains(identifiers, allocator);
+      }
+      this.checkCleanConditional(identifiers, allocator);
+      this.cleanStorage(identifiers, allocator);
+   }
+
+   setType(type: InternalNodeType): void {
+      this.type = type;
+      this.typeName = InternalNodeType[type];
+   }
+
+   private cleanStorage(identifiers: string[], allocator: IndexAllocator): void {
+      const collection = this.storage.getMeta();
+      for (let index = 0; index < collection.length; ++index) {
+         const meta = collection[index];
+         if (containsIdentifiers(meta.node, identifiers, FILE_NAME)) {
+            this.storage.remove(meta);
+
+            const identifiers = collectIdentifiers(meta.node, FILE_NAME);
+            for (let idIndex = 0; idIndex < identifiers.length; ++idIndex) {
+               const identifier = identifiers[idIndex];
+               if (identifiers.indexOf(identifier) > -1) {
+                  continue;
+               }
+               const program = PARSER.parse(identifier);
+               const idMeta = createProgramMeta(
+                  null,
+                  ProgramType.SIMPLE,
+                  program,
+                  allocator.allocate(),
+                  true
+               );
+               this.storage.set(idMeta);
+            }
+         }
+      }
+   }
+
+   private checkCleanConditional(identifiers: string[], allocator: IndexAllocator): void {
+      if (this.type === InternalNodeType.SIMPLE) {
+         return;
+      }
+      if (this.type === InternalNodeType.ELSE) {
+         return;
+      }
+      if (containsIdentifiers(this.test, identifiers, FILE_NAME)) {
+         this.dropAndAppend(identifiers, allocator);
+         this.setType(InternalNodeType.SIMPLE);
+         this.test = null;
+         if (this.next === null) {
+            return;
+         }
+         if (this.next.type === InternalNodeType.ELSE_IF) {
+            this.next.setType(InternalNodeType.IF);
+         }
+         if (this.next.type === InternalNodeType.ELSE) {
+            this.next.setType(InternalNodeType.SIMPLE);
+         }
+      }
+   }
+
+   private dropAndAppend(identifiers: string[], allocator: IndexAllocator): void {
+      if (this.test === null) {
+         return;
+      }
+      const testIdentifiers = collectIdentifiers(this.test, FILE_NAME);
+      for (let idIndex = 0; idIndex < testIdentifiers.length; ++idIndex) {
+         const identifier = testIdentifiers[idIndex];
+         if (identifiers.indexOf(identifier) > -1) {
+            continue;
+         }
+         const program = PARSER.parse(identifier);
+         const idMeta = createProgramMeta(
+            null,
+            ProgramType.SIMPLE,
+            program,
+            allocator.allocate(),
+            true
+         );
+         this.storage.set(idMeta);
+      }
+   }
+
+   flatten(): IProgramMeta[] {
+      let collection = this.storage.getMeta();
+      for (let index = 0; index < this.children.length; ++index) {
+         const childCollection = this.children[index].flatten();
+         collection = collection.concat(childCollection);
+      }
+      return collection;
+   }
+}
+
+class IndexAllocator {
+   private index: number;
+
+   constructor(index: number) {
+      this.index = index;
+   }
+
+   allocate(): number {
+      return this.index++;
+   }
+}
+
 class Container {
    public readonly typeName: string;
    public desc: string;
@@ -187,6 +347,7 @@ class Container {
 
    public test: ProgramNode | null;
    public isElse: boolean;
+   public readonly selfIdentifiers: Array<string>;
    public readonly identifiers: Array<string>;
    public readonly storage: ProgramStorage;
 
@@ -204,6 +365,7 @@ class Container {
 
       this.test = null;
       this.isElse = false;
+      this.selfIdentifiers = new Array<string>();
       this.identifiers = new Array<string>();
       this.storage = new ProgramStorage();
 
@@ -215,6 +377,15 @@ class Container {
 
    createContainer(type: ContainerType): Container {
       return new Container(this, type);
+   }
+
+   addIdentifier(identifier: string): void {
+      if (this.selfIdentifiers.indexOf(identifier) === -1) {
+         this.selfIdentifiers.push(identifier);
+      }
+      if (this.identifiers.indexOf(identifier) === -1) {
+         this.identifiers.push(identifier);
+      }
    }
 
    registerProgram(program: ProgramNode, type: ProgramType, name: string | null): void {
@@ -252,6 +423,11 @@ class Container {
       return this.collectInternal(0);
    }
 
+   getInternalStructure(): InternalNode {
+      const allocator = new IndexAllocator(this.getCurrentProgramIndex());
+      return this.collectInternalStructure(0, allocator);
+   }
+
    private collectInternal(depth: number): IProgramMeta[] {
       let selfPrograms = this.storage.getMeta();
       if (depth === 0) {
@@ -264,6 +440,49 @@ class Container {
       }
       selfPrograms = selfPrograms.filter((meta: IProgramMeta) => !containsIdentifiers(meta.node, this.identifiers, FILE_NAME));
       return selfPrograms;
+   }
+
+   private collectInternalStructure(depth: number, allocator: IndexAllocator): InternalNode {
+      const node = this.createInternalNode(depth === 0);
+      let prevChild: InternalNode | null = null;
+      for (let index = 0; index < this.children.length; ++index) {
+         const child = this.children[index].collectInternalStructure(depth + 1, allocator);
+         node.children.push(child);
+         child.prev = prevChild;
+         if (prevChild !== null) {
+            prevChild.next = child;
+         }
+         prevChild = child;
+         child.setParent(node);
+      }
+      node.removeIfContains(this.selfIdentifiers, allocator);
+      return node;
+   }
+
+   private createInternalNode(removeOptions: boolean): InternalNode {
+      const node = new InternalNode(this.index, this.getInternalNodeType());
+      node.test = this.test;
+      let selfPrograms = this.storage.getMeta();
+      if (removeOptions) {
+         selfPrograms = selfPrograms.filter((meta: IProgramMeta) => meta.type !== ProgramType.OPTION);
+      }
+      for (let index = 0; index < selfPrograms.length; ++index) {
+         node.storage.set(selfPrograms[index]);
+      }
+      return node;
+   }
+
+   private getInternalNodeType(): InternalNodeType {
+      if (this.type === ContainerType.CONDITIONAL) {
+         if (this.isElse) {
+            if (this.test === null) {
+               return InternalNodeType.ELSE;
+            }
+            return InternalNodeType.ELSE_IF;
+         }
+         return InternalNodeType.IF;
+      }
+      return InternalNodeType.SIMPLE;
    }
 
    private applyProgram(program: ProgramNode, type: ProgramType, name: string | null, isSynthetic: boolean): void {
@@ -311,6 +530,13 @@ class Container {
          return this.programCounter++;
       }
       return this.parent.allocateProgramIndex();
+   }
+
+   private getCurrentProgramIndex(): number {
+      if (this.parent === null) {
+         return this.programCounter;
+      }
+      return this.parent.getCurrentProgramIndex();
    }
 
    private processIdentifiers(program: ProgramNode): boolean {
@@ -487,7 +713,7 @@ class InternalVisitor implements Ast.IAstVisitor {
 
    visitContentOption(node: Ast.ContentOptionNode, context: IContext): void {
       const container = context.container.createContainer(ContainerType.CONTENT_OPTION);
-      container.identifiers.push(node.__$ws_name);
+      container.addIdentifier(node.__$ws_name);
       container.desc = node.__$ws_name;
       const childContext: IContext = {
          ...context,
@@ -496,7 +722,8 @@ class InternalVisitor implements Ast.IAstVisitor {
       // @ts-ignore FIXME: Save container onto node of abstract syntax tree
       node.$$container = container;
       visitAll(node.__$ws_content, this, childContext);
-      node.__$ws_internal = wrapInternalExpressions(container.getInternal());
+      node.__$ws_internalTree = container.getInternalStructure();
+      node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
    }
 
    visitBind(node: Ast.BindNode, context: IContext): void {
@@ -524,7 +751,8 @@ class InternalVisitor implements Ast.IAstVisitor {
    visitComponent(node: Ast.ComponentNode, context: IContext): void {
       const childContainer = this.processComponent(node, context);
       childContainer.desc = `<${node.__$ws_path.getFullPath()}>`;
-      node.__$ws_internal = wrapInternalExpressions(childContainer.getInternal());
+      node.__$ws_internalTree = childContainer.getInternalStructure();
+      node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
    }
 
    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): void {
@@ -534,20 +762,23 @@ class InternalVisitor implements Ast.IAstVisitor {
       // @ts-ignore FIXME: Get container from node of abstract syntax tree
       childContainer.joinContainer(template.$$container, identifiers);
       childContainer.desc = `<ws:partial> @@ inline "${node.__$ws_name}"`;
-      node.__$ws_internal = wrapInternalExpressions(childContainer.getInternal());
+      node.__$ws_internalTree = childContainer.getInternalStructure();
+      node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
    }
 
    visitStaticPartial(node: Ast.StaticPartialNode, context: IContext): void {
       const childContainer = this.processComponent(node, context);
       childContainer.desc = `<ws:partial> @@ static "${node.__$ws_path.getFullPath()}"`;
-      node.__$ws_internal = wrapInternalExpressions(childContainer.getInternal());
+      node.__$ws_internalTree = childContainer.getInternalStructure();
+      node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
    }
 
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): void {
       const childContainer = this.processComponent(node, context);
       childContainer.registerProgram(node.__$ws_expression, ProgramType.SIMPLE, 'template');
       childContainer.desc = `<ws:partial> @@ dynamic "${node.__$ws_expression.string}"`;
-      node.__$ws_internal = wrapInternalExpressions(childContainer.getInternal());
+      node.__$ws_internalTree = childContainer.getInternalStructure();
+      node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
    }
 
    visitTemplate(node: Ast.TemplateNode, context: IContext): void {
@@ -560,7 +791,8 @@ class InternalVisitor implements Ast.IAstVisitor {
       visitAll(node.__$ws_content, this, childContext);
       // @ts-ignore FIXME: Save container onto node of abstract syntax tree
       node.$$container = container;
-      node.__$ws_internal = wrapInternalExpressions(container.getInternal());
+      node.__$ws_internalTree = container.getInternalStructure();
+      node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
    }
 
    visitIf(node: Ast.IfNode, context: IContext): void {
@@ -622,9 +854,9 @@ class InternalVisitor implements Ast.IAstVisitor {
          container
       };
       if (node.__$ws_index) {
-         container.identifiers.push(node.__$ws_index.string);
+         container.addIdentifier(node.__$ws_index.string);
       }
-      container.identifiers.push(node.__$ws_iterator.string);
+      container.addIdentifier(node.__$ws_iterator.string);
       container.registerProgram(node.__$ws_collection, ProgramType.SIMPLE, 'data');
       visitAll(node.__$ws_content, this, childContext);
       // @ts-ignore FIXME: Save container onto node of abstract syntax tree

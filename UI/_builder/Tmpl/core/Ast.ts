@@ -460,6 +460,12 @@ export abstract class Ast {
     * FIXME: Refactor it
     * @deprecated
     */
+   __$ws_internalTree: any | null;
+
+   /**
+    * FIXME: Refactor it
+    * @deprecated
+    */
    __$ws_lexicalContext: IContext | null;
 
    /**
@@ -471,6 +477,7 @@ export abstract class Ast {
       this.__$ws_flags = flags;
       this.__$ws_isRootNode = false;
       this.__$ws_internal = null;
+      this.__$ws_internalTree = null;
       this.__$ws_lexicalContext = null;
    }
 
