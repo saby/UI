@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_base/HTML/_meta/ResourceMeta" />
+/// <amd-module name="UI/_base/HTML/_meta/ResourceMeta"/>
 import { IMeta, IMetaState, IMetaStack } from 'UI/_base/HTML/_meta/interface';
 import { default as Stack } from 'UI/_base/HTML/_meta/Stack';
 
@@ -16,8 +16,7 @@ const getMetaStack: () => IMetaStack = Stack.getInstance;
  */
 export class ResourceMeta implements IResourceDisposable {
     private _metaState: IMetaState;
-    constructor(private meta: IMeta) {
-    }
+    constructor(private meta: IMeta) {}
     enter(): void {
         this._metaState = getMetaStack().push(this.meta);
     }

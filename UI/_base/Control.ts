@@ -21,7 +21,7 @@ import { ReactiveObserver } from 'UI/Reactivity';
 import startApplication from 'UI/_base/startApplication';
 import { getProxyChildren } from './ProxyChildren';
 
-import { default as DisposeControl, IResourceDisposable } from 'Application/State';
+import { DisposeControl, IResourceDisposable } from 'Application/State';
 
 export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 

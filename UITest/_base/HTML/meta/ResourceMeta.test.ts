@@ -1,5 +1,6 @@
 import { assert } from 'chai';
-import { getMetaStack, ResourceMeta } from 'UI/_base/HTML/meta';
+import { getMetaStack } from 'UI/Base'
+import { ResourceMeta } from 'UI/_base/HTML/meta';
 /* tslint:disable */
 describe('UI/_base/HTML/_meta/ResourceMeta', () => {
     it('проверка метода enter', () => {
