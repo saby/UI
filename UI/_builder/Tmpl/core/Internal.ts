@@ -312,11 +312,23 @@ export class InternalNode {
    }
 
    flatten(): IProgramMeta[] {
-      let collection = this.storage.getMeta();
+      return this.collectMeta(new Set<string>(), []);
+   }
+
+   private collectMeta(names: Set<string>, collection: IProgramMeta[]): IProgramMeta[] {
       for (let index = 0; index < this.children.length; ++index) {
-         const childCollection = this.children[index].flatten();
-         collection = collection.concat(childCollection);
+         this.children[index].collectMeta(names, collection);
       }
+
+      let localCollection = this.storage.getMeta();
+      for (let index = 0; index < localCollection.length; ++index) {
+         if (names.has(localCollection[index].node.string)) {
+            continue;
+         }
+         names.add(localCollection[index].node.string);
+         collection.push(localCollection[index]);
+      }
+
       return collection;
    }
 }
@@ -454,6 +466,9 @@ class Container {
          }
          prevChild = child;
          child.setParent(node);
+      }
+      if (depth === 0 && this.type === ContainerType.CONTENT_OPTION) {
+         return node;
       }
       node.removeIfContains(this.selfIdentifiers, allocator);
       return node;
@@ -775,7 +790,7 @@ class InternalVisitor implements Ast.IAstVisitor {
 
    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): void {
       const childContainer = this.processComponent(node, context);
-      childContainer.registerProgram(node.__$ws_expression, ProgramType.SIMPLE, 'template');
+      childContainer.registerProgram(node.__$ws_expression, ProgramType.OPTION, 'template');
       childContainer.desc = `<ws:partial> @@ dynamic "${node.__$ws_expression.string}"`;
       node.__$ws_internalTree = childContainer.getInternalStructure();
       node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
