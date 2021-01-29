@@ -33,7 +33,7 @@ define('UI/_builder/Tmpl/modules/data/array', [
             dirtyCh = 'this.func.internal = ';
          }
          if (injected && injected.internal) {
-            dirtyCh += FSC.getStr(injected.internal, cleanPropertyName);
+            dirtyCh += FSC.getStr(injected.internal);
          } else {
             dirtyCh += '{}';
             if (!this.includedFn) {

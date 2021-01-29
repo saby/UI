@@ -281,7 +281,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
                   : null
             );
          if (currentInternalForInjected) {
-            dirtyCh += FSC.getStr(currentInternalForInjected, htmlPropertyName);
+            dirtyCh += FSC.getStr(currentInternalForInjected);
          } else {
             dirtyCh += '{}';
             if (!this.includedFn) {
