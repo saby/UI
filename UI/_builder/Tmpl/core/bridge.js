@@ -98,13 +98,15 @@ define('UI/_builder/Tmpl/core/bridge', [
     */
    function annotateWithVisitors(traversed, options, traverseOptions, deferred) {
       var annotated = Annotate.default(traversed, traverseOptions.scope);
+
+      Internal.process(annotated, traverseOptions.scope);
+
       PatchVisitorLib.default(traversed, traverseOptions.scope);
       traversed.childrenStorage = annotated.childrenStorage;
       traversed.reactiveProps = annotated.reactiveProps;
       traversed.templateNames = annotated.templateNames;
       traversed.__newVersion = annotated.__newVersion;
 
-      Internal.process(annotated, traverseOptions.scope);
 
       // в случае сбора словаря локализуемых слов отдаем объект
       // { astResult - ast-дерево, words - словарь локализуемых слов }
