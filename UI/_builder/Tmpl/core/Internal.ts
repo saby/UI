@@ -20,7 +20,7 @@ enum ProgramType {
    FLOAT
 }
 
-interface IProgramMeta {
+export interface IProgramMeta {
    name: string | null;
    typeName: string;
    type: ProgramType;
@@ -187,14 +187,14 @@ function containsIdentifiers(program: ProgramNode, identifiers: string[], fileNa
    return hasLocalIdentifier;
 }
 
-enum InternalNodeType {
+export enum InternalNodeType {
    IF,
    ELSE_IF,
    ELSE,
    SIMPLE
 }
 
-class InternalNode {
+export class InternalNode {
    public readonly index: number;
 
    public type: InternalNodeType;
