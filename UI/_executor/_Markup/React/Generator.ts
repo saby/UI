@@ -436,17 +436,6 @@ export class GeneratorReact implements IGenerator {
          const attrs = props.attributes;
          if (node) {
             if (Common.isControl(control) && attrs && attrs.name) {
-               /*
-               * Если мы в слое совместимости, то имя компонента, которое передали сверху
-               * попадает в атрибуты и записывается в _children
-               * и так вышло, что это имя используется внутри контрола
-               * После синхронизации корневой элемент в шаблоне
-               * перетирает нужного нам ребенка
-               * */
-               if (control._options.name === attrs.name && node.tagName === 'DIV' &&
-                  control.hasCompatible && control.hasCompatible()) {
-                  attrs.name += '_fix';
-               }
                control._children[attrs.name] = node;
                onElementMount(control._children[attrs.name]);
             }
