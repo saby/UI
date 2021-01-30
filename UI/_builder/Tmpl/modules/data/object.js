@@ -78,7 +78,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
             injected.isControl,
             injected.rootConfig
          );
-         if (Internal.isUseNewInternalFunctions()) {
+         if (Internal.isUseNewInternalFunctions() && this.privateFn /* Есть privateFn <--> компилируем wml */) {
             // TODO: Test and remove code above
             injected.internal = Internal.generate(injected.__$ws_internalTree, this.privateFn);
          }
@@ -292,7 +292,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
                   ? realInjected.__$ws_internalTree
                   : null
             );
-         if (Internal.isUseNewInternalFunctions() && currentInternalTreeForInjected) {
+         if (Internal.isUseNewInternalFunctions() && currentInternalTreeForInjected && this.privateFn) {
             // TODO: Test and remove code above
             currentInternalForInjected = Internal.generate(currentInternalTreeForInjected, this.privateFn);
          }
