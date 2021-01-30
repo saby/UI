@@ -3,7 +3,8 @@ import { ExpressionVisitor, ProgramNode } from "UI/_builder/Tmpl/expressions/_pr
 
 const FUNCTION_PREFIX = '__$getInternal_';
 const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
-const FUNCTION_HEAD = 'var collection = { };';
+// FIXME: переменная funcContext неправильно вставлена в генератор кода mustache-выражения
+const FUNCTION_HEAD = 'var funcContext = data; var collection = { };';
 const FUNCTION_TAIL = 'return collection;';
 const FUNCTION_ARGUMENTS = 'data';
 
