@@ -440,17 +440,6 @@ export class GeneratorVdom implements IGenerator {
       return Vdom.htmlNode(tagName, props, children, key, function(node: any): any {
          if (node) {
             if (Common.isControl(this.control) && this.attrs && this.attrs.name) {
-               /*
-               * Если мы в слое совместимости, то имя компонента, которое передали сверху
-               * попадает в атрибуты и записывается в _children
-               * и так вышло, что это имя используется внутри контрола
-               * После синхронизации корневой элемент в шаблоне
-               * перетирает нужного нам ребенка
-               * */
-               if (this.control._options.name === this.attrs.name && node.tagName === 'DIV' &&
-                  this.control.hasCompatible && this.control.hasCompatible()) {
-                  this.attrs.name += '_fix';
-               }
                this.control._children[this.attrs.name] = node;
                onElementMount(this.control._children[this.attrs.name]);
             }
