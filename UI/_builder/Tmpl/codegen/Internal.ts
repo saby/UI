@@ -7,13 +7,36 @@ const FUNCTION_HEAD = 'var collection = { };';
 const FUNCTION_TAIL = 'return collection;';
 const FUNCTION_ARGUMENTS = 'data';
 
+const USE_INTERNAL_FUNCTIONS = true;
+
+export function isUseNewInternalFunctions(): boolean {
+   return USE_INTERNAL_FUNCTIONS;
+}
+
 export function generate(node: InternalNode, functions: Function[]): string {
+   if (isEmpty(node)) {
+      return '{}';
+   }
+   // TODO: Optimize!!! There we can create duplicate internal function
    const functionName = FUNCTION_PREFIX + node.index;
    const body = FUNCTION_HEAD + build(node) + FUNCTION_TAIL;
    const func = new Function(FUNCTION_ARGUMENTS, body);
    Object.defineProperty(func, 'name', { 'value': functionName, configurable: true });
-   functions.push(func);
+   appendFunction(func,functions);
    return functionName + '(data)';
+}
+
+function isEmpty(node: InternalNode): boolean {
+   // TODO: Optimize!!!
+   return node.flatten().length === 0;
+}
+
+function appendFunction(func: Function, functions: Function[]): void {
+   const index = functions.findIndex((item: Function) => func.name === item.name);
+   if (index > -1) {
+      return;
+   }
+   functions.unshift(func);
 }
 
 function build(node: InternalNode): string {
