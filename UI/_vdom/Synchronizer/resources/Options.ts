@@ -166,7 +166,7 @@ function isTemplateArrayChanged(
          getTemplateInternal(prev[kfn]),
          false,
          versionsStorage,
-         true,
+         checkPrevValue,
          localPrefix,
          isCompound
       );
@@ -191,7 +191,7 @@ function isTemplateObjectChanged(
       getTemplateInternal(prev),
       false,
       versionsStorage,
-      true,
+      checkPrevValue,
       localPrefix,
       isCompound
    );
@@ -387,7 +387,7 @@ export function getChangedOptions(
          // Кейс описан в тесте "old option removed"
          // FIXME: раскомментить тест old option removed и поправить поведенине getChangedOptions
       } else if (hasPrev && !hasNext /** Removal */) {
-         if (checkPrevValue) {
+         if (checkPrevValue || isDirtyChecking(property)) {
             if (shouldIgnoreChanging(next[property] as IManualObject)) {
                continue;
             }
