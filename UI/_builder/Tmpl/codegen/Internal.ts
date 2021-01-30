@@ -50,7 +50,7 @@ function build(node: InternalNode): string {
       const test = buildProgram(node.test);
       return ` else if(${test}){${body}}`;
    }
-   if (node.type === InternalNodeType.ELSE) {
+   if (node.type === InternalNodeType.ELSE && body.length > 0) {
       return ` else {${body}}`;
    }
    return body;
