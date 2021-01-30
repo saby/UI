@@ -205,7 +205,7 @@ export class InternalNode {
    public next: InternalNode | null;
    public children: Array<InternalNode>;
 
-   public test: ProgramNode | null;
+   public test: IProgramMeta | null;
    public storage: ProgramStorage;
 
    constructor(index: number, type: InternalNodeType) {
@@ -273,7 +273,7 @@ export class InternalNode {
       if (this.type === InternalNodeType.ELSE) {
          return;
       }
-      if (containsIdentifiers(this.test, identifiers, FILE_NAME)) {
+      if (containsIdentifiers(this.test.node, identifiers, FILE_NAME)) {
          this.dropAndAppend(identifiers, allocator);
          this.setType(InternalNodeType.SIMPLE);
          this.test = null;
@@ -293,7 +293,7 @@ export class InternalNode {
       if (this.test === null) {
          return;
       }
-      const testIdentifiers = collectIdentifiers(this.test, FILE_NAME);
+      const testIdentifiers = collectIdentifiers(this.test.node, FILE_NAME);
       for (let idIndex = 0; idIndex < testIdentifiers.length; ++idIndex) {
          const identifier = testIdentifiers[idIndex];
          if (identifiers.indexOf(identifier) > -1) {
@@ -357,7 +357,7 @@ class Container {
    public readonly parent: Container | null;
    public readonly children: Array<Container>;
 
-   public test: ProgramNode | null;
+   public test: IProgramMeta | null;
    public isElse: boolean;
    public readonly selfIdentifiers: Array<string>;
    public readonly identifiers: Array<string>;
@@ -398,6 +398,24 @@ class Container {
       if (this.identifiers.indexOf(identifier) === -1) {
          this.identifiers.push(identifier);
       }
+   }
+
+   registerTestProgram(program: ProgramNode): void {
+      if (!canRegisterProgram(program)) {
+         return;
+      }
+      if (!this.processIdentifiers(program)) {
+         return;
+      }
+      const meta = createProgramMeta(
+         'data',
+         ProgramType.SIMPLE,
+         program,
+         this.allocateProgramIndex(),
+         false
+      );
+      this.test = meta;
+      patchProgramNode(meta);
    }
 
    registerProgram(program: ProgramNode, type: ProgramType, name: string | null): void {
@@ -813,8 +831,7 @@ class InternalVisitor implements Ast.IAstVisitor {
    visitIf(node: Ast.IfNode, context: IContext): void {
       const container = context.container.createContainer(ContainerType.CONDITIONAL);
       container.desc = `<ws:if> "${node.__$ws_test.string}"`;
-      container.test = node.__$ws_test;
-      container.registerProgram(node.__$ws_test, ProgramType.SIMPLE, 'data');
+      container.registerTestProgram(node.__$ws_test);
       const childContext: IContext = {
          ...context,
          container
@@ -830,8 +847,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       container.isElse = true;
       if (node.__$ws_test !== null) {
          container.desc = `<ws:else> "${node.__$ws_test.string}"`;
-         container.test = node.__$ws_test;
-         container.registerProgram(node.__$ws_test, ProgramType.SIMPLE, 'data');
+         container.registerTestProgram(node.__$ws_test);
       }
       const childContext: IContext = {
          ...context,
