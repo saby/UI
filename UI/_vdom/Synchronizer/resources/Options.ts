@@ -166,7 +166,7 @@ function isTemplateArrayChanged(
          getTemplateInternal(prev[kfn]),
          false,
          versionsStorage,
-         checkPrevValue,
+         true,
          localPrefix,
          isCompound
       );
@@ -191,7 +191,7 @@ function isTemplateObjectChanged(
       getTemplateInternal(prev),
       false,
       versionsStorage,
-      checkPrevValue,
+      true,
       localPrefix,
       isCompound
    );
