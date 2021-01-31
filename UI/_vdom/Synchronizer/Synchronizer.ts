@@ -407,7 +407,6 @@ class VDomSynchronizer {
          prepareRestoreFocusBeforeRedraw(controlNode.control);
          this._nextDirtiesRunCheck(controlNode);
          restoreFocusAfterRedraw(controlNode.control);
-         controlNode.environment.addTabListener();
       };
       delay(requestRebuildDelayed);
    }

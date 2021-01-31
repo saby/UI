@@ -56,6 +56,7 @@ export function prepareRestoreFocusBeforeRedraw(control: IControl): void {
       prevControls = goUpByControlTree(lastSavedActiveElement);
    }
 
+   // @ts-ignore Существует несколько интерфейсов контрола и окружения, нужно будет сделать один.
    lastSavedEnvironment = control._getEnvironment();
 }
 
@@ -105,6 +106,7 @@ export function restoreFocusAfterRedraw(control: IControl): void {
       // нужно восстановить фокус после _rebuild
       // проверяю на control._mounted, _rebuild сейчас не синхронный, он не гарантирует что асинхронные ветки
       // перерисовались
+         // @ts-ignore Существует несколько интерфейсов контрола и окружения, нужно будет сделать один.
       if (control.__$focusing && !isDestroyedControl(control) && control._mounted) {
          control.activate();
          // до синхронизации мы сохранили __$focusing - фокусируемый элемент,
@@ -112,9 +114,11 @@ export function restoreFocusAfterRedraw(control: IControl): void {
          // если не нашли фокусируемый элемент - значит в доме не оказалось этого элемента.
          // но мы все равно отменяем скинем флаг, чтобы он не сфокусировался позже когда уже не надо
          // https://online.sbis.ru/opendoc.html?guid=e46d87cc-5dc2-4f67-b39c-5eeea973b2cc
+         // @ts-ignore Существует несколько интерфейсов контрола и окружения, нужно будет сделать один.
          control.__$focusing = false;
       }
    }
    lastSavedEnvironment._restoreFocusState = false;
+   lastSavedEnvironment.addTabListener();
    lastSavedEnvironment = undefined;
 }
