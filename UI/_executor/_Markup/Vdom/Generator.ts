@@ -32,7 +32,9 @@ import {
    TIncludedTemplate,
    ITemplateNode,
    TObject,
-   TScope, IControlConfig
+   TScope,
+   IControlConfig,
+   IGeneratorNameObject
 } from '../IGeneratorType';
 import { GeneratorNode } from './IVdomType';
 import { cutFocusAttributes } from '../Utils';
@@ -352,10 +354,15 @@ export class GeneratorVdom implements IGenerator {
       }
       // create text node, if template is some text
       if (typeof tpl !== 'string') {
-         Logger.error(
-            `Template error - Invalid value of ws:partial template option: ${tpl} typeof ` + typeof tpl,
-            parent
-         );
+         let errorText = 'Ошибка в шаблоне! ';
+         if (tpl.hasOwnProperty('library')) {
+            errorText += `Контрол не найден в библиотеке.
+                Библиотека: ${(tpl as IGeneratorNameObject).library}. 
+                Контрол: ${(tpl as IGeneratorNameObject).module}`;
+         } else {
+            errorText += `Неверное значение в ws:partial. Шаблон: ${tpl} имеет тип ${typeof tpl}`;
+         }
+         Logger.error(errorText, parent);
       }
       if (Common.isCompat()) {
          return this.createText('' + tpl, decorAttribs.key);
@@ -433,17 +440,6 @@ export class GeneratorVdom implements IGenerator {
       return Vdom.htmlNode(tagName, props, children, key, function(node: any): any {
          if (node) {
             if (Common.isControl(this.control) && this.attrs && this.attrs.name) {
-               /*
-               * Если мы в слое совместимости, то имя компонента, которое передали сверху
-               * попадает в атрибуты и записывается в _children
-               * и так вышло, что это имя используется внутри контрола
-               * После синхронизации корневой элемент в шаблоне
-               * перетирает нужного нам ребенка
-               * */
-               if (this.control._options.name === this.attrs.name && node.tagName === 'DIV' &&
-                  this.control.hasCompatible && this.control.hasCompatible()) {
-                  this.attrs.name += '_fix';
-               }
                this.control._children[this.attrs.name] = node;
                onElementMount(this.control._children[this.attrs.name]);
             }

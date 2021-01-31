@@ -42,6 +42,7 @@ export class Builder implements IBuilder {
       if (typeof window !== 'undefined' && window.reactGenerator) {
          _options._logicParent = scope.internal.logicParent;
          _options.events = scope.events;
+         _options._$attributes = decOptions;
          return react.createElement(cnstr, _options);
       }
       var inst = new cnstr(_options),
