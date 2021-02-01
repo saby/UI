@@ -302,6 +302,16 @@ var
       var rk = this.getRkCache[localizationModule] || requirejs("i18n!" + localizationModule);
       this.getRkCache[localizationModule] = rk;
       return rk;
+   },
+   getContext = function(obj) {
+      let result = obj;
+      while (result) {
+         if (result.hasOwnProperty('_container')) {
+            return result;
+         }
+         result = result.__proto__;
+      }
+      return obj;
    };
 
 const isolateScope = Scope.isolateScope;
@@ -342,5 +352,6 @@ export {
    getMarkupGenerator,
    validateNodeKey,
    getRk,
+   getContext,
    _isTClosure
 };
