@@ -493,6 +493,9 @@ class Container {
       const node = new InternalNode(this.index, this.getInternalNodeType());
       node.test = this.test;
       let selfPrograms = this.storage.getMeta();
+      if (node.test) {
+         selfPrograms.unshift(node.test);
+      }
       if (removeOptions) {
          selfPrograms = selfPrograms.filter((meta: IProgramMeta) => meta.type !== ProgramType.OPTION);
       }
@@ -507,15 +510,15 @@ class Container {
    }
 
    private getInternalNodeType(): InternalNodeType {
-      if (this.type === ContainerType.CONDITIONAL) {
-         if (this.isElse) {
-            if (this.test === null) {
-               return InternalNodeType.ELSE;
-            }
-            return InternalNodeType.ELSE_IF;
-         }
-         return InternalNodeType.IF;
-      }
+      // if (this.type === ContainerType.CONDITIONAL) {
+      //    if (this.isElse) {
+      //       if (this.test === null) {
+      //          return InternalNodeType.ELSE;
+      //       }
+      //       return InternalNodeType.ELSE_IF;
+      //    }
+      //    return InternalNodeType.IF;
+      // }
       return InternalNodeType.SIMPLE;
    }
 
