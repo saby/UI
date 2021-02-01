@@ -231,9 +231,12 @@ export function getChangedOptions(
    let hasChanges = false;
    let hasPrev;
    let hasNext;
+   let isDirtyCheckingProperty;
 
    for (let i = 0; i < properties.length; ++i) {
       const property = properties[i];
+
+      isDirtyCheckingProperty = isDirtyChecking(property);
 
       /**
        * todo игнорируем _logicParent, эта опция вообще не должна сюда прилетать и сравниваться на изменения
@@ -248,7 +251,7 @@ export function getChangedOptions(
        * есть CompoundControl внутри которого в контентных опциях
        * есть контролы
        */
-      if (ignoreDirtyChecking && isDirtyChecking(property)) {
+      if (ignoreDirtyChecking && isDirtyCheckingProperty) {
          continue;
       }
       // TODO: Сделать проверку изменения для контекстов
@@ -387,7 +390,7 @@ export function getChangedOptions(
          // Кейс описан в тесте "old option removed"
          // FIXME: раскомментить тест old option removed и поправить поведенине getChangedOptions
       } else if (hasPrev && !hasNext /** Removal */) {
-         if (checkPrevValue || isDirtyChecking(property)) {
+         if (checkPrevValue || isDirtyCheckingProperty) {
             if (shouldIgnoreChanging(next[property] as IManualObject)) {
                continue;
             }
