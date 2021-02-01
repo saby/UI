@@ -22,9 +22,14 @@ export function generate(node: InternalNode, functions: Function[]): string {
    // TODO: Optimize!!! There we can create duplicate internal function
    const functionName = FUNCTION_PREFIX + node.index;
    const body = FUNCTION_HEAD + build(node) + FUNCTION_TAIL;
+   const index = node.ref.getCommittedIndex(body);
+   if (index !== null) {
+      return FUNCTION_PREFIX + index + `(${CONTEXT_VARIABLE_NAME})`;
+   }
    const func = new Function(CONTEXT_VARIABLE_NAME, body);
    Object.defineProperty(func, 'name', { 'value': functionName, configurable: true });
-   appendFunction(func,functions);
+   appendFunction(func, functions);
+   node.ref.commitCode(node.index, body);
    return functionName + `(${CONTEXT_VARIABLE_NAME})`;
 }
 

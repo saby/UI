@@ -208,7 +208,9 @@ export class InternalNode {
    public test: IProgramMeta | null;
    public storage: ProgramStorage;
 
-   constructor(index: number, type: InternalNodeType) {
+   public ref: Container;
+
+   constructor(index: number, type: InternalNodeType, ref: Container) {
       this.index = index;
       this.type = type;
       this.typeName = InternalNodeType[type];
@@ -220,6 +222,7 @@ export class InternalNode {
 
       this.test = null;
       this.storage = new ProgramStorage();
+      this.ref = ref;
    }
 
    setParent(parent: InternalNode): void {
@@ -363,11 +366,16 @@ class Container {
    public readonly identifiers: Array<string>;
    public readonly storage: ProgramStorage;
 
+   public readonly codegen: Map<number, string>;
+   public readonly codegenMap: Map<string, number>;
+
    constructor(parent: Container | null, type: ContainerType) {
       this.typeName = ContainerType[type];
       this.desc = '';
 
       this.globalContainers = parent === null ? new Array<Container>() : parent.globalContainers;
+      this.codegen = parent === null ? new Map<number, string>() : parent.codegen;
+      this.codegenMap = parent === null ? new Map<string, number>() : parent.codegenMap;
       this.programCounter = 0;
 
       this.type = type;
@@ -455,6 +463,18 @@ class Container {
       return this.collectInternalStructure(0, allocator, indices, removeSelfIdentifiers);
    }
 
+   commitCode(index: number, code: string): void {
+      this.codegen.set(index, code);
+      this.codegenMap.set(code, index);
+   }
+
+   getCommittedIndex(code: string): number | null {
+      if (this.codegenMap.has(code)) {
+         return this.codegenMap.get(code);
+      }
+      return null;
+   }
+
    private collectInternal(): IProgramMeta[] {
       let selfPrograms = this.storage.getMeta();
       for (let index = 0; index < this.children.length; ++index) {
@@ -487,7 +507,7 @@ class Container {
    }
 
    private createInternalNode(indices: Set<number>): InternalNode {
-      const node = new InternalNode(this.index, this.getInternalNodeType());
+      const node = new InternalNode(this.index, this.getInternalNodeType(), this);
       node.test = this.test;
       let selfPrograms = this.storage.getMeta();
       if (node.test) {
