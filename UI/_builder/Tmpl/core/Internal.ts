@@ -451,7 +451,8 @@ class Container {
 
    getInternalStructure(): InternalNode {
       const allocator = new IndexAllocator(this.getCurrentProgramIndex());
-      return this.collectInternalStructure(0, allocator);
+      const indices = new Set<number>();
+      return this.collectInternalStructure(0, allocator, indices);
    }
 
    private collectInternal(depth: number): IProgramMeta[] {
@@ -468,11 +469,11 @@ class Container {
       return selfPrograms;
    }
 
-   private collectInternalStructure(depth: number, allocator: IndexAllocator): InternalNode {
-      const node = this.createInternalNode(depth === 0);
+   private collectInternalStructure(depth: number, allocator: IndexAllocator, indices: Set<number>): InternalNode {
+      const node = this.createInternalNode(depth === 0, indices);
       let prevChild: InternalNode | null = null;
       for (let index = 0; index < this.children.length; ++index) {
-         const child = this.children[index].collectInternalStructure(depth + 1, allocator);
+         const child = this.children[index].collectInternalStructure(depth + 1, allocator, indices);
          node.children.push(child);
          child.prev = prevChild;
          if (prevChild !== null) {
@@ -488,7 +489,7 @@ class Container {
       return node;
    }
 
-   private createInternalNode(removeOptions: boolean): InternalNode {
+   private createInternalNode(removeOptions: boolean, indices: Set<number>): InternalNode {
       const node = new InternalNode(this.index, this.getInternalNodeType());
       node.test = this.test;
       let selfPrograms = this.storage.getMeta();
@@ -496,7 +497,11 @@ class Container {
          selfPrograms = selfPrograms.filter((meta: IProgramMeta) => meta.type !== ProgramType.OPTION);
       }
       for (let index = 0; index < selfPrograms.length; ++index) {
+         if (indices.has(selfPrograms[index].index)) {
+            continue;
+         }
          node.storage.set(selfPrograms[index]);
+         indices.add(selfPrograms[index].index);
       }
       return node;
    }
