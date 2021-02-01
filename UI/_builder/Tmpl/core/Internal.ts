@@ -453,10 +453,6 @@ class Container {
       this.children.push(join);
    }
 
-   getInternal(): IProgramMeta[] {
-      return this.collectInternal();
-   }
-
    getInternalStructure(removeSelfIdentifiers: boolean = false): InternalNode {
       const allocator = new IndexAllocator(this.getCurrentProgramIndex());
       const indices = new Set<number>();
