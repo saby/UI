@@ -452,7 +452,7 @@ class Container {
    getInternalStructure(removeSelfIdentifiers: boolean = false): InternalNode {
       const allocator = new IndexAllocator(this.getCurrentProgramIndex());
       const indices = new Set<number>();
-      return this.collectInternalStructure(allocator, indices);
+      return this.collectInternalStructure(0, allocator, indices, removeSelfIdentifiers);
    }
 
    private collectInternal(): IProgramMeta[] {
@@ -466,11 +466,11 @@ class Container {
       return selfPrograms;
    }
 
-   private collectInternalStructure(allocator: IndexAllocator, indices: Set<number>, removeSelfIdentifiers: boolean = false): InternalNode {
+   private collectInternalStructure(depth: number, allocator: IndexAllocator, indices: Set<number>, removeSelfIdentifiers: boolean): InternalNode {
       const node = this.createInternalNode(indices);
       let prevChild: InternalNode | null = null;
       for (let index = 0; index < this.children.length; ++index) {
-         const child = this.children[index].collectInternalStructure(allocator, indices);
+         const child = this.children[index].collectInternalStructure(depth + 1, allocator, indices, removeSelfIdentifiers);
          node.children.push(child);
          child.prev = prevChild;
          if (prevChild !== null) {
@@ -479,9 +479,10 @@ class Container {
          prevChild = child;
          child.setParent(node);
       }
-      if (removeSelfIdentifiers && this.type === ContainerType.CONTENT_OPTION) {
-         node.removeIfContains(this.selfIdentifiers, allocator);
+      if (!removeSelfIdentifiers && depth === 0 && this.type === ContainerType.CONTENT_OPTION) {
+         return node;
       }
+      node.removeIfContains(this.selfIdentifiers, allocator);
       return node;
    }
 
