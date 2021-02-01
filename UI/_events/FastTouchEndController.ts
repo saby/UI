@@ -24,8 +24,8 @@ export class FastTouchEndController {
    static clickEmulate(targetElement: Element, nativeEvent: TouchEvent): void {
       if (this.useNativeTouchEnd(targetElement, nativeEvent)) {
          return;
-         nativeEvent.preventDefault();
       }
+      nativeEvent.preventDefault();
       const touch = nativeEvent.changedTouches[0];
       let clickEvent;
       for (let i = 0; i < fastEventList.length; i++) {
