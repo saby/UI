@@ -1246,7 +1246,7 @@ function checkSameEnvironment(env: any, element: any, isCompatibleTemplate: bool
          }
          // Следует определить есть ли обработчики на внешнем окружении
          let _element = element;
-         while (_element !== document.body) {
+         while (_element.parentNode) {
             _element = _element.parentNode;
             // проверяем на наличие controlNodes на dom-элементе
             if (_element.controlNodes && _element.controlNodes[0]) {
