@@ -104,6 +104,9 @@ function collect(prev: IModulesDescription, next: IModulesDescription): IModules
 
 function requireModuleDeps(path: string): IModulesDescription {
    try {
+      // в демо стендах resourceRoot равен "/"
+      // из-за этого в релиз режиме путь к мета файлам формируется с двойным слешем и require не грузит такие файлы
+      path = path === '/' ? '' : path;
       // tslint:disable-next-line:ban-ts-ignore
       // @ts-ignore
       const deps: IModulesDeps = require(`json!${path}/module-dependencies`);

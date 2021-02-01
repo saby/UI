@@ -97,7 +97,8 @@
       builder="{{ !!_options.builder }}"
       servicesPath="{{ servicesPath }}"
       defaultTheme="{{ _options.defaultTheme }}"
-      product="{{ product }}">
+      product="{{ product }}"
+      reactApp="{{ reactApp }}">
    </UI._base.HTML.Head>
    <ws:if data="{{_options.bodyTemplate}}">
       <ws:partial template="{{_options.bodyTemplate}}">

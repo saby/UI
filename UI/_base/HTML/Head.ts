@@ -216,7 +216,8 @@ function createWsConfig(options: IHeadOptions, staticDomainsstringified: string)
             `staticDomains: '${staticDomainsstringified}',`,
             `defaultServiceUrl: '${options.servicesPath}',`,
             `compatible: ${options.compat},`,
-            `product: '${options.product}'`,
+            `product: '${options.product}',`,
+            `reactApp: ${options.reactApp}`,
             '};',
             options.buildnumber ? `window.buildnumber = ${options.buildnumber};` : '',
             options.preInitScript ? options.preInitScript : ''
@@ -277,4 +278,5 @@ interface IHeadOptions extends IControlOptions {
     meta?: Object[];
     links?: Object[];
     scripts?: Object[];
+    reactApp?: boolean;
 }
