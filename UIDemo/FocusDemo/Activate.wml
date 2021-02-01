@@ -1,0 +1,14 @@
+<UIDemo.FocusDemo.Index>
+    <div ws-tab-cycling="true">
+        <div class="elementToFocus">
+            <UIDemo.FocusDemo.Activate.ActivateElement on:activated="isActivated('Первый')" on:deactivated="isDeactivated('Первый')" />
+            <span>&nbsp;Первый элемент</span>
+        </div>
+        <div class="elementToFocus">
+            <UIDemo.FocusDemo.Activate.ActivateElement on:activated="isActivated('Второй')" on:deactivated="isDeactivated('Второй')" />
+            <span>&nbsp;Второй элемент</span>
+        </div>
+    </div>
+    <div>Последний активированный элемент: {{ lastActivated }}</div>
+    <div>Последний деактивированный элемент: {{ lastDeactivated }}</div>
+</UIDemo.FocusDemo.Index>
