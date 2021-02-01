@@ -303,9 +303,16 @@ var
       this.getRkCache[localizationModule] = rk;
       return rk;
    },
+   /**
+    * при построении шаблонов (инлайн шаблоны, контентные опции) контекстом выполнения является не контрол
+    * а производная шаблона (object.create), но в вызываемые внутри функции нужно передавать в качестве
+    * контекста выполнения нужно передавать сам контрол. Функция вычисляет этот контрол.
+    * @param obj
+    */
    getContext = function(obj) {
       let result = obj;
       while (result) {
+         // маркером того, что мы нашли контрол является поле _container
          if (result.hasOwnProperty('_container')) {
             return result;
          }
