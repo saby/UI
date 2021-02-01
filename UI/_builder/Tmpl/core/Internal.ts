@@ -401,12 +401,8 @@ class Container {
    }
 
    registerTestProgram(program: ProgramNode): void {
-      if (!canRegisterProgram(program)) {
-         return;
-      }
-      if (!this.processIdentifiers(program)) {
-         return;
-      }
+      // TODO: There can be truthy/falsy literal. Release optimization
+      this.processIdentifiers(program);
       const meta = createProgramMeta(
          'data',
          ProgramType.SIMPLE,
