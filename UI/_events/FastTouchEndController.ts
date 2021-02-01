@@ -12,7 +12,7 @@ interface IMouseEventInitExtend extends MouseEventInit {
 }
 
 const fastEventList = ['mousedown', 'mouseup', 'click'];
-const useNativeEventList = ['input'];
+const useNativeEventList = ['input', 'textarea'];
 
 export class FastTouchEndController {
    private static needClickEmulate: boolean = true;
@@ -24,8 +24,8 @@ export class FastTouchEndController {
    static clickEmulate(targetElement: Element, nativeEvent: TouchEvent): void {
       if (this.useNativeTouchEnd(targetElement, nativeEvent)) {
          return;
+         nativeEvent.preventDefault();
       }
-      nativeEvent.preventDefault();
       const touch = nativeEvent.changedTouches[0];
       let clickEvent;
       for (let i = 0; i < fastEventList.length; i++) {
