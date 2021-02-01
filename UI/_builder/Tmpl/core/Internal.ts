@@ -192,7 +192,7 @@ export enum InternalNodeType {
    IF,
    ELSE_IF,
    ELSE,
-   SIMPLE
+   BLOCK
 }
 
 export class InternalNode {
@@ -271,12 +271,16 @@ export class InternalNode {
    }
 
    private checkCleanConditional(identifiers: string[], allocator: IndexAllocator): void {
-      if (this.type === InternalNodeType.SIMPLE || this.type === InternalNodeType.ELSE) {
+      if (this.type === InternalNodeType.BLOCK || this.type === InternalNodeType.ELSE) {
          return;
       }
       if (containsIdentifiers(this.test.node, identifiers, FILE_NAME)) {
          this.dropAndAppend(identifiers, allocator);
-         this.setType(InternalNodeType.ELSE);
+         this.setType(
+            this.type === InternalNodeType.ELSE_IF
+               ? InternalNodeType.ELSE
+               : InternalNodeType.BLOCK
+         );
          this.test = null;
          if (this.next === null) {
             return;
@@ -286,15 +290,13 @@ export class InternalNode {
    }
 
    private removeSiblingConditional(parent: InternalNode, counter: number = 0): void {
-      if (this.type === InternalNodeType.IF) {
-         return;
-      }
       if (counter === 0) {
          if (this.type === InternalNodeType.ELSE_IF) {
             this.setType(InternalNodeType.IF);
-         }
-         if (this.type === InternalNodeType.ELSE) {
-            this.setType(InternalNodeType.SIMPLE);
+         } else if (this.type === InternalNodeType.ELSE) {
+            this.setType(InternalNodeType.BLOCK);
+         } else {
+            return;
          }
       }
       const index = parent.children.length;
@@ -309,6 +311,7 @@ export class InternalNode {
       this.prev = index > 0 ? parent.children[index - 1] : null;
       this.next = index + 1 < parent.children.length ? parent.children[index + 1] : null;
       this.parent = parent;
+      return;
    }
 
    private dropAndAppend(identifiers: string[], allocator: IndexAllocator): void {
@@ -534,7 +537,7 @@ class Container {
          }
          return InternalNodeType.IF;
       }
-      return InternalNodeType.SIMPLE;
+      return InternalNodeType.BLOCK;
    }
 
    private applyProgram(program: ProgramNode, type: ProgramType, name: string | null, isSynthetic: boolean): void {
