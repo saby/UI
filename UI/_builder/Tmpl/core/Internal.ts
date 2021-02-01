@@ -446,34 +446,31 @@ class Container {
    }
 
    getInternal(): IProgramMeta[] {
-      return this.collectInternal(0);
+      return this.collectInternal();
    }
 
-   getInternalStructure(): InternalNode {
+   getInternalStructure(removeSelfIdentifiers: boolean = false): InternalNode {
       const allocator = new IndexAllocator(this.getCurrentProgramIndex());
       const indices = new Set<number>();
-      return this.collectInternalStructure(0, allocator, indices);
+      return this.collectInternalStructure(allocator, indices);
    }
 
-   private collectInternal(depth: number): IProgramMeta[] {
+   private collectInternal(): IProgramMeta[] {
       let selfPrograms = this.storage.getMeta();
-      if (depth === 0) {
-         selfPrograms = selfPrograms.filter((meta: IProgramMeta) => meta.type !== ProgramType.OPTION);
-      }
       for (let index = 0; index < this.children.length; ++index) {
          selfPrograms = selfPrograms.concat(
-            this.children[index].collectInternal(depth + 1)
+            this.children[index].collectInternal()
          );
       }
       selfPrograms = selfPrograms.filter((meta: IProgramMeta) => !containsIdentifiers(meta.node, this.identifiers, FILE_NAME));
       return selfPrograms;
    }
 
-   private collectInternalStructure(depth: number, allocator: IndexAllocator, indices: Set<number>): InternalNode {
-      const node = this.createInternalNode(depth === 0, indices);
+   private collectInternalStructure(allocator: IndexAllocator, indices: Set<number>, removeSelfIdentifiers: boolean = false): InternalNode {
+      const node = this.createInternalNode(indices);
       let prevChild: InternalNode | null = null;
       for (let index = 0; index < this.children.length; ++index) {
-         const child = this.children[index].collectInternalStructure(depth + 1, allocator, indices);
+         const child = this.children[index].collectInternalStructure(allocator, indices);
          node.children.push(child);
          child.prev = prevChild;
          if (prevChild !== null) {
@@ -482,22 +479,18 @@ class Container {
          prevChild = child;
          child.setParent(node);
       }
-      if (depth === 0 && this.type === ContainerType.CONTENT_OPTION) {
-         return node;
+      if (removeSelfIdentifiers && this.type === ContainerType.CONTENT_OPTION) {
+         node.removeIfContains(this.selfIdentifiers, allocator);
       }
-      node.removeIfContains(this.selfIdentifiers, allocator);
       return node;
    }
 
-   private createInternalNode(removeOptions: boolean, indices: Set<number>): InternalNode {
+   private createInternalNode(indices: Set<number>): InternalNode {
       const node = new InternalNode(this.index, this.getInternalNodeType());
       node.test = this.test;
       let selfPrograms = this.storage.getMeta();
       if (node.test) {
          selfPrograms.unshift(node.test);
-      }
-      if (removeOptions) {
-         selfPrograms = selfPrograms.filter((meta: IProgramMeta) => meta.type !== ProgramType.OPTION);
       }
       for (let index = 0; index < selfPrograms.length; ++index) {
          if (indices.has(selfPrograms[index].index)) {
@@ -704,6 +697,14 @@ const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
 
 function wrapInternalExpressions(programs: IProgramMeta[]): any {
    const internal = { };
+
+   // FIXME: REMOVE
+   programs.sort(function(a, b) {
+      if (a.node.string < b.node.string) return -1;
+      if (a.node.string > b.node.string) return +1;
+      return 0;
+   });
+
    for (let index = 0; index < programs.length; ++index) {
       const program = programs[index];
       internal[INTERNAL_PROGRAM_PREFIX + index] = {
