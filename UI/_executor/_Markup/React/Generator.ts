@@ -1,5 +1,5 @@
+// TODO: при замене browser!react на нормальный импорт нужно поменять IReactComponent на Component
 import * as react from 'browser!react';
-import type { Component } from 'react';
 import { ArrayUtils } from 'UI/Utils';
 import { Logger } from 'UI/Utils';
 import { _FocusAttrs } from 'UI/Focus';
@@ -45,6 +45,18 @@ import {voidElementTags} from './VoidElementTags';
 import { WasabyContextManager } from 'UI/_react/WasabyContext/WasabyContextManager';
 const markupBuilder = new Builder();
 
+/*
+TODO: заглушка вместо реактовского компонента.
+import type криво собирается в пакеты, он превращается в настоящий импорт.
+Обычный реакт здесь заимпорчен через browser!react, его нельзя использовать как тип.
+ */
+interface IReactComponent<P = {}> {
+   props: Readonly<P>;
+   context: {
+      readOnly: boolean;
+      theme: string;
+   };
+}
 /**
  * @author Тэн В.А.
  */
@@ -219,13 +231,13 @@ export class GeneratorReact implements IGenerator {
       // FIXME: тип для data тянется из старого генератора, который ничего не знает про реакт
       if (typeof data.controlProperties.readOnly === 'undefined') {
          data.controlProperties.readOnly =
-            (data.parent as unknown as Component<{ readOnly: boolean }>).props.readOnly ??
-            (data.parent as unknown as Component).context.readOnly;
+            (data.parent as unknown as IReactComponent<{ readOnly: boolean }>).props.readOnly ??
+            (data.parent as unknown as IReactComponent).context.readOnly;
       }
       if (typeof data.controlProperties.theme === 'undefined') {
          data.controlProperties.theme =
-            (data.parent as unknown as Component<{ theme: 'string' }>).props.theme ??
-            (data.parent as unknown as Component).context.theme;
+            (data.parent as unknown as IReactComponent<{ theme: 'string' }>).props.theme ??
+            (data.parent as unknown as IReactComponent).context.theme;
       }
 
       // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
