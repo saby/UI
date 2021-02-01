@@ -1,0 +1,10 @@
+<div style="margin-left: 30px;">
+    <h1>Демо системы фокусов</h1>
+    <div><a tabindex="-1" href="/UIDemo/app/FocusDemo%252FMenu/">Меню</a></div>
+    <div>В меню можно перейти в конкретное демо, где описаны свои действия</div>
+    <div>Элемент, на котором сейчас фокус, всегда выделен красной рамкой</div>
+    <div style="height: 20px;"></div>
+    <ws:if data="{{ _options.content }}">
+        <ws:partial template="{{ _options.content }}" />
+    </ws:if>
+</div>

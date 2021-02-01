@@ -1,0 +1,21 @@
+<UIDemo.FocusDemo.Index>
+    <h2>Восстановление фокуса после перерисовки</h2>
+    <div>Есть поле ввода, которое исчезает после клика на него. После оживления странице фокус должен быть на нём.</div>
+    <div>Но если что, сфокусировать заново можно и табом, и кликом (фокус приходит на mouseDown, поле исчезает после mouseUp)</div>
+    <div>Если нажать на поле, когда фокус на нём, после его исчезновения фокус должен уйти на контрол RestoreFocusHere</div>
+    <div>Внешне будет выглядеть, что рамка фокуса будет прямо вплотную к аквамариновому фону</div>
+    <div>Кнопка "Вернуть" возвращает поле ввода для повторной проверки</div>
+    <UIDemo.FocusDemo.RestoreFocus.RestoreFocusHere>
+        <div class="elementToFocus">
+            <ws:if data="{{ isElementShowen }}">
+                <div on:click="toggle()">
+                    <UIDemo.FocusDemo.Activate.ActivateElement />
+                    <span>&nbsp;&#8678; Нажать на поле ввода</span>
+                </div>
+            </ws:if>
+            <ws:else>
+                <div on:click="toggle()">Вернуть</div>
+            </ws:else>
+        </div>
+    </UIDemo.FocusDemo.RestoreFocus.RestoreFocusHere>
+</UIDemo.FocusDemo.Index>

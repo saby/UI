@@ -4,8 +4,8 @@ import {getGeneratorConfig} from './GeneratorConfig';
 import {makeRelation, removeRelation} from './ParentFinder';
 import {EMPTY_THEME, getThemeController} from 'UI/theme/controller';
 import {Logger, Purifier} from 'UI/Utils';
-import {_IControl} from 'UI/Focus';
-import {constants} from 'Env/Env';
+import { _IControl, activate, prepareRestoreFocusBeforeRedraw, restoreFocusAfterRedraw } from 'UI/Focus';
+import { constants } from 'Env/Env';
 import * as ReactDOM from 'react-dom';
 import * as React from 'react';
 import {ReactiveObserver} from 'UI/Reactivity';
@@ -58,9 +58,15 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    private _firstRender: boolean = true;
    private _asyncMount: boolean = false;
    private _$observer: Function = reactiveObserve;
+   // Флаг, задестроен ли контрол.
+   // Нужен для текущей версии фокусов, а также есть шанс, что его используют под ts-ignore
+   protected _destroyed: boolean = false;
    // контейнер контрола
    // добавлено потому что это используемое api контрола
    _container: HTMLElement = null;
+   // Активирован ли контрол
+   // Нужно для поддержки текущей системы фокусов
+   private _$active: boolean = false;
    // набор детей контрола, элементы или контролы, которым задан атрибут name (является ключом)
    // добавлено потому что это используемое api контрола
    protected _children: IControlChildren = {};
@@ -124,8 +130,8 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // запуск события - сейчас заглушка. удалить нельзя, это самое простое решение
    _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): void {
       if (args && !(args instanceof Array)) {
-         var error = `Ошибка использования API событий.
-                     В метод _notify() в качестве второго аргументов необходимо передавать массив 
+         const error = `Ошибка использования API событий.
+                     В метод _notify() в качестве второго аргументов необходимо передавать массив
                      Был передан объект типа ${typeof args}
                      Событие: ${eventName}
                      Аргументы: ${args}
@@ -135,9 +141,26 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       }
       return this._environment && this._environment.startEvent(this._controlNode, arguments);
    }
-   // активация контрола - сейчас заглушка. удалить нельзя, это самое простое решение
-   activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): void {
-      // nothing for a while...
+
+   activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
+      const container = this._container;
+      const activeElement = document.activeElement;
+
+      // проверим не пустой ли контейнер.
+      const res = container && activate(container, cfg);
+
+      // Пока что приходится перетаскивать костыли сюда...
+
+      // может случиться так, что на focus() сработает обработчик в DOMEnvironment,
+      // и тогда тут ничего не надо делать
+      // todo делать проверку не на _$active а на то, что реально состояние изменилось.
+      // например переходим от компонента к его предку, у предка состояние не изменилось.
+      // но с которого уходили у него изменилось
+      if (res && !this._$active) {
+         this._getEnvironment()._handleFocusEvent({ target: document.activeElement, relatedTarget: activeElement });
+      }
+
+      return res;
    }
 
    // запускает перерисовку
@@ -242,16 +265,13 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // построение верстки контрола
    // добавлено потому что используется в render для построения верстки на сервере
    _getMarkup(rootKey?: string,
-              attributes?: ITemplateAttrs): string | object {
+              attributes: ITemplateAttrs = {}): string | object {
       // @ts-ignore флага stable нет на шаблоне и я не знаю как объявить
       if (!(this._template).stable) {
          Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
          return '';
       }
       let res;
-      if (!attributes) {
-         attributes = {};
-      }
       const generatorConfig = getGeneratorConfig();
       res = this._template(this, attributes, rootKey, false, undefined, undefined, generatorConfig);
       return res || '';
@@ -533,6 +553,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          makeRelation(this);
          this._afterUpdate.apply(this, [prevProps]);
       }, 0);
+      if (this._getEnvironment()) {
+         restoreFocusAfterRedraw(this);
+      }
    }
 
    getSnapshotBeforeUpdate(): void {
@@ -545,6 +568,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
             this._reactiveStart = true;
          }
       }
+      if (this._getEnvironment()) {
+         prepareRestoreFocusBeforeRedraw(this);
+      }
       return null;
    }
 
@@ -552,6 +578,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       removeRelation(this);
       releaseProperties(this);
       this._beforeUnmount.apply(this);
+      this._destroyed = true;
       const isWS3Compatible: boolean = this.hasOwnProperty('getParent');
       if (!isWS3Compatible) {
          const async: boolean = !Purifier.canPurifyInstanceSync(this._moduleName);
