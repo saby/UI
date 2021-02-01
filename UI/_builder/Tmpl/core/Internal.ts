@@ -159,6 +159,7 @@ class ProgramStorage {
             this.programsMap.set(key, value - 1);
          }
       });
+      this.programsMap.delete(source);
    }
 
    getMeta(): IProgramMeta[] {
@@ -270,26 +271,44 @@ export class InternalNode {
    }
 
    private checkCleanConditional(identifiers: string[], allocator: IndexAllocator): void {
-      if (this.type === InternalNodeType.SIMPLE) {
-         return;
-      }
-      if (this.type === InternalNodeType.ELSE) {
+      if (this.type === InternalNodeType.SIMPLE || this.type === InternalNodeType.ELSE) {
          return;
       }
       if (containsIdentifiers(this.test.node, identifiers, FILE_NAME)) {
          this.dropAndAppend(identifiers, allocator);
-         this.setType(InternalNodeType.SIMPLE);
+         this.setType(InternalNodeType.ELSE);
          this.test = null;
          if (this.next === null) {
             return;
          }
-         if (this.next.type === InternalNodeType.ELSE_IF) {
-            this.next.setType(InternalNodeType.IF);
+         this.next.removeSiblingConditional(this);
+      }
+   }
+
+   private removeSiblingConditional(parent: InternalNode, counter: number = 0): void {
+      if (this.type === InternalNodeType.IF) {
+         return;
+      }
+      if (counter === 0) {
+         if (this.type === InternalNodeType.ELSE_IF) {
+            this.setType(InternalNodeType.IF);
          }
-         if (this.next.type === InternalNodeType.ELSE) {
-            this.next.setType(InternalNodeType.SIMPLE);
+         if (this.type === InternalNodeType.ELSE) {
+            this.setType(InternalNodeType.SIMPLE);
          }
       }
+      const index = parent.children.length;
+      parent.children.push(this);
+      if (this.next) {
+         this.next.removeSiblingConditional(parent, counter + 1);
+      }
+      if (this.next === null || this.next && this.next.type === InternalNodeType.IF) {
+         const startIndex = this.parent.children.indexOf(parent.children[parent.children.length - counter - 1]);
+         this.parent.children.splice(startIndex, counter + 1);
+      }
+      this.prev = index > 0 ? parent.children[index - 1] : null;
+      this.next = index + 1 < parent.children.length ? parent.children[index + 1] : null;
+      this.parent = parent;
    }
 
    private dropAndAppend(identifiers: string[], allocator: IndexAllocator): void {
@@ -433,7 +452,7 @@ class Container {
          case ProgramType.EVENT:
             return this.registerEventProgram(program);
          case ProgramType.FLOAT:
-            return this.registerFloatProgram(program, type, name);
+            return this.registerFloatProgram(program);
          default:
             throw new Error('Получен неизвестный тип Mustache-выражения');
       }
@@ -471,17 +490,6 @@ class Container {
       return null;
    }
 
-   private collectInternal(): IProgramMeta[] {
-      let selfPrograms = this.storage.getMeta();
-      for (let index = 0; index < this.children.length; ++index) {
-         selfPrograms = selfPrograms.concat(
-            this.children[index].collectInternal()
-         );
-      }
-      selfPrograms = selfPrograms.filter((meta: IProgramMeta) => !containsIdentifiers(meta.node, this.identifiers, FILE_NAME));
-      return selfPrograms;
-   }
-
    private collectInternalStructure(depth: number, allocator: IndexAllocator, indices: Set<number>, removeSelfIdentifiers: boolean): InternalNode {
       const node = this.createInternalNode(indices);
       let prevChild: InternalNode | null = null;
@@ -506,9 +514,6 @@ class Container {
       const node = new InternalNode(this.index, this.getInternalNodeType(), this);
       node.test = this.test;
       let selfPrograms = this.storage.getMeta();
-      if (node.test) {
-         selfPrograms.unshift(node.test);
-      }
       for (let index = 0; index < selfPrograms.length; ++index) {
          if (indices.has(selfPrograms[index].index)) {
             continue;
@@ -520,15 +525,15 @@ class Container {
    }
 
    private getInternalNodeType(): InternalNodeType {
-      // if (this.type === ContainerType.CONDITIONAL) {
-      //    if (this.isElse) {
-      //       if (this.test === null) {
-      //          return InternalNodeType.ELSE;
-      //       }
-      //       return InternalNodeType.ELSE_IF;
-      //    }
-      //    return InternalNodeType.IF;
-      // }
+      if (this.type === ContainerType.CONDITIONAL) {
+         if (this.isElse) {
+            if (this.test === null) {
+               return InternalNodeType.ELSE;
+            }
+            return InternalNodeType.ELSE_IF;
+         }
+         return InternalNodeType.IF;
+      }
       return InternalNodeType.SIMPLE;
    }
 
@@ -562,7 +567,7 @@ class Container {
       this.processIdentifiers(program);
    }
 
-   private registerFloatProgram(program: ProgramNode, type: ProgramType, name: string | null): void {
+   private registerFloatProgram(program: ProgramNode): void {
       const identifiers = collectIdentifiers(program, FILE_NAME);
       this.commitIdentifiersAsPrograms(identifiers, this.identifiers);
       for (let index = 0; index < identifiers.length; ++index) {

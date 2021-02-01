@@ -28,11 +28,15 @@ export function generate(node: InternalNode, functions: Function[]): string {
    if (index !== null) {
       return FUNCTION_PREFIX + index + `(${CONTEXT_VARIABLE_NAME})`;
    }
-   const func = new Function(CONTEXT_VARIABLE_NAME, body);
-   Object.defineProperty(func, 'name', { 'value': functionName, configurable: true });
-   appendFunction(func, functions);
-   node.ref.commitCode(node.index, body);
-   return functionName + `(${CONTEXT_VARIABLE_NAME})`;
+   try {
+      const func = new Function(CONTEXT_VARIABLE_NAME, body);
+      Object.defineProperty(func, 'name', { 'value': functionName, configurable: true });
+      appendFunction(func, functions);
+      node.ref.commitCode(node.index, body);
+      return functionName + `(${CONTEXT_VARIABLE_NAME})`;
+   } catch (error) {
+      throw new Error(`Тело функции "${functionName}" невалидно: ${error.message}`);
+   }
 }
 
 function isEmpty(node: InternalNode): boolean {
