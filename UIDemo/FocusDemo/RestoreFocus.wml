@@ -1,1 +1,12 @@
-<UIDemo.FocusDemo.Index>TODO: Восстановление фокуса после перерисовки</UIDemo.FocusDemo.Index>
+<UIDemo.FocusDemo.Index>
+            <UIDemo.FocusDemo.Activate.ActivateElement />
+    <ws:if data="{{ isElementShowen }}">
+        <div on:click="toggle()" class="elementToFocus">
+            <UIDemo.FocusDemo.Activate.ActivateElement />
+            <span>&nbsp;&#8678; Нажать на поле ввода</span>
+        </div>
+    </ws:if>
+    <ws:else>
+        <div on:click="toggle()">Вернуть</div>
+    </ws:else>
+</UIDemo.FocusDemo.Index>

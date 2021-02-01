@@ -1,1 +1,12 @@
-<UIDemo.FocusDemo.Index>TODO: Переходы по табу</UIDemo.FocusDemo.Index>
+<UIDemo.FocusDemo.Index>
+    <div>
+        <input placeholder="1" tabindex="1" />
+        <input placeholder="2" tabindex="2" />
+        <UIDemo.FocusDemo.TabHandler.TabHandlerInner rootTabindex="3" />
+        <input placeholder="6" tabindex="6" />
+        <input placeholder="5" tabindex="5" />
+        <UIDemo.FocusDemo.TabHandler.TabHandlerInner rootTabindex="4" />
+        <input placeholder="7" tabindex="7" />
+        <input placeholder="8" tabindex="8" />
+    </div>
+</UIDemo.FocusDemo.Index>

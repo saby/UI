@@ -5,9 +5,6 @@ export default class FocusActivateDemo extends Control {
     protected _template: TemplateFunction = template;
     lastActivated: string = 'Никакой';
     lastDeactivated: string = 'Никакой';
-    _afterMount(): void {
-        this.activate();
-    }
     protected isActivated(_, newActivated: string): void {
         this.lastActivated = newActivated;
     }
