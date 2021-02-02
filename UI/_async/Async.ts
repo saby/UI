@@ -1,4 +1,4 @@
-/// <amd-module name='UI/Base:Async' />
+/// <amd-module name='UI/_async/Async' />
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 import * as Library from 'WasabyLoader/Library';
 import { IoC, constants } from 'Env/Env';
