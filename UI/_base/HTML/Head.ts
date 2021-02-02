@@ -66,7 +66,7 @@ class Head extends Control<IHeadOptions> {
                      */
                     const data = AppHead.getInstance().getData();
                     if (data && data.length) {
-                        this.headApiData += new TagMarkup(data.map(fromJML)).outerHTML;
+                        this.headApiData += new TagMarkup(data.map(fromJML), {getResourceUrl: false}).outerHTML;
                     }
                     AppHead.getInstance().clear();
                 });
