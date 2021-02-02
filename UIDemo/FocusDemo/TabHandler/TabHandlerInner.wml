@@ -1,0 +1,5 @@
+<div class="elementToFocus" tabindex="{{ _options.rootTabindex }}">
+    <div>Внешний табиндекс равен {{ _options.rootTabindex }}</div>
+    <input placeholder="{{ _options.rootTabindex }}_1" tabindex="1" />
+    <input placeholder="{{ _options.rootTabindex }}_2" tabindex="2" />
+</div>

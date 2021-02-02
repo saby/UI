@@ -5,6 +5,8 @@ type TModifyHTMLNode = HTMLElement & Record<string, any>;
 export interface IDOMEnvironment {
    _rootDOMNode: TModifyHTMLNode;
    __captureEventHandler: Function;
+   _restoreFocusState: boolean;
+   addTabListener: () => void;
 }
 
 interface INotifyActivationEvents {

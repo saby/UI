@@ -8,7 +8,7 @@ export interface IControlOptions {
    readOnly?: boolean;
    theme?: string;
    _logicParent?: IControl;
-   _$attributes?: object;
+   _$attributes?: ITemplateAttrs;
    events?: IEvent;
 }
 export interface IEvent {
@@ -37,6 +37,8 @@ export interface ITemplateAttrs {
 export interface IDOMEnvironment {
    _rootDOMNode: HTMLElement;
    __captureEventHandlers: object;
+   _$active: boolean;
+   _handleFocusEvent: (e: { target: Element, relatedTarget: Element }) => void;
    startEvent: (controlNode: IControlNode, args: IArguments) => void;
 }
 export interface IControlNode {

@@ -1,0 +1,8 @@
+<UIDemo.FocusDemo.Index>
+    <h2>Меню</h2>
+    <div>
+        <div><a href="/UIDemo/app/FocusDemo%252FActivate/">Активация</a></div>
+        <div><a href="/UIDemo/app/FocusDemo%252FRestoreFocus/">Восстановление фокуса после перерисовки</a></div>
+        <div><a href="/UIDemo/app/FocusDemo%252FTabHandler/">Переходы по табу</a></div>
+    </div>
+</UIDemo.FocusDemo.Index>
