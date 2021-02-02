@@ -20,6 +20,7 @@
       "build:app": "wasaby-cli --tasks=build",
       "compile": "saby-typescript --compiler",
       "start": "wasaby-cli --tasks=app",
+      "start-react": "wasaby-cli --tasks=app --reactApp",
       "start:units": "wasaby-cli --tasks=startTest --server",
       "test": "wasaby-cli --tasks=startTest --node --report=console",
       "test:coverage": "wasaby-cli --tasks=startTest --node --coverage",

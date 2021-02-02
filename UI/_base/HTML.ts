@@ -74,6 +74,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
     private servicesPath: string = '';
     private application: string = '';
     private product: string = '';
+    private reactApp: Boolean = false;
 
     // tslint:disable-next-line:ban-ts-ignore
     // @ts-ignore
@@ -148,6 +149,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
         this.resourceRoot = cfg.resourceRoot || constants.resourceRoot;
         this.product = cfg.product || appData.product || constants.product;
         this.wsRoot = cfg.wsRoot || appData.wsRoot || constants.wsRoot;
+        this.reactApp = cfg.reactApp || false;
 
         // TODO нужно удалить после решения
         // https://online.sbis.ru/opendoc.html?guid=a9ceff55-1c8b-4238-90a7-22dde0e1bdbe
@@ -200,7 +202,8 @@ class HTML extends Control<IHTMLCombinedOptions> {
                 templateConfig: this.templateConfig,
                 servicesPath: this.servicesPath,
                 compat: this.compat,
-                product: this.product
+                product: this.product,
+                reactApp: this.reactApp
             });
         });
     }
