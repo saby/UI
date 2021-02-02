@@ -8,7 +8,7 @@ export interface IControlOptions {
    readOnly?: boolean;
    theme?: string;
    _logicParent?: IControl;
-   _$attributes?: object;
+   _$attributes?: ITemplateAttrs;
    events?: IEvent;
 }
 export interface IEvent {
