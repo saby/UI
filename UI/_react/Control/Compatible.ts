@@ -626,7 +626,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       let res;
       try {
          const ctx = {...this, _options: {...this.props}};
-         const attrs = this.props._$attributes || {};
+         // в случае корневого контрола атрибутов нет - это нормально. в createControl не существует атрибутов.
+         // аналогичное поведение было в ui/base:control
+         const attrs = this.props._$attributes;
          res = this._template(ctx, attrs, undefined, true, undefined, undefined, generatorConfig);
          // прокидываю тут аргумент isCompatible, но можно вынести в builder
          const originRef = res[0].ref;
