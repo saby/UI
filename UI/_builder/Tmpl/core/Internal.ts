@@ -494,7 +494,7 @@ class Container {
    }
 
    private collectInternalStructure(depth: number, allocator: IndexAllocator, indices: Set<number>, removeSelfIdentifiers: boolean): InternalNode {
-      const node = this.createInternalNode(indices);
+      const node = this.createInternalNode(indices, depth === 0);
       let prevChild: InternalNode | null = null;
       for (let index = 0; index < this.children.length; ++index) {
          const child = this.children[index].collectInternalStructure(depth + 1, allocator, indices, removeSelfIdentifiers);
@@ -513,10 +513,19 @@ class Container {
       return node;
    }
 
-   private createInternalNode(indices: Set<number>): InternalNode {
+   private createInternalNode(indices: Set<number>, removeSelfOptions: boolean): InternalNode {
       const node = new InternalNode(this.index, this.getInternalNodeType(), this);
       node.test = this.test;
       let selfPrograms = this.storage.getMeta();
+      if (removeSelfOptions) {
+         selfPrograms = selfPrograms.filter((meta: IProgramMeta) => {
+            return !(
+               meta.type === ProgramType.ATTRIBUTE ||
+               meta.type === ProgramType.OPTION ||
+               meta.type === ProgramType.BIND && meta.isSynthetic
+            );
+         })
+      }
       for (let index = 0; index < selfPrograms.length; ++index) {
          if (indices.has(selfPrograms[index].index)) {
             continue;
