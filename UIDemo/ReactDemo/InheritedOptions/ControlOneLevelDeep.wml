@@ -1,4 +1,0 @@
-<div>
-    readOnly: {{ _options.readOnly }}
-    theme: {{ _options.theme }}
-</div>

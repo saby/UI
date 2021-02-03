@@ -1,8 +1,4 @@
-import {
-   Control,
-   IControlOptions,
-   TemplateFunction
-} from 'UI/Base';
+import {Control, IControlOptions} from 'UI/Base';
 import {IItem} from './interfaces';
 
 // @ts-ignore
@@ -15,10 +11,10 @@ interface ITodoOptions extends IControlOptions {
 }
 
 export default class Todo extends Control<ITodoOptions> {
-   protected _template: TemplateFunction = template;
+   protected _template: any = template;
 
-   constructor(...args: [ITodoOptions]) {
-      super(...args);
+   constructor(props: ITodoOptions) {
+      super(props);
       this.removeHandler = this.removeHandler.bind(this);
       this.addNewItem = this.addNewItem.bind(this);
       this.changeHandler = this.changeHandler.bind(this);
