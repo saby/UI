@@ -4,9 +4,9 @@
  * @author Крылов М.А.
  */
 
-import * as Tmpl from './_builder/Tmpl';
-import { Compiler } from './_builder/Compiler';
-import { Config } from 'UI/BuilderConfig';
+import * as Tmpl from 'Compiler/Tmpl';
+import { Compiler } from 'Compiler/Compiler';
+import { Config } from 'Compiler/Config';
 
 export {
    Tmpl,
