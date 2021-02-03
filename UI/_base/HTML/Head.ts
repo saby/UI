@@ -117,11 +117,17 @@ class Head extends Control<IHeadOptions> {
             );
         }
         API.createNoScript(options.noscript);
-        [
+        const metaAttrs = [
             {'http-equiv': 'X-UA-Compatible', content: 'IE=edge'},
-            {name: 'viewport', content: options.viewport || 'width=1024'},
             {charset: 'utf-8', class: 'head-server-block'}
-        ].forEach((attrs) => {
+        ];
+        /** Возможно, кто-то уже добавил viewport */
+        const viewPort = API.getTag('meta', {name: 'viewport'});
+        /** Если не нашли тег, или если нашли очень много, добавим свой */
+        if (!viewPort && (viewPort instanceof Array)) {
+            metaAttrs.push({name: 'viewport', content: options.viewport || 'width=1024'});
+        }
+        metaAttrs.forEach((attrs) => {
             API.createTag('meta', attrs);
         });
         createWsConfig(options, this.staticDomainsstringified);
