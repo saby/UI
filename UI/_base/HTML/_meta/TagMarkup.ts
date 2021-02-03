@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_base/HTML/_meta/TagMarkup" />
 
 import { ITagDescription } from 'UI/_base/HTML/_meta/interface';
-import getResourceUrl = require('Core/helpers/getResourceUrl');
+import { getResourceUrl } from 'UI/Utils';
 import escapeHtml = require('Core/helpers/String/escapeHtml');
 
 /**
@@ -10,6 +10,7 @@ import escapeHtml = require('Core/helpers/String/escapeHtml');
  */
 interface ITagMarkupConfig {
    withOutDataVdomIgnore?: boolean;
+   getResourceUrl?: boolean;
 }
 
 export const DEFAULT_ATTRS = {
@@ -44,7 +45,7 @@ export function generateTagMarkup(
    // cdn domain if it's configured on current page.
    const attrMarkup = Object.entries(_atts).map(([key, val]) => {
       if (key === 'href' || key === 'src') {
-         return `${key}="${getResourceUrl(val)}"`;
+         return `${key}="${__getResourceUrl(val, config)}"`;
       }
       return `${key}="${escapeHtml(val)}"`;
    }).join(' ');
@@ -57,4 +58,8 @@ export function generateTagMarkup(
       childMarkup = (typeof children === 'string') ? children : generateTagMarkup(children);
    }
    return `<${tagName} ${attrMarkup}>${childMarkup}</${tagName}>`;
+}
+
+function __getResourceUrl(url: string, config: ITagMarkupConfig): string {
+   return config?.getResourceUrl === false ? url : getResourceUrl(url);
 }
