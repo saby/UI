@@ -14,10 +14,8 @@ import {Config as config} from 'UI/BuilderConfig';
 // @ts-ignore
 import { ObjectUtils } from 'UI/Utils';
 import { object } from 'Types/util';
-// @ts-ignore
-import { constants } from 'Env/Env';
 
-import { Text, Vdom, React } from './Markup';
+import { Text, Vdom } from './Markup';
 import * as Scope from './_Expressions/Scope';
 import * as Attr from './_Expressions/Attr';
 import { Common, ConfigResolver } from './Utils';
@@ -191,10 +189,6 @@ var
       }
    },
    createGenerator = function (isVdom, forceCompatible = false, config) {
-      // @ts-ignore
-      if (typeof window !== 'undefined' && window.reactGenerator) {
-         return React(config);
-      }
       if (isVdom) {
          return Vdom(config);
       }
@@ -302,6 +296,23 @@ var
       var rk = this.getRkCache[localizationModule] || requirejs("i18n!" + localizationModule);
       this.getRkCache[localizationModule] = rk;
       return rk;
+   },
+   /**
+    * при построении шаблонов (инлайн шаблоны, контентные опции) контекстом выполнения является не контрол
+    * а производная шаблона (object.create), но в вызываемые внутри функции нужно передавать в качестве
+    * контекста выполнения нужно передавать сам контрол. Функция вычисляет этот контрол.
+    * @param obj
+    */
+   getContext = function(obj) {
+      let result = obj;
+      while (result) {
+         // маркером того, что мы нашли контрол является поле _container
+         if (result.hasOwnProperty('_container')) {
+            return result;
+         }
+         result = result.__proto__;
+      }
+      return obj;
    };
 
 const isolateScope = Scope.isolateScope;
@@ -342,5 +353,6 @@ export {
    getMarkupGenerator,
    validateNodeKey,
    getRk,
+   getContext,
    _isTClosure
 };

@@ -106,7 +106,7 @@ export class Controller {
          return Promise.resolve();
       }
       this.appTheme = themeName;
-      return new Promise<void>((resolve) => resolve(void 0));
+      return this.getVariables(themeName).then(() => undefined);
    }
 
    /**
