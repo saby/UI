@@ -2,8 +2,8 @@ define('Compiler/modules/utils/parse', [
    'Compiler/modules/data/utils/functionStringCreator',
    'Compiler/modules/utils/common',
    'Compiler/expressions/Process',
-   'Compiler/expressions/_private/Bind',
-   'Compiler/expressions/_private/Event',
+   'Compiler/expressions/Bind',
+   'Compiler/expressions/Event',
    'Compiler/codegen/TClosure',
    'Compiler/utils/ErrorHandler'
 ], function straightFromFileLoader(
