@@ -807,9 +807,9 @@ class InternalVisitor implements Ast.IAstVisitor {
    }
 
    visitElement(node: Ast.ElementNode, context: IContext): void {
+      visitAll(node.__$ws_content, this, context);
       visitAllProperties(node.__$ws_attributes, this, context);
       visitAllProperties(node.__$ws_events, this, context);
-      visitAll(node.__$ws_content, this, context);
    }
 
    visitDoctype(node: Ast.DoctypeNode, context: IContext): void { }
