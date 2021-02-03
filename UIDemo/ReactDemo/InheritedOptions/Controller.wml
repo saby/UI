@@ -1,7 +1,0 @@
-<div>
-    <h2>Тестируем наследуемые опции</h2>
-    <UIDemo.ReactDemo.InheritedOptions.InheritedOptions readOnly="{{ _readOnly }}"
-                                                        theme="{{ _themeName }}" />
-    <button on:click="_toggleThemeName()">Переключить тему</button>
-    <button on:click="_toggleReadonly()">Переключить readOnly</button>
-</div>

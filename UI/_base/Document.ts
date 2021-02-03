@@ -21,13 +21,8 @@ class Document extends Control {
 
     private coreTheme: string = '';
 
-    /*
-    FIXME: для реакта тут будет 2 параметра, и передавать надо оба.
-    Пока в описании типа оставляю только первый, потому что это подходит под оба типа конструктора.
-     */
-    constructor(...args: [object]) {
-        super(...args);
-        const cfg = args[0];
+    constructor(cfg: object) {
+        super(cfg);
 
         /*
         * Копипаста из Controls/Application/Core для сервиса представления.

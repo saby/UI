@@ -1,5 +1,4 @@
 import * as react from 'browser!react';
-import type { Component } from 'react';
 import { ArrayUtils } from 'UI/Utils';
 import { Logger } from 'UI/Utils';
 import { _FocusAttrs } from 'UI/Focus';
@@ -42,7 +41,7 @@ import {Builder} from "../Builder";
 import {repairEventName} from './eventMap';
 import {convertAttributes} from './Attributes';
 import {voidElementTags} from './VoidElementTags';
-import { WasabyContextManager } from 'UI/_react/WasabyContext/WasabyContextManager';
+
 const markupBuilder = new Builder();
 
 /**
@@ -211,22 +210,6 @@ export class GeneratorReact implements IGenerator {
       }
 
       const data = this.prepareDataForCreate(name, scope, attributes, _deps);
-      /*
-      Контролы берут наследуемые опции из контекста.
-      Шаблоны так не могут, потому что они не полноценные реактовские компоненты.
-      Поэтому берём значения либо из опций, либо из родителя.
-       */
-      // FIXME: тип для data тянется из старого генератора, который ничего не знает про реакт
-      if (typeof data.controlProperties.readOnly === 'undefined') {
-         data.controlProperties.readOnly =
-            (data.parent as unknown as Component<{ readOnly: boolean }>).props.readOnly ??
-            (data.parent as unknown as Component).context.readOnly;
-      }
-      if (typeof data.controlProperties.theme === 'undefined') {
-         data.controlProperties.theme =
-            (data.parent as unknown as Component<{ theme: 'string' }>).props.theme ??
-            (data.parent as unknown as Component).context.theme;
-      }
 
       // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
       if (resultingFn == null) {
@@ -271,22 +254,8 @@ export class GeneratorReact implements IGenerator {
             }
          }
       });
-      return react.createElement(
-         WasabyContextManager, {
-            readOnly: obj.controlProperties.readOnly,
-            theme: obj.controlProperties.theme
-         },
-         obj.template.call(
-            obj.parentControl,
-            obj.controlProperties,
-            obj.attributes,
-            obj.context,
-            true,
-            undefined,
-            undefined,
-            this.generatorConfig
-         )
-      );
+      return obj.template.call(obj.parentControl, obj.controlProperties, obj.attributes, obj.context,
+         true, undefined, undefined, this.generatorConfig);
    }
 
    createController(name: string,
