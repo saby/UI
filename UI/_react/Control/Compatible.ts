@@ -19,6 +19,12 @@ import {
    IControlChildren, IControlOptions, IControlState, TIState, TemplateFunction,
    IDOMEnvironment, ITemplateAttrs, TControlConstructor, IControl, IControlNode
 } from './interfaces';
+import { WasabyContextManager } from '../WasabyContext/WasabyContextManager';
+import {
+   getWasabyContext,
+   IWasabyContextValue,
+   TWasabyContext
+} from '../WasabyContext/WasabyContext';
 
 interface IControlFunction extends Function {
    /**
@@ -105,9 +111,17 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // добавлено чтобы выводиться в getInstanceId, а getInstanceId это используемое апи контрола
    private readonly _instId: string = 'inst_' + countInst++;
 
-   constructor(props: TOptions) {
+   constructor(props: TOptions, context?: IWasabyContextValue) {
       super(props);
-      this._options = props;
+      /*
+      Если люди сами задают конструктор, то обычно они вызывают его неправильно (передают только один аргумент).
+      Из-за этого контекст может потеряться и не получится в конструкторе вытащить значение из него.
+       */
+      // FIXME: пока нет серверной вёрстки на реакте, не кидаем сообщение на сервере. Иначе будет спам
+      if (!context && !constants.isServerSide) {
+         Logger.error(`[${this._moduleName}] Неправильный вызов родительского конструктора, опции readOnly и theme могут содержать некорректные значения. Для исправления ошибки нужно передать в родительский конструктор все аргументы.`);
+      }
+      this._options = createWasabyOptions(props, context);
       this.state = {
          loading: true
       };
@@ -221,7 +235,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       return resultBeforeMount;
    }
 
-   __beforeMount(options?: TOptions,
+   __beforeMount(options: TOptions,
                  contexts?: object,
                  receivedState?: TState): void {
       /** Загрузка стилей и тем оформления - это обязательно асинхронный процесс */
@@ -238,7 +252,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          return this.__beforeMountSSR(options, contexts, receivedState) as void;
       }
 
-      const res = this._beforeMount(this.props);
+      const res = this._beforeMount(options);
 
       if (res && res.then) {
          promisesToWait.push(res);
@@ -252,7 +266,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
             this._reactiveStart = true;
             this.setState({
                loading: false
-            }, () => this._afterMount(this.props));
+            }, () => this._afterMount(options));
          });
       } else {
          this._firstRender = false;
@@ -273,6 +287,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       }
       let res;
       const generatorConfig = getGeneratorConfig();
+      // FIXME: здесь readOnly и theme не пронаследуются, потому что на сервере строит не реакт
       res = this._template(this, attributes, rootKey, false, undefined, undefined, generatorConfig);
       return res || '';
    }
@@ -402,6 +417,9 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
 
    /* End: CSS region */
+
+   // подключение контекста с опциями readOnly и theme
+   static readonly contextType: TWasabyContext = getWasabyContext();
 
    /* Start: CSS static region */
 
@@ -538,7 +556,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       if (!this._asyncMount) {
          setTimeout(() => {
             makeRelation(this);
-            this._afterMount(this.props);
+            this._afterMount(this._options);
          }, 0);
       }
    }
@@ -548,10 +566,12 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
 
    componentDidUpdate(prevProps: TOptions): void {
-      this._options = this.props;
+      // берём именно наши _options, чтобы не потерять readOnly и theme
+      const oldOptions = this._options;
+      this._options = createWasabyOptions(prevProps, this.context);
       setTimeout(() => {
          makeRelation(this);
-         this._afterUpdate.apply(this, [prevProps]);
+         this._afterUpdate(oldOptions);
       }, 0);
       if (this._getEnvironment()) {
          restoreFocusAfterRedraw(this);
@@ -563,7 +583,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       if (!this._firstRender && !isHydrating()) {
          this._reactiveStart = false;
          try {
-            this._beforeUpdate.apply(this, [this.props]);
+            this._beforeUpdate(this._options);
          } finally {
             this._reactiveStart = true;
          }
@@ -587,16 +607,23 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
 
    render(empty?: unknown, attributes?: ITemplateAttrs): string | object {
+      const wasabyOptions = createWasabyOptions(this.props, this.context);
       if (constants.isServerSide) {
          let markup: string | object = '';
          ReactiveObserver.forbidReactive(this, () => {
             markup = this._getMarkup(null, attributes);
          });
+         // FIXME: нельзя здесь создавать контекст, потому что сейчас на сервере строит не реакт
          return markup;
       }
 
       if (this._firstRender) {
-         this.__beforeMount(this.props);
+         // FIXME: тема на сервере и на клиенте не совпадает, head пытается пропатчить изменения, в итоге пишет в document.head, который null
+         if (this._moduleName === 'UI/_base/HTML/Head') {
+            this.__beforeMount(this.props);
+         } else {
+            this.__beforeMount(wasabyOptions);
+         }
       }
 
       // @ts-ignore
@@ -625,7 +652,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
 
       let res;
       try {
-         const ctx = {...this, _options: {...this.props}};
+         const ctx = {...this, _options: {...wasabyOptions}};
          // в случае корневого контрола атрибутов нет - это нормально. в createControl не существует атрибутов.
          // аналогичное поведение было в ui/base:control
          const attrs = this.props._$attributes;
@@ -644,8 +671,14 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          TClosure.setReact(false);
       }
 
-      return res[0];
-
+      return createElement(
+         WasabyContextManager,
+         {
+            readOnly: wasabyOptions.readOnly,
+            theme: wasabyOptions.theme
+         },
+         res[0]
+      );
    }
 
    /**
@@ -681,6 +714,10 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
          ReactDOM.hydrate :
          ReactDOM.render;
 
+      // кладём в конфиг наследуемые опции, чтобы они попали в полноценные опции
+      cfg.theme = cfg.theme ?? 'default';
+      cfg.readOnly = cfg.readOnly ?? false;
+
       // FIXME: Кладем в локальную переменную содержимое head для отрисовки его на клиенте после гидрации
       _innerHeadHtml = domElement.getElementsByTagName('head')[0].innerHTML;
 
@@ -701,6 +738,20 @@ Object.assign(Control.prototype, {
 
 function logError(e: Error): void {
    Logger.error(e.message);
+}
+
+/**
+ * Подмешивает к реактовским опциям значения theme и readOnly из контекста.
+ * Если в реактовских опциях были какие-то значения, то возьмутся они.
+ * @param props Опции из реакта.
+ * @param contextValue Контекст с наследуемыми опциями.
+ */
+function createWasabyOptions<T extends IControlOptions>(props: T, contextValue: IWasabyContextValue): T {
+   // клон нужен для того, чтобы не мутировать реактовские опции при подкладывании readOnly и theme
+   const newProps = { ...props };
+   newProps.readOnly = props.readOnly ?? contextValue?.readOnly;
+   newProps.theme = props.theme ?? contextValue?.theme;
+   return newProps;
 }
 
 const nop = () => undefined;
