@@ -345,7 +345,10 @@ export class InternalNode {
          this.children[index].collectMeta(names, collection);
       }
 
-      let localCollection = this.storage.getMeta();
+      const localCollection = this.storage.getMeta();
+      if (this.test) {
+         localCollection.push(this.test);
+      }
       for (let index = 0; index < localCollection.length; ++index) {
          if (names.has(localCollection[index].node.string)) {
             continue;
