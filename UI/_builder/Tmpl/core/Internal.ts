@@ -525,9 +525,8 @@ class Container {
             return !(
                // Удалить выражения, удовлетворяющие следующим условиям
                meta.type === ProgramType.ATTRIBUTE ||
-               meta.type === ProgramType.OPTION ||
-               meta.type === ProgramType.BIND && !meta.isSynthetic ||
-               meta.type === ProgramType.OPTION && meta.name !== "scope"
+               meta.type === ProgramType.OPTION && meta.name !== "scope" ||
+               meta.type === ProgramType.BIND && !meta.isSynthetic
            );
          })
       }
