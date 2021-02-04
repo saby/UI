@@ -523,10 +523,12 @@ class Container {
       if (removeSelfOptions) {
          selfPrograms = selfPrograms.filter((meta: IProgramMeta) => {
             return !(
+               // Удалить выражения, удовлетворяющие следующим условиям
                meta.type === ProgramType.ATTRIBUTE ||
                meta.type === ProgramType.OPTION ||
-               meta.type === ProgramType.BIND && meta.isSynthetic
-            );
+               meta.type === ProgramType.BIND && !meta.isSynthetic ||
+               meta.type === ProgramType.OPTION && meta.name !== "scope"
+           );
          })
       }
       for (let index = 0; index < selfPrograms.length; ++index) {
