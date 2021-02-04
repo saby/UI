@@ -527,7 +527,7 @@ class Container {
                meta.type === ProgramType.ATTRIBUTE ||
                meta.type === ProgramType.OPTION && meta.name !== "scope"
            );
-         })
+         });
       }
       for (let index = 0; index < selfPrograms.length; ++index) {
          if (indices.has(selfPrograms[index].index)) {
