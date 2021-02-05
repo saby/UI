@@ -170,7 +170,7 @@ export function processExpressions(
       }
    }
 
-   if (expressionRaw.value && isAttribute) {
+   if (expressionRaw.value && isAttribute && attributeName !== 'attr:style' && attributeName !== 'style') {
       return escapeQuotesInString(expressionRaw.value);
    }
 
