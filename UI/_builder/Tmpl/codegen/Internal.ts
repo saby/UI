@@ -109,7 +109,7 @@ function buildProgram(program: ProgramNode, attributeName: string | null = null)
       forbidComputedMembers: false,
       childrenStorage: [],
       checkChildren: false,
-      isGeneratingInternalFunction: true
+      isDirtyChecking: false
    };
    return program.accept(new ExpressionVisitor(), context) as string;
 }
