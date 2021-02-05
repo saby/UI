@@ -52,7 +52,9 @@ function createRequireRoutes(): any {
 
       jquery: '/cdn/JQuery/jquery/3.3.1/jquery-min',
       react: 'UI/_react/third-party/react.production.min',
-      'react-dom': 'UI/_react/third-party/react-dom.production.min'
+      'react-dom': 'UI/_react/third-party/react-dom.production.min',
+      'react/jsx-runtime': 'UI/_react/third-party/react-jsx-runtime.production.min',
+      'react/jsx-dev-runtime': 'UI/_react/third-party/react-jsx-dev-runtime.production.min'
    };
 }
 
