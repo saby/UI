@@ -195,6 +195,20 @@ export enum InternalNodeType {
    BLOCK
 }
 
+function containsFunctionCall(program: ProgramNode, fileName: string): boolean {
+   let hasFunctionCall = false;
+   const callbacks = {
+      CallExpression: (): void => {
+         hasFunctionCall = true;
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName
+   });
+   return hasFunctionCall;
+}
+
 export class InternalNode {
    public readonly index: number;
 
@@ -274,19 +288,25 @@ export class InternalNode {
       if (this.type === InternalNodeType.BLOCK || this.type === InternalNodeType.ELSE) {
          return;
       }
-      if (containsIdentifiers(this.test.node, identifiers, FILE_NAME)) {
+      const hasFunctionCall = containsFunctionCall(this.test.node, FILE_NAME);
+      const hasLocalIdentifier = containsIdentifiers(this.test.node, identifiers, FILE_NAME);
+      if (hasLocalIdentifier) {
          this.dropAndAppend(identifiers, allocator);
-         this.setType(
-            this.type === InternalNodeType.ELSE_IF
-               ? InternalNodeType.ELSE
-               : InternalNodeType.BLOCK
-         );
-         this.test = null;
-         if (this.next === null) {
-            return;
-         }
-         this.next.removeSiblingConditional(this);
+      } else if (hasFunctionCall) {
+         this.storage.set(this.test);
+      } else {
+         return;
       }
+      this.setType(
+         this.type === InternalNodeType.ELSE_IF
+            ? InternalNodeType.ELSE
+            : InternalNodeType.BLOCK
+      );
+      this.test = null;
+      if (this.next === null) {
+         return;
+      }
+      this.next.removeSiblingConditional(this);
    }
 
    private removeSiblingConditional(parent: InternalNode, counter: number = 0): void {
