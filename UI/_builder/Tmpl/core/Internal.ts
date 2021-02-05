@@ -250,9 +250,9 @@ export class InternalNode {
          if (containsIdentifiers(meta.node, identifiers, FILE_NAME)) {
             this.storage.remove(meta);
 
-            const identifiers = collectIdentifiers(meta.node, FILE_NAME);
-            for (let idIndex = 0; idIndex < identifiers.length; ++idIndex) {
-               const identifier = identifiers[idIndex];
+            const localIdentifiers = collectIdentifiers(meta.node, FILE_NAME);
+            for (let idIndex = 0; idIndex < localIdentifiers.length; ++idIndex) {
+               const identifier = localIdentifiers[idIndex];
                if (identifiers.indexOf(identifier) > -1) {
                   continue;
                }
@@ -472,10 +472,9 @@ class Container {
       const join = new Container(this, ContainerType.JOIN);
       join.desc = `JOIN @${container.index}`;
       for (let index = 0; index < identifiers.length; ++index) {
-         join.identifiers.push(identifiers[index]);
+         join.addIdentifier(identifiers[index]);
       }
       join.children.push(container);
-      this.children.push(join);
    }
 
    getInternalStructure(removeSelfIdentifiers: boolean = false): InternalNode {
