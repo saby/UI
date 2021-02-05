@@ -25,6 +25,7 @@ class Swipe extends Control {
    }
 }
 
+// @ts-ignore
 Swipe._styles = ['UIDemo/MobileEventDemo/MobileEventDemo'];
 
 export default Swipe;

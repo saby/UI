@@ -519,6 +519,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             ReactiveObserver.pauseReactive(newNode.control, () => {
                 // Forbid force update in the time between _beforeUpdate and _afterUpdate
                 // newNode.control._canForceUpdate = false;
+                // @ts-ignore
                 newNode.control.__beforeUpdate(newNode.options, resolvedContext);
             });
         } catch (error) {
@@ -1002,6 +1003,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                         changedAttrs ||
                         changedContext;
 
+                   // @ts-ignore
                     childControl._setInternalOptions(changedInternalOptions || {});
 
                     childControlNode.oldOptions = oldOptions; // TODO Для afterUpdate подумать, как еще можно передать

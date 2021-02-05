@@ -3,7 +3,7 @@
       attr:class="ui-HTML {{ onServer && !isCompatible ? 'pre-load' : '' }}">
 
 <ws:template name="bodyTemplate">
-   <body id="body" key="body-el" class="controls_theme-{{_options.theme}}">
+   <body id="body" key="body-el" class="controls_theme-{{_options.theme}} {{ _bodyClasses }}">
       <a class="vdom-focus-in" tabindex="1" attr:key="vdom-focus-in"></a>
       <div id="wasaby-content" style="width: inherit; height: inherit;">
          <ws:if data="{{isCompatible}}">
@@ -97,7 +97,8 @@
       builder="{{ !!_options.builder }}"
       servicesPath="{{ servicesPath }}"
       defaultTheme="{{ _options.defaultTheme }}"
-      product="{{ product }}">
+      product="{{ product }}"
+      reactApp="{{ reactApp }}">
    </UI._base.HTML.Head>
    <ws:if data="{{_options.bodyTemplate}}">
       <ws:partial template="{{_options.bodyTemplate}}">

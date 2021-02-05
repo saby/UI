@@ -25,7 +25,7 @@ import {
    getNodeName
 } from 'UI/DevtoolsHook';
 // @ts-ignore
-import { restoreFocus } from 'UI/Focus';
+import { prepareRestoreFocusBeforeRedraw, restoreFocusAfterRedraw } from 'UI/Focus';
 
 /**
  * @author Кондаков Р.Н.
@@ -205,7 +205,9 @@ class VDomSynchronizer {
       /**
        * Сделать final проверку
        */
+      // @ts-ignore
       if (controlNode.control.saveOptions) {
+         // @ts-ignore
          controlNode.control.saveOptions(controlNode.options, controlNode);
       } else {
          /**
@@ -332,6 +334,7 @@ class VDomSynchronizer {
       const isControlDestroyed = control._destroyed;
       if (!foundControlNode) {
          if (!isControlDestroyed) {
+            // @ts-ignore
             control.destroy();
          }
          //@ts-ignore используется runtime hack
@@ -401,8 +404,9 @@ class VDomSynchronizer {
 
          //@ts-ignore используется runtime hack
          controlNode.environment._rebuildRequestStarted = true;
-         restoreFocus(controlNode.control, () => this._nextDirtiesRunCheck(controlNode));
-         controlNode.environment.addTabListener();
+         prepareRestoreFocusBeforeRedraw(controlNode.control);
+         this._nextDirtiesRunCheck(controlNode);
+         restoreFocusAfterRedraw(controlNode.control);
       };
       delay(requestRebuildDelayed);
    }

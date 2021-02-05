@@ -2,7 +2,7 @@
 /* tslint:disable */
 
 /**
- * @author Тэн В.А.
+ * @author Кондаков Р.Н.
  * Модуль, в котором находится логика по отмене скролла, который произошел в результате фокусировки
  */
 type TInput = NodeList | Element | HTMLCollection | Node[] | string | void;

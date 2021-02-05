@@ -1,0 +1,10 @@
+<div class="compatibleDemo__row">
+    <Core.CompoundContainer component="UIDemo/CompatibleDemo/Compat/WS3/Label">
+        <ws:componentOptions caption="UIDemo.CompatibleDemo.Compat.WS3.TextBox">
+        </ws:componentOptions>
+    </Core.CompoundContainer>
+    <Core.CompoundContainer component="UIDemo/CompatibleDemo/Compat/WS3/TextBox">
+        <ws:componentOptions text="{{ _text }}">
+        </ws:componentOptions>
+    </Core.CompoundContainer>
+</div>

@@ -1,4 +1,4 @@
 <div>
-   <input type="text" value="{{_value}}" on:change="changeHandler()">
+   <input type="text" value="{{_value}}" on:change="changeHandler()"/>
    <button disabled="{{!_value}}" on:click="addNew()">Add new</button>
 </div>

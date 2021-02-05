@@ -3,10 +3,12 @@
    application="{{application}}"
    scope="{{_options}}"
    attr:application="{{application}}"
+   attr:component="{{application}}"
    attr:rootapp="UI/Base:Document"
    attr:key="_"
    cssLinks="{{ cssLinks }}"
    wsRoot="{{ wsRoot }}"
+   lite="{{lite}}"
    appRoot="{{ appRoot }}"
    resourceRoot="{{ resourceRoot }}"
    RUMEnabled="{{ RUMEnabled }}"
@@ -16,4 +18,5 @@
    cssBundles="{{ cssBundles }}"
    servicesPath="{{ servicesPath }}"
    product="{{ product }}"
-   buildnumber="{{ buildnumber }}"/>
+   buildnumber="{{ buildnumber }}"
+   reactApp="{{ reactApp }}"/>

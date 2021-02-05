@@ -1,0 +1,4 @@
+<div>
+    <Core.CompoundContainer
+        component="UIDemo/Compatible/Events/CompatibleParent" />
+</div>

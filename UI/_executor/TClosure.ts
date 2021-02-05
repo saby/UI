@@ -14,8 +14,10 @@ import {Config as config} from 'UI/BuilderConfig';
 // @ts-ignore
 import { ObjectUtils } from 'UI/Utils';
 import { object } from 'Types/util';
+// @ts-ignore
+import { constants } from 'Env/Env';
 
-import { Text, Vdom } from './Markup';
+import { Text, Vdom, React } from './Markup';
 import * as Scope from './_Expressions/Scope';
 import * as Attr from './_Expressions/Attr';
 import { Common, ConfigResolver } from './Utils';
@@ -51,6 +53,11 @@ function getGeneratorCompatible(config) {
 
 function isObject(obj: any): boolean {
    return Object.prototype.toString.call(obj) === '[object Object]';
+}
+
+let isReact = false;
+export function setReact(value: boolean) {
+   isReact = value;
 }
 
 const ITERATORS = [
@@ -190,7 +197,11 @@ var
    },
    createGenerator = function (isVdom, forceCompatible = false, config) {
       if (isVdom) {
-         return Vdom(config);
+         if (isReact) {
+            return React(config);
+         } else {
+            return Vdom(config);
+         }
       }
       if (!Common.disableCompat() && (Common.isCompat() || forceCompatible)) {
          const Compatible = getGeneratorCompatible(config);

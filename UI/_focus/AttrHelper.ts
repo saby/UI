@@ -2,7 +2,7 @@
 /* tslint:disable */
 
 /**
- * @author Тэн В.А.
+ * @author Кондаков Р.Н.
  */
 
 export function isAttr(string) {

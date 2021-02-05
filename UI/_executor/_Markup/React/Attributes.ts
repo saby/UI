@@ -27,16 +27,24 @@ const getStyleObjectFromString = str => {
 interface WasabyAttributes {
     class?: string;
     style?: string;
+    tabindex?: string;
+    'xml:lang'?: string;
 }
 interface ReactAttributes {
     className?: string;
     style?: object;
+    tabIndex?: string;
+    xmlLang?: string;
 }
 
 export function convertAttributes(attributes: WasabyAttributes): ReactAttributes {
     const convertedAttributes: ReactAttributes = attributes as unknown as ReactAttributes;
     convertedAttributes.className = attributes.class;
+    convertedAttributes.tabIndex = attributes.tabindex;
+    convertedAttributes.xmlLang = attributes['xml:lang'];
     delete attributes.class;
+    delete attributes.tabindex;
+    delete attributes['xml:lang'];
     convertedAttributes.style = typeof attributes.style !== 'string' ?
         attributes.style :
         getStyleObjectFromString(attributes.style);

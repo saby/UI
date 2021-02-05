@@ -1,81 +1,57 @@
-import {Component} from 'react';
-import {reactiveObserve} from './ReactiveObserver';
-import {_IGeneratorType, OptionsResolver} from "UI/Executor";
+import {Component, createElement} from 'react';
+import {reactiveObserve, releaseProperties} from './ReactiveObserver';
 import {getGeneratorConfig} from './GeneratorConfig';
-import startApplication from './startApplication';
 import {makeRelation, removeRelation} from './ParentFinder';
-import {Logger, needToBeCompatible} from "UI/Utils";
-import {_FocusAttrs, _IControl, goUpByControlTree} from "UI/Focus";
-import {ContextResolver} from "UI/Contexts";
-import {constants} from "Env/Env";
-import * as ReactDOM from "react-dom";
-import * as React from "react";
+import {EMPTY_THEME, getThemeController} from 'UI/theme/controller';
+import {Logger, Purifier} from 'UI/Utils';
+import { _IControl, activate, prepareRestoreFocusBeforeRedraw, restoreFocusAfterRedraw } from 'UI/Focus';
+import { constants } from 'Env/Env';
+import * as ReactDOM from 'react-dom';
+import * as React from 'react';
+import {ReactiveObserver} from 'UI/Reactivity';
+import {createEnvironment} from 'UI/_react/Control/EnvironmentStorage';
+import {prepareControlNodes} from './ControlNodes';
+import {TClosure} from 'UI/Executor';
 
-// @ts-ignore
+// @ts-ignore путь не определяется
 import template = require('wml!UI/_react/Control/Compatible');
-import {ReactiveObserver} from "UI/Reactivity";
+import {
+   IControlChildren, IControlOptions, IControlState, TIState, TemplateFunction,
+   IDOMEnvironment, ITemplateAttrs, TControlConstructor, IControl, IControlNode
+} from './interfaces';
+import { WasabyContextManager } from '../WasabyContext/WasabyContextManager';
+import {
+   getWasabyContext,
+   IWasabyContextValue,
+   TWasabyContext
+} from '../WasabyContext/WasabyContext';
+
+interface IControlFunction extends Function {
+   /**
+    * Имя react компонента выводимое в DevTools
+    */
+   displayName: string;
+}
 
 let countInst = 1;
+/**
+ * Храним html тега head для того, чтобы отрисовать его после гидрации
+ */
+let _innerHeadHtml: string;
 
-export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
-                                forceCompatible?: boolean,
-                                generatorConfig?: _IGeneratorType.IGeneratorConfig) => string|object;
-
-type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
-
-export interface ITemplateAttrs {
-    key?: string;
-    internal?: Record<string, any>;
-    inheritOptions?: Record<string, any>;
-    attributes?: Record<string, any>;
-    templateContext?: Record<string, any>;
-    context?: Record<string, any>;
-    domNodeProps?: Record<string, any>;
-    events?: Record<string, any>;
-};
-
-interface IControlState {
-    loading: boolean;
+// конфигурация созданного контрола, часть метода createControl
+function configureControl(parameters: {
+   control: Control,
+   domElement: HTMLElement
+}): void {
+    parameters.control._saveEnvironment(createEnvironment(parameters.domElement));
 }
 
-interface IState {
+// вычисляет является ли сейчас фаза оживления страницы
+function isHydrating(): boolean {
+   const docElement = document?.documentElement;
+   return !docElement || docElement.classList.contains('pre-load');
 }
-type TIState = void | IState;
-
-export interface IControlOptions {
-    readOnly?: boolean;
-    theme?: string;
-}
-
-// const BL_MAX_EXECUTE_TIME = 5000;
-const CONTROL_WAIT_TIMEOUT = 20000;
-
-const _private = {
-    configureCompatibility(domElement: HTMLElement, cfg: any, ctor: any): boolean {
-        if (!constants.compat) {
-            return false;
-        }
-
-        // вычисляем родителя физически - ближайший к элементу родительский контрол
-        const parent = goUpByControlTree(domElement)[0];
-
-        if (needToBeCompatible(ctor, parent)) {
-            cfg.element = domElement;
-
-            if (parent && parent._options === cfg) {
-                Logger.error('Для создания контрола ' + ctor.prototype._moduleName +
-                   ' в качестве конфига был передан объект с опциями его родителя ' + parent._moduleName +
-                   '. Не нужно передавать чужие опции для создания контрола, потому что они могут ' +
-                   'изменяться в процессе создания!', this);
-            } else {
-                cfg.parent = cfg.parent || parent;
-            }
-            return true;
-        } else {
-            return false;
-        }
-    }
-};
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
@@ -84,437 +60,698 @@ const _private = {
  * @public
  */
 export class Control<TOptions extends IControlOptions = {}, TState extends TIState = void>
-   extends Component<TOptions, IControlState> implements _IControl {
-    private _firstRender: boolean = true;
-    private _asyncMount: boolean = false;
-    private _$observer: Function = reactiveObserve;
-    protected _container: HTMLElement = null;
-    protected _children: IControlChildren = {};
-    protected _template: TemplateFunction;
-    protected _options: TOptions = {} as TOptions;
-    //@ts-ignore
-    private _reactiveStart: boolean = false;
+   extends Component<TOptions, IControlState> implements _IControl, IControl {
+   private _firstRender: boolean = true;
+   private _asyncMount: boolean = false;
+   private _$observer: Function = reactiveObserve;
+   // Флаг, задестроен ли контрол.
+   // Нужен для текущей версии фокусов, а также есть шанс, что его используют под ts-ignore
+   protected _destroyed: boolean = false;
+   // контейнер контрола
+   // добавлено потому что это используемое api контрола
+   _container: HTMLElement = null;
+   // Активирован ли контрол
+   // Нужно для поддержки текущей системы фокусов
+   private _$active: boolean = false;
+   // набор детей контрола, элементы или контролы, которым задан атрибут name (является ключом)
+   // добавлено потому что это используемое api контрола
+   protected _children: IControlChildren = {};
+   // шаблон контрола
+   // добавлен потому что используемое апи контрола
+   protected _template: TemplateFunction;
+   _options: TOptions = {} as TOptions;
+   /** @deprecated */
+   protected _theme: string[];
+   /** @deprecated */
+   protected _styles: string[];
+   // флаг показывает, работает ли реактивность у контрола
+   // добавлено потому что используется в реактивных свойствах
+   _reactiveStart: boolean = false;
+   // хранилище значений реактивных полей
+   // добавлено потому что используется в реактивных свойствах
+   reactiveValues: object;
+   // окружение DOMEnvironment контрола
+   // добавлено потому что используется в системе фокусов (_getEnvironment)
+   _environment: IDOMEnvironment;
+   // текущая controlNode контрола
+   // добавлено для работы системы событий, т.к должны всплывать с учетом controlNode
+   _controlNode: IControlNode;
+   // логический родитель контрола
+   // добавлено чтобы при создании ControlNode вычислять поле environment, которое хранится среди родителей
+   // также используется в прикладных и платформенных wasaby-контролах в качестве костылей
+   _logicParent: IControl;
+   // родительский хок (если есть)
+   // используется чтобы расставить на родительских хоках _container
+   // в реф хока мы попадем в момент, когда контейнера еще нет, так что надо отложить инициализацию
+   _parentHoc: IControl;
+   // название модуля контрола
+   // добавлено потому что используется при выводе логов и для костылей
+   _moduleName: string;
+   // id контрола
+   // добавлено чтобы выводиться в getInstanceId, а getInstanceId это используемое апи контрола
+   private readonly _instId: string = 'inst_' + countInst++;
 
-    private readonly _instId: string = 'inst_' + countInst++;
+   constructor(props: TOptions, context?: IWasabyContextValue) {
+      super(props);
+      /*
+      Если люди сами задают конструктор, то обычно они вызывают его неправильно (передают только один аргумент).
+      Из-за этого контекст может потеряться и не получится в конструкторе вытащить значение из него.
+       */
+      // FIXME: пока нет серверной вёрстки на реакте, не кидаем сообщение на сервере. Иначе будет спам
+      if (!context && !constants.isServerSide) {
+         Logger.error(`[${this._moduleName}] Неправильный вызов родительского конструктора, опции readOnly и theme могут содержать некорректные значения. Для исправления ошибки нужно передать в родительский конструктор все аргументы.`);
+      }
+      this._options = createWasabyOptions(props, context);
+      this.state = {
+         loading: true
+      };
+      const constructor = this.constructor as IControlFunction;
+      /**
+       * Записываем в статическое поле компонента имя для удобной работы через React DevTools
+       */
+      if (!constructor.displayName) {
+         constructor.displayName = this._moduleName;
+      }
+      this._logicParent = props._logicParent;
+   }
 
-    // @ts-ignore
-    private _isRendered: boolean;
+   // возвращает id, используется пользователями
+   // добавлено потому что это используемое api контрола
+   getInstanceId(): string {
+      return this._instId;
+   }
 
-    constructor(props: TOptions) {
-        super(props);
-        this._options = props;
-        this.state = {
-            loading: true
-        };
-    }
+   // запуск события - сейчас заглушка. удалить нельзя, это самое простое решение
+   _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): void {
+      if (args && !(args instanceof Array)) {
+         const error = `Ошибка использования API событий.
+                     В метод _notify() в качестве второго аргументов необходимо передавать массив
+                     Был передан объект типа ${typeof args}
+                     Событие: ${eventName}
+                     Аргументы: ${args}
+                     Подробнее о событиях: https://wasaby.dev/doc/platform/ui-library/events/#params-from-notify`;
+             Logger.error(error, this);
+         throw new Error(error);
+      }
+      return this._environment && this._environment.startEvent(this._controlNode, arguments);
+   }
 
-    getInstanceId(): string {
-        return this._instId;
-    }
+   activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
+      const container = this._container;
+      const activeElement = document.activeElement;
 
-    _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): void {
-        // nothing for a while...
-    }
-    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): void {
-        // nothing for a while...
-    }
-    _forceUpdate(): void {
-        this.forceUpdate();
-    }
+      // проверим не пустой ли контейнер.
+      const res = container && activate(container, cfg);
 
-    /* Start: Compatible lifecicle hooks */
+      // Пока что приходится перетаскивать костыли сюда...
 
-    /**
-     * Хук жизненного цикла контрола. Вызывается непосредственно перед установкой контрола в DOM-окружение.
-     * @param {Object} options Опции контрола.
-     * @param {Object} contexts Поля контекста, запрошенные контролом.
-     * @param {Object} receivedState Данные, полученные посредством серверного рендеринга.
-     * @remark
-     * Первый хук жизненного цикла контрола и единственный хук, который вызывается как на стороне сервера, так и на стороне клиента.
-     * Он вызывается до рендеринга шаблона, поэтому обычно используется для подготовки данных для шаблона.
-     * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
-     */
-    protected _beforeMount(options?: TOptions, contexts?: object, receivedState?: TState): Promise<TState | void> | void {
-        // Do
-    }
-    __beforeMountSSR(options?: TOptions,
-                  contexts?: object,
-                  receivedState?: TState): Promise<TState | void> | void {
-        // @ts-ignore
-        if (this._$resultBeforeMount) {
-            // @ts-ignore
-            return this._$resultBeforeMount;
-        }
+      // может случиться так, что на focus() сработает обработчик в DOMEnvironment,
+      // и тогда тут ничего не надо делать
+      // todo делать проверку не на _$active а на то, что реально состояние изменилось.
+      // например переходим от компонента к его предку, у предка состояние не изменилось.
+      // но с которого уходили у него изменилось
+      if (res && !this._$active) {
+         this._getEnvironment()._handleFocusEvent({ target: document.activeElement, relatedTarget: activeElement });
+      }
 
-        let savedOptions;
-        // @ts-ignore
-        const hasCompatible = this.hasCompatible && this.hasCompatible();
-        // в совместимости опции добавилились и их нужно почистить
-        if (hasCompatible) {
-            savedOptions = this._options;
-            this._options = {} as TOptions;
-        }
+      return res;
+   }
 
-        // включаем реактивность свойств, делаем здесь потому что в constructor рано, там еще может быть не
-        // инициализирован _template, например если нативно объявлять класс контрола в typescript и указывать
-        // _template на экземпляре, _template устанавливается сразу после вызова базового конструктора
-        if (!(typeof process !== 'undefined' && !process.versions)) {
-            ReactiveObserver.observeProperties(this);
-        }
+   // запускает перерисовку
+   // добавлено потому что используемое апи контрола
+   _forceUpdate(): void {
+      this.forceUpdate();
+   }
 
-        const resultBeforeMount = this._beforeMount.apply(this, arguments);
+   // сохраняет окружение контрола
+   // добавлено потому что используется в configureControl для инициализации environment
+   _saveEnvironment(env: IDOMEnvironment, controlNode?: IControlNode): void {
+      this._environment = env;
+      this._controlNode = controlNode;
+   }
 
-        if (hasCompatible) {
-            this._options = savedOptions;
-        }
+   // возвращает окружение контрола
+   // добавлено потому что используется в системе фокусов
+   _getEnvironment(): IDOMEnvironment {
+      return this._environment;
+   }
 
-        // prevent start reactive properties if beforeMount return Promise.
-        // Reactive properties will be started in Synchronizer
-        if (resultBeforeMount && resultBeforeMount.callback) {
-            // @ts-ignore
-            this._isPendingBeforeMount = true;
-            resultBeforeMount.then(() => {
-                // @ts-ignore
-                this._reactiveStart = true;
-                // @ts-ignore
-                this._isPendingBeforeMount = false;
-            }).catch (() => {
-                //nothing
-            });
+   /* Start: Compatible lifecycle hooks */
 
-            //start client render
-            if (typeof window !== 'undefined') {
-                // @ts-ignore
-                const clientTimeout = this._clientTimeout ? (this._clientTimeout > CONTROL_WAIT_TIMEOUT ? this._clientTimeout : CONTROL_WAIT_TIMEOUT) : CONTROL_WAIT_TIMEOUT;
-                // @ts-ignore
-                _private._asyncClientBeforeMount(resultBeforeMount, clientTimeout, this._clientTimeout, this._moduleName, this);
-            }
-        } else {
-            // _reactiveStart means starting of monitor change in properties
-            // @ts-ignore
-            this._reactiveStart = true;
-        }
-        // @ts-ignore
-        const cssLoading = Promise.resolve();//Promise.all([this.loadThemes(options.theme), this.loadStyles()]);
-        // @ts-ignore
-        if (constants.isServerSide/* || this.isDeprecatedCSS() || this.isCSSLoaded(options.theme) */) {
-            // @ts-ignore
-            return this._$resultBeforeMount = resultBeforeMount;
-        }
-        // @ts-ignore
-        return this._$resultBeforeMount = cssLoading.then(() => resultBeforeMount);
-    }
-    __beforeMount(options?: TOptions,
-                  contexts?: object,
-                  receivedState?: TState): void {
-        if (typeof window === 'undefined') {
-            return this.__beforeMountSSR.apply(this, arguments);
-        }
+   /**
+    * Хук жизненного цикла контрола. Вызывается непосредственно перед установкой контрола в DOM-окружение.
+    * @param {Object} options Опции контрола.
+    * @param {Object} contexts Поля контекста, запрошенные контролом.
+    * @param {Object} receivedState Данные, полученные посредством серверного рендеринга.
+    * @remark
+    * Первый хук жизненного цикла контрола и единственный хук, который вызывается как на стороне сервера, так и на стороне клиента.
+    * Он вызывается до рендеринга шаблона, поэтому обычно используется для подготовки данных для шаблона.
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
+    */
+   protected _beforeMount(options?: TOptions, contexts?: object, receivedState?: TState):
+      Promise<TState | void> | void {
+      // Do
+   }
 
-        const beforeMountResult = this._beforeMount(this.props);
-        if (beforeMountResult && beforeMountResult.then) {
-            this._asyncMount = true;
-            beforeMountResult.then(() => {
-                this._firstRender = false;
-                this._reactiveStart = true;
-                this.setState({
-                    loading: false
-                }, () => this._afterMount(this.props));
-            });
-        } else {
+   // beforeMount зовется на сервере для поддержки серверной верстки (с учетом промисов)
+   __beforeMountSSR(options?: TOptions,
+                    contexts?: object,
+                    receivedState?: TState): Promise<TState | void> | TState | void {
+      let savedOptions;
+      // @ts-ignore навешивается в слое совместимости, в чистом контроле такого нет
+      const hasCompatible = this.hasCompatible && this.hasCompatible();
+      // в совместимости опции добавились и их нужно почистить
+      if (hasCompatible) {
+         savedOptions = this._options;
+         this._options = {} as TOptions;
+      }
+
+      const resultBeforeMount = this._beforeMount(options, contexts, receivedState);
+
+      if (hasCompatible) {
+         this._options = savedOptions;
+      }
+
+      return resultBeforeMount;
+   }
+
+   __beforeMount(options: TOptions,
+                 contexts?: object,
+                 receivedState?: TState): void {
+      /** Загрузка стилей и тем оформления - это обязательно асинхронный процесс */
+      const cssLoading = Promise.all([
+         this.loadThemes(options.theme),
+         this.loadStyles(),
+         this.loadThemeVariables(options.theme)
+      ]);
+      const promisesToWait = [];
+      if (!constants.isServerSide && !this.isDeprecatedCSS() && !this.isCSSLoaded(options.theme)) {
+         promisesToWait.push(cssLoading.then(nop));
+      }
+      if (constants.isServerSide) {
+         return this.__beforeMountSSR(options, contexts, receivedState) as void;
+      }
+
+      const res = this._beforeMount(options);
+
+      if (res && res.then) {
+         promisesToWait.push(res);
+         promisesToWait.push(cssLoading);
+      }
+
+      if (promisesToWait.length) {
+         this._asyncMount = true;
+         Promise.all(promisesToWait).then(() => {
             this._firstRender = false;
             this._reactiveStart = true;
-        }
-        // TODO: Вынести работу с reactiveProps в генераторы
-        // @ts-ignore
-        if (this._template.reactiveProps) {
-            // @ts-ignore
-            this._$observer(this, this._template.reactiveProps);
-        }
-    }
-    __beforeUpdate(newOptions: TOptions, context?: Record<string, any>): void {
-        // nothing
-    }
-    private _setInternalOption(name: string, value: unknown): void {
-        // @ts-ignore
-        if (!this._internalOptions) {
-            // @ts-ignore
-            this._internalOptions = {};
-        }
-        // @ts-ignore
-        this._internalOptions[name] = value;
-    }
-    _setInternalOptions(internal: Record<string, unknown>): void {
-        for (const name in internal) {
-            if (internal.hasOwnProperty(name)) {
-                this._setInternalOption(name, internal[name]);
-            }
-        }
-    }
-    getPendingBeforeMountState(): boolean {
-        return false;
-    }
-    saveOptions(options: TOptions, controlNode: any = null): boolean {
-        this._options = options as TOptions;
-        if (controlNode) {
-            this._container = controlNode.element;
-        }
-        return true;
-    }
-    _getMarkup(rootKey?: string,
-               attributes?: ITemplateAttrs,
-               isVdom: boolean = true): void {
+            this.setState({
+               loading: false
+            }, () => this._afterMount(options));
+         });
+      } else {
+         this._firstRender = false;
+         this._reactiveStart = true;
+      }
 
-        if (!(this._template as any).stable) {
-            // @ts-ignore
-            Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
-            // @ts-ignore
-            return '';
-        }
-        let res;
+      this._$observer(this, this._template);
+   }
 
-        if (!attributes) {
-            attributes = {};
-        }
-        // @ts-ignore
-        attributes.context = this._fullContext;
-        // @ts-ignore
-        attributes.inheritOptions = this._savedInheritOptions;
-        for (const i in attributes.events) {
-            if (attributes.events.hasOwnProperty(i)) {
-                for (let handl = 0; handl < attributes.events[i].length; handl++) {
-                    if (
-                       attributes.events[i][handl].isControl &&
-                       !attributes.events[i][handl].fn.controlDestination
-                    ) {
-                        attributes.events[i][handl].fn.controlDestination = this;
-                    }
-                }
-            }
-        }
-        const generatorConfig = getGeneratorConfig();
-        res = this._template(this, attributes, rootKey, isVdom, undefined, undefined, generatorConfig);
-        if (res) {
-            if (isVdom) {
-                if (res.length !== 1) {
-                    const message = `В шаблоне может быть только один корневой элемент. Найдено ${res.length} корня(ей).`;
-                    Logger.error(message, this);
-                }
-                for (let k = 0; k < res.length; k++) {
-                    if (res[k]) {
-                        return res[k];
-                    }
-                }
-            }
-        } else {
-            res = '';
-        }
-        return res;
-    }
-    destroy(): void {
-        // nothing
-    }
-    static _styles: string[] = [];
-    static _theme: string[] = [];
-    static isWasaby: boolean = true;
+   // построение верстки контрола
+   // добавлено потому что используется в render для построения верстки на сервере
+   _getMarkup(rootKey?: string,
+              attributes: ITemplateAttrs = {}): string | object {
+      // @ts-ignore флага stable нет на шаблоне и я не знаю как объявить
+      if (!(this._template).stable) {
+         Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
+         return '';
+      }
+      let res;
+      const generatorConfig = getGeneratorConfig();
+      // FIXME: здесь readOnly и theme не пронаследуются, потому что на сервере строит не реакт
+      res = this._template(this, attributes, rootKey, false, undefined, undefined, generatorConfig);
+      return res || '';
+   }
 
-    // На данном этапе рисуем индикатор вместо компонента в момен загрузки асинхронного beforeMount
-    // private _getLoadingComponent(): ReactElement {
-    //     return createElement('img', {
-    //         src: '/cdn/LoaderIndicator/1.0.0/ajax-loader-indicator.gif'
-    //     });
-    // }
+   // На данном этапе рисуем индикатор вместо компонента в момент загрузки асинхронного beforeMount
+   private _getLoadingComponent(): React.ReactElement {
+      return createElement('img', {
+         src: '/cdn/LoaderIndicator/1.0.0/ajax-loader-indicator.gif'
+      });
+   }
 
-    /**
-     * Хук жизненного цикла контрола. Вызывается сразу после установки контрола в DOM-окружение.
-     * @param {Object} options Опции контрола.
-     * @param {Object} context Поле контекста, запрошенное контролом.
-     * @remark
-     * Первый хук жизненного цикла контрола, который вызывается после подключения контрола к DOM-окружению.
-     * На этом этапе вы можете получить доступ к параметрам и контексту this._options.
-     * Этот хук жизненного цикла часто используется для доступа к DOM-элементам и подписки на события сервера.
-     * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
-     */
-    protected _afterMount(options?: TOptions, context?: object): void {
-        // Do
-    }
+   /**
+    * Хук жизненного цикла контрола. Вызывается сразу после установки контрола в DOM-окружение.
+    * @param {Object} options Опции контрола.
+    * @param {Object} context Поле контекста, запрошенное контролом.
+    * @remark
+    * Первый хук жизненного цикла контрола, который вызывается после подключения контрола к DOM-окружению.
+    * На этом этапе вы можете получить доступ к параметрам и контексту this._options.
+    * Этот хук жизненного цикла часто используется для доступа к DOM-элементам и подписки на события сервера.
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
+    */
+   protected _afterMount(options?: TOptions, context?: object): void {
+      // Do
+   }
 
-    /**
-     * Хук жизненного цикла контрола. Вызывается перед обновлением контрола.
-     *
-     * @param {Object} newOptions Опции, полученные контролом. Устаревшие опции можно найти в this._options.
-     * @param {Object} newContext Контекст, полученный контролом. Устаревшие контексты можно найти в this._context.
-     * @remark В этом хуке вы можете сравнить новые и старые опции и обновить состояние контрола.
-     * В этом хуке, также, вы можете подготовить все необходимое для визуализации шаблона контрола. Часто код в этом блоке схож с кодом в хуке _beforeMount.
-     * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
-     */
-    protected _beforeUpdate(newOptions?: TOptions, newContext?: object): void {
-        // Do
-    }
 
-    /**
-     * Хук жизненного цикла контрола. Вызывается после обновления контрола.
-     *
-     * @param {Object} oldOptions Опции контрола до обновления контрола.
-     * @param {Object} oldContext Поля контекста до обновления контрола.
-     * @protected
-     */
-    protected _afterUpdate(oldOptions?: TOptions, oldContext?: object): void {
-        // Do
-    }
+   /**
+    * Определяет, должен ли контрол обновляться. Вызывается каждый раз перед обновлением контрола.
+    *
+    * @param {Object} options Опции контрола.
+    * @param {Object} [context] Поле контекста, запрошенное контролом. Параметр считается deprecated, поэтому откажитесь от его использования.
+    * @returns {Boolean}
+    * * true (значание по умолчанию): контрол будет обновлен.
+    * * false: контрол не будет обновлен.
+    * @example
+    * Например, если employeeSalary является единственным параметром, используемым в шаблоне контрола,
+    * можно обновлять контрол только при изменении параметра employeeSalary.
+    * <pre class="brush: html">
+    *    Control.extend({
+    *       ...
+    *       _shouldUpdate: function(newOptions, newContext) {
+    *          if (newOptions.employeeSalary === this._options.employeeSalary) {
+    *             return false;
+    *          }
+    *       }
+    *       ...
+    *    });
+    * </pre>
+    * @remark
+    * Хук жизненного цикла контрола вызывается после хука _beforeUpdate перед перестроением шаблона. Этот хук можно использовать для оптимизаций.
+    * Вы можете сравнить новые и текущие параметры и вернуть false, если нет необходимости пересчитывать DOM-дерево контрола.
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
+    */
+   protected _shouldUpdate(options: TOptions, context?: object): boolean {
+      return true;
+   }
 
-    /**
-     * Хук жизненного цикла контрола. Вызывается до удаления контрола.
-     * @remark Это последний хук жизненного цикла контрола. Контрол не будет существовать после вызова этого хука.
-     * Его можно использовать для отмены подписки на события сервера и очистки всего, что было сохранено в памяти.
-     * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
-     */
-    protected _beforeUnmount(): void {
-        // Do
-    }
+   /**
+    * Хук жизненного цикла контрола. Вызывается перед обновлением контрола.
+    *
+    * @param {Object} newOptions Опции, полученные контролом. Устаревшие опции можно найти в this._options.
+    * @param {Object} newContext Контекст, полученный контролом. Устаревшие контексты можно найти в this._context.
+    * @remark В этом хуке вы можете сравнить новые и старые опции и обновить состояние контрола.
+    * В этом хуке, также, вы можете подготовить все необходимое для визуализации шаблона контрола. Часто код в этом блоке схож с кодом в хуке _beforeMount.
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
+    */
+   protected _beforeUpdate(newOptions?: TOptions, newContext?: object): void {
+      // Do
+   }
 
-    /* End: Compatible lifecicle hooks */
+   /**
+    * Хук жизненного цикла контрола. Вызывается после обновления контрола.
+    *
+    * @param {Object} oldOptions Опции контрола до обновления контрола.
+    * @param {Object} oldContext Поля контекста до обновления контрола.
+    * @protected
+    */
+   protected _afterUpdate(oldOptions?: TOptions, oldContext?: object): void {
+      // Do
+   }
 
-    /* Start: React lifecicle hooks */
+   /**
+    * Хук жизненного цикла контрола. Вызывается до удаления контрола.
+    * @remark Это последний хук жизненного цикла контрола. Контрол не будет существовать после вызова этого хука.
+    * Его можно использовать для отмены подписки на события сервера и очистки всего, что было сохранено в памяти.
+    * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
+    */
+   protected _beforeUnmount(): void {
+      // Do
+   }
 
-    componentDidMount(): void {
-        if (!this._asyncMount) {
-            setTimeout(() => {
-                makeRelation(this);
-                this._afterMount.apply(this);
-            }, 0);
-        }
-    }
+   /* End: Compatible lifecycle hooks */
 
-    componentDidUpdate(prevProps: TOptions): void {
-        this._options = this.props;
-        setTimeout(() => {
+   /* Start: CSS region */
+
+   private isDeprecatedCSS(): boolean {
+      const isDeprecatedCSS = this._theme instanceof Array || this._styles instanceof Array;
+      if (isDeprecatedCSS) {
+         Logger.warn(`Стили и темы должны перечисляться в статическом свойстве класса ${this._moduleName}`);
+      }
+      return isDeprecatedCSS;
+   }
+
+   private isCSSLoaded(themeName?: string): boolean {
+      const themes = this._theme instanceof Array ? this._theme : [];
+      const styles = this._styles instanceof Array ? this._styles : [];
+      // FIXME: Поддержка старых контролов с подгрузкой тем и стилей из статических полей
+      // tslint:disable-next-line:no-string-literal
+      return this.constructor['isCSSLoaded'](themeName, themes, styles);
+   }
+
+   private loadThemes(themeName?: string): Promise<void> {
+      const themes = this._theme instanceof Array ? this._theme : [];
+      // FIXME: Поддержка старых контролов с подгрузкой тем и стилей из статических полей
+      // tslint:disable-next-line:no-string-literal
+      return this.constructor['loadThemes'](themeName, themes).catch(logError);
+   }
+
+   private loadStyles(): Promise<void> {
+      const styles = this._styles instanceof Array ? this._styles : [];
+      // FIXME: Поддержка старых контролов с подгрузкой тем и стилей из статических полей
+      // tslint:disable-next-line:no-string-literal
+      return this.constructor['loadStyles'](styles).catch(logError);
+   }
+   private loadThemeVariables(themeName?: string): Promise<void> {
+      return this.constructor['loadThemeVariables'](themeName).catch(logError);
+   }
+
+   /* End: CSS region */
+
+   // подключение контекста с опциями readOnly и theme
+   static readonly contextType: TWasabyContext = getWasabyContext();
+
+   /* Start: CSS static region */
+
+   /**
+    * Загрузка стилей и тем контрола
+    * @param {String} themeName имя темы (по-умолчанию тема приложения)
+    * @param {Array<String>} themes массив доп тем для скачивания
+    * @param {Array<String>} styles массив доп стилей для скачивания
+    * @returns {Promise<void>}
+    * @static
+    * @public
+    * @method
+    * @example
+    * <pre class="brush: js">
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadCSS('saby__dark'))
+    * </pre>
+    */
+   static loadCSS(themeName?: string, themes: string[] = [], styles: string[] = []): Promise<void> {
+      return Promise.all([
+         this.loadStyles(styles),
+         this.loadThemes(themeName, themes)
+      ]).then(nop);
+   }
+
+   /**
+    * Загрузка тем контрола
+    * @param instThemes опционально дополнительные темы экземпляра
+    * @param themeName имя темы (по-умолчанию тема приложения)
+    * @static
+    * @private
+    * @method
+    * @example
+    * <pre>
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadThemes('saby__dark'))
+    * </pre>
+    */
+   static loadThemes(themeName?: string, instThemes: string[] = []): Promise<void> {
+      const themeController = getThemeController();
+      const themes = instThemes.concat(this._theme);
+      if (themes.length === 0) {
+         return Promise.resolve();
+      }
+      return Promise.all(themes.map((name) => themeController.get(name, themeName))).then(nop);
+   }
+
+   /**
+    * Вызовет загрузку коэффициентов (CSS переменных) для тем.
+    * @param {String} themeName имя темы. Например: "default", "default__cola" или "retail__light-medium"
+    * @static
+    * @public
+    * @method
+    * @example
+    * <pre>
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadThemeVariables('default__cola'))
+    * </pre>
+    */
+   static loadThemeVariables(themeName?: string): Promise<void> {
+      if (!themeName) {
+         return Promise.resolve();
+      }
+      return getThemeController().getVariables(themeName);
+   }
+
+   /**
+    * Загрузка стилей контрола
+    * @param instStyles (опционально) дополнительные стили экземпляра
+    * @static
+    * @private
+    * @method
+    * @example
+    * <pre>
+    *     import('Controls/_popupTemplate/InfoBox')
+    *         .then((InfoboxTemplate) => InfoboxTemplate.loadStyles())
+    * </pre>
+    */
+   static loadStyles(instStyles: string[] = []): Promise<void> {
+      const themeController = getThemeController();
+      const styles = instStyles.concat(this._styles);
+      if (styles.length === 0) {
+         return Promise.resolve();
+      }
+      return Promise.all(styles.map((name) => themeController.get(name, EMPTY_THEME))).then(nop);
+   }
+
+   /**
+    * Удаление link элементов из DOM
+    * @param themeName имя темы (по-умолчанию тема приложения)
+    * @param instThemes опционально собственные темы экземпляра
+    * @param instStyles опционально собственные стили экземпляра
+    * @static
+    * @method
+    */
+   static removeCSS(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): Promise<void> {
+      const themeController = getThemeController();
+      const styles = instStyles.concat(this._styles);
+      const themes = instThemes.concat(this._theme);
+      if (styles.length === 0 && themes.length === 0) {
+         return Promise.resolve();
+      }
+      const removingStyles = Promise.all(styles.map((name) => themeController.remove(name, EMPTY_THEME)));
+      const removingThemed = Promise.all(themes.map((name) => themeController.remove(name, themeName)));
+      return Promise.all([removingStyles, removingThemed]).then(nop);
+   }
+
+   /**
+    * Проверка загрузки стилей и тем контрола
+    * @param {String} themeName имя темы (по-умолчанию тема приложения)
+    * @param {Array<String>} instThemes массив доп тем для скачивания
+    * @param {Array<String>} instStyles массив доп стилей для скачивания
+    * @returns {Boolean}
+    * @static
+    * @public
+    * @method
+    */
+   static isCSSLoaded(themeName?: string, instThemes: string[] = [], instStyles: string[] = []): boolean {
+      const themeController = getThemeController();
+      const themes = instThemes.concat(this._theme);
+      const styles = instStyles.concat(this._styles);
+      if (styles.length === 0 && themes.length === 0) {
+         return true;
+      }
+      return themes.every((cssName) => themeController.isMounted(cssName, themeName)) &&
+         styles.every((cssName) => themeController.isMounted(cssName, EMPTY_THEME));
+   }
+
+   /* End: CSS static region */
+
+   /* Start: React lifecycle hooks */
+
+   componentDidMount(): void {
+      if (!this._asyncMount) {
+         setTimeout(() => {
             makeRelation(this);
-            this._afterUpdate.apply(this, [prevProps]);
-        }, 0);
-    }
+            this._afterMount(this._options);
+         }, 0);
+      }
+   }
 
-    getSnapshotBeforeUpdate(): void {
-        if (!this._firstRender) {
-            if (document.documentElement && !document.documentElement.classList.contains('pre-load')) {
-                this._reactiveStart = false;
-                this._beforeUpdate.apply(this, [this.props]);
-                this._reactiveStart = true;
+   shouldComponentUpdate(newProps: TOptions): boolean {
+      return this._shouldUpdate(newProps);
+   }
+
+   componentDidUpdate(prevProps: TOptions): void {
+      // берём именно наши _options, чтобы не потерять readOnly и theme
+      const oldOptions = this._options;
+      this._options = createWasabyOptions(prevProps, this.context);
+      setTimeout(() => {
+         makeRelation(this);
+         this._afterUpdate(oldOptions);
+      }, 0);
+      if (this._getEnvironment()) {
+         restoreFocusAfterRedraw(this);
+      }
+   }
+
+   getSnapshotBeforeUpdate(): void {
+      // FIXME: Удалить проверку на isHydrating при переводе демки на оживление на диве
+      if (!this._firstRender && !isHydrating()) {
+         this._reactiveStart = false;
+         try {
+            this._beforeUpdate(this._options);
+         } finally {
+            this._reactiveStart = true;
+         }
+      }
+      if (this._getEnvironment()) {
+         prepareRestoreFocusBeforeRedraw(this);
+      }
+      return null;
+   }
+
+   componentWillUnmount(): void {
+      removeRelation(this);
+      releaseProperties(this);
+      this._beforeUnmount.apply(this);
+      this._destroyed = true;
+      const isWS3Compatible: boolean = this.hasOwnProperty('getParent');
+      if (!isWS3Compatible) {
+         const async: boolean = !Purifier.canPurifyInstanceSync(this._moduleName);
+         Purifier.purifyInstance(this, this._moduleName, async);
+      }
+   }
+
+   render(empty?: unknown, attributes?: ITemplateAttrs): string | object {
+      const wasabyOptions = createWasabyOptions(this.props, this.context);
+      if (constants.isServerSide) {
+         let markup: string | object = '';
+         ReactiveObserver.forbidReactive(this, () => {
+            markup = this._getMarkup(null, attributes);
+         });
+         // FIXME: нельзя здесь создавать контекст, потому что сейчас на сервере строит не реакт
+         return markup;
+      }
+
+      if (this._firstRender) {
+         // FIXME: тема на сервере и на клиенте не совпадает, head пытается пропатчить изменения, в итоге пишет в document.head, который null
+         if (this._moduleName === 'UI/_base/HTML/Head') {
+            this.__beforeMount(this.props);
+         } else {
+            this.__beforeMount(wasabyOptions);
+         }
+      }
+
+      // @ts-ignore
+      window.reactGenerator = true;
+
+      if (this._asyncMount && this.state.loading) {
+         if (this._moduleName === 'UI/Base:HTML') {
+            return null;
+         } else {
+            return this._getLoadingComponent();
+         }
+      }
+
+      if (this._moduleName === 'UI/_base/HTML/Head') {
+         // FIXME: Пересоздаем head на клиенте, так как гидрация реакта его стирает
+         const newHead = createElement('head', {
+            // @ts-ignore
+            dangerouslySetInnerHTML: {__html: _innerHeadHtml}
+         });
+         _innerHeadHtml = null;
+         return newHead;
+      }
+
+      const generatorConfig = getGeneratorConfig();
+      TClosure.setReact(true);
+
+      let res;
+      try {
+         const ctx = {...this, _options: {...wasabyOptions}};
+         // в случае корневого контрола атрибутов нет - это нормально. в createControl не существует атрибутов.
+         // аналогичное поведение было в ui/base:control
+         const attrs = this.props._$attributes;
+         res = this._template(ctx, attrs, undefined, true, undefined, undefined, generatorConfig);
+         // прокидываю тут аргумент isCompatible, но можно вынести в builder
+         const originRef = res[0].ref;
+         // tslint:disable-next-line:no-this-assignment
+         const control = this;
+         res[0] = {
+            ...res[0], ref: (node) => {
+               prepareControlNodes(node, control, Control);
+               return originRef && originRef.apply(this, [node]);
             }
-        }
-        return null;
-    }
+         };
+      } finally {
+         TClosure.setReact(false);
+      }
 
-    componentWillUnmount(): void {
-        removeRelation(this);
-        this._beforeUnmount.apply(this);
-    }
+      return createElement(
+         WasabyContextManager,
+         {
+            readOnly: wasabyOptions.readOnly,
+            theme: wasabyOptions.theme
+         },
+         res[0]
+      );
+   }
 
-    saveInheritOptions(): any {
+   /**
+    * Массив имен нетемизированных стилей, необходимых контролу.
+    * Все стили будут скачаны при создании
+    *
+    * @static
+    * @example
+    * <pre>
+    *   static _styles: string[] = ['Controls/Utils/getWidth'];
+    * </pre>
+    */
+   static _styles: string[] = [];
+   /**
+    * Массив имен темизированных стилей, необходимых контролу.
+    * Все стили будут скачаны при создании
+    *
+    * @static
+    * @example
+    * <pre>
+    *   static _theme: string[] = ['Controls/popupConfirmation'];
+    * </pre>
+    */
+   static _theme: string[] = [];
+   // флаг определяет, что класс является wasaby-контролом, а не ws3
+   // используется в шаблонизаторе для определения типа создаваемого контрола для совместимости
+   static isWasaby: boolean = true;
 
-    }
-    _saveContextObject(): any {
+   // создание и монтирование контрола в элемент
+   // добавляется потому что используемое апи контрола
+   static createControl(ctor: TControlConstructor, cfg: IControlOptions, domElement: HTMLElement): void {
+      const updateMarkup = isHydrating() ?
+         ReactDOM.hydrate :
+         ReactDOM.render;
 
-    }
-    saveFullContext(): any {
+      // кладём в конфиг наследуемые опции, чтобы они попали в полноценные опции
+      cfg.theme = cfg.theme ?? 'default';
+      cfg.readOnly = cfg.readOnly ?? false;
 
-    }
+      // FIXME: Кладем в локальную переменную содержимое head для отрисовки его на клиенте после гидрации
+      _innerHeadHtml = domElement.getElementsByTagName('head')[0].innerHTML;
 
-    render(empty?: any, attributes?: any): unknown {
-        if (typeof window === 'undefined') {
-            let markup;
-            ReactiveObserver.forbidReactive(this, () => {
-                markup = this._getMarkup(null, attributes, false);
-            });
-            this._isRendered = true;
-            return markup;
-        }
-
-        if (this._firstRender) {
-            this.__beforeMount();
-        }
-
-        if (this._asyncMount && this.state.loading) {
-            return null;//this._getLoadingComponent();
-        }
-
-        const generatorConfig = getGeneratorConfig();
-        //@ts-ignore
-        window.reactGenerator = true;
-        const ctx = {...this, _options: {...this.props}};
-        //@ts-ignore
-        const res = this._template(ctx, {}, undefined, undefined, undefined, undefined, generatorConfig);
-        // прокидываю тут аргумент isCompatible, но можно вынести в билдер
-        const originRef = res[0].ref;
-        if (originRef) {
-            res[0] = {...res[0], ref: (node) => {
-                    return originRef.apply(this, [node, true]);
-                }
-            };
-        }
-        //@ts-ignore
-        window.reactGenerator = false;
-        return res;
-    }
-    static createControl(ctor: any, cfg: any, domElement: HTMLElement): Control {
-        if (domElement) {
-            // если пришел jquery, вытащим оттуда элемент
-            domElement = domElement[0] || domElement;
-        }
-        if (!(ctor && ctor.prototype)) {
-            const message = '[UI/_base/Control:createControl] Аргумент ctor должен являться классом контрола!';
-            Logger.error(message, ctor.prototype);
-        }
-        if (!(domElement instanceof HTMLElement)) {
-            const message = '[UI/_base/Control:createControl] domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.';
-            Logger.error(message, ctor.prototype);
-        }
-        if (!document.documentElement.contains(domElement)) {
-            const message = '[UI/_base/Control:createControl] domElement parameter is not contained in document. You should pass the correct dom element to control creation function.';
-            Logger.error(message, ctor.prototype);
-        }
-
-        const compatible = _private.configureCompatibility(domElement, cfg, ctor);
-        cfg._$createdFromCode = true;
-
-        startApplication();
-        const defaultOpts = OptionsResolver.getDefaultOptions(ctor);
-        // @ts-ignore
-        OptionsResolver.resolveOptions(ctor, defaultOpts, cfg);
-        const attrs = { inheritOptions: {} };
-        let ctr;
-        OptionsResolver.resolveInheritOptions(ctor, attrs, cfg, true);
-        try {
-            ctr = new ctor(cfg);
-        } catch (error) {
-            ctr = new Control({});
-            Logger.lifeError('constructor', ctor.prototype, error)
-        }
-        ctr.saveInheritOptions(attrs.inheritOptions);
-        ctr._container = domElement;
-        _FocusAttrs.patchDom(domElement, cfg);
-        ctr.saveFullContext(ContextResolver.wrapContext(ctr, { asd: 123 }));
-
-        if (compatible) {
-            if (requirejs.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
-                const makeInstanceCompatible = requirejs('Core/helpers/Hcontrol/makeInstanceCompatible');
-                makeInstanceCompatible(ctr, cfg);
-            }
-        }
-
-        if (document.documentElement.classList.contains('pre-load')) {
-            ReactDOM.hydrate(React.createElement(ctor, cfg, null), ctr._container.parentNode);
-        } else {
-            ReactDOM.render(React.createElement(ctor, cfg, null), ctr._container.parentNode);
-        }
-        //TODO надо дожидаться создания контрола
-        // и когда появится ссылка на инстанс выполнять
-        // те действия которые в этом методе описаны
-
-        return ctr;
-    }
+      // @ts-ignore
+      // проблема что родитель может быть document как сейчас в демке проблема уйдет когда рисовать будем не от html
+      updateMarkup(React.createElement(ctor, cfg), domElement.parentNode, function (): void {
+         configureControl({
+            control: this,
+            domElement
+         });
+      });
+   }
 }
 
 Object.assign(Control.prototype, {
-    _template: template
+   _template: template
 });
+
+function logError(e: Error): void {
+   Logger.error(e.message);
+}
+
+/**
+ * Подмешивает к реактовским опциям значения theme и readOnly из контекста.
+ * Если в реактовских опциях были какие-то значения, то возьмутся они.
+ * @param props Опции из реакта.
+ * @param contextValue Контекст с наследуемыми опциями.
+ */
+function createWasabyOptions<T extends IControlOptions>(props: T, contextValue: IWasabyContextValue): T {
+   // клон нужен для того, чтобы не мутировать реактовские опции при подкладывании readOnly и theme
+   const newProps = { ...props };
+   newProps.readOnly = props.readOnly ?? contextValue?.readOnly;
+   newProps.theme = props.theme ?? contextValue?.theme;
+   return newProps;
+}
+
+const nop = () => undefined;
