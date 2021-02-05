@@ -758,6 +758,10 @@ function wrapInternalExpressions(programs: IProgramMeta[]): any {
    return internal;
 }
 
+function isOptionFromAttribute(node: Ast.OptionNode): boolean {
+   return node.hasFlag(Ast.Flags.UNPACKED) && node.__$ws_value.hasFlag(Ast.Flags.TYPE_CASTED);
+}
+
 class InternalVisitor implements Ast.IAstVisitor {
 
    process(nodes: Ast.Ast[], scope: Scope): Container {
@@ -785,7 +789,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       const childContext: IContext = {
          ...context,
          attributeName: node.__$ws_name,
-         isProcessingOption: true
+         isProcessingOption: isOptionFromAttribute(node)
       };
       node.__$ws_value.accept(this, childContext);
    }
