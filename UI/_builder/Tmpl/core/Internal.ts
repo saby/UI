@@ -522,12 +522,21 @@ class Container {
       let selfPrograms = this.storage.getMeta();
       if (removeSelfOptions) {
          selfPrograms = selfPrograms.filter((meta: IProgramMeta) => {
-            return !(
-               // Удалить выражения, удовлетворяющие следующим условиям
-               meta.type === ProgramType.ATTRIBUTE ||
-               meta.type === ProgramType.OPTION && meta.name !== "scope" ||
-               meta.type === ProgramType.BIND && !meta.isSynthetic
-           );
+            if (meta.type === ProgramType.ATTRIBUTE) {
+               // Атрибуты попадают в коллекцию атрибутов, в internal их не записываем.
+               return false;
+            }
+            if (meta.type === ProgramType.OPTION) {
+               // Все опции попадают в коллекцию опций, в internal их не записываем.
+               // Исключение - опция scope, она не попадает в опции, но ее изменение нужно отследить
+               return meta.name === "scope";
+            }
+            if (meta.type === ProgramType.BIND) {
+               // Все значения bind выражений попадают в опции, в internal их не записываем.
+               // Исключение - контекст bind-выражения (все синтетические выражения).
+               return meta.isSynthetic;
+            }
+            return true;
          });
       }
       for (let index = 0; index < selfPrograms.length; ++index) {
