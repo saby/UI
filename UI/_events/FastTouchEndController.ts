@@ -2,6 +2,9 @@
  * @author Тэн В.А.
  */
 
+import { focus } from "UI/Focus";
+import { IControlElement } from "UI/_focus/IFocus";
+
 interface IMouseEventInitExtend extends MouseEventInit {
    type: string;
    target: EventTarget;
@@ -25,6 +28,7 @@ export class FastTouchEndController {
       if (this.useNativeTouchEnd(targetElement, nativeEvent)) {
          return;
       }
+      focus(nativeEvent.target as IControlElement);
       nativeEvent.preventDefault();
       const touch = nativeEvent.changedTouches[0];
       let clickEvent;
