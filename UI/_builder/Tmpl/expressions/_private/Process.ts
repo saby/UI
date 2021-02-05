@@ -170,5 +170,9 @@ export function processExpressions(
       }
    }
 
+   if (expressionRaw.value && isAttribute) {
+      return escapeQuotesInString(expressionRaw.value);
+   }
+
    return expressionRaw.value;
 }
