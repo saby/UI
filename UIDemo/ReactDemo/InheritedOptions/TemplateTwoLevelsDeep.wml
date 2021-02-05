@@ -1,0 +1,4 @@
+<!-- div нужен чтобы точно была нужная вложенность -->
+<div>
+    <ws:partial template="wml!UIDemo/ReactDemo/InheritedOptions/TemplateOneLevelDeep" />
+</div>
