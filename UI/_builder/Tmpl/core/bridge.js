@@ -103,8 +103,7 @@ define('UI/_builder/Tmpl/core/bridge', [
 
       PatchVisitorLib.default(traversed, traverseOptions.scope);
       traversed.childrenStorage = annotated.childrenStorage;
-      // FIXME: REMOVE
-      traversed.reactiveProps = annotated.reactiveProps.sort();
+      traversed.reactiveProps = annotated.reactiveProps;
       traversed.templateNames = annotated.templateNames;
       traversed.__newVersion = annotated.__newVersion;
 
