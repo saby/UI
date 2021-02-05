@@ -74,7 +74,7 @@ interface IExpressionVisitorContext extends IContext {
    forbidComputedMembers: boolean;
    childrenStorage: string[];
    checkChildren: boolean;
-   isDirtyChecking?: boolean;
+   isGeneratingInternalFunction?: boolean;
 }
 
 // tslint:disable:object-literal-key-quotes
@@ -273,7 +273,7 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
             const calleeNode = node.callee as MemberExpressionNode;
             object = <string>calleeNode.object.accept(this, context);
          }
-         if (typeof context.attributeName === 'string' && /__dirtyCheckingVars_\d+$/gi.test(context.attributeName) || context.isDirtyChecking) {
+         if (typeof context.attributeName === 'string' && /__dirtyCheckingVars_\d+$/gi.test(context.attributeName)) {
             // Эта проверка используется для проброса переменных из замыкания(dirtyCheckingVars)
             // Значения переменных из замыкания вычисляются в момент создания контентной опции
             // и пробрасываются через все контролы, оборачивающие контент.
@@ -288,6 +288,10 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
             const functionSafeCheck = `(${callee} !== undefined)&&`;
             const argsSafeCheck = this.buildSafeCheckArgumentsChain(node.arguments, context);
             return `(${functionSafeCheck}${argsSafeCheck}${callee}.apply(${object}, ${args}))`;
+         }
+         if (context.isGeneratingInternalFunction) {
+            const functionSafeCheck = `(${callee} !== undefined)&&`;
+            return `(${functionSafeCheck}${callee}.apply(${object}, ${args}))`;
          }
          return `${callee}.apply(${object}, ${args})`;
       }
