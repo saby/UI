@@ -75,7 +75,6 @@ interface IExpressionVisitorContext extends IContext {
    childrenStorage: string[];
    checkChildren: boolean;
    isDirtyChecking?: boolean;
-   concatDirtyCheckingArgsWithOR?: boolean;
 }
 
 // tslint:disable:object-literal-key-quotes
@@ -239,23 +238,13 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
 
    buildSafeCheckArgumentsChain(args: Node[], context: IExpressionVisitorContext): string {
       let result = '';
-      // В шаблонах могут вызывать функцию, один из аргументов которой есть undefined.
-      // В test-выражениях условий необходимо использовать логическое ИЛИ, чтобы не отсекать
-      // вполне живые ветки.
-      let joinOperation = context.concatDirtyCheckingArgsWithOR ? '||' : '&&';
-      args.forEach((node: Node, index: number) => {
+      args.forEach((node: Node) => {
          const itemCheck = node.accept(this, context);
          if (typeof itemCheck === 'string' && itemCheck.indexOf('thelpers.getter') > -1) {
-            result += `((${itemCheck}) !== undefined)`;
-            if (index + 1 < args.length) {
-               result += joinOperation;
-            }
+            result += `(${itemCheck} !== undefined)&&`;
          }
       });
-      if (result.length === 0) {
-         return result;
-      }
-      return `(${result})&&`;
+      return result;
    }
 
    visitArrayExpressionNode(node: ArrayExpressionNode, context: IExpressionVisitorContext): string {
