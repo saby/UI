@@ -74,6 +74,7 @@ interface IExpressionVisitorContext extends IContext {
    forbidComputedMembers: boolean;
    childrenStorage: string[];
    checkChildren: boolean;
+   isDirtyChecking?: boolean;
 }
 
 // tslint:disable:object-literal-key-quotes
@@ -240,7 +241,7 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
       args.forEach((node: Node) => {
          const itemCheck = node.accept(this, context);
          if (typeof itemCheck === 'string' && itemCheck.indexOf('thelpers.getter') > -1) {
-            result += `${itemCheck} !== undefined&&`;
+            result += `(${itemCheck} !== undefined)&&`;
          }
       });
       return result;
@@ -272,7 +273,7 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
             const calleeNode = node.callee as MemberExpressionNode;
             object = <string>calleeNode.object.accept(this, context);
          }
-         if (typeof context.attributeName === 'string' && /__dirtyCheckingVars_\d+$/gi.test(context.attributeName)) {
+         if (typeof context.attributeName === 'string' && /__dirtyCheckingVars_\d+$/gi.test(context.attributeName) || context.isDirtyChecking) {
             // Эта проверка используется для проброса переменных из замыкания(dirtyCheckingVars)
             // Значения переменных из замыкания вычисляются в момент создания контентной опции
             // и пробрасываются через все контролы, оборачивающие контент.
@@ -284,7 +285,7 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
             // в случае, если одно из проверяемых значения было рано 0, например.
             // Вообще этой проверки быть не должно. От нее можно избавиться,
             // если не пробрасывать dirtyCheckingVars там, где это не нужно.
-            const functionSafeCheck = `${callee} !== undefined&&`;
+            const functionSafeCheck = `(${callee} !== undefined)&&`;
             const argsSafeCheck = this.buildSafeCheckArgumentsChain(node.arguments, context);
             return `(${functionSafeCheck}${argsSafeCheck}${callee}.apply(${object}, ${args}))`;
          }
