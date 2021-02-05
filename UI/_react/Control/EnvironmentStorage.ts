@@ -1,10 +1,9 @@
+import { DOMEnvironment } from 'UI/Vdom';
 import {IDOMEnvironment} from './interfaces';
 
 const _environments: IDOMEnvironment[] = [];
-let DOMEnvironment;
 
 export function createEnvironment(element: HTMLElement): IDOMEnvironment {
-   DOMEnvironment = DOMEnvironment || requirejs('UI/Vdom').DOMEnvironment;
 
    let environment: IDOMEnvironment;
    const foundEnvironment = _environments.find((env) => {
