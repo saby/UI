@@ -231,11 +231,11 @@ export class InternalNode {
    }
 
    removeIfContains(identifiers: string[], allocator: IndexAllocator): void {
+      this.checkCleanConditional(identifiers, allocator);
+      this.cleanStorage(identifiers, allocator);
       for (let index = 0; index < this.children.length; ++index) {
          this.children[index].removeIfContains(identifiers, allocator);
       }
-      this.checkCleanConditional(identifiers, allocator);
-      this.cleanStorage(identifiers, allocator);
    }
 
    setType(type: InternalNodeType): void {
@@ -512,7 +512,9 @@ class Container {
       if (!removeSelfIdentifiers && depth === 0 && this.type === ContainerType.CONTENT_OPTION) {
          return node;
       }
-      node.removeIfContains(this.selfIdentifiers, allocator);
+      if (this.selfIdentifiers.length > 0) {
+         node.removeIfContains(this.selfIdentifiers, allocator);
+      }
       return node;
    }
 
