@@ -231,7 +231,6 @@ export class InternalNode {
    }
 
    removeIfContains(identifiers: string[], allocator: IndexAllocator): void {
-      this.checkCleanConditional(identifiers, allocator);
       this.cleanStorage(identifiers, allocator);
       for (let index = 0; index < this.children.length; ++index) {
          this.children[index].removeIfContains(identifiers, allocator);
@@ -267,72 +266,6 @@ export class InternalNode {
                this.storage.set(idMeta);
             }
          }
-      }
-   }
-
-   private checkCleanConditional(identifiers: string[], allocator: IndexAllocator): void {
-      if (this.type === InternalNodeType.BLOCK || this.type === InternalNodeType.ELSE) {
-         return;
-      }
-      if (containsIdentifiers(this.test.node, identifiers, FILE_NAME)) {
-         this.dropAndAppend(identifiers, allocator);
-         this.setType(
-            this.type === InternalNodeType.ELSE_IF
-               ? InternalNodeType.ELSE
-               : InternalNodeType.BLOCK
-         );
-         this.test = null;
-         if (this.next === null) {
-            return;
-         }
-         this.next.removeSiblingConditional(this);
-      }
-   }
-
-   private removeSiblingConditional(parent: InternalNode, counter: number = 0): void {
-      if (counter === 0) {
-         if (this.type === InternalNodeType.ELSE_IF) {
-            this.setType(InternalNodeType.IF);
-         } else if (this.type === InternalNodeType.ELSE) {
-            this.setType(InternalNodeType.BLOCK);
-         } else {
-            return;
-         }
-      }
-      const index = parent.children.length;
-      parent.children.push(this);
-      if (this.next) {
-         this.next.removeSiblingConditional(parent, counter + 1);
-      }
-      if (this.next === null || this.next && this.next.type === InternalNodeType.IF) {
-         const startIndex = this.parent.children.indexOf(parent.children[parent.children.length - counter - 1]);
-         this.parent.children.splice(startIndex, counter + 1);
-      }
-      this.prev = index > 0 ? parent.children[index - 1] : null;
-      this.next = index + 1 < parent.children.length ? parent.children[index + 1] : null;
-      this.parent = parent;
-      return;
-   }
-
-   private dropAndAppend(identifiers: string[], allocator: IndexAllocator): void {
-      if (this.test === null) {
-         return;
-      }
-      const testIdentifiers = collectIdentifiers(this.test.node, FILE_NAME);
-      for (let idIndex = 0; idIndex < testIdentifiers.length; ++idIndex) {
-         const identifier = testIdentifiers[idIndex];
-         if (identifiers.indexOf(identifier) > -1) {
-            continue;
-         }
-         const program = PARSER.parse(identifier);
-         const idMeta = createProgramMeta(
-            null,
-            ProgramType.SIMPLE,
-            program,
-            allocator.allocate(),
-            true
-         );
-         this.storage.set(idMeta);
       }
    }
 
