@@ -19,10 +19,13 @@ export interface ISyntheticEvent extends Event {
    _bubbling: boolean;
 }
 
-const doNotDispatchTag = ['textarea'];
+const doNotDispatchTag = {
+   textarea: [constants.key.del, constants.key.up, constants.key.down],
+   input: [constants.key.del]
+};
 
-function checkTarget(target: Element): boolean {
-   return doNotDispatchTag.indexOf(target.tagName.toLowerCase()) > -1;
+function checkTarget(target: Element): [number] {
+   return doNotDispatchTag[target.tagName.toLowerCase()];
 }
 
 export function dispatcherHandler(event: ISyntheticEvent): void {
@@ -34,17 +37,18 @@ export function dispatcherHandler(event: ISyntheticEvent): void {
       return;
    }
 
-   // в случае когда фокус находится внутри элемента, который имеет нативное поведение на клавиши вверх/вниз
-   // мы не должны стрелять событиями горячих клавиш
-   if (checkTarget(event.target)) {
-      return;
-   }
-
    nativeEvent.handledByDispatcher = true;
    const key = 'which' in nativeEvent ? nativeEvent.which : nativeEvent.keyCode;
 
    // клавиша таб не может быть клавишей по умолчанию, у нее есть конкретное предназначение - переход по табу
    if (key === constants.key.tab) {
+      return;
+   }
+
+   // в случае когда фокус находится внутри элемента, который имеет нативное поведение на клавиши
+   // мы не должны стрелять событиями горячих клавиш
+   const isSpecialTag = checkTarget(event.target);
+   if (isSpecialTag && isSpecialTag.indexOf(key) > -1) {
       return;
    }
 
