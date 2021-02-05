@@ -55,12 +55,12 @@ function appendFunction(func: Function, functions: Function[]): void {
 function build(node: InternalNode): string {
    const body = buildPrograms(node.storage.getMeta()) + buildAll(node.children);
    if (node.type === InternalNodeType.IF) {
-      const test = buildProgram(node.test.node);
+      const test = buildProgram(node.test.node, null, true);
       let prefix = wrapProgram(node.test, CONDITIONAL_VARIABLE_NAME);
       return `if((${CONDITIONAL_VARIABLE_NAME}=(${test}))){${prefix + body}}`;
    }
    if (node.type === InternalNodeType.ELSE_IF) {
-      const test = buildProgram(node.test.node);
+      const test = buildProgram(node.test.node, null, true);
       let prefix = wrapProgram(node.test, CONDITIONAL_VARIABLE_NAME);
       return `else if((${CONDITIONAL_VARIABLE_NAME}=(${test}))){${prefix + body}}`;
    }
@@ -96,10 +96,11 @@ function buildMeta(meta: IProgramMeta): string {
    return buildProgram(meta.node, meta.name);
 }
 
-function buildProgram(program: ProgramNode, attributeName: string | null = null): string {
+function buildProgram(program: ProgramNode, attributeName: string | null, concatDirtyCheckingArgsWithOR: boolean = false): string {
    const context = {
       fileName: '[[internal]]',
       attributeName,
+      concatDirtyCheckingArgsWithOR,
       isControl: false,
       isExprConcat: false,
       configObject: {},
