@@ -19,6 +19,12 @@ export interface ISyntheticEvent extends Event {
    _bubbling: boolean;
 }
 
+const doNotDispatchTag = ['textarea', 'input'];
+
+function checkTarget(target: Element): boolean {
+   return doNotDispatchTag.indexOf(target.tagName.toLowerCase()) > -1;
+}
+
 export function dispatcherHandler(event: ISyntheticEvent): void {
    const nativeEvent = event.nativeEvent;
    if (nativeEvent.handledByDispatcher) {
@@ -27,6 +33,13 @@ export function dispatcherHandler(event: ISyntheticEvent): void {
       // We shouldn't handle event if it was already handled by Dispatcher
       return;
    }
+
+   // в случае когда фокус находится внутри элемента, который имеет нативное поведение на клавиши вверх/вниз
+   // мы не должны стрелять событиями горячих клавиш
+   if (checkTarget(event.target)) {
+      return;
+   }
+
    nativeEvent.handledByDispatcher = true;
    const key = 'which' in nativeEvent ? nativeEvent.which : nativeEvent.keyCode;
 
