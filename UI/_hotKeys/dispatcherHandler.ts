@@ -47,7 +47,8 @@ export function dispatcherHandler(event: ISyntheticEvent): void {
 
    // в случае когда фокус находится внутри элемента, который имеет нативное поведение на клавиши
    // мы не должны стрелять событиями горячих клавиш
-   if (checkTarget(event.target).indexOf(key) > -1) {
+   const isSpecialTag = checkTarget(event.target);
+   if (isSpecialTag && isSpecialTag.indexOf(key) > -1) {
       return;
    }
 
