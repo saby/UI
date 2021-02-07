@@ -462,7 +462,7 @@ class Container {
 
    private collectInternalStructure(options: ICollectorOptions): InternalNode {
       // FIXME: Fix filtration
-      const node = this.createInternalNode(options.indices, options.depth === -1);
+      const node = this.createInternalNode(options);
       let prevChild: InternalNode | null = null;
       const childrenOptions: ICollectorOptions = {
          ...options,
@@ -487,11 +487,12 @@ class Container {
       return node;
    }
 
-   private createInternalNode(indices: Set<number>, removeSelfOptions: boolean): InternalNode {
+   private createInternalNode(options: ICollectorOptions): InternalNode {
       const node = new InternalNode(this.index, this.getInternalNodeType(), this);
       node.test = this.test;
       let selfPrograms = this.storage.getMeta();
-      if (removeSelfOptions) {
+      const filterPrograms = options.depth === 0 && this.type === ContainerType.COMPONENT;
+      if (filterPrograms) {
          selfPrograms = selfPrograms.filter((meta: IProgramMeta) => {
             if (meta.type === ProgramType.ATTRIBUTE) {
                // Атрибуты попадают в коллекцию атрибутов, в internal их не записываем.
@@ -511,11 +512,11 @@ class Container {
          });
       }
       for (let index = 0; index < selfPrograms.length; ++index) {
-         if (indices.has(selfPrograms[index].index)) {
+         if (options.indices.has(selfPrograms[index].index)) {
             continue;
          }
          node.storage.set(selfPrograms[index]);
-         indices.add(selfPrograms[index].index);
+         options.indices.add(selfPrograms[index].index);
       }
       return node;
    }
@@ -951,6 +952,7 @@ class InternalVisitor implements Ast.IAstVisitor {
    }
 
    visitBind(node: Ast.BindNode, context: IContext): void {
+
       context.container.registerProgram(node.__$ws_value, ProgramType.BIND, node.__$ws_property);
    }
 
