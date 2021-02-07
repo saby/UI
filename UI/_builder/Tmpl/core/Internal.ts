@@ -231,12 +231,31 @@ class ProgramStorage {
 // <editor-fold desc="Internal node and container">
 
 export interface IProgramMeta {
+
+   // Имя атрибута, в значении которого содержится Mustache-выражение
    name: string | null;
+
+   // Тип Mustache-выражения
    typeName: string;
+
+   // Тип Mustache-выражения
    type: ProgramType;
+
+   // Mustache-выражение
    node: ProgramNode;
+
+   // Уникальный идентификатор Mustache-выражения
    index: number;
+
+   // Флаг синтетического Mustache-выражения, которое было получено путем дробления bind-выражения
+   // или исключения из исходного выражения невычислимых переменных
    isSynthetic: boolean;
+
+   // Индекс контейнера, в котором произошла регистрация Mustache-выражения
+   originIndex: number;
+
+   // Индекс контейнера, от контекста которого будет выполнено вычисление Mustache-выражения
+   processingIndex: number;
 }
 
 export enum InternalNodeType {
@@ -246,14 +265,24 @@ export enum InternalNodeType {
    BLOCK
 }
 
-function createProgramMeta(name: string | null, type: ProgramType, node: ProgramNode, index: number, isSynthetic: boolean): IProgramMeta {
+function createProgramMeta(
+   name: string | null,
+   type: ProgramType,
+   node: ProgramNode,
+   index: number,
+   isSynthetic: boolean,
+   originIndex: number,
+   processingIndex: number
+): IProgramMeta {
    return {
       typeName: ProgramType[type],
       index,
       name,
       node,
       isSynthetic,
-      type
+      type,
+      originIndex,
+      processingIndex
    };
 }
 
@@ -337,7 +366,9 @@ class Container {
          ProgramType.SIMPLE,
          program,
          this.allocateProgramIndex(),
-         false
+         false,
+         this.index,
+         this.getProcessingContainerIndex()
       );
       this.test = meta;
       patchProgramNode(meta);
@@ -389,6 +420,19 @@ class Container {
          return this.codegenMap.get(code);
       }
       return null;
+   }
+
+   getProcessingContainerIndex(): number {
+      if (
+         this.type === ContainerType.GLOBAL ||
+         this.type === ContainerType.TEMPLATE ||
+         this.type === ContainerType.CYCLE ||
+         this.type === ContainerType.CONTENT_OPTION ||
+         this.parent === null
+      ) {
+         return this.index;
+      }
+      return this.parent.getProcessingContainerIndex();
    }
 
    private collectInternalStructure(depth: number, allocator: IndexAllocator, indices: Set<number>, removeSelfIdentifiers: boolean): InternalNode {
@@ -471,7 +515,9 @@ class Container {
          type,
          program,
          this.allocateProgramIndex(),
-         isSynthetic
+         isSynthetic,
+         this.index,
+         this.getProcessingContainerIndex()
       );
       this.commitProgram(meta);
    }
@@ -577,7 +623,9 @@ class Container {
             ProgramType.SIMPLE,
             program,
             this.allocateProgramIndex(),
-            true
+            true,
+            this.index,
+            this.getProcessingContainerIndex()
          );
          this.commitProgram(meta);
       }
@@ -651,7 +699,9 @@ export class InternalNode {
                   ProgramType.SIMPLE,
                   program,
                   allocator.allocate(),
-                  true
+                  true,
+                  this.ref.index,
+                  this.ref.getProcessingContainerIndex()
                );
                this.storage.set(idMeta);
             }
@@ -725,7 +775,9 @@ export class InternalNode {
             ProgramType.SIMPLE,
             program,
             allocator.allocate(),
-            true
+            true,
+            this.ref.index,
+            this.ref.getProcessingContainerIndex()
          );
          this.storage.set(idMeta);
       }
