@@ -1,5 +1,5 @@
 import { InternalNode, InternalNodeType, IProgramMeta } from '../core/Internal';
-import { ExpressionVisitor, ProgramNode } from '../expressions/_private/Nodes';
+import { ExpressionVisitor } from '../expressions/_private/Nodes';
 import { isUseNewInternalMechanism } from '../core/Internal';
 
 const FUNCTION_PREFIX = '__$calculateDirtyCheckingVars_';
@@ -77,12 +77,12 @@ function appendFunction(func: Function, functions: Function[]): void {
 function build(node: InternalNode, options: IOptions): string {
    const body = buildPrograms(node.storage.getMeta(), options) + buildAll(node.children, options);
    if (node.type === InternalNodeType.IF) {
-      const test = buildProgram(node.test.node, null, node.test.processingIndex === options.rootIndex);
+      const test = buildMeta(node.test, options);
       let prefix = wrapProgram(node.test, CONDITIONAL_VARIABLE_NAME);
       return `if((${CONDITIONAL_VARIABLE_NAME}=(${test}))){${prefix + body}}`;
    }
    if (node.type === InternalNodeType.ELSE_IF) {
-      const test = buildProgram(node.test.node, null, node.test.processingIndex === options.rootIndex);
+      const test = buildMeta(node.test, options);
       let prefix = wrapProgram(node.test, CONDITIONAL_VARIABLE_NAME);
       return `else if((${CONDITIONAL_VARIABLE_NAME}=(${test}))){${prefix + body}}`;
    }
@@ -115,13 +115,9 @@ function wrapProgram(meta: IProgramMeta, code: string): string {
 }
 
 function buildMeta(meta: IProgramMeta, options: IOptions): string {
-   return buildProgram(meta.node, meta.name, meta.processingIndex === options.rootIndex);
-}
-
-function buildProgram(program: ProgramNode, attributeName: string | null, generateFunctionPrefix: boolean): string {
    const context = {
       fileName: '[[internal]]',
-      attributeName,
+      attributeName: meta.name,
       isControl: false,
       isExprConcat: false,
       configObject: {},
@@ -133,7 +129,7 @@ function buildProgram(program: ProgramNode, attributeName: string | null, genera
       checkChildren: false,
 
       // Если выражение вычисляется в своем настоящем контексте, то префикс перед вызовом функции не нужен
-      isDirtyChecking: generateFunctionPrefix || ALWAYS_FOREIGN_CONTAINER
+      isDirtyChecking: meta.processingIndex === options.rootIndex || ALWAYS_FOREIGN_CONTAINER
    };
-   return program.accept(new ExpressionVisitor(), context) as string;
+   return meta.node.accept(new ExpressionVisitor(), context) as string;
 }
