@@ -1,5 +1,6 @@
-import { InternalNode, InternalNodeType, IProgramMeta } from "UI/_builder/Tmpl/core/Internal";
-import { ExpressionVisitor, ProgramNode } from "UI/_builder/Tmpl/expressions/_private/Nodes";
+import { InternalNode, InternalNodeType, IProgramMeta } from '../core/Internal';
+import { ExpressionVisitor, ProgramNode } from '../expressions/_private/Nodes';
+import { isUseNewInternalMechanism } from '../core/Internal';
 
 const FUNCTION_PREFIX = '__$calculateDirtyCheckingVars_';
 const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
@@ -9,10 +10,14 @@ const CONTEXT_VARIABLE_NAME = 'data';
 // FIXME: переменная funcContext неправильно вставлена в генератор кода mustache-выражения
 const FUNCTION_HEAD = `var funcContext=${CONTEXT_VARIABLE_NAME};var ${COLLECTION_NAME}={};var ${CONDITIONAL_VARIABLE_NAME};`;
 const FUNCTION_TAIL = `return ${COLLECTION_NAME};`;
+
+/**
+ * Флаг включения/выключения генерации internal-функций.
+ */
 const USE_INTERNAL_FUNCTIONS = true;
 
 export function isUseNewInternalFunctions(): boolean {
-   return USE_INTERNAL_FUNCTIONS;
+   return isUseNewInternalMechanism() && USE_INTERNAL_FUNCTIONS;
 }
 
 export function generate(node: InternalNode, functions: Function[]): string {
@@ -62,10 +67,10 @@ function build(node: InternalNode): string {
    if (node.type === InternalNodeType.ELSE_IF) {
       const test = buildProgram(node.test.node);
       let prefix = wrapProgram(node.test, CONDITIONAL_VARIABLE_NAME);
-      return `if((${CONDITIONAL_VARIABLE_NAME}=(${test}))){${prefix + body}}`;
+      return `else if((${CONDITIONAL_VARIABLE_NAME}=(${test}))){${prefix + body}}`;
    }
    if (node.type === InternalNodeType.ELSE && body.length > 0) {
-      return `{${body}}`;
+      return `else{${body}}`;
    }
    return body;
 }

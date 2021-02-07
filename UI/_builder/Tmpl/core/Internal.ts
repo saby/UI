@@ -3,6 +3,47 @@ import Scope from 'UI/_builder/Tmpl/core/Scope';
 import { IdentifierNode, MemberExpressionNode, ProgramNode, Walker } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { IParser, Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 
+/**
+ * Флаг включения/выключения нового механизма формирования internal-выражений для dirty checking проверок.
+ */
+const USE_INTERNAL_MECHANISM = true;
+
+export function isUseNewInternalMechanism(): boolean {
+   return USE_INTERNAL_MECHANISM;
+}
+
+// <editor-fold desc="Private constants">
+
+/**
+ * Если в test-выражение входит переменная, которая гарантированно не может быть вычислена в данном не оригинальном контексте,
+ * то выполнить дробление выражения и разворот условной цепочки.
+ */
+const DROP_TEST_IDENTIFIERS: boolean = true;
+
+/**
+ * Если в test-выражение входит вызов функции, который может быть не вычислена в данном не оригинальном контексте,
+ * то выполнить дробление выражения и разворот условной цепочки.
+ */
+const DROP_TEST_FUNCTIONS: boolean = true;
+
+const PARSER = new Parser();
+
+const FILE_NAME = '[[internal]]';
+
+const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
+
+const FORBIDDEN_IDENTIFIERS = [
+   '...',
+   '_options',
+   '_container',
+   '_children',
+   'rk'
+];
+
+// </editor-fold>
+
+// <editor-fold desc="Private interfaces and enumerations">
+
 interface IContext {
    attributeName?: string;
    isProcessingAttribute?: boolean;
@@ -20,15 +61,6 @@ enum ProgramType {
    FLOAT
 }
 
-export interface IProgramMeta {
-   name: string | null;
-   typeName: string;
-   type: ProgramType;
-   node: ProgramNode;
-   index: number;
-   isSynthetic: boolean;
-}
-
 enum ContainerType {
    GLOBAL,
    COMPONENT,
@@ -39,17 +71,44 @@ enum ContainerType {
    JOIN
 }
 
-const PARSER = new Parser();
+// </editor-fold>
 
-const FILE_NAME = '[[internal]]';
+// <editor-fold desc="Process and store Mustache-expression">
 
-const FORBIDDEN_IDENTIFIERS = [
-   '...',
-   '_options',
-   '_container',
-   '_children',
-   'rk'
-];
+function patchProgramNode(meta: IProgramMeta): void {
+   // @ts-ignore FIXME: Set unique index for program node
+   meta.node.__$ws_index = meta.index;
+}
+
+function containsFunctionCall(program: ProgramNode, fileName: string): boolean {
+   let hasFunctionCall = false;
+   const callbacks = {
+      CallExpression: (): void => {
+         hasFunctionCall = true;
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName
+   });
+   return hasFunctionCall;
+}
+
+function containsIdentifiers(program: ProgramNode, identifiers: string[], fileName: string): boolean {
+   let hasLocalIdentifier = false;
+   const callbacks = {
+      Identifier: (data: IdentifierNode): void => {
+         if (identifiers.indexOf(data.name) > -1) {
+            hasLocalIdentifier = true;
+         }
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName
+   });
+   return hasLocalIdentifier;
+}
 
 function hasBindings(program: ProgramNode): boolean {
    if (typeof program.string !== 'string') {
@@ -167,25 +226,17 @@ class ProgramStorage {
    }
 }
 
-function patchProgramNode(meta: IProgramMeta): void {
-   // @ts-ignore FIXME: Set unique index for program node
-   meta.node.__$ws_index = meta.index;
-}
+// </editor-fold>
 
-function containsIdentifiers(program: ProgramNode, identifiers: string[], fileName: string): boolean {
-   let hasLocalIdentifier = false;
-   const callbacks = {
-      Identifier: (data: IdentifierNode): void => {
-         if (identifiers.indexOf(data.name) > -1) {
-            hasLocalIdentifier = true;
-         }
-      }
-   };
-   const walker = new Walker(callbacks);
-   program.accept(walker, {
-      fileName
-   });
-   return hasLocalIdentifier;
+// <editor-fold desc="Internal node and container">
+
+export interface IProgramMeta {
+   name: string | null;
+   typeName: string;
+   type: ProgramType;
+   node: ProgramNode;
+   index: number;
+   isSynthetic: boolean;
 }
 
 export enum InternalNodeType {
@@ -195,190 +246,15 @@ export enum InternalNodeType {
    BLOCK
 }
 
-function containsFunctionCall(program: ProgramNode, fileName: string): boolean {
-   let hasFunctionCall = false;
-   const callbacks = {
-      CallExpression: (): void => {
-         hasFunctionCall = true;
-      }
+function createProgramMeta(name: string | null, type: ProgramType, node: ProgramNode, index: number, isSynthetic: boolean): IProgramMeta {
+   return {
+      typeName: ProgramType[type],
+      index,
+      name,
+      node,
+      isSynthetic,
+      type
    };
-   const walker = new Walker(callbacks);
-   program.accept(walker, {
-      fileName
-   });
-   return hasFunctionCall;
-}
-
-export class InternalNode {
-   public readonly index: number;
-
-   public type: InternalNodeType;
-   public typeName: string;
-
-   public parent: InternalNode;
-   public prev: InternalNode | null;
-   public next: InternalNode | null;
-   public children: Array<InternalNode>;
-
-   public test: IProgramMeta | null;
-   public storage: ProgramStorage;
-
-   public ref: Container;
-
-   constructor(index: number, type: InternalNodeType, ref: Container) {
-      this.index = index;
-      this.type = type;
-      this.typeName = InternalNodeType[type];
-
-      this.parent = null;
-      this.prev = null;
-      this.next = null;
-      this.children = new Array<InternalNode>();
-
-      this.test = null;
-      this.storage = new ProgramStorage();
-      this.ref = ref;
-   }
-
-   setParent(parent: InternalNode): void {
-      this.parent = parent;
-   }
-
-   removeIfContains(identifiers: string[], allocator: IndexAllocator): void {
-      this.checkCleanConditional(identifiers, allocator);
-      this.cleanStorage(identifiers, allocator);
-      for (let index = 0; index < this.children.length; ++index) {
-         this.children[index].removeIfContains(identifiers, allocator);
-      }
-   }
-
-   setType(type: InternalNodeType): void {
-      this.type = type;
-      this.typeName = InternalNodeType[type];
-   }
-
-   private cleanStorage(identifiers: string[], allocator: IndexAllocator): void {
-      const collection = this.storage.getMeta();
-      for (let index = 0; index < collection.length; ++index) {
-         const meta = collection[index];
-         if (containsIdentifiers(meta.node, identifiers, FILE_NAME)) {
-            this.storage.remove(meta);
-
-            const localIdentifiers = collectIdentifiers(meta.node, FILE_NAME);
-            for (let idIndex = 0; idIndex < localIdentifiers.length; ++idIndex) {
-               const identifier = localIdentifiers[idIndex];
-               if (identifiers.indexOf(identifier) > -1) {
-                  continue;
-               }
-               const program = PARSER.parse(identifier);
-               const idMeta = createProgramMeta(
-                  null,
-                  ProgramType.SIMPLE,
-                  program,
-                  allocator.allocate(),
-                  true
-               );
-               this.storage.set(idMeta);
-            }
-         }
-      }
-   }
-
-   private checkCleanConditional(identifiers: string[], allocator: IndexAllocator): void {
-      if (this.type === InternalNodeType.BLOCK || this.type === InternalNodeType.ELSE) {
-         return;
-      }
-      const hasFunctionCall = containsFunctionCall(this.test.node, FILE_NAME);
-      const hasLocalIdentifier = containsIdentifiers(this.test.node, identifiers, FILE_NAME);
-      if (hasLocalIdentifier) {
-         this.dropAndAppend(identifiers, allocator);
-      } else if (hasFunctionCall) {
-         this.storage.set(this.test);
-      } else {
-         return;
-      }
-      this.setType(
-         this.type === InternalNodeType.ELSE_IF
-            ? InternalNodeType.ELSE
-            : InternalNodeType.BLOCK
-      );
-      this.test = null;
-      if (this.next === null) {
-         return;
-      }
-      this.next.removeSiblingConditional(this);
-   }
-
-   private removeSiblingConditional(parent: InternalNode, counter: number = 0): void {
-      if (counter === 0) {
-         if (this.type === InternalNodeType.ELSE_IF) {
-            this.setType(InternalNodeType.IF);
-         } else if (this.type === InternalNodeType.ELSE) {
-            this.setType(InternalNodeType.BLOCK);
-         } else {
-            return;
-         }
-      }
-      const index = parent.children.length;
-      parent.children.push(this);
-      if (this.next) {
-         this.next.removeSiblingConditional(parent, counter + 1);
-      }
-      if (this.next === null || this.next && this.next.type === InternalNodeType.IF) {
-         const startIndex = this.parent.children.indexOf(parent.children[parent.children.length - counter - 1]);
-         this.parent.children.splice(startIndex, counter + 1);
-      }
-      this.prev = index > 0 ? parent.children[index - 1] : null;
-      this.next = index + 1 < parent.children.length ? parent.children[index + 1] : null;
-      this.parent = parent;
-      return;
-   }
-
-   private dropAndAppend(identifiers: string[], allocator: IndexAllocator): void {
-      if (this.test === null) {
-         return;
-      }
-      const testIdentifiers = collectIdentifiers(this.test.node, FILE_NAME);
-      for (let idIndex = 0; idIndex < testIdentifiers.length; ++idIndex) {
-         const identifier = testIdentifiers[idIndex];
-         if (identifiers.indexOf(identifier) > -1) {
-            continue;
-         }
-         const program = PARSER.parse(identifier);
-         const idMeta = createProgramMeta(
-            null,
-            ProgramType.SIMPLE,
-            program,
-            allocator.allocate(),
-            true
-         );
-         this.storage.set(idMeta);
-      }
-   }
-
-   flatten(): IProgramMeta[] {
-      return this.collectMeta(new Set<string>(), []);
-   }
-
-   private collectMeta(names: Set<string>, collection: IProgramMeta[]): IProgramMeta[] {
-      for (let index = 0; index < this.children.length; ++index) {
-         this.children[index].collectMeta(names, collection);
-      }
-
-      const localCollection = this.storage.getMeta();
-      if (this.test) {
-         localCollection.push(this.test);
-      }
-      for (let index = 0; index < localCollection.length; ++index) {
-         if (names.has(localCollection[index].node.string)) {
-            continue;
-         }
-         names.add(localCollection[index].node.string);
-         collection.push(localCollection[index]);
-      }
-
-      return collection;
-   }
 }
 
 class IndexAllocator {
@@ -708,16 +584,181 @@ class Container {
    }
 }
 
-function createProgramMeta(name: string | null, type: ProgramType, node: ProgramNode, index: number, isSynthetic: boolean): IProgramMeta {
-   return {
-      typeName: ProgramType[type],
-      index,
-      name,
-      node,
-      isSynthetic,
-      type
-   };
+export class InternalNode {
+   public readonly index: number;
+
+   public type: InternalNodeType;
+   public typeName: string;
+
+   public parent: InternalNode;
+   public prev: InternalNode | null;
+   public next: InternalNode | null;
+   public children: Array<InternalNode>;
+
+   public test: IProgramMeta | null;
+   public storage: ProgramStorage;
+
+   public ref: Container;
+
+   constructor(index: number, type: InternalNodeType, ref: Container) {
+      this.index = index;
+      this.type = type;
+      this.typeName = InternalNodeType[type];
+
+      this.parent = null;
+      this.prev = null;
+      this.next = null;
+      this.children = new Array<InternalNode>();
+
+      this.test = null;
+      this.storage = new ProgramStorage();
+      this.ref = ref;
+   }
+
+   setParent(parent: InternalNode): void {
+      this.parent = parent;
+   }
+
+   removeIfContains(identifiers: string[], allocator: IndexAllocator): void {
+      this.checkCleanConditional(identifiers, allocator);
+      this.cleanStorage(identifiers, allocator);
+      for (let index = 0; index < this.children.length; ++index) {
+         this.children[index].removeIfContains(identifiers, allocator);
+      }
+   }
+
+   setType(type: InternalNodeType): void {
+      this.type = type;
+      this.typeName = InternalNodeType[type];
+   }
+
+   private cleanStorage(identifiers: string[], allocator: IndexAllocator): void {
+      const collection = this.storage.getMeta();
+      for (let index = 0; index < collection.length; ++index) {
+         const meta = collection[index];
+         if (containsIdentifiers(meta.node, identifiers, FILE_NAME)) {
+            this.storage.remove(meta);
+
+            const localIdentifiers = collectIdentifiers(meta.node, FILE_NAME);
+            for (let idIndex = 0; idIndex < localIdentifiers.length; ++idIndex) {
+               const identifier = localIdentifiers[idIndex];
+               if (identifiers.indexOf(identifier) > -1) {
+                  continue;
+               }
+               const program = PARSER.parse(identifier);
+               const idMeta = createProgramMeta(
+                  null,
+                  ProgramType.SIMPLE,
+                  program,
+                  allocator.allocate(),
+                  true
+               );
+               this.storage.set(idMeta);
+            }
+         }
+      }
+   }
+
+   private checkCleanConditional(identifiers: string[], allocator: IndexAllocator): void {
+      if (this.type === InternalNodeType.BLOCK || this.type === InternalNodeType.ELSE) {
+         return;
+      }
+      const hasFunctionCall = containsFunctionCall(this.test.node, FILE_NAME);
+      const hasLocalIdentifier = containsIdentifiers(this.test.node, identifiers, FILE_NAME);
+      if (hasLocalIdentifier && DROP_TEST_IDENTIFIERS) {
+         this.dropAndAppend(identifiers, allocator);
+      } else if (hasFunctionCall && DROP_TEST_FUNCTIONS) {
+         this.storage.set(this.test);
+      } else {
+         return;
+      }
+      this.setType(
+         this.type === InternalNodeType.ELSE_IF
+            ? InternalNodeType.ELSE
+            : InternalNodeType.BLOCK
+      );
+      this.test = null;
+      if (this.next === null) {
+         return;
+      }
+      this.next.removeSiblingConditional(this);
+   }
+
+   private removeSiblingConditional(parent: InternalNode, counter: number = 0): void {
+      if (counter === 0) {
+         if (this.type === InternalNodeType.ELSE_IF) {
+            this.setType(InternalNodeType.IF);
+         } else if (this.type === InternalNodeType.ELSE) {
+            this.setType(InternalNodeType.BLOCK);
+         } else {
+            return;
+         }
+      }
+      const index = parent.children.length;
+      parent.children.push(this);
+      if (this.next) {
+         this.next.removeSiblingConditional(parent, counter + 1);
+      }
+      if (this.next === null || this.next && this.next.type === InternalNodeType.IF) {
+         const startIndex = this.parent.children.indexOf(parent.children[parent.children.length - counter - 1]);
+         this.parent.children.splice(startIndex, counter + 1);
+      }
+      this.prev = index > 0 ? parent.children[index - 1] : null;
+      this.next = index + 1 < parent.children.length ? parent.children[index + 1] : null;
+      this.parent = parent;
+      return;
+   }
+
+   private dropAndAppend(identifiers: string[], allocator: IndexAllocator): void {
+      if (this.test === null) {
+         return;
+      }
+      const testIdentifiers = collectIdentifiers(this.test.node, FILE_NAME);
+      for (let idIndex = 0; idIndex < testIdentifiers.length; ++idIndex) {
+         const identifier = testIdentifiers[idIndex];
+         if (identifiers.indexOf(identifier) > -1) {
+            continue;
+         }
+         const program = PARSER.parse(identifier);
+         const idMeta = createProgramMeta(
+            null,
+            ProgramType.SIMPLE,
+            program,
+            allocator.allocate(),
+            true
+         );
+         this.storage.set(idMeta);
+      }
+   }
+
+   flatten(): IProgramMeta[] {
+      return this.collectMeta(new Set<string>(), []);
+   }
+
+   private collectMeta(names: Set<string>, collection: IProgramMeta[]): IProgramMeta[] {
+      for (let index = 0; index < this.children.length; ++index) {
+         this.children[index].collectMeta(names, collection);
+      }
+
+      const localCollection = this.storage.getMeta();
+      if (this.test) {
+         localCollection.push(this.test);
+      }
+      for (let index = 0; index < localCollection.length; ++index) {
+         if (names.has(localCollection[index].node.string)) {
+            continue;
+         }
+         names.add(localCollection[index].node.string);
+         collection.push(localCollection[index]);
+      }
+
+      return collection;
+   }
 }
+
+// </editor-fold>
+
+// <editor-fold desc="Mustache-expression collector / AST visitor">
 
 function visitAll(nodes: Ast.Ast[], visitor: Ast.IAstVisitor, context: IContext): void {
    for (let index = 0; index < nodes.length; ++index) {
@@ -760,8 +801,6 @@ function collectInlineTemplateIdentifiers(node: Ast.InlineTemplateNode): string[
    }
    return identifiers;
 }
-
-const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
 
 function wrapInternalExpressions(programs: IProgramMeta[]): any {
    const internal = { };
@@ -1031,3 +1070,5 @@ class InternalVisitor implements Ast.IAstVisitor {
 export function process(nodes: Ast.Ast[], scope: Scope): void {
    new InternalVisitor().process(nodes, scope);
 }
+
+// </editor-fold>

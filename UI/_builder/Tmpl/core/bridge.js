@@ -99,7 +99,9 @@ define('UI/_builder/Tmpl/core/bridge', [
    function annotateWithVisitors(traversed, options, traverseOptions, deferred) {
       var annotated = Annotate.default(traversed, traverseOptions.scope);
 
-      Internal.process(annotated, traverseOptions.scope);
+      if (Internal.isUseNewInternalMechanism()) {
+         Internal.process(annotated, traverseOptions.scope);
+      }
 
       PatchVisitorLib.default(traversed, traverseOptions.scope);
       traversed.childrenStorage = annotated.childrenStorage;
