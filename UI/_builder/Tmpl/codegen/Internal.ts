@@ -14,7 +14,7 @@ const FUNCTION_TAIL = `return ${COLLECTION_NAME};`;
 /**
  * Флаг включения/выключения генерации internal-функций.
  */
-const USE_INTERNAL_FUNCTIONS = false;
+const USE_INTERNAL_FUNCTIONS = true;
 
 export function isUseNewInternalFunctions(): boolean {
    return isUseNewInternalMechanism() && USE_INTERNAL_FUNCTIONS;

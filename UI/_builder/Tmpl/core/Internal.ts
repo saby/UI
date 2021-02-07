@@ -6,13 +6,20 @@ import { IParser, Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 /**
  * Флаг включения/выключения нового механизма формирования internal-выражений для dirty checking проверок.
  */
-const USE_INTERNAL_MECHANISM = false;
+const USE_INTERNAL_MECHANISM = true;
 
 export function isUseNewInternalMechanism(): boolean {
    return USE_INTERNAL_MECHANISM;
 }
 
 // <editor-fold desc="Private constants">
+
+/**
+ * Если в test-выражение вычисляется не в своем контексте, значит не гарантируется, что результат вычисления
+ * этого выражения в текущем контексте будет равен результату вычисления в оригинальном контексте.
+ * В таком случае необходимо выполнить разворот условной цепочки.
+ */
+const DROP_FOREIGN_TEST: boolean = true;
 
 /**
  * Если в test-выражение входит переменная, которая гарантированно не может быть вычислена в данном не оригинальном контексте,
@@ -22,7 +29,7 @@ const DROP_TEST_IDENTIFIERS: boolean = true;
 
 /**
  * Если в test-выражение входит вызов функции, который может быть не вычислена в данном не оригинальном контексте,
- * то выполнить дробление выражения и разворот условной цепочки.
+ * то разворот условной цепочки.
  */
 const DROP_TEST_FUNCTIONS: boolean = true;
 
@@ -298,6 +305,14 @@ class IndexAllocator {
    }
 }
 
+interface ICollectorOptions {
+   rootIndex: number;
+   depth: number;
+   allocator: IndexAllocator;
+   indices: Set<number>;
+   removeSelfIdentifiers: boolean;
+}
+
 class Container {
    public readonly typeName: string;
    public desc: string;
@@ -407,7 +422,14 @@ class Container {
    getInternalStructure(removeSelfIdentifiers: boolean = false): InternalNode {
       const allocator = new IndexAllocator(this.getCurrentProgramIndex());
       const indices = new Set<number>();
-      return this.collectInternalStructure(0, allocator, indices, removeSelfIdentifiers);
+      const options: ICollectorOptions = {
+         rootIndex: this.index,
+         depth: 0,
+         allocator,
+         indices,
+         removeSelfIdentifiers
+      };
+      return this.collectInternalStructure(options);
    }
 
    commitCode(index: number, code: string): void {
@@ -438,11 +460,15 @@ class Container {
       return this.parent.getProcessingContainerIndex();
    }
 
-   private collectInternalStructure(depth: number, allocator: IndexAllocator, indices: Set<number>, removeSelfIdentifiers: boolean): InternalNode {
-      const node = this.createInternalNode(indices, depth === 0);
+   private collectInternalStructure(options: ICollectorOptions): InternalNode {
+      const node = this.createInternalNode(options.indices, options.depth === 0);
       let prevChild: InternalNode | null = null;
+      const childrenOptions: ICollectorOptions = {
+         ...options,
+         depth: options.depth + 1
+      };
       for (let index = 0; index < this.children.length; ++index) {
-         const child = this.children[index].collectInternalStructure(depth + 1, allocator, indices, removeSelfIdentifiers);
+         const child = this.children[index].collectInternalStructure(childrenOptions);
          node.children.push(child);
          child.prev = prevChild;
          if (prevChild !== null) {
@@ -451,11 +477,11 @@ class Container {
          prevChild = child;
          child.setParent(node);
       }
-      if (!removeSelfIdentifiers && depth === 0 && this.type === ContainerType.CONTENT_OPTION) {
+      if (!options.removeSelfIdentifiers && options.depth === 0 && this.type === ContainerType.CONTENT_OPTION) {
          return node;
       }
       if (this.selfIdentifiers.length > 0) {
-         node.removeIfContains(this.selfIdentifiers, allocator);
+         node.removeIfContains(this.selfIdentifiers, options);
       }
       return node;
    }
@@ -670,11 +696,11 @@ export class InternalNode {
       this.parent = parent;
    }
 
-   removeIfContains(identifiers: string[], allocator: IndexAllocator): void {
-      this.checkCleanConditional(identifiers, allocator);
-      this.cleanStorage(identifiers, allocator);
+   removeIfContains(identifiers: string[], options: ICollectorOptions): void {
+      this.checkCleanConditional(identifiers, options);
+      this.cleanStorage(identifiers, options);
       for (let index = 0; index < this.children.length; ++index) {
-         this.children[index].removeIfContains(identifiers, allocator);
+         this.children[index].removeIfContains(identifiers, options);
       }
    }
 
@@ -683,7 +709,7 @@ export class InternalNode {
       this.typeName = InternalNodeType[type];
    }
 
-   private cleanStorage(identifiers: string[], allocator: IndexAllocator): void {
+   private cleanStorage(identifiers: string[], options: ICollectorOptions): void {
       const collection = this.storage.getMeta();
       for (let index = 0; index < collection.length; ++index) {
          const meta = collection[index];
@@ -701,7 +727,7 @@ export class InternalNode {
                   null,
                   ProgramType.SIMPLE,
                   program,
-                  allocator.allocate(),
+                  options.allocator.allocate(),
                   true,
                   this.ref.index,
                   this.ref.getProcessingContainerIndex()
@@ -712,15 +738,16 @@ export class InternalNode {
       }
    }
 
-   private checkCleanConditional(identifiers: string[], allocator: IndexAllocator): void {
+   private checkCleanConditional(identifiers: string[], options: ICollectorOptions): void {
       if (this.type === InternalNodeType.BLOCK || this.type === InternalNodeType.ELSE) {
          return;
       }
       const hasFunctionCall = containsFunctionCall(this.test.node, FILE_NAME);
       const hasLocalIdentifier = containsIdentifiers(this.test.node, identifiers, FILE_NAME);
+      const isForeignTest = this.test.processingIndex !== options.rootIndex;
       if (hasLocalIdentifier && DROP_TEST_IDENTIFIERS) {
-         this.dropAndAppend(identifiers, allocator);
-      } else if (hasFunctionCall && DROP_TEST_FUNCTIONS) {
+         this.dropAndAppend(identifiers, options.allocator);
+      } else if (hasFunctionCall && DROP_TEST_FUNCTIONS || isForeignTest && DROP_FOREIGN_TEST) {
          this.storage.set(this.test);
       } else {
          return;
