@@ -6,7 +6,7 @@ import { IParser, Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
 /**
  * Флаг включения/выключения нового механизма формирования internal-выражений для dirty checking проверок.
  */
-const USE_INTERNAL_MECHANISM = true;
+const USE_INTERNAL_MECHANISM = false;
 
 export function isUseNewInternalMechanism(): boolean {
    return USE_INTERNAL_MECHANISM;
