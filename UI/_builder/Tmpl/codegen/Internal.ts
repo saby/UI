@@ -62,10 +62,10 @@ function build(node: InternalNode): string {
    if (node.type === InternalNodeType.ELSE_IF) {
       const test = buildProgram(node.test.node);
       let prefix = wrapProgram(node.test, CONDITIONAL_VARIABLE_NAME);
-      return `else if((${CONDITIONAL_VARIABLE_NAME}=(${test}))){${prefix + body}}`;
+      return `if((${CONDITIONAL_VARIABLE_NAME}=(${test}))){${prefix + body}}`;
    }
    if (node.type === InternalNodeType.ELSE && body.length > 0) {
-      return `else{${body}}`;
+      return `{${body}}`;
    }
    return body;
 }
