@@ -16,6 +16,13 @@ const FUNCTION_TAIL = `return ${COLLECTION_NAME};`;
  */
 const USE_INTERNAL_FUNCTIONS = true;
 
+/**
+ * Если false, то перед вызовом функции только (!) в не оригинальном контексте будет сначала вычисляться возможность вызова функции:
+ * (функция !== undef) && (все аргументы !== undef).
+ * Если true, то перед вызовом функции в любом (!) контексте сначала будет вычисляться возможность вызова функции.
+ */
+const ALWAYS_FOREIGN_CONTAINER: boolean = true;
+
 export function isUseNewInternalFunctions(): boolean {
    return isUseNewInternalMechanism() && USE_INTERNAL_FUNCTIONS;
 }
@@ -126,7 +133,7 @@ function buildProgram(program: ProgramNode, attributeName: string | null, genera
       checkChildren: false,
 
       // Если выражение вычисляется в своем настоящем контексте, то префикс перед вызовом функции не нужен
-      isDirtyChecking: generateFunctionPrefix
+      isDirtyChecking: generateFunctionPrefix || ALWAYS_FOREIGN_CONTAINER
    };
    return program.accept(new ExpressionVisitor(), context) as string;
 }
