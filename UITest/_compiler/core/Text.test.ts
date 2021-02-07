@@ -1,15 +1,13 @@
-import { Parser } from 'UI/_builder/Tmpl/expressions/_private/Parser';
+import { Parser } from 'Compiler/expressions/Parser';
 import createErrorHandler from '../NullLogger';
-import { parse } from 'UI/_builder/Tmpl/html/Parser';
-import getWasabyTagDescription from 'UI/_builder/Tmpl/core/Tags';
-import * as Nodes from 'UI/_builder/Tmpl/html/Nodes';
-import * as Text from 'UI/_builder/Tmpl/core/Text';
-import * as Ast from 'UI/_builder/Tmpl/core/Ast';
-import Scope from 'UI/_builder/Tmpl/core/Scope';
+import { parse } from 'Compiler/html/Parser';
+import getWasabyTagDescription from 'Compiler/core/Tags';
+import * as Nodes from 'Compiler/html/Nodes';
+import * as Text from 'Compiler/core/Text';
+import * as Ast from 'Compiler/core/Ast';
+import Scope from 'Compiler/core/Scope';
 import { assert } from 'chai';
-import createValidator from "UI/_builder/Tmpl/expressions/_private/Validator";
-
-// TODO: UI/_builder/Tmpl/* -> Compiler/*
+import createValidator from 'Compiler/expressions/Validator';
 
 const parseConfig = {
    xml: true,

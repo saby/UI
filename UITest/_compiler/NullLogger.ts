@@ -1,6 +1,4 @@
-/// <amd-module name="UITest/_compiler/NullLogger" />
-
-import { ErrorHandler, IErrorHandler, ILogger, Logger, ErrorFormatter, IMetaInfo } from 'UI/_builder/Tmpl/utils/ErrorHandler';
+import { ErrorHandler, IErrorHandler, ILogger, Logger, ErrorFormatter, IMetaInfo } from 'Compiler/utils/ErrorHandler';
 
 /**
  * Null logger to keep console in browser clean.
