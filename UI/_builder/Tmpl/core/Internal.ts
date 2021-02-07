@@ -461,7 +461,8 @@ class Container {
    }
 
    private collectInternalStructure(options: ICollectorOptions): InternalNode {
-      const node = this.createInternalNode(options.indices, options.depth === 0);
+      // FIXME: Fix filtration
+      const node = this.createInternalNode(options.indices, options.depth === -1);
       let prevChild: InternalNode | null = null;
       const childrenOptions: ICollectorOptions = {
          ...options,
