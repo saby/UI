@@ -248,7 +248,7 @@ export interface IProgramMeta {
    index: number;
 
    // Флаг синтетического Mustache-выражения, которое было получено путем дробления bind-выражения
-   // или исключения из исходного выражения невычислимых переменных
+   // или выражения, в котором присутствуют невычислимые переменные
    isSynthetic: boolean;
 
    // Индекс контейнера, в котором произошла регистрация Mustache-выражения
@@ -423,10 +423,13 @@ class Container {
    }
 
    getProcessingContainerIndex(): number {
+      // Здесь перечислены типы контейнеров, для которых выполняется вычисление контекста
+      // Заметка: для типа CYCLE тоже выполняется вычисление контекста (добавляются index, item переменные),
+      //    но для типа CYCLE выполняется контроль этих переменных - сами переменные и выражения с этими переменными
+      //    не всплывают в родительские контейнеры.
       if (
          this.type === ContainerType.GLOBAL ||
          this.type === ContainerType.TEMPLATE ||
-         this.type === ContainerType.CYCLE ||
          this.type === ContainerType.CONTENT_OPTION ||
          this.parent === null
       ) {

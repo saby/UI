@@ -20,6 +20,13 @@ export function isUseNewInternalFunctions(): boolean {
    return isUseNewInternalMechanism() && USE_INTERNAL_FUNCTIONS;
 }
 
+interface IOptions {
+
+   // Индекс родительского контейнера. Необходим для контроля межконтейнерных вычислений, чтобы проверять
+   // выражение гарантированно вычислимо или нет.
+   rootIndex: number;
+}
+
 export function generate(node: InternalNode, functions: Function[]): string {
    if (isEmpty(node)) {
       return '{}';
@@ -27,8 +34,11 @@ export function generate(node: InternalNode, functions: Function[]): string {
    if (node.index === -1) {
       throw new Error('Произведена попытка генерации Internal-функции от скрытого узла');
    }
+   const options: IOptions = {
+      rootIndex: node.index
+   };
    const functionName = FUNCTION_PREFIX + node.index;
-   const body = FUNCTION_HEAD + build(node) + FUNCTION_TAIL;
+   const body = FUNCTION_HEAD + build(node, options) + FUNCTION_TAIL;
    const index = node.ref.getCommittedIndex(body);
    if (index !== null) {
       return FUNCTION_PREFIX + index + `(${CONTEXT_VARIABLE_NAME})`;
@@ -57,15 +67,15 @@ function appendFunction(func: Function, functions: Function[]): void {
    functions.unshift(func);
 }
 
-function build(node: InternalNode): string {
-   const body = buildPrograms(node.storage.getMeta()) + buildAll(node.children);
+function build(node: InternalNode, options: IOptions): string {
+   const body = buildPrograms(node.storage.getMeta(), options) + buildAll(node.children, options);
    if (node.type === InternalNodeType.IF) {
-      const test = buildProgram(node.test.node);
+      const test = buildProgram(node.test.node, null, node.test.processingIndex === options.rootIndex);
       let prefix = wrapProgram(node.test, CONDITIONAL_VARIABLE_NAME);
       return `if((${CONDITIONAL_VARIABLE_NAME}=(${test}))){${prefix + body}}`;
    }
    if (node.type === InternalNodeType.ELSE_IF) {
-      const test = buildProgram(node.test.node);
+      const test = buildProgram(node.test.node, null, node.test.processingIndex === options.rootIndex);
       let prefix = wrapProgram(node.test, CONDITIONAL_VARIABLE_NAME);
       return `else if((${CONDITIONAL_VARIABLE_NAME}=(${test}))){${prefix + body}}`;
    }
@@ -75,19 +85,19 @@ function build(node: InternalNode): string {
    return body;
 }
 
-function buildAll(nodes: InternalNode[]): string {
+function buildAll(nodes: InternalNode[], options: IOptions): string {
    let body = '';
    for (let index = 0; index < nodes.length; ++index) {
-      body += build(nodes[index]);
+      body += build(nodes[index], options);
    }
    return body;
 }
 
-function buildPrograms(programs: IProgramMeta[]): string {
+function buildPrograms(programs: IProgramMeta[], options: IOptions): string {
    let body = '';
    let code;
    for (let index = 0; index < programs.length; ++index) {
-      code = buildMeta(programs[index]);
+      code = buildMeta(programs[index], options);
       body += wrapProgram(programs[index], code);
    }
    return body;
@@ -97,11 +107,11 @@ function wrapProgram(meta: IProgramMeta, code: string): string {
    return `${COLLECTION_NAME}.${INTERNAL_PROGRAM_PREFIX}${meta.index}=${code};`;
 }
 
-function buildMeta(meta: IProgramMeta): string {
-   return buildProgram(meta.node, meta.name);
+function buildMeta(meta: IProgramMeta, options: IOptions): string {
+   return buildProgram(meta.node, meta.name, meta.processingIndex === options.rootIndex);
 }
 
-function buildProgram(program: ProgramNode, attributeName: string | null = null): string {
+function buildProgram(program: ProgramNode, attributeName: string | null, generateFunctionPrefix: boolean): string {
    const context = {
       fileName: '[[internal]]',
       attributeName,
@@ -114,7 +124,9 @@ function buildProgram(program: ProgramNode, attributeName: string | null = null)
       forbidComputedMembers: false,
       childrenStorage: [],
       checkChildren: false,
-      isDirtyChecking: true
+
+      // Если выражение вычисляется в своем настоящем контексте, то префикс перед вызовом функции не нужен
+      isDirtyChecking: generateFunctionPrefix
    };
    return program.accept(new ExpressionVisitor(), context) as string;
 }
