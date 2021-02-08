@@ -721,15 +721,11 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       const afterInternalNodes: Ast.Ast[] = [];
       for (const name in node.__$ws_options) {
          const option = node.__$ws_options[name];
-         if (option.hasFlag(Ast.Flags.UNPACKED)) {
-            afterInternalNodes.push(option);
-            continue;
-         }
-         option.accept(this, context);
+         afterInternalNodes.push(option);
       }
       for (const name in node.__$ws_contents) {
          const content = node.__$ws_contents[name];
-         content.accept(this, context);
+         afterInternalNodes.push(content);
       }
       for (const name in node.__$ws_attributes) {
          const attribute = node.__$ws_attributes[name];
