@@ -402,10 +402,16 @@ export class DepsCollector {
    }
 
    collectDependencies(depends: IDeps = [], unpack: IDeps = []): ICollectedFiles {
-      /** Убираем дубликаты зависимостей */
-      const deps = depends
-         .filter((d) => !!d && unpack.indexOf(d) === -1)
-         .filter((d, i) => depends.indexOf(d) === i);
+      let deps: string[] = [];
+      depends
+          /** Убираем пустые зависимости и зависимости, которые нужно прислать распакованными */
+          .filter((d) => !!d && unpack.indexOf(d) === -1)
+          /** Убираем дубликаты зависимостей */
+          .forEach((d) => {
+             if(deps.indexOf(d) === -1) {
+                deps.push(d);
+             }
+          })
 
       const files: ICollectedFiles = {
          js: [],

@@ -51,6 +51,9 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
      * добавить зависимость страницы
      */
     pushDepComponent(componentName: string, lazyLoading: boolean = false): void {
+        if (!componentName) {
+            return;
+        }
         this.initDeps[componentName] = true;
         if (lazyLoading) {
             this.lazyInitDeps[componentName] = true;
