@@ -7,10 +7,11 @@ define('UI/_builder/Tmpl/modules/partial', [
    'UI/_builder/Tmpl/codegen/Generator',
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/Tmpl/codegen/TClosure',
-   'UI/_builder/Tmpl/codegen/_feature/Partial'
+   'UI/_builder/Tmpl/codegen/_feature/Partial',
+   'UI/_builder/Tmpl/codegen/Internal'
 ], function partialLoader(
    injectedDataForce, names, Process, parse, FSC,
-   Generator, templates, TClosure, FeaturePartial
+   Generator, templates, TClosure, FeaturePartial, Internal
 ) {
    'use strict';
 
@@ -56,7 +57,8 @@ define('UI/_builder/Tmpl/modules/partial', [
          children: tag.injectedData,
          attribs: tag.attribs,
          isControl: isControl(tag),
-         internal: tag.internal
+         internal: tag.internal,
+         __$ws_internalTree: tag.__$ws_internalTree
       }, data, {
          partial: tag.name === 'ws:partial'
       });
@@ -147,6 +149,11 @@ define('UI/_builder/Tmpl/modules/partial', [
       var internal = (tag.internal && Object.keys(tag.internal).length > 0)
          ? FSC.getStr(tag.internal)
          : '{}';
+
+      if (Internal.isUseNewInternalFunctions() && this.privateFn /* Есть privateFn <--> компилируем wml */) {
+         // TODO: Test and remove code above
+         internal = Internal.generate(tag.__$ws_internalTree, this.privateFn);
+      }
 
       var mergeType = getMergeType(tag, decor);
       var context = (tagIsModule || tagIsDynamicPartial) ? 'isVdom ? context + "part_" + (templateCount++) : context' : 'context';
@@ -293,6 +300,10 @@ define('UI/_builder/Tmpl/modules/partial', [
             var decorInternal = (tag.internal && Object.keys(tag.internal).length > 0)
                ? FSC.getStr(tag.internal)
                : null;
+            if (Internal.isUseNewInternalFunctions() && this.privateFn /* Есть privateFn <--> компилируем wml */) {
+               // TODO: Test and remove code above
+               decorInternal = Internal.generate(tag.__$ws_internalTree, this.privateFn);
+            }
             var createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);
 
             if (tagIsDynamicPartial) {
