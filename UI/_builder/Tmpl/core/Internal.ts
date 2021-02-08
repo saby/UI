@@ -830,12 +830,6 @@ export class InternalNode {
 
 // <editor-fold desc="Mustache-expression collector / AST visitor">
 
-interface IContext {
-   attributeName?: string;
-   container: Container;
-   scope: Scope;
-}
-
 declare type IProperties = Ast.IAttributes | Ast.IEvents | Ast.IOptions | Ast.IContents | Ast.IObjectProperties;
 
 function visitAll(nodes: Ast.Ast[], visitor: Ast.IAstVisitor, context: IContext): void {
@@ -944,6 +938,107 @@ function isInComponentAttributes(stack: Array<AbstractNodeType>): boolean {
    return false;
 }
 
+/**
+ * Get string value from text.
+ * @param value {TText[]} Collection of text nodes.
+ * @return {string | null} Returns string in case of collection has single text node.
+ */
+function getStringValueFromText(value: Ast.TText[]): string | null {
+   if (value.length !== 1) {
+      return null;
+   }
+   const valueNode = value[0];
+   if (!(valueNode instanceof Ast.TextDataNode)) {
+      return null;
+   }
+   return valueNode.__$ws_content;
+}
+
+/**
+ * Get element name.
+ * @param element {BaseHtmlElement} Element node.
+ * @return {string | null} Returns element name if it exists.
+ */
+function getElementName(element: Ast.BaseHtmlElement): string | null {
+   if (element.__$ws_attributes.hasOwnProperty('attr:name')) {
+      return getStringValueFromText(element.__$ws_attributes['attr:name'].__$ws_value);
+   }
+   if (element.__$ws_attributes.hasOwnProperty('name')) {
+      return getStringValueFromText(element.__$ws_attributes['name'].__$ws_value);
+   }
+   return null;
+}
+
+/**
+ * Get string value from string or value node.
+ * @param value {TData} Data node.
+ * @return {string | null} Returns string value for string or value node.
+ */
+function getStringValueFromData(value: Ast.TData): string | null {
+   if (value instanceof Ast.ValueNode) {
+      return getStringValueFromText(value.__$ws_data);
+   }
+   if (value instanceof Ast.StringNode) {
+      return getStringValueFromText(value.__$ws_data);
+   }
+   return null;
+}
+
+/**
+ * Get component name.
+ * @param component {BaseWasabyElement} Component node.
+ * @return {string | null} Returns component name if it exists.
+ */
+function getComponentName(component: Ast.BaseWasabyElement): string | null {
+   const elementName = getElementName(component);
+   if (elementName !== null) {
+      return elementName;
+   }
+   if (component.__$ws_options.hasOwnProperty('attr:name')) {
+      return getStringValueFromData(component.__$ws_options['attr:name'].__$ws_value);
+   }
+   if (component.__$ws_options.hasOwnProperty('name')) {
+      return getStringValueFromData(component.__$ws_options['name'].__$ws_value);
+   }
+   return null;
+}
+
+export interface IResultTree extends Array<Ast.Ast> {
+
+   /**
+    * Child names collection.
+    */
+   childrenStorage: string[];
+
+   /**
+    * Reactive property names collection.
+    */
+   reactiveProps: string[];
+
+   /**
+    * Inline template names collection.
+    */
+   templateNames: string[];
+
+   /**
+    * Global lexical context.
+    */
+   container: Container;
+
+   /**
+    * Special flag.
+    * @deprecated
+    */
+   __newVersion: boolean;
+}
+
+interface IContext {
+   attributeName?: string;
+   childrenStorage: string[];
+   container: Container;
+   scope: Scope;
+}
+
 class InternalVisitor implements Ast.IAstVisitor {
 
    public readonly stack: Array<AbstractNodeType>;
@@ -952,22 +1047,29 @@ class InternalVisitor implements Ast.IAstVisitor {
       this.stack = new Array<AbstractNodeType>();
    }
 
-   process(nodes: Ast.Ast[], scope: Scope): Container {
+   process(nodes: Ast.Ast[], scope: Scope): IResultTree {
       const container = new Container(null, ContainerType.GLOBAL);
+      const childrenStorage: string[] = [];
       const context: IContext = {
+         childrenStorage,
          container,
          scope
       };
       this.stack.push(AbstractNodeType.ROOT);
       visitAll(nodes, this, context);
       this.stack.pop();
-      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
-      nodes.$$container = container;
-      return container;
+      const result = <IResultTree>nodes;
+      result.childrenStorage = childrenStorage;
+      result.reactiveProps = container.getOwnIdentifiers();
+      result.templateNames = scope.getTemplateNames();
+      result.container = container;
+      result.__newVersion = true;
+      return result;
    }
 
    visitAttribute(node: Ast.AttributeNode, context: IContext): void {
       const childContext: IContext = {
+         childrenStorage: context.childrenStorage,
          container: context.container,
          scope: context.scope,
          attributeName: node.__$ws_name
@@ -979,6 +1081,7 @@ class InternalVisitor implements Ast.IAstVisitor {
 
    visitOption(node: Ast.OptionNode, context: IContext): void {
       const childContext: IContext = {
+         childrenStorage: context.childrenStorage,
          container: context.container,
          scope: context.scope,
          attributeName: node.__$ws_name
@@ -993,11 +1096,11 @@ class InternalVisitor implements Ast.IAstVisitor {
       container.addIdentifier(node.__$ws_name);
       container.desc = node.__$ws_name;
       const childContext: IContext = {
+         childrenStorage: context.childrenStorage,
          container,
          scope: context.scope
       };
-      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
-      node.$$container = container;
+      node.__$ws_container = container;
       this.stack.push(AbstractNodeType.COMPONENT_OPTION);
       visitAll(node.__$ws_content, this, childContext);
       this.stack.pop();
@@ -1020,6 +1123,10 @@ class InternalVisitor implements Ast.IAstVisitor {
    }
 
    visitElement(node: Ast.ElementNode, context: IContext): void {
+      const name = getElementName(node);
+      if (name !== null) {
+         context.childrenStorage.push(name);
+      }
       this.stack.push(AbstractNodeType.ELEMENT);
       visitAll(node.__$ws_content, this, context);
       visitAllProperties(node.__$ws_attributes, this, context);
@@ -1046,8 +1153,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       const childContainer = this.processComponent(node, context);
       const template = context.scope.getTemplate(node.__$ws_name);
       const identifiers = collectInlineTemplateIdentifiers(node);
-      // @ts-ignore FIXME: Get container from node of abstract syntax tree
-      childContainer.joinContainer(template.$$container, identifiers);
+      childContainer.joinContainer(template.__$ws_container, identifiers);
       childContainer.desc = `<ws:partial> @@ inline "${node.__$ws_name}"`;
       node.__$ws_internalTree = childContainer.getInternalStructure();
       node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
@@ -1072,12 +1178,12 @@ class InternalVisitor implements Ast.IAstVisitor {
       const container = context.container.createContainer(ContainerType.TEMPLATE);
       container.desc = `<ws:template> @@ "${node.__$ws_name}"`;
       const childContext: IContext = {
+         childrenStorage: context.childrenStorage,
          scope: context.scope,
          container
       };
       visitAll(node.__$ws_content, this, childContext);
-      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
-      node.$$container = container;
+      node.__$ws_container = container;
       node.__$ws_internalTree = container.getInternalStructure();
       node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
    }
@@ -1087,14 +1193,14 @@ class InternalVisitor implements Ast.IAstVisitor {
       container.desc = `<ws:if> "${node.__$ws_test.string}"`;
       container.registerTestProgram(node.__$ws_test);
       const childContext: IContext = {
+         childrenStorage: context.childrenStorage,
          scope: context.scope,
          container
       };
       this.stack.push(AbstractNodeType.DIRECTIVE);
       visitAll(node.__$ws_consequent, this, childContext);
       this.stack.pop();
-      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
-      node.$$container = container;
+      node.__$ws_container = container;
    }
 
    visitElse(node: Ast.ElseNode, context: IContext): void {
@@ -1106,20 +1212,21 @@ class InternalVisitor implements Ast.IAstVisitor {
          container.registerTestProgram(node.__$ws_test);
       }
       const childContext: IContext = {
+         childrenStorage: context.childrenStorage,
          scope: context.scope,
          container
       };
       this.stack.push(AbstractNodeType.DIRECTIVE);
       visitAll(node.__$ws_consequent, this, childContext);
       this.stack.pop();
-      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
-      node.$$container = container;
+      node.__$ws_container = container;
    }
 
    visitFor(node: Ast.ForNode, context: IContext): void {
       const container = context.container.createContainer(ContainerType.CYCLE);
       container.desc = '<ws:for> aka for';
       const childContext: IContext = {
+         childrenStorage: context.childrenStorage,
          scope: context.scope,
          container
       };
@@ -1133,14 +1240,14 @@ class InternalVisitor implements Ast.IAstVisitor {
       this.stack.push(AbstractNodeType.DIRECTIVE);
       visitAll(node.__$ws_content, this, childContext);
       this.stack.pop();
-      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
-      node.$$container = container;
+      node.__$ws_container = container;
    }
 
    visitForeach(node: Ast.ForeachNode, context: IContext): void {
       const container = context.container.createContainer(ContainerType.CYCLE);
       container.desc = '<ws:for> aka foreach';
       const childContext: IContext = {
+         childrenStorage: context.childrenStorage,
          scope: context.scope,
          container
       };
@@ -1152,8 +1259,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       this.stack.push(AbstractNodeType.DIRECTIVE);
       visitAll(node.__$ws_content, this, childContext);
       this.stack.pop();
-      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
-      node.$$container = container;
+      node.__$ws_container = container;
    }
 
    visitArray(node: Ast.ArrayNode, context: IContext): void {
@@ -1216,8 +1322,13 @@ class InternalVisitor implements Ast.IAstVisitor {
    visitTranslation(node: Ast.TranslationNode, context: IContext): void { }
 
    private processComponent(node: Ast.BaseWasabyElement, context: IContext): Container {
+      const name = getComponentName(node);
+      if (name !== null) {
+         context.childrenStorage.push(name);
+      }
       const container = context.container.createContainer(ContainerType.COMPONENT);
       const childContext: IContext = {
+         childrenStorage: context.childrenStorage,
          scope: context.scope,
          container
       };
@@ -1227,14 +1338,13 @@ class InternalVisitor implements Ast.IAstVisitor {
       visitAllProperties(node.__$ws_options, this, childContext);
       visitAllProperties(node.__$ws_contents, this, childContext);
       this.stack.pop();
-      // @ts-ignore FIXME: Save container onto node of abstract syntax tree
-      node.$$container = container;
+      node.__$ws_container = container;
       return container;
    }
 }
 
-export function process(nodes: Ast.Ast[], scope: Scope): void {
-   new InternalVisitor().process(nodes, scope);
+export function process(nodes: Ast.Ast[], scope: Scope): IResultTree {
+   return new InternalVisitor().process(nodes, scope);
 }
 
 // </editor-fold>
