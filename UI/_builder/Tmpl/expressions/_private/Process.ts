@@ -23,21 +23,28 @@ const tagsToReplace = {
    '"': '\\"',
    '\\': '\\\\'
 };
+
 const regExpToReplace = /['"\\]/g;
+
+export function escapeQuotesInString(entity: string): string {
+   return entity.replace(regExpToReplace, (tag: string) =>  tagsToReplace[tag] || tag);
+}
+
 const regExpToReplaceInAttribute = /["\\]/g;
 
-export function escapeQuotesInString(entity: any, isAttribute?: boolean): any {
-   if (entity && entity.replace) {
-      return entity.replace(isAttribute ? regExpToReplaceInAttribute : regExpToReplace,
-         (tag: string) =>  tagsToReplace[tag] || tag
-      );
-   }
-   return entity;
+export function escapeQuotesInAttribute(entity: string): string {
+   return entity.replace(regExpToReplaceInAttribute, (tag: string) =>  tagsToReplace[tag] || tag);
 }
 
 const localizationRegExp = /^(\s*)(?:([\S\s]*?)\s*@@\s*)?([\S\s]*?)(\s*)$/;
 
-function splitLocalizationText(text: string, fileName: string): { text: string, context: string, spacesBefore: string, spacesAfter: string } {
+interface ISplitLocalizationTextResult {
+   text: string;
+   context: string;
+   spacesBefore: string;
+   spacesAfter: string;
+}
+function splitLocalizationText(text: string, fileName: string): ISplitLocalizationTextResult {
    const [match, spacesBefore, context, splitedText, spacesAfter]: string[] = localizationRegExp.exec(text);
    if (splitedText.indexOf('@@') !== -1) {
       errorHandler.error(
@@ -45,14 +52,14 @@ function splitLocalizationText(text: string, fileName: string): { text: string, 
          {
             fileName
          }
-      )
+      );
    }
    return {
       text: splitedText || EMPTY_STRING,
       context: context || EMPTY_STRING,
       spacesBefore,
       spacesAfter
-   }
+   };
 }
 
 function wrapWithLocalization(data: string, fileName: string): string {
@@ -174,7 +181,7 @@ export function processExpressions(
    }
 
    if (expressionRaw.value && isAttribute) {
-      return escapeQuotesInString(expressionRaw.value, true);
+      return escapeQuotesInAttribute(expressionRaw.value);
    }
 
    return expressionRaw.value;
