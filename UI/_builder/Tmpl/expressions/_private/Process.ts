@@ -22,7 +22,7 @@ const tagsToReplace = {
    '"': '\\"',
    '\\': '\\\\'
 };
-const regExpToReplace = /['"\\]/g;
+const regExpToReplace = /["\\]/g;
 
 export function escapeQuotesInString(entity: any): any {
    if (entity && entity.replace) {
