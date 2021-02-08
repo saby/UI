@@ -104,6 +104,9 @@ define('UI/_builder/Tmpl/core/bridge', [
       }
       PatchVisitorLib.default(traversed, traverseOptions.scope);
 
+      // FIXME: DEVELOP: REMOVE
+      traversed.reactiveProps.sort();
+
       // в случае сбора словаря локализуемых слов отдаем объект
       // { astResult - ast-дерево, words - словарь локализуемых слов }
       if (options.createResultDictionary) {
