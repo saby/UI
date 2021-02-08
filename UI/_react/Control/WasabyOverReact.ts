@@ -14,7 +14,7 @@ import {prepareControlNodes} from './ControlNodes';
 import {TClosure} from 'UI/Executor';
 
 // @ts-ignore путь не определяется
-import template = require('wml!UI/_react/Control/Compatible');
+import template = require('wml!UI/_react/Control/WasabyOverReact');
 import {
    IControlChildren, IControlOptions, IControlState, TIState, TemplateFunction,
    IDOMEnvironment, ITemplateAttrs, TControlConstructor, IControl, IControlNode

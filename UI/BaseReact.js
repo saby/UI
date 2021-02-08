@@ -9,7 +9,7 @@ define('UI/' + 'Base', [
    'require',
    'exports',
    'tslib',
-   'UI/_react/Control/Compatible',
+   'UI/_react/Control/WasabyOverReact',
    'UI/_base/CommonLib'
 ], function(require, exports, tsLib, CompatibleControl, CommonLib) {
    'use strict';
