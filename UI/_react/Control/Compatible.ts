@@ -618,12 +618,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       }
 
       if (this._firstRender) {
-         // FIXME: тема на сервере и на клиенте не совпадает, head пытается пропатчить изменения, в итоге пишет в document.head, который null
-         if (this._moduleName === 'UI/_base/HTML/Head') {
-            this.__beforeMount(this.props);
-         } else {
-            this.__beforeMount(wasabyOptions);
-         }
+         this.__beforeMount(wasabyOptions);
       }
 
       // @ts-ignore
