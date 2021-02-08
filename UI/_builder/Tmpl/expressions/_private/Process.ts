@@ -19,7 +19,6 @@ const EMPTY_STRING = '';
 const errorHandler = createErrorHandler(true);
 
 const tagsToReplace = {
-   "'": "\\'",
    '"': '\\"',
    '\\': '\\\\'
 };
