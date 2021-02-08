@@ -1078,7 +1078,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
     * <pre>
     *    Control.extend({
     *       ...
-    *       _componentDidUpdate() {
+    *       _afterRender() {
     *
     *          // Accessing DOM elements to some fix after render.
     *          this._container.scrollTop = this._savedScrollTop;
@@ -1088,20 +1088,8 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
     * </pre>
     * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
     */
-   protected _componentDidUpdate(oldOptions?: TOptions, oldContext?: any): void {
-      // Do
-   }
-
    protected _afterRender(oldOptions?: TOptions, oldContext?: any): void {
       // Do
-   }
-
-   private __afterRender(oldOptions?: TOptions, oldContext?: any): void {
-      // TODO: включить после согласования имени нового хука и автозамены
-      // Logger.warn(`Хук "_afterRender" более не поддерживает.
-      //    Следует переименовать хук в "_componentDidUpdate"
-      //    Контрол: ${ this._moduleName }`, this);
-      this._afterRender.apply(this, arguments);
    }
 
    /**

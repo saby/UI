@@ -8,7 +8,6 @@ export default class OnlyNew extends Control {
    protected _componentDidMountCalled: boolean = false;
    protected _afterMountCalled: boolean = false;
    protected _beforeUpdateCalled: boolean = false;
-   protected _componentDidUpdateCalled: boolean = false;
    protected _afterUpdateCalled: boolean = false;
 
    protected _afterRenderCalled: boolean = false;
@@ -29,8 +28,8 @@ export default class OnlyNew extends Control {
       this._beforeUpdateCalled = true;
    }
 
-   protected _componentDidUpdate(): void {
-      this._componentDidUpdateCalled = true;
+   protected _afterRender(): void {
+      this._afterRenderCalled = true;
    }
 
    protected _afterUpdate(): void {
@@ -42,7 +41,6 @@ export default class OnlyNew extends Control {
       this._componentDidMountCalled = false;
       this._afterMountCalled = false;
       this._beforeUpdateCalled = false;
-      this._componentDidUpdateCalled = false;
       this._afterUpdateCalled = false;
       this._afterRenderCalled = false;
    }
