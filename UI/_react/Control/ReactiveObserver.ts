@@ -1,4 +1,4 @@
-import {Control} from './Compatible';
+import {Control} from './WasabyOverReact';
 
 interface IReactiveProp {
    _$reactived: Control;
