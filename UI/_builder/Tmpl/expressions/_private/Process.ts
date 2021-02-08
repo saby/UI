@@ -19,14 +19,18 @@ const EMPTY_STRING = '';
 const errorHandler = createErrorHandler(true);
 
 const tagsToReplace = {
+   "'": "\\'",
    '"': '\\"',
    '\\': '\\\\'
 };
-const regExpToReplace = /["\\]/g;
+const regExpToReplace = /['"\\]/g;
+const regExpToReplaceInAttribute = /["\\]/g;
 
-export function escapeQuotesInString(entity: any): any {
+export function escapeQuotesInString(entity: any, isAttribute?: boolean): any {
    if (entity && entity.replace) {
-      return entity.replace(regExpToReplace, (tag: string) =>  tagsToReplace[tag] || tag);
+      return entity.replace(isAttribute ? regExpToReplaceInAttribute : regExpToReplace,
+         (tag: string) =>  tagsToReplace[tag] || tag
+      );
    }
    return entity;
 }
@@ -170,7 +174,7 @@ export function processExpressions(
    }
 
    if (expressionRaw.value && isAttribute) {
-      return escapeQuotesInString(expressionRaw.value);
+      return escapeQuotesInString(expressionRaw.value, true);
    }
 
    return expressionRaw.value;
