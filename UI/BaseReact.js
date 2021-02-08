@@ -3,7 +3,9 @@
  * Написана именно на js, чтобы задать имя руками. За основу взят сгенерированный из ts код.
  * @author Зайцев А.С.
  */
-define('UI/Base', [
+// Разрываю имя, чтобы билдер не попытался упаковать это в пакет
+// eslint-disable-next-line no-useless-concat
+define('UI/' + 'Base', [
    'require',
    'exports',
    'tslib',
