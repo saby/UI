@@ -456,6 +456,9 @@ class Container {
          depth: options.depth + 1
       };
       for (let index = 0; index < this.children.length; ++index) {
+         if (options.depth === 0 && this.children[index].type === ContainerType.CONTENT_OPTION) {
+            continue;
+         }
          const child = this.children[index].collectInternalStructure(childrenOptions);
          node.children.push(child);
          child.prev = prevChild;
