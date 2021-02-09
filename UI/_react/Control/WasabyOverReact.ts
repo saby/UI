@@ -213,31 +213,7 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       // Do
    }
 
-   // beforeMount зовется на сервере для поддержки серверной верстки (с учетом промисов)
-   __beforeMountSSR(options?: TOptions,
-                    contexts?: object,
-                    receivedState?: TState): Promise<TState | void> | TState | void {
-      let savedOptions;
-      // @ts-ignore навешивается в слое совместимости, в чистом контроле такого нет
-      const hasCompatible = this.hasCompatible && this.hasCompatible();
-      // в совместимости опции добавились и их нужно почистить
-      if (hasCompatible) {
-         savedOptions = this._options;
-         this._options = {} as TOptions;
-      }
-
-      const resultBeforeMount = this._beforeMount(options, contexts, receivedState);
-
-      if (hasCompatible) {
-         this._options = savedOptions;
-      }
-
-      return resultBeforeMount;
-   }
-
-   __beforeMount(options: TOptions,
-                 contexts?: object,
-                 receivedState?: TState): void {
+   __beforeMount(options: TOptions): void {
       /** Загрузка стилей и тем оформления - это обязательно асинхронный процесс */
       const cssLoading = Promise.all([
          this.loadThemes(options.theme),
@@ -247,9 +223,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       const promisesToWait = [];
       if (!constants.isServerSide && !this.isDeprecatedCSS() && !this.isCSSLoaded(options.theme)) {
          promisesToWait.push(cssLoading.then(nop));
-      }
-      if (constants.isServerSide) {
-         return this.__beforeMountSSR(options, contexts, receivedState) as void;
       }
 
       const res = this._beforeMount(options);
