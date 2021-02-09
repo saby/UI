@@ -591,7 +591,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
 
     const controlNodesIter = [];
     const fillCNM = (controlNode: IControlNode) => {
-        controlNodesIter.push([controlNode.vnode, controlNode]);
+        controlNodesIter.push([controlNode.vnode.key, controlNode]);
         // tslint:disable-next-line: no-unused-expression
         controlNode.childrenNodes && controlNode.childrenNodes.forEach(fillCNM);
     };
@@ -796,8 +796,8 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     let updateNodesByUnchangedTemplates = notUpdatedTemplates.map((templateNode: ITemplateNode, index: number) => {
         const templateControlNodes: IControlNode[] = [];
         const cnFill = (item: IGeneratorVNode | ITemplateNode) => {
-            if (controlNodeVnodesMap.has(item)) {
-                templateControlNodes.push(controlNodeVnodesMap.get(item));
+            if (controlNodeVnodesMap.has(item.key)) {
+                templateControlNodes.push(controlNodeVnodesMap.get(item.key));
             }
             // tslint:disable-next-line: no-unused-expression
             Array.isArray(item.children) && item.children.forEach(cnFill);
