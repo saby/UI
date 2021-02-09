@@ -8,9 +8,8 @@
 define('UI/' + '_base/Control', [
    'require',
    'exports',
-   'tslib',
    'UI/_react/Control/WasabyOverReact'
-], function(require, exports, tsLib, CompatibleControl) {
+], function(require, exports, CompatibleControl) {
    'use strict';
    Object.defineProperty(exports, '__esModule', { value: true });
    exports.default = CompatibleControl.Control;
