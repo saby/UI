@@ -81,20 +81,22 @@ export enum OperationType {
  * @return Возвращает true если расширение найдено, false если не найдено (можно использовать в дев билдах для показа сообщения с рекламой расширения).
  */
 function injectHook(): boolean {
-   if (
-      typeof window === 'undefined' ||
-      // @ts-ignore
-      typeof window.__WASABY_DEV_HOOK__ === 'undefined'
+   if ((typeof window === 'undefined' ||
+       // @ts-ignore
+       typeof window.__WASABY_DEV_HOOK__ === 'undefined') &&
+       (typeof process === 'undefined' ||
+       // @ts-ignore
+       typeof process.__WASABY_DEV_HOOK__ === 'undefined')
    ) {
       return false;
    }
    // @ts-ignore
-   const hook = window.__WASABY_DEV_HOOK__;
+   const hook = (window && window.__WASABY_DEV_HOOK__) || (process && process.__WASABY_DEV_HOOK__);
    supportReactivePropsStacks = hook.hasOwnProperty('saveReactivePropsStacks');
    saveReactivePropsStacks =
       supportReactivePropsStacks && hook.saveReactivePropsStacks;
    // @ts-ignore
-   window.__WASABY_DEV_HOOK__.init({});
+   hook.init({});
    onStartCommitFunc = (...args) => {
       hook.onStartCommit.apply(hook, args);
    };
