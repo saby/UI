@@ -3,8 +3,8 @@
  * @author Кондаков Р.Н.
  */
 
-/* tslint:disable:ban-ts-ignore no-any */
-// @ts-nocheck1
+/* tslint:disable:ban-ts-ignore no-any max-line-length */
+// @ts-nocheck
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { Subscriber } from 'UI/Events';
@@ -38,7 +38,7 @@ import { getChangedOptions, collectObjectVersions } from './Options';
 import { createNode } from './ControlNode';
 import { getStateReceiver } from 'Application/Env';
 import { isInit } from 'Application/Initializer';
-import { GeneratorNode } from 'UI/Executor';
+import { GeneratorNode, IGeneratorVNode } from 'UI/Executor';
 // import { VNode } from 'Inferno/third-party/index';
 import { ITemplateNode } from 'UI/_executor/_Markup/IGeneratorType';
 import { getCompatibleUtils } from 'UI/_vdom/Synchronizer/resources/DirtyCheckingCompatible';
@@ -129,6 +129,17 @@ class MemoNode implements IMemoNode {
         }
 
         return rebuildChangesIds;
+    }
+
+    static createChildrenResult(childrenRebuildResults: IMemoNode[]): { value: IControlNode[], memo: MemoForNode } {
+        const value = [];
+        const memo = new MemoForNode();
+        for (let i = 0; i < childrenRebuildResults.length; i++) {
+            const childrenRebuildResult = childrenRebuildResults[i];
+            value.push(childrenRebuildResult.value);
+            memo.concat(childrenRebuildResults[i].memo);
+        }
+        return { value, memo };
     }
 }
 
@@ -578,11 +589,22 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     let diff = getMarkupDiff(oldMarkup, newNode.markup, false, false);
     Logger.debug('DirtyChecking (diff)', diff);
 
+    const controlNodesIter = [];
+    const fillCNM = (controlNode: IControlNode) => {
+        controlNodesIter.push([controlNode.vnode, controlNode]);
+        // tslint:disable-next-line: no-unused-expression
+        controlNode.childrenNodes && controlNode.childrenNodes.forEach(fillCNM);
+    };
+    node.childrenNodes.forEach(fillCNM);
+    const controlNodeVnodesMap = new Map<IGeneratorVNode | ITemplateNode, IControlNode>(controlNodesIter);
+
     let needRenderMarkup = false;
     if (diff.destroy.length || diff.vnodeChanged) {
         setChangedForNode(newNode);
         needRenderMarkup = true;
     }
+
+    const notUpdatedTemplates = [];
 
     while (diff.createTemplates.length > 0 || diff.updateTemplates.length > 0) {
         let diffTmpl = {
@@ -708,24 +730,25 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             } else {
                 // @ts-ignore
                 newTemplateNode.children = oldTemplateNode.children;
+                notUpdatedTemplates.push(newTemplateNode);
                 // @ts-ignore
-                for (i = 0; i < newTemplateNode.children.length; i++) {
-                    /*template can contains controlNodes and we try find all of them
-                        * all controlNodes must be in array "childrenNodes"
-                        */
-                    diffTmplOneNode = getMarkupDiff(
-                        // @ts-ignore
-                        oldTemplateNode.children[i],
-                        // @ts-ignore
-                        newTemplateNode.children[i],
-                        true
-                    );
-                    diffTmpl.create.push(...diffTmplOneNode.create);
-                    diffTmpl.createTemplates.push(...diffTmplOneNode.createTemplates);
-                    diffTmpl.update.push(...diffTmplOneNode.update);
-                    diffTmpl.updateTemplates.push(...diffTmplOneNode.updateTemplates);
-                    diffTmpl.destroy.push(...diffTmplOneNode.destroy);
-                }
+                // for (i = 0; i < newTemplateNode.children.length; i++) {
+                //     /*template can contains controlNodes and we try find all of them
+                //         * all controlNodes must be in array "childrenNodes"
+                //         */
+                //     diffTmplOneNode = getMarkupDiff(
+                //         // @ts-ignore
+                //         oldTemplateNode.children[i],
+                //         // @ts-ignore
+                //         newTemplateNode.children[i],
+                //         true
+                //     );
+                //     diffTmpl.create.push(...diffTmplOneNode.create);
+                //     diffTmpl.createTemplates.push(...diffTmplOneNode.createTemplates);
+                //     diffTmpl.update.push(...diffTmplOneNode.update);
+                //     diffTmpl.updateTemplates.push(...diffTmplOneNode.updateTemplates);
+                //     diffTmpl.destroy.push(...diffTmplOneNode.destroy);
+                // }
             }
             onEndCommit(newTemplateNode, {
                 template: newTemplateNode.template,
@@ -770,7 +793,21 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         return childControlNode;
     });
 
-    let changedNodes = new Array(diff.create.length + diff.update.length);
+    let updateNodesByUnchangedTemplates = notUpdatedTemplates.map((templateNode: ITemplateNode, index: number) => {
+        const templateControlNodes: IControlNode[] = [];
+        const cnFill = (item: IGeneratorVNode | ITemplateNode) => {
+            if (controlNodeVnodesMap.has(item)) {
+                templateControlNodes.push(controlNodeVnodesMap.get(item));
+            }
+            // tslint:disable-next-line: no-unused-expression
+            Array.isArray(item.children) && item.children.forEach(cnFill);
+        };
+        templateNode.children.forEach(cnFill);
+        return templateControlNodes;
+    }).filter((item) => { return !!item; });
+    updateNodesByUnchangedTemplates = updateNodesByUnchangedTemplates.flat();
+
+    const changedNodes = new Array(diff.create.length + diff.update.length);
 
     createdStartIdx = diff.update.length;
 
@@ -1053,7 +1090,13 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         return childControlNode;
     });
 
-    childrenNodes = [...updatedNodes, ...createdNodes];
+    const startNodeIdx: number = updatedNodes.length + createdNodes.length;
+    updateNodesByUnchangedTemplates.forEach((item, idx) => {
+        changedNodes[startNodeIdx + idx] = false;
+        item.controlNodeIdx = startNodeIdx + idx;
+    });
+
+    childrenNodes = [...updatedNodes, ...createdNodes, ...updateNodesByUnchangedTemplates];
 
     updatedUnchangedNodes = ARR_EMPTY;
     updatedChangedNodes = ARR_EMPTY;
@@ -1122,19 +1165,8 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         changedNodes, childrenNodes, currentMemo, isSelfDirty);
 }
 
-function createChildrenResult(childrenRebuildResults: IMemoNode[]): { value: IControlNode[], memo: MemoForNode } {
-    const value = [];
-    const memo = new MemoForNode();
-    for (let i = 0; i < childrenRebuildResults.length; i++) {
-        const childrenRebuildResult = childrenRebuildResults[i];
-        value.push(childrenRebuildResult.value);
-        memo.concat(childrenRebuildResults[i].memo);
-    }
-    return { value, memo };
-}
-
-function generateFullMarkup(currentMemo: MemoForNode, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty) {
-    const childrenRebuild = createChildrenResult(childrenRebuildFinalResults);
+function generateFullMarkup(currentMemo: MemoForNode, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty): MemoNode {
+    const childrenRebuild = MemoNode.createChildrenResult(childrenRebuildFinalResults);
     if (!newNode.markup) {
         // Во время ожидания асинхронного ребилда контрол уничтожился, обновлять его уже не нужно.
         return new MemoNode(newNode, childrenRebuild.memo);
@@ -1142,7 +1174,7 @@ function generateFullMarkup(currentMemo: MemoForNode, newNode, childrenRebuildFi
 
     newNode.childrenNodes = childrenRebuild.value;
     if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
-        let wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
+        const wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
         newNode.fullMarkup = environment.decorateFullMarkup(
             getFullMarkup(
                 newNode.childrenNodes,
