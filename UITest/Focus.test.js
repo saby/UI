@@ -18,6 +18,7 @@ define([
 ) {
    'use strict';
    const Control = Base.Control;
+   const constants = Env.constants;
 
    var global = (function() {
       return this || (0, eval)('this');
@@ -29,38 +30,36 @@ define([
       var globalCases = [];
       var currentCase;
       var fromNode = typeof document === 'undefined';
-      let purifierStub;
-      let loadThemesStub;
-      let loadStylesStub;
-      let loadThemeVariablesStub;
+      let sandbox;
+      let compatValue;
 
       before(function() {
          // Запускаем эти тесты только под nodejs.
          if (!fromNode) {
             this.skip();
          }
-         this.compat = require('Env/Env').constants.compat;
-         require('Env/Env').constants.compat = false;
-         purifierStub = sinon.stub(Utils.Purifier, 'purifyInstance');
+         sandbox = sinon.createSandbox();
+         compatValue = constants.compat;
+         constants.compat = false;
+         sandbox.stub(Utils.Purifier, 'purifyInstance');
 
          // На самом деле, юнит тесты могут не полностью эмулировать браузер, даже с jsdom.
          // Где-то может быть проверка на process, тогда этот код выполнится как на сервере.
          // Если же проверка на window или document - выполнится, как на клиенте.
          // TODO: перевести тесты по фокусам на наглядные интеграционные тесты.
-         loadThemesStub = sinon.stub(Control.prototype, 'loadThemes');
-         loadStylesStub = sinon.stub(Control.prototype, 'loadStyles');
-         loadThemeVariablesStub = sinon.stub(Control.prototype, 'loadThemeVariables');
-         if (fromNode) {
-            var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
-            global.window = browser.window;
-            global.document = window.document;
-            global.Element = window.Element;
-            global.HTMLElement = window.HTMLElement;
-            global.SVGElement = window.SVGElement;
-            global.Node = window.Node;
-            global.getComputedStyle = window.getComputedStyle;
-            Focus._initFocus();
-         }
+         sandbox.stub(Control.prototype, 'loadThemes');
+         sandbox.stub(Control.prototype, 'loadStyles');
+         sandbox.stub(Control.prototype, 'loadThemeVariables');
+
+         var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
+         global.window = browser.window;
+         global.document = window.document;
+         global.Element = window.Element;
+         global.HTMLElement = window.HTMLElement;
+         global.SVGElement = window.SVGElement;
+         global.Node = window.Node;
+         global.getComputedStyle = window.getComputedStyle;
+         Focus._initFocus();
       });
 
       after(function() {
@@ -68,20 +67,16 @@ define([
          if (!fromNode) {
             return;
          }
-         require('Env/Env').constants.compat = this.compat;
-         purifierStub.restore();
-         loadThemesStub.restore();
-         loadStylesStub.restore();
-         loadThemeVariablesStub.restore();
-         if (fromNode) {
-            delete global.window;
-            delete global.document;
-            delete global.Element;
-            delete global.HTMLElement;
-            delete global.SVGElement;
-            delete global.Node;
-            delete global.getComputedStyle;
-         }
+         constants.compat = compatValue;
+         sandbox.restore();
+
+         delete global.window;
+         delete global.document;
+         delete global.Element;
+         delete global.HTMLElement;
+         delete global.SVGElement;
+         delete global.Node;
+         delete global.getComputedStyle;
       });
 
       beforeEach(function(done) {
