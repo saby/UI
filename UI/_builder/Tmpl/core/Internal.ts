@@ -916,11 +916,12 @@ function getProgramType(stack: Array<AbstractNodeType>): ProgramType {
          continue;
       } else if (stack[index] === AbstractNodeType.COMPONENT) {
          isInComponent = true;
-         continue;
       } else if (stack[index] === AbstractNodeType.ATTRIBUTE) {
          isInAttribute = true;
+         continue;
       } else if (stack[index] === AbstractNodeType.OPTION) {
          isInOption = true;
+         continue;
       }
       break;
    }
@@ -1218,7 +1219,9 @@ class InternalVisitor implements Ast.IAstVisitor {
          scope: context.scope,
          container
       };
+      this.stack.push(AbstractNodeType.DIRECTIVE);
       visitAll(node.__$ws_content, this, childContext);
+      this.stack.pop();
       setRootNodeFlags(node.__$ws_content);
       node.__$ws_container = container;
       node.__$ws_internalTree = container.getInternalStructure();
