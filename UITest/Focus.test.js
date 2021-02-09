@@ -17,8 +17,7 @@ define([
    FocusTestControls
 ) {
    'use strict';
-   return;
-   const Logger = Utils.Logger;
+   const Control = Base.Control;
 
    var global = (function() {
       return this || (0, eval)('this');
@@ -31,11 +30,26 @@ define([
       var currentCase;
       var fromNode = typeof document === 'undefined';
       let purifierStub;
+      let loadThemesStub;
+      let loadStylesStub;
+      let loadThemeVariablesStub;
 
       before(function() {
+         // Запускаем эти тесты только под nodejs.
+         if (!fromNode) {
+            this.skip();
+         }
          this.compat = require('Env/Env').constants.compat;
          require('Env/Env').constants.compat = false;
-         purifierStub = sinon.stub(Utils.Purifier, 'purifyInstance').callsFake(() => {});
+         purifierStub = sinon.stub(Utils.Purifier, 'purifyInstance');
+
+         // На самом деле, юнит тесты могут не полностью эмулировать браузер, даже с jsdom.
+         // Где-то может быть проверка на process, тогда этот код выполнится как на сервере.
+         // Если же проверка на window или document - выполнится, как на клиенте.
+         // TODO: перевести тесты по фокусам на наглядные интеграционные тесты.
+         loadThemesStub = sinon.stub(Control.prototype, 'loadThemes');
+         loadStylesStub = sinon.stub(Control.prototype, 'loadStyles');
+         loadThemeVariablesStub = sinon.stub(Control.prototype, 'loadThemeVariables');
          if (fromNode) {
             var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
             global.window = browser.window;
@@ -50,8 +64,15 @@ define([
       });
 
       after(function() {
+         // Запускаем эти тесты только под nodejs.
+         if (!fromNode) {
+            return;
+         }
          require('Env/Env').constants.compat = this.compat;
          purifierStub.restore();
+         loadThemesStub.restore();
+         loadStylesStub.restore();
+         loadThemeVariablesStub.restore();
          if (fromNode) {
             delete global.window;
             delete global.document;
@@ -64,12 +85,6 @@ define([
       });
 
       beforeEach(function(done) {
-         // Run these tests in browser only
-         if (fromNode) {
-            this.skip();
-            return;
-         }
-
          currentCase = globalCases.shift();
          div = document.createElement('div');
          document.body.appendChild(div);
