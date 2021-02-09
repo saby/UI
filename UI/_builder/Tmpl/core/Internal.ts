@@ -493,7 +493,8 @@ class Container {
             if (meta.type === ProgramType.BIND) {
                // Все значения bind выражений попадают в опции, в internal их не записываем.
                // Исключение - контекст bind-выражения (все синтетические выражения).
-               return meta.isSynthetic;
+               // FIXME: DEV: REMOVE
+               // return meta.isSynthetic;
             }
             return true;
          });
