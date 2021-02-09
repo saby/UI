@@ -1012,6 +1012,32 @@ function getComponentName(component: Ast.BaseWasabyElement): string | null {
    return null;
 }
 
+/**
+ * Set root node flag.
+ * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
+ */
+function setRootNodeFlags(nodes: Ast.Ast[]): void {
+   nodes.forEach((node) => {
+      if (node instanceof Ast.IfNode) {
+         setRootNodeFlags(node.__$ws_consequent);
+         return;
+      }
+      if (node instanceof Ast.ElseNode) {
+         setRootNodeFlags(node.__$ws_consequent);
+         return;
+      }
+      if (node instanceof Ast.ForNode) {
+         setRootNodeFlags(node.__$ws_content);
+         return;
+      }
+      if (node instanceof Ast.ForeachNode) {
+         setRootNodeFlags(node.__$ws_content);
+         return;
+      }
+      node.__$ws_isRootNode = true;
+   });
+}
+
 export interface IResultTree extends Array<Ast.Ast> {
 
    /**
@@ -1112,6 +1138,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       node.__$ws_container = container;
       this.stack.push(AbstractNodeType.COMPONENT_OPTION);
       visitAll(node.__$ws_content, this, childContext);
+      setRootNodeFlags(node.__$ws_content);
       this.stack.pop();
       node.__$ws_internalTree = container.getInternalStructure();
       node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
@@ -1192,6 +1219,7 @@ class InternalVisitor implements Ast.IAstVisitor {
          container
       };
       visitAll(node.__$ws_content, this, childContext);
+      setRootNodeFlags(node.__$ws_content);
       node.__$ws_container = container;
       node.__$ws_internalTree = container.getInternalStructure();
       node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
