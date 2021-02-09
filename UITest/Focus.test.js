@@ -17,8 +17,8 @@ define([
    FocusTestControls
 ) {
    'use strict';
-   return;
-   const Logger = Utils.Logger;
+   const Control = Base.Control;
+   const constants = Env.constants;
 
    var global = (function() {
       return this || (0, eval)('this');
@@ -30,46 +30,56 @@ define([
       var globalCases = [];
       var currentCase;
       var fromNode = typeof document === 'undefined';
-      let purifierStub;
+      let sandbox;
+      let compatValue;
 
       before(function() {
-         this.compat = require('Env/Env').constants.compat;
-         require('Env/Env').constants.compat = false;
-         purifierStub = sinon.stub(Utils.Purifier, 'purifyInstance').callsFake(() => {});
-         if (fromNode) {
-            var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
-            global.window = browser.window;
-            global.document = window.document;
-            global.Element = window.Element;
-            global.HTMLElement = window.HTMLElement;
-            global.SVGElement = window.SVGElement;
-            global.Node = window.Node;
-            global.getComputedStyle = window.getComputedStyle;
-            Focus._initFocus();
+         // Запускаем эти тесты только под nodejs.
+         if (!fromNode) {
+            this.skip();
          }
+         sandbox = sinon.createSandbox();
+         compatValue = constants.compat;
+         constants.compat = false;
+         sandbox.stub(Utils.Purifier, 'purifyInstance');
+
+         // На самом деле, юнит тесты могут не полностью эмулировать браузер, даже с jsdom.
+         // Где-то может быть проверка на process, тогда этот код выполнится как на сервере.
+         // Если же проверка на window или document - выполнится, как на клиенте.
+         // TODO: перевести тесты по фокусам на наглядные интеграционные тесты.
+         sandbox.stub(Control.prototype, 'loadThemes');
+         sandbox.stub(Control.prototype, 'loadStyles');
+         sandbox.stub(Control.prototype, 'loadThemeVariables');
+
+         var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
+         global.window = browser.window;
+         global.document = window.document;
+         global.Element = window.Element;
+         global.HTMLElement = window.HTMLElement;
+         global.SVGElement = window.SVGElement;
+         global.Node = window.Node;
+         global.getComputedStyle = window.getComputedStyle;
+         Focus._initFocus();
       });
 
       after(function() {
-         require('Env/Env').constants.compat = this.compat;
-         purifierStub.restore();
-         if (fromNode) {
-            delete global.window;
-            delete global.document;
-            delete global.Element;
-            delete global.HTMLElement;
-            delete global.SVGElement;
-            delete global.Node;
-            delete global.getComputedStyle;
+         // Запускаем эти тесты только под nodejs.
+         if (!fromNode) {
+            return;
          }
+         constants.compat = compatValue;
+         sandbox.restore();
+
+         delete global.window;
+         delete global.document;
+         delete global.Element;
+         delete global.HTMLElement;
+         delete global.SVGElement;
+         delete global.Node;
+         delete global.getComputedStyle;
       });
 
       beforeEach(function(done) {
-         // Run these tests in browser only
-         if (fromNode) {
-            this.skip();
-            return;
-         }
-
          currentCase = globalCases.shift();
          div = document.createElement('div');
          document.body.appendChild(div);
