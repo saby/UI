@@ -4,7 +4,7 @@
  * @author Зайцев А.С.
  */
 // Разрываю имя, чтобы билдер не попытался упаковать это в пакет
-// eslint-disable-next-line no-useless-concat
+// eslint-disable-next-line no-useless-concat anonymous-component
 define('UI/' + 'Base', [
    'require',
    'exports',
