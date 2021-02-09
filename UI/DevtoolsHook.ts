@@ -1,8 +1,8 @@
 import { TemplateFunction } from 'UI/Base';
 import { IControlNode } from './_vdom/Synchronizer/interfaces';
 import { IOptions } from './_vdom/Synchronizer/resources/Options';
-import { GeneratorNode } from "UI/_executor/_Markup/Vdom/IVdomType";
-import { VNode } from "Inferno/third-party/index";
+import { GeneratorNode } from 'UI/_executor/_Markup/Vdom/IVdomType';
+import { VNode } from 'Inferno/third-party/index';
 /**
  * Модуль для общения с Wasaby Developer Tools.
  * Краткий порядок общения с расширением:
@@ -50,7 +50,7 @@ let changedReactiveProps: WeakMap<
 
 interface ITemplateNode {
    template?: TemplateFunction;
-   children: ITemplateNode | IControlNode | Array<ITemplateNode | IControlNode>;
+   children: ITemplateNode | IControlNode | (ITemplateNode | IControlNode)[];
 }
 
 interface ITemplateChanges {
