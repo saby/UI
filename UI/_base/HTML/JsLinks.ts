@@ -8,6 +8,7 @@ import template = require('wml!UI/_base/HTML/JsLinks');
 import { headDataStore } from 'UI/_base/HeadData';
 import { IControlOptions } from 'UI/Base';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
+import { cookie } from "Env/Env";
 
 interface IJsLinksOptions extends IControlOptions {
    resourceRoot: string;
@@ -48,7 +49,7 @@ class JsLinks extends Control<IJsLinksOptions> {
    }
 
    resolveLink(path: string, type: string = ''): string {
-      return ModulesLoader.getModuleUrl(type ? `${type}!${path}` : path);
+      return ModulesLoader.getModuleUrl(type ? `${type}!${path}` : path, cookie.get('s3debug'));
    }
 }
 
