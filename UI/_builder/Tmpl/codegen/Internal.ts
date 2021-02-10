@@ -11,7 +11,7 @@ export function isUseNewInternalFunctions(): boolean {
 /**
  * Флаг включения/выключения генерации internal-функций.
  */
-const USE_INTERNAL_FUNCTIONS = false;
+const USE_INTERNAL_FUNCTIONS = true;
 
 /**
  * Если false, то перед вызовом функции только (!) в не оригинальном контексте будет сначала вычисляться возможность вызова функции:

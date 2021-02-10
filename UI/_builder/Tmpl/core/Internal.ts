@@ -12,7 +12,7 @@ export function isUseNewInternalMechanism(): boolean {
 /**
  * Флаг включения/выключения нового механизма формирования internal-выражений для dirty checking проверок.
  */
-const USE_INTERNAL_MECHANISM = false;
+const USE_INTERNAL_MECHANISM = true;
 
 /**
  * Если в test-выражение вычисляется не в своем контексте, значит не гарантируется, что результат вычисления
