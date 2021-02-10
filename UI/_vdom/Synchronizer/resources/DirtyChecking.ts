@@ -260,7 +260,7 @@ export function getReceivedState(controlNode: IControlNode, vnodeP: GeneratorNod
 
 function subscribeToEvent(node) {
    if (node.control && node.control._getInternalOption && node.control._getInternalOption('parent')) {
-      let events = Subscriber.getEventsListFromOptions(node.options);
+      const events = Subscriber.getEventsListFromOptions(node.options);
       Subscriber.applyEvents(node.control, node.control._getInternalOption('parent'), events);
    }
 }
@@ -291,7 +291,7 @@ function getMarkupForTemplatedNode(vnode, controlNodes, environment) {
          : vnode.template(vnode.controlProperties, vnode.attributes, vnode.context, true);
    });
 
-   let resultsFromTemplate = [];
+   const resultsFromTemplate = [];
    let k;
    if (!Array.isArray(result)) {
       result = [result];
@@ -333,7 +333,7 @@ function getTemplateChildControls(templateNodes, result?) {
 }
 
 function collectChildrenKeys(next: Array<{ key }>, prev: Array<{ key }>): Array<{ prev, next }> {
-   let keysMap = {};
+   const keysMap = {};
    const max = next.length > prev.length ? next.length : prev.length;
    for (let idx = 0; idx < max; idx++) {
       if (next[idx]) {
@@ -386,7 +386,7 @@ export function destroyReqursive(childControlNode, environment) {
                Подробнее тут https://wi.sbis.ru/doc/platform/developmentapl/ws3/compound-wasaby/`,
                childControlNode);
          } else {
-            let
+            const
                oldOptions = childControlNode.options,
                instanceCtr = oldOptions.__vdomOptions && oldOptions.__vdomOptions.controlNode.instance;
 
@@ -469,17 +469,17 @@ function addTemplateChildrenRecursive(node, result) {
 }
 
 export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, force: boolean, isRoot): IMemoNode | Promise<IMemoNode> {
-    let id = node.id;
-    let dirty = environment._currentDirties[id] || DirtyKind.NONE;
-    let isDirty = dirty !== DirtyKind.NONE || force;
+    const id = node.id;
+    const dirty = environment._currentDirties[id] || DirtyKind.NONE;
+    const isDirty = dirty !== DirtyKind.NONE || force;
     let isSelfDirty = !!(dirty & DirtyKind.DIRTY) || force;
 
     if (!isDirty) {
         return new MemoNode(node, new MemoForNode());
     }
 
-    let newNode = node;
-    let parentNodeContext = node.context;
+    const newNode = node;
+    const parentNodeContext = node.context;
 
     if (isSelfDirty) {
         // Корни не маунтятся сразу после создания, так что чтобы избежать двух Create подряд делаем так:
@@ -503,7 +503,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     let createdTemplateNodes;
     let updatedUnchangedNodes;
     let updatedChangedNodes;
-    let updatedChangedTemplateNodes = [];
+    const updatedChangedTemplateNodes = [];
     let selfDirtyNodes;
     let destroyedNodes;
     let childrenNodes;
@@ -518,7 +518,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
      */
     // @ts-ignore
     if (newNode.control._mounted && !force) {
-        let resolvedContext = ContextResolver.resolveContext(newNode.controlClass, parentNodeContext, newNode.control);
+        const resolvedContext = ContextResolver.resolveContext(newNode.controlClass, parentNodeContext, newNode.control);
         try {
             // Freeze options if control doesn't have compatible layer
             // @ts-ignore
@@ -562,7 +562,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
 
     // @ts-ignore
     Logger.debug(`[DirtyChecking:rebuildNode()] - requestRebuild "${id}" for "${newNode.control._moduleName}"`);
-    let parentNode = newNode;
+    const parentNode = newNode;
 
     // @ts-ignore
     newNode.control.saveFullContext(ContextResolver.wrapContext(newNode.control, newNode.context || {}));
@@ -573,7 +573,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     // @ts-ignore
     newNode.control.saveInheritOptions(newNode.inheritOptions);
 
-    let oldMarkup = node.markup;
+    const oldMarkup = node.markup;
     ReactiveObserver.forbidReactive(newNode.control, () => {
        newNode.markup = getDecoratedMarkup(newNode);
     });
@@ -586,7 +586,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
        saveChildren(newNode.markup);
     }
 
-    let diff = getMarkupDiff(oldMarkup, newNode.markup, false, false);
+    const diff = getMarkupDiff(oldMarkup, newNode.markup, false, false);
     Logger.debug('DirtyChecking (diff)', diff);
 
     const controlNodesIter = [];
@@ -607,7 +607,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     const notUpdatedTemplates = [];
 
     while (diff.createTemplates.length > 0 || diff.updateTemplates.length > 0) {
-        let diffTmpl = {
+        const diffTmpl = {
             create: [],
             createTemplates: [],
             destroy: [],
@@ -627,7 +627,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             vnode.children = getMarkupForTemplatedNode(vnode, newNode, environment);
             saveChildren(vnode.children);
             for (let i = 0; i < vnode.children.length; i++) {
-                let diffTmplOneNode = getMarkupDiff(null, vnode.children[i]);
+                const diffTmplOneNode = getMarkupDiff(null, vnode.children[i]);
                 diffTmpl.create.push(...diffTmplOneNode.create);
                 diffTmpl.createTemplates.push(...diffTmplOneNode.createTemplates);
             }
@@ -651,17 +651,17 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         diff.updateTemplates.map(function rebuildUpdateTemplateNodes(diffPair) {
             Logger.debug('DirtyChecking (update template)', diffPair);
 
-            let newTemplateNode = diffPair.newNode;
-            let oldTemplateNode = diffPair.oldNode;
-            let oldOptions = oldTemplateNode.controlProperties;
-            let newOptions = newTemplateNode.controlProperties;
+            const newTemplateNode = diffPair.newNode;
+            const oldTemplateNode = diffPair.oldNode;
+            const oldOptions = oldTemplateNode.controlProperties;
+            const newOptions = newTemplateNode.controlProperties;
             // @ts-ignore
-            let changedOptions = getChangedOptions(newOptions, oldOptions, false, oldTemplateNode.optionsVersions);
-            let oldAttrs = oldTemplateNode.attributes.attributes;
-            let newAttrs = newTemplateNode.attributes.attributes || {};
+            const changedOptions = getChangedOptions(newOptions, oldOptions, false, oldTemplateNode.optionsVersions);
+            const oldAttrs = oldTemplateNode.attributes.attributes;
+            const newAttrs = newTemplateNode.attributes.attributes || {};
             // @ts-ignore
-            let changedAttrs = getChangedOptions(newAttrs, oldAttrs, newTemplateNode.compound, {}, true, '', newTemplateNode.compound);
-            let changedTemplate = oldTemplateNode.template !== newTemplateNode.template;
+            const changedAttrs = getChangedOptions(newAttrs, oldAttrs, newTemplateNode.compound, {}, true, '', newTemplateNode.compound);
+            const changedTemplate = oldTemplateNode.template !== newTemplateNode.template;
             let diffTmplOneNode;
             let i;
 
@@ -674,25 +674,25 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
 
             /* newTemplateNode === oldTemplateNode but they children have changed */
                 // @ts-ignore
-                let oldChildren = oldTemplateNode.children || [];
+                const oldChildren = oldTemplateNode.children || [];
                 // @ts-ignore
                 newTemplateNode.children = getMarkupForTemplatedNode(newTemplateNode, newNode, environment);
                 // @ts-ignore
                 saveChildren(newTemplateNode.children);
                 // We have to find diff between template nodes children to improve perfomance of rendering updated markup
-                let templateNodeDiff = getMarkupDiff(oldTemplateNode, newTemplateNode, true, true);
-                let updatedTemplateNodesSimple = [];
-                let createdTemplateNodesSimple = [];
-                let destroyedTemplateNodesSimple = [];
-                let createdNodesSimple = [];
-                let updatedNodesSimple = [];
-                let destroyedNodesSimple = [];
+                const templateNodeDiff = getMarkupDiff(oldTemplateNode, newTemplateNode, true, true);
+                const updatedTemplateNodesSimple = [];
+                const createdTemplateNodesSimple = [];
+                const destroyedTemplateNodesSimple = [];
+                const createdNodesSimple = [];
+                const updatedNodesSimple = [];
+                const destroyedNodesSimple = [];
                 // @ts-ignore
                 const childrenMap = collectChildrenKeys(newTemplateNode.children, oldChildren);
                 for (i = 0; i < childrenMap.length; i++) {
-                    let oldChild = oldChildren[childrenMap[i].prev];
+                    const oldChild = oldChildren[childrenMap[i].prev];
                     // @ts-ignore
-                    let newChild = newTemplateNode.children[childrenMap[i].next];
+                    const newChild = newTemplateNode.children[childrenMap[i].next];
                     if (newChild) {
                         diffTmplOneNode = getMarkupDiff(oldChild, newChild, true, false);
                         createdNodesSimple.push(...diffTmplOneNode.create);
@@ -774,7 +774,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     if (diff.destroyTemplates.length > 0) {
         // Если есть уничтоженные шаблоны, нужно проверить, есть ли внутри них
         // контрол-ноды
-        let templateControlsToDestroy = getTemplateChildControls(diff.destroyTemplates);
+        const templateControlsToDestroy = getTemplateChildControls(diff.destroyTemplates);
 
         // Все контрол-ноды внутри уничтожаемых шаблонов добавляем в список на удаление,
         // иначе они зависнут в памяти
@@ -787,8 +787,8 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     }
 
     destroyedNodes = diff.destroy.map(function rebuildDestroyNodes(vnode) {
-        let controlNodeIdx = vnode.controlNodeIdx;
-        let childControlNode = parentNode.childrenNodes[controlNodeIdx];
+        const controlNodeIdx = vnode.controlNodeIdx;
+        const childControlNode = parentNode.childrenNodes[controlNodeIdx];
         destroyReqursive(childControlNode, environment);
         return childControlNode;
     });
@@ -814,9 +814,9 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     createdTemplateNodes = [];
 
     createdNodes = diff.create.map(function rebuildCreateNodes(vnode: GeneratorNode, idx) {
-        let nodeIdx = createdStartIdx + idx;
-        let serializedChildren = parentNode.serializedChildren;
-        let serialized = serializedChildren && serializedChildren[nodeIdx];
+        const nodeIdx = createdStartIdx + idx;
+        const serializedChildren = parentNode.serializedChildren;
+        const serialized = serializedChildren && serializedChildren[nodeIdx];
         let options;
         let carrier;
         let controlNode;
@@ -898,7 +898,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         return controlNode;
     });
 
-    let updatedNodes = diff.update.map(function rebuildUpdateNodes(diffPair, idx) {
+    const updatedNodes = diff.update.map(function rebuildUpdateNodes(diffPair, idx) {
         Logger.debug('DirtyChecking (update node)', diffPair);
         onStartCommit(
             OperationType.UPDATE,
@@ -907,39 +907,39 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         );
 
 
-        let newVNode = diffPair.newNode;
-        let controlNodeIdx = diffPair.oldNode.controlNodeIdx;
-        let childControlNode = parentNode.childrenNodes[controlNodeIdx];
-        let childControl = childControlNode.control;
+        const newVNode = diffPair.newNode;
+        const controlNodeIdx = diffPair.oldNode.controlNodeIdx;
+        const childControlNode = parentNode.childrenNodes[controlNodeIdx];
+        const childControl = childControlNode.control;
         let shouldUpdate = true;
-        let newOptions = OptionsResolver.resolveDefaultOptions(newVNode.compound
+        const newOptions = OptionsResolver.resolveDefaultOptions(newVNode.compound
             ? getCompatibleUtils().createCombinedOptions(
                 newVNode.controlProperties,
                 newVNode.controlInternalProperties
             )
             : newVNode.controlProperties, childControlNode.defaultOptions);
-        let oldOptionsVersions = childControlNode.optionsVersions;
-        let oldOptions = childControlNode.options;
-        let oldInternalVersions = childControlNode.internalVersions;
-        let newChildNodeContext = newVNode.context || {};
-        let oldChildNodeContext = childControlNode.context;
-        let oldContextVersions = childControlNode.contextVersions;
+        const oldOptionsVersions = childControlNode.optionsVersions;
+        const oldOptions = childControlNode.options;
+        const oldInternalVersions = childControlNode.internalVersions;
+        const newChildNodeContext = newVNode.context || {};
+        const oldChildNodeContext = childControlNode.context;
+        const oldContextVersions = childControlNode.contextVersions;
         let changedOptions = getChangedOptions(
             newOptions, oldOptions,
             newVNode.compound,
             oldOptionsVersions, false, '', newVNode.compound);
-        let changedContext = getChangedOptions(
+        const changedContext = getChangedOptions(
             newChildNodeContext,
             oldChildNodeContext,
             false,
             oldContextVersions);
-        let changedContextProto = changedContext
+        const changedContextProto = changedContext
             ? changedContext
             : getChangedOptions(newChildNodeContext, oldChildNodeContext, false, oldContextVersions, true);
         // @ts-ignore
-        let oldAttrs = childControlNode.controlAttributes || childControlNode.attributes;
-        let newAttrs = newVNode.controlAttributes || {};
-        let changedAttrs = getChangedOptions(newAttrs, oldAttrs, newVNode.compound, {}, true, '', newVNode.compound);
+        const oldAttrs = childControlNode.controlAttributes || childControlNode.attributes;
+        const newAttrs = newVNode.controlAttributes || {};
+        const changedAttrs = getChangedOptions(newAttrs, oldAttrs, newVNode.compound, {}, true, '', newVNode.compound);
         let changedInternalOptions;
 
         // @ts-ignore
@@ -960,11 +960,11 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                  * какие-либо данные в контрол дважды.
                  */
                 // @ts-ignore
-                let instanceCtr = oldOptions.__vdomOptions && oldOptions.__vdomOptions.controlNode.instance;
+                const instanceCtr = oldOptions.__vdomOptions && oldOptions.__vdomOptions.controlNode.instance;
                 if (instanceCtr && !instanceCtr.__$$blockSetProperties) {
                     // CompoundControld could have changed its options by itself, so we have to check which options
                     // really have to be updated
-                    let realCh = getChangedOptions(newOptions, instanceCtr._options || {}, newVNode.compound, {}, false, '', newVNode.compound);
+                    const realCh = getChangedOptions(newOptions, instanceCtr._options || {}, newVNode.compound, {}, false, '', newVNode.compound);
                     if (realCh) {
                         instanceCtr.__$$blockSetProperties = true;
 
@@ -996,7 +996,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                 && !childControl._destroyed) {
                 try {
                     let resolvedContext;
-                    let data = changedOptions || changedInternalOptions || changedAttrs || changedContext;
+                    const data = changedOptions || changedInternalOptions || changedAttrs || changedContext;
                     Logger.debug('DirtyChecking (update node with changed)', data);
 
                     environment.setRebuildIgnoreId(childControlNode.id);
@@ -1059,7 +1059,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                     childControlNode.internalOptions = newVNode.controlInternalProperties;
                 }
             } else if (changedContextProto) {
-                let childCN = childControlNode.childrenNodes;
+                const childCN = childControlNode.childrenNodes;
                 for (let i = 0; i < childCN.length; i++) {
                     environment._currentDirties[childCN[i].id] |= DirtyKind.CHILD_DIRTY;
                 }
