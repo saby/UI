@@ -3,7 +3,7 @@ import {reactiveObserve, releaseProperties} from './ReactiveObserver';
 import {getGeneratorConfig} from './GeneratorConfig';
 import {makeRelation, removeRelation} from './ParentFinder';
 import {EMPTY_THEME, getThemeController} from 'UI/theme/controller';
-import {Logger, Purifier} from 'UI/Utils';
+import {Logger} from 'UI/Utils';
 import { _IControl, activate, prepareRestoreFocusBeforeRedraw, restoreFocusAfterRedraw } from 'UI/Focus';
 import { constants } from 'Env/Env';
 import * as ReactDOM from 'react-dom';
@@ -64,9 +64,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    private _firstRender: boolean = true;
    private _asyncMount: boolean = false;
    private _$observer: Function = reactiveObserve;
-   // Флаг, задестроен ли контрол.
-   // Нужен для текущей версии фокусов, а также есть шанс, что его используют под ts-ignore
-   protected _destroyed: boolean = false;
    // контейнер контрола
    // добавлено потому что это используемое api контрола
    _container: HTMLElement = null;
@@ -571,12 +568,6 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
       removeRelation(this);
       releaseProperties(this);
       this._beforeUnmount.apply(this);
-      this._destroyed = true;
-      const isWS3Compatible: boolean = this.hasOwnProperty('getParent');
-      if (!isWS3Compatible) {
-         const async: boolean = !Purifier.canPurifyInstanceSync(this._moduleName);
-         Purifier.purifyInstance(this, this._moduleName, async);
-      }
    }
 
    render(empty?: unknown, attributes?: ITemplateAttrs): string | object {
