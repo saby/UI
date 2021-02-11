@@ -38,9 +38,8 @@ import { getChangedOptions, collectObjectVersions } from './Options';
 import { createNode } from './ControlNode';
 import { getStateReceiver } from 'Application/Env';
 import { isInit } from 'Application/Initializer';
-import { GeneratorNode, IGeneratorVNode } from 'UI/Executor';
+import { GeneratorNode, IGeneratorVNode, IGeneratorControlNode, ITemplateNode } from 'UI/Executor';
 // import { VNode } from 'Inferno/third-party/index';
-import { ITemplateNode } from 'UI/_executor/_Markup/IGeneratorType';
 import { getCompatibleUtils } from 'UI/_vdom/Synchronizer/resources/DirtyCheckingCompatible';
 
 type TDirtyCheckingTemplate = ITemplateNode & {
@@ -100,7 +99,7 @@ export class MemoForNode implements IMemoForNode {
         MemoForNode.concatArray(this.updatedChangedTemplateNodes, source.updatedChangedTemplateNodes);
         MemoForNode.concatArray(this.updatedNodes, source.updatedNodes);
         MemoForNode.concatArray(this.updatedUnchangedNodes, source.updatedUnchangedNodes);
-        MemoForNode.concatArray(this.notUpdatedGNode, source.notUpdatedGNode);
+        MemoForNode.concatArray(this.notUpdatedGNodes, source.notUpdatedGNodes);
     }
 
     private static concatArray(target: any[], source?: any[]): void {
@@ -613,7 +612,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         needRenderMarkup = true;
     }
 
-    const notUpdatedTemplates = [];
+    const notUpdatedTemplates: [ITemplateNode, ITemplateNode][] = [];
 
     while (diff.createTemplates.length > 0 || diff.updateTemplates.length > 0) {
         const diffTmpl = {
@@ -737,11 +736,10 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                     diffTmpl.destroy.push(...destroyedNodesSimple);
                 }
             } else {
-                // if (oldTemplateNode.children) {
-                    // @ts-ignore
-                    newTemplateNode = oldTemplateNode;
-                    notUpdatedTemplates.push(oldTemplateNode);
-                // }
+                // @ts-ignore
+                newTemplateNode.children = oldTemplateNode.children;
+                notUpdatedTemplates.push([oldTemplateNode, newTemplateNode]);
+
                 // @ts - ignore
                 // for (i = 0; i < newTemplateNode.children.length; i++) {
                 //     /*template can contains controlNodes and we try find all of them
@@ -804,19 +802,20 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         return childControlNode;
     });
 
-    let updateNodesByUnchangedTemplates = notUpdatedTemplates.map((templateNode: ITemplateNode, index: number) => {
-        const templateControlNodes: IControlNode[] = [];
+    let updateNodesByUnchangedTemplates: IControlNode[] = [];
+    notUpdatedTemplates.forEach(([oldTNode, newTNode], index: number) => {
         const cnFill = (item: IGeneratorVNode | ITemplateNode) => {
             if (controlNodeVnodesMap.has(item)) {
-                templateControlNodes.push(controlNodeVnodesMap.get(item));
+                const CNode: IControlNode = controlNodeVnodesMap.get(item);
+                updateNodesByUnchangedTemplates.push(CNode);
             }
             // tslint:disable-next-line: no-unused-expression
             Array.isArray(item.children) && item.children.forEach(cnFill);
         };
-        templateNode.children.forEach(cnFill);
-        return templateControlNodes;
-    }).filter((item) => { return !!item; });
-    updateNodesByUnchangedTemplates = updateNodesByUnchangedTemplates.flat();
+        // @ts-ignore children появляются в последствии
+        newTNode.children.forEach(cnFill);
+    });
+    updateNodesByUnchangedTemplates = updateNodesByUnchangedTemplates.filter((item) => { return !!item; });
 
     const changedNodes = new Array(diff.create.length + diff.update.length);
 
