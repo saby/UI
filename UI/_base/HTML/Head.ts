@@ -124,7 +124,7 @@ class Head extends Control<IHeadOptions> {
         /** Возможно, кто-то уже добавил viewport */
         const viewPort = API.getTag('meta', {name: 'viewport'});
         /** Если не нашли тег, или если нашли очень много, добавим свой */
-        if (!viewPort && (viewPort instanceof Array)) {
+        if (!viewPort || (viewPort instanceof Array)) {
             metaAttrs.push({name: 'viewport', content: options.viewport || 'width=1024'});
         }
         metaAttrs.forEach((attrs) => {
