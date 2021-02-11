@@ -8,16 +8,23 @@ import Dispatcher from './Dispatcher';
 /**
  * Создание события нажатия определенной клавиши
  */
-function createEvent(key: string): object {
+function createEvent(key: string, ctrlKey: boolean, altKey: boolean, shiftKey: boolean): object {
     let eventObj;
     if (document.createEventObject) {
-        eventObj = document.createEventObject();
-        eventObj.keyCode = key;
+       eventObj = document.createEventObject();
+       eventObj.keyCode = key;
+
+       eventObj.ctrlKey = ctrlKey;
+       eventObj.altKey = altKey;
+       eventObj.shiftKey = shiftKey;
     } else if (document.createEvent) {
-        eventObj = document.createEvent('Events');
-        eventObj.initEvent('keydown', true, true);
-        eventObj.which = key;
-        eventObj.keyCode = key;
+       eventObj = document.createEvent('Events');
+       eventObj.initEvent('keydown', true, true);
+       eventObj.which = key;
+       eventObj.keyCode = key;
+       eventObj.ctrlKey = ctrlKey;
+       eventObj.altKey = altKey;
+       eventObj.shiftKey = shiftKey;
     }
     return eventObj;
 }
@@ -96,8 +103,12 @@ class KeyHook extends Control {
                 // таким образом мы как бы перенаправляем событие нажатия клавиши из места, где оно не
                 // обработано - в место, где оно обрабатывается по умолчанию.
                 this._actions[action.keyCode] = this._actions[action.keyCode] || {
-                   action: () => {
-                      const event = createEvent(action.keyCode);
+                   action: (sourceEvent) => {
+                      const event = createEvent(action.keyCode,
+                            sourceEvent.ctrlKey,
+                            sourceEvent.altKey,
+                            sourceEvent.shiftKey
+                      );
                       this._container.dispatchEvent(event);
                    }
                 };
