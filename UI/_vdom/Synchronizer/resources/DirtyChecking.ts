@@ -58,6 +58,13 @@ export class MemoForNode implements IMemoForNode {
     updatedChangedTemplateNodes: any[];
     updatedNodes: IControlNode[];
     updatedUnchangedNodes: any[];
+    /**
+     * Поле которое содержит не изменённые IGeneratorControlNode в ITemplateNode.children,
+     * которые мы не пересоздавали при перестройки шаблонов.
+     * Но в них есть controlNodeIdx, который изменится.
+     * Так как он показывает номер в списке дочерних ControlNode у родителя.
+     */
+    notUpdatedGNodes: IGeneratorControlNode[];
 
     constructor(start?: Partial<IMemoForNode>) {
         if (!start) {
@@ -69,6 +76,7 @@ export class MemoForNode implements IMemoForNode {
             this.updatedChangedTemplateNodes = [];
             this.updatedNodes = [];
             this.updatedUnchangedNodes = [];
+            this.notUpdatedGNodes = [];
             return this;
         }
 
@@ -80,6 +88,7 @@ export class MemoForNode implements IMemoForNode {
         this.updatedChangedTemplateNodes = start.updatedChangedTemplateNodes ? start.updatedChangedTemplateNodes.slice() : [];
         this.updatedNodes = start.updatedNodes ? start.updatedNodes.slice() : [];
         this.updatedUnchangedNodes = start.updatedUnchangedNodes ? start.updatedUnchangedNodes.slice() : [];
+        this.notUpdatedGNodes = start.notUpdatedGNodes ? start.notUpdatedGNodes.slice() : [];
     }
 
     concat(source: IMemoForNode): void {
@@ -91,6 +100,7 @@ export class MemoForNode implements IMemoForNode {
         MemoForNode.concatArray(this.updatedChangedTemplateNodes, source.updatedChangedTemplateNodes);
         MemoForNode.concatArray(this.updatedNodes, source.updatedNodes);
         MemoForNode.concatArray(this.updatedUnchangedNodes, source.updatedUnchangedNodes);
+        MemoForNode.concatArray(this.notUpdatedGNode, source.notUpdatedGNode);
     }
 
     private static concatArray(target: any[], source?: any[]): void {
@@ -506,11 +516,10 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     const updatedChangedTemplateNodes = [];
     let selfDirtyNodes;
     let destroyedNodes;
-    let childrenNodes;
     let createdStartIdx;
 
     if (!isSelfDirty) {
-        return __afterRebuildNode(environment, node, false, undefined, node.childrenNodes, new MemoForNode(), false);
+        return __startRebuildChildren(environment, node, false, undefined, node.childrenNodes, new MemoForNode(), false);
     }
 
     /**
@@ -591,7 +600,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
 
     const controlNodesIter = [];
     const fillCNM = (controlNode: IControlNode) => {
-        controlNodesIter.push([controlNode.vnode.key, controlNode]);
+        controlNodesIter.push([controlNode.vnode, controlNode]);
         // tslint:disable-next-line: no-unused-expression
         controlNode.childrenNodes && controlNode.childrenNodes.forEach(fillCNM);
     };
@@ -728,10 +737,12 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                     diffTmpl.destroy.push(...destroyedNodesSimple);
                 }
             } else {
-                // @ts-ignore
-                newTemplateNode.children = oldTemplateNode.children;
-                notUpdatedTemplates.push(newTemplateNode);
-                // @ts-ignore
+                // if (oldTemplateNode.children) {
+                    // @ts-ignore
+                    newTemplateNode = oldTemplateNode;
+                    notUpdatedTemplates.push(oldTemplateNode);
+                // }
+                // @ts - ignore
                 // for (i = 0; i < newTemplateNode.children.length; i++) {
                 //     /*template can contains controlNodes and we try find all of them
                 //         * all controlNodes must be in array "childrenNodes"
@@ -796,8 +807,8 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     let updateNodesByUnchangedTemplates = notUpdatedTemplates.map((templateNode: ITemplateNode, index: number) => {
         const templateControlNodes: IControlNode[] = [];
         const cnFill = (item: IGeneratorVNode | ITemplateNode) => {
-            if (controlNodeVnodesMap.has(item.key)) {
-                templateControlNodes.push(controlNodeVnodesMap.get(item.key));
+            if (controlNodeVnodesMap.has(item)) {
+                templateControlNodes.push(controlNodeVnodesMap.get(item));
             }
             // tslint:disable-next-line: no-unused-expression
             Array.isArray(item.children) && item.children.forEach(cnFill);
@@ -813,13 +824,13 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
 
     createdTemplateNodes = [];
 
-    createdNodes = diff.create.map(function rebuildCreateNodes(vnode: GeneratorNode, idx) {
+    createdNodes = diff.create.map(function rebuildCreateNodes(vnode: GeneratorNode, idx: number): IControlNode {
         const nodeIdx = createdStartIdx + idx;
         const serializedChildren = parentNode.serializedChildren;
         const serialized = serializedChildren && serializedChildren[nodeIdx];
         let options;
         let carrier;
-        let controlNode;
+        let controlNode: IControlNode;
         Logger.debug('DirtyChecking (create node)' + idx, vnode);
         onStartCommit(OperationType.CREATE, getNodeName(vnode));
 
@@ -1091,12 +1102,11 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     });
 
     const startNodeIdx: number = updatedNodes.length + createdNodes.length;
-    updateNodesByUnchangedTemplates.forEach((item, idx) => {
+    const notUpdatedGNodes: IGeneratorVNode[] = [];
+    updateNodesByUnchangedTemplates.forEach((item: IControlNode, idx: number) => {
         changedNodes[startNodeIdx + idx] = false;
-        item.controlNodeIdx = startNodeIdx + idx;
+        notUpdatedGNodes.push(item.vnode);
     });
-
-    childrenNodes = [...updatedNodes, ...createdNodes, ...updateNodesByUnchangedTemplates];
 
     updatedUnchangedNodes = ARR_EMPTY;
     updatedChangedNodes = ARR_EMPTY;
@@ -1122,6 +1132,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         needRenderMarkup = true;
     }
 
+    const childrenNodes: IControlNode[] = [...updatedNodes, ...createdNodes, ...updateNodesByUnchangedTemplates];
     // храним еще незаапдейченные ноды, которые сами были грязными
     if (childrenNodes.indexOf(newNode) === -1) {
         if (selfDirtyNodes === ARR_EMPTY) {
@@ -1158,14 +1169,15 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         updatedChangedTemplateNodes,
         updatedUnchangedNodes,
         selfDirtyNodes,
-        createdTemplateNodes
+        createdTemplateNodes,
+        notUpdatedGNodes
     });
 
-    return __afterRebuildNode(environment, newNode, needRenderMarkup,
+    return __startRebuildChildren(environment, newNode, needRenderMarkup,
         changedNodes, childrenNodes, currentMemo, isSelfDirty);
 }
 
-function generateFullMarkup(currentMemo: MemoForNode, newNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty): MemoNode {
+function generateFullMarkup(currentMemo: MemoForNode, newNode: IControlNode, childrenRebuildFinalResults, environment, needRenderMarkup, isSelfDirty): MemoNode {
     const childrenRebuild = MemoNode.createChildrenResult(childrenRebuildFinalResults);
     if (!newNode.markup) {
         // Во время ожидания асинхронного ребилда контрол уничтожился, обновлять его уже не нужно.
@@ -1173,6 +1185,16 @@ function generateFullMarkup(currentMemo: MemoForNode, newNode, childrenRebuildFi
     }
 
     newNode.childrenNodes = childrenRebuild.value;
+
+    /**
+     * У не обновленный GeneratorNode нужно обновить controlNodeIdx
+     */
+    if (childrenRebuild.memo.notUpdatedGNodes.length > 0) {
+        newNode.childrenNodes.forEach((CNode: IControlNode, index: number) => {
+            CNode.vnode.controlNodeIdx = index;
+        });
+    }
+
     if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
         const wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;
         newNode.fullMarkup = environment.decorateFullMarkup(
@@ -1196,7 +1218,7 @@ function generateFullMarkup(currentMemo: MemoForNode, newNode, childrenRebuildFi
     return new MemoNode(newNode, currentMemo);
 }
 
-function __afterRebuildNode(environment: IDOMEnvironment, newNode: IControlNode, needRenderMarkup: boolean,
+function __startRebuildChildren(environment: IDOMEnvironment, newNode: IControlNode, needRenderMarkup: boolean,
     changedNodes, childrenNodes, currentMemo: MemoForNode, isSelfDirty: boolean): IMemoNode | Promise<IMemoNode> {
 
     const childrenRebuildResults: IMemoNode[] = [];
