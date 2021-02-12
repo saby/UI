@@ -130,6 +130,12 @@ define('UI/_builder/Tmpl/function', [
          if (typeof func === 'function' && func.name !== 'anonymous' && func.name !== undefined) {
             return func.name;
          }
+
+         // Не определять новое имя для функции, если дескриптор этого не позволяет
+         // В FF65 <#name>configurable/writable есть false
+         if (typeof func === 'function' && !Object.getOwnPropertyDescriptor(func, 'name').configurable) {
+            return func.name;
+         }
          var functionName = this.getFuncName(propertyName, fileName, wsTemplateName);
 
          // В случае, если пришла функция, то нужно определить ее имя
