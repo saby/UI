@@ -9,6 +9,7 @@ import template = require('wml!UI/_base/HTML/Head');
 import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller';
 import { constants } from 'Env/Env';
 import { Head as AppHead } from 'Application/Page';
+import { getResourceUrl } from 'UI/Utils';
 import { headDataStore } from 'UI/_base/HeadData';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
 import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
@@ -219,7 +220,7 @@ function createWsConfig(options: IHeadOptions, staticDomainsstringified: string)
             `RUMEnabled: ${options.RUMEnabled},`,
             `pageName: '${options.pageName}',`,
             'userConfigSupport: true,',
-            `staticDomains: '${staticDomainsstringified}',`,
+            `staticDomains: ${staticDomainsstringified},`,
             `defaultServiceUrl: '${options.servicesPath}',`,
             `compatible: ${options.compat},`,
             `product: '${options.product}',`,
@@ -242,6 +243,11 @@ function createMetaScriptsAndLinks(options: IHeadOptions): void {
         .concat((options.scripts || []).map(prepareMetaScriptsAndLinks.bind(null, 'script')))
         .concat((options.links || []).map(prepareMetaScriptsAndLinks.bind(null, 'link')))
         .forEach((item: {tag: string, attrs: object}) => {
+            ['href', 'src'].forEach((field) => {
+                if (item.attrs[field]) {
+                    item.attrs[field] = getResourceUrl(item.attrs[field])
+                }
+            });
             API.createTag(item.tag, item.attrs);
         });
 }
