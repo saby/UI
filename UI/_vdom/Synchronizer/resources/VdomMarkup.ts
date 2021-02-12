@@ -298,7 +298,7 @@ export function getMarkupDiff(oldNode: VNode, newNode: VNode,
       return result;
    }
 
-   function isEqualNode(n1: any, n2: any): any {
+   function isEqualNode(n1: GeneratorNode, n2: GeneratorNode): boolean {
       const isControl1 = n1 && isControlVNodeType(n1);
       const isControl2 = n2 && isControlVNodeType(n2);
       const isTemplate1 = n1 && isTemplateVNodeType(n1);
