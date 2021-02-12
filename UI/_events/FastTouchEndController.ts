@@ -28,7 +28,16 @@ export class FastTouchEndController {
       if (this.useNativeTouchEnd(targetElement, nativeEvent)) {
          return;
       }
-      focus(nativeEvent.target as IControlElement);
+      let targetForFocus = nativeEvent.target as IControlElement;
+      // тап может произойти по элементу который нельзя сфокусировать (например div без tabindex)
+      // но т.к. на мобильных устройствах курсор в полее ввода не встает автоматически
+      // нам надо увести фокус из контрола выпадающего списка, для этого надо найти валидный элемент для фокуса
+      while (!focus(targetForFocus)){
+         targetForFocus = targetForFocus.parentElement;
+         if (!targetForFocus) {
+            break;
+         }
+      }
       nativeEvent.preventDefault();
       const touch = nativeEvent.changedTouches[0];
       let clickEvent;
