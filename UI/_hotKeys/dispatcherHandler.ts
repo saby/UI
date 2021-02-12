@@ -68,7 +68,7 @@ export function dispatcherHandler(event: ISyntheticEvent): void {
       for (let i = 0; i < parents.length; i++) {
          const parent = parents[i];
          if (!parent._destroyed && parent._$defaultActions && parent._$defaultActions[key]) {
-            parent._$defaultActions[key].action();
+            parent._$defaultActions[key].action(nativeEvent);
             needStop = true;
             break;
          }
