@@ -113,7 +113,7 @@ export default class MountMethodsCaller {
             }
             this.forceUpdateIfNeed(control);
         } catch (error) {
-            Logger.lifeError('_componentDidUpdate', control, error);
+            Logger.lifeError('_afterRender', control, error);
         }
     }
 
