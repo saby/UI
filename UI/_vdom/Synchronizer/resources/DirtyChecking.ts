@@ -38,12 +38,12 @@ import { getChangedOptions, collectObjectVersions } from './Options';
 import { createNode } from './ControlNode';
 import { getStateReceiver } from 'Application/Env';
 import { isInit } from 'Application/Initializer';
-import { GeneratorNode, IGeneratorVNode, IGeneratorControlNode, ITemplateNode } from 'UI/Executor';
+import { TGeneratorNode, IGeneratorVNode, IGeneratorControlNode, ITemplateNode } from 'UI/Executor';
 // import { VNode } from 'Inferno/third-party/index';
 import { getCompatibleUtils } from 'UI/_vdom/Synchronizer/resources/DirtyCheckingCompatible';
 
 type TDirtyCheckingTemplate = ITemplateNode & {
-    children: GeneratorNode[];  // нужно понять почему у нас такое ограничение
+    children: TGeneratorNode[];  // нужно понять почему у нас такое ограничение
 };
 
 const Slr = new Serializer();
@@ -175,7 +175,7 @@ function fillCtx(control: any, vnode: any, resolvedCtx: any): void {
  * @param serializer TODO: Describe
  * @returns {*} TODO: Describe
  */
-export function getReceivedState(controlNode: IControlNode, vnodeP: GeneratorNode, serializer: any): any {
+export function getReceivedState(controlNode: IControlNode, vnodeP: TGeneratorNode, serializer: any): any {
    const control = controlNode.control;
    const stateVar = controlNode.key ? findTopConfig(controlNode.key) : '';
    if (!control.__beforeMount) {
@@ -508,7 +508,6 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         }
     }
 
-    let createdNodes;
     let createdTemplateNodes;
     let updatedUnchangedNodes;
     let updatedChangedNodes;
@@ -612,7 +611,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         needRenderMarkup = true;
     }
 
-    const notUpdatedTemplates: [ITemplateNode, ITemplateNode][] = [];
+    const notUpdatedTemplates: ITemplateNode[] = [];
 
     while (diff.createTemplates.length > 0 || diff.updateTemplates.length > 0) {
         const diffTmpl = {
@@ -738,7 +737,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             } else {
                 // @ts-ignore
                 newTemplateNode.children = oldTemplateNode.children;
-                notUpdatedTemplates.push([oldTemplateNode, newTemplateNode]);
+                notUpdatedTemplates.push(newTemplateNode);
 
                 // @ts - ignore
                 // for (i = 0; i < newTemplateNode.children.length; i++) {
@@ -803,17 +802,22 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     });
 
     let updateNodesByUnchangedTemplates: IControlNode[] = [];
-    notUpdatedTemplates.forEach(([oldTNode, newTNode], index: number) => {
+    notUpdatedTemplates.forEach((TNode: ITemplateNode, index: number) => {
         const cnFill = (item: IGeneratorVNode | ITemplateNode) => {
             if (controlNodeVnodesMap.has(item.key)) {
                 const CNode: IControlNode = controlNodeVnodesMap.get(item.key);
+                /**
+                 * У старой ControlNode TGeneratorNode шаблона предыдущей генерации.
+                 * Поэтому нужно заменить на TGeneratorNode текущей генерации
+                 */
+                CNode.vnode = item;
                 updateNodesByUnchangedTemplates.push(CNode);
             }
             // tslint:disable-next-line: no-unused-expression
             Array.isArray(item.children) && item.children.forEach(cnFill);
         };
         // @ts-ignore children появляются в последствии
-        newTNode.children.forEach(cnFill);
+        TNode.children.forEach(cnFill);
     });
     updateNodesByUnchangedTemplates = updateNodesByUnchangedTemplates.filter((item) => { return !!item; });
 
@@ -823,7 +827,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
 
     createdTemplateNodes = [];
 
-    createdNodes = diff.create.map(function rebuildCreateNodes(vnode: GeneratorNode, idx: number): IControlNode {
+    const createdNodes = diff.create.map(function rebuildCreateNodes(vnode: TGeneratorNode, idx: number): IControlNode {
         const nodeIdx = createdStartIdx + idx;
         const serializedChildren = parentNode.serializedChildren;
         const serialized = serializedChildren && serializedChildren[nodeIdx];
@@ -1186,13 +1190,14 @@ function generateFullMarkup(currentMemo: MemoForNode, newNode: IControlNode, chi
     newNode.childrenNodes = childrenRebuild.value;
 
     /**
-     * У не обновленный GeneratorNode нужно обновить controlNodeIdx
+     * Обновляем controlNodeIdx в vnode, т.к. добавили ControlNode старой генерации.
+     * И вмешались в цикл создания нод.
      */
-    if (childrenRebuild.memo.notUpdatedGNodes.length > 0) {
+    //if (childrenRebuild.memo.notUpdatedGNodes.length > 0) {
         newNode.childrenNodes.forEach((CNode: IControlNode, index: number) => {
             CNode.vnode.controlNodeIdx = index;
         });
-    }
+    //}
 
     if (needRenderMarkup || !newNode.fullMarkup || newNode.fullMarkup.changed || isSelfDirty) {
         const wasChanged = newNode.fullMarkup && newNode.fullMarkup.changed;

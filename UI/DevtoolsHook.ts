@@ -1,7 +1,7 @@
 import { TemplateFunction } from 'UI/Base';
 import { IControlNode } from './_vdom/Synchronizer/interfaces';
 import { IOptions } from './_vdom/Synchronizer/resources/Options';
-import { GeneratorNode, IGeneratorControlNode } from "UI/_executor/_Markup/Vdom/IVdomType";
+import { TGeneratorNode, IGeneratorControlNode } from "UI/_executor/_Markup/Vdom/IVdomType";
 import { VNode } from "Inferno/third-party/index";
 /**
  * Модуль для общения с Wasaby Developer Tools.
@@ -153,7 +153,7 @@ function isControlChanges(
  * @param data Информация о контроле (изменившиеся опции, реактивные свойства, ссылка на шаблон и т.п.)
  */
 function onEndCommit(
-   node: IControlNode | ITemplateNode | GeneratorNode | VNode | any,
+   node: IControlNode | ITemplateNode | TGeneratorNode | VNode | any,
    data?: ITemplateChanges | IControlChanges | any
 ): void {
    if (foundDevtools) {
