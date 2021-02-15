@@ -14,7 +14,7 @@ interface IMouseEventInitExtend extends MouseEventInit {
    preventDefault?: Function;
 }
 
-const fastEventList = ['mouseover', 'mousedown', 'mouseup', 'click'];
+const fastEventList = ['mouseover', 'mousedown', 'mouseup', 'click', 'focus'];
 const useNativeEventList = ['input', 'textarea'];
 
 export class FastTouchEndController {
