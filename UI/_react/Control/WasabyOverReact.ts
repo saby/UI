@@ -12,6 +12,7 @@ import {ReactiveObserver} from 'UI/Reactivity';
 import {createEnvironment} from 'UI/_react/Control/EnvironmentStorage';
 import {prepareControlNodes} from './ControlNodes';
 import {TClosure} from 'UI/Executor';
+import { DisposeControl, IResourceDisposable } from 'Application/State';
 
 // @ts-ignore путь не определяется
 import template = require('wml!UI/_react/Control/WasabyOverReact');
@@ -107,6 +108,8 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    // id контрола
    // добавлено чтобы выводиться в getInstanceId, а getInstanceId это используемое апи контрола
    private readonly _instId: string = 'inst_' + countInst++;
+   //ресурсы контрола, за которыми можно следить и при удалении этого контрола все ресурсы освобождаются
+   private _resources = new DisposeControl(this);
 
    constructor(props: TOptions, context?: IWasabyContextValue) {
       super(props);
@@ -350,6 +353,20 @@ export class Control<TOptions extends IControlOptions = {}, TState extends TISta
    }
 
    /* End: Compatible lifecycle hooks */
+
+   /** при удалении контрола освобождаются все ресурсы*/
+   protected _beforeUnmountLimited(): void {
+      this._resources.dispose();
+   }
+
+   /**
+    * Добавить ресурс, за которым будет происходить слежка
+    * @param {IResourceDisposable} resource ресурс
+    */
+
+   protected attach(resource: IResourceDisposable): void {
+      this._resources.track(resource);
+   }
 
    /* Start: CSS region */
 
