@@ -4,7 +4,7 @@
  */
 
 import { createErrorHandler } from 'Compiler/utils/ErrorHandler';
-import * as FSC from 'Compiler/data/utils/functionStringCreator';
+import * as FSC from 'Compiler/modules/data/utils/functionStringCreator';
 
 const DIR_FROM_CONTEXT = 'fromContext';
 const SEPARATOR = '/';
