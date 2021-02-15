@@ -1,10 +1,8 @@
-import { createSource as creteSourceObj } from 'UI/_builder/Tmpl/html/Source';
+import { createSource as creteSourceObj } from 'Compiler/html/Source';
 import createErrorHandler from '../NullLogger';
-import { Tokenizer } from 'UI/_builder/Tmpl/html/Tokenizer';
-import { ContentModel } from 'UI/_builder/Tmpl/html/ContentModel';
+import { Tokenizer } from 'Compiler/html/Tokenizer';
+import { ContentModel } from 'Compiler/html/ContentModel';
 import { assert } from 'chai';
-
-// TODO: UI/_builder/Tmpl/* -> Compiler/*
 
 const FILE_NAME = 'Compiler/html/Tokenizer/TestTemplate.wml';
 
