@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <title>Title</title>
+      <script type="text/javascript">
+         window.wsConfig = {
+            wsRoot: '/WS.Core/',
+            resourceRoot: '/',
+            appRoot: '/',
+            RUMEnabled: false,
+            pageName: '',
+            userConfigSupport: true,
+            staticDomains: '[]',
+            defaultServiceUrl: '/service/',
+            compatible: false,
+            product: 'no_product',
+            reactApp: false
+         };
+
+         window.wsConfig.debug = true;
+         window.wsConfig.userConfigSupport = false;
+      </script>
+      <script type="text/javascript" src="/bundles.js"></script>
+      <script
+         type="text/javascript"
+         src="/cdn/RequireJS/2.3.5-p5/require-min.js"
+      ></script>
+      <script type="text/javascript" src="/contents.js"></script>
+      <script type="text/javascript" src="/router.js"></script>
+      <script type="text/javascript" src="/RequireJsLoader/config.js"></script>
+      <script type="text/javascript">
+         document.addEventListener('DOMContentLoaded', function () {
+            require(['Env/Env', 'UI/Base'], function (Env, UIBase) {
+               Object.assign(Env.constants, window.wsConfig);
+               const app =
+                  document.location.search.match(/[&?]app=([^&]+)/)?.[1] ??
+                  'UIDemo/ReactDemo/Index';
+               require([app], function (DemoIndex) {
+                  UIBase.Control.createControl(
+                     DemoIndex.default,
+                     {},
+                     document.getElementById('root')
+                  );
+               });
+            });
+         });
+      </script>
+   </head>
+   <body>
+      <div id="root"></div>
+   </body>
+</html>

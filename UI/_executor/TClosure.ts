@@ -17,7 +17,7 @@ import { object } from 'Types/util';
 // @ts-ignore
 import { constants } from 'Env/Env';
 
-import { Text, Vdom, React } from './Markup';
+import { Text, Vdom } from './Markup';
 import * as Scope from './_Expressions/Scope';
 import * as Attr from './_Expressions/Attr';
 import { Common, ConfigResolver } from './Utils';
@@ -55,9 +55,9 @@ function isObject(obj: any): boolean {
    return Object.prototype.toString.call(obj) === '[object Object]';
 }
 
-let isReact = false;
-export function setReact(value: boolean) {
-   isReact = value;
+let reactGenerator;
+export function setReactGenerator(value?: object) {
+   reactGenerator = value;
 }
 
 const ITERATORS = [
@@ -197,8 +197,8 @@ var
    },
    createGenerator = function (isVdom, forceCompatible = false, config) {
       if (isVdom) {
-         if (isReact) {
-            return React(config);
+         if (reactGenerator) {
+            return reactGenerator;
          } else {
             return Vdom(config);
          }
