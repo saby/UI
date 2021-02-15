@@ -1,8 +1,0 @@
-<div class="demo-Todo">
-   <UIDemo.ReactDemo.TODO.List
-      key="list"
-      items="{{_options.items}}"
-      changeHandler="{{_options.changeHandler}}"
-      removeHandler="{{removeHandler}}"/>
-   <UIDemo.ReactDemo.TODO.Adder key="adder" addNewItem="{{addNewItem}}"/>
-</div>

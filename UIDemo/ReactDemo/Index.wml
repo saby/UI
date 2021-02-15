@@ -1,4 +1,4 @@
 <div class="demo-ReactWasaby">
   <h1>React-Wasaby Demo</h1>
-  <UIDemo.ReactDemo.App.App/>
+  <UIDemo.ReactDemo.InheritedOptions.Controller />
 </div>

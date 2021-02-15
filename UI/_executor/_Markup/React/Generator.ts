@@ -1,601 +1,322 @@
-import * as react from 'browser!react';
-import type { Component } from 'react';
-import { ArrayUtils } from 'UI/Utils';
+import * as React from 'react';
 import { Logger } from 'UI/Utils';
-import { _FocusAttrs } from 'UI/Focus';
-import * as Attr from '../../_Expressions/Attr';
 import * as Common from '../../_Utils/Common';
 import * as RequireHelper from '../../_Utils/RequireHelper';
-import { invisibleNodeTagName } from '../../Utils';
 import { onElementMount, onElementUnmount } from '../../_Utils/ChildrenManager';
-import { Generator } from '../Generator';
-import { IGenerator } from '../IGenerator';
-import {
-   GeneratorEmptyObject,
-   GeneratorError,
-   GeneratorFn,
-   GeneratorObject,
-   GeneratorStringArray,
-   GeneratorTemplateOrigin,
-   GeneratorVoid,
-   IBaseAttrs,
-   IControl,
-   IControlData,
-   IControlProperties,
-   ICreateControlTemplateCfg,
-   IGeneratorAttrs,
-   IGeneratorConfig,
-   IGeneratorDefCollection,
-   IPrepareDataForCreate,
-   TAttributes,
-   TDeps,
-   TIncludedTemplate,
-   ITemplateNode,
-   TObject,
-   TScope, IControlConfig
-} from '../IGeneratorType';
-import { GeneratorNode } from '../Vdom/IVdomType';
-import { cutFocusAttributes } from '../Utils';
-import { VNode } from 'Inferno/third-party/index';
-import {ResolveControlName} from "../ResolveControlName";
-import {Builder} from "../Builder";
-import {repairEventName} from './eventMap';
-import {convertAttributes} from './Attributes';
-import {voidElementTags} from './VoidElementTags';
+import { convertAttributes, WasabyAttributes } from './Attributes';
 import { WasabyContextManager } from 'UI/_react/WasabyContext/WasabyContextManager';
-const markupBuilder = new Builder();
+import { Control } from 'UI/_react/Control/WasabyOverReact';
+import {
+   IControlOptions,
+   TemplateFunction
+} from 'UI/_react/Control/interfaces';
+import { IWasabyContextValue } from 'UI/_react/WasabyContext/WasabyContext';
+
+/*
+FIXME: как я понимаю, в этом объекте могут быть HTMl-атрибуты+какие-то наши поля.
+Из наших полей пока используется только internal, и даже от него вроде можно избавиться.
+Надо разобраться и заменить на нормальный тип.
+ */
+interface IGeneratorAttrs {
+   internal?: {
+      parent: Control;
+   };
+}
+
+interface IControlConfig {
+   depsLocal: Deps;
+   viewController: Control;
+}
+
+interface IDefaultExport {
+   __esModule: boolean;
+   default: Control;
+}
 
 /**
- * @author Тэн В.А.
+ * Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
  */
-export class GeneratorReact implements IGenerator {
-   cacheModules: TObject;
-   canBeCompatible: boolean;
-   generatorBase: Generator;
+type TemplateOrigin =
+   | string
+   | IDefaultExport
+   | TemplateFunction
+   | typeof Control;
 
-   private generatorConfig: IGeneratorConfig;
+/**
+ * Объект с зависимостями контрола/шаблона.
+ */
+type Deps = Record<string, TemplateFunction | IDefaultExport>;
 
-   constructor(config: IGeneratorConfig) {
-      if (config) {
-         this.generatorConfig = config;
-      }
-      this.cacheModules = {};
-      this.generatorBase = new Generator(config);
-      this.canBeCompatible = false;
-      this.generatorBase.bindGeneratorFunction(this.createEmptyText, this.createWsControl,
-         this.createTemplate, this.createController, this.resolver, this);
-   }
-
+export class GeneratorReact {
+   /**
+    * В старых генераторах в этой функции была общая логика, как я понимаю.
+    * Сейчас общей логики нет, поэтому функция по сути не нужна.
+    * Судя по типам, все методы, которые могли вызваться из этой функции - публичные,
+    * т.е. либо та логика дублировалась где-то ещё, либо типы были описаны неправильно.
+    * @param type Тип элемента, определяет каким методом генератор будет его строить.
+    * @param origin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
+    * @param attributes
+    * @param _
+    * @param options Опции контрола/шаблона.
+    * @param config
+    */
    createControlNew(
-      type: string,
-      method: Function,
-      attributes: Record<string, unknown>,
-      events: Record<string, unknown>,
-      options: Record<string, unknown>,
+      type: 'wsControl' | 'template',
+      origin: TemplateOrigin,
+      attributes: object,
+      _: unknown,
+      options: IControlOptions,
       config: IControlConfig
-   ): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.createControlNew.call(this, type, method, attributes, events, options, config);
+   ): React.ReactElement {
+      // тип контрола - компонент с шаблоном
+      if (type === 'wsControl') {
+         return this.createWsControl(
+            origin,
+            options,
+            undefined,
+            undefined,
+            config.depsLocal
+         );
+      }
+      // тип контрола - шаблон
+      if (type === 'template') {
+         /*
+         FIXME: судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
+         Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
+         Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
+          */
+         (attributes as IGeneratorAttrs).internal = {
+            parent: config.viewController
+         };
+
+         return this.createTemplate(
+            origin,
+            options,
+            attributes,
+            undefined,
+            config.depsLocal
+         );
+      }
    }
 
-   chain(out: string,
-         defCollection: IGeneratorDefCollection,
-         inst?: IControl): Promise<string | void> | string | Error {
-      return this.generatorBase.chain.call(this, out, defCollection, inst);
-   }
-
-   createControl(type: string,
-                 name: GeneratorTemplateOrigin,
-                 data: IControlData,
-                 attrs: IGeneratorAttrs,
-                 templateCfg: ICreateControlTemplateCfg,
-                 context: string,
-                 deps: TDeps,
-                 includedTemplates: TIncludedTemplate,
-                 config: IGeneratorConfig,
-                 contextObj?: GeneratorEmptyObject,
-                 defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.createControl.call(this, type, name, data, attrs, templateCfg, context,
-         deps, includedTemplates, config, contextObj, defCollection);
-   }
-
-   private prepareDataForCreate(tplOrigin: GeneratorTemplateOrigin,
-                                scope: IControlProperties,
-                                attrs: IGeneratorAttrs,
-                                deps: TDeps,
-                                includedTemplates?: TIncludedTemplate): IPrepareDataForCreate {
-      return this.generatorBase.prepareDataForCreate(tplOrigin, scope, attrs, deps, includedTemplates);
-   }
-
-   prepareWsControl(name: GeneratorTemplateOrigin,
-                    data: IControlData,
-                    attrs: IGeneratorAttrs,
-                    templateCfg: ICreateControlTemplateCfg,
-                    context: string,
-                    deps: TDeps): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.prepareWsControl(name, data, attrs, templateCfg, context, deps);
-   }
-
-   prepareTemplate(name: GeneratorTemplateOrigin,
-                   data: IControlData,
-                   attrs: IGeneratorAttrs,
-                   templateCfg: ICreateControlTemplateCfg,
-                   context: string,
-                   deps: TDeps,
-                   config: IGeneratorConfig): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.prepareTemplate(name, data, attrs, templateCfg, context, deps, config);
-   }
-
-   prepareController(name: GeneratorTemplateOrigin,
-                     data: IControlData,
-                     attrs: IGeneratorAttrs,
-                     templateCfg: ICreateControlTemplateCfg,
-                     context: string,
-                     deps: TDeps): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.prepareController(name, data, attrs, templateCfg, context, deps);
-   }
-
-   prepareResolver(name: GeneratorTemplateOrigin,
-                   data: IControlData,
-                   attrs: IGeneratorAttrs,
-                   templateCfg: ICreateControlTemplateCfg,
-                   context: string,
-                   deps: TDeps,
-                   includedTemplates: TIncludedTemplate,
-                   config: IGeneratorConfig,
-                   contextObj?: GeneratorEmptyObject,
-                   defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error {
-      return this.generatorBase.prepareResolver(name,
-         data,
-         attrs,
-         templateCfg,
-         context,
-         deps,
-         includedTemplates,
-         config,
-         contextObj,
-         defCollection);
-   }
-
-   createText(text: string, key: string): VNode {
-      if (!text) {
+   /*
+   FIXME: не понимаю зачем нужен этот метод, по сути он ничего не делает.
+   Вроде шаблонизатор не может сгенерировать вызов этого метода с чем-то отличным от строки.
+    */
+   createText(text: string): string {
+      if (typeof text !== 'string') {
+         /*
+         FIXME: я считаю, что эта функция всегда зовётся со строкой и проверка бесполезна.
+         Но т.к. она тут была, то удалять её немножко страшно, вдруг там реально были не вызовы не со строками.
+         Ведь для реакта null и undefined это валидные ноды, но странно, если для них звался бы createText.
+          */
+         Logger.error(
+            'Тут должна была прийти строка, нужно подняться по стеку и понять откуда здесь что-то другое'
+         );
          return '';
       }
-      //here
       return text;
    }
 
-   createWsControl(name: GeneratorTemplateOrigin,
-                   scope: IControlProperties,
-                   attrs: IGeneratorAttrs,
-                   _: string,
-                   deps?: TDeps,
-                   preparedData?: IPrepareDataForCreate): GeneratorNode | GeneratorVoid {
-      const data = preparedData || this.prepareDataForCreate(name, scope, attrs, deps);
-      const controlClass = data.controlClass;
+   /**
+    * Получает конструктор контрола по его названию и создаёт его с переданными опциями.
+    * @param origin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
+    * @param scope Опции контрола.
+    * @param _
+    * @param __
+    * @param deps Объект с зависимостями контрола, в нём должно быть поле, соответствующее name.
+    */
+   createWsControl(
+      origin: TemplateOrigin,
+      scope: IControlOptions,
+      _: unknown,
+      __: unknown,
+      deps: Deps
+   ): React.ComponentElement<
+      IControlOptions,
+      Control<IControlOptions, object>
+   > {
+      const controlClass = resolveTpl(origin, deps) as typeof Control;
 
-      Logger.debug(`createWsControl - "${data.dataComponent}"`, data.controlProperties);
-      Logger.debug('Context for control', attrs.context);
-      Logger.debug('Inherit options for control', attrs.inheritOptions);
-
-      if (!controlClass) {
-         return this.createText('', data.controlProperties && data.controlProperties.__key || attrs.key);
-      }
-
-      //here
-      let decOptions = ResolveControlName.resolveControlName(data.controlProperties, <any>attrs);
-      return markupBuilder.buildForNewControl({
-         user: data.controlProperties,
-         events: attrs.events,
-         internal: data.internal,
-         templateContext: attrs.context,
-         inheritOptions: attrs.inheritOptions,
-         key: data.controlProperties.__key || attrs.key
-      }, controlClass, decOptions);
+      return React.createElement(controlClass, scope);
    }
 
+   /**
+    * Получает шаблон по его названию и строит его.
+    * @param origin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
+    * @param scope Опции шаблона.
+    * @param attributes
+    * @param _
+    * @param deps Объект с зависимостями шаблона, в нём должно быть поле, соответствующее name.
+    */
    createTemplate(
-      name: string,
-      scope: IControlProperties,
+      origin: TemplateOrigin,
+      scope: IControlOptions,
       attributes: IGeneratorAttrs,
-      context: string,
-      _deps?: TDeps): string | ITemplateNode | GeneratorNode {
-      let resultingFn;
-      if (Common.isString(name)) {
-         // @ts-ignore
-         resultingFn = _deps && (_deps[name] && _deps[name].default || _deps[name]) || RequireHelper.require(name);
-         if (resultingFn && Common.isOptionalString(name) && !Common.isTemplateString(name)) {
-            return this.createWsControl(name.split('js!')[1], scope, attributes, context, _deps);
-         }
-      } else {
-         resultingFn = name;
-      }
+      _: unknown,
+      deps: Deps
+   ): React.FunctionComponentElement<
+      Partial<IWasabyContextValue> & { children?: React.ReactNode }
+   > {
+      const resultingFn = resolveTpl(origin, deps) as TemplateFunction;
 
-      const data = this.prepareDataForCreate(name, scope, attributes, _deps);
+      const parent: Control<IControlOptions> = attributes?.internal.parent;
       /*
       Контролы берут наследуемые опции из контекста.
       Шаблоны так не могут, потому что они не полноценные реактовские компоненты.
       Поэтому берём значения либо из опций, либо из родителя.
        */
-      // FIXME: тип для data тянется из старого генератора, который ничего не знает про реакт
-      if (typeof data.controlProperties.readOnly === 'undefined') {
-         data.controlProperties.readOnly =
-            (data.parent as unknown as Component<{ readOnly: boolean }>).props.readOnly ??
-            (data.parent as unknown as Component).context.readOnly;
+      if (typeof scope.readOnly === 'undefined') {
+         scope.readOnly = parent.props?.readOnly ?? parent.context?.readOnly;
       }
-      if (typeof data.controlProperties.theme === 'undefined') {
-         data.controlProperties.theme =
-            (data.parent as unknown as Component<{ theme: 'string' }>).props.theme ??
-            (data.parent as unknown as Component).context.theme;
+      if (typeof scope.theme === 'undefined') {
+         scope.theme = parent.props?.theme ?? parent.context?.theme;
       }
 
-      // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
-      if (resultingFn == null) {
-         // @ts-ignore
-         return '';
-      }
-
-      // Если мы имеем подшаблоны только для красоты,
-      // а не для DirtyChecking тогда мы хотим увеличивать один и тот же итератор
-      // в разных шаблонах, а значит они не должны разрываться DirtyChecking'ом
-      if (data.controlProperties.__noDirtyChecking) {
-         return this.resolver(resultingFn, data.controlProperties, attributes, context, _deps);
-      }
-
-      //here
-      const obj = {
-         compound: false,
-         template: resultingFn,
-         controlProperties: data.controlProperties,
-         parentControl: data.parent,
-         attributes,
-         context: attributes.key,
-         type: 'TemplateNode',
-         // Template nodes must participate in reorder DirtyChecking.ts function same as
-         // controlNodes do
-         key: (data.controlProperties && data.controlProperties.key) || attributes.key,
-         flags: 262144
-      };
-
-      Object.defineProperty(obj, 'count', {
-         configurable: true,
-         get(): number {
-            let descendants = 0;
-            if (this.children) {
-               for (let i = 0; i < this.children.length; i++) {
-                  const child = this.children[i];
-                  descendants += child.count || 0;
-               }
-               return this.children.length + descendants;
-            } else {
-               return 0;
-            }
-         }
-      });
-      return react.createElement(
-         WasabyContextManager, {
-            readOnly: obj.controlProperties.readOnly,
-            theme: obj.controlProperties.theme
+      return React.createElement(
+         WasabyContextManager,
+         {
+            readOnly: scope.readOnly,
+            theme: scope.theme
          },
-         obj.template.call(
-            obj.parentControl,
-            obj.controlProperties,
-            obj.attributes,
-            obj.context,
-            true,
-            undefined,
-            undefined,
-            this.generatorConfig
-         )
+         /*
+         FIXME: как я понимаю, шаблоны всегда возвращают массив, даже если там один элемент.
+         В таких случаях нужно просто отдать реакту сам элемент.
+         Если там несколько элементов, то вроде как нужно оборачивать во фрагмент.
+         В файле не одно место с таким комментом, нужно править все
+          */
+         ...resultingFn.call(parent, scope, attributes, undefined, true)
       );
    }
 
-   createController(name: string,
-                    scope: IControlProperties,
-                    attributes: TAttributes,
-                    context: string,
-                    _deps?: TDeps): string {
-      return this.createWsControl.apply(this, arguments);
-   }
-
-   resolver(
-      tpl: GeneratorTemplateOrigin,
-      preparedScope: IControlProperties,
-      decorAttribs: IGeneratorAttrs,
-      context: string,
-      _deps?: TDeps,
-      includedTemplates?: TIncludedTemplate,
-      config?: IGeneratorConfig,
-      defCollection?: IGeneratorDefCollection
-   ): GeneratorStringArray | GeneratorFn {
-      const data = this.prepareDataForCreate(tpl, preparedScope, decorAttribs, _deps, includedTemplates);
-      const resolvedScope = data.controlProperties;
-      const isTplString = typeof tpl === 'string';
-      let fn;
-
-      if (isTplString) {
-         fn = Common.depsTemplateResolver(tpl, includedTemplates, _deps, config);
-      } else {
-         fn = data.controlClass;
-      }
-
-      if (!fn) {
-         if (typeof tpl === 'function') {
-            fn = tpl;
-            // @ts-ignore
-         } else if (tpl && typeof tpl.func === 'function') {
-            fn = tpl;
-         } else if (Common.isArray(tpl)) {
-            fn = tpl;
-         }
-      }
-
-      if (Common.isControlClass(fn)) {
-         return this.createWsControl(fn, resolvedScope, decorAttribs, context, _deps, data) as GeneratorNode;
-      }
-
-      if (Common.isTemplateClass(fn)) {
-         return this.createTemplate(fn, resolvedScope, decorAttribs, context, _deps);
-      }
-
-      const nameFunc = isTplString ? tpl : 'InlineFunction';
-      Logger.debug(`createWsControl - "${nameFunc}"`, data.controlProperties);
-      Logger.debug('Context for control', decorAttribs.context);
-      Logger.debug('Inherit options for control', decorAttribs.inheritOptions);
-
-      const parent = data.parent;
-      if (typeof fn === 'function') {
-         if (Common.isAnonymousFn(fn)) {
-            this.anonymousFnError(fn, parent);
-            return this.createText('', decorAttribs.key);
-         }
-         return parent ?
-            fn.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
-            fn(resolvedScope, decorAttribs, context, true);
-      }
-      if (fn && typeof fn.func === 'function') {
-         if (Common.isAnonymousFn(fn.func)) {
-            this.anonymousFnError(fn.func, parent);
-            return this.createText('', decorAttribs.key);
-         }
-         return parent ?
-            fn.func.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
-            fn.func(resolvedScope, decorAttribs, context, true);
-      }
-      if (Common.isArray(fn)) {
-         return this.resolveTemplateArray(parent, fn, resolvedScope, decorAttribs, context);
-      }
-      if (typeof tpl === 'undefined') {
-         const typeTpl = typeof tpl;
-         Logger.error(`${typeTpl} component error - Попытка использовать компонент/шаблон, ` +
-            `но вместо компонента в шаблоне был передан ${typeTpl}! ` +
-            'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
-            `По стеку будет понятно, в каком шаблоне и в какую опцию передается ${typeTpl}`, parent);
-         return this.createText('', decorAttribs.key);
-      }
-      if (fn === false) {
-         Logger.error(`Контрол ${tpl} отсутствует в зависимостях и не может быть построен."`, parent);
-         return this.createText('', decorAttribs.key);
-      }
-      // create text node, if template is some text
-      if (typeof tpl !== 'string') {
-         Logger.error(
-            `Template error - Invalid value of ws:partial template option: ${tpl} typeof ` + typeof tpl,
-            parent
-         );
-      }
-      if (Common.isCompat()) {
-         return this.createText('' + tpl, decorAttribs.key);
-      }
-      // TODO: разобраться с правильным использованием ws:partial
-      // отключены предупреждения по задаче
-      // https://online.sbis.ru/opendoc.html?guid=04ddc7d0-396a-473b-9a65-ee1ddc6a7243
-      // в целом использование ws:partial сейчас не правильное
-      // https://online.sbis.ru/obj/Meeting/b3e2f39d-1a41-4acd-a8d7-44f4cfc03112
-      // задача https://online.sbis.ru/opendoc.html?guid=f5c07778-2769-414b-afa8-30ad6193770a
-      // const message = `Template warning -  "${tpl}"!` +
-      //    'Options "template" must be control or template not a string';
-      // Logger.warn(message, data.logicParent);
-      return this.createText('' + tpl, decorAttribs.key);
-   }
-
-   joinElements(elements: GeneratorStringArray): GeneratorStringArray | GeneratorError {
+   /*
+   FIXME: Изначально в joinElements было return ArrayUtils.flatten(elements, true).
+   Он зовётся из каждого шаблона, так что нельзя просто взять и удалить.
+   Вроде он нужен для тех случаев, когда partial вернёт вложенный массив. Я пытался возвращать
+   несколько корневых нод из partial, возвращался просто массив из двух элементов.
+   Так что пока этот метод ничего не делает.
+    */
+   joinElements(elements: React.ElementType[]): React.ElementType[] {
       if (Array.isArray(elements)) {
-         /* Partial может вернуть массив, в результате чего могут появиться вложенные массивы.
-          Поэтому здесь необходимо выпрямить массив elements */
-         elements = ArrayUtils.flatten(elements, true);
          return elements;
       } else {
          throw new Error('joinElements: elements is not array');
       }
    }
 
-   createTag(
-      tagName: string,
-      attrs: IBaseAttrs,
-      children: GeneratorStringArray,
-      attrToDecorate: TAttributes,
-      defCollection: IGeneratorDefCollection,
-      control: any
-   ): any {
-      if (tagName === invisibleNodeTagName) {
-         //here
-         return null;
-      }
-
-      if (!attrToDecorate) {
-         attrToDecorate = {};
-      }
-      if (!attrs) {
-         attrs = {attributes: {}, events: {}, key: ''};
-      }
-
-      if (attrs.events) {
-         this.generatorBase.prepareEvents(attrs.events);
-      }
-
-      const mergedAttrs = Attr.mergeAttrs(attrToDecorate.attributes, attrs.attributes);
-      const mergedEvents = Attr.mergeEvents(attrToDecorate.events, attrs.events);
-
-      _FocusAttrs.prepareTabindex(mergedAttrs);
-
-      Object.keys(mergedAttrs).forEach((attrName) => {
-         if (attrName.indexOf('top:') === 0) {
-            const newAttrName = attrName.replace('top:', '');
-            mergedAttrs[newAttrName] = mergedAttrs[newAttrName] || mergedAttrs[attrName];
-            delete mergedAttrs[attrName];
-         }
-      });
-
-      // Убрать внутри обработку event
-      const props = {
-         attributes: mergedAttrs,
-         hooks: {},
-         events: mergedEvents || {}
-      };
-      const isKeyAttr = props.attributes && props.attributes.key;
-      const key = isKeyAttr ? props.attributes.key : attrs.key;
-
-      // выпрямляем массив детей, чтобы не было вложенных массивов (они образуются из-за for)
-      children = ArrayUtils.flatten(children, true);
-      // в случае void тегов не должно быть детей, иначе реакт ругается
-      if (voidElementTags[tagName]) {
-         children = null;
-      }
-
-      //here
-      const ref = function(node: any): any {
-         const attrs = props.attributes;
-         if (node) {
-            if (Common.isControl(control) && attrs && attrs.name) {
-               control._children[attrs.name] = node;
-               onElementMount(control._children[attrs.name]);
+   /**
+    * Строит DOM-элемент.
+    * @param tagName Название DOM-элемента.
+    * @param attrs Атрибуты DOM-элемента.
+    * @param children Дети DOM-элемента.
+    * @param _
+    * @param __
+    * @param control Инстанс контрола-родителя, используется для заполнения _children.
+    */
+   createTag<T extends HTMLElement, P extends React.HTMLAttributes<T>>(
+      tagName: keyof React.ReactHTML,
+      attrs: {
+         attributes: P &
+            WasabyAttributes & {
+               name?: string;
+            };
+      },
+      children: React.ReactNode[] | undefined,
+      _: unknown,
+      __: unknown,
+      control?: Control
+   ): React.DetailedReactHTMLElement<P, T> {
+      let ref;
+      const name = attrs.attributes.name;
+      if (control && name) {
+         ref = (node: HTMLElement): void => {
+            if (node) {
+               control._children[name] = node;
+               onElementMount(control._children[name]);
+            } else {
+               onElementUnmount(control._children, name);
             }
-            if (attrs) {
-               cutFocusAttributes(attrs, (attrName: any, attrValue: any): void => {
-                  node[attrName] = attrValue;
-               }, node);
-            }
-         } else {
-            if (control && !control._destroyed && attrs && attrs.name) {
-               onElementUnmount(control._children, attrs.name);
-            }
-         }
-      };
+         };
+      }
 
-      const convertedEvents = {};
-      Object.keys(mergedEvents).forEach((eventName) => {
-         const eventObjects = mergedEvents[eventName];
-         eventObjects.forEach((eventObject) => {
-            let finalArgs = [];
-
-            /* Составляем массив аргументов для обаботчика. Первым аргументом будет объект события. Затем будут
-             * аргументы, переданные в обработчик в шаблоне, и последними - аргументы в _notify */
-            finalArgs = [eventObject];
-            // Array.prototype.push.apply(finalArgs, templateArgs);
-            Array.prototype.push.apply(finalArgs, eventObject.args);
-            // Добавляем в eventObject поле со ссылкой DOM-элемент, чей обработчик вызываем
-            // eventObject.currentTarget = curDomNode;
-            const newEventName = repairEventName(eventName);
-            convertedEvents[newEventName] = (eventObject.fn);
-         });
-      });
-
-      const convertedAttributes = convertAttributes(mergedAttrs);
+      const convertedAttributes = convertAttributes(attrs.attributes);
 
       const newProps = {
          ...convertedAttributes,
-         ...convertedEvents,
-         ref,
-         key
+         ref
       };
 
-      if (Array.isArray(children)) {
-         // Если передавать реакту детей массивом, он будет считать это списком и просить уникальные ключи каждому,
-         // Мы же просто создаем вложенные элементы и поэтому разворачиваем массив
-         return react.createElement(tagName, newProps, ...children);
+      if (children) {
+         /*
+         FIXME: как я понимаю, шаблоны всегда возвращают массив, даже если там один элемент.
+         В таких случаях нужно просто отдать реакту сам элемент.
+         Если там несколько элементов, то вроде как нужно оборачивать во фрагмент.
+         В файле не одно место с таким комментом, нужно править все
+          */
+         return React.createElement<P, T>(tagName, newProps, ...children);
       } else {
-         return react.createElement(tagName, newProps);
+         /*
+         FIXME: сценарии, где ничего не возвращается, может и есть, но лучше их поддерживать отдельно,
+         с демкой такого сценария. Ошибку роняю, чтобы такие места сразу всплыли.
+          */
+         throw new Error('Шаблон ничего не вернул');
       }
    }
 
-   createEmptyText(key: string): string {
-      return this.createText('', key);
-   }
-
-   getScope(data: TScope): Error | TScope {
-      try {
-         throw new Error('vdomMarkupGenerator: using scope="{{...}}"');
-      } catch (e) {
-         Logger.error('get SCOPE ... in VDom', data, e);
-      }
-      return data;
-   }
-
-   escape(value: GeneratorObject): GeneratorObject {
+   // FIXME: бесполезный метод, но он зовётся из шаблонов
+   escape<T>(value: T): T {
       return value;
    }
+}
 
-   createDirective(text: any): any {
-      try {
-         throw new Error('vdomMarkupGenerator createDirective not realized');
-      } catch (e) {
-         Logger.error('createDirective  ... in VDom', text, e);
-      }
+/**
+ * Либо сужает тип obj до IDefaultExport, либо однозначно говорит, что это другой тип.
+ * @param obj
+ */
+function isDefaultExport(obj: unknown): obj is IDefaultExport {
+   if (typeof obj === 'object') {
+      return obj.hasOwnProperty('__esModule') && obj.hasOwnProperty('default');
    }
+   return false;
+}
 
-   resolveTemplateFunction(parent: any, template: any, resolvedScope: any, decorAttribs: any, context: any): any {
-      if (parent) {
-         if (Common.isAnonymousFn(template)) {
-            this.anonymousFnError(template, parent);
-            return this.createText('', decorAttribs.key);
-         }
-         return template.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig);
-      }
-      if (Common.isAnonymousFn(template)) {
-         this.anonymousFnError(template, parent);
-         return this.createText('', decorAttribs.key);
-      }
-      return template(resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig);
+/**
+ * Если в tplOrigin шаблон/конструктор контрола, то сразу возвращает его.
+ * Иначе извлекает шаблон/конструктор контрола из зависимостей и возвращает его.
+ * @param tplOrigin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
+ * @param deps Объект с зависимостями контрола/шаблона, в нём должно быть поле, соответствующее tplOrigin.
+ */
+function resolveTpl(
+   tplOrigin: TemplateOrigin,
+   deps: Deps
+): typeof Control | TemplateFunction {
+   const tpl = isDefaultExport(tplOrigin) ? tplOrigin.default : tplOrigin;
+
+   // конструкция типа <ws:partial template="{{ _myTemplate }}" />, где _myTemplate - функция (она может быть контролом)
+   if (typeof tpl === 'function') {
+      return tpl;
    }
+   // контрол или partial, у которого в template лежит строка
+   if (typeof tpl === 'string') {
+      // ws: подставляется ещё на этапе шаблонизации, не знаю зачем
+      const newName = (Common.splitWs(tpl) as string) || tpl;
+      const valueFromDeps = deps && deps[newName];
+      let controlClass;
 
-   resolveTemplate(template: any, parent: any, resolvedScope: any, decorAttribs: any, context: any): any {
-      let resolvedTemplate = null;
-      if (typeof template === 'function') {
-         resolvedTemplate = this.resolveTemplateFunction(parent, template, resolvedScope, decorAttribs, context);
-      } else if (typeof template.func === 'function') {
-         resolvedTemplate = this.resolveTemplateFunction(parent, template.func, resolvedScope, decorAttribs, context);
+      if (isDefaultExport(valueFromDeps)) {
+         controlClass = valueFromDeps.default;
       } else {
-         resolvedTemplate = template;
+         controlClass = valueFromDeps;
       }
-      if (Array.isArray(resolvedTemplate)) {
-         if (resolvedTemplate.length === 1) {
-            return resolvedTemplate[0];
-         }
-         if (resolvedTemplate.length === 0) {
-            // return null so that resolveTemplateArray does not add
-            // this to the result array, since it is empty
-            return null;
+
+      if (!controlClass) {
+         if (RequireHelper.defined(tpl)) {
+            controlClass = RequireHelper.require(tpl);
+         } else {
+            throw new Error('Не смогли определить тип шаблона: ' + tpl);
          }
       }
-      return resolvedTemplate;
-   }
 
-   resolveTemplateArray(parent: any, templateArray: any, resolvedScope: any, decorAttribs: any, context: any): any {
-      let result = [];
-      templateArray.forEach((template: any): any => {
-         const resolvedTemplate = this.resolveTemplate(template, parent, resolvedScope, decorAttribs, context);
-         if (Array.isArray(resolvedTemplate)) {
-            result = result.concat(resolvedTemplate);
-         } else if (resolvedTemplate) {
-            result.push(resolvedTemplate);
-         }
-      });
-      return result;
+      return controlClass;
    }
-
-   private anonymousFnError(fn: Function, parent: IControl): void {
-      Logger.error(`Ошибка построения разметки. Была передана функция, которая не является шаблонной.
-               Функция: ${fn.toString()}`, parent);
-   }
-
 }

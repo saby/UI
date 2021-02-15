@@ -1,6 +1,0 @@
-<div style="color:{{_options.color}};">
-    <div>{{_options.count}}</div>
-    <button on:click="_options.addHandler()">Add counter</button>
-    <button on:click="_options.removeHandler()">Minus counter</button>
-    <button on:click="_options.changeColor()">ChangeColor without rerender</button>
-</div>
