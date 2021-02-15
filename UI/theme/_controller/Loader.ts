@@ -2,7 +2,7 @@
 // @ts-ignore
 import LinkResolver from "./LinkResolver";
 // @ts-ignore
-import { constants } from 'Env/Env';
+import { constants, cookie } from 'Env/Env';
 import { EMPTY_THEME, CSS_MODULE_PREFIX, THEMED_CSS_MODULE_PREFIX } from './css/const';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 // @ts-ignore
@@ -41,7 +41,7 @@ export default class Loader implements ICssLoader {
    getHref(initialName: string, theme: string): string {
       let name: string = initialName;
       if (!name && theme !== EMPTY_THEME) {
-         return ModulesLoader.getModuleUrl(`${THEMED_CSS_MODULE_PREFIX}/${theme}`);
+         return ModulesLoader.getModuleUrl(`${THEMED_CSS_MODULE_PREFIX}/${theme}`, cookie.get('s3debug'));
       }
       if (name.indexOf('.css') !== -1) {
          return name;
@@ -66,7 +66,7 @@ export default class Loader implements ICssLoader {
             const wsConfig: IConfig = window?.['wsConfig'] || {};
             name = `${wsConfig.resourceRoot}${name}`;
          }
-         return ModulesLoader.getModuleUrl(CSS_MODULE_PREFIX + name);
+         return ModulesLoader.getModuleUrl(CSS_MODULE_PREFIX + name, cookie.get('s3debug'));
       }
       return this.lr.resolveCssWithTheme(name, theme);
    }
