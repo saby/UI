@@ -1,7 +1,7 @@
 define('Compiler/codegen/function', [
    'Compiler/utils/Helpers',
-   'Compiler/expressions/_private/Process',
-   'Compiler/expressions/_private/Event',
+   'Compiler/expressions/Process',
+   'Compiler/expressions/Event',
    'Compiler/modules/utils/common',
    'Compiler/modules/if',
    'Compiler/modules/for',
