@@ -6,6 +6,10 @@ define('UI/_builderConfig/Config', [], function() {
 
    return {
       /**
+       * Имя private-функции по умолчанию
+       */
+      privateFunctionName: 'privateFn',
+      /**
        * Типы узлов AST дерева, для которых не выполняется кодогенерация.
        */
       ignored: [
