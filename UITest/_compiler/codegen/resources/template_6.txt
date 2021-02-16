@@ -1,0 +1,39 @@
+<Controls.popupTemplate:Dialog headingCaption="{[Ввод данных приложения]}">
+   <ws:headerContentTemplate>
+      <div class="AppDataSelector__header">
+         <Controls.buttons:Button caption="{[Авторизовать]}" on:click="_onSaveClick()"/>
+      </div>
+   </ws:headerContentTemplate>
+   <ws:bodyContentTemplate>
+      <Controls.validate:Controller name="form">
+         <ws:content>
+            <div class="AppDataSelector__content">
+               <Controls.validate:InputContainer attr:class="AppDataSelector__input">
+                  <ws:validators>
+                     <ws:Function value="{{_appId}}">Controls/validate:isRequired</ws:Function>
+                  </ws:validators>
+                  <ws:content>
+                     <Controls.input:Text placeholder="{[ID приложения]}" bind:value="_appId"/>
+                  </ws:content>
+               </Controls.validate:InputContainer>
+               <Controls.validate:InputContainer attr:class="AppDataSelector__input">
+                  <ws:validators>
+                     <ws:Function value="{{_appSecret}}">Controls/validate:isRequired</ws:Function>
+                  </ws:validators>
+                  <ws:content>
+                     <Controls.input:Text placeholder="{[Защищенный ключ]}" bind:value="_appSecret"  />
+                  </ws:content>
+               </Controls.validate:InputContainer>
+               <Controls.validate:InputContainer attr:class="AppDataSelector__input">
+                  <ws:validators>
+                     <ws:Function value="{{_secretKey}}">Controls/validate:isRequired</ws:Function>
+                  </ws:validators>
+                  <ws:content>
+                     <Controls.input:Text placeholder="{[Секретный ключ]}" bind:value="_secretKey"  />
+                  </ws:content>
+               </Controls.validate:InputContainer>
+            </div>
+         </ws:content>
+      </Controls.validate:Controller>
+   </ws:bodyContentTemplate>
+</Controls.popupTemplate:Dialog>

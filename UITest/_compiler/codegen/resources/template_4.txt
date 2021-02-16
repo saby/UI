@@ -1,0 +1,99 @@
+<div class="ACS-identList">
+    <div class="ACS-identList-Header">
+        <Controls.heading:Title caption="{[Вход в здание]}"
+                                fontColorStyle="primary"
+                                fontSize="m"
+                                textTransform="uppercase"/>
+        <span if="{{ !_options.readOnly && (_hasCards || (_hasBio && !_bioAdded)) }}"
+              class="ACS-identList-AddCaption controls-text-unaccented_theme-{{ _options.theme }}">{[Добавить]}</span>
+        <Controls.dropdown:Button
+                if="{{ !_options.readOnly && _hasCards }}"
+                on:menuItemActivate="_createIdent()"
+                displayProperty="Название"
+                viewMode="linkButton"
+                fontColorStyle="link"
+                caption="{[пропуск]}"
+                menuCaption="{[Пропуск]}"
+                keyProperty="ИдО"
+                source="{{ _cardItems }}"/>
+        <span if="{{ !_options.readOnly && _hasCards && (_hasBio && !_bioAdded) }}" class="ACS-identList-AddSeparator">/</span>
+        <Controls.dropdown:Button
+                if="{{ !_options.readOnly && (_hasBio && !_bioAdded) }}"
+                on:menuItemActivate="_createIdent()"
+                displayProperty="Название"
+                viewMode="linkButton"
+                fontColorStyle="link"
+                caption="{[биометрию]}"
+                menuCaption="{[Биометрия]}"
+                keyProperty="ИдО"
+                source="{{ _bioItems }}"/>
+    </div>
+    <Controls.list:DataContainer source="{{ _identListSource }}"
+                                 keyProperty="@Ident"
+                                 sorting="{{ _sorting }}">
+        <ws:filter Person="{{ _options.record.Ids.PrivatePerson }}" IdentTypeList="{{ _identTypeList }}"/>
+        <ws:content>
+            <div>
+                <Controls.list:Container>
+                    <Controls.scroll:Container attr:class="ACS-identList-Scroll">
+                        <Controls.list:View name="list"
+                                            groupProperty="restrictionGroup"
+                                            itemActions="{{_itemActions}}"
+                                            itemActionVisibilityCallback="{{_itemActionVisibilityCallback}}"
+                                            itemsReadyCallback="{{_itemsReadyCallback}}"
+                                            markerVisibility="hidden"
+                                            on:itemClick="_itemClickHandler()">
+                            <ws:groupTemplate>
+                                <ws:partial template="Controls/list:GroupTemplate" textAlign="left" expanderAlign="right"/>
+                            </ws:groupTemplate>
+                            <ws:itemTemplate>
+                                <ws:partial template="Controls/list:ItemTemplate">
+                                    <ws:contentTemplate>
+                                        <div class="ACS-identList-Row">
+                                            <div class="ACS-identList-Row-firstLine">
+                                                <span class="controls-icon_size-s_theme-{{ _options.theme }}
+                                                             {{ contentTemplate.itemData.item.iconStyleClass }}-{{ _options.theme }}
+                                                             {{ contentTemplate.itemData.item.icon }}"></span>
+                                                <span class="ACS-identList-Row-name
+                                                            {{ contentTemplate.itemData.item.textStyleClass }}">{{ contentTemplate.itemData.item.caption }}</span>
+                                                <span class="ACS-identList-Row-restrictions controls-text-unaccented_theme-{{ _options.theme }}">{{ contentTemplate.itemData.item.restrictions }}</span>
+                                            </div>
+                                            <div title="{{ contentTemplate.itemData.item.Descript }}" class="ACS-identList-Row-secondLine" if="{{ contentTemplate.itemData.item.Descript }}">
+                                                {{ contentTemplate.itemData.item.Descript }}
+                                            </div>
+                                        </div>
+                                    </ws:contentTemplate>
+                                </ws:partial>
+                            </ws:itemTemplate>
+                            <ws:emptyTemplate>
+                                <div class="ACS-identList-HintWrapper">
+                                    <Hint.Template:RowLayout image="{{_hintPerson}}" imageSize="m">
+                                        <ws:message>
+                                            <div class="ACS-identList-HintWrapper-Title">{[Добавьте пропуск в здание]}</div>
+                                        </ws:message>
+                                        <ws:details>
+                                            <div class="ACS-identList-Details">
+                                                <p class="ACS-identList-Paragraph">{[В СБИС компания может установить систему контроля доступа в помещения, настроить в Рознице или Presto авторизацию по пропуску.]}</p>
+                                                <p>{[Для этих целей могут быть использованы, например, магнитные или proximity-карты.]}</p>
+                                            </div>
+                                        </ws:details>
+                                    </Hint.Template:RowLayout>
+                                </div>
+                            </ws:emptyTemplate>
+                        </Controls.list:View>
+                    </Controls.scroll:Container>
+                </Controls.list:Container>
+                <Controls.list:Remover name="listRemover"/>
+                <Controls.popup:EditContainer>
+                    <Controls.popup:Edit name="DialogEdit"
+                                         mode="dialog"
+                                         modal="true"
+                                         template="ACS/IdentDialog/IdentDialog"
+                                         on:result="_resultHandler()"
+                                         on:beforeItemEndEdit="_sync()">
+                    </Controls.popup:Edit>
+                </Controls.popup:EditContainer>
+            </div>
+        </ws:content>
+    </Controls.list:DataContainer>
+</div>
