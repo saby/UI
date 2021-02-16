@@ -1,0 +1,280 @@
+ <div class="cacheService-maxHeight">
+   <Controls.popupTemplate:Stack
+      attr:class=""
+      caption=""
+      headingCaption="Метод:  {{ _record.Name || '' }}"
+   >
+      <ws:headerContentTemplate>
+         <Controls.dropdown:Button
+            attr:class="cacheService-Card__resetButton"
+            source="{{ _resetSource }}"
+            idProperty="id"
+            viewMode="link"
+            icon="icon-Delete"
+            tooltip="Сбросить кэш метода"
+            on:menuItemActivate="_clickResetCache()"
+         >
+            <ws:headConfig caption="Сбросить кэш"/>
+         </Controls.dropdown:Button>
+      </ws:headerContentTemplate>
+      <ws:bodyContentTemplate>
+         <Layout.browsers:Tabs
+            name="browserTabs"
+            attr:class="cacheService-maxHeight"
+            bind:selectedKey = "_tabsSelectedKey"
+            readOnly="{{ true }}"
+         >
+            <ws:items>
+               <ws:Array>
+                  <ws:Object key="1" align="right" title="Описание">
+                     <ws:itemTemplate>
+                        <ws:if data="{{(itemTemplate.type !== 'topArea')}}">
+                           <div>
+                              <div class="cacheService-Card__params">
+                                 <div class="cacheService-Card__params-row ws-flexbox">
+                                    <div class="cacheService-Card__params-block ws-flexbox">
+                                       <Controls.input:Label
+                                          name="totalSize"
+                                          caption="Общий объем"
+                                          attr:class="cacheService-Card__params-label ws-flex-shrink-0"
+                                       />
+                                       <Controls.input:Number
+                                          value="{{ _record.TotalBytesFormatted }}"
+                                          attr:class="ws-flex-shrink-1 cacheService-Card__numberInput"
+                                       />
+                                       <span class="controls-Label__caption_underline_none_theme-{{ _options.theme }} cacheService-Card__unitLabel">Кб</span>
+                                    </div>
+                                    <div class="cacheService-Card__params-block ws-flexbox">
+                                       <Controls.input:Label
+                                          name="memorySize"
+                                          caption="В памяти"
+                                          attr:class="featureControl-editCard__params-row-label ws-flex-shrink-0"
+                                       />
+                                       <Controls.input:Number
+                                          value="{{ _record.MemoryBytesFormatted }}"
+                                          attr:class="ws-flex-shrink-1 cacheService-Card__numberInput"
+                                       />
+                                       <span class="controls-Label__caption_underline_none_theme-{{ _options.theme }} cacheService-Card__unitLabel">Кб</span>
+                                    </div>
+                                    <div class="cacheService-Card__params-block ws-flexbox">
+                                       <Controls.input:Label
+                                          name="diskSize"
+                                          caption="На диске"
+                                          attr:class="featureControl-editCard__params-row-label ws-flex-shrink-0"
+                                       />
+                                       <Controls.input:Number
+                                          value="{{ _record.DiskBytesFormatted }}"
+                                          attr:class="ws-flex-shrink-1 cacheService-Card__numberInput"
+                                       />
+                                       <span class="controls-Label__caption_underline_none_theme-{{ _options.theme }} cacheService-Card__unitLabel">Кб</span>
+                                    </div>
+                                 </div>
+                                 <div class="cacheService-Card__params-row ws-flexbox">
+                                    <div class="cacheService-Card__params-block ws-flexbox">
+                                       <Controls.input:Label
+                                          name="keysCount"
+                                          caption="Число ключей"
+                                          attr:class="cacheService-Card__params-label ws-flex-shrink-0"
+                                       />
+                                       <Controls.input:Number
+                                          value="{{ _record.Keys }}"
+                                          attr:class="ws-flex-shrink-1 cacheService-Card__numberInput"
+                                       />
+                                    </div>
+                                 </div>
+                                 <div class="cacheService-Card__params-row ws-flexbox">
+                                    <div class="cacheService-Card__params-block ws-flexbox">
+                                       <Controls.input:Label
+                                          caption="Общий % попадания"
+                                          attr:class="cacheService-Card__params-label ws-flex-shrink-0"
+                                       />
+                                       <Controls.input:Number
+                                          value="{{ _record.TotalHitRateFormatted }}"
+                                          attr:class="ws-flex-shrink-1 cacheService-Card__numberInput"
+                                       />
+                                    </div>
+                                    <div class="cacheService-Card__params-block ws-flexbox">
+                                       <Controls.input:Label
+                                          caption="На сервере"
+                                          attr:class="featureControl-editCard__params-row-label ws-flex-shrink-0"
+                                       />
+                                       <Controls.input:Number
+                                          value="{{ _record.ServerTotalHitRateFormatted }}"
+                                          attr:class="ws-flex-shrink-1 cacheService-Card__numberInput"
+                                       />
+                                    </div>
+                                    <div class="cacheService-Card__params-block ws-flexbox">
+                                       <Controls.input:Label
+                                          caption="На клиенте"
+                                          attr:class="featureControl-editCard__params-row-label ws-flex-shrink-0"
+                                       />
+                                       <Controls.input:Number
+                                          value="{{ _record.ClientTotalHitRateFormatted }}"
+                                          attr:class="ws-flex-shrink-1 cacheService-Card__numberInput"
+                                       />
+                                    </div>
+                                 </div>
+
+                              </div>
+                              <div>
+                                 <Controls.heading:Title
+                                    caption="Псевдонимы метода"
+                                    fontSize="l"
+                                    readOnly="{{ true }}"
+                                    attr:class="cacheService-Card__subTitle"
+                                 />
+                                 <Controls.scroll:Container
+                                    attr:class="cacheService-maxHeight"
+                                 >
+                                    <Controls.list:Container>
+                                          <Controls.grid:View
+                                             multiSelect="{{ true }}"
+                                             name="browserView"
+                                             keyProperty="Name"
+                                             rowSeparatorVisibility="{{ true }}"
+                                             markerVisibility="hidden"
+                                             itemActions="{{ [] }}"
+                                             contextMenuVisibility="{{ false }}"
+                                             stickyHeader="{{ true }}"
+                                             header="{{ [] }}"
+                                             source="{{ _aliasesSource }}"
+                                          >
+                                             <ws:emptyTemplate>
+                                                <ws:partial template="Controls/list:EmptyTemplate" topSpacing="xl" bottomSpacing="l">
+                                                   <ws:contentTemplate>Нет данных</ws:contentTemplate>
+                                                </ws:partial>
+                                             </ws:emptyTemplate>
+                                             <ws:columns>
+                                                <ws:Array>
+                                                   <ws:Object
+                                                      displayProperty="Name"
+                                                   />
+                                                </ws:Array>
+                                             </ws:columns>
+                                          </Controls.grid:View>
+
+                                    </Controls.list:Container>
+                                 </Controls.scroll:Container>
+                              </div>
+                              <div>
+                                 <Controls.heading:Title
+                                    caption="Привязка к шардам"
+                                    fontSize="l"
+                                    readOnly="{{ true }}"
+                                    attr:class="cacheService-Card__subTitle"
+                                 />
+                                 <Controls.scroll:Container
+                                    attr:class="cacheService-maxHeight"
+                                 >
+                                    <Controls.list:Container>
+                                          <Controls.grid:View
+                                             multiSelect="{{ true }}"
+                                             name="browserView"
+                                             keyProperty="Name"
+                                             multiSelect="{{ true }}"
+                                             rowSeparatorVisibility="{{ true }}"
+                                             markerVisibility="hidden"
+                                             itemActions="{{ [] }}"
+                                             contextMenuVisibility="{{ false }}"
+                                             stickyHeader="{{ true }}"
+                                             header="{{ _shardsHeader }}"
+                                             source="{{ _shardsSource }}"
+                                             backgroundStyle="stack"
+                                          >
+                                             <ws:emptyTemplate>
+                                                <ws:partial template="Controls/list:EmptyTemplate" topSpacing="xl" bottomSpacing="l">
+                                                   <ws:contentTemplate>Нет данных</ws:contentTemplate>
+                                                </ws:partial>
+                                             </ws:emptyTemplate>
+                                             <ws:columns>
+                                                <ws:Array>
+                                                   <ws:Object
+                                                      displayProperty="Name"
+                                                      textOverflow="ellipsis"
+                                                   />
+                                                   <ws:Object
+                                                      displayProperty="TotalBytesFormatted"
+                                                      width="80px"
+                                                      align="right"
+                                                      textOverflow="ellipsis"
+                                                   />
+                                                   <ws:Object
+                                                      displayProperty="MemoryBytesFormatted"
+                                                      width="95px"
+                                                      align="right"
+                                                      textOverflow="ellipsis"
+                                                   />
+                                                   <ws:Object
+                                                      displayProperty="DiskBytesFormatted"
+                                                      width="95px"
+                                                      align="right"
+                                                      textOverflow="ellipsis"
+                                                   />
+                                                   <ws:Object
+                                                      displayProperty="Keys"
+                                                      align="right"
+                                                      width="120px"
+                                                      textOverflow="ellipsis"
+                                                   />
+                                                   <ws:Object
+                                                      displayProperty="TotalHitRateFormatted"
+                                                      align="right"
+                                                      width="120px"
+                                                   />
+                                                </ws:Array>
+                                             </ws:columns>
+                                          </Controls.grid:View>
+                                    </Controls.list:Container>
+                                 </Controls.scroll:Container>
+                              </div>
+                           </div>
+                        </ws:if>
+                        <ws:else>
+                           <invisible-node />
+                        </ws:else>
+                     </ws:itemTemplate>
+                  </ws:Object>
+                  <ws:Object key="2" align="right" title="Статистика">
+                     <ws:itemTemplate>
+                        <ws:if data="{{(itemTemplate.type !== 'topArea')}}">
+                           <CacheServiceUI._edit.Graphs
+                              methodName="{{ _methodName }}"
+                              attr:class="cacheService-maxHeight"
+                           />
+                        </ws:if>
+                        <ws:else>
+                           <invisible-node />
+                        </ws:else>
+                     </ws:itemTemplate>
+                  </ws:Object>
+                  <ws:Object key="3" align="right" title="Инвалидация">
+                     <ws:itemTemplate>
+                        <ws:if data="{{(itemTemplate.type !== 'topArea')}}">
+                           <CacheServiceUI._edit.InvalidationList
+                              methodName="{{ _methodName }}"
+                              attr:class="cacheService-maxHeight"
+                           />
+                        </ws:if>
+                        <ws:else>
+                           <invisible-node />
+                        </ws:else>
+                     </ws:itemTemplate>
+                  </ws:Object>
+               </ws:Array>
+            </ws:items>
+         </Layout.browsers:Tabs>
+      </ws:bodyContentTemplate>
+   </Controls.popupTemplate:Stack>
+   <Controls.popup:Confirmation name="MessageOpener"/>
+   <Controls.popup:Notification
+      name="notification"
+      template="Controls/popupTemplate:NotificationSimple"
+   />
+   <Controls.popup:Dialog
+      name="resetDialog"
+      minWidth="400"
+      maxWidth="400"
+      on:result="_resetCacheDialogResult()"
+      template="CacheServiceUI/reset:Dialog"
+   />
+</div>
