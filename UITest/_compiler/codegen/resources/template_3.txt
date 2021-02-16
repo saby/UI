@@ -1,0 +1,40 @@
+<div class="buh-report_dialog_TurnoverSheet">
+    <WS3Browser.New.Report
+            name="ReportBrowser"
+            historyId="TurnoverSheetFilterId"
+            className="buh-report_browser"
+            operationsPanelConfig="{{ _operationsPanelConfig}}"
+            searchParam="Search"
+            toolbarConfig="{{ _toolbarConfig }}"
+            columnsEditorConfig="{{ colEditorConf }}"
+            columnsConfig="{{ columnsConfig }}">
+        <ws:dateRender>
+            <ws:Function>
+                AccountingReports/Browsers/TurnoverSheet:prototype.setDateFormat
+            </ws:Function>
+        </ws:dateRender>
+        <ws:filterButtonConfig
+            filterStructure="{{filterStructure}}">
+            <ws:template>
+                <ws:partial template="AccountingReports/ReportFilterPanel/ReportFilterPanel"
+                            filterStr="{{ filterStr }}"
+                            showAccountChoice="{{ showAccountChoice }}"
+                            reportName="{{ reportName }}">
+                </ws:partial>
+            </ws:template>
+            <ws:viewMode><ws:String>twoColumns</ws:String></ws:viewMode>
+            <ws:areaCaption>Отбираются</ws:areaCaption>
+        </ws:filterButtonConfig>
+        <ws:prefetchParams PrefetchLevels="1" PrefetchPages="20" PrefetchMethod="{{ prefetchMethod }}" PrefetchIdColumn="@Документ"></ws:prefetchParams>
+        <ws:title>{{reportTitle}}</ws:title>
+        <ws:searchConfig
+           placeholder="Найти…"
+           visible="{{ false }}"
+        />
+        <ws:content>
+            <AccountingReports.Tables.TurnoverSheet columns = "{{ columns }}"
+                                                  data_source = "{{ data_source }}"/>
+            <SBIS3.CONTROLS.Action.List.Sum name="sumAction" fields="{{ sumColumns }}"/>
+        </ws:content>
+    </WS3Browser.New.Report>
+</div>
