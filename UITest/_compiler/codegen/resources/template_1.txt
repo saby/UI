@@ -1,0 +1,58 @@
+<div class="accountingReports-AccountAnalysis__dialog">
+   <WS3Browser.New.Report
+      name="ReportBrowser"
+      className="accountingReports__browser accountingReports-AccountAnalysis__browser"
+      historyId="AccountAnalysisFilterId"
+      filterStr="{{ filterStr }}"
+      operationsPanelConfig="{{ _operationsPanelConfig}}"
+      toolbarConfig="{{ _toolbarConfig }}"
+      title="{{reportTitle}}"
+   >
+      <ws:dateRender>
+         <ws:Function>
+            AccountingReports/Browsers/AccountAnalysis:prototype.setDateFormat
+         </ws:Function>
+      </ws:dateRender>
+      <ws:searchConfig placeholder="{[найти]}..." visible="{{ false }}"/>
+      <ws:prefetchParams
+         PrefetchLevels="{{ PrefetchLevels }}"
+         PrefetchPages="{{ PrefetchPages }}"
+         PrefetchMethod="{{ PrefetchMethod }}"
+         PrefetchIdColumn="{{ PrefetchIdColumn }}"
+         PrefetchHierarchyColumn="{{ PrefetchHierarchyColumn }}"/>
+      <ws:content>
+         <AccountingReports.Tables.AccountAnalysis
+            columns="{{ columns }}"
+            dataSource="{{ dataSource }}"
+         />
+         <SBIS3.CONTROLS.Action.List.Sum
+            name="sumAction"
+            fields="{{ _sumColumns }}">
+         </SBIS3.CONTROLS.Action.List.Sum>
+      </ws:content>
+      <ws:filterButtonConfig
+         class="accountingReports-AccountAnalysis__filter-button"
+         filterStructure="{{ filterStructure }}"
+         viewMode="twoColumns"
+         areaCaption="Отбираются">
+         <ws:pickerConfig
+            className="accountingReports-AccountAnalysis__filterPanel"
+            locationStrategy="{{ locationStrategy }}"
+         />
+         <ws:additionalFilterParamsTemplate>
+            <ws:partial
+               template="AccountingReports/AdditionReportFilterPanel/AdditionReportFilterPanel"
+               reportName="{{ reportName }}"
+               filterStr="{{ filterStr }}">
+            </ws:partial>
+         </ws:additionalFilterParamsTemplate>
+         <ws:template>
+            <ws:partial
+               template="AccountingReports/ReportFilterPanel/ReportFilterPanel"
+               reportName="{{ reportName }}"
+               filterStr="{{ filterStr }}">
+            </ws:partial>
+         </ws:template>
+      </ws:filterButtonConfig>
+   </WS3Browser.New.Report>
+</div>

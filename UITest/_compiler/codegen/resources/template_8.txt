@@ -1,0 +1,54 @@
+<div data-lmtype="Dialog"> 
+      <div class="ws-window-titlebar-custom">
+         <SBIS3.CONTROLS.Button
+            name="Send"
+            class="CaptureDialog__sendButton"
+            caption="ОК"
+            primary="{{true}}"
+            tabindex="{{4}}"
+         />
+      </div>
+   <div class="ws-window-titlebar-custom CaptureDialog__titlebar" data-lmchild="WindowTitle"> </div>
+   <div class="CaptureDialog__content">
+      <div> 
+         {[Из-под вашей учетной записи было отправлено]}<br/>
+         {[много запросов. Для подтверждения, что]} <a class="asLink" target="_blank" href="https://help.sbis.ru/help/partner/captcha/">{[вызовы]}<br/>
+         {[не исполняются роботом]}</a>{[, введите код, указанный ниже.]}
+      </div>
+      <div class="CaptureDialog__contentBlock">
+         <SBIS3.CONTROLS.Image
+            name="Captha"
+            class="CaptureDialog__captcha"
+            imageBar="{{true}}"
+            enabled="{{false}}"
+            defaultImage="{{defaultImage}}"
+            tabindex="{{3}}"
+         />
+
+         <SBIS3.CONTROLS.Link
+            name="Reload"
+            class="CaptureDialog__reloadLink"
+            caption="{[Обновить]}"
+            icon="sprite:icon-16 icon-Refresh icon-primary action-hover"
+            tabindex="{{2}}"
+         />
+
+         <SBIS3.CONTROLS.TextBox
+            name="Код"
+            class="CaptureDialog__textBox"
+            placeholder="{[Введите код, указанный на картинке]}"
+            tabindex="{{1}}"
+         >
+            <ws:validators>
+               <ws:Array>
+                  <ws:Object
+                     option="text"
+                  >
+                     <ws:validator type="function">SBIS3.CONTROLS/Utils/ControlsValidators:required</ws:validator>
+                  </ws:Object>
+               </ws:Array>
+            </ws:validators>
+         </SBIS3.CONTROLS.TextBox>
+      </div>
+   </div>
+</div>
