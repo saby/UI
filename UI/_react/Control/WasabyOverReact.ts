@@ -137,12 +137,12 @@ export class Control<
 
       if (promisesToWait.length) {
          Promise.all(promisesToWait).then(() => {
+            this._$controlMounted = true;
             this.setState(
                {
                   loading: false
                },
                () => {
-                  this._$controlMounted = true;
                   this._options = options;
                   this._afterMount(options);
                }
@@ -224,6 +224,10 @@ export class Control<
       // Do
    }
 
+   protected _afterRender(oldOptions?: TOptions, oldContext?: any): void {
+      // Do
+   }
+
    /**
     * Хук жизненного цикла контрола. Вызывается до удаления контрола.
     * @remark Это последний хук жизненного цикла контрола. Контрол не будет существовать после вызова этого хука.
@@ -284,7 +288,8 @@ export class Control<
 
    componentDidUpdate(prevProps: TOptions): void {
       const oldOptions = this._options;
-      this._options = createWasabyOptions(prevProps, this.context);
+      this._options = createWasabyOptions(this.props, this.context);
+      this._afterRender(oldOptions);
       setTimeout(() => {
          this._afterUpdate(oldOptions);
       }, 0);

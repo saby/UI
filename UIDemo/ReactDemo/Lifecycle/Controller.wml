@@ -1,0 +1,21 @@
+<div class="demo-flex">
+    <div>
+        <h1>Проверяем хуки жизненного цикла</h1>
+        <ws:if data="{{show}}">
+            <UIDemo.ReactDemo.Lifecycle.Lifecycle
+                    addLog="{{addLog}}"
+                    value="{{value}}"
+            />
+        </ws:if>
+        <button name="button" disabled="{{!show}}">Add</button>
+        <button name="hideButton">{{show ? 'Hide' : 'Show'}}</button>
+        <button name="clearLogs">Clear Logs</button>
+        <div>
+            <ws:if data="{{showAsync}}">
+                <UIDemo.ReactDemo.Lifecycle.AsyncMount addLog="{{addLog}}"/>
+            </ws:if>
+            <button name="asyncBtn">{{showAsync ? 'Hide async' : 'Show async'}}</button>
+        </div>
+    </div>
+    <UIDemo.ReactDemo.Lifecycle.Logger.Logger addLog="{{addLog}}"/>
+</div>
