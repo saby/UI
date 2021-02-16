@@ -940,6 +940,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
    __beforeUpdate(newOptions: TOptions, context?: Record<string, any>): void {
       if (newOptions.theme !== this._options.theme) {
          this.loadThemes(newOptions.theme);
+         this.loadThemeVariables(newOptions.theme);
       }
       this._beforeUpdate.apply(this, arguments);
    }
