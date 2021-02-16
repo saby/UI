@@ -10,11 +10,11 @@ export default class AsyncMount extends Control<AsyncMountOptions> {
     protected _template: TemplateFunction = template;
 
     protected _beforeMount(options: AsyncMountOptions): Promise<void> {
-        options.addLog(`Async _beforeMount start,
+        options.addLog(`AsyncMount _beforeMount start,
         options: ${JSON.stringify(options)}`);
         return new Promise((res) => {
             setTimeout(() => {
-                options.addLog(`Async _beforeMount end,
+                options.addLog(`AsyncMount _beforeMount end,
         options: ${JSON.stringify(options)}`);
                 res();
             }, 1500);
@@ -22,7 +22,11 @@ export default class AsyncMount extends Control<AsyncMountOptions> {
     }
 
     protected _afterMount(options: AsyncMountOptions, context?: object) {
-        options.addLog(`Async _afterMount,
+        options.addLog(`AsyncMount _afterMount,
         options: ${JSON.stringify(options)}`);
+    }
+
+    protected _beforeUnmount() {
+        this._options.addLog('AsyncMount _beforeUnmount');
     }
 }
