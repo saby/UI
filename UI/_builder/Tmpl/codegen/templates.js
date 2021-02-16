@@ -87,7 +87,7 @@ define('UI/_builder/Tmpl/codegen/templates', [
       var localDependenciesList = '';
       var privateTemplates = '';
       var mainTemplateFunctionName = templateFunction.name;
-      if (mainTemplateFunctionName === '') {
+      if (mainTemplateFunctionName === 'anonymous') {
          mainTemplateFunctionName = 'template';
       }
       var template = templateFunction.toString()
