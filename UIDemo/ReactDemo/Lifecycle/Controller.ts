@@ -1,69 +1,67 @@
-import {TemplateFunction} from 'UI/Base';
-import {Control} from 'UI/ReactComponent';
+import {Control, TemplateFunction} from 'UI/Base';
 import * as template from 'wml!UIDemo/ReactDemo/Lifecycle/Controller';
-import LoggerService from "UIDemo/ReactDemo/Lifecycle/Logger/LoggerService";
 import 'css!UIDemo/ReactDemo/Lifecycle/Controller';
 
 export default class LifecycleController extends Control {
     protected _template: TemplateFunction = template;
     protected value: number = 0;
+    protected color: string = 'black';
     protected logs: string[] = [];
     protected show: boolean = true;
     protected showAsync: boolean = false;
     protected addHandler: () => void;
+    protected minusHandler: () => void;
+    protected colorHandler: () => void;
     protected hideHandler: () => void;
-    protected clearHandler: () => void;
     protected asyncHandler: () => void;
-    protected _btn: HTMLElement;
+    protected _plus: HTMLElement;
+    protected _minus: HTMLElement;
+    protected _color: HTMLElement;
     protected _hideBtn: HTMLElement;
-    protected _clearBtn: HTMLElement;
     protected _asyncBtn: HTMLElement;
-    protected logger = LoggerService.getInstance();
 
     constructor(...args: [object]) {
         super(...args);
-        this.addLog = this.addLog.bind(this);
         this.addHandler = () => {
-            this.changeValue();
+            this.value++;
+            this._forceUpdate();
+        };
+        this.minusHandler = () => {
+            this.value--;
+            this._forceUpdate();
+        };
+        this.colorHandler = () => {
+            this.color = this.color === 'black' ? 'red' : 'black';
+            this._forceUpdate();
         };
         this.hideHandler = () => {
             this.show = !this.show;
-            this.forceUpdate();
-        };
-        this.clearHandler = () => {
-            this.logger.clear();
+            this._forceUpdate();
         };
         this.asyncHandler = () => {
             this.showAsync = !this.showAsync;
-            this.forceUpdate();
+            this._forceUpdate();
         };
     }
 
     protected _afterMount(options?: {}, context?: object) {
-        this._btn = this._children.button as HTMLElement;
+        this._plus = this._children.plus as HTMLElement;
+        this._color = this._children.color as HTMLElement;
+        this._minus = this._children.minus as HTMLElement;
         this._hideBtn = this._children.hideButton as HTMLElement;
-        this._clearBtn = this._children.clearLogs as HTMLElement;
         this._asyncBtn = this._children.asyncBtn as HTMLElement;
-        this._btn.addEventListener('click', this.addHandler);
+        this._plus.addEventListener('click', this.addHandler);
+        this._minus.addEventListener('click', this.minusHandler);
+        this._color.addEventListener('click', this.colorHandler);
         this._hideBtn.addEventListener('click', this.hideHandler);
-        this._clearBtn.addEventListener('click', this.clearHandler);
-        this._clearBtn.addEventListener('click', this.clearHandler);
         this._asyncBtn.addEventListener('click', this.asyncHandler);
     }
 
     protected _beforeUnmount() {
-        this._btn.removeEventListener('click', this.addHandler);
+        this._plus.removeEventListener('click', this.addHandler);
+        this._minus.removeEventListener('click', this.minusHandler);
+        this._color.removeEventListener('click', this.colorHandler);
         this._hideBtn.removeEventListener('click', this.hideHandler);
-        this._clearBtn.removeEventListener('click', this.clearHandler);
         this._asyncBtn.removeEventListener('click', this.asyncHandler);
-    }
-
-    changeValue(): void {
-        this.value++;
-        this.forceUpdate();
-    }
-
-    addLog(log: string): void {
-        this.logger.add(log);
     }
 }

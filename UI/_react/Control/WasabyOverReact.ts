@@ -29,6 +29,10 @@ export class Control<
     */
    private _$controlMounted: boolean = false;
    /**
+    * Используется для того, чтобы не вызывать _beforeMount для асинхронных компонентов повторно
+    */
+   private _$asyncMountInProgress: boolean = false;
+   /**
     * Набор детей контрола, для которых задан атрибут name.
     */
    _children: Record<string, Element | Control> = {};
@@ -120,7 +124,6 @@ export class Control<
       const oldOptions = this._options;
       this._options = {} as TOptions;
       const res = this._beforeMount(options);
-      this._options = oldOptions;
 
       if (res && res.then) {
          promisesToWait.push(res);
@@ -136,13 +139,15 @@ export class Control<
       }
 
       if (promisesToWait.length) {
+         this._$asyncMountInProgress = true;
          Promise.all(promisesToWait).then(() => {
-            this._$controlMounted = true;
             this.setState(
                {
                   loading: false
                },
                () => {
+                  this._$controlMounted = true;
+                  this._$asyncMountInProgress = false;
                   this._options = options;
                   this._afterMount(options);
                }
@@ -150,6 +155,7 @@ export class Control<
          });
          return true;
       } else {
+         this._options = oldOptions;
          this._$controlMounted = true;
          return false;
       }
@@ -228,6 +234,10 @@ export class Control<
       // Do
    }
 
+   protected _componentDidUpdate(oldOptions?: TOptions, oldContext?: any): void {
+      // Do
+   }
+
    /**
     * Хук жизненного цикла контрола. Вызывается до удаления контрола.
     * @remark Это последний хук жизненного цикла контрола. Контрол не будет существовать после вызова этого хука.
@@ -290,6 +300,7 @@ export class Control<
       const oldOptions = this._options;
       this._options = createWasabyOptions(this.props, this.context);
       this._afterRender(oldOptions);
+      this._componentDidUpdate(oldOptions);
       setTimeout(() => {
          this._afterUpdate(oldOptions);
       }, 0);
@@ -315,7 +326,7 @@ export class Control<
       const wasabyOptions = createWasabyOptions(this.props, this.context);
       let asyncMount = false;
 
-      if (!this._$controlMounted) {
+      if (!this._$controlMounted && !this._$asyncMountInProgress) {
          asyncMount = this._beforeFirstRender(wasabyOptions);
       }
 
