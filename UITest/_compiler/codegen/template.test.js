@@ -26,7 +26,8 @@ define([
     function check(mode, code) {
         var regex = /function ([\w\d]+)\s*\(/gi;
         var storage = { };
-        for (var match of code.matchAll(regex)) {
+        var match;
+        while ((match = regex.exec(code)) !== null) {
             var name = match[1];
             if (storage.hasOwnProperty(name) && !isAllowedDuplication(mode, name)) {
                 throw new Error('Скомпилированный код содержит переопределение функций. Обнаружено переопределение функции "' + name + '"');
