@@ -979,10 +979,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
                         childControlNode.control
                     );
 
-                    OptionsResolver.validateOptions(childControlNode.controlClass,
-                        newOptions,
-                        // @ts-ignore
-                        childControlNode.parent.control._moduleName);
+                    OptionsResolver.validateOptions(childControlNode.controlClass, newOptions);
 
                     // @ts-ignore Freeze options if control doesn't have compatible layer
                     if (Object.freeze && !(childControl.hasCompatible && childControl.hasCompatible())) {
