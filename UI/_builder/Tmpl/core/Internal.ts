@@ -1,9 +1,10 @@
 
-/**
- * Флаг включения/выключения нового механизма формирования internal-выражений для dirty checking проверок.
- */
 const USE_INTERNAL_MECHANISM = false;
 
-export function isUseNewInternalMechanism(): boolean {
+export function canUseNewInternalMechanism(): boolean {
     return USE_INTERNAL_MECHANISM;
- }
+}
+
+export function process(...args: any[]): any {
+    throw new Error('Not implemented yet');
+}

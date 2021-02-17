@@ -6,8 +6,9 @@ define('UI/_builder/Tmpl/modules/data/object', [
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
    'UI/_builder/Tmpl/modules/utils/parse',
    'UI/_builder/Tmpl/codegen/templates',
-   'UI/_builder/Tmpl/codegen/TClosure'
-], function objectLoader(ErrorHandlerLib, tagUtils, DTC, common, FSC, parseUtils, templates, TClosure) {
+   'UI/_builder/Tmpl/codegen/TClosure',
+   'UI/_builder/Tmpl/codegen/Internal'
+], function objectLoader(ErrorHandlerLib, tagUtils, DTC, common, FSC, parseUtils, templates, TClosure, Internal) {
    'use strict';
 
    /**
@@ -79,6 +80,11 @@ define('UI/_builder/Tmpl/modules/data/object', [
          );
       }
 
+      if (Internal.canUseNewInternalFunctions() && this.privateFn /* Есть privateFn <--> компилируем wml */) {
+         // TODO: Test and remove code above
+         injected.internal = Internal.generate(injected.__$ws_internalTree, this.privateFn);
+      }
+
       if (objectForMerge && objectForMerge.createdscope) {
          curatedScope = objectForMerge.obj;
       } else {
@@ -111,6 +117,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
                         {
                            attribs: injected[i].attribs,
                            internal: injected[i].internal,
+                           __$ws_internalTree: injected[i].__$ws_internalTree,
                            children: injected[i].children,
                            isControl: realInjected.isControl,
                            rootConfig: realInjected.rootConfig
@@ -131,6 +138,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
                   {
                      attribs: realInjected.attribs,
                      internal: realInjected.internal,
+                     __$ws_internalTree: realInjected.__$ws_internalTree,
                      children: injected,
                      isControl: realInjected.isControl,
                      rootConfig: realInjected.rootConfig
@@ -149,6 +157,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
                   {
                      attribs: injected[i].attribs,
                      internal: injected[i].internal,
+                     __$ws_internalTree: injected[i].__$ws_internalTree,
                      children: injected[i].children,
                      isControl: realInjected.isControl,
                      rootConfig: realInjected.rootConfig || curatedScope,
@@ -170,6 +179,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
                   {
                      attribs: realInjected.attribs,
                      internal: realInjected.internal,
+                     __$ws_internalTree: realInjected.__$ws_internalTree,
                      children: injected,
                      isControl: realInjected.isControl,
                      rootConfig: realInjected.rootConfig || curatedScope,
@@ -276,6 +286,19 @@ define('UI/_builder/Tmpl/modules/data/object', [
                   ? realInjected.internal
                   : null
             );
+         
+         var currentInternalTreeForInjected = injected && injected.__$ws_internalTree
+            ? injected.__$ws_internalTree
+            : (
+               realInjected && realInjected.__$ws_internalTree
+                  ? realInjected.__$ws_internalTree
+                  : null
+            );
+         if (Internal.canUseNewInternalFunctions() && currentInternalTreeForInjected && this.privateFn) {
+            // TODO: Test and remove code above
+            currentInternalForInjected = Internal.generate(currentInternalTreeForInjected, this.privateFn);
+         }
+
          if (currentInternalForInjected) {
             dirtyCh += FSC.getStr(currentInternalForInjected);
          } else {

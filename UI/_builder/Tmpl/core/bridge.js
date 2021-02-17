@@ -97,7 +97,7 @@ define('UI/_builder/Tmpl/core/bridge', [
     * New annotation method.
     */
    function annotateWithVisitors(traversed, options, traverseOptions, deferred) {
-      if (Internal.isUseNewInternalMechanism()) {
+      if (Internal.canUseNewInternalMechanism()) {
          Internal.process(traversed, traverseOptions.scope);
       } else {
          Annotate.default(traversed, traverseOptions.scope);
