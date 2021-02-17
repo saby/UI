@@ -1,16 +1,14 @@
 <div class="demo-flex">
     <div>
         <h1>Проверяем хуки жизненного цикла</h1>
-        <h2>Counter</h2>
+        <h2>Checkbox</h2>
         <ws:if data="{{show}}">
-            <UIDemo.ReactDemo.Lifecycle.Counter
+            <UIDemo.ReactDemo.Lifecycle.Checkbox
+                    changeHandler="{{toggleHandler}}"
                     color="{{color}}"
                     value="{{value}}"
             />
         </ws:if>
-        <button name="plus" disabled="{{!show}}">Plus</button>
-        <button name="minus" disabled="{{!show}}">Minus</button>
-        <button name="color" disabled="{{!show}}">Change color without rerender</button>
         <button name="hideButton">{{show ? 'Hide' : 'Show'}}</button>
         <button name="clearLogs">Clear Logs</button>
         <div>

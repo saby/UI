@@ -1,1 +1,0 @@
-<div attr:style="color: {{_options.color}};">{{_options.value}}</div>

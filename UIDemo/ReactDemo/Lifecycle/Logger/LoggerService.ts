@@ -31,6 +31,7 @@ export default class LoggerService {
 
     subscribe(cb: Function): void {
         this._subscribes.push(cb);
+        cb(this.logs);
     }
 
     public static getInstance(): LoggerService {
