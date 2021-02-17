@@ -126,15 +126,16 @@ define('UI/_builder/Tmpl/function', [
 
          // Запомнить вычисленное имя функции и определить ее идентификатор в случае повторения имени
          if (this.functionNames) {
-            if (functionName in this.functionNames) {
-               var idx = this.functionNames[functionName].toString();
-               this.functionNames[functionName]++;
-               functionName += '_' + idx;
-            } else {
+            var isAlreadyExist = this.functionNames.hasOwnProperty(functionName);
+            if (!isAlreadyExist) {
                this.functionNames[functionName] = 1;
+               return functionName;
             }
+            functionName += ('_' + this.functionNames[functionName].toString());
+            this.functionNames[functionName]++;
          }
-         if (functionName in this.functionNames) {
+         // Перед возвратом имени убедиться, что не происходит переопределение
+         if (this.functionNames.hasOwnProperty(functionName)) {
             return this.getFuncName(functionName);
          }
          return functionName;
