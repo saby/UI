@@ -36,7 +36,7 @@ import {
    IControlConfig,
    IGeneratorNameObject
 } from '../IGeneratorType';
-import { GeneratorNode } from './IVdomType';
+import { TGeneratorNode } from './IVdomType';
 import { cutFocusAttributes } from '../Utils';
 import { VNode } from 'Inferno/third-party/index';
 
@@ -169,7 +169,7 @@ export class GeneratorVdom implements IGenerator {
                    attrs: IGeneratorAttrs,
                    _: string,
                    deps?: TDeps,
-                   preparedData?: IPrepareDataForCreate): GeneratorNode | GeneratorVoid {
+                   preparedData?: IPrepareDataForCreate): TGeneratorNode | GeneratorVoid {
       const data = preparedData || this.prepareDataForCreate(name, scope, attrs, deps);
       const controlClass = data.controlClass;
 
@@ -204,7 +204,7 @@ export class GeneratorVdom implements IGenerator {
       scope: IControlProperties,
       attributes: IGeneratorAttrs,
       context: string,
-      _deps?: TDeps): string | ITemplateNode | GeneratorNode {
+      _deps?: TDeps): string | ITemplateNode | TGeneratorNode {
       let resultingFn;
       if (Common.isString(name)) {
          // @ts-ignore
@@ -306,7 +306,7 @@ export class GeneratorVdom implements IGenerator {
       }
 
       if (Common.isControlClass(fn)) {
-         return this.createWsControl(fn, resolvedScope, decorAttribs, context, _deps, data) as GeneratorNode;
+         return this.createWsControl(fn, resolvedScope, decorAttribs, context, _deps, data) as TGeneratorNode;
       }
 
       if (Common.isTemplateClass(fn)) {
