@@ -580,6 +580,19 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     // @ts-ignore
     newNode.control.saveInheritOptions(newNode.inheritOptions);
 
+
+     const controlNodesIter = [];
+    /*const fillCNM = (controlNode: IControlNode) => {
+        controlNodesIter.push([controlNode.vnode, controlNode]);
+        // tslint:disable-next-line: no-unused-expression
+        controlNode.childrenNodes && controlNode.childrenNodes.forEach(fillCNM);
+    };
+    node.childrenNodes.forEach(fillCNM); */
+    for (let i = 0; i < node.childrenNodes.length; i++) {
+        controlNodesIter.push([node.childrenNodes[i].vnode, node.childrenNodes[i]]);
+    }
+    const controlNodeVnodesMap = new Map<IGeneratorVNode | ITemplateNode, IControlNode>(controlNodesIter);
+
     const oldMarkup = node.markup;
     ReactiveObserver.forbidReactive(newNode.control, () => {
        newNode.markup = getDecoratedMarkup(newNode);
@@ -595,15 +608,6 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
 
     const diff = getMarkupDiff(oldMarkup, newNode.markup, false, false);
     Logger.debug('DirtyChecking (diff)', diff);
-
-    const controlNodesIter = [];
-    const fillCNM = (controlNode: IControlNode) => {
-        controlNodesIter.push([controlNode.vnode.key, controlNode]);
-        // tslint:disable-next-line: no-unused-expression
-        controlNode.childrenNodes && controlNode.childrenNodes.forEach(fillCNM);
-    };
-    node.childrenNodes.forEach(fillCNM);
-    const controlNodeVnodesMap = new Map<IGeneratorVNode | ITemplateNode, IControlNode>(controlNodesIter);
 
     let needRenderMarkup = false;
     if (diff.destroy.length || diff.vnodeChanged) {
@@ -804,13 +808,8 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     let updateNodesByUnchangedTemplates: IControlNode[] = [];
     notUpdatedTemplates.forEach((TNode: ITemplateNode, index: number) => {
         const cnFill = (item: IGeneratorVNode | ITemplateNode) => {
-            if (controlNodeVnodesMap.has(item.key)) {
-                const CNode: IControlNode = controlNodeVnodesMap.get(item.key);
-                /**
-                 * У старой ControlNode TGeneratorNode шаблона предыдущей генерации.
-                 * Поэтому нужно заменить на TGeneratorNode текущей генерации
-                 */
-                CNode.vnode = item;
+            if (controlNodeVnodesMap.has(item)) {
+                const CNode: IControlNode = controlNodeVnodesMap.get(item);
                 updateNodesByUnchangedTemplates.push(CNode);
             }
             // tslint:disable-next-line: no-unused-expression
@@ -1084,6 +1083,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         newVNode.controlNodeIdx = idx;
         // In case of empty diff, events property has to be updated, because of the closure
         childControlNode.events = newVNode.controlEvents;
+        childControlNode.vnode = newVNode;
 
         // если нода содержит RawMarkupNode - internalOptions не существует
         const logicParent = childControlNode.internalOptions?.logicParent || childControlNode.options?.logicParent;
