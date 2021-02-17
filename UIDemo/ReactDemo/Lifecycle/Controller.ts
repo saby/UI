@@ -45,6 +45,10 @@ export default class LifecycleController extends Control {
     }
 
     protected _afterMount(options?: {}, context?: object) {
+        // Костыль с использованием глобальной переменной
+        // Проверяем вызов _beforeUnmount у дочернего контрола Counter, уберем как покроем настоящими тестами
+        // @ts-ignore
+        window.reactDemoCounterMount = true;
         this._plus = this._children.plus as HTMLElement;
         this._color = this._children.color as HTMLElement;
         this._minus = this._children.minus as HTMLElement;
@@ -55,6 +59,14 @@ export default class LifecycleController extends Control {
         this._color.addEventListener('click', this.colorHandler);
         this._hideBtn.addEventListener('click', this.hideHandler);
         this._asyncBtn.addEventListener('click', this.asyncHandler);
+    }
+
+    protected _afterUpdate(oldOptions?: {}, oldContext?: any) {
+        if (!this.show) {
+            //@ts-ignore
+            console.assert(this.show === window.reactDemoCounterMount,
+                'Не вызвался _beforeUnmount у компонента Counter');
+        }
     }
 
     protected _beforeUnmount() {

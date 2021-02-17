@@ -234,10 +234,6 @@ export class Control<
       // Do
    }
 
-   protected _componentDidUpdate(oldOptions?: TOptions, oldContext?: any): void {
-      // Do
-   }
-
    /**
     * Хук жизненного цикла контрола. Вызывается до удаления контрола.
     * @remark Это последний хук жизненного цикла контрола. Контрол не будет существовать после вызова этого хука.
@@ -300,7 +296,6 @@ export class Control<
       const oldOptions = this._options;
       this._options = createWasabyOptions(this.props, this.context);
       this._afterRender(oldOptions);
-      this._componentDidUpdate(oldOptions);
       setTimeout(() => {
          this._afterUpdate(oldOptions);
       }, 0);

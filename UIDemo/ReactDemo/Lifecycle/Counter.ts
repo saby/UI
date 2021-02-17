@@ -1,5 +1,4 @@
-import {TemplateFunction} from 'UI/Base';
-import {Control, IControlOptions} from 'UI/ReactComponent';
+import {Control, IControlOptions, TemplateFunction} from 'UI/Base';
 import * as template from 'wml!UIDemo/ReactDemo/Lifecycle/Counter';
 import {isEqual} from 'Types/object';
 
@@ -14,7 +13,9 @@ export default class Counter extends Control<CounterOptions> {
         console.assert(isEqual(this._options, {}), 'В хуке _beforeMount опции должны быть пустыми');
     }
 
-    protected _afterMount(options: CounterOptions, context?: object) {
+    protected _afterMount(options: CounterOptions, context?: object): void {
+        // @ts-ignore
+        window.reactDemoCounterMount = true;
         console.assert(isEqual(options, this._options), 'В хуке _afterMount опции в аргументах и на инстансе должны совпадать');
     }
 
@@ -22,19 +23,20 @@ export default class Counter extends Control<CounterOptions> {
         return options.value !== this._options.value;
     }
 
-    protected _beforeUpdate(newOptions: CounterOptions, newContext?: object) {
-        console.assert(!isEqual(newOptions, this._options), 'В хуке _beforeUpdate опции в аргументах и на инстансе должны отличаться');
+    protected _beforeUpdate(newOptions: CounterOptions, newContext?: object): void {
+        console.assert(newOptions.value !== this._options.value, 'В хуке _beforeUpdate опция value в аргументах и на инстансе должна отличаться');
     }
 
-    protected _afterRender(oldOptions: CounterOptions, oldContext?: any) {
-        console.assert(!isEqual(oldOptions, this._options), 'В хуке _afterRender опции в аргументах и на инстансе должны отличаться');
+    protected _afterRender(oldOptions: CounterOptions, oldContext?: any): void {
+        console.assert(oldOptions.value !== this._options.value, 'В хуке _afterRender опция value в аргументах и на инстансе должна отличаться');
     }
 
-    protected _componentDidUpdate(oldOptions?: CounterOptions, oldContext?: any) {
-        console.assert(!isEqual(oldOptions, this._options), 'В хуке _componentDidUpdate опции в аргументах и на инстансе должны отличаться');
+    protected _afterUpdate(oldOptions: CounterOptions, oldContext?: object): void {
+        console.assert(oldOptions.value !== this._options.value, 'В хуке _afterUpdate опция value в аргументах и на инстансе должна отличаться');
     }
 
-    protected _afterUpdate(oldOptions: CounterOptions, oldContext?: object) {
-        console.assert(!isEqual(oldOptions, this._options), 'В хуке _afterUpdate опции в аргументах и на инстансе должны отличаться');
+    protected _beforeUnmount(): void {
+        // @ts-ignore
+        window.reactDemoCounterMount = false;
     }
 }
