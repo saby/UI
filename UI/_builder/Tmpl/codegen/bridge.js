@@ -32,7 +32,7 @@ define('UI/_builder/Tmpl/codegen/bridge', [
       if (Array.isArray(templateNames)) {
          for (var index = 0; index < templateNames.length; ++index) {
             var name = templateNames[index];
-            processingToFunction.functionNames[name] = 2;
+            processingToFunction.functionNames[name] = 1;
          }
       }
       processingToFunction.privateFn = [];
@@ -49,7 +49,7 @@ define('UI/_builder/Tmpl/codegen/bridge', [
       if (Array.isArray(templateNames)) {
          for (var index = 0; index < templateNames.length; ++index) {
             var name = templateNames[index];
-            processingToFunction.functionNames[name] = 2;
+            processingToFunction.functionNames[name] = 1;
          }
       }
       processingToFunction.includedFunctions = { };

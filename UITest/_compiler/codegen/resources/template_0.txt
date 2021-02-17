@@ -1,0 +1,21 @@
+<ws:template name="content">
+    <div>1</div>
+</ws:template>
+
+<ws:template name="content_1">
+    <div>2</div>
+</ws:template>
+
+<ws:template name="content_2">
+    <div>3</div>
+</ws:template>
+
+<UIModule.Component>
+    <ws:partial template="content">
+        <UIModule.Component>
+            <ws:partial template="content_1">
+                <ws:partial template="content_2" />
+            </ws:partial>
+        </UIModule.Component>
+    </ws:partial>
+</UIModule.Component>
