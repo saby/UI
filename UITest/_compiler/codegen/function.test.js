@@ -180,13 +180,16 @@ define(['Compiler/codegen/function'], function(functionModule) {
             assert.isFalse('testFunction' in functionModule.functionNames);
          });
          it('names for string', function() {
-            var funcName = functionModule.setFunctionName(undefined, undefined, 'wml!A.B', 'testProperty');
+            var func = new Function();
+            var funcName = functionModule.setFunctionName(func, undefined, 'wml!A.B', 'testProperty');
             assert.isTrue(funcName === 'A_B');
             assert.isTrue(functionModule.functionNames['A_B'] === 1);
-            var funcName2 = functionModule.setFunctionName(undefined, { data: { type: 'text', value: 'wml!E.F' } }, 'tmpl!C.D', undefined);
+            var func2 = new Function();
+            var funcName2 = functionModule.setFunctionName(func2, { data: { type: 'text', value: 'wml!E.F' } }, 'tmpl!C.D', undefined);
             assert.isTrue(funcName2 === 'E_F');
             assert.isTrue(functionModule.functionNames['E_F'] === 1);
-            var funcName3 = functionModule.setFunctionName(undefined, { data: { type: 'text', value: 'wml!E.F' } }, undefined, 'testProperty');
+            var func3 = new Function();
+            var funcName3 = functionModule.setFunctionName(func3, { data: { type: 'text', value: 'wml!E.F' } }, undefined, 'testProperty');
             assert.isTrue(funcName3 === 'E_F_1');
             assert.isTrue(functionModule.functionNames['A_B'] === 1);
             assert.isTrue(functionModule.functionNames['E_F'] === 2);
