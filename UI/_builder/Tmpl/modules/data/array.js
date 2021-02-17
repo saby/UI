@@ -4,8 +4,9 @@ define('UI/_builder/Tmpl/modules/data/array', [
    'UI/_builder/Tmpl/modules/utils/tag',
    'UI/_builder/Tmpl/modules/data/utils/dataTypesCreator',
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
-   'UI/_builder/Tmpl/codegen/templates'
-], function arrayLoader(ErrorHandlerLib, parseUtils, tagUtils, DTC, FSC, templates) {
+   'UI/_builder/Tmpl/codegen/templates',
+   'UI/_builder/Tmpl/codegen/Internal'
+], function arrayLoader(ErrorHandlerLib, parseUtils, tagUtils, DTC, FSC, templates, Internal) {
    'use strict';
 
    /**
@@ -18,29 +19,37 @@ define('UI/_builder/Tmpl/modules/data/array', [
       return propertyName ? propertyName.split('/').pop() : propertyName;
    }
 
-   function generateFunction(htmlPropertyName, html, string, injected) {
-      var generatedString, cleanPropertyName = clearPropertyName(htmlPropertyName);
-      var wsTemplateName = injected && injected.attribs && injected.attribs._wstemplatename;
-      var generatedTemplate = this.getString(html, { }, this.handlers, { }, true);
-      var fileName = this.handlers.fileName;
-      var funcText = templates.generateTemplate(cleanPropertyName, generatedTemplate, fileName, !!string);
-      var dirtyCh = '';
-      var functionToWrap;
-      var postfixCall = string ? '(Object.create(data), null, context)' : '';
+   function generateInternal(string, injected, includedFn, privateFn) {
+      if (Internal.canUseNewInternalFunctions() && privateFn /* Есть privateFn <--> компилируем wml */) {
+         return FSC.getStr(Internal.generate(injected.__$ws_internalTree, privateFn));
+      }
 
+      var dirtyCh = '';
       if (!string) {
-         if (!this.includedFn) {
+         if (!includedFn) {
             dirtyCh = 'this.func.internal = ';
          }
          if (injected && injected.internal) {
             dirtyCh += FSC.getStr(injected.internal);
          } else {
             dirtyCh += '{}';
-            if (!this.includedFn) {
+            if (!includedFn) {
                dirtyCh += ';';
             }
          }
       }
+      return dirtyCh;
+   }
+
+   function generateFunction(htmlPropertyName, html, string, injected) {
+      var generatedString, cleanPropertyName = clearPropertyName(htmlPropertyName);
+      var wsTemplateName = injected && injected.attribs && injected.attribs._wstemplatename;
+      var generatedTemplate = this.getString(html, { }, this.handlers, { }, true);
+      var fileName = this.handlers.fileName;
+      var funcText = templates.generateTemplate(cleanPropertyName, generatedTemplate, fileName, !!string);
+      var functionToWrap;
+      var postfixCall = string ? '(Object.create(data), null, context)' : '';
+      var dirtyCh = generateInternal(string, injected, this.includedFn, this.privateFn);
 
       // eslint-disable-next-line no-new-func
       var func = new Function('data, attr, context, isVdom, sets, forceCompatible, generatorConfig', funcText);
@@ -91,7 +100,8 @@ define('UI/_builder/Tmpl/modules/data/array', [
             attribs: injected.attribs,
             isControl: injected.isControl,
             configObject: { },
-            rootConfig: injected.rootConfig
+            rootConfig: injected.rootConfig,
+            __$ws_internalTree: injected.__$ws_internalTree
          }, scopeData, propertyName, false);
          if (arrayAttributes && arrayAttributes.type === 'string') {
             stringFunctions = true;
