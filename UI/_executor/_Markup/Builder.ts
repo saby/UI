@@ -35,7 +35,7 @@ export class Builder implements IBuilder {
 
       var parentName = (_options._logicParent && _options._logicParent._moduleName) || '';
       var defaultOpts = OptionsResolver.getDefaultOptions(cnstr);
-      OptionsResolver.resolveOptions(cnstr, defaultOpts, _options, parentName);
+      OptionsResolver.resolveOptions(cnstr, defaultOpts, _options);
 
       var inst = new cnstr(_options),
          actualOptions = _options;
