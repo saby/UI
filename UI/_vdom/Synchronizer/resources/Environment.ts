@@ -2,6 +2,7 @@
 // tslint:disable: ban-ts-ignore
 
 import { render } from 'Inferno/third-party/index';
+import type { VNode } from 'Inferno/third-party/index';
 import { hydrate } from 'Inferno/third-party/hydrate';
 import { IControlNode, IMemoNode, TModifyHTMLNode } from '../interfaces';
 import { delay } from 'Types/function';
@@ -118,7 +119,7 @@ abstract class Environment {
       if (this._currentDirties[newNode.id] & DirtyKind.DIRTY) {
          rebuildChanges.add(newNode.id);
       }
-      const vnode = newNode.fullMarkup;
+      const vnode: VNode = newNode.fullMarkup;
       const newRootDOMNode = undefined;
 
       // добавляем vdom-focus-in и vdom-focus-out

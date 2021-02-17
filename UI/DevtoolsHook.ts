@@ -1,8 +1,8 @@
 import { TemplateFunction } from 'UI/Base';
 import { IControlNode } from './_vdom/Synchronizer/interfaces';
 import { IOptions } from './_vdom/Synchronizer/resources/Options';
-import { GeneratorNode } from 'UI/_executor/_Markup/Vdom/IVdomType';
-import { VNode } from 'Inferno/third-party/index';
+import { TGeneratorNode, IGeneratorControlNode } from "UI/_executor/_Markup/Vdom/IVdomType";
+import { VNode } from "Inferno/third-party/index";
 /**
  * Модуль для общения с Wasaby Developer Tools.
  * Краткий порядок общения с расширением:
@@ -153,7 +153,7 @@ function isControlChanges(
  * @param data Информация о контроле (изменившиеся опции, реактивные свойства, ссылка на шаблон и т.п.)
  */
 function onEndCommit(
-   node: IControlNode | ITemplateNode | GeneratorNode | VNode | any,
+   node: IControlNode | ITemplateNode | TGeneratorNode | VNode | any,
    data?: ITemplateChanges | IControlChanges | any
 ): void {
    if (foundDevtools) {
@@ -174,7 +174,7 @@ function onEndCommit(
  * Оборачивание обязательно должно происходить с доработкой расширения, иначе там время будет завышено.
  * @param node
  */
-function onStartLifecycle(node: IControlNode): void {
+function onStartLifecycle(node: IControlNode | IGeneratorControlNode): void {
    if (foundDevtools) {
       onStartLifecycleFunc(node);
    }
@@ -184,7 +184,7 @@ function onStartLifecycle(node: IControlNode): void {
  * Сообщает в расширение о завершении выполнения хука жизненного цикла (кроме _beforeMount и _beforeUnmount). Вызывается ровно один раз для одного хука.
  * @param node
  */
-function onEndLifecycle(node: IControlNode): void {
+function onEndLifecycle(node: IControlNode | IGeneratorControlNode): void {
    if (foundDevtools) {
       onEndLifecycleFunc(node);
    }
