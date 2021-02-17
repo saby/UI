@@ -14,6 +14,7 @@ import {
    TWasabyContext
 } from '../WasabyContext/WasabyContext';
 import { setReactGenerator } from 'UI/_react/Control/setReactGenerator';
+import { OptionsResolver } from 'UI/Executor';
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
@@ -308,6 +309,16 @@ export class Control<
 
    render(): React.ReactNode {
       const wasabyOptions = createWasabyOptions(this.props, this.context);
+
+      /*
+      Валидируем опции именно здесь по двум причинам:
+      1) Здесь они уже полностью вычислены.
+      2) Мы должны попадать сюда при любом построении.
+
+      На propTypes всех не перевели, потому что это не помогло бы - часть опций (readOnly и theme) берётся из контекста.
+       */
+      OptionsResolver.validateOptions(this.constructor, wasabyOptions);
+
       let asyncMount = false;
 
       if (!this._$controlMounted) {
