@@ -59,7 +59,6 @@ define('UI/_builder/Tmpl/modules/data/object', [
       var propName;
       var useful;
       var stepInto;
-      var internalData;
       var html;
 
       objectForMerge = parseUtils.parseAttributesForData.call(this, {
@@ -78,9 +77,6 @@ define('UI/_builder/Tmpl/modules/data/object', [
             injected.isControl,
             injected.rootConfig
          );
-         internalData = injected.internal;
-      } else {
-         internalData = {};
       }
 
       if (objectForMerge && objectForMerge.createdscope) {
@@ -281,7 +277,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
                   : null
             );
          if (currentInternalForInjected) {
-            dirtyCh += FSC.getStr(currentInternalForInjected, htmlPropertyName);
+            dirtyCh += FSC.getStr(currentInternalForInjected);
          } else {
             dirtyCh += '{}';
             if (!this.includedFn) {
