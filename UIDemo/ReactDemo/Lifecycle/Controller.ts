@@ -1,6 +1,7 @@
 import {Control, TemplateFunction} from 'UI/Base';
 import * as template from 'wml!UIDemo/ReactDemo/Lifecycle/Controller';
 import 'css!UIDemo/ReactDemo/Lifecycle/Controller';
+import LoggerService from 'UIDemo/ReactDemo/Lifecycle/Logger/LoggerService';
 
 export default class LifecycleController extends Control {
     protected _template: TemplateFunction = template;
@@ -13,12 +14,15 @@ export default class LifecycleController extends Control {
     protected minusHandler: () => void;
     protected colorHandler: () => void;
     protected hideHandler: () => void;
+    protected clearHandler: () => void;
     protected asyncHandler: () => void;
     protected _plus: HTMLElement;
     protected _minus: HTMLElement;
     protected _color: HTMLElement;
     protected _hideBtn: HTMLElement;
+    protected _clearBtn: HTMLElement;
     protected _asyncBtn: HTMLElement;
+    private logger: LoggerService = LoggerService.getInstance();
 
     constructor(...args: [object]) {
         super(...args);
@@ -38,6 +42,9 @@ export default class LifecycleController extends Control {
             this.show = !this.show;
             this._forceUpdate();
         };
+        this.clearHandler = () => {
+            this.logger.clear();
+        };
         this.asyncHandler = () => {
             this.showAsync = !this.showAsync;
             this._forceUpdate();
@@ -53,6 +60,7 @@ export default class LifecycleController extends Control {
         this._color = this._children.color as HTMLElement;
         this._minus = this._children.minus as HTMLElement;
         this._hideBtn = this._children.hideButton as HTMLElement;
+        this._clearBtn = this._children.clearLogs as HTMLElement;
         this._asyncBtn = this._children.asyncBtn as HTMLElement;
         this._plus.addEventListener('click', this.addHandler);
         this._minus.addEventListener('click', this.minusHandler);
@@ -64,8 +72,10 @@ export default class LifecycleController extends Control {
     protected _afterUpdate(oldOptions?: {}, oldContext?: any) {
         if (!this.show) {
             //@ts-ignore
-            console.assert(this.show === window.reactDemoCounterMount,
-                'Не вызвался _beforeUnmount у компонента Counter');
+            const success = this.show === window.reactDemoCounterMount;
+            this.logger.add(
+                `"_beforeUnmount" - вызван
+                Компонент: Counter`, success);
         }
     }
 
@@ -74,6 +84,7 @@ export default class LifecycleController extends Control {
         this._minus.removeEventListener('click', this.minusHandler);
         this._color.removeEventListener('click', this.colorHandler);
         this._hideBtn.removeEventListener('click', this.hideHandler);
+        this._clearBtn.removeEventListener('click', this.clearHandler);
         this._asyncBtn.removeEventListener('click', this.asyncHandler);
     }
 }
