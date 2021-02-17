@@ -252,7 +252,11 @@ export function mergeAttrs(attr1, attr2) {
             finalAttr.key = attr2[name];
          } else {
             if (!finalAttr.hasOwnProperty(name)) {
-               finalAttr[name] = attr2[name] || undefined;
+               if (attr2[name]) {
+                  finalAttr[name] = attr2[name];
+               } else {
+                  finalAttr[name] = attr2[name] === 0 ? 0 : undefined;
+               }
             }
          }
       }

@@ -789,15 +789,12 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
          // _reactiveStart means starting of monitor change in properties
          this._reactiveStart = true;
       }
-      const cssLoading = Promise.all([
-         this.loadThemes(options.theme),
-         this.loadStyles(),
-         this.loadThemeVariables(options.theme)
-      ]);
-      if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded(options.theme)) {
-         return this._$resultBeforeMount = resultBeforeMount;
-      }
-      return this._$resultBeforeMount = cssLoading.then(() => resultBeforeMount);
+      
+      this.loadThemes(options.theme);
+      this.loadStyles();
+      this.loadThemeVariables(options.theme);
+
+      return this._$resultBeforeMount = resultBeforeMount;
    }
 
    //#region CSS private
@@ -931,6 +928,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
    __beforeUpdate(newOptions: TOptions, context?: Record<string, any>): void {
       if (newOptions.theme !== this._options.theme) {
          this.loadThemes(newOptions.theme);
+         this.loadThemeVariables(newOptions.theme);
       }
       this._beforeUpdate.apply(this, arguments);
    }
