@@ -9,7 +9,7 @@ import { Logger } from 'UI/Utils';
 import { WasabyProperties, VNode } from 'Inferno/third-party/index';
 import { Map, Set } from 'Types/shim';
 
-import { htmlNode, textNode, GeneratorNode, ITemplateNode } from 'UI/Executor';
+import { htmlNode, textNode, TGeneratorNode, ITemplateNode } from 'UI/Executor';
 import { IControlNode } from '../interfaces';
 import { TControlConstructor } from 'UI/_base/Control';
 import { invisibleNodeTagName } from 'UI/Executor';
@@ -61,7 +61,7 @@ export function isInvisibleNodeType(vnode: any): any {
 }
 
 // TODO модификация этой функции приводит к большим проблемам. Нужно точнее разобрать
-export function getVNodeChidlren(vnode: VNode, getFromTemplateNodes: boolean = false): Array<GeneratorNode | VNode> {
+export function getVNodeChidlren(vnode: VNode, getFromTemplateNodes: boolean = false): Array<TGeneratorNode | VNode> {
    if (!vnode) {
       return [];
    }
@@ -175,16 +175,16 @@ function collectChildTemplateVNodes(vnode: any): any {
 type VNodeControl = VNode & { controlClass: TControlConstructor };
 
 interface IMarkupDiff {
-   create: GeneratorNode[];
+   create: TGeneratorNode[];
    createTemplates: ITemplateNode[];
-   destroy: GeneratorNode[];
+   destroy: TGeneratorNode[];
    destroyTemplates: ITemplateNode[];
-   update: Array<{ oldNode: GeneratorNode, newNode: GeneratorNode }>;
+   update: Array<{ oldNode: TGeneratorNode, newNode: TGeneratorNode }>;
    updateTemplates: Array<{ oldNode: ITemplateNode, newNode: ITemplateNode }>;
    vnodeChanged: boolean;
 }
 
-export function getMarkupDiff(oldNode: VNode, newNode: VNode,
+export function getMarkupDiff(oldNode: TGeneratorNode, newNode: TGeneratorNode,
                               ignoreLinkEqual: boolean = false, goin: boolean = false): IMarkupDiff {
    const result: IMarkupDiff = {
       create: [],
@@ -204,8 +204,8 @@ export function getMarkupDiff(oldNode: VNode, newNode: VNode,
    let oldChild;
    let newChild;
 
-   function reorder(oldChildren: any, newChildren: any): any {
-      function haveKeys(children: any): boolean {
+   function reorder(oldChildren: TGeneratorNode[], newChildren: TGeneratorNode[]): any {
+      function haveKeys(children: TGeneratorNode[]): boolean {
          if (children) {
             for (let i = 0, length = children.length; i !== length; i++) {
                if (children[i].key !== undefined) {
@@ -216,7 +216,7 @@ export function getMarkupDiff(oldNode: VNode, newNode: VNode,
          return false;
       }
 
-      function keyIndex(children: any): any {
+      function keyIndex(children: TGeneratorNode[]): any {
          const keys = new Map();
          const free = [];
          const length = children.length;
@@ -298,7 +298,7 @@ export function getMarkupDiff(oldNode: VNode, newNode: VNode,
       return result;
    }
 
-   function isEqualNode(n1: any, n2: any): any {
+   function isEqualNode(n1: TGeneratorNode, n2: TGeneratorNode): boolean {
       const isControl1 = n1 && isControlVNodeType(n1);
       const isControl2 = n2 && isControlVNodeType(n2);
       const isTemplate1 = n1 && isTemplateVNodeType(n1);
@@ -336,8 +336,8 @@ export function getMarkupDiff(oldNode: VNode, newNode: VNode,
       }
    }
 
-   function complexDiffFinder(oldNode: VNode | VNodeControl, newNode: VNode | VNodeControl,
-      isTemplateNode: any, goin: boolean): void {
+   function complexDiffFinder(oldNode: TGeneratorNode, newNode: TGeneratorNode,
+      isTemplateNode: boolean, goin: boolean): void {
       oldChildren = getVNodeChidlren(oldNode, isTemplateNode);
       newChildren = reorder(oldChildren, getVNodeChidlren(newNode, isTemplateNode));
 

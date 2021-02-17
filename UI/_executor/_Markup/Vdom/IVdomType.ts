@@ -34,4 +34,4 @@ export interface IGeneratorControlNode {
 }
 
 // Тип для генераторов Vdom-нод
-export type GeneratorNode = IGeneratorVNode & IGeneratorControlNode;
+export type TGeneratorNode = IGeneratorVNode & IGeneratorControlNode;

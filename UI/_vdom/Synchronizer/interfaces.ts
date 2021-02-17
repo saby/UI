@@ -2,6 +2,8 @@ import Control, { IControlOptions } from 'UI/_base/Control';
 import { IOptions } from 'UI/_vdom/Synchronizer/resources/Options';
 export { IOptions } from 'UI/_vdom/Synchronizer/resources/Options';
 import { VNode } from 'Inferno/third-party/index';
+import { IGeneratorControlNode } from "UI/_executor/_Markup/Vdom/IVdomType";
+import { ITemplateNode } from "UI/_executor/_Markup/IGeneratorType";
 
 export type TComponentAttrs = Record<string, unknown>;
 
@@ -61,7 +63,7 @@ export interface IControlNode extends IRebuildNode {
     hasCompound: false;
     receivedState: undefined;
     invisible: boolean;
-    vnode: VNode;
+    vnode: IGeneratorControlNode;
     environment: IDOMEnvironment;
 
     // TODO это нужно вынести в расширенные интерфейсы
@@ -127,13 +129,14 @@ export interface IHandlerInfo {
 }
 export interface IMemoForNode {
     createdNodes: IControlNode[];
-    createdTemplateNodes: Array<any>;
-    destroyedNodes: Array<any>;
+    createdTemplateNodes: ITemplateNode[];
+    destroyedNodes: IControlNode[];
     selfDirtyNodes: IControlNode[];
     updatedChangedNodes: IControlNode[];
     updatedChangedTemplateNodes: Array<any>;
     updatedNodes: IControlNode[];
     updatedUnchangedNodes: IControlNode[];
+    notUpdatedGNodes: IGeneratorControlNode[];
 }
 export interface IMemoNode {
     memo: IMemoForNode;
