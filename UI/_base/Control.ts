@@ -1480,7 +1480,7 @@ export default Control;
 
 /**
  * @name UI/_base/Control#theme
- * @cfg {String} Название темы оформления. В зависимости от темы загружаются различные таблицы стилей и применяются различные стили к контролу.
+ * @cfg {String} Название {@link /doc/platform/developmentapl/interface-development/themes/ темы оформления}. В зависимости от темы загружаются различные таблицы стилей и применяются различные стили к контролу.
  * @default default
  * @example
  * В следующем примере {@link Controls/Application} и все его дочерние контролы будут иметь стиль темы оформления "carry". Однако контрол Carry.Head будет иметь тему "presto".
