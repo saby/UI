@@ -70,6 +70,9 @@ define('Compiler/codegen/function', [
    }
 
    function isFunctionNameConfigurable(func) {
+      if (typeof func !== 'function') {
+         return false;
+      }
       // Не определять новое имя для функции, если дескриптор этого не позволяет
       // В FF36 <#name>configurable/writable есть false
       var descriptor = Object.getOwnPropertyDescriptor(func, 'name');
