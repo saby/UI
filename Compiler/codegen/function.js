@@ -13,7 +13,8 @@ define('Compiler/codegen/function', [
    'Compiler/utils/ErrorHandler',
    'Compiler/codegen/templates',
    'Compiler/codegen/Generator',
-   'Compiler/codegen/TClosure'
+   'Compiler/codegen/TClosure',
+   'Compiler/Config'
 ], function processingModule(
    Helpers,
    Process,
@@ -29,7 +30,8 @@ define('Compiler/codegen/function', [
    ErrorHandlerLib,
    templates,
    Generator,
-   TClosure
+   TClosure,
+   builderConfig
 ) {
    'use strict';
 
@@ -65,6 +67,16 @@ define('Compiler/codegen/function', [
 
          // Remove any invalid characters
          .replace(/[^\d\w_]/gi, EMPTY_STRING);
+   }
+
+   function isFunctionNameConfigurable(func) {
+      // Не определять новое имя для функции, если дескриптор этого не позволяет
+      // В FF36 <#name>configurable/writable есть false
+      var descriptor = Object.getOwnPropertyDescriptor(func, 'name');
+      if (!descriptor) {
+         return false;
+      }
+      return descriptor.configurable;
    }
 
    var processing = {
@@ -119,8 +131,11 @@ define('Compiler/codegen/function', [
                this.functionNames[functionName]++;
                functionName += '_' + idx;
             } else {
-               this.functionNames[functionName] = 2;
+               this.functionNames[functionName] = 1;
             }
+         }
+         if (functionName in this.functionNames) {
+            return this.getFuncName(functionName);
          }
          return functionName;
       },
@@ -131,11 +146,10 @@ define('Compiler/codegen/function', [
             return func.name;
          }
 
-         // Не определять новое имя для функции, если дескриптор этого не позволяет
-         // В FF65 <#name>configurable/writable есть false
-         if (typeof func === 'function' && !Object.getOwnPropertyDescriptor(func, 'name').configurable) {
-            return func.name;
+         if (!isFunctionNameConfigurable(func)) {
+            return this.getFuncName(builderConfig.privateFunctionName);
          }
+
          var functionName = this.getFuncName(propertyName, fileName, wsTemplateName);
 
          // В случае, если пришла функция, то нужно определить ее имя
