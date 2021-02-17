@@ -131,8 +131,9 @@ define('UI/_builder/Tmpl/function', [
                this.functionNames[functionName] = 1;
                return functionName;
             }
-            functionName += ('_' + this.functionNames[functionName].toString());
+            var idx = this.functionNames[functionName].toString();
             this.functionNames[functionName]++;
+            functionName += '_' + idx;
          }
          // Перед возвратом имени убедиться, что не происходит переопределение
          if (this.functionNames.hasOwnProperty(functionName)) {
