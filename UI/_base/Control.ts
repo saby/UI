@@ -789,12 +789,16 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
          // _reactiveStart means starting of monitor change in properties
          this._reactiveStart = true;
       }
-      
-      this.loadThemes(options.theme);
-      this.loadStyles();
-      this.loadThemeVariables(options.theme);
-
-      return this._$resultBeforeMount = resultBeforeMount;
+      const cssLoading = Promise.all([
+         this.loadThemes(options.theme),
+         this.loadStyles()
+      ]);
+      //При серверной верстке новые стили 100% успеют долететь
+      this.loadThemeVariables(options.theme)
+      if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded(options.theme)) {
+         return this._$resultBeforeMount = resultBeforeMount;
+      }
+      return this._$resultBeforeMount = cssLoading.then(() => resultBeforeMount);
    }
 
    //#region CSS private
