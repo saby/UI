@@ -29,10 +29,6 @@ export class Control<
     */
    private _$controlMounted: boolean = false;
    /**
-    * Используется для того, чтобы не вызывать _beforeMount для асинхронных компонентов повторно
-    */
-   private _$asyncMountInProgress: boolean = false;
-   /**
     * Набор детей контрола, для которых задан атрибут name.
     */
    _children: Record<string, Element | Control> = {};
@@ -125,6 +121,9 @@ export class Control<
       this._options = {} as TOptions;
       const res = this._beforeMount(options);
 
+      // Удаляем ссылку на функцию после первого вызова
+      this._beforeFirstRender = undefined;
+
       if (res && res.then) {
          promisesToWait.push(res);
       }
@@ -139,7 +138,6 @@ export class Control<
       }
 
       if (promisesToWait.length) {
-         this._$asyncMountInProgress = true;
          Promise.all(promisesToWait).then(() => {
             this.setState(
                {
@@ -147,7 +145,6 @@ export class Control<
                },
                () => {
                   this._$controlMounted = true;
-                  this._$asyncMountInProgress = false;
                   this._options = options;
                   this._afterMount(options);
                }
@@ -319,11 +316,7 @@ export class Control<
 
    render(): React.ReactNode {
       const wasabyOptions = createWasabyOptions(this.props, this.context);
-      let asyncMount = false;
-
-      if (!this._$controlMounted && !this._$asyncMountInProgress) {
-         asyncMount = this._beforeFirstRender(wasabyOptions);
-      }
+      let asyncMount = this._beforeFirstRender && this._beforeFirstRender(wasabyOptions);
 
       if (asyncMount && this.state.loading) {
          return getLoadingComponent();
