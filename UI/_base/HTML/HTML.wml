@@ -9,13 +9,19 @@
          <ws:if data="{{isCompatible}}">
             <div class="ws-focus-in"></div>
          </ws:if>
-         <ws:if data="{{ bodyContent }}">
+
+         <ws:if data="{{ reactApp }}">
+            <UI._base.HTML.Wait>
+               <div id="react-root" rootapp="{{ bodyContentTmpl }}"></div>
+            </UI._base.HTML.Wait>
+         </ws:if>
+         <ws:else data="{{ bodyContent }}">
             <UI._base.HTML.Wait>
                <ws:partial
                      template="{{ bodyContent }}"
                      scope="{{ templateConfig }}" />
             </UI._base.HTML.Wait>
-         </ws:if>
+         </ws:else>
          <ws:else>
             <UI._base.HTML.Wait content="">
             </UI._base.HTML.Wait>
@@ -62,7 +68,12 @@
                      <ws:partial template="{{ i }}"/>
                   </ws:for>
                </ws:if>
-               <UI._base.HTML.StartApplicationScript compat="{{compat}}" appRoot="{{ appRoot }}" onServer="{{ onServer }}"/>
+               <ws:if data="{{ reactApp }}">
+                  <UI._base.HTML.StartReactApplicationScript onServer="{{ onServer }}" />
+               </ws:if>
+               <ws:else>
+                  <UI._base.HTML.StartApplicationScript compat="{{compat}}" appRoot="{{ appRoot }}" onServer="{{ onServer }}"/>
+               </ws:else>
             </div>
          </ws:else>
 
