@@ -10,22 +10,19 @@
             <div class="ws-focus-in"></div>
          </ws:if>
 
-         <ws:if data="{{ reactApp }}">
-            <UI._base.HTML.Wait>
-               <div id="react-root" rootapp="{{ bodyContentTmpl }}"></div>
-            </UI._base.HTML.Wait>
-         </ws:if>
-         <ws:else data="{{ bodyContent }}">
-            <UI._base.HTML.Wait>
-               <ws:partial
-                     template="{{ bodyContent }}"
-                     scope="{{ templateConfig }}" />
-            </UI._base.HTML.Wait>
-         </ws:else>
-         <ws:else>
-            <UI._base.HTML.Wait content="">
-            </UI._base.HTML.Wait>
-         </ws:else>
+         <div id="react-root" rootapp="{{ bodyContentTmpl }}">
+            <ws:if data="{{ bodyContent }}">
+               <UI._base.HTML.Wait>
+                  <ws:partial
+                        template="{{ bodyContent }}"
+                        scope="{{ templateConfig }}" />
+               </UI._base.HTML.Wait>
+            </ws:if>
+            <ws:else>
+               <UI._base.HTML.Wait content="">
+               </UI._base.HTML.Wait>
+            </ws:else>
+         </div>
 
          <ws:if data="{{ scripts && _options.beforeScripts}}">
             <ws:for data="i in scripts">
