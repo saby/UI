@@ -19,7 +19,7 @@ export class LongTapController {
       }
    }
 
-   public static initState(event: IMobileEvent): IEventState {
+   public static initState(event: IMobileEvent, callbackFn: Function, callbackArgs: [unknown]): IEventState {
       if (MobileEvent.hasEventData(longTapState) || this.resetState()) {
          return;
       }
@@ -27,6 +27,7 @@ export class LongTapController {
       longTapState = MobileEvent.initEventState(event, longTapState, this, handlerName);
       this.tapTimeout = setTimeout(() => {
          this.detectState(event);
+         callbackFn(...callbackArgs);
       }, longTapState.minTapDuration);
       return longTapState;
    }

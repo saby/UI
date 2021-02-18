@@ -404,7 +404,10 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
 
       FastTouchEndController.setClickEmulateState(true);
       SwipeController.initState(event);
-      LongTapController.initState(event);
+      LongTapController.initState(event,
+         // т.к. callbackFn вызывается асинхронно, надо передавать с правильным контекстом
+         FastTouchEndController.setClickEmulateState.bind(FastTouchEndController),
+         [false]);
    }
    _handleTouchmove(event: any): any {
       if (this._shouldUseClickByTap()) {
