@@ -41,7 +41,7 @@ export class Control<
     * ВАЖНО: значения могут не совпадать с props в некоторые моменты времени,
     * чтобы в хуках были правильные значения.
     */
-   _options: TOptions;
+   _options: TOptions = {} as TOptions;
    // FIXME: не понимаю зачем объявлять _theme и _styles дважды: здесь и ниже.
    /** @deprecated */
    protected _theme: string[];
@@ -63,7 +63,6 @@ export class Control<
             `[${this._moduleName}] Неправильный вызов родительского конструктора, опции readOnly и theme могут содержать некорректные значения. Для исправления ошибки нужно передать в родительский конструктор все аргументы.`
          );
       }
-      this._options = createWasabyOptions(props, context);
       this.state = {
          loading: true
       };
@@ -112,16 +111,9 @@ export class Control<
     */
    private _beforeFirstRender(options: TOptions): boolean {
       const promisesToWait = [];
-
-      /*
-      Эти махинации с опциями нужны для того, чтобы имитировать старое поведение.
-      В _beforeMount в опциях лежал пустой объект, вот его мы туда и кладём.
-       */
-      const oldOptions = this._options;
-      this._options = {} as TOptions;
       const res = this._beforeMount(options);
 
-      // Удаляем ссылку на функцию после первого вызова
+      // Данный метод должен вызываться только при первом построении, поэтому очистим его на инстансе при вызове
       this._beforeFirstRender = undefined;
 
       if (res && res.then) {
@@ -152,7 +144,7 @@ export class Control<
          });
          return true;
       } else {
-         this._options = oldOptions;
+         this._options = options;
          this._$controlMounted = true;
          return false;
       }
@@ -316,7 +308,7 @@ export class Control<
 
    render(): React.ReactNode {
       const wasabyOptions = createWasabyOptions(this.props, this.context);
-      let asyncMount = this._beforeFirstRender && this._beforeFirstRender(wasabyOptions);
+      const asyncMount = this._beforeFirstRender && this._beforeFirstRender(wasabyOptions);
 
       if (asyncMount && this.state.loading) {
          return getLoadingComponent();
