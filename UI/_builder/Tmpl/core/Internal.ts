@@ -756,6 +756,9 @@ class IndexAllocator {
           this.dropAndAppend(identifiers, options.allocator);
        } else if (hasFunctionCall && DROP_TEST_FUNCTIONS || isForeignTest && DROP_FOREIGN_TEST) {
           this.storage.set(this.test);
+       } else {
+          // Do not modify conditional node
+          return;
        }
        this.setType(
           this.type === InternalNodeType.ELSE_IF
@@ -1165,11 +1168,12 @@ class InternalVisitor implements Ast.IAstVisitor {
           container,
           scope: context.scope
        };
-       node.__$ws_container = container;
        this.stack.push(AbstractNodeType.COMPONENT_OPTION);
        visitAll(node.__$ws_content, this, childContext);
        setRootNodeFlags(node.__$ws_content);
        this.stack.pop();
+       
+       node.__$ws_container = container;
        node.__$ws_internalTree = container.getInternalStructure();
        node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
     }
