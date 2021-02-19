@@ -1,0 +1,100 @@
+<div class="buh-ReportPage__dialog-revise-warehouse-accounting">
+   <div class="long-operations"></div>
+   <WS3Browser.New.Report
+      name="reviseWarehouseAccounting"
+      filterStr="{{ filterStr }}"
+      searchParam="search_string"
+      historyId="{{ historyId }}"
+      className="buh-Report__browser"
+      hierarchyViewMode="{{false}}"
+      toolbarConfig="{{ _toolbarConfig }}"
+      columnsEditorConfig="{{ columnsEditorConfig }}"
+      columnsConfig="{{ columnsConfig }}">
+      <ws:dateRender>
+         <ws:Function>
+            AccountingReports/Browsers/ReviseWarehouseAccounting:prototype.setDateFormat
+         </ws:Function>
+      </ws:dateRender>
+      <ws:operationsPanelConfig idProperty="id">
+         <ws:items>
+            <ws:Array>
+               <ws:Object id="1" componentType="SBIS3.CONTROLS/OperationsPanel/Mark">
+                  <ws:type mark="{{ true }}"/>
+                  <ws:options visible="{{true}}" />
+               </ws:Object>
+
+               <ws:Object id="2" componentType="SBIS3.CONTROLS/Link">
+                  <ws:options icon="sprite:icon-24 icon-Sum icon-primary" caption="Суммировать"  name="operationsSummButton">
+                     <ws:handlers>
+                        <ws:Object>
+                           <ws:onActivated>
+                              <ws:Function>AccountingReports/Browsers/ReviseWarehouseAccounting:prototype._onSummButtonActivate</ws:Function>
+                           </ws:onActivated>
+                        </ws:Object>
+                     </ws:handlers>
+                  </ws:options>
+                  <ws:type selection="{{ true }}" mass="{{ true }}"/>
+               </ws:Object>
+               <ws:Object id="3" name="delete" componentType="SBIS3.CONTROLS/Link">
+                  <ws:type selection="{{ true }}" mass="{{ true }}"/>
+                  <ws:options caption="Перепровести"
+                              icon="sprite:icon-24 icon-Refresh icon-primary"
+                              name="operationsRepostDocumentButton"
+                              command="reformPostInDocument">
+                     <ws:handlers>
+                        <ws:Object>
+                           <ws:onActivated>
+                              <ws:Function>AccountingReports/Browsers/ReviseWarehouseAccounting:prototype._onRepostDocumentButtonActivate</ws:Function>
+                           </ws:onActivated>
+                        </ws:Object>
+                     </ws:handlers>
+                  </ws:options>
+               </ws:Object>
+            </ws:Array>
+         </ws:items>
+      </ws:operationsPanelConfig>
+      <ws:filterButtonConfig
+         filterStructure="{{filterStructure}}">
+         <ws:additionalFilterParamsTemplate>
+            <ws:partial template="AccountingReports/AdditionReportFilterPanel/AdditionReportFilterPanel"
+                        captionAccounting="{{captionAccounting}}"
+                        onlyInventory="{{onlyInventory}}"
+                        showAccountChoice="{{showAccountChoice}}"
+                        filterStr="{{ filterStr }}"
+                        detail = "{{detail}}"
+            />
+         </ws:additionalFilterParamsTemplate>
+         <ws:template>
+            <ws:partial template="AccountingReports/ReportFilterPanel/ReportFilterPanel"
+                        captionAccounting="{{captionAccounting}}"
+                        onlyInventory="{{onlyInventory}}"
+                        showAccountChoice="{{showAccountChoice}}"
+                        filterStr="{{ filterStr }}"
+                        detail = "{{detail}}"
+                        reportName="ReviseWarehouseAccounting"
+            />
+         </ws:template>
+         <ws:viewMode><ws:String>twoColumns</ws:String></ws:viewMode>
+         <ws:areaCaption>Отбираются</ws:areaCaption>
+      </ws:filterButtonConfig>
+      <ws:searchConfig placeholder="Найти…"/>
+      <ws:title>{{ titleReport }}</ws:title>
+      <ws:prefetchParams
+         PrefetchLevels="1"
+         PrefetchPages="50"
+         PrefetchMethod="{{ prefetchMethod }}"
+         PrefetchIdColumn="id"
+         PrefetchHierarchyColumn="parent"
+      />
+      <ws:content>
+         <AccountingReports.Tables.ReviseWarehouseAccounting
+            columns = "{{ columns }}"
+            data_source = "{{ data_source }}"
+          />
+         <SBIS3.CONTROLS.Action.List.Sum
+            name="sumAction"
+            fields="{{ sumColumns }}"
+         />
+      </ws:content>
+   </WS3Browser.New.Report>
+</div>
