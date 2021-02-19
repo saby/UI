@@ -9,7 +9,7 @@ import cExtend = require('Core/core-extend');
 import { Synchronizer } from 'UI/Vdom';
 import { _IGeneratorType, OptionsResolver } from 'UI/Executor';
 import { ContextResolver } from 'UI/Contexts';
-import { _FocusAttrs, _IControl, activate } from 'UI/Focus';
+import { _FocusAttrs, _IControl, activate, Events, focus } from 'UI/Focus';
 import { Logger, Purifier, needToBeCompatible } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
 import { constants } from 'Env/Env';
@@ -682,6 +682,20 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
 
       return res;
    }
+
+    deactivate(): void {
+        const container = this._container;
+        const activeElement = document.activeElement;
+        if (!container.contains(activeElement)) {
+            return;
+        }
+
+        if (!focus(container)) {
+            return;
+        }
+
+        Events.notifyActivationEvents(container, activeElement);
+    }
 
    _afterCreate(cfg: any): void {
       // can be overridden
