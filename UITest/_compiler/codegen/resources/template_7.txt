@@ -1,0 +1,6 @@
+<div class="AdminMainPage__container">
+    <CloudTemplates.components.AdminBasicTemplate.AdminBasicTemplate
+        config="ActivityAdmin/components/AdminTemplateConfig/AdminTemplateConfig"
+        className="AdminBasicTemplate__container"
+    />
+</div>

@@ -1,0 +1,67 @@
+<div class="AddressForm ws-flexbox ws-align-items-baseline ws-justify-content-between">
+   <ACS.SuggestTextBoxAddress.SuggestTextBoxAddress
+      name="fullAddress"
+      text="{{'addressReverseIndex' |mutable: postalAddress}}"
+      className="ws-flex-grow-1 ws-autofocus"
+      searchParam="name"
+      size="{{ size }}"
+      startCharacter="{{1}}"
+      >
+      <ws:afterFieldWrapper>
+         <ws:partial template="{{ _afterFieldWrapper }}"
+                     iconLink="{{iconLink}}"
+                     captionLink="{{captionLink}}"
+                     text="{{'addressReverseIndex' |mutable: postalAddress}}"
+                     visibleInsideLink="{{visibleInsideLink}}"/>
+      </ws:afterFieldWrapper>
+      <ws:resultBindings>
+         <ws:Array>
+            <ws:Object contextField="addressReverseIndex" itemField="{{visibleIndex ? 'addressWithOutIndex' : 'Address'}}"/>
+            <ws:Object contextField="postalCode" itemField="Code"/>
+         </ws:Array>
+      </ws:resultBindings>
+      <ws:listFilter
+         code="{{'postalCode' |mutable}}"
+         onlyByName="{{ onlyByName }}">
+      </ws:listFilter>
+      <ws:validators>
+         <ws:Array>
+            <ws:Object
+               option="text"
+               >
+               <ws:validator type="function">SBIS3.CONTROLS/Utils/ControlsValidators:required</ws:validator>
+            </ws:Object>
+         </ws:Array>
+      </ws:validators>
+   </ACS.SuggestTextBoxAddress.SuggestTextBoxAddress>
+
+   <SBIS3.CONTROLS.Link
+      name="outsideLink"
+      size="{{ size }}"
+      className="AddressForm-FIAS"
+      visible="{{ false }}"
+      caption="{{ captionLink }}"
+      command="openAddressPanel"
+      icon="{{ iconLink }}">
+   </SBIS3.CONTROLS.Link>
+
+   <SBIS3.CONTROLS.Action.List.OpenEditDialog
+      name="actionDialog"
+      dialogComponent="WS3Postal/Dialog/Dialog"
+      mode="floatArea">
+   </SBIS3.CONTROLS.Action.List.OpenEditDialog>
+
+   <div class="ws-hidden">
+      <SBIS3.CONTROLS.Panel
+         name="disabledAddress"
+         className="AddressForm"
+         visible="{{false}}"
+      />
+
+      <SBIS3.CONTROLS.Panel
+         name="enableAddress"
+         className="AddressForm"
+         visible="{{false}}"
+      />
+   </div>
+</div>
