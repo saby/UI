@@ -1,0 +1,31 @@
+<div>
+    <div class="ws-window-titlebar-custom ws-flexbox ws-justify-content-between">
+        <SBIS3.CONTROLS.Button.IconButton
+                icon="sprite:icon-24 icon-Yes icon-done"
+                className="controls-IconButton__round-border-28 buh-AccountingTypeList__selectButton"
+                name="selectButton"
+                visible="{{ false }}">
+        </SBIS3.CONTROLS.Button.IconButton>
+    </div>
+    <div class="buh-AccountingTypeList__content">
+        <WS3Browser.Selector name="detailFilterBrowserView"
+                             linkedObjectName="browserView">
+            <ws:content>
+                <SBIS3.CONTROLS.DataGridView name="browserView"
+                                             class="controls-ListView__withoutMarker buh-AccountingTypeList__browserView"
+                                             showHead="{{ false }}"
+                                             idProperty="id"
+                                             displayProperty="title"
+                                             itemsDragNDrop="{{ false }}"
+                                             itemsActions="{{ [] }}"
+                                             itemContentTpl="tmpl!AccountingReports/AccountingType/AccountingTypeList/resources/ItemTpl">
+                    <ws:columns>
+                        <ws:Array>
+                            <ws:Object field="title"/>
+                        </ws:Array>
+                    </ws:columns>
+                </SBIS3.CONTROLS.DataGridView>
+            </ws:content>
+        </WS3Browser.Selector>
+    </div>
+</div>

@@ -44,15 +44,15 @@ define('UI/_builder/Tmpl/modules/data/array', [
 
       // eslint-disable-next-line no-new-func
       var func = new Function('data, attr, context, isVdom, sets, forceCompatible, generatorConfig', funcText);
-      this.setFunctionName(func, wsTemplateName, undefined, cleanPropertyName);
+      var funcName = this.setFunctionName(func, wsTemplateName, undefined, cleanPropertyName);
       this.includedFunctions[cleanPropertyName] = func;
       if (this.privateFn) {
          this.privateFn.push(func);
-         functionToWrap = func.name;
+         functionToWrap = funcName;
       } else {
          functionToWrap = func
             .toString()
-            .replace('function anonymous', 'function ' + func.name)
+            .replace('function anonymous', 'function ' + funcName)
             .replace(/\n/g, ' ');
       }
       if (this.includedFn) {
