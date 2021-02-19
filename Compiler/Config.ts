@@ -1,6 +1,11 @@
 const Config = {
 
     /**
+     * Имя private-функции по умолчанию
+     */
+    privateFunctionName: '__$privateFn',
+
+    /**
      * Типы узлов AST дерева, для которых не выполняется кодогенерация.
      */
     ignored: [

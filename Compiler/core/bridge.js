@@ -20,7 +20,7 @@ define('Compiler/core/bridge', [
    ScopeLib,
    Translator,
    dirtyCheckingPatch,
-   Utils,
+   Helpers,
    Annotate
 ) {
    'use strict';

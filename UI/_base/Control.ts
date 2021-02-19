@@ -9,7 +9,7 @@ import cExtend = require('Core/core-extend');
 import { Synchronizer } from 'UI/Vdom';
 import { _IGeneratorType, OptionsResolver } from 'UI/Executor';
 import { ContextResolver } from 'UI/Contexts';
-import { _FocusAttrs, _IControl, activate } from 'UI/Focus';
+import { _FocusAttrs, _IControl, activate, Events, focus } from 'UI/Focus';
 import { Logger, Purifier, needToBeCompatible } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
 import { constants } from 'Env/Env';
@@ -683,6 +683,20 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
       return res;
    }
 
+    deactivate(): void {
+        const container = this._container;
+        const activeElement = document.activeElement;
+        if (!container.contains(activeElement)) {
+            return;
+        }
+
+        if (!focus(container)) {
+            return;
+        }
+
+        Events.notifyActivationEvents(container, activeElement);
+    }
+
    _afterCreate(cfg: any): void {
       // can be overridden
    }
@@ -800,9 +814,10 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
       }
       const cssLoading = Promise.all([
          this.loadThemes(options.theme),
-         this.loadStyles(),
-         this.loadThemeVariables(options.theme)
+         this.loadStyles()
       ]);
+      //При серверной верстке новые стили 100% успеют долететь
+      this.loadThemeVariables(options.theme)
       if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded(options.theme)) {
          return this._$resultBeforeMount = resultBeforeMount;
       }
@@ -1492,7 +1507,7 @@ export default Control;
 
 /**
  * @name UI/_base/Control#theme
- * @cfg {String} Название темы оформления. В зависимости от темы загружаются различные таблицы стилей и применяются различные стили к контролу.
+ * @cfg {String} Название {@link /doc/platform/developmentapl/interface-development/themes/ темы оформления}. В зависимости от темы загружаются различные таблицы стилей и применяются различные стили к контролу.
  * @default default
  * @example
  * В следующем примере {@link Controls/Application} и все его дочерние контролы будут иметь стиль темы оформления "carry". Однако контрол Carry.Head будет иметь тему "presto".

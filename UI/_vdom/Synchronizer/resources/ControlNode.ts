@@ -208,10 +208,8 @@ export function createInstance(cnstr, userOptions, internalOptions, configForCre
         actualOptions._logicParent = internalOptions.logicParent;
     }
 
-    const parentName = internalOptions.logicParent && internalOptions.logicParent._moduleName;
-
     const defaultOpts = OptionsResolver.getDefaultOptions(cnstr);
-    OptionsResolver.resolveOptions(cnstr, defaultOpts, actualOptions, parentName);
+    OptionsResolver.resolveOptions(cnstr, defaultOpts, actualOptions);
 
     let inst;
     try {

@@ -258,18 +258,18 @@ define('Compiler/modules/data/object', [
 
          // eslint-disable-next-line no-new-func
          var func = new Function('data, attr, context, isVdom, sets, forceCompatible, generatorConfig', funcText);
-         this.setFunctionName(func, undefined, undefined, htmlPropertyName);
+         var funcName = this.setFunctionName(func, undefined, undefined, htmlPropertyName);
          this.includedFunctions[htmlPropertyName] = func;
          if (this.privateFn) {
             this.privateFn.push(func);
          }
          var fAsString = '';
          if (this.privateFn) {
-            fAsString = func.name;
+            fAsString = funcName;
          } else {
             fAsString = func
                .toString()
-               .replace('function anonymous', 'function ' + func.name)
+               .replace('function anonymous', 'function ' + funcName)
                .replace(/\n/g, ' ');
          }
          var dirtyCh = '';
