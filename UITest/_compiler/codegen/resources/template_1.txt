@@ -1,0 +1,11 @@
+<ws:template name="content">
+    <div>1</div>
+</ws:template>
+
+<ws:partial template="content">
+    <ws:partial template="content">
+        <ws:partial template="content">
+            <ws:partial template="content" />
+        </ws:partial>
+    </ws:partial>
+</ws:partial>
