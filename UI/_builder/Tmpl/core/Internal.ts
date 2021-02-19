@@ -563,11 +563,12 @@ class IndexAllocator {
  
     private registerFloatProgram(program: ProgramNode): void {
        const identifiers = collectIdentifiers(program, FILE_NAME);
-       this.commitIdentifiersAsPrograms(identifiers, this.identifiers);
+       this.commitIdentifiersAsPrograms(identifiers, this.identifiers, ProgramType.FLOAT);
        for (let index = 0; index < identifiers.length; ++index) {
           const identifier = identifiers[index];
           this.hoistIdentifier(identifier);
           this.commitIdentifier(identifier);
+          this.commitSelfIdentifier(identifier);
        }
     }
  
@@ -621,6 +622,13 @@ class IndexAllocator {
        this.identifiers.push(identifier);
     }
  
+    private commitSelfIdentifier(identifier: string): void {
+       if (this.selfIdentifiers.indexOf(identifier) > -1) {
+          return;
+       }
+       this.selfIdentifiers.push(identifier);
+    }
+ 
     private hoistReactiveIdentifier(identifier: string): void {
        if (this.parent === null) {
           this.commitIdentifier(identifier);
@@ -633,7 +641,7 @@ class IndexAllocator {
        this.storage.set(meta);
     }
  
-    private commitIdentifiersAsPrograms(identifiers: string[], localIdentifiers: string[]): void {
+    private commitIdentifiersAsPrograms(identifiers: string[], localIdentifiers: string[], programType: ProgramType = ProgramType.SIMPLE): void {
        for (let index = 0; index < identifiers.length; ++index) {
           const identifier = identifiers[index];
           if (this.identifiers.indexOf(identifier) > -1) {
@@ -645,7 +653,7 @@ class IndexAllocator {
           const program = PARSER.parse(identifier);
           const meta = createProgramMeta(
              null,
-             ProgramType.SIMPLE,
+             programType,
              program,
              this.allocateProgramIndex(),
              true,
@@ -709,6 +717,9 @@ class IndexAllocator {
        const collection = this.storage.getMeta();
        for (let index = 0; index < collection.length; ++index) {
           const meta = collection[index];
+          if (meta.type === ProgramType.FLOAT && meta.isSynthetic) {
+             continue;
+          }
           if (containsIdentifiers(meta.node, identifiers, FILE_NAME)) {
              this.storage.remove(meta);
  
@@ -1103,7 +1114,16 @@ class InternalVisitor implements Ast.IAstVisitor {
           scope
        };
        this.stack.push(AbstractNodeType.ROOT);
-       visitAll(nodes, this, context);
+       for (let index = 0; index < nodes.length; ++index) {
+            nodes[index].accept(this, context);
+            if (!nodes[index].__$ws_container) {
+                nodes[index].__$ws_container = container;
+            }
+            if (!nodes[index].__$ws_internalTree) {
+                nodes[index].__$ws_internalTree = nodes[index].__$ws_container.getInternalStructure();
+                nodes[index].__$ws_internal = wrapInternalExpressions(nodes[index].__$ws_internalTree.flatten());
+            }
+       }
        this.stack.pop();
        const result = <IResultTree>nodes;
        result.childrenStorage = childrenStorage;
@@ -1158,16 +1178,14 @@ class InternalVisitor implements Ast.IAstVisitor {
  
     visitBind(node: Ast.BindNode, context: IContext): void {
        const isInComponent = isInComponentAttributes(this.stack);
-       const programType = isInComponent ? ProgramType.BIND : ProgramType.SIMPLE;
        const programName = isInComponent ? node.__$ws_property : null;
-       context.container.registerProgram(node.__$ws_value, programType, programName);
+       context.container.registerProgram(node.__$ws_value, ProgramType.BIND, programName);
     }
  
     visitEvent(node: Ast.EventNode, context: IContext): void {
        const isInComponent = isInComponentAttributes(this.stack);
-       const programType = isInComponent ? ProgramType.EVENT : ProgramType.SIMPLE;
        const programName = isInComponent ? node.__$ws_event : null;
-       context.container.registerProgram(node.__$ws_handler, programType, programName);
+       context.container.registerProgram(node.__$ws_handler, ProgramType.EVENT, programName);
     }
  
     visitElement(node: Ast.ElementNode, context: IContext): void {
