@@ -388,6 +388,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
    }
 
    _handleTouchstart(event: any): any {
+      this._preventShouldUseClickByTap = false;
       if (this._shouldUseClickByTap()) {
          // Для svg запоминаем ownerSVGElement, т.к. иногда в touchstart таргет - это тег svg,
          // при этом у события click, таргетом будет внутренний элемент
