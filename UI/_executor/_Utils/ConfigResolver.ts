@@ -96,7 +96,7 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name:
       // во время создания конфига для контрола
       insertedData = templateCfg.data[templateCfg.data[Scope.ISOLATED_SCOPE_FLAG]];
       // todo удалить поддержку preventMergeOptions
-      const preventMergeOptions = data && data._$preventMergeOptions;
+      const preventMergeOptions = data && (data._$preventMergeOptions || data._preventMergeOptions);
 
       if (!preventMergeOptions && insertedData) {
          // Здесь не нужно прокидывать опции в старые контролы, поэтому будем прокидывать только для контента
