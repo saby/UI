@@ -1,0 +1,17 @@
+<ws:template name="__$privateFn">
+    <div>1</div>
+</ws:template>
+
+<ws:template name="__$privateFn_1">
+    <div>1</div>
+</ws:template>
+
+<ws:template name="__$privateFn_2">
+    <div>1</div>
+</ws:template>
+
+<ws:partial template="__$privateFn">
+    <ws:partial template="__$privateFn_1">
+        <ws:partial template="__$privateFn_2" />
+    </ws:partial>
+</ws:partial>

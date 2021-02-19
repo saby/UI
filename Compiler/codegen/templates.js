@@ -1,6 +1,7 @@
 define('Compiler/codegen/templates', [
-   'Compiler/codegen/jstpl'
-], function(jstpl) {
+   'Compiler/codegen/jstpl',
+   'Compiler/Config'
+], function(jstpl, builderConfig) {
    'use strict';
 
    /**
@@ -70,6 +71,17 @@ define('Compiler/codegen/templates', [
       return clearedSource;
    }
 
+   function getPrivateFunctionName(func, index) {
+      var functionName = func.name;
+      if (typeof functionName === 'string' && functionName !== 'anonymous') {
+         return functionName;
+      }
+      if (index === 0) {
+         return builderConfig.privateFunctionName;
+      }
+      return builderConfig.privateFunctionName + '_' + index;
+   }
+
    /**
     * Сгенерировать define-модуль шаблона.
     * @param moduleName Имя модуля.
@@ -84,12 +96,16 @@ define('Compiler/codegen/templates', [
       var includedTemplates = '';
       var localDependenciesList = '';
       var privateTemplates = '';
+      var mainTemplateFunctionName = templateFunction.name;
+      if (mainTemplateFunctionName === 'anonymous') {
+         mainTemplateFunctionName = 'template';
+      }
       var template = templateFunction.toString()
-         .replace('function anonymous', 'function ' + templateFunction.name);
+         .replace('function anonymous', 'function ' + mainTemplateFunctionName);
 
       if (templateFunction.privateFn) {
          for (index = 0; index < templateFunction.privateFn.length; ++index) {
-            functionName = templateFunction.privateFn[index].name;
+            functionName = getPrivateFunctionName(templateFunction.privateFn[index], index);
             functionBody = templateFunction.privateFn[index].toString()
                .replace('function anonymous', 'function ' + functionName);
             privateTemplates += functionBody;
