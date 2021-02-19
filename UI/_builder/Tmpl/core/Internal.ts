@@ -29,7 +29,7 @@ const DROP_FOREIGN_TEST: boolean = false;
  * Если в test-выражение входит переменная, которая гарантированно не может быть вычислена в данном не оригинальном контексте,
  * то выполнить дробление выражения и разворот условной цепочки.
  */
-const DROP_TEST_IDENTIFIERS: boolean = false;
+const DROP_TEST_IDENTIFIERS: boolean = true;
 
 /**
  * Если в test-выражение входит вызов функции, который может быть не вычислена в данном не оригинальном контексте,
@@ -756,8 +756,6 @@ class IndexAllocator {
           this.dropAndAppend(identifiers, options.allocator);
        } else if (hasFunctionCall && DROP_TEST_FUNCTIONS || isForeignTest && DROP_FOREIGN_TEST) {
           this.storage.set(this.test);
-       } else {
-          return;
        }
        this.setType(
           this.type === InternalNodeType.ELSE_IF
