@@ -313,9 +313,9 @@ export class Control<TOptions extends IControlOptions = {},
         Валидируем опции именно здесь по двум причинам:
         1) Здесь они уже полностью вычислены.
         2) Мы должны попадать сюда при любом построении.
-
-        На propTypes всех не перевели, потому что это не помогло бы - часть опций (readOnly и theme) берётся из контекста.
-         */
+        На propTypes всех не перевели, потому что это не помогло бы - часть опций (readOnly и theme)
+        берётся из контекста.
+        */
         OptionsResolver.validateOptions(this.constructor, wasabyOptions);
 
         const asyncMount = this._beforeFirstRender && this._beforeFirstRender(wasabyOptions);
