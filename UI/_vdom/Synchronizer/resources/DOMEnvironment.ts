@@ -132,6 +132,8 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
       timeStart: undefined
    };
 
+   private _preventShouldUseClickByTap: boolean = false;
+
    _isTabPressed: null | {
       isShiftKey: boolean
       tabTarget: HTMLElement
@@ -404,10 +406,12 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
 
       FastTouchEndController.setClickEmulateState(true);
       SwipeController.initState(event);
-      LongTapController.initState(event,
+      const longTapCallback = () => {
          // т.к. callbackFn вызывается асинхронно, надо передавать с правильным контекстом
-         FastTouchEndController.setClickEmulateState.bind(FastTouchEndController),
-         [false]);
+         FastTouchEndController.setClickEmulateState.call(FastTouchEndController, false);
+         this._preventShouldUseClickByTap = true;
+      };
+      LongTapController.initState(event, longTapCallback.bind(this));
    }
    _handleTouchmove(event: any): any {
       if (this._shouldUseClickByTap()) {
@@ -429,7 +433,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
    }
 
    _handleTouchend(event: any): any {
-      if (this._shouldUseClickByTap()) {
+      if (this._shouldUseClickByTap() && !this._preventShouldUseClickByTap) {
          const lastTouchId = touchId;
          this._clickState.touchCount = 0;
          // click occurrence checking
@@ -482,7 +486,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
       LongTapController.resetState();
    }
 
-   _shouldUseClickByTap(): any {
+   _shouldUseClickByTap(): boolean {
       // In chrome wrong target comes in event handlers of the click events on touch devices.
       // It occurs on the TV and the Windows tablet. Presto Offline uses limited version of WebKit
       // therefore the browser does not always generate clicks on the tap event.
