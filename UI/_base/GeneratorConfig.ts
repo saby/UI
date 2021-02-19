@@ -13,18 +13,18 @@ const _generatorConfig2 = {
    prepareAttrsForPartial: function prepareAttrsForPartial(attributes: any): void {
       _oldPrepareAttrsForPartial.apply(this, arguments);
 
-      Object.keys(attributes.events).forEach((key) => {
-         const event = attributes.events[key];
-         // tslint:disable-next-line:no-shadowed-variable
-         return event.forEach((event) => {
-            if (event.hasOwnProperty('data')) {
-               const attrName = key.replace('on:', 'data-qa-');
-               // attrName += '-logicparent:';
-               // attrName += event.viewController._moduleName.replace(/\//g, '_');
-               attributes.attributes[attrName] = attributes.attributes[attrName] || event.bindValue;
-            }
+      if (attributes.events) {
+         Object.keys(attributes.events).forEach((key) => {
+            const event = attributes.events[key];
+            // tslint:disable-next-line:no-shadowed-variable
+            return event.forEach((event) => {
+               if (event.hasOwnProperty('data')) {
+                  const attrName = key.replace('on:', 'data-qa-');
+                  attributes.attributes[attrName] = attributes.attributes[attrName] || event.bindValue;
+               }
+            });
          });
-      });
+      }
    }
 };
 
