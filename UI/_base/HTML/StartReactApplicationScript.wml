@@ -2,20 +2,22 @@
    <ws:if data="{{_options.onServer}}">
       <script type="text/javascript" key="init_script">
          document.addEventListener('DOMContentLoaded', function() {
-            require(['Env/Env', 'UI/Base', 'WasabyLoader/ModulesLoader'], function (Env, UIBase, Loader) {
-               Object.assign(Env.constants, window.wsConfig);
-               const root = document.getElementById('react-root');
-               Loader.loadAsync(root.attributes.rootapp.value)
-                  .then(function(result) {
-                     UIBase.Control.createControl(
-                             result.default ? result.default : result,
-                             {hydrate: false},
-                             document.getElementById('react-root')
-                     );
-                  })
-                  .catch(function (err) {
-                     console.error(err);
-                  });
+            require(['Core/polyfill'], function(polyfill) {
+               require(['Env/Env', 'UI/Base', 'WasabyLoader/ModulesLoader'], function (Env, UIBase, Loader) {
+                  Object.assign(Env.constants, window.wsConfig);
+                  const root = document.getElementById('react-root');
+                  Loader.loadAsync(root.attributes.rootapp.value)
+                     .then(function (result) {
+                        UIBase.Control.createControl(
+                           result.default ? result.default : result,
+                           {},
+                           document.getElementById('react-root')
+                        );
+                     })
+                     .catch(function (err) {
+                        console.error(err);
+                     });
+               });
             });
          });
       </script>
