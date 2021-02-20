@@ -4,8 +4,9 @@ define('UI/_builder/Tmpl/modules/data/array', [
    'UI/_builder/Tmpl/modules/utils/tag',
    'UI/_builder/Tmpl/modules/data/utils/dataTypesCreator',
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
-   'UI/_builder/Tmpl/codegen/templates'
-], function arrayLoader(ErrorHandlerLib, parseUtils, tagUtils, DTC, FSC, templates) {
+   'UI/_builder/Tmpl/codegen/templates',
+   'UI/_builder/Tmpl/codegen/Internal'
+], function arrayLoader(ErrorHandlerLib, parseUtils, tagUtils, DTC, FSC, templates, Internal) {
    'use strict';
 
    /**
@@ -33,13 +34,18 @@ define('UI/_builder/Tmpl/modules/data/array', [
             dirtyCh = 'this.func.internal = ';
          }
          if (injected && injected.internal) {
-            dirtyCh += FSC.getStr(injected.internal, cleanPropertyName);
+            dirtyCh += FSC.getStr(injected.internal);
          } else {
             dirtyCh += '{}';
             if (!this.includedFn) {
                dirtyCh += ';';
             }
          }
+      }
+
+      if (Internal.isUseNewInternalFunctions() && this.privateFn /* Есть privateFn <--> компилируем wml */) {
+         // TODO: Test and remove code above
+         dirtyCh = FSC.getStr(Internal.generate(injected.__$ws_internalTree, this.privateFn));
       }
 
       // eslint-disable-next-line no-new-func
@@ -107,7 +113,8 @@ define('UI/_builder/Tmpl/modules/data/array', [
                         attribs: children[index].attribs,
                         children: children[index].children,
                         isControl: injected.isControl,
-                        rootConfig: injected.rootConfig
+                        rootConfig: injected.rootConfig,
+                        __$ws_internalTree: injected.__$ws_internalTree
                      }, types, scopeData, propertyName + '/' + index);
                      if (typeof res === 'string') {
                         variableInner = children && children[0] && children[0].children;
