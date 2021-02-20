@@ -248,7 +248,7 @@ export class GeneratorText implements IGenerator {
          Logger.error(`${typeTemplate} component error - Попытка использовать компонент/шаблон, ` +
             `но вместо компонента в шаблоне был передан ${typeTemplate}! ` +
             'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
-            `По стеку будет понятно, в каком шаблоне и в какую опцию передается ${typeTemplate}`, tpl);
+            `По стеку будет понятно, в каком шаблоне и в какую опцию передается ${typeTemplate}`, decorAttribs?.internal?.parent);
          return this.createEmptyText();
       }
       let isTplString = typeof tpl === 'string';
