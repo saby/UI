@@ -117,7 +117,8 @@ define('UI/_builder/Tmpl/modules/data/array', [
                         attribs: children[index].attribs,
                         children: children[index].children,
                         isControl: injected.isControl,
-                        rootConfig: injected.rootConfig
+                        rootConfig: injected.rootConfig,
+                        __$ws_internalTree: injected.__$ws_internalTree
                      }, types, scopeData, propertyName + '/' + index);
                      if (typeof res === 'string') {
                         variableInner = children && children[0] && children[0].children;

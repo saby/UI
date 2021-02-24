@@ -117,7 +117,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
                         {
                            attribs: injected[i].attribs,
                            internal: injected[i].internal,
-                           __$ws_internalTree: injected[i].__$ws_internalTree,
+                           __$ws_internalTree: injected[i].__$ws_internalTree || realInjected.__$ws_internalTree,
                            children: injected[i].children,
                            isControl: realInjected.isControl,
                            rootConfig: realInjected.rootConfig
@@ -157,7 +157,7 @@ define('UI/_builder/Tmpl/modules/data/object', [
                   {
                      attribs: injected[i].attribs,
                      internal: injected[i].internal,
-                     __$ws_internalTree: injected[i].__$ws_internalTree,
+                     __$ws_internalTree: injected[i].__$ws_internalTree || realInjected.__$ws_internalTree,
                      children: injected[i].children,
                      isControl: realInjected.isControl,
                      rootConfig: realInjected.rootConfig || curatedScope,
