@@ -37,6 +37,11 @@ const DROP_TEST_IDENTIFIERS: boolean = true;
  */
 const DROP_TEST_FUNCTIONS: boolean = false;
 
+/**
+ * Пропускать internal выражения контентных опций для компонента.
+ */
+const SKIP_CONTENT_OPTION_INTERNAL_ON_COMPONENT: boolean = false;
+
 const PARSER = new Parser();
 
 const FILE_NAME = '[[internal]]';
@@ -462,7 +467,11 @@ class IndexAllocator {
           depth: options.depth + 1
        };
        for (let index = 0; index < this.children.length; ++index) {
-          if (options.depth === 0 && this.children[index].type === ContainerType.CONTENT_OPTION && !this.children[index].isInDataType) {
+          const canSkipChild = options.depth === 0
+            && this.children[index].type === ContainerType.CONTENT_OPTION
+            && !this.children[index].isInDataType;
+          const skipChild = SKIP_CONTENT_OPTION_INTERNAL_ON_COMPONENT && canSkipChild;
+          if (skipChild) {
              continue;
           }
           const child = this.children[index].collectInternalStructure(childrenOptions);
