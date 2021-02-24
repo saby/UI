@@ -318,6 +318,7 @@ class IndexAllocator {
  
     public test: IProgramMeta | null;
     public isElse: boolean;
+    public isInDataType: boolean;
     public readonly selfIdentifiers: Array<string>;
     public readonly identifiers: Array<string>;
     public readonly storage: ProgramStorage;
@@ -341,6 +342,7 @@ class IndexAllocator {
  
        this.test = null;
        this.isElse = false;
+       this.isInDataType = false;
        this.selfIdentifiers = new Array<string>();
        this.identifiers = new Array<string>();
        this.storage = new ProgramStorage();
@@ -460,7 +462,7 @@ class IndexAllocator {
           depth: options.depth + 1
        };
        for (let index = 0; index < this.children.length; ++index) {
-          if (options.depth === 0 && this.children[index].type === ContainerType.CONTENT_OPTION) {
+          if (options.depth === 0 && this.children[index].type === ContainerType.CONTENT_OPTION && !this.children[index].isInDataType) {
              continue;
           }
           const child = this.children[index].collectInternalStructure(childrenOptions);
@@ -484,6 +486,7 @@ class IndexAllocator {
     private createInternalNode(options: ICollectorOptions): InternalNode {
        const node = new InternalNode(this.index, this.getInternalNodeType(), this);
        node.test = this.test;
+       node.isInDataType = this.isInDataType;
        let selfPrograms = this.storage.getMeta();
        const filterPrograms = options.depth === 0 && this.type === ContainerType.COMPONENT;
        if (filterPrograms) {
@@ -668,6 +671,7 @@ class IndexAllocator {
  export class InternalNode {
     public readonly index: number;
  
+    public isInDataType: boolean;
     public type: InternalNodeType;
     public typeName: string;
  
@@ -967,6 +971,26 @@ function isInComponentAttributes(stack: Array<AbstractNodeType>): boolean {
    return false;
 }
 
+function isInDataTypeDirective(stack: Array<AbstractNodeType>): boolean {
+   for (let index = stack.length - 1; index > -1; --index) {
+      if (stack[index] === AbstractNodeType.DATA_TYPE_DIRECTIVE) {
+         return true;
+      }
+      if (
+         stack[index] === AbstractNodeType.COMPONENT ||
+         stack[index] === AbstractNodeType.COMPONENT_OPTION ||
+         stack[index] === AbstractNodeType.ELEMENT ||
+         stack[index] === AbstractNodeType.DIRECTIVE ||
+         stack[index] === AbstractNodeType.ATTRIBUTE ||
+         stack[index] === AbstractNodeType.OPTION ||
+         stack[index] === AbstractNodeType.TEXT
+      ) {
+         return false;
+      }
+   }
+   return false;
+}
+
 /**
  * Get string value from text.
  * @param value {TText[]} Collection of text nodes.
@@ -1163,6 +1187,7 @@ class InternalVisitor implements Ast.IAstVisitor {
        const container = context.container.createContainer(ContainerType.CONTENT_OPTION);
        container.addIdentifier(node.__$ws_name);
        container.desc = node.__$ws_name;
+       container.isInDataType = isInDataTypeDirective(this.stack);
        const childContext: IContext = {
           childrenStorage: context.childrenStorage,
           container,
