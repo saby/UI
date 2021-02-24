@@ -203,7 +203,9 @@ class HTML extends Control<IHTMLCombinedOptions> {
                 servicesPath: this.servicesPath,
                 compat: this.compat,
                 product: this.product,
-                reactApp: this.reactApp
+                reactApp: this.reactApp,
+                templateName: cfg.templateName,
+                templateOptions: cfg.templateOptions
             });
         });
     }
