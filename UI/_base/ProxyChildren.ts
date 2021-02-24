@@ -1,12 +1,15 @@
 import { Logger } from 'UI/Utils';
 
+const hasProxy = typeof Proxy !== 'undefined';
+const hasReflect = typeof Reflect !== 'undefined';
+
 /**
  * Создает proxy объект для отслеживания обращения к дочерним компонентам
  */
 export function getProxyChildren<T>(): T | {} {
   const moduleName = this._moduleName;
   // IE11 не поддерживает Proxy, возвращаем в таком случае простой объект
-  if (typeof Proxy === 'undefined') {
+  if (!hasProxy) {
     return {};
   }
   return new Proxy({}, {
@@ -18,7 +21,7 @@ export function getProxyChildren<T>(): T | {} {
         }
         Logger.warn(message);
       }
-      return Reflect.get(target, prop, receiver);
+      return hasReflect ? Reflect.get(target, prop, receiver) : target[prop];
     }
   });
 }
