@@ -75,6 +75,15 @@ class Head extends Control<IHeadOptions> {
     }
 
     /**
+     * При SPA переходе может поменяться, например, набор шрифтов для предзагрузки.
+     * @param options
+     * @protected
+     */
+    protected _beforeUpdate(options?: IHeadOptions): void {
+        createMetaScriptsAndLinks(options);
+    }
+
+    /**
      * Манки патчинг.
      * Зачем-то на инстансе перебивается метод _forceUpdate с прототипа
      * Но сделал это человек, который придумал Wasaby. Ему видней.
