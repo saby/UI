@@ -35,7 +35,7 @@ const DROP_TEST_IDENTIFIERS: boolean = true;
  * Если в test-выражение входит вызов функции, который может быть не вычислена в данном не оригинальном контексте,
  * то разворот условной цепочки.
  */
-const DROP_TEST_FUNCTIONS: boolean = false;
+const DROP_TEST_FUNCTIONS: boolean = true;
 
 /**
  * Пропускать internal выражения контентных опций для компонента.
