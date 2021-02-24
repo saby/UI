@@ -718,6 +718,7 @@ class IndexAllocator {
        for (let index = 0; index < collection.length; ++index) {
           const meta = collection[index];
           if (meta.type === ProgramType.FLOAT && meta.isSynthetic) {
+             // Не удалять синтетические выражения, полученные дроблением из for(;;)
              continue;
           }
           if (containsIdentifiers(meta.node, identifiers, FILE_NAME)) {
