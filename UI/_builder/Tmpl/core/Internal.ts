@@ -23,7 +23,7 @@ const USE_INTERNAL_MECHANISM = true;
  * этого выражения в текущем контексте будет равен результату вычисления в оригинальном контексте.
  * В таком случае необходимо выполнить разворот условной цепочки.
  */
-const DROP_FOREIGN_TEST: boolean = true;
+const DROP_FOREIGN_TEST: boolean = false;
 
 /**
  * Если в test-выражение входит переменная, которая гарантированно не может быть вычислена в данном не оригинальном контексте,
@@ -35,12 +35,12 @@ const DROP_TEST_IDENTIFIERS: boolean = true;
  * Если в test-выражение входит вызов функции, который может быть не вычислена в данном не оригинальном контексте,
  * то разворот условной цепочки.
  */
-const DROP_TEST_FUNCTIONS: boolean = true;
+const DROP_TEST_FUNCTIONS: boolean = false;
 
 /**
  * Пропускать internal выражения контентных опций для компонента.
  */
-const SKIP_CONTENT_OPTION_INTERNAL_ON_COMPONENT: boolean = false;
+const SKIP_CONTENT_OPTION_INTERNAL_ON_COMPONENT: boolean = true;
 
 const PARSER = new Parser();
 

@@ -14,7 +14,7 @@ const USE_INTERNAL_FUNCTIONS = true;
  * (функция !== undef) && (все аргументы !== undef).
  * Если true, то перед вызовом функции в любом (!) контексте сначала будет вычисляться возможность вызова функции.
  */
-const ALWAYS_FOREIGN_CONTAINER: boolean = true;
+const ALWAYS_FOREIGN_CONTAINER: boolean = false;
 
 const FUNCTION_PREFIX = '__$calculateDirtyCheckingVars_';
 const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
