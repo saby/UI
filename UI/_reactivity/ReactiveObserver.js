@@ -114,7 +114,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env
             Object.defineProperties(val, {
                '_arrayVersion': {
                   value: 0,
-                  enumerable: true,
+                  enumerable: false,
                   writable: true,
                   configurable: true
                },
