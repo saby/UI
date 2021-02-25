@@ -1,5 +1,5 @@
 /// <amd-module name="UI/_executor/_Markup/Builder" />
-/* tslint:disable */
+/* tslint:disable1 */
 
 import { Subscriber } from 'UI/Events';
 import { ContextResolver } from 'UI/Contexts';
@@ -79,6 +79,7 @@ export class Builder implements IBuilder {
                   - бесконечный Promise в _beforeMount
                   - суммарное время построения контрола и его детей больше 20 секунд`, inst);
             }
+            AppEnv.logger.error(error);
          }
 
          //TODO пропустить через contextResolver(где взять класс?)
