@@ -7,14 +7,14 @@ import { canUseNewInternalMechanism } from '../core/Internal';
 /**
  * Флаг включения/выключения генерации internal-функций.
  */
-const USE_INTERNAL_FUNCTIONS = false;
+const USE_INTERNAL_FUNCTIONS = true;
 
 /**
  * Если false, то перед вызовом функции только (!) в не оригинальном контексте будет сначала вычисляться возможность вызова функции:
  * (функция !== undef) && (все аргументы !== undef).
  * Если true, то перед вызовом функции в любом (!) контексте сначала будет вычисляться возможность вызова функции.
  */
-const ALWAYS_FOREIGN_CONTAINER: boolean = false;
+const ALWAYS_FOREIGN_CONTAINER: boolean = true;
 
 const FUNCTION_PREFIX = '__$calculateDirtyCheckingVars_';
 const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
