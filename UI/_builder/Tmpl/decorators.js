@@ -1,6 +1,6 @@
 define('UI/_builder/Tmpl/decorators', [
    'UI/_builder/Tmpl/expressions/_private/Decorators',
-   'Env/Env'
+   'Application/Env'
 ], function decoratorsLoader(Decorators, Env) {
    'use strict';
 
@@ -9,7 +9,7 @@ define('UI/_builder/Tmpl/decorators', [
     * @author Крылов М.А.
     */
 
-   Env.IoC.resolve('ILogger').warn(
+   Env.logger.warn(
       'UI/_builder/Tmpl/decorators',
       '"UI/_builder/Tmpl/decorators" wrapper is deprecated and will be removed. ' +
       'New private module "UI/_builder/Tmpl/expressions/_private/Decorators" will be unreachable.'
