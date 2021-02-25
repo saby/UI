@@ -1,5 +1,5 @@
 /// <amd-module name="UI/_executor/_Markup/Builder" />
-/* tslint:disable1 */
+/* tslint:disable */
 
 import { Subscriber } from 'UI/Events';
 import { ContextResolver } from 'UI/Contexts';
