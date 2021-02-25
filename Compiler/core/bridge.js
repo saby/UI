@@ -9,7 +9,8 @@ define('Compiler/core/bridge', [
    'Compiler/i18n/Translator',
    'Compiler/expressions/DirtyCheckingPatch',
    'Compiler/utils/Helpers',
-   'Compiler/core/Annotate'
+   'Compiler/core/Annotate',
+   'Compiler/core/Internal'
 ], function(
    Deferred,
    traversing,
@@ -21,7 +22,8 @@ define('Compiler/core/bridge', [
    Translator,
    dirtyCheckingPatch,
    Helpers,
-   Annotate
+   Annotate,
+   Internal
 ) {
    'use strict';
 
@@ -92,12 +94,16 @@ define('Compiler/core/bridge', [
     * New annotation method.
     */
    function annotateWithVisitors(traversed, options, traverseOptions, deferred) {
-      var annotated = Annotate.default(traversed, traverseOptions.scope);
+      if (Internal.canUseNewInternalMechanism()) {
+         Internal.process(traversed, traverseOptions.scope);
+      } else {
+         Annotate.default(traversed, traverseOptions.scope);
+      }
+
       PatchVisitorLib.default(traversed, traverseOptions.scope);
-      traversed.childrenStorage = annotated.childrenStorage;
-      traversed.reactiveProps = annotated.reactiveProps;
-      traversed.templateNames = annotated.templateNames;
-      traversed.__newVersion = annotated.__newVersion;
+
+      // FIXME: DEVELOP: REMOVE
+      traversed.reactiveProps.sort();
 
       // в случае сбора словаря локализуемых слов отдаем объект
       // { astResult - ast-дерево, words - словарь локализуемых слов }
