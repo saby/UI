@@ -22,7 +22,7 @@ import Control from './Control';
  * Wasaby infrastructure.
  * For asynchronous item creation you can use
  * {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/asynchronous-control-building/
- * Core/Creator}.
+ * UI/Base:AsyncCreator}.
  */
 export default Control.createControl;
 

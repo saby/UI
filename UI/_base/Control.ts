@@ -202,7 +202,7 @@ export type TControlConstructor<TOptions extends IControlOptions = {}, TState ex
  * Подробнее о работе с классом читайте <a href="/doc/platform/developmentapl/interface-development/ui-library/control/">здесь</a>.
  * @class UI/_base/Control
  * @author Шипин А.А.
- * @remark <a href="/doc/platform/developmentapl/interface-development/ui-library/asynchronous-control-building/">Asynchronous creation of Core/Creator component</a>
+ * @remark <a href="/doc/platform/developmentapl/interface-development/ui-library/asynchronous-control-building/">Asynchronous creation of UI/Base:AsyncCreator component</a>
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
