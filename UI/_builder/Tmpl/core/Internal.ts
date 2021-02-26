@@ -1208,7 +1208,7 @@ class InternalVisitor implements Ast.IAstVisitor {
        this.stack.pop();
        
        node.__$ws_container = container;
-       node.__$ws_internalTree = container.getInternalStructure();
+       node.__$ws_internalTree = container.getInternalStructure(true);
        node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
     }
  
