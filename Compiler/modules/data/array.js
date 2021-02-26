@@ -4,8 +4,9 @@ define('Compiler/modules/data/array', [
    'Compiler/modules/utils/tag',
    'Compiler/modules/data/utils/dataTypesCreator',
    'Compiler/modules/data/utils/functionStringCreator',
-   'Compiler/codegen/templates'
-], function arrayLoader(ErrorHandlerLib, parseUtils, tagUtils, DTC, FSC, templates) {
+   'Compiler/codegen/templates',
+   'Compiler/codegen/Internal'
+], function arrayLoader(ErrorHandlerLib, parseUtils, tagUtils, DTC, FSC, templates, Internal) {
    'use strict';
 
    /**
@@ -18,29 +19,37 @@ define('Compiler/modules/data/array', [
       return propertyName ? propertyName.split('/').pop() : propertyName;
    }
 
+   function generateInternal(string, injected, includedFn, privateFn) {
+      if (Internal.canUseNewInternalFunctions() && privateFn /* Есть privateFn <--> компилируем wml */) {
+         return FSC.getStr(Internal.generate(injected.__$ws_internalTree, privateFn));
+      }
+
+      var dirtyCh = '';
+      if (!string) {
+         if (!includedFn) {
+            dirtyCh = 'this.func.internal = ';
+         }
+         if (injected && injected.internal) {
+            dirtyCh += FSC.getStr(injected.internal);
+         } else {
+            dirtyCh += '{}';
+            if (!includedFn) {
+               dirtyCh += ';';
+            }
+         }
+      }
+      return dirtyCh;
+   }
+
    function generateFunction(htmlPropertyName, html, string, injected) {
       var generatedString, cleanPropertyName = clearPropertyName(htmlPropertyName);
       var wsTemplateName = injected && injected.attribs && injected.attribs._wstemplatename;
       var generatedTemplate = this.getString(html, { }, this.handlers, { }, true);
       var fileName = this.handlers.fileName;
       var funcText = templates.generateTemplate(cleanPropertyName, generatedTemplate, fileName, !!string);
-      var dirtyCh = '';
       var functionToWrap;
       var postfixCall = string ? '(Object.create(data), null, context)' : '';
-
-      if (!string) {
-         if (!this.includedFn) {
-            dirtyCh = 'this.func.internal = ';
-         }
-         if (injected && injected.internal) {
-            dirtyCh += FSC.getStr(injected.internal, cleanPropertyName);
-         } else {
-            dirtyCh += '{}';
-            if (!this.includedFn) {
-               dirtyCh += ';';
-            }
-         }
-      }
+      var dirtyCh = generateInternal(string, injected, this.includedFn, this.privateFn);
 
       // eslint-disable-next-line no-new-func
       var func = new Function('data, attr, context, isVdom, sets, forceCompatible, generatorConfig', funcText);
@@ -91,7 +100,8 @@ define('Compiler/modules/data/array', [
             attribs: injected.attribs,
             isControl: injected.isControl,
             configObject: { },
-            rootConfig: injected.rootConfig
+            rootConfig: injected.rootConfig,
+            __$ws_internalTree: injected.__$ws_internalTree
          }, scopeData, propertyName, false);
          if (arrayAttributes && arrayAttributes.type === 'string') {
             stringFunctions = true;
@@ -107,7 +117,8 @@ define('Compiler/modules/data/array', [
                         attribs: children[index].attribs,
                         children: children[index].children,
                         isControl: injected.isControl,
-                        rootConfig: injected.rootConfig
+                        rootConfig: injected.rootConfig,
+                        __$ws_internalTree: injected.__$ws_internalTree
                      }, types, scopeData, propertyName + '/' + index);
                      if (typeof res === 'string') {
                         variableInner = children && children[0] && children[0].children;

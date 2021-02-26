@@ -105,6 +105,14 @@ interface IContext {
  * @param programs {IProgramMeta[]} Collection of program meta information.
  */
 function appendInternalExpressions(internal: Ast.IInternal, programs: IProgramMeta[]): void {
+
+   // FIXME: DEVELOP: REMOVE
+   programs.sort(function(a, b) {
+      if (a.node.string < b.node.string) return -1;
+      if (a.node.string > b.node.string) return +1;
+      return 0;
+   });
+
    for (let index = 0; index < programs.length; ++index) {
       const program = programs[index];
       internal[program.key] = {
@@ -710,11 +718,11 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       const afterInternalNodes: Ast.Ast[] = [];
       for (const name in node.__$ws_options) {
          const option = node.__$ws_options[name];
-         if (option.hasFlag(Ast.Flags.UNPACKED)) {
-            afterInternalNodes.push(option);
+         if (option.__$ws_name === "scope") {
+            option.accept(this, context);
             continue;
          }
-         option.accept(this, context);
+         afterInternalNodes.push(option);
       }
       for (const name in node.__$ws_contents) {
          const content = node.__$ws_contents[name];
