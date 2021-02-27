@@ -16,7 +16,7 @@ export function process(nodes: Ast.Ast[], scope: Scope): IResultTree {
 /**
  * Флаг включения/выключения нового механизма формирования internal-выражений для dirty checking проверок.
  */
-const USE_INTERNAL_MECHANISM = true;
+const USE_INTERNAL_MECHANISM = false;
 
 /**
  * Если в test-выражение вычисляется не в своем контексте, значит не гарантируется, что результат вычисления
@@ -1208,7 +1208,7 @@ class InternalVisitor implements Ast.IAstVisitor {
        this.stack.pop();
 
        node.__$ws_container = container;
-       node.__$ws_internalTree = container.getInternalStructure();
+       node.__$ws_internalTree = container.getInternalStructure(true);
        node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
     }
 
