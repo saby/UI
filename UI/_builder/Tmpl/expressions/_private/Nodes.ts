@@ -183,6 +183,20 @@ function checkForContextDecorators(text: string): boolean {
    return (text.indexOf(BINDING_NAMES.one) > -1) || (text.indexOf(BINDING_NAMES.two) > -1);
 }
 
+function containsFunctionCall(node: Node): boolean {
+   let hasFunctionCall = false;
+   const callbacks = {
+      CallExpression: (): void => {
+         hasFunctionCall = true;
+      }
+   };
+   const walker = new Walker(callbacks);
+   node.accept(walker, {
+      fileName: '[[expression]]'
+   });
+   return hasFunctionCall;
+}
+
 export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorContext, string> {
 
    processUnescapedHtmlFunction(args: Node[], context: IExpressionVisitorContext): string {
@@ -240,7 +254,12 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
       let result = '';
       args.forEach((node: Node) => {
          const itemCheck = node.accept(this, context);
+         const hasFunctionCall = containsFunctionCall(node);
          if (typeof itemCheck === 'string' && itemCheck.indexOf('thelpers.getter') > -1) {
+            if (hasFunctionCall) {
+               result += `(${itemCheck})&&`;
+               return;
+            }
             result += `(${itemCheck}) !== undefined&&`;
          }
       });
