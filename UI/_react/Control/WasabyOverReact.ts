@@ -3,6 +3,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {EMPTY_THEME, getThemeController} from 'UI/theme/controller';
 import {getResourceUrl, Logger} from 'UI/Utils';
+import { _Options } from 'UI/Vdom';
 
 // @ts-ignore путь не определяется
 import template = require('wml!UI/_react/Control/WasabyOverReact');
@@ -191,7 +192,7 @@ export class Control<TOptions extends IControlOptions = {},
      * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
      */
     protected _shouldUpdate(options: TOptions, context?: object): boolean {
-        return true;
+        return !!_Options.getChangedOptions(options as any, this._options as any);
     }
 
     /**
