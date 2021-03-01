@@ -171,6 +171,7 @@ abstract class Environment {
                }
             }
             mountMethodsCaller.afterUpdate(mountMethodsCaller.collectControlNodesToCall(newNode, rebuildChanges));
+            this.callEventsToDOM();
 
             this._rebuildRequestStarted = false;
             this.runQueue();
