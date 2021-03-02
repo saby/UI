@@ -65,7 +65,7 @@ export class GeneratorReact {
     * @param type Тип элемента, определяет каким методом генератор будет его строить.
     * @param origin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
     * @param attributes
-    * @param _
+    * @param events
     * @param options Опции контрола/шаблона.
     * @param config
     */
@@ -73,11 +73,11 @@ export class GeneratorReact {
       type: 'wsControl' | 'template',
       origin: TemplateOrigin,
       attributes: object,
-      _: unknown,
+      events: { [key: string]: IWasabyEvent[]; },
       options: IControlOptions,
       config: IControlConfig
    ): React.ReactElement {
-      const extractedEvents = extractEventNames(_);
+      const extractedEvents = extractEventNames(events);
 
       const newOptions = {...options, ...extractedEvents};
 
