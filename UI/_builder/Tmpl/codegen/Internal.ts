@@ -10,6 +10,11 @@ import { canUseNewInternalMechanism } from '../core/Internal';
 const USE_INTERNAL_FUNCTIONS = true;
 
 /**
+ * Флаг генерации условных конструкций
+ */
+const ALLOW_CONDITIONS = false;
+
+/**
  * Если false, то перед вызовом функции только (!) в не оригинальном контексте будет сначала вычисляться возможность вызова функции:
  * (функция !== undef) && (все аргументы !== undef).
  * Если true, то перед вызовом функции в любом (!) контексте сначала будет вычисляться возможность вызова функции.
@@ -80,6 +85,16 @@ export function generate(node: InternalNode, functions: Function[]): string {
  
  function build(node: InternalNode, options: IOptions): string {
     const body = buildPrograms(node.storage.getMeta(), options) + buildAll(node.children, options);
+    if (node.type === InternalNodeType.IF || node.type === InternalNodeType.ELSE_IF) {
+       const test = buildMeta(node.test, options);
+       let prefix = wrapProgram(node.test, test);
+       return prefix + body;
+    }
+    return body;
+ }
+ 
+ function buildWithConditions(node: InternalNode, options: IOptions): string {
+    const body = buildPrograms(node.storage.getMeta(), options) + buildAll(node.children, options);
     if (node.type === InternalNodeType.IF) {
        const test = buildMeta(node.test, options);
        let prefix = wrapProgram(node.test, CONDITIONAL_VARIABLE_NAME);
@@ -99,6 +114,10 @@ export function generate(node: InternalNode, functions: Function[]): string {
  function buildAll(nodes: InternalNode[], options: IOptions): string {
     let body = '';
     for (let index = 0; index < nodes.length; ++index) {
+       if (ALLOW_CONDITIONS) {
+         body += buildWithConditions(nodes[index], options);
+         continue;
+       }
        body += build(nodes[index], options);
     }
     return body;
