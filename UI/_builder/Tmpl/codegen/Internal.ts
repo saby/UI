@@ -12,7 +12,7 @@ const USE_INTERNAL_FUNCTIONS = true;
 /**
  * Флаг генерации условных конструкций
  */
-const ALLOW_CONDITIONS = false;
+const ALLOW_CONDITIONS = true;
 
 /**
  * Если false, то перед вызовом функции только (!) в не оригинальном контексте будет сначала вычисляться возможность вызова функции:
@@ -54,7 +54,7 @@ export function generate(node: InternalNode, functions: Function[]): string {
        rootIndex: node.index
     };
     const functionName = FUNCTION_PREFIX + node.index;
-    const body = FUNCTION_HEAD + build(node, options) + FUNCTION_TAIL;
+    const body = FUNCTION_HEAD + buildAll([node], options) + FUNCTION_TAIL;
     const index = node.ref.getCommittedIndex(body);
     if (index !== null) {
        return FUNCTION_PREFIX + index + `(${CONTEXT_VARIABLE_NAME})`;
@@ -93,20 +93,36 @@ export function generate(node: InternalNode, functions: Function[]): string {
     return body;
  }
  
+ function getCurrentConditionalIndex(node: InternalNode): number {
+    if (node.type === InternalNodeType.IF) {
+       return node.index;
+    }
+    if (node.type === InternalNodeType.BLOCK) {
+       throw new Error(`Произведена попытка получения индекса условного узла от блока с номером ${node.index}`);
+    }
+    if (node.prev === null) {
+       throw new Error(`Узел типа IF недостижим. Текущий internal узел - ${node.index}`);
+    }
+    return getCurrentConditionalIndex(node.prev);
+ }
+
  function buildWithConditions(node: InternalNode, options: IOptions): string {
     const body = buildPrograms(node.storage.getMeta(), options) + buildAll(node.children, options);
     if (node.type === InternalNodeType.IF) {
        const test = buildMeta(node.test, options);
-       let prefix = wrapProgram(node.test, CONDITIONAL_VARIABLE_NAME);
-       return `if((${CONDITIONAL_VARIABLE_NAME}=(${test}))){${prefix + body}}`;
+       const tmpVariable = `${CONDITIONAL_VARIABLE_NAME}_${node.index}`;
+       const prefix = wrapProgram(node.test, tmpVariable);
+       return `if((${tmpVariable}=(${test}))||(${tmpVariable}===undefined)){${prefix + body}}`;
     }
     if (node.type === InternalNodeType.ELSE_IF) {
        const test = buildMeta(node.test, options);
-       let prefix = wrapProgram(node.test, CONDITIONAL_VARIABLE_NAME);
-       return `else if((${CONDITIONAL_VARIABLE_NAME}=(${test}))){${prefix + body}}`;
+       const tmpVariable = `${CONDITIONAL_VARIABLE_NAME}_${getCurrentConditionalIndex(node)}`;
+       const prefix = wrapProgram(node.test, tmpVariable);
+       return `if((${tmpVariable}===undefined)||(${tmpVariable}=(${test}))){${prefix + body}}`;
     }
     if (node.type === InternalNodeType.ELSE && body.length > 0) {
-       return `else{${body}}`;
+       const tmpVariable = `${CONDITIONAL_VARIABLE_NAME}_${getCurrentConditionalIndex(node)}`;
+       return `if((${tmpVariable}===undefined)||(!${tmpVariable})){${body}}`;
     }
     return body;
  }
