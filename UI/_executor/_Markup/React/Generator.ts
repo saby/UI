@@ -68,11 +68,15 @@ export class GeneratorReact {
       options: IControlOptions,
       config: IControlConfig
    ): React.ReactElement {
+      const extractedEvents = extractEventNames(_);
+
+      const newOptions = {...options, ...extractedEvents};
+
       // тип контрола - компонент с шаблоном
       if (type === 'wsControl') {
          return this.createWsControl(
             origin,
-            options,
+             newOptions,
             undefined,
             undefined,
             config.depsLocal
@@ -91,7 +95,7 @@ export class GeneratorReact {
 
          return this.createTemplate(
             origin,
-            options,
+             newOptions,
             attributes,
             undefined,
             config.depsLocal
@@ -220,6 +224,9 @@ export class GeneratorReact {
             WasabyAttributes & {
                name?: string;
             };
+         events: {
+            [key: string]: unknown[]
+         }
       },
       children: React.ReactNode[] | undefined,
       _: unknown,
@@ -241,8 +248,11 @@ export class GeneratorReact {
 
       const convertedAttributes = convertAttributes(attrs.attributes);
 
+      const extractedEvents = extractEventNames(attrs.events);
+
       const newProps = {
          ...convertedAttributes,
+         ...extractedEvents,
          ref
       };
 
@@ -267,6 +277,28 @@ export class GeneratorReact {
    escape<T>(value: T): T {
       return value;
    }
+}
+
+/**
+ * Преобразует формат имени события к react (on:Eventname => onEventname)
+ * @param text
+ */
+function transformEventName(text: string): string {
+   if (text.indexOf(":") === -1) {
+      return text;
+   }
+   let textArray = text.split(":");
+   return textArray[0] + textArray[1].charAt(0).toUpperCase() + textArray[1].slice(1);
+}
+
+function extractEventNames(eventObject) {
+   let extractedEvents = {};
+   for (let eventKey in eventObject) {
+      if (eventObject[eventKey][0].viewController) {
+         extractedEvents[transformEventName(eventKey)] = eventObject[eventKey][0].handler.bind(eventObject[eventKey][0].viewController)();
+      }
+   }
+   return extractedEvents;
 }
 
 /**

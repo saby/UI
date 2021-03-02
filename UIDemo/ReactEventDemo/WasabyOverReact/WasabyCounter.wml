@@ -1,0 +1,21 @@
+<div className="Counter">
+    <div>
+        <span>{{ count }}</span>
+    </div>
+    <div>
+        <UIDemo.ReactEventDemo.PureReact.Component.ReactButton buttonText="react decrement" buttonHandler="{{ decrement }}" />
+        <UIDemo.ReactEventDemo.PureReact.Component.ReactButton buttonText="react increment" buttonHandler="{{ increment }}" />
+    </div>
+    <div>
+        <button on:click="decrement()" >
+            on WML decrement
+        </button>
+        <button on:click="increment()" >
+            on WML increment
+        </button>
+    </div>
+    <div>
+        <UIDemo.ReactEventDemo.WasabyOverReact.Component.WasabyButton buttonText="wasaby decrement" buttonHandler="{{ decrement }}" />
+        <UIDemo.ReactEventDemo.WasabyOverReact.Component.WasabyButton buttonText="wasaby increment" buttonHandler="{{ increment }}" />
+    </div>
+</div>
