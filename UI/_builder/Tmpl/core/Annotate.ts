@@ -96,6 +96,24 @@ interface IContext {
     * Processing scope object.
     */
    scope: Scope;
+
+   /**
+    * Special node counters for prefixes and keys.
+    */
+   counters: Counters;
+}
+
+class Counters {
+
+   private cycle: number;
+
+   constructor() {
+      this.cycle = 0;
+   }
+
+   allocateCycleIndex(): number {
+      return this.cycle++;
+   }
 }
 
 // </editor-fold>
@@ -266,6 +284,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree {
       const childrenStorage: string[] = [];
       const global = createGlobalContext();
+      const counters = new Counters;
       nodes.forEach((node: Ast.Ast) => {
          const lexicalContext = global.createContext({
             type: ContextType.INTERMEDIATE
@@ -273,7 +292,8 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          const context: IContext = {
             childrenStorage,
             lexicalContext,
-            scope
+            scope,
+            counters
          };
          node.accept(this, context);
          if (node instanceof Ast.TemplateNode) {
@@ -517,6 +537,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       }
       this.processNodes(node.__$ws_content, contentContext);
       node.__$ws_lexicalContext = lexicalContext;
+      node.__$ws_uniqueIndex = context.counters.allocateCycleIndex();
    }
 
    /**
@@ -540,6 +561,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       lexicalContext.registerProgram(node.__$ws_collection);
       this.processNodes(node.__$ws_content, contentContext);
       node.__$ws_lexicalContext = lexicalContext;
+      node.__$ws_uniqueIndex = context.counters.allocateCycleIndex();
    }
 
    /**
