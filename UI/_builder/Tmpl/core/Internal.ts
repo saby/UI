@@ -40,7 +40,7 @@ const DROP_TEST_FUNCTIONS: boolean = true;
 /**
  * Пропускать internal выражения контентных опций для компонента.
  */
-const SKIP_CONTENT_OPTION_INTERNAL_ON_COMPONENT: boolean = true;
+const SKIP_CONTENT_OPTION_INTERNAL_ON_COMPONENT: boolean = false;
 
 const PARSER = new Parser();
 
