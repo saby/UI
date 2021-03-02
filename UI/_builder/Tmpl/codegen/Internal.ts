@@ -12,7 +12,7 @@ const USE_INTERNAL_FUNCTIONS = true;
 /**
  * Флаг генерации условных конструкций
  */
-const ALLOW_CONDITIONS = true;
+const ALLOW_CONDITIONS = false;
 
 /**
  * Если false, то перед вызовом функции только (!) в не оригинальном контексте будет сначала вычисляться возможность вызова функции:
@@ -24,9 +24,10 @@ const ALWAYS_FOREIGN_CONTAINER: boolean = true;
 const FUNCTION_PREFIX = '__$calculateDirtyCheckingVars_';
 const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
 const COLLECTION_NAME = 'collection';
+const CONDITIONAL_VARIABLE_NAME = 'temp';
 const CONTEXT_VARIABLE_NAME = 'data';
 // FIXME: переменная funcContext неправильно вставлена в генератор кода mustache-выражения
-const FUNCTION_HEAD = `var funcContext=${CONTEXT_VARIABLE_NAME};var ${COLLECTION_NAME}={};`;
+const FUNCTION_HEAD = `var funcContext=${CONTEXT_VARIABLE_NAME};var ${COLLECTION_NAME}={};var ${CONDITIONAL_VARIABLE_NAME};`;
 const FUNCTION_TAIL = `return ${COLLECTION_NAME};`;
 
 //#endregion
@@ -96,33 +97,22 @@ export function generate(node: InternalNode, functions: Function[]): string {
     const body = buildPrograms(node.storage.getMeta(), options) + buildAll(node.children, options);
     if (node.type === InternalNodeType.IF) {
        const test = buildMeta(node.test, options);
-       return `if(${test}){${body}}`;
+       let prefix = wrapProgram(node.test, CONDITIONAL_VARIABLE_NAME);
+       return `if((${CONDITIONAL_VARIABLE_NAME}=(${test}))){${prefix + body}}`;
     }
     if (node.type === InternalNodeType.ELSE_IF) {
        const test = buildMeta(node.test, options);
-       return `else if(${test}){${body}}`;
+       let prefix = wrapProgram(node.test, CONDITIONAL_VARIABLE_NAME);
+       return `else if((${CONDITIONAL_VARIABLE_NAME}=(${test}))){${prefix + body}}`;
     }
     if (node.type === InternalNodeType.ELSE && body.length > 0) {
        return `else{${body}}`;
     }
     return body;
  }
-
- function buildConditions(nodes: InternalNode[], options: IOptions): string {
-   if (!ALLOW_CONDITIONS) {
-      return '';
-   }
-   let code = '';
-   for (let index = 0; index < nodes.length; ++index) {
-      if (nodes[index].type === InternalNodeType.IF || nodes[index].type === InternalNodeType.ELSE_IF) {
-         code += wrapProgram(nodes[index].test, buildMeta(nodes[index].test, options));
-      }
-   }
-   return code;
- }
  
  function buildAll(nodes: InternalNode[], options: IOptions): string {
-    let body = buildConditions(nodes, options);
+    let body = '';
     for (let index = 0; index < nodes.length; ++index) {
        if (ALLOW_CONDITIONS) {
          body += buildWithConditions(nodes[index], options);
@@ -144,11 +134,7 @@ export function generate(node: InternalNode, functions: Function[]): string {
  }
  
  function wrapProgram(meta: IProgramMeta, code: string): string {
-    return `${generateInternalIdentifier(meta)}=${code};`;
- }
-
- function generateInternalIdentifier(meta: IProgramMeta): string {
-   return `${COLLECTION_NAME}.${INTERNAL_PROGRAM_PREFIX}${meta.index}`;
+    return `${COLLECTION_NAME}.${INTERNAL_PROGRAM_PREFIX}${meta.index}=${code};`;
  }
  
  function buildMeta(meta: IProgramMeta, options: IOptions): string {
