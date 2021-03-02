@@ -33,6 +33,15 @@ interface IDefaultExport {
    default: Control;
 }
 
+interface IWasabyEvent {
+   args: unknown[];
+   context: Function;
+   handler: Function;
+   isControl: boolean;
+   value: string;
+   viewController: Control;
+}
+
 /**
  * Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
  */
@@ -225,7 +234,7 @@ export class GeneratorReact {
                name?: string;
             };
          events: {
-            [key: string]: unknown[]
+            [key: string]: IWasabyEvent[]
          }
       },
       children: React.ReactNode[] | undefined,
@@ -291,7 +300,7 @@ function transformEventName(text: string): string {
    return textArray[0] + textArray[1].charAt(0).toUpperCase() + textArray[1].slice(1);
 }
 
-function extractEventNames(eventObject) {
+function extractEventNames(eventObject:{[key: string]: IWasabyEvent[]}): {[key: string]: Function} {
    let extractedEvents = {};
    for (let eventKey in eventObject) {
       if (eventObject[eventKey][0].viewController) {
