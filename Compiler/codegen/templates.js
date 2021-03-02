@@ -180,10 +180,12 @@ define('Compiler/codegen/templates', [
     * @param test Выражение условия.
     * @param update Выражение обновления.
     * @param processedBlock Тело цикла.
+    * @param cycleIndex Уникальный индекс цикла в рамках одной единицы компиляции.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generateFor(init, test, update, processedBlock) {
+   function generateFor(init, test, update, processedBlock, cycleIndex) {
       return forTemplate
+         .replace(/\/\*#CYCLE_INDEX#\*\//g, generateReturnValueFunction(cycleIndex))
          .replace(/\/\*#INIT#\*\//g, generateReturnValueFunction(init))
          .replace(/\/\*#TEST#\*\//g, generateReturnValueFunction(test))
          .replace(/\/\*#UPDATE#\*\//g, generateReturnValueFunction(update))
@@ -195,14 +197,16 @@ define('Compiler/codegen/templates', [
     * @param scopeArray Выражение итерируемой коллекции.
     * @param forSource Инструкции цикла (key и value).
     * @param processedBlock Тело цикла.
+    * @param cycleIndex Уникальный индекс цикла в рамках одной единицы компиляции.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generateForeach(scopeArray, forSource, processedBlock) {
+   function generateForeach(scopeArray, forSource, processedBlock, cycleIndex) {
       var iteratorScope = JSON.stringify({
          key: forSource.key,
          value: forSource.value
       });
       return foreachTemplate
+         .replace(/\/\*#CYCLE_INDEX#\*\//g, generateReturnValueFunction(cycleIndex))
          .replace(/\/\*#SCOPE_ARRAY#\*\//g, generateReturnValueFunction(scopeArray))
          .replace(/\/\*#ITERATOR_SCOPE#\*\//g, generateReturnValueFunction(iteratorScope))
          .replace(/\/\*#PROCESSED#\*\//g, generateReturnValueFunction(processedBlock));
