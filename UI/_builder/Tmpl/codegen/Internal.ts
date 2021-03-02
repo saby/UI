@@ -112,7 +112,7 @@ export function generate(node: InternalNode, functions: Function[]): string {
        const test = buildMeta(node.test, options);
        const tmpVariable = `${CONDITIONAL_VARIABLE_NAME}_${node.index}`;
        const prefix = wrapProgram(node.test, tmpVariable);
-       return `if((${tmpVariable}=(${test}))||(${tmpVariable}===undefined)){${prefix + body}}`;
+       return `var ${tmpVariable};if((${tmpVariable}=(${test}))||(${tmpVariable}===undefined)){${prefix + body}}`;
     }
     if (node.type === InternalNodeType.ELSE_IF) {
        const test = buildMeta(node.test, options);
