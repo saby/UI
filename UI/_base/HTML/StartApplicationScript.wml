@@ -2,12 +2,12 @@
    <ws:if data="{{!_options.compat && _options.onServer}}">
       <script key="init_script">
          document.addEventListener('DOMContentLoaded', function() {
-            /* сначала грузим polyfill, чтобы в ядре под IE это все было доступно */
-            require(['Core/polyfill'], function() {
-               /* потом грузим ядро */
-               require(['Env/Env', 'Application/Initializer', 'Application/Env', 'SbisEnvUI/Wasaby',
-                        'UI/Base', 'UI/State', 'Application/State'],
-                  function (Env, AppInit, AppEnv, EnvUIWasaby, UIBase, UIState, AppState) {
+            let steps = [
+               /* запуск ядра по умолчанию для всех браузеров */
+               {
+                  deps: ['Env/Env', 'Application/Initializer', 'Application/Env', 'SbisEnvUI/Wasaby',
+                     'UI/Base', 'UI/State', 'Application/State', 'Core/polyfill'],
+                  callback: function (Env, AppInit, AppEnv, EnvUIWasaby, UIBase, UIState, AppState) {
                      window.startContextData = {AppData: new UIBase.AppData({})};
                      Object.assign(Env.constants, window.wsConfig);
                      require( {{ __setHTMLUnsafe(getDeps()) }}, function () {
@@ -24,8 +24,27 @@
                         );
                      }
                   }
-               );
-            });
+               }
+            ];
+            if ({{ isIE }}) {
+               /* для IE сначала грузим polyfill, чтобы в ядре под IE это все было доступно */
+               steps.unshift({
+                  deps: ['Core/polyfill'],
+                  callback: function () {}
+               })
+            }
+
+            function startApplication(steps) {
+               let step = steps.shift();
+               require(step.deps, function(){
+                  step.callback.apply(this, arguments);
+                  if (steps.length) {
+                     startApplication(steps);
+                  }
+               })
+            }
+
+            startApplication(steps);
          });
       </script>
    </ws:if>
