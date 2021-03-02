@@ -76,7 +76,7 @@ export class GeneratorReact {
       if (type === 'wsControl') {
          return this.createWsControl(
             origin,
-             newOptions,
+            newOptions,
             undefined,
             undefined,
             config.depsLocal
@@ -95,7 +95,7 @@ export class GeneratorReact {
 
          return this.createTemplate(
             origin,
-             newOptions,
+            newOptions,
             attributes,
             undefined,
             config.depsLocal
