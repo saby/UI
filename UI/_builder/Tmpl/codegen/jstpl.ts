@@ -87,7 +87,7 @@ export const FOR = `(function customForTemplate() {
    data.viewController = viewController || null;
    (function customForTemplateScope() {
       var templateCount = 0,
-         contextInput = key + '_' + (forCounter++),
+         contextInput = key + /*#CYCLE_INDEX#*/,
          itCount = 0;
       for ( /*#INIT#*/ ; /*#TEST#*/ ; /*#UPDATE#*/ ) {
          key = contextInput + "_for_" + itCount + "_";
@@ -117,7 +117,7 @@ export const FOREACH = `(function forTemplate() {
       var data = thelpers.createScope(this);
       if (iterator) {
          var templateCount = 0,
-            contextInput = key + '_' + (forCounter++),
+            contextInput = key + /*#CYCLE_INDEX#*/,
             itCount = 0;
          iterator( /*#SCOPE_ARRAY#*/ , function forIteratorCallback(entity, key) {
             var originData = data;
@@ -157,7 +157,6 @@ if (sets && sets.isSetts) {
 /*#DELETE IT END#*/
 
 var templateCount = 0;
-var forCounter = 0;
 var currentPropertyName = "/*#PROPERTY_NAME#*/";
 data = thelpers.isolateScope(Object.create(this), data, currentPropertyName);
 var key = thelpers.validateNodeKey(attr && attr.key);
@@ -192,7 +191,6 @@ if (typeof includedTemplates === "undefined") {
    includedTemplates = (this && this.includedTemplates) ? this.includedTemplates : {};
 }
 /*#DELETE IT END#*/
-var forCounter = 0;
 var templateCount = 0;
 var key = thelpers.validateNodeKey(attr && attr.key);
 var defCollection = {
@@ -260,7 +258,6 @@ export const PARTIAL_TEMPLATE = `(function f2(data, attr) {
  */
 export const PRIVATE_TEMPLATE = `{
   var key = thelpers.validateNodeKey(attr && attr.key);
-  var forCounter = 0;
   var templateCount = 0;
   var defCollection = {
     id: [],
@@ -301,7 +298,6 @@ if (typeof thelpers === "undefined") {
 /*#DELETE IT END#*/
 
 var templateCount = 0;
-var forCounter = 0;
 var currentPropertyName = "/*#PROPERTY_NAME#*/";
 
 /*#TEMPLATE_BODY#*/
