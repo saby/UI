@@ -472,6 +472,11 @@ export abstract class Ast {
    __$ws_container: any | null;
 
    /**
+    * FIXME: Refactor it
+    */
+   __$ws_uniqueIndex: number | null;
+
+   /**
     * Initialize new instance of abstract syntax node.
     * @param flags {Flags} Node flags.
     */
@@ -483,6 +488,7 @@ export abstract class Ast {
       this.__$ws_lexicalContext = null;
       this.__$ws_internalTree = null;
       this.__$ws_container = null;
+      this.__$ws_uniqueIndex = null;
    }
 
    /**
