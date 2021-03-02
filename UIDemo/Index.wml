@@ -1,10 +1,10 @@
-<UI.Base:HTML
-   attr:application="UIDemo/Index"
-   attr:rootapp="UI/Base:Document"
-   scope="{{_options}}"
+<UI.Base:HTML 
+   attr:application="UIDemo/Index" 
+   attr:rootapp="UI/Base:Document" 
+   scope="{{_options}}" 
    bodyClass="controls-default-bg">
    <ws:bodyTemplate>
-         <ws:partial template="{{bodyTemplate.content}}" bodyContentTmpl="UIDemo/RootRouter">
+         <ws:partial template="{{bodyTemplate.content}}">
             <ws:bodyContent>
                <UIDemo.RootRouter />
             </ws:bodyContent>
