@@ -15,8 +15,4 @@ export default class WasabyCounter extends Control {
         this.count--;
         this.forceUpdate();
     };
-
-    simpleHandler = () => {
-        alert('simple handler was called');
-    };
 }
