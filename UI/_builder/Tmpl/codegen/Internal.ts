@@ -21,6 +21,11 @@ const ALLOW_CONDITIONS = true;
  */
 const ALWAYS_FOREIGN_CONTAINER: boolean = true;
 
+/**
+ * Использовать уже вычисленное условное выражение. Не совместим с проверками на undefined в условии!
+ */
+const USE_CALCULATED_CONDITIONAL_EXPRESSION: boolean = false;
+
 const FUNCTION_PREFIX = '__$calculateDirtyCheckingVars_';
 const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
 const COLLECTION_NAME = 'collection';
@@ -106,25 +111,29 @@ export function generate(node: InternalNode, functions: Function[]): string {
     return getCurrentConditionalIndex(node.prev);
  }
 
+ function generateTemporaryVariableName(node: InternalNode): string {
+    return `${CONDITIONAL_VARIABLE_NAME}_${getCurrentConditionalIndex(node)}`;
+ }
+
  function buildWithConditions(node: InternalNode, options: IOptions): string {
     const body = buildPrograms(node.storage.getMeta(), options) + buildAll(node.children, options);
+    if (node.type === InternalNodeType.BLOCK || body.length > 0) {
+       return body;
+    }
+    const tmpVariable = generateTemporaryVariableName(node);
+    if (node.type === InternalNodeType.ELSE) {
+       return `if((${tmpVariable}===undefined)||(!${tmpVariable})){${body}}`;
+    }
+    const test = buildMeta(node.test, options);
+    const testValue = USE_CALCULATED_CONDITIONAL_EXPRESSION ? tmpVariable : test;
+    const prefix = wrapProgram(node.test, testValue);
     if (node.type === InternalNodeType.IF) {
-       const test = buildMeta(node.test, options);
-       const tmpVariable = `${CONDITIONAL_VARIABLE_NAME}_${node.index}`;
-       const prefix = wrapProgram(node.test, tmpVariable);
        return `var ${tmpVariable};if((${tmpVariable}=(${test}))||(${tmpVariable}===undefined)){${prefix + body}}`;
     }
     if (node.type === InternalNodeType.ELSE_IF) {
-       const test = buildMeta(node.test, options);
-       const tmpVariable = `${CONDITIONAL_VARIABLE_NAME}_${getCurrentConditionalIndex(node)}`;
-       const prefix = wrapProgram(node.test, tmpVariable);
        return `if((${tmpVariable}===undefined)||(!${tmpVariable})&&(${tmpVariable}=(${test}))){${prefix + body}}`;
     }
-    if (node.type === InternalNodeType.ELSE && body.length > 0) {
-       const tmpVariable = `${CONDITIONAL_VARIABLE_NAME}_${getCurrentConditionalIndex(node)}`;
-       return `if((${tmpVariable}===undefined)||(!${tmpVariable})){${body}}`;
-    }
-    return body;
+    throw new Error(`Получен неизвестный internal-узел с номером ${node.index}`);
  }
  
  function buildAll(nodes: InternalNode[], options: IOptions): string {
