@@ -12,7 +12,7 @@ const USE_INTERNAL_FUNCTIONS = true;
 /**
  * Флаг генерации условных конструкций
  */
-const ALLOW_CONDITIONS = true;
+const ALLOW_CONDITIONS = false;
 
 /**
  * Если false, то перед вызовом функции только (!) в не оригинальном контексте будет сначала вычисляться возможность вызова функции:
