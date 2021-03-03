@@ -143,7 +143,7 @@ export function generate(node: InternalNode, functions: Function[]): string {
     });
     const testValue = USE_CALCULATED_CONDITIONAL_EXPRESSION ? conditionalVariable : test;
     const prefix = wrapProgram(node.test, testValue);
-    const declareVariables = `var ${conditionalVariable};var ${safeCheckVariable} = true;`;
+    const declareVariables = `var ${conditionalVariable};var ${safeCheckVariable} = false;`;
     if (node.type === InternalNodeType.IF) {
        return `${declareVariables}if((${conditionalVariable}=(${test}))||(!${safeCheckVariable})){${prefix + body}}`;
     }
