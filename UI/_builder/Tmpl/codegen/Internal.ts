@@ -29,10 +29,11 @@ const USE_CALCULATED_CONDITIONAL_EXPRESSION: boolean = false;
 const FUNCTION_PREFIX = '__$calculateDirtyCheckingVars_';
 const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
 const COLLECTION_NAME = 'collection';
-const CONDITIONAL_VARIABLE_NAME = 'temp';
+const CONDITIONAL_VARIABLE_NAME = 'condition';
+const SAFE_CHECK_VARIABLE_NAME = 'safeCheck';
 const CONTEXT_VARIABLE_NAME = 'data';
 // FIXME: переменная funcContext неправильно вставлена в генератор кода mustache-выражения
-const FUNCTION_HEAD = `var funcContext=${CONTEXT_VARIABLE_NAME};var ${COLLECTION_NAME}={};var ${CONDITIONAL_VARIABLE_NAME};`;
+const FUNCTION_HEAD = `var funcContext=${CONTEXT_VARIABLE_NAME};var ${COLLECTION_NAME}={};`;
 const FUNCTION_TAIL = `return ${COLLECTION_NAME};`;
 
 //#endregion
@@ -42,6 +43,9 @@ interface IOptions {
     // Индекс родительского контейнера. Необходим для контроля межконтейнерных вычислений, чтобы проверять
     // выражение гарантированно вычислимо или нет.
     rootIndex: number;
+
+    // Имя переменной для self-check проверок при генерации internal
+    safeCheckVariable: string | null;
 }
 
 export function canUseNewInternalFunctions(): boolean {
@@ -56,7 +60,8 @@ export function generate(node: InternalNode, functions: Function[]): string {
        throw new Error('Произведена попытка генерации Internal-функции от скрытого узла');
     }
     const options: IOptions = {
-       rootIndex: node.index
+       rootIndex: node.index,
+       safeCheckVariable: null
     };
     const functionName = FUNCTION_PREFIX + node.index;
     const body = FUNCTION_HEAD + buildAll([node], options) + FUNCTION_TAIL;
@@ -111,27 +116,36 @@ export function generate(node: InternalNode, functions: Function[]): string {
     return getCurrentConditionalIndex(node.prev);
  }
 
- function generateTemporaryVariableName(node: InternalNode): string {
+ function generateConditionalVariableName(node: InternalNode): string {
     return `${CONDITIONAL_VARIABLE_NAME}_${getCurrentConditionalIndex(node)}`;
+ }
+
+ function generateSafeCheckVariableName(node: InternalNode): string {
+    return `${SAFE_CHECK_VARIABLE_NAME}_${getCurrentConditionalIndex(node)}`;
  }
 
  function buildWithConditions(node: InternalNode, options: IOptions): string {
     const body = buildPrograms(node.storage.getMeta(), options) + buildAll(node.children, options);
-    if (node.type === InternalNodeType.BLOCK || body.length > 0) {
+    if (node.type === InternalNodeType.BLOCK || body.length === 0) {
        return body;
     }
-    const tmpVariable = generateTemporaryVariableName(node);
+    const conditionalVariable = generateConditionalVariableName(node);
+    const safeCheckVariable = generateSafeCheckVariableName(node);
     if (node.type === InternalNodeType.ELSE) {
-       return `if((${tmpVariable}===undefined)||(!${tmpVariable})){${body}}`;
+       return `if((!${safeCheckVariable})||(!${conditionalVariable})){${body}}`;
     }
-    const test = buildMeta(node.test, options);
-    const testValue = USE_CALCULATED_CONDITIONAL_EXPRESSION ? tmpVariable : test;
+    const test = buildMeta(node.test, {
+       ...options,
+       safeCheckVariable
+    });
+    const testValue = USE_CALCULATED_CONDITIONAL_EXPRESSION ? conditionalVariable : test;
     const prefix = wrapProgram(node.test, testValue);
+    const declareVariables = `var ${conditionalVariable};var ${safeCheckVariable} = true;`;
     if (node.type === InternalNodeType.IF) {
-       return `var ${tmpVariable};if((${tmpVariable}=(${test}))||(${tmpVariable}===undefined)){${prefix + body}}`;
+       return `${declareVariables}if((${conditionalVariable}=(${test}))||(!${safeCheckVariable})){${prefix + body}}`;
     }
     if (node.type === InternalNodeType.ELSE_IF) {
-       return `if((${tmpVariable}===undefined)||(!${tmpVariable})&&(${tmpVariable}=(${test}))){${prefix + body}}`;
+       return `if((!${safeCheckVariable})||(!${conditionalVariable})&&(${conditionalVariable}=(${test}))){${prefix + body}}`;
     }
     throw new Error(`Получен неизвестный internal-узел с номером ${node.index}`);
  }
@@ -175,6 +189,7 @@ export function generate(node: InternalNode, functions: Function[]): string {
        forbidComputedMembers: false,
        childrenStorage: [],
        checkChildren: false,
+       safeCheckVariable: options.safeCheckVariable,
  
        // Если выражение вычисляется в своем настоящем контексте, то префикс перед вызовом функции не нужен
        isDirtyChecking: meta.processingIndex === options.rootIndex || ALWAYS_FOREIGN_CONTAINER
