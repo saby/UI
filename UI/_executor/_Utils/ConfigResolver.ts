@@ -84,7 +84,7 @@ const mergeRegExp = /(^on:|^content$)/ig;
  * @param templateCfg
  * @param attrs
  */
-export function resolveControlCfg(data: any, templateCfg: any, attrs: any, name: any): any {
+export function resolveControlCfg(data: any, templateCfg: any, attrs: any): any {
    const internal = templateCfg.internal || { };
    let insertedData;
    let enabledFromContent;

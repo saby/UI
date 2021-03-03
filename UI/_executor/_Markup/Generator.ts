@@ -29,52 +29,6 @@ import * as Helper from 'UI/_executor/_Markup/Helper';
 
 const defRegExp = /(\[def-[\w\d]+\])/g;
 
-function calculateDataComponent(tplOrigin) {
-   let dataComponent;
-   // При использовании ts-модуля, где нужный класс экспортируется дефолтно, внутри js-модуля
-   // сюда приходит объект tplOrigin, где __esModule есть true, а в default лежит нужная нам функция построения верстки
-   // Для того, чтобы верстка строилась, необходимо вытащить функцию из default
-   let tpl = tplOrigin && tplOrigin.__esModule && tplOrigin.default ? tplOrigin.default : tplOrigin;
-   if (typeof tpl === 'function') {
-      dataComponent = tpl.prototype ? tpl.prototype._moduleName : '';
-      dataComponent = dataComponent || tpl.name;
-   }
-   if (typeof tpl === 'string') {
-      if (Common.isLibraryModuleString(tpl)) {
-         // if this is a module string, it probably is from a dynamic partial template
-         // (ws:partial template="{{someString}}"). Split library name and module name
-         // here and process it in the next `if tpl.library && tpl.module`
-         tpl = Common.splitModule(tpl);
-      } else {
-         const newName = Common.splitWs(tpl);
-         if (newName) {
-            tpl = newName;
-         }
-
-         tpl = tpl.replace('optional!', '');
-         dataComponent = tpl;
-      }
-   }
-
-   if (tpl && tpl.library && tpl.module) {
-      // module type: { library: <requirable module name>, module: <field to take from the library> }
-      let moduleName = tpl.library + ':' + tpl.module.join('.');
-      dataComponent = moduleName;
-   }
-
-   if (Array.isArray(tpl) && tpl[0] && tpl[0].func && tpl[0].func.name) {
-      dataComponent = tpl[0].func.name.replace('bound ', 'контентная опция ');
-   }
-   if (Array.isArray(tpl) && tpl[0] && typeof tpl[0] === 'function' && tpl[0].name) {
-      dataComponent = tpl[0].name.replace('bound ', 'контентная опция ');
-   }
-   if (tpl && tpl.func && tpl.func.name) {
-      dataComponent = tpl.func.name.replace('bound ', 'контентная опция ');
-   }
-
-   return dataComponent;
-}
-
 function isLibraryTpl(tpl, deps) {
    if (typeof tpl === 'object' && tpl && tpl.library && tpl.module) {
       let controlClass;
@@ -206,7 +160,7 @@ function dataResolver(data: IControlData,
                       templateCfg: ICreateControlTemplateCfg,
                       attrs: IGeneratorAttrs,
                       name: GeneratorTemplateOrigin): [IControlData, IControlUserData, IGeneratorAttrs] {
-   data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs, calculateDataComponent(name));
+   data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs);
    data.internal.logicParent = data.internal.logicParent || templateCfg.viewController;
    data.internal.parent = data.internal.parent || templateCfg.viewController;
 
@@ -359,7 +313,7 @@ export class Generator {
       let templateConfig = Helper.config;
       let res;
       // TODO вынести конфиг ресолвер. пока это кранйе затруднительно, т.к. цепляет кучу всего.
-      data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs, calculateDataComponent(name));
+      data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs);
       data.internal.logicParent = data.internal.logicParent || templateCfg.viewController;
       data.internal.parent = data.internal.parent || templateCfg.viewController;
 
@@ -559,7 +513,7 @@ export class Generator {
                  defCollection?: IGeneratorDefCollection | void): GeneratorObject | Promise<unknown> | Error {
       let res;
       // TODO вынести конфиг ресолвер. пока это кранйе затруднительно, т.к. цепляет кучу всего.
-      data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs, calculateDataComponent(name));
+      data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs);
       data.internal.logicParent = data.internal.logicParent || templateCfg.viewController;
       data.internal.parent = data.internal.parent || templateCfg.viewController;
 
