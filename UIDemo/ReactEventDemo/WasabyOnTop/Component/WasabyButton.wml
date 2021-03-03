@@ -1,0 +1,3 @@
+<button>
+    {{ _options.buttonText }}
+</button>

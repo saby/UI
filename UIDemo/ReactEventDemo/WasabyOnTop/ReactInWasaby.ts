@@ -1,11 +1,12 @@
 import { Control } from 'UI/ReactComponent';
 // @ts-ignore
-import * as template from 'wml!UIDemo/ReactEventDemo/WasabyOverReact/WasabyCounter';
+import * as template from 'wml!UIDemo/ReactEventDemo/WasabyOnTop/ReactInWasaby';
 
-export default class WasabyCounter extends Control {
+export default class ReactInWasaby extends Control {
     protected _template = template;
 
     count: number = 0;
+
     increment = () => {
         this.count++;
         this.forceUpdate();

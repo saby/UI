@@ -1,0 +1,19 @@
+<div>
+    <div>
+        Проверяем работу нативных событий на примере click
+    </div>
+    <div>
+        подписка на DOM-элементах через wml
+    </div>
+    <div>
+        <span>{{ count }}</span>
+    </div>
+    <div>
+        <button on:click="decrement()" >
+            decrement
+        </button>
+        <button on:click="increment()" >
+            increment
+        </button>
+    </div>
+</div>

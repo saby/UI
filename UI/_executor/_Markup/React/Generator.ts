@@ -79,7 +79,7 @@ export class GeneratorReact {
    ): React.ReactElement {
       const extractedEvents = extractEventNames(events);
 
-      const newOptions = {...options, ...extractedEvents};
+      const newOptions = {...options, ...extractedEvents, ...{events: extractedEvents}};
 
       // тип контрола - компонент с шаблоном
       if (type === 'wsControl') {
@@ -256,8 +256,7 @@ export class GeneratorReact {
       }
 
       const convertedAttributes = convertAttributes(attrs.attributes);
-
-      const extractedEvents = extractEventNames(attrs.events);
+      const extractedEvents = {...control._options['events'] , ...extractEventNames(attrs.events)};
 
       const newProps = {
          ...convertedAttributes,
