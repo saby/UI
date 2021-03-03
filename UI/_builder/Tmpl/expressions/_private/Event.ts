@@ -49,7 +49,8 @@ export function processEventAttribute(
       getterContext: 'this',
       forbidComputedMembers: true,
       childrenStorage,
-      checkChildren: true
+      checkChildren: true,
+      safeCheckVariable: null
    };
    const artifact = eventVisitor.visit(value.data[0].name, eventContext);
    const handler = FSC.wrapAroundExec('function() { return ' + artifact.fn + '; }');

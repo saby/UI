@@ -75,6 +75,7 @@ interface IExpressionVisitorContext extends IContext {
    childrenStorage: string[];
    checkChildren: boolean;
    isDirtyChecking?: boolean;
+   safeCheckVariable: string | null;
 }
 
 // tslint:disable:object-literal-key-quotes
@@ -252,17 +253,21 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
 
    buildSafeCheckArgumentsChain(args: Node[], context: IExpressionVisitorContext): string {
       let result = '';
-      args.forEach((node: Node) => {
-         const itemCheck = node.accept(this, context);
-         const hasFunctionCall = containsFunctionCall(node);
+      let counter = 0;
+      for (let index = 0; index < args.length; ++index) {
+         const itemCheck = args[index].accept(this, context);
+         const hasFunctionCall = containsFunctionCall(args[index]);
          if (typeof itemCheck === 'string' && itemCheck.indexOf('thelpers.getter') > -1) {
-            if (hasFunctionCall) {
-               result += `(${itemCheck})&&`;
-               return;
+            if (counter > 0) {
+               result += '&&';
             }
-            result += `(${itemCheck}) !== undefined&&`;
+            result += `(${itemCheck})`;
+            if (!hasFunctionCall) {
+               result += `!==undefined`;
+            }
+            ++counter;
          }
-      });
+      }
       return result;
    }
 
@@ -304,9 +309,16 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
             // в случае, если одно из проверяемых значения было рано 0, например.
             // Вообще этой проверки быть не должно. От нее можно избавиться,
             // если не пробрасывать dirtyCheckingVars там, где это не нужно.
-            const functionSafeCheck = `(${callee}) !== undefined&&`;
+            const functionSafeCheck = `(${callee}) !== undefined`;
             const argsSafeCheck = this.buildSafeCheckArgumentsChain(node.arguments, context);
-            return `(${functionSafeCheck}${argsSafeCheck}${callee}.apply(${object}, ${args}))`;
+            let safeCheckExpression = functionSafeCheck;
+            if (argsSafeCheck.length > 0) {
+               safeCheckExpression += `&&${argsSafeCheck}`;
+            }
+            if (context.isDirtyChecking && typeof context.safeCheckVariable === 'string') {
+               return `(((${context.safeCheckVariable})=(${safeCheckExpression}))&&${callee}.apply(${object}, ${args}))`;
+            }
+            return `(${safeCheckExpression}&&${callee}.apply(${object}, ${args}))`;
          }
          return `${callee}.apply(${object}, ${args})`;
       }
