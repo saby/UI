@@ -126,12 +126,15 @@ export function generate(node: InternalNode, functions: Function[]): string {
 
  function buildWithConditions(node: InternalNode, options: IOptions): string {
     const body = buildPrograms(node.storage.getMeta(), options) + buildAll(node.children, options);
-    if (node.type === InternalNodeType.BLOCK || body.length === 0) {
+    if (node.type === InternalNodeType.BLOCK) {
        return body;
     }
     const conditionalVariable = generateConditionalVariableName(node);
     const safeCheckVariable = generateSafeCheckVariableName(node);
     if (node.type === InternalNodeType.ELSE) {
+       if (body.length === 0) {
+          return body;
+       }
        return `if((!${safeCheckVariable})||(!${conditionalVariable})){${body}}`;
     }
     const test = buildMeta(node.test, {
