@@ -143,12 +143,12 @@ export function generate(node: InternalNode, functions: Function[]): string {
     });
     const testValue = USE_CALCULATED_CONDITIONAL_EXPRESSION ? conditionalVariable : test;
     const prefix = wrapProgram(node.test, testValue);
-    const declareVariables = `var ${conditionalVariable};var ${safeCheckVariable} = false;`;
+    const declareVariables = `var ${conditionalVariable};var ${safeCheckVariable} = true;`;
     if (node.type === InternalNodeType.IF) {
        return `${declareVariables}if((${conditionalVariable}=(${test}))||(!${safeCheckVariable})){${prefix + body}}`;
     }
     if (node.type === InternalNodeType.ELSE_IF) {
-       return `if((!${safeCheckVariable})||(!${conditionalVariable})&&(${conditionalVariable}=(${test}))){${prefix + body}}`;
+       return `if((!${safeCheckVariable})||(!${conditionalVariable})&&(${conditionalVariable}=(${test}))||(!${safeCheckVariable})){${prefix + body}}`;
     }
     throw new Error(`Получен неизвестный internal-узел с номером ${node.index}`);
  }
