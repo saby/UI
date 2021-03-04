@@ -121,6 +121,9 @@ class HTML extends Control<IHTMLCombinedOptions> {
     // tslint:disable-next-line:no-any
     _beforeMount(cfg: IHTMLCombinedOptions, context: any, receivedState: any): Promise<any> {
         this.onServer = typeof window === 'undefined';
+        if (!this.onServer) {
+            window.document.body.addEventListener('_bodyClassesUpdateCrunch', this._onBodyClassesUpdate.bind(this));
+        }
         this.isCompatible = cfg.compat;
         this.initState(receivedState || cfg);
         this.metaStack = MetaStack.restore(receivedState?.metaStackSer);
@@ -233,6 +236,10 @@ class HTML extends Control<IHTMLCombinedOptions> {
         if (!detection.isMobilePlatform && !inIframe()) {
             this.activate();
         }
+    }
+
+    _onBodyClassesUpdate(event: CustomEvent): void {
+        this._bodyClasses = event.detail;
     }
 
     // tslint:disable-next-line:no-any
