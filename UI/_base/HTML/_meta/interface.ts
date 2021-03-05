@@ -4,15 +4,15 @@ export type ISerializedMetaState = string;
 
 /**
  * Хранилище состояний meta-тегов
- * @interface UI/_base/HTML/_meta/IMetaStack
+ * @interface UI/_base/HTML/_meta/interface#IMetaStack
  * @public
  * @author Ибрагимов А.А.
  */
 export interface IMetaStack {
    /**
     * Добавить состояние
-    * @param {UI/_base/HTML/_meta/IMeta} meta
-    * @returns {UI/_base/HTML/_meta/IMetaState}
+    * @param {UI/_base/HTML/_meta/interface#IMeta} meta
+    * @returns {UI/_base/HTML/_meta/interface#IMetaState}
     * @example
     * import { getMetaStack } from 'UI/Base';
     * const meta: IMeta = { title: 'Page title' }
@@ -21,7 +21,7 @@ export interface IMetaStack {
    push(meta: IMeta): IMetaState;
    /**
     * Удалить состояние
-    * @param {UI/_base/HTML/_meta/IMetaState} state
+    * @param {UI/_base/HTML/_meta/interface#IMetaState} state
     * @example
     * import { getMetaStack } from 'UI/Base';
     * const meta: IMeta = { title: 'Page title' }
@@ -45,7 +45,7 @@ export type IDeserializeStack = (s: ISerializedMetaStack) => IMetaStackInternal;
 
 /**
  * Состояние meta-тегов
- * @interface UI/_base/HTML/_meta/IMetaState
+ * @interface UI/_base/HTML/_meta/interface#IMetaState
  * @public
  * @author Ибрагимов А.А.
  */
@@ -93,9 +93,9 @@ export interface IMetaStateInternal extends IMetaState {
 export type IDeserializeMeta = (s: ISerializedMetaState) => IMetaStateInternal;
 
 /**
- * @typedef UI/_base/HTML/_meta/IMeta
+ * @typedef UI/_base/HTML/_meta/interface#IMeta
  * @property {string} title Title страницы
- * @property {UI/_base/HTML/_meta/IOpenGraph} [og] OpenGraph тэги страницы
+ * @property {UI/_base/HTML/_meta/interface#IOpenGraph} [og] OpenGraph тэги страницы
  */
 export interface IMeta {
    /** Title страницы */
@@ -103,7 +103,7 @@ export interface IMeta {
    og?: Partial<IOpenGraph>;
 }
 /**
- * @typedef UI/_base/HTML/_meta/IOpenGraph
+ * @typedef UI/_base/HTML/_meta/interface#IOpenGraph
  * @property {string} description
  * @property {string} title
  * @property {string} image
