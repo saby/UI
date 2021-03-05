@@ -4,6 +4,7 @@
  * @remark
  * @library UI/_base/HTML/meta
  * @includes getMetaStack getMetaStack
+ * @includes IMetaStack UI/_base/HTML/_meta/IMetaStack
  * @public
  * @author Ибрагимов А.А.
  */
