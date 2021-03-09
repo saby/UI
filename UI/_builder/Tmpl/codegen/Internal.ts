@@ -12,7 +12,7 @@ const USE_INTERNAL_FUNCTIONS = true;
 /**
  * Флаг генерации условных конструкций
  */
-const ALLOW_CONDITIONS = true;
+const ALLOW_CONDITIONS = false;
 
 /**
  * Если false, то перед вызовом функции только (!) в не оригинальном контексте будет сначала вычисляться возможность вызова функции:
@@ -48,24 +48,8 @@ interface IOptions {
     safeCheckVariable: string | null;
 }
 
-const FORBIDDEN_TEMPLATE_DIRS = [
-    'Controls/_input'
-];
-
-function isAllowedToUseInternalFunctions(fileName: string): boolean {
-    if (typeof fileName !== 'string') {
-        return true;
-    }
-    for (let index = 0; index < FORBIDDEN_TEMPLATE_DIRS.length; ++index) {
-        if (fileName.startsWith(FORBIDDEN_TEMPLATE_DIRS[index])) {
-            return false;
-        }
-    }
-    return true;
-}
-
-export function canUseNewInternalFunctions(fileName: string): boolean {
-    return canUseNewInternalMechanism() && USE_INTERNAL_FUNCTIONS && isAllowedToUseInternalFunctions(fileName);
+export function canUseNewInternalFunctions(): boolean {
+    return canUseNewInternalMechanism() && USE_INTERNAL_FUNCTIONS;
 }
 
 export function generate(node: InternalNode, functions: Function[]): string {
