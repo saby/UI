@@ -117,6 +117,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
    private __captureEventHandlers: Record<string, IHandlerInfo[]>;
    private __markupNodeDecorator: TMarkupNodeDecoratorFn;
    private touchendTarget: HTMLElement;
+   private wasClickedOnTouch: boolean;
 
    private wasNotifyList: string[] = [];
    private lastNotifyEvent: string = '';
@@ -156,6 +157,8 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
 
       // если я это не напишу, ts ругнется 'touchendTarget' is declared but its value is never read
       this.touchendTarget = this.touchendTarget || null;
+      // если я это не напишу, ts ругнется 'wasClickedOnTouch' is declared but its value is never read
+      this.wasClickedOnTouch = this.wasClickedOnTouch || false;
    }
 
    destroy(): any {
@@ -406,6 +409,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
       event.addedToClickState = true;
 
       FastTouchEndController.setClickEmulateState(true);
+      this._setWasClickedOnTouch(false);
       SwipeController.initState(event);
       const longTapCallback = () => {
          // т.к. callbackFn вызывается асинхронно, надо передавать с правильным контекстом
@@ -481,10 +485,20 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
       // https://online.sbis.ru/opendoc.html?guid=f0695304-83e2-4cc5-b0b3-a63580214bf2
       // https://online.sbis.ru/opendoc.html?guid=99861178-2bd8-40dc-8307-bda1080a91f5
       this.touchendTarget = event.target;
-      setTimeout(() => { this.touchendTarget = null; }, 300);
+      setTimeout(() => { this.touchendTarget = null;}, 300);
       FastTouchEndController.clickEmulate(event.target, event);
+      this._setWasClickedOnTouch(true);
       SwipeController.resetState();
       LongTapController.resetState();
+   }
+
+   _setWasClickedOnTouch(value: boolean): void {
+      if (detection.isMobileIOS && detection.safari) {
+         // на ipad в 14.4 версии клик стал стрелять дважды,
+         // т.к. событие для события touchend не вызывается preventDefault
+         // устанавливать { passive: false } для всех событий на уровне ядра идея не самая лучшая
+         this.wasClickedOnTouch = value;
+      }
    }
 
    _shouldUseClickByTap(): boolean {
@@ -1153,14 +1167,18 @@ function checkSameEnvironment(env: any, element: any, isCompatibleTemplate: bool
 function captureEventHandler(event: any): any {
    if (needPropagateEvent(this, event)) {
       const synthEvent = new SyntheticEvent(event);
-
       if (detection.isMobileIOS && detection.safari && event.type === 'click' && this.touchendTarget) {
          synthEvent.target = this.touchendTarget;
          this.touchendTarget = null;
       }
-
-      vdomEventBubbling.call(this, synthEvent, null, undefined, [], true);
+      if (allowVdomEventBubbling()) {
+         vdomEventBubbling.call(this, synthEvent, null, undefined, [], true);
+      }
    }
+}
+
+function allowVdomEventBubbling(): boolean {
+   return !(detection.isMobileIOS && detection.safari && this.wasClickedOnTouch);
 }
 
 /**
