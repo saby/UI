@@ -235,7 +235,7 @@ function createWsConfig(options: IHeadOptions, staticDomainsstringified: string)
             `product: '${options.product}',`,
             `reactApp: ${options.reactApp}`,
             '};',
-            options.buildnumber ? `window.buildnumber = ${options.buildnumber};` : '',
+            options.buildnumber ? `window.buildnumber = '${options.buildnumber}';` : '',
             options.preInitScript ? options.preInitScript : ''
         ].join('\n')
     );
