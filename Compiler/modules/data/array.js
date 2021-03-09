@@ -20,7 +20,7 @@ define('Compiler/modules/data/array', [
    }
 
    function generateInternal(string, injected, includedFn, privateFn, fileName) {
-      if (Internal.canUseNewInternalFunctions(fileName) && privateFn) {
+      if (Internal.canUseNewInternalFunctions() && privateFn) {
          return FSC.getStr(Internal.generate(injected.__$ws_internalTree, privateFn));
       }
 

@@ -150,7 +150,7 @@ define('Compiler/modules/partial', [
          ? FSC.getStr(tag.internal)
          : '{}';
 
-      if (Internal.canUseNewInternalFunctions(this.fileName) && this.privateFn) {
+      if (Internal.canUseNewInternalFunctions() && this.privateFn) {
          // TODO: Test and remove code above
          internal = Internal.generate(tag.__$ws_internalTree, this.privateFn);
       }
@@ -301,7 +301,7 @@ define('Compiler/modules/partial', [
                ? FSC.getStr(tag.internal)
                : null;
             
-            if (Internal.canUseNewInternalFunctions(this.fileName) && this.privateFn) {
+            if (Internal.canUseNewInternalFunctions() && this.privateFn) {
                // TODO: Test and remove code above
                decorInternal = Internal.generate(tag.__$ws_internalTree, this.privateFn);
             }

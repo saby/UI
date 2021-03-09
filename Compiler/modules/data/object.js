@@ -87,7 +87,7 @@ define('Compiler/modules/data/object', [
          );
       }
 
-      if (injected.__$ws_internalTree && Internal.canUseNewInternalFunctions(this.handlers.fileName) && this.privateFn) {
+      if (injected.__$ws_internalTree && Internal.canUseNewInternalFunctions() && this.privateFn) {
          // TODO: Test and remove code above
          injected.internal = Internal.generate(injected.__$ws_internalTree, this.privateFn);
       }
@@ -298,7 +298,7 @@ define('Compiler/modules/data/object', [
          }
          var dirtyCh = '';
          var currentInternalForInjected = (realInjected && realInjected.internal) || null;
-         if (realInjected.__$ws_internalTree && Internal.canUseNewInternalFunctions(this.handlers.fileName) && this.privateFn) {
+         if (realInjected.__$ws_internalTree && Internal.canUseNewInternalFunctions() && this.privateFn) {
             // TODO: Test and remove code above
             currentInternalForInjected = Internal.generate(realInjected.__$ws_internalTree, this.privateFn);
          }
