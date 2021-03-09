@@ -95,13 +95,15 @@ define('UI/_builder/Tmpl/modules/data/array', [
       var variableInner;
       var typeName;
 
+      // Вход в функцию:
+      // + узел типа ArrayNode
+
       if (injected.children) {
          arrayAttributes = parseUtils.parseAttributesForData.call(this, {
             attribs: injected.attribs,
             isControl: injected.isControl,
             configObject: { },
-            rootConfig: injected.rootConfig,
-            __$ws_internalTree: injected.__$ws_internalTree
+            rootConfig: injected.rootConfig
          }, scopeData, propertyName, false);
          if (arrayAttributes && arrayAttributes.type === 'string') {
             stringFunctions = true;
@@ -113,12 +115,12 @@ define('UI/_builder/Tmpl/modules/data/array', [
                if (children[index].children) {
                   typeFunction = types[nameExists];
                   if (typeFunction) {
+                     // Обработка DataType узлов
                      var res = typeFunction.call(this, {
                         attribs: children[index].attribs,
                         children: children[index].children,
                         isControl: injected.isControl,
-                        rootConfig: injected.rootConfig,
-                        __$ws_internalTree: injected.__$ws_internalTree
+                        rootConfig: injected.rootConfig
                      }, types, scopeData, propertyName + '/' + index);
                      if (typeof res === 'string') {
                         variableInner = children && children[0] && children[0].children;
@@ -129,11 +131,13 @@ define('UI/_builder/Tmpl/modules/data/array', [
                      tagUtils.checkForControl(nameExists, true, true) ||
                      !tagUtils.isEntityUsefulOrHTML(nameExists, this._modules)
                   ) {
+                     // Генерация содержимого узла ContentOption
                      array.push(DTC.createDataRepresentation(
                         nameExists,
                         generateFunction.call(this, propertyName, [children[index]], stringFunctions, injected)
                      ));
                   } else {
+                     // FIXME: Потенциально мервая ветка кода, т.к. ws:Array содержит DataType узлы
                      typeName = undefined;
                      if (nameExists && nameExists.charAt && nameExists.slice) {
                         typeName = nameExists.charAt(0).toUpperCase() + nameExists.slice(1);
@@ -157,6 +161,7 @@ define('UI/_builder/Tmpl/modules/data/array', [
                   }
                }
             } else {
+               // Генерация Array-узла без контента (данные заданы через атрибуты) или содержимого контентной опции
                array.push(DTC.createDataRepresentation(
                   nameExists,
                   generateFunction.call(this, propertyName, [children[index]], stringFunctions, injected)
