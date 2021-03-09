@@ -225,7 +225,7 @@ function createWsConfig(options: IHeadOptions, staticDomainsstringified: string)
             `compatible: ${options.compat},`,
             `product: '${options.product}'`,
             '};',
-            options.buildnumber ? `window.buildnumber = ${options.buildnumber};` : '',
+            options.buildnumber ? `window.buildnumber = '${options.buildnumber}';` : '',
             options.preInitScript ? options.preInitScript : ''
         ].join('\n')
     );
