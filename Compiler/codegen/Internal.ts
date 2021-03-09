@@ -48,8 +48,24 @@ interface IOptions {
     safeCheckVariable: string | null;
 }
 
-export function canUseNewInternalFunctions(): boolean {
-    return canUseNewInternalMechanism() && USE_INTERNAL_FUNCTIONS;
+const FORBIDDEN_TEMPLATE_DIRS = [
+    'Controls/_input'
+];
+
+function isAllowedToUseInternalFunctions(fileName: string): boolean {
+    if (typeof fileName !== 'string') {
+        return true;
+    }
+    for (let index = 0; index < FORBIDDEN_TEMPLATE_DIRS.length; ++index) {
+        if (fileName.startsWith(FORBIDDEN_TEMPLATE_DIRS[index])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+export function canUseNewInternalFunctions(fileName: string): boolean {
+    return canUseNewInternalMechanism() && USE_INTERNAL_FUNCTIONS && isAllowedToUseInternalFunctions(fileName);
 }
 
 export function generate(node: InternalNode, functions: Function[]): string {

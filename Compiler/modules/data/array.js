@@ -19,8 +19,8 @@ define('Compiler/modules/data/array', [
       return propertyName ? propertyName.split('/').pop() : propertyName;
    }
 
-   function generateInternal(string, injected, includedFn, privateFn) {
-      if (Internal.canUseNewInternalFunctions() && privateFn /* Есть privateFn <--> компилируем wml */) {
+   function generateInternal(string, injected, includedFn, privateFn, fileName) {
+      if (Internal.canUseNewInternalFunctions(fileName) && privateFn) {
          return FSC.getStr(Internal.generate(injected.__$ws_internalTree, privateFn));
       }
 
@@ -49,7 +49,7 @@ define('Compiler/modules/data/array', [
       var funcText = templates.generateTemplate(cleanPropertyName, generatedTemplate, fileName, !!string);
       var functionToWrap;
       var postfixCall = string ? '(Object.create(data), null, context)' : '';
-      var dirtyCh = generateInternal(string, injected, this.includedFn, this.privateFn);
+      var dirtyCh = generateInternal(string, injected, this.includedFn, this.privateFn, fileName);
 
       // eslint-disable-next-line no-new-func
       var func = new Function('data, attr, context, isVdom, sets, forceCompatible, generatorConfig', funcText);
