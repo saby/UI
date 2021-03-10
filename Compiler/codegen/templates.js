@@ -97,7 +97,7 @@ define('Compiler/codegen/templates', [
       var localDependenciesList = '';
       var privateTemplates = '';
       var mainTemplateFunctionName = templateFunction.name;
-      if (mainTemplateFunctionName === 'anonymous') {
+      if (mainTemplateFunctionName === 'anonymous' || mainTemplateFunctionName === undefined) {
          mainTemplateFunctionName = 'template';
       }
       var template = templateFunction.toString()
