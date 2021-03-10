@@ -1171,14 +1171,14 @@ function captureEventHandler(event: any): any {
          synthEvent.target = this.touchendTarget;
          this.touchendTarget = null;
       }
-      if (allowVdomEventBubbling()) {
+      if (allowVdomEventBubbling.call(this)) {
          vdomEventBubbling.call(this, synthEvent, null, undefined, [], true);
       }
    }
 }
 
 function allowVdomEventBubbling(): boolean {
-   return !(detection.isMobileIOS && detection.safari && this.wasClickedOnTouch);
+   return !(detection.isMobileIOS && this.wasClickedOnTouch);
 }
 
 /**
