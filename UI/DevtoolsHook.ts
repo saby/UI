@@ -207,7 +207,7 @@ function onEndLifecycle(node: IControlNode | IGeneratorControlNode): void {
  * продолжится без прерываний, то в итоге позовётся onEndSync.
  * @param rootId Число, которое хранится на инстансе корня, и позволяет его идентифицировать. Нельзя использовать саму ноду, т.к. при первом построении ноды ещё нет, а хук дёргать уже надо.
  */
-function onStartSync(rootId: number): void {
+function onStartSync(rootId: string): void {
    if (foundDevtools) {
       onStartSyncFunc(rootId);
    }
@@ -217,7 +217,7 @@ function onStartSync(rootId: number): void {
  * Сообщает в расширение о завершении синхронизации. Для одного корня вызывается один раз за синхронизацию.
  * @param rootId
  */
-function onEndSync(rootId: number): void {
+function onEndSync(rootId: string): void {
    if (foundDevtools) {
       onEndSyncFunc(rootId);
    }
