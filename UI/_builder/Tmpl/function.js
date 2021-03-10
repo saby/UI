@@ -14,7 +14,7 @@ define('UI/_builder/Tmpl/function', [
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/Tmpl/codegen/Generator',
    'UI/_builder/Tmpl/codegen/TClosure',
-   'UI/_builderConfig/Config'
+   'UI/BuilderConfig'
 ], function processingModule(
    uiUtils,
    Process,
@@ -152,7 +152,7 @@ define('UI/_builder/Tmpl/function', [
          }
 
          if (!isFunctionNameConfigurable(func)) {
-            return this.getFuncName(builderConfig.privateFunctionName);
+            return this.getFuncName(builderConfig.Config.privateFunctionName);
          }
 
          var functionName = this.getFuncName(propertyName, fileName, wsTemplateName);
