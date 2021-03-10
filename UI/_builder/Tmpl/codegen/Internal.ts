@@ -138,18 +138,16 @@ function buildWithConditions(node: InternalNode, options: IOptions): string {
     });
     const prefix = wrapProgram(node.test, conditionalVariable);
     const declareVariables = `var ${conditionalVariable};var ${safeCheckVariable} = true;`;
+    const safeCheck = `(!${safeCheckVariable})`;
+    const undefinedConditionalCheck = `(${safeCheckVariable}=(${safeCheckVariable}||typeof(${conditionalVariable}) === 'undefined'))`;
+    const conditional = `(${conditionalVariable}=(${test}))`;
     if (node.type === InternalNodeType.IF) {
-        const conditional = `(${conditionalVariable}=(${test}))`;
-        const safeCheck = `(!${safeCheckVariable})`;
-        const undefinedConditionalCheck = `(${safeCheckVariable}=(${safeCheckVariable}||typeof (${conditionalVariable}) === undefined))`;
         const testExpression = `${conditional}||${safeCheck}||${undefinedConditionalCheck}`;
         return `${declareVariables}if(${testExpression}){${prefix + body}}`;
     }
     if (node.type === InternalNodeType.ELSE_IF) {
-        const safeCheck = `(!${safeCheckVariable})`;
-        const conditional = `(!${conditionalVariable})&&(${conditionalVariable}=(${test}))`;
-        const undefinedConditionalCheck = `(${safeCheckVariable}=(${safeCheckVariable}||typeof (${conditionalVariable}) === undefined))`;
-        const testExpression = `${safeCheck}||${conditional}||${safeCheck}||${undefinedConditionalCheck}`;
+        const elseConditional = `(!${conditionalVariable})&&${conditional}`;
+        const testExpression = `${safeCheck}||${elseConditional}||${safeCheck}||${undefinedConditionalCheck}`;
         return `if(${testExpression}){${prefix + body}}`;
     }
     throw new Error(`Получен неизвестный internal-узел с номером ${node.index}`);
