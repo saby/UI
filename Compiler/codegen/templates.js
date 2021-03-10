@@ -77,9 +77,9 @@ define('Compiler/codegen/templates', [
          return functionName;
       }
       if (index === 0) {
-         return builderConfig.privateFunctionName;
+         return builderConfig.Config.privateFunctionName;
       }
-      return builderConfig.privateFunctionName + '_' + index;
+      return builderConfig.Config.privateFunctionName + '_' + index;
    }
 
    /**
