@@ -1,6 +1,6 @@
 define('UI/_builder/Tmpl/codegen/templates', [
    'UI/_builder/Tmpl/codegen/jstpl',
-   'UI/_builderConfig/Config'
+   'UI/BuilderConfig'
 ], function(jstpl, builderConfig) {
    'use strict';
 
@@ -78,9 +78,9 @@ define('UI/_builder/Tmpl/codegen/templates', [
          return functionName;
       }
       if (index === 0) {
-         return builderConfig.privateFunctionName;
+         return builderConfig.Config.privateFunctionName;
       }
-      return builderConfig.privateFunctionName + '_' + index;
+      return builderConfig.Config.privateFunctionName + '_' + index;
    }
 
    /**
