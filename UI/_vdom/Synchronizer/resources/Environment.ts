@@ -9,7 +9,6 @@ import { delay } from 'Types/function';
 import { DirtyKind } from './DirtyChecking';
 import MountMethodsCaller from './MountMethodsCaller';
 import { Logger } from 'UI/Utils';
-import { onEndSync } from 'UI/DevtoolsHook';
 import { BoundaryElements } from 'UI/Focus';
 
 interface IDires {
@@ -175,7 +174,6 @@ abstract class Environment {
 
             this._rebuildRequestStarted = false;
             this.runQueue();
-            onEndSync(newNode.rootId);
          });
 
          return;
@@ -192,7 +190,6 @@ abstract class Environment {
       setTimeout(() => {
          mountMethodsCaller.afterUpdate(controlNodesToCall);
          this.callEventsToDOM();
-         onEndSync(newNode.rootId);
          this._rebuildRequestStarted = false;
          this.runQueue();
       }, 0);
