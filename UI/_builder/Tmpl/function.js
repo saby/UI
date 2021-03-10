@@ -14,7 +14,7 @@ define('UI/_builder/Tmpl/function', [
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/Tmpl/codegen/Generator',
    'UI/_builder/Tmpl/codegen/TClosure',
-   'UI/_builderConfig/Config'
+   'UI/BuilderConfig'
 ], function processingModule(
    uiUtils,
    Process,
@@ -125,7 +125,7 @@ define('UI/_builder/Tmpl/function', [
       getFuncName: function getFuncName(propertyName, fileName, wsTemplateName) {
          var fnByTmpl = this.getFuncNameByTemplate(wsTemplateName);
          var fnByFile = this.getFuncNameByFile(fileName);
-         var functionName = fnByTmpl || fnByFile || propertyName || 'Unknown';
+         var functionName = fnByTmpl || fnByFile || propertyName || builderConfig.Config.privateFunctionName;
 
          // Запомнить вычисленное имя функции и определить ее идентификатор в случае повторения имени
          if (this.functionNames) {
@@ -152,7 +152,7 @@ define('UI/_builder/Tmpl/function', [
          }
 
          if (!isFunctionNameConfigurable(func)) {
-            return this.getFuncName(builderConfig.privateFunctionName);
+            return this.getFuncName();
          }
 
          var functionName = this.getFuncName(propertyName, fileName, wsTemplateName);
