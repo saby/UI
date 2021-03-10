@@ -16,7 +16,7 @@ export function process(nodes: Ast.Ast[], scope: Scope): IResultTree {
 /**
  * Флаг включения/выключения нового механизма формирования internal-выражений для dirty checking проверок.
  */
-const USE_INTERNAL_MECHANISM = false;
+const USE_INTERNAL_MECHANISM = true;
 
 /**
  * Если в test-выражение вычисляется не в своем контексте, значит не гарантируется, что результат вычисления
@@ -800,14 +800,6 @@ class IndexAllocator {
        if (this.next) {
           this.next.removeSiblingConditional(parent, counter + 1);
        }
-       if (this.next === null || this.next && this.next.type === InternalNodeType.IF) {
-          const startIndex = this.parent.children.indexOf(parent.children[parent.children.length - counter - 1]);
-          this.parent.children.splice(startIndex, counter + 1);
-       }
-       this.prev = index > 0 ? parent.children[index - 1] : null;
-       this.next = index + 1 < parent.children.length ? parent.children[index + 1] : null;
-       this.parent = parent;
-       return;
     }
 
     private dropAndAppend(identifiers: string[], allocator: IndexAllocator): void {
