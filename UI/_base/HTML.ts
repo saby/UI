@@ -88,7 +88,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
     private initState(cfg: any): void {
         this.templateConfig = cfg.templateConfig;
         this.compat = cfg.compat || false;
-        this._bodyClasses = cfg.bodyClasses || this._bodyClasses;
+        this._bodyClasses = AppBody.getInstance().getClassString();
     }
 
     private isFocusNode(node: Element): boolean {
