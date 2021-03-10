@@ -152,7 +152,7 @@ define('Compiler/codegen/function', [
          }
 
          if (!isFunctionNameConfigurable(func)) {
-            return this.getFuncName();
+            return this.getFuncName(builderConfig.Config.privateFunctionName);
          }
 
          var functionName = this.getFuncName(propertyName, fileName, wsTemplateName);
