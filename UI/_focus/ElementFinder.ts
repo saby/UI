@@ -94,13 +94,18 @@ function getTabStopState(element: IControlElement, tabbable: boolean = false): b
    return tabStopState;
 }
 
+// Решение для хотфикса, ссылки без href по умолчанию считаем с tanindex -1;
+// TODO: https://online.sbis.ru/opendoc.html?guid=0d5f8d23-6fef-44cb-882b-4b7c36570da6
+function fixInvalidTabindex(element: HTMLElement): number {
+   return element.tagName === 'A' && !element.getAttribute('href') ? -1 : 0;
+}
+
 export function getElementProps(element: HTMLElement, tabbable: boolean = false): IFocusElementProps {
    let elementPropsClassRe = /\bws-(hidden|disabled)\b/g;
    let className = element.getAttribute('class');
    let classes;
    let tabIndex;
    let tabIndexAttr;
-   let validTabIndex;
    let isContentEditable;
    let flags;
    let enabled;
@@ -129,16 +134,18 @@ export function getElementProps(element: HTMLElement, tabbable: boolean = false)
    if (enabled) {
       tabIndexAttr = element.getAttribute('tabindex');
       tabIndex = parseInt(tabIndexAttr, 10);
-      validTabIndex = !isNaN(tabIndex);
+      if(isNaN(tabIndex)) {
+         tabIndex = fixInvalidTabindex(element);
+      }
       isContentEditable = element.getAttribute('contenteditable') === 'true';
       result = {
          enabled: true,
          tabStop:
-            (validTabIndex && tabIndex >= 0) ||
+            (tabIndex >= 0) ||
             (tabIndexAttr === null && getTabStopState(element, tabbable)) ||
             (tabIndex !== -1 && isContentEditable),
          createsContext: (flags & CLASS_CREATES_CONTEXT) !== 0,
-         tabIndex: validTabIndex ? tabIndex : -1,
+         tabIndex: tabIndex,
          delegateFocusToChildren: ((flags & CLASS_DELEGATES_TAB_FLAG) !== 0 && !isContentEditable),
          tabCycling: (flags & CLASS_TAB_CYCLING) !== 0
       };
