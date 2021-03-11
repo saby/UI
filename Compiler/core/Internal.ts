@@ -899,14 +899,6 @@ function collectInlineTemplateIdentifiers(node: Ast.InlineTemplateNode): string[
 
 function wrapInternalExpressions(programs: IProgramMeta[]): any {
    const internal = { };
-
-   // FIXME: DEVELOP: REMOVE
-   programs.sort(function(a, b) {
-      if (a.node.string < b.node.string) return -1;
-      if (a.node.string > b.node.string) return +1;
-      return 0;
-   });
-
    for (let index = 0; index < programs.length; ++index) {
       const program = programs[index];
       internal[INTERNAL_PROGRAM_PREFIX + index] = {
