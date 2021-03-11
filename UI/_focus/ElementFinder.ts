@@ -94,10 +94,15 @@ function getTabStopState(element: IControlElement, tabbable: boolean = false): b
    return tabStopState;
 }
 
-// Решение для хотфикса, ссылки без href по умолчанию считаем с tanindex -1;
-// TODO: https://online.sbis.ru/opendoc.html?guid=0d5f8d23-6fef-44cb-882b-4b7c36570da6
 function fixInvalidTabindex(element: HTMLElement): number {
-   return element.tagName === 'A' && !element.getAttribute('href') ? -1 : 0;
+   const tagName: string = element.tagName.toLowerCase();
+   if (tagName === 'a' || tagName === 'area') {
+      return element.getAttribute('href') ? 0 : -1;
+   }
+   if (tagName === 'input' || tagName === 'select') {
+      return element.getAttribute('disabled') === null ? 0 : -1;
+   }
+   return -1;
 }
 
 export function getElementProps(element: HTMLElement, tabbable: boolean = false): IFocusElementProps {
