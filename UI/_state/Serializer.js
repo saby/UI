@@ -2,12 +2,14 @@ define('UI/_state/Serializer', [
    'require',
    'UI/Utils',
    'Env/Env',
+   'Application/Env',
    'UI/_state/TemplateDeserialization',
    'WasabyLoader/Library'
 ], function(
    require,
    Utils,
    Env,
+   ApplicationEnv,
    deserializeTemplate,
    Library
 ) {
@@ -293,12 +295,12 @@ define('UI/_state/Serializer', [
                      result = self._functionStorage[value.id];
                   } else if (!value.module) {
                      result = function() {
-                        Env.IoC.resolve('ILogger').warn('UI/State:Serializer',
+                        ApplicationEnv.logger.warn('UI/State:Serializer',
                            'Попытка вызвать на клиенте функцию (название "' + name + '"), которая была сериализована на сервере и которая ' +
                            'не является частью какого-либо модуля. То есть к этой функции нет прямого доступа на клиенте. ' +
                            'Подробнее тут https://wi.sbis.ru/doc/platform/developmentapl/interface-development/pattern-and-practice/serialization/');
                      };
-                     Env.IoC.resolve('ILogger').warn('UI/State:Serializer',
+                     ApplicationEnv.logger.warn('UI/State:Serializer',
                         'Попытка десереализовать на клиенте функцию (название "' + name + '"), которая была сериализована на сервере и которая ' +
                         'не является частью какого-либо модуля. То есть к этой функции нет прямого доступа на клиенте. ' +
                         'Подробнее тут https://wi.sbis.ru/doc/platform/developmentapl/interface-development/pattern-and-practice/serialization/');
@@ -578,7 +580,7 @@ define('UI/_state/Serializer', [
                   ? module.fromJSON(instance.value)
                   : module.prototype.fromJSON.call(module, instance.value);
             } catch (e) {
-               Env.IoC.resolve('ILogger').error('UI/State:Serializer', e.stack || e);
+               ApplicationEnv.logger.error('UI/State:Serializer', e.stack || e);
                value = null;
             }
             this._instanceStorage[instance.value.id] = value;
