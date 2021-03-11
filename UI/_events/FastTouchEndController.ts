@@ -63,8 +63,12 @@ export class FastTouchEndController {
       if (this.isNativeList(document.activeElement) || this.isContentEditable(document.activeElement)) {
          return true;
       }
-      // вызываем быстрый клик на тач устройствах только если нет класса и событие не создано вручную
-      if(!targetElement.classList.contains("ws-disableFastTouch") && !nativeEvent.isTrusted) {
+      // вызываем нативный тач если есть специальный класса
+      if(targetElement.classList.contains("ws-disableFastTouch")) {
+         return true;
+      }
+      // вызываем нативный тач если событие создано вручную
+      if(!nativeEvent.isTrusted) {
          return true;
       }
       return false;
