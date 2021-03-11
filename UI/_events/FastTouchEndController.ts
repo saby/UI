@@ -62,7 +62,10 @@ export class FastTouchEndController {
       // и клике вне него (когда он в фокусе) должны работать нативно (например фокус в input и открыть popup)
       if (this.isNativeList(document.activeElement) || this.isContentEditable(document.activeElement)) {
          return true;
-
+      }
+      // вызываем быстрый клик на тач устройствах только если нет класса и событие не создано вручную
+      if(!targetElement.classList.contains("ws-disableFastTouch") && !nativeEvent.isTrusted) {
+         return true;
       }
       return false;
    }
