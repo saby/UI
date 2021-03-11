@@ -94,12 +94,16 @@ function getTabStopState(element: IControlElement, tabbable: boolean = false): b
    return tabStopState;
 }
 
+const canHasHrefElements = ['a', 'area'];
+const canBeDisabledElements = ['input', 'textArea', 'select', 'button'];
+
+// Вычислим подходящий нашей системе фокусов табиндекс, если он не задан явно.
 function fixInvalidTabindex(element: HTMLElement): number {
    const tagName: string = element.tagName.toLowerCase();
-   if (tagName === 'a' || tagName === 'area') {
+   if (canHasHrefElements.indexOf(tagName) !== -1) {
       return element.getAttribute('href') ? 0 : -1;
    }
-   if (tagName === 'input' || tagName === 'select') {
+   if (canBeDisabledElements.indexOf(tagName) !== -1) {
       return element.getAttribute('disabled') === null ? 0 : -1;
    }
    return -1;
