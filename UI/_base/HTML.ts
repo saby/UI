@@ -88,7 +88,16 @@ class HTML extends Control<IHTMLCombinedOptions> {
     private initState(cfg: any): void {
         this.templateConfig = cfg.templateConfig;
         this.compat = cfg.compat || false;
-        this._bodyClasses = cfg.bodyClasses || this._bodyClasses;
+        /** Господи, что я пишу?.. */
+        /** Костылямбрий, который будет жить, пока не закончится переход на построение от шаблона #bootsrap */
+        const cfgClasses = (cfg.bodyClasses || '').split(' ');
+        const thisClasses = (this._bodyClasses || '').split(' ').filter((item) => {
+            return !cfgClasses.includes(item);
+        });
+        const apiClasses = (AppBody.getInstance().getClassString() || '').split(' ').filter((item) => {
+            return !cfgClasses.includes(item) && !thisClasses.includes(item);
+        });
+        this._bodyClasses = cfgClasses.concat(thisClasses).concat(apiClasses);
     }
 
     private isFocusNode(node: Element): boolean {
