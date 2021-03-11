@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui_module id="5756a905-2133-4ad2-a8ec-487751d07310" name="UIReact" package="Платформа" responsible="Шипин А.А." required="1" version="1.00">
+
+  <description>Библиотека для работы ядра через React. Имеет общее API с UIInferno</description>
+
+  <depends/>
+
+  <load_after/>
+
+  <parameters/>
+
+  <resources/>
+
+  <preload/>
+
+</ui_module>
