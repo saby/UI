@@ -1171,16 +1171,9 @@ function captureEventHandler(event: any): any {
          synthEvent.target = this.touchendTarget;
          this.touchendTarget = null;
       }
-      if (allowVdomEventBubbling.call(this)) {
-         vdomEventBubbling.call(this, synthEvent, null, undefined, [], true);
-      }
+      vdomEventBubbling.call(this, synthEvent, null, undefined, [], true);
    }
 }
-
-function allowVdomEventBubbling(): boolean {
-   return !(detection.isMobileIOS && this.wasClickedOnTouch);
-}
-
 /**
  * Определяем кейс, в котором нужно подписаться именно на window.
  * @param {HTMLElement} element - элемент, у которого мы хотим обработать событие
