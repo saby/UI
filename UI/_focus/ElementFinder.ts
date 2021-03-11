@@ -98,7 +98,10 @@ const canHasHrefElements = ['a', 'area'];
 const canBeDisabledElements = ['input', 'textArea', 'select', 'button'];
 
 // Вычислим подходящий нашей системе фокусов табиндекс, если он не задан явно.
-function fixInvalidTabindex(element: HTMLElement): number {
+function fixInvalidTabindex(element: HTMLElement, isContentEditable: boolean): number {
+   if (isContentEditable) {
+      return 0;
+   }
    const tagName: string = element.tagName.toLowerCase();
    if (canHasHrefElements.indexOf(tagName) !== -1) {
       return element.getAttribute('href') ? 0 : -1;
@@ -143,10 +146,10 @@ export function getElementProps(element: HTMLElement, tabbable: boolean = false)
    if (enabled) {
       tabIndexAttr = element.getAttribute('tabindex');
       tabIndex = parseInt(tabIndexAttr, 10);
-      if(isNaN(tabIndex)) {
-         tabIndex = fixInvalidTabindex(element);
-      }
       isContentEditable = element.getAttribute('contenteditable') === 'true';
+      if(isNaN(tabIndex)) {
+         tabIndex = fixInvalidTabindex(element, isContentEditable);
+      }
       result = {
          enabled: true,
          tabStop:
