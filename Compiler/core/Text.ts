@@ -9,6 +9,8 @@ import { IParser } from 'Compiler/expressions/Parser';
 import { IValidator } from 'Compiler/expressions/Validator';
 import { SourcePosition } from 'Compiler/html/Reader';
 
+const USE_NEW_PROCESSOR_METHOD: boolean = true;
+
 /**
  * Interface for text processor config.
  */
@@ -204,6 +206,90 @@ interface IRawTextItem {
  */
 declare type TWrapper = (data: string) => IRawTextItem;
 
+enum StringState {
+   NONE,
+   SINGLE_QUOTED,
+   DOUBLE_QUOTED
+}
+
+function checkStringState(char: string, state: StringState): StringState | null {
+   if (char === "'") {
+      if (state === StringState.NONE) {
+         return StringState.SINGLE_QUOTED;
+      }
+      if (state === StringState.SINGLE_QUOTED) {
+         return StringState.NONE;
+      }
+   }
+   if (char === '"') {
+      if (state === StringState.NONE) {
+         return StringState.DOUBLE_QUOTED;
+      }
+      if (state === StringState.DOUBLE_QUOTED) {
+         return StringState.NONE;
+      }
+   }
+   return state;
+}
+
+function parseRawText(text: string): IRawTextItem[] {
+   const result: IRawTextItem[] = [];
+   let textType: RawTextType = RawTextType.TEXT;
+   let stringState: StringState = StringState.NONE;
+   let start: number = 0;
+   for (let index = 0; index < text.length; ++index) {
+      const char = text[index];
+      const nextChar = text[index + 1] || '';
+
+      // Skip string literals in mustache expression
+      if (textType === RawTextType.EXPRESSION) {
+         stringState = checkStringState(char, stringState);
+         if (stringState !== StringState.NONE) {
+            continue;
+         }
+      }
+
+      // Process opening construction.
+      if (char === '{' && (nextChar === '{' || nextChar === '[')) {
+         ++index;
+         if (start < index - 1) {
+            result.push({
+               type: textType,
+               data: text.slice(start, index - 1)
+            });
+         }
+         textType = nextChar === '{' ? RawTextType.EXPRESSION : RawTextType.TRANSLATION;
+         start = index + 1;
+         continue;
+      }
+
+      // Process closing construction.
+      if ((char === '}' || char === ']') && nextChar === '}') {
+         ++index;
+         if (start < index - 1) {
+            result.push({
+               type: textType,
+               data: text.slice(start, index - 1)
+            });
+         }
+         textType = RawTextType.TEXT;
+         start = index + 1;
+      }
+   }
+
+   if (stringState !== StringState.NONE) {
+      throw new Error('Обнаружен незакрытый строковый литерал');
+   }
+
+   if (start < text.length) {
+      result.push({
+         type: textType,
+         data: text.slice(start)
+      });
+   }
+   return result;
+}
+
 /**
  * Process all text nodes and concrete them.
  * If text node content satisfies regular expression then new node will be created instead of that text node
@@ -382,27 +468,32 @@ class TextProcessor implements ITextProcessor {
    process(text: string, options: ITextProcessorOptions): Ast.TText[] {
       // FIXME: Rude source text preprocessing
       const cleanedText = cleanText(text);
+      if (USE_NEW_PROCESSOR_METHOD) {
+         return this.processMarkedStatements(parseRawText(cleanedText), options);
+      }
+      const chain: IRawTextItem[] = this.processOld(cleanedText);
+      return this.processMarkedStatements(chain, options);
+   }
 
+   private processOld(text: string): IRawTextItem[] {
       const firstStage: IRawTextItem[] = [{
          type: RawTextType.TEXT,
-         data: cleanedText
+         data: text
       }];
 
       const secondStage = markDataByRegex(
-         firstStage,
-         EXPRESSION_PATTERN,
-         (data: string) => { return { type: RawTextType.EXPRESSION, data }; },
-         (data: string) => { return { type: RawTextType.TEXT, data }; }
+          firstStage,
+          EXPRESSION_PATTERN,
+          (data: string) => { return { type: RawTextType.EXPRESSION, data }; },
+          (data: string) => { return { type: RawTextType.TEXT, data }; }
       );
 
-      const thirdStage = markDataByRegex(
-         secondStage,
-         TRANSLATION_PATTERN,
-         (data: string) => { return { type: (this.generateTranslations ? RawTextType.TRANSLATION : RawTextType.TEXT), data }; },
-         (data: string) => { return { type: RawTextType.TEXT, data }; }
+      return markDataByRegex(
+          secondStage,
+          TRANSLATION_PATTERN,
+          (data: string) => { return { type: (this.generateTranslations ? RawTextType.TRANSLATION : RawTextType.TEXT), data }; },
+          (data: string) => { return { type: RawTextType.TEXT, data }; }
       );
-
-      return this.processMarkedStatements(thirdStage, options);
    }
 
    /**
