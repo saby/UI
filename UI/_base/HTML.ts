@@ -97,7 +97,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
         const apiClasses = (AppBody.getInstance().getClassString() || '').split(' ').filter((item) => {
             return !cfgClasses.includes(item) && !thisClasses.includes(item);
         });
-        this._bodyClasses = cfgClasses.concat(thisClasses).concat(apiClasses);
+        this._bodyClasses = cfgClasses.concat(thisClasses).concat(apiClasses).join(' ');
     }
 
     private isFocusNode(node: Element): boolean {
