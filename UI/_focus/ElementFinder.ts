@@ -138,7 +138,7 @@ export function getElementProps(element: HTMLElement, tabbable: boolean = false)
             (tabIndexAttr === null && getTabStopState(element, tabbable)) ||
             (tabIndex !== -1 && isContentEditable),
          createsContext: (flags & CLASS_CREATES_CONTEXT) !== 0,
-         tabIndex: tabIndex || 0, // обязательно хоть 0
+         tabIndex: validTabIndex ? tabIndex : -1,
          delegateFocusToChildren: ((flags & CLASS_DELEGATES_TAB_FLAG) !== 0 && !isContentEditable),
          tabCycling: (flags & CLASS_TAB_CYCLING) !== 0
       };
