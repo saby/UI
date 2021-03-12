@@ -87,9 +87,9 @@ define('UI/_builder/Tmpl/modules/data/object', [
          );
       }
 
-      if (injected.__$ws_internalTree && Internal.canUseNewInternalFunctions() && this.privateFn) {
+      if (injected.__$ws_internalTree && Internal.canUseNewInternalFunctions() && this.internalFunctions) {
          // TODO: Test and remove code above
-         injected.internal = Internal.generate(injected.__$ws_internalTree, this.privateFn);
+         injected.internal = Internal.generate(injected.__$ws_internalTree, this.internalFunctions);
       }
 
       if (objectForMerge && objectForMerge.createdscope) {
@@ -298,9 +298,9 @@ define('UI/_builder/Tmpl/modules/data/object', [
          }
          var dirtyCh = '';
          var currentInternalForInjected = (realInjected && realInjected.internal) || null;
-         if (realInjected.__$ws_internalTree && Internal.canUseNewInternalFunctions() && this.privateFn) {
+         if (realInjected.__$ws_internalTree && Internal.canUseNewInternalFunctions() && this.internalFunctions) {
             // TODO: Test and remove code above
-            currentInternalForInjected = Internal.generate(realInjected.__$ws_internalTree, this.privateFn);
+            currentInternalForInjected = Internal.generate(realInjected.__$ws_internalTree, this.internalFunctions);
          }
 
          if (currentInternalForInjected) {
