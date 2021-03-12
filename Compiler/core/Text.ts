@@ -188,12 +188,6 @@ interface IRawTextItem {
    data: string;
 }
 
-/**
- * Type for text node wrappers.
- * Function accepts text contents and returns one of text nodes.
- */
-declare type TWrapper = (data: string) => IRawTextItem;
-
 enum StringState {
    NONE,
    SINGLE_QUOTED,
@@ -240,21 +234,15 @@ function prepareTextData(type: RawTextType, text: string, start: number, end?: n
        .replace(/ ?$/i, EMPTY_STRING);
 }
 
-function isValidExpression(parser: IParser, source: string): boolean {
-   if (source.trim().length === 0) {
-      // To close processing construction
-      return true;
-   }
-   try {
-      // Test case: {{ { 'prop': { }} }}
-      parser.parse(source);
-      return true;
-   } catch {
-      return false;
-   }
+function flushFragment(result: IRawTextItem[], text: string, textType: RawTextType, start: number, end?: number): void {
+   const data = prepareTextData(textType, text, start, end);
+   result.push({
+      type: textType,
+      data
+   });
 }
 
-function parse(text: string, parser: IParser): IRawTextItem[] {
+function parse(text: string): IRawTextItem[] {
    const result: IRawTextItem[] = [];
    let textType: RawTextType = RawTextType.TEXT;
    let stringState: StringState = StringState.NONE;
@@ -282,11 +270,7 @@ function parse(text: string, parser: IParser): IRawTextItem[] {
       const isOpeningTranslation = textType === RawTextType.TEXT && char === '{' && nextChar === '[';
       if (isOpeningExpression || isOpeningTranslation) {
          if (start < cursor) {
-            const data = prepareTextData(textType, text, start, cursor);
-            result.push({
-               type: textType,
-               data
-            });
+            flushFragment(result, text, textType, start, cursor);
          }
          textType = isOpeningExpression ? RawTextType.EXPRESSION : RawTextType.TRANSLATION;
          start = cursor + 2;
@@ -298,14 +282,7 @@ function parse(text: string, parser: IParser): IRawTextItem[] {
       const isClosingExpression = textType === RawTextType.EXPRESSION && char === '}' && nextChar === '}';
       const isClosingTranslation = textType === RawTextType.TRANSLATION && char === ']' && nextChar === '}';
       if (isClosingExpression || isClosingTranslation) {
-         const data = prepareTextData(textType, text, start, cursor);
-         if (isClosingExpression && !isValidExpression(parser, data)) {
-            continue;
-         }
-         result.push({
-            type: textType,
-            data
-         });
+         flushFragment(result, text, textType, start, cursor);
          textType = RawTextType.TEXT;
          start = cursor + 2;
          ++cursor;
@@ -313,10 +290,8 @@ function parse(text: string, parser: IParser): IRawTextItem[] {
    }
 
    if (start < text.length || result.length === 0) {
-      result.push({
-         type: textType,
-         data: getLostCharacters(textType) + text.slice(start)
-      });
+      const shift = textType === RawTextType.TEXT ? 0 : 2;
+      flushFragment(result, text, RawTextType.TEXT, start - shift);
    }
 
    return mergeTextNodes(result);
@@ -467,7 +442,7 @@ class TextProcessor implements ITextProcessor {
     */
    process(text: string, options: ITextProcessorOptions): Ast.TText[] {
       // FIXME: Rude source text preprocessing
-      const chain: IRawTextItem[] = parse(cleanText(text), this.expressionParser);
+      const chain: IRawTextItem[] = parse(cleanText(text));
       return this.processMarkedStatements(chain, options);
    }
 
@@ -499,7 +474,11 @@ class TextProcessor implements ITextProcessor {
                node = this.createExpressionNode(data, options);
                break;
             case RawTextType.TRANSLATION:
-               node = createTranslationNode(data, options);
+               if (this.generateTranslations) {
+                  node = createTranslationNode(data, options);
+                  break;
+               }
+               node = createTextNode(data, options);
                break;
             default:
                node = createTextNode(data, options);
