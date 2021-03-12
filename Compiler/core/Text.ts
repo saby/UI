@@ -9,8 +9,6 @@ import { IParser } from 'Compiler/expressions/Parser';
 import { IValidator } from 'Compiler/expressions/Validator';
 import { SourcePosition } from 'Compiler/html/Reader';
 
-const USE_NEW_PROCESSOR_METHOD: boolean = true;
-
 /**
  * Interface for text processor config.
  */
@@ -129,16 +127,6 @@ export interface ITextProcessor {
 }
 
 /**
- * Regular expression for Mustache-expression node content.
- */
-const EXPRESSION_PATTERN = /\{\{ ?([\s\S]*?) ?\}\}/g;
-
-/**
- * Regular expression for translation node content.
- */
-const TRANSLATION_PATTERN = /\{\[ ?([\s\S]*?) ?\]\}/g;
-
-/**
  * Regular expression for JavaScript comment expression.
  */
 const JAVASCRIPT_COMMENT_PATTERN = /\/\*[\s\S]*?\*\//g;
@@ -166,7 +154,7 @@ const WHITESPACE = ' ';
 /**
  * Processed text type
  */
-const enum RawTextType {
+enum RawTextType {
 
    /**
     * Text content type
@@ -232,14 +220,54 @@ function checkStringState(char: string, state: StringState): StringState | null 
    return state;
 }
 
-function parseRawText(text: string): IRawTextItem[] {
+function getLostCharacters(state: RawTextType): string {
+   if (state === RawTextType.EXPRESSION) {
+      return '{{';
+   }
+   if (state === RawTextType.TRANSLATION) {
+      return '{[';
+   }
+   return EMPTY_STRING;
+}
+
+function prepareTextData(type: RawTextType, text: string, start: number, end?: number): string {
+   const data = text.slice(start, end);
+   if (type === RawTextType.TEXT) {
+      return data;
+   }
+   return data
+       .replace(/^ ?/i, EMPTY_STRING)
+       .replace(/ ?$/i, EMPTY_STRING);
+}
+
+function isValidExpression(parser: IParser, source: string): boolean {
+   if (source.trim().length === 0) {
+      // To close processing construction
+      return true;
+   }
+   try {
+      // Test case: {{ { 'prop': { }} }}
+      parser.parse(source);
+      return true;
+   } catch {
+      return false;
+   }
+}
+
+function parse(text: string, parser: IParser): IRawTextItem[] {
    const result: IRawTextItem[] = [];
    let textType: RawTextType = RawTextType.TEXT;
    let stringState: StringState = StringState.NONE;
    let start: number = 0;
-   for (let index = 0; index < text.length; ++index) {
-      const char = text[index];
-      const nextChar = text[index + 1] || '';
+   for (let cursor: number = 0; cursor < text.length; ++cursor) {
+      const char = text[cursor];
+      const nextChar = text[cursor + 1] || EMPTY_STRING;
+
+      // Skip escape characters in string literals in mustache expression
+      if (char === '\\' && (nextChar === '"' || nextChar === "'")) {
+         ++cursor;
+         continue;
+      }
 
       // Skip string literals in mustache expression
       if (textType === RawTextType.EXPRESSION) {
@@ -250,91 +278,63 @@ function parseRawText(text: string): IRawTextItem[] {
       }
 
       // Process opening construction.
-      if (char === '{' && (nextChar === '{' || nextChar === '[')) {
-         ++index;
-         if (start < index - 1) {
+      const isOpeningExpression = textType === RawTextType.TEXT && char === '{' && nextChar === '{';
+      const isOpeningTranslation = textType === RawTextType.TEXT && char === '{' && nextChar === '[';
+      if (isOpeningExpression || isOpeningTranslation) {
+         if (start < cursor) {
+            const data = prepareTextData(textType, text, start, cursor);
             result.push({
                type: textType,
-               data: text.slice(start, index - 1)
+               data
             });
          }
-         textType = nextChar === '{' ? RawTextType.EXPRESSION : RawTextType.TRANSLATION;
-         start = index + 1;
+         textType = isOpeningExpression ? RawTextType.EXPRESSION : RawTextType.TRANSLATION;
+         start = cursor + 2;
+         ++cursor;
          continue;
       }
 
       // Process closing construction.
-      if ((char === '}' || char === ']') && nextChar === '}') {
-         ++index;
-         if (start < index - 1) {
-            result.push({
-               type: textType,
-               data: text.slice(start, index - 1)
-            });
+      const isClosingExpression = textType === RawTextType.EXPRESSION && char === '}' && nextChar === '}';
+      const isClosingTranslation = textType === RawTextType.TRANSLATION && char === ']' && nextChar === '}';
+      if (isClosingExpression || isClosingTranslation) {
+         const data = prepareTextData(textType, text, start, cursor);
+         if (isClosingExpression && !isValidExpression(parser, data)) {
+            continue;
          }
+         result.push({
+            type: textType,
+            data
+         });
          textType = RawTextType.TEXT;
-         start = index + 1;
+         start = cursor + 2;
+         ++cursor;
       }
    }
 
-   if (stringState !== StringState.NONE) {
-      throw new Error('Обнаружен незакрытый строковый литерал');
-   }
-
-   if (start < text.length) {
+   if (start < text.length || result.length === 0) {
       result.push({
          type: textType,
-         data: text.slice(start)
+         data: getLostCharacters(textType) + text.slice(start)
       });
    }
-   return result;
+
+   return mergeTextNodes(result);
 }
 
-/**
- * Process all text nodes and concrete them.
- * If text node content satisfies regular expression then new node will be created instead of that text node
- * using targetWrapper. If not then default wrapper will be used.
- * @param items {IRawTextItem[]} Collection of text nodes.
- * @param regex {RegExp} Target regular expression.
- * @param targetWrapper {TWrapper} Target text wrapper.
- * @param defaultWrapper {TWrapper} Default text wrapper.
- * @returns {IRawTextItem[]} Returns new collection of text nodes.
- */
-function markDataByRegex(items: IRawTextItem[], regex: RegExp, targetWrapper: TWrapper, defaultWrapper: TWrapper): IRawTextItem[] {
-   let item;
-   let value;
-   let stringData;
-   let last;
-   const collection = [];
-   for (let idx = 0; idx < items.length; ++idx) {
-      // FIXME: Алгоритм построен на поэтапном уточнении текстовых сущностей
-      //  поэтому здесь нужно работать только с объектами, где strings[idx].type = 0
-      //  но пока не будет хорошей документации и прикладной код не будет содержать ошибок,
-      //  поддержим прежнюю работу
-      stringData = items[idx].data;
-
-      // С флагом global у регулярного выражения нужно сбрасывать индекс
-      regex.lastIndex = 0;
-      last = 0;
-      // eslint-disable-next-line no-cond-assign
-      while ((item = regex.exec(stringData))) {
-         if (last < item.index) {
-            value = stringData.slice(last, item.index);
-            collection.push(defaultWrapper(value));
-         }
-         collection.push(targetWrapper(item[1]));
-         last = item.index + item[0].length;
+function mergeTextNodes(nodes: IRawTextItem[]): IRawTextItem[] {
+   const result: IRawTextItem[] = [];
+   let last: IRawTextItem | null = null;
+   for (let index = 0; index < nodes.length; ++index) {
+      const current: IRawTextItem = nodes[index];
+      if (last && last.type === RawTextType.TEXT && current.type === RawTextType.TEXT) {
+         last.data = last.data + current.data;
+         continue;
       }
-
-      // В случае, если ни одна сущность не была уточнена, то просто положить ее такой же
-      if (last === 0) {
-         collection.push(items[idx]);
-      } else if (last < stringData.length) {
-         value = stringData.slice(last);
-         collection.push(defaultWrapper(value));
-      }
+      last = current;
+      result.push(current);
    }
-   return collection;
+   return result;
 }
 
 /**
@@ -467,33 +467,8 @@ class TextProcessor implements ITextProcessor {
     */
    process(text: string, options: ITextProcessorOptions): Ast.TText[] {
       // FIXME: Rude source text preprocessing
-      const cleanedText = cleanText(text);
-      if (USE_NEW_PROCESSOR_METHOD) {
-         return this.processMarkedStatements(parseRawText(cleanedText), options);
-      }
-      const chain: IRawTextItem[] = this.processOld(cleanedText);
+      const chain: IRawTextItem[] = parse(cleanText(text), this.expressionParser);
       return this.processMarkedStatements(chain, options);
-   }
-
-   private processOld(text: string): IRawTextItem[] {
-      const firstStage: IRawTextItem[] = [{
-         type: RawTextType.TEXT,
-         data: text
-      }];
-
-      const secondStage = markDataByRegex(
-          firstStage,
-          EXPRESSION_PATTERN,
-          (data: string) => { return { type: RawTextType.EXPRESSION, data }; },
-          (data: string) => { return { type: RawTextType.TEXT, data }; }
-      );
-
-      return markDataByRegex(
-          secondStage,
-          TRANSLATION_PATTERN,
-          (data: string) => { return { type: (this.generateTranslations ? RawTextType.TRANSLATION : RawTextType.TEXT), data }; },
-          (data: string) => { return { type: RawTextType.TEXT, data }; }
-      );
    }
 
    /**
