@@ -47,7 +47,7 @@ export function canUseNewInternalFunctions(): boolean {
     return canUseNewInternalMechanism() && USE_INTERNAL_FUNCTIONS;
 }
 
-export function generate(node: InternalNode, functions: Function[]): string {
+export function generate(node: InternalNode, internalFunctions: string[]): string {
     if (isEmpty(node)) {
         return '{}';
     }
@@ -66,8 +66,9 @@ export function generate(node: InternalNode, functions: Function[]): string {
     }
     try {
         const func = new Function(CONTEXT_VARIABLE_NAME, body);
-        Object.defineProperty(func, 'name', { value: functionName, configurable: true });
-        appendFunction(func, functions);
+        const funcString = func.toString()
+            .replace('function anonymous', 'function ' + functionName);
+        appendFunction(funcString, internalFunctions);
         node.ref.commitCode(node.index, body);
         return functionName + `(${CONTEXT_VARIABLE_NAME})`;
     } catch (error) {
@@ -80,12 +81,12 @@ export function generate(node: InternalNode, functions: Function[]): string {
     return node.flatten().length === 0;
  }
 
- function appendFunction(func: Function, functions: Function[]): void {
-    const index = functions.findIndex((item: Function) => func.name === item.name);
+ function appendFunction(func: string, internalFunctions: string[]): void {
+    const index = internalFunctions.findIndex((item: string) => func === item);
     if (index > -1) {
         return;
     }
-    functions.unshift(func);
+    internalFunctions.unshift(func);
  }
 
  function build(node: InternalNode, options: IOptions): string {

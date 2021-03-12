@@ -264,6 +264,7 @@ define('Compiler/codegen/function', [
             func.privateFn = this.privateFn;
             func.includedFn = this.includedFn;
             func.functionNames = this.functionNames;
+            func.internalFunctions = this.internalFunctions;
          } catch (error) {
             errorHandler.info(
                '[Compiler/codegen/function:getFunction()] generating function: \n' + str,
