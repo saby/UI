@@ -264,6 +264,7 @@ define('UI/_builder/Tmpl/function', [
             func.privateFn = this.privateFn;
             func.includedFn = this.includedFn;
             func.functionNames = this.functionNames;
+            func.internalFunctions = this.internalFunctions;
          } catch (error) {
             errorHandler.info(
                '[UI/_builder/Tmpl/function:getFunction()] generating function: \n' + str,

@@ -104,6 +104,12 @@ define('UI/_builder/Tmpl/codegen/templates', [
       var template = templateFunction.toString()
          .replace('function anonymous', 'function ' + mainTemplateFunctionName);
 
+      if (templateFunction.internalFunctions) {
+         for (index = 0; index < templateFunction.internalFunctions.length; ++index) {
+            privateTemplates += templateFunction.internalFunctions[index];
+         }
+      }
+
       if (templateFunction.privateFn) {
          for (index = 0; index < templateFunction.privateFn.length; ++index) {
             functionName = getPrivateFunctionName(templateFunction.privateFn[index], index);
