@@ -10,6 +10,7 @@ import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller
 import { constants } from 'Env/Env';
 import { Head as AppHead } from 'Application/Page';
 import { getResourceUrl } from 'UI/Utils';
+import { createWsConfig } from 'UI/Head';
 import { headDataStore } from 'UI/_base/HeadData';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
 import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
@@ -205,40 +206,6 @@ function prepareMetaScriptsAndLinks(tag: string, attrs: object): object {
         tag,
         attrs
     };
-}
-
-/**
- * Подготовка когфига, который прилетит с сервака на клиент
- * wsConfig нет смысла рендерить на клиенте.
- * Он обязательно должен прийти с сервера.
- * Потому что необходим для загрузки ресурсов
- * @param options
- */
-function createWsConfig(options: IHeadOptions, staticDomainsstringified: string): void {
-    if (constants.isBrowserPlatform) {
-        return;
-    }
-
-    const API = AppHead.getInstance();
-    API.createTag('script', {type: 'text/javascript'},
-        [
-            'window.wsConfig = {',
-            `wsRoot: '${options.wsRoot}',`,
-            `resourceRoot: '${options.resourceRoot}',`,
-            `appRoot: '${options.appRoot}',`,
-            `RUMEnabled: ${options.RUMEnabled},`,
-            `pageName: '${options.pageName}',`,
-            'userConfigSupport: true,',
-            `staticDomains: ${staticDomainsstringified},`,
-            `defaultServiceUrl: '${options.servicesPath}',`,
-            `compatible: ${options.compat},`,
-            `product: '${options.product}',`,
-            `reactApp: ${options.reactApp}`,
-            '};',
-            options.buildnumber ? `window.buildnumber = '${options.buildnumber}';` : '',
-            options.preInitScript ? options.preInitScript : ''
-        ].join('\n')
-    );
 }
 
 /**

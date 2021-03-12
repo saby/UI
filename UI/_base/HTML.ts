@@ -144,6 +144,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
 
         this.markForeignContent();
 
+        /** START REGION. Очень много кода отсюда уехало в UI/_head/wsConfig  */
         this.buildnumber = cfg.buildnumber || constants.buildnumber;
 
         this.appRoot = cfg.appRoot || appData.appRoot || (cfg.builder ? '/' : constants.appRoot);
@@ -167,6 +168,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
         // https://online.sbis.ru/opendoc.html?guid=a9ceff55-1c8b-4238-90a7-22dde0e1bdbe
         this.servicesPath =
             cfg.servicesPath || appData.servicesPath || constants.defaultServiceUrl || '/service/';
+        /** END REGION. Очень много кода отсюда уехало в UI/_head/wsConfig  */
         this.application = appData.application;
 
         this.linkResolver = new LinkResolver(
