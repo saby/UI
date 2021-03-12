@@ -154,7 +154,7 @@ const WHITESPACE = ' ';
 /**
  * Processed text type
  */
-enum RawTextType {
+const enum RawTextType {
 
    /**
     * Text content type
@@ -214,16 +214,6 @@ function checkStringState(char: string, state: StringState): StringState | null 
    return state;
 }
 
-function getLostCharacters(state: RawTextType): string {
-   if (state === RawTextType.EXPRESSION) {
-      return '{{';
-   }
-   if (state === RawTextType.TRANSLATION) {
-      return '{[';
-   }
-   return EMPTY_STRING;
-}
-
 function prepareTextData(type: RawTextType, text: string, start: number, end?: number): string {
    const data = text.slice(start, end);
    if (type === RawTextType.TEXT) {
@@ -236,6 +226,11 @@ function prepareTextData(type: RawTextType, text: string, start: number, end?: n
 
 function flushFragment(result: IRawTextItem[], text: string, textType: RawTextType, start: number, end?: number): void {
    const data = prepareTextData(textType, text, start, end);
+   const lastNode: IRawTextItem | undefined = result[result.length - 1];
+   if (lastNode && lastNode.type === RawTextType.TEXT && textType === RawTextType.TEXT) {
+      lastNode.data = lastNode.data + data;
+      return;
+   }
    result.push({
       type: textType,
       data
@@ -288,26 +283,9 @@ function parse(text: string): IRawTextItem[] {
          ++cursor;
       }
    }
-
    if (start < text.length || result.length === 0) {
       const shift = textType === RawTextType.TEXT ? 0 : 2;
       flushFragment(result, text, RawTextType.TEXT, start - shift);
-   }
-
-   return mergeTextNodes(result);
-}
-
-function mergeTextNodes(nodes: IRawTextItem[]): IRawTextItem[] {
-   const result: IRawTextItem[] = [];
-   let last: IRawTextItem | null = null;
-   for (let index = 0; index < nodes.length; ++index) {
-      const current: IRawTextItem = nodes[index];
-      if (last && last.type === RawTextType.TEXT && current.type === RawTextType.TEXT) {
-         last.data = last.data + current.data;
-         continue;
-      }
-      last = current;
-      result.push(current);
    }
    return result;
 }
