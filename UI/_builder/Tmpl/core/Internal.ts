@@ -16,7 +16,7 @@ export function process(nodes: Ast.Ast[], scope: Scope): IResultTree {
 /**
  * Флаг включения/выключения нового механизма формирования internal-выражений для dirty checking проверок.
  */
-const USE_INTERNAL_MECHANISM = false;
+const USE_INTERNAL_MECHANISM = true;
 
 /**
  * Если в test-выражение вычисляется не в своем контексте, значит не гарантируется, что результат вычисления
@@ -782,34 +782,13 @@ class IndexAllocator {
        if (this.next === null) {
           return;
        }
-       this.next.removeSiblingConditional(this);
+       if (this.next.type === InternalNodeType.ELSE_IF) {
+          this.next.setType(InternalNodeType.IF);
+       } else if (this.next.type === InternalNodeType.ELSE) {
+          this.next.setType(InternalNodeType.BLOCK);
+       }
     }
- 
-    private removeSiblingConditional(parent: InternalNode, counter: number = 0): void {
-       if (counter === 0) {
-          if (this.type === InternalNodeType.ELSE_IF) {
-             this.setType(InternalNodeType.IF);
-          } else if (this.type === InternalNodeType.ELSE) {
-             this.setType(InternalNodeType.BLOCK);
-          } else {
-             return;
-          }
-       }
-       const index = parent.children.length;
-       parent.children.push(this);
-       if (this.next) {
-          this.next.removeSiblingConditional(parent, counter + 1);
-       }
-       if (this.next === null || this.next && this.next.type === InternalNodeType.IF) {
-          const startIndex = this.parent.children.indexOf(parent.children[parent.children.length - counter - 1]);
-          this.parent.children.splice(startIndex, counter + 1);
-       }
-       this.prev = index > 0 ? parent.children[index - 1] : null;
-       this.next = index + 1 < parent.children.length ? parent.children[index + 1] : null;
-       this.parent = parent;
-       return;
-    }
- 
+
     private dropAndAppend(identifiers: string[], allocator: IndexAllocator): void {
        if (this.test === null) {
           return;

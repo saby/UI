@@ -150,7 +150,7 @@ define('UI/_builder/Tmpl/modules/partial', [
          ? FSC.getStr(tag.internal)
          : '{}';
 
-      if (Internal.canUseNewInternalFunctions() && this.privateFn /* Есть privateFn <--> компилируем wml */) {
+      if (Internal.canUseNewInternalFunctions() && this.privateFn) {
          // TODO: Test and remove code above
          internal = Internal.generate(tag.__$ws_internalTree, this.privateFn);
       }
@@ -301,7 +301,7 @@ define('UI/_builder/Tmpl/modules/partial', [
                ? FSC.getStr(tag.internal)
                : null;
             
-            if (Internal.canUseNewInternalFunctions() && this.privateFn /* Есть privateFn <--> компилируем wml */) {
+            if (Internal.canUseNewInternalFunctions() && this.privateFn) {
                // TODO: Test and remove code above
                decorInternal = Internal.generate(tag.__$ws_internalTree, this.privateFn);
             }
