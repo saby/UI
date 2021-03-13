@@ -3,10 +3,12 @@
  * @author Крылов М.А.
  */
 
-import { ProgramNode } from 'Compiler/expressions/Nodes';
-import { IPath } from 'Compiler/core/Resolvers';
+import { ProgramNode } from '../expressions/Nodes';
+import { IPath } from '../core/Resolvers';
 import { unescape } from '../modules/utils/common';
-import { IContext } from "Compiler/core/Context";
+import { IContext } from '../core/Context';
+
+const ALLOW_STRING_CONTENT_OPTIONS: boolean = false;
 
 // tslint:disable:max-classes-per-file
 // Намеренно отключаю правило max-classes-per-file
@@ -783,7 +785,7 @@ export class ContentOptionNode extends Ast {
       super();
       this.__$ws_name = name;
       this.__$ws_content = content;
-      this.__$ws_isStringType = isStringType;
+      this.__$ws_isStringType = isStringType && ALLOW_STRING_CONTENT_OPTIONS;
    }
 
    /**
