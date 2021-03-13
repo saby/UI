@@ -40,6 +40,10 @@ export class FastTouchEndController {
       }
    }
 
+   static isFastEventFired(eventName: string): boolean {
+      return fastEventList.indexOf(eventName) > -1;
+   }
+
    private static useNativeTouchEnd(targetElement: Element, nativeEvent: TouchEvent): boolean {
       if (!nativeEvent) {
          return true;

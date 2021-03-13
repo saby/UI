@@ -1063,6 +1063,11 @@ function needPropagateEvent(environment: any, event: any): any {
       // Поэтому для этих типов мы будем стрелять событием сами.
       // И чтобы обработчики событий не были вызваны два раза, стопаем нативное событие.
       return false;
+   } else if (detection.isMobileIOS && FastTouchEndController.isFastEventFired(event.type) && !event.isTrusted) {
+      // на ios 14.4 после событий тача стреляет дополнительный mousedown с isTrusted = true
+      // это связанно с тем, что мы пытаемся игнорировать нативную задержку в 300 мс
+      // поэтому для событий которые мы выстрелим руками повторный вызов не нужен
+      return false;
    } else if (!isMyDOMEnvironment(environment, event)) {
       return false;
    }
