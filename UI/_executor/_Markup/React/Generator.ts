@@ -12,7 +12,7 @@ import {
 } from 'UI/_react/Control/interfaces';
 import { IWasabyContextValue } from 'UI/_react/WasabyContext/WasabyContext';
 import {
-   IControl, IGeneratorConfig, IGeneratorNameObject, TIncludedTemplate
+   IGeneratorConfig, IGeneratorNameObject, TIncludedTemplate
 } from '../IGeneratorType';
 import * as Helper from '../Helper';
 import {TGeneratorNode} from '../Vdom/IVdomType';
@@ -45,7 +45,7 @@ type TemplateOrigin =
    | string
    | IDefaultExport
    | TemplateFunction
-   | IControl
+   | Control
    | IGeneratorNameObject;
 
 /**
