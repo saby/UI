@@ -1,4 +1,5 @@
 /// <amd-module name="UI/_head/wsConfig" />
+
 import { Head as AppHead } from 'Application/Page';
 import { constants } from "Env/Env";
 import AppData from "UI/_base/AppData";
@@ -25,7 +26,6 @@ interface IWSConfig {
  * Он обязательно должен прийти с сервера.
  * Потому что необходим для загрузки ресурсов
  * очень много параметров имеют альтернативные источники. Взято из UI/_base/HTML
- * @param options
  */
 export function createWsConfig(cfg: IWSConfig, initialStaticDomains: string): void {
    if (constants.isBrowserPlatform) {
@@ -36,11 +36,14 @@ export function createWsConfig(cfg: IWSConfig, initialStaticDomains: string): vo
    const appData = AppData.getAppData();
    let staticDomains: string = initialStaticDomains;
 
+   // @ts-ignore
    staticDomains = cfg.staticDomains || appData.staticDomains || constants.staticDomains || '[]';
    if (typeof staticDomains !== 'string') {
       staticDomains = '[]';
    }
    const defaultServiceUrl = cfg.servicesPath || appData.servicesPath || constants.defaultServiceUrl || '/service/';
+   // @ts-ignore
+   const product = cfg.product || appData.product || constants.product;
 
    API.createTag('script', {type: 'text/javascript'},
       [
@@ -54,7 +57,7 @@ export function createWsConfig(cfg: IWSConfig, initialStaticDomains: string): vo
             `staticDomains: ${staticDomains},`,
             `defaultServiceUrl: '${defaultServiceUrl}',`,
             `compatible: ${cfg.compat},`,
-            `product: '${cfg.product || appData.product || constants.product}',`,
+            `product: '${product}',`,
             `reactApp: ${cfg.reactApp || false}`,
          '};',
          cfg.buildnumber ? `window.buildnumber = '${cfg.buildnumber || constants.buildnumber}';` : '',
