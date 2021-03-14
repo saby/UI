@@ -12,13 +12,10 @@ import {
 } from 'UI/_react/Control/interfaces';
 import { IWasabyContextValue } from 'UI/_react/WasabyContext/WasabyContext';
 import {
-   GeneratorObject,
-   GeneratorTemplateOrigin, IControl, IGeneratorNameObject
+   IControl, IGeneratorConfig, IGeneratorNameObject, TIncludedTemplate
 } from '../IGeneratorType';
 import * as Helper from '../Helper';
-// import * as ConfigResolver from '../../_Utils/ConfigResolver';
 import {TGeneratorNode} from '../Vdom/IVdomType';
-import * as Scope from '../../_Expressions/Scope';
 
 /*
 FIXME: как я понимаю, в этом объекте могут быть HTMl-атрибуты+какие-то наши поля.
@@ -48,38 +45,13 @@ type TemplateOrigin =
    | string
    | IDefaultExport
    | TemplateFunction
-   | typeof Control;
+   | IControl
+   | IGeneratorNameObject;
 
 /**
  * Объект с зависимостями контрола/шаблона.
  */
 type Deps = Record<string, TemplateFunction | IDefaultExport>;
-
-function checkResult(res: GeneratorObject | Promise<unknown> | Error,
-   type: string,
-   name: string): GeneratorObject | Promise<unknown> | Error {
-   if (res !== undefined) {
-      return res;
-   }
-   /**
-    * Если у нас есть имя и тип, значит мы выполнили код выше
-    * Функции шаблонизации возвращают undefined, когда работают на клиенте
-    * с уже построенной версткой
-    * А вот если нам не передали каких-то данных сюда, то мы ничего не строили,
-    * а значит это ошибка и нужно обругаться.
-    */
-   if ((typeof name !== 'undefined') && type) {
-      return null;
-   }
-   if (typeof name === 'undefined') {
-      Logger.error('Попытка использовать компонент/шаблон, ' +
-         'но вместо компонента в шаблоне в опцию template был передан undefined! ' +
-         'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
-         'По стеку будет понятно, в каком шаблоне и в какую опцию передается undefined');
-      return null;
-   }
-   throw new Error('MarkupGenerator: createControl type not resolved');
-}
 
 export class GeneratorReact {
    /**
@@ -134,8 +106,7 @@ export class GeneratorReact {
 
       // когда тип вычисляемый, запускаем функцию вычисления типа и там обрабатываем тип
       if (type === 'resolver') {
-         const res = this.resolver(origin as any, options, attributes, '', config.depsLocal, {}, Helper.config);
-         return checkResult.call(this, res, type, name);
+         return this.resolver(origin, options, attributes, '', config.depsLocal, {}, Helper.config);
       }
    }
 
@@ -229,134 +200,58 @@ export class GeneratorReact {
       );
    }
 
-   prepareDataForCreate(tplOrigin: any, scope: any, attrs: any, deps: any, includedTemplates?: any): any {
-      let logicParent;
-      let parent;
-
-      // При использовании ts-модуля, где нужный класс экспортируется дефолтно, внутри js-модуля
-      // сюда приходит объект tplOrigin, где __esModule есть true, а в default лежит нужная нам
-      // функция построения верстки
-      // Для того, чтобы верстка строилась, необходимо вытащить функцию из default
-      const tpl = typeof tplOrigin === 'object' && tplOrigin.__esModule && tplOrigin.default ?
-         tplOrigin.default :
-         tplOrigin;
-
-      const controlClass = resolveTpl.call(this, tpl, deps, includedTemplates);
-      const controlProperties = Scope.calculateScope(scope, Common.plainMerge) || {};
-
-      if (!attrs.attributes) {
-         attrs.attributes = {};
-      }
-      if (controlClass === '_$inline_template') {
-         // в случае ws:template отдаем текущие свойства
-         return controlProperties;
-      }
-
-      logicParent = (attrs.internal && attrs.internal.logicParent) ? attrs.internal.logicParent : null;
-      parent = (attrs.internal && attrs.internal.parent) ? attrs.internal.parent : null;
-
-      return {
-         logicParent,
-         parent,
-         attrs: attrs.attributes,
-         controlProperties,
-         internal: attrs.internal,
-         controlClass,
-         compound: !(controlClass && controlClass.isWasaby)
-      };
-   }
-
    resolver(
-      tpl: GeneratorTemplateOrigin,
-      preparedScope: any,
-      decorAttribs: any,
+      tplOrigin: TemplateOrigin,
+      preparedScope: IControlOptions,
+      decorAttribs: IGeneratorAttrs,
       context: string,
-      _deps?: any,
-      includedTemplates?: any,
-      config?: any
+      _deps?: Deps,
+      includedTemplates?: TIncludedTemplate,
+      config?: IGeneratorConfig
    ): React.FunctionComponentElement<
       Partial<IWasabyContextValue> & { children?: React.ReactNode }
       > {
-      const data = this.prepareDataForCreate(tpl, preparedScope, decorAttribs, _deps, includedTemplates);
-      const resolvedScope = data.controlProperties;
-      const isTplString = typeof tpl === 'string';
-      let fn;
+      const tpl = getCorrectTpl(tplOrigin);
+      const resolvedScope = preparedScope;
+      const parent = decorAttribs?.internal?.parent;
+      const controlClass = resolveTpl(tpl, _deps);
+      let fn: any;
 
-      if (isTplString) {
+      if (typeof tpl === 'string') {
          fn = Common.depsTemplateResolver(tpl, includedTemplates, _deps, config);
+      } else if (controlClass) {
+         fn = controlClass;
       } else {
-         fn = data.controlClass;
-      }
-
-      if (!fn) {
-         if (typeof tpl === 'function') {
-            fn = tpl;
-            // @ts-ignore
-         } else if (tpl && typeof tpl.func === 'function') {
-            fn = tpl;
-         } else if (Common.isArray(tpl)) {
-            fn = tpl;
-         }
+         fn = tpl;
       }
 
       if (Common.isControlClass(fn)) {
          return this.createWsControl(fn, resolvedScope, decorAttribs, context, _deps) as TGeneratorNode;
       }
-
       if (Common.isTemplateClass(fn)) {
          return this.createTemplate(fn, resolvedScope, decorAttribs, context, _deps);
       }
-
-      const parent = data.parent;
       if (typeof fn === 'function') {
-         if (Common.isAnonymousFn(fn)) {
-            anonymousFnError(fn, parent);
-            return null;
-         }
-         return parent ?
-            fn.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined) :
-            fn(resolvedScope, decorAttribs, context, true);
+         return this.resolveTemplateFunction(parent, fn, resolvedScope, decorAttribs, context);
       }
       if (fn && typeof fn.func === 'function') {
-         if (Common.isAnonymousFn(fn.func)) {
-            anonymousFnError(fn.func, parent);
-            return null;
-         }
-         return parent ?
-            fn.func.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined) :
-            fn.func(resolvedScope, decorAttribs, context, true);
+         return this.resolveTemplateFunction(parent, fn.func, resolvedScope, decorAttribs, context);
       }
       if (Common.isArray(fn)) {
          return this.resolveTemplateArray(parent, fn, resolvedScope, decorAttribs, context);
       }
-      if (typeof tpl === 'undefined') {
-         const typeTpl = typeof tpl;
-         Logger.error(`${typeTpl} component error - Попытка использовать компонент/шаблон, ` +
-            `но вместо компонента в шаблоне был передан ${typeTpl}! ` +
-            'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
-            `По стеку будет понятно, в каком шаблоне и в какую опцию передается ${typeTpl}`, parent);
-         return null;
-      }
-      if (fn === false) {
-         Logger.error(`Контрол ${tpl} отсутствует в зависимостях и не может быть построен."`, parent);
-         return null;
-      }
-      // create text node, if template is some text
-      if (typeof tpl !== 'string') {
-         let errorText = 'Ошибка в шаблоне! ';
-         if (tpl.hasOwnProperty('library')) {
-            errorText += `Контрол не найден в библиотеке.
-                Библиотека: ${(tpl as IGeneratorNameObject).library}.
-                Контрол: ${(tpl as IGeneratorNameObject).module}`;
-         } else {
-            errorText += `Неверное значение в ws:partial. Шаблон: ${tpl} имеет тип ${typeof tpl}`;
-         }
-         Logger.error(errorText, parent);
-      }
+
+      // не смогли зарезолвить - нужно вывести ошибку
+      logResolverError(tpl, parent);
       return null;
    }
 
-   resolveTemplateArray(parent: any, templateArray: any, resolvedScope: any, decorAttribs: any, context: any): any {
+   resolveTemplateArray(
+       parent: Control,
+       templateArray: any,
+       resolvedScope: IControlOptions,
+       decorAttribs: IGeneratorAttrs,
+       context: string): any {
       let result = [];
       templateArray.forEach((template: any): any => {
          const resolvedTemplate = this.resolveTemplate(template, parent, resolvedScope, decorAttribs, context);
@@ -369,7 +264,11 @@ export class GeneratorReact {
       return result;
    }
 
-   resolveTemplate(template: any, parent: any, resolvedScope: any, decorAttribs: any, context: any): any {
+   resolveTemplate(template: any,
+                   parent: Control,
+                   resolvedScope: IControlOptions,
+                   decorAttribs: IGeneratorAttrs,
+                   context: string): any {
       let resolvedTemplate = null;
       if (typeof template === 'function') {
          resolvedTemplate = this.resolveTemplateFunction(parent, template, resolvedScope, decorAttribs, context);
@@ -391,17 +290,17 @@ export class GeneratorReact {
       return resolvedTemplate;
    }
 
-   resolveTemplateFunction(parent: any, template: any, resolvedScope: any, decorAttribs: any, context: any): any {
-      if (parent) {
-         if (Common.isAnonymousFn(template)) {
-            anonymousFnError(template, parent);
-            return null;
-         }
-         return template.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined);
-      }
+   resolveTemplateFunction(parent: Control,
+                           template: any,
+                           resolvedScope: IControlOptions,
+                           decorAttribs: IGeneratorAttrs,
+                           context: string): any {
       if (Common.isAnonymousFn(template)) {
          anonymousFnError(template, parent);
          return null;
+      }
+      if (parent) {
+         return template.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined);
       }
       return template(resolvedScope, decorAttribs, context, true, undefined, undefined);
    }
@@ -486,6 +385,19 @@ export class GeneratorReact {
    }
 }
 
+function getCorrectTpl(tplOrigin: TemplateOrigin): TemplateOrigin {
+   // При использовании ts-модуля, где нужный класс экспортируется дефолтно, внутри js-модуля
+   // сюда приходит объект tplOrigin, где __esModule есть true, а в default лежит нужная нам
+   // функция построения верстки
+   // Для того, чтобы верстка строилась, необходимо вытащить функцию из default
+   // @ts-ignore
+   const tpl = typeof tplOrigin === 'object' && tplOrigin.__esModule && tplOrigin.default ?
+       // @ts-ignore
+       tplOrigin.default :
+       tplOrigin;
+   return tpl;
+}
+
 /**
  * Либо сужает тип obj до IDefaultExport, либо однозначно говорит, что это другой тип.
  * @param obj
@@ -538,7 +450,26 @@ function resolveTpl(
    }
 }
 
-function anonymousFnError(fn: Function, parent: IControl): void {
+function logResolverError(tpl: TemplateOrigin, parent: Control): void {
+   Logger.error(`Неверное значение свойства template в ws:partial.
+   Нужно поставить точку останова и исследовать передаваемое в ws:partial значение.
+   По стеку будет понятно, в каком шаблоне и в какую опцию передается неправильное значение.`, parent);
+
+   // Попробуем более точно определить причину ошибки
+   if (typeof tpl !== 'string') {
+      let errorText = 'Ошибка в шаблоне! ';
+      if (tpl.hasOwnProperty('library')) {
+         errorText += `Контрол не найден в библиотеке.
+                Библиотека: ${(tpl as IGeneratorNameObject).library}.
+                Контрол: ${(tpl as IGeneratorNameObject).module}`;
+      } else {
+         errorText += `Значение имеет тип ${typeof tpl}.`;
+      }
+      Logger.error(errorText, parent);
+   }
+}
+
+function anonymousFnError(fn: Function, parent: Control): void {
    Logger.error(`Ошибка построения разметки. Была передана функция, которая не является шаблонной.
                Функция: ${fn.toString()}`, parent);
 }
