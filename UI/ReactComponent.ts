@@ -1,7 +1,8 @@
 import {Control} from './_react/Control/WasabyOverReact';
-import { IControlOptions } from './_react/Control/interfaces';
+import {IControlOptions, IControlState} from './_react/Control/interfaces';
 
 export {
-   Control,
-   IControlOptions
+    Control,
+    IControlOptions,
+    IControlState
 };

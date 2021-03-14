@@ -219,7 +219,7 @@ export function getReceivedState(controlNode: IControlNode, vnodeP: TGeneratorNo
       }
    }
 
-   /* Compat layer. For page without Controls.Application */
+   /* Compat layer. For page without SbisEnvUI.Bootstrap */
    if (!data && window['inline' + stateVar]) {
       data = JSON.parse(window['inline' + stateVar], serializer.deserialize);
       if (window['inline' + stateVar]) {

@@ -4,8 +4,9 @@ define('Compiler/modules/data/array', [
    'Compiler/modules/utils/tag',
    'Compiler/modules/data/utils/dataTypesCreator',
    'Compiler/modules/data/utils/functionStringCreator',
-   'Compiler/codegen/templates'
-], function arrayLoader(ErrorHandlerLib, parseUtils, tagUtils, DTC, FSC, templates) {
+   'Compiler/codegen/templates',
+   'Compiler/codegen/Internal'
+], function arrayLoader(ErrorHandlerLib, parseUtils, tagUtils, DTC, FSC, templates, Internal) {
    'use strict';
 
    /**
@@ -18,41 +19,49 @@ define('Compiler/modules/data/array', [
       return propertyName ? propertyName.split('/').pop() : propertyName;
    }
 
+   function generateInternal(string, injected, includedFn, internalFunctions) {
+      if (Internal.canUseNewInternalFunctions() && internalFunctions) {
+         return FSC.getStr(Internal.generate(injected.__$ws_internalTree, internalFunctions));
+      }
+
+      var dirtyCh = '';
+      if (!string) {
+         if (!includedFn) {
+            dirtyCh = 'this.func.internal = ';
+         }
+         if (injected && injected.internal) {
+            dirtyCh += FSC.getStr(injected.internal);
+         } else {
+            dirtyCh += '{}';
+            if (!includedFn) {
+               dirtyCh += ';';
+            }
+         }
+      }
+      return dirtyCh;
+   }
+
    function generateFunction(htmlPropertyName, html, string, injected) {
       var generatedString, cleanPropertyName = clearPropertyName(htmlPropertyName);
       var wsTemplateName = injected && injected.attribs && injected.attribs._wstemplatename;
       var generatedTemplate = this.getString(html, { }, this.handlers, { }, true);
       var fileName = this.handlers.fileName;
       var funcText = templates.generateTemplate(cleanPropertyName, generatedTemplate, fileName, !!string);
-      var dirtyCh = '';
       var functionToWrap;
       var postfixCall = string ? '(Object.create(data), null, context)' : '';
-
-      if (!string) {
-         if (!this.includedFn) {
-            dirtyCh = 'this.func.internal = ';
-         }
-         if (injected && injected.internal) {
-            dirtyCh += FSC.getStr(injected.internal, cleanPropertyName);
-         } else {
-            dirtyCh += '{}';
-            if (!this.includedFn) {
-               dirtyCh += ';';
-            }
-         }
-      }
+      var dirtyCh = generateInternal(string, injected, this.includedFn, this.internalFunctions, fileName);
 
       // eslint-disable-next-line no-new-func
       var func = new Function('data, attr, context, isVdom, sets, forceCompatible, generatorConfig', funcText);
-      this.setFunctionName(func, wsTemplateName, undefined, cleanPropertyName);
+      var funcName = this.setFunctionName(func, wsTemplateName, undefined, cleanPropertyName);
       this.includedFunctions[cleanPropertyName] = func;
       if (this.privateFn) {
          this.privateFn.push(func);
-         functionToWrap = func.name;
+         functionToWrap = funcName;
       } else {
          functionToWrap = func
             .toString()
-            .replace('function anonymous', 'function ' + func.name)
+            .replace('function anonymous', 'function ' + funcName)
             .replace(/\n/g, ' ');
       }
       if (this.includedFn) {
@@ -86,6 +95,9 @@ define('Compiler/modules/data/array', [
       var variableInner;
       var typeName;
 
+      // Вход в функцию:
+      // + узел типа ArrayNode
+
       if (injected.children) {
          arrayAttributes = parseUtils.parseAttributesForData.call(this, {
             attribs: injected.attribs,
@@ -103,6 +115,7 @@ define('Compiler/modules/data/array', [
                if (children[index].children) {
                   typeFunction = types[nameExists];
                   if (typeFunction) {
+                     // Обработка DataType узлов
                      var res = typeFunction.call(this, {
                         attribs: children[index].attribs,
                         children: children[index].children,
@@ -118,11 +131,13 @@ define('Compiler/modules/data/array', [
                      tagUtils.checkForControl(nameExists, true, true) ||
                      !tagUtils.isEntityUsefulOrHTML(nameExists, this._modules)
                   ) {
+                     // Генерация содержимого узла ContentOption
                      array.push(DTC.createDataRepresentation(
                         nameExists,
                         generateFunction.call(this, propertyName, [children[index]], stringFunctions, injected)
                      ));
                   } else {
+                     // FIXME: Потенциально мервая ветка кода, т.к. ws:Array содержит DataType узлы
                      typeName = undefined;
                      if (nameExists && nameExists.charAt && nameExists.slice) {
                         typeName = nameExists.charAt(0).toUpperCase() + nameExists.slice(1);
@@ -146,6 +161,7 @@ define('Compiler/modules/data/array', [
                   }
                }
             } else {
+               // Генерация Array-узла без контента (данные заданы через атрибуты) или содержимого контентной опции
                array.push(DTC.createDataRepresentation(
                   nameExists,
                   generateFunction.call(this, propertyName, [children[index]], stringFunctions, injected)

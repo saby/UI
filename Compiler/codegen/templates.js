@@ -1,6 +1,7 @@
 define('Compiler/codegen/templates', [
-   'Compiler/codegen/jstpl'
-], function(jstpl) {
+   'Compiler/codegen/jstpl',
+   'Compiler/Config'
+], function(jstpl, builderConfig) {
    'use strict';
 
    /**
@@ -70,6 +71,17 @@ define('Compiler/codegen/templates', [
       return clearedSource;
    }
 
+   function getPrivateFunctionName(func, index) {
+      var functionName = func.name;
+      if (typeof functionName === 'string' && functionName !== 'anonymous') {
+         return functionName;
+      }
+      if (index === 0) {
+         return builderConfig.Config.privateFunctionName;
+      }
+      return builderConfig.Config.privateFunctionName + '_' + index;
+   }
+
    /**
     * Сгенерировать define-модуль шаблона.
     * @param moduleName Имя модуля.
@@ -84,12 +96,22 @@ define('Compiler/codegen/templates', [
       var includedTemplates = '';
       var localDependenciesList = '';
       var privateTemplates = '';
+      var mainTemplateFunctionName = templateFunction.name;
+      if (mainTemplateFunctionName === 'anonymous' || mainTemplateFunctionName === undefined) {
+         mainTemplateFunctionName = 'template';
+      }
       var template = templateFunction.toString()
-         .replace('function anonymous', 'function ' + templateFunction.name);
+         .replace('function anonymous', 'function ' + mainTemplateFunctionName);
+
+      if (templateFunction.internalFunctions) {
+         for (index = 0; index < templateFunction.internalFunctions.length; ++index) {
+            privateTemplates += templateFunction.internalFunctions[index];
+         }
+      }
 
       if (templateFunction.privateFn) {
          for (index = 0; index < templateFunction.privateFn.length; ++index) {
-            functionName = templateFunction.privateFn[index].name;
+            functionName = getPrivateFunctionName(templateFunction.privateFn[index], index);
             functionBody = templateFunction.privateFn[index].toString()
                .replace('function anonymous', 'function ' + functionName);
             privateTemplates += functionBody;
@@ -164,10 +186,12 @@ define('Compiler/codegen/templates', [
     * @param test Выражение условия.
     * @param update Выражение обновления.
     * @param processedBlock Тело цикла.
+    * @param cycleIndex Уникальный индекс цикла в рамках одной единицы компиляции.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generateFor(init, test, update, processedBlock) {
+   function generateFor(init, test, update, processedBlock, cycleIndex) {
       return forTemplate
+         .replace(/\/\*#CYCLE_INDEX#\*\//g, generateReturnValueFunction(cycleIndex))
          .replace(/\/\*#INIT#\*\//g, generateReturnValueFunction(init))
          .replace(/\/\*#TEST#\*\//g, generateReturnValueFunction(test))
          .replace(/\/\*#UPDATE#\*\//g, generateReturnValueFunction(update))
@@ -179,14 +203,16 @@ define('Compiler/codegen/templates', [
     * @param scopeArray Выражение итерируемой коллекции.
     * @param forSource Инструкции цикла (key и value).
     * @param processedBlock Тело цикла.
+    * @param cycleIndex Уникальный индекс цикла в рамках одной единицы компиляции.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generateForeach(scopeArray, forSource, processedBlock) {
+   function generateForeach(scopeArray, forSource, processedBlock, cycleIndex) {
       var iteratorScope = JSON.stringify({
          key: forSource.key,
          value: forSource.value
       });
       return foreachTemplate
+         .replace(/\/\*#CYCLE_INDEX#\*\//g, generateReturnValueFunction(cycleIndex))
          .replace(/\/\*#SCOPE_ARRAY#\*\//g, generateReturnValueFunction(scopeArray))
          .replace(/\/\*#ITERATOR_SCOPE#\*\//g, generateReturnValueFunction(iteratorScope))
          .replace(/\/\*#PROCESSED#\*\//g, generateReturnValueFunction(processedBlock));

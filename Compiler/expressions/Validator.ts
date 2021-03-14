@@ -200,9 +200,9 @@ class BaseValidator implements Nodes.IExpressionVisitor<IContext, void> {
       if (context.state === State.IN_CALLEE) {
          if (node.name === 'debug') {
             this.errorHandler.warn(
-               `В тексте шаблона обнаружено debug-выражение. Необходимо убрать его в production`,
+               'В тексте шаблона обнаружено debug-выражение. Необходимо убрать его в production',
                context
-            )
+            );
          }
       }
       return;
@@ -249,9 +249,9 @@ class BaseValidator implements Nodes.IExpressionVisitor<IContext, void> {
       };
       if (node.body.length > context.programBodyLength) {
          this.errorHandler.warn(
-            `Получено более 1 выражения в Mustache-выражении. Возможно, Mustache-выражение содержит несколько выражений, разделенных символом ";"`,
+            'Получено более 1 выражения в Mustache-выражении. Возможно, Mustache-выражение содержит несколько выражений, разделенных символом ";"',
             context
-         )
+         );
       }
       node.body.forEach((element: Nodes.Node) => element.accept(this, childContext));
    }
@@ -375,7 +375,7 @@ class BindValidator extends BaseValidator {
          if (obj.type === 'Identifier') {
             arr.unshift(((obj as unknown) as Nodes.IdentifierNode).name);
          }
-         if (arr.length === 2 && arr[0].slice(1, -1) === '_options') {
+         if (arr.length === 2 && arr[0] === '_options') {
             throw new Error(
                'Запрещено использовать bind на свойства объекта "_options": данный объект заморожен'
             );

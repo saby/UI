@@ -106,7 +106,7 @@ define('Compiler/Tmpl', [
             if (parsingError) {
                broke(parsingError);
             } else {
-               traversing.traverse(parsed, resolver, config).addCallbacks(success, broke);
+               traversing.traverse(parsed, config).addCallbacks(success, broke);
             }
          }
       };

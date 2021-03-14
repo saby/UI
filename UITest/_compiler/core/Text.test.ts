@@ -99,6 +99,14 @@ describe('Compiler/core/Text', () => {
       const expressionNode = <Ast.ExpressionNode>collection[0];
       assert.isTrue(!!expressionNode.__$ws_program);
    });
+   it('Stress! ExpressionNode', () => {
+      const collection = processText('{{ "{{ value }}" }}');
+      assert.strictEqual(collection.length, 1);
+      assert.instanceOf(collection[0], Ast.ExpressionNode);
+      const expressionNode = <Ast.ExpressionNode>collection[0];
+      assert.isTrue(!!expressionNode.__$ws_program);
+      assert.strictEqual(expressionNode.__$ws_program.string, '"{{ value }}"');
+   });
    it('Mixed content', () => {
       const collection = processText('{[ Hello ]}, {{ userName }}');
       assert.strictEqual(collection.length, 3);

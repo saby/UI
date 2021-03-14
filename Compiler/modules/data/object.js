@@ -6,8 +6,9 @@ define('Compiler/modules/data/object', [
    'Compiler/modules/data/utils/functionStringCreator',
    'Compiler/modules/utils/parse',
    'Compiler/codegen/templates',
-   'Compiler/codegen/TClosure'
-], function objectLoader(ErrorHandlerLib, tagUtils, DTC, common, FSC, parseUtils, templates, TClosure) {
+   'Compiler/codegen/TClosure',
+   'Compiler/codegen/Internal'
+], function objectLoader(ErrorHandlerLib, tagUtils, DTC, common, FSC, parseUtils, templates, TClosure, Internal) {
    'use strict';
 
    /**
@@ -59,8 +60,14 @@ define('Compiler/modules/data/object', [
       var propName;
       var useful;
       var stepInto;
-      var internalData;
       var html;
+
+      // Вход в функцию:
+      // + injectedData узла типа ComponentNode, StaticPartialNode, InlineTemplateNode, DynamicPartialNode
+      //   - injectedData  содержит узлы типа OptionNode, ContentOptionNode
+      // + узел типа OptionNode, ContentOptionNode
+      //   - Узел OptionNode может модержать узел типа ObjectNode
+      // + узел типа ObjectNode
 
       objectForMerge = parseUtils.parseAttributesForData.call(this, {
          attribs: injected.attribs,
@@ -78,9 +85,11 @@ define('Compiler/modules/data/object', [
             injected.isControl,
             injected.rootConfig
          );
-         internalData = injected.internal;
-      } else {
-         internalData = {};
+      }
+
+      if (injected.__$ws_internalTree && Internal.canUseNewInternalFunctions() && this.internalFunctions) {
+         // TODO: Test and remove code above
+         injected.internal = Internal.generate(injected.__$ws_internalTree, this.internalFunctions);
       }
 
       if (objectForMerge && objectForMerge.createdscope) {
@@ -96,6 +105,9 @@ define('Compiler/modules/data/object', [
          injected = injected.children;
       }
 
+      // Проверка на контентную опцию, причем смотрим на директивы.
+      // Содержимое контентной опции обрабатывается в контексте верстки, а не объекта.
+      // !!! false для контентной опции с if/for в корне
       stepInto = !(Array.isArray(injected) && injected.filter(function(entity) {
          return variativeTemplate(entity && entity.name);
       }).length);
@@ -106,8 +118,10 @@ define('Compiler/modules/data/object', [
             typeFunction = types[nameExists];
             useful = tagUtils.isEntityUsefulOrHTML(nameExists, this._modules);
             if ((propertyName || typeFunction) && !useful) {
+               // Обработка OptionNode, ContentOption
                var ln = injected.length;
                if (typeFunction) {
+                  // Генерация кода для содержимого OptionNode - DataType узлы
                   if (ln === 1) {
                      var res = writeObjectEntity.call(
                         this,
@@ -129,12 +143,15 @@ define('Compiler/modules/data/object', [
                      return res;
                   }
                }
+
+               // Генерация кода для содержимого ContentOption - верстка и компоненты
                return writeObjectEntity.call(
                   this,
                   types.Array,
                   {
                      attribs: realInjected.attribs,
                      internal: realInjected.internal,
+                     __$ws_internalTree: realInjected.__$ws_internalTree,
                      children: injected,
                      isControl: realInjected.isControl,
                      rootConfig: realInjected.rootConfig
@@ -147,12 +164,14 @@ define('Compiler/modules/data/object', [
             }
 
             if (nameExists && !typeFunction && useful) {
+               // Генерация кода для содержимого ContentOptionNode
                tObject[nameExists] = writeObjectEntity.call(
                   this,
                   types.Object,
                   {
                      attribs: injected[i].attribs,
                      internal: injected[i].internal,
+                     __$ws_internalTree: injected[i].__$ws_internalTree,
                      children: injected[i].children,
                      isControl: realInjected.isControl,
                      rootConfig: realInjected.rootConfig || curatedScope,
@@ -163,6 +182,7 @@ define('Compiler/modules/data/object', [
                   propertyName ? (propertyName + '/' + nameExists) : nameExists
                );
             } else if (root) {
+               // FIXME: Потенциально мервая ветка кода, т.к. Traverse создает узел для неявного контента
                /**
                 * Если рутовое перечисление. Пишем в массив опции content
                 */
@@ -174,6 +194,7 @@ define('Compiler/modules/data/object', [
                   {
                      attribs: realInjected.attribs,
                      internal: realInjected.internal,
+                     __$ws_internalTree: realInjected.__$ws_internalTree,
                      children: injected,
                      isControl: realInjected.isControl,
                      rootConfig: realInjected.rootConfig || curatedScope,
@@ -182,6 +203,7 @@ define('Compiler/modules/data/object', [
                );
                break;
             } else {
+               // FIXME: Потенциально мервая ветка кода в силу потенциальной мертвости ветки выше
                return DTC.createDataRepresentation(
                   nameExists,
                   this._processEntity(injected[i], templateObject.data)
@@ -207,11 +229,13 @@ define('Compiler/modules/data/object', [
          }
       }
 
+      // Контентные опции с if/for в корне
       if (templateObject.html.length > 0) {
          var htmlPropertyName = root ? rootTemplateName : realInjected.rPropName;
          html = templateObject.html;
 
          if (tObject.type === 'string') {
+            // Контентная опция с типом string => происходит вызов функции контентной опции и получение верстки!!!
             result = FSC.wrapAroundObject(
                '(' +
                this.getFunction(
@@ -258,30 +282,29 @@ define('Compiler/modules/data/object', [
 
          // eslint-disable-next-line no-new-func
          var func = new Function('data, attr, context, isVdom, sets, forceCompatible, generatorConfig', funcText);
-         this.setFunctionName(func, undefined, undefined, htmlPropertyName);
+         var funcName = this.setFunctionName(func, undefined, undefined, htmlPropertyName);
          this.includedFunctions[htmlPropertyName] = func;
          if (this.privateFn) {
             this.privateFn.push(func);
          }
          var fAsString = '';
          if (this.privateFn) {
-            fAsString = func.name;
+            fAsString = funcName;
          } else {
             fAsString = func
                .toString()
-               .replace('function anonymous', 'function ' + func.name)
+               .replace('function anonymous', 'function ' + funcName)
                .replace(/\n/g, ' ');
          }
          var dirtyCh = '';
-         var currentInternalForInjected = injected && injected.internal
-            ? injected.internal
-            : (
-               realInjected && realInjected.internal
-                  ? realInjected.internal
-                  : null
-            );
+         var currentInternalForInjected = (realInjected && realInjected.internal) || null;
+         if (realInjected.__$ws_internalTree && Internal.canUseNewInternalFunctions() && this.internalFunctions) {
+            // TODO: Test and remove code above
+            currentInternalForInjected = Internal.generate(realInjected.__$ws_internalTree, this.internalFunctions);
+         }
+
          if (currentInternalForInjected) {
-            dirtyCh += FSC.getStr(currentInternalForInjected, htmlPropertyName);
+            dirtyCh += FSC.getStr(currentInternalForInjected);
          } else {
             dirtyCh += '{}';
             if (!this.includedFn) {

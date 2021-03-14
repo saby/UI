@@ -1,8 +1,6 @@
 define('Compiler/codegen/bridge', [
-   'Compiler/core/bridge',
    'Compiler/codegen/function'
 ], function(
-   coreBridge,
    processingToFunction
 ) {
    'use strict';
@@ -18,11 +16,6 @@ define('Compiler/codegen/bridge', [
    var CODEGEN_VISITORS = false;
 
    /**
-    * Флаг - использовать посетителей генерации кода.
-    */
-   var USE_CODEGEN_VISITORS = CODEGEN_VISITORS && coreBridge.canUseCodegenVisitors();
-
-   /**
     * Инициализировать окружение для wml.
     * @param templateNames {string[]} Коллекция имен inline-шаблонов.
     */
@@ -31,12 +24,13 @@ define('Compiler/codegen/bridge', [
       if (Array.isArray(templateNames)) {
          for (var index = 0; index < templateNames.length; ++index) {
             var name = templateNames[index];
-            processingToFunction.functionNames[name] = 2;
+            processingToFunction.functionNames[name] = 1;
          }
       }
       processingToFunction.privateFn = [];
       processingToFunction.includedFn = { };
       processingToFunction.includedFunctions = { };
+      processingToFunction.internalFunctions = [];
    }
 
    /**
@@ -48,12 +42,13 @@ define('Compiler/codegen/bridge', [
       if (Array.isArray(templateNames)) {
          for (var index = 0; index < templateNames.length; ++index) {
             var name = templateNames[index];
-            processingToFunction.functionNames[name] = 2;
+            processingToFunction.functionNames[name] = 1;
          }
       }
       processingToFunction.includedFunctions = { };
       processingToFunction.privateFn = null;
       processingToFunction.includedFn = null;
+      processingToFunction.internalFunctions = null;
    }
 
    /**
@@ -64,6 +59,7 @@ define('Compiler/codegen/bridge', [
       processingToFunction.includedFunctions = null;
       processingToFunction.privateFn = null;
       processingToFunction.includedFn = null;
+      processingToFunction.internalFunctions = null;
    }
 
    /**
@@ -76,7 +72,7 @@ define('Compiler/codegen/bridge', [
     * @returns {*} Возвращает шаблонную функцию.
     */
    function getFunction(ast, data, handlers, attributes, internal) {
-      if (USE_CODEGEN_VISITORS) {
+      if (CODEGEN_VISITORS) {
          // TODO: Release
       }
       return processingToFunction.getFunction(ast, data, handlers, attributes, internal);

@@ -71,6 +71,8 @@ interface IExpressionVisitorContext extends IContext {
    forbidComputedMembers: boolean;
    childrenStorage: string[];
    checkChildren: boolean;
+   isDirtyChecking?: boolean;
+   safeCheckVariable: string | null;
 }
 
 // tslint:disable:object-literal-key-quotes
@@ -179,6 +181,20 @@ function checkForContextDecorators(text: string): boolean {
    return (text.indexOf(BINDING_NAMES.one) > -1) || (text.indexOf(BINDING_NAMES.two) > -1);
 }
 
+function containsFunctionCall(node: Node): boolean {
+   let hasFunctionCall = false;
+   const callbacks = {
+      CallExpression: (): void => {
+         hasFunctionCall = true;
+      }
+   };
+   const walker = new Walker(callbacks);
+   node.accept(walker, {
+      fileName: '[[expression]]'
+   });
+   return hasFunctionCall;
+}
+
 export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorContext, string> {
 
    processUnescapedHtmlFunction(args: Node[], context: IExpressionVisitorContext): string {
@@ -234,12 +250,21 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
 
    buildSafeCheckArgumentsChain(args: Node[], context: IExpressionVisitorContext): string {
       let result = '';
-      args.forEach((node: Node) => {
-         const itemCheck = node.accept(this, context);
+      let counter = 0;
+      for (let index = 0; index < args.length; ++index) {
+         const itemCheck = args[index].accept(this, context);
+         const hasFunctionCall = containsFunctionCall(args[index]);
          if (typeof itemCheck === 'string' && itemCheck.indexOf('thelpers.getter') > -1) {
-            result += `${itemCheck} !== undefined&&`;
+            if (counter > 0) {
+               result += '&&';
+            }
+            result += `(${itemCheck})`;
+            if (!hasFunctionCall) {
+               result += `!==undefined`;
+            }
+            ++counter;
          }
-      });
+      }
       return result;
    }
 
@@ -269,7 +294,7 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
             const calleeNode = node.callee as MemberExpressionNode;
             object = <string>calleeNode.object.accept(this, context);
          }
-         if (typeof context.attributeName === 'string' && /__dirtyCheckingVars_\d+$/gi.test(context.attributeName)) {
+         if (typeof context.attributeName === 'string' && /__dirtyCheckingVars_\d+$/gi.test(context.attributeName) || context.isDirtyChecking) {
             // Эта проверка используется для проброса переменных из замыкания(dirtyCheckingVars)
             // Значения переменных из замыкания вычисляются в момент создания контентной опции
             // и пробрасываются через все контролы, оборачивающие контент.
@@ -281,9 +306,16 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
             // в случае, если одно из проверяемых значения было рано 0, например.
             // Вообще этой проверки быть не должно. От нее можно избавиться,
             // если не пробрасывать dirtyCheckingVars там, где это не нужно.
-            const functionSafeCheck = `${callee} !== undefined&&`;
+            const functionSafeCheck = `(${callee}) !== undefined`;
             const argsSafeCheck = this.buildSafeCheckArgumentsChain(node.arguments, context);
-            return `(${functionSafeCheck}${argsSafeCheck}${callee}.apply(${object}, ${args}))`;
+            let safeCheckExpression = functionSafeCheck;
+            if (argsSafeCheck.length > 0) {
+               safeCheckExpression += `&&${argsSafeCheck}`;
+            }
+            if (context.isDirtyChecking && typeof context.safeCheckVariable === 'string') {
+               return `(((${context.safeCheckVariable})=(${safeCheckExpression}))&&${callee}.apply(${object}, ${args}))`;
+            }
+            return `(${safeCheckExpression}&&${callee}.apply(${object}, ${args}))`;
          }
          return `${callee}.apply(${object}, ${args})`;
       }

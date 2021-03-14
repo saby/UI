@@ -1,5 +1,6 @@
 /// <amd-module name="UI/_base/HTML/StartApplicationScript" />
 
+import { detection } from 'Env/Env';
 import Control from '../Control';
 
 // tslint:disable-next-line:ban-ts-ignore
@@ -12,6 +13,7 @@ class StartApplicationScript extends Control {
    // @ts-ignore
    _template: Function = template;
    private additionalDeps: string[] = [];
+   protected isIE: boolean = detection.isIE;
 
    // tslint:disable-next-line:no-any
    _beforeMount(): Promise<any> {

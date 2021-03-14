@@ -2,26 +2,49 @@
    <ws:if data="{{!_options.compat && _options.onServer}}">
       <script key="init_script">
          document.addEventListener('DOMContentLoaded', function() {
-            require(['Core/polyfill', 'Env/Env', 'Application/Initializer', 'Application/Env', 'SbisEnvUI/Wasaby',
-                     'UI/Base', 'UI/State', 'Application/State'],
-               function (polyfill, Env, AppInit, AppEnv, EnvUIWasaby, UIBase, UIState, AppState) {
-                  window.startContextData = { AppData: new UIBase.AppData({}) };
-                  Object.assign(Env.constants, window.wsConfig);
-                  require( {{ __setHTMLUnsafe(getDeps()) }}, function () {
-                     var sr = new AppState.StateReceiver(UIState.Serializer);
-                     AppInit.default(window.wsConfig, void 0, sr);
-                     UIBase.Start({}, document.getElementById('root'));
-                  });
-                  if (Env.constants.isProduction) {
-                     console.log(
-                        '%c\tЭта функция браузера предназначена для разработчиков.\t\n' +
-                        '\tЕсли кто-то сказал вам скопировать и вставить что-то здесь, это мошенники.\t\n' +
-                        '\tВыполнив эти действия, вы предоставите им доступ к своему аккаунту.\t\n',
-                        'background: red; color: white; font-size: 22px; font-weight: bolder; text-shadow: 1px 1px 2px black;'
-                     );
+            let steps = [
+               /* запуск ядра по умолчанию для всех браузеров */
+               {
+                  deps: ['Env/Env', 'Application/Initializer', 'Application/Env', 'SbisEnvUI/Wasaby',
+                     'UI/Base', 'UI/State', 'Application/State', 'Core/polyfill'],
+                  callback: function (Env, AppInit, AppEnv, EnvUIWasaby, UIBase, UIState, AppState) {
+                     window.startContextData = {AppData: new UIBase.AppData({})};
+                     Object.assign(Env.constants, window.wsConfig);
+                     require( {{ __setHTMLUnsafe(getDeps()) }}, function () {
+                        var sr = new AppState.StateReceiver(UIState.Serializer);
+                        AppInit.default(window.wsConfig, void 0, sr);
+                        UIBase.Start({}, document.getElementById('root'));
+                     });
+                     if (Env.constants.isProduction) {
+                        console.log(
+                           '%c\tЭта функция браузера предназначена для разработчиков.\t\n' +
+                           '\tЕсли кто-то сказал вам скопировать и вставить что-то здесь, это мошенники.\t\n' +
+                           '\tВыполнив эти действия, вы предоставите им доступ к своему аккаунту.\t\n',
+                           'background: red; color: white; font-size: 22px; font-weight: bolder; text-shadow: 1px 1px 2px black;'
+                        );
+                     }
                   }
                }
-            );
+            ];
+            if ({{ isIE }}) {
+               /* для IE сначала грузим polyfill, чтобы в ядре под IE это все было доступно */
+               steps.unshift({
+                  deps: ['Core/polyfill'],
+                  callback: function () {}
+               })
+            }
+
+            function startApplication(steps) {
+               let step = steps.shift();
+               require(step.deps, function(){
+                  step.callback.apply(this, arguments);
+                  if (steps.length) {
+                     startApplication(steps);
+                  }
+               })
+            }
+
+            startApplication(steps);
          });
       </script>
    </ws:if>

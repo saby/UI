@@ -79,6 +79,7 @@ export class Builder implements IBuilder {
                   - бесконечный Promise в _beforeMount
                   - суммарное время построения контрола и его детей больше 20 секунд`, inst);
             }
+            AppEnv.logger.error(error);
          }
 
          //TODO пропустить через contextResolver(где взять класс?)

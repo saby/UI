@@ -7,10 +7,11 @@ define('Compiler/modules/partial', [
    'Compiler/codegen/Generator',
    'Compiler/codegen/templates',
    'Compiler/codegen/TClosure',
-   'Compiler/codegen/_feature/Partial'
+   'Compiler/codegen/_feature/Partial',
+   'Compiler/codegen/Internal'
 ], function partialLoader(
    injectedDataForce, names, Process, parse, FSC,
-   Generator, templates, TClosure, FeaturePartial
+   Generator, templates, TClosure, FeaturePartial, Internal
 ) {
    'use strict';
 
@@ -56,7 +57,8 @@ define('Compiler/modules/partial', [
          children: tag.injectedData,
          attribs: tag.attribs,
          isControl: isControl(tag),
-         internal: tag.internal
+         internal: tag.internal,
+         __$ws_internalTree: tag.__$ws_internalTree
       }, data, {
          partial: tag.name === 'ws:partial'
       });
@@ -147,6 +149,11 @@ define('Compiler/modules/partial', [
       var internal = (tag.internal && Object.keys(tag.internal).length > 0)
          ? FSC.getStr(tag.internal)
          : '{}';
+
+      if (Internal.canUseNewInternalFunctions() && this.internalFunctions) {
+         // TODO: Test and remove code above
+         internal = Internal.generate(tag.__$ws_internalTree, this.internalFunctions);
+      }
 
       var mergeType = getMergeType(tag, decor);
       var context = (tagIsModule || tagIsDynamicPartial) ? 'isVdom ? context + "part_" + (templateCount++) : context' : 'context';
@@ -293,6 +300,12 @@ define('Compiler/modules/partial', [
             var decorInternal = (tag.internal && Object.keys(tag.internal).length > 0)
                ? FSC.getStr(tag.internal)
                : null;
+            
+            if (Internal.canUseNewInternalFunctions() && this.internalFunctions) {
+               // TODO: Test and remove code above
+               decorInternal = Internal.generate(tag.__$ws_internalTree, this.internalFunctions);
+            }
+            
             var createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);
 
             if (tagIsDynamicPartial) {

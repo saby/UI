@@ -88,7 +88,16 @@ class HTML extends Control<IHTMLCombinedOptions> {
     private initState(cfg: any): void {
         this.templateConfig = cfg.templateConfig;
         this.compat = cfg.compat || false;
-        this._bodyClasses = cfg.bodyClasses || this._bodyClasses;
+        /** Господи, что я пишу?.. */
+        /** Костылямбрий, который будет жить, пока не закончится переход на построение от шаблона #bootsrap */
+        const cfgClasses = (cfg.bodyClasses || '').split(' ');
+        const thisClasses = (this._bodyClasses || '').split(' ').filter((item) => {
+            return !cfgClasses.includes(item);
+        });
+        const apiClasses = (AppBody.getInstance().getClassString() || '').split(' ').filter((item) => {
+            return !cfgClasses.includes(item) && !thisClasses.includes(item);
+        });
+        this._bodyClasses = cfgClasses.concat(thisClasses).concat(apiClasses).join(' ');
     }
 
     private isFocusNode(node: Element): boolean {
@@ -121,6 +130,9 @@ class HTML extends Control<IHTMLCombinedOptions> {
     // tslint:disable-next-line:no-any
     _beforeMount(cfg: IHTMLCombinedOptions, context: any, receivedState: any): Promise<any> {
         this.onServer = typeof window === 'undefined';
+        if (!this.onServer) {
+            window.document.body.addEventListener('_bodyClassesUpdateCrunch', this._onBodyClassesUpdate.bind(this));
+        }
         this.isCompatible = cfg.compat;
         this.initState(receivedState || cfg);
         this.metaStack = MetaStack.restore(receivedState?.metaStackSer);
@@ -233,6 +245,10 @@ class HTML extends Control<IHTMLCombinedOptions> {
         if (!detection.isMobilePlatform && !inIframe()) {
             this.activate();
         }
+    }
+
+    _onBodyClassesUpdate(event: CustomEvent): void {
+        this._bodyClasses = event.detail;
     }
 
     // tslint:disable-next-line:no-any

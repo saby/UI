@@ -100,31 +100,31 @@ function getTemplateInternal(tmpl: ITemplate): IOptions {
 }
 
 export function collectObjectVersions(collection: IOptions): IVersions {
-   const versions = { };
-   for (const key in collection) {
-      if (collection.hasOwnProperty(key)) {
-         const value = collection[key];
-         if (isVersionable(value as IVersionable)) {
-            versions[key] = (value as IVersionable).getVersion();
-         } else if (isTemplateArray(value as ITemplateArray)) {
-            const templateArray: ITemplateArray = value as ITemplateArray;
-            for (let idx = 0; idx < templateArray.length; ++idx) {
-               const innerVersions = collectObjectVersions(getTemplateInternal(templateArray[idx]));
-               for (const innerKey in innerVersions) {
-                  if (innerVersions.hasOwnProperty(innerKey)) {
-                     versions[key + ';' + idx + ';' + innerKey] = innerVersions[innerKey];
-                  }
-               }
-            }
-         } else if (isVersionableArray(value as IVersionableArray)) {
-            versions[key] = (value as IVersionableArray).getArrayVersion();
-         } else if (isTemplateObject(value as ITemplateObject)) {
-            const templateObject: ITemplateObject = value as ITemplateObject;
-            const innerVersions = collectObjectVersions(getTemplateInternal(templateObject));
+   const versions = {};
+   const keys = Object.keys(collection);
+   for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      const value = collection[key];
+      if (isVersionable(value as IVersionable)) {
+         versions[key] = (value as IVersionable).getVersion();
+      } else if (isTemplateArray(value as ITemplateArray)) {
+         const templateArray: ITemplateArray = value as ITemplateArray;
+         for (let idx = 0; idx < templateArray.length; ++idx) {
+            const innerVersions = collectObjectVersions(getTemplateInternal(templateArray[idx]));
             for (const innerKey in innerVersions) {
                if (innerVersions.hasOwnProperty(innerKey)) {
-                  versions[key + ';;' + innerKey] = innerVersions[innerKey];
+                  versions[key + ';' + idx + ';' + innerKey] = innerVersions[innerKey];
                }
+            }
+         }
+      } else if (isVersionableArray(value as IVersionableArray)) {
+         versions[key] = (value as IVersionableArray).getArrayVersion();
+      } else if (isTemplateObject(value as ITemplateObject)) {
+         const templateObject: ITemplateObject = value as ITemplateObject;
+         const innerVersions = collectObjectVersions(getTemplateInternal(templateObject));
+         for (const innerKey in innerVersions) {
+            if (innerVersions.hasOwnProperty(innerKey)) {
+               versions[key + ';;' + innerKey] = innerVersions[innerKey];
             }
          }
       }
@@ -231,9 +231,11 @@ export function getChangedOptions(
    let hasChanges = false;
    let hasPrev;
    let hasNext;
+   let isDirtyCheckingProperty;
 
    for (let i = 0; i < properties.length; ++i) {
       const property = properties[i];
+      isDirtyCheckingProperty = isDirtyChecking(property);
 
       /**
        * todo игнорируем _logicParent, эта опция вообще не должна сюда прилетать и сравниваться на изменения
@@ -248,7 +250,7 @@ export function getChangedOptions(
        * есть CompoundControl внутри которого в контентных опциях
        * есть контролы
        */
-      if (ignoreDirtyChecking && isDirtyChecking(property)) {
+      if (ignoreDirtyChecking && isDirtyCheckingProperty) {
          continue;
       }
       // TODO: Сделать проверку изменения для контекстов
@@ -377,7 +379,7 @@ export function getChangedOptions(
          // Для compound control мы не должны отслеживать добавление/удаление опций, потому что
          // для измененных свойств происходит установка новых значений с помощью методов set{$propName}
          // или _setOption, и это свойство должно существовать.
-         if (next.hasOwnProperty(property) && !prev.hasOwnProperty(property) && !isCompound) {
+         if (next.hasOwnProperty(property) && !prev.hasOwnProperty(property) && !isCompound || isDirtyCheckingProperty) {
             hasChanges = true;
             changes[property] = next[property];
          }
@@ -387,7 +389,7 @@ export function getChangedOptions(
          // Кейс описан в тесте "old option removed"
          // FIXME: раскомментить тест old option removed и поправить поведенине getChangedOptions
       } else if (hasPrev && !hasNext /** Removal */) {
-         if (checkPrevValue) {
+         if (checkPrevValue || isDirtyCheckingProperty) {
             if (shouldIgnoreChanging(next[property] as IManualObject)) {
                continue;
             }
