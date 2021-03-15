@@ -14,7 +14,7 @@ var markupGenerator = thelpers.createGenerator(isVdom, forceCompatible, generato
 var funcContext = thelpers.getContext(this);
 /*#DELETE IT START#*/
 var filename = "/*#FILE_NAME#*/";
-var rk = thelpers.getRk(filename);
+/*#INITIALIZE_RK_FUNCTION#*/
 funcContext = data;
 if (typeof includedTemplates === "undefined") {
    eval("var includedTemplates = undefined;");

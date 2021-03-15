@@ -242,10 +242,16 @@ define('Compiler/codegen/templates', [
     * Сгенерировать тело функции шаблона - блок формирования верстки.
     * @param fileName Путь к файлу шаблона.
     * @param markupGeneration Блок генерации верстки.
+    * @param hasTranslations Флаг наличия в единице трансляции конструкции локализации.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generateTemplateBody(fileName, markupGeneration) {
+   function generateTemplateBody(fileName, markupGeneration, hasTranslations) {
+      var initRkFunction = EMPTY_STRING;
+      if (hasTranslations) {
+         initRkFunction = 'var rk = thelpers.getRk(filename);';
+      }
       return bodyTemplate
+         .replace(/\/\*#INITIALIZE_RK_FUNCTION#\*\//g, generateReturnValueFunction(initRkFunction))
          .replace(/\/\*#FILE_NAME#\*\//g, fileName)
          .replace(/\/\*#MARKUP_GENERATION#\*\//g, generateReturnValueFunction(markupGeneration));
    }

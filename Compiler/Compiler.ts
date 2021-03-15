@@ -15,6 +15,12 @@ import { IOptions, Options } from './utils/Options';
 import { ModulePath } from './utils/ModulePath';
 
 /**
+ * Флаг - генерировать rk-функции
+ * @todo https://online.sbis.ru/opendoc.html?guid=ea8a25dd-5a2f-4330-8d6f-599c8c5878dd
+ */
+const USE_GENERATE_CODE_FOR_TRANSLATIONS = false;
+
+/**
  * Represents compiler interface.
  */
 export interface ICompiler {
@@ -202,12 +208,21 @@ abstract class BaseCompiler implements ICompiler {
     * @param options Compiler options.
     */
    generate(traversed: ITraversed, options: IOptions): string {
+      const codeGenOptions = {
+         ...options,
+         generateTranslations: (
+             options.generateCodeForTranslations && USE_GENERATE_CODE_FOR_TRANSLATIONS
+             || !USE_GENERATE_CODE_FOR_TRANSLATIONS
+         ) && traversed.hasTranslations
+      };
       // tslint:disable:prefer-const
-      let tmplFunc = codegenBridge.getFunction(traversed.ast, null, options, null);
+      let tmplFunc = codegenBridge.getFunction(traversed.ast, null, codeGenOptions, null);
       if (!tmplFunc) {
          throw new Error('Шаблон не может быть построен. Не загружены зависимости.');
       }
-      return this.generateModule(tmplFunc, traversed.dependencies, traversed.ast.reactiveProps, options.modulePath, traversed.hasTranslations);
+      return this.generateModule(
+          tmplFunc, traversed.dependencies, traversed.ast.reactiveProps, options.modulePath, traversed.hasTranslations
+      );
    }
 
    /**
