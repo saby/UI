@@ -1,6 +1,6 @@
 import * as Ast from './Ast';
 import Scope from './Scope';
-import { IdentifierNode, MemberExpressionNode, ProgramNode, Walker } from '../expressions/Nodes';
+import { IdentifierNode, MemberExpressionNode, CallExpressionNode, ProgramNode, Walker } from '../expressions/Nodes';
 import { IParser, Parser } from '../expressions/Parser';
 
 export function canUseNewInternalMechanism(): boolean {
@@ -201,6 +201,26 @@ function collectIdentifiers(program: ProgramNode, fileName: string): string[] {
       fileName
    });
    return identifiers;
+}
+
+function containsTranslationFunction(program: ProgramNode, fileName: string): boolean {
+   let containsTranslation: boolean = false;
+   const callbacks = {
+      CallExpression: (node: CallExpressionNode): void => {
+         const callee = node.callee;
+         if (!(callee instanceof IdentifierNode)) {
+            return;
+         }
+         if (callee.name === 'rk') {
+            containsTranslation = true;
+         }
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName
+   });
+   return containsTranslation;
 }
 
 function dropBindProgram(program: ProgramNode, parser: IParser, fileName: string): ProgramNode[] {
@@ -795,7 +815,6 @@ export class InternalNode {
             return;
          }
       }
-      const index = parent.children.length;
       parent.children.push(this);
       if (this.next) {
          this.next.removeSiblingConditional(parent, counter + 1);
@@ -1098,6 +1117,11 @@ export interface IResultTree extends Array<Ast.Ast> {
    container: Container;
 
    /**
+    * Abstract syntax tree contains translations.
+    */
+   hasTranslations: boolean;
+
+   /**
     * Special flag.
     * @deprecated
     */
@@ -1130,7 +1154,6 @@ class Counters {
 }
 
 class InternalVisitor implements Ast.IAstVisitor {
-
    public readonly stack: Array<AbstractNodeType>;
 
    constructor() {
@@ -1163,6 +1186,7 @@ class InternalVisitor implements Ast.IAstVisitor {
       result.reactiveProps = container.getOwnIdentifiers();
       result.templateNames = scope.getTemplateNames();
       result.container = container;
+      result.hasTranslations = scope.hasDetectedTranslations();
       result.__newVersion = true;
       return result;
    }
@@ -1431,9 +1455,15 @@ class InternalVisitor implements Ast.IAstVisitor {
       const programType = getProgramType(this.stack);
       const programName = programType === ProgramType.SIMPLE ? null : context.attributeName;
       context.container.registerProgram(node.__$ws_program, programType, programName);
+      if (containsTranslationFunction(node.__$ws_program, FILE_NAME)) {
+         context.scope.setDetectedTranslation();
+      }
    }
 
-   visitTranslation(node: Ast.TranslationNode, context: IContext): void { }
+   visitTranslation(node: Ast.TranslationNode, context: IContext): void {
+      // TODO: Collect translation keys on annotation stage.
+      context.scope.setDetectedTranslation();
+   }
 
    private processComponent(node: Ast.BaseWasabyElement, context: IContext): Container {
       const name = getComponentName(node);

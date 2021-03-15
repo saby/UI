@@ -108,6 +108,7 @@ interface IAST extends Array<Object> {
    reactiveProps: string[];
    templateNames: string[];
    __newVersion: boolean;
+   hasTranslations: boolean;
 }
 
 /**
@@ -134,6 +135,8 @@ interface ITraversed {
     * Collection of inline template names.
     */
    templateNames: string[];
+
+   hasTranslations: boolean;
 }
 
 /**
@@ -147,6 +150,7 @@ function fixTraversed(rawTraversed: IAST | { astResult: IAST; words: IDictionary
          ast: rawTraversed as IAST,
          localizedDictionary: [],
          templateNames: rawTraversed.templateNames,
+         hasTranslations: rawTraversed.hasTranslations,
          dependencies
       };
    }
@@ -154,6 +158,7 @@ function fixTraversed(rawTraversed: IAST | { astResult: IAST; words: IDictionary
       ast: rawTraversed.astResult as IAST,
       localizedDictionary: rawTraversed.words,
       templateNames: rawTraversed.astResult.templateNames,
+      hasTranslations: rawTraversed.astResult.hasTranslations,
       dependencies
    };
 }
@@ -187,8 +192,9 @@ abstract class BaseCompiler implements ICompiler {
     * @param deps Array of dependencies.
     * @param reactive Array of names of reactive variables.
     * @param path Template module path.
+    * @param hasTranslations Translation unit contains translation constructions.
     */
-   abstract generateModule(func: any, deps: string[], reactive: string[], path: ModulePath): string;
+   abstract generateModule(func: any, deps: string[], reactive: string[], path: ModulePath, hasTranslations: boolean): string;
 
    /**
     * Generate code for template.
@@ -201,7 +207,7 @@ abstract class BaseCompiler implements ICompiler {
       if (!tmplFunc) {
          throw new Error('Шаблон не может быть построен. Не загружены зависимости.');
       }
-      return this.generateModule(tmplFunc, traversed.dependencies, traversed.ast.reactiveProps, options.modulePath);
+      return this.generateModule(tmplFunc, traversed.dependencies, traversed.ast.reactiveProps, options.modulePath, traversed.hasTranslations);
    }
 
    /**
@@ -325,10 +331,11 @@ class CompilerTmpl extends BaseCompiler {
     * @param deps Array of dependencies.
     * @param reactive Array of names of reactive variables.
     * @param path Template module path.
+    * @param hasTranslations Translation unit contains translation constructions.
     */
-   generateModule(func: any, deps: string[], reactive: string[], path: ModulePath): string {
+   generateModule(func: any, deps: string[], reactive: string[], path: ModulePath, hasTranslations: boolean): string {
       return templates.generateTmplDefine(
-         path.module, path.extension, func, deps, reactive
+         path.module, path.extension, func, deps, reactive, hasTranslations
       );
    }
 }
@@ -371,10 +378,11 @@ class CompilerWml extends BaseCompiler {
     * @param deps Array of dependencies.
     * @param reactive Array of names of reactive variables.
     * @param path Template module path.
+    * @param hasTranslations Translation unit contains translation constructions.
     */
-   generateModule(func: any, deps: string[], reactive: string[], path: ModulePath): string {
+   generateModule(func: any, deps: string[], reactive: string[], path: ModulePath, hasTranslations: boolean): string {
       const module = templates.generateDefine(
-         path.module, path.extension, func, deps, reactive
+         path.module, path.extension, func, deps, reactive, hasTranslations
       );
       return templates.clearSourceFromDeprecated(module);
    }

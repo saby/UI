@@ -89,9 +89,10 @@ define('Compiler/codegen/templates', [
     * @param templateFunction Функция шаблона, содержащая privateFn, includedFn.
     * @param dependencies Массив зависимостей.
     * @param reactiveProperties Массив имен реактивных свойств.
+    * @param hasTranslations Флаг наличия в единице трансляции конструкции локализации.
     * @returns {string} Сгенерированный текст шаблона.
     */
-   function generateDefine(moduleName, moduleExtension, templateFunction, dependencies, reactiveProperties) {
+   function generateDefine(moduleName, moduleExtension, templateFunction, dependencies, reactiveProperties, hasTranslations) {
       var index, functionName, functionBody;
       var includedTemplates = '';
       var localDependenciesList = '';
@@ -129,9 +130,11 @@ define('Compiler/codegen/templates', [
 
       var dependenciesList = '';
       var headDependencies = [
-         'UI/Executor',
-         'i18n!' + moduleName.split('/')[0]
+         'UI/Executor'
       ];
+      if (hasTranslations) {
+         headDependencies.push('i18n!' + moduleName.split('/')[0]);
+      }
       if (dependencies) {
          for (index = 0; index < dependencies.length; ++index) {
             dependenciesList += 'depsLocal["' + dependencies[index] + '"] = deps[' + (index + headDependencies.length) + '];';
@@ -139,8 +142,10 @@ define('Compiler/codegen/templates', [
       }
 
       var finalDependencies = headDependencies.concat(dependencies);
+      var globalFileNameCode = 'var filename = "' + moduleName + '.wml";';
 
       return defineTemplate
+         .replace(/\/\*#GLOBAL_FILE_NAME#\*\//g, generateReturnValueFunction(globalFileNameCode))
          .replace(/\/\*#TEMPLATE#\*\//g, generateReturnValueFunction(template))
          .replace(/\/\*#MODULE_EXTENSION#\*\//g, generateReturnValueFunction(moduleExtension))
          .replace(/\/\*#PRIVATE_TEMPLATES#\*\//g, generateReturnValueFunction(privateTemplates))
@@ -152,15 +157,21 @@ define('Compiler/codegen/templates', [
          .replace(/\/\*#REACTIVE_PROPERTIES#\*\//g, generateReturnValueFunction(JSON.stringify(reactiveProperties)));
    }
 
-   function generateTmplDefine(moduleName, moduleExtension, templateFunction, dependencies, reactiveProperties) {
+   function generateTmplDefine(moduleName, moduleExtension, templateFunction, dependencies, reactiveProperties, hasTranslations) {
       var index;
+      var mainTemplateFunctionName = templateFunction.name;
+      if (mainTemplateFunctionName === 'anonymous' || mainTemplateFunctionName === undefined) {
+         mainTemplateFunctionName = 'template';
+      }
       var template = templateFunction.toString()
-         .replace('function anonymous', 'function ' + templateFunction.name);
+         .replace('function anonymous', 'function ' + mainTemplateFunctionName);
       var dependenciesList = '';
       var headDependencies = [
-         'UI/Executor',
-         'i18n!' + moduleName.split('/')[0]
+         'UI/Executor'
       ];
+      if (hasTranslations) {
+         headDependencies.push('i18n!' + moduleName.split('/')[0]);
+      }
       if (dependencies) {
          for (index = 0; index < dependencies.length; ++index) {
             dependenciesList += '_deps["' + dependencies[index] + '"] = deps[' + (index + headDependencies.length) + '];';
@@ -169,6 +180,7 @@ define('Compiler/codegen/templates', [
 
       var finalDependencies = headDependencies.concat(dependencies);
       return defineTemplate
+         .replace(/\/\*#GLOBAL_FILE_NAME#\*\//g, EMPTY_STRING)
          .replace(/\/\*#TEMPLATE#\*\//g, generateReturnValueFunction(template))
          .replace(/\/\*#MODULE_EXTENSION#\*\//g, generateReturnValueFunction(moduleExtension))
          .replace(/\/\*#PRIVATE_TEMPLATES#\*\//g, EMPTY_STRING)
