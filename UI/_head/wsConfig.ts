@@ -59,10 +59,10 @@ function getStaticDomains(cfg: IWSConfig): string {
    }
    /** Написано Д. Зуевым в 2019 году. Просто перенес при реструктуризации. */
    if (typeof cfg.staticDomains === 'string') {
-      this.staticDomainsstringified = cfg.staticDomains;
+      staticDomains = cfg.staticDomains;
    }
    if (cfg.staticDomains instanceof Array) {
-      this.staticDomainsstringified = JSON.stringify(cfg.staticDomains);
+      staticDomains = JSON.stringify(cfg.staticDomains);
    }
 
    return staticDomains;
