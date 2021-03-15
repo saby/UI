@@ -3,7 +3,9 @@
 
   <description>Библиотека для работы ядра через React. Имеет общее API с UIInferno</description>
 
-  <depends/>
+  <depends>
+    <module id="0f15ac6b-86b2-4265-9da1-05eac93ebdf6" name="UICommon" />
+  </depends>
 
   <load_after/>
 
