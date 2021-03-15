@@ -88,8 +88,7 @@ class VDomSynchronizer {
             });
 
             val.value.environment._haveRebuildRequest = true;
-            val.value.environment.applyNodeMemo(val)
-            onEndSync(currentRoot.rootId);
+            val.value.environment.applyNodeMemo(val, () => onEndSync(currentRoot.rootId));
          },
             function (err: any) {
                Logger.asyncRenderErrorLog(err);
@@ -108,8 +107,7 @@ class VDomSynchronizer {
          delete this._controlNodes[node.id];
       });
 
-      rootsRebuild.value.environment.applyNodeMemo(rootsRebuild)
-      onEndSync(currentRoot.rootId);
+      rootsRebuild.value.environment.applyNodeMemo(rootsRebuild, () => onEndSync(currentRoot.rootId));
    }
 
    mountControlToDOM(
