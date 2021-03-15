@@ -244,8 +244,7 @@ define('Compiler/codegen/function', [
          if (!internal) {
             res += templates.generateTemplateHead();
          }
-         var generateTranslations = (typeof handlers.generateTranslations === 'boolean') ? handlers.generateTranslations : true;
-         res += templates.generateTemplateBody(handlers.fileName, str, generateTranslations);
+         res += templates.generateTemplateBody(handlers.fileName, str, handlers.generateTranslations);
          return res;
       },
       getFunction: function getFunction(ast, data, handlers, attributes, internal) {

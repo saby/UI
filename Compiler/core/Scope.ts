@@ -52,6 +52,7 @@ export default class Scope implements ITranslationsRegistrar {
       this.templates = { };
       this.dependenciesController = createController(loadDependencies);
       this.dictionary = new Dictionary();
+      this.hasTranslationInExpression = false;
    }
 
    /**
