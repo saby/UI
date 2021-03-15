@@ -15,6 +15,8 @@ define('Compiler/codegen/bridge', [
     */
    var CODEGEN_VISITORS = false;
 
+   var USE_GENERATE_CODE_FOR_TRANSLATIONS = false;
+
    /**
     * Инициализировать окружение для wml.
     * @param templateNames {string[]} Коллекция имен inline-шаблонов.
@@ -72,6 +74,12 @@ define('Compiler/codegen/bridge', [
     * @returns {*} Возвращает шаблонную функцию.
     */
    function getFunction(ast, data, handlers, attributes, internal) {
+      if (typeof handlers.generateTranslations === 'undefined') {
+         handlers.generateTranslations = (
+             handlers.generateCodeForTranslations && USE_GENERATE_CODE_FOR_TRANSLATIONS
+             || !USE_GENERATE_CODE_FOR_TRANSLATIONS
+         ) && ast.hasTranslations
+      }
       if (CODEGEN_VISITORS) {
          // TODO: Release
       }
