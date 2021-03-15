@@ -142,7 +142,7 @@ define('Compiler/codegen/templates', [
       }
 
       var finalDependencies = headDependencies.concat(dependencies);
-      var globalFileNameCode = 'var filename = "' + moduleName + '.wml";';
+      var globalFileNameCode = 'var filename = "' + moduleName + '";';
 
       return defineTemplate
          .replace(/\/\*#GLOBAL_FILE_NAME#\*\//g, generateReturnValueFunction(globalFileNameCode))
