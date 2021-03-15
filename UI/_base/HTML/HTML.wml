@@ -9,7 +9,6 @@
          <ws:if data="{{isCompatible}}">
             <div class="ws-focus-in"></div>
          </ws:if>
-
          <ws:if data="{{ bodyContent }}">
             <UI._base.HTML.Wait>
                <ws:partial
@@ -78,55 +77,6 @@
    </body>
 </ws:template>
 
-<ws:template name="reactBodyTemplate">
-   <body>
-      <div id="react-root" rootapp="{{ bodyContentTmpl }}">
-         <ws:if data="{{ bodyContent }}">
-            <UI._base.HTML.Wait>
-               <ws:partial
-                       template="{{ bodyContent }}"
-                       scope="{{ templateConfig }}" />
-            </UI._base.HTML.Wait>
-         </ws:if>
-         <ws:else>
-            <UI._base.HTML.Wait content="">
-            </UI._base.HTML.Wait>
-         </ws:else>
-      </div>
-
-      <div>
-         <ws:if data="{{ scripts && _options.beforeScripts}}">
-            <ws:for data="i in scripts">
-               <ws:partial template="{{ i }}"/>
-            </ws:for>
-         </ws:if>
-         <script key="bundles" type="text/javascript"
-                 src="{{getResourceUrl(resourceRoot + 'bundles.js')}}"></script>
-         <script key="require" type="text/javascript"
-                 src="{{getResourceUrl('/cdn/RequireJS/2.3.5-p5/require-min.js')}}"></script>
-         <script key="contents" type="text/javascript"
-                 src="{{getResourceUrl(resourceRoot + 'contents.js')}}"></script>
-         <script key="router" type="text/javascript"
-                 src="{{getResourceUrl(resourceRoot + 'router.js')}}"></script>
-         <script key="config" type="text/javascript"
-                 src="{{ linkResolver.resolveLink('RequireJsLoader/config', 'js') }}"></script>
-
-         <div>
-            <UI._base.HTML.JsLinks attr:tabindex="-1"
-                                   appRoot="{{ appRoot }}"
-                                   resourceRoot="{{ resourceRoot }}"/>
-            <ws:if data="{{ scripts && !_options.beforeScripts }}">
-               <ws:for data="i in scripts">
-                  <ws:partial template="{{ i }}"/>
-               </ws:for>
-            </ws:if>
-            <UI._base.HTML.StartReactApplicationScript onServer="{{ onServer }}" />
-         </div>
-
-      </div>
-   </body>
-</ws:template>
-
    <UI._base.HTML.Head
       wsRoot="{{ wsRoot }}"
       resourceRoot="{{ resourceRoot }}"
@@ -150,25 +100,13 @@
       product="{{ product }}"
       reactApp="{{ reactApp }}">
    </UI._base.HTML.Head>
-
-   <ws:if data="{{ reactApp }}">
-      <ws:if data="{{_options.bodyTemplate}}">
-         <ws:partial template="{{_options.bodyTemplate}}">
-            <ws:partial template="reactBodyTemplate" scope="{{content}}" />
-         </ws:partial>
-      </ws:if>
-      <ws:else>
-         <ws:partial template="reactBodyTemplate" />
-      </ws:else>
+   <ws:if data="{{_options.bodyTemplate}}">
+      <ws:partial template="{{_options.bodyTemplate}}">
+         <ws:partial template="bodyTemplate" scope="{{content}}" />
+      </ws:partial>
    </ws:if>
    <ws:else>
-      <ws:if data="{{_options.bodyTemplate}}">
-         <ws:partial template="{{_options.bodyTemplate}}">
-            <ws:partial template="bodyTemplate" scope="{{content}}" />
-         </ws:partial>
-      </ws:if>
-      <ws:else>
-         <ws:partial template="bodyTemplate" />
-      </ws:else>
+      <ws:partial template="bodyTemplate" />
    </ws:else>
+
 </html>

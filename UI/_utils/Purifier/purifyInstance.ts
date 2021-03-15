@@ -71,12 +71,14 @@ function isValueToPurify(stateValue: TInstanceValue): boolean {
     return !!stateValue && typesToPurify.indexOf(typeof stateValue) !== -1;
 }
 
-function purifyState(instance: TInstance, stateName: string, instanceName: string, isDebug: boolean): void {
-    if (isDebug) {
+function purifyState(instance: TInstance, stateName: string, instanceName: string, isTestStand: boolean): void {
+    if (isTestStand) {
+        const useAfterPurifyErrorFunction = createUseAfterPurifyErrorFunction(stateName, instanceName);
         Object.defineProperty(instance, stateName, {
             enumerable: false,
             configurable: false,
-            get: createUseAfterPurifyErrorFunction(stateName, instanceName)
+            get: useAfterPurifyErrorFunction,
+            set: useAfterPurifyErrorFunction
         });
         return;
     }
@@ -98,12 +100,12 @@ function purifyInstanceSync(
         return;
     }
 
-    const isDebug: boolean = needLog();
+    const isTestStand: boolean = needLog();
     const instanceStateNamesToPurify = Object.keys(instance).filter(function filterKeysToPurify(stateName: string) : boolean {
         return  !(stateNamesNoPurify && stateNamesNoPurify[stateName]) && isValueToPurify(instance[stateName]);
     });
     for (let i = 0; i < instanceStateNamesToPurify.length; i++) {
-        purifyState(instance, instanceStateNamesToPurify[i], instanceName, isDebug);
+        purifyState(instance, instanceStateNamesToPurify[i], instanceName, isTestStand);
     }
 
     instance.__purified = true;

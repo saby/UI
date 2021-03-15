@@ -40,6 +40,10 @@ export class FastTouchEndController {
       }
    }
 
+   static isFastEventFired(eventName: string): boolean {
+      return fastEventList.indexOf(eventName) > -1;
+   }
+
    private static useNativeTouchEnd(targetElement: Element, nativeEvent: TouchEvent): boolean {
       if (!nativeEvent) {
          return true;
@@ -62,7 +66,14 @@ export class FastTouchEndController {
       // и клике вне него (когда он в фокусе) должны работать нативно (например фокус в input и открыть popup)
       if (this.isNativeList(document.activeElement) || this.isContentEditable(document.activeElement)) {
          return true;
-
+      }
+      // вызываем нативный тач если есть специальный класса
+      if(targetElement.classList.contains("ws-disableFastTouch")) {
+         return true;
+      }
+      // вызываем нативный тач если событие создано вручную
+      if(!nativeEvent.isTrusted) {
+         return true;
       }
       return false;
    }

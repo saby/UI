@@ -100,31 +100,31 @@ function getTemplateInternal(tmpl: ITemplate): IOptions {
 }
 
 export function collectObjectVersions(collection: IOptions): IVersions {
-   const versions = { };
-   for (const key in collection) {
-      if (collection.hasOwnProperty(key)) {
-         const value = collection[key];
-         if (isVersionable(value as IVersionable)) {
-            versions[key] = (value as IVersionable).getVersion();
-         } else if (isTemplateArray(value as ITemplateArray)) {
-            const templateArray: ITemplateArray = value as ITemplateArray;
-            for (let idx = 0; idx < templateArray.length; ++idx) {
-               const innerVersions = collectObjectVersions(getTemplateInternal(templateArray[idx]));
-               for (const innerKey in innerVersions) {
-                  if (innerVersions.hasOwnProperty(innerKey)) {
-                     versions[key + ';' + idx + ';' + innerKey] = innerVersions[innerKey];
-                  }
-               }
-            }
-         } else if (isVersionableArray(value as IVersionableArray)) {
-            versions[key] = (value as IVersionableArray).getArrayVersion();
-         } else if (isTemplateObject(value as ITemplateObject)) {
-            const templateObject: ITemplateObject = value as ITemplateObject;
-            const innerVersions = collectObjectVersions(getTemplateInternal(templateObject));
+   const versions = {};
+   const keys = Object.keys(collection);
+   for (let i = 0; i < keys.length; i++) {
+      const key = keys[i];
+      const value = collection[key];
+      if (isVersionable(value as IVersionable)) {
+         versions[key] = (value as IVersionable).getVersion();
+      } else if (isTemplateArray(value as ITemplateArray)) {
+         const templateArray: ITemplateArray = value as ITemplateArray;
+         for (let idx = 0; idx < templateArray.length; ++idx) {
+            const innerVersions = collectObjectVersions(getTemplateInternal(templateArray[idx]));
             for (const innerKey in innerVersions) {
                if (innerVersions.hasOwnProperty(innerKey)) {
-                  versions[key + ';;' + innerKey] = innerVersions[innerKey];
+                  versions[key + ';' + idx + ';' + innerKey] = innerVersions[innerKey];
                }
+            }
+         }
+      } else if (isVersionableArray(value as IVersionableArray)) {
+         versions[key] = (value as IVersionableArray).getArrayVersion();
+      } else if (isTemplateObject(value as ITemplateObject)) {
+         const templateObject: ITemplateObject = value as ITemplateObject;
+         const innerVersions = collectObjectVersions(getTemplateInternal(templateObject));
+         for (const innerKey in innerVersions) {
+            if (innerVersions.hasOwnProperty(innerKey)) {
+               versions[key + ';;' + innerKey] = innerVersions[innerKey];
             }
          }
       }

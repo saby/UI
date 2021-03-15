@@ -23,7 +23,7 @@ const USE_INTERNAL_MECHANISM = true;
  * этого выражения в текущем контексте будет равен результату вычисления в оригинальном контексте.
  * В таком случае необходимо выполнить разворот условной цепочки.
  */
-const DROP_FOREIGN_TEST: boolean = false;
+const DROP_FOREIGN_TEST: boolean = true;
 
 /**
  * Если в test-выражение входит переменная, которая гарантированно не может быть вычислена в данном не оригинальном контексте,
@@ -35,7 +35,7 @@ const DROP_TEST_IDENTIFIERS: boolean = true;
  * Если в test-выражение входит вызов функции, который может быть не вычислена в данном не оригинальном контексте,
  * то разворот условной цепочки.
  */
-const DROP_TEST_FUNCTIONS: boolean = false;
+const DROP_TEST_FUNCTIONS: boolean = true;
 
 /**
  * Пропускать internal выражения контентных опций для компонента.
@@ -800,14 +800,6 @@ class IndexAllocator {
        if (this.next) {
           this.next.removeSiblingConditional(parent, counter + 1);
        }
-       if (this.next === null || this.next && this.next.type === InternalNodeType.IF) {
-          const startIndex = this.parent.children.indexOf(parent.children[parent.children.length - counter - 1]);
-          this.parent.children.splice(startIndex, counter + 1);
-       }
-       this.prev = index > 0 ? parent.children[index - 1] : null;
-       this.next = index + 1 < parent.children.length ? parent.children[index + 1] : null;
-       this.parent = parent;
-       return;
     }
 
     private dropAndAppend(identifiers: string[], allocator: IndexAllocator): void {
@@ -907,14 +899,6 @@ function collectInlineTemplateIdentifiers(node: Ast.InlineTemplateNode): string[
 
 function wrapInternalExpressions(programs: IProgramMeta[]): any {
    const internal = { };
-
-   // FIXME: DEVELOP: REMOVE
-   programs.sort(function(a, b) {
-      if (a.node.string < b.node.string) return -1;
-      if (a.node.string > b.node.string) return +1;
-      return 0;
-   });
-
    for (let index = 0; index < programs.length; ++index) {
       const program = programs[index];
       internal[INTERNAL_PROGRAM_PREFIX + index] = {
@@ -1125,11 +1109,25 @@ interface IContext {
    childrenStorage: string[];
    container: Container;
    scope: Scope;
+   counters: Counters;
 }
 
 //#endregion
 
 //#region Mustache-expression collector / AST Visitor
+
+class Counters {
+
+   private cycle: number;
+
+   constructor() {
+      this.cycle = 0;
+   }
+
+   allocateCycleIndex(): number {
+      return this.cycle++;
+   }
+}
 
 class InternalVisitor implements Ast.IAstVisitor {
 
@@ -1145,7 +1143,8 @@ class InternalVisitor implements Ast.IAstVisitor {
        const context: IContext = {
           childrenStorage,
           container,
-          scope
+          scope,
+          counters: new Counters()
        };
        this.stack.push(AbstractNodeType.ROOT);
        for (let index = 0; index < nodes.length; ++index) {
@@ -1173,7 +1172,8 @@ class InternalVisitor implements Ast.IAstVisitor {
           childrenStorage: context.childrenStorage,
           container: context.container,
           scope: context.scope,
-          attributeName: node.__$ws_name
+          attributeName: node.__$ws_name,
+          counters: context.counters
        };
        this.stack.push(AbstractNodeType.ATTRIBUTE);
        visitAll(node.__$ws_value, this, childContext);
@@ -1185,7 +1185,8 @@ class InternalVisitor implements Ast.IAstVisitor {
           childrenStorage: context.childrenStorage,
           container: context.container,
           scope: context.scope,
-          attributeName: node.__$ws_name
+          attributeName: node.__$ws_name,
+          counters: context.counters
        };
        this.stack.push(AbstractNodeType.OPTION);
        node.__$ws_value.accept(this, childContext);
@@ -1200,7 +1201,8 @@ class InternalVisitor implements Ast.IAstVisitor {
        const childContext: IContext = {
           childrenStorage: context.childrenStorage,
           container,
-          scope: context.scope
+          scope: context.scope,
+          counters: context.counters
        };
        this.stack.push(AbstractNodeType.COMPONENT_OPTION);
        visitAll(node.__$ws_content, this, childContext);
@@ -1282,7 +1284,8 @@ class InternalVisitor implements Ast.IAstVisitor {
        const childContext: IContext = {
           childrenStorage: context.childrenStorage,
           scope: context.scope,
-          container
+          container,
+          counters: context.counters
        };
        this.stack.push(AbstractNodeType.DIRECTIVE);
        visitAll(node.__$ws_content, this, childContext);
@@ -1300,7 +1303,8 @@ class InternalVisitor implements Ast.IAstVisitor {
        const childContext: IContext = {
           childrenStorage: context.childrenStorage,
           scope: context.scope,
-          container
+          container,
+          counters: context.counters
        };
        this.stack.push(AbstractNodeType.DIRECTIVE);
        visitAll(node.__$ws_consequent, this, childContext);
@@ -1319,7 +1323,8 @@ class InternalVisitor implements Ast.IAstVisitor {
        const childContext: IContext = {
           childrenStorage: context.childrenStorage,
           scope: context.scope,
-          container
+          container,
+          counters: context.counters
        };
        this.stack.push(AbstractNodeType.DIRECTIVE);
        visitAll(node.__$ws_consequent, this, childContext);
@@ -1333,7 +1338,8 @@ class InternalVisitor implements Ast.IAstVisitor {
        const childContext: IContext = {
           childrenStorage: context.childrenStorage,
           scope: context.scope,
-          container
+          container,
+          counters: context.counters
        };
        if (node.__$ws_init) {
           container.registerProgram(node.__$ws_init, ProgramType.FLOAT, 'data');
@@ -1346,6 +1352,7 @@ class InternalVisitor implements Ast.IAstVisitor {
        visitAll(node.__$ws_content, this, childContext);
        this.stack.pop();
        node.__$ws_container = container;
+       node.__$ws_uniqueIndex = context.counters.allocateCycleIndex();
     }
 
     visitForeach(node: Ast.ForeachNode, context: IContext): void {
@@ -1354,7 +1361,8 @@ class InternalVisitor implements Ast.IAstVisitor {
        const childContext: IContext = {
           childrenStorage: context.childrenStorage,
           scope: context.scope,
-          container
+          container,
+          counters: context.counters
        };
        if (node.__$ws_index) {
           container.addIdentifier(node.__$ws_index.string);
@@ -1365,6 +1373,7 @@ class InternalVisitor implements Ast.IAstVisitor {
        visitAll(node.__$ws_content, this, childContext);
        this.stack.pop();
        node.__$ws_container = container;
+       node.__$ws_uniqueIndex = context.counters.allocateCycleIndex();
     }
 
     visitArray(node: Ast.ArrayNode, context: IContext): void {
@@ -1435,7 +1444,8 @@ class InternalVisitor implements Ast.IAstVisitor {
        const childContext: IContext = {
           childrenStorage: context.childrenStorage,
           scope: context.scope,
-          container
+          container,
+          counters: context.counters
        };
        this.stack.push(AbstractNodeType.COMPONENT);
        visitAllProperties(node.__$ws_attributes, this, childContext);

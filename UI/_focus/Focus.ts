@@ -28,16 +28,13 @@ interface IFocus {
 
 let isTouchInterface = false;
 if (typeof window !== 'undefined') {
-   let moveInRow = 1;
    window.addEventListener('touchstart', () => {
       isTouchInterface = true;
-      moveInRow = 0;
    });
    window.addEventListener('mousedown', () => {
-      if (moveInRow) {
+      if (isTouchInterface) {
          isTouchInterface = false;
       }
-      moveInRow++;
    });
 }
 

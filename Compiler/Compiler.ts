@@ -137,21 +137,6 @@ interface ITraversed {
 }
 
 /**
- * Type for resolver controls function.
- */
-declare type TResolver = (path: string) => string;
-
-/**
- * Get resolver controls.
- * @param plugin Require plugin name.
- */
-function getResolverControls(plugin: string): TResolver {
-   return function resolverControls(path: string): string {
-      return plugin + '!' + path;
-   };
-}
-
-/**
  * Fix traverse result.
  * @param rawTraversed Actual traverse result.
  * @param dependencies Array of dependencies.
@@ -229,7 +214,6 @@ abstract class BaseCompiler implements ICompiler {
          try {
             // TODO: реализовать whitespace visitor и убрать флаг needPreprocess
             const needPreprocess = options.modulePath.extension === 'wml';
-            const resolver = getResolverControls(options.modulePath.extension);
             const errorHandler = createErrorHandler(!options.fromBuilderTmpl);
             // tslint:disable:prefer-const
             let parsed = parse(source.text, options.fileName, {
@@ -253,7 +237,7 @@ abstract class BaseCompiler implements ICompiler {
             }
             const dependencies = ComponentCollector.getComponents(parsed);
             // tslint:disable:prefer-const
-            let traversed = traverse(parsed, resolver, options);
+            let traversed = traverse(parsed, options);
             traversed.addCallbacks(
                (rawTraversed) => resolve(fixTraversed(rawTraversed, dependencies)),
                (error) => reject(error)

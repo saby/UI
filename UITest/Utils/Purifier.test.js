@@ -89,23 +89,27 @@ define([
          });
 
          it('object value', () => {
+            var expectedMessage = 'Разрушенный контрол test_instance пытается обратиться к своему полю objectValue. Для предотвращения утечки памяти значение было удалено.' +
+            'Избегайте использования полей контрола после его дестроя, дестрой должен быть последней операцией над контролом.';
+
             instance.objectValue = { a: 'b' };
-            assert.equal(errorMessage, '');
+            assert.equal(errorMessage, expectedMessage);
 
             const objectValue = instance.objectValue;
             assert.strictEqual(objectValue, proxyResult);
-            assert.equal(errorMessage, 'Разрушенный контрол test_instance пытается обратиться к своему полю objectValue. Для предотвращения утечки памяти значение было удалено.' +
-               'Избегайте использования полей контрола после его дестроя, дестрой должен быть последней операцией над контролом.');
+            assert.equal(errorMessage, expectedMessage.repeat(2));
          });
 
          it('function value', () => {
+            var expectedMessage = 'Разрушенный контрол test_instance пытается обратиться к своему полю functionValue. Для предотвращения утечки памяти значение было удалено.' +
+            'Избегайте использования полей контрола после его дестроя, дестрой должен быть последней операцией над контролом.';
+
             instance.functionValue = () => {};
-            assert.equal(errorMessage, '');
+            assert.equal(errorMessage, expectedMessage);
 
             const functionValue = instance.functionValue;
             assert.strictEqual(functionValue, proxyResult);
-            assert.equal(errorMessage, 'Разрушенный контрол test_instance пытается обратиться к своему полю functionValue. Для предотвращения утечки памяти значение было удалено.' +
-               'Избегайте использования полей контрола после его дестроя, дестрой должен быть последней операцией над контролом.');
+            assert.equal(errorMessage, expectedMessage.repeat(2));
          });
 
          it('purify instance more than once', () => {

@@ -40,8 +40,9 @@ define('Compiler/modules/for', [
             tag.attribs.CUSTOM_ITERATOR = undefined;
 
             var processed = this._process(fromAttr ? [statelessTag] : statelessTag.children, data);
+            var cycleIndex = '\'_' + tag.__$ws_uniqueIndex + '\'';
 
-            return templates.generateFor(START_FROM, CUSTOM_CONDITION, CUSTOM_ITERATOR, processed);
+            return templates.generateFor(START_FROM, CUSTOM_CONDITION, CUSTOM_ITERATOR, processed, cycleIndex);
          }
 
          function resolveStatement() {
@@ -57,8 +58,9 @@ define('Compiler/modules/for', [
             }
 
             var processed = this._process(fromAttr ? [statelessTag] : statelessTag.children, data);
+            var cycleIndex = '\'_' + tag.__$ws_uniqueIndex + '\'';
 
-            return templates.generateForeach(scopeArray, tag.forSource, processed);
+            return templates.generateForeach(scopeArray, tag.forSource, processed, cycleIndex);
          }
 
          return function forModuleReturnable() {

@@ -1,8 +1,6 @@
 define('Compiler/codegen/bridge', [
-   'Compiler/core/bridge',
    'Compiler/codegen/function'
 ], function(
-   coreBridge,
    processingToFunction
 ) {
    'use strict';
@@ -16,11 +14,6 @@ define('Compiler/codegen/bridge', [
     * Флаг включения посетителей генерации кода.
     */
    var CODEGEN_VISITORS = false;
-
-   /**
-    * Флаг - использовать посетителей генерации кода.
-    */
-   var USE_CODEGEN_VISITORS = CODEGEN_VISITORS && coreBridge.canUseCodegenVisitors();
 
    /**
     * Инициализировать окружение для wml.
@@ -37,6 +30,7 @@ define('Compiler/codegen/bridge', [
       processingToFunction.privateFn = [];
       processingToFunction.includedFn = { };
       processingToFunction.includedFunctions = { };
+      processingToFunction.internalFunctions = [];
    }
 
    /**
@@ -54,6 +48,7 @@ define('Compiler/codegen/bridge', [
       processingToFunction.includedFunctions = { };
       processingToFunction.privateFn = null;
       processingToFunction.includedFn = null;
+      processingToFunction.internalFunctions = null;
    }
 
    /**
@@ -64,6 +59,7 @@ define('Compiler/codegen/bridge', [
       processingToFunction.includedFunctions = null;
       processingToFunction.privateFn = null;
       processingToFunction.includedFn = null;
+      processingToFunction.internalFunctions = null;
    }
 
    /**
@@ -76,7 +72,7 @@ define('Compiler/codegen/bridge', [
     * @returns {*} Возвращает шаблонную функцию.
     */
    function getFunction(ast, data, handlers, attributes, internal) {
-      if (USE_CODEGEN_VISITORS) {
+      if (CODEGEN_VISITORS) {
          // TODO: Release
       }
       return processingToFunction.getFunction(ast, data, handlers, attributes, internal);

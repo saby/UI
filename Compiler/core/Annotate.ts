@@ -93,6 +93,24 @@ interface IContext {
     * Processing scope object.
     */
    scope: Scope;
+
+   /**
+    * Special node counters for prefixes and keys.
+    */
+   counters: Counters;
+}
+
+class Counters {
+
+   private cycle: number;
+
+   constructor() {
+      this.cycle = 0;
+   }
+
+   allocateCycleIndex(): number {
+      return this.cycle++;
+   }
 }
 
 // </editor-fold>
@@ -105,14 +123,6 @@ interface IContext {
  * @param programs {IProgramMeta[]} Collection of program meta information.
  */
 function appendInternalExpressions(internal: Ast.IInternal, programs: IProgramMeta[]): void {
-
-   // FIXME: DEVELOP: REMOVE
-   programs.sort(function(a, b) {
-      if (a.node.string < b.node.string) return -1;
-      if (a.node.string > b.node.string) return +1;
-      return 0;
-   });
-
    for (let index = 0; index < programs.length; ++index) {
       const program = programs[index];
       internal[program.key] = {
@@ -263,6 +273,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree {
       const childrenStorage: string[] = [];
       const global = createGlobalContext();
+      const counters = new Counters;
       nodes.forEach((node: Ast.Ast) => {
          const lexicalContext = global.createContext({
             type: ContextType.INTERMEDIATE
@@ -270,7 +281,8 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          const context: IContext = {
             childrenStorage,
             lexicalContext,
-            scope
+            scope,
+            counters
          };
          node.accept(this, context);
          if (node instanceof Ast.TemplateNode) {
@@ -514,6 +526,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       }
       this.processNodes(node.__$ws_content, contentContext);
       node.__$ws_lexicalContext = lexicalContext;
+      node.__$ws_uniqueIndex = context.counters.allocateCycleIndex();
    }
 
    /**
@@ -537,6 +550,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       lexicalContext.registerProgram(node.__$ws_collection);
       this.processNodes(node.__$ws_content, contentContext);
       node.__$ws_lexicalContext = lexicalContext;
+      node.__$ws_uniqueIndex = context.counters.allocateCycleIndex();
    }
 
    /**

@@ -3,7 +3,7 @@ const Config = {
     /**
      * Имя private-функции по умолчанию
      */
-    privateFunctionName: '__$privateFn',
+    privateFunctionName: 'Unknown',
 
     /**
      * Типы узлов AST дерева, для которых не выполняется кодогенерация.

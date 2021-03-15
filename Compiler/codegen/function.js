@@ -125,7 +125,7 @@ define('Compiler/codegen/function', [
       getFuncName: function getFuncName(propertyName, fileName, wsTemplateName) {
          var fnByTmpl = this.getFuncNameByTemplate(wsTemplateName);
          var fnByFile = this.getFuncNameByFile(fileName);
-         var functionName = fnByTmpl || fnByFile || propertyName || 'Unknown';
+         var functionName = fnByTmpl || fnByFile || propertyName || builderConfig.Config.privateFunctionName;
 
          // Запомнить вычисленное имя функции и определить ее идентификатор в случае повторения имени
          if (this.functionNames) {
@@ -152,7 +152,7 @@ define('Compiler/codegen/function', [
          }
 
          if (!isFunctionNameConfigurable(func)) {
-            return this.getFuncName(builderConfig.privateFunctionName);
+            return this.getFuncName(builderConfig.Config.privateFunctionName);
          }
 
          var functionName = this.getFuncName(propertyName, fileName, wsTemplateName);
@@ -264,6 +264,7 @@ define('Compiler/codegen/function', [
             func.privateFn = this.privateFn;
             func.includedFn = this.includedFn;
             func.functionNames = this.functionNames;
+            func.internalFunctions = this.internalFunctions;
          } catch (error) {
             errorHandler.info(
                '[Compiler/codegen/function:getFunction()] generating function: \n' + str,

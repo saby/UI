@@ -127,16 +127,6 @@ export interface ITextProcessor {
 }
 
 /**
- * Regular expression for Mustache-expression node content.
- */
-const EXPRESSION_PATTERN = /\{\{ ?([\s\S]*?) ?\}\}/g;
-
-/**
- * Regular expression for translation node content.
- */
-const TRANSLATION_PATTERN = /\{\[ ?([\s\S]*?) ?\]\}/g;
-
-/**
  * Regular expression for JavaScript comment expression.
  */
 const JAVASCRIPT_COMMENT_PATTERN = /\/\*[\s\S]*?\*\//g;
@@ -198,57 +188,106 @@ interface IRawTextItem {
    data: string;
 }
 
-/**
- * Type for text node wrappers.
- * Function accepts text contents and returns one of text nodes.
- */
-declare type TWrapper = (data: string) => IRawTextItem;
+enum StringState {
+   NONE,
+   SINGLE_QUOTED,
+   DOUBLE_QUOTED
+}
 
-/**
- * Process all text nodes and concrete them.
- * If text node content satisfies regular expression then new node will be created instead of that text node
- * using targetWrapper. If not then default wrapper will be used.
- * @param items {IRawTextItem[]} Collection of text nodes.
- * @param regex {RegExp} Target regular expression.
- * @param targetWrapper {TWrapper} Target text wrapper.
- * @param defaultWrapper {TWrapper} Default text wrapper.
- * @returns {IRawTextItem[]} Returns new collection of text nodes.
- */
-function markDataByRegex(items: IRawTextItem[], regex: RegExp, targetWrapper: TWrapper, defaultWrapper: TWrapper): IRawTextItem[] {
-   let item;
-   let value;
-   let stringData;
-   let last;
-   const collection = [];
-   for (let idx = 0; idx < items.length; ++idx) {
-      // FIXME: Алгоритм построен на поэтапном уточнении текстовых сущностей
-      //  поэтому здесь нужно работать только с объектами, где strings[idx].type = 0
-      //  но пока не будет хорошей документации и прикладной код не будет содержать ошибок,
-      //  поддержим прежнюю работу
-      stringData = items[idx].data;
-
-      // С флагом global у регулярного выражения нужно сбрасывать индекс
-      regex.lastIndex = 0;
-      last = 0;
-      // eslint-disable-next-line no-cond-assign
-      while ((item = regex.exec(stringData))) {
-         if (last < item.index) {
-            value = stringData.slice(last, item.index);
-            collection.push(defaultWrapper(value));
-         }
-         collection.push(targetWrapper(item[1]));
-         last = item.index + item[0].length;
+function checkStringState(char: string, state: StringState): StringState | null {
+   if (char === "'") {
+      if (state === StringState.NONE) {
+         return StringState.SINGLE_QUOTED;
       }
-
-      // В случае, если ни одна сущность не была уточнена, то просто положить ее такой же
-      if (last === 0) {
-         collection.push(items[idx]);
-      } else if (last < stringData.length) {
-         value = stringData.slice(last);
-         collection.push(defaultWrapper(value));
+      if (state === StringState.SINGLE_QUOTED) {
+         return StringState.NONE;
       }
    }
-   return collection;
+   if (char === '"') {
+      if (state === StringState.NONE) {
+         return StringState.DOUBLE_QUOTED;
+      }
+      if (state === StringState.DOUBLE_QUOTED) {
+         return StringState.NONE;
+      }
+   }
+   return state;
+}
+
+function prepareTextData(type: RawTextType, text: string, start: number, end?: number): string {
+   const data = text.slice(start, end);
+   if (type === RawTextType.TEXT) {
+      return data;
+   }
+   return data
+       .replace(/^ ?/i, EMPTY_STRING)
+       .replace(/ ?$/i, EMPTY_STRING);
+}
+
+function flushFragment(result: IRawTextItem[], text: string, textType: RawTextType, start: number, end?: number): void {
+   const data = prepareTextData(textType, text, start, end);
+   const lastNode: IRawTextItem | undefined = result[result.length - 1];
+   if (lastNode && lastNode.type === RawTextType.TEXT && textType === RawTextType.TEXT) {
+      lastNode.data = lastNode.data + data;
+      return;
+   }
+   result.push({
+      type: textType,
+      data
+   });
+}
+
+function parse(text: string): IRawTextItem[] {
+   const result: IRawTextItem[] = [];
+   let textType: RawTextType = RawTextType.TEXT;
+   let stringState: StringState = StringState.NONE;
+   let start: number = 0;
+   for (let cursor: number = 0; cursor < text.length; ++cursor) {
+      const char = text[cursor];
+      const nextChar = text[cursor + 1] || EMPTY_STRING;
+
+      // Skip escape characters in string literals in mustache expression
+      if (char === '\\' && (nextChar === '"' || nextChar === "'")) {
+         ++cursor;
+         continue;
+      }
+
+      // Skip string literals in mustache expression
+      if (textType === RawTextType.EXPRESSION) {
+         stringState = checkStringState(char, stringState);
+         if (stringState !== StringState.NONE) {
+            continue;
+         }
+      }
+
+      // Process opening construction.
+      const isOpeningExpression = textType === RawTextType.TEXT && char === '{' && nextChar === '{';
+      const isOpeningTranslation = textType === RawTextType.TEXT && char === '{' && nextChar === '[';
+      if (isOpeningExpression || isOpeningTranslation) {
+         if (start < cursor) {
+            flushFragment(result, text, textType, start, cursor);
+         }
+         textType = isOpeningExpression ? RawTextType.EXPRESSION : RawTextType.TRANSLATION;
+         start = cursor + 2;
+         ++cursor;
+         continue;
+      }
+
+      // Process closing construction.
+      const isClosingExpression = textType === RawTextType.EXPRESSION && char === '}' && nextChar === '}';
+      const isClosingTranslation = textType === RawTextType.TRANSLATION && char === ']' && nextChar === '}';
+      if (isClosingExpression || isClosingTranslation) {
+         flushFragment(result, text, textType, start, cursor);
+         textType = RawTextType.TEXT;
+         start = cursor + 2;
+         ++cursor;
+      }
+   }
+   if (start < text.length || result.length === 0) {
+      const shift = textType === RawTextType.TEXT ? 0 : 2;
+      flushFragment(result, text, RawTextType.TEXT, start - shift);
+   }
+   return result;
 }
 
 /**
@@ -381,28 +420,8 @@ class TextProcessor implements ITextProcessor {
     */
    process(text: string, options: ITextProcessorOptions): Ast.TText[] {
       // FIXME: Rude source text preprocessing
-      const cleanedText = cleanText(text);
-
-      const firstStage: IRawTextItem[] = [{
-         type: RawTextType.TEXT,
-         data: cleanedText
-      }];
-
-      const secondStage = markDataByRegex(
-         firstStage,
-         EXPRESSION_PATTERN,
-         (data: string) => { return { type: RawTextType.EXPRESSION, data }; },
-         (data: string) => { return { type: RawTextType.TEXT, data }; }
-      );
-
-      const thirdStage = markDataByRegex(
-         secondStage,
-         TRANSLATION_PATTERN,
-         (data: string) => { return { type: (this.generateTranslations ? RawTextType.TRANSLATION : RawTextType.TEXT), data }; },
-         (data: string) => { return { type: RawTextType.TEXT, data }; }
-      );
-
-      return this.processMarkedStatements(thirdStage, options);
+      const chain: IRawTextItem[] = parse(cleanText(text));
+      return this.processMarkedStatements(chain, options);
    }
 
    /**
@@ -433,7 +452,11 @@ class TextProcessor implements ITextProcessor {
                node = this.createExpressionNode(data, options);
                break;
             case RawTextType.TRANSLATION:
-               node = createTranslationNode(data, options);
+               if (this.generateTranslations) {
+                  node = createTranslationNode(data, options);
+                  break;
+               }
+               node = createTextNode(data, options);
                break;
             default:
                node = createTextNode(data, options);
