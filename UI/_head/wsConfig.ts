@@ -3,22 +3,7 @@
 import { Head as AppHead } from 'Application/Page';
 import { constants } from "Env/Env";
 import AppData from "UI/_base/AppData";
-
-interface IWSConfig {
-   staticDomains: string | string[];
-   builder: boolean;
-   preInitScript: string;
-   buildnumber: string;
-   reactApp?: boolean;
-   product: string;
-   compat: boolean;
-   servicesPath: string;
-   pageName: string;
-   RUMEnabled: boolean;
-   appRoot: string;
-   resourceRoot: string;
-   wsRoot: string;
-}
+import { IWSConfig } from "UI/_head/defaultTags";
 
 /**
  * Подготовка когфига, который прилетит с сервака на клиент
@@ -27,20 +12,17 @@ interface IWSConfig {
  * Потому что необходим для загрузки ресурсов
  * очень много параметров имеют альтернативные источники. Взято из UI/_base/HTML
  */
-export function createWsConfig(cfg: IWSConfig, initialStaticDomains: string): void {
+export function createWsConfig(cfg: IWSConfig): void {
    if (constants.isBrowserPlatform) {
       return;
    }
 
    const API = AppHead.getInstance();
    const appData = AppData.getAppData();
-   let staticDomains: string = initialStaticDomains;
+   let staticDomains: string;
 
    // @ts-ignore
-   staticDomains = cfg.staticDomains || appData.staticDomains || constants.staticDomains || '[]';
-   if (typeof staticDomains !== 'string') {
-      staticDomains = '[]';
-   }
+   staticDomains = getStaticDomains(cfg);
    const defaultServiceUrl = cfg.servicesPath || appData.servicesPath || constants.defaultServiceUrl || '/service/';
    // @ts-ignore
    const product = cfg.product || appData.product || constants.product;
@@ -64,4 +46,23 @@ export function createWsConfig(cfg: IWSConfig, initialStaticDomains: string): vo
          cfg.preInitScript ? cfg.preInitScript : ''
       ].join('\n')
    );
+}
+
+function getStaticDomains(cfg: IWSConfig): string {
+   let staticDomains: string;
+
+   // @ts-ignore
+   staticDomains = cfg.staticDomains || appData.staticDomains || constants.staticDomains || '[]';
+   if (typeof staticDomains !== 'string') {
+      staticDomains = '[]';
+   }
+   /** Написано Д. Зуевым в 2019 году. Просто перенес при реструктуризации. */
+   if (typeof cfg.staticDomains === 'string') {
+      this.staticDomainsstringified = cfg.staticDomains;
+   }
+   if (cfg.staticDomains instanceof Array) {
+      this.staticDomainsstringified = JSON.stringify(cfg.staticDomains);
+   }
+
+   return staticDomains;
 }

@@ -5,6 +5,10 @@
  * @author Печеркин С.В.
  */
 import { createWsConfig } from 'UI/_head/wsConfig';
+import { createDefaultTags, createMetaScriptsAndLinks, applyHeadJson } from 'UI/_head/defaultTags';
 export {
-   createWsConfig
+   applyHeadJson,
+   createWsConfig,
+   createDefaultTags,
+   createMetaScriptsAndLinks
 };
