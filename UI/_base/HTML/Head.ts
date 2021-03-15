@@ -59,7 +59,6 @@ class Head extends Control<IHeadOptions> {
                     if (data && data.length) {
                         this.headApiData += new TagMarkup(data.map(fromJML), {getResourceUrl: false}).outerHTML;
                     }
-                    AppHead.getInstance().clear();
                 });
             });
     }

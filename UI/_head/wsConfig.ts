@@ -49,6 +49,7 @@ export function createWsConfig(cfg: IWSConfig): void {
 }
 
 function getStaticDomains(cfg: IWSConfig): string {
+   const appData = AppData.getAppData();
    let staticDomains: string;
 
    // @ts-ignore
