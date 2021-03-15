@@ -1242,12 +1242,18 @@ class InternalVisitor implements Ast.IAstVisitor {
       const isInComponent = isInComponentAttributes(this.stack);
       const programName = isInComponent ? node.__$ws_property : null;
       context.container.registerProgram(node.__$ws_value, ProgramType.BIND, programName);
+      if (containsTranslationFunction(node.__$ws_value, FILE_NAME)) {
+         context.scope.setDetectedTranslation();
+      }
    }
 
    visitEvent(node: Ast.EventNode, context: IContext): void {
       const isInComponent = isInComponentAttributes(this.stack);
       const programName = isInComponent ? node.__$ws_event : null;
       context.container.registerProgram(node.__$ws_handler, ProgramType.EVENT, programName);
+      if (containsTranslationFunction(node.__$ws_handler, FILE_NAME)) {
+         context.scope.setDetectedTranslation();
+      }
    }
 
    visitElement(node: Ast.ElementNode, context: IContext): void {
@@ -1300,6 +1306,9 @@ class InternalVisitor implements Ast.IAstVisitor {
       childContainer.desc = `<ws:partial> @@ dynamic "${node.__$ws_expression.string}"`;
       node.__$ws_internalTree = childContainer.getInternalStructure();
       node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
+      if (containsTranslationFunction(node.__$ws_expression, FILE_NAME)) {
+         context.scope.setDetectedTranslation();
+      }
    }
 
    visitTemplate(node: Ast.TemplateNode, context: IContext): void {
@@ -1334,6 +1343,9 @@ class InternalVisitor implements Ast.IAstVisitor {
       visitAll(node.__$ws_consequent, this, childContext);
       this.stack.pop();
       node.__$ws_container = container;
+      if (containsTranslationFunction(node.__$ws_test, FILE_NAME)) {
+         context.scope.setDetectedTranslation();
+      }
    }
 
    visitElse(node: Ast.ElseNode, context: IContext): void {
@@ -1343,6 +1355,9 @@ class InternalVisitor implements Ast.IAstVisitor {
       if (node.__$ws_test !== null) {
          container.desc = `<ws:else> "${node.__$ws_test.string}"`;
          container.registerTestProgram(node.__$ws_test);
+         if (containsTranslationFunction(node.__$ws_test, FILE_NAME)) {
+            context.scope.setDetectedTranslation();
+         }
       }
       const childContext: IContext = {
          childrenStorage: context.childrenStorage,
@@ -1367,10 +1382,19 @@ class InternalVisitor implements Ast.IAstVisitor {
       };
       if (node.__$ws_init) {
          container.registerProgram(node.__$ws_init, ProgramType.FLOAT, 'data');
+         if (containsTranslationFunction(node.__$ws_init, FILE_NAME)) {
+            context.scope.setDetectedTranslation();
+         }
       }
       container.registerProgram(node.__$ws_test, ProgramType.FLOAT, 'data');
+      if (containsTranslationFunction(node.__$ws_test, FILE_NAME)) {
+         context.scope.setDetectedTranslation();
+      }
       if (node.__$ws_update) {
          container.registerProgram(node.__$ws_update, ProgramType.FLOAT, 'data');
+         if (containsTranslationFunction(node.__$ws_update, FILE_NAME)) {
+            context.scope.setDetectedTranslation();
+         }
       }
       this.stack.push(AbstractNodeType.DIRECTIVE);
       visitAll(node.__$ws_content, this, childContext);
@@ -1393,6 +1417,9 @@ class InternalVisitor implements Ast.IAstVisitor {
       }
       container.addIdentifier(node.__$ws_iterator.string);
       container.registerProgram(node.__$ws_collection, ProgramType.SIMPLE, 'data');
+      if (containsTranslationFunction(node.__$ws_collection, FILE_NAME)) {
+         context.scope.setDetectedTranslation();
+      }
       this.stack.push(AbstractNodeType.DIRECTIVE);
       visitAll(node.__$ws_content, this, childContext);
       this.stack.pop();
