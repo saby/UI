@@ -50,11 +50,9 @@ const Slr = new Serializer();
 
 export class MemoForNode implements IMemoForNode {
     createdNodes: IControlNode[];
-    createdTemplateNodes: any[];
     destroyedNodes: IControlNode[];
     selfDirtyNodes: IControlNode[];
     updatedChangedNodes: any[];
-    updatedChangedTemplateNodes: any[];
     updatedNodes: IControlNode[];
     updatedUnchangedNodes: any[];
     /**
@@ -68,11 +66,9 @@ export class MemoForNode implements IMemoForNode {
     constructor(start?: Partial<IMemoForNode>) {
         if (!start) {
             this.createdNodes =  [];
-            this.createdTemplateNodes =  [];
             this.destroyedNodes = [];
             this.selfDirtyNodes = [];
             this.updatedChangedNodes = [];
-            this.updatedChangedTemplateNodes = [];
             this.updatedNodes = [];
             this.updatedUnchangedNodes = [];
             this.notUpdatedGNodes = [];
@@ -80,11 +76,9 @@ export class MemoForNode implements IMemoForNode {
         }
 
         this.createdNodes = start.createdNodes ? start.createdNodes.slice() : [];
-        this.createdTemplateNodes = start.createdTemplateNodes ? start.createdTemplateNodes.slice() : [];
         this.destroyedNodes = start.destroyedNodes ? start.destroyedNodes.slice() : [];
         this.selfDirtyNodes = start.selfDirtyNodes ? start.selfDirtyNodes.slice() : [];
         this.updatedChangedNodes = start.updatedChangedNodes ? start.updatedChangedNodes.slice() : [];
-        this.updatedChangedTemplateNodes = start.updatedChangedTemplateNodes ? start.updatedChangedTemplateNodes.slice() : [];
         this.updatedNodes = start.updatedNodes ? start.updatedNodes.slice() : [];
         this.updatedUnchangedNodes = start.updatedUnchangedNodes ? start.updatedUnchangedNodes.slice() : [];
         this.notUpdatedGNodes = start.notUpdatedGNodes ? start.notUpdatedGNodes.slice() : [];
@@ -92,11 +86,9 @@ export class MemoForNode implements IMemoForNode {
 
     concat(source: IMemoForNode): void {
         MemoForNode.concatArray(this.createdNodes, source.createdNodes);
-        MemoForNode.concatArray(this.createdTemplateNodes, source.createdTemplateNodes);
         MemoForNode.concatArray(this.destroyedNodes, source.destroyedNodes);
         MemoForNode.concatArray(this.selfDirtyNodes, source.selfDirtyNodes);
         MemoForNode.concatArray(this.updatedChangedNodes, source.updatedChangedNodes);
-        MemoForNode.concatArray(this.updatedChangedTemplateNodes, source.updatedChangedTemplateNodes);
         MemoForNode.concatArray(this.updatedNodes, source.updatedNodes);
         MemoForNode.concatArray(this.updatedUnchangedNodes, source.updatedUnchangedNodes);
         MemoForNode.concatArray(this.notUpdatedGNodes, source.notUpdatedGNodes);
@@ -117,13 +109,14 @@ class MemoNode implements IMemoNode {
         public value: IControlNode,
         public memo: IMemoForNode) {}
 
-    getNodeIds(): Set<TControlId | 0> {
+    /**
+     * Получить Id тех ControlNode, которые изменились в процессе обновления
+     */
+    getChangedCNodeIds(): Set<TControlId | 0> {
         const rebuildChangesFields = [
             'createdNodes',
             'updatedChangedNodes',
-            'selfDirtyNodes',
-            'createdTemplateNodes',
-            'updatedChangedTemplateNodes'
+            'selfDirtyNodes'
         ];
 
         const rebuildChangesIds: Set<TControlId> = new Set();
@@ -508,10 +501,8 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         }
     }
 
-    let createdTemplateNodes;
     let updatedUnchangedNodes;
     let updatedChangedNodes;
-    const updatedChangedTemplateNodes = [];
     let selfDirtyNodes;
     let destroyedNodes;
     let createdStartIdx;
@@ -628,7 +619,7 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
             updateTemplates: []
         };
 
-        createdTemplateNodes = diff.createTemplates.map(function rebuildCreateTemplateNodes(vnode: TDirtyCheckingTemplate) {
+        diff.createTemplates.map(function rebuildCreateTemplateNodes(vnode: TDirtyCheckingTemplate): TDirtyCheckingTemplate {
             Logger.debug('DirtyChecking (create template)', vnode);
             onStartCommit(OperationType.CREATE, getNodeName(vnode));
             // @ts-ignore
@@ -824,8 +815,6 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
     const changedNodes = new Array(diff.create.length + diff.update.length);
 
     createdStartIdx = diff.update.length;
-
-    createdTemplateNodes = [];
 
     const createdNodes = diff.create.map(function rebuildCreateNodes(vnode: TGeneratorNode, idx: number): IControlNode {
         const nodeIdx = createdStartIdx + idx;
@@ -1168,10 +1157,8 @@ export function rebuildNode(environment: IDOMEnvironment, node: IControlNode, fo
         updatedNodes,
         destroyedNodes,
         updatedChangedNodes,
-        updatedChangedTemplateNodes,
         updatedUnchangedNodes,
         selfDirtyNodes,
-        createdTemplateNodes,
         notUpdatedGNodes
     });
 
