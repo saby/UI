@@ -779,8 +779,10 @@ export class Walker implements IExpressionVisitor<IExpressionVisitorContext, voi
    }
 
    visitDecoratorChainCallNode(node: DecoratorChainCallNode, context: IExpressionVisitorContext): void {
-      for (let index = 0; index < node.argumentsDecorator.length; ++index) {
-         node.argumentsDecorator[index].accept(this, context);
+      if (node.argumentsDecorator) {
+         for (let index = 0; index < node.argumentsDecorator.length; ++index) {
+            node.argumentsDecorator[index].accept(this, context);
+         }
       }
       if (this.hooks[node.type]) {
          this.hooks[node.type](node, context);
