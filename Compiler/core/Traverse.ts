@@ -436,11 +436,10 @@ function validatePartialTemplate(option: Ast.OptionNode | undefined, node: Nodes
    return value;
 }
 
-const FORBIDDEN_FUNCTION_CHARACTERS_PATTERN: RegExp = /[~`@"'#$%^&*()+=?<>{}\[\];,№]+/gi;
+const VALID_FUNCTION_CONTENT_CHARACTERS_PATTERN: RegExp = /^\s*(optional!)?((js|tmpl)!)?[\s\w_:.\/\-\$]+\s*$/i;
 
 function isValidFunctionText(text: string): boolean {
-   FORBIDDEN_FUNCTION_CHARACTERS_PATTERN.lastIndex = 0;
-   return !FORBIDDEN_FUNCTION_CHARACTERS_PATTERN.test(text);
+   return VALID_FUNCTION_CONTENT_CHARACTERS_PATTERN.test(text);
 }
 
 function validateFunctionContent(content: Ast.TText[]): void {
