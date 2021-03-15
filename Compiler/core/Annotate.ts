@@ -12,6 +12,7 @@ import {
    IProgramMeta,
    SpecialProgramType
 } from 'Compiler/core/Context';
+import { CallExpressionNode, IdentifierNode, ProgramNode, Walker } from 'Compiler/expressions/Nodes';
 
 // <editor-fold desc="Public interfaces and functions">
 
@@ -45,6 +46,11 @@ export interface IAnnotatedTree extends Array<Ast.Ast> {
     * @deprecated
     */
    __newVersion: boolean;
+
+   /**
+    * Abstract syntax tree contains translations.
+    */
+   hasTranslations: boolean;
 }
 
 /**
@@ -99,6 +105,8 @@ interface IContext {
     */
    counters: Counters;
 }
+
+const FILE_NAME: string = '[[Annotate]]';
 
 class Counters {
 
@@ -258,6 +266,26 @@ function getComponentName(component: Ast.BaseWasabyElement): string | null {
    return null;
 }
 
+function containsTranslationFunction(program: ProgramNode, fileName: string): boolean {
+   let containsTranslation: boolean = false;
+   const callbacks = {
+      CallExpression: (node: CallExpressionNode): void => {
+         const callee = node.callee;
+         if (!(callee instanceof IdentifierNode)) {
+            return;
+         }
+         if (callee.name === 'rk') {
+            containsTranslation = true;
+         }
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName
+   });
+   return containsTranslation;
+}
+
 // </editor-fold>
 
 /**
@@ -304,6 +332,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       result.childrenStorage = childrenStorage;
       result.reactiveProps = reactiveProperties;
       result.templateNames = scope.getTemplateNames();
+      result.hasTranslations = scope.hasDetectedTranslations();
       result.__newVersion = true;
       return result;
    }
@@ -597,6 +626,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
     */
    visitExpression(node: Ast.ExpressionNode, context: IContext): void {
       context.lexicalContext.registerProgram(node.__$ws_program);
+      if (containsTranslationFunction(node.__$ws_program, FILE_NAME)) {
+         context.scope.setDetectedTranslation();
+      }
    }
 
    /**
@@ -620,7 +652,10 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
     * @param node {TranslationNode} Concrete translation node.
     * @param context {IContext} Annotating context.
     */
-   visitTranslation(node: Ast.TranslationNode, context: IContext): void { }
+   visitTranslation(node: Ast.TranslationNode, context: IContext): void {
+      // TODO: Collect translation keys on annotation stage.
+      context.scope.setDetectedTranslation();
+   }
 
    // </editor-fold>
 

@@ -69,4 +69,11 @@ export class Dictionary {
    getKeys(): ITranslationKey[] {
       return this.items;
    }
+
+   /**
+    * Check if dictionary have translation keys.
+    */
+   hasKeys(): boolean {
+      return this.items.length > 0;
+   }
 }

@@ -40,6 +40,11 @@ export default class Scope implements ITranslationsRegistrar {
    private readonly dictionary: Dictionary;
 
    /**
+    * Flag for detected translations in Mustache-expression.
+    */
+   private hasTranslationInExpression: boolean;
+
+   /**
     * Initialize new instance of scope.
     * @param loadDependencies {boolean} Load registered dependencies for only JIT compilation.
     */
@@ -123,5 +128,19 @@ export default class Scope implements ITranslationsRegistrar {
          throw new Error(`шаблон с именем "${name}" не был определен`);
       }
       return this.templates[name];
+   }
+
+   /**
+    * Set "enabled" to flag for detected translations in Mustache-expression.
+    */
+   setDetectedTranslation(): void {
+      this.hasTranslationInExpression = true;
+   }
+
+   /**
+    * Check if current AST scope contains translations.
+    */
+   hasDetectedTranslations(): boolean {
+      return this.dictionary.hasKeys() || this.hasTranslationInExpression;
    }
 }
