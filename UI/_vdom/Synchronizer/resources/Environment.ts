@@ -11,6 +11,7 @@ import MountMethodsCaller from './MountMethodsCaller';
 import { Logger } from 'UI/Utils';
 import { BoundaryElements } from 'UI/Focus';
 
+
 interface IDires {
    [key: string]: number;
 }
@@ -96,7 +97,7 @@ abstract class Environment {
       this.queue = null;
    }
 
-   applyNodeMemo(rebuildMemoNode: IMemoNode): void {
+   applyNodeMemo(rebuildMemoNode: IMemoNode, devtoolCallback: Function): void {
       if (!this._rootDOMNode) {
          return;
       }
@@ -113,7 +114,7 @@ abstract class Environment {
          }
          return;
       }
-      const rebuildChanges = rebuildMemoNode.getNodeIds();
+      const rebuildChanges = rebuildMemoNode.getChangedCNodeIds();
       // tslint:disable:no-bitwise
       if (this._currentDirties[newNode.id] & DirtyKind.DIRTY) {
          rebuildChanges.add(newNode.id);
@@ -172,6 +173,7 @@ abstract class Environment {
             mountMethodsCaller.afterUpdate(mountMethodsCaller.collectControlNodesToCall(newNode, rebuildChanges));
             this.callEventsToDOM();
 
+            devtoolCallback();
             this._rebuildRequestStarted = false;
             this.runQueue();
          });
@@ -190,6 +192,7 @@ abstract class Environment {
       setTimeout(() => {
          mountMethodsCaller.afterUpdate(controlNodesToCall);
          this.callEventsToDOM();
+         devtoolCallback();
          this._rebuildRequestStarted = false;
          this.runQueue();
       }, 0);

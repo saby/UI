@@ -3,7 +3,6 @@ import { IOptions } from 'UI/_vdom/Synchronizer/resources/Options';
 export { IOptions } from 'UI/_vdom/Synchronizer/resources/Options';
 import { VNode } from 'Inferno/third-party/index';
 import { IGeneratorControlNode } from "UI/_executor/_Markup/Vdom/IVdomType";
-import { ITemplateNode } from "UI/_executor/_Markup/IGeneratorType";
 
 export type TComponentAttrs = Record<string, unknown>;
 
@@ -129,11 +128,9 @@ export interface IHandlerInfo {
 }
 export interface IMemoForNode {
     createdNodes: IControlNode[];
-    createdTemplateNodes: ITemplateNode[];
     destroyedNodes: IControlNode[];
     selfDirtyNodes: IControlNode[];
     updatedChangedNodes: IControlNode[];
-    updatedChangedTemplateNodes: Array<any>;
     updatedNodes: IControlNode[];
     updatedUnchangedNodes: IControlNode[];
     notUpdatedGNodes: IGeneratorControlNode[];
@@ -141,7 +138,7 @@ export interface IMemoForNode {
 export interface IMemoNode {
     memo: IMemoForNode;
     value: IControlNode;
-    getNodeIds(): Set<TControlId | 0>;
+    getChangedCNodeIds(): Set<TControlId | 0>;
 }
 
 export interface IDOMEnvironment {
@@ -185,7 +182,7 @@ export interface IDOMEnvironment {
 
     setupControlNode(controlNode: IControlNode): void;
 
-    applyNodeMemo(nodeMemo: IMemoNode): void;
+    applyNodeMemo(nodeMemo: IMemoNode, devtoolCallback: Function): void;
 
     queue: TControlId[];
 

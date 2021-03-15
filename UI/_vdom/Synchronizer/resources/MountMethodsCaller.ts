@@ -37,7 +37,11 @@ export default class MountMethodsCaller {
      * @param result Массив для сбора изменённых контрол нод, по умолчанию пустой.
      * @returns Массив изменённых контрол нод
      */
-    collectControlNodesToCall(controlNode: IControlNode, rebuildChanges: Set<TControlId | 0>, result: IControlNode[] = []): IControlNode[] {
+    collectControlNodesToCall(
+        controlNode: IControlNode,
+        rebuildChanges: Set<TControlId | 0>,
+        result: IControlNode[] = []): IControlNode[] {
+
         const control: Control = controlNode.control;
         // tslint:disable-next-line:ban-ts-ignore
         // @ts-ignore
@@ -188,7 +192,7 @@ export default class MountMethodsCaller {
         for (let i = 0; i < controlNodes.length; i++) {
             const controlNode: IControlNode = controlNodes[i];
             const control: Control = controlNode.control;
-            onStartLifecycle(controlNode.vnode || controlNode);
+            onStartLifecycle(controlNode);
             if (!this.isBeforeMount(control)) {
                 try {
                     // tslint:disable-next-line:ban-ts-ignore
@@ -202,7 +206,7 @@ export default class MountMethodsCaller {
                     Logger.lifeError('_beforeRender', control, error);
                 }
             }
-            onEndLifecycle(controlNode.vnode || controlNode);
+            onEndLifecycle(controlNode);
         }
     }
 
@@ -218,7 +222,7 @@ export default class MountMethodsCaller {
         for (let i = 0; i < controlNodes.length; i++) {
             const controlNode: IControlNode = controlNodes[i];
             const control: Control = controlNode.control;
-            onStartLifecycle(controlNode.vnode || controlNode);
+            onStartLifecycle(controlNode);
             if (this.isBeforeMount(control)) {
                 // @ts-ignore
                 if (controlNode.hasCompound || control.getPendingBeforeMountState()) {
@@ -231,7 +235,7 @@ export default class MountMethodsCaller {
             } else {
                 this.componentDidUpdateProcess(controlNode, control);
             }
-            onEndLifecycle(controlNode.vnode || controlNode);
+            onEndLifecycle(controlNode);
         }
     }
 
@@ -247,7 +251,7 @@ export default class MountMethodsCaller {
         for (let i = 0; i < controlNodes.length; i++) {
             const controlNode: IControlNode = controlNodes[i];
             const control: Control = controlNode.control;
-            onStartLifecycle(controlNode.vnode || controlNode);
+            onStartLifecycle(controlNode);
             if (this.isBeforeMount(control)) {
                 // @ts-ignore
                 if (controlNode.hasCompound || control.getPendingBeforeMountState()) {
@@ -257,11 +261,11 @@ export default class MountMethodsCaller {
                 } else {
                     this.afterMountProcess(controlNode, control);
                 }
-                onEndLifecycle(controlNode.vnode || controlNode);
+                onEndLifecycle(controlNode);
                 continue;
             }
             this.afterUpdateProcess(controlNode, control);
-            onEndLifecycle(controlNode.vnode || controlNode);
+            onEndLifecycle(controlNode);
         }
     }
 }

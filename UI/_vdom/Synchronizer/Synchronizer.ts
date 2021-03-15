@@ -74,7 +74,7 @@ class VDomSynchronizer {
 
       currentRoot.environment._currentDirties = currentRoot.environment._nextDirties;
       currentRoot.environment._nextDirties = {};
-      onStartSync(controlNode.id);
+      onStartSync(currentRoot.rootId);
       let rootsRebuild: IMemoNode | Promise<IMemoNode> = rebuildNode(currentRoot.environment, currentRoot, undefined, true);
 
       if ('then' in rootsRebuild) {
@@ -88,8 +88,7 @@ class VDomSynchronizer {
             });
 
             val.value.environment._haveRebuildRequest = true;
-            val.value.environment.applyNodeMemo(val)
-            onEndSync(controlNode.id);
+            val.value.environment.applyNodeMemo(val, () => onEndSync(currentRoot.rootId));
          },
             function (err: any) {
                Logger.asyncRenderErrorLog(err);
@@ -108,8 +107,7 @@ class VDomSynchronizer {
          delete this._controlNodes[node.id];
       });
 
-      rootsRebuild.value.environment.applyNodeMemo(rootsRebuild)
-      onEndSync(controlNode.id);
+      rootsRebuild.value.environment.applyNodeMemo(rootsRebuild, () => onEndSync(currentRoot.rootId));
    }
 
    mountControlToDOM(
@@ -157,7 +155,7 @@ class VDomSynchronizer {
       }
 
       const rootId = rootCount++;
-      onStartSync(String(rootId));
+      onStartSync(rootId);
       onStartCommit(
          OperationType.CREATE,
          //@ts-ignore
@@ -238,7 +236,7 @@ class VDomSynchronizer {
             (receivedState: any) => {
                controlNode.receivedState = receivedState;
                this.__requestRebuild(controlNode.id);
-               onEndSync(String(rootId));
+               onEndSync(rootId);
                return receivedState;
             },
             function asyncRenderErrback(error: any) {
@@ -258,7 +256,7 @@ class VDomSynchronizer {
             instance: controlNode.control,
             logicParent: null
          });
-         onEndSync(String(rootId));
+         onEndSync(rootId);
       }
    }
 
@@ -301,7 +299,7 @@ class VDomSynchronizer {
 
             if (this._controlNodes[nodeId]) {
                foundControlNode = this._controlNodes[nodeId];
-               onStartSync(String(foundControlNode.rootId));
+               onStartSync(foundControlNode.rootId);
                delete this._controlNodes[nodeId];
             } else {
                /**
@@ -310,10 +308,10 @@ class VDomSynchronizer {
                 * We can't measure the time here, but at least we should tell the devtools that the node was destroyed.
                 */
                const vnode = this._rootNodes[i];
-               onStartSync(String(vnode.rootId));
+               onStartSync(vnode.rootId);
                onStartCommit(OperationType.DESTROY, getNodeName(vnode), vnode);
                onEndCommit(vnode);
-               onEndSync(String(vnode.rootId));
+               onEndSync(vnode.rootId);
             }
             this._rootNodes.splice(i, 1);
 
@@ -349,7 +347,7 @@ class VDomSynchronizer {
       if (!control.__$destroyFromDirtyChecking) {
          destroyReqursive(foundControlNode, foundControlEnvironment);
       }
-      onEndSync(String(foundControlNode.rootId));
+      onEndSync(foundControlNode.rootId);
       //@ts-ignore используется runtime hack
       control._mounted = false;
       //@ts-ignore используется runtime hack
