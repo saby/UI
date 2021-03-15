@@ -1,4 +1,3 @@
 <div>
-   <ws:if data="{{ jslinksData }}">
    {{ __setHTMLUnsafe( jslinksData ) }}
 </div>
