@@ -38,6 +38,7 @@ define('UI/_builder/Tmpl/codegen/bridge', [
       processingToFunction.privateFn = [];
       processingToFunction.includedFn = { };
       processingToFunction.includedFunctions = { };
+      processingToFunction.internalFunctions = [];
    }
 
    /**
@@ -55,6 +56,7 @@ define('UI/_builder/Tmpl/codegen/bridge', [
       processingToFunction.includedFunctions = { };
       processingToFunction.privateFn = null;
       processingToFunction.includedFn = null;
+      processingToFunction.internalFunctions = null;
    }
 
    /**
@@ -65,6 +67,7 @@ define('UI/_builder/Tmpl/codegen/bridge', [
       processingToFunction.includedFunctions = null;
       processingToFunction.privateFn = null;
       processingToFunction.includedFn = null;
+      processingToFunction.internalFunctions = null;
    }
 
    /**

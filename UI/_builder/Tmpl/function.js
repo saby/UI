@@ -125,7 +125,7 @@ define('UI/_builder/Tmpl/function', [
       getFuncName: function getFuncName(propertyName, fileName, wsTemplateName) {
          var fnByTmpl = this.getFuncNameByTemplate(wsTemplateName);
          var fnByFile = this.getFuncNameByFile(fileName);
-         var functionName = fnByTmpl || fnByFile || propertyName || 'Unknown';
+         var functionName = fnByTmpl || fnByFile || propertyName || builderConfig.Config.privateFunctionName;
 
          // Запомнить вычисленное имя функции и определить ее идентификатор в случае повторения имени
          if (this.functionNames) {
@@ -264,6 +264,7 @@ define('UI/_builder/Tmpl/function', [
             func.privateFn = this.privateFn;
             func.includedFn = this.includedFn;
             func.functionNames = this.functionNames;
+            func.internalFunctions = this.internalFunctions;
          } catch (error) {
             errorHandler.info(
                '[UI/_builder/Tmpl/function:getFunction()] generating function: \n' + str,

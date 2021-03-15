@@ -150,9 +150,9 @@ define('UI/_builder/Tmpl/modules/partial', [
          ? FSC.getStr(tag.internal)
          : '{}';
 
-      if (Internal.canUseNewInternalFunctions() && this.privateFn /* Есть privateFn <--> компилируем wml */) {
+      if (Internal.canUseNewInternalFunctions() && this.internalFunctions) {
          // TODO: Test and remove code above
-         internal = Internal.generate(tag.__$ws_internalTree, this.privateFn);
+         internal = Internal.generate(tag.__$ws_internalTree, this.internalFunctions);
       }
 
       var mergeType = getMergeType(tag, decor);
@@ -301,9 +301,9 @@ define('UI/_builder/Tmpl/modules/partial', [
                ? FSC.getStr(tag.internal)
                : null;
             
-            if (Internal.canUseNewInternalFunctions() && this.privateFn /* Есть privateFn <--> компилируем wml */) {
+            if (Internal.canUseNewInternalFunctions() && this.internalFunctions) {
                // TODO: Test and remove code above
-               decorInternal = Internal.generate(tag.__$ws_internalTree, this.privateFn);
+               decorInternal = Internal.generate(tag.__$ws_internalTree, this.internalFunctions);
             }
             
             var createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);

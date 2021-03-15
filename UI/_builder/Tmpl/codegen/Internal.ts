@@ -12,7 +12,7 @@ const USE_INTERNAL_FUNCTIONS = true;
 /**
  * Флаг генерации условных конструкций
  */
-const ALLOW_CONDITIONS = false;
+const ALLOW_CONDITIONS = true;
 
 /**
  * Если false, то перед вызовом функции только (!) в не оригинальном контексте будет сначала вычисляться возможность вызова функции:
@@ -20,11 +20,6 @@ const ALLOW_CONDITIONS = false;
  * Если true, то перед вызовом функции в любом (!) контексте сначала будет вычисляться возможность вызова функции.
  */
 const ALWAYS_FOREIGN_CONTAINER: boolean = true;
-
-/**
- * Использовать уже вычисленное условное выражение. Не совместим с проверками на undefined в условии!
- */
-const USE_CALCULATED_CONDITIONAL_EXPRESSION: boolean = false;
 
 const FUNCTION_PREFIX = '__$calculateDirtyCheckingVars_';
 const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
@@ -52,150 +47,155 @@ export function canUseNewInternalFunctions(): boolean {
     return canUseNewInternalMechanism() && USE_INTERNAL_FUNCTIONS;
 }
 
-export function generate(node: InternalNode, functions: Function[]): string {
+export function generate(node: InternalNode, internalFunctions: string[]): string {
     if (isEmpty(node)) {
-       return '{}';
+        return '{}';
     }
     if (node.index === -1) {
-       throw new Error('Произведена попытка генерации Internal-функции от скрытого узла');
+        throw new Error('Произведена попытка генерации Internal-функции от скрытого узла');
     }
     const options: IOptions = {
-       rootIndex: node.index,
-       safeCheckVariable: null
+        rootIndex: node.index,
+        safeCheckVariable: null
     };
     const functionName = FUNCTION_PREFIX + node.index;
     const body = FUNCTION_HEAD + buildAll([node], options) + FUNCTION_TAIL;
     const index = node.ref.getCommittedIndex(body);
     if (index !== null) {
-       return FUNCTION_PREFIX + index + `(${CONTEXT_VARIABLE_NAME})`;
+        return FUNCTION_PREFIX + index + `(${CONTEXT_VARIABLE_NAME})`;
     }
     try {
-       const func = new Function(CONTEXT_VARIABLE_NAME, body);
-       Object.defineProperty(func, 'name', { 'value': functionName, configurable: true });
-       appendFunction(func, functions);
-       node.ref.commitCode(node.index, body);
-       return functionName + `(${CONTEXT_VARIABLE_NAME})`;
+        const func = new Function(CONTEXT_VARIABLE_NAME, body);
+        const funcString = func.toString()
+            .replace('function anonymous', 'function ' + functionName);
+        appendFunction(funcString, internalFunctions);
+        node.ref.commitCode(node.index, body);
+        return functionName + `(${CONTEXT_VARIABLE_NAME})`;
     } catch (error) {
-       throw new Error(`Тело функции "${functionName}" невалидно: ${error.message}`);
+        throw new Error(`Тело функции "${functionName}" невалидно: ${error.message}`);
     }
- }
- 
- function isEmpty(node: InternalNode): boolean {
+}
+
+function isEmpty(node: InternalNode): boolean {
     // TODO: Optimize!!!
     return node.flatten().length === 0;
- }
- 
- function appendFunction(func: Function, functions: Function[]): void {
-    const index = functions.findIndex((item: Function) => func.name === item.name);
+}
+
+function appendFunction(func: string, internalFunctions: string[]): void {
+    const index = internalFunctions.findIndex((item: string) => func === item);
     if (index > -1) {
-       return;
+        return;
     }
-    functions.unshift(func);
- }
- 
- function build(node: InternalNode, options: IOptions): string {
+    internalFunctions.unshift(func);
+}
+
+function build(node: InternalNode, options: IOptions): string {
     const body = buildPrograms(node.storage.getMeta(), options) + buildAll(node.children, options);
     if (node.type === InternalNodeType.IF || node.type === InternalNodeType.ELSE_IF) {
-       const test = buildMeta(node.test, options);
-       let prefix = wrapProgram(node.test, test);
-       return prefix + body;
+        const test = buildMeta(node.test, options);
+        const prefix = wrapProgram(node.test, test);
+        return prefix + body;
     }
     return body;
- }
- 
- function getCurrentConditionalIndex(node: InternalNode): number {
+}
+
+function getCurrentConditionalIndex(node: InternalNode): number {
     if (node.type === InternalNodeType.IF) {
-       return node.index;
+        return node.index;
     }
     if (node.type === InternalNodeType.BLOCK) {
-       throw new Error(`Произведена попытка получения индекса условного узла от блока с номером ${node.index}`);
+        throw new Error(`Произведена попытка получения индекса условного узла от блока с номером ${node.index}`);
     }
     if (node.prev === null) {
-       throw new Error(`Узел типа IF недостижим. Текущий internal узел - ${node.index}`);
+        throw new Error(`Узел типа IF недостижим. Текущий internal узел - ${node.index}`);
     }
     return getCurrentConditionalIndex(node.prev);
- }
+}
 
- function generateConditionalVariableName(node: InternalNode): string {
+function generateConditionalVariableName(node: InternalNode): string {
     return `${CONDITIONAL_VARIABLE_NAME}_${getCurrentConditionalIndex(node)}`;
- }
+}
 
- function generateSafeCheckVariableName(node: InternalNode): string {
+function generateSafeCheckVariableName(node: InternalNode): string {
     return `${SAFE_CHECK_VARIABLE_NAME}_${getCurrentConditionalIndex(node)}`;
- }
+}
 
- function buildWithConditions(node: InternalNode, options: IOptions): string {
+function buildWithConditions(node: InternalNode, options: IOptions): string {
     const body = buildPrograms(node.storage.getMeta(), options) + buildAll(node.children, options);
     if (node.type === InternalNodeType.BLOCK) {
-       return body;
+        return body;
     }
     const conditionalVariable = generateConditionalVariableName(node);
     const safeCheckVariable = generateSafeCheckVariableName(node);
     if (node.type === InternalNodeType.ELSE) {
-       if (body.length === 0) {
-          return body;
-       }
-       return `if((!${safeCheckVariable})||(!${conditionalVariable})){${body}}`;
+        if (body.length === 0) {
+            return body;
+        }
+        return `if((!${safeCheckVariable})||(!${conditionalVariable})){${body}}`;
     }
     const test = buildMeta(node.test, {
-       ...options,
-       safeCheckVariable
+        ...options,
+        safeCheckVariable
     });
-    const testValue = USE_CALCULATED_CONDITIONAL_EXPRESSION ? conditionalVariable : test;
-    const prefix = wrapProgram(node.test, testValue);
+    const prefix = wrapProgram(node.test, conditionalVariable);
     const declareVariables = `var ${conditionalVariable};var ${safeCheckVariable} = true;`;
+    const safeCheck = `(!${safeCheckVariable})`;
+    const undefinedConditionalCheck = `(${safeCheckVariable}=(${safeCheckVariable}||typeof(${conditionalVariable}) === 'undefined'))`;
+    const conditional = `(${conditionalVariable}=(${test}))`;
     if (node.type === InternalNodeType.IF) {
-       return `${declareVariables}if((${conditionalVariable}=(${test}))||(!${safeCheckVariable})){${prefix + body}}`;
+        const testExpression = `${conditional}||${safeCheck}||${undefinedConditionalCheck}`;
+        return `${declareVariables}if(${testExpression}){${prefix + body}}`;
     }
     if (node.type === InternalNodeType.ELSE_IF) {
-       return `if((!${safeCheckVariable})||(!${conditionalVariable})&&(${conditionalVariable}=(${test}))||(!${safeCheckVariable})){${prefix + body}}`;
+        const elseConditional = `(!${conditionalVariable})&&${conditional}`;
+        const testExpression = `${safeCheck}||${elseConditional}||${safeCheck}||${undefinedConditionalCheck}`;
+        return `if(${testExpression}){${prefix + body}}`;
     }
     throw new Error(`Получен неизвестный internal-узел с номером ${node.index}`);
- }
- 
- function buildAll(nodes: InternalNode[], options: IOptions): string {
+}
+
+function buildAll(nodes: InternalNode[], options: IOptions): string {
     let body = '';
     for (let index = 0; index < nodes.length; ++index) {
-       if (ALLOW_CONDITIONS) {
-         body += buildWithConditions(nodes[index], options);
-         continue;
-       }
-       body += build(nodes[index], options);
+        if (ALLOW_CONDITIONS) {
+            body += buildWithConditions(nodes[index], options);
+            continue;
+        }
+        body += build(nodes[index], options);
     }
     return body;
- }
- 
- function buildPrograms(programs: IProgramMeta[], options: IOptions): string {
+}
+
+function buildPrograms(programs: IProgramMeta[], options: IOptions): string {
     let body = '';
     let code;
     for (let index = 0; index < programs.length; ++index) {
-       code = buildMeta(programs[index], options);
-       body += wrapProgram(programs[index], code);
+        code = buildMeta(programs[index], options);
+        body += wrapProgram(programs[index], code);
     }
     return body;
- }
- 
- function wrapProgram(meta: IProgramMeta, code: string): string {
+}
+
+function wrapProgram(meta: IProgramMeta, code: string): string {
     return `${COLLECTION_NAME}.${INTERNAL_PROGRAM_PREFIX}${meta.index}=${code};`;
- }
- 
- function buildMeta(meta: IProgramMeta, options: IOptions): string {
+}
+
+function buildMeta(meta: IProgramMeta, options: IOptions): string {
     const context = {
-       fileName: '[[internal]]',
-       attributeName: meta.name,
-       isControl: false,
-       isExprConcat: false,
-       configObject: {},
-       escape: false,
-       sanitize: true,
-       getterContext: CONTEXT_VARIABLE_NAME,
-       forbidComputedMembers: false,
-       childrenStorage: [],
-       checkChildren: false,
-       safeCheckVariable: options.safeCheckVariable,
- 
-       // Если выражение вычисляется в своем настоящем контексте, то префикс перед вызовом функции не нужен
-       isDirtyChecking: meta.processingIndex === options.rootIndex || ALWAYS_FOREIGN_CONTAINER
+        fileName: '[[internal]]',
+        attributeName: meta.name,
+        isControl: false,
+        isExprConcat: false,
+        configObject: {},
+        escape: false,
+        sanitize: true,
+        getterContext: CONTEXT_VARIABLE_NAME,
+        forbidComputedMembers: false,
+        childrenStorage: [],
+        checkChildren: false,
+
+        // Если выражение вычисляется в своем настоящем контексте, то префикс перед вызовом функции не нужен
+        isDirtyChecking: meta.processingIndex === options.rootIndex || ALWAYS_FOREIGN_CONTAINER
     };
     return meta.node.accept(new ExpressionVisitor(), context) as string;
 }
