@@ -355,18 +355,19 @@ define('UI/_builder/Tmpl/modules/partial', [
                'false'
             );
 
-            // признак того, что функции у нас разложены
-            var callFnArgs = '.call(this, scopeForTemplate, attrsForTemplate, context, isVdom), ';
-
+            var tpl;
             if (this.includedFn) {
-               return '(function() {' +
-                  'attrsForTemplate = ' + createAttribs + '; scopeForTemplate = ' + callDataArg + ';' +
-                  '}).apply(this),' + tag.attribs._wstemplatename.data.value + callFnArgs;
+               tpl = tag.attribs._wstemplatename.data.value;
+            } else {
+               var body = this.getString(tag.children, {}, this.handlers, {}, true);
+               tpl = templates.generatePartialTemplate(body);
             }
-            var body = this.getString(tag.children, {}, this.handlers, {}, true);
+
             return '(function(){' +
-               'attrsForTemplate = ' + createAttribs + '; scopeForTemplate = ' + callDataArg + '' +
-               ';}).apply(this),' + templates.generatePartialTemplate(body) + callFnArgs;
+               'attrsForTemplate = ' + createAttribs + '; scopeForTemplate = ' + callDataArg + ';' +
+               '}).apply(this),' + tpl +
+               '.call(this, scopeForTemplate, attrsForTemplate, context, isVdom),' +
+               'attrsForTemplate = null,scopeForTemplate = null,';
          }
          return resolveStatement;
       }
