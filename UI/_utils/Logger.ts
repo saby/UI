@@ -1,7 +1,6 @@
 /// <amd-module name="UI/_utils/Logger" />
 
-// @ts-ignore
-import { IoC } from 'Env/Env';
+import { logger } from 'Application/Env';
 // tslint:disable: no-any
 
 /**
@@ -29,12 +28,6 @@ import { IoC } from 'Env/Env';
  */
 
 /**
- * Каждый раз при обращении к ILogger - нужно получить актуальный инстанс
- * Если этого не делать, то все потребители кто мокнул (тесты\прикладные точки) - теряют возможность сделать bind
- */
-const logger = () => IoC.resolve('ILogger');
-
-/**
  * Доступность режима отладки для сообщений
  */
 const loggerConfig = { debug : false };
@@ -55,7 +48,7 @@ const _getCurrentFunctionInfo = (data: any = _createFakeError()): string  => {
    } catch (err) {
       // Страховка, если вдруг возникла ошибка определения точки входа
       currentFunc = '[not detected]';
-      logger().error(
+      logger.error(
          'CONTROL ERROR',
          '[UI/_utils/Logger:_getCurrentFunctionInfo()] \- ошибка получения текущей функции',
          err);
@@ -267,7 +260,7 @@ const debug = (msg: string = '', data: unknown = null): object => {
          }
       }
       logMsg = `CONTROL DEBUG: ${msg} ${prepareData}`;
-      logger().log(logMsg);
+      logger.log(logMsg);
    }
    return {msg, logMsg} ;
 };
@@ -280,7 +273,7 @@ const debug = (msg: string = '', data: unknown = null): object => {
  */
 const info = (msg: string = ''): object => {
    const data = `CONTROL INFO: ${msg}`;
-   logger().log(data);
+   logger.log(data);
    return {msg, data} ;
 };
 
@@ -298,7 +291,7 @@ const warn = (msg: string = '', errorPoint?): object => {
       data += '\n' + prepareStack(errorPoint) + '\n';
    }
 
-   logger().warn(data);
+   logger.warn(data);
    return {msg, data};
 };
 
@@ -344,7 +337,7 @@ const error = (msg: string = '', errorPoint?: object | Node | any, errorInfo?: o
       data = 'IN ' + _getCurrentFunctionInfo(errorInfo);
    }
 
-   logger().error(typeError, data, errorInfo);
+   logger.error(typeError, data, errorInfo);
    data = `${typeError}: ${data}`;
    return {msg, data, errorInfo};
 };

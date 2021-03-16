@@ -1,7 +1,8 @@
 /// <amd-module name='UI/_async/Async' />
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 import * as Library from 'WasabyLoader/Library';
-import { IoC, constants } from 'Env/Env';
+import { logger } from 'Application/Env';
+import { constants } from 'Env/Env';
 import { descriptor } from 'Types/entity';
 import { default as Control, IControlOptions, TemplateFunction } from 'UI/_base/Control';
 import { headDataStore } from 'UI/_base/HeadData';
@@ -65,12 +66,12 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
    protected _beforeMount(options: IAsyncOptions, _: unknown, receivedState: TAsyncStateReceived): Promise<TAsyncStateReceived> {
       if (!options.templateName) {
          this.error = 'В модуль Async передали не корректное имя шаблона (templateName=undefined|null|empty)';
-         IoC.resolve('ILogger').error(this.error);
+         logger.error(this.error);
          return Promise.resolve(this.error);
       }
 
       if (receivedState && receivedState !== SUCCESS_BUILDED) {
-         IoC.resolve('ILogger').error(receivedState);
+         logger.error(receivedState);
       }
 
       if (constants.isBrowserPlatform && (!ModulesLoader.isLoaded(options.templateName) ||
@@ -160,7 +161,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
             return loaded;
          }
       } catch (err) {
-         IoC.resolve('ILogger').error(`Couldn't load module "${name}"`, err);
+         logger.error(`Couldn't load module "${name}"`, err);
       }
       return null;
    }
@@ -176,7 +177,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
          if (!loaded) {
             this.loadingErrorOccurred = true;
             this.error = generateErrorMsg(name);
-            IoC.resolve('ILogger').warn(this.error);
+            logger.warn(this.error);
             this.userErrorMessage = this.defaultErrorMessage;
             return this.error;
          }
@@ -195,7 +196,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
 
    protected _loadAsync(name: string): Promise<unknown> {
       return ModulesLoader.loadAsync(name).catch((error) => {
-         IoC.resolve('ILogger').error(`Couldn't load module "${name}"`, error);
+         logger.error(`Couldn't load module "${name}"`, error);
          ModulesLoader.unloadSync(name);
          throw new Error(this.defaultErrorMessage);
       });
@@ -209,7 +210,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
       try {
          headDataStore.read('pushDepComponent')(dep, true);
       } catch (e) {
-         IoC.resolve('ILogger').warn('You\'re trying to use Async without Controls/Application. Link to ' +
+         logger.warn('You\'re trying to use Async without Controls/Application. Link to ' +
             dep +
             ' won\'t be added to server-side generated markup. ' + e);
       }
