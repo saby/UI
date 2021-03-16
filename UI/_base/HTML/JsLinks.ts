@@ -28,10 +28,10 @@ class JsLinks extends Control<IJsLinksOptions> {
       }
       return headDataStore.read('waitAppContent')().then((res) => {
          let jslinksAPI = JSLinks.getInstance();
-         const jsLinks: string[] = res.js.map((js) => this.resolveLink(js)).concat(res.scripts);
+         const links: string[] = res.js.map((js) => this.resolveLink(js)).concat(res.scripts);
 
          if (this.arrayToObject(jsLinks)) {
-            jsLinks.forEach((link, index) =>
+            links.forEach((link, index) =>
                jslinksAPI.createTag('script', {
                   type: 'text/javascript',
                   src: link,
