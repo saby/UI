@@ -53,7 +53,9 @@ export function getDefaultOptions(controlClass) {
       По задаче поменяю на ошибку:
       https://online.sbis.ru/opendoc.html?guid=17c93482-eab6-4f43-be1f-8f244490d2cf
        */
-      Logger.warn('Метод getDefaultOptions устарел, используйте статическое поле defaultProps.', controlClass.prototype);
+      if (controlClass.hasOwnProperty('getDefaultOptions')) {
+         Logger.warn('Метод getDefaultOptions устарел, используйте статическое поле defaultProps.', controlClass.prototype);
+      }
       return controlClass.getDefaultOptions();
    }
    return {};
