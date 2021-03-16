@@ -75,12 +75,12 @@ export interface IClickEvent {
 }
 
 export interface IWasabyEventSystem {
-    initWasabyEventSystem: (rootNode: TModifyHTMLNode) => void;
+    initWasabyEventSystem: (rootNode: TModifyHTMLNode, tabKeyHandler?: Function) => void;
     captureEventHandler: (event: Event, environment?: IDOMEnvironment) => void;
     callEventsToDOM: VoidFunction;
     handleSpecialEvent: (eventName: string, eventHandler: Function) => void;
     // а должен ли он быть публичным?
-    _handleTabKey: (event: KeyboardEvent, tabKeyHandler: Function) => void;
+    tabKeyHandler: Function;
     addTabListener: VoidFunction;
     removeTabListener: VoidFunction;
     startEvent: <TArguments>(controlNode: IControlNode, args: TArguments) => any;

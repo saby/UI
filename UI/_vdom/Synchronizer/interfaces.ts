@@ -3,6 +3,7 @@ import { IOptions } from 'UI/_vdom/Synchronizer/resources/Options';
 export { IOptions } from 'UI/_vdom/Synchronizer/resources/Options';
 import { VNode } from 'Inferno/third-party/index';
 import { IGeneratorControlNode } from "UI/_executor/_Markup/Vdom/IVdomType";
+import { IWasabyEventSystem } from 'UI/Events';
 
 export type TComponentAttrs = Record<string, unknown>;
 
@@ -142,8 +143,6 @@ export interface IMemoNode {
 }
 
 export interface IDOMEnvironment {
-    addTabListener(e?: any): void;
-    removeTabListener(e: any): void;
     destroy(): void;
 
     setRebuildIgnoreId(id: string): void;
@@ -151,40 +150,18 @@ export interface IDOMEnvironment {
     _handleFocusEvent(e: any): void;
     _handleBlurEvent(e: any): void;
     _handleMouseDown(e: any): void;
-    _handleClick(event: any): void;
-    _handleTouchstart(event: any): void;
-    _handleTouchmove(event: any): void;
-    _handleTouchend(event: any): void;
-    _shouldUseClickByTap(): boolean;
 
     decorateFullMarkup(vnode: VNode, controlNode: any): VNode;
     getMarkupNodeDecorator(): TMarkupNodeDecoratorFn;
     getDOMNode(): HTMLElement;
 
-    startEvent(controlNode: any, args: any): any;
-    getHandlerInfo(eventName: string, processingHandler: boolean, bodyEvent: boolean): IHandlerInfo | null;
-    addHandler(eventName: string, isBodyElement: boolean, handler: any, processingHandler: boolean): void;
-    addNativeListener(
-        element: HTMLElement,
-        handler: any,
-        eventName: string,
-        config: any,
-        options?: boolean | AddEventListenerOptions
-    ): void;
-    removeHandler(eventName: string, isBodyElement: boolean, processingHandler: boolean): any;
-    removeNativeListener(element: HTMLElement, handler: EventListener, eventName: string, capture: boolean): any;
-    addCaptureEventHandler(eventName: string, element: IWasabyHTMLElement): any;
-    addCaptureProcessingHandler(eventName: string, method: (event: Event) => void): any;
-    removeCaptureEventHandler(eventName: string, element: IWasabyHTMLElement): void;
-    removeAllCaptureHandlers(): void;
-    removeProcessiingEventHandler(eventName: string): void;
     _canDestroy(destroyedControl: Control): any;
 
     setupControlNode(controlNode: IControlNode): void;
 
     applyNodeMemo(nodeMemo: IMemoNode, devtoolCallback: Function): void;
 
-    showCapturedEvents: () => Record<string, IHandlerInfo[]>;
+    showCapturedEvents(): Record<string, IHandlerInfo[]>;
 
     queue: TControlId[];
 
@@ -196,9 +173,5 @@ export interface IDOMEnvironment {
     __captureEventHandler: Function;
     _rebuildRequestStarted?: boolean;
     _haveRebuildRequest?: boolean;
-}
-
-export interface IArrayEvent {
-    fn: Record<string, Function>;
-    finalArgs: Record<string, unknown>[];
+    eventSystem: IWasabyEventSystem;
 }

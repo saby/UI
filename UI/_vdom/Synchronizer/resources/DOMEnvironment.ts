@@ -72,7 +72,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
 
       this.__markupNodeDecorator = createRecursiveVNodeMapper(setEventHook);
 
-      this.eventSystem = new WasabyEvents(_rootDOMNode);
+      this.eventSystem = new WasabyEvents(_rootDOMNode, this._handleTabKey);
 
       this.initFocusHandlers();
       this.__initBodyTabIndex();
@@ -80,6 +80,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
    }
 
    destroy(): any {
+      this.eventSystem.destroy();
       super.destroy();
    }
 
@@ -88,7 +89,6 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
    }
 
    private initFocusHandlers(): any {
-      this.eventSystem._handleTabKey(event, this._handleTabKey);
       this.eventSystem.handleSpecialEvent('focus', this._handleFocusEvent);
       this.eventSystem.handleSpecialEvent('blur', this._handleBlurEvent);
       this.eventSystem.handleSpecialEvent('mousedown', this._handleMouseDown);
@@ -238,7 +238,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
    }
 
    showCapturedEvents(): Record<string, IHandlerInfo[]> {
-      return null;
+      return this.eventSystem.showCapturedEventHandlers();
    }
 }
 

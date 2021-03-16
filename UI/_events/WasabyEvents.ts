@@ -61,17 +61,20 @@ export default class WasabyEvents implements IWasabyEventSystem {
     private _rootDOMNode: TModifyHTMLNode;
 
     //#region инициализация системы событий
-    constructor(rootNode: TModifyHTMLNode,) {
+    constructor(rootNode: TModifyHTMLNode, tabKeyHandler?: Function) {
         this.capturedEventHandlers = {};
         this.initEventSystemFixes();
-        this.initWasabyEventSystem(rootNode);
+        this.initWasabyEventSystem(rootNode, tabKeyHandler);
 
         // если я это не напишу, ts ругнется 'touchendTarget' is declared but its value is never read
         this.touchendTarget = this.touchendTarget || null;
     }
 
-    initWasabyEventSystem(rootNode: TModifyHTMLNode): void {
+    initWasabyEventSystem(rootNode: TModifyHTMLNode, tabKeyHandler?: any): void {
         this.setRootDOMNode(rootNode);
+        if (tabKeyHandler) {
+            this.tabKeyHandler = tabKeyHandler
+        }
         this.initProcessingHandlers();
     }
 
@@ -473,12 +476,16 @@ export default class WasabyEvents implements IWasabyEventSystem {
     }
 
     // TODO: docs
-    handleSpecialEvent(eventName: string, eventHandler: Function): void {
-        this.addCaptureProcessingHandler(eventName, eventHandler);
+    handleSpecialEvent(eventName: string, eventHandler: Function, context?: unknown): void {
+        this.addCaptureProcessingHandler(eventName, eventHandler, context);
     }
     //#endregion
 
     //#region обработка событий TAB'а
+    tabKeyHandler(): any {
+      // do this
+    }
+
     /**
      * Обработчик клавиши tab.
      * Логика работы tab отличается от остальных клавишь, т.к. используется в системе фокусов,
@@ -486,7 +493,7 @@ export default class WasabyEvents implements IWasabyEventSystem {
      * @param event - событие клавиатуры
      * @param tabKeyHandler - обработчик, который вызывается по нажатию tab
      */
-    _handleTabKey(event: KeyboardEvent, tabKeyHandler: Function): void {
+    private _handleTabKey(event: KeyboardEvent): void {
         if (!this._rootDOMNode) {
             return;
         }
@@ -505,7 +512,7 @@ export default class WasabyEvents implements IWasabyEventSystem {
         }
 
         if (event.keyCode === TAB_KEY) {
-            tabKeyHandler();
+            this.tabKeyHandler();
         }
     }
 
@@ -776,14 +783,14 @@ export default class WasabyEvents implements IWasabyEventSystem {
         }
     }
 
-    private addCaptureProcessingHandler(eventName: string, method: Function): void {
+    private addCaptureProcessingHandler(eventName: string, method: Function, context?: unknown): void {
         if (this._rootDOMNode.parentNode) {
             const handler = function(e: Event): void {
                 if (!this.isMyDOMEnvironment(this, e)) {
                     return;
                 }
-                method.apply(this, arguments);
-            }.bind(this);
+                method.apply(context, arguments);
+            }.bind(context);
             this.addHandler(eventName, false, handler, true);
         }
     }
