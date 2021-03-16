@@ -8,7 +8,7 @@ import template = require('wml!UI/_base/HTML/JsLinks');
 import { headDataStore } from 'UI/_base/HeadData';
 import { IControlOptions } from 'UI/Base';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
-import { Head as AppHead } from 'Application/Page';
+export { JSLinks } from "Application/_Page/JSLinks";
 import { cookie } from "Env/Env";
 import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
@@ -27,7 +27,7 @@ class JsLinks extends Control<IJsLinksOptions> {
          return;
       }
       return headDataStore.read('waitAppContent')().then((res) => {
-         let jslinksAPI = AppHead.getInstance();
+         let jslinksAPI = JSLinksAPI.getInstance();
          const jsLinks: string[] = res.js.map((js) => this.resolveLink(js)).concat(res.scripts);
 
          if (this.arrayToObject(jsLinks)) {
