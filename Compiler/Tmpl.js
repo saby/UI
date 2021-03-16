@@ -183,7 +183,9 @@ define('Compiler/Tmpl', [
             }
             var moduleName = ModulePath.replaceWsModule(config.fileName).replace(/\.(wml|tmpl)$/gi, EMPTY_STRING);
             var deps = getComponents(html);
-            var finalFile = templates.generateDefine(moduleName, ext, tmplFunc, deps, traversed.reactiveProps);
+            var finalFile = templates.generateDefine(
+               moduleName, ext, tmplFunc, deps, traversed.reactiveProps, traversed.hasTranslations
+            );
             finalFile = templates.clearSourceFromDeprecated(finalFile);
 
             successCallback(finalFile);
@@ -268,6 +270,7 @@ define('Compiler/Tmpl', [
                return html;
             };
             compatibleFunction.reactiveProps = traversed.reactiveProps;
+            compatibleFunction.hasTranslations = traversed.hasTranslations;
          } catch (error) {
             defaultErrorback(error);
          } finally {

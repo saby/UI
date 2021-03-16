@@ -244,7 +244,7 @@ define('Compiler/codegen/function', [
          if (!internal) {
             res += templates.generateTemplateHead();
          }
-         res += templates.generateTemplateBody(handlers.fileName, str);
+         res += templates.generateTemplateBody(handlers.fileName, str, handlers.generateTranslations);
          return res;
       },
       getFunction: function getFunction(ast, data, handlers, attributes, internal) {
