@@ -35,6 +35,7 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
         this.getKeys = this.getKeys.bind(this);
         this.toObject = this.toObject.bind(this);
         this.collectDeps = this.collectDeps.bind(this);
+        this.collectDependencies = this.collectDependencies.bind(this);
         this.setUnpackDeps = this.setUnpackDeps.bind(this);
         this.waitAppContent = this.waitAppContent.bind(this);
         this.pushDepComponent = this.pushDepComponent.bind(this);
@@ -94,25 +95,29 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
             if (!this.resolve) {
                 return;
             }
-            const { additionalDeps, serialized: rsSerialized } = getSerializedData();
-            const deps = Object.keys({ ...additionalDeps, ...this.initDeps });
-            const files = this.pageDeps.collect(deps, this.unpackDeps);
-            // некоторые разработчики завязываются на порядок css, поэтому сначала css переданные через links
-            const simpleCss = this.includedResources.links.concat(files.css.simpleCss);
-            // TODO нельзя слить ссылки и имена модулей т.к LinkResolver портит готовые ссылки
-            // TODO временно прокидываю их раздельно
-            this.resolve({
-                scripts: this.includedResources.scripts, // готовые ссылки на js
-                js: files.js, // названия js модулей
-                css: { simpleCss, themedCss: files.css.themedCss },
-                tmpl: files.tmpl,
-                wml: files.wml,
-                rsSerialized,
-                rtpackModuleNames: this.unpackDeps,
-                additionalDeps: deps
-            });
+            this.resolve(this.collectDependencies());
             this.resolve = null;
         });
+    }
+
+    collectDependencies(): ICollectedDeps {
+        const { additionalDeps, serialized: rsSerialized } = getSerializedData();
+        const deps = Object.keys({ ...additionalDeps, ...this.initDeps });
+        const files = this.pageDeps.collect(deps, this.unpackDeps);
+        // некоторые разработчики завязываются на порядок css, поэтому сначала css переданные через links
+        const simpleCss = this.includedResources.links.concat(files.css.simpleCss);
+        // TODO нельзя слить ссылки и имена модулей т.к LinkResolver портит готовые ссылки
+        // TODO временно прокидываю их раздельно
+        return {
+            scripts: this.includedResources.scripts, // готовые ссылки на js
+            js: files.js, // названия js модулей
+            css: { simpleCss, themedCss: files.css.themedCss },
+            tmpl: files.tmpl,
+            wml: files.wml,
+            rsSerialized,
+            rtpackModuleNames: this.unpackDeps,
+            additionalDeps: deps
+        };
     }
 
     waitAppContent(): Promise<ICollectedDeps> {
