@@ -178,7 +178,7 @@ const BINDING_NAMES = {
    two: 'mutable'
 };
 
-const INTERNAL_PREFIX_REGEX = RegExp(`^${Config.internalPropertyPrefix}\\d+$`);
+const INTERNAL_PREFIX_REGEX = RegExp(`${Config.internalPropertyPrefix}\\d+$`);
 
 function isInternalProperty(name?: string): boolean {
    if (typeof name !== 'string') {
