@@ -415,7 +415,7 @@ export interface IDefaultExport {
  * @param obj
  */
 function isDefaultExport(obj: unknown): obj is IDefaultExport {
-   if (typeof obj === 'object') {
+   if (obj && typeof obj === 'object') {
       return obj.hasOwnProperty('__esModule') && obj.hasOwnProperty('default');
    }
    return false;
