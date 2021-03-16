@@ -225,6 +225,31 @@ function containsFunctionCall(program: ProgramNode, fileName: string): boolean {
     return programs.slice(-2);
  }
 
+ function processInternalMeta(node: InternalNode, storage: Set<string>): void {
+    const meta = node.storage.getMeta();
+    for (let index = 0; index < meta.length; ++index) {
+       const expression = meta[index].node.string;
+       if (storage.has(expression)) {
+          node.storage.remove(meta[index]);
+          continue;
+       }
+       storage.add(expression);
+    }
+ }
+
+ function optimizeInternal(node: InternalNode, storage: Set<string>): void {
+    processInternalMeta(node, storage);
+    for (let index = 0; index < node.children.length; ++index) {
+       const child = node.children[index];
+       const childStorage = child.type === InternalNodeType.BLOCK ? storage : new Set<string>(storage);
+       optimizeInternal(child, childStorage);
+    }
+ }
+
+ function optimize(node: InternalNode): void {
+    return optimizeInternal(node, new Set<string>());
+ }
+
  class ProgramStorage {
     private readonly programs: IProgramMeta[];
     private readonly programsMap: Map<string, number>;
@@ -424,7 +449,9 @@ class IndexAllocator {
           indices,
           removeSelfIdentifiers
        };
-       return this.collectInternalStructure(options);
+       const node = this.collectInternalStructure(options);
+       optimize(node);
+       return node;
     }
 
     commitCode(index: number, code: string): void {
