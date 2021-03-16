@@ -9,6 +9,7 @@ import * as common from 'Compiler/modules/utils/common';
 import * as decorators from './Decorators';
 import { getDotsScopeSubstitution } from 'Compiler/codegen/Compatible';
 import { genGetter, genSetter, genDecorate } from 'Compiler/codegen/TClosure';
+import { Config } from '../Config';
 
 // tslint:disable:max-classes-per-file
 // Намеренно отключаю правило max-classes-per-file,
@@ -177,6 +178,15 @@ const BINDING_NAMES = {
    two: 'mutable'
 };
 
+const INTERNAL_PREFIX_REGEX = RegExp(`${Config.internalPropertyPrefix}\\d+$`);
+
+function isInternalProperty(name?: string): boolean {
+   if (typeof name !== 'string') {
+      return false;
+   }
+   return INTERNAL_PREFIX_REGEX.test(name);
+}
+
 function checkForContextDecorators(text: string): boolean {
    return (text.indexOf(BINDING_NAMES.one) > -1) || (text.indexOf(BINDING_NAMES.two) > -1);
 }
@@ -294,7 +304,7 @@ export class ExpressionVisitor implements IExpressionVisitor<IExpressionVisitorC
             const calleeNode = node.callee as MemberExpressionNode;
             object = <string>calleeNode.object.accept(this, context);
          }
-         if (typeof context.attributeName === 'string' && /__dirtyCheckingVars_\d+$/gi.test(context.attributeName) || context.isDirtyChecking) {
+         if (isInternalProperty(context.attributeName) || context.isDirtyChecking) {
             // Эта проверка используется для проброса переменных из замыкания(dirtyCheckingVars)
             // Значения переменных из замыкания вычисляются в момент создания контентной опции
             // и пробрасываются через все контролы, оборачивающие контент.

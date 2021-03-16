@@ -2,6 +2,7 @@ import * as Ast from './Ast';
 import Scope from './Scope';
 import { IdentifierNode, MemberExpressionNode, ProgramNode, Walker } from '../expressions/Nodes';
 import { IParser, Parser } from '../expressions/Parser';
+import { Config } from '../Config';
 
 export function canUseNewInternalMechanism(): boolean {
     return USE_INTERNAL_MECHANISM;
@@ -45,8 +46,6 @@ const SKIP_CONTENT_OPTION_INTERNAL_ON_COMPONENT: boolean = true;
 const PARSER = new Parser();
 
 const FILE_NAME = '[[internal]]';
-
-const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
 
 const FORBIDDEN_IDENTIFIERS = [
    '...',
@@ -224,6 +223,31 @@ function containsFunctionCall(program: ProgramNode, fileName: string): boolean {
     // We need to return value-program and object-program.
     // Ex. for "a.b.c.d.e" we only return "a.b.c.d" and "a.b.c.d.e".
     return programs.slice(-2);
+ }
+
+ function processInternalMeta(node: InternalNode, storage: Set<string>): void {
+    const meta = node.storage.getMeta();
+    for (let index = 0; index < meta.length; ++index) {
+       const expression = meta[index].node.string;
+       if (storage.has(expression)) {
+          node.storage.remove(meta[index]);
+          continue;
+       }
+       storage.add(expression);
+    }
+ }
+
+ function optimizeInternal(node: InternalNode, storage: Set<string>): void {
+    processInternalMeta(node, storage);
+    for (let index = 0; index < node.children.length; ++index) {
+       const child = node.children[index];
+       const childStorage = child.type === InternalNodeType.BLOCK ? storage : new Set<string>(storage);
+       optimizeInternal(child, childStorage);
+    }
+ }
+
+ function optimize(node: InternalNode): void {
+    return optimizeInternal(node, new Set<string>());
  }
 
  class ProgramStorage {
@@ -425,7 +449,9 @@ class IndexAllocator {
           indices,
           removeSelfIdentifiers
        };
-       return this.collectInternalStructure(options);
+       const node = this.collectInternalStructure(options);
+       optimize(node);
+       return node;
     }
 
     commitCode(index: number, code: string): void {
@@ -901,7 +927,7 @@ function wrapInternalExpressions(programs: IProgramMeta[]): any {
    const internal = { };
    for (let index = 0; index < programs.length; ++index) {
       const program = programs[index];
-      internal[INTERNAL_PROGRAM_PREFIX + index] = {
+      internal[Config.internalPropertyPrefix + index] = {
          data: [
             new Ast.ExpressionNode(program.node)
          ],

@@ -4,21 +4,15 @@
 
 import { ProgramNode, IdentifierNode, MemberExpressionNode, Walker } from 'Compiler/expressions/Nodes';
 import { Parser, IParser } from 'Compiler/expressions/Parser';
+import { Config } from '../Config';
 
 // <editor-fold desc="Constants">
 
 const PARSER = new Parser();
-
 const ALLOW_PROGRAM_DUPLICATES = true;
-
 const USE_GLOBAL_INTERNAL_PROGRAM_INDEX = false;
-
 const EMPTY_ARRAY = [];
-
 const PROGRAM_PREFIX = '$p_';
-
-const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
-
 const FILE_NAME = '[[context]]';
 
 const FORBIDDEN_IDENTIFIERS = [
@@ -164,7 +158,7 @@ function zipProgramMeta(description: IProgramDescription): IProgramMeta {
 }
 
 function generateInternalProgramKey(index: number): string {
-   return `${INTERNAL_PROGRAM_PREFIX}${index}`;
+   return `${Config.internalPropertyPrefix}${index}`;
 }
 
 function zipInternalProgramMeta(description: IProgramDescription, index: number): IProgramMeta {
