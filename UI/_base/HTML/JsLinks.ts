@@ -27,7 +27,7 @@ class JsLinks extends Control<IJsLinksOptions> {
          return;
       }
       return headDataStore.read('waitAppContent')().then((res) => {
-         let jslinksAPI = JSLinksAPI.getInstance();
+         let jslinksAPI = JSLinks.getInstance();
          const jsLinks: string[] = res.js.map((js) => this.resolveLink(js)).concat(res.scripts);
 
          if (this.arrayToObject(jsLinks)) {
