@@ -436,6 +436,26 @@ function validatePartialTemplate(option: Ast.OptionNode | undefined, node: Nodes
    return value;
 }
 
+const VALID_FUNCTION_CONTENT_CHARACTERS_PATTERN: RegExp = /^\s*(optional!)?((js|tmpl)!)?[\s\w_:.\/\-\$]+\s*$/i;
+
+function isValidFunctionText(text: string): boolean {
+   return VALID_FUNCTION_CONTENT_CHARACTERS_PATTERN.test(text);
+}
+
+function validateFunctionContent(content: Ast.TText[]): void {
+   for (let index = 0; index < content.length; ++index) {
+      const textDataNode = content[index];
+      // Validate only text node
+      if (!(textDataNode instanceof Ast.TextDataNode)) {
+         continue;
+      }
+      const text = textDataNode.__$ws_content;
+      if (!isValidFunctionText(text)) {
+         throw new Error(`содержимое или его часть "${text}" невалидно`);
+      }
+   }
+}
+
 /**
  * Check if first child in type consistent collection has type of content.
  * @param children {Ast[]} Type consistent collection of nodes of abstract syntax tree.
@@ -2102,6 +2122,7 @@ class Traverse implements ITraverse {
       );
       this.warnIncorrectProperties(options.attributes, node, context);
       this.warnIncorrectProperties(options.events, node, context);
+      validateFunctionContent(functionExpression);
       return {
          functionExpression,
          options: options.options
