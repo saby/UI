@@ -23,7 +23,6 @@ import { invisibleNodeTagName } from '../Utils';
 import { NumberUtils } from 'UI/Utils';
 import { INodeAttribute } from './IGeneratorType';
 import { IAttributes } from '../_Expressions/Attr';
-import { Logger } from 'UI/Utils';
 import {Deps} from '../_Utils/Common';
 import { TemplateFunction } from 'UI/Base';
 
