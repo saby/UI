@@ -7,7 +7,6 @@ import { _FocusAttrs } from 'UI/Focus';
 import {
    GeneratorEmptyObject,
    GeneratorError,
-   GeneratorFn,
    GeneratorStringArray,
    IBaseAttrs,
    IGeneratorConfig,
@@ -25,6 +24,8 @@ import { NumberUtils } from 'UI/Utils';
 import { INodeAttribute } from './IGeneratorType';
 import { IAttributes } from '../_Expressions/Attr';
 import { Logger } from 'UI/Utils';
+import {Deps} from '../_Utils/Common';
+import { TemplateFunction } from 'UI/Base';
 
 /**
  * @author Тэн В.А.
@@ -255,15 +256,15 @@ export function resolveControlName<TOptions extends IControlData>(controlData: T
  */
 export function stringTemplateResolver(tpl: string,
                                        includedTemplates: IStringTemplateResolverIncludedTemplates,
-                                       _deps: GeneratorEmptyObject,
+                                       _deps: Deps,
                                        config: IGeneratorConfig,
-                                       parent?: IControl): GeneratorFn {
+                                       parent?: IControl): IControl|TemplateFunction {
    const resolver = config && config.resolvers ? Common.findResolverInConfig(tpl, config.resolvers) : undefined;
    if (resolver) {
       return resolver(tpl);
    } else {
-      const deps = Common.depsTemplateResolver(tpl, includedTemplates, _deps, config);
-      if (deps === false) {
+      const deps = Common.depsTemplateResolver(tpl, includedTemplates, _deps);
+      if (!deps) {
          Logger.error(`Контрол ${tpl} отсутствует в зависимостях и не может быть построен."`, parent);
          return this.createEmptyText();
       }

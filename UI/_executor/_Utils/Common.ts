@@ -13,6 +13,11 @@ import * as Attr from '../_Expressions/Attr';
 import * as RequireHelper from './RequireHelper';
 
 import { ReactiveObserver } from 'UI/Reactivity';
+import {
+   IControl,
+   IStringTemplateResolverIncludedTemplates
+} from 'UI/_executor/_Markup/IGeneratorType';
+import { TemplateFunction } from 'UI/Base';
 
 var
    requireIfDefined = function requireIfDefined(tpl) {
@@ -44,21 +49,12 @@ var
          || requireIfDefined(tpl)
          || tryLoadLibraryModule(tpl, _deps);
    },
-   moduleNameCheckProceed = function maxNameLengthCheck(tpl, includedTemplates, _deps, config) {
-      if (config && config.moduleMaxNameLength) {
-         if (tpl.length > config.moduleMaxNameLength) {
-            // TODO: сейчас вывод этого предупреждения не актуален - часть плохих мест подчищена.
-            //  Необходимо разобраться с работой ws:partial.
-            //  https://online.sbis.ru/opendoc.html?guid=986abbdb-748d-41e6-988f-cbe28cc6cacb
-            // Logger.warn('Обнаружено имя шаблона длиной более ' + config.moduleMaxNameLength + ' символов: ' + tpl);
-            return null;
-         }
-      }
+   moduleNameCheckProceed = function maxNameLengthCheck(tpl, includedTemplates, _deps) {
       return checkExistingModule(tpl, includedTemplates, _deps);
    },
-   conventionalStringResolver = function conventionalStringResolver(tpl, includedTemplates?, _deps?, config?) {
+   conventionalStringResolver = function conventionalStringResolver(tpl, includedTemplates?, _deps?) {
       if (tpl && tpl.length) {
-         return moduleNameCheckProceed(tpl, includedTemplates, _deps, config);
+         return moduleNameCheckProceed(tpl, includedTemplates, _deps);
       }
    };
 
@@ -380,18 +376,49 @@ export function isNewControl(ctor) {
 }
 
 /**
+ * Объект с зависимостями контрола/шаблона.
+ */
+export type Deps = Record<string, TemplateFunction | IDefaultExport>;
+/**
  * Если результат с optional === false, попробуем без optional!
  * @param tpl
  * @param includedTemplates
  * @param _deps
  * @returns {*}
  */
-export function depsTemplateResolver(tpl, includedTemplates, _deps, config) {
-   var result = conventionalStringResolver(tpl, includedTemplates, _deps, config);
+export function depsTemplateResolver(
+    tpl: string,
+    includedTemplates: IStringTemplateResolverIncludedTemplates,
+    _deps: Deps): IControl | TemplateFunction {
+   var result = conventionalStringResolver(tpl, includedTemplates, _deps);
    if (isOptionalString(tpl) && !result) {
       result = conventionalStringResolver(splitOptional(tpl));
    }
+   result = fixDefaultExport(result);
    return result;
+}
+
+export function fixDefaultExport(tplOrigin) {
+   // При использовании ts-модуля, где нужный класс экспортируется дефолтно, внутри js-модуля
+   // сюда приходит объект tplOrigin, где __esModule есть true, а в default лежит нужная нам
+   // функция построения верстки
+   // Для того, чтобы верстка строилась, необходимо вытащить функцию из default
+   return isDefaultExport(tplOrigin) ? tplOrigin.default : tplOrigin;
+}
+
+export interface IDefaultExport {
+   __esModule: boolean;
+   default: IControl;
+}
+/**
+ * Либо сужает тип obj до IDefaultExport, либо однозначно говорит, что это другой тип.
+ * @param obj
+ */
+function isDefaultExport(obj: unknown): obj is IDefaultExport {
+   if (typeof obj === 'object') {
+      return obj.hasOwnProperty('__esModule') && obj.hasOwnProperty('default');
+   }
+   return false;
 }
 
 export function isCompat() {

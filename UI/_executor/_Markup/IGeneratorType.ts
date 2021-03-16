@@ -174,6 +174,11 @@ export interface IControl {
    _instId: string;
    reactiveValues: TObject;
    __lastGetterPath: Array<string>;
+
+   props?: {
+      readOnly: boolean;
+      theme: string;
+   };
 }
 
 // Контекст базовый контрола

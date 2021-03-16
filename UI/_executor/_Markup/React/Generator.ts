@@ -1,57 +1,39 @@
 import * as React from 'react';
 import { Logger } from 'UI/Utils';
 import * as Common from '../../_Utils/Common';
-import * as RequireHelper from '../../_Utils/RequireHelper';
 import { onElementMount, onElementUnmount } from '../../_Utils/ChildrenManager';
 import { convertAttributes, WasabyAttributes } from './Attributes';
 import { WasabyContextManager } from 'UI/_react/WasabyContext/WasabyContextManager';
 import { Control } from 'UI/_react/Control/WasabyOverReact';
 import {
-   IControlOptions,
-   TemplateFunction
+   IControlOptions
 } from 'UI/_react/Control/interfaces';
 import { IWasabyContextValue } from 'UI/_react/WasabyContext/WasabyContext';
 import {
-   IGeneratorConfig, IGeneratorNameObject, TIncludedTemplate
+   IControl,
+   IControlConfig, IGeneratorAttrs,
+   IGeneratorNameObject,
+   IStringTemplateResolverIncludedTemplates
 } from '../IGeneratorType';
-import * as Helper from '../Helper';
 import {TGeneratorNode} from '../Vdom/IVdomType';
+import {ReactElement} from 'react';
+import { TemplateFunction } from 'UI/Base';
 
-/*
-FIXME: как я понимаю, в этом объекте могут быть HTMl-атрибуты+какие-то наши поля.
-Из наших полей пока используется только internal, и даже от него вроде можно избавиться.
-Надо разобраться и заменить на нормальный тип.
- */
-interface IGeneratorAttrs {
-   internal?: {
-      parent: Control;
-   };
-}
-
-interface IControlConfig {
-   depsLocal: Deps;
-   viewController: Control;
-}
-
-interface IDefaultExport {
-   __esModule: boolean;
-   default: Control;
-}
+type TemplateResult = React.FunctionComponentElement<
+   Partial<IWasabyContextValue> & { children?: React.ReactNode }
+>;
 
 /**
  * Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
  */
 type TemplateOrigin =
-   | string
-   | IDefaultExport
-   | TemplateFunction
-   | Control
-   | IGeneratorNameObject;
-
-/**
- * Объект с зависимостями контрола/шаблона.
- */
-type Deps = Record<string, TemplateFunction | IDefaultExport>;
+    | Common.IDefaultExport
+    | TemplateFunction
+    | typeof Control
+    | IGeneratorNameObject
+    | string
+    | Function
+    | Function[];
 
 export class GeneratorReact {
    /**
@@ -69,11 +51,11 @@ export class GeneratorReact {
    createControlNew(
       type: 'wsControl' | 'template',
       origin: TemplateOrigin,
-      attributes: object,
+      attributes: IGeneratorAttrs,
       _: unknown,
       options: IControlOptions,
       config: IControlConfig
-   ): React.ReactElement {
+   ): ReactElement|ReactElement[] {
       // тип контрола - компонент с шаблоном
       if (type === 'wsControl') {
          return this.createWsControl(
@@ -91,8 +73,11 @@ export class GeneratorReact {
          Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
          Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
           */
-         (attributes as IGeneratorAttrs).internal = {
-            parent: config.viewController
+         (attributes).internal = {
+            parent: config.viewController,
+            parentEnabled: false, // ???
+            hasOldParent: false, // ???
+            logicParent: null // ???
          };
 
          return this.createTemplate(
@@ -106,7 +91,8 @@ export class GeneratorReact {
 
       // когда тип вычисляемый, запускаем функцию вычисления типа и там обрабатываем тип
       if (type === 'resolver') {
-         return this.resolver(origin, options, attributes, '', config.depsLocal, {}, Helper.config);
+         return this.resolver(origin, options, attributes, '', config.depsLocal,
+             config.includedTemplates);
       }
    }
 
@@ -142,13 +128,12 @@ export class GeneratorReact {
       scope: IControlOptions,
       _: unknown,
       __: unknown,
-      deps: Deps
+      deps: Common.Deps
    ): React.ComponentElement<
       IControlOptions,
       Control<IControlOptions, object>
    > {
-      const controlClass = resolveTpl(origin, deps) as typeof Control;
-
+      const controlClass = Common.depsTemplateResolver(origin as string, {}, deps) as unknown as typeof Control;
       return React.createElement(controlClass, scope);
    }
 
@@ -165,22 +150,21 @@ export class GeneratorReact {
       scope: IControlOptions,
       attributes: IGeneratorAttrs,
       _: unknown,
-      deps: Deps
-   ): React.FunctionComponentElement<
-      Partial<IWasabyContextValue> & { children?: React.ReactNode }
-   > {
-      const resultingFn = resolveTpl(origin, deps) as TemplateFunction;
-
-      const parent: Control<IControlOptions> = attributes?.internal.parent;
+      deps: Common.Deps
+   ): TemplateResult {
+      const resultingFn = Common.depsTemplateResolver(origin as string, {}, deps) as TemplateFunction;
+      const parent: IControl = attributes?.internal?.parent;
       /*
       Контролы берут наследуемые опции из контекста.
       Шаблоны так не могут, потому что они не полноценные реактовские компоненты.
       Поэтому берём значения либо из опций, либо из родителя.
        */
       if (typeof scope.readOnly === 'undefined') {
+         // @ts-ignore в api контрола context другой, но в контроле рекорда есть свое поле context
          scope.readOnly = parent.props?.readOnly ?? parent.context?.readOnly;
       }
       if (typeof scope.theme === 'undefined') {
+         // @ts-ignore в api контрола context другой, но в контроле рекорда есть свое поле context
          scope.theme = parent.props?.theme ?? parent.context?.theme;
       }
 
@@ -205,40 +189,33 @@ export class GeneratorReact {
       preparedScope: IControlOptions,
       decorAttribs: IGeneratorAttrs,
       context: string,
-      _deps?: Deps,
-      includedTemplates?: TIncludedTemplate,
-      config?: IGeneratorConfig
-   ): React.FunctionComponentElement<
-      Partial<IWasabyContextValue> & { children?: React.ReactNode }
-      > {
-      const tpl = getCorrectTpl(tplOrigin);
-      const resolvedScope = preparedScope;
+      _deps?: Common.Deps,
+      includedTemplates?: IStringTemplateResolverIncludedTemplates
+   ): ReactElement|ReactElement[] {
       const parent = decorAttribs?.internal?.parent;
-      const controlClass = resolveTpl(tpl, _deps);
-      let fn: any;
+      let tpl: TemplateOrigin;
 
-      if (typeof tpl === 'string') {
-         fn = Common.depsTemplateResolver(tpl, includedTemplates, _deps, config);
-      } else if (controlClass) {
-         fn = controlClass;
+      if (typeof tplOrigin === 'string') {
+         tpl = Common.depsTemplateResolver(tplOrigin, includedTemplates, _deps) as TemplateOrigin;
       } else {
-         fn = tpl;
+         tpl = Common.fixDefaultExport(tplOrigin);
       }
 
-      if (Common.isControlClass(fn)) {
-         return this.createWsControl(fn, resolvedScope, decorAttribs, context, _deps) as TGeneratorNode;
+      // typeof Control
+      if (Common.isControlClass(tpl)) {
+         return this.createWsControl(tpl, preparedScope, decorAttribs, context, _deps) as TGeneratorNode;
       }
-      if (Common.isTemplateClass(fn)) {
-         return this.createTemplate(fn, resolvedScope, decorAttribs, context, _deps);
+      // TemplateFunction - wml шаблон
+      if (Common.isTemplateClass(tpl)) {
+         return this.createTemplate(tpl, preparedScope, decorAttribs, context, _deps);
       }
-      if (typeof fn === 'function') {
-         return this.resolveTemplateFunction(parent, fn, resolvedScope, decorAttribs, context);
+      // inline template, xhtml, tmpl шаблон (closured), content option
+      if (typeof tpl === 'function') {
+         return this.resolveTemplateFunction(parent, tpl as Function, preparedScope, decorAttribs, context);
       }
-      if (fn && typeof fn.func === 'function') {
-         return this.resolveTemplateFunction(parent, fn.func, resolvedScope, decorAttribs, context);
-      }
-      if (Common.isArray(fn)) {
-         return this.resolveTemplateArray(parent, fn, resolvedScope, decorAttribs, context);
+      // Function[]
+      if (Common.isArray(tpl)) {
+         return this.resolveTemplateArray(parent, tpl as Function[], preparedScope, decorAttribs, context);
       }
 
       // не смогли зарезолвить - нужно вывести ошибку
@@ -247,13 +224,13 @@ export class GeneratorReact {
    }
 
    resolveTemplateArray(
-       parent: Control,
-       templateArray: any,
-       resolvedScope: IControlOptions,
-       decorAttribs: IGeneratorAttrs,
-       context: string): any {
+      parent: IControl,
+      templateArray: Function[],
+      resolvedScope: IControlOptions,
+      decorAttribs: IGeneratorAttrs,
+      context: string): TemplateResult[] {
       let result = [];
-      templateArray.forEach((template: any): any => {
+      templateArray.forEach((template: Function) => {
          const resolvedTemplate = this.resolveTemplate(template, parent, resolvedScope, decorAttribs, context);
          if (Array.isArray(resolvedTemplate)) {
             result = result.concat(resolvedTemplate);
@@ -264,16 +241,14 @@ export class GeneratorReact {
       return result;
    }
 
-   resolveTemplate(template: any,
-                   parent: Control,
+   resolveTemplate(template: Function,
+                   parent: IControl,
                    resolvedScope: IControlOptions,
                    decorAttribs: IGeneratorAttrs,
-                   context: string): any {
-      let resolvedTemplate = null;
+                   context: string): TemplateResult {
+      let resolvedTemplate;
       if (typeof template === 'function') {
          resolvedTemplate = this.resolveTemplateFunction(parent, template, resolvedScope, decorAttribs, context);
-      } else if (typeof template.func === 'function') {
-         resolvedTemplate = this.resolveTemplateFunction(parent, template.func, resolvedScope, decorAttribs, context);
       } else {
          resolvedTemplate = template;
       }
@@ -290,11 +265,11 @@ export class GeneratorReact {
       return resolvedTemplate;
    }
 
-   resolveTemplateFunction(parent: Control,
-                           template: any,
-                           resolvedScope: IControlOptions,
-                           decorAttribs: IGeneratorAttrs,
-                           context: string): any {
+   resolveTemplateFunction(parent: IControl,
+      template: Function,
+      resolvedScope: IControlOptions,
+      decorAttribs: IGeneratorAttrs,
+      context: string): TemplateResult {
       if (Common.isAnonymousFn(template)) {
          anonymousFnError(template, parent);
          return null;
@@ -302,7 +277,7 @@ export class GeneratorReact {
       if (parent) {
          return template.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined);
       }
-      return template(resolvedScope, decorAttribs, context, true, undefined, undefined);
+      return template(resolvedScope, decorAttribs, context, true, undefined, undefined) as TemplateResult;
    }
 
    /*
@@ -385,72 +360,7 @@ export class GeneratorReact {
    }
 }
 
-function getCorrectTpl(tplOrigin: TemplateOrigin): TemplateOrigin {
-   // При использовании ts-модуля, где нужный класс экспортируется дефолтно, внутри js-модуля
-   // сюда приходит объект tplOrigin, где __esModule есть true, а в default лежит нужная нам
-   // функция построения верстки
-   // Для того, чтобы верстка строилась, необходимо вытащить функцию из default
-   // @ts-ignore
-   const tpl = typeof tplOrigin === 'object' && tplOrigin.__esModule && tplOrigin.default ?
-       // @ts-ignore
-       tplOrigin.default :
-       tplOrigin;
-   return tpl;
-}
-
-/**
- * Либо сужает тип obj до IDefaultExport, либо однозначно говорит, что это другой тип.
- * @param obj
- */
-function isDefaultExport(obj: unknown): obj is IDefaultExport {
-   if (typeof obj === 'object') {
-      return obj.hasOwnProperty('__esModule') && obj.hasOwnProperty('default');
-   }
-   return false;
-}
-
-/**
- * Если в tplOrigin шаблон/конструктор контрола, то сразу возвращает его.
- * Иначе извлекает шаблон/конструктор контрола из зависимостей и возвращает его.
- * @param tplOrigin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
- * @param deps Объект с зависимостями контрола/шаблона, в нём должно быть поле, соответствующее tplOrigin.
- */
-function resolveTpl(
-   tplOrigin: TemplateOrigin,
-   deps: Deps
-): typeof Control | TemplateFunction {
-   const tpl = isDefaultExport(tplOrigin) ? tplOrigin.default : tplOrigin;
-
-   // конструкция типа <ws:partial template="{{ _myTemplate }}" />, где _myTemplate - функция (она может быть контролом)
-   if (typeof tpl === 'function') {
-      return tpl;
-   }
-   // контрол или partial, у которого в template лежит строка
-   if (typeof tpl === 'string') {
-      // ws: подставляется ещё на этапе шаблонизации, не знаю зачем
-      const newName = (Common.splitWs(tpl) as string) || tpl;
-      const valueFromDeps = deps && deps[newName];
-      let controlClass;
-
-      if (isDefaultExport(valueFromDeps)) {
-         controlClass = valueFromDeps.default;
-      } else {
-         controlClass = valueFromDeps;
-      }
-
-      if (!controlClass) {
-         if (RequireHelper.defined(tpl)) {
-            controlClass = RequireHelper.require(tpl);
-         } else {
-            throw new Error('Не смогли определить тип шаблона: ' + tpl);
-         }
-      }
-
-      return controlClass;
-   }
-}
-
-function logResolverError(tpl: TemplateOrigin, parent: Control): void {
+function logResolverError(tpl: TemplateOrigin, parent: IControl): void {
    Logger.error(`Неверное значение свойства template в ws:partial.
    Нужно поставить точку останова и исследовать передаваемое в ws:partial значение.
    По стеку будет понятно, в каком шаблоне и в какую опцию передается неправильное значение.`, parent);
@@ -469,7 +379,7 @@ function logResolverError(tpl: TemplateOrigin, parent: Control): void {
    }
 }
 
-function anonymousFnError(fn: Function, parent: Control): void {
+function anonymousFnError(fn: Function, parent: IControl): void {
    Logger.error(`Ошибка построения разметки. Была передана функция, которая не является шаблонной.
                Функция: ${fn.toString()}`, parent);
 }
