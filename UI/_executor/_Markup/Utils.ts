@@ -263,11 +263,6 @@ export function stringTemplateResolver(tpl: string,
    if (resolver) {
       return resolver(tpl);
    } else {
-      const deps = Common.depsTemplateResolver(tpl, includedTemplates, _deps);
-      if (!deps) {
-         Logger.error(`Контрол ${tpl} отсутствует в зависимостях и не может быть построен."`, parent);
-         return this.createEmptyText();
-      }
-      return deps;
+      return Common.depsTemplateResolver(tpl, includedTemplates, _deps);
    }
 }
