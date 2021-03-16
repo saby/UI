@@ -2,6 +2,7 @@ import * as Ast from './Ast';
 import Scope from './Scope';
 import { IdentifierNode, MemberExpressionNode, ProgramNode, Walker } from '../expressions/Nodes';
 import { IParser, Parser } from '../expressions/Parser';
+import { Config } from '../Config';
 
 export function canUseNewInternalMechanism(): boolean {
     return USE_INTERNAL_MECHANISM;
@@ -45,8 +46,6 @@ const SKIP_CONTENT_OPTION_INTERNAL_ON_COMPONENT: boolean = true;
 const PARSER = new Parser();
 
 const FILE_NAME = '[[internal]]';
-
-const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
 
 const FORBIDDEN_IDENTIFIERS = [
    '...',
@@ -901,7 +900,7 @@ function wrapInternalExpressions(programs: IProgramMeta[]): any {
    const internal = { };
    for (let index = 0; index < programs.length; ++index) {
       const program = programs[index];
-      internal[INTERNAL_PROGRAM_PREFIX + index] = {
+      internal[Config.internalPropertyPrefix + index] = {
          data: [
             new Ast.ExpressionNode(program.node)
          ],

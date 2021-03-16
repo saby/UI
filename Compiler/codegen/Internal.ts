@@ -1,6 +1,7 @@
 import { InternalNode, InternalNodeType, IProgramMeta } from '../core/Internal';
 import { ExpressionVisitor } from '../expressions/Nodes';
 import { canUseNewInternalMechanism } from '../core/Internal';
+import { Config } from '../Config';
 
 //#region Constants
 
@@ -21,8 +22,6 @@ const ALLOW_CONDITIONS = true;
  */
 const ALWAYS_FOREIGN_CONTAINER: boolean = true;
 
-const FUNCTION_PREFIX = '__$calculateDirtyCheckingVars_';
-const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
 const COLLECTION_NAME = 'collection';
 const CONDITIONAL_VARIABLE_NAME = 'condition';
 const SAFE_CHECK_VARIABLE_NAME = 'safeCheck';
@@ -58,11 +57,11 @@ export function generate(node: InternalNode, internalFunctions: string[]): strin
         rootIndex: node.index,
         safeCheckVariable: null
     };
-    const functionName = FUNCTION_PREFIX + node.index;
+    const functionName = Config.internalFunctionPrefix + node.index;
     const body = FUNCTION_HEAD + buildAll([node], options) + FUNCTION_TAIL;
     const index = node.ref.getCommittedIndex(body);
     if (index !== null) {
-        return FUNCTION_PREFIX + index + `(${CONTEXT_VARIABLE_NAME})`;
+        return Config.internalFunctionPrefix + index + `(${CONTEXT_VARIABLE_NAME})`;
     }
     try {
         const func = new Function(CONTEXT_VARIABLE_NAME, body);
@@ -177,7 +176,7 @@ function buildWithConditions(node: InternalNode, options: IOptions): string {
  }
 
  function wrapProgram(meta: IProgramMeta, code: string): string {
-    return `${COLLECTION_NAME}.${INTERNAL_PROGRAM_PREFIX}${meta.index}=${code};`;
+    return `${COLLECTION_NAME}.${Config.internalPropertyPrefix}${meta.index}=${code};`;
  }
 
  function buildMeta(meta: IProgramMeta, options: IOptions): string {
