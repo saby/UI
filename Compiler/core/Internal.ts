@@ -329,7 +329,6 @@ class IndexAllocator {
     rootIndex: number;
     depth: number;
     allocator: IndexAllocator;
-    indices: Set<number>;
     removeSelfIdentifiers: boolean;
  }
 
@@ -441,12 +440,10 @@ class IndexAllocator {
 
     getInternalStructure(removeSelfIdentifiers: boolean = false): InternalNode {
        const allocator = new IndexAllocator(this.getCurrentProgramIndex());
-       const indices = new Set<number>();
        const options: ICollectorOptions = {
           rootIndex: this.index,
           depth: 0,
           allocator,
-          indices,
           removeSelfIdentifiers
        };
        const node = this.collectInternalStructure(options);
@@ -488,7 +485,6 @@ class IndexAllocator {
        const childrenOptions: ICollectorOptions = {
           rootIndex: options.rootIndex,
           allocator: options.allocator,
-          indices: options.indices,
           removeSelfIdentifiers: options.removeSelfIdentifiers,
           depth: options.depth + 1
        };
@@ -538,18 +534,13 @@ class IndexAllocator {
              if (meta.type === ProgramType.BIND) {
                 // Все значения bind выражений попадают в опции, в internal их не записываем.
                 // Исключение - контекст bind-выражения (все синтетические выражения).
-                // FIXME: DEV: REMOVE
-                // return meta.isSynthetic;
+                return meta.isSynthetic;
              }
              return true;
           });
        }
        for (let index = 0; index < selfPrograms.length; ++index) {
-          if (options.indices.has(selfPrograms[index].index)) {
-             continue;
-          }
           node.storage.set(selfPrograms[index]);
-          options.indices.add(selfPrograms[index].index);
        }
        return node;
     }
@@ -808,23 +799,10 @@ class IndexAllocator {
        if (this.next === null) {
           return;
        }
-       this.next.removeSiblingConditional(this);
-    }
-
-    private removeSiblingConditional(parent: InternalNode, counter: number = 0): void {
-       if (counter === 0) {
-          if (this.type === InternalNodeType.ELSE_IF) {
-             this.setType(InternalNodeType.IF);
-          } else if (this.type === InternalNodeType.ELSE) {
-             this.setType(InternalNodeType.BLOCK);
-          } else {
-             return;
-          }
-       }
-       const index = parent.children.length;
-       parent.children.push(this);
-       if (this.next) {
-          this.next.removeSiblingConditional(parent, counter + 1);
+       if (this.next.type === InternalNodeType.ELSE_IF) {
+          this.next.setType(InternalNodeType.IF);
+       } else if (this.next.type === InternalNodeType.ELSE) {
+          this.next.setType(InternalNodeType.BLOCK);
        }
     }
 
