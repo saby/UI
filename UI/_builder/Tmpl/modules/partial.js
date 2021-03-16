@@ -367,7 +367,7 @@ define('UI/_builder/Tmpl/modules/partial', [
                'attrsForTemplate = ' + createAttribs + '; scopeForTemplate = ' + callDataArg + ';' +
                '}).apply(this),' + tpl +
                '.call(this, scopeForTemplate, attrsForTemplate, context, isVdom),' +
-               'attrsForTemplate = null,scopeForTemplate = null,';
+               '(function(){attrsForTemplate = null;scopeForTemplate = null;}).apply(),';
          }
          return resolveStatement;
       }
