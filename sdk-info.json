@@ -7,8 +7,6 @@
         "VirtualTreeMarkup",
         "WmlBuilder",
         "Compiler",
-        "UICommon",
-        "UIInferno",
         "UI"
     ]
 }
