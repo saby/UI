@@ -19,11 +19,10 @@ export function genSanitize(data: string): string {
 /**
  * Generate content templates array wrapper.
  * @param array {string} Content templates array.
- * @param fileName {string} Template file name.
  * @param isWasabyTemplate {string} Wml template flag.
  */
-export function genCreateDataArray(array: string, fileName: string, isWasabyTemplate: boolean): string {
-   return `${VAR_MODULE_NAME}.createDataArray(${array}, ${fileName}, ${!!isWasabyTemplate})`;
+export function genCreateDataArray(array: string, isWasabyTemplate: boolean): string {
+   return `${VAR_MODULE_NAME}.createDataArray(${array}, filename, ${!!isWasabyTemplate})`;
 }
 
 /**

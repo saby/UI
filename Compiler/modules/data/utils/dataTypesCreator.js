@@ -53,14 +53,12 @@ define('Compiler/modules/data/utils/dataTypesCreator', [
    /**
     * Отдадим чистое значение
     * @param str
-    * @param fileName
     * @returns {*}
     */
-   function createArrayDataRepresentation(str, fileName, isWasabyTemplate) {
+   function createArrayDataRepresentation(str, isWasabyTemplate) {
       return FSC.wrapAroundExec(
          TClosure.genCreateDataArray(
             FSC.prepareStringForExec(JSON.stringify(str)),
-            FSC.wrapAroundQuotes(fileName),
             isWasabyTemplate
          )
       );
@@ -140,7 +138,7 @@ define('Compiler/modules/data/utils/dataTypesCreator', [
             return createNumberDataRepresentation(res, children);
          }
          if (dataType === 'Array') {
-            return createArrayDataRepresentation(res, this.fileName || '', this.isWasabyTemplate);
+            return createArrayDataRepresentation(res, this.isWasabyTemplate);
          }
          return createTypeDataRepresentation(dataType, res);
       }
