@@ -8,3 +8,4 @@
  */
 
 export { addPageDeps } from 'UI/_deps/PageDependencies';
+export { aggregateDependencies, BASE_DEPS_NAMESPACE } from 'UI/_deps/DependenciesPlaceholder';
