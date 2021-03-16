@@ -187,6 +187,8 @@ export interface IDOMEnvironment {
 
     applyNodeMemo(nodeMemo: IMemoNode): void;
 
+    showCapturedEvents: () => Record<string, IHandlerInfo[]>;
+
     queue: TControlId[];
 
     _currentDirties: Record<string, number>;

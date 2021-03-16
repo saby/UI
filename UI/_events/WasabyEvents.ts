@@ -5,7 +5,16 @@ import { RawMarkupNode } from 'UI/Executor';
 
 import SyntheticEvent from './SyntheticEvent';
 import * as EventUtils from './EventUtils';
-import { ISyntheticEvent, IEventConfig, IClickState, IWasabyEventSystem } from './IEvents';
+import {
+    ISyntheticEvent,
+    IEventConfig,
+    IClickState,
+    IWasabyEventSystem,
+    IFixedEvent,
+    IHandlerInfo,
+    IArrayEvent,
+    IClickEvent
+} from './IEvents';
 
 import { FastTouchEndController } from './Mobile/FastTouchEndController';
 import { SwipeController } from './Mobile/SwipeController';
@@ -14,9 +23,7 @@ import { IMobileEvent } from './Mobile/MobileEvents';
 
 import isInvisibleNode from 'UI/_vdom/Synchronizer/resources/InvisibleNodeChecker';
 import {
-    IArrayEvent,
     IWasabyHTMLElement,
-    IHandlerInfo,
     IControlNode,
     IDOMEnvironment,
     TModifyHTMLNode
@@ -31,7 +38,7 @@ let touchId = 0;
 const clickStateTarget: Array<{ target: HTMLElement, touchId: number }> = [];
 const callAfterMount: IArrayEvent[] = [];
 
-export default class WasabyEventSystem implements IWasabyEventSystem {
+export default class WasabyEvents implements IWasabyEventSystem {
     private capturedEventHandlers: Record<string, IHandlerInfo[]>;
     private touchendTarget: Element;
 
@@ -143,6 +150,10 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
         }
     }
 
+    showCapturedEventHandlers():  Record<string, IHandlerInfo[]> {
+        return this.capturedEventHandlers;
+    }
+
     /**
      * Распространение происходит по DOM-нодам вверх по родителям, с использованием массива обработчиков eventProperties,
      * в котором указаны обработчики для каждого контрола, если эти контролы подписаны на событие
@@ -158,7 +169,7 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
     private vdomEventBubbling(
         eventObject: ISyntheticEvent,
         controlNode: IControlNode,
-        eventPropertiesStartArray: any,
+        eventPropertiesStartArray: unknown[],
         args: unknown[],
         native: boolean
     ): void {
@@ -304,15 +315,14 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
         }
     }
 
-    private needPropagateEvent(environment: any, event: any): any {
+    private needPropagateEvent(environment: IDOMEnvironment, event: IFixedEvent): boolean {
         if (!environment._rootDOMNode) {
             return false;
         } else if (
             !(
                 (event.currentTarget === window && event.type === 'scroll') ||
                 (event.currentTarget === window && event.type === 'resize')
-            ) &&
-            event.eventPhase !== 1
+            ) && event.eventPhase !== 1
         ) {
             // У событий scroll и resize нет capture-фазы,
             // поэтому учитываем их в условии проверки на фазу распространения события
@@ -327,6 +337,11 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
             // Поэтому для этих типов мы будем стрелять событием сами.
             // И чтобы обработчики событий не были вызваны два раза, стопаем нативное событие.
             return false;
+        } else if (detection.isMobileIOS && FastTouchEndController.isFastEventFired(event.type) && event.isTrusted) {
+            // на ios 14.4 после событий тача стреляет дополнительный mousedown с isTrusted = true
+            // это связанно с тем, что мы пытаемся игнорировать нативную задержку в 300 мс
+            // поэтому для событий которые мы выстрелим руками повторный вызов не нужен
+            return false;
         } else if (!this.isMyDOMEnvironment(environment, event)) {
             return false;
         }
@@ -339,8 +354,8 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
     * @param env
     * @param event
     */
-    private isMyDOMEnvironment(env: any, event: any): any {
-        let element = event.target;
+    private isMyDOMEnvironment(env: IDOMEnvironment, event: Event): boolean {
+        let element = event.target as any;
         if (element === window || element === document) {
             return true;
         }
@@ -365,10 +380,11 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
         return false;
     }
 
-    private checkSameEnvironment(env: any, element: any, isCompatibleTemplate: boolean): boolean {
+    private checkSameEnvironment(env: IDOMEnvironment, element: IWasabyHTMLElement, isCompatibleTemplate: boolean): boolean {
         // todo костыльное решение, в случае CompatibleTemplate нужно всегда работать с верхним окружением (которое на html)
         // на ws3 страницах, переведенных на wasaby-окружение при быстром открытие/закртые окон не успевается полностью
         // задестроится окружение (очищается пурификатором через 10 сек), поэтому следует проверить env на destroy
+        // @ts-ignore
         if (isCompatibleTemplate && !env._destroyed) {
             const htmlEnv = env._rootDOMNode.tagName.toLowerCase() === 'html';
             if (element.controlNodes[0].environment === env && !htmlEnv) {
@@ -380,7 +396,7 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
                 let eventIndex;
                 // проверяем обработчики на внутреннем окружении
                 // если processingHandler === false, значит подписка была через on:event
-                let currentCaptureEvent = env.capturedEventHandlers[event.type];
+                let currentCaptureEvent = env.showCapturedEvents()[event.type];
                 for (eventIndex = 0; eventIndex < currentCaptureEvent.length; eventIndex++) {
                     // нашли подписку через on:, пометим, что что на внутреннем окружении есть подходящий обработчик
                     if (!currentCaptureEvent[eventIndex].processingHandler) {
@@ -392,7 +408,7 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
                     return hasHandlerOnEnv;
                 }
                 // Следует определить есть ли обработчики на внешнем окружении
-                let _element = element;
+                let _element: any = element;
                 while (_element.parentNode) {
                     _element = _element.parentNode;
                     // проверяем на наличие controlNodes на dom-элементе
@@ -400,9 +416,9 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
                         // нашли самое верхнее окружение
                         if (_element.controlNodes[0].environment._rootDOMNode.tagName.toLowerCase() === 'html') {
                             // проверяем, что такой обработчик есть
-                            if (typeof _element.controlNodes[0].environment.capturedEventHandlers[event.type] !== 'undefined') {
+                            if (typeof _element.controlNodes[0].environment.showCapturedEvents()[event.type] !== 'undefined') {
                                 // обработчик есть на двух окружениях. Следует проанализировать обработчики на обоих окружениях
-                                currentCaptureEvent = _element.controlNodes[0].environment.capturedEventHandlers[event.type];
+                                currentCaptureEvent = _element.controlNodes[0].environment.showCapturedEvents()[event.type];
                                 let hasHandlerOnTopEnv = false;
                                 // проверяем обработчики на внешнем окружении
                                 for (eventIndex = 0; eventIndex < currentCaptureEvent.length; eventIndex++) {
@@ -426,7 +442,7 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
     //#endregion
 
     //#region специфические обработчики
-    private _handleClick(event: any): any {
+    private _handleClick(event: MouseEvent): void {
         this._shouldUseClickByTapOnClick(event);
 
         /**
@@ -445,11 +461,11 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
 
         // Break click on non-empty selection with type "Range".
         // Have to trim because of fake '\n' selection in some cases.
-        const hasSelection = selection && selection.type === 'Range' && event.target.contains(selection.focusNode);
+        const hasSelection = selection && selection.type === 'Range' && (event.target as HTMLElement).contains(selection.focusNode);
         const userSelectIsNone = window && window.getComputedStyle
-            ? window.getComputedStyle(event.target)['user-select'] === 'none'
+            ? window.getComputedStyle(event.target as HTMLElement)['user-select'] === 'none'
             : true;
-        const isTargetNotEmpty = window && event.target.textContent.trim().length > 0;
+        const isTargetNotEmpty = window && (event.target as HTMLElement).textContent.trim().length > 0;
         if (hasSelection && !userSelectIsNone && isTargetNotEmpty) {
             event.stopImmediatePropagation();
             return;
@@ -635,7 +651,7 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
                     // vdom environment only (so that the old WS3 environment ignores it).
                     // To do so, we generate the fake click event object based on the data
                     // from the touchend event and propagate it using the vdom bubbling.
-                    const clickEventObject = this.generateClickEventFromTouchend(event);
+                    const clickEventObject = this.generateClickEventFromTouchend(event) as MouseEvent;
                     this._handleClick(clickEventObject);
                     this.captureEventHandler(clickEventObject);
                 }
@@ -654,7 +670,7 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
         }
     }
 
-    private generateClickEventFromTouchend(event: TouchEvent): any {
+    private generateClickEventFromTouchend(event: TouchEvent): IClickEvent {
         let touch: any = event.changedTouches && event.changedTouches[0];
         if (!touch) {
             touch = {
@@ -708,7 +724,7 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
      * @param controlNode
      * @param args
      */
-    startEvent<TArguments>(controlNode: IControlNode, args: TArguments): any {
+    startEvent<TArguments>(controlNode: IControlNode, args: TArguments): unknown {
         const eventName = args[0].toLowerCase();
         const handlerArgs = args[1] || [];
         const eventDescription = args[2];
@@ -789,7 +805,7 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
      *  для самой системы событий, или же только для контролов.
      *  Будет true, если необходим для системы событий.
      */
-    private addHandler(eventName: any, isBodyElement: boolean, handler: EventListener, processingHandler: boolean): any {
+    private addHandler(eventName: string, isBodyElement: boolean, handler: EventListener, processingHandler: boolean): void {
         let elementToSubscribe = this._rootDOMNode.parentNode as HTMLElement;
         let bodyEvent = false;
         if (isBodyElement && EventUtils.isSpecialBodyEvent(eventName)) {
@@ -800,8 +816,8 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
         const handlers = this.capturedEventHandlers;
         const handlerInfo = this.getHandlerInfo(eventName, processingHandler, bodyEvent);
         if (handlerInfo === null) {
-            let listenerCfg: any = {capture: true};
-            const newHandlerInfo: any = {handler, bodyEvent: false, processingHandler};
+            let listenerCfg: IEventConfig = {capture: true};
+            const newHandlerInfo: IHandlerInfo = {handler, bodyEvent: false, processingHandler, count: 0};
             listenerCfg = this.fixPassiveEventConfig(eventName, listenerCfg);
             newHandlerInfo.bodyEvent = bodyEvent;
             if (!processingHandler) {
@@ -819,7 +835,7 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
         }
     }
 
-    private addNativeListener(element: HTMLElement, handler: EventListener, eventName: string, config: any): void {
+    private addNativeListener(element: HTMLElement, handler: EventListener, eventName: string, config: IEventConfig): void {
         element.addEventListener(eventName, handler, config);
     }
     //#endregion
@@ -828,8 +844,8 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
     removeCaptureEventHandler(eventName: string, element: IWasabyHTMLElement): void {
         // TODO раскомментить после https://online.sbis.ru/opendoc.html?guid=450170bd-6322-4c3c-b6bd-3520ce3cba8a
         // Сейчас есть проблемы с вызовом ref-ов. Рефы на удаление событий вызываются большее количество раз,
-        // чем на добавление событий. Это приводит к тому, что обработчики на capture-фазу могут удаляться,
-        // когда еще есть активные подписки на события. Поэтому мы будем удалять обработчики на capture-фазу
+                // чем на добавление событий. Это приводит к тому, что обработчики на capture-фазу могут удаляться,
+                // когда еще есть активные подписки на события. Поэтому мы будем удалять обработчики на capture-фазу
         // только при дестрое самого DOMEnvironment. Последствиями такого решения будет то, что в редких случаях,
         // система событий будет распространять событие по DOM-у, несмотря на то, что мы заведомо знаем,
         // что обработчиков там не будет. Это менее критично, чем неработающие обработчики.
@@ -890,7 +906,7 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
         element.removeEventListener(eventName, handler, capture);
     }
 
-    private removeAllCaptureHandlers(): any {
+    private removeAllCaptureHandlers(): void {
         if (!this._rootDOMNode.parentNode) {
             return;
         }
@@ -914,9 +930,9 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
         return window as unknown as HTMLElement;
     }
 
-    private fixSvgElement(element: EventTarget): any {
-        // @ts-ignore FIXME: Property 'ownerSVGElement' does not exist on type Element
-        return element.ownerSVGElement ? element.ownerSVGElement : element;
+    private fixSvgElement(element: EventTarget): HTMLElement {
+        return (element as SVGElement).ownerSVGElement ?
+            (element as SVGElement).ownerSVGElement as unknown as HTMLElement : element as HTMLElement;
     }
 
     // Возвращает самое старое (т. к. они расположены по порядку) касание, для которого
@@ -929,7 +945,7 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
         return controlNodesArgs && controlNodesArgs.args && controlNodesArgs.args.length === evArgs.length;
     }
 
-    private checkControlNodeEvents(controlNode: any, eventName: any, index: any): any {
+    private checkControlNodeEvents(controlNode: IControlNode, eventName: string, index: number): unknown {
         return controlNode && controlNode.events && controlNode.events[eventName] && controlNode.events[eventName][index];
     }
 
@@ -972,12 +988,12 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
 
             // найдем индекс controlNode распространяющего событие
             const startControlNodeIndex = controlNodes.findIndex(
-                (cn: any): any => cn.control === controlNode.control
+                (cn: IControlNode): boolean => cn.control === controlNode.control
             );
 
             const foundHandlers = eventProperty.map((eventHandler: any): any => {
                 const foundIndex = controlNodes.findIndex(
-                    (controlNode: any): any => controlNode.control === eventHandler.fn.control
+                    (controlNode: IControlNode): boolean => controlNode.control === eventHandler.fn.control
                 );
                 return {
                     index: foundIndex,
@@ -1004,7 +1020,7 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
      * @param config - конфиг, в который добавится поле passive, если нужно.
      * @returns {any}
      */
-    private fixPassiveEventConfig(eventName: string, config: any): any {
+    private fixPassiveEventConfig(eventName: string, config: IEventConfig): IEventConfig {
         if (EventUtils.checkPassiveFalseEvents(eventName)) {
             config.passive = false;
         }
@@ -1012,7 +1028,7 @@ export default class WasabyEventSystem implements IWasabyEventSystem {
     }
     //#endregion
 
-    destroy(): any {
+    destroy(): void {
         this.removeTabListener();
         // TODO раскомментить после https://online.sbis.ru/opendoc.html?guid=450170bd-6322-4c3c-b6bd-3520ce3cba8a
         // this.removeProcessiingEventHandler('focus');

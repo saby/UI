@@ -1,6 +1,7 @@
 import {IControlNode, IDOMEnvironment, IWasabyHTMLElement, TModifyHTMLNode} from 'UI/_vdom/Synchronizer/interfaces';
 
 type VoidFunction = () => void;
+
 export interface ISyntheticEvent {
     nativeEvent: Event;
     type: string;
@@ -19,6 +20,8 @@ export interface IEventConfig {
     _bubbling?: boolean;
     type?: string;
     target?: EventTarget;
+    passive?: boolean;
+    capture?: boolean;
 }
 
 export interface IClickState {
@@ -29,6 +32,46 @@ export interface IClickState {
     target: EventTarget;
     touchCount: number;
     timeStart: unknown;
+}
+
+export interface IFixedEvent extends Event {
+    _dispatchedForIE?: boolean;
+}
+
+export interface IHandlerInfo {
+    handler: (evt: Event) => void;
+    bodyEvent: boolean;
+    processingHandler: boolean;
+    count: number;
+}
+
+export interface IArrayEvent {
+    fn: Record<string, Function>;
+    finalArgs: Record<string, unknown>[];
+}
+
+export interface IClickEvent {
+    type: string;
+    bubbles: boolean;
+    cancelable: boolean;
+    view: Window;
+    detail: number;
+    screenX: number;
+    screenY: number;
+    clientX: number;
+    clientY: number;
+    ctrlKey: boolean;
+    altKey: boolean;
+    shiftKey: boolean;
+    metaKey: boolean;
+    button: number,
+    buttons: number,
+    relatedTarget: EventTarget;
+    target: EventTarget;
+    currentTarget: EventTarget;
+    eventPhase: number,
+    stopPropagation: VoidFunction;
+    preventDefault: VoidFunction;
 }
 
 export interface IWasabyEventSystem {
@@ -43,5 +86,4 @@ export interface IWasabyEventSystem {
     startEvent: <TArguments>(controlNode: IControlNode, args: TArguments) => any;
     addCaptureEventHandler: (eventName: string, element: HTMLElement) => void;
     removeCaptureEventHandler: (eventName: string, element: IWasabyHTMLElement) => void;
-
 }
