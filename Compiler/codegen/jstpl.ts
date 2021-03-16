@@ -12,6 +12,7 @@ export const BODY = `if (typeof forceCompatible === 'undefined') {
 }
 var markupGenerator = thelpers.createGenerator(isVdom, forceCompatible, generatorConfig);
 var funcContext = thelpers.getContext(this);
+var scopeForTemplate, attrsForTemplate;
 /*#DELETE IT START#*/
 var filename = "/*#FILE_NAME#*/";
 /*#INITIALIZE_RK_FUNCTION#*/
