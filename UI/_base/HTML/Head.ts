@@ -10,6 +10,8 @@ import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller
 import { constants } from 'Env/Env';
 import { Head as AppHead } from 'Application/Page';
 import { getResourceUrl } from 'UI/Utils';
+import { createWsConfig, createDefaultTags, createMetaScriptsAndLinks, applyHeadJson } from "UI/Head";
+import { aggregateCSS } from "UI/Deps";
 import { headDataStore } from 'UI/_base/HeadData';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
 import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
@@ -55,7 +57,7 @@ class Head extends Control<IHeadOptions> {
         return headDataStore.read('waitAppContent')()
             .then(({ js, css }) => {
                 return new Promise<void>((resolve) => {
-                    collectCSS(options.theme, css.simpleCss, css.themedCss)
+                    aggregateCSS(options.theme, css.simpleCss, css.themedCss)
                         .then(() => { resolve(); })
                         .catch((error) => { onerror(error); resolve(); });
                 }).then(() => {
@@ -187,14 +189,6 @@ Object.defineProperty(Head, 'defaultProps', {
 });
 
 export default Head;
-
-function collectCSS(theme: string, styles: string[] = [], themes: string[] = []): Promise<string> {
-    const tc = getThemeController();
-    const gettingStyles = styles.filter((name) => !!name).map((name) => tc.get(name, EMPTY_THEME));
-    const gettingThemes = themes.filter((name) => !!name).map((name) => tc.get(name, theme, THEME_TYPE.SINGLE));
-    return Promise.all(gettingStyles.concat(gettingThemes)).then();
-
-}
 
 function onerror(e: Error): void {
     import('UI/Utils').then(({ Logger }) => { Logger.error(e.message); });
