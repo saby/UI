@@ -771,11 +771,11 @@ export default class WasabyEvents implements IWasabyEventSystem {
     }
 
     // TODO раскомментить после https://online.sbis.ru/opendoc.html?guid=450170bd-6322-4c3c-b6bd-3520ce3cba8a
-    // removeProcessiingEventHandler(eventName: string): any {
-    //     if (this._rootDOMNode.parentNode) {
-    //         this.removeHandler(eventName, false, true);
-    //     }
-    // }
+    removeProcessiingEventHandler(eventName: string): any {
+        if (this._rootDOMNode.parentNode) {
+            this.removeHandler(eventName, false, true);
+        }
+    }
 
     /**
      * Удаление обработчика на фазу захвата
@@ -785,33 +785,33 @@ export default class WasabyEvents implements IWasabyEventSystem {
      *  для самой системы событий, или же только для контролов.
      * Будет true, если необходим для системы событий.
      */
-    // private removeHandler(eventName: string, isBodyElement: boolean, processingHandler: boolean = false): void {
-    //     let elementToSubscribe;
-    //     let bodyEvent;
-    //     if (isBodyElement && EventUtils.isSpecialBodyEvent(eventName)) {
-    //         elementToSubscribe = this.__getWindowObject();
-    //         bodyEvent = true;
-    //     } else {
-    //         elementToSubscribe = this._rootDOMNode.parentNode;
-    //         bodyEvent = false;
-    //     }
-    //     const nativeEventName = EventUtils.fixUppercaseDOMEventName(eventName);
-    //     const handlers = this.capturedEventHandlers;
-    //     const handlerInfo = this.getHandlerInfo(eventName, processingHandler, bodyEvent);
-    //     if (handlerInfo !== null) {
-    //         if (!handlerInfo.processingHandler) {
-    //             if (handlerInfo.count === 1) {
-    //                 this.removeNativeListener(elementToSubscribe, handlerInfo.handler, nativeEventName, true);
-    //                 handlers[eventName].splice(handlers[eventName].indexOf(handlerInfo), 1);
-    //             } else {
-    //                 handlerInfo.count--;
-    //             }
-    //         } else if (processingHandler) {
-    //             this.removeNativeListener(elementToSubscribe, handlerInfo.handler, nativeEventName, true);
-    //             handlers[eventName].splice(handlers[eventName].indexOf(handlerInfo), 1);
-    //         }
-    //     }
-    // }
+    private removeHandler(eventName: string, isBodyElement: boolean, processingHandler: boolean = false): void {
+        let elementToSubscribe;
+        let bodyEvent;
+        if (isBodyElement && EventUtils.isSpecialBodyEvent(eventName)) {
+            elementToSubscribe = this.__getWindowObject();
+            bodyEvent = true;
+        } else {
+            elementToSubscribe = this._rootDOMNode.parentNode;
+            bodyEvent = false;
+        }
+        const nativeEventName = EventUtils.fixUppercaseDOMEventName(eventName);
+        const handlers = this.capturedEventHandlers;
+        const handlerInfo = this.getHandlerInfo(eventName, processingHandler, bodyEvent);
+        if (handlerInfo !== null) {
+            if (!handlerInfo.processingHandler) {
+                if (handlerInfo.count === 1) {
+                    this.removeNativeListener(elementToSubscribe, handlerInfo.handler, nativeEventName, true);
+                    handlers[eventName].splice(handlers[eventName].indexOf(handlerInfo), 1);
+                } else {
+                    handlerInfo.count--;
+                }
+            } else if (processingHandler) {
+                this.removeNativeListener(elementToSubscribe, handlerInfo.handler, nativeEventName, true);
+                handlers[eventName].splice(handlers[eventName].indexOf(handlerInfo), 1);
+            }
+        }
+    }
 
     private removeNativeListener(
         element: Node | Window,
