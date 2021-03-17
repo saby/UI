@@ -7,6 +7,7 @@ import Document from './Document';
 import AppData from './AppData';
 import Start from './Start';
 import BootstrapStart from './BootstrapStart';
+import BootstrapStartApplicationScript from './HTML/BootstrapStartApplicationScript';
 import HeadController from './HeadController';
 import HeadData, { headDataStore } from 'UI/_base/HeadData';
 import {DepsCollector} from './DepsCollector';
@@ -34,6 +35,7 @@ export {
    AppData,
    Start,
    BootstrapStart,
+   BootstrapStartApplicationScript,
    BaseRoute,
    HeadController,
    Creator,
