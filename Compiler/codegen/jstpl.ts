@@ -11,10 +11,11 @@ export const BODY = `if (typeof forceCompatible === 'undefined') {
     forceCompatible = false;
 }
 var markupGenerator = thelpers.createGenerator(isVdom, forceCompatible, generatorConfig);
-var filename = "/*#FILE_NAME#*/";
-var rk = thelpers.getRk(filename);
 var funcContext = thelpers.getContext(this);
+var scopeForTemplate, attrsForTemplate;
 /*#DELETE IT START#*/
+var filename = "/*#FILE_NAME#*/";
+/*#INITIALIZE_RK_FUNCTION#*/
 funcContext = data;
 if (typeof includedTemplates === "undefined") {
    eval("var includedTemplates = undefined;");
@@ -41,6 +42,7 @@ export const DEFINE = `define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEP
    function debug() {
       debugger;
    }
+   /*#GLOBAL_FILE_NAME#*/
    var thelpers = Executor.TClosure;
    var deps = Array.prototype.slice.call(arguments);
    var depsLocal = { };

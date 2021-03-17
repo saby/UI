@@ -99,9 +99,9 @@ export class Builder implements IBuilder {
                   inst.saveFullContext && inst.saveFullContext(ContextResolver.wrapContext(inst, scope.templateContext || {}));
                   if (AppInit.isInit()) {
                      let sr = AppEnv.getStateReceiver();
-                     sr && sr.register(scope.key, {
+                     sr && sr.register({ulid: scope.key, moduleName: inst._moduleName}, {
                         getState: function () {
-                           return { receivedState, moduleName: inst._moduleName };
+                           return receivedState;
                         },
                         setState: function () {
                         }

@@ -15,6 +15,12 @@ import { IOptions, Options } from './utils/Options';
 import { ModulePath } from './utils/ModulePath';
 
 /**
+ * Флаг - генерировать rk-функции
+ * @todo https://online.sbis.ru/opendoc.html?guid=ea8a25dd-5a2f-4330-8d6f-599c8c5878dd
+ */
+const USE_GENERATE_CODE_FOR_TRANSLATIONS = false;
+
+/**
  * Represents compiler interface.
  */
 export interface ICompiler {
@@ -108,6 +114,7 @@ interface IAST extends Array<Object> {
    reactiveProps: string[];
    templateNames: string[];
    __newVersion: boolean;
+   hasTranslations: boolean;
 }
 
 /**
@@ -134,6 +141,8 @@ interface ITraversed {
     * Collection of inline template names.
     */
    templateNames: string[];
+
+   hasTranslations: boolean;
 }
 
 /**
@@ -147,6 +156,7 @@ function fixTraversed(rawTraversed: IAST | { astResult: IAST; words: IDictionary
          ast: rawTraversed as IAST,
          localizedDictionary: [],
          templateNames: rawTraversed.templateNames,
+         hasTranslations: rawTraversed.hasTranslations,
          dependencies
       };
    }
@@ -154,6 +164,7 @@ function fixTraversed(rawTraversed: IAST | { astResult: IAST; words: IDictionary
       ast: rawTraversed.astResult as IAST,
       localizedDictionary: rawTraversed.words,
       templateNames: rawTraversed.astResult.templateNames,
+      hasTranslations: rawTraversed.astResult.hasTranslations,
       dependencies
    };
 }
@@ -187,8 +198,9 @@ abstract class BaseCompiler implements ICompiler {
     * @param deps Array of dependencies.
     * @param reactive Array of names of reactive variables.
     * @param path Template module path.
+    * @param hasTranslations Translation unit contains translation constructions.
     */
-   abstract generateModule(func: any, deps: string[], reactive: string[], path: ModulePath): string;
+   abstract generateModule(func: any, deps: string[], reactive: string[], path: ModulePath, hasTranslations: boolean): string;
 
    /**
     * Generate code for template.
@@ -196,12 +208,21 @@ abstract class BaseCompiler implements ICompiler {
     * @param options Compiler options.
     */
    generate(traversed: ITraversed, options: IOptions): string {
+      const codeGenOptions = {
+         ...options,
+         generateTranslations: (
+             options.generateCodeForTranslations && USE_GENERATE_CODE_FOR_TRANSLATIONS
+             || !USE_GENERATE_CODE_FOR_TRANSLATIONS
+         ) && traversed.hasTranslations
+      };
       // tslint:disable:prefer-const
-      let tmplFunc = codegenBridge.getFunction(traversed.ast, null, options, null);
+      let tmplFunc = codegenBridge.getFunction(traversed.ast, null, codeGenOptions, null);
       if (!tmplFunc) {
          throw new Error('Шаблон не может быть построен. Не загружены зависимости.');
       }
-      return this.generateModule(tmplFunc, traversed.dependencies, traversed.ast.reactiveProps, options.modulePath);
+      return this.generateModule(
+          tmplFunc, traversed.dependencies, traversed.ast.reactiveProps, options.modulePath, traversed.hasTranslations
+      );
    }
 
    /**
@@ -325,10 +346,11 @@ class CompilerTmpl extends BaseCompiler {
     * @param deps Array of dependencies.
     * @param reactive Array of names of reactive variables.
     * @param path Template module path.
+    * @param hasTranslations Translation unit contains translation constructions.
     */
-   generateModule(func: any, deps: string[], reactive: string[], path: ModulePath): string {
+   generateModule(func: any, deps: string[], reactive: string[], path: ModulePath, hasTranslations: boolean): string {
       return templates.generateTmplDefine(
-         path.module, path.extension, func, deps, reactive
+         path.module, path.extension, func, deps, reactive, hasTranslations
       );
    }
 }
@@ -371,10 +393,11 @@ class CompilerWml extends BaseCompiler {
     * @param deps Array of dependencies.
     * @param reactive Array of names of reactive variables.
     * @param path Template module path.
+    * @param hasTranslations Translation unit contains translation constructions.
     */
-   generateModule(func: any, deps: string[], reactive: string[], path: ModulePath): string {
+   generateModule(func: any, deps: string[], reactive: string[], path: ModulePath, hasTranslations: boolean): string {
       const module = templates.generateDefine(
-         path.module, path.extension, func, deps, reactive
+         path.module, path.extension, func, deps, reactive, hasTranslations
       );
       return templates.clearSourceFromDeprecated(module);
    }
