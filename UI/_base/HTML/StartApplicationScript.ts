@@ -14,6 +14,10 @@ class StartApplicationScript extends Control {
    _template: Function = template;
    private additionalDeps: string[] = [];
    protected isIE: boolean = detection.isIE;
+   // идентификатор dom-элемента, от которого строится верстка
+   protected rootId: string = 'root';
+   // название функции ,которое запускает оживление верстки
+   protected StartFunction: string = 'Start';
 
    // tslint:disable-next-line:no-any
    _beforeMount(): Promise<any> {
