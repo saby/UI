@@ -83,10 +83,10 @@ export default class WasabyEvents implements IWasabyEventSystem {
     }
 
     private initProcessingHandlers(): void {
-        this.addCaptureProcessingHandler('click', this._handleClick);
-        this.addCaptureProcessingHandler('touchstart', this._handleTouchstart);
-        this.addCaptureProcessingHandler('touchmove', this._handleTouchmove);
-        this.addCaptureProcessingHandler('touchend', this._handleTouchend);
+        this.addCaptureProcessingHandler('click', this._handleClick, this);
+        this.addCaptureProcessingHandler('touchstart', this._handleTouchstart, this);
+        this.addCaptureProcessingHandler('touchmove', this._handleTouchmove, this);
+        this.addCaptureProcessingHandler('touchend', this._handleTouchend, this);
     }
 
     private initEventSystemFixes() {

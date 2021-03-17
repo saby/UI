@@ -89,9 +89,9 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
    }
 
    private initFocusHandlers(): any {
-      this.eventSystem.handleSpecialEvent('focus', this._handleFocusEvent);
-      this.eventSystem.handleSpecialEvent('blur', this._handleBlurEvent);
-      this.eventSystem.handleSpecialEvent('mousedown', this._handleMouseDown);
+      this.eventSystem.handleSpecialEvent('focus', this._handleFocusEvent, this);
+      this.eventSystem.handleSpecialEvent('blur', this._handleBlurEvent, this);
+      this.eventSystem.handleSpecialEvent('mousedown', this._handleMouseDown, this);
    }
 
    private __initBodyTabIndex(): any {
