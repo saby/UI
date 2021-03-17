@@ -345,102 +345,11 @@ export default class WasabyEvents implements IWasabyEventSystem {
             // это связанно с тем, что мы пытаемся игнорировать нативную задержку в 300 мс
             // поэтому для событий которые мы выстрелим руками повторный вызов не нужен
             return false;
-        } else if (!this.isMyDOMEnvironment(environment, event)) {
+        } else if (!isMyDOMEnvironment(environment, event)) {
             return false;
         }
 
         return true;
-    }
-
-    /*
-    * Checks if event.target is a child of current DOMEnvironment
-    * @param env
-    * @param event
-    */
-    private isMyDOMEnvironment(env: IDOMEnvironment, event: Event): boolean {
-        let element = event.target as any;
-        if (element === window || element === document) {
-            return true;
-        }
-        const isCompatibleTemplate = requirejs.defined('OnlineSbisRu/CompatibleTemplate');
-        while (element) {
-            // для страниц с CompatibleTemplate вся обработка в checkSameEnvironment
-            if (element === env._rootDOMNode && !isCompatibleTemplate) {
-                return true;
-            }
-            // встретили controlNode - нужно принять решение
-            if (element.controlNodes && element.controlNodes[0]) {
-                return this.checkSameEnvironment(env, element, isCompatibleTemplate);
-            }
-            if (element === document.body) {
-                element = document.documentElement;
-            } else if (element === document.documentElement) {
-                element = document;
-            } else {
-                element = element.parentNode;
-            }
-        }
-        return false;
-    }
-
-    private checkSameEnvironment(env: IDOMEnvironment, element: IWasabyHTMLElement, isCompatibleTemplate: boolean): boolean {
-        // todo костыльное решение, в случае CompatibleTemplate нужно всегда работать с верхним окружением (которое на html)
-        // на ws3 страницах, переведенных на wasaby-окружение при быстром открытие/закртые окон не успевается полностью
-        // задестроится окружение (очищается пурификатором через 10 сек), поэтому следует проверить env на destroy
-        // @ts-ignore
-        if (isCompatibleTemplate && !env._destroyed) {
-            const htmlEnv = env._rootDOMNode.tagName.toLowerCase() === 'html';
-            if (element.controlNodes[0].environment === env && !htmlEnv) {
-                // FIXME: 1. проблема в том, что обработчики событий могут быть только на внутреннем окружении,
-                // в таком случае мы должны вызвать его с внутреннего окружения.
-                // FIXME: 2. обработчик может быть на двух окружениях, будем определять где он есть и стрелять
-                // с внутреннего окружения, если обработчика нет на внешнем
-                let hasHandlerOnEnv = false;
-                let eventIndex;
-                // проверяем обработчики на внутреннем окружении
-                // если processingHandler === false, значит подписка была через on:event
-                let currentCaptureEvent = env.showCapturedEvents()[event.type];
-                for (eventIndex = 0; eventIndex < currentCaptureEvent.length; eventIndex++) {
-                    // нашли подписку через on:, пометим, что что на внутреннем окружении есть подходящий обработчик
-                    if (!currentCaptureEvent[eventIndex].processingHandler) {
-                        hasHandlerOnEnv = true;
-                    }
-                }
-                // Если обработчика на внутреннем окружении то ничего дальше не делаем
-                if (!hasHandlerOnEnv) {
-                    return hasHandlerOnEnv;
-                }
-                // Следует определить есть ли обработчики на внешнем окружении
-                let _element: any = element;
-                while (_element.parentNode) {
-                    _element = _element.parentNode;
-                    // проверяем на наличие controlNodes на dom-элементе
-                    if (_element.controlNodes && _element.controlNodes[0]) {
-                        // нашли самое верхнее окружение
-                        if (_element.controlNodes[0].environment._rootDOMNode.tagName.toLowerCase() === 'html') {
-                            // проверяем, что такой обработчик есть
-                            if (typeof _element.controlNodes[0].environment.showCapturedEvents()[event.type] !== 'undefined') {
-                                // обработчик есть на двух окружениях. Следует проанализировать обработчики на обоих окружениях
-                                currentCaptureEvent = _element.controlNodes[0].environment.showCapturedEvents()[event.type];
-                                let hasHandlerOnTopEnv = false;
-                                // проверяем обработчики на внешнем окружении
-                                for (eventIndex = 0; eventIndex < currentCaptureEvent.length; eventIndex++) {
-                                    // нашли подписку через on:, пометим, что что на внешнем окружении есть подходящий обработчик
-                                    if (!currentCaptureEvent[eventIndex].processingHandler) {
-                                        hasHandlerOnTopEnv = true;
-                                    }
-                                }
-                                // если обработчик есть на двух окружениях, то ничего не делаем
-                                return !hasHandlerOnTopEnv && hasHandlerOnEnv;
-                            }
-                            return hasHandlerOnEnv;
-                        }
-                    }
-                }
-            }
-            return htmlEnv;
-        }
-        return element.controlNodes[0].environment === env;
     }
     //#endregion
 
@@ -786,7 +695,7 @@ export default class WasabyEvents implements IWasabyEventSystem {
     private addCaptureProcessingHandler(eventName: string, method: Function, context?: unknown): void {
         if (this._rootDOMNode.parentNode) {
             const handler = function(e: Event): void {
-                if (!this.isMyDOMEnvironment(this, e)) {
+                if (!isMyDOMEnvironment(this, e)) {
                     return;
                 }
                 method.apply(context, arguments);
@@ -1049,4 +958,95 @@ export default class WasabyEvents implements IWasabyEventSystem {
         this.capturedEventHandlers = {};
         this._handleTabKey = undefined;
     }
+}
+
+/*
+  * Checks if event.target is a child of current DOMEnvironment
+  * @param env
+  * @param event
+  */
+function isMyDOMEnvironment(env: IDOMEnvironment, event: Event): boolean {
+    let element = event.target as any;
+    if (element === window || element === document) {
+        return true;
+    }
+    const isCompatibleTemplate = requirejs.defined('OnlineSbisRu/CompatibleTemplate');
+    while (element) {
+        // для страниц с CompatibleTemplate вся обработка в checkSameEnvironment
+        if (element === env._rootDOMNode && !isCompatibleTemplate) {
+            return true;
+        }
+        // встретили controlNode - нужно принять решение
+        if (element.controlNodes && element.controlNodes[0]) {
+            return checkSameEnvironment(env, element, isCompatibleTemplate);
+        }
+        if (element === document.body) {
+            element = document.documentElement;
+        } else if (element === document.documentElement) {
+            element = document;
+        } else {
+            element = element.parentNode;
+        }
+    }
+    return false;
+}
+
+function checkSameEnvironment(env: IDOMEnvironment, element: IWasabyHTMLElement, isCompatibleTemplate: boolean): boolean {
+    // todo костыльное решение, в случае CompatibleTemplate нужно всегда работать с верхним окружением (которое на html)
+    // на ws3 страницах, переведенных на wasaby-окружение при быстром открытие/закртые окон не успевается полностью
+    // задестроится окружение (очищается пурификатором через 10 сек), поэтому следует проверить env на destroy
+    // @ts-ignore
+    if (isCompatibleTemplate && !env._destroyed) {
+        const htmlEnv = env._rootDOMNode.tagName.toLowerCase() === 'html';
+        if (element.controlNodes[0].environment === env && !htmlEnv) {
+            // FIXME: 1. проблема в том, что обработчики событий могут быть только на внутреннем окружении,
+            // в таком случае мы должны вызвать его с внутреннего окружения.
+            // FIXME: 2. обработчик может быть на двух окружениях, будем определять где он есть и стрелять
+            // с внутреннего окружения, если обработчика нет на внешнем
+            let hasHandlerOnEnv = false;
+            let eventIndex;
+            // проверяем обработчики на внутреннем окружении
+            // если processingHandler === false, значит подписка была через on:event
+            let currentCaptureEvent = env.showCapturedEvents()[event.type];
+            for (eventIndex = 0; eventIndex < currentCaptureEvent.length; eventIndex++) {
+                // нашли подписку через on:, пометим, что что на внутреннем окружении есть подходящий обработчик
+                if (!currentCaptureEvent[eventIndex].processingHandler) {
+                    hasHandlerOnEnv = true;
+                }
+            }
+            // Если обработчика на внутреннем окружении то ничего дальше не делаем
+            if (!hasHandlerOnEnv) {
+                return hasHandlerOnEnv;
+            }
+            // Следует определить есть ли обработчики на внешнем окружении
+            let _element: any = element;
+            while (_element.parentNode) {
+                _element = _element.parentNode;
+                // проверяем на наличие controlNodes на dom-элементе
+                if (_element.controlNodes && _element.controlNodes[0]) {
+                    // нашли самое верхнее окружение
+                    if (_element.controlNodes[0].environment._rootDOMNode.tagName.toLowerCase() === 'html') {
+                        // проверяем, что такой обработчик есть
+                        if (typeof _element.controlNodes[0].environment.showCapturedEvents()[event.type] !== 'undefined') {
+                            // обработчик есть на двух окружениях. Следует проанализировать обработчики на обоих окружениях
+                            currentCaptureEvent = _element.controlNodes[0].environment.showCapturedEvents()[event.type];
+                            let hasHandlerOnTopEnv = false;
+                            // проверяем обработчики на внешнем окружении
+                            for (eventIndex = 0; eventIndex < currentCaptureEvent.length; eventIndex++) {
+                                // нашли подписку через on:, пометим, что что на внешнем окружении есть подходящий обработчик
+                                if (!currentCaptureEvent[eventIndex].processingHandler) {
+                                    hasHandlerOnTopEnv = true;
+                                }
+                            }
+                            // если обработчик есть на двух окружениях, то ничего не делаем
+                            return !hasHandlerOnTopEnv && hasHandlerOnEnv;
+                        }
+                        return hasHandlerOnEnv;
+                    }
+                }
+            }
+        }
+        return htmlEnv;
+    }
+    return element.controlNodes[0].environment === env;
 }
