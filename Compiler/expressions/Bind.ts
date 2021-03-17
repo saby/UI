@@ -3,7 +3,7 @@
  * @author Крылов М.А.
  */
 
-import { BindExpressionVisitor } from './Nodes';
+import { BindExpressionVisitor } from 'Compiler/codegen/Expression';
 import { EventNode } from './EventNode';
 import { EventChain } from './EventChain';
 import { IAttributeValue } from './IAttributeValue';

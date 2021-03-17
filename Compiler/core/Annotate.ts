@@ -12,7 +12,7 @@ import {
    IProgramMeta,
    SpecialProgramType
 } from 'Compiler/core/Context';
-import { CallExpressionNode, IdentifierNode, ProgramNode, Walker } from 'Compiler/expressions/Nodes';
+import * as Walkers from 'Compiler/expressions/Walkers';
 
 // <editor-fold desc="Public interfaces and functions">
 
@@ -227,7 +227,7 @@ function getElementName(element: Ast.BaseHtmlElement): string | null {
       return getStringValueFromText(element.__$ws_attributes['attr:name'].__$ws_value);
    }
    if (element.__$ws_attributes.hasOwnProperty('name')) {
-      return getStringValueFromText(element.__$ws_attributes['name'].__$ws_value);
+      return getStringValueFromText(element.__$ws_attributes.name.__$ws_value);
    }
    return null;
 }
@@ -261,29 +261,9 @@ function getComponentName(component: Ast.BaseWasabyElement): string | null {
       return getStringValueFromData(component.__$ws_options['attr:name'].__$ws_value);
    }
    if (component.__$ws_options.hasOwnProperty('name')) {
-      return getStringValueFromData(component.__$ws_options['name'].__$ws_value);
+      return getStringValueFromData(component.__$ws_options.name.__$ws_value);
    }
    return null;
-}
-
-function containsTranslationFunction(program: ProgramNode, fileName: string): boolean {
-   let containsTranslation: boolean = false;
-   const callbacks = {
-      CallExpression: (node: CallExpressionNode): void => {
-         const callee = node.callee;
-         if (!(callee instanceof IdentifierNode)) {
-            return;
-         }
-         if (callee.name === 'rk') {
-            containsTranslation = true;
-         }
-      }
-   };
-   const walker = new Walker(callbacks);
-   program.accept(walker, {
-      fileName
-   });
-   return containsTranslation;
 }
 
 // </editor-fold>
@@ -301,7 +281,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
    annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree {
       const childrenStorage: string[] = [];
       const global = createGlobalContext();
-      const counters = new Counters;
+      const counters = new Counters();
       nodes.forEach((node: Ast.Ast) => {
          const lexicalContext = global.createContext({
             type: ContextType.INTERMEDIATE
@@ -327,7 +307,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          appendInternalExpressions(node.__$ws_internal, lexicalContext.getInternalPrograms());
       });
       const reactiveProperties: string[] = global.getOwnIdentifiers();
-      const result = <IAnnotatedTree>nodes;
+      const result = nodes as IAnnotatedTree;
       result.lexicalContext = global;
       result.childrenStorage = childrenStorage;
       result.reactiveProps = reactiveProperties;
@@ -626,7 +606,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
     */
    visitExpression(node: Ast.ExpressionNode, context: IContext): void {
       context.lexicalContext.registerProgram(node.__$ws_program);
-      if (containsTranslationFunction(node.__$ws_program, FILE_NAME)) {
+      if (Walkers.containsTranslationFunction(node.__$ws_program, FILE_NAME)) {
          context.scope.setDetectedTranslation();
       }
    }
@@ -767,7 +747,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       const afterInternalNodes: Ast.Ast[] = [];
       for (const name in node.__$ws_options) {
          const option = node.__$ws_options[name];
-         if (option.__$ws_name === "scope") {
+         if (option.__$ws_name === 'scope') {
             option.accept(this, context);
             continue;
          }

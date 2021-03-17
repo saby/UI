@@ -3,11 +3,10 @@
  * @author Крылов М.А.
  */
 
-import { EventExpressionVisitor } from './Nodes';
-import {EventNode} from "./EventNode";
-import {EventChain} from "./EventChain";
-import {IAttributeValue} from "./IAttributeValue";
-
+import { EventExpressionVisitor } from 'Compiler/codegen/Expression';
+import { EventNode } from './EventNode';
+import { EventChain } from './EventChain';
+import { IAttributeValue } from './IAttributeValue';
 import * as FSC from 'Compiler/modules/data/utils/functionStringCreator';
 
 /**
@@ -57,8 +56,8 @@ export function processEventAttribute(
          args: eventArguments,
          value: artifact.handlerName,
          viewController: FSC.wrapAroundExec('viewController'),
-         handler: handler,
-         isControl: isControl,
+         handler,
+         isControl,
          context: FSC.wrapAroundExec('(function(){ return ' + artifact.context + '; })')
       }));
    return chain;
