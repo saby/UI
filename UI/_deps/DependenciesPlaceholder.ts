@@ -1,13 +1,16 @@
 /// <amd-module name="UI/_deps/DependenciesPlaceholder" />
 
-import { ICollectedDeps } from "UI/_base/DepsCollector";
+import { cookie } from "Env/Env";
 import { EMPTY_THEME, getThemeController, THEME_TYPE } from "UI/theme/controller";
 import { getResourceUrl } from 'UI/Utils';
 import { headDataStore } from 'UI/Base';
 import { JSLinks as AppJSLinks } from 'Application/Page';
 import { handlePrefetchModules } from 'UI/_base/HTML/PrefetchLinks';
+import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
+
 import { IHTMLOptions } from '../_base/interface/IHTML';
 import { IRootTemplateOptions } from '../_base/interface/IRootTemplate';
+import { ICollectedDeps } from 'UI/_base/HeadData';
 
 interface IOptions extends IHTMLOptions, IRootTemplateOptions {};
 
@@ -43,6 +46,41 @@ function addBaseScripts(cfg: IOptions): void {
    }
 }
 
+function resolveLink(path: string, type: string = ''): string {
+   return ModulesLoader.getModuleUrl(type ? `${type}!${path}` : path, cookie.get('s3debug'));
+}
+
+/**
+ * Наполняем JSLinks API собранными зависимостями
+ * @param deps
+ */
+export function aggregateJS(deps: ICollectedDeps): void {
+   const  API = AppJSLinks.getInstance();
+
+   deps.js.map((js) => this.resolveLink(js))
+      .concat(deps.scripts)
+      .concat(deps.tmpl.map((rawLink) => resolveLink(rawLink, 'tmpl')))
+      .concat(deps.wml.map((rawLink) => resolveLink(rawLink, 'wml')))
+      .forEach((link, i) => {
+         API.createTag('script', {
+            type: 'text/javascript',
+            src: link,
+            defer: 'defer',
+            key: `scripts_${i}`
+         });
+      });
+
+   ['rsSerialized', 'rtpackModuleNames'].forEach((key) => {
+      if (deps[key]) {
+         API.createTag(
+            'script',
+            { type: 'text/javascript' },
+            `window['${key}']='${deps[key]}';`
+         );
+      }
+   });
+}
+
 export function aggregateCSS(theme: string, styles: string[] = [], themes: string[] = []): Promise<string> {
    const tc = getThemeController();
    const gettingStyles = styles.filter((name) => !!name).map((name) => tc.get(name, EMPTY_THEME));
@@ -53,10 +91,21 @@ export function aggregateCSS(theme: string, styles: string[] = [], themes: strin
 /** Пространство имен для хранения базовых зависимостей страницы. Их важно указывать первыми. */
 export const BASE_DEPS_NAMESPACE: string = 'baseDeps';
 
-export function aggregateDependencies(cfg: IOptions): void {
+export function aggregateDependencies(cfg: IOptions): ICollectedDeps {
    const deps = headDataStore.read('collectDependencies')();
 
+   /**
+    * Порядок следующий:
+    * aggregateCSS - стили для страницы. Лежат в <head>.
+    *    Пусть лучше страница потупит от запоздалых JS, чем будет дергаться от запоздалых CSS
+    * handlePrefetchModules - добавляет в <head> ресурсы для предзагрузки. На основной поток не влияют.
+    * addBaseScripts - базовые скрипты приложения. Их 5. Без них даже RequireJS не заведется
+    * aggregateJS
+    */
+   aggregateCSS(cfg.theme, deps.css.simpleCss, deps.css.themedCss);
    handlePrefetchModules(deps.js);
    addBaseScripts(cfg);
-   aggregateCSS(cfg.theme, deps.css.simpleCss, deps.css.themedCss);
+   aggregateJS(deps);
+
+   return deps;
 }
