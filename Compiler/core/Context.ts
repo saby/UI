@@ -182,15 +182,6 @@ function isForbiddenIdentifier(name: string): boolean {
 
 // </editor-fold>
 
-// <editor-fold desc="Mustache expression functions">
-
-function canRegisterProgram(program: ProgramNode): boolean {
-   // Do not register program with decorators
-   return !Walkers.hasDecorators(program, FILE_NAME);
-}
-
-// </editor-fold>
-
 // <editor-fold desc="Program storage">
 
 declare type TZipProgramFunction = (description: IProgramDescription, index?: number) => IProgramMeta;
@@ -444,7 +435,7 @@ class LexicalContext implements ILexicalContext {
    }
 
    private applyProgram(program: ProgramNode, isSynthetic: boolean): TProgramKey {
-      if (!canRegisterProgram(program)) {
+      if (Walkers.hasDecorators(program, FILE_NAME)) {
          return null;
       }
       if (!this.processIdentifiers(program)) {

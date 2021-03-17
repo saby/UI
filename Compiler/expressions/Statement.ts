@@ -4,6 +4,7 @@
  * @author Крылов М.А.
  */
 
+import { Parser } from './Parser';
 import { ProgramNode } from './Nodes';
 
 export class BaseNode {
@@ -55,4 +56,11 @@ export class LocalizationNode extends BaseNode {
 
 export function isStaticString(data: string): boolean {
    return !!(data && data.indexOf('{{') === -1);
+}
+
+/**
+ * @deprecated
+ */
+export function processProperty(property: string): VariableNode {
+   return new VariableNode(new Parser().parse(property), false, '');
 }

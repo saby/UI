@@ -337,7 +337,7 @@ export class Container {
     }
 
     private applyProgram(program: ProgramNode, type: ProgramType, name: string | null, isSynthetic: boolean): void {
-        if (!Walkers.hasDecorators(program, FILE_NAME)) {
+        if (Walkers.hasDecorators(program, FILE_NAME)) {
             return;
         }
         if (!this.processIdentifiers(program)) {
