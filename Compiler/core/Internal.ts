@@ -259,6 +259,31 @@ function dropBindProgram(program: ProgramNode, parser: IParser, fileName: string
    return programs.slice(-2);
 }
 
+function processInternalMeta(node: InternalNode, storage: Set<string>): void {
+   const meta = node.storage.getMeta();
+   for (let index = 0; index < meta.length; ++index) {
+      const expression = meta[index].node.string;
+      if (storage.has(expression)) {
+         node.storage.remove(meta[index]);
+         continue;
+      }
+      storage.add(expression);
+   }
+}
+
+function optimizeInternal(node: InternalNode, storage: Set<string>): void {
+   processInternalMeta(node, storage);
+   for (let index = 0; index < node.children.length; ++index) {
+      const child = node.children[index];
+      const childStorage = child.type === InternalNodeType.BLOCK ? storage : new Set<string>(storage);
+      optimizeInternal(child, childStorage);
+   }
+}
+
+function optimize(node: InternalNode): void {
+   return optimizeInternal(node, new Set<string>());
+}
+
 class ProgramStorage {
    private readonly programs: IProgramMeta[];
    private readonly programsMap: Map<string, number>;
@@ -338,7 +363,6 @@ interface ICollectorOptions {
    rootIndex: number;
    depth: number;
    allocator: IndexAllocator;
-   indices: Set<number>;
    removeSelfIdentifiers: boolean;
 }
 
@@ -450,15 +474,15 @@ class Container {
 
    getInternalStructure(removeSelfIdentifiers: boolean = false): InternalNode {
       const allocator = new IndexAllocator(this.getCurrentProgramIndex());
-      const indices = new Set<number>();
       const options: ICollectorOptions = {
          rootIndex: this.index,
          depth: 0,
          allocator,
-         indices,
          removeSelfIdentifiers
       };
-      return this.collectInternalStructure(options);
+      const node = this.collectInternalStructure(options);
+      optimize(node);
+      return node;
    }
 
    commitCode(index: number, code: string): void {
@@ -495,7 +519,6 @@ class Container {
       const childrenOptions: ICollectorOptions = {
          rootIndex: options.rootIndex,
          allocator: options.allocator,
-         indices: options.indices,
          removeSelfIdentifiers: options.removeSelfIdentifiers,
          depth: options.depth + 1
       };
@@ -552,11 +575,7 @@ class Container {
          });
       }
       for (let index = 0; index < selfPrograms.length; ++index) {
-         if (options.indices.has(selfPrograms[index].index)) {
-            continue;
-         }
          node.storage.set(selfPrograms[index]);
-         options.indices.add(selfPrograms[index].index);
       }
       return node;
    }
@@ -815,22 +834,10 @@ export class InternalNode {
       if (this.next === null) {
          return;
       }
-      this.next.removeSiblingConditional(this);
-   }
-
-   private removeSiblingConditional(parent: InternalNode, counter: number = 0): void {
-      if (counter === 0) {
-         if (this.type === InternalNodeType.ELSE_IF) {
-            this.setType(InternalNodeType.IF);
-         } else if (this.type === InternalNodeType.ELSE) {
-            this.setType(InternalNodeType.BLOCK);
-         } else {
-            return;
-         }
-      }
-      parent.children.push(this);
-      if (this.next) {
-         this.next.removeSiblingConditional(parent, counter + 1);
+      if (this.next.type === InternalNodeType.ELSE_IF) {
+         this.next.setType(InternalNodeType.IF);
+      } else if (this.next.type === InternalNodeType.ELSE) {
+         this.next.setType(InternalNodeType.BLOCK);
       }
    }
 
