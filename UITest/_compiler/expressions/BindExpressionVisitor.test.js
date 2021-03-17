@@ -1,18 +1,27 @@
 /* global describe, it, assert */
 define([
    'Compiler/expressions/Statement',
-   'Compiler/expressions/Bind'
-], function(StatementLib, BindLib) {
+   'Compiler/expressions/Bind',
+   'Compiler/expressions/Parser'
+], function(StatementLib, BindLib, ParserLib) {
    'use strict';
 
    /**
     * TODO: распутать кодогенерацию и убрать завязку тестов на результат кодогенерации.
     */
 
+   var EMPTY_STRING = '';
+
+   var PARSER = new ParserLib.Parser();
+
+   function processProperty(property) {
+      return new StatementLib.VariableNode(PARSER.parse(property), false, EMPTY_STRING);
+   }
+
    function process(text) {
       return BindLib.visitBindExpressionNew(
          {
-            data: [StatementLib.processProperty(text)]
+            data: [processProperty(text)]
          },
          null,
          'WSUnit/tmpl/BindExpressionVisitor.test.wml',
