@@ -169,16 +169,29 @@ function containsIdentifiers(program: ProgramNode, identifiers: string[], fileNa
    return hasLocalIdentifier;
 }
 
-function hasBindings(program: ProgramNode): boolean {
-   if (typeof program.string !== 'string') {
-      return false;
-   }
-   return program.string.indexOf('|mutable') > -1 || program.string.indexOf('|bind') > -1;
+function hasDecorators(program: ProgramNode): boolean {
+   let contains = false;
+   const callbacks = {
+      DecoratorChainCall: (): void => {
+         contains = true;
+      },
+      DecoratorChainContext: (): void => {
+         contains = true;
+      },
+      DecoratorCall: (): void => {
+         contains = true;
+      }
+   };
+   const walker = new Walker(callbacks);
+   program.accept(walker, {
+      fileName: FILE_NAME
+   });
+   return contains;
 }
 
 function canRegisterProgram(program: ProgramNode): boolean {
-   // Do not register program with bind and mutable decorators
-   return !hasBindings(program);
+   // Do not register program with decorators
+   return !hasDecorators(program);
 }
 
 function isForbiddenIdentifier(name: string): boolean {
