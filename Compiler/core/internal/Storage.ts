@@ -1,3 +1,7 @@
+/**
+ * @author Крылов М.А.
+ */
+
 import { ProgramNode } from 'Compiler/expressions/Nodes';
 
 export interface IProgramMeta {

@@ -1,3 +1,7 @@
+/**
+ * @author Крылов М.А.
+ */
+
 import { ProgramNode } from 'Compiler/expressions/Nodes';
 import { IProgramMeta, ProgramType, ProgramStorage, createProgramMeta } from './Storage';
 import * as Walkers from 'Compiler/expressions/Walkers';
@@ -355,8 +359,7 @@ export class Container {
         const programs = Walkers.dropBindProgram(program, PARSER, FILE_NAME);
         for (let index = 0; index < programs.length; ++index) {
             const isSynthetic = index + 1 < programs.length;
-            const program = programs[index];
-            this.applyProgram(program, type, name, isSynthetic);
+            this.applyProgram(programs[index], type, name, isSynthetic);
         }
     }
 

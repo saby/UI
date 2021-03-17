@@ -1,3 +1,7 @@
+/**
+ * @author Крылов М.А.
+ */
+
 import { createErrorHandler } from 'Compiler/utils/ErrorHandler';
 import { getDotsScopeSubstitution } from 'Compiler/codegen/Compatible';
 import { genDecorate, genGetter, genSetter } from 'Compiler/codegen/TClosure';
