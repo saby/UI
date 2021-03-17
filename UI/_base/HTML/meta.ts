@@ -1,7 +1,6 @@
 /// <amd-module name="UI/_base/HTML/meta" />
 /**
  * Библиотека контроллера meta тегов страницы
- * @remark
  * @library UI/_base/HTML/meta
  * @includes getMetaStack getMetaStack
  * @public
