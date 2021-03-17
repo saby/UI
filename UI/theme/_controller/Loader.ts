@@ -4,7 +4,10 @@ import LinkResolver from "./LinkResolver";
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { EMPTY_THEME, CSS_MODULE_PREFIX } from './css/const';
-import { ModulesLoader } from 'UI/Utils';
+import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
+// @ts-ignore
+import { memoize } from 'Types/function';
+
 type IConfig = {
    buildnumber: string,
    wsRoot: string,
@@ -23,7 +26,7 @@ export default class Loader implements ICssLoader {
       }
       // на клиенте require css! иногда начинается раньше инициализации core-init, поэтому
       // смотрим сразу wsConfig
-      // TODO убрать после завершения проекта Единая точка старта приложения 
+      // TODO убрать после завершения проекта Единая точка старта приложения
       // https://online.sbis.ru/opendoc.html?guid=0f2cfb1c-d0b0-41dc-9fdc-c9fa004ac6d8
       const wsConfig: IConfig = window?.['wsConfig'] || {};
       this.lr = new LinkResolver(isDebug,
@@ -32,9 +35,11 @@ export default class Loader implements ICssLoader {
          wsConfig.appRoot || appRoot,
          wsConfig.resourceRoot || resourceRoot
       );
+      this.getHref = memoize(this.getHref);
    }
 
-   getHref(name: string, theme: string): string {
+   getHref(initialName: string, theme: string): string {
+      let name: string = initialName;
       if (name.indexOf('.css') !== -1) {
          return name;
       }
@@ -47,6 +52,16 @@ export default class Loader implements ICssLoader {
           */
          if (constants.isServerSide) {
             return this.lr.resolveLink(name, { ext: 'css' });
+         }
+         /**
+          * Если нет слешей и заканчивается на .package, то можно добавить превикс из wsConfig
+          * Например: online-page-superbuindle.package
+          * надо превратить в /resources/online-page-superbuindle.package
+          * TODO: Исправится после https://online.sbis.ru/doc/46e18aa9-31a9-418c-9ac1-b15db1de43ce
+          */
+         if (!name.includes('/') && name.endsWith('.package')) {
+            const wsConfig: IConfig = window?.['wsConfig'] || {};
+            name = `${wsConfig.resourceRoot}${name}`;
          }
          return ModulesLoader.getModuleUrl(CSS_MODULE_PREFIX + name);
       }

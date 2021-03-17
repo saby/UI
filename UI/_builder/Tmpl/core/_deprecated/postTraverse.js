@@ -10,9 +10,19 @@ define('UI/_builder/Tmpl/core/_deprecated/postTraverse', [
    var uniqueArray = Utils.ArrayUtils.uniq;
 
    /**
+    * @deprecated
+    * @description Модуль предназначен для аннотации дерева - проставления internal коллекций
+    *    и сбора реактивных свойств (старый алгоритм)
     * @author Крылов М.А.
+    * @file UI/_builder/Tmpl/core/_deprecated/postTraverse.js
     */
 
+   /**
+    * Get elements.
+    * @param element {*} Current element.
+    * @param realFrom {*} From element.
+    * @returns {{from: *, element: *}}
+    */
    function getElementAndFrom(element, realFrom) {
       var from = element.from;
       var currentElement = element.element;
@@ -26,6 +36,12 @@ define('UI/_builder/Tmpl/core/_deprecated/postTraverse', [
       };
    }
 
+   /**
+    * Get parent array.
+    * @param elements {[]} Elements collection.
+    * @param child {*} Current child.
+    * @returns {[]}
+    */
    function getParentArray(elements, child) {
       var forMove = [];
       var minDepsEl = child[elements[0].control];
@@ -50,6 +66,9 @@ define('UI/_builder/Tmpl/core/_deprecated/postTraverse', [
       return forMove;
    }
 
+   /**
+    * Process elements.
+    */
    function compositeProcessing(traversed, _hocs, _childMap, _deps, from) {
       var childMap = _childMap || {};
       var deps = _deps || 0;
@@ -134,6 +153,9 @@ define('UI/_builder/Tmpl/core/_deprecated/postTraverse', [
       return modAST;
    }
 
+   /**
+    * Process ast tree.
+    */
    return function resulting(deferred, data) {
       if (data) {
          var astResult = actionOnMainArray([], data);

@@ -118,10 +118,10 @@ function fixNotifyArguments(env: IDOMEnvironment,
  * @param isTabPressed - true, если фокус перешел по нажатию tab
  */
 
-export function notifyActivationEvents(env: IDOMEnvironment,
-                                       target: Element,
+export function notifyActivationEvents(target: Element,
                                        relatedTarget: Element,
-                                       isTabPressed: TTabPressesd): boolean | void {
+                                       env?: IDOMEnvironment,
+                                       isTabPressed?: TTabPressesd): boolean | void {
    [target, relatedTarget, isTabPressed] = fixNotifyArguments(env, target, relatedTarget, isTabPressed);
    if (detectStrangeElement(target)) {
       return;
@@ -206,8 +206,8 @@ export function notifyActivationEvents(env: IDOMEnvironment,
 
    prevControl = null;
    // Меняем состояние у тех компонентов, которые реально получили активность
+   let found = undefined;
    arrayMaker.find(function (control) {
-      let found = undefined;
       if (control !== mutualTarget) {
          // не стреляем событием для HOC, события сейчас так работают что если
          // стрельнем событием на контроле, обработчик позовутся и для контрола, и для его хоков.
@@ -233,9 +233,10 @@ export function notifyActivationEvents(env: IDOMEnvironment,
 
       return found;
    });
-
-   let environment = findClosestEnvironment(target);
-   if(environment) {
-      compatibleActivationEvents(environment, arrayMaker);
+   if (!found) {
+      let environment = findClosestEnvironment(target);
+      if (environment) {
+         compatibleActivationEvents(environment, arrayMaker);
+      }
    }
 }

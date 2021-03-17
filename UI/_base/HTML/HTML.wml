@@ -4,6 +4,7 @@
 
 <ws:template name="bodyTemplate">
    <body id="body" key="body-el">
+      <a class="vdom-focus-in" tabindex="1" attr:key="vdom-focus-in"></a>
       <div id="wasaby-content" style="width: inherit; height: inherit;">
          <ws:if data="{{isCompatible}}">
             <div class="ws-focus-in"></div>
@@ -72,6 +73,7 @@
             <ws:partial template="{{ body }}" />
          </ws:if>
       </div>
+      <a class="vdom-focus-out" tabindex="0" attr:key="vdom-focus-out"></a>
    </body>
 </ws:template>
 
@@ -94,6 +96,7 @@
       preInitScript="{{ _options.preInitScript }}"
       builder="{{ !!_options.builder }}"
       servicesPath="{{ servicesPath }}"
+      defaultTheme="{{ _options.defaultTheme }}"
       product="{{ product }}">
    </UI._base.HTML.Head>
    <ws:if data="{{_options.bodyTemplate}}">

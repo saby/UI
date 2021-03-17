@@ -1,16 +1,19 @@
 /// <amd-module name="UI/_base/HTML" />
 
+// tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import Control from './Control';
 
+// tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/HTML');
+// tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import {constants, detection} from 'Env/Env';
 import { LinkResolver } from 'UI/theme/controller';
 import { getResourceUrl } from 'UI/Utils';
 import AppData from './AppData';
-import { IHTMLOptions } from './interface/IHTML';
+import {IHTMLOptions, ILinksAttrsHTML, IScriptsAttrsHTML} from './interface/IHTML';
 import { IRootTemplateOptions } from './interface/IRootTemplate';
 import { headDataStore } from 'UI/_base/HeadData';
 import mountChecker from 'UI/_base/MountChecker';
@@ -25,7 +28,9 @@ import { Stack as MetaStack, IMetaStackInternal } from 'UI/_base/HTML/meta';
 mountChecker.start();
 
 interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
-    // Добавим здесь поля для RUM-статистики Потому что их нам нужно сериализовать в wsConfig, чтобы потом получить на клиенте.
+    defaultTheme: string;
+    // Добавим здесь поля для RUM-статистики.
+    // Потому что их нам нужно сериализовать в wsConfig, чтобы потом получить на клиенте.
     RUMEnabled: boolean;
     pageName: string;
     title: string;
@@ -33,8 +38,8 @@ interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
     rtpackCssModuleNames: string[];
     rtpackJsModuleNames: string[];
     /** Ссылки подключенных ресурсов */
-    scripts: { src: string; }[];
-    links: { href: string; type: string; }[];
+    scripts: IScriptsAttrsHTML[];
+    links: ILinksAttrsHTML[];
 }
 
 /**
@@ -44,16 +49,20 @@ interface IHTMLCombinedOptions extends IHTMLOptions, IRootTemplateOptions {
  * @public
  */
 class HTML extends Control<IHTMLCombinedOptions> {
+    // tslint:disable-next-line:ban-ts-ignore
     // @ts-ignore
     _template: Function = template;
 
     private onServer: Boolean = false;
+    // tslint:disable-next-line:ban-ts-ignore
+    // @ts-ignore
     private isCompatible: Boolean = false;
     private compat: Boolean = false;
     private RUMEnabled: Boolean = false;
     private pageName: string = '';
 
     private metaStack: IMetaStackInternal;
+    // tslint:disable-next-line:no-any
     private templateConfig: any = null;
     private buildnumber: string = '';
     private appRoot: string = '';
@@ -63,12 +72,23 @@ class HTML extends Control<IHTMLCombinedOptions> {
     private servicesPath: string = '';
     private application: string = '';
     private product: string = '';
+
+    // tslint:disable-next-line:ban-ts-ignore
+    // @ts-ignore
+    // tslint:disable-next-line:no-any
     private linkResolver: any = null;
+    // tslint:disable-next-line:ban-ts-ignore
+    // @ts-ignore
     private getResourceUrl: Function = getResourceUrl;
 
+    // tslint:disable-next-line:no-any
     private initState(cfg: any): void {
         this.templateConfig = cfg.templateConfig;
         this.compat = cfg.compat || false;
+    }
+
+    private isFocusNode(node: Element): boolean {
+        return node.className === 'vdom-focus-in' || node.className === 'vdom-focus-out';
     }
 
     private markForeignContent(): void {
@@ -77,7 +97,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
         }
         const bodyChildren: HTMLCollection = document.body.children;
         for (let i = 0; i < bodyChildren.length; i++) {
-            if (bodyChildren[i].id !== 'wasaby-content') {
+            if (bodyChildren[i].id !== 'wasaby-content' && !this.isFocusNode(bodyChildren[i])) {
                 bodyChildren[i].setAttribute('data-vdomignore', 'true');
             }
         }
@@ -94,6 +114,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
      * @mixes UI/_base/HTML/IRootTemplate
      */
 
+    // tslint:disable-next-line:no-any
     _beforeMount(cfg: IHTMLCombinedOptions, context: any, receivedState: any): Promise<any> {
         this.onServer = typeof window === 'undefined';
         this.isCompatible = cfg.compat;
@@ -103,7 +124,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
             this.metaStack = MetaStack.getInstance();
             this.metaStack.push({ title: cfg.title });
         }
-        let appData = AppData.getAppData();
+        const appData = AppData.getAppData();
 
         this.markForeignContent();
 
@@ -114,6 +135,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
         this.RUMEnabled = cfg.RUMEnabled || appData.RUMEnabled || false;
         this.pageName = cfg.pageName || appData.pageName || '';
 
+        // tslint:disable-next-line:ban-ts-ignore
         // @ts-ignore
         this.staticDomains = cfg.staticDomains || appData.staticDomains || constants.staticDomains || '[]';
         if (typeof this.staticDomains !== 'string') {
@@ -145,7 +167,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
         const unpackDeps = cfg.rtpackJsModuleNames.concat(cfg.rtpackCssModuleNames);
         headDataStore.read('setUnpackDeps')(unpackDeps);
         headDataStore.read('setIncludedResources')({
-            links: cfg.links.filter((obj) => obj.type === "text/css"),
+            links: cfg.links.filter((obj) => obj.type === 'text/css'),
             scripts: cfg.scripts
         });
         /**
@@ -188,7 +210,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
     }
     _afterMount(): void {
         mountChecker.stop();
-        function inIframe() {
+        function inIframe(): boolean {
             try {
                 return window.self !== window.top;
             } catch (e) {
@@ -205,12 +227,14 @@ class HTML extends Control<IHTMLCombinedOptions> {
         }
     }
 
+    // tslint:disable-next-line:no-any
     static contextTypes(): { AppData: any } {
         return {
             AppData
         };
     }
 
+    // tslint:disable-next-line:typedef
     static getDefaultOptions() {
         return {
             rtpackJsModuleNames: [],

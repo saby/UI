@@ -6,13 +6,81 @@
  */
 
 // @ts-ignore
-import { constants } from 'Env/Env';
+import { constants, cookie } from 'Env/Env';
 
 import * as Attr from '../_Expressions/Attr';
 
 import * as RequireHelper from './RequireHelper';
 
 import { ReactiveObserver } from 'UI/Reactivity';
+
+import { Map } from 'Types/shim';
+
+const hasRequest = typeof process !== 'undefined' && !!(process?.domain?.req);
+
+let needWaitAsyncValue: boolean|undefined;
+function getNeedWaitAsyncValue(): boolean|undefined {
+   return hasRequest ? process.domain.req.needWaitAsyncValue : needWaitAsyncValue;
+}
+function setNeedWaitAsyncValue(newValue: boolean) {
+   if (hasRequest) {
+      process.domain.req.needWaitAsyncValue = newValue;
+   } else {
+      needWaitAsyncValue = newValue;
+   }
+   return newValue;
+}
+
+let moduleNamesMask: number|undefined;
+const mustAsyncNames: string[] = ['UI/_base/HTML/Head', 'UI/_base/HTML/Wait', 'UI/_base/HTML/JsLinks', 'UI/_base/HTML/StartApplicationScript'];
+const expectedMask: number = (1 << mustAsyncNames.length) - 1;
+const maskUpdates = new Map();
+for (let i = 0; i < mustAsyncNames.length; i++) {
+   maskUpdates.set(mustAsyncNames[i], 1 << i);
+}
+
+/**
+ * Проверяет, что все необходимые асинхронные модули (а значит и все их предки, кто бы они ни были) прошли.
+ * Тогда можно начинать выключать асинронный маунт.
+ * Необходимость в этом должна пропасть, если скрипты старта приложения и зависимости будут вне контрола.
+ * @param moduleName Имя контрола
+ */
+function canDoNoAsync(moduleName: string): boolean {
+   const lastMask = (hasRequest ? process.domain.req.moduleNamesMask : moduleNamesMask) || 0;
+   setModuleNamesMask(updateMask(lastMask, moduleName));
+   return lastMask === expectedMask;
+}
+
+function updateMask(lastMask: number, moduleName: string) {
+   const maskUpdate = maskUpdates.get(moduleName) || 0;
+   return lastMask | maskUpdate;
+}
+
+function setModuleNamesMask(newValue: number) {
+   if (hasRequest) {
+      process.domain.req.moduleNamesMask = newValue;
+   } else {
+      moduleNamesMask = newValue;
+   }
+   return newValue;
+}
+
+/**
+ * Истина, если синхронизатор ждёт промиз из _beforeMount.
+ * Ложь, если синхронизатор не ждёт, должен показать заглушку, и после отстрела промиза перерисовать.
+ * @param moduleName Имя контрола
+ */
+export function needWaitAsync(moduleName: string): boolean {
+   if (!canDoNoAsync(moduleName)) {
+      // Пока не можем отказаться от асинхронности некоторых контролов.
+      return true;
+   }
+   const currentNeedWaitAsyncValue = getNeedWaitAsyncValue();
+   if (typeof currentNeedWaitAsyncValue === 'undefined') {
+      return setNeedWaitAsyncValue(cookie.get('stopWaitAsync') !== 'true');
+   }
+   return currentNeedWaitAsyncValue;
+}
 
 var
    requireIfDefined = function requireIfDefined(tpl) {
@@ -232,8 +300,8 @@ export function plainMergeAttr(inner, object) {
    }
 
    var controlKey;
-   if (object.attributes && object.attributes['attr:key']) {
-      controlKey = object.attributes['attr:key'];
+   if (object.attributes && object.attributes['key']) {
+      controlKey = object.attributes['key'];
    }
    controlKey = controlKey || object.key || inner.key;
 
@@ -257,8 +325,8 @@ export function plainMergeContext(inner, object) {
       object = {};
    }
    var controlKey;
-   if (object.attributes && object.attributes['attr:key']) {
-      controlKey = object.attributes['attr:key'];
+   if (object.attributes && object.attributes['key']) {
+      controlKey = object.attributes['key'];
    }
    controlKey = controlKey || object.key || inner.key;
 
@@ -300,11 +368,19 @@ export function isStringModules(str, config?) {
 }
 
 export function isControlClass(controlClass) {
-   var prototype = controlClass && controlClass.prototype;
+   const prototype = controlClass && controlClass.prototype;
    // Проверка на typeof добавлена в следствии странной ошибки https://inside.tensor.ru/opendoc.html?guid=872a7e36-7487-4362-88d0-eaf0e66cb6b6
    // По какой-то причине проверка controlClass && controlClass.prototype проходила и свойство $constructor вызывалось на undefined.
    if (prototype && typeof prototype !== 'undefined') {
       return prototype.$constructor || prototype._template || controlClass.isWasaby;
+   }
+   return false;
+}
+
+export function isTemplateClass(controlClass) {
+   const prototype = controlClass && controlClass.prototype;
+   if (prototype && typeof prototype !== 'undefined') {
+      return prototype.isWasabyTemplate || controlClass.isWasabyTemplate;
    }
    return false;
 }
@@ -394,6 +470,27 @@ export function isCompat() {
       return constants.compat;
    }
 }
+
+export function isAnonymousFn(fn) {
+   return fn.name === '';
+}
+
+let disableCompatCache;
+export function disableCompat() {
+   let disableCompat = (process && process.domain && process.domain.req.disableCompat) || disableCompatCache;
+   if (typeof disableCompat === 'undefined') {
+      disableCompat = cookie.get('disableCompat');
+      if (constants.isServerSide && typeof process !== 'undefined') {
+         if (process && process.domain && process.domain.req) {
+            process.domain.req.disableCompat = disableCompat;
+         }
+      } else {
+         disableCompatCache = disableCompat;
+      }
+   }
+   return typeof(disableCompat) !== "undefined" && disableCompat === 'true' ;
+}
+
 //todo перенести в Serializer
 export const componentOptsReArray = [
    {
@@ -429,4 +526,3 @@ export const componentOptsReArray = [
       toReplace: '\\\\u000a'
    }
 ];
-

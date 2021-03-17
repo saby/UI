@@ -2,15 +2,18 @@
 
 import Control from '../Control';
 
+// tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/StartApplicationScript');
 import { headDataStore } from 'UI/_base/HeadData';
 
 class StartApplicationScript extends Control {
+   // tslint:disable-next-line:ban-ts-ignore
    // @ts-ignore
    _template: Function = template;
    private additionalDeps: string[] = [];
 
+   // tslint:disable-next-line:no-any
    _beforeMount(): Promise<any> {
       if (typeof window !== 'undefined') {
          return;

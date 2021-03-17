@@ -1,4 +1,11 @@
-/// <amd-module name="UI/Focus" />
+/**
+ * Библиотека фокусов
+ * @library UI/Focus
+ * @includes Focus UI/_focus/Focus
+ * @includes Activate UI/_focus/Activate
+ * @public
+ * @author Тэн В.А.
+ */
 
 import * as ElementFinder from './_focus/ElementFinder';
 import * as Events from './_focus/Events';
@@ -13,9 +20,6 @@ import * as DefaultOpenerFinder from './_focus/DefaultOpenerFinder';
 import * as FocusAttrs from './_focus/FocusAttrs';
 import { IControl } from './_focus/IControl';
 
-/**
- * @author Тэн В.А.
- */
 export {
    ElementFinder,
    Events,

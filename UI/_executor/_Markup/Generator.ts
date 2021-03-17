@@ -22,8 +22,10 @@ import {
    TDeps,
    TIncludedTemplate,
    TObject,
-   IControlUserData
+   IControlUserData,
+   IControlConfig
 } from 'UI/_executor/_Markup/IGeneratorType';
+import * as Helper from 'UI/_executor/_Markup/Helper';
 
 const defRegExp = /(\[def-[\w\d]+\])/g;
 
@@ -142,6 +144,10 @@ function resolveTpl(tpl, deps, includedTemplates) {
          controlClass = deps && (deps[tpl] || deps['optional!' + tpl]);
       }
 
+      if (controlClass && controlClass.hasOwnProperty('default')) {
+         controlClass = controlClass.default;
+      }
+
       if (!controlClass) {
          if (!isSlashes || wasOptional || Common.isCompat()) {
             /*
@@ -168,7 +174,7 @@ function resolveTpl(tpl, deps, includedTemplates) {
       }
       return [controlClass, dataComponent];
    }
-   return isLibraryTpl(tpl, deps);
+   return isLibraryTpl.call(this, tpl, deps);
 }
 
 function isCompatPatch(controlClass, controlProperties, attrs, fromOld) {
@@ -248,6 +254,49 @@ function checkResult(res: GeneratorObject | Promise<unknown> | Error,
    throw new Error('MarkupGenerator: createControl type not resolved');
 }
 
+interface INewArguments {
+   attributes: any;
+   options: any;
+   config: any;
+}
+
+function prepareNewArguments(
+   attributes: any,
+   events: any,
+   options: any, // FIXME: Record<string, unknown>
+   config: IControlConfig
+): INewArguments {
+   const decorAttribs = {
+      attributes: config.compositeAttributes === null
+         ? attributes
+         : Helper.processMergeAttributes(config.compositeAttributes, <any>attributes),
+      events,
+      context: config.attr ? config.attr.context : { },
+      inheritOptions: config.attr ? config.attr.inheritOptions : { },
+      internal: config.attr ? config.attr.internal : { },
+      key: config.key
+   };
+   const actualAttributes = config.mergeType === 'attribute'
+      ? Helper.plainMergeAttr(config.attr, decorAttribs)
+      : config.mergeType === 'context'
+         ? Helper.plainMergeContext(config.attr, decorAttribs)
+         : decorAttribs;
+   const actualOptions = config.scope === null ? options : Helper.uniteScope(config.scope, options);
+   const actualConfig = {
+      isRootTag: config.isRootTag,
+      data: config.data,
+      ctx: config.ctx,
+      pName: config.pName,
+      viewController: config.viewController,
+      internal: config.internal
+   };
+   return {
+      attributes: actualAttributes,
+      options: actualOptions,
+      config: actualConfig
+   }
+}
+
 /**
  * @author Тэн В.А.
  */
@@ -259,11 +308,123 @@ export class Generator {
    private createController: Function;
    private resolver: Function;
 
-   private prepareAttrsForPartial: Function;
+   private readonly generatorConfig: IGeneratorConfig;
 
    constructor(config: IGeneratorConfig) {
       if (config) {
-         this.prepareAttrsForPartial = config.prepareAttrsForPartial;
+         this.generatorConfig = config;
+      }
+   }
+
+   createControlNew(
+      type: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: any, // FIXME: Record<string, unknown>
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error {
+      // тип контрола - inline-шаблон
+      if (type === 'inline') {
+         const args = prepareNewArguments(attributes, events, options, config);
+         const attrsForTemplate = args.attributes;
+         const scopeForTemplate = Common.plainMerge(
+            Object.create(config.data || {}),
+            this.prepareDataForCreate(
+               "_$inline_template",
+               args.options,
+               attrsForTemplate,
+               {}
+            ),
+            false
+         );
+         return method.call(
+            /* template *this* */config.ctx,
+            scopeForTemplate,
+            attrsForTemplate,
+            config.context,
+            config.isVdom
+         );
+      }
+
+      const args = prepareNewArguments(attributes, events, options, config);
+      let name = method as any;
+      let data = args.options;
+      let attrs = args.attributes;
+      let templateCfg = args.config;
+      let context = config.context;
+      let deps = config.depsLocal;
+      let includedTemplates = config.includedTemplates;
+      let defCollection = config.defCollection;
+      let templateConfig = Helper.config;
+      let res;
+      // TODO вынести конфиг ресолвер. пока это кранйе затруднительно, т.к. цепляет кучу всего.
+      data = ConfigResolver.resolveControlCfg(data, templateCfg, attrs, calculateDataComponent(name));
+      data.internal.logicParent = data.internal.logicParent || templateCfg.viewController;
+      data.internal.parent = data.internal.parent || templateCfg.viewController;
+
+      attrs.internal = data.internal;
+      const userData = data.user;
+
+      // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
+      if (name === null) {
+         return this.createEmptyText();
+      }
+      // конвертирую объект строки в строку, чтобы везде провеять только на строку
+      // объект вместо строки вероятно приходит из-за интернационализации
+      if (name instanceof String) {
+         name = name.toString();
+      }
+
+      // тип контрола - компонент с шаблоном
+      if (type === 'wsControl') {
+         if (Common.isCompat()) {
+            res = timing.methodExecutionTime(this.createWsControl, this, [name, userData, attrs, context, deps]);
+            return checkResult.call(this, res, type, name);
+         }
+         res = this.createWsControl(name, userData, attrs, context, deps);
+         return checkResult.call(this, res, type, name);
+      }
+      // типа контрола - шаблон
+      if (type === 'template') {
+         if (Common.isCompat()) {
+            res = timing.methodExecutionTime(this.createTemplate, this, [name, userData, attrs, context, deps, templateConfig]);
+            return checkResult.call(this, res, type, name);
+         }
+         res = this.createTemplate(name, userData, attrs, context, deps, templateConfig);
+         return checkResult.call(this, res, type, name);
+
+      }
+      // тип контрола - компонент без шаблона
+      if (type === 'controller') {
+         if (Common.isCompat()) {
+            res = timing.methodExecutionTime(this.createController, this, [name, userData, attrs, context, deps]);
+            return checkResult.call(this, res, type, name);
+         }
+         res = this.createController(name, userData, attrs, context, deps);
+         return checkResult.call(this, res, type, name);
+
+      }
+      // когда тип вычисляемый, запускаем функцию вычисления типа и там обрабатываем тип
+      if (type === 'resolver') {
+         let handl, i;
+         if (attrs.events) {
+            for (i in attrs.events) {
+               if (attrs.events.hasOwnProperty(i)) {
+                  for (handl = 0; handl < attrs.events[i].length; handl++) {
+                     if (!attrs.events[i][handl].isControl) {
+                        attrs.events[i][handl].toPartial = true;
+                     }
+                  }
+               }
+            }
+         }
+         if (Common.isCompat()) {
+            res = timing.methodExecutionTime(this.resolver, this, [name, userData, attrs, context, deps, includedTemplates, templateConfig, defCollection]);
+            return checkResult.call(this, res, type, name);
+         }
+         res = this.resolver(name, userData, attrs, context, deps, includedTemplates, templateConfig, defCollection);
+         return checkResult.call(this, res, type, name);
       }
    }
 
@@ -475,6 +636,9 @@ export class Generator {
                event.fn = function (eventObj) {
                   const context = event.context.apply(this.viewController);
                   const handler = event.handler.apply(this.viewController);
+                  if (typeof handler === 'undefined') {
+                     throw new Error(`Отсутствует обработчик ${ event.value } события ${ eventObj.type } у контрола ${ event.viewController._moduleName }`);
+                  }
                   const res = handler.apply(context, arguments);
                   if(res !== undefined) {
                      eventObj.result = res;
@@ -531,8 +695,8 @@ export class Generator {
       if (!attrs.attributes) {
          attrs.attributes = {};
       }
-      if (this.prepareAttrsForPartial) {
-         this.prepareAttrsForPartial(attrs.attributes);
+      if (this.generatorConfig && this.generatorConfig.prepareAttrsForPartial) {
+         this.generatorConfig.prepareAttrsForPartial(attrs);
       }
       if (controlClass === '_$inline_template') {
          // в случае ws:template отдаем текущие свойства

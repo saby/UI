@@ -4,9 +4,15 @@ define('UI/_builder/Tmpl/codegen/templates', [
    'use strict';
 
    /**
+    * @description Предоставляет методы генерации кода для конкретных узлов AST-дерева.
     * @author Крылов М.А.
+    * @file UI/_builder/Tmpl/codegen/templates.js
     */
 
+   /**
+    * Пустая строка.
+    * @type {string}
+    */
    var EMPTY_STRING = '';
 
    /**
@@ -19,13 +25,28 @@ define('UI/_builder/Tmpl/codegen/templates', [
          .replace(/\r|\n/g, EMPTY_STRING);
    }
 
+   // Если второй аргумент функции replace - строка, то там могут быть специальные шаблоны замены.
+   // Если в шаблон-функцию попадёт один из них, финальный вариант после всех replace можеть сломать вызов new Function.
+   // И будет очень сложно понять, почему. Во избежание этого, вторым аргументом replace будем передавать функцию.
+   // https://developer.mozilla.org/ru/docs/Web/JavaScript/Reference/Global_Objects/String/replace#Specifying_a_string_as_a_parameter
+   // $$	Вставляет символ доллара «$».
+   // $& - Вставляет сопоставившуюся подстроку.
+   // $` - Вставляет часть строки, предшествующую сопоставившейся подстроке.
+   // $' - Вставляет часть строки, следующую за сопоставившейся подстрокой.
+   // $n или $nn - Символы n или nn являются десятичными цифрами, вставляет n-ную сопоставившуются подгруппу
+   // из объекта RegExp в первом параметре.
+   function generateReturnValueFunction(value) {
+      return function() {
+         return value;
+      };
+   }
+
    // Предобработанные шаблоны
    var defineTemplate = preprocessRawTemplate(jstpl.DEFINE);
    var forTemplate = preprocessRawTemplate(jstpl.FOR);
    var foreachTemplate = preprocessRawTemplate(jstpl.FOREACH);
    var headTemplate = preprocessRawTemplate(jstpl.HEAD);
    var bodyTemplate = preprocessRawTemplate(jstpl.BODY);
-   var localizationTemplate = preprocessRawTemplate(jstpl.LOCALIZATION);
    var stringTemplate = preprocessRawTemplate(jstpl.STRING_TEMPLATE);
    var functionTemplate = preprocessRawTemplate(jstpl.FUNCTION_TEMPLATE);
    var objectTemplate = preprocessRawTemplate(jstpl.OBJECT_TEMPLATE);
@@ -99,15 +120,15 @@ define('UI/_builder/Tmpl/codegen/templates', [
       var finalDependencies = headDependencies.concat(dependencies);
 
       return defineTemplate
-         .replace(/\/\*#TEMPLATE#\*\//g, template)
-         .replace(/\/\*#MODULE_EXTENSION#\*\//g, moduleExtension)
-         .replace(/\/\*#PRIVATE_TEMPLATES#\*\//g, privateTemplates)
-         .replace(/\/\*#INCLUDED_TEMPLATES#\*\//g, includedTemplates)
+         .replace(/\/\*#TEMPLATE#\*\//g, generateReturnValueFunction(template))
+         .replace(/\/\*#MODULE_EXTENSION#\*\//g, generateReturnValueFunction(moduleExtension))
+         .replace(/\/\*#PRIVATE_TEMPLATES#\*\//g, generateReturnValueFunction(privateTemplates))
+         .replace(/\/\*#INCLUDED_TEMPLATES#\*\//g, generateReturnValueFunction(includedTemplates))
          .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, 'true')
-         .replace(/\/\*#MODULE_NAME#\*\//g, moduleName)
-         .replace(/\/\*#LOCAL_DEPENDENCIES#\*\//g, dependenciesList + localDependenciesList)
-         .replace(/\/\*#DEPENDENCIES#\*\//g, JSON.stringify(finalDependencies))
-         .replace(/\/\*#REACTIVE_PROPERTIES#\*\//g, JSON.stringify(reactiveProperties));
+         .replace(/\/\*#MODULE_NAME#\*\//g, generateReturnValueFunction(moduleName))
+         .replace(/\/\*#LOCAL_DEPENDENCIES#\*\//g, generateReturnValueFunction(dependenciesList + localDependenciesList))
+         .replace(/\/\*#DEPENDENCIES#\*\//g, generateReturnValueFunction(JSON.stringify(finalDependencies)))
+         .replace(/\/\*#REACTIVE_PROPERTIES#\*\//g, generateReturnValueFunction(JSON.stringify(reactiveProperties)));
    }
 
    function generateTmplDefine(moduleName, moduleExtension, templateFunction, dependencies, reactiveProperties) {
@@ -127,15 +148,15 @@ define('UI/_builder/Tmpl/codegen/templates', [
 
       var finalDependencies = headDependencies.concat(dependencies);
       return defineTemplate
-         .replace(/\/\*#TEMPLATE#\*\//g, template)
-         .replace(/\/\*#MODULE_EXTENSION#\*\//g, moduleExtension)
+         .replace(/\/\*#TEMPLATE#\*\//g, generateReturnValueFunction(template))
+         .replace(/\/\*#MODULE_EXTENSION#\*\//g, generateReturnValueFunction(moduleExtension))
          .replace(/\/\*#PRIVATE_TEMPLATES#\*\//g, EMPTY_STRING)
          .replace(/\/\*#INCLUDED_TEMPLATES#\*\//g, EMPTY_STRING)
          .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, 'false')
-         .replace(/\/\*#MODULE_NAME#\*\//g, moduleName)
-         .replace(/\/\*#LOCAL_DEPENDENCIES#\*\//g, dependenciesList)
-         .replace(/\/\*#DEPENDENCIES#\*\//g, JSON.stringify(finalDependencies))
-         .replace(/\/\*#REACTIVE_PROPERTIES#\*\//g, JSON.stringify(reactiveProperties));
+         .replace(/\/\*#MODULE_NAME#\*\//g, generateReturnValueFunction(moduleName))
+         .replace(/\/\*#LOCAL_DEPENDENCIES#\*\//g, generateReturnValueFunction(dependenciesList))
+         .replace(/\/\*#DEPENDENCIES#\*\//g, generateReturnValueFunction(JSON.stringify(finalDependencies)))
+         .replace(/\/\*#REACTIVE_PROPERTIES#\*\//g, generateReturnValueFunction(JSON.stringify(reactiveProperties)));
    }
 
    /**
@@ -148,10 +169,10 @@ define('UI/_builder/Tmpl/codegen/templates', [
     */
    function generateFor(init, test, update, processedBlock) {
       return forTemplate
-         .replace(/\/\*#INIT#\*\//g, init)
-         .replace(/\/\*#TEST#\*\//g, test)
-         .replace(/\/\*#UPDATE#\*\//g, update)
-         .replace(/\/\*#PROCESSED#\*\//g, processedBlock);
+         .replace(/\/\*#INIT#\*\//g, generateReturnValueFunction(init))
+         .replace(/\/\*#TEST#\*\//g, generateReturnValueFunction(test))
+         .replace(/\/\*#UPDATE#\*\//g, generateReturnValueFunction(update))
+         .replace(/\/\*#PROCESSED#\*\//g, generateReturnValueFunction(processedBlock));
    }
 
    /**
@@ -167,32 +188,17 @@ define('UI/_builder/Tmpl/codegen/templates', [
          value: forSource.value
       });
       return foreachTemplate
-         .replace(/\/\*#SCOPE_ARRAY#\*\//g, scopeArray)
-         .replace(/\/\*#ITERATOR_SCOPE#\*\//g, iteratorScope)
-         .replace(/\/\*#PROCESSED#\*\//g, processedBlock);
-   }
-
-   /**
-    * Сгенерировать блок инициализации rk-функции.
-    * @param fileName Путь к файлу шаблона.
-    * @returns {string} Сгенерированный блок кода.
-    */
-   function generateLocalization(fileName) {
-      var localizationModule = fileName.split('/')[0];
-      return localizationTemplate
-         .replace(/\/\*#LOCALIZATION_MODULE#\*\//g, localizationModule);
+         .replace(/\/\*#SCOPE_ARRAY#\*\//g, generateReturnValueFunction(scopeArray))
+         .replace(/\/\*#ITERATOR_SCOPE#\*\//g, generateReturnValueFunction(iteratorScope))
+         .replace(/\/\*#PROCESSED#\*\//g, generateReturnValueFunction(processedBlock));
    }
 
    /**
     * Сгенерировать заголовок функции шаблона - блок инициализации переменных.
-    * @param fileName Путь к файлу шаблона.
-    * @param initLocalization Метка: необходимо сгенерировать блок инициализации локализации.
     * @returns {string} Сгенерированный блок кода.
     */
-   function generateTemplateHead(fileName, initLocalization) {
-      var localizationBlock = initLocalization ? generateLocalization(fileName) : EMPTY_STRING;
-      return headTemplate
-         .replace(/\/\*#LOCALIZATION_INIT#\*\//g, localizationBlock);
+   function generateTemplateHead() {
+      return headTemplate;
    }
 
    /**
@@ -204,7 +210,7 @@ define('UI/_builder/Tmpl/codegen/templates', [
    function generateTemplateBody(fileName, markupGeneration) {
       return bodyTemplate
          .replace(/\/\*#FILE_NAME#\*\//g, fileName)
-         .replace(/\/\*#MARKUP_GENERATION#\*\//g, markupGeneration);
+         .replace(/\/\*#MARKUP_GENERATION#\*\//g, generateReturnValueFunction(markupGeneration));
    }
 
    /**
@@ -218,11 +224,9 @@ define('UI/_builder/Tmpl/codegen/templates', [
     */
    function generateTemplate(propertyName, templateBody, fileName, isString) {
       var tmpl = isString ? stringTemplate : functionTemplate;
-      var localizationBlock = generateLocalization(fileName);
       return tmpl
-         .replace(/\/\*#PROPERTY_NAME#\*\//g, propertyName)
-         .replace(/\/\*#TEMPLATE_BODY#\*\//g, templateBody)
-         .replace(/\/\*#LOCALIZATION_INIT#\*\//g, localizationBlock);
+         .replace(/\/\*#PROPERTY_NAME#\*\//g, generateReturnValueFunction(propertyName))
+         .replace(/\/\*#TEMPLATE_BODY#\*\//g, generateReturnValueFunction(templateBody));
    }
 
    /**
@@ -237,9 +241,9 @@ define('UI/_builder/Tmpl/codegen/templates', [
    function generateObjectTemplate(template, internal, postfix, isWasabyTemplate) {
       var postfixCall = postfix || '';
       return objectTemplate
-         .replace('/*#TEMPLATE#*/', template)
+         .replace('/*#TEMPLATE#*/', generateReturnValueFunction(template))
          .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, isWasabyTemplate)
-         .replace('/*#INTERNAL#*/', internal) + postfixCall;
+         .replace('/*#INTERNAL#*/', generateReturnValueFunction(internal)) + postfixCall;
    }
 
 
@@ -255,26 +259,42 @@ define('UI/_builder/Tmpl/codegen/templates', [
    function generateIncludedTemplate(template, internal, postfix, isWasabyTemplate) {
       var postfixCall = postfix || '';
       return includedTemplate
-         .replace('/*#TEMPLATE#*/', template)
-         .replace('/*#TEMPLATE_JSON#*/', template)
+         .replace('/*#TEMPLATE#*/', generateReturnValueFunction(template))
+         .replace('/*#TEMPLATE_JSON#*/', generateReturnValueFunction(template))
          .replace(/\/\*#IS_WASABY_TEMPLATE#\*\//g, isWasabyTemplate)
-         .replace('/*#INTERNAL#*/', internal) + postfixCall;
+         .replace('/*#INTERNAL#*/', generateReturnValueFunction(internal)) + postfixCall;
    }
 
+   /**
+    * Сгенерировать private шаблон
+    * @param body {string} Тело шаблона.
+    * @returns {string} Сгенерированный блок кода.
+    */
    function generatePrivateTemplate(body) {
       return privateTemplate
-         .replace('/*#BODY#*/', body);
+         .replace('/*#BODY#*/', generateReturnValueFunction(body));
    }
 
+   /**
+    * Сгенерировать заголовок private шаблона
+    * @param name {string} Имя шаблона.
+    * @param body {string} Тело шаблона.
+    * @returns {string} Сгенерированный блок кода.
+    */
    function generatePrivateTemplateHeader(name, body) {
       return privateTemplateHeader
-         .replace('/*#NAME#*/', name)
-         .replace('/*#BODY#*/', body);
+         .replace('/*#NAME#*/', generateReturnValueFunction(name))
+         .replace('/*#BODY#*/', generateReturnValueFunction(body));
    }
 
+   /**
+    * Сгенерировать partial шаблон
+    * @param body {string} Тело шаблона.
+    * @returns {string} Сгенерированный блок кода.
+    */
    function generatePartialTemplate(body) {
       return partialTemplate
-         .replace('/*#BODY#*/', body);
+         .replace('/*#BODY#*/', generateReturnValueFunction(body));
    }
 
    return {

@@ -497,22 +497,22 @@ define([
             assert.strictEqual(tree[0].injectedData.length, 1);
             var option = tree[0].injectedData[0];
 
-            assert.strictEqual(option.key, '0_1_');
+            assert.strictEqual(option.key, '0_0_');
             assert.strictEqual(option.name, 'ws:option');
             assert.strictEqual(option.type, 'tag');
             assert.strictEqual(option.children.length, 1);
 
             option = option.children[0];
-            assert.strictEqual(option.key, '0_1_0_');
+            assert.strictEqual(option.key, '0_0_0_');
             assert.strictEqual(option.name, 'ws:String');
             assert.strictEqual(option.type, 'tag');
             assert.strictEqual(option.children.length, 1);
 
             var value = option.children[0];
-            assert.strictEqual(value.key, '0_1_0_0_');
+            assert.strictEqual(value.key, '0_0_0_0_');
             assert.strictEqual(value.type, 'text');
             assert.strictEqual(value.data.length, 1);
-            assert.strictEqual(value.data[0].value, '3');
+            assert.strictEqual(value.data[0].value, '2');
             assert.strictEqual(value.data[0].type, 'text');
          });
          it('module', function() {
@@ -1245,22 +1245,22 @@ define([
             assert.strictEqual(option.children.length, 1);
 
             option = option.children[0];
-            assert.strictEqual(option.key, '0_0_1_');
+            assert.strictEqual(option.key, '0_0_0_');
             assert.strictEqual(option.name, 'ws:property');
             assert.strictEqual(option.type, 'tag');
             assert.strictEqual(option.children.length, 1);
 
             option = option.children[0];
-            assert.strictEqual(option.key, '0_0_1_0_');
+            assert.strictEqual(option.key, '0_0_0_0_');
             assert.strictEqual(option.name, 'ws:String');
             assert.strictEqual(option.type, 'tag');
             assert.strictEqual(option.children.length, 1);
 
             var value = option.children[0];
-            assert.strictEqual(value.key, '0_0_1_0_0_');
+            assert.strictEqual(value.key, '0_0_0_0_0_');
             assert.strictEqual(value.type, 'text');
             assert.strictEqual(value.data.length, 1);
-            assert.strictEqual(value.data[0].value, '3');
+            assert.strictEqual(value.data[0].value, '2');
             assert.strictEqual(value.data[0].type, 'text');
          });
          it('Object type', function() {

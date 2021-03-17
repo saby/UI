@@ -1,4 +1,4 @@
-﻿<div>
+﻿﻿<div>
    <script>
       window.receivedStates = '{"ThemesController": { "themes" : {"' + (window.defaultStaticTheme || 'default') + '": true}}}';
 
@@ -7,13 +7,16 @@
             'Application/Initializer',
             'Application/Env',
 	        'SbisEnvUI/Compatible',
-            'UI/Executor'
-         ], function (UI, AppInitializer, AppEnv, Compatible, UIExecutor) {
+            'UI/Executor',
+            'Application/State',
+            'UI/State',
+            'SbisEnvUI/Wasaby'
+         ], function (UI, AppInitializer, AppEnv, Compatible, UIExecutor, AppState, UIState) {
          var AppData = UI.AppData,
             headDataStore = UI.headDataStore,
             Core = UI.Control;
          /*Первый шаг - старт Application, иницализация core и темы. Второй шаг - загрузка ресурсов*/
-         AppInitializer.default(window.wsConfig, new AppEnv.EnvBrowser(window['wsConfig']), new UI.StateReceiver());
+         AppInitializer.default(window.wsConfig, new AppEnv.EnvBrowser(window['wsConfig']), new AppState.StateReceiver(UIState.Serializer));
          Compatible.AppInit();
 
          /* Этот же флаг проставляется в UI/Base:Document

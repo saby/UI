@@ -1,44 +1,43 @@
 import { assert } from 'chai';
 import { Head } from 'Application/Page';
 import { PrefetchLinksStore, PrefetchLinksStorePS, handlePrefetchModules } from 'UI/_base/HTML/PrefetchLinks';
+import {JML} from "../../UI/_base/HTML/_meta/interface";
 
 const module = {
     name: 'Module/File',
     path: '/Module/File.js'
 };
+const expectedObject: Record<string, string|boolean> = {"data-vdomignore": true, as: 'script', href: module.path}
 describe('UI/_base/HTML/PrefetchLinks', () => {
     typeof window !== 'undefined' &&
     describe('client side', () => {
         beforeEach(() => {
-            // @ts-ignore
-            Head.getInstance()._elements = {};
+            Head.getInstance().clear();
         });
 
         it('addPrefetchModules', () => {
             const pls = new PrefetchLinksStore();
             pls.addPrefetchModules([module.name]);
-            // @ts-ignore
             const data = Head.getInstance().getData();
             assert.equal(data.length, 1);
-            assert.equal(data[0][0], 'link');
-            assert.equal(data[0][1].rel, 'prefetch');
-            assert.include(data[0][1].href, module.path);
+            data.forEach((row: JML) => checker.apply(null, row.concat({tag: 'link', rel: 'prefetch', ...expectedObject})));
         });
 
         it('addPreloadModules', () => {
             const pls = new PrefetchLinksStore();
             pls.addPreloadModules([module.name]);
-            // @ts-ignore
             const data = Head.getInstance().getData();
             assert.equal(data.length, 1);
-            assert.equal(data[0][0], 'link');
-            assert.equal(data[0][1].rel, 'preload');
-            assert.include(data[0][1].href, module.path);
+            data.forEach((row: JML) => checker.apply(null, row.concat({tag: 'link', rel: 'preload', ...expectedObject})));
         });
     });
 
     typeof window === 'undefined' &&
     describe('server side', () => {
+        beforeEach(() => {
+            Head.getInstance().clear();
+            new PrefetchLinksStorePS().clear();
+        });
         it('addPrefetchModules', () => {
             const pls = new PrefetchLinksStorePS();
             pls.addPrefetchModules([module.name]);
@@ -61,12 +60,27 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
             const pls = new PrefetchLinksStorePS();
             pls.addPrefetchModules(prefetchModules);
             handlePrefetchModules(pageDeps);
-            // @ts-ignore
             const data = Head.getInstance().getData();
             assert.equal(data.length, 1);
-            assert.equal(data[0][0], 'link');
-            assert.equal(data[0][1].rel, 'prefetch');
-            assert.include(data[0][1].href, module.path);
+            data.forEach((row: JML) => checker.apply(null, row.concat({tag: 'link', rel: 'prefetch', ...expectedObject})));
         });
     });
 });
+
+/**
+ * Проверка корректности добавленного тега в Head API
+ * @param tag название тега
+ * @param contents
+ * @param attrs атрибуты тега, который добавили в Head
+ * @param expected эталонные данные
+ */
+function checker(tag, contents, attrs, expected) {
+    if (contents instanceof Object) {
+        expected = attrs;
+        attrs = contents;
+    }
+    assert.equal(tag, expected.tag);
+    assert.equal(attrs.rel, expected.rel);
+    assert.equal(attrs.as, expected.as);
+    assert.include(attrs.href, expected.href);
+}

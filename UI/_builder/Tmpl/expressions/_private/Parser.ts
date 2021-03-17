@@ -1,7 +1,9 @@
 /// <amd-module name="UI/_builder/Tmpl/expressions/_private/Parser" />
 
 /**
+ * @description Represents mustache expression parser.
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/Parser.ts
  *
  * @todo Разделить парсер на tmpl и wml - они разные
  */

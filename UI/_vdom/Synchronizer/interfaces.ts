@@ -7,6 +7,7 @@ export type TComponentAttrs = Record<string, unknown>;
 
 export type TControlId = string;
 // VdomMarkup.getDecoratedMark
+// tslint:disable: member-ordering
 
 type IControlConstructor = () => Control;
 type TContext = Record<string, object>;
@@ -73,8 +74,8 @@ export interface IControlNode extends IRebuildNode {
 
 export interface ICompatableControl {
     _parent?: ICompatableControl;
-    hasCompatible(): () => boolean;
-    isDestroyed: () => any;
+    hasCompatible(): boolean;
+    isDestroyed(): boolean;
 }
 
 export interface ICompatableNode {
@@ -124,6 +125,21 @@ export interface IHandlerInfo {
     processingHandler: boolean;
     count: number;
 }
+export interface IMemoForNode {
+    createdNodes: IControlNode[];
+    createdTemplateNodes: Array<any>;
+    destroyedNodes: Array<any>;
+    selfDirtyNodes: IControlNode[];
+    updatedChangedNodes: IControlNode[];
+    updatedChangedTemplateNodes: Array<any>;
+    updatedNodes: IControlNode[];
+    updatedUnchangedNodes: IControlNode[];
+}
+export interface IMemoNode {
+    memo: IMemoForNode;
+    value: IControlNode;
+    getNodeIds(): Set<TControlId | 0>;
+}
 
 export interface IDOMEnvironment {
     addTabListener(e?: any): void;
@@ -141,7 +157,6 @@ export interface IDOMEnvironment {
     _handleTouchend(event: any): void;
     _shouldUseClickByTap(): boolean;
 
-    applyNewVNode(newVNnode: any, rebuildChanges: any, newRootCntNode: any): void;
     decorateFullMarkup(vnode: VNode, controlNode: any): VNode;
     getMarkupNodeDecorator(): TMarkupNodeDecoratorFn;
     getDOMNode(): HTMLElement;
@@ -167,15 +182,21 @@ export interface IDOMEnvironment {
 
     setupControlNode(controlNode: IControlNode): void;
 
-    queue?: string[];
+    applyNodeMemo(nodeMemo: IMemoNode): void;
+
+    queue: TControlId[];
 
     _currentDirties: Record<string, number>;
     _nextDirties: Record<string, number>;
-    activateSubQueue: undefined;
 
     // FIXME это не должно быть публичным. Найти все ссылки и разобраться
     _rootDOMNode: TModifyHTMLNode;
     __captureEventHandler: Function;
     _rebuildRequestStarted?: boolean;
     _haveRebuildRequest?: boolean;
+}
+
+export interface IArrayEvent {
+    fn: Record<string, Function>;
+    finalArgs: Record<string, unknown>[];
 }

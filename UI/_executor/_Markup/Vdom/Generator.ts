@@ -1,4 +1,3 @@
-/// <amd-module name="UI/_executor/_Markup/Vdom/Generator" />
 // @ts-nocheck
 import { ArrayUtils } from 'UI/Utils';
 import { Logger } from 'UI/Utils';
@@ -7,6 +6,7 @@ import * as Attr from '../../_Expressions/Attr';
 import * as Vdom from '../../_Utils/Vdom';
 import * as Common from '../../_Utils/Common';
 import * as RequireHelper from '../../_Utils/RequireHelper';
+import { invisibleNodeTagName } from '../../Utils';
 import { onElementMount, onElementUnmount } from '../../_Utils/ChildrenManager';
 import { Generator } from '../Generator';
 import { IGenerator } from '../IGenerator';
@@ -32,11 +32,17 @@ import {
    TIncludedTemplate,
    ITemplateNode,
    TObject,
-   TScope
+   TScope, IControlConfig
 } from '../IGeneratorType';
 import { GeneratorNode } from './IVdomType';
 import { cutFocusAttributes } from '../Utils';
 import { VNode } from 'Inferno/third-party/index';
+
+const emtpyProps = {
+   attributes: {},
+   hooks: {},
+   events: {}
+};
 
 /**
  * @author Тэн В.А.
@@ -46,17 +52,28 @@ export class GeneratorVdom implements IGenerator {
    canBeCompatible: boolean;
    generatorBase: Generator;
 
-   private prepareAttrsForPartial: Function;
+   private generatorConfig: IGeneratorConfig;
 
    constructor(config: IGeneratorConfig) {
       if (config) {
-         this.prepareAttrsForPartial = config.prepareAttrsForPartial;
+         this.generatorConfig = config;
       }
       this.cacheModules = {};
       this.generatorBase = new Generator(config);
       this.canBeCompatible = false;
       this.generatorBase.bindGeneratorFunction(this.createEmptyText, this.createWsControl,
          this.createTemplate, this.createController, this.resolver, this);
+   }
+
+   createControlNew(
+      type: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: Record<string, unknown>,
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error {
+      return this.generatorBase.createControlNew.call(this, type, method, attributes, events, options, config);
    }
 
    chain(out: string,
@@ -138,13 +155,11 @@ export class GeneratorVdom implements IGenerator {
                                              defCollection);
    }
 
-   createText(text: string, key: string, isVar: boolean = false): VNode {
+   createText(text: string, key: string): VNode {
       if (!text) {
          return undefined;
       }
-      const textNode = Vdom.textNode(text, key);
-      textNode.noNeedUnescape = isVar;
-      return textNode;
+      return Vdom.textNode(text, key);
    }
 
    createWsControl(name: GeneratorTemplateOrigin,
@@ -187,8 +202,7 @@ export class GeneratorVdom implements IGenerator {
       scope: IControlProperties,
       attributes: IGeneratorAttrs,
       context: string,
-      _deps?: TDeps,
-      config?: IGeneratorConfig): string | ITemplateNode | GeneratorNode {
+      _deps?: TDeps): string | ITemplateNode | GeneratorNode {
       let resultingFn;
       if (Common.isString(name)) {
          // @ts-ignore
@@ -281,7 +295,7 @@ export class GeneratorVdom implements IGenerator {
       if (!fn) {
          if (typeof tpl === 'function') {
             fn = tpl;
-            //@ts-ignore
+            // @ts-ignore
          } else if (tpl && typeof tpl.func === 'function') {
             fn = tpl;
          } else if (Common.isArray(tpl)) {
@@ -291,57 +305,71 @@ export class GeneratorVdom implements IGenerator {
 
       if (Common.isControlClass(fn)) {
          return this.createWsControl(fn, resolvedScope, decorAttribs, context, _deps, data) as GeneratorNode;
-      } else {
-
-         const nameFunc = isTplString ? tpl : 'InlineFunction';
-         Logger.debug(`createWsControl - "${nameFunc}"`, data.controlProperties);
-         Logger.debug('Context for control', decorAttribs.context);
-         Logger.debug('Inherit options for control', decorAttribs.inheritOptions);
-
-         const parent = data.parent;
-         if (typeof fn === 'function') {
-            return parent ?
-               fn.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial) :
-               fn(resolvedScope, decorAttribs, context, true);
-         } else if (fn && typeof fn.func === 'function') {
-            return parent ?
-               fn.func.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial) :
-               fn.func(resolvedScope, decorAttribs, context, true);
-         } else if (Common.isArray(fn)) {
-            return this.resolveTemplateArray(parent, fn, resolvedScope, decorAttribs, context);
-         } else if (typeof tpl === 'undefined') {
-            const typeTpl = typeof tpl;
-            Logger.error(`${typeTpl} component error - Попытка использовать компонент/шаблон, ` +
-               `но вместо компонента в шаблоне был передан ${typeTpl}! ` +
-               'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
-               `По стеку будет понятно, в каком шаблоне и в какую опцию передается ${typeTpl}`, parent);
-            return this.createText('', decorAttribs.key);
-         } else if (fn === false) {
-            Logger.error(`Контрол ${tpl} отсутствует в зависимостях и не может быть построен."`, parent);
-            return this.createText('', decorAttribs.key);
-         } else {
-            // create text node, if template is some text
-            if (typeof tpl !== 'string') {
-               Logger.error(
-                  `Template error - Invalid value of ws:partial template option: ${tpl} typeof ` + typeof tpl,
-                  parent
-               );
-            }
-            if (Common.isCompat()) {
-               return this.createText('' + tpl, decorAttribs.key);
-            }
-            // TODO: разобраться с правильным использование ws:partial
-            // отключены предупреждения по задаче
-            // https://online.sbis.ru/opendoc.html?guid=04ddc7d0-396a-473b-9a65-ee1ddc6a7243
-            // в целом использование ws:partial сейчас не правильное
-            // https://online.sbis.ru/obj/Meeting/b3e2f39d-1a41-4acd-a8d7-44f4cfc03112
-            // задача https://online.sbis.ru/opendoc.html?guid=f5c07778-2769-414b-afa8-30ad6193770a
-            // const message = `Template warning -  "${tpl}"!` +
-            //    'Options "template" must be control or template not a string';
-            // Logger.warn(message, data.logicParent);
-            return this.createText('' + tpl, decorAttribs.key);
-         }
       }
+
+      if (Common.isTemplateClass(fn)) {
+         return this.createTemplate(fn, resolvedScope, decorAttribs, context, _deps);
+      }
+
+      const nameFunc = isTplString ? tpl : 'InlineFunction';
+      Logger.debug(`createWsControl - "${nameFunc}"`, data.controlProperties);
+      Logger.debug('Context for control', decorAttribs.context);
+      Logger.debug('Inherit options for control', decorAttribs.inheritOptions);
+
+      const parent = data.parent;
+      if (typeof fn === 'function') {
+         if (Common.isAnonymousFn(fn)) {
+            this.anonymousFnError(fn, parent);
+            return this.createText('', decorAttribs.key);
+         }
+         return parent ?
+               fn.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
+            fn(resolvedScope, decorAttribs, context, true);
+      }
+      if (fn && typeof fn.func === 'function') {
+         if (Common.isAnonymousFn(fn.func)) {
+            this.anonymousFnError(fn.func, parent);
+            return this.createText('', decorAttribs.key);
+         }
+         return parent ?
+               fn.func.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig) :
+            fn.func(resolvedScope, decorAttribs, context, true);
+      }
+      if (Common.isArray(fn)) {
+         return this.resolveTemplateArray(parent, fn, resolvedScope, decorAttribs, context);
+      }
+      if (typeof tpl === 'undefined') {
+         const typeTpl = typeof tpl;
+         Logger.error(`${typeTpl} component error - Попытка использовать компонент/шаблон, ` +
+            `но вместо компонента в шаблоне был передан ${typeTpl}! ` +
+            'Если верстка строится неправильно, нужно поставить точку останова и исследовать стек вызовов. ' +
+            `По стеку будет понятно, в каком шаблоне и в какую опцию передается ${typeTpl}`, parent);
+         return this.createText('', decorAttribs.key);
+      }
+      if (fn === false) {
+         Logger.error(`Контрол ${tpl} отсутствует в зависимостях и не может быть построен."`, parent);
+         return this.createText('', decorAttribs.key);
+      }
+      // create text node, if template is some text
+      if (typeof tpl !== 'string') {
+         Logger.error(
+            `Template error - Invalid value of ws:partial template option: ${tpl} typeof ` + typeof tpl,
+            parent
+         );
+      }
+      if (Common.isCompat()) {
+         return this.createText('' + tpl, decorAttribs.key);
+      }
+      // TODO: разобраться с правильным использование ws:partial
+      // отключены предупреждения по задаче
+      // https://online.sbis.ru/opendoc.html?guid=04ddc7d0-396a-473b-9a65-ee1ddc6a7243
+      // в целом использование ws:partial сейчас не правильное
+      // https://online.sbis.ru/obj/Meeting/b3e2f39d-1a41-4acd-a8d7-44f4cfc03112
+      // задача https://online.sbis.ru/opendoc.html?guid=f5c07778-2769-414b-afa8-30ad6193770a
+      // const message = `Template warning -  "${tpl}"!` +
+      //    'Options "template" must be control or template not a string';
+      // Logger.warn(message, data.logicParent);
+      return this.createText('' + tpl, decorAttribs.key);
    }
 
    joinElements(elements: GeneratorStringArray): GeneratorStringArray | GeneratorError {
@@ -363,6 +391,10 @@ export class GeneratorVdom implements IGenerator {
       defCollection: IGeneratorDefCollection,
       control: GeneratorEmptyObject
    ): string {
+      if (tagName === invisibleNodeTagName) {
+         return Vdom.htmlNode(tagName, emtpyProps, [], attrs.key);
+      }
+
       if (!attrToDecorate) {
          attrToDecorate = {};
       }
@@ -379,7 +411,15 @@ export class GeneratorVdom implements IGenerator {
 
       _FocusAttrs.prepareTabindex(mergedAttrs);
 
-      //Убрать внутри обработку event
+      Object.keys(mergedAttrs).forEach((attrName) => {
+         if (attrName.indexOf('top:') === 0) {
+            const newAttrName = attrName.replace('top:', '');
+            mergedAttrs[newAttrName] = mergedAttrs[newAttrName] || mergedAttrs[attrName];
+            delete mergedAttrs[attrName];
+         }
+      });
+
+      // Убрать внутри обработку event
       const props = {
          attributes: mergedAttrs,
          hooks: {},
@@ -450,9 +490,17 @@ export class GeneratorVdom implements IGenerator {
 
    resolveTemplateFunction(parent: any, template: any, resolvedScope: any, decorAttribs: any, context: any): any {
       if (parent) {
-         return template.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial);
+         if (Common.isAnonymousFn(template)) {
+            this.anonymousFnError(template, parent);
+            return this.createText('', decorAttribs.key);
+         }
+         return template.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig);
       }
-      return template(resolvedScope, decorAttribs, context, true, undefined, undefined, this.prepareAttrsForPartial);
+      if (Common.isAnonymousFn(template)) {
+         this.anonymousFnError(template, parent);
+         return this.createText('', decorAttribs.key);
+      }
+      return template(resolvedScope, decorAttribs, context, true, undefined, undefined, this.generatorConfig);
    }
 
    resolveTemplate(template: any, parent: any, resolvedScope: any, decorAttribs: any, context: any): any {
@@ -489,4 +537,10 @@ export class GeneratorVdom implements IGenerator {
       });
       return result;
    }
+
+   private anonymousFnError(fn: Function, parent: IControl): void {
+      Logger.error(`Ошибка построения разметки. Была передана функция, которая не является шаблонной.
+               Функция: ${fn.toString()}`, parent);
+   }
+
 }

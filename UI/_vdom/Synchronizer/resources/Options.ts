@@ -7,6 +7,11 @@ export interface IVersionable {
    getVersion(): number;
 }
 
+export interface IVersionableArray {
+   getArrayVersion?(): number;
+   _arrayVersion?: number;
+}
+
 export interface IVersions {
    [property: string]: IVersions | number;
 }
@@ -39,7 +44,7 @@ const DEEP_CHECKING_FLAG = '_isDeepChecking';
 const PREFER_VERSIONS_API_FLAG = '_preferVersionAPI';
 
 export declare type TOptionValue =
-   IVersionable | ITemplateArray | ITemplateObject | Date |
+   IVersionable | IVersionableArray | ITemplateArray | ITemplateObject | Date |
    object | symbol | number | string | boolean | null | undefined;
 
 export interface IManualObject extends Object {
@@ -70,6 +75,10 @@ function shouldCheckDeep(obj: IManualObject): boolean {
 
 function isVersionable(obj: IVersionable): boolean {
    return !!(obj && typeof obj === 'object' && typeof obj.getVersion === 'function');
+}
+
+function isVersionableArray(obj: IVersionableArray): boolean {
+   return !!(obj && Array.isArray(obj) && typeof obj.getArrayVersion === 'function');
 }
 
 function isTemplate(tmpl: ITemplate): boolean {
@@ -107,6 +116,8 @@ export function collectObjectVersions(collection: IOptions): IVersions {
                   }
                }
             }
+         } else if (isVersionableArray(value as IVersionableArray)) {
+            versions[key] = (value as IVersionableArray).getArrayVersion();
          } else if (isTemplateObject(value as ITemplateObject)) {
             const templateObject: ITemplateObject = value as ITemplateObject;
             const innerVersions = collectObjectVersions(getTemplateInternal(templateObject));
@@ -257,6 +268,13 @@ export function getChangedOptions(
          if (next[property] === prev[property]) {
             if (isVersionable(next[property] as IVersionable) && versionsStorage) {
                const newVersion = (next[property] as IVersionable).getVersion();
+               if (versionsStorage[prefix + property] !== newVersion) {
+                  hasChanges = true;
+                  changes[property] = next[property];
+               }
+            }
+            if (isVersionableArray(next[property] as IVersionableArray) && versionsStorage) {
+               const newVersion = (next[property] as IVersionableArray).getArrayVersion();
                if (versionsStorage[prefix + property] !== newVersion) {
                   hasChanges = true;
                   changes[property] = next[property];

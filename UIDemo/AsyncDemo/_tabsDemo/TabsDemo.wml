@@ -1,0 +1,43 @@
+<div class="UIDemo-AsyncDemo">
+    <h3 class="UIDemo-AsyncDemo__headerMain">Демо асинхронной загрузки содержимого табов UI/Base:Async</h3>
+
+    <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__showHideColumn">
+        <span class="UIDemo-AsyncDemo__subHeader">1. Асинхронная загрузка шаблона при быстром прокликивании по табам</span>
+        <div class="UIDemo-AsyncDemo__row">
+            Демонстрация асинхронной загрузки шаблона при быстром прокликивании табов.
+            В итоге должен загружаться тот шаблон, который был запрошен при последнем клике по табам.&nbsp;
+            <a href="https://online.sbis.ru/opendoc.html?guid=d95482c1-38e9-4a8c-8563-c5336e555dd3" target="_blank">Пример ошибки</a>
+        </div>
+        <div class="UIDemo-AsyncDemo__row">
+            1) По умолчанию загружен таб "Tab 0"<br/>
+            2) замедлить сеть: Chrome devtools -> Network -> Slow 3G<br/>
+            3) быстро прощелкать по остальным табам, остановиться на каком-то табе. Напр. "Tab 1" -> "Tab 3" -> "Tab 2" -> "Tab 3"<br/>
+            4) в итоге, после некоторой задержки, содержимое должно быть загружено для выбранного таба. Причем на некоторое время содержимое таба может быть для первого выбранного таба, в данном случае "Tab 1"
+
+        </div>
+        <div class="UIDemo-AsyncDemo__row">
+            <Router.router:Route mask="asyncTab/:asyncTab">
+                <UIDemo.AsyncDemo._tabsDemo.QuickClickTabs/>
+            </Router.router:Route>
+        </div>
+    </div>
+
+    <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__showHideColumn">
+        <span class="UIDemo-AsyncDemo__subHeader">2. Асинхронная загрузка шаблона после восстановления сети</span>
+        <div class="UIDemo-AsyncDemo__row">
+            Демонстрация асинхронной загрузки модуля/библиотеки после первой неудачной попытки загрузить их.<br/>
+            Тут необходимо после загрузки страницы (по умолчанию открыта вкладка "Tab 0"):<br/>
+            1) отключить сеть: Chrome devtools -> Network -> Offline<br/>
+            2) переключиться на вкладку "Tab 1" - в консоли появится ошибка загрузки модуля "UIDemo/AsyncDemo/_tabsDemo/NetworkRestoreTabs/Tab1", а во вкладке текст ошибки "У СБИС возникла проблема"<br/>
+            3) переключиться на вкладку "Tab 2" - в консоли появится ошибка загрузки библиотеки "UIDemo/AsyncDemo/testLibAsync", а во вкладке текст ошибки "У СБИС возникла проблема"<br/>
+            4) восстановить сеть: Chrome devtools -> Network -> Online<br/>
+            5) переключиться на вкладку "Tab 1" - модуль загрузился<br/>
+            6) переключиться на вкладку "Tab 2" - модуль загрузился<br/>
+        </div>
+        <div class="UIDemo-AsyncDemo__row">
+            <Router.router:Route mask="selectedTab/:selectedTab">
+                <UIDemo.AsyncDemo._tabsDemo.NetworkRestoreTabs/>
+            </Router.router:Route>
+        </div>
+    </div>
+</div>

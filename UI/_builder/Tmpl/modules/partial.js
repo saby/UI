@@ -4,13 +4,12 @@ define('UI/_builder/Tmpl/modules/partial', [
    'UI/_builder/Tmpl/expressions/_private/Process',
    'UI/_builder/Tmpl/modules/utils/parse',
    'UI/_builder/Tmpl/modules/data/utils/functionStringCreator',
-   'UI/_builder/Tmpl/utils/ErrorHandler',
    'UI/_builder/Tmpl/codegen/Generator',
    'UI/_builder/Tmpl/codegen/templates',
    'UI/_builder/Tmpl/codegen/TClosure',
    'UI/_builder/Tmpl/codegen/_feature/Partial'
 ], function partialLoader(
-   injectedDataForce, names, Process, parse, FSC, ErrorHandlerLib,
+   injectedDataForce, names, Process, parse, FSC,
    Generator, templates, TClosure, FeaturePartial
 ) {
    'use strict';
@@ -19,7 +18,7 @@ define('UI/_builder/Tmpl/modules/partial', [
     * @author Крылов М.А.
     */
 
-   var errorHandler = ErrorHandlerLib.createErrorHandler(true);
+   var USE_NEW_GENERATOR_METHODS = true;
 
    function calculateData(sequence) {
       var string = '', attrData = sequence.data, i;
@@ -33,19 +32,6 @@ define('UI/_builder/Tmpl/modules/partial', [
          return string;
       }
       return sequence;
-   }
-
-   function syncRequireTemplateOrControl(url, preparedScope, decorAttribs, tag) {
-      var templateName = calculateData(tag.attribs._wstemplatename);
-
-      // превращаем объект с экранированными значениями (¥) в строку для добавления в шаблон
-      var decorInternal = (tag.internal && Object.keys(tag.internal).length > 0) ? FSC.getStr(tag.internal) : null;
-      return Generator.genCreateControlResolver(
-         templateName.slice(1, -1),
-         FSC.getStr(preparedScope),
-         decorAttribs,
-         FeaturePartial.createTemplateConfig(decorInternal, tag.isRootTag)
-      ) + ',';
    }
 
    function isControl(tag) {
@@ -94,85 +80,251 @@ define('UI/_builder/Tmpl/modules/partial', [
       };
    }
 
+   function cleanAttributesCollection(attributes) {
+      var result = {};
+      for (var name in attributes) {
+         if (attributes.hasOwnProperty(name)) {
+            var cleanName = name.replace(/^attr:/gi, '');
+            result[cleanName] = attributes[name];
+         }
+      }
+      return result;
+   }
+
+   function getMergeType(tag, decor) {
+      if (tag.injectedTemplate) {
+         if (decor && decor.isMainAttrs) {
+            return 'attribute';
+         }
+         return 'none';
+      }
+      if (decor) {
+         return 'attribute';
+      }
+      return 'context';
+   }
+
+   function prepareDataForCodeGeneration(tag, data, decor) {
+      var tagIsWsControl = isControl(tag);
+      var tagIsModule = isModule(tag);
+      var tagIsDynamicPartial = !!tag.injectedTemplate;
+      var scope = null;
+      var compositeAttributes = null;
+      var cleanAttributes = { };
+      var events = { };
+      if (tag.attribs) {
+         // FIXME: Temporary disable
+         // if (tag.attribs.hasOwnProperty('scope')) {
+         //    scope = Process.processExpressions(
+         //       tag.attribs.scope.data[0],
+         //       data,
+         //       this.fileName,
+         //       isControl,
+         //       {},
+         //       'scope',
+         //       false
+         //    );
+         //    delete tag.attribs.scope;
+         // }
+         if (tag.attribs.hasOwnProperty('attributes')) {
+            compositeAttributes = Process.processExpressions(
+               tag.attribs.attributes.data[0],
+               data,
+               this.fileName,
+               isControl,
+               {},
+               'attributes',
+               true
+            );
+            delete tag.attribs.attributes;
+         }
+         var decorated = parse.processAttributes.call(this, tag.attribs, data, {}, tagIsWsControl, tag);
+         var attributes = decorated.attributes;
+         cleanAttributes = cleanAttributesCollection(attributes);
+         events = decorated.events;
+      }
+      var options = prepareScope.call(this, tag, data);
+      var internal = (tag.internal && Object.keys(tag.internal).length > 0)
+         ? FSC.getStr(tag.internal)
+         : '{}';
+
+      var mergeType = getMergeType(tag, decor);
+      var context = (tagIsModule || tagIsDynamicPartial) ? 'isVdom ? context + "part_" + (templateCount++) : context' : 'context';
+      var config = FeaturePartial.createConfigNew(
+         compositeAttributes, scope, context, internal, tag.isRootTag, tag.key, mergeType
+      );
+
+      var result = {
+         attributes: FSC.getStr(cleanAttributes),
+         events: FSC.getStr(events),
+         options: FSC.getStr(options),
+         config: config,
+         rawOptions: options
+      };
+
+      // FIXME: Multiple processing
+      tag.__$decoratedData = result;
+      return result;
+   }
+
+   function getPrettyTemplateName(attribute) {
+      if (!attribute) {
+         return '[[unknown]]';
+      }
+      if (Array.isArray(attribute.data)) {
+         if (attribute.data.length === 1) {
+            var program = attribute.data[0];
+            if (program.name && program.name.string) {
+               return program.name.string;
+            }
+            return '[[unknown2]]';
+         }
+         return '[[unknown3]]';
+      }
+      return '[[unknown4]]';
+   }
+
+   function processNode(tag, data, decor) {
+      var tagIsWsControl = isControl(tag);
+      var tagIsModule = isModule(tag);
+      var tagIsTemplate = tag.children && tag.children[0] && tag.children[0].fn;
+      var tagIsDynamicPartial = !!tag.injectedTemplate;
+      var config = tag.__$decoratedData || prepareDataForCodeGeneration.call(this, tag, data, decor);
+      if (tagIsDynamicPartial) {
+         // FIXME: Need to process injectedTemplate to get generated code fragment from _wstemplatename
+         Process.processExpressions(
+            tag.injectedTemplate, data, this.fileName, undefined, config.rawOptions
+         );
+         var templateName = calculateData(tag.attribs._wstemplatename).slice(1, -1);
+         var templateNameDescription = getPrettyTemplateName(tag.attribs._wstemplatename);
+         return Generator.genCreateControlNew(
+            'resolver',
+            templateNameDescription,
+            templateName,
+            config.attributes,
+            config.events,
+            config.options,
+            config.config
+         ) + ',';
+      }
+      if (tagIsModule) {
+         return Generator.genCreateControlNew(
+            'resolver',
+            tag.originName,
+            FSC.getStr(getLibraryModulePath(tag)),
+            config.attributes,
+            config.events,
+            config.options,
+            config.config
+         ) + ',';
+      }
+      if (tagIsWsControl) {
+         return Generator.genCreateControlNew(
+            'wsControl',
+            tag.originName,
+            '"' + getWsTemplateName(tag) + '"',
+            config.attributes,
+            config.events,
+            config.options,
+            config.config
+         ) + ',';
+      }
+      var templateValue = tag.attribs._wstemplatename.data.value;
+      if (tagIsTemplate) {
+         return Generator.genCreateControlNew(
+            'template',
+            templateValue,
+            '"' + templateValue + '"',
+            config.attributes,
+            config.events,
+            config.options,
+            config.config
+         ) + ',';
+      }
+
+      // WML compiler
+      if (this.includedFn) {
+         return Generator.genCreateControlNew(
+            'inline',
+            templateValue,
+            templateValue,
+            config.attributes,
+            config.events,
+            config.options,
+            config.config
+         ) + ',';
+      }
+
+      // TMPL compiler
+      var inlineTemplateBody = this.getString(tag.children, {}, this.handlers, {}, true);
+      var inlineTemplateFunction = templates.generatePartialTemplate(inlineTemplateBody);
+      return Generator.genCreateControlNew(
+         'inline',
+         templateValue,
+         inlineTemplateFunction,
+         config.attributes,
+         config.events,
+         config.options,
+         config.config
+      ) + ',';
+   }
+
    var partialM = {
       module: function partialModule(tag, data) {
          function resolveStatement(decor) {
-            var assignModuleVar;
-            var strPreparedScope;
-            var callFnArgs;
             var tagIsModule = isModule(tag);
             var tagIsWsControl = isControl(tag);
+            var tagIsTemplate = tag.children && tag.children[0] && tag.children[0].fn;
+            var tagIsDynamicPartial = !!tag.injectedTemplate;
+
+            // FIXME: включить метод для inline-шаблонов
+            var canUseNewMethods = tagIsModule || tagIsWsControl || tagIsTemplate || tagIsDynamicPartial;
+
+            if (canUseNewMethods && USE_NEW_GENERATOR_METHODS) {
+               return processNode.call(this, tag, data, decor);
+            }
+
             var decorAttribs = tag.decorAttribs || parse.parseAttributesForDecoration.call(
                this, tag.attribs, data, {}, tagIsWsControl, tag
             );
             tag.decorAttribs = decorAttribs;
-
             var preparedScope = prepareScope.call(this, tag, data);
-
-            // превращаем объекты с экранированными значениями (¥) в строки для добавления в шаблон
+            var strPreparedScope = FSC.getStr(preparedScope);
             var decorInternal = (tag.internal && Object.keys(tag.internal).length > 0)
                ? FSC.getStr(tag.internal)
                : null;
+            var createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);
 
-            var injectedTemplate;
-            if (tag.injectedTemplate) {
-               injectedTemplate = Process.processExpressions(
+            if (tagIsDynamicPartial) {
+               // FIXME: Need to process injectedTemplate to get generated code fragment from _wstemplatename
+               Process.processExpressions(
                   tag.injectedTemplate, data, this.fileName, undefined, preparedScope
                );
-
-               // Генерируем внедрённый шаблон с рутовой областью видимости
-               if (!injectedTemplate) {
-                  errorHandler.error(
-                     'Your template variable by the name of "' +
-                     tag.injectedTemplate.name.string + '" is empty',
-                     {
-                        fileName: this.fileName
-                     }
-                  );
-               }
-               assignModuleVar = injectedTemplate.html || injectedTemplate;
-               if (injectedTemplate.data) {
-                  preparedScope.__rootScope = injectedTemplate.data;
-               }
-               if (assignModuleVar) {
-                  if (typeof assignModuleVar === 'function') {
-                     return assignModuleVar(preparedScope, decorAttribs);
-                  }
-                  if (typeof assignModuleVar === 'string') {
-                     return syncRequireTemplateOrControl(assignModuleVar,
-                        FSC.getStr(preparedScope),
-                        decor && decor.isMainAttrs
-                           ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
-                           : FSC.getStr(decorAttribs),
-                        tag);
-                  }
-               }
-               errorHandler.error(
-                  'Your template variable by the name of "' +
-                  tag.injectedTemplate.name.string + '" is empty',
-                  {
-                     fileName: this.fileName
-                  }
-               );
+               var templateName = calculateData(tag.attribs._wstemplatename).slice(1, -1);
+               var partialAttributes = decor && decor.isMainAttrs
+                  ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
+                  : FSC.getStr(decorAttribs);
+               return Generator.genCreateControlResolver(
+                  templateName,
+                  strPreparedScope,
+                  partialAttributes,
+                  createTmplCfg
+               ) + ',';
             }
 
-            var createAttribs;
-            var createTmplCfg;
-            if (tagIsModule || tagIsWsControl) {
-               strPreparedScope = FSC.getStr(preparedScope);
-               createAttribs = decor
-                  ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
-                  : TClosure.genPlainMergeContext('attr', FSC.getStr(decorAttribs));
-               createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);
+            var createAttribs = decor
+               ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
+               : TClosure.genPlainMergeContext('attr', FSC.getStr(decorAttribs));
 
-               if (tagIsModule) {
-                  return Generator.genCreateControlModule(
-                     FSC.getStr(getLibraryModulePath(tag)),
-                     strPreparedScope,
-                     createAttribs,
-                     createTmplCfg
-                  ) + ',';
-               }
+            if (tagIsModule) {
+               return Generator.genCreateControlModule(
+                  FSC.getStr(getLibraryModulePath(tag)),
+                  strPreparedScope,
+                  createAttribs,
+                  createTmplCfg
+               ) + ',';
+            }
+            if (tagIsWsControl) {
                return Generator.genCreateControl(
                   '"' + getWsTemplateName(tag) + '"',
                   strPreparedScope,
@@ -180,12 +332,7 @@ define('UI/_builder/Tmpl/modules/partial', [
                   createTmplCfg
                ) + ',';
             }
-            if (tag.children && tag.children[0] && tag.children[0].fn) {
-               strPreparedScope = FSC.getStr(preparedScope);
-               createAttribs = decor
-                  ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
-                  : TClosure.genPlainMergeContext('attr', FSC.getStr(decorAttribs));
-               createTmplCfg = FeaturePartial.createTemplateConfig(!decorInternal ? '{}' : decorInternal, tag.isRootTag);
+            if (tagIsTemplate) {
                return Generator.genCreateControlTemplate(
                   '"' + tag.attribs._wstemplatename.data.value + '"',
                   strPreparedScope,
@@ -199,29 +346,26 @@ define('UI/_builder/Tmpl/modules/partial', [
 
             var callDataArg = TClosure.genPlainMerge(
                'Object.create(data || {})',
-               TClosure.genPrepareDataForCreate(
+               Generator.genPrepareDataForCreate(
                   '"_$inline_template"',
-                  FSC.getStr(preparedScope),
+                  strPreparedScope,
                   'attrsForTemplate',
                   '{}'
                ),
                'false'
             );
-            var callAttrArg = decor
-               ? TClosure.genPlainMergeAttr('attr', FSC.getStr(decorAttribs))
-               : TClosure.genPlainMergeContext('attr', FSC.getStr(decorAttribs));
 
             // признак того, что функции у нас разложены
-            callFnArgs = '.call(this, scopeForTemplate, attrsForTemplate, context, isVdom), ';
+            var callFnArgs = '.call(this, scopeForTemplate, attrsForTemplate, context, isVdom), ';
 
             if (this.includedFn) {
                return '(function() {' +
-                  'attrsForTemplate = ' + callAttrArg + '; scopeForTemplate = ' + callDataArg + ';' +
-               '}).apply(this),' + tag.attribs._wstemplatename.data.value + callFnArgs;
+                  'attrsForTemplate = ' + createAttribs + '; scopeForTemplate = ' + callDataArg + ';' +
+                  '}).apply(this),' + tag.attribs._wstemplatename.data.value + callFnArgs;
             }
             var body = this.getString(tag.children, {}, this.handlers, {}, true);
             return '(function(){' +
-                  'attrsForTemplate = ' + callAttrArg + '; scopeForTemplate = ' + callDataArg + '' +
+               'attrsForTemplate = ' + createAttribs + '; scopeForTemplate = ' + callDataArg + '' +
                ';}).apply(this),' + templates.generatePartialTemplate(body) + callFnArgs;
          }
          return resolveStatement;

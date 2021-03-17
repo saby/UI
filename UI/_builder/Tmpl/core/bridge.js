@@ -24,14 +24,37 @@ define('UI/_builder/Tmpl/core/bridge', [
    Annotate
 ) {
    'use strict';
-   var USE_TRAVERSE_VISITOR = !false;
-   var USE_ANNOTATION_VISITOR = !false;
 
-   // TODO: https://online.sbis.ru/opendoc.html?guid=ea8a25dd-5a2f-4330-8d6f-599c8c5878dd
+   /**
+    * @deprecated
+    * @description Модуль предназначен для соединения старой и новой логик разбора и аннотации деревьев.
+    * @author Крылов М.А.
+    * @file UI/_builder/Tmpl/core/bridge.js
+    */
+
+   /**
+    * Флаг - использовать traverse посетителей.
+    */
+   var USE_TRAVERSE_VISITOR = true;
+
+   /**
+    * Флаг - использовать annotate посетителей.
+    */
+   var USE_ANNOTATION_VISITOR = true;
+
+   /**
+    * Флаг - генерировать rk-функции
+    * @todo https://online.sbis.ru/opendoc.html?guid=ea8a25dd-5a2f-4330-8d6f-599c8c5878dd
+    * @type {boolean}
+    */
    var USE_GENERATE_CODE_FOR_TRANSLATIONS = false;
 
    var uniqueArray = Utils.ArrayUtils.uniq;
 
+   /**
+    * Old annotation method.
+    * @deprecated
+    */
    function annotateOld(traversed, options, traverseOptions, deferred) {
       PatchVisitorLib.default(traversed, traverseOptions.scope);
       traversed.__newVersion = true;
@@ -68,11 +91,15 @@ define('UI/_builder/Tmpl/core/bridge', [
       deferred.callback(traversed);
    }
 
+   /**
+    * New annotation method.
+    */
    function annotateWithVisitors(traversed, options, traverseOptions, deferred) {
       var annotated = Annotate.default(traversed, traverseOptions.scope);
       PatchVisitorLib.default(traversed, traverseOptions.scope);
       traversed.childrenStorage = annotated.childrenStorage;
       traversed.reactiveProps = annotated.reactiveProps;
+      traversed.templateNames = annotated.templateNames;
       traversed.__newVersion = annotated.__newVersion;
 
       // в случае сбора словаря локализуемых слов отдаем объект
@@ -87,6 +114,9 @@ define('UI/_builder/Tmpl/core/bridge', [
       deferred.callback(traversed);
    }
 
+   /**
+    * New traverse method.
+    */
    function traverseWithVisitors(htmlTree, options) {
       var deferred = new Deferred();
       var scope = new ScopeLib.default(!options.fromBuilderTmpl);
@@ -126,6 +156,9 @@ define('UI/_builder/Tmpl/core/bridge', [
       return deferred;
    }
 
+   /**
+    * Traverse tree.
+    */
    function traverse(htmlTree, resolver, options) {
       if (USE_TRAVERSE_VISITOR) {
          return traverseWithVisitors(htmlTree, options);
@@ -133,6 +166,9 @@ define('UI/_builder/Tmpl/core/bridge', [
       return traversing.traverse(htmlTree, resolver, options);
    }
 
+   /**
+    * Check if using code generation visitor is allowed.
+    */
    function canUseCodegenVisitors() {
       return USE_TRAVERSE_VISITOR && USE_ANNOTATION_VISITOR;
    }

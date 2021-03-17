@@ -1,0 +1,38 @@
+<div class="UIDemo-AsyncDemo">
+    <h3 class="UIDemo-AsyncDemo__headerMain">Демо UI/Base:Async</h3>
+
+    <UIDemo.AsyncDemo._index.LoadModules/>
+
+    <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__internalOptColumn">
+        <span class="UIDemo-AsyncDemo__subHeader">3. Internal options</span>
+        <div class="UIDemo-AsyncDemo__row">
+            Демонстрация перестроения компонента при изменении шаблонных опций и внутренних опций (internal options).
+        </div>
+        <UIDemo.AsyncDemo._index.InternalOptions/>
+    </div>
+
+    <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__internalOptColumn">
+        <span class="UIDemo-AsyncDemo__subHeader">3.1. Internal options in loop</span>
+        <div class="UIDemo-AsyncDemo__row">
+            Демонстрация перестроения компонента, <b>построенного в цикле</b>, при изменении шаблонных и внутренних опций.
+        </div>
+        <UIDemo.AsyncDemo._index.LoopInternalOptions/>
+    </div>
+
+    <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__loadFailColumn">
+        <span class="UIDemo-AsyncDemo__subHeader">4. 'Дружелюбная ошибка' (просто текст) при проблеме загрузки</span>
+        <div class="UIDemo-AsyncDemo__row">
+            Попытка загрузить несуществующий модуль. В таком случае будет показан дружелюбный текст ошибки: "У СБИС возникла проблема".
+        </div>
+        <UIDemo.AsyncDemo._index.LoadFail/>
+    </div>
+
+    <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__showHideColumn">
+        <span class="UIDemo-AsyncDemo__subHeader">5. Тест: скрыть/показать UI.Base:Async, который грузит модуль с шаблоном {{'<invisible-node/>'}}</span>
+        <div class="UIDemo-AsyncDemo__row">
+            Скрытие/показ модуля Async, который загружает компонент с {{'<invisible-node/>'}} в разметке.&nbsp;
+            <a href="https://online.sbis.ru/opendoc.html?guid=689bb38b-770e-421f-8619-1d6e5518faac" target="_blank">Пример ошибки</a>
+        </div>
+        <UIDemo.AsyncDemo._index.ShowHide/>
+    </div>
+</div>

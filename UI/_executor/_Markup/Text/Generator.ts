@@ -14,6 +14,7 @@ import {
    GeneratorObject,
    GeneratorTemplateOrigin,
    IControl,
+   IControlConfig,
    IControlData,
    IControlProperties,
    ICreateControlTemplateCfg,
@@ -36,11 +37,11 @@ export class GeneratorText implements IGenerator {
    cacheModules: TObject;
    generatorBase: Generator;
 
-   private prepareAttrsForPartial: Function;
+   private generatorConfig: IGeneratorConfig;
 
    constructor(config: IGeneratorConfig) {
       if (config) {
-         this.prepareAttrsForPartial = config.prepareAttrsForPartial;
+         this.generatorConfig = config;
       }
       this.cacheModules = {};
       this.generatorBase = new Generator(config);
@@ -63,6 +64,17 @@ export class GeneratorText implements IGenerator {
                                 deps: TDeps,
                                 includedTemplates?: TIncludedTemplate): IPrepareDataForCreate {
       return this.generatorBase.prepareDataForCreate.call(this, tplOrigin, scope, attrs, deps, includedTemplates);
+   }
+
+   createControlNew(
+      type: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: Record<string, unknown>,
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error {
+      return this.generatorBase.createControlNew.call(this, type, method, attributes, events, options, config);
    }
 
    chain(out: string, defCollection: IGeneratorDefCollection, inst?: IControl): Promise<string|void> | string | Error {
@@ -212,9 +224,9 @@ export class GeneratorText implements IGenerator {
          // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
          return '';
       } else if (parent) {
-         return resultingFn.call(parent, resolvedScope, attributes, context, false, undefined, undefined, this.prepareAttrsForPartial);
+         return resultingFn.call(parent, resolvedScope, attributes, context, false, undefined, undefined, this.generatorConfig);
       } else {
-         return resultingFn(resolvedScope, attributes, context, false, undefined, undefined, this.prepareAttrsForPartial);
+         return resultingFn(resolvedScope, attributes, context, false, undefined, undefined, this.generatorConfig);
       }
    }
 
@@ -248,10 +260,19 @@ export class GeneratorText implements IGenerator {
 
       if (isTplString) {
          fn = stringTemplateResolver(tpl, includedTemplates, _deps, config, data.parent);
-      } else if (isTplModule) {
-         fn = data.controlClass;
       } else {
-         fn = tpl;
+         fn = data.controlClass;
+      }
+
+      if (!fn) {
+         if (typeof tpl === 'function') {
+            fn = tpl;
+            // @ts-ignore
+         } else if (tpl && typeof tpl.func === 'function') {
+            fn = tpl;
+         } else if (Common.isArray(tpl)) {
+            fn = tpl;
+         }
       }
 
       // FIXME: Для OnlineSbisRu/CompatibleTemplate необходимо использовать default export,
@@ -287,9 +308,9 @@ export class GeneratorText implements IGenerator {
             return this.createEmptyText();
          }
          if (typeof fn === 'function') {
-            r = fn.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, this.prepareAttrsForPartial);
+            r = fn.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, this.generatorConfig);
          } else if (fn && typeof fn.func === 'function') {
-            r = fn.func.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, this.prepareAttrsForPartial);
+            r = fn.func.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, this.generatorConfig);
          } else if (Common.isArray(fn)) {
             const _this = this;
             r = fn.map(function (template) {
@@ -298,9 +319,9 @@ export class GeneratorText implements IGenerator {
                }
                callContext = preparedScope && data.parent ? data.parent : template;
                if (typeof template === 'function') {
-                  return template.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, _this.prepareAttrsForPartial);
+                  return template.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, _this.generatorConfig);
                } else if (typeof template.func === 'function') {
-                  return template.func.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, _this.prepareAttrsForPartial);
+                  return template.func.call(callContext, resolvedScope, decorAttribs, context, false, undefined, undefined, _this.generatorConfig);
                }
                return template;
             });
@@ -361,45 +382,52 @@ export class GeneratorText implements IGenerator {
       return Scope.calculateScope(scope, Scope.controlPropMerge);
    };
 
+   private isValidTemplateError(fn: any, tpl: GeneratorTemplateOrigin, reason: string): void {
+      Logger.error(`Не удалось построить верстку.` +
+         `В качестве шаблона контрола ${tpl} была передана структура не поддерживаемая генератором.` +
+         `${reason}`, fn);
+   }
+
    private isValidTemplate(fn: any,
                            tpl: GeneratorTemplateOrigin,
                            isTplString: boolean,
                            isTplModule: boolean,
                            isTemplateWrapper: boolean): boolean {
       let reason = '';
-      let isValid = true;
       // высчитали функцию как число
       if (isTplString && typeof fn === 'number') {
-         isValid = false;
          reason = `В качестве компонента/шаблона было передано число.`
+         this.isValidTemplateError(fn, tpl, reason);
+         return false
       }
       // из библиотеки вернули строку
       if (isTplModule && typeof fn === 'string') {
-         isValid = false;
          reason = `Из библиотеки ${tpl} в качестве компонента была передана строка.`
+         this.isValidTemplateError(fn, tpl, reason);
+         return false
+
       }
       // автоматически передевенные странаци на wasaby игнорируем
       // массимы функций игнорируем, они будут проверены в fn.map()
       // isTplString === true в случае если в генератор отдлали строку, в partial это может быть просто текст
-      if (!isTemplateWrapper && typeof fn === 'object' && !Common.isArray(fn) && !isTplString) {
-         if (fn === null) {
-            isValid = false;
-            reason = 'В качества шаблона/компонента передан "null"';
-         }
-         // если в fn есть свойство func, то все ок
-         if (isValid && !fn.hasOwnProperty('func')) {
-            isValid = false;
-            // export default не поддерживается следует вывести ошибку или странциа построится как [object Objcet]
-            if (fn.hasOwnProperty('default')) {
-               reason = 'В модуле экспортируется объект по-умолчанию (export default ControlName).'
-            }
-         }
+      const unknownFnType = !isTemplateWrapper && typeof fn === 'object' && !Common.isArray(fn) && !isTplString;
+      if (unknownFnType && fn === null) {
+         reason = 'В качества шаблона/компонента передан "null"';
+         this.isValidTemplateError(fn, tpl, reason);
+         return false
       }
-      if (!isValid) {
-         Logger.error(`Не удалось построить верстку.` +
-            `В качестве шаблона контрола ${tpl} была передана структура не поддерживаемая генератором.` +
-            `${reason}`, fn);
+      // export default не поддерживается следует вывести ошибку или странциа построится как [object Objcet]
+      if (unknownFnType && fn.hasOwnProperty('default')) {
+         reason = 'В модуле экспортируется объект по-умолчанию (export default ControlName).'
+         this.isValidTemplateError(fn.default, tpl, reason);
+         return false
       }
-      return isValid;
+
+      // если в fn есть свойство func, то все ок
+      if (unknownFnType && !fn.hasOwnProperty('func')) {
+         this.isValidTemplateError(fn, tpl, reason);
+         return false
+      }
+      return true;
    }
 }

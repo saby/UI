@@ -2,7 +2,7 @@
 
 import { ArrayUtils } from 'UI/Utils';
 
-import { coreDebug } from 'Env/Env';
+import { coreDebug, constants } from 'Env/Env';
 import { ListMonad } from '../../Utils/Monad';
 import { setControlNodeHook } from './Hooks';
 import { Logger } from 'UI/Utils';
@@ -12,6 +12,7 @@ import { Map, Set } from 'Types/shim';
 import { htmlNode, textNode, GeneratorNode, ITemplateNode } from 'UI/Executor';
 import { IControlNode } from '../interfaces';
 import { TControlConstructor } from 'UI/_base/Control';
+import { invisibleNodeTagName } from 'UI/Executor';
 
 // this.childFlags = childFlags;
 // this.children = children;
@@ -56,7 +57,7 @@ export function isTemplateVNodeType(vnode: any): boolean {
 
 // TODO: Release type flag on virtual nodes to distinguish virtual nodes.
 export function isInvisibleNodeType(vnode: any): any {
-   return vnode && typeof vnode === 'object' && vnode.type && vnode.type === 'invisible-node';
+   return vnode && typeof vnode === 'object' && vnode.type && vnode.type === invisibleNodeTagName;
 }
 
 // TODO модификация этой функции приводит к большим проблемам. Нужно точнее разобрать
@@ -83,8 +84,7 @@ export function mapVNode(
    controlNode: any,
    vnode: any,
    setHookToVNode?: any,
-   _?: unknown,
-   modify?: any
+   modify?: boolean
 ): any {
    /* mapVNode must be refactor
     * recursive dom with many root kills browser
@@ -491,15 +491,20 @@ function getStringVnode(vnode: any): string {
 }
 
 function validateKeys(children: any[]): void {
+   if (constants.isProduction) {
+      // Do not validate keys in production mode
+      return;
+   }
    if (!Array.isArray(children)) {
       return;
    }
    const keys = new Set();
    for (let i = 0; i < children.length; ++i) {
-      const key = children[i].key;
+      const child = children[i];
+      const key = child.key;
       if (keys.has(key)) {
-         const markup = getStringVnode(children[i]);
-         Logger.error(`Deoptimizing perfomance due to duplicate node keys. Encountered two children with same key: "${key}". Markup: ${markup}`);
+         const markup = getStringVnode(child);
+         Logger.error(`Встречены несколько детей с одинаковыми ключами: "${key}". Разметка: ${markup}`, child.parentControl);
       } else {
          keys.add(key);
       }
@@ -527,10 +532,14 @@ export function getFullMarkup(
          return vnode;
       }
       result = controlNodes[vnode.controlNodeIdx].fullMarkup;
-      /**
-       * In case of invisible node we have to hold on to parent dom node
-       */
-      if (isInvisibleNodeType(result)) {
+      const controlNode: IControlNode = controlNodes[vnode.controlNodeIdx];
+      if (!controlNode || controlNode.key !== vnode.key) {
+         Logger.error('Ошибка синхронизации: отсутствует элемент в дереве controlNodes или неверное значение поля controlNodeIdx у vnode', vnode?.controlClass?.prototype);
+         result = textNode('', vnode.key);
+      } else if (isInvisibleNodeType(result)) {
+         /**
+         * In case of invisible node we have to hold on to parent dom node
+         */
          if (parentNode && parentNode.type) {
             // Invisible control node is attached to a parent vnode, which
             // should keep track of every invisible control attached to it
@@ -539,14 +548,13 @@ export function getFullMarkup(
             }
             mapVNode(
                setControlNodeHook,
-               controlNodes[vnode.controlNodeIdx],
+               controlNode,
                parentNode,
                true,
-               false,
                true
             );
          }
-         result = textNode('', controlNodes[vnode.controlNodeIdx].key);
+         result = textNode('', controlNode.key);
       }
    } else if (isTemplateVNodeType(vnode) && !vnode.children) {
       result = vnode;
@@ -559,6 +567,10 @@ export function getFullMarkup(
    } else {
       i = 0;
       children = isTemplateVNodeType(vnode) ? vnode.children : getVNodeChidlren(vnode);
+
+      // Бывает, что среди детей несколько темплейт нод, часть из которых заменятся на нормальные вноды инферно, а часть - нет.
+      // При замене ключ поменяется, поэтому проверим одинаковые сразу.
+      validateKeys(children);
 
       ln = children.length;
 

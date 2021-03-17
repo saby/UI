@@ -33,14 +33,18 @@ export default Control.createControl;
  * Возвращается promise, который сработает на хуке afterMount().
  * @see createControl
  */
+// tslint:disable-next-line:no-any
 export async function async(ctor: any, cfg: any, domElement: HTMLElement): Promise<Control> {
+    // tslint:disable-next-line:ban-ts-ignore
     // @ts-ignore
     return new Promise((resolve, reject) => {
         try {
             const inst = Control.createControl(ctor, cfg, domElement);
+            // tslint:disable-next-line:ban-ts-ignore
            // @ts-ignore
             const baseAM = inst._afterMount;
 
+            // tslint:disable-next-line:ban-ts-ignore
             // @ts-ignore
             inst._afterMount = function(): void {
                 baseAM.apply(this, arguments);

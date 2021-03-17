@@ -1,14 +1,15 @@
 /// <amd-module name="UI/_builder/Tmpl/expressions/_private/Bind" />
 
 /**
+ * @description Модуль предоставляет методы и классы для bind-узлов.
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/Bind.ts
  */
 
 import { BindExpressionVisitor } from './Nodes';
-import {EventNode} from "./EventNode";
-import {EventChain} from "./EventChain";
-import {IAttributeValue} from "./IAttributeValue";
-
+import { EventNode } from './EventNode';
+import { EventChain } from './EventChain';
+import { IAttributeValue } from './IAttributeValue';
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
 /**
@@ -58,6 +59,13 @@ export function getBindAttributeName(attributeName: string): string {
    return attributeName.slice(5);
 }
 
+/**
+ * Выполнить генерацию кода для bind-выражения.
+ * @param value {IAttributeValue} Узел атрибута.
+ * @param data {*} Данные.
+ * @param fileName {string} Имя файла шаблона.
+ * @param attributeName {string} Имя атрибута.
+ */
 export function visitBindExpressionNew(
    value: IAttributeValue,
    data: any,
@@ -108,12 +116,15 @@ export function processBindAttribute(
    let fn = visitBindExpressionNew(value, data, fileName, attributeName);
    fn = FSC.wrapAroundExec('function(data, value){ return ' + fn + '; }');
    const chain = EventChain.prepareEventChain(eventChain);
-   chain.unshift(new EventNode({
-         value: funcName,
-         viewController: FSC.wrapAroundExec('viewController'),
-         data: FSC.wrapAroundExec('data'),
-         handler: fn,
-         isControl: isControl
-      }));
+   const eventNode = new EventNode({
+      value: funcName,
+      viewController: FSC.wrapAroundExec('viewController'),
+      data: FSC.wrapAroundExec('data'),
+      handler: fn,
+      isControl: isControl
+   });
+   chain.unshift(eventNode);
+
+   eventNode.bindValue = value.data[0].name.string;
    return chain;
 }

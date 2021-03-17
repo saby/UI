@@ -1,0 +1,4 @@
+<div class="demo-Todo">
+   <UIDemo.ReactDemo.TODO.List key="list" items="{{list}}" removeHandler="{{removeHandler}}"/>
+   <UIDemo.ReactDemo.TODO.Adder key="adder" addNewItem="{{addNewItem}}"/>
+</div>

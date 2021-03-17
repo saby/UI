@@ -1,12 +1,15 @@
 /// <amd-module name="UI/_builder/Tmpl/core/Ast" />
 
 /**
+ * @description Represents abstract syntax tree node classes.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/core/Ast.ts
  */
 
 import { ProgramNode } from 'UI/_builder/Tmpl/expressions/_private/Nodes';
 import { IPath } from 'UI/_builder/Tmpl/core/Resolvers';
+import { unescape } from '../modules/utils/common';
+import { IContext } from "UI/_builder/Tmpl/core/Context";
 
 // tslint:disable:max-classes-per-file
 // Намеренно отключаю правило max-classes-per-file
@@ -454,6 +457,12 @@ export abstract class Ast {
    __$ws_internal: IInternal | null;
 
    /**
+    * FIXME: Refactor it
+    * @deprecated
+    */
+   __$ws_lexicalContext: IContext | null;
+
+   /**
     * Initialize new instance of abstract syntax node.
     * @param flags {Flags} Node flags.
     */
@@ -462,6 +471,7 @@ export abstract class Ast {
       this.__$ws_flags = flags;
       this.__$ws_isRootNode = false;
       this.__$ws_internal = null;
+      this.__$ws_lexicalContext = null;
    }
 
    /**
@@ -567,8 +577,7 @@ export abstract class BaseWasabyElement extends BaseHtmlElement {
    setOption(option: OptionNode | ContentOptionNode): void {
       const name = option.__$ws_name;
       if (this.hasOption(name)) {
-         // FIXME: this already checked before set
-         // throw new Error(`Опция "${name}" уже определена на компоненте`);
+         throw new Error(`Опция "${name}" уже определена на компоненте`);
       }
       if (option instanceof OptionNode) {
          this.__$ws_options[name] = option;
@@ -1824,7 +1833,7 @@ export class TextDataNode extends Ast {
     */
    constructor(content: string) {
       super();
-      this.__$ws_content = content;
+      this.__$ws_content = unescape(content);
    }
 
    /**
@@ -1896,7 +1905,7 @@ export class TranslationNode extends Ast {
     */
    constructor(text: string, context: string = '') {
       super();
-      this.__$ws_text = text;
+      this.__$ws_text = unescape(text);
       this.__$ws_context = context;
    }
 

@@ -2,19 +2,18 @@
 /* tslint:disable */
 
 import { createNode } from './resources/ControlNode';
-import { DirtyKind, rebuildNode, destroyReqursive, IMemoNode, getReceivedState } from './resources/DirtyChecking';
+import { DirtyKind, rebuildNode, destroyReqursive, getReceivedState } from './resources/DirtyChecking';
 import DOMEnvironment from './resources/DOMEnvironment';
 import { delay } from 'Types/function';
 // @ts-ignore
 import { ObjectUtils } from 'UI/Utils';
 // @ts-ignore
 import { Serializer } from 'UI/State';
-import { Set } from 'Types/shim';
 import { Control, IControlOptions } from 'UI/Base';
 
 // @ts-ignore
 import { Logger } from 'UI/Utils';
-import { IOptions, IControlNode, IWasabyHTMLElement, IDOMEnvironment, IRootAttrs } from './interfaces';
+import { IOptions, IControlNode, IMemoNode, IWasabyHTMLElement, IDOMEnvironment, IRootAttrs } from './interfaces';
 
 import {
    injectHook,
@@ -32,15 +31,6 @@ import { restoreFocus } from 'UI/Focus';
  * @author Кондаков Р.Н.
  */
 
-   // A number of rebuild iterations we can run, before we assume that
-   // it's stuck in an infinite loop
-const MAX_REBUILD = 50;
-   // A number of rebuild iterations to run with view logs enabled if it is
-   // stuck in an infinite loop, before throwing an error. We should do
-   // multiple iterations to see if the components rebuild are different
-   // each time or the same
-const MAX_REBUILD_LOGGED_ITERS = 2;
-
 injectHook();
 
 function forEachNodeParents(node: IControlNode, fn: (node:IControlNode) => void) {
@@ -50,43 +40,6 @@ function forEachNodeParents(node: IControlNode, fn: (node:IControlNode) => void)
       parent = parent.parent;
    }
 }
-
-function updateCurrentDirties(environment: IDOMEnvironment) {
-   environment._currentDirties = environment._nextDirties;
-   environment._nextDirties = {};
-}
-
-function checkIsControlNodesParentDestroyed(controlNode: any) {
-   return (
-      controlNode.control &&
-      controlNode.control._parent &&
-      controlNode.control._parent.isDestroyed &&
-      controlNode.control._parent.isDestroyed()
-   );
-}
-
-// class RebuildQueue {
-//    private nodes: IControlNode[];
-
-//    constructor(private env: DOMEnvironment) {
-//    }
-
-//    add(node: IControlNode) {
-//       // @ts-ignore
-//       if (node.control._destroyed ||
-//          node.environment !== this.env) {
-//          return;
-//       }
-//       this.nodes.push(node);
-//    }
-
-//    run() {
-//       while (this.nodes.length > 0) {
-//          let rebuild = new Rebuild(this.nodes.shift());
-//          rebuild.run().then()
-//       }
-//    }
-// }
 
 // Идентификатор для корней, который используется в девтулзах.
 // Нельзя использовать inst_id, т.к. замеры начинаются раньше, чем создаётся корень
@@ -109,104 +62,34 @@ class VDomSynchronizer {
    private _rootNodes: IControlNode[] = [];
    _controlNodes: Record<string, IControlNode> = {};
 
-   constructor() {
-   }
-
-   private __rebuildRoots(rootRebuildVal: IMemoNode): void {
-      // In the case of asynchronous controls we have to check
-      // is parent of those destroyed or not. If it is, that means, that we don't have a place
-      // to mount our rootNodes
-      let newRoot: IControlNode = rootRebuildVal.value;
-      if (_environments.indexOf(newRoot.environment) === -1 || !!checkIsControlNodesParentDestroyed(newRoot)) {
-         return;
-      }
-
-      // after promise callback fired, we have to make sure, that async control will be rebuilded
-      // in the current cycle
-      //@ts-ignore runtime hack
-      if (newRoot.environment._asyncOngoing) {
-         newRoot.environment._haveRebuildRequest = true;
-         //@ts-ignore runtime hack
-         newRoot.environment._asyncOngoing = false;
-      }
-
-      let rebuildChanges = rootRebuildVal.memo;
-      // Some controls might have already been destroyed, but they are
-      // still in rootsRebuild because they were in oldRoots when
-      // rebuild started. Filter them out if their environment does
-      // not exist anymore
-      let rebuildChangesIds = new Set();
-      if (newRoot.environment._currentDirties[newRoot.id] & DirtyKind.DIRTY) {
-         rebuildChangesIds.add(newRoot.id)
-      };
-
-      /**
-       * Типы нод, для которых нужно запустить _afterUpdate
-       * @type {{createdNodes: boolean, updatedChangedNodes: boolean, selfDirtyNodes: boolean}}
-       */
-      let rebuildChangesFields = [
-         "createdNodes",
-         "updatedChangedNodes",
-         "selfDirtyNodes",
-         "createdTemplateNodes",
-         "updatedChangedTemplateNodes",
-      ];
-
-      //Сохраняем id созданных/обновленных контрол нод, чтобы вызвать afterUpdate или afterMound только у них
-      for (let i = 0; i < rebuildChangesFields.length; i++) {
-         let field = rebuildChangesFields[i]
-         for (let j = 0; j < rebuildChanges[field].length; j++) {
-            let node: IControlNode = rebuildChanges[field][j];
-            rebuildChangesIds.add(node.id);
+   private _nextDirtiesRunCheck(controlNode: IControlNode) {
+      let self = this;
+      let currentRoot = self._rootNodes[0];
+      for (let i = 1; i < self._rootNodes.length; i++) {
+         if (controlNode.environment === self._rootNodes[i].environment) {
+            currentRoot = self._rootNodes[i];
+            break;
          }
       }
 
-      rebuildChanges.createdNodes.forEach((node: IControlNode) => {
-         this._controlNodes[node.id] = node;
-      });
-
-      rebuildChanges.destroyedNodes.forEach((node: IControlNode) => {
-         delete this._controlNodes[node.id];
-      });
-
-      /* Запускать генерацию можно только у нод, которых эта генерация запущена
-            * через rebuildRequest
-            * Все случайно попавшие ноды игнорируются до следующего тика*/
-      // Для того чтобы соблюдался порядок вызова applyNewVNode всех корневая нод. Нам нужно вызывать данный метод
-      // на конкретном окружении, с которым связана конкретная корневая нода.
-      if (newRoot.environment
-         && newRoot.environment._haveRebuildRequest
-         && newRoot.fullMarkup) {
-         newRoot.environment.applyNewVNode(newRoot.fullMarkup, rebuildChangesIds, newRoot);
-      }
-
-      return;
-   }
-
-   private __rebuildOneRootNode(node: IControlNode): IMemoNode | PromiseLike<IMemoNode> {
-      onStartSync(node.rootId);
-      updateCurrentDirties(node.environment);
-
-      let rebuildedNode: IMemoNode | Promise<IMemoNode> = rebuildNode(node.environment, node, undefined, true);
-      if (!node.environment._haveRebuildRequest) {
-         onEndSync(node.rootId);
-      }
-      return rebuildedNode;
-   }
-
-   private __doRebuild(currentRoot: IControlNode) {
-      let rootsRebuild = this.__rebuildOneRootNode(currentRoot);
+      currentRoot.environment._currentDirties = currentRoot.environment._nextDirties;
+      currentRoot.environment._nextDirties = {};
+      onStartSync(currentRoot.rootId);
+      let rootsRebuild: IMemoNode | Promise<IMemoNode> = rebuildNode(currentRoot.environment, currentRoot, undefined, true);
 
       if ('then' in rootsRebuild) {
          rootsRebuild.then((val) => {
-            // Костыль из-за compatible
-            // TODO удалить
-            // Проверим наличие environment
-            // Он мог быть удален, если среди контролов будет BaseCompatible. Потому что у него в destroy
-            // вызывается UnmountControlFromDom
-            //@ts-ignore
-            currentRoot.environment._asyncOngoing = true;
-            this.__rebuildRoots(val);
+            val.memo.createdNodes.forEach((node: IControlNode) => {
+               this._controlNodes[node.id] = node;
+            });
+
+            val.memo.destroyedNodes.forEach((node: IControlNode) => {
+               delete this._controlNodes[node.id];
+            });
+
+            val.value.environment._haveRebuildRequest = true;
+            val.value.environment.applyNodeMemo(val)
+            onEndSync(currentRoot.rootId);
          },
             function (err: any) {
                Logger.asyncRenderErrorLog(err);
@@ -217,54 +100,16 @@ class VDomSynchronizer {
          return;
       }
 
-      this.__rebuildRoots(rootsRebuild);
-   }
+      rootsRebuild.memo.createdNodes.forEach((node: IControlNode) => {
+         this._controlNodes[node.id] = node;
+      });
 
-   private __rebuild(controlNode: IControlNode) {
-      let self = this;
+      rootsRebuild.memo.destroyedNodes.forEach((node: IControlNode) => {
+         delete this._controlNodes[node.id];
+      });
 
-      if (self._rootNodes.length === 0 || !controlNode.environment) {
-         throw new Error("Ошибка в логике перестройки. Как я сюда попал?");
-      }
-
-      let currentRoot = self._rootNodes[0];
-      for (let i = 1; i < self._rootNodes.length; i++) {
-         if (controlNode.environment === self._rootNodes[i].environment) {
-            currentRoot = self._rootNodes[i];
-            break;
-         }
-      }
-
-      let i: number;
-      for (i = 0; i !== MAX_REBUILD; i++) {
-         this.__doRebuild(currentRoot);
-         if (ObjectUtils.isEmpty(currentRoot.environment._nextDirties)) {
-            break;
-         }
-      }
-      if (i === MAX_REBUILD) {
-         var j: number;
-
-         // If we reached MAX_REBUILD, we can assume that something went
-         // wrong - nodes were rebuilt many times, but they are still dirty,
-         // so we are stuck in an infinite loop.
-         // To be able to debug the error, we enable view logs (to see which
-         // components are being rebuilt) and run rebuild a couple of times
-         // with logs enabled.
-         // After we've logged the problematic components, we disable view
-         // logs and throw an error to exit the infinite rebuild loop.
-         Logger.setDebug(true);
-
-         // make some rebuild iterations with logging
-         for (j = 1; j <= MAX_REBUILD_LOGGED_ITERS; j++) {
-            Logger.debug(`MAX_REBUILD error - Logged iteration: ' + ${j}`, []);
-            this.__doRebuild(currentRoot);
-         }
-
-         Logger.setDebug(false);
-
-         throw new Error('SBIS3.CORE.VDOM.Synchronizer: i === MAX_REBUILD');
-      }
+      rootsRebuild.value.environment.applyNodeMemo(rootsRebuild)
+      onEndSync(currentRoot.rootId);
    }
 
    mountControlToDOM(
@@ -518,47 +363,48 @@ class VDomSynchronizer {
       //@ts-ignore используется runtime hack
       let canUpdate = controlNode && !controlNode.environment._rebuildRequestStarted;
 
-      if (canUpdate) {
-         controlNode.environment._nextDirties[controlId] |= DirtyKind.DIRTY;
-
-         forEachNodeParents(controlNode, function (parent: IControlNode) {
-            controlNode.environment._nextDirties[parent.id] |= DirtyKind.CHILD_DIRTY;
-         });
-
-         if (!controlNode.environment._haveRebuildRequest) {
-            controlNode.environment._haveRebuildRequest = true;
-            const requestRebuildDelayed = () => {
-               if (!controlNode.environment._haveRebuildRequest) {
-
-                  /*Если _haveRebuildRequest=false значит
-                  * циклы синхронизации смешались и в предыдущем тике у
-                  * всех контролов был вызван _afterUpdate
-                  * Такое может случиться только в слое совместимости,
-                  * когда динамически удаляются и добавляются контрол ноды
-                  * */
-                  return;
-               }
-               //@ts-ignore используется runtime hack
-               controlNode.environment._rebuildRequestStarted = true;
-
-               restoreFocus(controlNode.control, () => this.__rebuild(controlNode));
-
-               controlNode.environment.addTabListener();
-            };
-            delay(requestRebuildDelayed);
+      if (!canUpdate) {
+         if (controlNode && controlNode.environment) {
+            if (!controlNode.environment.queue) {
+               controlNode.environment.queue = [];
+            }
+            if (!controlNode.environment.queue.includes(controlId)) {
+               controlNode.environment.queue.push(controlId);
+            }
          }
-
          return;
       }
 
-      if (controlNode && controlNode.environment) {
-         if (!controlNode.environment.queue) {
-            controlNode.environment.queue = [];
-         }
-         if (!controlNode.environment.queue.includes(controlId)) {
-            controlNode.environment.queue.push(controlId);
-         }
+      controlNode.environment._nextDirties[controlId] |= DirtyKind.DIRTY;
+      forEachNodeParents(controlNode, function (parent: IControlNode) {
+         controlNode.environment._nextDirties[parent.id] |= DirtyKind.CHILD_DIRTY;
+      });
+
+      if (controlNode.environment._haveRebuildRequest) {
+         return;
       }
+
+      controlNode.environment._haveRebuildRequest = true;
+      const requestRebuildDelayed = () => {
+         if (this._rootNodes.length === 0 || !controlNode.environment._haveRebuildRequest) {
+            /*
+            * При _rootNodes.length === 0 - кто-то сделал unmount
+            *
+            * Если _haveRebuildRequest=false значит
+            * циклы синхронизации смешались и в предыдущем тике у
+            * всех контролов был вызван _afterUpdate
+            * Такое может случиться только в слое совместимости,
+            * когда динамически удаляются и добавляются контрол ноды
+            * */
+            return;
+         }
+
+         //@ts-ignore используется runtime hack
+         controlNode.environment._rebuildRequestStarted = true;
+         restoreFocus(controlNode.control, () => this._nextDirtiesRunCheck(controlNode));
+         controlNode.environment.addTabListener();
+      };
+      delay(requestRebuildDelayed);
    }
 }
 

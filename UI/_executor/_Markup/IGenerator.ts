@@ -22,7 +22,8 @@ import {
    IControl,
    IControlData,
    ICreateControlTemplateCfg,
-   ITemplateNode
+   ITemplateNode,
+   IControlConfig
 } from './IGeneratorType';
 import { VNode } from 'Inferno/third-party/index';
 
@@ -30,6 +31,16 @@ import { VNode } from 'Inferno/third-party/index';
  * @author Тэн В.А.
  */
 export interface IGenerator {
+
+   createControlNew(
+      type: string,
+      method: Function,
+      attributes: Record<string, unknown>,
+      events: Record<string, unknown>,
+      options: Record<string, unknown>,
+      config: IControlConfig
+   ): GeneratorObject | Promise<unknown> | Error
+
    /**
     * Соибирает цепочку Promise
     * @param out
@@ -152,10 +163,9 @@ export interface IGenerator {
     * Создание текста
     * @param text
     * @param key?
-    * @param isVar?
     * @return {string} text
     */
-   createText(text: string, key?: string, isVar?: boolean): VNode;
+   createText(text: string, key?: string): VNode;
 
    /**
     * Создание компонента с шаблоном

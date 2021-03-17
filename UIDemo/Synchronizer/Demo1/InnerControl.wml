@@ -1,0 +1,6 @@
+<div>
+   {{ _options.value }}
+   <div>
+      <button on:click="_click()">Update from InnerControl</button>
+   </div>
+</div>

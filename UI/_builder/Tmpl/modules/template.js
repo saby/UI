@@ -34,8 +34,8 @@ define('UI/_builder/Tmpl/modules/template', [
 
    var templateM = {
       module: function templateModule(tag) {
+         // ws:template name already reserved
          var name = validateTemplateName.call(this, tag);
-         name = this.getFuncName(name);
          function templateReady() {
             var result, functionString;
             if (!this.includeStack[name]) {

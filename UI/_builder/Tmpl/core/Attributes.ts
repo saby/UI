@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Tmpl/core/Attributes" />
 
 /**
+ * @description Represents attribute processor.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/core/Attributes.ts
  */
@@ -498,10 +499,10 @@ class AttributeProcessor implements IAttributeProcessor {
       const collection = this.filter(attributes, [name], options);
       const data = collection[name];
       if (data === undefined) {
-         throw new Error(`ожидался обязательный атрибут "${name}"`);
+         throw new Error(`не обнаружен обязательный атрибут "${name}"`);
       }
       if (data.value === null) {
-         throw new Error(`ожидалось, что обязательный атрибут "${name}" имеет значение`);
+         throw new Error(`не обнаружено значение обязательного атрибута "${name}"`);
       }
       return data.value;
    }
@@ -515,7 +516,7 @@ class AttributeProcessor implements IAttributeProcessor {
     */
    private validateTextValue(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions): string {
       if (attributeNode.value === null) {
-         throw new Error('отсуствует обязательное значение');
+         throw new Error('не обнаружено обязательное значение атрибута');
       }
       const processedText = this.textProcessor.process(
          attributeNode.value,
@@ -665,6 +666,7 @@ class AttributeProcessor implements IAttributeProcessor {
    private processOption(attributeNode: Nodes.Attribute, options: IAttributeProcessorOptions, nodeDescription?: INodeDescription): Ast.OptionNode {
       try {
          const attributeValue = attributeNode.value;
+         let value = null;
          if (attributeValue === null) {
             if (this.warnBooleanAttributesAndOptions) {
                this.errorHandler.warn(
@@ -675,25 +677,19 @@ class AttributeProcessor implements IAttributeProcessor {
                   }
                );
             }
-            return new Ast.OptionNode(
-               attributeNode.name,
-               new Ast.ValueNode(
-                  [
-                     new Ast.TextDataNode('')
-                  ]
-               )
+            value = [new Ast.TextDataNode('')];
+         } else {
+            value = this.textProcessor.process(
+               attributeValue,
+               {
+                  fileName: options.fileName,
+                  allowedContent: TextContentFlags.FULL_TEXT,
+                  translateText: nodeDescription ? nodeDescription.isOptionTranslatable(attributeNode.name) : false,
+                  translationsRegistrar: options.translationsRegistrar,
+                  position: attributeNode.position
+               }
             );
          }
-         const value = this.textProcessor.process(
-            attributeValue,
-            {
-               fileName: options.fileName,
-               allowedContent: TextContentFlags.FULL_TEXT,
-               translateText: nodeDescription ? nodeDescription.isOptionTranslatable(attributeNode.name) : false,
-               translationsRegistrar: options.translationsRegistrar,
-               position: attributeNode.position
-            }
-         );
          const valueNode = new Ast.ValueNode(value);
          valueNode.setFlag(Ast.Flags.TYPE_CASTED);
          const option = new Ast.OptionNode(

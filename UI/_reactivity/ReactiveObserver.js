@@ -1,4 +1,4 @@
-define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], function(DevtoolsHook, TypesShim) {
+define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env/Env'], function(DevtoolsHook, TypesShim, Env) {
    /**
     * @author Шипин А.А.
     */
@@ -96,6 +96,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], fun
                   if (inst._reactiveStart) {
                      if (inst._destroyed !== true) {
                         if (!pauseReactiveMap.has(inst)) {
+                           this._arrayVersion++;
                            inst._forceUpdate();
                            DevtoolsHook.saveChangedProps(inst, prop);
                         }
@@ -110,11 +111,27 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], fun
                   configurable: true
                });
             });
-            Object.defineProperty(val, '_$reactived', {
-               value: inst,
-               enumerable: false,
-               writable: true,
-               configurable: true
+            Object.defineProperties(val, {
+               '_arrayVersion': {
+                  value: 0,
+                  enumerable: true,
+                  writable: true,
+                  configurable: true
+               },
+               'getArrayVersion': {
+                  value: function () {
+                     return val._arrayVersion;
+                  },
+                  enumerable: false,
+                  writable: false,
+                  configurable: true
+               },
+               '_$reactived': {
+                  value: inst,
+                  enumerable: false,
+                  writable: true,
+                  configurable: true
+               }
             });
          }
       }
@@ -122,7 +139,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], fun
 
    /**
     * set observer of properties of control
-    * @param {Core/Control} inst Instance of control which will be updated
+    * @param {UI/Base:Control} inst Instance of control which will be updated
     */
    function observeProperties(inst) {
       var templateFunction = inst._template;
@@ -144,7 +161,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], fun
             }
          }
       });
-      var reactiveProps = inst._template.reactiveProps;
+      var reactiveProps = inst._template && inst._template.reactiveProps;
 
       if (reactiveProps && inst._getChildContext) {
          // изменение полей контекста тоже влияет на верстку и надо звать _forceUpdate
@@ -191,6 +208,7 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], fun
                                  if (prop !== '__lastGetterPath') {
                                     inst._forceUpdate();
                                     DevtoolsHook.saveChangedProps(inst, prop);
+                                    checkForbiddenReactive(inst, prop);
                                  }
                               }
                            }
@@ -302,9 +320,42 @@ define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim'], fun
       }
    }
 
+   var forbidReactiveMap = new Map();
+   function forbidReactive(instance, action) {
+      if (!instance) {
+         action();
+         return;
+      }
+      if (!forbidReactiveMap.has(instance)) {
+         forbidReactiveMap.set(instance, 0);
+      }
+      forbidReactiveMap.set(instance, forbidReactiveMap.get(instance) + 1);
+      try {
+         action();
+      } finally {
+         forbidReactiveMap.set(instance, forbidReactiveMap.get(instance) - 1);
+         if (forbidReactiveMap.get(instance) === 0) {
+            forbidReactiveMap.delete(instance);
+         }
+      }
+   }
+   // TODO: Пока что нужен стек в чистом виде (но небольшой, иначе будут полотна),
+   //  чтобы видеть, какие происходили вычисления внутри. После разбора полетов убрать
+   var MAX_STACK_LENGTH = 15;
+   function checkForbiddenReactive(instance, property) {
+      if (forbidReactiveMap.has(instance)) {
+         var error = new Error();
+         var text = 'Произведена попытка изменения состояния контрола "' + instance._moduleName +
+            '" при вычислении верстки. Изменяется свойство "' + property + '"' +
+            '\n' + error.stack.split('\n').slice(3, MAX_STACK_LENGTH).join('\n');
+         Env.IoC.resolve('ILogger').warn(text);
+      }
+   }
+
    return {
       observeProperties: observeProperties,
       releaseProperties: releaseProperties,
-      pauseReactive: pauseReactive
+      pauseReactive: pauseReactive,
+      forbidReactive: forbidReactive
    };
 });

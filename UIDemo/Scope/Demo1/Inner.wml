@@ -1,0 +1,1 @@
+<ws:partial template="wml!UIDemo/Scope/Demo1/InnerInner" _getResults="{{_getResults}}"/>

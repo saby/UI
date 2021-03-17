@@ -24,8 +24,8 @@ export default class Stack implements IMetaStackInternal {
    }
 
    set lastState(state: IMetaStateInternal) {
-      mountState(state);
       unmountState(this._lastState);
+      mountState(state);
       this._lastState = state;
    }
 

@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Tmpl/core/Traverse" />
 
 /**
+ * @description Represents traverse machine.
  * @author Крылов М.А.
  * @file UI/_builder/Tmpl/core/Traverse.ts
  */
@@ -63,11 +64,6 @@ export interface ITraverseConfig {
     * Warn unknown boolean attributes and options.
     */
    warnBooleanAttributesAndOptions?: boolean;
-
-   /**
-    * Warn about declared but unused templates.
-    */
-   warnUnusedTemplates?: boolean;
 
    /**
     * Warn about empty component content if component tag was not self-closing.
@@ -349,11 +345,11 @@ function cleanPrimitiveValue(children: Ast.TextNode[]): Ast.TextNode[] {
 }
 
 /**
- * Validate processed boolean node content.
- * @param children {TextNode[]} Processed boolean node content.
- * @throws {Error} Throws Error in case of invalid boolean semantics.
+ * Get validated text data from text node.
+ * @param children {TextNode[]} Text node.
+ * @returns {TText[]} Text nodes collection.
  */
-function validateBoolean(children: Ast.TextNode[]): void {
+function getTextData(children: Ast.TextNode[]): Ast.TText[] {
    if (children.length === 0) {
       throw new Error('не задано значение');
    }
@@ -364,6 +360,16 @@ function validateBoolean(children: Ast.TextNode[]): void {
    if (data.length !== 1) {
       throw new Error('данные некорректного типа - ожидался текст или Mustache-выражение');
    }
+   return data;
+}
+
+/**
+ * Validate processed boolean node content.
+ * @param children {TextNode[]} Processed boolean node content.
+ * @throws {Error} Throws Error in case of invalid boolean semantics.
+ */
+function validateBoolean(children: Ast.TextNode[]): void {
+   const data = getTextData(children);
    for (let index = 0; index < data.length; ++index) {
       const child = data[index];
       if (child instanceof Ast.TextDataNode) {
@@ -383,16 +389,7 @@ function validateBoolean(children: Ast.TextNode[]): void {
  * @throws {Error} Throws Error in case of invalid number semantics.
  */
 function validateNumber(children: Ast.TextNode[]): void {
-   if (children.length === 0) {
-      throw new Error('не задано значение');
-   }
-   if (children.length !== 1) {
-      throw new Error('данные некорректного типа');
-   }
-   const data = children[0].__$ws_content;
-   if (data.length !== 1) {
-      throw new Error('данные некорректного типа - ожидался текст или Mustache-выражение');
-   }
+   const data = getTextData(children);
    for (let index = 0; index < data.length; ++index) {
       const child = data[index];
       if (child instanceof Ast.TextDataNode) {
@@ -625,11 +622,6 @@ class Traverse implements ITraverse {
    private readonly textTranslator: ITextTranslator;
 
    /**
-    * Warn about declared but unused templates.
-    */
-   private readonly warnUnusedTemplates: boolean;
-
-   /**
     * Warn about empty component content if component tag was not self-closing.
     */
    private readonly warnEmptyComponentContent: boolean;
@@ -664,7 +656,6 @@ class Traverse implements ITraverse {
          expressionValidator: this.expressionValidator
       });
       this.textTranslator = config.textTranslator;
-      this.warnUnusedTemplates = !!config.warnUnusedTemplates;
       this.warnEmptyComponentContent = !!config.warnEmptyComponentContent;
    }
 
@@ -686,9 +677,7 @@ class Traverse implements ITraverse {
          componentPath: null,
          explicitDataType: null
       };
-      const tree = this.visitAll(nodes, context);
-      this.removeUnusedTemplates(context);
-      return tree;
+      return this.visitAll(nodes, context);
    }
 
    /**
@@ -909,22 +898,10 @@ class Traverse implements ITraverse {
             return this.processTemplate(node, context);
          case 'ws:partial':
             return this.checkDirectiveInAttribute(node, context);
-         case 'ws:Array':
-         case 'ws:Boolean':
-         case 'ws:Function':
-         case 'ws:Number':
-         case 'ws:Object':
-         case 'ws:String':
-         case 'ws:Value':
-            this.errorHandler.critical(
-               `Использование директив типа данных разрешено только внутри опции и массива. Обнаружена директива типа данных "${node.name}"`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
          default:
+            if (this.validateForbiddenDataTypeNode(node, context)) {
+               return null;
+            }
             if (Resolvers.isOption(node.name)) {
                this.errorHandler.error(
                   `Обнаружена неизвестная директива "${node.name}"`,
@@ -933,8 +910,7 @@ class Traverse implements ITraverse {
                      position: node.position
                   }
                );
-               // FIXME: Must return broken node
-               // return null;
+               return null;
             }
             return this.checkDirectiveInAttribute(node, context);
       }
@@ -989,22 +965,10 @@ class Traverse implements ITraverse {
          case 'ws:for':
          case 'ws:partial':
             return this.processTagInComponentWithContent(node, context);
-         case 'ws:Array':
-         case 'ws:Boolean':
-         case 'ws:Function':
-         case 'ws:Number':
-         case 'ws:Object':
-         case 'ws:String':
-         case 'ws:Value':
-            this.errorHandler.critical(
-               `Использование директив типа данных разрешено только внутри опции и массива. Обнаружена директива типа данных "${node.name}"`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
          default:
+            if (this.validateForbiddenDataTypeNode(node, context)) {
+               return null;
+            }
             if (Resolvers.isOption(node.name)) {
                return this.processTagInComponentWithOptions(node, context);
             }
@@ -1030,8 +994,7 @@ class Traverse implements ITraverse {
                position: node.position
             }
          );
-         // FIXME: Must return broken node
-         // return null;
+         return null;
       }
       return this.processTagInMarkup(node, context);
    }
@@ -1082,22 +1045,10 @@ class Traverse implements ITraverse {
                }
             );
             return null;
-         case 'ws:Array':
-         case 'ws:Boolean':
-         case 'ws:Function':
-         case 'ws:Number':
-         case 'ws:Object':
-         case 'ws:String':
-         case 'ws:Value':
-            this.errorHandler.critical(
-               `Использование директив типа данных разрешено только внутри опции и массива. Обнаружена директива типа данных "${node.name}"`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
          default:
+            if (this.validateForbiddenDataTypeNode(node, context)) {
+               return null;
+            }
             if (Resolvers.isOption(node.name)) {
                return this.processProperty(node, context);
             }
@@ -1159,8 +1110,7 @@ class Traverse implements ITraverse {
                position: node.position
             }
          );
-         // FIXME: Must return broken node
-         // return null;
+         return null;
       }
       return this.processTagInMarkup(node, context);
    }
@@ -1462,15 +1412,12 @@ class Traverse implements ITraverse {
             array
          );
       }
-      const processedAttributes = this.attributeProcessor.processOptions(node.attributes, {
+      const properties = this.attributeProcessor.processOptions(node.attributes, {
          fileName: context.fileName,
          hasAttributesOnly: false,
          parentTagName: node.name,
          translationsRegistrar: context.scope
       });
-      const properties: Ast.IObjectProperties = {
-         ...processedAttributes
-      };
       for (let index = 0; index < content.length; ++index) {
          const property = content[index];
          if (!(property instanceof Ast.OptionNode || property instanceof Ast.ContentOptionNode)) {
@@ -1491,11 +1438,6 @@ class Traverse implements ITraverse {
                   position: node.position
                }
             );
-            // FIXME: take the last property
-            // continue;
-         }
-         if (processedAttributes.hasOwnProperty(property.__$ws_name)) {
-            // FIXME: take the last property but attribute have the highest priority
             continue;
          }
          properties[property.__$ws_name] = property;
@@ -2279,15 +2221,12 @@ class Traverse implements ITraverse {
          state: TraverseState.OBJECT_DATA_TYPE
       };
       const processedChildren = this.visitAll(node.children, propertiesContext);
-      const processedAttributes = this.attributeProcessor.processOptions(attributes, {
+      const properties = this.attributeProcessor.processOptions(attributes, {
          fileName: context.fileName,
          hasAttributesOnly: false,
          parentTagName: node.name,
          translationsRegistrar: context.scope
       });
-      const properties: Ast.IObjectProperties = {
-         ...processedAttributes
-      };
       for (let index = 0; index < processedChildren.length; ++index) {
          const child = processedChildren[index];
          if (!(child instanceof Ast.OptionNode || child instanceof Ast.ContentOptionNode)) {
@@ -2308,11 +2247,6 @@ class Traverse implements ITraverse {
                   position: node.position
                }
             );
-            // FIXME: take the last property
-            // continue;
-         }
-         if (processedAttributes.hasOwnProperty(child.__$ws_name)) {
-            // FIXME: take the last property but attribute have the highest priority
             continue;
          }
          properties[child.__$ws_name] = child;
@@ -2563,17 +2497,6 @@ class Traverse implements ITraverse {
                   position: node.position
                }
             );
-         }
-         // FIXME: Remove this check
-         if (context.scope.hasTemplate(name)) {
-            this.errorHandler.error(
-               `Шаблон с именем "${name}" уже был определен`,
-               {
-                  fileName: context.fileName,
-                  position: node.position
-               }
-            );
-            return null;
          }
          context.scope.registerTemplate(name, ast);
          return ast;
@@ -2902,7 +2825,9 @@ class Traverse implements ITraverse {
       }
       // TODO: Validate inline template name
       const inlineTemplate = new Ast.InlineTemplateNode(template, attributes.attributes, attributes.events, attributes.options);
-      context.scope.registerTemplateUsage(inlineTemplate.__$ws_name);
+      if (!context.scope.hasTemplate(template)) {
+         throw new Error(`шаблон с именем "${template}" не был определен`);
+      }
       return inlineTemplate;
    }
 
@@ -2941,9 +2866,6 @@ class Traverse implements ITraverse {
     * @param node {Tag} Base html tag node of processing component or partial node.
     */
    private applyOptionsToComponentOrPartial(ast: Ast.BaseWasabyElement, options: Array<Ast.OptionNode | Ast.ContentOptionNode>, context: ITraverseContext, node: Nodes.Tag): void {
-      const processedAttributes = {
-         ...ast.__$ws_options
-      };
       for (let index = 0; index < options.length; ++index) {
          const child = options[index];
          if (ast.hasOption(child.__$ws_name)) {
@@ -2954,11 +2876,6 @@ class Traverse implements ITraverse {
                   position: node.position
                }
             );
-            // FIXME: take the last property
-            // continue;
-         }
-         if (processedAttributes.hasOwnProperty(child.__$ws_name)) {
-            // FIXME: take the last property but attribute have the highest priority
             continue;
          }
          ast.setOption(options[index]);
@@ -3001,13 +2918,13 @@ class Traverse implements ITraverse {
     * @throws {Error} Throws error if attribute value is invalid.
     */
    private getAttributeValue(node: Nodes.Tag, attribute: string, allowedContent: TextContentFlags, context: ITraverseContext): Ast.TText {
+      const dataValue = this.attributeProcessor.validateValue(node.attributes, attribute, {
+         fileName: context.fileName,
+         hasAttributesOnly: true,
+         parentTagName: node.name,
+         translationsRegistrar: context.scope
+      });
       try {
-         const dataValue = this.attributeProcessor.validateValue(node.attributes, attribute, {
-            fileName: context.fileName,
-            hasAttributesOnly: true,
-            parentTagName: node.name,
-            translationsRegistrar: context.scope
-         });
          const textValue = this.textProcessor.process(
             dataValue,
             {
@@ -3018,33 +2935,17 @@ class Traverse implements ITraverse {
                translationsRegistrar: context.scope
             }
          );
-         return textValue[0];
-      } catch (error){
-         throw new Error(`в атрибуте "${attribute}" ${error.message}`);
-      }
-   }
-
-   /**
-    * Remove all unused templates from scope.
-    * @private
-    * @param context {ITraverseContext} Processing context.
-    */
-   private removeUnusedTemplates(context: ITraverseContext): void {
-      const templates = context.scope.getTemplateNames();
-      for (let index = 0; index < templates.length; ++index) {
-         const name = templates[index];
-         if (context.scope.getTemplateUsages(name) > 0) {
-            continue;
-         }
-         if (this.warnUnusedTemplates) {
+         if (textValue.length !== 1) {
             this.errorHandler.warn(
-               `Шаблон с именем "${name}" определен, но не был использован`,
+               `Атрибут "${attribute}" тега "${node.name}" содержит некорректное значение. Ожидалось значение 1 типа, получена последовательность из ${textValue.length} значений`,
                {
                   fileName: context.fileName
                }
             );
          }
-         context.scope.removeTemplate(name);
+         return textValue[0];
+      } catch (error) {
+         throw new Error(`в атрибуте "${attribute}" ${error.message}`);
       }
    }
 
@@ -3084,6 +2985,27 @@ class Traverse implements ITraverse {
             }
          );
       }
+   }
+
+   private validateForbiddenDataTypeNode(node: Nodes.Tag, context: ITraverseContext): boolean {
+      switch (node.name) {
+         case 'ws:Array':
+         case 'ws:Boolean':
+         case 'ws:Function':
+         case 'ws:Number':
+         case 'ws:Object':
+         case 'ws:String':
+         case 'ws:Value':
+            this.errorHandler.critical(
+               `Использование директив типа данных разрешено только внутри опции и массива. Обнаружена директива типа данных "${node.name}"`,
+               {
+                  fileName: context.fileName,
+                  position: node.position
+               }
+            );
+            return true;
+      }
+      return false;
    }
 
    // </editor-fold>

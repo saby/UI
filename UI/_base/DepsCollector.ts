@@ -1,6 +1,7 @@
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import { Logger } from 'UI/Utils';
+import * as Library from 'WasabyLoader/Library';
 import { controller } from 'I18n/i18n';
 
 export type IDeps = string[];
@@ -17,7 +18,7 @@ export interface ICollectedTemplates {
    tmpl: string[];
    wml: string[];
 }
-interface ICollectedDeps {
+export interface ICollectedDeps {
    js?: {[depName: string]: IModuleInfo};
    i18n?: {[depName: string]: IModuleInfo};
    css?: {[depName: string]: IModuleInfo};
@@ -65,8 +66,19 @@ enum DEPTYPES {
  * но DepsCollector не знает об этом ничего.
  */
 const SPECIAL_DEPS = {
-   'i18n': 'I18n/i18n'
-}
+   i18n: 'I18n/i18n'
+};
+
+
+/**
+ * Название модуля WS.Core, который будет указан в s3debug при частичном дебаге
+ */
+const WSCORE_MODULE_NAME = 'WS.Core';
+/**
+ * Префиксы модулей из "семейства" модулей WS.Core
+ * При частичном дебаге WS.Core необходимо выбрасывать модули с префиксом из списка
+ */
+const WSCORE_MODULES_PREFIXES = ['Core/', 'Lib/', 'Transport/'];
 
 export const TYPES: Record<RequireJSPlugin | 'css', object> = {
    tmpl: {
@@ -176,8 +188,9 @@ export function parseModuleName(name: string): IModuleInfo | null {
    } else {
       nameWithoutPlugin = name;
    }
+   const parts = Library.parse(nameWithoutPlugin);
    return {
-      moduleName: nameWithoutPlugin,
+      moduleName: parts.name,
       fullName: name,
       typeInfo
    };
@@ -206,7 +219,6 @@ function getPacksNames(
          bundleName = bundlesRoute[SPECIAL_DEPS[moduleName]];
       }
       if (!bundleName) { return; }
-      Logger.info(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${moduleName} in bundle ${bundleName}`);
       delete allDeps[moduleName];
       const ext = getExt(bundleName);
       const packageName = getPackageName(bundleName);
@@ -248,7 +260,6 @@ function getCssPackages(
          const noParamsName = removeThemeParam(key);
          const bundleName = bundlesRoute[noParamsName];
          if (bundleName) {
-            Logger.info(`[UI/_base/DepsCollector:getPacksNames] Custom packets logs, module ${key} in bundle ${bundleName}`);
             delete allDeps[key];
             const packageName = getPackageName(bundleName);
             if (unpackBundles.indexOf(packageName) !== -1) { continue; }
@@ -280,13 +291,35 @@ function getCssPackages(
 
 function getAllPackagesNames(all: ICollectedDeps, unpack: IDeps, bRoute: Record<string, string>): IDepPackages {
    const packs = getEmptyPackages();
-   const isUnpackModule = (key: string) => unpack.some((moduleName) => key.indexOf(moduleName) !== -1);
+   const isUnpackModule = getIsUnpackModule(unpack);
    mergePacks(packs, getPacksNames(all.js, isUnpackModule, bRoute));
    mergePacks(packs, getPacksNames(all.tmpl, isUnpackModule, bRoute));
    mergePacks(packs, getPacksNames(all.wml, isUnpackModule, bRoute));
 
    packs.css = getCssPackages(all.css, isUnpackModule, bRoute);
    return packs;
+}
+
+/**
+ * Возвращает метод, который для переданного модуля будет выяснять нужно его бандл добавлять в страницу или нет
+ * Нужен при частичном дебаге, когда в s3debug указан список модулей
+ * @param unpack список модулей, которые указаны в s3debug
+ */
+function getIsUnpackModule(unpack: IDeps): (moduleName: string) => boolean {
+   // проверка модуля из семейства WS.Core
+   const isWsCore = (unpackModuleName, dependModuleName): boolean => {
+      if (unpackModuleName !== WSCORE_MODULE_NAME) {
+         return false;
+      }
+      return WSCORE_MODULES_PREFIXES.some((modulePrefix: string) => dependModuleName.startsWith(modulePrefix));
+   };
+
+   return (dependModuleName: string): boolean => {
+      return unpack.some((unpackModuleName) =>  {
+         return dependModuleName.indexOf(unpackModuleName) !== -1
+                || isWsCore(unpackModuleName, dependModuleName);
+      });
+   };
 }
 
 function mergePacks(result: IDepPackages, addedPackages: Partial<IDepPackages>): void {
@@ -311,7 +344,7 @@ function mergePacks(result: IDepPackages, addedPackages: Partial<IDepPackages>):
  * @param curNodeDeps
  * @param modDeps
  */
-function recursiveWalker(
+export function recursiveWalker(
    allDeps: ICollectedDeps,
    curNodeDeps: IDeps,
    modDeps: Record<string, IDeps>,
@@ -341,7 +374,7 @@ function recursiveWalker(
                   allDeps[moduleType][module.fullName] = module;
                }
                if (module.typeInfo.hasDeps) {
-                  const nodeDeps = modDeps[node];
+                  const nodeDeps = modDeps[node] || modDeps[module.moduleName];
                   recursiveWalker(allDeps, nodeDeps, modDeps, modInfo, !!module.typeInfo.packOwnDeps);
                }
             }

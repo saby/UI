@@ -1,24 +1,23 @@
-import * as AppEnv from "Application/Env";
-import { Head as AppHead } from "Application/Page";
-import * as ModulesLoader from "UI/_utils/ModulesLoader";
-import { constants, IoC } from "Env/Env";
-import { headDataStore } from "UI/_base/HeadData";
-
+import * as AppEnv from 'Application/Env';
+import { Head as AppHead } from 'Application/Page';
+import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
+import { constants, IoC } from 'Env/Env';
+import { headDataStore } from 'UI/_base/HeadData';
 
 interface IPrefetchLinks {
-    addPrefetchModules(modules: string[]);
-    addPreloadModules(modules: string[]);
+    addPrefetchModules(modules: string[]): void;
+    addPreloadModules(modules: string[]): void;
 }
 
 /**
  * Класс для добавления модулей для prefetch|preload на клиенте
  */
 export class PrefetchLinksStore implements IPrefetchLinks {
-    addPrefetchModules(modules: string[]) {
+    addPrefetchModules(modules: string[]): void {
         _addModulesToApi(modules, { prefetch: true});
     }
 
-    addPreloadModules(modules: string[]) {
+    addPreloadModules(modules: string[]): void {
         _addModulesToApi(modules, { preload: true});
     }
 }
@@ -33,15 +32,15 @@ export class PrefetchLinksStorePS implements IPrefetchLinks {
     private _preloadField: string = 'preloadModules';
 
     /** Создание инстанса стора */
-    private _createStore() {
-        return new Store();
+    private _createStore<T>(): Store<T> {
+        return new Store<T>();
     }
 
-    private _store() {
-        return AppEnv.getStore(this._storeName, this._createStore);
+    private _store<T>(): Store<T> {
+        return AppEnv.getStore(this._storeName, this._createStore) as Store<T>;
     }
 
-    private _addModules(key: string, modules: string[]) {
+    private _addModules(key: string, modules: string[]): void {
         this._store().set(key, [...this._getModules(key), ...modules]);
     }
 
@@ -49,7 +48,15 @@ export class PrefetchLinksStorePS implements IPrefetchLinks {
         return this._store().get(key) as string[] || [];
     }
 
-    addPrefetchModules(modules: string[]) {
+    /**
+     * Очистка стора для unit-тестов
+     */
+    clear(): void {
+        this._store().set(this._prefetchField, []);
+        this._store().set(this._preloadField, []);
+    }
+
+    addPrefetchModules(modules: string[]): void {
         this._addModules(this._prefetchField, modules);
     }
 
@@ -57,7 +64,7 @@ export class PrefetchLinksStorePS implements IPrefetchLinks {
         return this._getModules(this._prefetchField);
     }
 
-    addPreloadModules(modules: string[]) {
+    addPreloadModules(modules: string[]): void {
         this._addModules(this._preloadField, modules);
     }
 
@@ -97,7 +104,7 @@ class Store<T> {
  */
 export function handlePrefetchModules(pageModules: string[]): void {
     if (!constants.isServerSide) {
-        return
+        return;
     }
 
     const pls = new PrefetchLinksStorePS();
@@ -131,20 +138,18 @@ interface IPrefetchModules {
  */
 function _addModulesToApi(modules: string[], cfg: IPrefetchModules): void {
     const API = AppHead.getInstance();
-    modules.forEach(function(moduleName) {
-        let path = ModulesLoader.getModuleUrl(moduleName);
+    modules.forEach((moduleName) => {
+        let path: string = ModulesLoader.getModuleUrl(moduleName);
         path = path.indexOf('/') !== 0 ? '/' + path : path;
-        const _type = _getTypeString(path);
+        const _type: string = _getTypeString(path);
         if (!_type) {
-            IoC.resolve('ILogger').warn('[Controls/Application.js] Для файла ' + path + ' не удалось получить строку-тип');
+            IoC.resolve('ILogger')
+                .warn('[Controls/Application.js] Для файла ' + path + ' не удалось получить строку-тип');
             return;
         }
 
-        const rel = cfg.prefetch ? 'prefetch' : 'preload';
-        // TODO разобраться, почему не видит метод createTag
-        //      https://online.sbis.ru/opendoc.html?guid=58ed127a-0322-4b63-a2a5-624abba203a9
-        // @ts-ignore
-        API.createTag('link', { rel: rel, as: _type, href: path });
+        const rel: string = cfg.prefetch ? 'prefetch' : 'preload';
+        API.createTag('link', { rel, as: _type, href: path });
     });
 }
 
@@ -154,7 +159,7 @@ function _addModulesToApi(modules: string[], cfg: IPrefetchModules): void {
  * @param modules
  * @private
  */
-function _getModuleDeps(modules) {
+function _getModuleDeps(modules: string[]): string[] {
     const dependencies = headDataStore.read('pageDeps').collect(modules, []);
     return dependencies.js;
 }
@@ -164,11 +169,11 @@ function _getModuleDeps(modules) {
  * @param path
  * @private
  */
-function _getTypeString(path) {
+function _getTypeString(path: string): string | null {
     const types = {
-        'script': new RegExp('\.js'),
-        'fetch': new RegExp('\.wml'),
-        'style': new RegExp('\.css')
+        script: new RegExp('\.js'),
+        fetch: new RegExp('\.wml'),
+        style: new RegExp('\.css')
     };
     for (const _type in types) {
         if (types.hasOwnProperty(_type) && types[_type].test(path)) {

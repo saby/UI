@@ -8,6 +8,7 @@ import needLog from './needLog';
 type TInstanceValue = any;
 type TInstance = Record<string, TInstanceValue>;
 type TQueueElement = [TInstance, string, Record<string, boolean>, number];
+type TProxy = typeof Proxy | (() => void);
 
 // TODO: по задаче
 // https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
@@ -16,6 +17,17 @@ const asyncPurifyTimeout = 10000;
 const typesToPurify: string[] = ['object', 'function'];
 const queue: TQueueElement[] = [];
 let isQueueStarted: boolean = false;
+
+// Сделаем безопасными обращения вида instance.one.two.funс().three даже после очистки.
+const proxy: TProxy = typeof Proxy !== 'undefined' ? new Proxy(() => {}, {
+    get: (target, propName, self) => {
+       return self;
+    }, set: () => {
+       return false;
+    }, apply: (target, self) => {
+       return self;
+    }
+ }) : () => {};
 
 function releaseQueue(): void {
     const currentTimestamp: number = Date.now();
@@ -31,7 +43,7 @@ function releaseQueue(): void {
     isQueueStarted = false;
 }
 
-function addToQueue(instance: TInstance, instanceName: string, stateNamesNoPurify: Record<string, boolean> = {}): void {
+function addToQueue(instance: TInstance, instanceName: string, stateNamesNoPurify?: Record<string, boolean>): void {
     queue.push([instance, instanceName, stateNamesNoPurify, Date.now()]);
     if (!isQueueStarted) {
         isQueueStarted = true;
@@ -39,62 +51,59 @@ function addToQueue(instance: TInstance, instanceName: string, stateNamesNoPurif
     }
 }
 
-function createUseAfterPurifyErrorFunction(stateName: string, instanceName: string): () => void {
-    return function useAfterPurify(): void {
-        // TODO: по задаче
-        // https://online.sbis.ru/opendoc.html?guid=ce4797b1-bebb-484f-906b-e9acc5161c7b
-        error('Попытка получить поле ' + stateName + ' в очищенном ' + instanceName);
+const commonDefinePropertyAttributes = {
+    enumerable: false,
+    configurable: false,
+    get: function useAfterPurify(): TProxy {
+        return proxy;
+    }
+};
+
+function createUseAfterPurifyErrorFunction(stateName: string, instanceName: string): () => TProxy {
+    return function useAfterPurify(): TProxy {
+        error('Разрушенный контрол ' + instanceName + ' пытается обратиться к своему полю ' + stateName + '. Для предотвращения утечки памяти значение было удалено.' +
+            'Избегайте использования полей контрола после его дестроя, дестрой должен быть последней операцией над контролом.');
+        return proxy;
     };
 }
-
-function emptyFunction() {}
 
 function isValueToPurify(stateValue: TInstanceValue): boolean {
     return !!stateValue && typesToPurify.indexOf(typeof stateValue) !== -1;
 }
 
-function purifyState(instance: TInstance, stateName: string, getterFunction: () => void, isDebug: boolean): void {
-    if (stateName === 'destroy') {
-        // TODO: убрать костыль в https://online.sbis.ru/opendoc.html?guid=1c91dd41-5adf-4fd7-b2a4-ff8f103a8084
-        instance.destroy = emptyFunction;
-        return;
-    }
+function purifyState(instance: TInstance, stateName: string, instanceName: string, isDebug: boolean): void {
     if (isDebug) {
         Object.defineProperty(instance, stateName, {
             enumerable: false,
             configurable: false,
-            get: getterFunction
+            get: createUseAfterPurifyErrorFunction(stateName, instanceName)
         });
         return;
     }
     try {
-        instance[stateName] = undefined;
-    } catch (e) {
-        // Может быть только getter, не переприсвоить.
-        delete instance[stateName];
+        // Быстрее всего просто присвоить.
+        instance[stateName] = proxy;
+    } catch {
+        // Может быть только getter, тогда приходится использовать defineProperty. Редкий случай.
+        Object.defineProperty(instance, stateName, commonDefinePropertyAttributes);
     }
 }
 
 function purifyInstanceSync(
     instance: TInstance,
     instanceName: string,
-    stateNamesNoPurify: Record<string, boolean> = {}
+    stateNamesNoPurify?: Record<string, boolean>
 ): void {
     if (instance.__purified) {
         return;
     }
 
-    const isDebug = needLog();
-
-    // @ts-ignore У нас подмешивается полифилл Object.entries, о котором не знает ts
-    const instanceEntries = Object.entries(instance);
-    for (let i = 0; i < instanceEntries.length; i++) {
-        const [stateName, stateValue]: [string, TInstanceValue] = instanceEntries[i];
-
-        if (isValueToPurify(stateValue) && !stateNamesNoPurify[stateName]) {
-            const getterFunction = isDebug && createUseAfterPurifyErrorFunction(stateName, instanceName);
-            purifyState(instance, stateName, getterFunction, isDebug);
-        }
+    const isDebug: boolean = needLog();
+    const instanceStateNamesToPurify = Object.keys(instance).filter(function filterKeysToPurify(stateName: string) : boolean {
+        return  !(stateNamesNoPurify && stateNamesNoPurify[stateName]) && isValueToPurify(instance[stateName]);
+    });
+    for (let i = 0; i < instanceStateNamesToPurify.length; i++) {
+        purifyState(instance, instanceStateNamesToPurify[i], instanceName, isDebug);
     }
 
     instance.__purified = true;

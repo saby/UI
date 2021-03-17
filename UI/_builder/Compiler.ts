@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_builder/Compiler" />
 
 /**
+ * @description Main wml compiler module.
  * @author Крылов М.А.
  */
 
@@ -31,27 +32,33 @@ export interface ICompiler {
  * Represents artifact interface.
  */
 export interface IArtifact {
+
    /**
     * Node name for require.
     */
    nodeName: string;
+
    /**
     * Array of happened errors.
     * FIXME: release error handler.
     */
    errors: Error[];
+
    /**
     * Compile result: Javascript source code.
     */
    text: string;
+
    /**
     * Translations dictionary.
     */
    localizedDictionary: IDictionaryItem[];
+
    /**
     * Array of input file dependencies.
     */
    dependencies: string[];
+
    /**
     * Flag whether compile result is stable.
     * It is stable if and only if there were not fatal errors.
@@ -77,14 +84,17 @@ function createArtifact(options: IOptions): IArtifact {
  * Record in translations dictionary.
  */
 interface IDictionaryItem {
+
    /**
     * Text to translate.
     */
    key: string;
+
    /**
     * Translation context.
     */
    context: string;
+
    /**
     * Template module that contains this translation.
     */
@@ -96,28 +106,36 @@ interface IDictionaryItem {
  * FIXME: release interfaces for these nodes.
  */
 interface IAST extends Array<Object> {
-   /**
-    * Array of names of reactive variables.
-    */
+   childrenStorage: string[];
    reactiveProps: string[];
+   templateNames: string[];
+   __newVersion: boolean;
 }
 
 /**
  * Represents interface for traverse resulting object.
  */
 interface ITraversed {
+
    /**
     * Abstract syntax tree.
     */
    ast: IAST;
+
    /**
     * Translations dictionary.
     */
    localizedDictionary: IDictionaryItem[];
+
    /**
     * Array of input file dependencies.
     */
    dependencies: string[];
+
+   /**
+    * Collection of inline template names.
+    */
+   templateNames: string[];
 }
 
 /**
@@ -140,17 +158,19 @@ function getResolverControls(plugin: string): TResolver {
  * @param rawTraversed Actual traverse result.
  * @param dependencies Array of dependencies.
  */
-function fixTraversed(rawTraversed: any, dependencies: string[]): ITraversed {
+function fixTraversed(rawTraversed: IAST | { astResult: IAST; words: IDictionaryItem[]; }, dependencies: string[]): ITraversed {
    if (Array.isArray(rawTraversed)) {
       return {
          ast: rawTraversed as IAST,
          localizedDictionary: [],
+         templateNames: rawTraversed.templateNames,
          dependencies
       };
    }
    return {
       ast: rawTraversed.astResult as IAST,
       localizedDictionary: rawTraversed.words,
+      templateNames: rawTraversed.astResult.templateNames,
       dependencies
    };
 }
@@ -164,7 +184,7 @@ abstract class BaseCompiler implements ICompiler {
    /**
     * Do initialize before compilation process.
     */
-   abstract initWorkspace(): void;
+   abstract initWorkspace(templateNames: string[]): void;
 
    /**
     * Clean needed variables after compilation process.
@@ -259,7 +279,7 @@ abstract class BaseCompiler implements ICompiler {
             this.traverse(source, options)
                .then((traversed) => {
                   try {
-                     this.initWorkspace();
+                     this.initWorkspace(traversed.templateNames);
                      artifact.text = this.generate(traversed, options);
                      artifact.localizedDictionary = traversed.localizedDictionary;
                      artifact.dependencies = traversed.dependencies;
@@ -297,8 +317,8 @@ class CompilerTmpl extends BaseCompiler {
    /**
     * Do initialize before compilation process.
     */
-   initWorkspace(): void {
-      codegenBridge.initWorkspaceTMPL();
+   initWorkspace(templateNames: string[]): void {
+      codegenBridge.initWorkspaceTMPL(templateNames);
    }
 
    /**
@@ -343,8 +363,8 @@ class CompilerWml extends BaseCompiler {
    /**
     * Do initialize before compilation process.
     */
-   initWorkspace(): void {
-      codegenBridge.initWorkspaceWML();
+   initWorkspace(templateNames: string[]): void {
+      codegenBridge.initWorkspaceWML(templateNames);
    }
 
    /**

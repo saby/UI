@@ -1,7 +1,10 @@
 /// <amd-module name="UI/_builder/Tmpl/expressions/_private/Process" />
 
 /**
+ * @deprecated
+ * @description Represents mustache expression processing.
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/expressions/_private/Process.ts
  */
 
 import { createErrorHandler } from 'UI/_builder/Tmpl/utils/ErrorHandler';
@@ -10,26 +13,43 @@ import { ProgramNode, ExpressionVisitor } from './Nodes';
 import { genEscape } from 'UI/_builder/Tmpl/codegen/Generator';
 import { genSanitize } from 'UI/_builder/Tmpl/codegen/TClosure';
 
-import * as common from 'UI/_builder/Tmpl/modules/utils/common';
 import * as FSC from 'UI/_builder/Tmpl/modules/data/utils/functionStringCreator';
 
 const EMPTY_STRING = '';
 const errorHandler = createErrorHandler(true);
 
-function splitLocalizationText(text: string, fileName: string): { text: string, context: string } {
-   const pair = text.split('@@');
-   if (pair.length > 2) {
+const tagsToReplace = {
+   "'": "\\'",
+   '"': '\\"',
+   '\\': '\\\\'
+};
+const regExpToReplace = /['"\\]/g;
+
+export function escapeQuotesInString(entity: any): any {
+   if (entity && entity.replace) {
+      return entity.replace(regExpToReplace, (tag: string) =>  tagsToReplace[tag] || tag);
+   }
+   return entity;
+}
+
+const localizationRegExp = /^(\s*)(?:([\S\s]*?)\s*@@\s*)?([\S\s]*?)(\s*)$/;
+
+function splitLocalizationText(text: string, fileName: string): { text: string, context: string, spacesBefore: string, spacesAfter: string } {
+   const [match, spacesBefore, context, splitedText, spacesAfter]: string[] = localizationRegExp.exec(text);
+   if (splitedText.indexOf('@@') !== -1) {
       errorHandler.error(
-         `Ожидался только 1 @@-разделитель в конструкции локализации, а обнаружено ${pair.length - 1} разделителей в тексте "${text}"`,
+         `Ожидался только 1 @@-разделитель в конструкции локализации, в тексте "${match}" найдено больше`,
          {
             fileName
          }
-      );
+      )
    }
    return {
-      text: (pair.pop() || EMPTY_STRING).trim(),
-      context: (pair.pop() || EMPTY_STRING).trim()
-   };
+      text: splitedText || EMPTY_STRING,
+      context: context || EMPTY_STRING,
+      spacesBefore,
+      spacesAfter
+   }
 }
 
 function wrapWithLocalization(data: string, fileName: string): string {
@@ -39,10 +59,10 @@ function wrapWithLocalization(data: string, fileName: string): string {
       .replace(/^"/gi, '')
       .replace(/"$/gi, '');
    const prepared = splitLocalizationText(text, fileName);
-   if (prepared.context) {
-      return `rk("${prepared.text}", "${prepared.context}")`;
-   }
-   return `rk("${prepared.text}")`;
+   const context = prepared.context ? `, "${prepared.context}"` : EMPTY_STRING;
+   const spacesBefore = prepared.spacesBefore ? `"${prepared.spacesBefore}" + ` : EMPTY_STRING;
+   const spacesAfter = prepared.spacesAfter ? `+ "${prepared.spacesAfter}"` : EMPTY_STRING;
+   return `${spacesBefore}rk("${prepared.text}"${context})${spacesAfter}`;
 }
 
 function calculateResultOfExpression(data: any, escape: boolean, sanitize: boolean): any {
@@ -151,12 +171,7 @@ export function processExpressions(
    }
 
    if (expressionRaw.value && isAttribute) {
-      res = expressionRaw.value;
-      res = res
-         .replace(/\\/g, '\\\\')
-         .replace(/"/g, '\\"');
-      res = common.escape(res);
-      return res;
+      return escapeQuotesInString(expressionRaw.value);
    }
 
    return expressionRaw.value;

@@ -1,63 +1,173 @@
 /// <amd-module name="UI/_builder/Tmpl/utils/ErrorHandler" />
 
+/**
+ * @description Represents itnerfaces, methods and classes to print diagnostic messages.
+ * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/utils/ErrorHandler.ts
+ */
+
 // @ts-ignore
 import { IoC } from 'Env/Env';
 import { SourcePosition } from 'UI/_builder/Tmpl/html/Reader';
 
+/**
+ * Print log diagnostic message.
+ * @param message {string} Diagnostic message.
+ */
 function log(message: string): void {
    IoC.resolve('ILogger').log(message);
 }
 
+/**
+ * Print warning diagnostic message.
+ * @param message {string} Diagnostic message.
+ */
 function warn(message: string): void {
    IoC.resolve('ILogger').warn(message);
 }
 
+/**
+ * Print error diagnostic message.
+ * @param message {string} Diagnostic message.
+ */
 function error(message: string): void {
    IoC.resolve('ILogger').error(message);
 }
 
+/**
+ * Interface for logger.
+ */
 export interface ILogger {
+
+   /**
+    * Print log diagnostic message.
+    * @param message {string} Diagnostic message.
+    */
    log(message: string): void;
+
+   /**
+    * Print warning diagnostic message.
+    * @param message {string} Diagnostic message.
+    */
    warn(message: string): void;
+
+   /**
+    * Print error diagnostic message.
+    * @param message {string} Diagnostic message.
+    */
    error(message: string): void;
+
+   /**
+    * Pop last error diagnostic message.
+    */
    popLastErrorMessage(): string;
+
+   /**
+    * Flush all diagnostic messages.
+    */
    flush(): void;
 }
 
+/**
+ * Simple logger. All processed diagnostic messages will be printed immediately.
+ */
 export class Logger implements ILogger {
+
+   /**
+    * Print log diagnostic message.
+    * @param message {string} Diagnostic message.
+    */
    log(message: string): void {
       log(message);
    }
+
+   /**
+    * Print warning diagnostic message.
+    * @param message {string} Diagnostic message.
+    */
    warn(message: string): void {
       warn(message);
    }
+
+   /**
+    * Print error diagnostic message.
+    * @param message {string} Diagnostic message.
+    */
    error(message: string): void {
       error(message);
    }
+
+   /**
+    * Pop last error diagnostic message.
+    */
    popLastErrorMessage(): string {
       return null;
    }
+
+   /**
+    * Flush all diagnostic messages.
+    */
    flush(): void { }
 }
 
+/**
+ * Diagnostic message type.
+ */
 enum MessageType {
+
+   /**
+    * Log diagnostic messages.
+    */
    LOG,
+
+   /**
+    * Warning diagnostic messages.
+    */
    WARN,
+
+   /**
+    * Error diagnostic messages.
+    */
    ERROR
 }
 
+/**
+ * Interface for diagnostic message.
+ */
 interface IMessage {
+
+   /**
+    * Message type.
+    */
    type: MessageType;
+
+   /**
+    * Message text.
+    */
    message: string;
 }
 
+/**
+ * Stack logger. All processed diagnostic messages will be printed all in one in flush method.
+ */
 export class StackLogger implements ILogger {
+
+   /**
+    * Stack of processed diagnostic messages.
+    */
    private readonly stack: IMessage[];
 
+   /**
+    * Initialize new instance of logger.
+    */
    constructor() {
       this.stack = [];
    }
 
+   /**
+    * Print log diagnostic message.
+    * @param message {string} Diagnostic message.
+    */
    log(message: string): void {
       this.stack.push({
          type: MessageType.LOG,
@@ -65,6 +175,10 @@ export class StackLogger implements ILogger {
       });
    }
 
+   /**
+    * Print warning diagnostic message.
+    * @param message {string} Diagnostic message.
+    */
    warn(message: string): void {
       this.stack.push({
          type: MessageType.WARN,
@@ -72,6 +186,10 @@ export class StackLogger implements ILogger {
       });
    }
 
+   /**
+    * Print error diagnostic message.
+    * @param message {string} Diagnostic message.
+    */
    error(message: string): void {
       this.stack.push({
          type: MessageType.ERROR,
@@ -79,6 +197,9 @@ export class StackLogger implements ILogger {
       });
    }
 
+   /**
+    * Pop last error diagnostic message.
+    */
    popLastErrorMessage(): string {
       let lastIndex: number = this.stack.length - 1;
       for (; lastIndex > -1; --lastIndex) {
@@ -91,6 +212,9 @@ export class StackLogger implements ILogger {
       return null;
    }
 
+   /**
+    * Flush all diagnostic messages.
+    */
    flush(): void {
       while (this.stack.length > 0) {
          const item: IMessage = this.stack.shift();
@@ -109,51 +233,147 @@ export class StackLogger implements ILogger {
    }
 }
 
+/**
+ * Interface for auxiliary diagnostic info.
+ */
 export interface IMetaInfo {
+
+   /**
+    * Processing template file name.
+    */
    fileName?: string;
+
+   /**
+    * Zero-based position in source template file.
+    */
    position?: SourcePosition;
 }
 
+/**
+ * Formatter for diagnostic messages.
+ */
 export interface IErrorFormatter {
+
+   /**
+    * Format debug message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    debug(message: string, meta: IMetaInfo): string;
+
+   /**
+    * Format info message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    info(message: string, meta: IMetaInfo): string;
+
+   /**
+    * Format warning message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    warn(message: string, meta: IMetaInfo): string;
+
+   /**
+    * Format error message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    error(message: string, meta: IMetaInfo): string;
+
+   /**
+    * Format critical message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    critical(message: string, meta: IMetaInfo): string;
+
+   /**
+    * Format fatal message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    fatal(message: string, meta: IMetaInfo): string;
 }
 
+/**
+ * Diagnostic message formatter for JIT compile mode.
+ */
 export class ErrorFormatterJIT implements IErrorFormatter {
+
+   /**
+    * Diagnostic message title.
+    */
    private readonly title: string;
 
+   /**
+    * Initialize new instance of diagnostic message formatter.
+    * @param title {string} Diagnostic message title.
+    */
    constructor(title: string) {
       this.title = title;
    }
 
+   /**
+    * Format debug message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    debug(message: string, meta: IMetaInfo): string {
       return this.decorateMessage(message, meta);
    }
 
+   /**
+    * Format info message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    info(message: string, meta: IMetaInfo): string {
       return this.decorateMessage(message, meta);
    }
 
+   /**
+    * Format warning message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    warn(message: string, meta: IMetaInfo): string {
       return this.decorateMessage(message, meta);
    }
 
+   /**
+    * Format error message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    error(message: string, meta: IMetaInfo): string {
       return this.decorateMessage(message, meta);
    }
 
+   /**
+    * Format critical message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    critical(message: string, meta: IMetaInfo): string {
       return this.decorateMessage(message, meta);
    }
 
+   /**
+    * Format fatal message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    fatal(message: string, meta: IMetaInfo): string {
       return this.decorateMessage(message, meta);
    }
 
+   /**
+    * Decorate diagnostic message.
+    * @param message {string} Message text.
+    * @param meta {string} Auxiliary diagnostic info.
+    */
    private decorateMessage(message: string, meta: IMetaInfo): string {
       let decoratedMessage = `${this.title}: `;
       if (meta.fileName) {
@@ -167,37 +387,83 @@ export class ErrorFormatterJIT implements IErrorFormatter {
    }
 }
 
+/**
+ * Diagnostic message formatter for AOT compile mode.
+ */
 export class ErrorFormatterAOT implements IErrorFormatter {
+
+   /**
+    * Diagnostic message title.
+    */
    private readonly title: string;
 
+   /**
+    * Initialize new instance of diagnostic message formatter.
+    * @param title {string} Diagnostic message title.
+    */
    constructor(title: string) {
       this.title = title;
    }
 
+   /**
+    * Format debug message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    debug(message: string, meta: IMetaInfo): string {
       return this.decorateMessage(message, meta);
    }
 
+   /**
+    * Format info message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    info(message: string, meta: IMetaInfo): string {
       return this.decorateMessage(message, meta);
    }
 
+   /**
+    * Format warning message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    warn(message: string, meta: IMetaInfo): string {
       return this.decorateMessage(message, meta);
    }
 
+   /**
+    * Format error message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    error(message: string, meta: IMetaInfo): string {
       return this.decorateMessage(message, meta);
    }
 
+   /**
+    * Format critical message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    critical(message: string, meta: IMetaInfo): string {
       return this.decorateMessage(message, meta);
    }
 
+   /**
+    * Format fatal message.
+    * @param message {string} Message text.
+    * @param meta {IMetaInfo} Auxiliary diagnostic info.
+    */
    fatal(message: string, meta: IMetaInfo): string {
       return this.decorateMessage(message, meta);
    }
 
+   /**
+    * Decorate diagnostic message.
+    * @param message {string} Message text.
+    * @param meta {string} Auxiliary diagnostic info.
+    */
    private decorateMessage(message: string, meta: IMetaInfo): string {
       let decoratedMessage = `${this.title}: ${message}`;
       if (meta.position) {
@@ -207,70 +473,189 @@ export class ErrorFormatterAOT implements IErrorFormatter {
    }
 }
 
+/**
+ * Interface for error handler.
+ */
 export interface IErrorHandler {
+
+   /**
+    * Process debug diagnostic message.
+    * @param message {string} Message text.
+    * @param meta {string} Auxiliary diagnostic info.
+    */
    debug(message: string, meta: IMetaInfo): void;
+
+   /**
+    * Process info diagnostic message.
+    * @param message {string} Message text.
+    * @param meta {string} Auxiliary diagnostic info.
+    */
    info(message: string, meta: IMetaInfo): void;
+
+   /**
+    * Process warning diagnostic message.
+    * @param message {string} Message text.
+    * @param meta {string} Auxiliary diagnostic info.
+    */
    warn(message: string, meta: IMetaInfo): void;
+
+   /**
+    * Process error diagnostic message.
+    * @param message {string} Message text.
+    * @param meta {string} Auxiliary diagnostic info.
+    */
    error(message: string, meta: IMetaInfo): void;
+
+   /**
+    * Process critical diagnostic message.
+    * @param message {string} Message text.
+    * @param meta {string} Auxiliary diagnostic info.
+    */
    critical(message: string, meta: IMetaInfo): void;
+
+   /**
+    * Process fatal diagnostic message.
+    * @param message {string} Message text.
+    * @param meta {string} Auxiliary diagnostic info.
+    */
    fatal(message: string, meta: IMetaInfo): void;
+
+   /**
+    * Check for processed critical and fatal errors.
+    */
    hasFailures(): boolean;
+
+   /**
+    * Pop last error, fatal or critical message text.
+    */
    popLastErrorMessage(): string;
+
+   /**
+    * Flush all data.
+    */
    flush(): void;
 }
 
+/**
+ * Represents methods to process diagnostic messages.
+ */
 export class ErrorHandler implements IErrorHandler {
+
+   /**
+    * Flag for processed critical and fatal messages.
+    */
    private hasFailureDiagnostics: boolean;
+
+   /**
+    * Concrete logger instance.
+    */
    private readonly logger: ILogger;
+
+   /**
+    * Concrete message formatter.
+    */
    private readonly formatter: IErrorFormatter;
 
+   /**
+    * Initialize new instance of error formatter.
+    * @param logger {ILogger} Concrete logger.
+    * @param formatter {IErrorFormatter} Concrete message formatter.
+    */
    constructor(logger: ILogger, formatter: IErrorFormatter) {
       this.hasFailureDiagnostics = false;
       this.logger = logger;
       this.formatter = formatter;
    }
 
+   /**
+    * Process debug diagnostic message.
+    * @param message {string} Message text.
+    * @param meta {string} Auxiliary diagnostic info.
+    */
    debug(message: string, meta: IMetaInfo): void {
       this.logger.log(this.formatter.debug(message, meta));
    }
 
+   /**
+    * Process info diagnostic message.
+    * @param message {string} Message text.
+    * @param meta {string} Auxiliary diagnostic info.
+    */
    info(message: string, meta: IMetaInfo): void {
       this.logger.log(this.formatter.info(message, meta));
    }
 
+   /**
+    * Process warning diagnostic message.
+    * @param message {string} Message text.
+    * @param meta {string} Auxiliary diagnostic info.
+    */
    warn(message: string, meta: IMetaInfo): void {
       this.logger.warn(this.formatter.warn(message, meta));
    }
 
+   /**
+    * Process error diagnostic message.
+    * @param message {string} Message text.
+    * @param meta {string} Auxiliary diagnostic info.
+    */
    error(message: string, meta: IMetaInfo): void {
       this.logger.error(this.formatter.error(message, meta));
    }
 
+   /**
+    * Process critical diagnostic message.
+    * @param message {string} Message text.
+    * @param meta {string} Auxiliary diagnostic info.
+    */
    critical(message: string, meta: IMetaInfo): void {
       this.hasFailureDiagnostics = true;
       this.logger.error(this.formatter.critical(message, meta));
    }
 
+   /**
+    * Process fatal diagnostic message.
+    * @param message {string} Message text.
+    * @param meta {string} Auxiliary diagnostic info.
+    */
    fatal(message: string, meta: IMetaInfo): void {
       this.hasFailureDiagnostics = true;
       this.logger.error(this.formatter.fatal(message, meta));
    }
 
+   /**
+    * Check for processed critical and fatal errors.
+    */
    hasFailures(): boolean {
       return this.hasFailureDiagnostics;
    }
 
+   /**
+    * Pop last error, fatal or critical message text.
+    */
    popLastErrorMessage(): string {
       return this.logger.popLastErrorMessage();
    }
 
+   /**
+    * Flush all data.
+    */
    flush(): void {
       this.logger.flush();
    }
 }
 
+/**
+ * Default compiler title.
+ */
 const COMPILER_DIAGNOSTIC_TITLE = 'Template Compiler';
 
+/**
+ * Create error handler.
+ * @param isJIT {boolean} Flag for JIT compile mode.
+ * @param title {string} Diagnostic messages title.
+ * @returns {IErrorHandler} Returns error handler.
+ */
 export function createErrorHandler(isJIT: boolean, title: string = COMPILER_DIAGNOSTIC_TITLE): IErrorHandler {
    if (isJIT) {
       const logger = new Logger();

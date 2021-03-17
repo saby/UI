@@ -1,14 +1,24 @@
 /// <amd-module name="UI/_builder/Tmpl/codegen/jstpl" />
 
 /**
+ * @description Code generation templates.
  * @author Крылов М.А.
+ * @file UI/_builder/Tmpl/codegen/jstpl.ts
  */
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const BODY = `if (typeof forceCompatible === 'undefined') {
     forceCompatible = false;
 }
 var markupGenerator = thelpers.createGenerator(isVdom, forceCompatible, generatorConfig);
+var filename = "/*#FILE_NAME#*/";
+var rk = thelpers.getRk(filename);
+var funcContext = this;
 /*#DELETE IT START#*/
+funcContext = data;
 if (typeof includedTemplates === "undefined") {
    eval("var includedTemplates = undefined;");
    includedTemplates = (this && this.includedTemplates) ? this.includedTemplates : {};
@@ -21,11 +31,15 @@ try {
       defCollection = undefined;
    }
 } catch (e) {
-   thelpers.templateError("/*#FILE_NAME#*/", e, data);
+   thelpers.templateError(filename, e, data);
 }
 return out || markupGenerator.createText("");
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const DEFINE = `define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEPENDENCIES#*/, function(Executor, rk) {
    function debug() {
       debugger;
@@ -64,6 +78,10 @@ export const DEFINE = `define('/*#MODULE_EXTENSION#*/!/*#MODULE_NAME#*/', /*#DEP
 });
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const FOR = `(function customForTemplate() {
    var out = [];
    data.viewController = viewController || null;
@@ -82,6 +100,10 @@ export const FOR = `(function customForTemplate() {
 })(),
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const FOREACH = `(function forTemplate() {
    var iterator = undefined;
    for (var i = 0; i < thelpers.iterators.length && !iterator; i++) {
@@ -112,9 +134,13 @@ export const FOREACH = `(function forTemplate() {
       }
    }).call(data);
    return out;
-})(),
+}).call(this),
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const FUNCTION_TEMPLATE = `/*#DELETE IT START#*/
 if (typeof context === "undefined") {
    var context = arguments[2];
@@ -125,7 +151,6 @@ if (typeof thelpers === "undefined") {
       return this || (0, eval)('this')
    })().requirejs("UI/Executor").TClosure;
 }
-/*#LOCALIZATION_INIT#*/
 if (sets && sets.isSetts) {
    var contextObj = sets.fullContext || {};
 }
@@ -145,6 +170,10 @@ var viewController = thelpers.calcParent(this, typeof currentPropertyName === 'u
 /*#TEMPLATE_BODY#*/
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const HEAD = `/*#DELETE IT START#*/
 function debug() {
    debugger;
@@ -162,7 +191,6 @@ if (typeof includedTemplates === "undefined") {
    eval("var includedTemplates = undefined;");
    includedTemplates = (this && this.includedTemplates) ? this.includedTemplates : {};
 }
-/*#LOCALIZATION_INIT#*/
 /*#DELETE IT END#*/
 var forCounter = 0;
 var templateCount = 0;
@@ -174,6 +202,10 @@ var defCollection = {
 var viewController = thelpers.calcParent(this, typeof currentPropertyName === 'undefined' ? undefined : currentPropertyName, data);
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const INCLUDED_TEMPLATE = `{
    func: (function () {
       var scope = Object.create(data);
@@ -194,11 +226,10 @@ export const INCLUDED_TEMPLATE = `{
 }
 `;
 
-export const LOCALIZATION = `var rk = typeof rk !== 'undefined' ? rk : (function () {
-   return this || (0, eval)('this')
-})().requirejs("i18n!/*#LOCALIZATION_MODULE#*/");
-`;
-
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const OBJECT_TEMPLATE = `(new(function () {
    var scope = Object.create(data);
    scope.viewController = viewController || null;
@@ -209,6 +240,10 @@ export const OBJECT_TEMPLATE = `(new(function () {
 })).func
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const PARTIAL_TEMPLATE = `(function f2(data, attr) {
   var key = thelpers.validateNodeKey(attr && attr.key);
   var defCollection = {
@@ -219,6 +254,10 @@ export const PARTIAL_TEMPLATE = `(function f2(data, attr) {
 })
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const PRIVATE_TEMPLATE = `{
   var key = thelpers.validateNodeKey(attr && attr.key);
   var forCounter = 0;
@@ -232,6 +271,10 @@ export const PRIVATE_TEMPLATE = `{
 }
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const PRIVATE_TEMPLATE_HEADER = `(function () {
   includedTemplates["/*#NAME#*/"] = (function (data, attr, context, isVdom) {
     /*#BODY#*/
@@ -241,6 +284,10 @@ export const PRIVATE_TEMPLATE_HEADER = `(function () {
 })(),
 `;
 
+/**
+ * Output template code fragment.
+ * @deprecated
+ */
 export const STRING_TEMPLATE = `/*#DELETE IT START#*/
 if (typeof context === "undefined") {
    var context = arguments[2];
@@ -251,7 +298,6 @@ if (typeof thelpers === "undefined") {
       return this || (0, eval)('this')
    })().requirejs("UI/Executor").TClosure;
 }
-/*#LOCALIZATION_INIT#*/
 /*#DELETE IT END#*/
 
 var templateCount = 0;

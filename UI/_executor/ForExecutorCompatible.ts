@@ -1,5 +1,4 @@
 import * as Decorate from "./_Expressions/Decorate";
-import * as Rights from "./_Expressions/Rights";
 import * as Common from "./_Utils/Common";
 import {ResolveControlName} from "./_Markup/ResolveControlName";
 import {Generator} from "./_Markup/Generator";
@@ -12,7 +11,6 @@ import voidElements from "./_Utils/VoidTags";
 
 export {
    Decorate,
-   Rights,
    Common,
    ResolveControlName,
    Generator,

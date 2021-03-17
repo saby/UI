@@ -2,15 +2,16 @@
 
 import Control from '../Control';
 
+/* tslint:disable:deprecated-anywhere */
+// tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Head');
 import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller';
 import { constants } from 'Env/Env';
-import { Head as AppHead } from 'Application/Page'
+import { Head as AppHead } from 'Application/Page';
 import { headDataStore } from 'UI/_base/HeadData';
-import { Stack } from 'UI/_base/HTML/meta';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
-import { default as TagMarkup, generateTagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
+import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 import { JML } from 'UI/_base/HTML/_meta/interface';
 import { handlePrefetchModules } from 'UI/_base/HTML/PrefetchLinks';
@@ -18,11 +19,9 @@ import { handlePrefetchModules } from 'UI/_base/HTML/PrefetchLinks';
 class Head extends Control<IHeadOptions> {
     _template: TemplateFunction = template;
 
-    metaMarkup: string = Stack.getInstance().lastState.outerHTML;
-
     head: Function[] = null;
     headAdditiveTagsMarkup: string = '';
-    userTags: string = '';
+    headApiData: string = '';
 
     // Содержит информацию о том, был ли серверный рендеринг
     // Будет true, если мы строимся на клиенте и серверная верстка есть.
@@ -35,31 +34,68 @@ class Head extends Control<IHeadOptions> {
 
     staticDomainsstringified: string = '[]';
 
-    /** html разметка подключенных на СП стилей */
-    protected stylesHtml: string = '';
-
     _beforeMount(options: IHeadOptions): Promise<void> {
-        // tslint:disable-next-line:only-arrow-functions
-        this._forceUpdate = function (): void {
-            // do nothing
-        };
-
+        this.isSSR = !constants.isBrowserPlatform;
+        /** Написано Д. Зуевым в 2019 году. Просто перенес при реструктуризации. */
         if (typeof options.staticDomains === 'string') {
             this.staticDomainsstringified = options.staticDomains;
         } else if (options.staticDomains instanceof Array) {
             this.staticDomainsstringified = JSON.stringify(options.staticDomains);
         }
-
         this.head = options.head;
-        const tagDescriptions = options.headJson
-            .map(fromJML)
-            // не вставляем переданные link css, это обязанность theme_controller'a
-            .filter(({ attrs }) => attrs.rel !== "stylesheet" && attrs.type !== "text/css");
-        this.headAdditiveTagsMarkup = new TagMarkup(tagDescriptions).outerHTML;
-        this._prepareMetaAndScripts(options);
+        this.headAdditiveTagsMarkup = applyHeadJSON(options);
 
+        this._selfPath();
+        this._createHEADTags(options);
+
+        if (!this.isSSR) {
+            return;
+        }
+        return headDataStore.read('waitAppContent')()
+            .then(({ js, css }) => {
+                return new Promise<void>((resolve) => {
+                    collectCSS(options.theme, css.simpleCss, css.themedCss)
+                        .then(() => { resolve(); })
+                        .catch((error) => { onerror(error); resolve(); });
+                }).then(() => {
+                    handlePrefetchModules(js);
+                    /**
+                     * Опросим HEAD API на предмет накопленного результата. Он будет массивом JML.
+                     * Обработаем и добавим его к headApiData
+                     * Напоминаю, что HEAD API это накопитель. Его дергают на протяжение всего процесса построения страницы
+                     */
+                    const data = AppHead.getInstance().getData();
+                    if (data && data.length) {
+                        this.headApiData += new TagMarkup(data.map(fromJML)).outerHTML;
+                    }
+                    AppHead.getInstance().clear();
+                });
+            });
+    }
+
+    /**
+     * Манки патчинг.
+     * Зачем-то на инстансе перебивается метод _forceUpdate с прототипа
+     * Но сделал это человек, который придумал Wasaby. Ему видней.
+     */
+    private _selfPath(): void {
+        /** Написано Д. Зуевым в 2019 году. Просто перенес при реструктуризации. */
+        // tslint:disable-next-line:only-arrow-functions
+        this._forceUpdate = function(): void {
+            // do nothing
+        };
+    }
+    _createHEADTags(options: IHeadOptions): void {
+        createWsConfig(options, this.staticDomainsstringified);
+        createMetaScriptsAndLinks(options);
+        this._createMeta(options);
+    }
+
+    /**
+     * Проверим: была ли серверная верстка.
+     */
+    _createMeta(options: IHeadOptions): void {
         this.wasServerSide = false;
-        this.isSSR = !constants.isBrowserPlatform;
         if (!this.isSSR) {
             // tslint:disable-next-line:max-line-length
             // Проверяем наличие серверной верстки, чтобы решить, нужно ли нам рендерить ссылки на ресурсы внутри тега <head>.
@@ -75,63 +111,33 @@ class Head extends Control<IHeadOptions> {
             if (document.getElementsByClassName('head-custom-block').length > 0) {
                 this.head = undefined;
             }
+        }
+        if (this.wasServerSide) {
             return;
         }
-        return headDataStore.read('waitAppContent')()
-            .then(({ js, css }) => {
-                const promise: Promise<void> = collectCSS(options.theme, css.simpleCss, css.themedCss)
-                    .then((html) => { this.stylesHtml = `\n${html}\n`; })
-                    .catch(onerror);
-
-                handlePrefetchModules(js);
-
-                /**
-                 * Опросим HEAD API на предмет накопленного результата. Он будет массивом JML.
-                 * Обработаем и добавим его к userTags
-                 * Напоминаю, что HEAD API это накопитель. Его дергают на протяжение всего процесса построения страницы
-                 * */
-                const data: Array<JML> = AppHead.getInstance().getData();
-                if (data && data.length) {
-                    const markup = new TagMarkup(data.map(fromJML)).outerHTML;
-                    this.userTags+=markup;
-                }
-                return promise;
-            });
+        const API = AppHead.getInstance();
+        if (!options.compat) {
+            API.createTag('script', {type: 'text/javascript'},
+                `window.themeName = '${options.theme || options.defaultTheme || ''}';`
+            );
+        }
+        API.createNoScript(options.noscript);
+        [
+            {'http-equiv': 'X-UA-Compatible', content: 'IE=edge'},
+            {name: 'viewport', content: options.viewport || 'width=1024'},
+            {charset: 'utf-8', class: 'head-server-block'}
+        ].forEach((attrs) => {
+            API.createTag('meta', attrs);
+        });
     }
 
-    /**
-     * TODO: Временное решение для налаживания работы meta, links и scripts
-     * https://online.sbis.ru/opendoc.html?guid=16da0a34-a550-4d05-aff9-76101f6d7e2c
-     * @param options
-     * @private
-     */
-    _prepareMetaAndScripts(options: IHeadOptions): void {
-        const meta = (options.meta || []).map((attrs) => {
-            return generateTagMarkup({tagName: 'meta', attrs})
-        });
-        const scripts = (options.scripts || []).map((attrs) => {
-            return generateTagMarkup({tagName: 'script', attrs})
-        });
-        /**
-         * links - это не только стили.
-         * rel="canonical"
-         * rel="shortcut icon"
-         * вообще без атрибута rel
-         * Поэтому так, а не через themeController. Сложно фильтровать
-         */
-        const links = (options.links || []).map((attrs) => {
-            return generateTagMarkup({tagName: 'link', attrs})
-        });
-
-        /** Объеденим в одну строку для уменьшения накладных расходов на стороне шаблона */
-        this.userTags = meta.concat(scripts).concat(links).join('\n');
-    }
-
+    // tslint:disable-next-line:ban-ts-ignore
     // @ts-ignore
     _shouldUpdate(): Boolean {
         return false;
     }
 
+    // tslint:disable-next-line:no-any
     isArray(obj: any): Boolean {
         return Array.isArray(obj);
     }
@@ -153,7 +159,7 @@ class Head extends Control<IHeadOptions> {
             preInitScript: '',
             builder: false,
             servicesPath: 'no_service_path',
-            product: 'no_product',
+            product: 'no_product'
         };
     }
 }
@@ -164,11 +170,7 @@ function collectCSS(theme: string, styles: string[] = [], themes: string[] = [])
     const tc = getThemeController();
     const gettingStyles = styles.filter((name) => !!name).map((name) => tc.get(name, EMPTY_THEME));
     const gettingThemes = themes.filter((name) => !!name).map((name) => tc.get(name, theme, THEME_TYPE.SINGLE));
-    return Promise.all(gettingStyles.concat(gettingThemes)).then(() => {
-        const markup = tc.getAll().map((entity) => entity.outerHtml).join('\n');
-        tc.clear();
-        return markup;
-    });
+    return Promise.all(gettingStyles.concat(gettingThemes)).then();
 
 }
 
@@ -176,7 +178,80 @@ function onerror(e: Error): void {
     import('UI/Utils').then(({ Logger }) => { Logger.error(e.message); });
 }
 
+function prepareMetaScriptsAndLinks(tag: string, attrs: object): object {
+    return {
+        tag,
+        attrs
+    };
+}
+
+/**
+ * Подготовка когфига, который прилетит с сервака на клиент
+ * wsConfig нет смысла рендерить на клиенте.
+ * Он обязательно должен прийти с сервера.
+ * Потому что необходим для загрузки ресурсов
+ * @param options
+ */
+function createWsConfig(options: IHeadOptions, staticDomainsstringified: string): void {
+    if (constants.isBrowserPlatform) {
+        return;
+    }
+
+    const API = AppHead.getInstance();
+    API.createTag('script', {type: 'text/javascript'},
+        [
+            'window.wsConfig = {',
+            `wsRoot: '${options.wsRoot}',`,
+            `resourceRoot: '${options.resourceRoot}',`,
+            `appRoot: '${options.appRoot}',`,
+            `RUMEnabled: ${options.RUMEnabled},`,
+            `pageName: '${options.pageName}',`,
+            'userConfigSupport: true,',
+            `staticDomains: '${staticDomainsstringified}',`,
+            `defaultServiceUrl: '${options.servicesPath}',`,
+            `compatible: ${options.compat},`,
+            `product: '${options.product}'`,
+            '};',
+            options.buildnumber ? `window.buildnumber = ${options.buildnumber};` : '',
+            options.preInitScript ? options.preInitScript : ''
+        ].join('\n')
+    );
+}
+
+/**
+ * Применим опции meta, scripts и links к странице
+ * @param options
+ */
+function createMetaScriptsAndLinks(options: IHeadOptions): void {
+    const API = AppHead.getInstance();
+    []
+        .concat((options.meta || []).map(prepareMetaScriptsAndLinks.bind(null, 'meta')))
+        .concat((options.scripts || []).map(prepareMetaScriptsAndLinks.bind(null, 'script')))
+        .concat((options.links || []).map(prepareMetaScriptsAndLinks.bind(null, 'link')))
+        .forEach((item: {tag: string, attrs: object}) => {
+            API.createTag(item.tag, item.attrs);
+        });
+}
+/**
+ * Поддержка старой опции
+ * Запустил процесс отказа от нее
+ * https://online.sbis.ru/opendoc.html?guid=fe14fe59-a564-4904-9a87-c38a5a22b924
+ * @param options
+ * @deprecated
+ */
+function applyHeadJSON(options: IHeadOptions): string {
+    /** Deprecated опция в формате JML.Нет смысла гнать ее через HEAD API */
+    if (options.headJson) {
+        const tagDescriptions = options.headJson
+            .map(fromJML)
+            // не вставляем переданные link css, это обязанность theme_controller'a
+            .filter(({ attrs }) => attrs.rel !== 'stylesheet' && attrs.type !== 'text/css');
+        return new TagMarkup(tagDescriptions).outerHTML;
+    }
+}
+
 interface IHeadOptions extends IControlOptions {
+    defaultTheme?: string;
     wsRoot: string;
     resourceRoot: string;
     appRoot: string;
@@ -193,7 +268,7 @@ interface IHeadOptions extends IControlOptions {
     builder: boolean;
     servicesPath: string;
     product: string;
-    meta?: Array<{}>;
-    links?: Array<{}>;
-    scripts?: Array<{}>;
+    meta?: Object[];
+    links?: Object[];
+    scripts?: Object[];
 }

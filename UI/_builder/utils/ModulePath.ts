@@ -1,12 +1,24 @@
 /// <amd-module name="UI/_builder/utils/ModulePath" />
 
-const P_EXTENSION: RegExp = /\.(wml|tmpl|xhtml)$/i;
-const EMPTY_STRING: string = '';
-const SOLIDUS: string = '/';
-
 /**
+ * @description Represents classes and methods to work with module path.
  * @author Крылов М.А.
  */
+
+/**
+ * Template file extensions pattern.
+ */
+const P_EXTENSION: RegExp = /\.(wml|tmpl|xhtml)$/i;
+
+/**
+ * Empty string constant.
+ */
+const EMPTY_STRING: string = '';
+
+/**
+ * Solidus character constant.
+ */
+const SOLIDUS: string = '/';
 
 /**
  * Known interface module substitutions for outdated and deprecated modules.
@@ -20,6 +32,10 @@ const SUBSTITUTIONS = [
    ['WS.Deprecated', 'Deprecated']
 ];
 
+/**
+ * Get template plugin name by template file extension.
+ * @param extension {string} Template file extension.
+ */
 function getPluginNameByExtension(extension: string): string {
    switch (extension) {
       case 'wml':

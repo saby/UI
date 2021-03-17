@@ -50,22 +50,6 @@ define('UI/_builder/Tmpl/function', [
       };
    }
 
-   var tagsToReplace = {
-      "'": "\\'",
-      '"': '\\"',
-      '\\': '\\\\'
-   };
-   var regExpToReplace = /['"\\]/g;
-
-   function escape(entity) {
-      if (entity && entity.replace) {
-         return entity.replace(regExpToReplace, function escapeReplace(tag) {
-            return tagsToReplace[tag] || tag;
-         });
-      }
-      return entity;
-   }
-
    function getFuncNameByFile(fileName) {
       return fileName && fileName.replace && fileName
 
@@ -235,7 +219,7 @@ define('UI/_builder/Tmpl/function', [
             str = '' + str.replace(/\n/g, ' ');
          }
          if (!internal) {
-            res += templates.generateTemplateHead(handlers.fileName, true);
+            res += templates.generateTemplateHead();
          }
          res += templates.generateTemplateBody(handlers.fileName, str);
          return res;
@@ -307,7 +291,7 @@ define('UI/_builder/Tmpl/function', [
          if (this._modules[modName] && modName !== 'partial') {
             return this._processModule;
          }
-         return this._checkForManageableAttributes;
+         return this._processEntity;
       },
       _processEntity: function(tag, data, decor, parentNS) {
          if (this._modules[tagUtils.splitWs(tag.name)]) {
@@ -431,7 +415,7 @@ define('UI/_builder/Tmpl/function', [
                         string += '\' + (' + expressionResult + ') + \'';
                      }
                   } else {
-                     string += escape(expressionResult);
+                     string += Process.escapeQuotesInString(expressionResult);
                   }
                } else {
                   string += '';
@@ -439,7 +423,7 @@ define('UI/_builder/Tmpl/function', [
             }
             result = string;
          } else if (needEscape !== false && textData.type === 'text') {
-            result = escape(textData.value);
+            result = Process.escapeQuotesInString(textData.value);
          } else if (bindingObject) {
             result = Process.processExpressions(
                textData,
@@ -503,13 +487,14 @@ define('UI/_builder/Tmpl/function', [
                         isAttribute,
                         attrib
                      );
+                     var newAttr = attrib.replace('attr:', '');
                      if (utils.removeAllSpaces(processed) !== '') {
-                        obj.attributes[attrib] = processed;
+                        obj.attributes[newAttr] = processed;
                      } else if (Array.isArray(this.config.booleanAttributes)) {
                         // FIXME: Необходимо проверять все входящие данные перед выполнением сборки шаблона
                         //  Сейчас множественные this, непонятно на что и куда ссылающиеся, мешают. Избавиться от них
                         if (this.config.booleanAttributes.indexOf(attrib.toLowerCase()) !== -1) {
-                           obj.attributes[attrib] = 'true';
+                           obj.attributes[newAttr] = 'true';
                         }
                      }
                   }
@@ -559,6 +544,12 @@ define('UI/_builder/Tmpl/function', [
          }
          var attribs = typeof decor === 'function' ? decor(tag.attribs) : tag.attribs;
          var processed = this._processAttributesObj(attribs, data, tag);
+         Object.keys(processed.attributes).forEach(function(attributeName) {
+            processed.attributes[attributeName] = processed.attributes[attributeName]
+               .replace(/^' \+ (.*?) \+ '$/g, function(str, p) {
+                  return '¥' + p.replace(/\\/g, '\\\\') + '¥';
+               });
+         });
          var processedStr = FSC.getStr(processed)
             .replace(/\\("|')/g, '$1')
             .replace(/\\\\/g, '\\')
@@ -569,71 +560,6 @@ define('UI/_builder/Tmpl/function', [
             ? 'attr'
             : 'attr?{context: attr.context, key: key+"' + tag.key + '"}:{}';
          return Generator.genCreateTag("'" + tag.name + "'", processedStr, children, attrToDecorate) + ', \n';
-      },
-
-      /**
-       * Разбор управляющих атрибутов
-       * @param attribs
-       * @returns {Array}
-       */
-      _processManageableAttributes: function processManageableAttributes(attribs) {
-         var constructArray = [];
-         for (var attrib in attribs) {
-            if (this._attributeModules.hasOwnProperty(attrib) && attribs[attrib]) {
-               if (attrib === 'if') {
-                  constructArray.unshift({
-                     module: attrib,
-                     value: attribs[attrib]
-                  });
-               } else {
-                  constructArray.push({
-                     module: attrib,
-                     value: utils.clone(attribs[attrib])
-                  });
-               }
-            }
-         }
-         return constructArray;
-      },
-
-      /**
-       * Генерация тэга, если присутствует управляющий атрибут <div if="{{true}}">...
-       * @param tag
-       * @param data
-       * @param decor
-       * @param parentNS
-       * @returns {*}
-       */
-      _useManageableAttributes: function useManageableAttributes(tag, data, decor, parentNS) {
-         var constructArray = this._processManageableAttributes(tag.attribs);
-         if (constructArray.length) {
-            var moduleName = constructArray.shift().module;
-
-            // если элемент - label, нужно рассматривать его атрибут for как
-            // уникальный идентификатор http://htmlbook.ru/html/label/for , а не как цикл в tmpl
-            if (moduleName === 'for' && tag.name === 'label') {
-               return this._processEntity(tag, data, decor, parentNS);
-            }
-            var moduleFunction = parseUtils.attributeParserMatcherByName.call(this, moduleName);
-            var tagModule = moduleFunction.call(this, tag, data, decor);
-            return tagModule.call(this, decor);
-         }
-         return this._processEntity(tag, data, decor, parentNS);
-      },
-
-      /**
-       * Проверяем, есть ли атрибуты, для ускорения генерации
-       * @param tag
-       * @param data
-       * @param decor
-       * @param parentNS
-       * @returns {*}
-       */
-      _checkForManageableAttributes: function checkForManageableAttributes(tag, data, decor, parentNS) {
-         if (tag.attribs) {
-            return this._useManageableAttributes(tag, data, decor, parentNS);
-         }
-         return this._processEntity(tag, data, decor, parentNS);
       },
 
       /**
