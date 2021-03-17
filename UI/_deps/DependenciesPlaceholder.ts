@@ -3,7 +3,6 @@
 import { cookie } from "Env/Env";
 import { EMPTY_THEME, getThemeController, THEME_TYPE } from "UI/theme/controller";
 import { getResourceUrl } from 'UI/Utils';
-import { headDataStore } from 'UI/Base';
 import { JSLinks as AppJSLinks } from 'Application/Page';
 import { handlePrefetchModules } from 'UI/_base/HTML/PrefetchLinks';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
@@ -91,9 +90,7 @@ export function aggregateCSS(theme: string, styles: string[] = [], themes: strin
 /** Пространство имен для хранения базовых зависимостей страницы. Их важно указывать первыми. */
 export const BASE_DEPS_NAMESPACE: string = 'baseDeps';
 
-export function aggregateDependencies(cfg: IOptions): ICollectedDeps {
-   const deps = headDataStore.read('collectDependencies')();
-
+export function aggregateDependencies(cfg: IOptions, deps: ICollectedDeps): ICollectedDeps {
    /**
     * Порядок следующий:
     * aggregateCSS - стили для страницы. Лежат в <head>.
