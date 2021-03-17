@@ -1,5 +1,5 @@
 import { constants } from 'Env/Env';
-import { headDataStore } from "UI/Base";
+import { headDataStore } from "../_base/HeadData";
 import * as Library from "WasabyLoader/Library";
 
 interface IParsedName {
