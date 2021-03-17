@@ -8,7 +8,7 @@ import template = require('wml!UI/_base/HTML/JsLinks');
 import { headDataStore } from 'UI/_base/HeadData';
 import { IControlOptions } from 'UI/Base';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
-import {default as JSLinks} from 'Application/_Page/JSLinks';
+import { JSLinks } from 'Application/Page';
 import { cookie } from "Env/Env";
 import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
