@@ -109,7 +109,6 @@ define('Compiler/codegen/function', [
        */
       _controlsData: { },
       handlers: { },
-      includeStack: { },
       includedFunctions: { },
       getFuncNameByFile: getFuncNameByFile,
       childrenStorage: [ ],
