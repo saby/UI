@@ -13,6 +13,7 @@ import {
    SpecialProgramType
 } from 'Compiler/core/Context';
 import * as Walkers from 'Compiler/expressions/Walkers';
+import { ProgramNode } from 'Compiler/expressions/Nodes';
 
 // <editor-fold desc="Public interfaces and functions">
 
@@ -266,6 +267,15 @@ function getComponentName(component: Ast.BaseWasabyElement): string | null {
    return null;
 }
 
+function checkForTranslations(scope: Scope, program: ProgramNode | null): void {
+   if (!program) {
+      return;
+   }
+   if (Walkers.containsTranslationFunction(program, FILE_NAME)) {
+      scope.setDetectedTranslation();
+   }
+}
+
 // </editor-fold>
 
 /**
@@ -403,6 +413,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
     */
    visitBind(node: Ast.BindNode, context: IContext): void {
       context.lexicalContext.registerProgram(node.__$ws_value, SpecialProgramType.BIND);
+      checkForTranslations(context.scope, node.__$ws_value);
    }
 
    /**
@@ -412,6 +423,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
     */
    visitEvent(node: Ast.EventNode, context: IContext): void {
       context.lexicalContext.registerProgram(node.__$ws_handler, SpecialProgramType.EVENT);
+      checkForTranslations(context.scope, node.__$ws_handler);
    }
 
    /**
@@ -513,6 +525,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       if (node.__$ws_alternate) {
          node.__$ws_alternate.accept(this, context);
       }
+      checkForTranslations(context.scope, node.__$ws_test);
    }
 
    /**
@@ -536,6 +549,9 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       this.processNodes(node.__$ws_content, contentContext);
       node.__$ws_lexicalContext = lexicalContext;
       node.__$ws_uniqueIndex = context.counters.allocateCycleIndex();
+      checkForTranslations(context.scope, node.__$ws_init);
+      checkForTranslations(context.scope, node.__$ws_test);
+      checkForTranslations(context.scope, node.__$ws_update);
    }
 
    /**
@@ -560,6 +576,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       this.processNodes(node.__$ws_content, contentContext);
       node.__$ws_lexicalContext = lexicalContext;
       node.__$ws_uniqueIndex = context.counters.allocateCycleIndex();
+      checkForTranslations(context.scope, node.__$ws_collection);
    }
 
    /**
@@ -573,6 +590,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       if (node.__$ws_alternate) {
          node.__$ws_alternate.accept(this, context);
       }
+      checkForTranslations(context.scope, node.__$ws_test);
    }
 
    /**
@@ -606,9 +624,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
     */
    visitExpression(node: Ast.ExpressionNode, context: IContext): void {
       context.lexicalContext.registerProgram(node.__$ws_program);
-      if (Walkers.containsTranslationFunction(node.__$ws_program, FILE_NAME)) {
-         context.scope.setDetectedTranslation();
-      }
+      checkForTranslations(context.scope, node.__$ws_program);
    }
 
    /**
@@ -672,6 +688,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
       };
       this.processComponentContent(node, contentContext);
       lexicalContext.registerProgram(node.__$ws_expression);
+      checkForTranslations(context.scope, node.__$ws_expression);
    }
 
    /**
