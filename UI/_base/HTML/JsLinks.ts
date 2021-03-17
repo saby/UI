@@ -29,15 +29,19 @@ class JsLinks extends Control<IJsLinksOptions> {
       return headDataStore.read('waitAppContent')().then((res) => {
          let jslinksAPI = JSLinks.getInstance();
          const links: string[] = res.js.map((js) => this.resolveLink(js)).concat(res.scripts);
-
-         if (this.arrayToObject(jsLinks)) {
-            links.forEach((link, index) =>
-               jslinksAPI.createTag('script', {
-                  type: 'text/javascript',
-                  src: link,
-                  key: 'scripts_' + index,
-                  defer: 'defer'
-               }, ''));
+         let js: Record<string, number> = {};
+         js = this.arrayToObject(links); // конвертируем в hashmap чтобы избавиться от дублей
+         if (js) {
+            for (let link in js) {
+               if (js.hasOwnProperty(link)) {
+                  jslinksAPI.createTag('script', {
+                     type: 'text/javascript',
+                     src: link,
+                     key: 'scripts_' + js[link],
+                     defer: 'defer'
+                  }, '');
+               }
+            }
          }
          if (res.tmpl) {
             res.tmpl.forEach((value, index) =>
@@ -86,6 +90,7 @@ class JsLinks extends Control<IJsLinksOptions> {
       return ModulesLoader.getModuleUrl(type ? `${type}!${path}` : path, cookie.get('s3debug'));
    }
 
+   /** Конвертируем в hashmap для быстрого поиска имени модуля */
    arrayToObject(arr: string[]): Record<string, number> {
       const obj: Record<string, number> = {};
       let index = 0;
