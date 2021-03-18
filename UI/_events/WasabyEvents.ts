@@ -1,7 +1,7 @@
 import { constants, detection } from 'Env/Env';
 import { Logger } from 'UI/Utils';
 import { goUpByControlTree } from 'UI/NodeCollector';
-import { RawMarkupNode } from 'UI/Executor';
+import RawMarkupNode from 'UI/_executor/_Expressions/RawMarkupNode';
 
 import SyntheticEvent from './SyntheticEvent';
 import * as EventUtils from './EventUtils';
