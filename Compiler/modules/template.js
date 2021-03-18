@@ -38,11 +38,7 @@ define('Compiler/modules/template', [
          var name = validateTemplateName.call(this, tag);
          function templateReady() {
             var result, functionString;
-            if (!this.includeStack[name]) {
-               this.includeStack[name] = tag.children;
-            }
-            functionString = this.getString(this.includeStack[name], {}, this.handlers, {}, true);
-            delete this.includeStack[name];
+            functionString = this.getString(tag.children, {}, this.handlers, {}, true);
             if (this.includedFn) {
                functionString = templates.generatePrivateTemplate(functionString);
                this.includedFn[name] = functionString;
