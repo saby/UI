@@ -175,6 +175,12 @@ export interface IControl {
    reactiveValues: TObject;
    __lastGetterPath: Array<string>;
 
+   readonly prototype: {
+      _moduleName: string;
+      _template?: Function;
+      _dotTplFn?: Function;
+   };
+
    props?: {
       readOnly: boolean;
       theme: string;

@@ -32,12 +32,9 @@ export class GeneratorReact {
    ): React.ReactElement|React.ReactElement[] {
       // тип контрола - компонент с шаблоном
       if (type === 'wsControl') {
-         if (typeof origin !== 'string') {
-            //todo error!!!
-            return null;
-         }
+         // если type=wsControl - это статическое построение контрола со строкой в origin
          return this.createWsControl(
-            origin,
+            origin as string,
             options,
             undefined,
             undefined,
@@ -55,12 +52,9 @@ export class GeneratorReact {
             parent: config.viewController
          };
 
-         if (typeof origin !== 'string') {
-            //todo error!!!
-            return null;
-         }
+         // если type=template - это статическое построение контрола со строкой в origin
          return this.createTemplate(
-            origin,
+            origin as string,
             options,
             attributes,
             undefined,
@@ -158,13 +152,7 @@ export class GeneratorReact {
             readOnly: scope.readOnly,
             theme: scope.theme
          },
-         /*
-         FIXME: как я понимаю, шаблоны всегда возвращают массив, даже если там один элемент.
-         В таких случаях нужно просто отдать реакту сам элемент.
-         Если там несколько элементов, то вроде как нужно оборачивать во фрагмент.
-         В файле не одно место с таким комментом, нужно править все
-          */
-         ...resultingFn.call(parent, scope, attributes, undefined, true)
+         resolveTemplateFunction(parent, resultingFn, scope, attributes)
       );
    }
 
@@ -172,96 +160,43 @@ export class GeneratorReact {
       tplOrigin: TemplateOrigin,
       preparedScope: IControlOptions,
       decorAttribs: IGeneratorAttrs,
-      context: string,
+      _: string,
       _deps?: Common.Deps<typeof Control, TemplateFunction>,
       includedTemplates?: Common.IncludedTemplates<TemplateFunction>
    ): React.ReactElement|React.ReactElement[] {
       const parent = decorAttribs?.internal?.parent;
 
       const tplExtended: typeof Control |
-          TemplateFunction | Common.IDefaultExport<typeof Control> | Function | Function[] =
+          TemplateFunction |
+          Common.IDefaultExport<typeof Control> |
+          Function |
+          Common.ITemplateArray<TemplateFunction> =
           typeof tplOrigin === 'string' ?
               Common.depsTemplateResolver(tplOrigin, includedTemplates, _deps) :
               tplOrigin;
       const tpl = Common.fixDefaultExport(tplExtended);
 
       // typeof Control
-      if (Common.isControlClass(tpl)) {
-         return this.createWsControl(tpl as typeof Control, preparedScope, decorAttribs, context, _deps);
+      if (Common.isControlClass<typeof Control>(tpl)) {
+         return this.createWsControl(tpl, preparedScope, decorAttribs, undefined, _deps);
       }
       // TemplateFunction - wml шаблон
-      if (Common.isTemplateClass(tpl)) {
-         return this.createTemplate(tpl as TemplateFunction, preparedScope, decorAttribs, context, _deps);
+      if (Common.isTemplateClass<TemplateFunction>(tpl)) {
+         return this.createTemplate(tpl, preparedScope, decorAttribs, undefined, _deps);
       }
       // inline template, xhtml, tmpl шаблон (closured), content option
       if (typeof tpl === 'function') {
-         return this.resolveTemplateFunction(parent, tpl, preparedScope, decorAttribs, context);
+         return resolveTemplateFunction(parent, tpl, preparedScope, decorAttribs);
       }
-      // Function[] - массив шаблонов, может например прилететь, если в контентной опции несколько корневых нод
-      if (Common.isArray(tpl)) {
-         return this.resolveTemplateArray(parent, tpl as Function[], preparedScope, decorAttribs, context);
+      // Common.ITemplateArray - массив шаблонов, может например прилететь,
+      // если в контентной опции несколько корневых нод
+      if (Common.isTemplateArray<TemplateFunction>(tpl)) {
+         return resolveTemplateArray(parent, tpl, preparedScope, decorAttribs);
       }
 
       // не смогли зарезолвить - нужно вывести ошибку
       logResolverError(tpl, parent);
       return null;
-   }
-
-   resolveTemplateArray(
-      parent: Control<IControlOptions>,
-      templateArray: Function[],
-      resolvedScope: IControlOptions,
-      decorAttribs: IGeneratorAttrs,
-      context: string): TemplateResult[] {
-      let result = [];
-      templateArray.forEach((template: Function) => {
-         const resolvedTemplate = this.resolveTemplate(template, parent, resolvedScope, decorAttribs, context);
-         if (Array.isArray(resolvedTemplate)) {
-            result = result.concat(resolvedTemplate);
-         } else if (resolvedTemplate) {
-            result.push(resolvedTemplate);
-         }
-      });
-      return result;
-   }
-
-   resolveTemplate(template: Function,
-                   parent: Control<IControlOptions>,
-                   resolvedScope: IControlOptions,
-                   decorAttribs: IGeneratorAttrs,
-                   context: string): TemplateResult {
-      let resolvedTemplate;
-      if (typeof template === 'function') {
-         resolvedTemplate = this.resolveTemplateFunction(parent, template, resolvedScope, decorAttribs, context);
-      } else {
-         resolvedTemplate = template;
-      }
-      if (Array.isArray(resolvedTemplate)) {
-         if (resolvedTemplate.length === 1) {
-            return resolvedTemplate[0];
-         }
-         if (resolvedTemplate.length === 0) {
-            // return null so that resolveTemplateArray does not add
-            // this to the result array, since it is empty
-            return null;
-         }
-      }
-      return resolvedTemplate;
-   }
-
-   resolveTemplateFunction(parent: Control<IControlOptions>,
-      template: Function,
-      resolvedScope: IControlOptions,
-      decorAttribs: IGeneratorAttrs,
-      context: string): TemplateResult {
-      if (Common.isAnonymousFn(template)) {
-         anonymousFnError(template, parent);
-         return null;
-      }
-      if (parent) {
-         return template.call(parent, resolvedScope, decorAttribs, context, true, undefined, undefined);
-      }
-      return template(resolvedScope, decorAttribs, context, true, undefined, undefined) as TemplateResult;
    }
 
    /*
@@ -321,21 +256,7 @@ export class GeneratorReact {
          ref
       };
 
-      if (children) {
-         /*
-         FIXME: как я понимаю, шаблоны всегда возвращают массив, даже если там один элемент.
-         В таких случаях нужно просто отдать реакту сам элемент.
-         Если там несколько элементов, то вроде как нужно оборачивать во фрагмент.
-         В файле не одно место с таким комментом, нужно править все
-          */
-         return React.createElement<P, T>(tagName, newProps, ...children);
-      } else {
-         /*
-         FIXME: сценарии, где ничего не возвращается, может и есть, но лучше их поддерживать отдельно,
-         с демкой такого сценария. Ошибку роняю, чтобы такие места сразу всплыли.
-          */
-         throw new Error('Шаблон ничего не вернул');
-      }
+      return React.createElement<P, T>(tagName, newProps, children.length ? children : undefined);
    }
 
    // FIXME: бесполезный метод, но он зовётся из шаблонов
@@ -344,7 +265,58 @@ export class GeneratorReact {
    }
 }
 
-function logResolverError(tpl: TemplateOrigin, parent: Control<IControlOptions>): void {
+function resolveTemplateArray(
+    parent: Control<IControlOptions>,
+    templateArray: Common.ITemplateArray<TemplateFunction>,
+    resolvedScope: IControlOptions,
+    decorAttribs: IGeneratorAttrs): TemplateResult[] {
+   let result = [];
+   templateArray.forEach((template: Function) => {
+      const resolvedTemplate = resolveTemplate(template, parent, resolvedScope, decorAttribs);
+      if (Array.isArray(resolvedTemplate)) {
+         result = result.concat(resolvedTemplate);
+      } else if (resolvedTemplate) {
+         result.push(resolvedTemplate);
+      }
+   });
+   return result;
+}
+
+function resolveTemplate(template: Function,
+    parent: Control<IControlOptions>,
+    resolvedScope: IControlOptions,
+    decorAttribs: IGeneratorAttrs): TemplateResult {
+   let resolvedTemplate;
+   if (typeof template === 'function') {
+      resolvedTemplate = resolveTemplateFunction(parent, template, resolvedScope, decorAttribs);
+   } else {
+      resolvedTemplate = template;
+   }
+   if (Array.isArray(resolvedTemplate)) {
+      if (resolvedTemplate.length === 1) {
+         return resolvedTemplate[0];
+      }
+      if (resolvedTemplate.length === 0) {
+         // return null so that resolveTemplateArray does not add
+         // this to the result array, since it is empty
+         return null;
+      }
+   }
+   return resolvedTemplate;
+}
+
+function resolveTemplateFunction(parent: Control<IControlOptions>,
+    template: Function,
+    resolvedScope: IControlOptions,
+    decorAttribs: IGeneratorAttrs): TemplateResult {
+   if (Common.isAnonymousFn(template)) {
+      anonymousFnError(template, parent);
+      return null;
+   }
+   return template.call(parent, resolvedScope, decorAttribs, undefined, true, undefined, undefined) as TemplateResult;
+}
+
+function logResolverError(tpl: undefined, parent: Control<IControlOptions>): void {
    Logger.error(`Неверное значение свойства template в ws:partial.
    Нужно поставить точку останова и исследовать передаваемое в ws:partial значение.
    По стеку будет понятно, в каком шаблоне и в какую опцию передается неправильное значение.`, parent);

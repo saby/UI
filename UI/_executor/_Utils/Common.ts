@@ -57,11 +57,11 @@ var
       }
    };
 
-export function isString(string) {
+export function isString(string: any): string is string {
    return (Object.prototype.toString.call(string) === '[object String]');
 }
 
-export function isArray(array) {
+export function isArray(array: any): array is Array<any> {
    return (Object.prototype.toString.call(array) === '[object Array]');
 }
 
@@ -294,7 +294,7 @@ export function isStringModules(str, config?) {
    return isOptionalString(str) || isTemplateString(str) || isControlString(str) || isSlashedControl(str) || hasResolver(str, config && config.resolvers);
 }
 
-export function isControlClass(controlClass: any): boolean {
+export function isControlClass<T = IControl>(controlClass: any): controlClass is T {
    const prototype = controlClass && controlClass.prototype;
    // Проверка на typeof добавлена в следствии странной ошибки https://inside.tensor.ru/opendoc.html?guid=872a7e36-7487-4362-88d0-eaf0e66cb6b6
    // По какой-то причине проверка controlClass && controlClass.prototype проходила и свойство $constructor вызывалось на undefined.
@@ -304,12 +304,19 @@ export function isControlClass(controlClass: any): boolean {
    return false;
 }
 
-export function isTemplateClass(controlClass: any): boolean {
+export interface ITemplateArray<K = TemplateFunction> extends Array<K> {
+   isDataArray: boolean;
+}
+
+export function isTemplateClass<K = TemplateFunction>(controlClass: any): controlClass is K {
    const prototype = controlClass && controlClass.prototype;
    if (prototype && typeof prototype !== 'undefined') {
       return prototype.isWasabyTemplate || controlClass.isWasabyTemplate;
    }
    return false;
+}
+export function isTemplateArray<K = TemplateFunction>(array: any): array is ITemplateArray<K> {
+   return Array.isArray(array) && array.hasOwnProperty('isDataArray') && (array as ITemplateArray<K>).isDataArray;
 }
 
 export function isControl(control) {
@@ -355,13 +362,13 @@ export function splitOptional(string) {
    return ws[1];
 }
 
-export function splitWs(string) {
+export function splitWs(string: string): string {
    let ws;
    if (string !== undefined && string.indexOf('ws:') === 0) {
       ws = string.split('ws:');
       return ws[1];
    }
-   return undefined;
+   return string;
 }
 
 export function isCompound(ctor) {
@@ -391,12 +398,13 @@ export function depsTemplateResolver<T = IControl, K = TemplateFunction>(
     tpl: string,
     includedTemplates: IncludedTemplates<K>,
     _deps: Deps<T, K>): T | K | IDefaultExport<T> {
-   var result = conventionalStringResolver(tpl, includedTemplates, _deps);
-   if (isOptionalString(tpl) && !result) {
-      result = conventionalStringResolver(splitOptional(tpl));
+   const newName = splitWs(tpl);
+   var result = conventionalStringResolver(newName, includedTemplates, _deps);
+   if (isOptionalString(newName) && !result) {
+      result = conventionalStringResolver(splitOptional(newName));
    }
-   if (isDefaultExport(result)) {
-      result = (result as IDefaultExport<T>).default;
+   if (isDefaultExport<T>(result)) {
+      result = result.default;
    }
    return result;
 }
@@ -417,7 +425,7 @@ export interface IDefaultExport<T = IControl> {
  * Либо сужает тип obj до IDefaultExport, либо однозначно говорит, что это другой тип.
  * @param obj
  */
-function isDefaultExport(obj: unknown): boolean {
+function isDefaultExport<T = IControl>(obj: unknown): obj is IDefaultExport<T> {
    if (obj && typeof obj === 'object') {
       return obj.hasOwnProperty('__esModule') && obj.hasOwnProperty('default');
    }

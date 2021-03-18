@@ -34,4 +34,4 @@ export type TemplateOrigin =
     | typeof Control
     | string
     | Function
-    | Function[];
+    | Common.ITemplateArray<TemplateFunction>;

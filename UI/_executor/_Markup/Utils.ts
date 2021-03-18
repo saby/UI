@@ -252,15 +252,15 @@ export function resolveControlName<TOptions extends IControlData>(controlData: T
  * @param parent
  * @returns {*}
  */
-export function stringTemplateResolver(tpl: string,
-                                       includedTemplates: IncludedTemplates,
-                                       _deps: Deps,
+export function stringTemplateResolver<T = IControl, K = TemplateFunction>(tpl: string,
+                                       includedTemplates: IncludedTemplates<K>,
+                                       _deps: Deps<T, K>,
                                        config: IGeneratorConfig,
-                                       parent?: IControl): IControl|TemplateFunction|IDefaultExport {
+                                       parent?: IControl): T | K | IDefaultExport<T> {
    const resolver = config && config.resolvers ? Common.findResolverInConfig(tpl, config.resolvers) : undefined;
    if (resolver) {
       return resolver(tpl);
    } else {
-      return Common.depsTemplateResolver(tpl, includedTemplates, _deps);
+      return Common.depsTemplateResolver<T, K>(tpl, includedTemplates, _deps);
    }
 }
