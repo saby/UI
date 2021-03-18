@@ -31,7 +31,7 @@ if (typeof window !== 'undefined') {
    window.addEventListener('touchstart', () => {
       isTouchInterface = true;
    });
-   window.addEventListener('touchend', () => {
+   window.addEventListener('mousedown', () => {
       if (isTouchInterface) {
          isTouchInterface = false;
       }
