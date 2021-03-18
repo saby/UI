@@ -54,6 +54,7 @@ define('Compiler/core/bridge', [
 
       // FIXME: поправить интерфейсы после правок в плагинах
       traversed.lexicalContext = translationUnit.lexicalContext;
+      traversed.container = translationUnit.container;
       traversed.childrenStorage = translationUnit.childrenStorage;
       traversed.reactiveProps = translationUnit.reactiveProps;
       traversed.templateNames = translationUnit.templateNames;
