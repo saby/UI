@@ -12,6 +12,7 @@ import { default as Control, TControlConstructor } from './Control';
 export interface ICreateControlOptions {
     application?: string;
     buildnumber?: string;
+    key?: string;
 }
 
 /**
@@ -34,6 +35,7 @@ export default function startFunction(config: ICreateControlOptions = {}, domEle
     loadAsync(moduleName).then((module: TControlConstructor): void => {
         config.application = moduleName;
         config.buildnumber = window['buildnumber'];
+        config.key = 'bd_';
         createControl(module, config, (domElement.firstElementChild || domElement.firstChild) as HTMLElement);
     });
 }

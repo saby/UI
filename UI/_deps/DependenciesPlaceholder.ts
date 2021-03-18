@@ -68,15 +68,16 @@ export function aggregateJS(deps: ICollectedDeps): void {
          });
       });
 
-   ['rsSerialized', 'rtpackModuleNames'].forEach((key) => {
-      if (deps[key]) {
-         API.createTag(
-            'script',
-            { type: 'text/javascript' },
-            `window['${key}']='${deps[key]}';`
-         );
-      }
-   });
+   API.createTag(
+       'script',
+       { type: 'text/javascript' },
+       `window['receivedStates']='${deps.rsSerialized}';`
+   );
+   API.createTag(
+       'script',
+       { type: 'text/javascript' },
+       `window['rtpackModuleNames']='${deps.rtpackModuleNames}';`
+   );
 }
 
 export function aggregateCSS(theme: string, styles: string[] = [], themes: string[] = []): Promise<string> {
