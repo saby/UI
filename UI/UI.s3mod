@@ -13,6 +13,8 @@
     <module id="951e1c80-ee24-4022-8349-96123fae8026" name="Inferno"/>
     <module id="37e402f1-2fb0-4b73-81c5-113cf94dbf1c" name="WasabyLoader"/>
     <module id="1456f36f-76ef-4323-a2dd-a22bc91e7209" name="Compiler" />
+    <module id="548e4ee9-10cd-4227-9e3c-0811958f979c" name="UICore" />
+    <module id="0f15ac6b-86b2-4265-9da1-05eac93ebdf6" name="UICommon" />
   </depends>
 
   <load_after/>
