@@ -45,6 +45,9 @@ export function createDefaultTags(cfg: IHeadOptions): void {
       // @ts-ignore
       API.createTag('meta', attrs);
    });
+   if (cfg.preInitScript) {
+      API.createTag('script', {type: 'text/javascript'}, cfg.preInitScript);
+   }
 }
 
 /**
