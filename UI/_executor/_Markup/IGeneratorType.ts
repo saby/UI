@@ -194,11 +194,6 @@ export interface IPrepareDataForCreateAttrs {
    'ws-delegates-tabfocus': string;
 }
 
-// встроенный инлайновый шаблон
-export interface IStringTemplateResolverIncludedTemplates {
-   _itemTpm?: Function;
-}
-
 // Скопы для билдера
 export interface IBuilderScope extends IControlData {
    templateContext: TObject,

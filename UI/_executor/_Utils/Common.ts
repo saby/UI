@@ -15,7 +15,6 @@ import * as RequireHelper from './RequireHelper';
 import { ReactiveObserver } from 'UI/Reactivity';
 import {
    IControl,
-   IStringTemplateResolverIncludedTemplates
 } from 'UI/_executor/_Markup/IGeneratorType';
 import { TemplateFunction } from 'UI/Base';
 
@@ -295,7 +294,7 @@ export function isStringModules(str, config?) {
    return isOptionalString(str) || isTemplateString(str) || isControlString(str) || isSlashedControl(str) || hasResolver(str, config && config.resolvers);
 }
 
-export function isControlClass(controlClass) {
+export function isControlClass(controlClass: any): boolean {
    const prototype = controlClass && controlClass.prototype;
    // Проверка на typeof добавлена в следствии странной ошибки https://inside.tensor.ru/opendoc.html?guid=872a7e36-7487-4362-88d0-eaf0e66cb6b6
    // По какой-то причине проверка controlClass && controlClass.prototype проходила и свойство $constructor вызывалось на undefined.
@@ -305,7 +304,7 @@ export function isControlClass(controlClass) {
    return false;
 }
 
-export function isTemplateClass(controlClass) {
+export function isTemplateClass(controlClass: any): boolean {
    const prototype = controlClass && controlClass.prototype;
    if (prototype && typeof prototype !== 'undefined') {
       return prototype.isWasabyTemplate || controlClass.isWasabyTemplate;
@@ -378,7 +377,9 @@ export function isNewControl(ctor) {
 /**
  * Объект с зависимостями контрола/шаблона.
  */
-export type Deps = Record<string, TemplateFunction | IDefaultExport>;
+export type Deps<T = IControl, K = TemplateFunction> = Record<string, T | K | IDefaultExport<T>>;
+
+export type IncludedTemplates<K = TemplateFunction> = Record<string, K>;
 /**
  * Если результат с optional === false, попробуем без optional!
  * @param tpl
@@ -386,35 +387,37 @@ export type Deps = Record<string, TemplateFunction | IDefaultExport>;
  * @param _deps
  * @returns {*}
  */
-export function depsTemplateResolver(
+export function depsTemplateResolver<T = IControl, K = TemplateFunction>(
     tpl: string,
-    includedTemplates: IStringTemplateResolverIncludedTemplates,
-    _deps: Deps): IControl | TemplateFunction {
+    includedTemplates: IncludedTemplates<K>,
+    _deps: Deps<T, K>): T | K | IDefaultExport<T> {
    var result = conventionalStringResolver(tpl, includedTemplates, _deps);
    if (isOptionalString(tpl) && !result) {
       result = conventionalStringResolver(splitOptional(tpl));
    }
-   result = fixDefaultExport(result);
+   if (isDefaultExport(result)) {
+      result = (result as IDefaultExport<T>).default;
+   }
    return result;
 }
 
-export function fixDefaultExport(tplOrigin) {
+export function fixDefaultExport<T = IControl, K = unknown>(tplOrigin: K | IDefaultExport<T>): K | T {
    // При использовании ts-модуля, где нужный класс экспортируется дефолтно, внутри js-модуля
    // сюда приходит объект tplOrigin, где __esModule есть true, а в default лежит нужная нам
    // функция построения верстки
    // Для того, чтобы верстка строилась, необходимо вытащить функцию из default
-   return isDefaultExport(tplOrigin) ? tplOrigin.default : tplOrigin;
+   return isDefaultExport(tplOrigin) ? (tplOrigin as IDefaultExport<T>).default : tplOrigin as K;
 }
 
-export interface IDefaultExport {
+export interface IDefaultExport<T = IControl> {
    __esModule: boolean;
-   default: IControl;
+   default: T;
 }
 /**
  * Либо сужает тип obj до IDefaultExport, либо однозначно говорит, что это другой тип.
  * @param obj
  */
-function isDefaultExport(obj: unknown): obj is IDefaultExport {
+function isDefaultExport(obj: unknown): boolean {
    if (obj && typeof obj === 'object') {
       return obj.hasOwnProperty('__esModule') && obj.hasOwnProperty('default');
    }

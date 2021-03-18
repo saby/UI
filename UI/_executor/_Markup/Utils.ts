@@ -12,7 +12,6 @@ import {
    IGeneratorConfig,
    IControl,
    IGeneratorDefCollection,
-   IStringTemplateResolverIncludedTemplates,
    TAttributes,
    TObject
 } from './IGeneratorType';
@@ -23,7 +22,7 @@ import { invisibleNodeTagName } from '../Utils';
 import { NumberUtils } from 'UI/Utils';
 import { INodeAttribute } from './IGeneratorType';
 import { IAttributes } from '../_Expressions/Attr';
-import {Deps} from '../_Utils/Common';
+import {Deps, IDefaultExport, IncludedTemplates} from '../_Utils/Common';
 import { TemplateFunction } from 'UI/Base';
 
 /**
@@ -254,10 +253,10 @@ export function resolveControlName<TOptions extends IControlData>(controlData: T
  * @returns {*}
  */
 export function stringTemplateResolver(tpl: string,
-                                       includedTemplates: IStringTemplateResolverIncludedTemplates,
+                                       includedTemplates: IncludedTemplates,
                                        _deps: Deps,
                                        config: IGeneratorConfig,
-                                       parent?: IControl): IControl|TemplateFunction {
+                                       parent?: IControl): IControl|TemplateFunction|IDefaultExport {
    const resolver = config && config.resolvers ? Common.findResolverInConfig(tpl, config.resolvers) : undefined;
    if (resolver) {
       return resolver(tpl);
