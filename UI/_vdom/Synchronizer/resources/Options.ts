@@ -101,6 +101,9 @@ function getTemplateInternal(tmpl: ITemplate): IOptions {
 
 export function collectObjectVersions(collection: IOptions): IVersions {
    const versions = {};
+   if (typeof collection !== "object" || collection === null) {
+      return versions;
+   }
    const keys = Object.keys(collection);
    for (let i = 0; i < keys.length; i++) {
       const key = keys[i];
