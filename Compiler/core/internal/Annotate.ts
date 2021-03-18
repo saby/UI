@@ -11,6 +11,8 @@ import { Container, ContainerType } from 'Compiler/core/internal/Container';
 import { IProgramMeta, ProgramType } from './Storage';
 import { ProgramNode } from 'Compiler/expressions/Nodes';
 import * as Walkers from 'Compiler/expressions/Walkers';
+import { ITranslationKey } from 'Compiler/i18n/Dictionary';
+import { IContext as ILexicalContext } from 'Compiler/core/Context';
 
 /**
  * Prefix for internal mustache expressions.
@@ -23,40 +25,18 @@ const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
  */
 const FILE_NAME = '[[Compiler/core/internal/Annotate]]';
 
-/**
- * Result of annotation process.
- */
-export interface IResultTree extends Array<Ast.Ast> {
-
-    /**
-     * Child names collection.
-     */
+export interface ITranslationUnit {
+    tree: Ast.Ast[];
+    fileName: string;
+    localizedDictionary: ITranslationKey[];
+    container: Container | null;
+    lexicalContext: ILexicalContext | null;
     childrenStorage: string[];
-
-    /**
-     * Reactive property names collection.
-     */
     reactiveProps: string[];
-
-    /**
-     * Inline template names collection.
-     */
     templateNames: string[];
-
-    /**
-     * Global lexical context.
-     */
-    container: Container;
-
-    /**
-     * Abstract syntax tree contains translations.
-     */
+    dependencies: string[];
     hasTranslations: boolean;
-
-    /**
-     * Special flag.
-     * @deprecated
-     */
+    scope: Scope;
     __newVersion: boolean;
 }
 
@@ -452,7 +432,7 @@ export class InternalVisitor implements Ast.IAstVisitor {
      * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
      * @param scope {Scope} Scope object for processing abstract syntax tree.
      */
-    process(nodes: Ast.Ast[], scope: Scope): IResultTree {
+    process(nodes: Ast.Ast[], scope: Scope): ITranslationUnit {
         const container = new Container(null, ContainerType.GLOBAL);
         const childrenStorage: string[] = [];
         const context: IContext = {
@@ -473,14 +453,20 @@ export class InternalVisitor implements Ast.IAstVisitor {
             }
         }
         this.stack.pop();
-        const result = nodes as IResultTree;
-        result.childrenStorage = childrenStorage;
-        result.reactiveProps = container.getOwnIdentifiers();
-        result.templateNames = scope.getTemplateNames();
-        result.container = container;
-        result.hasTranslations = scope.hasDetectedTranslations();
-        result.__newVersion = true;
-        return result;
+        return {
+            tree: nodes,
+            fileName: 'unknown',
+            localizedDictionary: scope.getTranslationKeys(),
+            lexicalContext: null,
+            container,
+            childrenStorage,
+            reactiveProps: container.getOwnIdentifiers(),
+            templateNames: scope.getTemplateNames(),
+            dependencies: scope.getDependencies(),
+            hasTranslations: scope.hasDetectedTranslations(),
+            scope,
+            __newVersion: true
+        };
     }
 
     /**

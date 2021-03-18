@@ -6,14 +6,14 @@
 import { parse } from './html/Parser';
 import { createErrorHandler } from './utils/ErrorHandler';
 import getWasabyTagDescription from './core/Tags';
-import Scope from 'Compiler/core/Scope';
-import { Ast } from 'Compiler/core/Ast';
 import { traverseSync } from './core/bridge';
 import * as codegenBridge from './codegen/bridge';
 import * as templates from './codegen/templates';
 import { ISource, Source } from './utils/Source';
 import { IOptions, Options } from './utils/Options';
 import { ModulePath } from './utils/ModulePath';
+import { ITranslationKey } from './i18n/Dictionary';
+import { ITranslationUnit } from './core/internal/Annotate';
 
 /**
  * Флаг - генерировать rk-функции
@@ -57,7 +57,7 @@ export interface IArtifact {
    /**
     * Translations dictionary.
     */
-   localizedDictionary: IDictionaryItem[];
+   localizedDictionary: ITranslationKey[];
 
    /**
     * Array of input file dependencies.
@@ -83,39 +83,6 @@ function createArtifact(options: IOptions): IArtifact {
       dependencies: null,
       stable: false
    };
-}
-
-/**
- * Record in translations dictionary.
- */
-interface IDictionaryItem {
-
-   /**
-    * Text to translate.
-    */
-   key: string;
-
-   /**
-    * Translation context.
-    */
-   context: string;
-
-   /**
-    * Template module that contains this translation.
-    */
-   module: string;
-}
-
-interface ICompilationUnit {
-   tree: Ast[];
-   fileName: string;
-   localizedDictionary: IDictionaryItem[];
-   childrenStorage: string[];
-   reactiveProps: string[];
-   templateNames: string[];
-   dependencies: string[];
-   hasTranslations: boolean;
-   scope: Scope;
 }
 
 /**
@@ -153,10 +120,10 @@ abstract class BaseCompiler implements ICompiler {
 
    /**
     * Generate code for template.
-    * @param unit {ICompilationUnit} Compilation unit.
+    * @param unit {ITranslationUnit} Compilation unit.
     * @param options {IOptions} Compiler options.
     */
-   generate(unit: ICompilationUnit, options: IOptions): string {
+   generate(unit: ITranslationUnit, options: IOptions): string {
       const codeGenOptions = {
          ...options,
          generateTranslations: (
@@ -165,7 +132,7 @@ abstract class BaseCompiler implements ICompiler {
          ) && unit.hasTranslations
       };
       // tslint:disable:prefer-const
-      let tmplFunc = codegenBridge.getFunction(unit.tree, null, codeGenOptions, null);
+      let tmplFunc = codegenBridge.getFunctionWithUnit(unit, codeGenOptions);
       if (!tmplFunc) {
          throw new Error('Шаблон не может быть построен. Не загружены зависимости.');
       }
@@ -179,7 +146,7 @@ abstract class BaseCompiler implements ICompiler {
     * @param source Source code.
     * @param options Compiler options.
     */
-   traverse(source: ISource, options: IOptions): ICompilationUnit {
+   traverse(source: ISource, options: IOptions): ITranslationUnit {
       // TODO: реализовать whitespace visitor и убрать флаг needPreprocess
       const needPreprocess = options.modulePath.extension === 'wml';
       const errorHandler = createErrorHandler(!options.fromBuilderTmpl);
@@ -201,7 +168,7 @@ abstract class BaseCompiler implements ICompiler {
       if (hasFailures) {
          throw new Error(lastMessage);
       }
-      return traverseSync(parsed, options) as ICompilationUnit;
+      return traverseSync(parsed, options) as ITranslationUnit;
    }
 
    /**

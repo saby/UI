@@ -38,25 +38,34 @@ define('Compiler/core/bridge', [
     * New annotation method.
     */
    function annotateWithVisitors(traversed, options, traverseOptions, deferred) {
+      var translationUnit;
       if (Internal.canUseNewInternalMechanism()) {
-         Internal.process(traversed, traverseOptions.scope);
+         translationUnit = Internal.process(traversed, traverseOptions.scope);
       } else {
-         Annotate.default(traversed, traverseOptions.scope);
+         translationUnit = Annotate.default(traversed, traverseOptions.scope);
       }
 
-      PatchVisitorLib.default(traversed, traverseOptions.scope);
+      PatchVisitorLib.default(translationUnit.tree, traverseOptions.scope);
 
       if (!deferred) {
          // FIXME: Запрос на аннотацию пришел из синхронного метода. Временный код. Удалить после правки плагина.
-         return;
+         return translationUnit;
       }
+
+      // FIXME: поправить интерфейсы после правок в плагинах
+      traversed.lexicalContext = translationUnit.lexicalContext;
+      traversed.childrenStorage = translationUnit.childrenStorage;
+      traversed.reactiveProps = translationUnit.reactiveProps;
+      traversed.templateNames = translationUnit.templateNames;
+      traversed.hasTranslations = translationUnit.hasTranslations;
+      traversed.__newVersion = translationUnit.__newVersion;
 
       // в случае сбора словаря локализуемых слов отдаем объект
       // { astResult - ast-дерево, words - словарь локализуемых слов }
       if (options.createResultDictionary) {
          deferred.callback({
             astResult: traversed,
-            words: traverseOptions.scope.getTranslationKeys()
+            words: translationUnit.localizedDictionary
          });
          return;
       }
@@ -128,21 +137,7 @@ define('Compiler/core/bridge', [
       if (hasFailures) {
          throw new Error(lastMessage);
       }
-      annotateWithVisitors(traversed, options, traverseOptions);
-
-      // TODO: Создавать CompilationUnit на этапе traverse и работать далее с ним -> TranslationUnit
-
-      return {
-         tree: traversed,
-         fileName: options.fileName,
-         localizedDictionary: traverseOptions.scope.getTranslationKeys(),
-         childrenStorage: traversed.childrenStorage,
-         reactiveProps: traversed.reactiveProps,
-         templateNames: traversed.templateNames,
-         hasTranslations: traversed.hasTranslations,
-         dependencies: scope.getDependencies(),
-         scope: scope
-      };
+      return annotateWithVisitors(traversed, options, traverseOptions);
    }
 
    return {
