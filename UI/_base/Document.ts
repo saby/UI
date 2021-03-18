@@ -7,7 +7,7 @@ import Control from './Control';
 import template = require('wml!UI/_base/Document/Document');
 import { getThemeController } from 'UI/theme/controller';
 import * as AppEnv from 'Application/Env';
-import { headDataStore } from 'UI/_base/HeadData';
+import { headDataStore } from 'UI/Deps';
 import AppData from './AppData';
 import startApplication from 'UI/_base/startApplication';
 
