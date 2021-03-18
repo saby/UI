@@ -28,18 +28,17 @@ function addBaseScripts(cfg: IOptions): void {
       config: 'RequireJsLoader/config'
    };
    let rawUrl: string;
+   let src: string;
 
    for (const scriptsKey in scripts) {
       if (scripts.hasOwnProperty(scriptsKey)) {
-         if (scriptsKey === 'config' && !cfg.builder) {
-            continue;
-         }
          rawUrl = `${scripts[scriptsKey]}.js`;
+         src = rawUrl.startsWith('/') ? rawUrl : getResourceUrl(cfg.resourceRoot + rawUrl);
 
          API.createTag('script', {
             type: 'text/javascript',
             key: scriptsKey,
-            src: rawUrl.startsWith('/') ? rawUrl : getResourceUrl(cfg.resourceRoot + rawUrl)
+            src
          });
       }
    }
