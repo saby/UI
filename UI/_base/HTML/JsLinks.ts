@@ -5,7 +5,7 @@ import Control, { TemplateFunction } from 'UI/_base/Control';
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/JsLinks');
-import { headDataStore } from 'UI/_base/HeadData';
+import { headDataStore } from 'UI/Deps';
 import { IControlOptions } from 'UI/Base';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 import { cookie } from "Env/Env";

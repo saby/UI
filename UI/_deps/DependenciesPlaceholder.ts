@@ -4,13 +4,13 @@ import { cookie } from "Env/Env";
 import { EMPTY_THEME, getThemeController, THEME_TYPE } from "UI/theme/controller";
 import { getResourceUrl } from 'UI/Utils';
 import { JSLinks as AppJSLinks } from 'Application/Page';
-import { handlePrefetchModules } from 'UI/_base/HTML/PrefetchLinks';
+import { handlePrefetchModules } from './PrefetchLinks';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 
 import { IHTMLOptions } from '../_base/interface/IHTML';
 import { IRootTemplateOptions } from '../_base/interface/IRootTemplate';
-import { ICollectedDeps } from '../_base/HeadData';
-interface IOptions extends IHTMLOptions, IRootTemplateOptions {}
+import { ICollectedDeps } from './HeadData';
+interface IOptions extends IHTMLOptions, IRootTemplateOptions {};
 
 /**
  * Заполняем JSLinks AI базовыми JS зависимостями для страницы.

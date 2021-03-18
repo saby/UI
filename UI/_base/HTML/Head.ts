@@ -10,12 +10,11 @@ import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller
 import { constants } from 'Env/Env';
 import { Head as AppHead } from 'Application/Page';
 import { createWsConfig, createDefaultTags, createMetaScriptsAndLinks, applyHeadJson } from "UI/Head";
-import { headDataStore } from 'UI/_base/HeadData';
+import { aggregateCSS, headDataStore, handlePrefetchModules } from "UI/Deps";
 import { TemplateFunction, IControlOptions } from 'UI/Base';
 import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 import { JML } from 'UI/_base/HTML/_meta/interface';
-import { handlePrefetchModules } from 'UI/_base/HTML/PrefetchLinks';
 
 class Head extends Control<IHeadOptions> {
     _template: TemplateFunction = template;
