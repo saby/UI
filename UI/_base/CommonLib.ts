@@ -9,8 +9,7 @@ import Start from './Start';
 import BootstrapStart from './BootstrapStart';
 import BootstrapStartApplicationScript from './HTML/BootstrapStartApplicationScript';
 import HeadController from './HeadController';
-import HeadData, { headDataStore } from 'UI/_base/HeadData';
-import {DepsCollector} from './DepsCollector';
+import { HeadData, headDataStore, DepsCollector } from 'UI/Deps';
 import { getGeneratorConfig } from './GeneratorConfig';
 
 //@ts-ignore
@@ -26,7 +25,7 @@ export { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 export { getMetaStack, IMeta, IMetaState } from 'UI/_base/HTML/meta';
 //#endregion
 
-export { default as PrefetchLinksStore } from 'UI/_base/HTML/PrefetchLinks';
+export { PrefetchLinksStore } from 'UI/Deps';
 export { default as Async, IAsyncOptions, TAsyncStateReceived } from 'UI/_async/Async';
 
 export {
