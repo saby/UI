@@ -70,6 +70,10 @@ export default class Scope implements ITranslationsRegistrar {
       return this.dependenciesController.requestDependencies();
    }
 
+   getDependencies(initWith?: string[]): string[] {
+      return this.dependenciesController.getDependencies(initWith);
+   }
+
    /**
     * Register translation key.
     * @param module {string} Template file where translation item was discovered.

@@ -3,11 +3,12 @@
  * @author Крылов М.А.
  */
 
-import * as ComponentCollector from './core/_deprecated/ComponentCollector';
 import { parse } from './html/Parser';
 import { createErrorHandler } from './utils/ErrorHandler';
 import getWasabyTagDescription from './core/Tags';
-import { traverse } from './core/bridge';
+import Scope from 'Compiler/core/Scope';
+import { Ast } from 'Compiler/core/Ast';
+import { traverseSync } from './core/bridge';
 import * as codegenBridge from './codegen/bridge';
 import * as templates from './codegen/templates';
 import { ISource, Source } from './utils/Source';
@@ -105,68 +106,16 @@ interface IDictionaryItem {
    module: string;
 }
 
-/**
- * Represents abstract syntax tree interface as array of "object" - abstract syntax nodes.
- * FIXME: release interfaces for these nodes.
- */
-interface IAST extends Array<Object> {
+interface ICompilationUnit {
+   tree: Ast[];
+   fileName: string;
+   localizedDictionary: IDictionaryItem[];
    childrenStorage: string[];
    reactiveProps: string[];
    templateNames: string[];
-   __newVersion: boolean;
-   hasTranslations: boolean;
-}
-
-/**
- * Represents interface for traverse resulting object.
- */
-interface ITraversed {
-
-   /**
-    * Abstract syntax tree.
-    */
-   ast: IAST;
-
-   /**
-    * Translations dictionary.
-    */
-   localizedDictionary: IDictionaryItem[];
-
-   /**
-    * Array of input file dependencies.
-    */
    dependencies: string[];
-
-   /**
-    * Collection of inline template names.
-    */
-   templateNames: string[];
-
    hasTranslations: boolean;
-}
-
-/**
- * Fix traverse result.
- * @param rawTraversed Actual traverse result.
- * @param dependencies Array of dependencies.
- */
-function fixTraversed(rawTraversed: IAST | { astResult: IAST; words: IDictionaryItem[]; }, dependencies: string[]): ITraversed {
-   if (Array.isArray(rawTraversed)) {
-      return {
-         ast: rawTraversed as IAST,
-         localizedDictionary: [],
-         templateNames: rawTraversed.templateNames,
-         hasTranslations: rawTraversed.hasTranslations,
-         dependencies
-      };
-   }
-   return {
-      ast: rawTraversed.astResult as IAST,
-      localizedDictionary: rawTraversed.words,
-      templateNames: rawTraversed.astResult.templateNames,
-      hasTranslations: rawTraversed.astResult.hasTranslations,
-      dependencies
-   };
+   scope: Scope;
 }
 
 /**
@@ -204,24 +153,24 @@ abstract class BaseCompiler implements ICompiler {
 
    /**
     * Generate code for template.
-    * @param traversed Traverse object.
-    * @param options Compiler options.
+    * @param unit {ICompilationUnit} Compilation unit.
+    * @param options {IOptions} Compiler options.
     */
-   generate(traversed: ITraversed, options: IOptions): string {
+   generate(unit: ICompilationUnit, options: IOptions): string {
       const codeGenOptions = {
          ...options,
          generateTranslations: (
              options.generateCodeForTranslations && USE_GENERATE_CODE_FOR_TRANSLATIONS
              || !USE_GENERATE_CODE_FOR_TRANSLATIONS
-         ) && traversed.hasTranslations
+         ) && unit.hasTranslations
       };
       // tslint:disable:prefer-const
-      let tmplFunc = codegenBridge.getFunction(traversed.ast, null, codeGenOptions, null);
+      let tmplFunc = codegenBridge.getFunction(unit.tree, null, codeGenOptions, null);
       if (!tmplFunc) {
          throw new Error('Шаблон не может быть построен. Не загружены зависимости.');
       }
       return this.generateModule(
-          tmplFunc, traversed.dependencies, traversed.ast.reactiveProps, options.modulePath, traversed.hasTranslations
+          tmplFunc, unit.dependencies, unit.reactiveProps, options.modulePath, unit.hasTranslations
       );
    }
 
@@ -230,43 +179,29 @@ abstract class BaseCompiler implements ICompiler {
     * @param source Source code.
     * @param options Compiler options.
     */
-   traverse(source: ISource, options: IOptions): Promise<ITraversed> {
-      return new Promise<ITraversed>((resolve: any, reject: any) => {
-         try {
-            // TODO: реализовать whitespace visitor и убрать флаг needPreprocess
-            const needPreprocess = options.modulePath.extension === 'wml';
-            const errorHandler = createErrorHandler(!options.fromBuilderTmpl);
-            // tslint:disable:prefer-const
-            let parsed = parse(source.text, options.fileName, {
-               xml: true,
-               allowComments: true,
-               allowCDATA: true,
-               compatibleTreeStructure: true,
-               rudeWhiteSpaceCleaning: true,
-               normalizeLineFeed: true,
-               cleanWhiteSpaces: true,
-               needPreprocess: needPreprocess,
-               tagDescriptor: getWasabyTagDescription,
-               errorHandler
-            });
-            const hasFailures = errorHandler.hasFailures();
-            const lastMessage = errorHandler.popLastErrorMessage();
-            errorHandler.flush();
-            if (hasFailures) {
-               reject(new Error(lastMessage));
-               return;
-            }
-            const dependencies = ComponentCollector.getComponents(parsed);
-            // tslint:disable:prefer-const
-            let traversed = traverse(parsed, options);
-            traversed.addCallbacks(
-               (rawTraversed) => resolve(fixTraversed(rawTraversed, dependencies)),
-               (error) => reject(error)
-            );
-         } catch (error) {
-            reject(error);
-         }
+   traverse(source: ISource, options: IOptions): ICompilationUnit {
+      // TODO: реализовать whitespace visitor и убрать флаг needPreprocess
+      const needPreprocess = options.modulePath.extension === 'wml';
+      const errorHandler = createErrorHandler(!options.fromBuilderTmpl);
+      const parsed = parse(source.text, options.fileName, {
+         xml: true,
+         allowComments: true,
+         allowCDATA: true,
+         compatibleTreeStructure: true,
+         rudeWhiteSpaceCleaning: true,
+         normalizeLineFeed: true,
+         cleanWhiteSpaces: true,
+         needPreprocess: needPreprocess,
+         tagDescriptor: getWasabyTagDescription,
+         errorHandler
       });
+      const hasFailures = errorHandler.hasFailures();
+      const lastMessage = errorHandler.popLastErrorMessage();
+      errorHandler.flush();
+      if (hasFailures) {
+         throw new Error(lastMessage);
+      }
+      return traverseSync(parsed, options) as ICompilationUnit;
    }
 
    /**
@@ -279,27 +214,20 @@ abstract class BaseCompiler implements ICompiler {
          let artifact: IArtifact = createArtifact(options);
          try {
             const source: ISource = this.createSource(text, options.fileName);
-            this.traverse(source, options)
-               .then((traversed) => {
-                  try {
-                     this.initWorkspace(traversed.templateNames);
-                     artifact.text = this.generate(traversed, options);
-                     artifact.localizedDictionary = traversed.localizedDictionary;
-                     artifact.dependencies = traversed.dependencies;
-                     artifact.stable = true;
-                     resolve(artifact);
-                  } catch (error) {
-                     artifact.errors.push(error);
-                     reject(artifact);
-                  } finally {
-                     this.cleanWorkspace();
-                  }
-               })
-               .catch((error) => {
-                  this.cleanWorkspace();
-                  artifact.errors.push(error);
-                  reject(artifact);
-               });
+            const unit = this.traverse(source, options);
+            try {
+               this.initWorkspace(unit.templateNames);
+               artifact.text = this.generate(unit, options);
+               artifact.localizedDictionary = unit.localizedDictionary;
+               artifact.dependencies = unit.dependencies;
+               artifact.stable = true;
+               resolve(artifact);
+            } catch (error) {
+               artifact.errors.push(error);
+               reject(artifact);
+            } finally {
+               this.cleanWorkspace();
+            }
          } catch (error) {
             artifact.errors.push(error);
             reject(artifact);

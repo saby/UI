@@ -46,6 +46,11 @@ define('Compiler/core/bridge', [
 
       PatchVisitorLib.default(traversed, traverseOptions.scope);
 
+      if (!deferred) {
+         // FIXME: Запрос на аннотацию пришел из синхронного метода. Временный код. Удалить после правки плагина.
+         return;
+      }
+
       // в случае сбора словаря локализуемых слов отдаем объект
       // { astResult - ast-дерево, words - словарь локализуемых слов }
       if (options.createResultDictionary) {
@@ -97,7 +102,51 @@ define('Compiler/core/bridge', [
       return deferred;
    }
 
+   function traverseSync(htmlTree, options) {
+      var scope = new ScopeLib.default(!options.fromBuilderTmpl);
+      var errorHandler = ErrorHandlerLib.createErrorHandler(!options.fromBuilderTmpl);
+      var traverseConfig = {
+         expressionParser: new ParserLib.Parser(),
+         hierarchicalKeys: true,
+         errorHandler: errorHandler,
+         allowComments: false,
+         textTranslator: Translator.createTextTranslator(options.componentsProperties || { }),
+         generateTranslations: (
+             (USE_GENERATE_CODE_FOR_TRANSLATIONS && !!options.generateCodeForTranslations) ||
+             !USE_GENERATE_CODE_FOR_TRANSLATIONS
+         )
+      };
+      var traverseOptions = {
+         fileName: options.fileName,
+         scope: scope,
+         translateText: true
+      };
+      var traversed = TraverseLib.default(htmlTree, traverseConfig, traverseOptions);
+      var hasFailures = errorHandler.hasFailures();
+      var lastMessage = errorHandler.popLastErrorMessage();
+      errorHandler.flush();
+      if (hasFailures) {
+         throw new Error(lastMessage);
+      }
+      annotateWithVisitors(traversed, options, traverseOptions);
+
+      // TODO: Создавать CompilationUnit на этапе traverse и работать далее с ним -> TranslationUnit
+
+      return {
+         tree: traversed,
+         fileName: options.fileName,
+         localizedDictionary: traverseOptions.scope.getTranslationKeys(),
+         childrenStorage: traversed.childrenStorage,
+         reactiveProps: traversed.reactiveProps,
+         templateNames: traversed.templateNames,
+         hasTranslations: traversed.hasTranslations,
+         dependencies: scope.getDependencies(),
+         scope: scope
+      };
+   }
+
    return {
-      traverse: traverse
+      traverse: traverse,
+      traverseSync: traverseSync
    };
 });
