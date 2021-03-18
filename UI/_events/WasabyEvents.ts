@@ -38,7 +38,7 @@ let touchId = 0;
 const clickStateTarget: Array<{ target: HTMLElement, touchId: number }> = [];
 const callAfterMount: IArrayEvent[] = [];
 
-export default class WasabyEvents implements IWasabyEventSystem {
+export class WasabyEvents implements IWasabyEventSystem {
     private capturedEventHandlers: Record<string, IHandlerInfo[]>;
     private touchendTarget: Element;
 
