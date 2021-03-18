@@ -30,7 +30,7 @@ let isTouchInterface = false;
 if (typeof window !== 'undefined') {
    window.addEventListener('touchstart', () => {
       isTouchInterface = true;
-   });
+   }, true);
    window.addEventListener('mousedown', () => {
       if (isTouchInterface) {
          isTouchInterface = false;
