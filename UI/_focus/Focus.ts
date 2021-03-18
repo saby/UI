@@ -31,11 +31,11 @@ if (typeof window !== 'undefined') {
    window.addEventListener('touchstart', () => {
       isTouchInterface = true;
    });
-   window.addEventListener('mousedown', () => {
+   window.addEventListener('touchend', () => {
       if (isTouchInterface) {
          isTouchInterface = false;
       }
-   });
+   }, true);
 }
 
 /**
