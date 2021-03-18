@@ -13,7 +13,7 @@
                      require( {{ __setHTMLUnsafe(getDeps()) }}, function () {
                         var sr = new AppState.StateReceiver(UIState.Serializer);
                         AppInit.default(window.wsConfig, void 0, sr);
-                        UIBase.{{ StartFunction }}({}, document.getElementById('{{ rootId }}'));
+                        UIBase.Start({}, document.getElementById('root'));
                      });
                      if (Env.constants.isProduction) {
                         console.log(

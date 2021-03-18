@@ -7,7 +7,6 @@ import Document from './Document';
 import AppData from './AppData';
 import Start from './Start';
 import BootstrapStart from './BootstrapStart';
-import BootstrapStartApplicationScript from './HTML/BootstrapStartApplicationScript';
 import HeadController from './HeadController';
 import { HeadData, headDataStore, DepsCollector } from 'UI/Deps';
 import { getGeneratorConfig } from './GeneratorConfig';
@@ -34,7 +33,6 @@ export {
    AppData,
    Start,
    BootstrapStart,
-   BootstrapStartApplicationScript,
    BaseRoute,
    HeadController,
    Creator,
