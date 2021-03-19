@@ -16,9 +16,4 @@
 </ws:if>
 <!-- #endregion -->
 
-<!-- #region headAdditiveTagsMarkup (он же headJson) -->
-<ws:if data="{{ isSSR && headAdditiveTagsMarkup }}">
-  {{ __setHTMLUnsafe( headAdditiveTagsMarkup ) }}
-</ws:if>
-<!-- #endregion -->
 </head>

@@ -6,9 +6,10 @@
 
 import { createErrorHandler } from 'Compiler/utils/ErrorHandler';
 import { LocalizationNode, TextNode, VariableNode } from './Statement';
-import { ProgramNode, ExpressionVisitor } from './Nodes';
+import { ProgramNode } from './Nodes';
 import { genEscape } from 'Compiler/codegen/Generator';
 import { genSanitize } from 'Compiler/codegen/TClosure';
+import { ExpressionVisitor } from 'Compiler/codegen/Expression';
 
 import * as FSC from 'Compiler/modules/data/utils/functionStringCreator';
 

@@ -8,7 +8,7 @@
         "WmlBuilder",
         "Compiler",
         "UICommon",
-        "UIInferno",
+        "UIInferno/UICore",
         "UI"
     ]
 }
