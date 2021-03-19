@@ -72,7 +72,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
 
       this.__markupNodeDecorator = createRecursiveVNodeMapper(setEventHook);
 
-      this.eventSystem = new WasabyEvents(_rootDOMNode, this._handleTabKey);
+      this.eventSystem = new WasabyEvents(_rootDOMNode, this as unknown as IDOMEnvironment, this._handleTabKey);
 
       this.initFocusHandlers();
       this.__initBodyTabIndex();

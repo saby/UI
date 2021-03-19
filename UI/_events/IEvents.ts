@@ -75,8 +75,8 @@ export interface IClickEvent {
 }
 
 export interface IWasabyEventSystem {
-    initWasabyEventSystem: (rootNode: TModifyHTMLNode, tabKeyHandler?: Function) => void;
-    captureEventHandler: (event: Event, environment?: IDOMEnvironment) => void;
+    initWasabyEventSystem: (rootNode: TModifyHTMLNode,  environment: IDOMEnvironment, tabKeyHandler?: Function) => void;
+    captureEventHandler: (event: Event) => void;
     callEventsToDOM: VoidFunction;
     handleSpecialEvent: (eventName: string, eventHandler: Function) => void;
     // а должен ли он быть публичным?

@@ -59,27 +59,29 @@ export class WasabyEvents implements IWasabyEventSystem {
     private _preventShouldUseClickByTap: boolean = false;
 
     private _rootDOMNode: TModifyHTMLNode;
+    private _environment: IDOMEnvironment;
 
     //#region инициализация системы событий
-    constructor(rootNode: TModifyHTMLNode, tabKeyHandler?: Function) {
+    constructor(rootNode: TModifyHTMLNode, environment: IDOMEnvironment, tabKeyHandler?: Function) {
         this.capturedEventHandlers = {};
         this.initEventSystemFixes();
-        this.initWasabyEventSystem(rootNode, tabKeyHandler);
+        this.initWasabyEventSystem(rootNode, environment, tabKeyHandler);
 
         // если я это не напишу, ts ругнется 'touchendTarget' is declared but its value is never read
         this.touchendTarget = this.touchendTarget || null;
     }
 
-    initWasabyEventSystem(rootNode: TModifyHTMLNode, tabKeyHandler?: any): void {
-        this.setRootDOMNode(rootNode);
+    initWasabyEventSystem(rootNode: TModifyHTMLNode, environment: IDOMEnvironment, tabKeyHandler?: any): void {
+        this.setRootDOMNode(rootNode, environment);
         if (tabKeyHandler) {
             this.tabKeyHandler = tabKeyHandler
         }
         this.initProcessingHandlers();
     }
 
-    private setRootDOMNode(Node: TModifyHTMLNode): void {
-        this._rootDOMNode = Node;
+    private setRootDOMNode(node: TModifyHTMLNode, environment: IDOMEnvironment): void {
+        this._rootDOMNode = node;
+        this._environment = environment;
     }
 
     private initProcessingHandlers(): void {
@@ -124,10 +126,9 @@ export class WasabyEvents implements IWasabyEventSystem {
      * @param environment - окружение (необходимо для слоя совместимости)
      */
     captureEventHandler<TNativeEvent extends Event>(
-        event: TNativeEvent,
-        environment?: IDOMEnvironment
+        event: TNativeEvent
     ): void {
-        if (this.needPropagateEvent(environment, event)) {
+        if (this.needPropagateEvent(this._environment, event)) {
             const syntheticEvent = new SyntheticEvent(event);
             if (detection.isMobileIOS && detection.safari && event.type === 'click' && this.touchendTarget) {
                 syntheticEvent.target = this.touchendTarget;
@@ -743,7 +744,10 @@ export class WasabyEvents implements IWasabyEventSystem {
                 handlers[eventName] = [];
             }
             handlers[eventName].push(newHandlerInfo);
-            this.addNativeListener(elementToSubscribe, handler, nativeEventName, listenerCfg);
+            const bindedHandler = function(e: Event): void {
+                handler.apply(this, arguments);
+            }.bind(this);
+            this.addNativeListener(elementToSubscribe, bindedHandler, nativeEventName, listenerCfg);
         } else {
             if (!handlerInfo.processingHandler) {
                 handlerInfo.count++;
