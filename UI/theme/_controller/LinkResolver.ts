@@ -53,6 +53,7 @@ function createRequireRoutes(): any {
       jquery: '/cdn/JQuery/jquery/3.3.1/jquery-min',
       react: 'React/third-party/react/react.production.min',
       'react-dom': 'React/third-party/react-dom/react-dom.production.min',
+      'react-dom/server': 'React/third-party/react-dom/server/react-dom-server.browser.production.min',
       'react/jsx-runtime': 'React/third-party/react/jsx-runtime/react-jsx-runtime.production.min',
       'react/jsx-dev-runtime': 'React/third-party/jsx-dev-runtime/react-jsx-dev-runtime.production.min'
    };
