@@ -140,7 +140,7 @@ function addEventsToElement(
         }
 
         eventProperties[eventFullName] = eventDescrArray;
-        environment.addCaptureEventHandler(eventName, element);
+        environment.eventSystem.addCaptureEventHandler(eventName, element);
     }
 }
 
@@ -155,7 +155,7 @@ function removeEventsFromElement(
     for (let i = 0; i < eventFullNamesNames.length; i++) {
         const eventFullName: string = eventFullNamesNames[i];
         const eventName = EventUtils.getEventName(eventFullName);
-        environment.removeCaptureEventHandler(eventName, element);
+        environment.eventSystem.removeCaptureEventHandler(eventName, element);
         if (eventProperties) {
             delete eventProperties[eventFullName];
             element.eventPropertiesCnt--;

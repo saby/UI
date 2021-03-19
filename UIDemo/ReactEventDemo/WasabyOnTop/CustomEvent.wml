@@ -1,0 +1,14 @@
+<div>
+    <div>
+        Проверяем работу пользовательских событий
+    </div>
+    <div>
+        React в Wasaby
+    </div>
+    <div>
+        <span>{{ count }}</span>
+    </div>
+    <div>
+        <UIDemo.ReactEventDemo.WasabyOnTop.Component.ReactCustomEvent eventName="myCustomEvent" on:myCustomEvent="customEventHandler()" />
+    </div>
+</div>

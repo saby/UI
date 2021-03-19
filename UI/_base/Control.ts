@@ -335,7 +335,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
          Logger.error(error, this);
          throw new Error(error);
       }
-      return this._environment && this._environment.startEvent(this._controlNode, arguments);
+      return this._environment && this._environment.eventSystem.startEvent(this._controlNode, arguments);
    }
 
    /**

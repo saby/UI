@@ -58,7 +58,7 @@ export function isSpecialBodyEvent(eventName): boolean {
  * @returns {boolean}
  */
 export function fixUppercaseDOMEventName(name) {
-   var fixedName = originDOMEventNames[name];
+   const fixedName = originDOMEventNames[name];
    return fixedName || name;
 }
 

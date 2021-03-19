@@ -9,6 +9,14 @@ import { Control } from 'UI/_react/Control/WasabyOverReact';
 import {IControlOptions, TemplateFunction} from 'UI/_react/Control/interfaces';
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult} from './interfaces';
 
+interface IWasabyEvent {
+   args: unknown[];
+   context: Function;
+   handler: Function;
+   isControl: boolean;
+   value: string;
+   viewController: Control;
+}
 export class GeneratorReact {
    /**
     * В старых генераторах в этой функции была общая логика, как я понимаю.
@@ -18,7 +26,7 @@ export class GeneratorReact {
     * @param type Тип элемента, определяет каким методом генератор будет его строить.
     * @param origin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
     * @param attributes
-    * @param _
+    * @param events
     * @param options Опции контрола/шаблона.
     * @param config
     */
@@ -26,16 +34,20 @@ export class GeneratorReact {
       type: 'wsControl' | 'template',
       origin: TemplateOrigin,
       attributes: IGeneratorAttrs,
-      _: unknown,
+      events: { [key: string]: IWasabyEvent[]; },
       options: IControlOptions,
       config: IControlConfig
    ): React.ReactElement|React.ReactElement[] {
+      const extractedEvents = extractEventNames(events);
+
+      const newOptions = {...options, ...extractedEvents, ...{events: extractedEvents}};
+
       // тип контрола - компонент с шаблоном
       if (type === 'wsControl') {
          // если type=wsControl - это статическое построение контрола со строкой в origin
          return this.createWsControl(
             origin as string,
-            options,
+            newOptions,
             undefined,
             undefined,
             config.depsLocal
@@ -55,7 +67,7 @@ export class GeneratorReact {
          // если type=template - это статическое построение контрола со строкой в origin
          return this.createTemplate(
             origin as string,
-            options,
+            newOptions,
             attributes,
             undefined,
             config.depsLocal
@@ -230,6 +242,9 @@ export class GeneratorReact {
             WasabyAttributes & {
                name?: string;
             };
+         events: {
+            [key: string]: IWasabyEvent[]
+         }
       },
       children: React.ReactNode[],
       _: unknown,
@@ -250,9 +265,11 @@ export class GeneratorReact {
       }
 
       const convertedAttributes = convertAttributes(attrs.attributes);
+      const extractedEvents = {...control._options['events'] , ...extractEventNames(attrs.events)};
 
       const newProps = {
          ...convertedAttributes,
+         ...extractedEvents,
          ref
       };
 
@@ -280,6 +297,28 @@ function resolveTemplateArray(
       }
    });
    return result;
+}
+
+/**
+ * Преобразует формат имени события к react (on:Eventname => onEventname)
+ * @param text
+ */
+function transformEventName(text: string): string {
+   if (text.indexOf(":") === -1) {
+      return text;
+   }
+   let textArray = text.split(":");
+   return textArray[0] + textArray[1].charAt(0).toUpperCase() + textArray[1].slice(1);
+}
+
+function extractEventNames(eventObject:{[key: string]: IWasabyEvent[]}): {[key: string]: Function} {
+   let extractedEvents = {};
+   for (let eventKey in eventObject) {
+      if (eventObject[eventKey][0].viewController) {
+         extractedEvents[transformEventName(eventKey)] = eventObject[eventKey][0].handler.bind(eventObject[eventKey][0].viewController)();
+      }
+   }
+   return extractedEvents;
 }
 
 function resolveTemplate(template: Function,
