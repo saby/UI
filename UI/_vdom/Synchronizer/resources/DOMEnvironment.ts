@@ -3,7 +3,8 @@
 
 import { detection } from 'Env/Env';
 import { Logger, isNewEnvironment } from 'UI/Utils';
-import { ElementFinder, Events, focus, preventFocus, hasNoFocus } from 'UI/Focus';
+import {ElementFinder, Events, focus, preventFocus, hasNoFocus} from 'UI/Focus';
+import { goUpByControlTree } from 'UI/NodeCollector';
 import { WasabyEvents } from 'UI/Events';
 import {
    IDOMEnvironment, TControlStateCollback,
@@ -51,6 +52,8 @@ function createRecursiveVNodeMapper(fn: any): any {
    };
 }
 
+const TAB_KEY = 9;
+
 // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment
 export default class DOMEnvironment extends Environment implements IDOMEnvironment {
    // FIXME: костыль для UI\_focus\RestoreFocus.ts
@@ -72,6 +75,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
 
       this.__markupNodeDecorator = createRecursiveVNodeMapper(setEventHook);
 
+      this._handleTabKey = this._handleTabKey.bind(this);
       this.eventSystem = new WasabyEvents(_rootDOMNode, this as unknown as IDOMEnvironment, this._handleTabKey);
 
       this.initFocusHandlers();
@@ -102,48 +106,75 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
       }
    }
 
-   _handleTabKey(event: any): any {
-      let next;
-      let res;
-      next = ElementFinder.findWithContexts(
-          this._rootDOMNode,
-          event.target,
-          !!event.shiftKey,
-          ElementFinder.getElementProps,
-          true
-      );
-
-      // Store the tab press state until the next step. _isTabPressed is used to determine if
-      // focus moved because of Tab press or because of mouse click. It also stores the shift
-      // key state and the target that received the tab event.
-      this._isTabPressed = {
-         isShiftKey: !!event.shiftKey,
-         tabTarget: event.target
-      };
-      setTimeout(() => { this._isTabPressed = null; }, 0);
-
-      if (next) {
-         if (next.wsControl && next.wsControl.setActive) {
-            next.wsControl.setActive(true);
-         } else {
-            focus(next);
+   /**
+    * Обработчик клавиши tab.
+    * Логика работы tab отличается от остальных клавишь, т.к. используется в системе фокусов,
+    * но система событий ничего не должна знать о системы фокусов, поэтому обработчик одтаем в качестве аргумента
+    * @param event - событие клавиатуры
+    * @param tabKeyHandler - обработчик, который вызывается по нажатию tab
+    */
+   private _handleTabKey(event: any): void {
+      if (!this._rootDOMNode) {
+         return;
+      }
+      // Костыльное решение для возможности использовать Tab в нативной системе сторонних плагинов
+      // В контроле объявляем свойство _allowNativeEvent = true
+      // Необходимо проверить все контрол от точки возникновения события до body на наличие свойства
+      // т.к. возможно событие было вызвано у дочернего контрола для которого _allowNativeEvent = false
+      // FIXME дальнейшее решение по задаче
+      // FIXME https://online.sbis.ru/opendoc.html?guid=b485bcfe-3680-494b-b6a7-2850261ef1fb
+      const checkForNativeEvent = goUpByControlTree(event.target);
+      for (let i = 0; i < checkForNativeEvent.length - 1; i++) {
+         if (checkForNativeEvent[i].hasOwnProperty('_allowNativeEvent') &&
+             checkForNativeEvent[i]._allowNativeEvent) {
+            return;
          }
-         event.preventDefault();
-         event.stopImmediatePropagation();
-      } else {
-         if (this._rootDOMNode.wsControl) {
-            res = this._rootDOMNode.wsControl._oldKeyboardHover(event);
-         }
-         if (res !== false) {
-            // !!!!
-            // this._lastElement.focus(); чтобы выйти из рута наружу, а не нативно в другой элемент внутри рута
-            // тут если с шифтом вероятно нужно прокидывать в firstElement чтобы из него выйти
-         } else {
+      }
+
+      if (event.keyCode === TAB_KEY) {
+         let next;
+         let res;
+         next = ElementFinder.findWithContexts(
+             this._rootDOMNode,
+             event.target,
+             !!event.shiftKey,
+             ElementFinder.getElementProps,
+             true
+         );
+
+         // Store the tab press state until the next step. _isTabPressed is used to determine if
+         // focus moved because of Tab press or because of mouse click. It also stores the shift
+         // key state and the target that received the tab event.
+         this._isTabPressed = {
+            isShiftKey: !!event.shiftKey,
+            tabTarget: event.target
+         };
+         setTimeout(() => { this._isTabPressed = null; }, 0);
+
+         if (next) {
+            if (next.wsControl && next.wsControl.setActive) {
+               next.wsControl.setActive(true);
+            } else {
+               focus(next);
+            }
             event.preventDefault();
             event.stopImmediatePropagation();
+         } else {
+            if (this._rootDOMNode.wsControl) {
+               res = this._rootDOMNode.wsControl._oldKeyboardHover(event);
+            }
+            if (res !== false) {
+               // !!!!
+               // this._lastElement.focus(); чтобы выйти из рута наружу, а не нативно в другой элемент внутри рута
+               // тут если с шифтом вероятно нужно прокидывать в firstElement чтобы из него выйти
+            } else {
+               event.preventDefault();
+               event.stopImmediatePropagation();
+            }
          }
       }
    }
+
 
    _handleFocusEvent(e: any): any {
       if (this._restoreFocusState) {

@@ -1,6 +1,5 @@
 import { constants, detection } from 'Env/Env';
 import { Logger } from 'UI/Utils';
-import { goUpByControlTree } from 'UI/NodeCollector';
 import RawMarkupNode from 'UI/_executor/_Expressions/RawMarkupNode';
 
 import SyntheticEvent from './SyntheticEvent';
@@ -32,7 +31,6 @@ import {
 /**
  * @author Тэн В.А.
  */
-const TAB_KEY = 9;
 let touchId = 0;
 
 const clickStateTarget: Array<{ target: HTMLElement, touchId: number }> = [];
@@ -60,6 +58,7 @@ export class WasabyEvents implements IWasabyEventSystem {
 
     private _rootDOMNode: TModifyHTMLNode;
     private _environment: IDOMEnvironment;
+    private _handleTabKey: Function;
 
     //#region инициализация системы событий
     constructor(rootNode: TModifyHTMLNode, environment: IDOMEnvironment, tabKeyHandler?: Function) {
@@ -72,15 +71,12 @@ export class WasabyEvents implements IWasabyEventSystem {
     }
 
     initWasabyEventSystem(rootNode: TModifyHTMLNode, environment: IDOMEnvironment, tabKeyHandler?: any): void {
-        this.setRootDOMNode(rootNode, environment);
-        if (tabKeyHandler) {
-            this.tabKeyHandler = tabKeyHandler
-        }
+        this.setEnvironment(rootNode, environment);
+        this._handleTabKey = tabKeyHandler;
         this.initProcessingHandlers();
-        this._handleTabKey = this._handleTabKey.bind(this);
     }
 
-    private setRootDOMNode(node: TModifyHTMLNode, environment: IDOMEnvironment): void {
+    private setEnvironment(node: TModifyHTMLNode, environment: IDOMEnvironment): void {
         this._rootDOMNode = node;
         this._environment = environment;
     }
@@ -392,41 +388,7 @@ export class WasabyEvents implements IWasabyEventSystem {
     }
     //#endregion
 
-    //#region обработка событий TAB'а
-    tabKeyHandler(event: Event): void {
-      // do this
-    }
-
-    /**
-     * Обработчик клавиши tab.
-     * Логика работы tab отличается от остальных клавишь, т.к. используется в системе фокусов,
-     * но система событий ничего не должна знать о системы фокусов, поэтому обработчик одтаем в качестве аргумента
-     * @param event - событие клавиатуры
-     * @param tabKeyHandler - обработчик, который вызывается по нажатию tab
-     */
-    private _handleTabKey(event: KeyboardEvent): void {
-        if (!this._rootDOMNode) {
-            return;
-        }
-        // Костыльное решение для возможности использовать Tab в нативной системе сторонних плагинов
-        // В контроле объявляем свойство _allowNativeEvent = true
-        // Необходимо проверить все контрол от точки возникновения события до body на наличие свойства
-        // т.к. возможно событие было вызвано у дочернего контрола для которого _allowNativeEvent = false
-        // FIXME дальнейшее решение по задаче
-        // FIXME https://online.sbis.ru/opendoc.html?guid=b485bcfe-3680-494b-b6a7-2850261ef1fb
-        const checkForNativeEvent = goUpByControlTree(event.target);
-        for (let i = 0; i < checkForNativeEvent.length - 1; i++) {
-            if (checkForNativeEvent[i].hasOwnProperty('_allowNativeEvent') &&
-                checkForNativeEvent[i]._allowNativeEvent) {
-                return;
-            }
-        }
-
-        if (event.keyCode === TAB_KEY) {
-            this.tabKeyHandler(event);
-        }
-    }
-
+    //#region события таба
     addTabListener(): void {
         if (this._rootDOMNode) {
             this._rootDOMNode.addEventListener('keydown', this._handleTabKey as EventListener, false);

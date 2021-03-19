@@ -79,8 +79,6 @@ export interface IWasabyEventSystem {
     captureEventHandler: (event: Event) => void;
     callEventsToDOM: VoidFunction;
     handleSpecialEvent: (eventName: string, eventHandler: Function) => void;
-    // а должен ли он быть публичным?
-    tabKeyHandler: (event: Event) => void;
     addTabListener: VoidFunction;
     removeTabListener: VoidFunction;
     startEvent: <TArguments>(controlNode: IControlNode, args: TArguments) => any;
