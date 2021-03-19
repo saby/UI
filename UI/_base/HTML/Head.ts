@@ -45,7 +45,7 @@ class Head extends Control<IHeadOptions> {
         return headDataStore.read('waitAppContent')()
             .then(({ js, css }) => {
                 return new Promise<void>((resolve) => {
-                    aggregateCSS(options.theme, css.simpleCss, css.themedCss)
+                    collectCSS(options.theme, css.simpleCss, css.themedCss)
                         .then(() => { resolve(); })
                         .catch((error) => { onerror(error); resolve(); });
                 }).then(() => {
