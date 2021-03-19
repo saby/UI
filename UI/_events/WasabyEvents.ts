@@ -77,6 +77,7 @@ export class WasabyEvents implements IWasabyEventSystem {
             this.tabKeyHandler = tabKeyHandler
         }
         this.initProcessingHandlers();
+        this._handleTabKey = this._handleTabKey.bind(this);
     }
 
     private setRootDOMNode(node: TModifyHTMLNode, environment: IDOMEnvironment): void {
@@ -392,7 +393,7 @@ export class WasabyEvents implements IWasabyEventSystem {
     //#endregion
 
     //#region обработка событий TAB'а
-    tabKeyHandler(): any {
+    tabKeyHandler(event: Event): void {
       // do this
     }
 
@@ -422,7 +423,7 @@ export class WasabyEvents implements IWasabyEventSystem {
         }
 
         if (event.keyCode === TAB_KEY) {
-            this.tabKeyHandler();
+            this.tabKeyHandler(event);
         }
     }
 
