@@ -7,13 +7,11 @@ import { _FocusAttrs } from 'UI/Focus';
 import {
    GeneratorEmptyObject,
    GeneratorError,
-   GeneratorFn,
    GeneratorStringArray,
    IBaseAttrs,
    IGeneratorConfig,
    IControl,
    IGeneratorDefCollection,
-   IStringTemplateResolverIncludedTemplates,
    TAttributes,
    TObject
 } from './IGeneratorType';
@@ -24,7 +22,8 @@ import { invisibleNodeTagName } from '../Utils';
 import { NumberUtils } from 'UI/Utils';
 import { INodeAttribute } from './IGeneratorType';
 import { IAttributes } from '../_Expressions/Attr';
-import { Logger } from 'UI/Utils';
+import {Deps, IDefaultExport, IncludedTemplates} from '../_Utils/Common';
+import { TemplateFunction } from 'UI/Base';
 
 /**
  * @author Тэн В.А.
@@ -253,20 +252,15 @@ export function resolveControlName<TOptions extends IControlData>(controlData: T
  * @param parent
  * @returns {*}
  */
-export function stringTemplateResolver(tpl: string,
-                                       includedTemplates: IStringTemplateResolverIncludedTemplates,
-                                       _deps: GeneratorEmptyObject,
+export function stringTemplateResolver<T = IControl, K = TemplateFunction>(tpl: string,
+                                       includedTemplates: IncludedTemplates<K>,
+                                       _deps: Deps<T, K>,
                                        config: IGeneratorConfig,
-                                       parent?: IControl): GeneratorFn {
+                                       parent?: IControl): T | K | IDefaultExport<T> {
    const resolver = config && config.resolvers ? Common.findResolverInConfig(tpl, config.resolvers) : undefined;
    if (resolver) {
       return resolver(tpl);
    } else {
-      const deps = Common.depsTemplateResolver(tpl, includedTemplates, _deps, config);
-      if (deps === false) {
-         Logger.error(`Контрол ${tpl} отсутствует в зависимостях и не может быть построен."`, parent);
-         return this.createEmptyText();
-      }
-      return deps;
+      return Common.depsTemplateResolver<T, K>(tpl, includedTemplates, _deps);
    }
 }
