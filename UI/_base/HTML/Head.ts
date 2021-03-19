@@ -10,7 +10,6 @@ import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller
 import { constants } from 'Env/Env';
 import { Head as AppHead } from 'Application/Page';
 import { createWsConfig, createDefaultTags, createMetaScriptsAndLinks, applyHeadJson } from "UI/Head";
-import { getResourceUrl } from 'UI/Utils';
 import { headDataStore } from 'UI/_base/HeadData';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
 import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
@@ -183,7 +182,7 @@ interface IHeadOptions extends IControlOptions {
     compat: boolean;
     head: TemplateFunction[];
     headJson: JML[];
-    staticDomains: string | string[];
+    staticDomains: string[];
     buildnumber: string;
     noscript: string;
     viewport: string;

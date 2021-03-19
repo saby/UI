@@ -184,7 +184,7 @@ interface IResources {
     scripts: IScriptsAttrsResources[];
 }
 
-interface ICollectedDeps {
+export interface ICollectedDeps {
     // готовые ссылки на js
     scripts: IDeps;
     // названия js модулей
