@@ -113,7 +113,6 @@ define([
                events.addHandler(eventName, isBodyEvent, testHandler, processingHandler);
                assert.deepStrictEqual(handlers["testEvent"][0],
                   {bodyEvent: false, processingHandler: false, count: 1, handler: testHandler});
-               assert.strictEqual(rootDOM.parentNode.events[0], testHandler);
             });
             it('DE addHandler simple capture existing', function() {
                var testHandler, eventName, processingHandler, isBodyEvent;
@@ -125,7 +124,6 @@ define([
                events.addHandler(eventName, isBodyEvent, testHandler, processingHandler);
                assert.deepStrictEqual(handlers["testEvent"][0],
                   {bodyEvent: false, processingHandler: false, count: 2, handler: testHandler});
-               assert.deepStrictEqual(rootDOM.parentNode.events, [testHandler]);
             });
             it('DE addHandler processing', function() {
                var testHandler, eventName, processingHandler, isBodyEvent;
@@ -136,7 +134,6 @@ define([
                events.addHandler(eventName, isBodyEvent, testHandler, processingHandler);
                assert.deepStrictEqual(handlers["testEvent"][0],
                   {bodyEvent: false, processingHandler: true, handler: testHandler, count: 0});
-               assert.deepStrictEqual(rootDOM.parentNode.events, [testHandler]);
             });
             it('DE removeHandler simple capture existing count 1', function() {
                var testHandler, eventName, processingHandler, isBodyEvent;
@@ -147,7 +144,6 @@ define([
                events.addHandler(eventName, isBodyEvent, testHandler, processingHandler);
                events.removeHandler(eventName, isBodyEvent, processingHandler);
                assert.deepStrictEqual(handlers["testEvent"],[]);
-               assert.strictEqual(rootDOM.parentNode.eventsRemoved[0], testHandler);
             });
             it('DE removeHandler simple capture existing count 2', function() {
                var testHandler, eventName, processingHandler, isBodyEvent;
@@ -160,7 +156,6 @@ define([
                events.removeHandler(eventName, isBodyEvent, processingHandler);
                assert.deepStrictEqual(handlers["testEvent"][0],
                   {bodyEvent: false, processingHandler: false, count: 1, handler: testHandler});
-               assert.strictEqual(rootDOM.parentNode.events[0], testHandler);
                assert.isUndefined(rootDOM.parentNode.eventsRemoved);
             });
             it('DE removeHandler processing capture existing', function() {
@@ -173,7 +168,6 @@ define([
                events.removeHandler(eventName, isBodyEvent, false);
                assert.deepStrictEqual(handlers["testEvent"][0],
                   {bodyEvent: false, processingHandler: true, handler: testHandler, count: 0});
-               assert.strictEqual(rootDOM.parentNode.events[0], testHandler);
                assert.isUndefined(rootDOM.parentNode.eventsRemoved);
             });
          });
