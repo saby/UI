@@ -87,6 +87,6 @@ export interface IRootTemplateOptions {
     wsRoot?: string;
     resourceRoot?: string;
     appRoot?: string;
-    staticDomains: string[];
-    servicesPath: string;
+    staticDomains?: string[];
+    servicesPath?: string;
 }
