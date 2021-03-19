@@ -1,15 +1,16 @@
 /* global describe, it, assert */
 define([
    'Compiler/expressions/Nodes',
-   'Compiler/expressions/Parser'
-], function(ExpressionNodes, ParserLib) {
+   'Compiler/expressions/Parser',
+   'Compiler/codegen/Expression'
+], function(ExpressionNodes, ParserLib, ExpressionCodegen) {
    'use strict';
 
    /**
     * TODO: распутать кодогенерацию и убрать завязку тестов на результат кодогенерации.
     */
 
-   const EventExpressionVisitor = ExpressionNodes.EventExpressionVisitor;
+   const EventExpressionVisitor = ExpressionCodegen.EventExpressionVisitor;
    const Parser = ParserLib.Parser;
 
    function process(text, childrenStorage) {

@@ -13,6 +13,10 @@ import * as Attr from '../_Expressions/Attr';
 import * as RequireHelper from './RequireHelper';
 
 import { ReactiveObserver } from 'UI/Reactivity';
+import {
+   IControl,
+} from 'UI/_executor/_Markup/IGeneratorType';
+import { TemplateFunction } from 'UI/Base';
 
 var
    requireIfDefined = function requireIfDefined(tpl) {
@@ -44,29 +48,20 @@ var
          || requireIfDefined(tpl)
          || tryLoadLibraryModule(tpl, _deps);
    },
-   moduleNameCheckProceed = function maxNameLengthCheck(tpl, includedTemplates, _deps, config) {
-      if (config && config.moduleMaxNameLength) {
-         if (tpl.length > config.moduleMaxNameLength) {
-            // TODO: сейчас вывод этого предупреждения не актуален - часть плохих мест подчищена.
-            //  Необходимо разобраться с работой ws:partial.
-            //  https://online.sbis.ru/opendoc.html?guid=986abbdb-748d-41e6-988f-cbe28cc6cacb
-            // Logger.warn('Обнаружено имя шаблона длиной более ' + config.moduleMaxNameLength + ' символов: ' + tpl);
-            return null;
-         }
-      }
+   moduleNameCheckProceed = function maxNameLengthCheck(tpl, includedTemplates, _deps) {
       return checkExistingModule(tpl, includedTemplates, _deps);
    },
-   conventionalStringResolver = function conventionalStringResolver(tpl, includedTemplates?, _deps?, config?) {
+   conventionalStringResolver = function conventionalStringResolver(tpl, includedTemplates?, _deps?) {
       if (tpl && tpl.length) {
-         return moduleNameCheckProceed(tpl, includedTemplates, _deps, config);
+         return moduleNameCheckProceed(tpl, includedTemplates, _deps);
       }
    };
 
-export function isString(string) {
+export function isString(string: any): string is string {
    return (Object.prototype.toString.call(string) === '[object String]');
 }
 
-export function isArray(array) {
+export function isArray(array: any): array is Array<any> {
    return (Object.prototype.toString.call(array) === '[object Array]');
 }
 
@@ -299,7 +294,7 @@ export function isStringModules(str, config?) {
    return isOptionalString(str) || isTemplateString(str) || isControlString(str) || isSlashedControl(str) || hasResolver(str, config && config.resolvers);
 }
 
-export function isControlClass(controlClass) {
+export function isControlClass<T = IControl>(controlClass: any): controlClass is T {
    const prototype = controlClass && controlClass.prototype;
    // Проверка на typeof добавлена в следствии странной ошибки https://inside.tensor.ru/opendoc.html?guid=872a7e36-7487-4362-88d0-eaf0e66cb6b6
    // По какой-то причине проверка controlClass && controlClass.prototype проходила и свойство $constructor вызывалось на undefined.
@@ -309,12 +304,19 @@ export function isControlClass(controlClass) {
    return false;
 }
 
-export function isTemplateClass(controlClass) {
+export interface ITemplateArray<K = TemplateFunction> extends Array<K> {
+   isDataArray: boolean;
+}
+
+export function isTemplateClass<K = TemplateFunction>(controlClass: any): controlClass is K {
    const prototype = controlClass && controlClass.prototype;
    if (prototype && typeof prototype !== 'undefined') {
       return prototype.isWasabyTemplate || controlClass.isWasabyTemplate;
    }
    return false;
+}
+export function isTemplateArray<K = TemplateFunction>(array: any): array is ITemplateArray<K> {
+   return Array.isArray(array) && array.hasOwnProperty('isDataArray') && (array as ITemplateArray<K>).isDataArray;
 }
 
 export function isControl(control) {
@@ -360,13 +362,13 @@ export function splitOptional(string) {
    return ws[1];
 }
 
-export function splitWs(string) {
+export function splitWs(string: string): string {
    let ws;
    if (string !== undefined && string.indexOf('ws:') === 0) {
       ws = string.split('ws:');
       return ws[1];
    }
-   return undefined;
+   return string;
 }
 
 export function isCompound(ctor) {
@@ -380,18 +382,54 @@ export function isNewControl(ctor) {
 }
 
 /**
+ * Объект с зависимостями контрола/шаблона.
+ */
+export type Deps<T = IControl, K = TemplateFunction> = Record<string, T | K | IDefaultExport<T>>;
+
+export type IncludedTemplates<K = TemplateFunction> = Record<string, K>;
+/**
  * Если результат с optional === false, попробуем без optional!
  * @param tpl
  * @param includedTemplates
  * @param _deps
  * @returns {*}
  */
-export function depsTemplateResolver(tpl, includedTemplates, _deps, config) {
-   var result = conventionalStringResolver(tpl, includedTemplates, _deps, config);
-   if (isOptionalString(tpl) && !result) {
-      result = conventionalStringResolver(splitOptional(tpl));
+export function depsTemplateResolver<T = IControl, K = TemplateFunction>(
+    tpl: string,
+    includedTemplates: IncludedTemplates<K>,
+    _deps: Deps<T, K>): T | K | IDefaultExport<T> {
+   const newName = splitWs(tpl);
+   var result = conventionalStringResolver(newName, includedTemplates, _deps);
+   if (isOptionalString(newName) && !result) {
+      result = conventionalStringResolver(splitOptional(newName));
+   }
+   if (isDefaultExport<T>(result)) {
+      result = result.default;
    }
    return result;
+}
+
+export function fixDefaultExport<T = IControl, K = unknown>(tplOrigin: K | IDefaultExport<T>): K | T {
+   // При использовании ts-модуля, где нужный класс экспортируется дефолтно, внутри js-модуля
+   // сюда приходит объект tplOrigin, где __esModule есть true, а в default лежит нужная нам
+   // функция построения верстки
+   // Для того, чтобы верстка строилась, необходимо вытащить функцию из default
+   return isDefaultExport(tplOrigin) ? (tplOrigin as IDefaultExport<T>).default : tplOrigin as K;
+}
+
+export interface IDefaultExport<T = IControl> {
+   __esModule: boolean;
+   default: T;
+}
+/**
+ * Либо сужает тип obj до IDefaultExport, либо однозначно говорит, что это другой тип.
+ * @param obj
+ */
+function isDefaultExport<T = IControl>(obj: unknown): obj is IDefaultExport<T> {
+   if (obj && typeof obj === 'object') {
+      return obj.hasOwnProperty('__esModule') && obj.hasOwnProperty('default');
+   }
+   return false;
 }
 
 export function isCompat() {

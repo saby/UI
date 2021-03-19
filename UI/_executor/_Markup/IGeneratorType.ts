@@ -174,6 +174,17 @@ export interface IControl {
    _instId: string;
    reactiveValues: TObject;
    __lastGetterPath: Array<string>;
+
+   readonly prototype: {
+      _moduleName: string;
+      _template?: Function;
+      _dotTplFn?: Function;
+   };
+
+   props?: {
+      readOnly: boolean;
+      theme: string;
+   };
 }
 
 // Контекст базовый контрола
@@ -187,11 +198,6 @@ export interface IControlContext {
 export interface IPrepareDataForCreateAttrs {
    'ws-creates-context': string;
    'ws-delegates-tabfocus': string;
-}
-
-// встроенный инлайновый шаблон
-export interface IStringTemplateResolverIncludedTemplates {
-   _itemTpm?: Function;
 }
 
 // Скопы для билдера
