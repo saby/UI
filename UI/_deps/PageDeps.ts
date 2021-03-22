@@ -1,6 +1,6 @@
 /// <amd-module name='UI/_base/PageDeps' />
 import { cookie, constants } from 'Env/Env';
-import { DepsCollector, ICollectedFiles, IDeps } from 'UI/_base/DepsCollector';
+import { DepsCollector, ICollectedFiles, IDeps } from './DepsCollector';
 
 /**
  * constants.resourceRoot указан путь до корневой директории сервиса,

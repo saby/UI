@@ -169,7 +169,8 @@ class VDomSynchronizer {
          events: {}
       };
 
-      let controlNode: IControlNode = createNode(control, nodeOptions, undefined, environment, null, state);
+      const key: string = options?.bootstrapKey as string;
+      let controlNode: IControlNode = createNode(control, nodeOptions, key, environment, null, state);
       controlNode.rootId = rootId;  // KIRILL: оно добавляется только тут
       if (rootAttrs) {
          controlNode.attributes = rootAttrs;  // KIRILL: оно добавляется только тут

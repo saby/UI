@@ -1,6 +1,6 @@
-/// <amd-module name="UI/_base/HeadData" />
-import { IDeps } from 'UI/_base/DepsCollector';
-import PageDeps from 'UI/_base/PageDeps';
+/// <amd-module name="UI/_deps/HeadData" />
+import { IDeps } from './DepsCollector';
+import PageDeps from './PageDeps';
 import * as AppEnv from 'Application/Env';
 import { IStore } from 'Application/Interface';
 /**
@@ -19,7 +19,6 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
     private resolve: Function = null;
     // tslint:disable-next-line:no-any
     private renderPromise: Promise<ICollectedDeps> = null;
-    private _ssrTimeout: number = 0;
     /**
      * Непакуемые require-зависимости
      */
@@ -44,7 +43,6 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
 
         this.pageDeps = new PageDeps();
         this.resetRenderDeferred();
-        this._ssrTimeout = Date.now() + HeadData.SSR_DELAY;
     }
 
     /* toDO: StateRec.register */
@@ -77,13 +75,6 @@ export default class HeadData implements IStore<Record<keyof HeadData, any>> {
         const scripts = resources.scripts.map((l) => l.src);
         const links = resources.links.map((l) => l.href);
         this.includedResources = { links, scripts };
-    }
-
-    /**
-     * Таймаут построения на сп
-     */
-    get ssrTimeout(): number {
-        return (Date.now() < this._ssrTimeout) ? this._ssrTimeout - Date.now() : 0;
     }
 
     /**
