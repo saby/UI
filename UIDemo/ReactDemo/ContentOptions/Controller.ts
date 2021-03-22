@@ -31,17 +31,9 @@ export default class LifecycleController extends Control {
     protected _afterMount(options: any, context?: object): void {
         // @ts-ignore
         (this._children.button as HTMLElement).addEventListener('click', () => {
-            // @ts-ignore
-            console.log('Controller: counter.increment()');
             this.counter.increment();
             // @ts-ignore
             this._forceUpdate();
         });
-    }
-
-    protected _afterUpdate(oldOptions?: any, oldContext?: object): void {
-        super._afterUpdate(oldOptions, oldContext);
-        // @ts-ignore
-        console.log('Controller: _afterUpdate() was called');
     }
 }

@@ -7,10 +7,4 @@ export default class LifecycleController extends Control {
     constructor(...args: [object]) {
         super(...args);
     }
-
-    protected _afterUpdate(oldOptions?: any, oldContext?: object): void {
-        super._afterUpdate(oldOptions, oldContext);
-        // @ts-ignore
-        console.log('Component: _afterUpdate() was called');
-    }
 }
