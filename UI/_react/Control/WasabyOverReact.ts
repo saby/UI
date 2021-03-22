@@ -228,7 +228,7 @@ export class Control<TOptions extends IControlOptions = {},
      * @protected
      */
     protected _afterUpdate(oldOptions?: TOptions, oldContext?: object): void {
-        this._optionsVersions = _Options.collectObjectVersions(this._options as any);
+        // Do
     }
 
     protected _afterRender(oldOptions?: TOptions, oldContext?: any): void {
@@ -297,6 +297,7 @@ export class Control<TOptions extends IControlOptions = {},
     componentDidUpdate(prevProps: TOptions): void {
         const oldOptions = this._options;
         this._options = createWasabyOptions(this.props, this.context);
+        this._optionsVersions = _Options.collectObjectVersions(this._options as any);
         this._afterRender(oldOptions);
         setTimeout(() => {
             this._afterUpdate(oldOptions);
