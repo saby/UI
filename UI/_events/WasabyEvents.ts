@@ -1,4 +1,4 @@
-import { constants, detection } from 'Env/Env';
+import { detection } from 'Env/Env';
 import { Logger } from 'UI/Utils';
 import RawMarkupNode from 'UI/_executor/_Expressions/RawMarkupNode';
 
@@ -7,18 +7,17 @@ import * as EventUtils from './EventUtils';
 import {
     ISyntheticEvent,
     IEventConfig,
-    IClickState,
     IWasabyEventSystem,
     IFixedEvent,
     IHandlerInfo,
-    IArrayEvent,
-    IClickEvent
+    IArrayEvent
 } from './IEvents';
 
-import { FastTouchEndController } from './Mobile/FastTouchEndController';
-import { SwipeController } from './Mobile/SwipeController';
-import { LongTapController } from './Mobile/LongTapController';
-import { IMobileEvent } from './Mobile/MobileEvents';
+import { TouchHandlers } from './Touch/TouchHandlers';
+import { FastTouchEndController } from './Touch/FastTouchEndController';
+import { SwipeController } from './Touch/SwipeController';
+import { LongTapController } from './Touch/LongTapController';
+import { ITouchEvent } from './Touch/TouchEvents';
 
 import isInvisibleNode from 'UI/_vdom/Synchronizer/resources/InvisibleNodeChecker';
 import {
@@ -31,10 +30,9 @@ import {
 /**
  * @author Тэн В.А.
  */
-let touchId = 0;
 
-const clickStateTarget: Array<{ target: HTMLElement, touchId: number }> = [];
 const callAfterMount: IArrayEvent[] = [];
+let touchHandlers: TouchHandlers;
 
 export class WasabyEvents implements IWasabyEventSystem {
     private capturedEventHandlers: Record<string, IHandlerInfo[]>;
@@ -43,18 +41,6 @@ export class WasabyEvents implements IWasabyEventSystem {
     private wasNotifyList: string[] = [];
     private lastNotifyEvent: string = '';
     private needBlockNotify: boolean = false;
-
-    private _clickState: IClickState = {
-        detected: false,
-        stage: '',
-        timer: undefined,
-        timeout: 500,
-        target: null,
-        touchCount: 0,
-        timeStart: undefined
-    };
-
-    private _preventShouldUseClickByTap: boolean = false;
 
     private _rootDOMNode: TModifyHTMLNode;
     private _environment: IDOMEnvironment;
@@ -65,6 +51,7 @@ export class WasabyEvents implements IWasabyEventSystem {
         this.capturedEventHandlers = {};
         this.initEventSystemFixes();
         this.initWasabyEventSystem(rootNode, environment, tabKeyHandler);
+        touchHandlers = new TouchHandlers(this._handleClick, this.captureEventHandler);
 
         // если я это не напишу, ts ругнется 'touchendTarget' is declared but its value is never read
         this.touchendTarget = this.touchendTarget || null;
@@ -73,7 +60,7 @@ export class WasabyEvents implements IWasabyEventSystem {
     initWasabyEventSystem(rootNode: TModifyHTMLNode, environment: IDOMEnvironment, tabKeyHandler?: any): void {
         this.setEnvironment(rootNode, environment);
         this._handleTabKey = tabKeyHandler;
-        this.initProcessingHandlers();
+        this.initProcessingHandlers(environment);
     }
 
     private setEnvironment(node: TModifyHTMLNode, environment: IDOMEnvironment): void {
@@ -81,11 +68,11 @@ export class WasabyEvents implements IWasabyEventSystem {
         this._environment = environment;
     }
 
-    private initProcessingHandlers(): void {
-        this.addCaptureProcessingHandler('click', this._handleClick, this);
-        this.addCaptureProcessingHandler('touchstart', this._handleTouchstart, this);
-        this.addCaptureProcessingHandler('touchmove', this._handleTouchmove, this);
-        this.addCaptureProcessingHandler('touchend', this._handleTouchend, this);
+    private initProcessingHandlers(context: IDOMEnvironment): void {
+        this.addCaptureProcessingHandler('click', this._handleClick, context);
+        this.addCaptureProcessingHandler('touchstart', this._handleTouchstart, context);
+        this.addCaptureProcessingHandler('touchmove', this._handleTouchmove, context);
+        this.addCaptureProcessingHandler('touchend', this._handleTouchend, context);
     }
 
     private initEventSystemFixes() {
@@ -353,7 +340,7 @@ export class WasabyEvents implements IWasabyEventSystem {
 
     //#region специфические обработчики
     private _handleClick(event: MouseEvent): void {
-        this._shouldUseClickByTapOnClick(event);
+        touchHandlers.shouldUseClickByTapOnClick(event);
 
         /**
          * Firefox right click bug
@@ -404,10 +391,10 @@ export class WasabyEvents implements IWasabyEventSystem {
 
     //#region события тача
     // TODO: docs
-    private _handleTouchstart(event: IMobileEvent): void {
-        this._preventShouldUseClickByTap = false;
+    private _handleTouchstart(event: ITouchEvent): void {
+        touchHandlers.setPreventShouldUseClickByTap(false);
 
-        this._shouldUseClickByTapOnTouchstart(event);
+        touchHandlers.shouldUseClickByTapOnTouchstart(event);
         // Compatibility. Touch events handling in Control.compatible looks for
         // the `addedToClickState` flag to see if the event has already been
         // processed. Since vdom has already handled this event, set this
@@ -419,22 +406,22 @@ export class WasabyEvents implements IWasabyEventSystem {
         const longTapCallback = () => {
             // т.к. callbackFn вызывается асинхронно, надо передавать с правильным контекстом
             FastTouchEndController.setClickEmulateState.call(FastTouchEndController, false);
-            this._preventShouldUseClickByTap = true;
+            touchHandlers.setPreventShouldUseClickByTap(true);
         };
         LongTapController.initState(event, longTapCallback.bind(this));
     }
 
     // TODO: docs
-    private _handleTouchmove(event: IMobileEvent): void {
-        this._shouldUseClickByTapOnTouchmove(event);
+    private _handleTouchmove(event: ITouchEvent): void {
+        touchHandlers.shouldUseClickByTapOnTouchmove(event);
         FastTouchEndController.setClickEmulateState(false);
         SwipeController.detectState(event);
         LongTapController.resetState();
     }
 
     // TODO: docs
-    private _handleTouchend(event: IMobileEvent): void {
-        this._shouldUseClickByTapOnTouchend(event);
+    private _handleTouchend(event: ITouchEvent): void {
+        touchHandlers.shouldUseClickByTapOnTouchend(event);
 
         // Compatibility. Touch events handling in Control.compatible looks for
         // the `addedToClickState` flag to see if the event has already been
@@ -459,141 +446,6 @@ export class WasabyEvents implements IWasabyEventSystem {
         FastTouchEndController.clickEmulate(event.target as Element, event);
         SwipeController.resetState();
         LongTapController.resetState();
-    }
-    //#endregion
-
-    //#region обработка тача на специфичных устройствах
-    /*
-     * Обеспечивает правильную работу тач событий на телевизорах с тачем и windows планшетах
-     */
-    private _shouldUseClickByTap(): boolean {
-        // In chrome wrong target comes in event handlers of the click events on touch devices.
-        // It occurs on the TV and the Windows tablet. Presto Offline uses limited version of WebKit
-        // therefore the browser does not always generate clicks on the tap event.
-        return (
-            constants.browser.isDesktop ||
-            (constants.compatibility.touch &&
-                constants.browser.chrome &&
-                navigator &&
-                navigator.userAgent.indexOf('Windows') > -1)
-        );
-    }
-
-    private _shouldUseClickByTapOnTouchstart(event: IMobileEvent): void {
-        if (this._shouldUseClickByTap()) {
-            // Для svg запоминаем ownerSVGElement, т.к. иногда в touchstart таргет - это тег svg,
-            // при этом у события click, таргетом будет внутренний элемент
-            const target = this.fixSvgElement(event.target);
-            clickStateTarget.push({
-                target,
-                touchId: touchId++ // записываем номер текущего касания
-            });
-        }
-    }
-
-    private _shouldUseClickByTapOnTouchmove(event: IMobileEvent): void {
-        if (this._shouldUseClickByTap()) {
-            this._clickState.touchCount++;
-            // Only one touchmove event is allowed between touchstart and touchend events on Ipad.
-            // If more than one touchmove did occurred, we don't emulate click event.
-            // But on windows installed devices touchmove event can occur some times,
-            // therefore we must check if touchmove count more than 1.
-            if (this._clickState.touchCount > 3) {
-                const idx = this.getClickStateIndexForTarget(this.fixSvgElement(event.target));
-                if (idx > -1) {
-                    clickStateTarget.splice(idx, 1);
-                }
-            }
-        }
-    }
-
-    private _shouldUseClickByTapOnTouchend(event: IMobileEvent): void {
-        if (this._shouldUseClickByTap() && !this._preventShouldUseClickByTap) {
-            const lastTouchId = touchId;
-            this._clickState.touchCount = 0;
-            // click occurrence checking
-            setTimeout(() => {
-                // Вызываем клик, если клик был не вызван автоматически после touchEnd. Такое иногда
-                // происходит на тач-телевизорах и планшетах на Windows, и в ограниченной версии
-                // вебкита, используемой например в Presto Offline.
-                // Для того чтобы понять, нужно ли нам эмулировать клик, проверяем два условия:
-                // 1. Элемент, на котором сработал touchEnd, есть в массиве clickStateTarget
-                //    (туда они добавляются при touchStart, и удаляются, если на этом элементе
-                //    срабатывает touchMove или click)
-                // 2. Если этот элемент там есть, проверяем что он соответствует именно тому touchStart,
-                //    который является парным для этого touchEnd. Это можно определить по номеру касания
-                //    touchId. Это предотвращает ситуации, когда мы быстро нажимаем на элемент много
-                //    раз, и этот setTimeout, добавленный на первое касание, находит в массиве clickStateTarget
-                //    тот же элемент, но добавленный на сотое касание.
-                const idx = this.getClickStateIndexForTarget(this.fixSvgElement(event.target));
-                if (idx > -1 && clickStateTarget[idx].touchId < lastTouchId) {
-                    // If the click did not occur, we emulate the click through the
-                    // vdom environment only (so that the old WS3 environment ignores it).
-                    // To do so, we generate the fake click event object based on the data
-                    // from the touchend event and propagate it using the vdom bubbling.
-                    const clickEventObject = this.generateClickEventFromTouchend(event) as MouseEvent;
-                    this._handleClick(clickEventObject);
-                    this.captureEventHandler(clickEventObject);
-                }
-            }, this._clickState.timeout);
-        }
-
-    }
-
-    private _shouldUseClickByTapOnClick(event: MouseEvent): void {
-        if (this._shouldUseClickByTap()) {
-            const idx = this.getClickStateIndexForTarget(this.fixSvgElement(event.target));
-            // if click event occurred, we can remove monitored target
-            if (idx > -1) {
-                clickStateTarget.splice(idx, 1);
-            }
-        }
-    }
-
-    private generateClickEventFromTouchend(event: TouchEvent): IClickEvent {
-        let touch: any = event.changedTouches && event.changedTouches[0];
-        if (!touch) {
-            touch = {
-                clientX: 0,
-                clientY: 0,
-                screenX: 0,
-                screenY: 0
-            };
-        }
-
-        // We do not use document.createEvent or new MouseEvent to make an
-        // actual event object, because in that case we can not change
-        // the target - target property is non-configurable in some
-        // browsers.
-        // We create a simple object instead and fill in the fields we might
-        // need.
-        return {
-            type: 'click',
-            bubbles: event.bubbles,
-            cancelable: event.cancelable,
-            view: window,
-            detail: 1,
-            screenX: touch.screenX,
-            screenY: touch.screenY,
-            clientX: touch.clientX,
-            clientY: touch.clientY,
-            ctrlKey: event.ctrlKey,
-            altKey: event.altKey,
-            shiftKey: event.shiftKey,
-            metaKey: event.metaKey,
-            button: 0,
-            buttons: 0,
-            relatedTarget: null,
-            target: event.target,
-            currentTarget: event.currentTarget,
-            eventPhase: 1, // capture phase
-            stopPropagation(): void {
-                this.bubbles = false;
-            },
-            preventDefault(): void {
-                // no action
-            }
-        };
     }
     //#endregion
 
@@ -813,17 +665,6 @@ export class WasabyEvents implements IWasabyEventSystem {
         return window as unknown as HTMLElement;
     }
 
-    private fixSvgElement(element: EventTarget): HTMLElement {
-        return (element as SVGElement).ownerSVGElement ?
-            (element as SVGElement).ownerSVGElement as unknown as HTMLElement : element as HTMLElement;
-    }
-
-    // Возвращает самое старое (т. к. они расположены по порядку) касание, для которого
-    // сработал touchStart, но для которого не было touchMove или click
-    private getClickStateIndexForTarget(target: HTMLElement): number {
-        return clickStateTarget.findIndex((el: any): boolean => el.target === target);
-    }
-
     private isArgsLengthEqual(controlNodesArgs: any, evArgs: any): boolean {
         return controlNodesArgs && controlNodesArgs.args && controlNodesArgs.args.length === evArgs.length;
     }
@@ -926,6 +767,7 @@ export class WasabyEvents implements IWasabyEventSystem {
         this._handleTabKey = undefined;
     }
 }
+
 
 /*
   * Checks if event.target is a child of current DOMEnvironment

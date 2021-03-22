@@ -2,7 +2,7 @@
  * @author Тэн В.А.
  */
 
-export interface IMobileEvent extends TouchEvent {
+export interface ITouchEvent extends TouchEvent {
     touches: TouchList;
     clientX: number;
     clientY: number;
@@ -28,10 +28,10 @@ export interface ILongTapEvent extends Event {
     screenY: number;
 }
 
-export class MobileEvent {
+export class WasabyTouchEvent {
     private static initEventHandlers = {};
 
-    public static getTouchLocation(event: IMobileEvent): ITouchLocation {
+    public static getTouchLocation(event: ITouchEvent): ITouchLocation {
         const data = event.touches ? event.touches[0] : event;
         return {
             x: data.clientX,
@@ -43,7 +43,7 @@ export class MobileEvent {
         return eventState && eventState.target;
     }
 
-    public static initEventState(event: IMobileEvent,
+    public static initEventState(event: ITouchEvent,
                                  eventState: IEventState,
                                  initHandler: Function,
                                  handlerName: string): IEventState {
