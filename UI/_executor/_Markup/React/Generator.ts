@@ -253,6 +253,7 @@ export class GeneratorReact {
       if (control && name) {
          ref = (node: HTMLElement): void => {
             if (node) {
+               // todo _children protected по апи, но здесь нужен доступ чтобы инициализировать.
                //@ts-ignore
                control._children[name] = node;
                //@ts-ignore
