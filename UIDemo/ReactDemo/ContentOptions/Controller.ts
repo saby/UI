@@ -24,7 +24,7 @@ class Counter {
     }
 }
 
-export default class LifecycleController extends Control {
+export default class Controller extends Control {
     protected _template: TemplateFunction = template;
     protected counter: Counter = new Counter();
 
@@ -32,8 +32,6 @@ export default class LifecycleController extends Control {
         // @ts-ignore
         (this._children.button as HTMLElement).addEventListener('click', () => {
             this.counter.increment();
-            // @ts-ignore
-            this._forceUpdate();
         });
     }
 }
