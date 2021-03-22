@@ -1,4 +1,4 @@
-import { IEventState, IMobileEvent, ITouchLocation, MobileEvent } from "./MobileEvents";
+import { IEventState, ITouchEvent, ITouchLocation, WasabyTouchEvent } from "./TouchEvents";
 
 let swipeState;
 let handlerName;
@@ -14,13 +14,13 @@ export class SwipeController {
     }
 
 
-    public static initState(event: IMobileEvent): IEventState {
-        var location = MobileEvent.getTouchLocation(event);
-        if (MobileEvent.hasEventData(swipeState) || this.resetState() || !this.isSwipe(location)) {
+    public static initState(event: ITouchEvent): IEventState {
+        var location = WasabyTouchEvent.getTouchLocation(event);
+        if (WasabyTouchEvent.hasEventData(swipeState) || this.resetState() || !this.isSwipe(location)) {
             return;
         }
         handlerName = 'Swipe';
-        swipeState = MobileEvent.initEventState(event, swipeState, this, handlerName);
+        swipeState = WasabyTouchEvent.initEventState(event, swipeState, this, handlerName);
     }
 
     private static isSwipe(location: ITouchLocation): boolean {
@@ -33,9 +33,9 @@ export class SwipeController {
         );
     }
 
-    private static detectSwipe(event: IMobileEvent): string {
+    private static detectSwipe(event: ITouchEvent): string {
         const currentTime = Date.now();
-        const location = MobileEvent.getTouchLocation(event);
+        const location = WasabyTouchEvent.getTouchLocation(event);
         let direction;
         if (event.target === swipeState.target && swipeState.time - currentTime < swipeState.maxSwipeDuration) {
             if (
@@ -53,7 +53,7 @@ export class SwipeController {
         return direction;
     }
 
-    public static detectState(event: IMobileEvent): void {
+    public static detectState(event: ITouchEvent): void {
         if (swipeState.target) {
             const swipeDirection = this.detectSwipe(event);
             if (swipeDirection) {

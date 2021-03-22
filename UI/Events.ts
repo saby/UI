@@ -8,7 +8,7 @@
  */
 import * as Subscriber from './_events/Subscriber';
 import * as EventUtils from './_events/EventUtils';
-import { FastTouchEndController } from './_events/Mobile/FastTouchEndController';
+import { FastTouchEndController } from './_events/Touch/FastTouchEndController';
 import { WasabyEvents } from './_events/WasabyEvents';
 
 export { ISyntheticEvent, IWasabyEventSystem } from './_events/IEvents';

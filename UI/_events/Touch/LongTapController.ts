@@ -1,4 +1,4 @@
-import { IEventState, IMobileEvent, ILongTapEvent, MobileEvent } from "./MobileEvents";
+import { IEventState, ITouchEvent, ILongTapEvent, WasabyTouchEvent } from "./TouchEvents";
 
 /**
  * @author Тэн В.А.
@@ -17,12 +17,12 @@ export class LongTapController {
         }
     }
 
-    public static initState(event: IMobileEvent, callbackFn: Function): IEventState {
-        if (MobileEvent.hasEventData(longTapState) || this.resetState()) {
+    public static initState(event: ITouchEvent, callbackFn: Function): IEventState {
+        if (WasabyTouchEvent.hasEventData(longTapState) || this.resetState()) {
             return;
         }
         handlerName = 'LongTap';
-        longTapState = MobileEvent.initEventState(event, longTapState, this, handlerName);
+        longTapState = WasabyTouchEvent.initEventState(event, longTapState, this, handlerName);
         this.tapTimeout = setTimeout(() => {
             this.detectState(event);
             callbackFn();
@@ -38,7 +38,7 @@ export class LongTapController {
         target.screenY = patch.screenY;
         return target;
     }
-    private static detectLongTap(event: IMobileEvent): boolean {
+    private static detectLongTap(event: ITouchEvent): boolean {
         const currentTime = Date.now();
         let isLongTapEvent = false;
         if (event.target === longTapState.target && currentTime - longTapState.time >= longTapState.minTapDuration) {
@@ -47,7 +47,7 @@ export class LongTapController {
         return isLongTapEvent;
     }
 
-    public static detectState(event: IMobileEvent): boolean {
+    public static detectState(event: ITouchEvent): boolean {
         if (longTapState.target) {
             const isLongTap = this.detectLongTap(event);
             if (isLongTap) {
@@ -57,7 +57,7 @@ export class LongTapController {
                 longTap = this.eventCoordPatch(longTap, event.touches[0]);
                 event.target.dispatchEvent(longTap);
                 // prevent swipe event
-                MobileEvent.stopInitializedHandler();
+                WasabyTouchEvent.stopInitializedHandler();
             }
             return isLongTap;
         }
