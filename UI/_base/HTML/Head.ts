@@ -44,7 +44,7 @@ class Head extends Control<IHeadOptions> {
         return headDataStore.read('waitAppContent')()
             .then(({ js, css }) => {
                 return new Promise<void>((resolve) => {
-                    collectCSS(options.theme, css.simpleCss, css.themedCss)
+                    aggregateCSS(options.theme, css.simpleCss, css.themedCss)
                         .then(() => { resolve(); })
                         .catch((error) => { onerror(error); resolve(); });
                 }).then(() => {
@@ -158,14 +158,6 @@ Object.defineProperty(Head, 'defaultProps', {
 });
 
 export default Head;
-
-function collectCSS(theme: string, styles: string[] = [], themes: string[] = []): Promise<string> {
-    const tc = getThemeController();
-    const gettingStyles = styles.filter((name) => !!name).map((name) => tc.get(name, EMPTY_THEME));
-    const gettingThemes = themes.filter((name) => !!name).map((name) => tc.get(name, theme, THEME_TYPE.SINGLE));
-    return Promise.all(gettingStyles.concat(gettingThemes)).then();
-
-}
 
 function onerror(e: Error): void {
     import('UI/Utils').then(({ Logger }) => { Logger.error(e.message); });
