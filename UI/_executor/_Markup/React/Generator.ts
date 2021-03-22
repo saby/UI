@@ -10,6 +10,18 @@ import {IControlOptions, TemplateFunction} from 'UI/_react/Control/interfaces';
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult} from './interfaces';
 
 export class GeneratorReact {
+   prepareDataForCreate(tplOrigin: TemplateOrigin,
+      scope: IControlOptions,
+      attrs: IGeneratorAttrs,
+      deps: Common.Deps<typeof Control, TemplateFunction>,
+      includedTemplates?: Common.IncludedTemplates<TemplateFunction>): IControlOptions {
+      if (tplOrigin === '_$inline_template') {
+         // в случае ws:template отдаем текущие свойства
+         return scope;
+      }
+      return undefined;
+   }
+
    /**
     * В старых генераторах в этой функции была общая логика, как я понимаю.
     * Сейчас общей логики нет, поэтому функция по сути не нужна.
@@ -140,10 +152,10 @@ export class GeneratorReact {
       Поэтому берём значения либо из опций, либо из родителя.
        */
       if (typeof scope.readOnly === 'undefined') {
-         scope.readOnly = parent.props?.readOnly ?? parent.context?.readOnly;
+         scope.readOnly = parent?.props?.readOnly ?? parent?.context?.readOnly;
       }
       if (typeof scope.theme === 'undefined') {
-         scope.theme = parent.props?.theme ?? parent.context?.theme;
+         scope.theme = parent?.props?.theme ?? parent?.context?.theme;
       }
 
       return React.createElement(
@@ -206,7 +218,7 @@ export class GeneratorReact {
    несколько корневых нод из partial, возвращался просто массив из двух элементов.
    Так что пока этот метод ничего не делает.
     */
-   joinElements(elements: React.ElementType[]): React.ElementType[] {
+   joinElements(elements: React.ReactNode): React.ReactNode {
       if (Array.isArray(elements)) {
          return elements;
       } else {
@@ -241,9 +253,12 @@ export class GeneratorReact {
       if (control && name) {
          ref = (node: HTMLElement): void => {
             if (node) {
+               //@ts-ignore
                control._children[name] = node;
+               //@ts-ignore
                onElementMount(control._children[name]);
             } else {
+               //@ts-ignore
                onElementUnmount(control._children, name);
             }
          };
