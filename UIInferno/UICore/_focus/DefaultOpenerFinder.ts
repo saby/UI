@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_focus/DefaultOpenerFinder" />
+/// <amd-module name="UICore/_focus/DefaultOpenerFinder" />
 /* tslint:disable */
 
 /**
@@ -33,7 +33,7 @@ Controls/Popup/Opener/Sticky
 */
 
 import { Logger } from 'UI/Utils';
-import { goUpByControlTree } from 'UI/NodeCollector';
+import { goUpByControlTree } from 'UICore/NodeCollector';
 import { IControl } from './IControl';
 
 export function find(control: IControl|Element|Array<Element>): IControl[] {
@@ -47,7 +47,7 @@ export function find(control: IControl|Element|Array<Element>): IControl[] {
       // для совместимости, если пришел jquery
       container = control[0];
    } else {
-      const message = '[UI/_focus/DefaultOpenerFinder:find] DOMEnvironment - The arguments should be control or node element';
+      const message = '[UICore/_focus/DefaultOpenerFinder:find] DOMEnvironment - The arguments should be control or node element';
       Logger.error(message, control);
    }
 

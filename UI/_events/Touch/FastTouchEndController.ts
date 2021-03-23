@@ -3,7 +3,7 @@
  */
 
 import { focus } from "UI/Focus";
-import { IControlElement } from "UI/_focus/IFocus";
+import { IControlElement } from "UICore/_focus/IFocus";
 
 interface IMouseEventInitExtend extends MouseEventInit {
    type: string;

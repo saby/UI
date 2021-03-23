@@ -1,6 +1,6 @@
 // tslint:disable:no-any
 import { _IGeneratorType } from 'UI/Executor';
-import { _FocusAttrs } from 'UI/Focus';
+import { _FocusAttrs } from 'UICore/Focus';
 import { cookie } from 'Env/Env';
 
 const _generatorConfig = {

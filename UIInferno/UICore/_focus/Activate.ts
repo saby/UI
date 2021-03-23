@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_focus/Activate" />
+/// <amd-module name="UICore/_focus/Activate" />
 
 /**
  * @author Кондаков Р.Н.
@@ -7,7 +7,7 @@
 
 import { getElementProps, findFirstInContext, findWithContexts } from './ElementFinder';
 import { focus } from './Focus';
-import { goUpByControlTree } from 'UI/NodeCollector';
+import { goUpByControlTree } from 'UICore/NodeCollector';
 
 import { IControlElement } from './IFocus';
 

@@ -1,7 +1,7 @@
 /**
  * Библиотека функций для обхода DOM-деверва и контролов
- * @class UI/_utils/NodeCollector
+ * @class UICore/_utils/NodeCollector
  * @author Шипин А.А.
  */
 
-export { goUpByControlTree } from 'UICore/NodeCollector';
+export { default as goUpByControlTree } from './_nodeCollector/goUpByControlTree';

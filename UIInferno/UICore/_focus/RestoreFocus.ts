@@ -3,7 +3,7 @@
  * Содержит логику восстановление фокуса, если фокус слетает на body
  */
 
-import { goUpByControlTree } from 'UI/NodeCollector';
+import { goUpByControlTree } from 'UICore/NodeCollector';
 import { isElementVisible } from 'UI/Utils';
 
 import { notifyActivationEvents } from './Events';

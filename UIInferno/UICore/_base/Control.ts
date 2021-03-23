@@ -9,9 +9,9 @@ import cExtend = require('Core/core-extend');
 import { Synchronizer } from 'UI/Vdom';
 import { _IGeneratorType, OptionsResolver } from 'UI/Executor';
 import { ContextResolver } from 'UI/Contexts';
-import { _FocusAttrs, _IControl, activate, Events, focus } from 'UI/Focus';
+import { _FocusAttrs, _IControl, activate, Events, focus } from 'UICore/Focus';
 import { Logger, Purifier, needToBeCompatible } from 'UI/Utils';
-import { goUpByControlTree } from 'UI/NodeCollector';
+import { goUpByControlTree } from 'UICore/NodeCollector';
 import { constants } from 'Env/Env';
 import { getGeneratorConfig } from "./GeneratorConfig";
 
@@ -1022,7 +1022,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
     * @param {Object} [context] Поле контекста, запрошенное контролом. Параметр считается deprecated, поэтому откажитесь от его использования.
     * @returns {Boolean}
     * * true (значание по умолчанию): контрол будет обновлен.
-    * * false: контрол не будет обновлен. Хук {@link UI/Base:Control#_afterUpdate _afterUpdate} не будет вызван.
+    * * false: контрол не будет обновлен. Хук {@link UICore/Base:Control#_afterUpdate _afterUpdate} не будет вызван.
     * @example
     * Например, если employeeSalary является единственным параметром, используемым в шаблоне контрола,
     * можно обновлять контрол только при изменении параметра employeeSalary.

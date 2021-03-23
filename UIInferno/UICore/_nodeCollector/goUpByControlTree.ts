@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_nodeCollector/goUpByControlTree" />
+/// <amd-module name="UICore/_nodeCollector/goUpByControlTree" />
 /* tslint:disable */
 
 /**
@@ -63,7 +63,7 @@ function checkOpener(opener) {
    }
 
    if (error) {
-      const message = `[UI/_nodeCollector/goUpByControlTree:checkOpener] DOMEnvironment - Incorrect opener or parent is found! It seems that anybody set wrong opener option! ${error}`;
+      const message = `[UICore/_nodeCollector/goUpByControlTree:checkOpener] DOMEnvironment - Incorrect opener or parent is found! It seems that anybody set wrong opener option! ${error}`;
       Logger.error(message, opener);
    }
 }
