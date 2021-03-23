@@ -38,7 +38,7 @@
       "@types/react": "17.0.0",
       "@types/react-dom": "17.0.0",
       "body-parser": "^1.18.3",
-      "cookie-parser": "^1.4.3",
+      "cookie-parser": "^1.4.5",
       "eslint": "^5.6.1",
       "express": "^4.16.3",
       "react": "17.0.1",

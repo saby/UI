@@ -1,12 +1,13 @@
 /// <amd-module name="UI/_focus/Events" />
 /* tslint:disable */
-
+import { IWasabyEventSystem } from 'UI/Events'
 type TModifyHTMLNode = HTMLElement & Record<string, any>;
 export interface IDOMEnvironment {
    _rootDOMNode: TModifyHTMLNode;
    __captureEventHandler: Function;
    _restoreFocusState: boolean;
    addTabListener: () => void;
+   eventSystem: IWasabyEventSystem;
 }
 
 interface INotifyActivationEvents {

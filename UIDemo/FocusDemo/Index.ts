@@ -13,7 +13,7 @@ export default class FocusDemo extends Control {
             //@ts-ignore
             environment.constructor.call(environment,  document.documentElement, environment._controlStateChangedCallback);
             // @ts-ignore
-            environment.addTabListener();
+            environment.eventSystem.addTabListener();
             this.activate();
         }
     }

@@ -13,6 +13,7 @@
     <module id="951e1c80-ee24-4022-8349-96123fae8026" name="Inferno"/>
     <module id="37e402f1-2fb0-4b73-81c5-113cf94dbf1c" name="WasabyLoader"/>
     <module id="1456f36f-76ef-4323-a2dd-a22bc91e7209" name="Compiler" />
+    <module id="a5e32491-7b02-45b1-b65d-53e9723ec0cd" name="React" />
   </depends>
 
   <load_after/>

@@ -3,10 +3,8 @@
  * @author Крылов М.А.
  */
 
-import { BindExpressionVisitor } from './Nodes';
-import { EventNode } from './EventNode';
-import { EventChain } from './EventChain';
-import { IAttributeValue } from './IAttributeValue';
+import { BindExpressionVisitor } from 'Compiler/codegen/Expression';
+import { EventNode, EventChain, IAttributeValue } from './Event';
 import * as FSC from 'Compiler/modules/data/utils/functionStringCreator';
 
 /**

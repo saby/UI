@@ -1,7 +1,7 @@
 /// <amd-module name='UI/theme/_controller/css/Link' />
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 import { Base } from './Base';
-import { ELEMENT_ATTR, THEME_TYPE, CSS_MODULE_PREFIX } from './const';
+import { ELEMENT_ATTR, THEME_TYPE, CSS_MODULE_PREFIX, EMPTY_THEME } from './const';
 import { ICssEntity, IHTMLElement } from './interface';
 import { Head as HeadAPI } from 'Application/Page';
 import { IHeadTagId, IHeadTagAttrs } from 'Application/Interface';
@@ -36,7 +36,7 @@ export default class Link extends Base implements ICssEntity {
        * https://online.sbis.ru/opendoc.html?guid=e5ea8fc8-f6de-4684-af44-5461ceef8990
        * Проблема в том, что мы не знаем: прилетел этот бандл уже или не прилетел.
        */
-      if (ModulesLoader.isLoaded(CSS_MODULE_PREFIX + this.cssName)) {
+      if ((this.themeName === EMPTY_THEME) && ModulesLoader.isLoaded(CSS_MODULE_PREFIX + this.cssName)) {
          return new Promise<void>((resolve) => {
             this.isMounted = true;
             resolve();

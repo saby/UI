@@ -6,7 +6,7 @@ import Control from '../Control';
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/StartApplicationScript');
-import { headDataStore } from 'UI/_base/HeadData';
+import { headDataStore } from 'UI/Deps';
 
 class StartApplicationScript extends Control {
    // tslint:disable-next-line:ban-ts-ignore

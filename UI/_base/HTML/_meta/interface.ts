@@ -93,9 +93,9 @@ export interface IMetaStateInternal extends IMetaState {
 export type IDeserializeMeta = (s: ISerializedMetaState) => IMetaStateInternal;
 
 /**
- * @typedef UI/_base/HTML/_meta/IMeta
+ * @typedef IMeta
  * @property {string} title Title страницы
- * @property {UI/_base/HTML/_meta/IOpenGraph} [og] OpenGraph тэги страницы
+ * @property {IOpenGraph} [og] OpenGraph тэги страницы
  */
 export interface IMeta {
    /** Title страницы */
@@ -103,7 +103,7 @@ export interface IMeta {
    og?: Partial<IOpenGraph>;
 }
 /**
- * @typedef UI/_base/HTML/_meta/IOpenGraph
+ * @typedef IOpenGraph
  * @property {string} description
  * @property {string} title
  * @property {string} image

@@ -1,5 +1,6 @@
-import { InternalNode, InternalNodeType, IProgramMeta } from '../core/Internal';
-import { ExpressionVisitor } from '../expressions/Nodes';
+import { InternalNode, InternalNodeType } from 'Compiler/core/internal/Container';
+import { IProgramMeta } from 'Compiler/core/internal/Storage';
+import { ExpressionVisitor } from './Expression';
 import { canUseNewInternalMechanism } from '../core/Internal';
 
 //#region Constants

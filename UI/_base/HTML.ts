@@ -15,7 +15,7 @@ import { getResourceUrl } from 'UI/Utils';
 import AppData from './AppData';
 import {IHTMLOptions, ILinksAttrsHTML, IScriptsAttrsHTML} from './interface/IHTML';
 import { IRootTemplateOptions } from './interface/IRootTemplate';
-import { headDataStore } from 'UI/_base/HeadData';
+import { headDataStore } from 'UI/Deps';
 import mountChecker from 'UI/_base/MountChecker';
 import { Stack as MetaStack, IMetaStackInternal } from 'UI/_base/HTML/meta';
 import { Body as AppBody } from 'Application/Page';
@@ -88,8 +88,12 @@ class HTML extends Control<IHTMLCombinedOptions> {
     private initState(cfg: any): void {
         this.templateConfig = cfg.templateConfig;
         this.compat = cfg.compat || false;
-        /** Господи, что я пишу?.. */
-        /** Костылямбрий, который будет жить, пока не закончится переход на построение от шаблона #bootsrap */
+        /**
+         * Пишу так, потому что inferno перезатирает атрибут class на теге body
+         * и восстанавливать его состояние на клиенте при оживлении правльнее всего из всех доступных источников:
+         * recievedState + опции + фактическое состояние
+         * TODO: Удалить после полного перехода но постоение от #bootstrap
+         */
         const cfgClasses = (cfg.bodyClasses || '').split(' ');
         const thisClasses = (this._bodyClasses || '').split(' ').filter((item) => {
             return !cfgClasses.includes(item);

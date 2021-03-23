@@ -31,7 +31,7 @@ export class Control<TOptions extends IControlOptions = {},
     /**
      * Набор детей контрола, для которых задан атрибут name.
      */
-    _children: Record<string, Element | Control> = {};
+    protected _children: Record<string, Element | Control> = {};
     /**
      * Шаблон контрола.
      */
@@ -57,6 +57,11 @@ export class Control<TOptions extends IControlOptions = {},
      * Название контрола.
      */
     _moduleName: string;
+
+    // временно, чтобы typescript не ругался
+    protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): unknown {
+        return undefined;
+    }
 
     constructor(props: TOptions, context?: IWasabyContextValue) {
         super(props);

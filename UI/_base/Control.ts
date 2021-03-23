@@ -335,7 +335,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
          Logger.error(error, this);
          throw new Error(error);
       }
-      return this._environment && this._environment.startEvent(this._controlNode, arguments);
+      return this._environment && this._environment.eventSystem.startEvent(this._controlNode, arguments);
    }
 
    /**
@@ -1513,12 +1513,12 @@ export default Control;
  * В следующем примере {@link Controls/Application} и все его дочерние контролы будут иметь стиль темы оформления "carry". Однако контрол Carry.Head будет иметь тему "presto".
  * Если вы поместите контролы в Carry.Head и не укажите опцию theme, они унаследуют ее значение от родителей и тоже построятся в теме "presto".
  * <pre>
- *    <Controls.Application theme="carry">
+ *    <SbisEnvUI.Bootstrap theme="carry">
  *       <Carry.Head theme="presto" />
  *       <Carry.Workspace>
  *          <Controls.Tree />
  *       </Carry.Workspace>
- *    </Controls.Application>
+ *    </SbisEnvUI.Bootstrap>
  * </pre>
  * @remark
  * default — это тема оформления "по умолчанию", которая распространяется вместе с исходным кодом контролов Wasaby и используется для их стилевого оформления.
@@ -1536,16 +1536,16 @@ export default Control;
  * @variant inherited Value inherited from the parent.
  * @default ''(empty string)
  * @example
- * In this example, Controls.Application and all of its chil controls will have "carry" theme styles.
+ * In this example, SbisEnvUI.Bootstrap and all of its chil controls will have "carry" theme styles.
  * However, Carry.Head will "carry" theme styles. If you put controls inside Carry.Head and does not specify
  * the theme option, they will inherit "carry" theme.
  * <pre>
- *    <Controls.Application theme="carry">
+ *    <SbisEnvUI.Bootstrap theme="carry">
  *       <Carry.Head theme="presto" />
  *       <Carry.Workspace>
  *          <Controls.Tree />
  *       </Carry.Workspace>
- *    </Controls.Application>
+ *    </SbisEnvUI.Bootstrap>
  * </pre>
  * @remark This option is inherited. If option is not set explicitly, option's value will be inherited
  * from the parent control. The path to CSS file with theme parameters determined automatically

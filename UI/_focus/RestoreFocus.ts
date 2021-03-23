@@ -119,6 +119,6 @@ export function restoreFocusAfterRedraw(control: IControl): void {
       }
    }
    lastSavedEnvironment._restoreFocusState = false;
-   lastSavedEnvironment.addTabListener();
+   lastSavedEnvironment.eventSystem.addTabListener();
    lastSavedEnvironment = undefined;
 }
