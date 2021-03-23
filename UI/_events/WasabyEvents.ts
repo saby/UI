@@ -1,6 +1,5 @@
 import { detection } from 'Env/Env';
 import { Logger } from 'UI/Utils';
-import RawMarkupNode from 'UI/_executor/_Expressions/RawMarkupNode';
 
 import SyntheticEvent from './SyntheticEvent';
 import * as EventUtils from './EventUtils';
@@ -468,7 +467,10 @@ export class WasabyEvents implements IWasabyEventSystem {
         eventConfig.type = eventName;
         eventConfig.target = controlNode.element;
         if (!eventConfig.target) {
-            if (!(controlNode.fullMarkup instanceof RawMarkupNode) && !isInvisibleNode(controlNode, true)) {
+            if (
+                controlNode.fullMarkup.moduleName !== 'UI/_executor/_Expressions/RawMarkupNode' &&
+                !isInvisibleNode(controlNode, true)
+            ) {
                 Logger.error('Событие ' + eventName + ' было вызвано до монтирования контрола в DOM', controlNode);
             }
             return;
