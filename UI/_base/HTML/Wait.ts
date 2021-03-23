@@ -1,6 +1,6 @@
 /// <amd-module name="UI/_base/HTML/Wait" />
 
-import Control, { TemplateFunction } from 'UI/_base/Control';
+import Control, { TemplateFunction } from 'UICore/Base';
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Wait');

@@ -9,7 +9,7 @@
 import { constants } from 'Env/Env';
 // @ts-ignore
 import { Logger } from 'UI/Utils';
-import { TControlConstructor } from 'UI/_base/Control'
+import { TControlConstructor } from 'UICore/Base';
 
 /**
  * Применить дефолтные опции конструктора

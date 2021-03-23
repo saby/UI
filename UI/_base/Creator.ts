@@ -1,4 +1,4 @@
-import Control from './Control';
+import Control from 'UICore/Base';
 
 /**
  * @class UI/_base/Creator

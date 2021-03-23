@@ -9,14 +9,14 @@ import Start from './Start';
 import BootstrapStart from './BootstrapStart';
 import HeadController from './HeadController';
 import { HeadData, headDataStore, DepsCollector } from 'UI/Deps';
-import { getGeneratorConfig } from './GeneratorConfig';
+import { getGeneratorConfig } from 'UICore/Base';
 
 //@ts-ignore
 import * as BaseRoute from 'wml!UI/_base/Route';
 import {IHTMLOptions, IHTML} from './interface/IHTML';
 import {IRootTemplateOptions, IRootTemplate} from './interface/IRootTemplate';
 import Creator, { async as AsyncCreator } from './Creator';
-export { default as startApplication } from 'UI/_base/startApplication';
+export { startApplication } from 'UICore/Base';
 export { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 export { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 

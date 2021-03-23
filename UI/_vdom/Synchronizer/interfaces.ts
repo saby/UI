@@ -1,4 +1,4 @@
-import Control, { IControlOptions } from 'UI/_base/Control';
+import Control, { IControlOptions } from 'UICore/Base';
 import { IOptions } from 'UI/_vdom/Synchronizer/resources/Options';
 export { IOptions } from 'UI/_vdom/Synchronizer/resources/Options';
 import { VNode } from 'Inferno/third-party/index';

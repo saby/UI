@@ -1,7 +1,7 @@
 /* tslint:disable */
 
 // @ts-ignore
-import template = require('wml!UI/_base/Control');
+import template = require('wml!UICore/_base/Control');
 
 // @ts-ignore FIXME: убрал зависимость от шаблонизатора - core перестал тянуться. Исследовать и исправить
 import cExtend = require('Core/core-extend');
@@ -18,7 +18,7 @@ import { getGeneratorConfig } from "./GeneratorConfig";
 import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
 import { ReactiveObserver } from 'UI/Reactivity';
 
-import startApplication from 'UI/_base/startApplication';
+import startApplication from './startApplication';
 import { getProxyChildren } from './ProxyChildren';
 
 import { DisposeControl, IResourceDisposable } from 'Application/State';
@@ -29,7 +29,7 @@ export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: b
                                 forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
 
 /**
- * @event UI/_base/Control#activated Происходит при активации контрола.
+ * @event UICore/_base/Control#activated Происходит при активации контрола.
  * @param {Boolean} isTabPressed Указывает, был ли активирован контрол нажатием на клавишу Tab.
  * @param {Boolean} isShiftKey Указывает, был ли активирован контрол нажатием Tab+Shift.
  * @remark Контрол активируется, когда на один из его DOM-элементов переходит фокус.
@@ -40,7 +40,7 @@ export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: b
  */
 
 /*
- * @event UI/_base/Control#activated Occurs when the component becomes active.
+ * @event UICore/_base/Control#activated Occurs when the component becomes active.
  * @param {Boolean} isTabPressed Indicates whether control was activated by Tab press.
  * @remark Control is activated when one of its DOM elements becomes focused. Detailed description and u
  * se cases of the event can be found
@@ -50,7 +50,7 @@ export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: b
  */
 
 /**
- * @event UI/_base/Control#deactivated Происходит при деактивации контрола.
+ * @event UICore/_base/Control#deactivated Происходит при деактивации контрола.
  * @param {Boolean} isTabPressed Указывает, был ли деактивирован контрол нажатием на клавишу Tab.
  * @remark Контрол перестает быть активным, когда все его дочерние контролы теряют фокус.
  * Подробное описание и примеры использования события читайте
@@ -59,7 +59,7 @@ export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: b
  */
 
 /*
- * @event UI/_base/Control#deactivated Occurs when control becomes inactive.
+ * @event UICore/_base/Control#deactivated Occurs when control becomes inactive.
  * @param {Boolean} isTabPressed Indicates whether control was deactivated by Tab press.
  * @remark Control is deactivated when all of its child component lose focus.
  * Detailed description and use cases of the event can be found
@@ -200,7 +200,7 @@ export type TControlConstructor<TOptions extends IControlOptions = {}, TState ex
 /**
  * Базовый контрол, от которого наследуются все интерфейсные контролы фреймворка Wasaby.
  * Подробнее о работе с классом читайте <a href="/doc/platform/developmentapl/interface-development/ui-library/control/">здесь</a>.
- * @class UI/_base/Control
+ * @class UICore/_base/Control
  * @author Шипин А.А.
  * @remark <a href="/doc/platform/developmentapl/interface-development/ui-library/asynchronous-control-building/">Asynchronous creation of UI/Base:AsyncCreator component</a>
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
@@ -350,7 +350,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
        isVdom: boolean = true
    ): any {
       if (!(this._template as any).stable) {
-         Logger.error(`[UI/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
+         Logger.error(`[UICore/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
          return '';
       }
       let res;
@@ -1370,7 +1370,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
       // // @ts-ignore
       // if (!require.defined('Core/core-extend')) {
       //    throw new ReferenceError(
-      //       'You should require module "Core/core-extend" to use old "UI/_base/Control::extend()" method.'
+      //       'You should require module "Core/core-extend" to use old "UICore/_base/Control::extend()" method.'
       //    );
       // }
       // // @ts-ignore
@@ -1396,15 +1396,15 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
          domElement = domElement[0] || domElement;
       }
       if (!(ctor && ctor.prototype)) {
-         const message = '[UI/_base/Control:createControl] Аргумент ctor должен являться классом контрола!';
+         const message = '[UICore/_base/Control:createControl] Аргумент ctor должен являться классом контрола!';
          Logger.error(message, ctor.prototype);
       }
       if (!(domElement instanceof HTMLElement)) {
-         const message = '[UI/_base/Control:createControl] domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.';
+         const message = '[UICore/_base/Control:createControl] domElement parameter is not an instance of HTMLElement. You should pass the correct dom element to control creation function.';
          Logger.error(message, ctor.prototype);
       }
       if (!document.documentElement.contains(domElement)) {
-         const message = '[UI/_base/Control:createControl] domElement parameter is not contained in document. You should pass the correct dom element to control creation function.';
+         const message = '[UICore/_base/Control:createControl] domElement parameter is not contained in document. You should pass the correct dom element to control creation function.';
          Logger.error(message, ctor.prototype);
       }
 
@@ -1458,7 +1458,7 @@ export default Control;
 // export default ReactControl;
 
 /**
- * @name UI/_base/Control#readOnly
+ * @name UICore/_base/Control#readOnly
  * @cfg {Boolean} Определяет, может ли пользователь изменить значение контрола.
  * (или взаимодействовать с контролом, если его значение не редактируется).
  * @variant true Пользователь не может изменить значение контрола. (или взаимодействовать с контролом, если его значение не редактируется).
@@ -1481,7 +1481,7 @@ export default Control;
  */
 
 /*
- * @name UI/_base/Control#readOnly
+ * @name UICore/_base/Control#readOnly
  * @cfg {Boolean} Determines whether user can change control's value
  * (or interact with the control if its value is not editable).
  * @variant true User cannot change control's value (or interact with the control if its value is not editable).
@@ -1506,7 +1506,7 @@ export default Control;
  */
 
 /**
- * @name UI/_base/Control#theme
+ * @name UICore/_base/Control#theme
  * @cfg {String} Название {@link /doc/platform/developmentapl/interface-development/themes/ темы оформления}. В зависимости от темы загружаются различные таблицы стилей и применяются различные стили к контролу.
  * @default default
  * @example
@@ -1529,7 +1529,7 @@ export default Control;
  */
 
 /*
- * @name UI/_base/Control#theme
+ * @name UICore/_base/Control#theme
  * @cfg {String} Theme name. Depending on the theme, different stylesheets are loaded and
  * different styles are applied to the control.
  * @variant any Any value that was passed to the control.

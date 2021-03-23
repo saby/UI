@@ -1,8 +1,8 @@
 import { assert } from 'chai';
-import { getProxyChildren } from 'UI/_base/ProxyChildren';
+import { getProxyChildren } from 'UICore/_base/ProxyChildren';
 import { Control, IControlChildren } from 'UI/Base';
 
-describe('UI/_base/ProxyChildren', () => {
+describe('UICore/_base/ProxyChildren', () => {
   const _children = getProxyChildren<IControlChildren>() as IControlChildren;
   const testChild = new Control<{}, {}>({});
   // @ts-ignore

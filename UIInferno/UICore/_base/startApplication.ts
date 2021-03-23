@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_base/startApplication" />
+/// <amd-module name="UICore/_base/startApplication" />
 import { default as AppInit, isInit } from 'Application/Initializer';
 import { StateReceiver } from 'Application/State';
 import { Serializer } from 'UI/State';

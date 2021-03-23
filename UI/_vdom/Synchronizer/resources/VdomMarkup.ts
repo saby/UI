@@ -11,7 +11,7 @@ import { Map, Set } from 'Types/shim';
 
 import { htmlNode, textNode, TGeneratorNode, ITemplateNode } from 'UI/Executor';
 import { IControlNode } from '../interfaces';
-import { TControlConstructor } from 'UI/_base/Control';
+import { TControlConstructor } from 'UICore/Base';
 import { invisibleNodeTagName } from 'UI/Executor';
 
 // this.childFlags = childFlags;
