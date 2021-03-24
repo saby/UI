@@ -3,6 +3,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {EMPTY_THEME, getThemeController} from 'UI/theme/controller';
 import {getResourceUrl, Logger} from 'UI/Utils';
+import { _Options } from 'UI/Vdom';
 
 // @ts-ignore путь не определяется
 import template = require('wml!UI/_react/Control/WasabyOverReact');
@@ -30,7 +31,7 @@ export class Control<TOptions extends IControlOptions = {},
     /**
      * Набор детей контрола, для которых задан атрибут name.
      */
-    _children: Record<string, Element | Control> = {};
+    protected _children: Record<string, Element | Control> = {};
     /**
      * Шаблон контрола.
      */
@@ -41,6 +42,12 @@ export class Control<TOptions extends IControlOptions = {},
      * чтобы в хуках были правильные значения.
      */
     _options: TOptions = {} as TOptions;
+
+    /**
+     * Версии опций для версионируемых объектов.
+     */
+    _optionsVersions: _Options.IVersions;
+
     // FIXME: не понимаю зачем объявлять _theme и _styles дважды: здесь и ниже.
     /** @deprecated */
     protected _theme: string[];
@@ -50,6 +57,11 @@ export class Control<TOptions extends IControlOptions = {},
      * Название контрола.
      */
     _moduleName: string;
+
+    // временно, чтобы typescript не ругался
+    protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): unknown {
+        return undefined;
+    }
 
     constructor(props: TOptions, context?: IWasabyContextValue) {
         super(props);
@@ -70,6 +82,7 @@ export class Control<TOptions extends IControlOptions = {},
         if (!constructor.displayName) {
             constructor.displayName = this._moduleName;
         }
+        this._optionsVersions = { };
     }
 
     /**
@@ -191,7 +204,12 @@ export class Control<TOptions extends IControlOptions = {},
      * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
      */
     protected _shouldUpdate(options: TOptions, context?: object): boolean {
-        return true;
+        return !!_Options.getChangedOptions(
+            options,
+            this._options,
+            false,
+            this._optionsVersions
+        );
     }
 
     /**
@@ -284,6 +302,7 @@ export class Control<TOptions extends IControlOptions = {},
     componentDidUpdate(prevProps: TOptions): void {
         const oldOptions = this._options;
         this._options = createWasabyOptions(this.props, this.context);
+        this._optionsVersions = _Options.collectObjectVersions(this._options);
         this._afterRender(oldOptions);
         setTimeout(() => {
             this._afterUpdate(oldOptions);

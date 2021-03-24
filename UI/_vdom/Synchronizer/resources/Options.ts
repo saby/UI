@@ -1,11 +1,8 @@
 /// <amd-module name="UI/_vdom/Synchronizer/resources/Options" />
 
 import { Set } from 'Types/shim';
-
-// FIXME: Необходимо использовать интерфейс из Types
-export interface IVersionable {
-   getVersion(): number;
-}
+import { IVersionable } from 'Types/entity';
+import { IControlOptions } from 'UI/Base';
 
 export interface IVersionableArray {
    getArrayVersion?(): number;
@@ -20,7 +17,7 @@ export interface IVersions {
 //  Правка в кодогенерацию!
 export interface ITemplate extends Object {
    func: Function;
-   internal: object;
+   internal: IOptions;
 }
 
 // TODO: Необходимо реализовать флаг, по которому будем определять этот интерфейс
@@ -56,6 +53,8 @@ export interface IManualObject extends Object {
 export interface IOptions extends Object {
    [property: string]: IManualObject | TOptionValue;
 }
+
+export declare type TOptions = IOptions | IControlOptions;
 
 function areBothNaN(a: number, b: number): boolean {
    return typeof a === 'number' && typeof b === 'number' && isNaN(a) && isNaN(b);
@@ -96,11 +95,11 @@ function isTemplateObject(tmpl: ITemplateObject): boolean {
 }
 
 function getTemplateInternal(tmpl: ITemplate): IOptions {
-   return (tmpl && tmpl.internal || EMPTY_OBJECT) as IOptions;
+   return tmpl && tmpl.internal || EMPTY_OBJECT;
 }
 
-export function collectObjectVersions(collection: IOptions): IVersions {
-   const versions = {};
+export function collectObjectVersions(collection: TOptions): IVersions {
+   const versions = { };
    if (typeof collection !== "object" || collection === null) {
       return versions;
    }
@@ -139,8 +138,8 @@ export function collectObjectVersions(collection: IOptions): IVersions {
 //  Правка в кодогенерацию!
 function isPossiblyScopeObject(
    property: string,
-   nextValue: IOptions,
-   prevValue: IOptions
+   nextValue: TOptions,
+   prevValue: TOptions
 ): boolean {
    return isDirtyChecking(property) &&
       typeof prevValue === 'object' &&
@@ -219,14 +218,14 @@ function getKeys(first: object, second: object): string[] {
 }
 
 export function getChangedOptions(
-   next: IOptions = EMPTY_OBJECT,
-   prev: IOptions = EMPTY_OBJECT,
+   next: TOptions = EMPTY_OBJECT,
+   prev: TOptions = EMPTY_OBJECT,
    ignoreDirtyChecking: boolean = false,
    versionsStorage: object = EMPTY_OBJECT,
    checkPrevValue: boolean = false,
    prefix: string = EMPTY_STRING,
    isCompound: boolean = false
-): IOptions | null {
+): TOptions | null {
    // TODO: ignoreDirtyChecking, checkPrevValue, isCompound вынести в битовый флаг
    // TODO: отказаться от префиксов в пользу древовидной структуры хранилища версий (сейчас словарь по сути)
    const properties = getKeys(next, prev);
@@ -341,11 +340,11 @@ export function getChangedOptions(
                   hasChanges = true;
                   changes[property] = next[property];
                }
-            } else if (isPossiblyScopeObject(property, next[property] as IOptions, prev[property] as IOptions)) {
+            } else if (isPossiblyScopeObject(property, next[property], prev[property])) {
                // Object inside __dirtyChecking must be checked, it can be "scope=object" in subcontrol
                const innerCh = getChangedOptions(
-                  next[property] as IOptions,
-                  prev[property] as IOptions,
+                  next[property],
+                  prev[property],
                   false,
                   EMPTY_OBJECT,
                   true,
@@ -361,8 +360,8 @@ export function getChangedOptions(
                shouldCheckDeep(prev[property] as IManualObject)
             ) {
                const innerCh = getChangedOptions(
-                  next[property] as IOptions,
-                  prev[property] as IOptions,
+                  next[property],
+                  prev[property],
                   true,
                   EMPTY_OBJECT,
                   true,

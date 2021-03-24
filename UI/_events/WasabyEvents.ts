@@ -1,6 +1,5 @@
 import { detection } from 'Env/Env';
 import { Logger } from 'UI/Utils';
-import RawMarkupNode from 'UI/_executor/_Expressions/RawMarkupNode';
 
 import SyntheticEvent from './SyntheticEvent';
 import * as EventUtils from './EventUtils';
@@ -32,7 +31,6 @@ import {
  */
 
 const callAfterMount: IArrayEvent[] = [];
-let touchHandlers: TouchHandlers;
 
 export class WasabyEvents implements IWasabyEventSystem {
     private capturedEventHandlers: Record<string, IHandlerInfo[]>;
@@ -46,12 +44,14 @@ export class WasabyEvents implements IWasabyEventSystem {
     private _environment: IDOMEnvironment;
     private _handleTabKey: Function;
 
+    private touchHandlers: TouchHandlers;
+
     //#region инициализация системы событий
     constructor(rootNode: TModifyHTMLNode, environment: IDOMEnvironment, tabKeyHandler?: Function) {
         this.capturedEventHandlers = {};
         this.initEventSystemFixes();
         this.initWasabyEventSystem(rootNode, environment, tabKeyHandler);
-        touchHandlers = new TouchHandlers(this._handleClick, this.captureEventHandler);
+        this.touchHandlers = new TouchHandlers(this._handleClick, this.captureEventHandler);
 
         // если я это не напишу, ts ругнется 'touchendTarget' is declared but its value is never read
         this.touchendTarget = this.touchendTarget || null;
@@ -68,11 +68,11 @@ export class WasabyEvents implements IWasabyEventSystem {
         this._environment = environment;
     }
 
-    private initProcessingHandlers(context: IDOMEnvironment): void {
-        this.addCaptureProcessingHandler('click', this._handleClick, context);
-        this.addCaptureProcessingHandler('touchstart', this._handleTouchstart, context);
-        this.addCaptureProcessingHandler('touchmove', this._handleTouchmove, context);
-        this.addCaptureProcessingHandler('touchend', this._handleTouchend, context);
+    private initProcessingHandlers(environment: IDOMEnvironment): void {
+        this.addCaptureProcessingHandler('click', this._handleClick, environment);
+        this.addCaptureProcessingHandler('touchstart', this._handleTouchstart, environment);
+        this.addCaptureProcessingHandler('touchmove', this._handleTouchmove, environment);
+        this.addCaptureProcessingHandler('touchend', this._handleTouchend, environment);
     }
 
     private initEventSystemFixes() {
@@ -340,7 +340,7 @@ export class WasabyEvents implements IWasabyEventSystem {
 
     //#region специфические обработчики
     private _handleClick(event: MouseEvent): void {
-        touchHandlers.shouldUseClickByTapOnClick(event);
+        this.touchHandlers.shouldUseClickByTapOnClick(event);
 
         /**
          * Firefox right click bug
@@ -370,8 +370,8 @@ export class WasabyEvents implements IWasabyEventSystem {
     }
 
     // TODO: docs
-    handleSpecialEvent(eventName: string, eventHandler: Function, context?: unknown): void {
-        this.addCaptureProcessingHandler(eventName, eventHandler, context);
+    handleSpecialEvent(eventName: string, eventHandler: Function, environment?: IDOMEnvironment): void {
+        this.addCaptureProcessingHandlerOnEnvironment(eventName, eventHandler, environment);
     }
     //#endregion
 
@@ -392,9 +392,9 @@ export class WasabyEvents implements IWasabyEventSystem {
     //#region события тача
     // TODO: docs
     private _handleTouchstart(event: ITouchEvent): void {
-        touchHandlers.setPreventShouldUseClickByTap(false);
+        this.touchHandlers.setPreventShouldUseClickByTap(false);
 
-        touchHandlers.shouldUseClickByTapOnTouchstart(event);
+        this.touchHandlers.shouldUseClickByTapOnTouchstart(event);
         // Compatibility. Touch events handling in Control.compatible looks for
         // the `addedToClickState` flag to see if the event has already been
         // processed. Since vdom has already handled this event, set this
@@ -406,14 +406,14 @@ export class WasabyEvents implements IWasabyEventSystem {
         const longTapCallback = () => {
             // т.к. callbackFn вызывается асинхронно, надо передавать с правильным контекстом
             FastTouchEndController.setClickEmulateState.call(FastTouchEndController, false);
-            touchHandlers.setPreventShouldUseClickByTap(true);
+            this.touchHandlers.setPreventShouldUseClickByTap(true);
         };
-        LongTapController.initState(event, longTapCallback.bind(this));
+        LongTapController.initState(event, longTapCallback.bind(this._environment));
     }
 
     // TODO: docs
     private _handleTouchmove(event: ITouchEvent): void {
-        touchHandlers.shouldUseClickByTapOnTouchmove(event);
+        this.touchHandlers.shouldUseClickByTapOnTouchmove(event);
         FastTouchEndController.setClickEmulateState(false);
         SwipeController.detectState(event);
         LongTapController.resetState();
@@ -421,7 +421,7 @@ export class WasabyEvents implements IWasabyEventSystem {
 
     // TODO: docs
     private _handleTouchend(event: ITouchEvent): void {
-        touchHandlers.shouldUseClickByTapOnTouchend(event);
+        this.touchHandlers.shouldUseClickByTapOnTouchend(event);
 
         // Compatibility. Touch events handling in Control.compatible looks for
         // the `addedToClickState` flag to see if the event has already been
@@ -467,7 +467,10 @@ export class WasabyEvents implements IWasabyEventSystem {
         eventConfig.type = eventName;
         eventConfig.target = controlNode.element;
         if (!eventConfig.target) {
-            if (!(controlNode.fullMarkup instanceof RawMarkupNode) && !isInvisibleNode(controlNode, true)) {
+            if (
+                controlNode.fullMarkup.moduleName !== 'UI/_executor/_Expressions/RawMarkupNode' &&
+                !isInvisibleNode(controlNode, true)
+            ) {
                 Logger.error('Событие ' + eventName + ' было вызвано до монтирования контрола в DOM', controlNode);
             }
             return;
@@ -508,14 +511,26 @@ export class WasabyEvents implements IWasabyEventSystem {
         }
     }
 
-    private addCaptureProcessingHandler(eventName: string, method: Function, context?: unknown): void {
+    private addCaptureProcessingHandler(eventName: string, method: Function, environment: IDOMEnvironment): void {
         if (this._rootDOMNode.parentNode) {
             const handler = function(e: Event): void {
-                if (!isMyDOMEnvironment(this, e)) {
+                if (!isMyDOMEnvironment(environment, e)) {
                     return;
                 }
-                method.apply(context, arguments);
-            }.bind(context);
+                method.apply(this, arguments);
+            };
+            this.addHandler(eventName, false, handler, true);
+        }
+    }
+
+    private addCaptureProcessingHandlerOnEnvironment(eventName: string, method: Function, environment: IDOMEnvironment): void {
+        if (this._rootDOMNode.parentNode) {
+            const handler = function(e: Event): void {
+                if (!isMyDOMEnvironment(environment, e)) {
+                    return;
+                }
+                method.apply(environment, arguments);
+            };
             this.addHandler(eventName, false, handler, true);
         }
     }
