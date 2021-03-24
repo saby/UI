@@ -4,15 +4,15 @@ export type ISerializedMetaState = string;
 
 /**
  * Хранилище состояний meta-тегов
- * @interface UI/_base/HTML/_meta/IMetaStack
+ * @interface UI/Base:IMetaStack
  * @public
  * @author Ибрагимов А.А.
  */
 export interface IMetaStack {
    /**
     * Добавить состояние
-    * @param {UI/_base/HTML/_meta/IMeta} meta
-    * @returns {UI/_base/HTML/_meta/IMetaState}
+    * @param {IMeta} meta
+    * @returns {IMetaState}
     * @example
     * import { getMetaStack } from 'UI/Base';
     * const meta: IMeta = { title: 'Page title' }
@@ -21,7 +21,7 @@ export interface IMetaStack {
    push(meta: IMeta): IMetaState;
    /**
     * Удалить состояние
-    * @param {UI/_base/HTML/_meta/IMetaState} state
+    * @param {IMetaState} state
     * @example
     * import { getMetaStack } from 'UI/Base';
     * const meta: IMeta = { title: 'Page title' }
@@ -45,7 +45,7 @@ export type IDeserializeStack = (s: ISerializedMetaStack) => IMetaStackInternal;
 
 /**
  * Состояние meta-тегов
- * @interface UI/_base/HTML/_meta/IMetaState
+ * @interface UI/Base:IMetaState
  * @public
  * @author Ибрагимов А.А.
  */
