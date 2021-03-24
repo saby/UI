@@ -10,6 +10,8 @@ import { IControlOptions } from 'UI/Base';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 import { cookie } from "Env/Env";
 import { JSLinks } from 'Application/Page';
+import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
+import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 import {aggregateJS} from 'UI/Deps';
 
 interface IJsLinksOptions extends IControlOptions {
@@ -39,16 +41,6 @@ class JsLinks extends Control<IJsLinksOptions> {
 
    resolveLink(path: string, type: string = ''): string {
       return ModulesLoader.getModuleUrl(type ? `${type}!${path}` : path, cookie.get('s3debug'));
-   }
-
-   /** Конвертируем в hashmap для быстрого поиска имени модуля */
-   arrayToObject(arr: string[]): Record<string, number> {
-      const obj: Record<string, number> = {};
-      let index = 0;
-      for (const key of arr) {
-         obj[key] = index++;
-      }
-      return obj;
    }
 }
 
