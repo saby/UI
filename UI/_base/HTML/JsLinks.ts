@@ -10,8 +10,7 @@ import { IControlOptions } from 'UI/Base';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 import { cookie } from "Env/Env";
 import { JSLinks } from 'Application/Page';
-import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
-import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
+import {aggregateJS} from 'UI/Deps';
 
 interface IJsLinksOptions extends IControlOptions {
    resourceRoot: string;
@@ -30,32 +29,7 @@ class JsLinks extends Control<IJsLinksOptions> {
       }
       return headDataStore.read('waitAppContent')().then((res) => {
          const jslinksAPI = JSLinks.getInstance();
-         res.js.map((js) => this.resolveLink(js))
-            .concat(res.scripts)
-            .concat(res.tmpl.map((rawLink) => this.resolveLink(rawLink, 'tmpl')))
-            .concat(res.wml.map((rawLink) => this.resolveLink(rawLink, 'wml')))
-            .forEach((link, i) => {
-               jslinksAPI.createTag('script', {
-                  type: 'text/javascript',
-                  src: link,
-                  defer: 'defer',
-                  key: `scripts_${i}`
-               });
-            });
-         jslinksAPI.createTag('script', { type: '' },
-            `window['receivedStates']='${res.rsSerialized}';`);
-
-         /**
-          * На страницах OnlineSbisRu/CompatibleTemplate зависимости пакуются в rt-пакеты и собираются DepsCollector
-          * Поэтому в глобальной переменной храним имена запакованных в rt-пакет модулей
-          * И игнорируем попытки require (см. WS.Core\ext\requirejs\plugins\preload.js)
-          * https://online.sbis.ru/opendoc.html?guid=348beb13-7b57-4257-b8b8-c5393bee13bd
-          * TODO следует избавится при отказе от rt-паковки
-          */
-
-         jslinksAPI.createTag('script', { type: '' },
-            `window['rtpackModuleNames']='${res.rtpackModuleNames}';`);
-
+         aggregateJS(res);
          const data = jslinksAPI.getData();
          if (data && data.length) {
             this.jslinksData += new TagMarkup(data.map(fromJML), { getResourceUrl: false }).outerHTML;
