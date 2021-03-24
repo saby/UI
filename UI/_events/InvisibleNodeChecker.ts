@@ -1,12 +1,10 @@
-import { IControlNode } from '../interfaces';
-import { invisibleNodeTagName } from 'UI/Executor';
-
+import { IControlNode } from 'UI/_vdom/Synchronizer/interfaces';
 /**
  * @author Санников К.А.
  */
 
 function isInvisibleType(typename?: string): boolean {
-    return typename === invisibleNodeTagName;
+    return typename ===  'invisible-node';
 }
 
 export default function isInvisibleNode(controlNode: IControlNode, checkChildren: boolean = false): boolean {
