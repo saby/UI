@@ -18,7 +18,7 @@ import { SwipeController } from './Touch/SwipeController';
 import { LongTapController } from './Touch/LongTapController';
 import { ITouchEvent } from './Touch/TouchEvents';
 
-import isInvisibleNode from 'UI/_vdom/Synchronizer/resources/InvisibleNodeChecker';
+import { isInvisibleNode } from 'UI/Vdom';
 import {
     IWasabyHTMLElement,
     IControlNode,

@@ -13,7 +13,7 @@ import * as Monad from './_vdom/Utils/Monad';
 import * as _Options from './_vdom/Synchronizer/resources/Options';
 import * as _MountMethodsCaller from './_vdom/Synchronizer/resources/MountMethodsCaller';
 
-import isInvisibleNode from './_vdom/Synchronizer/resources/InvisibleNodeChecker';
+export { isInvisibleNode } from './_vdom/Synchronizer/resources/InvisibleNodeChecker';
 
 /**
  * @author Кондаков Р.Н.
@@ -30,6 +30,5 @@ export { default as SyntheticEvent } from './_vdom/Synchronizer/resources/Synthe
 export { VdomMarkup };
 export { _Options };
 export { _MountMethodsCaller };
-export { isInvisibleNode };
 
 export { Functional, Monad };
