@@ -1,9 +1,25 @@
 /**
  * Библиотека фокусов
  * @library UI/Focus
- * @includes UICore/Focus
+ * @includes Focus UICore/Focus
  * @public
  * @author Кондаков Р.Н.
  */
 
-export * from 'UICore/Focus';
+export {
+   ElementFinder,
+   Events,
+   BoundaryElements,
+   focus,
+   prepareRestoreFocusBeforeRedraw,
+   restoreFocusAfterRedraw,
+   _initFocus,
+   _IControl,
+   _FocusAttrs,
+   nativeFocus,
+   activate,
+   preventFocus,
+   hasNoFocus,
+   goUpByControlTree,
+   DefaultOpenerFinder
+} from 'UICore/Focus';

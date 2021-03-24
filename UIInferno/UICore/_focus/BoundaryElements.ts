@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_focus/BoundaryElements" />
+/// <amd-module name="UICore/_focus/BoundaryElements" />
 /* tslint:disable */
 
 /**

@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_focus/_ResetScrolling" />
+/// <amd-module name="UICore/_focus/_ResetScrolling" />
 /* tslint:disable */
 
 /**

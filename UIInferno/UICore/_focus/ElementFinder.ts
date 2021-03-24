@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_focus/ElementFinder" />
+/// <amd-module name="UICore/_focus/ElementFinder" />
 /* tslint:disable */
 
 /**
