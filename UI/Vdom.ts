@@ -13,7 +13,7 @@ import * as Monad from './_vdom/Utils/Monad';
 import * as _Options from './_vdom/Synchronizer/resources/Options';
 import * as _MountMethodsCaller from './_vdom/Synchronizer/resources/MountMethodsCaller';
 
-export { isInvisibleNode } from './_vdom/Synchronizer/resources/InvisibleNodeChecker';
+export { default as isInvisibleNode } from './_vdom/Synchronizer/resources/InvisibleNodeChecker';
 
 /**
  * @author Кондаков Р.Н.
