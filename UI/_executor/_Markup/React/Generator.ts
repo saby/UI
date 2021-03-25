@@ -265,19 +265,31 @@ export class GeneratorReact {
    ): React.DetailedReactHTMLElement<P, T> {
       let ref;
       const name = attrs.attributes.name;
-      if (control && name) {
-         ref = (node: HTMLElement): void => {
-            if (node) {
-               // todo _children protected по апи, но здесь нужен доступ чтобы инициализировать.
-               //@ts-ignore
-               control._children[name] = node;
-               //@ts-ignore
-               onElementMount(control._children[name]);
-            } else {
-               //@ts-ignore
-               onElementUnmount(control._children, name);
+      if (control) {
+         ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
+            if (node && Object.keys(attrs.events).length > 0) {
+               //тут надо позвать хуки
+               node.eventProperties = attrs.events;
             }
          };
+         if (name) {
+            ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
+               if (node) {
+                  // todo _children protected по апи, но здесь нужен доступ чтобы инициализировать.
+                  //@ts-ignore
+                  control._children[name] = node;
+                  //@ts-ignore
+                  onElementMount(control._children[name]);
+                  if (Object.keys(attrs.events).length > 0) {
+                     //тут надо позвать хуки
+                     node.eventProperties = attrs.events;
+                  }
+               } else {
+                  //@ts-ignore
+                  onElementUnmount(control._children, name);
+               }
+            };
+         }
       }
 
       const convertedAttributes = convertAttributes(attrs.attributes);
