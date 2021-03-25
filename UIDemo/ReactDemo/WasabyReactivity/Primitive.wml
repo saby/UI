@@ -1,0 +1,21 @@
+<div>
+    <h1>Примитивы</h1>
+    <div>
+        <h2>Number</h2>
+        <div>
+            <button on:click="_decrement()">-</button>
+            <span class="hor-padding">Count {{_count}}</span>
+            <button on:click="_increment()">+</button>
+        </div>
+    </div>
+    <div>
+        <h2>String</h2>
+        <input type="text" on:input="_textChange()"/>
+        <div>Значение: {{_string}}</div>
+    </div>
+    <div>
+        <h2>Boolean</h2>
+        <input type="checkbox" on:input="_boolChange()"/>
+        <div>Значение: {{_bool.toString()}}</div>
+    </div>
+</div>
