@@ -32,7 +32,7 @@ export class Control<TOptions extends IControlOptions = {},
     /**
      * Набор детей контрола, для которых задан атрибут name.
      */
-    _children: Record<string, Element | Control> = {};
+    protected _children: Record<string, Element | Control> = {};
     /**
      * Шаблон контрола.
      */
