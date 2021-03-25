@@ -78,7 +78,7 @@ export interface IWasabyEventSystem {
     initWasabyEventSystem: (rootNode: TModifyHTMLNode,  environment: IDOMEnvironment, tabKeyHandler?: Function) => void;
     captureEventHandler: (event: Event) => void;
     callEventsToDOM: VoidFunction;
-    handleSpecialEvent: (eventName: string, eventHandler: Function) => void;
+    handleSpecialEvent: (eventName: string, eventHandler: Function, environment: IDOMEnvironment) => void;
     addTabListener: VoidFunction;
     removeTabListener: VoidFunction;
     startEvent: <TArguments>(controlNode: IControlNode, args: TArguments) => any;
