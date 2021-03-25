@@ -2,7 +2,7 @@
 
 import { Head as AppHead } from 'Application/Page';
 import { constants } from "Env/Env";
-import AppData from "UI/_base/AppData";
+import { AppData } from 'UI/State';
 import { IHeadOptions } from "UI/_head/defaultTags";
 
 /**
