@@ -1,6 +1,5 @@
-import { EventUtils } from 'UI/Events';
+import { EventUtils, isInvisibleNode } from 'UI/Events';
 import { IDOMEnvironment, IProperties, IWasabyHTMLElement, IControlNode, IEvent, TEventsObject, TControlId } from '../interfaces';
-import isInvisibleNode from './InvisibleNodeChecker';
 import { constants } from 'Env/Env';
 import { Set } from 'Types/shim';
 
