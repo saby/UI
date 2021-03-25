@@ -24,7 +24,6 @@ export { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 export { getMetaStack, IMeta, IMetaState } from 'UI/_base/HTML/meta';
 //#endregion
 
-export { PrefetchLinksStore } from 'UI/Deps';
 export { default as Async, IAsyncOptions, TAsyncStateReceived } from 'UI/_async/Async';
 
 export {
