@@ -1,4 +1,4 @@
-import { useState, Component } from "react";
+import {useState, Component} from "react";
 import {IVersionable} from "Types/entity";
 
 /**
@@ -12,14 +12,14 @@ export function makeObservable<T extends Component>(instance: T, props: Array<ke
         Object.defineProperty(instance, prop, {
             set(newVal) {
                 value = newVal;
-                observeVersion(instance, value);
+                observeVersion<T>(instance, value);
                 instance.setState({});
             },
             get() {
                 return value;
             }
         });
-        observeVersion(instance, value);
+        observeVersion<T>(instance, value);
     });
 }
 
@@ -45,7 +45,7 @@ export function useVersionObservable(props: IVersionable[]) {
     });
 }
 
-function observeVersion(instance: Component, value: IVersionable) {
+function observeVersion<T>(instance: Component, value: T[keyof T]) {
     let currentValue = value['_version'];
     Object.defineProperty(value, '_version', {
         set(val) {

@@ -1,14 +1,14 @@
-define(['UI/_react/WasabyReactivity/MakeObservable', 'Core/core-extend'],
-   function(Reactivity, extend) {
-      'use strict';
+define(['UI/WasabyReactivity', 'Core/core-extend'],
+    function (Reactivity, extend) {
+       'use strict';
 
-      describe('WasabyReact Reactivity', function() {
+       describe('WasabyReact Reactivity', function () {
 
-         it('basic', function() {
-            const tmpl = {
-               reactiveProps: ['_string']
-            };
-            let updated = false;
+          it('basic', function () {
+             const tmpl = {
+                reactiveProps: ['_string']
+             };
+             let updated = false;
             let TestControl = extend.extend({
                _template: tmpl,
                setState: function() {

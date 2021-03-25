@@ -1,14 +1,14 @@
-define(['UI/_react/Reactivity/MakeObservable', 'Core/core-extend'],
-   function(Reactivity, extend) {
-      'use strict';
+define(['UI/ReactReactivity', 'Core/core-extend'],
+    function (Reactivity, extend) {
+       'use strict';
 
-      describe('Pure Reactivity', function() {
-         it('update if observe props change version', function() {
-            let updated = false;
-            let TestControl = extend.extend({
-               setState: function() {
-                  updated = true;
-               }
+       describe('Pure Reactivity', function () {
+          it('update if observe props change version', function () {
+             let updated = false;
+             let TestControl = extend.extend({
+                setState: function () {
+                   updated = true;
+                }
             });
             let inst = new TestControl();
 

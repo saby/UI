@@ -1,5 +1,5 @@
 import {createElement, memo} from "react";
-import {withVersionObservable} from "UI/_react/Reactivity/withVersionObservable";
+import {withVersionObservable} from "UI/ReactReactivity";
 import {RecordSet} from "Types/collection";
 
 interface IChildProps {

@@ -1,4 +1,4 @@
-import {Control} from "UI/Base";
+import {Control} from "UI/ReactComponent";
 import {IVersionable} from "Types/entity";
 
 const arrayMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];

@@ -1,7 +1,7 @@
 import {Component, createElement} from 'react';
 import {RecordSet} from 'Types/collection';
 import {Model} from 'Types/entity';
-import {makeObservable} from 'UI/_react/Reactivity/MakeObservable';
+import {makeObservable} from 'UI/ReactReactivity';
 import 'css!UIDemo/ReactDemo/Reactivity/Controller';
 import FunctionalComponent from './FunctionalComponent';
 import {ChildWithVersionObserver, Child} from "./Child";
