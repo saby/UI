@@ -129,7 +129,6 @@ function setObservableArray(value: unknown[], instance: Control, propName: strin
         const method = value[methodName];
         const mutator = function () {
             const res = method.apply(this, arguments);
-            // @ts-ignore
             instance[propName] = [...value];
             instance.setState({});
             return res;

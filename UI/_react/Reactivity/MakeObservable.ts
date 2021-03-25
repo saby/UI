@@ -45,8 +45,8 @@ export function useVersionObservable(props: IVersionable[]) {
     });
 }
 
-function observeVersion(instance: Component, value: any) {
-    let currentValue = value._version;
+function observeVersion(instance: Component, value: IVersionable) {
+    let currentValue = value['_version'];
     Object.defineProperty(value, '_version', {
         set(val) {
             currentValue = val;
