@@ -33,7 +33,8 @@ const whiteList = {
    "WSTests/unit/tmpl/sync-tests/context/dirtyCheckingUpdate/contextField": true,
    "Controls/scroll:_scrollContext": true,
    "Controls/scroll:_stickyHeaderContext": true,
-   "UI/Base:AppData": true
+   "UI/Base:AppData": true,
+   "UI/State:AppData": true
 };
 
 function compositeGetVersion() {

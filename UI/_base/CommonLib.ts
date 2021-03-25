@@ -4,7 +4,7 @@
 import HTML from './HTML';
 import Document from './Document';
 
-import AppData from './AppData';
+import { AppData } from 'UI/State';
 import Start from './Start';
 import BootstrapStart from './BootstrapStart';
 import HeadController from './HeadController';

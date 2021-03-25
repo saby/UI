@@ -12,7 +12,7 @@
             'UI/State',
             'SbisEnvUI/Wasaby'
          ], function (UI, AppInitializer, AppEnv, Compatible, UIExecutor, AppState, UIState) {
-         var AppData = UI.AppData,
+         var AppData = UIState.AppData,
             headDataStore = UI.headDataStore,
             Core = UI.Control;
          /*Первый шаг - старт Application, иницализация core и темы. Второй шаг - загрузка ресурсов*/
