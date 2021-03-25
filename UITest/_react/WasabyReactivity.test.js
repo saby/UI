@@ -1,4 +1,4 @@
-define(['UI/WasabyReactivity', 'Core/core-extend'],
+define(['UI/WasabyReactReactivity', 'Core/core-extend'],
     function (Reactivity, extend) {
        'use strict';
 
