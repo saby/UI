@@ -8,7 +8,7 @@ import AppData from './AppData';
 import Start from './Start';
 import BootstrapStart from './BootstrapStart';
 import HeadController from './HeadController';
-import { HeadData, headDataStore, DepsCollector } from 'UI/Deps';
+import { HeadData, headDataStore } from 'UI/Deps';
 import { getGeneratorConfig } from './GeneratorConfig';
 
 //@ts-ignore
@@ -37,7 +37,6 @@ export {
    HeadController,
    Creator,
    AsyncCreator,
-   DepsCollector,
    HeadData,
    headDataStore,
    IHTMLOptions,
