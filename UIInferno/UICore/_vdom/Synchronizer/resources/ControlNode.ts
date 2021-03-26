@@ -217,7 +217,7 @@ export function createInstance(cnstr, userOptions, internalOptions, configForCre
     }
     catch (error) {
         // @ts-ignore
-        const coreControl = requirejs('UI/Base').Control;
+        const coreControl = requirejs('UICore/Base').Control;
         inst = new coreControl();
         Logger.lifeError('constructor', cnstr.prototype, error);
     }

@@ -1,4 +1,4 @@
-import { TemplateFunction } from 'UI/Base';
+import { TemplateFunction } from 'UICore/Base';
 import { IControlNode } from './_vdom/Synchronizer/interfaces';
 import { IOptions } from './_vdom/Synchronizer/resources/Options';
 import { TGeneratorNode, IGeneratorControlNode } from "UI/_executor/_Markup/Vdom/IVdomType";

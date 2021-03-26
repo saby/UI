@@ -2,7 +2,7 @@ import { onEndLifecycle, onStartLifecycle } from '../../../DevtoolsHook';
 import { IControlNode, TControlId } from '../interfaces';
 import { delay } from 'Types/function';
 import { Logger } from 'UI/Utils';
-import { Control } from 'UI/Base';
+import { Control } from 'UICore/Base';
 
 /**
  * @author Кондаков Р.Н.
