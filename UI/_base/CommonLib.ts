@@ -21,7 +21,9 @@ export { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 export { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 
 //#region meta data
-export { getMetaStack, IMeta, IMetaState } from 'UI/_base/HTML/meta';
+import * as meta from 'UI/_base/HTML/meta';
+import { getMetaStack } from 'UI/_base/HTML/meta';
+export { meta, getMetaStack };
 //#endregion
 
 export { default as Async, IAsyncOptions, TAsyncStateReceived } from 'UI/_async/Async';

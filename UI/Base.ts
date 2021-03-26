@@ -9,13 +9,11 @@
  * @author Шипин А.А.
  */
 import {default as Control, IControlOptions, TemplateFunction, IControlChildren} from './_base/Control';
-import * as meta from './_base/HTML/meta';
 export * from './_base/CommonLib';
 
 export {
     Control,
     IControlOptions,
     TemplateFunction,
-    IControlChildren,
-    meta
+    IControlChildren
 };
