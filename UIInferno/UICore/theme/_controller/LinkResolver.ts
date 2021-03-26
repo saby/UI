@@ -1,4 +1,4 @@
-/// <amd-module name="UI/theme/_controller/LinkResolver" />
+/// <amd-module name="UICore/theme/_controller/LinkResolver" />
 /**
  * Модуль для вычисления путей до статических ресурсов
  * @author Санников К.А.

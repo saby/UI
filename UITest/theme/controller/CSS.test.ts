@@ -3,13 +3,13 @@ import { assert } from 'chai';
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { THEME_TYPE } from 'UI/theme/controller';
-import { createEntity, restoreDeprecatedEntity, restoreEntity } from 'UI/theme/_controller/CSS';
-import { DEPRECATED_ELEMENT_ATTR, DEPRECATED_THEME_TYPE, ELEMENT_ATTR, EMPTY_THEME } from 'UI/theme/_controller/css/const';
-import { IHTMLElement } from 'UI/theme/_controller/css/interface';
-import Link from 'UI/theme/_controller/css/Link';
-import LinkPS from 'UI/theme/_controller/css/LinkPS';
-import SingleLink from 'UI/theme/_controller/css/SingleLink';
-import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
+import { createEntity, restoreDeprecatedEntity, restoreEntity } from 'UICore/theme/_controller/CSS';
+import { DEPRECATED_ELEMENT_ATTR, DEPRECATED_THEME_TYPE, ELEMENT_ATTR, EMPTY_THEME } from 'UICore/theme/_controller/css/const';
+import { IHTMLElement } from 'UICore/theme/_controller/css/interface';
+import Link from 'UICore/theme/_controller/css/Link';
+import LinkPS from 'UICore/theme/_controller/css/LinkPS';
+import SingleLink from 'UICore/theme/_controller/css/SingleLink';
+import SingleLinkPS from 'UICore/theme/_controller/css/SingleLinkPS';
 
 class LinkMock implements IHTMLElement {
    outerHTML: string = '';
@@ -51,7 +51,7 @@ class DeprecatedLinkElementMock extends LinkMock {
    }
 }
 
-describe('UI/theme/_controller/CSS', () => {
+describe('UICore/theme/_controller/CSS', () => {
    const href = '#href';
    const cssName = 'cssName';
    const themeName = 'themeName';

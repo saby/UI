@@ -1,4 +1,4 @@
-/// <amd-module name='UI/theme/_controller/Controller' />
+/// <amd-module name='UICore/theme/_controller/Controller' />
 // @ts-ignore
 import { cookie } from 'Env/Env';
 import { Logger } from 'UI/Utils';
@@ -10,7 +10,7 @@ import { AliasStorage, EntityStorage, IAliases } from './Storage';
 
 /**
  * Контроллер тем, необходим для скачивания/удаления/коллекции/переключения тем на странице
- * @class UI/theme/_controller/Controller
+ * @class UICore/theme/_controller/Controller
  * @public
  * @singleton
  */
@@ -49,7 +49,7 @@ export class Controller {
    }
 
    private _get(name: string, theme: string, href: string, themeType: THEME_TYPE): Promise<ICssEntity> {
-      // в случаях дополнительных безымянных css, cssName равно href, см. UI/theme/_controller/CSS:49
+      // в случаях дополнительных безымянных css, cssName равно href, см. UICore/theme/_controller/CSS:49
       const registeredName = this.has(name, theme) && name
           || this.has(href, theme) && href
           || null;
@@ -193,7 +193,7 @@ export class Controller {
 }
 function decorateError(e: Error): Error {
    return new Error(
-      `UI/theme/controller
+      `UICore/theme/controller
    ${e.message}
    It's probably an error with internet connection or CORS settings.`
    );

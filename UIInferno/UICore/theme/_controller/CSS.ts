@@ -1,4 +1,4 @@
-/// <amd-module name='UI/theme/_controller/CSS' />
+/// <amd-module name='UICore/theme/_controller/CSS' />
 import { THEME_TYPE, ELEMENT_ATTR, DEPRECATED_ELEMENT_ATTR, EMPTY_THEME, DEPRECATED_THEME_TYPE } from './css/const';
 import { ICssEntity, IHTMLElement } from './css/interface';
 import SingleLinkPS from './css/SingleLinkPS';

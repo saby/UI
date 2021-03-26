@@ -1,4 +1,4 @@
-/// <amd-module name='UI/theme/_controller/Loader' />
+/// <amd-module name='UICore/theme/_controller/Loader' />
 // @ts-ignore
 import LinkResolver from "./LinkResolver";
 // @ts-ignore

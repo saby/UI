@@ -1,4 +1,4 @@
-import SingleLinkPS from 'UI/theme/_controller/css/SingleLinkPS';
+import SingleLinkPS from 'UICore/theme/_controller/css/SingleLinkPS';
 import { assert } from 'chai';
 
 const href = '#Some/href';
@@ -7,7 +7,7 @@ const theme = 'Some-theme';
 
 let link: SingleLinkPS;
 
-describe('UI/theme/_controller/css/SingleLinkPS', () => {
+describe('UICore/theme/_controller/css/SingleLinkPS', () => {
 
    const setHooks = () => {
       beforeEach(() => { link = new SingleLinkPS(href, name, theme); });

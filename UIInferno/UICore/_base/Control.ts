@@ -15,7 +15,7 @@ import { goUpByControlTree } from 'UICore/NodeCollector';
 import { constants } from 'Env/Env';
 import { getGeneratorConfig } from "./GeneratorConfig";
 
-import { getThemeController, EMPTY_THEME } from 'UI/theme/controller';
+import { getThemeController, EMPTY_THEME } from 'UICore/theme/controller';
 import { ReactiveObserver } from 'UI/Reactivity';
 
 import startApplication from './startApplication';
