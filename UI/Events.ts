@@ -13,6 +13,8 @@ import { WasabyEvents } from './_events/WasabyEvents';
 
 export { ISyntheticEvent, IWasabyEventSystem } from './_events/IEvents';
 
+export { default as isInvisibleNode } from './_events/InvisibleNodeChecker';
+
 export {
     Subscriber,
     EventUtils,

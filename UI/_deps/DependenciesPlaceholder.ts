@@ -21,7 +21,7 @@ function addBaseScripts(cfg: IOptions): void {
    const  API = AppJSLinks.getInstance(BASE_DEPS_NAMESPACE);
    const scripts = {
       bundles: 'bundles',
-      require: 'cdn/RequireJS/2.3.5-p5/require-min',
+      require: '/cdn/RequireJS/2.3.5-p5/require-min',
       contents: 'contents',
       router: 'router',
       config: 'RequireJsLoader/config'
@@ -54,7 +54,7 @@ function resolveLink(path: string, type: string = ''): string {
 export function aggregateJS(deps: ICollectedDeps): void {
    const  API = AppJSLinks.getInstance();
 
-   deps.js.map((js) => this.resolveLink(js))
+   deps.js.map((js) => resolveLink(js))
       .concat(deps.scripts)
       .concat(deps.tmpl.map((rawLink) => resolveLink(rawLink, 'tmpl')))
       .concat(deps.wml.map((rawLink) => resolveLink(rawLink, 'wml')))

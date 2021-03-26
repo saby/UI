@@ -3,7 +3,6 @@
  * @library UI/Base
  * @includes Control UICore/_base/Control
  * @includes HTML UI/_base/HTML
- * @includes getMetaStack UI/_base/HTML/getMetaStack
  * @includes IMetaStack UI/_base/HTML/_meta/IMetaStack
  * @includes IMetaState UI/_base/HTML/_meta/IMetaState
  * @includes IMeta UI/_base/HTML/_meta/IMeta

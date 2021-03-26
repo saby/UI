@@ -1,4 +1,5 @@
 import * as Serializer from './_state/Serializer';
+import AppData from './_state/AppData';
 
 /**
  * @library UI/State
@@ -7,5 +8,6 @@ import * as Serializer from './_state/Serializer';
  * @author Санников А.А.
  */
 export {
-   Serializer
+   Serializer,
+   AppData
 }
