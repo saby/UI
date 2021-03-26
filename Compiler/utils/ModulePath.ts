@@ -6,7 +6,7 @@
 /**
  * Template file extensions pattern.
  */
-const P_EXTENSION: RegExp = /\.(wml|tmpl|xhtml)$/i;
+const P_EXTENSION: RegExp = /\.(wml|tmpl)$/i;
 
 /**
  * Empty string constant.
@@ -42,7 +42,7 @@ function getPluginNameByExtension(extension: string): string {
       case 'xhtml':
          return 'html';
       default:
-         throw new Error(`Не удалось вычислить плагин для шаблона по его расширению. Получено расширение шаблона "${extension}". Ожидалось одно из следующих расширений: wml, tmpl, xhtml`);
+         throw new Error(`Не удалось вычислить плагин для шаблона по его расширению. Получено расширение шаблона "${extension}". Ожидалось одно из следующих расширений: wml, tmpl`);
    }
 }
 

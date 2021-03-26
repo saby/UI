@@ -403,55 +403,6 @@ class CompilerWml extends BaseCompiler {
    }
 }
 
-let DoT;
-
-/**
- * This class represents methods to compile xhtml files.
- */
-class CompilerXHTML implements ICompiler {
-   /**
-    * Generate template module.
-    * @param func Template function.
-    * @param path Template module path.
-    */
-   generate(func: any, path: ModulePath): string {
-      const localizationModule = 'i18n!' + path.getInterfaceModule();
-      const templateModuleRequire = 'html!' + path.module;
-      const template = func.toString().replace(/[\n\r]/g, '');
-      return 'define("' + templateModuleRequire + '",["' + localizationModule + '"],function(){' +
-         'var f=' + template + ';' +
-         'f.toJSON=function(){' +
-         'return {$serialized$:"func", module:"' + templateModuleRequire + '"}' +
-         '};return f;});';
-   }
-
-   /**
-    * Compile input source code into Javascript code.
-    * @param text Input source code.
-    * @param options Compiler options.
-    */
-   compile(text: string, options: IOptions): Promise<IArtifact> {
-      return new Promise((resolve: any, reject: any) => {
-         let artifact: IArtifact = createArtifact(options);
-         if (!DoT) {
-            DoT = requirejs.defined('Core/js-template-doT') && requirejs('Core/js-template-doT');
-         }
-         try {
-            // tslint:disable:prefer-const
-            let config = DoT.getSettings();
-            // tslint:disable:prefer-const
-            let template = DoT.template(text, config, undefined, undefined, options.modulePath.module);
-            artifact.text = this.generate(template, options.modulePath);
-            artifact.stable = true;
-            resolve(artifact);
-         } catch (error) {
-            artifact.errors.push(error);
-            reject(artifact);
-         }
-      });
-   }
-}
-
 /**
  * This class only represents returning error.
  */
@@ -459,7 +410,7 @@ class ErrorCompiler implements ICompiler {
    compile(text: string, options: IOptions): Promise<IArtifact> {
       let artifact = createArtifact(options);
       artifact.errors.push(new Error(
-         'Данное расширение шаблона не поддерживается. Получен шаблон с расширением "' + options.modulePath.extension + '". Ожидалось одно из следующих расширений: wml, tmpl, xhtml.'
+         'Данное расширение шаблона не поддерживается. Получен шаблон с расширением "' + options.modulePath.extension + '". Ожидалось одно из следующих расширений: wml, tmpl.'
       ));
       return Promise.reject(artifact);
    }
@@ -475,8 +426,6 @@ function getCompiler(extension: string): ICompiler {
          return new CompilerWml();
       case 'tmpl':
          return new CompilerTmpl();
-      case 'xhtml':
-         return new CompilerXHTML();
       default:
          return new ErrorCompiler();
    }
