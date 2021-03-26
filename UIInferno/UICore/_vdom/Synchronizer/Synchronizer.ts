@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_vdom/Synchronizer/Synchronizer" />
+/// <amd-module name="UICore/_vdom/Synchronizer/Synchronizer" />
 /* tslint:disable */
 
 import { createNode } from './resources/ControlNode';
@@ -23,7 +23,7 @@ import {
    onStartSync,
    OperationType,
    getNodeName
-} from 'UI/DevtoolsHook';
+} from 'UICore/DevtoolsHook';
 // @ts-ignore
 import { prepareRestoreFocusBeforeRedraw, restoreFocusAfterRedraw } from 'UI/Focus';
 

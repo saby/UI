@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_vdom/Synchronizer/resources/Debug" />
+/// <amd-module name="UICore/_vdom/Synchronizer/resources/Debug" />
 /* tslint:disable */
 
 import {

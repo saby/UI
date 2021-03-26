@@ -31,7 +31,7 @@ export default class MountMethodsCaller {
 
     /**
      * Сбор изменённых контрол нод перед вызовом хуков среди всех детей.
-     * @function UI/_vdom/Synchronizer/resources/MountMethodsCaller#collectControlNodesToCall
+     * @function UICore/_vdom/Synchronizer/resources/MountMethodsCaller#collectControlNodesToCall
      * @param controlNode Корневая контрол нода.
      * @param rebuildChanges Набор айди изменённых контрол нод.
      * @param result Массив для сбора изменённых контрол нод, по умолчанию пустой.
@@ -185,7 +185,7 @@ export default class MountMethodsCaller {
     }
 
     /**
-     * @function UI/_vdom/Synchronizer/resources/MountMethodsCaller#beforeRender
+     * @function UICore/_vdom/Synchronizer/resources/MountMethodsCaller#beforeRender
      * @param controlNodes Массив контрол нод.
      */
     beforeRender: TMountMethod = (controlNodes: IControlNode[]) => {
@@ -215,7 +215,7 @@ export default class MountMethodsCaller {
      * если в массиве встречается еще не замаунченный контрол,
      * то для него вызывается _componentDidMount.
      * Вызов _componentDidUpdate/_componentDidMount происходит синхронно.
-     * @function UI/_vdom/Synchronizer/resources/MountMethodsCaller#componentDidUpdate
+     * @function UICore/_vdom/Synchronizer/resources/MountMethodsCaller#componentDidUpdate
      * @param controlNodes Массив контрол нод.
      */
     componentDidUpdate: TMountMethod = (controlNodes: IControlNode[]) => {
@@ -244,7 +244,7 @@ export default class MountMethodsCaller {
      * если в массиве встречается еще не замаунченный контрол,
      * то для него вызывается _afterMount.
      * Вызов _afterUpdate/_afterMount происходит асинхронно.
-     * @function UI/_vdom/Synchronizer/resources/MountMethodsCaller#afterUpdate
+     * @function UICore/_vdom/Synchronizer/resources/MountMethodsCaller#afterUpdate
      * @param controlNodes Массив контрол нод.
      */
     afterUpdate: TMountMethod = (controlNodes: IControlNode[]) => {

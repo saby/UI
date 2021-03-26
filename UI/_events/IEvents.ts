@@ -1,4 +1,4 @@
-import { IControlNode, IDOMEnvironment, IWasabyHTMLElement, TModifyHTMLNode } from 'UI/_vdom/Synchronizer/interfaces';
+import { IControlNode, IDOMEnvironment, IWasabyHTMLElement, TModifyHTMLNode } from 'UICore/_vdom/Synchronizer/interfaces';
 
 type VoidFunction = () => void;
 

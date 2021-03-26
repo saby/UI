@@ -24,7 +24,7 @@ import {
     IControlNode,
     IDOMEnvironment,
     TModifyHTMLNode
-} from 'UI/_vdom/Synchronizer/interfaces';
+} from 'UICore/_vdom/Synchronizer/interfaces';
 
 /**
  * @author Тэн В.А.

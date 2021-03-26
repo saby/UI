@@ -6,7 +6,7 @@ import template = require('wml!UICore/_base/Control');
 // @ts-ignore FIXME: убрал зависимость от шаблонизатора - core перестал тянуться. Исследовать и исправить
 import cExtend = require('Core/core-extend');
 
-import { Synchronizer } from 'UI/Vdom';
+import { Synchronizer } from 'UICore/Vdom';
 import { _IGeneratorType, OptionsResolver } from 'UI/Executor';
 import { ContextResolver } from 'UI/Contexts';
 import { _FocusAttrs, _IControl, activate, Events, focus } from 'UICore/Focus';

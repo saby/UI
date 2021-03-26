@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_vdom/Synchronizer/resources/SyntheticEvent" />
+/// <amd-module name="UICore/_vdom/Synchronizer/resources/SyntheticEvent" />
 /* tslint:disable */
 
 /**
@@ -55,7 +55,7 @@ interface IEventConfig {
 
 /**
  * Класс искуссвенных событий Wasaby.
- * @class UI/_vdom/Synchronizer/resources/SyntheticEvent
+ * @class UICore/_vdom/Synchronizer/resources/SyntheticEvent
  * @author Тэн В.А.
  * @remark <a href="/doc/platform/developmentapl/interface-development/ui-library/events/">Работа с событиями</a>
  * @public

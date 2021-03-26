@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_vdom/Synchronizer/resources/VdomMarkup" />
+/// <amd-module name="UICore/_vdom/Synchronizer/resources/VdomMarkup" />
 
 import { ArrayUtils } from 'UI/Utils';
 

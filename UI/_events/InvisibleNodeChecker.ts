@@ -1,4 +1,4 @@
-import { IControlNode } from 'UI/_vdom/Synchronizer/interfaces';
+import { IControlNode } from 'UICore/_vdom/Synchronizer/interfaces';
 /**
  * @author Санников К.А.
  */

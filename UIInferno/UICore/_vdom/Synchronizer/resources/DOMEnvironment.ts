@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_vdom/Synchronizer/resources/DOMEnvironment" />
+/// <amd-module name="UICore/_vdom/Synchronizer/resources/DOMEnvironment" />
 // tslint:disable:variable-name no-any ban-ts-ignore
 
 import { detection } from 'Env/Env';

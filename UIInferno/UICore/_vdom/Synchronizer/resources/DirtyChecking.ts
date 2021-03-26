@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_vdom/Synchronizer/resources/DirtyChecking" />
+/// <amd-module name="UICore/_vdom/Synchronizer/resources/DirtyChecking" />
 /**
  * @author Кондаков Р.Н.
  */
@@ -32,7 +32,7 @@ import {
    saveChildren,
    OperationType,
    getNodeName
-} from 'UI/DevtoolsHook';
+} from 'UICore/DevtoolsHook';
 import { IControlNode, IDOMEnvironment, IMemoNode, IMemoForNode, TControlId } from '../interfaces';
 import { getChangedOptions, collectObjectVersions } from './Options';
 import { createNode } from './ControlNode';
@@ -40,7 +40,7 @@ import { getStateReceiver } from 'Application/Env';
 import { isInit } from 'Application/Initializer';
 import { TGeneratorNode, IGeneratorVNode, IGeneratorControlNode, ITemplateNode } from 'UI/Executor';
 // import { VNode } from 'Inferno/third-party/index';
-import { getCompatibleUtils } from 'UI/_vdom/Synchronizer/resources/DirtyCheckingCompatible';
+import { getCompatibleUtils } from 'UICore/_vdom/Synchronizer/resources/DirtyCheckingCompatible';
 
 type TDirtyCheckingTemplate = ITemplateNode & {
     children: TGeneratorNode[];  // нужно понять почему у нас такое ограничение

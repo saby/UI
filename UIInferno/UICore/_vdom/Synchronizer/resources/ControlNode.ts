@@ -1,9 +1,9 @@
-import { composeWithResultApply } from 'UI/_vdom/Utils/Functional';
-import { IControlNode, IDOMEnvironment, IAttrs } from 'UI/_vdom/Synchronizer/interfaces';
+import { composeWithResultApply } from 'UICore/_vdom/Utils/Functional';
+import { IControlNode, IDOMEnvironment, IAttrs } from 'UICore/_vdom/Synchronizer/interfaces';
 import { textNode, OptionsResolver } from 'UI/Executor';
 import { Logger, needToBeCompatible } from 'UI/Utils';
-import { createCompoundControlNode, getCompatibleUtils } from 'UI/_vdom/Synchronizer/resources/DirtyCheckingCompatible';
-import { collectObjectVersions } from 'UI/_vdom/Synchronizer/resources/Options';
+import { createCompoundControlNode, getCompatibleUtils } from 'UICore/_vdom/Synchronizer/resources/DirtyCheckingCompatible';
+import { collectObjectVersions } from 'UICore/_vdom/Synchronizer/resources/Options';
 /**
  * @author Кондаков Р.Н.
  */

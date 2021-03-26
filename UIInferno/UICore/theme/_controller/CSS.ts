@@ -21,7 +21,7 @@ export function createEntity(href: string, cssName: string, themeName: string, t
 /**
  * Создание экземпляра Link из HTMLLinkElement
  * @example
- * import { restoreEntity } from 'UI/theme/_controller/CSS';
+ * import { restoreEntity } from 'UICore/theme/_controller/CSS';
  * // получить массив Link
  *    Array
  *         .from(document.getElementsByTagName('link'))

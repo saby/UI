@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_vdom/Utils/Monad" />
+/// <amd-module name="UICore/_vdom/Utils/Monad" />
 /* tslint:disable */
 
 import { Logger } from 'UI/Utils';

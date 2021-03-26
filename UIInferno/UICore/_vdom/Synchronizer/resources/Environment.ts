@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_vdom/Synchronizer/resources/Environment" />
+/// <amd-module name="UICore/_vdom/Synchronizer/resources/Environment" />
 // tslint:disable: ban-ts-ignore
 
 import { render } from 'Inferno/third-party/index';

@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_vdom/Synchronizer/resources/TabIndex" />
+/// <amd-module name="UICore/_vdom/Synchronizer/resources/TabIndex" />
 /* tslint:disable */
 
 /**

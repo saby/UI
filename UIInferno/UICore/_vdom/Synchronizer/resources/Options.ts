@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_vdom/Synchronizer/resources/Options" />
+/// <amd-module name="UICore/_vdom/Synchronizer/resources/Options" />
 
 import { Set } from 'Types/shim';
 import { IVersionable } from 'Types/entity';

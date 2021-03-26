@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_vdom/Utils/Functional" />
+/// <amd-module name="UICore/_vdom/Utils/Functional" />
 /* tslint:disable */
 
 /**

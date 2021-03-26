@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_vdom/Synchronizer/resources/DirtyCheckingCompatible" />
+/// <amd-module name="UICore/_vdom/Synchronizer/resources/DirtyCheckingCompatible" />
 /* tslint:disable */
 
 import { TClosure } from 'UI/Executor';
