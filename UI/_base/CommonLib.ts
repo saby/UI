@@ -22,8 +22,8 @@ export { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 
 //#region meta data
 import * as meta from 'UI/_base/HTML/meta';
-import { getMetaStack } from 'UI/_base/HTML/meta';
-export { meta, getMetaStack };
+export { getMetaStack } from 'UI/_base/HTML/meta';
+export { meta};
 //#endregion
 
 export { default as Async, IAsyncOptions, TAsyncStateReceived } from 'UI/_async/Async';
