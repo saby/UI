@@ -38,20 +38,35 @@ define('Compiler/core/bridge', [
     * New annotation method.
     */
    function annotateWithVisitors(traversed, options, traverseOptions, deferred) {
+      var translationUnit;
       if (Internal.canUseNewInternalMechanism()) {
-         Internal.process(traversed, traverseOptions.scope);
+         translationUnit = Internal.process(traversed, traverseOptions.scope);
       } else {
-         Annotate.default(traversed, traverseOptions.scope);
+         translationUnit = Annotate.default(traversed, traverseOptions.scope);
       }
 
-      PatchVisitorLib.default(traversed, traverseOptions.scope);
+      PatchVisitorLib.default(translationUnit.tree, traverseOptions.scope);
+
+      if (!deferred) {
+         // FIXME: Запрос на аннотацию пришел из синхронного метода. Временный код. Удалить после правки плагина.
+         return translationUnit;
+      }
+
+      // FIXME: поправить интерфейсы после правок в плагинах
+      traversed.lexicalContext = translationUnit.lexicalContext;
+      traversed.container = translationUnit.container;
+      traversed.childrenStorage = translationUnit.childrenStorage;
+      traversed.reactiveProps = translationUnit.reactiveProps;
+      traversed.templateNames = translationUnit.templateNames;
+      traversed.hasTranslations = translationUnit.hasTranslations;
+      traversed.__newVersion = translationUnit.__newVersion;
 
       // в случае сбора словаря локализуемых слов отдаем объект
       // { astResult - ast-дерево, words - словарь локализуемых слов }
       if (options.createResultDictionary) {
          deferred.callback({
             astResult: traversed,
-            words: traverseOptions.scope.getTranslationKeys()
+            words: translationUnit.localizedDictionary
          });
          return;
       }
@@ -97,7 +112,37 @@ define('Compiler/core/bridge', [
       return deferred;
    }
 
+   function traverseSync(htmlTree, options) {
+      var scope = new ScopeLib.default(!options.fromBuilderTmpl);
+      var errorHandler = ErrorHandlerLib.createErrorHandler(!options.fromBuilderTmpl);
+      var traverseConfig = {
+         expressionParser: new ParserLib.Parser(),
+         hierarchicalKeys: true,
+         errorHandler: errorHandler,
+         allowComments: false,
+         textTranslator: Translator.createTextTranslator(options.componentsProperties || { }),
+         generateTranslations: (
+             (USE_GENERATE_CODE_FOR_TRANSLATIONS && !!options.generateCodeForTranslations) ||
+             !USE_GENERATE_CODE_FOR_TRANSLATIONS
+         )
+      };
+      var traverseOptions = {
+         fileName: options.fileName,
+         scope: scope,
+         translateText: true
+      };
+      var traversed = TraverseLib.default(htmlTree, traverseConfig, traverseOptions);
+      var hasFailures = errorHandler.hasFailures();
+      var lastMessage = errorHandler.popLastErrorMessage();
+      errorHandler.flush();
+      if (hasFailures) {
+         throw new Error(lastMessage);
+      }
+      return annotateWithVisitors(traversed, options, traverseOptions);
+   }
+
    return {
-      traverse: traverse
+      traverse: traverse,
+      traverseSync: traverseSync
    };
 });

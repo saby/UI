@@ -1,4 +1,6 @@
 /**
+ * @deprecated TODO: удалить. Актуальный - Core/core/internal/Annotate
+ *    https://online.sbis.ru/opendoc.html?guid=a0335c4b-332c-4a62-bb8b-8e03923fc68b
  * @description Represents interfaces, methods and classes to annotate AST.
  * @author Крылов М.А.
  */
@@ -14,44 +16,24 @@ import {
 } from 'Compiler/core/Context';
 import * as Walkers from 'Compiler/expressions/Walkers';
 import { ProgramNode } from 'Compiler/expressions/Nodes';
+import { ITranslationKey } from 'Compiler/i18n/Dictionary';
+import { Container } from 'Compiler/core/internal/Container';
 
 // <editor-fold desc="Public interfaces and functions">
 
-/**
- * Interface for annotated abstract syntax tree.
- */
-export interface IAnnotatedTree extends Array<Ast.Ast> {
-
-   /**
-    * Child names collection.
-    */
+export interface ITranslationUnit {
+   tree: Ast.Ast[];
+   fileName: string;
+   localizedDictionary: ITranslationKey[];
+   container: Container | null;
+   lexicalContext: ILexicalContext | null;
    childrenStorage: string[];
-
-   /**
-    * Reactive property names collection.
-    */
    reactiveProps: string[];
-
-   /**
-    * Inline template names collection.
-    */
    templateNames: string[];
-
-   /**
-    * Global lexical context.
-    */
-   lexicalContext: ILexicalContext;
-
-   /**
-    * Special flag.
-    * @deprecated
-    */
-   __newVersion: boolean;
-
-   /**
-    * Abstract syntax tree contains translations.
-    */
+   dependencies: string[];
    hasTranslations: boolean;
+   scope: Scope;
+   __newVersion: boolean;
 }
 
 /**
@@ -64,7 +46,7 @@ export interface IAnnotateProcessor {
     * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
     * @param scope {Scope} Processing scope object.
     */
-   annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree;
+   annotate(nodes: Ast.Ast[], scope: Scope): ITranslationUnit;
 }
 
 /**
@@ -72,7 +54,7 @@ export interface IAnnotateProcessor {
  * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
  * @param scope {Scope} Processing scope object.
  */
-export default function annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree {
+export default function annotate(nodes: Ast.Ast[], scope: Scope): ITranslationUnit {
    return new AnnotateProcessor()
       .annotate(nodes, scope);
 }
@@ -288,7 +270,7 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
     * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
     * @param scope {Scope} Processing scope object.
     */
-   annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree {
+   annotate(nodes: Ast.Ast[], scope: Scope): ITranslationUnit {
       const childrenStorage: string[] = [];
       const global = createGlobalContext();
       const counters = new Counters();
@@ -316,15 +298,20 @@ class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
          node.__$ws_internal = {};
          appendInternalExpressions(node.__$ws_internal, lexicalContext.getInternalPrograms());
       });
-      const reactiveProperties: string[] = global.getOwnIdentifiers();
-      const result = nodes as IAnnotatedTree;
-      result.lexicalContext = global;
-      result.childrenStorage = childrenStorage;
-      result.reactiveProps = reactiveProperties;
-      result.templateNames = scope.getTemplateNames();
-      result.hasTranslations = scope.hasDetectedTranslations();
-      result.__newVersion = true;
-      return result;
+      return {
+         tree: nodes,
+         fileName: 'unknown',
+         localizedDictionary: scope.getTranslationKeys(),
+         lexicalContext: global,
+         container: null,
+         childrenStorage,
+         reactiveProps: global.getOwnIdentifiers(),
+         templateNames: scope.getTemplateNames(),
+         dependencies: scope.getDependencies(),
+         hasTranslations: scope.hasDetectedTranslations(),
+         scope,
+         __newVersion: true
+      };
    }
 
    // <editor-fold desc="Data types">

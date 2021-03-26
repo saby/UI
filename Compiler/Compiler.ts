@@ -3,16 +3,17 @@
  * @author Крылов М.А.
  */
 
-import * as ComponentCollector from './core/_deprecated/ComponentCollector';
 import { parse } from './html/Parser';
 import { createErrorHandler } from './utils/ErrorHandler';
 import getWasabyTagDescription from './core/Tags';
-import { traverse } from './core/bridge';
+import { traverseSync } from './core/bridge';
 import * as codegenBridge from './codegen/bridge';
 import * as templates from './codegen/templates';
 import { ISource, Source } from './utils/Source';
 import { IOptions, Options } from './utils/Options';
 import { ModulePath } from './utils/ModulePath';
+import { ITranslationKey } from './i18n/Dictionary';
+import { ITranslationUnit } from './core/internal/Annotate';
 
 /**
  * Флаг - генерировать rk-функции
@@ -56,7 +57,7 @@ export interface IArtifact {
    /**
     * Translations dictionary.
     */
-   localizedDictionary: IDictionaryItem[];
+   localizedDictionary: ITranslationKey[];
 
    /**
     * Array of input file dependencies.
@@ -81,91 +82,6 @@ function createArtifact(options: IOptions): IArtifact {
       localizedDictionary: [],
       dependencies: null,
       stable: false
-   };
-}
-
-/**
- * Record in translations dictionary.
- */
-interface IDictionaryItem {
-
-   /**
-    * Text to translate.
-    */
-   key: string;
-
-   /**
-    * Translation context.
-    */
-   context: string;
-
-   /**
-    * Template module that contains this translation.
-    */
-   module: string;
-}
-
-/**
- * Represents abstract syntax tree interface as array of "object" - abstract syntax nodes.
- * FIXME: release interfaces for these nodes.
- */
-interface IAST extends Array<Object> {
-   childrenStorage: string[];
-   reactiveProps: string[];
-   templateNames: string[];
-   __newVersion: boolean;
-   hasTranslations: boolean;
-}
-
-/**
- * Represents interface for traverse resulting object.
- */
-interface ITraversed {
-
-   /**
-    * Abstract syntax tree.
-    */
-   ast: IAST;
-
-   /**
-    * Translations dictionary.
-    */
-   localizedDictionary: IDictionaryItem[];
-
-   /**
-    * Array of input file dependencies.
-    */
-   dependencies: string[];
-
-   /**
-    * Collection of inline template names.
-    */
-   templateNames: string[];
-
-   hasTranslations: boolean;
-}
-
-/**
- * Fix traverse result.
- * @param rawTraversed Actual traverse result.
- * @param dependencies Array of dependencies.
- */
-function fixTraversed(rawTraversed: IAST | { astResult: IAST; words: IDictionaryItem[]; }, dependencies: string[]): ITraversed {
-   if (Array.isArray(rawTraversed)) {
-      return {
-         ast: rawTraversed as IAST,
-         localizedDictionary: [],
-         templateNames: rawTraversed.templateNames,
-         hasTranslations: rawTraversed.hasTranslations,
-         dependencies
-      };
-   }
-   return {
-      ast: rawTraversed.astResult as IAST,
-      localizedDictionary: rawTraversed.words,
-      templateNames: rawTraversed.astResult.templateNames,
-      hasTranslations: rawTraversed.astResult.hasTranslations,
-      dependencies
    };
 }
 
@@ -204,24 +120,24 @@ abstract class BaseCompiler implements ICompiler {
 
    /**
     * Generate code for template.
-    * @param traversed Traverse object.
-    * @param options Compiler options.
+    * @param unit {ITranslationUnit} Compilation unit.
+    * @param options {IOptions} Compiler options.
     */
-   generate(traversed: ITraversed, options: IOptions): string {
+   generate(unit: ITranslationUnit, options: IOptions): string {
       const codeGenOptions = {
          ...options,
          generateTranslations: (
              options.generateCodeForTranslations && USE_GENERATE_CODE_FOR_TRANSLATIONS
              || !USE_GENERATE_CODE_FOR_TRANSLATIONS
-         ) && traversed.hasTranslations
+         ) && unit.hasTranslations
       };
       // tslint:disable:prefer-const
-      let tmplFunc = codegenBridge.getFunction(traversed.ast, null, codeGenOptions, null);
+      let tmplFunc = codegenBridge.getFunctionWithUnit(unit, codeGenOptions);
       if (!tmplFunc) {
          throw new Error('Шаблон не может быть построен. Не загружены зависимости.');
       }
       return this.generateModule(
-          tmplFunc, traversed.dependencies, traversed.ast.reactiveProps, options.modulePath, traversed.hasTranslations
+          tmplFunc, unit.dependencies, unit.reactiveProps, options.modulePath, unit.hasTranslations
       );
    }
 
@@ -230,43 +146,29 @@ abstract class BaseCompiler implements ICompiler {
     * @param source Source code.
     * @param options Compiler options.
     */
-   traverse(source: ISource, options: IOptions): Promise<ITraversed> {
-      return new Promise<ITraversed>((resolve: any, reject: any) => {
-         try {
-            // TODO: реализовать whitespace visitor и убрать флаг needPreprocess
-            const needPreprocess = options.modulePath.extension === 'wml';
-            const errorHandler = createErrorHandler(!options.fromBuilderTmpl);
-            // tslint:disable:prefer-const
-            let parsed = parse(source.text, options.fileName, {
-               xml: true,
-               allowComments: true,
-               allowCDATA: true,
-               compatibleTreeStructure: true,
-               rudeWhiteSpaceCleaning: true,
-               normalizeLineFeed: true,
-               cleanWhiteSpaces: true,
-               needPreprocess: needPreprocess,
-               tagDescriptor: getWasabyTagDescription,
-               errorHandler
-            });
-            const hasFailures = errorHandler.hasFailures();
-            const lastMessage = errorHandler.popLastErrorMessage();
-            errorHandler.flush();
-            if (hasFailures) {
-               reject(new Error(lastMessage));
-               return;
-            }
-            const dependencies = ComponentCollector.getComponents(parsed);
-            // tslint:disable:prefer-const
-            let traversed = traverse(parsed, options);
-            traversed.addCallbacks(
-               (rawTraversed) => resolve(fixTraversed(rawTraversed, dependencies)),
-               (error) => reject(error)
-            );
-         } catch (error) {
-            reject(error);
-         }
+   traverse(source: ISource, options: IOptions): ITranslationUnit {
+      // TODO: реализовать whitespace visitor и убрать флаг needPreprocess
+      const needPreprocess = options.modulePath.extension === 'wml';
+      const errorHandler = createErrorHandler(!options.fromBuilderTmpl);
+      const parsed = parse(source.text, options.fileName, {
+         xml: true,
+         allowComments: true,
+         allowCDATA: true,
+         compatibleTreeStructure: true,
+         rudeWhiteSpaceCleaning: true,
+         normalizeLineFeed: true,
+         cleanWhiteSpaces: true,
+         needPreprocess: needPreprocess,
+         tagDescriptor: getWasabyTagDescription,
+         errorHandler
       });
+      const hasFailures = errorHandler.hasFailures();
+      const lastMessage = errorHandler.popLastErrorMessage();
+      errorHandler.flush();
+      if (hasFailures) {
+         throw new Error(lastMessage);
+      }
+      return traverseSync(parsed, options) as ITranslationUnit;
    }
 
    /**
@@ -279,27 +181,20 @@ abstract class BaseCompiler implements ICompiler {
          let artifact: IArtifact = createArtifact(options);
          try {
             const source: ISource = this.createSource(text, options.fileName);
-            this.traverse(source, options)
-               .then((traversed) => {
-                  try {
-                     this.initWorkspace(traversed.templateNames);
-                     artifact.text = this.generate(traversed, options);
-                     artifact.localizedDictionary = traversed.localizedDictionary;
-                     artifact.dependencies = traversed.dependencies;
-                     artifact.stable = true;
-                     resolve(artifact);
-                  } catch (error) {
-                     artifact.errors.push(error);
-                     reject(artifact);
-                  } finally {
-                     this.cleanWorkspace();
-                  }
-               })
-               .catch((error) => {
-                  this.cleanWorkspace();
-                  artifact.errors.push(error);
-                  reject(artifact);
-               });
+            const unit = this.traverse(source, options);
+            try {
+               this.initWorkspace(unit.templateNames);
+               artifact.text = this.generate(unit, options);
+               artifact.localizedDictionary = unit.localizedDictionary;
+               artifact.dependencies = unit.dependencies;
+               artifact.stable = true;
+               resolve(artifact);
+            } catch (error) {
+               artifact.errors.push(error);
+               reject(artifact);
+            } finally {
+               this.cleanWorkspace();
+            }
          } catch (error) {
             artifact.errors.push(error);
             reject(artifact);
@@ -403,55 +298,6 @@ class CompilerWml extends BaseCompiler {
    }
 }
 
-let DoT;
-
-/**
- * This class represents methods to compile xhtml files.
- */
-class CompilerXHTML implements ICompiler {
-   /**
-    * Generate template module.
-    * @param func Template function.
-    * @param path Template module path.
-    */
-   generate(func: any, path: ModulePath): string {
-      const localizationModule = 'i18n!' + path.getInterfaceModule();
-      const templateModuleRequire = 'html!' + path.module;
-      const template = func.toString().replace(/[\n\r]/g, '');
-      return 'define("' + templateModuleRequire + '",["' + localizationModule + '"],function(){' +
-         'var f=' + template + ';' +
-         'f.toJSON=function(){' +
-         'return {$serialized$:"func", module:"' + templateModuleRequire + '"}' +
-         '};return f;});';
-   }
-
-   /**
-    * Compile input source code into Javascript code.
-    * @param text Input source code.
-    * @param options Compiler options.
-    */
-   compile(text: string, options: IOptions): Promise<IArtifact> {
-      return new Promise((resolve: any, reject: any) => {
-         let artifact: IArtifact = createArtifact(options);
-         if (!DoT) {
-            DoT = requirejs.defined('Core/js-template-doT') && requirejs('Core/js-template-doT');
-         }
-         try {
-            // tslint:disable:prefer-const
-            let config = DoT.getSettings();
-            // tslint:disable:prefer-const
-            let template = DoT.template(text, config, undefined, undefined, options.modulePath.module);
-            artifact.text = this.generate(template, options.modulePath);
-            artifact.stable = true;
-            resolve(artifact);
-         } catch (error) {
-            artifact.errors.push(error);
-            reject(artifact);
-         }
-      });
-   }
-}
-
 /**
  * This class only represents returning error.
  */
@@ -459,7 +305,7 @@ class ErrorCompiler implements ICompiler {
    compile(text: string, options: IOptions): Promise<IArtifact> {
       let artifact = createArtifact(options);
       artifact.errors.push(new Error(
-         'Данное расширение шаблона не поддерживается. Получен шаблон с расширением "' + options.modulePath.extension + '". Ожидалось одно из следующих расширений: wml, tmpl, xhtml.'
+         'Данное расширение шаблона не поддерживается. Получен шаблон с расширением "' + options.modulePath.extension + '". Ожидалось одно из следующих расширений: wml, tmpl.'
       ));
       return Promise.reject(artifact);
    }
@@ -475,8 +321,6 @@ function getCompiler(extension: string): ICompiler {
          return new CompilerWml();
       case 'tmpl':
          return new CompilerTmpl();
-      case 'xhtml':
-         return new CompilerXHTML();
       default:
          return new ErrorCompiler();
    }

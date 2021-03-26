@@ -10,11 +10,6 @@ define('Compiler/codegen/bridge', [
     * @author Крылов М.А.
     */
 
-   /**
-    * Флаг включения посетителей генерации кода.
-    */
-   var CODEGEN_VISITORS = false;
-
    var USE_GENERATE_CODE_FOR_TRANSLATIONS = false;
 
    /**
@@ -78,18 +73,28 @@ define('Compiler/codegen/bridge', [
          handlers.generateTranslations = (
              handlers.generateCodeForTranslations && USE_GENERATE_CODE_FOR_TRANSLATIONS
              || !USE_GENERATE_CODE_FOR_TRANSLATIONS
-         ) && ast.hasTranslations
-      }
-      if (CODEGEN_VISITORS) {
-         // TODO: Release
+         ) && ast.hasTranslations;
       }
       return processingToFunction.getFunction(ast, data, handlers, attributes, internal);
+   }
+
+   function getFunctionWithUnit(unit, options) {
+      // TODO: Новая функция генерации кода по юниту. Перейти везде на эту функцию.
+      //   Убрать перенос опций на массив.
+      unit.tree.childrenStorage = unit.childrenStorage;
+      unit.tree.reactiveProps = unit.reactiveProps;
+      unit.tree.templateNames = unit.templateNames;
+      unit.tree.container = unit.container;
+      unit.tree.hasTranslations = unit.hasTranslations;
+      unit.tree.__newVersion = unit.__newVersion;
+      return processingToFunction.getFunction(unit.tree, null, options, null, null);
    }
 
    return {
       initWorkspaceWML: initWorkspaceWML,
       initWorkspaceTMPL: initWorkspaceTMPL,
       cleanWorkspace: cleanWorkspace,
-      getFunction: getFunction
+      getFunction: getFunction,
+      getFunctionWithUnit: getFunctionWithUnit
    };
 });

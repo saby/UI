@@ -23,6 +23,12 @@ export interface IDependenciesController {
    registerDependency(path: IPath): void;
 
    /**
+    * Get dependencies list initialized with some head dependencies.
+    * @param initWith {string[]} Head dependencies.
+    */
+   getDependencies(initWith?: string[]): string[];
+
+   /**
     * Request all dependencies.
     */
    requestDependencies(): ParallelDeferred<unknown>;
@@ -96,6 +102,19 @@ class DependenciesController implements IDependenciesController {
       }, (error) => {
          deferred.errback(error);
       });
+   }
+
+   /**
+    * Get dependencies list initialized with some head dependencies.
+    * @param initWith {string[]} Head dependencies.
+    */
+   getDependencies(initWith?: string[]): string[] {
+      const deps: string[] = Array.isArray(initWith) ? Array(...initWith) : [];
+      for (const fullPath in this.dependencies) {
+         const path = this.dependencies[fullPath];
+         deps.push(path.getFullPhysicalPath());
+      }
+      return deps;
    }
 
    /**
