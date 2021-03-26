@@ -7,16 +7,10 @@ import { WasabyContextManager } from 'UI/_react/WasabyContext/WasabyContextManag
 import { Control } from 'UI/_react/Control/WasabyOverReact';
 
 import {IControlOptions, TemplateFunction} from 'UI/_react/Control/interfaces';
-import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult} from './interfaces';
+import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate, IWasabyEvent} from './interfaces';
 
-interface IWasabyEvent {
-   args: unknown[];
-   context: Function;
-   handler: Function;
-   isControl: boolean;
-   value: string;
-   viewController: Control;
-}
+import * as Attr from '../../_Expressions/Attr';
+
 export class GeneratorReact {
    prepareDataForCreate(tplOrigin: TemplateOrigin,
       scope: IControlOptions,
@@ -259,7 +253,7 @@ export class GeneratorReact {
          }
       },
       children: React.ReactNode[],
-      _: unknown,
+      attrToDecorate: AttrToDecorate,
       __: unknown,
       control?: Control
    ): React.DetailedReactHTMLElement<P, T> {
@@ -280,8 +274,20 @@ export class GeneratorReact {
          };
       }
 
-      const convertedAttributes = convertAttributes(attrs.attributes);
-      const extractedEvents = {...control._options['events'] , ...extractEventNames(attrs.events)};
+      if (!attrToDecorate) {
+         attrToDecorate = {};
+      }
+      const mergedAttrs = Attr.mergeAttrs(attrToDecorate.attributes, attrs.attributes);
+      Object.keys(mergedAttrs).forEach((attrName) => {
+         if (!mergedAttrs[attrName]) {
+            delete mergedAttrs[attrName];
+         }
+      });
+
+      const convertedAttributes = convertAttributes(mergedAttrs);
+      const extractedEvents = control ?
+         {...control._options['events'], ...extractEventNames(attrs.events)} :
+         {...extractEventNames(attrs.events)};
 
       const newProps = {
          ...convertedAttributes,
