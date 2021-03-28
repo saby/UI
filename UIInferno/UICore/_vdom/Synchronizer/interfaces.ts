@@ -3,7 +3,7 @@ import { IOptions } from 'UICore/_vdom/Synchronizer/resources/Options';
 export { IOptions } from 'UICore/_vdom/Synchronizer/resources/Options';
 import { VNode } from 'Inferno/third-party/index';
 import { IGeneratorControlNode } from "UI/_executor/_Markup/Vdom/IVdomType";
-import { IWasabyEventSystem } from 'UI/Events';
+import { IWasabyEventSystem } from 'UICore/Events';
 
 export type TComponentAttrs = Record<string, unknown>;
 

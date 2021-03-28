@@ -7,7 +7,7 @@
 // @ts-nocheck
 // @ts-ignore
 import { constants } from 'Env/Env';
-import { Subscriber } from 'UI/Events';
+import { Subscriber } from 'UICore/Events';
 import {
    getFullMarkup,
    mapVNode,
