@@ -18,7 +18,7 @@ import {
    isTemplateVNodeType
 } from './VdomMarkup';
 import { OptionsResolver } from 'UI/Executor';
-import { ContextResolver } from 'UI/Contexts';
+import { ContextResolver } from 'UICore/Contexts';
 import { delay } from 'Types/function';
 // @ts-ignore
 import { Serializer } from 'UI/State';
