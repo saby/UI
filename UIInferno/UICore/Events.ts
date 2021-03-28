@@ -1,8 +1,8 @@
 /**
  * Библиотека событий
  * @library UICore/Events
- * @includes EventUtils UI/_events/EventUtils
- * @includes Subscriber UI/_events/Subscriber
+ * @includes EventUtils UICore/_events/EventUtils
+ * @includes Subscriber UICore/_events/Subscriber
  * @public
  * @author Тэн В.А.
  */

@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_events/Subscriber" />
+/// <amd-module name="UICore/_events/Subscriber" />
 /* tslint:disable */
 
 /**

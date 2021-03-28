@@ -48,7 +48,7 @@ var domEventsBubbling = {
 
 /**
  * Класс искуссвенных событий Wasaby.
- * @class UI/_events/SyntheticEvent
+ * @class UICore/_events/SyntheticEvent
  * @author Тэн В.А.
  * @remark <a href="/doc/platform/developmentapl/interface-development/ui-library/events/">Работа с событиями</a>
  * @public
