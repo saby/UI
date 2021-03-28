@@ -1,4 +1,4 @@
-import { Logger } from 'UI/Utils';
+import { Logger } from 'UICore/Utils';
 
 const hasProxy = typeof Proxy !== 'undefined';
 const hasReflect = typeof Reflect !== 'undefined';

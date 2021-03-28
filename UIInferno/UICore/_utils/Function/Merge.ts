@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_utils/Function/Merge" />
+/// <amd-module name="UICore/_utils/Function/Merge" />
 
 interface IConfig {
    clone?: boolean; // Клонировать элементы
@@ -89,7 +89,7 @@ function cloneOrCopy(hash: object, hashExtender: object, key: string, config: IC
  *
  * <h2>Пример использования</h2>
  * <pre>
- *    require(['UI/Utils'], function(Utils) {
+ *    require(['UICore/Utils'], function(Utils) {
  *       var merge = Utils.FunctionUtils.merge;
  *       var original = {one: 1, two: 2};
  *       var extender = {two: 'dos', three: 'tres'};
@@ -101,7 +101,7 @@ function cloneOrCopy(hash: object, hashExtender: object, key: string, config: IC
  *       console.log(original.two);//'dos'
  *    });
  * </pre>
- * @class UI/_utils/Function/Merge
+ * @class UICore/_utils/Function/Merge
  * @public
  * @author Мальцев А.А.
  */

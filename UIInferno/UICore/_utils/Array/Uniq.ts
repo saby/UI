@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_utils/Array/Uniq" />
+/// <amd-module name="UICore/_utils/Array/Uniq" />
 
 /**
  * Модуль, в котором описана функция <b>uniq(array)</b>.
@@ -17,7 +17,7 @@
  *
  * <h2>Пример использования</h2>
  * <pre>
- *    require(['UI/Utils'], function(Utils) {
+ *    require(['UICore/Utils'], function(Utils) {
  *       var uniqArray = Utils.ArrayUtils.uniq;
  *
  *       // [1, 2, 3, 4, 5]
@@ -25,7 +25,7 @@
  *    });
  * </pre>
  *
- * @class UI/_utils/Array/uniq
+ * @class UICore/_utils/Array/uniq
  * @public
  * @author Мальцев А.А.
  */

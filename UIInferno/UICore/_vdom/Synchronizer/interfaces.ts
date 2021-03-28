@@ -69,7 +69,7 @@ export interface IControlNode extends IRebuildNode {
     // TODO это нужно вынести в расширенные интерфейсы
     _moduleName?: string;  // это добавляет какой то Executor
 
-    // мы не должны зависить от UI/Focus._IDOMEnvironment, поэтому определю тут
+    // мы не должны зависить от UICore/Focus._IDOMEnvironment, поэтому определю тут
     _rootDOMNode: TModifyHTMLNode;
     __captureEventHandler: Function;
 }

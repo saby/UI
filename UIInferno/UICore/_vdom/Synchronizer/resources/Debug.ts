@@ -13,8 +13,8 @@ import { DirtyKind } from './DirtyChecking';
 // @ts-ignore
 import { TClosure } from 'UI/Executor';
 // @ts-ignore
-import { ObjectUtils } from 'UI/Utils';
-import {_FocusAttrs} from "UI/Focus";
+import { ObjectUtils } from 'UICore/Utils';
+import {_FocusAttrs} from 'UICore/Focus';
 
 /**
  * @author Кондаков Р.Н.

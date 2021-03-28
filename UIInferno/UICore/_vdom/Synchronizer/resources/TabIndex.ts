@@ -6,5 +6,5 @@
  */
 
 // @ts-ignore
-import { ElementFinder as TabIndex } from 'UI/Focus';
+import { ElementFinder as TabIndex } from 'UICore/Focus';
 export { TabIndex };

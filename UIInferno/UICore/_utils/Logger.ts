@@ -210,9 +210,9 @@ const prepareStack = (stackNode: {[key: string]: any}): string => {
 
    if (window && data && data._container) {
       // @ts-ignore
-      const NodeCollector = requirejs('UI/NodeCollector');
+      const NodeCollector = requirejs('UICore/NodeCollector');
       // TODO: допущение, что библиотеке фокусов загружена до ошибок, подумать как сделать лучше
-      // явно тащить нельзя, цикл - UI/NodeCollector -> UI/_utils/Logger -> UI/NodeCollector
+      // явно тащить нельзя, цикл - UICore/NodeCollector -> UICore/_utils/Logger -> UICore/NodeCollector
 
       let arrayControls = [];
       if (NodeCollector) {

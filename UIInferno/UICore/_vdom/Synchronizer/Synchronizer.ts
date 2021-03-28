@@ -6,13 +6,13 @@ import { DirtyKind, rebuildNode, destroyReqursive, getReceivedState } from './re
 import DOMEnvironment from './resources/DOMEnvironment';
 import { delay } from 'Types/function';
 // @ts-ignore
-import { ObjectUtils } from 'UI/Utils';
+import { ObjectUtils } from 'UICore/Utils';
 // @ts-ignore
 import { Serializer } from 'UI/State';
 import { Control, IControlOptions } from 'UICore/Base';
 
 // @ts-ignore
-import { Logger } from 'UI/Utils';
+import { Logger } from 'UICore/Utils';
 import { IOptions, IControlNode, IMemoNode, IWasabyHTMLElement, IDOMEnvironment, IRootAttrs } from './interfaces';
 
 import {
@@ -25,7 +25,7 @@ import {
    getNodeName
 } from 'UICore/DevtoolsHook';
 // @ts-ignore
-import { prepareRestoreFocusBeforeRedraw, restoreFocusAfterRedraw } from 'UI/Focus';
+import { prepareRestoreFocusBeforeRedraw, restoreFocusAfterRedraw } from 'UICore/Focus';
 
 /**
  * @author Кондаков Р.Н.

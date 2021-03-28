@@ -8,9 +8,9 @@ import cExtend = require('Core/core-extend');
 
 import { Synchronizer } from 'UICore/Vdom';
 import { _IGeneratorType, OptionsResolver } from 'UI/Executor';
-import { ContextResolver } from 'UI/Contexts';
+import { ContextResolver } from 'UICore/Contexts';
 import { _FocusAttrs, _IControl, activate, Events, focus } from 'UICore/Focus';
-import { Logger, Purifier, needToBeCompatible } from 'UI/Utils';
+import { Logger, Purifier, needToBeCompatible } from 'UICore/Utils';
 import { goUpByControlTree } from 'UICore/NodeCollector';
 import { constants } from 'Env/Env';
 import { getGeneratorConfig } from "./GeneratorConfig";

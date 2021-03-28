@@ -24,7 +24,7 @@ interface INotifyActivationEvents {
  */
 
 import { constants, detection } from 'Env/Env';
-import { Logger } from 'UI/Utils';
+import { Logger } from 'UICore/Utils';
 import { goUpByControlTree } from 'UICore/NodeCollector';
 
 import { IControlElement } from './IFocus';

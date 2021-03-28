@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_utils/Array/FindIndex" />
+/// <amd-module name="UICore/_utils/Array/FindIndex" />
 
 /**
  * Модуль, в котором описана функция <b>findIndex(array, predicate, context)</b>.
@@ -26,7 +26,7 @@
  * <h2>Пример использования</h2>
  *
  * <pre>
- * require(['UI/Utils'], function(Utils) {
+ * require(['UICore/Utils'], function(Utils) {
  *    var findIndex = Utils.ArrayUtils.findIndex;
  *
  *    //2
@@ -35,7 +35,7 @@
  *    }));
  * });
  * </pre>
- * @class UI/_utils/Array/findIndex
+ * @class UICore/_utils/Array/findIndex
  * @public
  * @author Мальцев А.А.
  */

@@ -7,7 +7,7 @@ import { constants } from 'Env/Env'
 
 /**
  * Отвечает на вопрос, нужно ли отслеживать обращения к полям после очистки.
- * @function UI/_utils/Purifier#needLog
+ * @function UICore/_utils/Purifier#needLog
  * @returns { boolean }
  */
 export default function needLog(): boolean {
@@ -17,7 +17,7 @@ export default function needLog(): boolean {
 
 /**
  * Отвечает на вопрос, можно ли очистить модуль синхронно.
- * @function UI/_utils/Purifier#canPurifyInstanceSync
+ * @function UICore/_utils/Purifier#canPurifyInstanceSync
  * @param { string } instanceName имя модуля.
  * @returns { boolean }
  */

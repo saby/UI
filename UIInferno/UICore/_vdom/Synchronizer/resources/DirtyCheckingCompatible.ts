@@ -2,8 +2,8 @@
 /* tslint:disable */
 
 import { TClosure } from 'UI/Executor';
-import { Logger } from "UI/Utils";
-import {_FocusAttrs} from "UI/Focus";
+import { Logger } from 'UICore/Utils';
+import {_FocusAttrs} from 'UICore/Focus';
 
 let compatibleUtils;
 export function getCompatibleUtils() {

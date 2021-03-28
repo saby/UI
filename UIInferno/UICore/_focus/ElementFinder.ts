@@ -8,7 +8,7 @@
 
 import { IControlElement } from './IFocus';
 
-import { isElementVisible } from 'UI/Utils';
+import { isElementVisible } from 'UICore/Utils';
 
 let NODE_NODE_TYPE = 1;
 

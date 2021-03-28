@@ -1,6 +1,6 @@
 /**
  * Библиотека функций, помогающих избавляться от утечки памяти.
- * @class UI/_utils/Purifier
+ * @class UICore/_utils/Purifier
  * @public
  * @author Кондаков Р.Н.
  */

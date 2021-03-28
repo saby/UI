@@ -2,9 +2,9 @@
 // tslint:disable:variable-name no-any ban-ts-ignore
 
 import { detection } from 'Env/Env';
-import { Logger, isNewEnvironment } from 'UI/Utils';
-import {ElementFinder, Events, focus, preventFocus, hasNoFocus} from 'UI/Focus';
-import { goUpByControlTree } from 'UI/NodeCollector';
+import { Logger, isNewEnvironment } from 'UICore/Utils';
+import {ElementFinder, Events, focus, preventFocus, hasNoFocus} from 'UICore/Focus';
+import { goUpByControlTree } from 'UICore/NodeCollector';
 import { WasabyEvents } from 'UI/Events';
 import {
    IDOMEnvironment, TControlStateCollback,

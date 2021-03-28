@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_utils/Object/IsPlainObject" />
+/// <amd-module name="UICore/_utils/Object/IsPlainObject" />
 
 /**
  *
@@ -12,7 +12,7 @@
  * <h2>Пример использования</h2>
  *
  * <pre>
- *    require(['UI/Utils'], function(Utils) {
+ *    require(['UICore/Utils'], function(Utils) {
  *       var isPlainObject = Utils.ObjectUtils.isPlainObject;
  *
  *       // true
@@ -23,7 +23,7 @@
  *    });
  * </pre>
  *
- * @class UI/_utils/Object/IsPlainObject
+ * @class UICore/_utils/Object/IsPlainObject
  * @public
  * @author Мальцев А.А.
  */

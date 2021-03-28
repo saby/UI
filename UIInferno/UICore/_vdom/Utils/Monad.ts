@@ -1,7 +1,7 @@
 /// <amd-module name="UICore/_vdom/Utils/Monad" />
 /* tslint:disable */
 
-import { Logger } from 'UI/Utils';
+import { Logger } from 'UICore/Utils';
 
 function reduce(obj, callback, initialMemo, thisArg?) {
    var memo = initialMemo;

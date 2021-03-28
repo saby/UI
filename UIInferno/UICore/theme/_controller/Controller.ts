@@ -1,7 +1,7 @@
 /// <amd-module name='UICore/theme/_controller/Controller' />
 // @ts-ignore
 import { cookie } from 'Env/Env';
-import { Logger } from 'UI/Utils';
+import { Logger } from 'UICore/Utils';
 import { createEntity, isSingleEntity, restoreEntity } from './CSS';
 import { DEFAULT_THEME, EMPTY_THEME, THEME_TYPE } from './css/const';
 import { ICssEntity } from './css/interface';
