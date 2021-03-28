@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_head/wsConfig" />
 
 import { Head as AppHead } from 'Application/Page';
+import * as AppEnv from 'Application/Env';
 import { constants } from "Env/Env";
 import AppData from "UI/_base/AppData";
 import { IHeadOptions } from "UI/_head/defaultTags";
@@ -26,6 +27,10 @@ export function createWsConfig(cfg: IHeadOptions): void {
    const defaultServiceUrl = cfg.servicesPath || appData.servicesPath || constants.defaultServiceUrl || '/service/';
    // @ts-ignore
    const product = cfg.product || appData.product || constants.product;
+   const preInitScript = [
+      cfg.preInitScript || '',
+      AppEnv.getStore('ErrorMonitoringScript') || ''
+   ].join(' ');
 
    API.createTag('script', {type: 'text/javascript'},
       [
@@ -43,7 +48,7 @@ export function createWsConfig(cfg: IHeadOptions): void {
          `reactApp: ${cfg.reactApp || false}`,
          '};',
          cfg.buildnumber ? `window.buildnumber = '${cfg.buildnumber || constants.buildnumber}';` : '',
-         cfg.preInitScript ? cfg.preInitScript : ''
+         preInitScript
       ].join('\n')
    );
 }
