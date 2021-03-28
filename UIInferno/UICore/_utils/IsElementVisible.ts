@@ -17,7 +17,7 @@
  * <h2>Возвращает</h2>
  * {Boolean} Видимость элемента.
  *
- * @class UI/_utils/IsElementVisible
+ * @class UICore/_utils/IsElementVisible
  * @public
  * @author Шипин А.А.
  */
@@ -51,7 +51,7 @@ export default function isElementVisible(elem, isCheckVisibilityHidden: boolean 
       if (elem.wsControl.isDestroyed()) {
          return false;
       }
-      const Control = requirejs('UICore/Base').Control;
+      const Control = requirejs('UICore/Base').default;
       // @ts-ignore
       if (elem.wsControl instanceof Control) {
          // @ts-ignore

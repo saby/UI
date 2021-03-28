@@ -1,6 +1,6 @@
 /**
  * Библиотека функций для обхода DOM-деверва и контролов
- * @class UI/_utils/NodeCollector
+ * @class UICore/_utils/NodeCollector
  * @author Шипин А.А.
  */
 

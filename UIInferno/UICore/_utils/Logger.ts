@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_utils/Logger" />
+/// <amd-module name="UICore/_utils/Logger" />
 
 // @ts-ignore
 import { IoC } from 'Env/Env';
@@ -23,7 +23,7 @@ import { IoC } from 'Env/Env';
  *    at constructor.handleClick [as _handleClick] (DOMEnvironment.js:479)
  *    at constructor.<anonymous> (DOMEnvironment.js:968)
  *
- * @class UI/_utils/Logger
+ * @class UICore/_utils/Logger
  * @author Шипин А.А.
  * @public
  */
@@ -57,7 +57,7 @@ const _getCurrentFunctionInfo = (data: any = _createFakeError()): string  => {
       currentFunc = '[not detected]';
       logger().error(
          'CONTROL ERROR',
-         '[UI/_utils/Logger:_getCurrentFunctionInfo()] \- ошибка получения текущей функции',
+         '[UICore/_utils/Logger:_getCurrentFunctionInfo()] \- ошибка получения текущей функции',
          err);
    }
    return currentFunc;
