@@ -27,6 +27,7 @@ const whiteList = {
    "Controls/Filter/Button/Panel/Wrapper/_FilterPanelOptions": true,
    'Controls/_filterPopup/Panel/Wrapper/_FilterPanelOptions': true,
    "Controls/_suggestPopup/_OptionsField": true,
+   "Controls/_dateRange/DateRangeContext": true,
    "WSTests/unit/tmpl/sync-tests/context/contextField": true,
    "WSTests/unit/tmpl/sync-tests/context/updateConsumers/ctxField": true,
    "WSTests/unit/tmpl/sync-tests/context/contextField2": true,
