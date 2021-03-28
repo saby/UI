@@ -21,7 +21,7 @@ import { OptionsResolver } from 'UI/Executor';
 import { ContextResolver } from 'UICore/Contexts';
 import { delay } from 'Types/function';
 // @ts-ignore
-import { Serializer } from 'UI/State';
+import { Serializer } from 'UICore/State';
 // @ts-ignore
 import { FunctionUtils, Logger, needToBeCompatible } from 'UICore/Utils';
 import { clearNotChangedOptions } from './DirtyCheckingCompatible';

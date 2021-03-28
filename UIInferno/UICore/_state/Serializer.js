@@ -1,8 +1,8 @@
-define('UI/_state/Serializer', [
+define('UICore/_state/Serializer', [
    'require',
    'UI/Utils',
    'Env/Env',
-   'UI/_state/TemplateDeserialization',
+   'UICore/_state/TemplateDeserialization',
    'WasabyLoader/Library'
 ], function(
    require,
@@ -157,7 +157,7 @@ define('UI/_state/Serializer', [
    /**
     * Сериалайзер - обеспечивает возможность сериализовать и десериализовать специальные типы
     * @class
-    * @name UI/_state/Serializer
+    * @name UICore/_state/Serializer
     * @public
     * @author Санников К.
     */
@@ -172,7 +172,7 @@ define('UI/_state/Serializer', [
     * @param {*} value Значение сериализуемого свойства
     * @returns {*}
     * @function
-    * @name UI/_state/Serializer#serialize
+    * @name UICore/_state/Serializer#serialize
     */
    Serializer.prototype.serialize = function(name, value) {};
 
@@ -182,7 +182,7 @@ define('UI/_state/Serializer', [
     * @param {Boolean} [throwable=false] выбрасывать исключения при ошибках сериализации
     * @returns {Function}
     * @function
-    * @name UI/_state/Serializer#serializeWith
+    * @name UICore/_state/Serializer#serializeWith
     */
    Serializer.serializeWith = function(self, throwable) {
       return function (name, value) {
@@ -270,7 +270,7 @@ define('UI/_state/Serializer', [
     * @param {*} value Значение десериализуемого свойства
     * @returns {*}
     * @function
-    * @name UI/_state/Serializer#deserialize
+    * @name UICore/_state/Serializer#deserialize
     */
    Serializer.prototype.deserialize = function(name, value) {};
 
@@ -279,7 +279,7 @@ define('UI/_state/Serializer', [
     * @param self
     * @returns {Function}
     * @function
-    * @name UI/_state/Serializer#deserializeWith
+    * @name UICore/_state/Serializer#deserializeWith
     */
    Serializer.deserializeWith = function(self) {
       return function (name, value) {
@@ -293,12 +293,12 @@ define('UI/_state/Serializer', [
                      result = self._functionStorage[value.id];
                   } else if (!value.module) {
                      result = function() {
-                        Env.IoC.resolve('ILogger').warn('UI/State:Serializer',
+                        Env.IoC.resolve('ILogger').warn('UICore/State:Serializer',
                            'Попытка вызвать на клиенте функцию (название "' + name + '"), которая была сериализована на сервере и которая ' +
                            'не является частью какого-либо модуля. То есть к этой функции нет прямого доступа на клиенте. ' +
                            'Подробнее тут https://wi.sbis.ru/doc/platform/developmentapl/interface-development/pattern-and-practice/serialization/');
                      };
-                     Env.IoC.resolve('ILogger').warn('UI/State:Serializer',
+                     Env.IoC.resolve('ILogger').warn('UICore/State:Serializer',
                         'Попытка десереализовать на клиенте функцию (название "' + name + '"), которая была сериализована на сервере и которая ' +
                         'не является частью какого-либо модуля. То есть к этой функции нет прямого доступа на клиенте. ' +
                         'Подробнее тут https://wi.sbis.ru/doc/platform/developmentapl/interface-development/pattern-and-practice/serialization/');
@@ -314,7 +314,7 @@ define('UI/_state/Serializer', [
                      } catch (e) {
                         // Если модуля нет - результатом будет исходная декларация модуля
                         // result установится в ветке else, которая ниже - метка (*).
-                        Env.IoC.resolve('ILogger').warn('UI/State:Serializer',
+                        Env.IoC.resolve('ILogger').warn('UICore/State:Serializer',
                             'Попытка десериализовать на клиенте модуль (название "' + declaration + '"), ' +
                             'который предварительно не загружен.');
                      }
@@ -425,7 +425,7 @@ define('UI/_state/Serializer', [
     * @param {String} moduleName название модуля, которому принадлежит функция. Записывается с преффиксом js!, html!, ...
     * @param {String} [path] Путь до функции в модуле. Путь может быть не определен, например для html!
     * @function
-    * @name UI/_state/Serializer#setToJsonForFunction
+    * @name UICore/_state/Serializer#setToJsonForFunction
     */
    Serializer.setToJsonForFunction = function(func, moduleName, path) {
       func.toJSON = function() {
@@ -445,7 +445,7 @@ define('UI/_state/Serializer', [
     * @param {String} declaration - декларативное описание функции
     * @returns {Function|undefined}
     * @function
-    * @name UI/_state/Serializer#getFuncFromDeclaration
+    * @name UICore/_state/Serializer#getFuncFromDeclaration
     */
    Serializer.getFuncFromDeclaration = function getFuncFromDeclaration(declaration) {
       var
@@ -581,7 +581,7 @@ define('UI/_state/Serializer', [
                   ? module.fromJSON(instance.value)
                   : module.prototype.fromJSON.call(module, instance.value);
             } catch (e) {
-               Env.IoC.resolve('ILogger').error('UI/State:Serializer', e.stack || e);
+               Env.IoC.resolve('ILogger').error('UICore/State:Serializer', e.stack || e);
                value = null;
             }
             this._instanceStorage[instance.value.id] = value;
