@@ -12,7 +12,7 @@ import { cookie } from "Env/Env";
 import { JSLinks } from 'Application/Page';
 import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
-import {aggregateJS, BASE_DEPS_NAMESPACE} from 'UI/Deps';
+import {aggregateJS} from 'UI/Deps';
 
 interface IJsLinksOptions extends IControlOptions {
    resourceRoot: string;
@@ -30,7 +30,7 @@ class JsLinks extends Control<IJsLinksOptions> {
          return;
       }
       return headDataStore.read('waitAppContent')().then((res) => {
-         const jslinksAPI = JSLinks.getInstance(BASE_DEPS_NAMESPACE);
+         const jslinksAPI = JSLinks.getInstance();
          aggregateJS(res);
          const data = jslinksAPI.getData();
          if (data && data.length) {
