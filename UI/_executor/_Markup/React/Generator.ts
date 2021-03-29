@@ -47,51 +47,28 @@ export class GeneratorReact {
    createControlNew(
       type: 'wsControl' | 'template',
       origin: TemplateOrigin,
-      attributes: IGeneratorAttrs,
+      attributes: IGeneratorAttrs | Record<string, unknown>,
       events: { [key: string]: IWasabyEvent[]; },
       options: IControlOptions,
       config: IControlConfig
-   ): React.ReactElement|React.ReactElement[] {
+   ): React.ReactElement | React.ReactElement[] | string {
       const extractedEvents = extractEventNames(events);
 
       const newOptions = {...options, ...extractedEvents, ...{events: extractedEvents}};
+      const templateAttributes: IGeneratorAttrs = {
+         attributes: attributes as Record<string, unknown>
+      };
+      /*
+      FIXME: судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
+      Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
+      Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
+       */
+      (templateAttributes).internal = {
+         parent: config.viewController
+      };
 
-      // тип контрола - компонент с шаблоном
-      if (type === 'wsControl') {
-         // если type=wsControl - это статическое построение контрола со строкой в origin
-         return this.createWsControl(
-            origin as string,
-            newOptions,
-            undefined,
-            undefined,
-            config.depsLocal
-         );
-      }
-      // тип контрола - шаблон
-      if (type === 'template') {
-         /*
-         FIXME: судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
-         Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
-         Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
-          */
-         (attributes).internal = {
-            parent: config.viewController
-         };
-
-         // если type=template - это статическое построение контрола со строкой в origin
-         return this.createTemplate(
-            origin as string,
-            newOptions,
-            attributes,
-            undefined,
-            config.depsLocal
-         );
-      }
-
-      // когда тип вычисляемый, запускаем функцию вычисления типа и там обрабатываем тип
-      if (type === 'resolver') {
-         return this.resolver(origin, options, attributes, '', config.depsLocal, config.includedTemplates);
-      }
+      return this.resolver(origin, newOptions, templateAttributes, undefined,
+         config.depsLocal, config.includedTemplates);
    }
 
    /*
