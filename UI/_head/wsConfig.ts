@@ -28,9 +28,11 @@ export function createWsConfig(cfg: IHeadOptions): void {
    const defaultServiceUrl = cfg.servicesPath || appData.servicesPath || constants.defaultServiceUrl || '/service/';
    // @ts-ignore
    const product = cfg.product || appData.product || constants.product;
-   let preInitScript = AppEnv.getStore('ErrorMonitoringScript') || '';
-   if (cfg.preInitScript) {
-      preInitScript = cfg.preInitScript + preInitScript;
+   let preInitScript = cfg.preInitScript ? cfg.preInitScript : '';
+   const errorMonitoringScript = AppEnv.getStore('ErrorMonitoringScript') || '';
+   /** В случае, если в хранилище ничего нет, придет деволтный IStore, а мы хотим все-же строку. */
+   if (typeof errorMonitoringScript === 'string') {
+      preInitScript += errorMonitoringScript;
    }
 
    API.createTag('script', {type: 'text/javascript'},
