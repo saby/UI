@@ -4,7 +4,6 @@
 import HTML from './HTML';
 import Document from './Document';
 
-import { AppData } from 'UI/State';
 import Start from './Start';
 import BootstrapStart from './BootstrapStart';
 import HeadController from './HeadController';
@@ -21,7 +20,9 @@ export { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 export { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 
 //#region meta data
-export { getMetaStack, IMeta, IMetaState } from 'UI/_base/HTML/meta';
+import * as meta from 'UI/_base/HTML/meta';
+export { getMetaStack } from 'UI/_base/HTML/meta';
+export { meta };
 //#endregion
 
 export { default as Async, IAsyncOptions, TAsyncStateReceived } from 'UI/_async/Async';
@@ -29,7 +30,6 @@ export { default as Async, IAsyncOptions, TAsyncStateReceived } from 'UI/_async/
 export {
    HTML,
    Document,
-   AppData,
    Start,
    BootstrapStart,
    BaseRoute,
