@@ -8,7 +8,7 @@
                   deps: ['Env/Env', 'Application/Initializer', 'Application/Env', 'SbisEnvUI/Wasaby',
                      'UI/Base', 'UI/State', 'Application/State', 'Core/polyfill'],
                   callback: function (Env, AppInit, AppEnv, EnvUIWasaby, UIBase, UIState, AppState) {
-                     window.startContextData = {AppData: new UIBase.AppData({})};
+                     window.startContextData = {AppData: new UIState.AppData({})};
                      Object.assign(Env.constants, window.wsConfig);
                      require( {{ __setHTMLUnsafe(getDeps()) }}, function () {
                         var sr = new AppState.StateReceiver(UIState.Serializer);

@@ -12,7 +12,7 @@ import template = require('wml!UI/_base/HTML/HTML');
 import {constants, detection} from 'Env/Env';
 import { LinkResolver } from 'UI/theme/controller';
 import { getResourceUrl } from 'UI/Utils';
-import AppData from './AppData';
+import { AppData } from 'UI/State';
 import {IHTMLOptions, ILinksAttrsHTML, IScriptsAttrsHTML} from './interface/IHTML';
 import { IRootTemplateOptions } from './interface/IRootTemplate';
 import { headDataStore } from 'UI/Deps';
