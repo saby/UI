@@ -159,7 +159,7 @@ export class GeneratorReact {
       _: string,
       deps?: Common.Deps<typeof Control, TemplateFunction>,
       includedTemplates?: Common.IncludedTemplates<TemplateFunction>
-   ): React.ReactElement|React.ReactElement[] {
+   ): React.ReactElement | React.ReactElement[] | string {
       const parent = decorAttribs?.internal?.parent;
 
       const tplExtended: TemplateOrigin = resolveTpl(tplOrigin, includedTemplates, deps);
@@ -184,8 +184,8 @@ export class GeneratorReact {
       }
 
       // не смогли зарезолвить - нужно вывести ошибку
-      logResolverError(tpl, parent);
-      return null;
+      logResolverError(tplOrigin, parent);
+      return '' + tplOrigin;
    }
 
    /*
