@@ -90,9 +90,6 @@ export class Control<TOptions extends IControlOptions = {},
             constructor.displayName = this._moduleName;
         }
         this._optionsVersions = { };
-
-        Control.eventSystem = Control.eventSystem || null;
-        Control.eventSystem.useWasabyOverReact = true;
     }
 
     /**
@@ -569,6 +566,7 @@ export class Control<TOptions extends IControlOptions = {},
         cfg.theme = cfg.theme ?? 'default';
         cfg.readOnly = cfg.readOnly ?? false;
         this.eventSystem = new WasabyEvents(domElement);
+        this.eventSystem.useWasabyOverReact = true;
         cfg.eventSystem = this.eventSystem;
         ReactDOM.render(React.createElement(ctor, cfg), domElement);
     }
