@@ -8,6 +8,8 @@ import { Control } from 'UI/_react/Control/WasabyOverReact';
 
 import {IControlOptions, TemplateFunction} from 'UI/_react/Control/interfaces';
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult} from './interfaces';
+import * as RequireHelper from '../../_Utils/RequireHelper';
+import {IGeneratorNameObject} from '../../_Markup/IGeneratorType';
 
 interface IWasabyEvent {
    args: unknown[];
@@ -106,10 +108,7 @@ export class GeneratorReact {
       IControlOptions,
       Control<IControlOptions, object>
    > {
-      const controlClassExtended: typeof Control | TemplateFunction | Common.IDefaultExport<typeof Control> =
-          typeof origin === 'string' ?
-              Common.depsTemplateResolver(origin, {}, deps) :
-              origin;
+      const controlClassExtended: TemplateOrigin = resolveTpl(origin, {}, deps);
       const controlClass = Common.fixDefaultExport(controlClassExtended) as typeof Control;
       return React.createElement(controlClass, scope);
    }
@@ -129,11 +128,7 @@ export class GeneratorReact {
       _: unknown,
       deps: Common.Deps<typeof Control, TemplateFunction>
    ): TemplateResult {
-      const resultingFnExtended: typeof Control | TemplateFunction | Common.IDefaultExport<typeof Control> =
-          typeof origin === 'string' ?
-              Common.depsTemplateResolver(origin, {}, deps) :
-              origin;
-      const resultingFn = Common.fixDefaultExport(resultingFnExtended);
+      const resultingFn: TemplateFunction = resolveTpl(origin, {}, deps) as TemplateFunction;
       const parent: Control<IControlOptions> = attributes?.internal?.parent;
       /*
       Контролы берут наследуемые опции из контекста.
@@ -162,28 +157,21 @@ export class GeneratorReact {
       preparedScope: IControlOptions,
       decorAttribs: IGeneratorAttrs,
       _: string,
-      _deps?: Common.Deps<typeof Control, TemplateFunction>,
+      deps?: Common.Deps<typeof Control, TemplateFunction>,
       includedTemplates?: Common.IncludedTemplates<TemplateFunction>
    ): React.ReactElement|React.ReactElement[] {
       const parent = decorAttribs?.internal?.parent;
 
-      const tplExtended: typeof Control |
-          TemplateFunction |
-          Common.IDefaultExport<typeof Control> |
-          Function |
-          Common.ITemplateArray<TemplateFunction> =
-          typeof tplOrigin === 'string' ?
-              Common.depsTemplateResolver(tplOrigin, includedTemplates, _deps) :
-              tplOrigin;
+      const tplExtended: TemplateOrigin = resolveTpl(tplOrigin, includedTemplates, deps);
       const tpl = Common.fixDefaultExport(tplExtended);
 
       // typeof Control
       if (Common.isControlClass<typeof Control>(tpl)) {
-         return this.createWsControl(tpl, preparedScope, decorAttribs, undefined, _deps);
+         return this.createWsControl(tpl, preparedScope, decorAttribs, undefined, deps);
       }
       // TemplateFunction - wml шаблон
       if (Common.isTemplateClass<TemplateFunction>(tpl)) {
-         return this.createTemplate(tpl, preparedScope, decorAttribs, undefined, _deps);
+         return this.createTemplate(tpl, preparedScope, decorAttribs, undefined, deps);
       }
       // inline template, xhtml, tmpl шаблон (closured), content option
       if (typeof tpl === 'function') {
@@ -275,6 +263,38 @@ export class GeneratorReact {
    }
 }
 
+function getLibraryTpl(tpl: IGeneratorNameObject,
+                       deps: Common.Deps<typeof Control, TemplateFunction>
+): typeof Control | Common.ITemplateArray<TemplateFunction> {
+   let controlClass;
+   if (deps && deps[tpl.library]) {
+      controlClass = Common.extractLibraryModule(deps[tpl.library], tpl.module);
+   } else if (RequireHelper.defined(tpl.library)) {
+      controlClass = Common.extractLibraryModule(RequireHelper.extendedRequire(tpl.library, tpl.module), tpl.module);
+   }
+   return controlClass;
+}
+function resolveTpl(tpl: TemplateOrigin,
+                    includedTemplates: Common.IncludedTemplates<TemplateFunction>,
+                    deps: Common.Deps<typeof Control, TemplateFunction>
+): typeof Control | TemplateFunction | Common.IDefaultExport<typeof Control> |
+   Function | Common.ITemplateArray<TemplateFunction> {
+   if (typeof tpl === 'string') {
+      if (Common.isLibraryModuleString(tpl)) {
+         // if this is a module string, it probably is from a dynamic partial template
+         // (ws:partial template="{{someString}}"). Split library name and module name
+         // here and process it in the next `if tpl.library && tpl.module`
+         const tplObject = Common.splitModule(tpl);
+         return getLibraryTpl(tplObject, deps);
+      }
+      return Common.depsTemplateResolver(tpl, includedTemplates, deps);
+   }
+   if (Common.isLibraryModule(tpl)) {
+      return getLibraryTpl(tpl, deps);
+   }
+   return tpl;
+}
+
 function resolveTemplateArray(
     parent: Control<IControlOptions>,
     templateArray: Common.ITemplateArray<TemplateFunction>,
@@ -348,14 +368,16 @@ function resolveTemplateFunction(parent: Control<IControlOptions>,
    return template.call(parent, resolvedScope, decorAttribs, undefined, true, undefined, undefined) as TemplateResult;
 }
 
-function logResolverError(tpl: undefined, parent: Control<IControlOptions>): void {
-   Logger.error(`Неверное значение свойства template в ws:partial.
-   Нужно поставить точку останова и исследовать передаваемое в ws:partial значение.
-   По стеку будет понятно, в каком шаблоне и в какую опцию передается неправильное значение.`, parent);
-
-   // Попробуем более точно определить причину ошибки
+function logResolverError(tpl: TemplateOrigin, parent: Control<IControlOptions>): void {
    if (typeof tpl !== 'string') {
-      const errorText = `Ошибка в шаблоне! Значение имеет тип ${typeof tpl}.`;
+      let errorText = 'Ошибка в шаблоне! ';
+      if (Common.isLibraryModule(tpl)) {
+         errorText += `Контрол не найден в библиотеке.
+                Библиотека: ${(tpl as IGeneratorNameObject).library}.
+                Контрол: ${(tpl as IGeneratorNameObject).module}`;
+      } else {
+         errorText += `Неверное значение в ws:partial. Шаблон: ${tpl} имеет тип ${typeof tpl}`;
+      }
       Logger.error(errorText, parent);
    }
 }

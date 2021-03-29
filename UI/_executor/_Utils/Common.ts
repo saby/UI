@@ -14,7 +14,7 @@ import * as RequireHelper from './RequireHelper';
 
 import { ReactiveObserver } from 'UI/Reactivity';
 import {
-   IControl,
+   IControl, IGeneratorNameObject,
 } from 'UI/_executor/_Markup/IGeneratorType';
 import { TemplateFunction } from 'UI/Base';
 
@@ -323,11 +323,11 @@ export function isControl(control) {
    return control && control.constructor && isControlClass(control.constructor);
 }
 
-export function isLibraryModule(cfg) {
+export function isLibraryModule(cfg: any): cfg is IGeneratorNameObject {
    return cfg && cfg.library && cfg.module;
 }
 
-export function splitModule(string) {
+export function splitModule(string: string): IGeneratorNameObject {
    var
       fullName = string.indexOf('ws:') === 0 ? string.replace('ws:', '') : string,
       librarySplit = fullName.split(':', 2),
@@ -442,7 +442,7 @@ export function isCompat() {
 }
 
 export function isAnonymousFn(fn) {
-   return fn.name === '';
+   return typeof fn === 'function' && fn.name === '';
 }
 
 let disableCompatCache;

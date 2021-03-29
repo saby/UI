@@ -47,6 +47,7 @@ export interface IGeneratorAttrsContext {
 export interface IGeneratorNameObject {
    library: string;
    module: Array<string>;
+   fullName: string;
 }
 
 // Объект, передаваемый в массив объектов prepareDateForCreate
