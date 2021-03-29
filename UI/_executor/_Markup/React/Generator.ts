@@ -7,7 +7,8 @@ import { WasabyContextManager } from 'UI/_react/WasabyContext/WasabyContextManag
 import { Control } from 'UI/_react/Control/WasabyOverReact';
 
 import {IControlOptions, TemplateFunction} from 'UI/_react/Control/interfaces';
-import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult} from './interfaces';
+import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate} from './interfaces';
+import * as Attr from '../../_Expressions/Attr';
 
 interface IWasabyEvent {
    args: unknown[];
@@ -259,7 +260,7 @@ export class GeneratorReact {
          }
       },
       children: React.ReactNode[],
-      _: unknown,
+      attrToDecorate: AttrToDecorate,
       __: unknown,
       control?: Control
    ): React.DetailedReactHTMLElement<P, T> {
@@ -280,7 +281,16 @@ export class GeneratorReact {
          };
       }
 
-      const convertedAttributes = convertAttributes(attrs.attributes);
+      if (!attrToDecorate) {
+         attrToDecorate = {};
+      }
+      const mergedAttrs = Attr.mergeAttrs(attrToDecorate.attributes, attrs.attributes);
+      Object.keys(mergedAttrs).forEach((attrName) => {
+         if (!mergedAttrs[attrName]) {
+            delete mergedAttrs[attrName];
+         }
+      });
+      const convertedAttributes = convertAttributes(mergedAttrs);
       const extractedEvents = {...control._options['events'] , ...extractEventNames(attrs.events)};
 
       const newProps = {
