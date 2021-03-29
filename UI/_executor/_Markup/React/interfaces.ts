@@ -10,6 +10,7 @@ FIXME: как я понимаю, в этом объекте могут быть 
 Надо разобраться и заменить на нормальный тип.
  */
 export interface IGeneratorAttrs {
+    attributes: Record<string, unknown>;
     internal?: {
         parent: Control;
     };
