@@ -5,9 +5,11 @@ import { onElementMount, onElementUnmount } from '../../_Utils/ChildrenManager';
 import { convertAttributes, WasabyAttributes } from './Attributes';
 import { WasabyContextManager } from 'UI/_react/WasabyContext/WasabyContextManager';
 import { Control } from 'UI/_react/Control/WasabyOverReact';
+import { setEventHook } from 'UI/_events/Hooks';
 
-import {IControlOptions, TemplateFunction} from 'UI/_react/Control/interfaces';
-import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult} from './interfaces';
+import { IControlOptions, TemplateFunction } from 'UI/_react/Control/interfaces';
+import { IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult } from './interfaces';
+import {IProperties} from '../../../_vdom/Synchronizer/interfaces';
 
 interface IWasabyEvent {
    args: unknown[];
@@ -268,13 +270,26 @@ export class GeneratorReact {
       if (control) {
          ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
             if (node && Object.keys(attrs.events).length > 0) {
-               //тут надо позвать хуки
-               node.eventProperties = attrs.events;
+               setEventHook(
+                   tagName,
+                   attrs as unknown as IProperties,
+                   // @ts-ignore
+                   node,
+                   // @ts-ignore
+                   control.props.eventSystem
+               );
             }
             // @ts-ignore
             if (node && control.props.events && Object.keys(control.props.events).length > 0) {
-               // @ts-ignore придмуть как лучше это надо ля контролов
-               node.eventProperties = control.props.events;
+               // @ts-ignore придмуть как лучше это надо для контролов
+               setEventHook(
+                   tagName,
+                   control.props as unknown as IProperties,
+                   // @ts-ignore
+                   node,
+                   // @ts-ignore
+                   control.props.eventSystem
+               );
             }
          };
          if (name) {
@@ -286,13 +301,26 @@ export class GeneratorReact {
                   //@ts-ignore
                   onElementMount(control._children[name]);
                   if (Object.keys(attrs.events).length > 0) {
-                     //тут надо позвать хуки
-                     node.eventProperties = attrs.events;
+                     setEventHook(
+                         tagName,
+                         attrs as unknown as IProperties,
+                         // @ts-ignore
+                         node,
+                         // @ts-ignore
+                         control.props.eventSystem
+                     );
                   }
                   // @ts-ignore
                   if (control.props.events && Object.keys(control.props.events).length > 0) {
                      // @ts-ignore  придмуть как лучше это надо ля контролов
-                     node.eventProperties = control.props.events;
+                     setEventHook(
+                         tagName,
+                         control.props as unknown as IProperties,
+                         // @ts-ignore
+                         node,
+                         // @ts-ignore
+                         control.props.eventSystem
+                     );
                   }
                } else {
                   //@ts-ignore

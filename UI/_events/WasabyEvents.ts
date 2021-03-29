@@ -790,6 +790,9 @@ export class WasabyEvents implements IWasabyEventSystem {
   * @param event
   */
 function isMyDOMEnvironment(env: IDOMEnvironment, event: Event): boolean {
+    if (!env) {
+        return true;
+    }
     let element = event.target as any;
     if (element === window || element === document) {
         return true;

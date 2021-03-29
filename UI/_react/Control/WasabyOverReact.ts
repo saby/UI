@@ -64,7 +64,7 @@ export class Control<TOptions extends IControlOptions = {},
     /**
      * Система событий wasaby
      */
-    private static eventSystem: WasabyEvents;
+    static eventSystem: WasabyEvents;
 
     // временно, чтобы typescript не ругался
     protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): unknown {
