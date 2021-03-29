@@ -4,6 +4,7 @@ import { Head as AppHead } from 'Application/Page';
 import { getConfig } from 'Application/Env';
 import { constants } from "Env/Env";
 import { AppData } from 'UI/State';
+import * as AppEnv from 'Application/Env';
 import { IHeadOptions } from "UI/_head/defaultTags";
 
 /**
@@ -27,6 +28,12 @@ export function createWsConfig(cfg: IHeadOptions): void {
    const defaultServiceUrl = cfg.servicesPath || appData.servicesPath || constants.defaultServiceUrl || '/service/';
    // @ts-ignore
    const product = cfg.product || appData.product || constants.product;
+   let preInitScript = cfg.preInitScript ? cfg.preInitScript : '';
+   const errorMonitoringScript = AppEnv.getStore('ErrorMonitoringScript') || '';
+   /** В случае, если в хранилище ничего нет, придет деволтный IStore, а мы хотим все-же строку. */
+   if (typeof errorMonitoringScript === 'string') {
+      preInitScript += errorMonitoringScript;
+   }
 
    API.createTag('script', {type: 'text/javascript'},
       [
@@ -45,7 +52,7 @@ export function createWsConfig(cfg: IHeadOptions): void {
          '};',
          cfg.buildnumber ? `window.buildnumber = '${cfg.buildnumber || constants.buildnumber}';` : '',
          `window['X-UNIQ-ID'] = '${getConfig('X-UNIQ-ID') || ''}';`,
-         cfg.preInitScript ? cfg.preInitScript : ''
+         preInitScript ? preInitScript : ''
       ].join('\n')
    );
 }
