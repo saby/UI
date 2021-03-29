@@ -1,6 +1,6 @@
 /// <amd-module name='UICore/theme/_controller/Loader' />
 // @ts-ignore
-import LinkResolver from "./LinkResolver";
+import LinkResolver from './LinkResolver';
 // @ts-ignore
 import { constants, cookie } from 'Env/Env';
 import { EMPTY_THEME, CSS_MODULE_PREFIX, THEMED_CSS_MODULE_PREFIX } from './css/const';

@@ -1,7 +1,7 @@
 import { GeneratorText } from './_Markup/Text/Generator';
 import { GeneratorVdom } from './_Markup/Vdom/Generator';
-import {IGeneratorConfig} from "./_Markup/IGeneratorType";
-import {IGenerator} from "./_Markup/IGenerator";
+import {IGeneratorConfig} from './_Markup/IGeneratorType';
+import {IGenerator} from './_Markup/IGenerator';
 
 /**
  * @author Тэн В.А.

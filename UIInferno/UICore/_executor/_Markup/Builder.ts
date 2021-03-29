@@ -1,12 +1,12 @@
-/// <amd-module name="UI/_executor/_Markup/Builder" />
+/// <amd-module name="UICore/_executor/_Markup/Builder" />
 /* tslint:disable */
 
-import { Subscriber } from 'UI/Events';
-import { ContextResolver } from 'UI/Contexts';
+import { Subscriber } from 'UICore/Events';
+import { ContextResolver } from 'UICore/Contexts';
 import * as OptionsResolver from '../_Utils/OptionsResolver';
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
-import { isNewEnvironment, Logger } from 'UI/Utils';
+import { isNewEnvironment, Logger } from 'UICore/Utils';
 import { IBuilder } from './IBuilder';
 
 import { invisibleNodeCompat, isInstOfPromise, asyncRenderErrorTag } from './Utils';
@@ -90,7 +90,7 @@ export class Builder implements IBuilder {
           */
          if (dfd && isInstOfPromise(dfd)) {
             if(!isNewEnvironment()) {
-               var message = '[UI/_executor/GeneratorDefault:buildForNewControl()] You are using asynchronous rendering inside of the old environment.';
+               var message = '[UICore/_executor/GeneratorDefault:buildForNewControl()] You are using asynchronous rendering inside of the old environment.';
                Logger.warn(message, inst);
             }
             return new Promise(function (resolve) {

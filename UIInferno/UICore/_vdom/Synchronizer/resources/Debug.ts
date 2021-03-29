@@ -11,7 +11,7 @@ import {
 
 import { DirtyKind } from './DirtyChecking';
 // @ts-ignore
-import { TClosure } from 'UI/Executor';
+import { TClosure } from 'UICore/Executor';
 // @ts-ignore
 import { ObjectUtils } from 'UICore/Utils';
 import {_FocusAttrs} from 'UICore/Focus';

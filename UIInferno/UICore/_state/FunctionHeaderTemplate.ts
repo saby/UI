@@ -4,7 +4,7 @@ function debug() { debugger; }
 var thelpers = typeof tclosure === \'undefined\' || !tclosure ? arguments[arguments.length - 1] : tclosure;
 if (typeof thelpers === "undefined" || !thelpers._isTClosure) {
 eval("var thelpers = null;");
-thelpers = (function(){return this || (0, eval)(\'this\')})().requirejs("UI/Executor").TClosure;
+thelpers = (function(){return this || (0, eval)(\'this\')})().requirejs("UICore/Executor").TClosure;
 }
 var depsLocal = typeof _deps === \'undefined\' ? undefined : _deps;
 if (typeof includedTemplates === "undefined") {

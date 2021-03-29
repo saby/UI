@@ -1,4 +1,4 @@
-import { IGeneratorControlNode as IControlNode } from 'UI/Executor';
+import { IGeneratorControlNode as IControlNode } from 'UICore/Executor';
 
 export interface ICompoundControl {
    canAcceptFocus: Function;

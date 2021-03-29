@@ -7,13 +7,13 @@ import template = require('wml!UICore/_base/Control');
 import cExtend = require('Core/core-extend');
 
 import { Synchronizer } from 'UICore/Vdom';
-import { _IGeneratorType, OptionsResolver } from 'UI/Executor';
+import { _IGeneratorType, OptionsResolver } from 'UICore/Executor';
 import { ContextResolver } from 'UICore/Contexts';
 import { _FocusAttrs, _IControl, activate, Events, focus } from 'UICore/Focus';
 import { Logger, Purifier, needToBeCompatible } from 'UICore/Utils';
 import { goUpByControlTree } from 'UICore/NodeCollector';
 import { constants } from 'Env/Env';
-import { getGeneratorConfig } from "./GeneratorConfig";
+import { getGeneratorConfig } from './GeneratorConfig';
 
 import { getThemeController, EMPTY_THEME } from 'UICore/theme/controller';
 import { ReactiveObserver } from 'UICore/Reactivity';
@@ -1453,9 +1453,6 @@ function logError(e: Error) {
 }
 
 export default Control;
-// TODO придумать как возвращать ReactControl под условием
-// import {Control as ReactControl} from 'UI/ReactComponent';
-// export default ReactControl;
 
 /**
  * @name UICore/_base/Control#readOnly

@@ -1,15 +1,18 @@
 import * as React from 'react';
 import { Logger } from 'UI/Utils';
-import * as Common from '../../_Utils/Common';
-import { onElementMount, onElementUnmount } from '../../_Utils/ChildrenManager';
+import {
+   CommonUtils as Common,
+   RequireHelper,
+   onElementMount,
+   onElementUnmount,
+   _IGeneratorType as IGT
+} from 'UICore/Executor';
 import { convertAttributes, WasabyAttributes } from './Attributes';
 import { WasabyContextManager } from 'UI/_react/WasabyContext/WasabyContextManager';
 import { Control } from 'UI/_react/Control/WasabyOverReact';
 
 import {IControlOptions, TemplateFunction} from 'UI/_react/Control/interfaces';
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult} from './interfaces';
-import * as RequireHelper from '../../_Utils/RequireHelper';
-import {IGeneratorNameObject} from '../../_Markup/IGeneratorType';
 
 interface IWasabyEvent {
    args: unknown[];
@@ -263,7 +266,7 @@ export class GeneratorReact {
    }
 }
 
-function getLibraryTpl(tpl: IGeneratorNameObject,
+function getLibraryTpl(tpl: IGT.IGeneratorNameObject,
                        deps: Common.Deps<typeof Control, TemplateFunction>
 ): typeof Control | Common.ITemplateArray<TemplateFunction> {
    let controlClass;
@@ -373,8 +376,8 @@ function logResolverError(tpl: TemplateOrigin, parent: Control<IControlOptions>)
       let errorText = 'Ошибка в шаблоне! ';
       if (Common.isLibraryModule(tpl)) {
          errorText += `Контрол не найден в библиотеке.
-                Библиотека: ${(tpl as IGeneratorNameObject).library}.
-                Контрол: ${(tpl as IGeneratorNameObject).module}`;
+                Библиотека: ${(tpl as IGT.IGeneratorNameObject).library}.
+                Контрол: ${(tpl as IGT.IGeneratorNameObject).module}`;
       } else {
          errorText += `Неверное значение в ws:partial. Шаблон: ${tpl} имеет тип ${typeof tpl}`;
       }

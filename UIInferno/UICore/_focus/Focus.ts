@@ -11,7 +11,7 @@ import { collectScrollPositions } from './_ResetScrolling';
 import * as ElementFinder from './ElementFinder';
 
 import { IFocusElement, IMatchesElement, IControlElement, ICompoundControl } from './IFocus';
-import { IGeneratorControlNode } from 'UI/Executor';
+import { IGeneratorControlNode } from 'UICore/Executor';
 
 interface IFocusConfig {
    enableScreenKeyboard?: boolean;

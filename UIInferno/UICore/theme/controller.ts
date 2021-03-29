@@ -13,7 +13,7 @@
  * @author Санников К.А.
  */
 import { Controller } from './_controller/Controller';
-import LinkResolver from "./_controller/LinkResolver";
+import LinkResolver from './_controller/LinkResolver';
 
 /**
  * Получение инстанса контроллера тем, необходимого для скачивания/удаления/коллекции/переключения тем на странице

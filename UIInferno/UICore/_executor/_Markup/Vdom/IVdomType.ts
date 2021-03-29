@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/_Markup/Vdom/IGeneratorType" />
+/// <amd-module name="UICore/_executor/_Markup/Vdom/IGeneratorType" />
 /* tslint:disable */
 
 import {

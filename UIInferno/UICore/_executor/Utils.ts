@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/Utils" />
+/// <amd-module name="UICore/_executor/Utils" />
 /* tslint:disable */
 
 /**

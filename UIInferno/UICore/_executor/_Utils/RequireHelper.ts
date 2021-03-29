@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/_Utils/RequireHelper" />
+/// <amd-module name="UICore/_executor/_Utils/RequireHelper" />
 /* tslint:disable */
 
 /**

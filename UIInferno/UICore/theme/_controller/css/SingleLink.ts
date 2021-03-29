@@ -1,5 +1,5 @@
 /// <amd-module name='UICore/theme/_controller/css/SingleLink' />
-import { Head as HeadAPI } from "Application/Page";
+import { Head as HeadAPI } from 'Application/Page';
 import Link from './Link';
 import { THEME_TYPE, DEPRECATED_ELEMENT_ATTR } from './const';
 import { ISingleCssEntity, IHTMLElement } from './interface';

@@ -1,4 +1,4 @@
-import { IEventState, ITouchEvent, ITouchLocation, WasabyTouchEvent } from "./TouchEvents";
+import { IEventState, ITouchEvent, ITouchLocation, WasabyTouchEvent } from './TouchEvents';
 
 let swipeState;
 let handlerName;

@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/_Utils/OptionsResolver" />
+/// <amd-module name="UICore/_executor/_Utils/OptionsResolver" />
 /* tslint:disable */
 
 /**
@@ -8,7 +8,7 @@
 // @ts-ignore
 import { constants } from 'Env/Env';
 // @ts-ignore
-import { Logger } from 'UI/Utils';
+import { Logger } from 'UICore/Utils';
 import { TControlConstructor } from 'UICore/Base';
 
 /**

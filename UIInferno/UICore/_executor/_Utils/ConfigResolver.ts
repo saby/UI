@@ -1,10 +1,10 @@
-/// <amd-module name="UI/_executor/_Utils/ConfigResolver" />
+/// <amd-module name="UICore/_executor/_Utils/ConfigResolver" />
 
 /**
  * @author Тэн В.А.
  */
 
-import { FunctionUtils } from 'UI/Utils';
+import { FunctionUtils } from 'UICore/Utils';
 import { constants } from 'Env/Env';
 import { plainMerge } from './Common';
 import * as Scope from '../_Expressions/Scope';

@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/_Expressions/AttrHelper" />
+/// <amd-module name="UICore/_executor/_Expressions/AttrHelper" />
 /* tslint:disable */
 /**
  * @author Тэн В.А.

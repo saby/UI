@@ -1,8 +1,8 @@
 import { TemplateFunction } from 'UICore/Base';
 import { IControlNode } from './_vdom/Synchronizer/interfaces';
 import { IOptions } from './_vdom/Synchronizer/resources/Options';
-import { TGeneratorNode, IGeneratorControlNode } from "UI/_executor/_Markup/Vdom/IVdomType";
-import { VNode } from "Inferno/third-party/index";
+import { TGeneratorNode, IGeneratorControlNode } from 'UICore/Executor';
+import { VNode } from 'Inferno/third-party/index';
 /**
  * Модуль для общения с Wasaby Developer Tools.
  * Краткий порядок общения с расширением:

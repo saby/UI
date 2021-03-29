@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/_Markup/ResolveControlName" />
+/// <amd-module name="UICore/_executor/_Markup/ResolveControlName" />
 /* tslint:disable */
 
 import { TAttributes } from './IGeneratorType';

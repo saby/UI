@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/_Utils/Common" />
+/// <amd-module name="UICore/_executor/_Utils/Common" />
 /* tslint:disable */
 
 /**
@@ -12,11 +12,11 @@ import * as Attr from '../_Expressions/Attr';
 
 import * as RequireHelper from './RequireHelper';
 
-import { ReactiveObserver } from 'UI/Reactivity';
+import { ReactiveObserver } from 'UICore/Reactivity';
 import {
    IControl, IGeneratorNameObject,
-} from 'UI/_executor/_Markup/IGeneratorType';
-import { TemplateFunction } from 'UI/Base';
+} from '../_Markup/IGeneratorType';
+import { TemplateFunction } from 'UICore/Base';
 
 var
    requireIfDefined = function requireIfDefined(tpl) {

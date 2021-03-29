@@ -9,10 +9,10 @@ import { Logger } from 'UICore/Utils';
 import { WasabyProperties, VNode } from 'Inferno/third-party/index';
 import { Map, Set } from 'Types/shim';
 
-import { htmlNode, textNode, TGeneratorNode, ITemplateNode } from 'UI/Executor';
+import { htmlNode, textNode, TGeneratorNode, ITemplateNode } from 'UICore/Executor';
 import { IControlNode } from '../interfaces';
 import { TControlConstructor } from 'UICore/Base';
-import { invisibleNodeTagName } from 'UI/Executor';
+import { invisibleNodeTagName } from 'UICore/Executor';
 
 // this.childFlags = childFlags;
 // this.children = children;

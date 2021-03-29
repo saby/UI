@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/_Expressions/Decorate" />
+/// <amd-module name="UICore/_executor/_Expressions/Decorate" />
 /* tslint:disable */
 /**
  * @author Тэн В.А.

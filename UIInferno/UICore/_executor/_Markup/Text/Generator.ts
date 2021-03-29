@@ -1,11 +1,11 @@
-/// <amd-module name="UI/_executor/_Markup/Text/Generator" />
+/// <amd-module name="UICore/_executor/_Markup/Text/Generator" />
 /* tslint:disable */
 
 import { Builder } from '../Builder';
 import * as Common from '../../_Utils/Common';
 import * as RequireHelper from '../../_Utils/RequireHelper';
 import * as Scope from '../../_Expressions/Scope';
-import { Logger } from 'UI/Utils';
+import { Logger } from 'UICore/Utils';
 import { Generator } from '../Generator';
 import { IGenerator } from '../IGenerator';
 import { ResolveControlName } from '../ResolveControlName';

@@ -1,7 +1,7 @@
 /// <amd-module name="UICore/_vdom/Synchronizer/resources/DirtyCheckingCompatible" />
 /* tslint:disable */
 
-import { TClosure } from 'UI/Executor';
+import { TClosure } from 'UICore/Executor';
 import { Logger } from 'UICore/Utils';
 import {_FocusAttrs} from 'UICore/Focus';
 

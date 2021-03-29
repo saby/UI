@@ -1,9 +1,9 @@
-/// <amd-module name="UI/_executor/_Expressions/Scope" />
+/// <amd-module name="UICore/_executor/_Expressions/Scope" />
 /* tslint:disable */
 /**
  * @author Тэн В.А.
  */
-import { ReactiveObserver } from 'UI/Reactivity';
+import { ReactiveObserver } from 'UICore/Reactivity';
 
 /**
  * Набор свойств, которые необходимо не переопределять, а конкатенировать.

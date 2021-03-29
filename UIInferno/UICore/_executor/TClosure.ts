@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/TClosure" />
+/// <amd-module name="UICore/_executor/TClosure" />
 /* tslint:disable */
 
 /**
@@ -6,13 +6,13 @@
  */
 
 // @ts-ignore
-import { Serializer } from 'UI/State';
+import { Serializer } from 'UICore/State';
 // @ts-ignore
-import { Logger } from 'UI/Utils';
+import { Logger } from 'UICore/Utils';
 // @ts-ignore
 import {Config as config} from 'UI/BuilderConfig';
 // @ts-ignore
-import { ObjectUtils } from 'UI/Utils';
+import { ObjectUtils } from 'UICore/Utils';
 import { object } from 'Types/util';
 // @ts-ignore
 import { constants } from 'Env/Env';
@@ -189,7 +189,7 @@ var
       try {
          if (typeof window !== 'undefined') {
             // явно указываем откуда ошибка, чтобы понять откуда начинать отладку в случае проблем
-            throw new Error('[UI/Executor/TClosure:partialError()]');
+            throw new Error('[UICore/Executor/TClosure:partialError()]');
          }
       } catch (err) {
          Logger.error('Использование функции в качестве строковой переменной! Необходимо обернуть в тег ws:partial', null, err);

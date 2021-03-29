@@ -17,7 +17,7 @@ import {
    isControlVNodeType,
    isTemplateVNodeType
 } from './VdomMarkup';
-import { OptionsResolver } from 'UI/Executor';
+import { OptionsResolver } from 'UICore/Executor';
 import { ContextResolver } from 'UICore/Contexts';
 import { delay } from 'Types/function';
 // @ts-ignore
@@ -38,7 +38,7 @@ import { getChangedOptions, collectObjectVersions } from './Options';
 import { createNode } from './ControlNode';
 import { getStateReceiver } from 'Application/Env';
 import { isInit } from 'Application/Initializer';
-import { TGeneratorNode, IGeneratorVNode, IGeneratorControlNode, ITemplateNode } from 'UI/Executor';
+import { TGeneratorNode, IGeneratorVNode, IGeneratorControlNode, ITemplateNode } from 'UICore/Executor';
 // import { VNode } from 'Inferno/third-party/index';
 import { getCompatibleUtils } from 'UICore/_vdom/Synchronizer/resources/DirtyCheckingCompatible';
 

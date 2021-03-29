@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_executor/_Markup/IGeneratorType" />
+/// <amd-module name="Core/_Markup/IGeneratorType" />
 /* tslint:disable */
 
 /**

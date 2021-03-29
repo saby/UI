@@ -1,5 +1,5 @@
 // tslint:disable:no-any
-import { _IGeneratorType } from 'UI/Executor';
+import { _IGeneratorType } from 'UICore/Executor';
 import { _FocusAttrs } from 'UICore/Focus';
 import { cookie } from 'Env/Env';
 

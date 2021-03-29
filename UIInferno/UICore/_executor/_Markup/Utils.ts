@@ -1,9 +1,9 @@
-/// <amd-module name="UI/_executor/_Markup/Utils" />
+/// <amd-module name="UICore/_executor/_Markup/Utils" />
 /* tslint:disable */
 
 import * as Attr from '../_Expressions/Attr';
 import * as Decorate from '../_Expressions/Decorate';
-import { _FocusAttrs } from 'UI/Focus';
+import { _FocusAttrs } from 'UICore/Focus';
 import {
    GeneratorEmptyObject,
    GeneratorError,
@@ -19,11 +19,11 @@ import * as Common from '../_Utils/Common';
 import voidElements from '../_Utils/VoidTags';
 import { invisibleNodeTagName } from '../Utils';
 // @ts-ignore
-import { NumberUtils } from 'UI/Utils';
+import { NumberUtils } from 'UICore/Utils';
 import { INodeAttribute } from './IGeneratorType';
 import { IAttributes } from '../_Expressions/Attr';
 import {Deps, IDefaultExport, IncludedTemplates} from '../_Utils/Common';
-import { TemplateFunction } from 'UI/Base';
+import { TemplateFunction } from 'UICore/Base';
 
 /**
  * @author Тэн В.А.

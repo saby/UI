@@ -35,7 +35,7 @@ define('UICore/_reactivity/ReactiveObserver', ['UICore/DevtoolsHook', 'Types/shi
       return false;
 
       // var boundInst = val._$reactived;
-      // goUpByControlTree = goUpByControlTree || require('UI/NodeCollector').goUpByControlTree;
+      // goUpByControlTree = goUpByControlTree || require('UICore/NodeCollector').goUpByControlTree;
       // return goUpByControlTree(boundInst._container).indexOf(inst) !== -1;
    }
 
@@ -139,7 +139,7 @@ define('UICore/_reactivity/ReactiveObserver', ['UICore/DevtoolsHook', 'Types/shi
 
    /**
     * set observer of properties of control
-    * @param {UI/Base:Control} inst Instance of control which will be updated
+    * @param {UICore/Base:Control} inst Instance of control which will be updated
     */
    function observeProperties(inst) {
       var templateFunction = inst._template;
