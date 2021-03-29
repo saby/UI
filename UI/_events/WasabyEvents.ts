@@ -46,6 +46,8 @@ export class WasabyEvents implements IWasabyEventSystem {
 
     private touchHandlers: TouchHandlers;
 
+    useWasabyOverReact: boolean = false;
+
     //#region инициализация системы событий
     constructor(rootNode: TModifyHTMLNode, environment?: IDOMEnvironment, tabKeyHandler?: Function) {
         this.capturedEventHandlers = {};
@@ -304,7 +306,7 @@ export class WasabyEvents implements IWasabyEventSystem {
     }
 
     private needPropagateEvent(environment: IDOMEnvironment, event: IFixedEvent): boolean {
-        if (!environment) {
+        if (!environment && this.useWasabyOverReact) {
             return true;
         }
         if (!environment._rootDOMNode) {
@@ -517,7 +519,7 @@ export class WasabyEvents implements IWasabyEventSystem {
     private addCaptureProcessingHandler(eventName: string, method: Function, environment: IDOMEnvironment): void {
         if (this._rootDOMNode.parentNode) {
             const handler = function(e: Event): void {
-                if (!isMyDOMEnvironment(environment, e)) {
+                if (!isMyDOMEnvironment(environment, e, this.useWasabyOverReact)) {
                     return;
                 }
                 method.apply(this, arguments);
@@ -529,7 +531,7 @@ export class WasabyEvents implements IWasabyEventSystem {
     private addCaptureProcessingHandlerOnEnvironment(eventName: string, method: Function, environment: IDOMEnvironment): void {
         if (this._rootDOMNode.parentNode) {
             const handler = function(e: Event): void {
-                if (!isMyDOMEnvironment(environment, e)) {
+                if (!isMyDOMEnvironment(environment, e, this.useWasabyOverReact)) {
                     return;
                 }
                 method.apply(environment, arguments);
@@ -792,8 +794,8 @@ export class WasabyEvents implements IWasabyEventSystem {
   * @param env
   * @param event
   */
-function isMyDOMEnvironment(env: IDOMEnvironment, event: Event): boolean {
-    if (!env) {
+function isMyDOMEnvironment(env: IDOMEnvironment, event: Event, useWasabyOverReact: boolean = false): boolean {
+    if (useWasabyOverReact) {
         return true;
     }
     let element = event.target as any;

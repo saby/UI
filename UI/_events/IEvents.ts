@@ -85,6 +85,7 @@ export interface IWasabyEvent {
 }
 
 export interface IWasabyEventSystem {
+    useWasabyOverReact: boolean;
     initWasabyEventSystem: (rootNode: TModifyHTMLNode,  environment: IDOMEnvironment, tabKeyHandler?: Function) => void;
     captureEventHandler: (event: Event) => void;
     callEventsToDOM: VoidFunction;

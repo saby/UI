@@ -17,7 +17,6 @@ import {
 import {setReactGenerator} from 'UI/_react/Control/setReactGenerator';
 import {OptionsResolver} from 'UI/Executor';
 
-
 import { WasabyEvents } from 'UI/Events';
 
 /**
@@ -93,6 +92,7 @@ export class Control<TOptions extends IControlOptions = {},
         this._optionsVersions = { };
 
         Control.eventSystem = Control.eventSystem || null;
+        Control.eventSystem.useWasabyOverReact = true;
     }
 
     /**
