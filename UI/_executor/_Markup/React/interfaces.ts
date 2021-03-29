@@ -25,6 +25,10 @@ export type TemplateResult = React.FunctionComponentElement<
     Partial<IWasabyContextValue> & { children?: React.ReactNode }
     >;
 
+export type AttrToDecorate = Record<string, {
+    attributes: Record<string, unknown>
+}>;
+
 /**
  * Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
  */
