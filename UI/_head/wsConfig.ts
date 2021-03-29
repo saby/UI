@@ -28,7 +28,10 @@ export function createWsConfig(cfg: IHeadOptions): void {
    const defaultServiceUrl = cfg.servicesPath || appData.servicesPath || constants.defaultServiceUrl || '/service/';
    // @ts-ignore
    const product = cfg.product || appData.product || constants.product;
-   const preInitScript = AppEnv.getStore('ErrorMonitoringScript');
+   let preInitScript = AppEnv.getStore('ErrorMonitoringScript') || '';
+   if (cfg.preInitScript) {
+      preInitScript = cfg.preInitScript + preInitScript;
+   }
 
    API.createTag('script', {type: 'text/javascript'},
       [
