@@ -16,7 +16,7 @@ import { constants } from 'Env/Env';
 import { getGeneratorConfig } from "./GeneratorConfig";
 
 import { getThemeController, EMPTY_THEME } from 'UICore/theme/controller';
-import { ReactiveObserver } from 'UI/Reactivity';
+import { ReactiveObserver } from 'UICore/Reactivity';
 
 import startApplication from './startApplication';
 import { getProxyChildren } from './ProxyChildren';

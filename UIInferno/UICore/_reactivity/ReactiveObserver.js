@@ -1,4 +1,4 @@
-define('UI/_reactivity/ReactiveObserver', ['UI/DevtoolsHook', 'Types/shim', 'Env/Env'], function(DevtoolsHook, TypesShim, Env) {
+define('UICore/_reactivity/ReactiveObserver', ['UICore/DevtoolsHook', 'Types/shim', 'Env/Env'], function(DevtoolsHook, TypesShim, Env) {
    /**
     * @author Шипин А.А.
     */

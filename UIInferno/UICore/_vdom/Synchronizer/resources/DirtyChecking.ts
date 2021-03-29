@@ -25,7 +25,7 @@ import { Serializer } from 'UICore/State';
 // @ts-ignore
 import { FunctionUtils, Logger, needToBeCompatible } from 'UICore/Utils';
 import { clearNotChangedOptions } from './DirtyCheckingCompatible';
-import { ReactiveObserver } from 'UI/Reactivity';
+import { ReactiveObserver } from 'UICore/Reactivity';
 import {
    onEndCommit,
    onStartCommit,
