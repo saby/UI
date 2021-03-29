@@ -1,4 +1,5 @@
 import { IControlNode, IDOMEnvironment, IWasabyHTMLElement, TModifyHTMLNode } from 'UI/_vdom/Synchronizer/interfaces';
+import {Control} from '../_react/Control/WasabyOverReact';
 
 type VoidFunction = () => void;
 
@@ -72,6 +73,15 @@ export interface IClickEvent {
     eventPhase: number,
     stopPropagation: VoidFunction;
     preventDefault: VoidFunction;
+}
+
+export interface IWasabyEvent {
+    args: unknown[];
+    context: Function;
+    handler: Function;
+    isControl: boolean;
+    value: string;
+    viewController: Control;
 }
 
 export interface IWasabyEventSystem {

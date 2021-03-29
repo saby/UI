@@ -5,22 +5,14 @@ import { onElementMount, onElementUnmount } from '../../_Utils/ChildrenManager';
 import { convertAttributes, WasabyAttributes } from './Attributes';
 import { WasabyContextManager } from 'UI/_react/WasabyContext/WasabyContextManager';
 import { Control } from 'UI/_react/Control/WasabyOverReact';
+import { IWasabyEvent } from 'UI/Events';
 import { setEventHook } from 'UI/_events/Hooks';
 
 import { IControlOptions, TemplateFunction } from 'UI/_react/Control/interfaces';
 import { IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult } from './interfaces';
-import {IProperties} from '../../../_vdom/Synchronizer/interfaces';
 import * as RequireHelper from '../../_Utils/RequireHelper';
 import {IGeneratorNameObject} from '../../_Markup/IGeneratorType';
 
-interface IWasabyEvent {
-   args: unknown[];
-   context: Function;
-   handler: Function;
-   isControl: boolean;
-   value: string;
-   viewController: Control;
-}
 export class GeneratorReact {
    prepareDataForCreate(tplOrigin: TemplateOrigin,
       scope: IControlOptions,
@@ -54,9 +46,9 @@ export class GeneratorReact {
       options: IControlOptions,
       config: IControlConfig
    ): React.ReactElement | React.ReactElement[] | string {
-      const extractedEvents = extractEventNames(events);
-
-      const newOptions = {...options, ...extractedEvents, ...{events: extractedEvents}};
+      // const extractedEvents = extractEventNames(events);
+      //@ts-ignore
+      const newOptions = {...options, ...{events: events}, ...{eventSystem: config.data.props.eventSystem}};
       const templateAttributes: IGeneratorAttrs = {
          attributes: attributes as Record<string, unknown>
       };
@@ -237,24 +229,13 @@ export class GeneratorReact {
             if (node && Object.keys(attrs.events).length > 0) {
                setEventHook(
                    tagName,
-                   attrs as unknown as IProperties,
-                   // @ts-ignore
-                   node,
-                   // @ts-ignore
-                   control.props.eventSystem
+                   attrs,
+                   node
                );
             }
-            // @ts-ignore
-            if (node && control.props.events && Object.keys(control.props.events).length > 0) {
-               // @ts-ignore придмуть как лучше это надо для контролов
-               setEventHook(
-                   tagName,
-                   control.props as unknown as IProperties,
-                   // @ts-ignore
-                   node,
-                   // @ts-ignore
-                   control.props.eventSystem
-               );
+            //@ts-ignore на контроле опции инициализируются пустой объект, событий моде ти не быть
+            if (node && control._options.events && Object.keys(control._options.events).length > 0) {
+               setEventHook(tagName, control._options,node);
             }
          };
          if (name) {
@@ -266,26 +247,11 @@ export class GeneratorReact {
                   //@ts-ignore
                   onElementMount(control._children[name]);
                   if (Object.keys(attrs.events).length > 0) {
-                     setEventHook(
-                         tagName,
-                         attrs as unknown as IProperties,
-                         // @ts-ignore
-                         node,
-                         // @ts-ignore
-                         control.props.eventSystem
-                     );
+                     setEventHook(tagName, attrs, node);
                   }
-                  // @ts-ignore
-                  if (control.props.events && Object.keys(control.props.events).length > 0) {
-                     // @ts-ignore  придмуть как лучше это надо ля контролов
-                     setEventHook(
-                         tagName,
-                         control.props as unknown as IProperties,
-                         // @ts-ignore
-                         node,
-                         // @ts-ignore
-                         control.props.eventSystem
-                     );
+                  //@ts-ignore на контроле опции инициализируются пустой объект, событий моде ти не быть
+                  if (control._options.events && Object.keys(control._options.events).length > 0) {
+                     setEventHook(tagName, control._options, node);
                   }
                } else {
                   //@ts-ignore
@@ -296,7 +262,7 @@ export class GeneratorReact {
       }
 
       const convertedAttributes = convertAttributes(attrs.attributes);
-      const extractedEvents = {...control._options['events'] , ...extractEventNames(attrs.events)};
+      const extractedEvents = {...control._options['events'] , ...attrs.events};
 
       const newProps = {
          ...convertedAttributes,
@@ -360,28 +326,6 @@ function resolveTemplateArray(
       }
    });
    return result;
-}
-
-/**
- * Преобразует формат имени события к react (on:Eventname => onEventname)
- * @param text
- */
-function transformEventName(text: string): string {
-   if (text.indexOf(":") === -1) {
-      return text;
-   }
-   let textArray = text.split(":");
-   return textArray[0] + textArray[1].charAt(0).toUpperCase() + textArray[1].slice(1);
-}
-
-function extractEventNames(eventObject:{[key: string]: IWasabyEvent[]}): {[key: string]: Function} {
-   let extractedEvents = {};
-   for (let eventKey in eventObject) {
-      if (eventObject[eventKey][0].viewController) {
-         extractedEvents[transformEventName(eventKey)] = eventObject[eventKey][0].handler.bind(eventObject[eventKey][0].viewController)();
-      }
-   }
-   return extractedEvents;
 }
 
 function resolveTemplate(template: Function,

@@ -569,6 +569,7 @@ export class Control<TOptions extends IControlOptions = {},
         cfg.theme = cfg.theme ?? 'default';
         cfg.readOnly = cfg.readOnly ?? false;
         this.eventSystem = new WasabyEvents(domElement);
+        cfg.eventSystem = this.eventSystem;
         ReactDOM.render(React.createElement(ctor, cfg), domElement);
     }
 }
@@ -600,6 +601,7 @@ function createWasabyOptions<T extends IControlOptions>(
     const newProps = {...props};
     newProps.readOnly = props.readOnly ?? contextValue?.readOnly;
     newProps.theme = props.theme ?? contextValue?.theme;
+    newProps.eventSystem = Control.eventSystem;
     return newProps;
 }
 

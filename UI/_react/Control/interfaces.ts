@@ -1,4 +1,5 @@
 import { _IGeneratorType } from 'UI/Executor';
+import { IWasabyEventSystem } from 'UI/Events';
 
 export type TemplateFunction = (
    data: object,
@@ -13,6 +14,7 @@ export type TemplateFunction = (
 export interface IControlOptions {
    readOnly?: boolean;
    theme?: string;
+   eventSystem?: IWasabyEventSystem;
 }
 
 export interface IControlState {

@@ -304,6 +304,9 @@ export class WasabyEvents implements IWasabyEventSystem {
     }
 
     private needPropagateEvent(environment: IDOMEnvironment, event: IFixedEvent): boolean {
+        if (!environment) {
+            return true;
+        }
         if (!environment._rootDOMNode) {
             return false;
         } else if (
