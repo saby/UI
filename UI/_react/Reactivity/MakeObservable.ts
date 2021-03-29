@@ -27,7 +27,7 @@ export function makeObservable<T extends Component>(instance: T, props: Array<ke
  * Hook для функциональных компонентов, обновляет компонент при изменении версионируемого объекта
  * @param {IVersionable[]} props - массив объектов за которыми необходимо следить
  */
-export function useVersionObservable(props: IVersionable[]) {
+export function useMakeObservable(props: IVersionable[]) {
     const [_$reactive, _$setReactive] = useState(0);
     props.forEach((prop) => {
         if (prop?.['_version']) {
