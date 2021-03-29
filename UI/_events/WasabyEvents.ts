@@ -47,7 +47,7 @@ export class WasabyEvents implements IWasabyEventSystem {
     private touchHandlers: TouchHandlers;
 
     //#region инициализация системы событий
-    constructor(rootNode: TModifyHTMLNode, environment: IDOMEnvironment, tabKeyHandler?: Function) {
+    constructor(rootNode: TModifyHTMLNode, environment?: IDOMEnvironment, tabKeyHandler?: Function) {
         this.capturedEventHandlers = {};
         this.initEventSystemFixes();
         this.initWasabyEventSystem(rootNode, environment, tabKeyHandler);

@@ -271,6 +271,11 @@ export class GeneratorReact {
                //тут надо позвать хуки
                node.eventProperties = attrs.events;
             }
+            // @ts-ignore
+            if (node && control.props.events && Object.keys(control.props.events).length > 0) {
+               // @ts-ignore придмуть как лучше это надо ля контролов
+               node.eventProperties = control.props.events;
+            }
          };
          if (name) {
             ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
@@ -283,6 +288,11 @@ export class GeneratorReact {
                   if (Object.keys(attrs.events).length > 0) {
                      //тут надо позвать хуки
                      node.eventProperties = attrs.events;
+                  }
+                  // @ts-ignore
+                  if (control.props.events && Object.keys(control.props.events).length > 0) {
+                     // @ts-ignore  придмуть как лучше это надо ля контролов
+                     node.eventProperties = control.props.events;
                   }
                } else {
                   //@ts-ignore
