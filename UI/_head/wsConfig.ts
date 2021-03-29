@@ -1,8 +1,9 @@
 /// <amd-module name="UI/_head/wsConfig" />
 
 import { Head as AppHead } from 'Application/Page';
+import { getConfig } from 'Application/Env';
 import { constants } from "Env/Env";
-import AppData from "UI/_base/AppData";
+import { AppData } from 'UI/State';
 import { IHeadOptions } from "UI/_head/defaultTags";
 
 /**
@@ -43,6 +44,7 @@ export function createWsConfig(cfg: IHeadOptions): void {
          `reactApp: ${cfg.reactApp || false}`,
          '};',
          cfg.buildnumber ? `window.buildnumber = '${cfg.buildnumber || constants.buildnumber}';` : '',
+         `window['X-UNIQ-ID'] = '${getConfig('X-UNIQ-ID') || ''}';`,
          cfg.preInitScript ? cfg.preInitScript : ''
       ].join('\n')
    );

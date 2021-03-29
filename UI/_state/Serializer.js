@@ -304,7 +304,7 @@ define('UI/_state/Serializer', [
                         'Подробнее тут https://wi.sbis.ru/doc/platform/developmentapl/interface-development/pattern-and-practice/serialization/');
                   } else {
                      var
-                        declaration = value.module + ':' + value.path,
+                        declaration = value.module + (value.path ? ':' + value.path : ''),
                         module, paths, p;
                      try {
                         // Сперва попробуем загрузить модуль.
@@ -314,6 +314,9 @@ define('UI/_state/Serializer', [
                      } catch (e) {
                         // Если модуля нет - результатом будет исходная декларация модуля
                         // result установится в ветке else, которая ниже - метка (*).
+                        Env.IoC.resolve('ILogger').warn('UI/State:Serializer',
+                            'Попытка десериализовать на клиенте модуль (название "' + declaration + '"), ' +
+                            'который предварительно не загружен.');
                      }
 
                      if (module) {
