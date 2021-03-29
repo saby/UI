@@ -46,9 +46,7 @@ export class GeneratorReact {
       options: IControlOptions,
       config: IControlConfig
    ): React.ReactElement | React.ReactElement[] | string {
-      // const extractedEvents = extractEventNames(events);
-      //@ts-ignore
-      const newOptions = {...options, ...{events: events}, ...{eventSystem: config.data.props.eventSystem}};
+      const newOptions = {...options, ...{events: events}, ...{eventSystem: config.data._options.eventSystem}};
       const templateAttributes: IGeneratorAttrs = {
          attributes: attributes as Record<string, unknown>
       };
