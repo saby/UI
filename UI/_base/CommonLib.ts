@@ -4,7 +4,6 @@
 import HTML from './HTML';
 import Document from './Document';
 
-import { AppData } from 'UI/State';
 import Start from './Start';
 import BootstrapStart from './BootstrapStart';
 import HeadController from './HeadController';
@@ -31,7 +30,6 @@ export { default as Async, IAsyncOptions, TAsyncStateReceived } from 'UI/_async/
 export {
    HTML,
    Document,
-   AppData,
    Start,
    BootstrapStart,
    BaseRoute,
