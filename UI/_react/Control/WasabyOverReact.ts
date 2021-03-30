@@ -561,6 +561,31 @@ export class Control<TOptions extends IControlOptions = {},
 
         ReactDOM.render(React.createElement(ctor, cfg), domElement);
     }
+
+    /**
+     * Старый способ наследоваться
+     * @param mixinsList массив миксинов либо расширяющий класс (если один аргумент)
+     * @param classExtender расширяюший класс
+     */
+    static extend(mixinsList: object | object[], classExtender?: object): Function {
+        class ExtendedControl extends Control {
+        }
+        if (Array.isArray(mixinsList)) {
+            mixinsList.forEach((mixin) => {
+                Object.keys(mixin).forEach((key) => {
+                    ExtendedControl.prototype[key] = mixinsList[key];
+                });
+                Object.keys(classExtender).forEach((key) => {
+                    ExtendedControl.prototype[key] = mixinsList[key];
+                });
+            });
+        } else {
+            Object.keys(mixinsList).forEach((key) => {
+                ExtendedControl.prototype[key] = mixinsList[key];
+            });
+        }
+        return ExtendedControl;
+    }
 }
 
 /*

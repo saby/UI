@@ -12,16 +12,16 @@ import { WasabyContextManager } from 'UI/_react/WasabyContext/WasabyContextManag
 import { Control } from 'UI/_react/Control/WasabyOverReact';
 
 import {IControlOptions, TemplateFunction} from 'UI/_react/Control/interfaces';
+<<<<<<< HEAD
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult} from './interfaces';
+=======
+import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate, IWasabyEvent} from './interfaces';
+import * as RequireHelper from '../../_Utils/RequireHelper';
+import {IGeneratorNameObject} from '../../_Markup/IGeneratorType';
+>>>>>>> origin/rc-21.2000
 
-interface IWasabyEvent {
-   args: unknown[];
-   context: Function;
-   handler: Function;
-   isControl: boolean;
-   value: string;
-   viewController: Control;
-}
+import * as Attr from '../../_Expressions/Attr';
+
 export class GeneratorReact {
    prepareDataForCreate(tplOrigin: TemplateOrigin,
       scope: IControlOptions,
@@ -61,18 +61,18 @@ export class GeneratorReact {
       const templateAttributes: IGeneratorAttrs = {
          attributes: attributes as Record<string, unknown>
       };
-      /*
-      FIXME: судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
-      Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
-      Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
-       */
+         /*
+         FIXME: судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
+         Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
+         Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
+          */
       (templateAttributes).internal = {
-         parent: config.viewController
-      };
+            parent: config.viewController
+         };
 
       return this.resolver(origin, newOptions, templateAttributes, undefined,
          config.depsLocal, config.includedTemplates);
-   }
+      }
 
    /*
    FIXME: не понимаю зачем нужен этот метод, по сути он ничего не делает.
@@ -227,7 +227,7 @@ export class GeneratorReact {
          }
       },
       children: React.ReactNode[],
-      _: unknown,
+      attrToDecorate: AttrToDecorate,
       __: unknown,
       control?: Control
    ): React.DetailedReactHTMLElement<P, T> {
@@ -248,8 +248,20 @@ export class GeneratorReact {
          };
       }
 
-      const convertedAttributes = convertAttributes(attrs.attributes);
-      const extractedEvents = {...control._options['events'] , ...extractEventNames(attrs.events)};
+      if (!attrToDecorate) {
+         attrToDecorate = {};
+      }
+      const mergedAttrs = Attr.mergeAttrs(attrToDecorate.attributes, attrs.attributes);
+      Object.keys(mergedAttrs).forEach((attrName) => {
+         if (!mergedAttrs[attrName]) {
+            delete mergedAttrs[attrName];
+         }
+      });
+
+      const convertedAttributes = convertAttributes(mergedAttrs);
+      const extractedEvents = control ?
+         {...control._options['events'], ...extractEventNames(attrs.events)} :
+         {...extractEventNames(attrs.events)};
 
       const newProps = {
          ...convertedAttributes,
