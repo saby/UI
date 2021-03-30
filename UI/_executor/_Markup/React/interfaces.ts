@@ -28,6 +28,19 @@ export type TemplateResult = React.FunctionComponentElement<
     Partial<IWasabyContextValue> & { children?: React.ReactNode }
     >;
 
+export type AttrToDecorate = Record<string, {
+    attributes: Record<string, unknown>
+}>;
+
+export interface IWasabyEvent {
+    args: unknown[];
+    context: Function;
+    handler: Function;
+    isControl: boolean;
+    value: string;
+    viewController: Control;
+}
+
 /**
  * Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
  */
