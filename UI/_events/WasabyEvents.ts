@@ -1,5 +1,5 @@
-import { detection } from 'Env/Env';
-import { Logger } from 'UI/Utils';
+import {detection} from 'Env/Env';
+import {Logger} from 'UI/Utils';
 
 import SyntheticEvent from './SyntheticEvent';
 import * as EventUtils from './EventUtils';
@@ -12,18 +12,18 @@ import {
     IArrayEvent
 } from './IEvents';
 
-import { TouchHandlers } from './Touch/TouchHandlers';
-import { FastTouchEndController } from './Touch/FastTouchEndController';
-import { SwipeController } from './Touch/SwipeController';
-import { LongTapController } from './Touch/LongTapController';
-import { ITouchEvent } from './Touch/TouchEvents';
+import {TouchHandlers} from './Touch/TouchHandlers';
+import {FastTouchEndController} from './Touch/FastTouchEndController';
+import {SwipeController} from './Touch/SwipeController';
+import {LongTapController} from './Touch/LongTapController';
+import {ITouchEvent} from './Touch/TouchEvents';
 
-import { default as isInvisibleNode } from './InvisibleNodeChecker';
+import {default as isInvisibleNode} from './InvisibleNodeChecker';
 import {
     IWasabyHTMLElement,
     IControlNode,
     IDOMEnvironment,
-    TModifyHTMLNode
+    TModifyHTMLNode, TEventsObject
 } from 'UI/_vdom/Synchronizer/interfaces';
 
 /**
@@ -46,9 +46,14 @@ export class WasabyEvents implements IWasabyEventSystem {
 
     private touchHandlers: TouchHandlers;
 
-    private lastTarget: IWasabyHTMLElement
+    private lastTarget: IWasabyHTMLElement;
     private wasWasabyNotifyList: IControlNode[] = [];
 
+    /* флаг указывает на то, что система событий должна работать в окружении wasabyOverReact
+     * т.е. у нас отсутстувет окружение (DOMEnvironment) и нет controlNode
+     * после разделения на inferno и react, надо выделить абстрацию системы событий без окружения
+     * и окружение должно сущестсвовать только в версии с inferno, в таком случае этот флаг удалится сам по себе
+     */
     useWasabyOverReact: boolean = false;
 
     //#region инициализация системы событий
@@ -106,6 +111,7 @@ export class WasabyEvents implements IWasabyEventSystem {
         }
 
     }
+
     //#endregion
 
     //#region перехват и всплытие событий
@@ -146,7 +152,7 @@ export class WasabyEvents implements IWasabyEventSystem {
         }
     }
 
-    showCapturedEventHandlers():  Record<string, IHandlerInfo[]> {
+    showCapturedEventHandlers(): Record<string, IHandlerInfo[]> {
         return this.capturedEventHandlers;
     }
 
@@ -312,7 +318,7 @@ export class WasabyEvents implements IWasabyEventSystem {
     }
 
     private needPropagateEvent(environment: IDOMEnvironment, event: IFixedEvent): boolean {
-        if (!environment && this.useWasabyOverReact) {
+        if (this.useWasabyOverReact) {
             return true;
         }
         if (!environment._rootDOMNode) {
@@ -347,6 +353,7 @@ export class WasabyEvents implements IWasabyEventSystem {
 
         return true;
     }
+
     //#endregion
 
     //#region специфические обработчики
@@ -384,6 +391,7 @@ export class WasabyEvents implements IWasabyEventSystem {
     handleSpecialEvent(eventName: string, eventHandler: Function, environment?: IDOMEnvironment): void {
         this.addCaptureProcessingHandlerOnEnvironment(eventName, eventHandler, environment);
     }
+
     //#endregion
 
     //#region события таба
@@ -398,6 +406,7 @@ export class WasabyEvents implements IWasabyEventSystem {
             this._rootDOMNode.removeEventListener('keydown', this._handleTabKey as EventListener, false);
         }
     }
+
     //#endregion
 
     //#region события тача
@@ -458,6 +467,7 @@ export class WasabyEvents implements IWasabyEventSystem {
         SwipeController.resetState();
         LongTapController.resetState();
     }
+
     //#endregion
 
     //#region _notify события
@@ -528,18 +538,22 @@ export class WasabyEvents implements IWasabyEventSystem {
         this.lastTarget = target;
     }
 
-    private createFakeControlNode(controlNode: IControlNode): unknown {
+    private createFakeControlNode(controlNode: IControlNode): {
+        element: IWasabyHTMLElement,
+        events: TEventsObject,
+        controlNode: IControlNode
+    } {
         return {
             element: this.lastTarget,
             events: this.lastTarget.eventProperties,
             controlNode
-        }
+        };
     }
-
 
     private clearWasWasabyNotifyList(): void {
         this.wasWasabyNotifyList = [];
     }
+
     //#endregion
 
     //#region регистрация событий
@@ -629,6 +643,7 @@ export class WasabyEvents implements IWasabyEventSystem {
     private addNativeListener(element: HTMLElement, handler: EventListener, eventName: string, config: IEventConfig): void {
         element.addEventListener(eventName, handler, config);
     }
+
     //#endregion
 
     //#region удаление событий
@@ -714,6 +729,7 @@ export class WasabyEvents implements IWasabyEventSystem {
             }
         }
     }
+
     //#endregion
 
     //#region хэлперы
@@ -806,6 +822,7 @@ export class WasabyEvents implements IWasabyEventSystem {
         }
         return config;
     }
+
     //#endregion
 
     destroy(): void {
