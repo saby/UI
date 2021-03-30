@@ -17,10 +17,10 @@ const getStyleObjectFromString = (str) => {
    str.split(';').forEach((el) => {
       // tslint:disable-next-line:typedef
       const [property, value] = el.split(':');
-      if (!property) return;
-
-      const formattedProperty = formatStringToCamelCase(property.trim());
-      style[formattedProperty] = value.trim();
+      if (property && value) {
+         const formattedProperty = formatStringToCamelCase(property.trim());
+         style[formattedProperty] = value.trim();
+      }
    });
 
    return style;
