@@ -9,7 +9,7 @@ import { IWasabyEvent } from 'UI/Events';
 import { setEventHook } from 'UI/_events/Hooks';
 
 import {IControlOptions, TemplateFunction} from 'UI/_react/Control/interfaces';
-import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate, IWasabyEvent} from './interfaces';
+import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate} from './interfaces';
 import * as RequireHelper from '../../_Utils/RequireHelper';
 import {IGeneratorNameObject} from '../../_Markup/IGeneratorType';
 
