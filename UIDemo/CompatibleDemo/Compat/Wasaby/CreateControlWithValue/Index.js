@@ -1,10 +1,10 @@
 define('UIDemo/CompatibleDemo/Compat/Wasaby/CreateControlWithValue/Index', [
    'UI/Base',
    'wml!UIDemo/CompatibleDemo/Compat/Wasaby/CreateControlWithValue/Index'
-], function(UIBase, template) {
+], function(Base, template) {
    'use strict';
 
-   var ModuleClass = UIBase.Control.extend(
+   var ModuleClass = Base.Control.extend(
       {
          _template: template,
          _beforeMount: function() {

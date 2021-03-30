@@ -3,12 +3,11 @@ define('UIDemo/CompatibleDemo/WasabyEnv/Wasaby/WrappedWS3WithOptions',
       'UI/Base',
       'wml!UIDemo/CompatibleDemo/WasabyEnv/Wasaby/WrappedWS3WithOptions',
       'Lib/Control/LayerCompatible/LayerCompatible',
-      'css!UIDemo/CompatibleDemo/CompatibleDemo'
    ],
-   function(UIBase, template, CompatibleLayer) {
+   function(Base, template, CompatibleLayer) {
       'use strict';
 
-      var WrappedWS3WithOptions = UIBase.Control.extend({
+      var WrappedWS3WithOptions = Base.Control.extend({
          _template: template,
          _compatibleReady: false,
          _text: null,
@@ -34,6 +33,8 @@ define('UIDemo/CompatibleDemo/WasabyEnv/Wasaby/WrappedWS3WithOptions',
             this.getTopParent()._logicParent._setText(e, value);
          },
       });
+      WrappedWS3WithOptions._styles = ['UIDemo/CompatibleDemo/CompatibleDemo'];
+
       return WrappedWS3WithOptions;
    }
 );

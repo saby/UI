@@ -3,12 +3,11 @@ define('UIDemo/CompatibleDemo/WasabyEnv/DemoControls/WasabyContainer',
       'UI/Base',
       'wml!UIDemo/CompatibleDemo/WasabyEnv/DemoControls/WasabyContainer',
       'Lib/Control/LayerCompatible/LayerCompatible',
-      'css!UIDemo/CompatibleDemo/CompatibleDemo'
    ],
-   function(UIBase, template, CompatibleLayer) {
+   function(Base, template, CompatibleLayer) {
       'use strict';
 
-      var WasabyContainer = UIBase.Control.extend({
+      var WasabyContainer = Base.Control.extend({
          _template: template,
          _compatibleReady: false,
          _text: null,
@@ -31,9 +30,11 @@ define('UIDemo/CompatibleDemo/WasabyEnv/DemoControls/WasabyContainer',
          },
 
          _setTextOld: function(e, value) {
-            this.getTopParent()._logicParent._setText(e, value);
+            this._parent._logicParent._setText(e, value);
          },
       });
+      WasabyContainer._styles = ['UIDemo/CompatibleDemo/CompatibleDemo'];
+
       return WasabyContainer;
    }
 );

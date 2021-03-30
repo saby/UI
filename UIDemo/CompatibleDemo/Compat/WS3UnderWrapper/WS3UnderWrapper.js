@@ -1,7 +1,6 @@
 define('UIDemo/CompatibleDemo/Compat/WS3UnderWrapper/WS3UnderWrapper', [
    'Lib/Control/CompoundControl/CompoundControl',
    'wml!UIDemo/CompatibleDemo/Compat/WS3UnderWrapper/WS3UnderWrapper',
-   'css!UIDemo/CompatibleDemo/CompatibleDemo'
 ], function(CompoundControl, template) {
    'use strict';
 
@@ -15,5 +14,7 @@ define('UIDemo/CompatibleDemo/Compat/WS3UnderWrapper/WS3UnderWrapper', [
          WS3UnderWrapper.superclass.destroy.apply(this, arguments);
       }
    });
+   WS3UnderWrapper._styles = ['UIDemo/CompatibleDemo/CompatibleDemo'];
+
    return WS3UnderWrapper;
 });

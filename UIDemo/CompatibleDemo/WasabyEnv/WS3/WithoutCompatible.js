@@ -3,12 +3,11 @@ define('UIDemo/CompatibleDemo/WasabyEnv/WS3/WithoutCompatible',
       'UI/Base',
       'wml!UIDemo/CompatibleDemo/WasabyEnv/WS3/WithoutCompatible',
       'Lib/Control/LayerCompatible/LayerCompatible',
-      'css!UIDemo/CompatibleDemo/CompatibleDemo'
    ],
-   function(UIBase, template, CompatibleLayer) {
+   function(Base, template, CompatibleLayer) {
       'use strict';
 
-      var WithoutCompatible = UIBase.Control.extend({
+      var WithoutCompatible = Base.Control.extend({
          _template: template,
          _compatibleReady: false,
          _text: null,
@@ -28,6 +27,8 @@ define('UIDemo/CompatibleDemo/WasabyEnv/WS3/WithoutCompatible',
          },
 
       });
+      WithoutCompatible._styles = ['UIDemo/CompatibleDemo/CompatibleDemo'];
+
       return WithoutCompatible;
    }
 );

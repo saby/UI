@@ -4,10 +4,10 @@ define('UIDemo/CompatibleDemo/WasabyEnv/Index', [
    'Application/Initializer',
    'Application/Env',
    'Core/Deferred'
-], function(UIBase, template, AppInit, AppEnv, Deferred) {
+], function(Base, template, AppInit, AppEnv, Deferred) {
    'use strict';
 
-   var ModuleClass = UIBase.Control.extend(
+   var ModuleClass = Base.Control.extend(
       {
          _template: template,
          _beforeMount: function() {
