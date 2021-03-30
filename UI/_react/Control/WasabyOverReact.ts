@@ -135,11 +135,13 @@ export class Control<TOptions extends IControlOptions = {},
         if (!this.isDeprecatedCSS() && !this.isCSSLoaded(options.theme)) {
             const cssLoading = Promise.all([
                 this.loadThemes(options.theme),
-                this.loadStyles(),
-                this.loadThemeVariables(options.theme)
+                this.loadStyles()
             ]);
             promisesToWait.push(cssLoading.then(nop));
         }
+        //Если ждать загрузки стилей новой темизации. то му получаем просадку производительности
+        //https://online.sbis.ru/doc/059aaa9a-e123-49ce-b3c3-e828fdd15e56
+        this.loadThemeVariables(options.theme);
 
         if (promisesToWait.length) {
             Promise.all(promisesToWait).then(() => {

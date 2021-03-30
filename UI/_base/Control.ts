@@ -816,7 +816,8 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
          this.loadThemes(options.theme),
          this.loadStyles()
       ]);
-      //При серверной верстке новые стили 100% успеют долететь
+      //Если ждать загрузки стилей новой темизации. то му получаем просадку производительности
+      //https://online.sbis.ru/doc/059aaa9a-e123-49ce-b3c3-e828fdd15e56
       this.loadThemeVariables(options.theme)
       if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded(options.theme)) {
          return this._$resultBeforeMount = resultBeforeMount;
