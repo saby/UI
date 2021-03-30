@@ -1,5 +1,5 @@
 <div>
-    <UIDemo.CompatibleDemo.Compat.WS3.Label caption="DemoControls.OldWrapperForWasabyEditable" attr:class="compatibleDemo__row__fill"/>
+    <SBIS3.CONTROLS.Label caption="DemoControls.OldWrapperForWasabyEditable" attr:class="compatibleDemo__row__fill"/>
     <div class="for__ws4">
     </div>
 </div>

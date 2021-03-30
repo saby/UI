@@ -1,6 +1,6 @@
 <div class="compatibleDemo__column">
     <div class="compatibleDemo__row">
-        <UIDemo.CompatibleDemo.Compat.WS3.Label caption="Application compat = true" />
+        <SBIS3.CONTROLS.Label caption="Application compat = true" />
     </div>
     <hr/>
     <div class="compatibleDemo__column">
