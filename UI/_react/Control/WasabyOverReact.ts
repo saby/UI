@@ -139,7 +139,8 @@ export class Control<TOptions extends IControlOptions = {},
             ]);
             promisesToWait.push(cssLoading.then(nop));
         }
-        //При серверной верстке новые стили 100% успеют долететь
+        //Если ждать загрузки стилей новой темизации. то му получаем просадку производительности
+        //https://online.sbis.ru/doc/059aaa9a-e123-49ce-b3c3-e828fdd15e56
         this.loadThemeVariables(options.theme);
 
         if (promisesToWait.length) {
