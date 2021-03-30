@@ -2,7 +2,6 @@ define('UIDemo/CompatibleDemo/Compat/Wasaby/WithoutCompatible/WithoutCompatible'
    [
       'Lib/Control/CompoundControl/CompoundControl',
       'wml!UIDemo/CompatibleDemo/Compat/Wasaby/WithoutCompatible/WithoutCompatible',
-      'css!UIDemo/CompatibleDemo/CompatibleDemo'
    ],
    function(CompoundControl, template) {
       'use strict';
@@ -18,6 +17,8 @@ define('UIDemo/CompatibleDemo/Compat/Wasaby/WithoutCompatible/WithoutCompatible'
          }
 
       });
+      WasabyWithoutCompatible._styles = ['UIDemo/CompatibleDemo/CompatibleDemo'];
+
       return WasabyWithoutCompatible;
    }
 );

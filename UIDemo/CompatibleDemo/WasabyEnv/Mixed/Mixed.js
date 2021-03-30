@@ -3,12 +3,11 @@ define('UIDemo/CompatibleDemo/WasabyEnv/Mixed/Mixed',
       'UI/Base',
       'wml!UIDemo/CompatibleDemo/WasabyEnv/Mixed/Mixed',
       'Lib/Control/LayerCompatible/LayerCompatible',
-      'css!UIDemo/CompatibleDemo/CompatibleDemo'
    ],
-   function(UIBase, template, CompatibleLayer) {
+   function(Base, template, CompatibleLayer) {
       'use strict';
 
-      var Mixed = UIBase.Control.extend({
+      var Mixed = Base.Control.extend({
          _template: template,
          _compatibleReady: false,
          _text: null,
@@ -34,6 +33,8 @@ define('UIDemo/CompatibleDemo/WasabyEnv/Mixed/Mixed',
             this.getTopParent()._logicParent._setText(e, value);
          },
       });
+      Mixed._styles = ['UIDemo/CompatibleDemo/CompatibleDemo'];
+
       return Mixed;
    }
 );

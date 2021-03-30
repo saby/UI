@@ -1,7 +1,6 @@
 define('UIDemo/CompatibleDemo/Compat/WS3/WS3', [
    'Lib/Control/CompoundControl/CompoundControl',
    'wml!UIDemo/CompatibleDemo/Compat/WS3/WS3',
-   'css!UIDemo/CompatibleDemo/CompatibleDemo'
 ], function(CompoundControl, template) {
    'use strict';
 
@@ -21,5 +20,7 @@ define('UIDemo/CompatibleDemo/Compat/WS3/WS3', [
          WS3Demo.superclass.destroy.apply(this, arguments);
       }
    });
+   WS3Demo._styles = ['UIDemo/CompatibleDemo/CompatibleDemo'];
+
    return WS3Demo;
 });
