@@ -46,7 +46,8 @@ export class WasabyEvents implements IWasabyEventSystem {
 
     private touchHandlers: TouchHandlers;
 
-    private lastTarget: IWasabyHTMLElement;
+    private lastTarget: IWasabyHTMLElement
+    private wasWasabyNotifyList: IControlNode[] = [];
 
     useWasabyOverReact: boolean = false;
 
@@ -467,13 +468,14 @@ export class WasabyEvents implements IWasabyEventSystem {
      * @param args
      */
     startEvent<TArguments>(controlNode: IControlNode, args: TArguments): unknown {
+        controlNode = this.useWasabyOverReact ? this.createFakeControlNode(controlNode) as unknown as IControlNode :
+            controlNode;
+
+        let allowEventBubbling = true;
         const eventName = args[0].toLowerCase();
         const handlerArgs = args[1] || [];
         const eventDescription = args[2];
         const eventConfig: IEventConfig = {};
-        if (this.useWasabyOverReact) {
-            controlNode = this.createFakeControlNode() as unknown as IControlNode;
-        }
         let eventObject;
         eventConfig._bubbling = eventDescription && eventDescription.bubbling !== undefined ?
             eventDescription.bubbling : false;
@@ -492,8 +494,17 @@ export class WasabyEvents implements IWasabyEventSystem {
 
         eventObject = new SyntheticEvent(null, eventConfig);
         this.needBlockNotify = this.lastNotifyEvent === eventName;
-        this.vdomEventBubbling(eventObject, controlNode, startArray, handlerArgs, false);
+        //@ts-ignore пока этот код используется в актуальной системе событий wasaby типы менять нельзя
+        if (this.useWasabyOverReact && this.wasWasabyNotifyList.indexOf(controlNode.controlNode) > -1) {
+            allowEventBubbling = false;
+        }
+        if (allowEventBubbling) {
+            //@ts-ignore пока этот код используется в актуальной системе событий wasaby типы менять нельзя
+            this.useWasabyOverReact && this.wasWasabyNotifyList.push(controlNode.controlNode);
+            this.vdomEventBubbling(eventObject, controlNode, startArray, handlerArgs, false);
+        }
         this.clearWasNotifyList();
+        this.useWasabyOverReact && this.clearWasWasabyNotifyList();
         return eventObject.result;
     }
 
@@ -517,11 +528,17 @@ export class WasabyEvents implements IWasabyEventSystem {
         this.lastTarget = target;
     }
 
-    private createFakeControlNode(): unknown {
+    private createFakeControlNode(controlNode: IControlNode): unknown {
         return {
             element: this.lastTarget,
-            events: this.lastTarget.eventProperties
+            events: this.lastTarget.eventProperties,
+            controlNode
         }
+    }
+
+
+    private clearWasWasabyNotifyList(): void {
+        this.wasWasabyNotifyList = [];
     }
     //#endregion
 

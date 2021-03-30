@@ -1,14 +1,14 @@
-/// <amd-module name="UI/_events/Notify" />
-
 /**
  * @author Тэн В.А.
  */
 
-import {IWasabyEventSystem} from './IEvents';
+import { IWasabyEventSystem } from './IEvents';
+import { Control } from 'UI/ReactComponent';
 
 /**
  * запускает нотифай события (для wasabyOverReact)
  * @param eventSystem
+ * @param inst
  * @param eventName
  * @param args
  * @param options
@@ -16,10 +16,12 @@ import {IWasabyEventSystem} from './IEvents';
  */
 export function callNotify(
     eventSystem: IWasabyEventSystem,
+    inst: Control,
     eventName: string,
     args?: unknown[],
     options?: { bubbling?: boolean }
 ): unknown {
-    Array.prototype.splice.call(arguments, 0, 1);
-    return eventSystem.startEvent(null, arguments);
+    Array.prototype.splice.call(arguments, 0, 2);
+    // пока этот код используется в актуальной системе событий wasaby типы менять нельзя
+    return eventSystem.startEvent(inst as any, arguments);
 }
