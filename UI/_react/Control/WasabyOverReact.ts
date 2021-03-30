@@ -135,11 +135,12 @@ export class Control<TOptions extends IControlOptions = {},
         if (!this.isDeprecatedCSS() && !this.isCSSLoaded(options.theme)) {
             const cssLoading = Promise.all([
                 this.loadThemes(options.theme),
-                this.loadStyles(),
-                this.loadThemeVariables(options.theme)
+                this.loadStyles()
             ]);
             promisesToWait.push(cssLoading.then(nop));
         }
+        //При серверной верстке новые стили 100% успеют долететь
+        this.loadThemeVariables(options.theme);
 
         if (promisesToWait.length) {
             Promise.all(promisesToWait).then(() => {
