@@ -5,6 +5,7 @@ import {
    RequireHelper,
    onElementMount,
    onElementUnmount,
+   _ForExecutorCompatible,
    _IGeneratorType as IGT
 } from 'UICore/Executor';
 import { convertAttributes, WasabyAttributes } from './Attributes';
@@ -12,15 +13,9 @@ import { WasabyContextManager } from 'UI/_react/WasabyContext/WasabyContextManag
 import { Control } from 'UI/_react/Control/WasabyOverReact';
 
 import {IControlOptions, TemplateFunction} from 'UI/_react/Control/interfaces';
-<<<<<<< HEAD
-import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult} from './interfaces';
-=======
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate, IWasabyEvent} from './interfaces';
-import * as RequireHelper from '../../_Utils/RequireHelper';
-import {IGeneratorNameObject} from '../../_Markup/IGeneratorType';
->>>>>>> origin/rc-21.2000
 
-import * as Attr from '../../_Expressions/Attr';
+const Attr = _ForExecutorCompatible.Attr;
 
 export class GeneratorReact {
    prepareDataForCreate(tplOrigin: TemplateOrigin,
