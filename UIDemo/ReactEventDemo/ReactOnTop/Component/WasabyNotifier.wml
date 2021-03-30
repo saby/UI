@@ -1,0 +1,2 @@
+<input type="text" bind:value="_value"
+       on:change="_inputCompletedHandler()"/>

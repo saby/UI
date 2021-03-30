@@ -46,6 +46,8 @@ export class WasabyEvents implements IWasabyEventSystem {
 
     private touchHandlers: TouchHandlers;
 
+    private lastTarget: IWasabyHTMLElement;
+
     useWasabyOverReact: boolean = false;
 
     //#region инициализация системы событий
@@ -115,6 +117,9 @@ export class WasabyEvents implements IWasabyEventSystem {
         event: TNativeEvent
     ): void {
         if (this.needPropagateEvent(this._environment, event)) {
+            if (this.useWasabyOverReact) {
+                this.setLastTarget(event.target as IWasabyHTMLElement);
+            }
             const syntheticEvent = new SyntheticEvent(event);
             if (detection.isMobileIOS && detection.safari && event.type === 'click' && this.touchendTarget) {
                 syntheticEvent.target = this.touchendTarget;
@@ -194,7 +199,7 @@ export class WasabyEvents implements IWasabyEventSystem {
                     // happens in template function
                     templateArgs =
                         this.isArgsLengthEqual(this.checkControlNodeEvents(controlNode, eventPropertyName, i), evArgs)
-                        ? controlNode.events[eventPropertyName][i].args : evArgs;
+                            ? controlNode.events[eventPropertyName][i].args : evArgs;
                     try {
                         if (!args.concat) {
                             throw new Error(
@@ -466,6 +471,9 @@ export class WasabyEvents implements IWasabyEventSystem {
         const handlerArgs = args[1] || [];
         const eventDescription = args[2];
         const eventConfig: IEventConfig = {};
+        if (this.useWasabyOverReact) {
+            controlNode = this.createFakeControlNode() as unknown as IControlNode;
+        }
         let eventObject;
         eventConfig._bubbling = eventDescription && eventDescription.bubbling !== undefined ?
             eventDescription.bubbling : false;
@@ -480,7 +488,7 @@ export class WasabyEvents implements IWasabyEventSystem {
             }
             return;
         }
-        const startArray = this.getEventPropertiesStartArray(controlNode, eventName);
+        const startArray = !this.useWasabyOverReact && this.getEventPropertiesStartArray(controlNode, eventName);
 
         eventObject = new SyntheticEvent(null, eventConfig);
         this.needBlockNotify = this.lastNotifyEvent === eventName;
@@ -503,6 +511,17 @@ export class WasabyEvents implements IWasabyEventSystem {
 
     private wasNotified(instId: string, eventType: string): boolean {
         return this.wasNotifyList.indexOf(`${instId}_${eventType}`) !== -1;
+    }
+
+    private setLastTarget(target: IWasabyHTMLElement): void {
+        this.lastTarget = target;
+    }
+
+    private createFakeControlNode(): unknown {
+        return {
+            element: this.lastTarget,
+            events: this.lastTarget.eventProperties
+        }
     }
     //#endregion
 
@@ -599,8 +618,8 @@ export class WasabyEvents implements IWasabyEventSystem {
     removeCaptureEventHandler(eventName: string, element: IWasabyHTMLElement): void {
         // TODO раскомментить после https://online.sbis.ru/opendoc.html?guid=450170bd-6322-4c3c-b6bd-3520ce3cba8a
         // Сейчас есть проблемы с вызовом ref-ов. Рефы на удаление событий вызываются большее количество раз,
-                // чем на добавление событий. Это приводит к тому, что обработчики на capture-фазу могут удаляться,
-                // когда еще есть активные подписки на события. Поэтому мы будем удалять обработчики на capture-фазу
+        // чем на добавление событий. Это приводит к тому, что обработчики на capture-фазу могут удаляться,
+        // когда еще есть активные подписки на события. Поэтому мы будем удалять обработчики на capture-фазу
         // только при дестрое самого DOMEnvironment. Последствиями такого решения будет то, что в редких случаях,
         // система событий будет распространять событие по DOM-у, несмотря на то, что мы заведомо знаем,
         // что обработчиков там не будет. Это менее критично, чем неработающие обработчики.
@@ -787,7 +806,6 @@ export class WasabyEvents implements IWasabyEventSystem {
         this._handleTabKey = undefined;
     }
 }
-
 
 /*
   * Checks if event.target is a child of current DOMEnvironment

@@ -222,11 +222,16 @@ export class GeneratorReact {
    ): React.DetailedReactHTMLElement<P, T> {
       let ref;
       const name = attrs.attributes.name;
-      const eventHooks = {...attrs, ...control._options};
+      const eventsObject = {
+         //@ts-ignore _options объявлен пустым объектом по-умолчанию
+         events: {...attrs.events, ...control._options.events},
+         //@ts-ignore _options объявлен пустым объектом по-умолчанию
+         eventSystem: control._options.eventSystem
+      };
       if (control) {
          ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
-            if (node && eventHooks.events && Object.keys(eventHooks.events).length > 0) {
-               setEventHook(tagName, eventHooks, node);
+            if (node && Object.keys(eventsObject.events).length > 0) {
+               setEventHook(tagName, eventsObject, node);
             }
          };
          if (name) {
@@ -237,8 +242,8 @@ export class GeneratorReact {
                   control._children[name] = node;
                   //@ts-ignore
                   onElementMount(control._children[name]);
-                  if (eventHooks.events && Object.keys(eventHooks.events).length > 0) {
-                     setEventHook(tagName, eventHooks, node);
+                  if (Object.keys(eventsObject.events).length > 0) {
+                     setEventHook(tagName, eventsObject, node);
                   }
                } else {
                   //@ts-ignore

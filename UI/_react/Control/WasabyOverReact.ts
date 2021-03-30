@@ -17,7 +17,7 @@ import {
 import {setReactGenerator} from 'UI/_react/Control/setReactGenerator';
 import {OptionsResolver} from 'UI/Executor';
 
-import { WasabyEvents } from 'UI/Events';
+import { WasabyEvents, callNotify } from 'UI/Events';
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
@@ -65,9 +65,8 @@ export class Control<TOptions extends IControlOptions = {},
      */
     static eventSystem: WasabyEvents;
 
-    // временно, чтобы typescript не ругался
-    protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): unknown {
-        return undefined;
+    protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): void {
+        callNotify(Control.eventSystem, eventName, args, options);
     }
 
     constructor(props: TOptions, context?: IWasabyContextValue) {

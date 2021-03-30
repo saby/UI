@@ -10,6 +10,7 @@ import * as Subscriber from './_events/Subscriber';
 import * as EventUtils from './_events/EventUtils';
 import { FastTouchEndController } from './_events/Touch/FastTouchEndController';
 import { WasabyEvents } from './_events/WasabyEvents';
+import { callNotify } from './_events/Notify';
 
 export { ISyntheticEvent, IWasabyEventSystem, IWasabyEvent } from './_events/IEvents';
 
@@ -19,5 +20,6 @@ export {
     Subscriber,
     EventUtils,
     FastTouchEndController,
-    WasabyEvents
+    WasabyEvents,
+    callNotify
 };
