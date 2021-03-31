@@ -193,7 +193,7 @@ export default class WasabyEventsInferno extends WasabyEvents implements IWasaby
                 if (!isMyDOMEnvironment(environment, e)) {
                     return;
                 }
-                method.apply(environment, arguments);
+                method.apply(this, arguments);
             };
             this.addHandler(eventName, false, handler, true);
         }
