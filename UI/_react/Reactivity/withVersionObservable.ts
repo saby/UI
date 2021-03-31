@@ -1,4 +1,5 @@
 import {ComponentType, createElement} from "react";
+import {IVersionable} from "Types/entity";
 
 /**
  * HOC для обновления компонента при изменении версии в опции на вход
@@ -10,15 +11,15 @@ export function withVersionObservable<T>(WrappedComponent: ComponentType<T>, pro
         WrappedComponent.displayName || WrappedComponent.name || 'Component';
 
     const ComponentWithVersionObserver = (inputProps: T) => {
-        let versionProp = 0;
+        let versionProps: IVersionable[] = [];
         const requiredProps = props || Object.keys(inputProps);
         requiredProps.forEach((prop) => {
             if (inputProps?.[prop]?.['_version']) {
-                versionProp += inputProps[prop]['_version'];
+                versionProps.push(inputProps?.[prop]);
             }
         });
         return createElement(WrappedComponent, {
-            _$versionProp: versionProp,
+            'data-$$version': getReactiveVersionsProp(versionProps),
             ...inputProps as T
         });
     };
@@ -26,4 +27,13 @@ export function withVersionObservable<T>(WrappedComponent: ComponentType<T>, pro
     ComponentWithVersionObserver.displayName = `withVersionObservable(${displayName})`;
 
     return ComponentWithVersionObserver;
+}
+
+/**
+ * Генерирует свойство версий по массиву версионируеммых объектов
+ * @param {IVersionable[]} props - список объектов, при изменении которых необходимо изменять свойство
+ * @return number
+ */
+export function getReactiveVersionsProp(props: IVersionable[]): number {
+    return props.reduce((prev, next) => prev + next.getVersion(), 0);
 }

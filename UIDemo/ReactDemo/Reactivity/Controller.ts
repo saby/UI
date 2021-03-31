@@ -1,11 +1,11 @@
 import {Component, createElement} from 'react';
 import {RecordSet} from 'Types/collection';
 import {Model} from 'Types/entity';
-import {makeObservable} from 'UI/ReactReactivity';
+import {makeObservable, withVersionObservable, getReactiveVersionsProp} from 'UI/ReactReactivity';
 import 'css!UIDemo/ReactDemo/Reactivity/Controller';
 import FunctionalComponent from './FunctionalComponent';
-import {ChildWithVersionObserver, Child} from "./Child";
-import {ClassChild, ClassChildWithVersionObserver} from "./ClassChild";
+import {Child} from "./Child";
+import {ClassChild} from "./ClassChild";
 
 export default class Controller extends Component<{}, { text: string }> {
     myRS = new RecordSet();
@@ -56,11 +56,14 @@ export default class Controller extends Component<{}, { text: string }> {
             }, 'Add new item'),
             createElement('ol', null, [...list]),
             createElement('h3', null, 'Memo компонент с использованием withVersionObserver'),
-            createElement(ChildWithVersionObserver, {rs: this.myRS}),
+            createElement(withVersionObservable(Child, ['rs']), {rs: this.myRS}),
             createElement('h3', null, 'Memo компонент без использования withVersionObserver'),
             createElement(Child, {rs: this.myRS}),
+            createElement('h3', null, 'Memo компонент c использованием метода getReactiveVersionsProp'),
+            // @ts-ignore JSX поддерживает дата-аттрибуты, а вот createElement ругается
+            createElement(Child, {rs: this.myRS, 'data-$$version': getReactiveVersionsProp(this.myRS)}),
             createElement('h3', null, 'PureClass компонент с использованием withVersionObserver'),
-            createElement(ClassChildWithVersionObserver, {rs: this.myRS}),
+            createElement(withVersionObservable(ClassChild, ['rs']), {rs: this.myRS}),
             createElement('h3', null, 'PureClass компонент без использования withVersionObserver'),
             createElement(ClassChild, {rs: this.myRS}),
             createElement(FunctionalComponent));

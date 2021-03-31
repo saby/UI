@@ -1,5 +1,4 @@
 import {createElement, PureComponent} from "react";
-import {withVersionObservable} from "UI/ReactReactivity";
 import {RecordSet} from "Types/collection";
 
 interface IChildProps {
@@ -12,9 +11,6 @@ class ClassChild extends PureComponent<IChildProps> {
     }
 }
 
-const ClassChildWithVersionObserver = withVersionObservable<IChildProps>(ClassChild, ['rs']);
-
 export {
-    ClassChild,
-    ClassChildWithVersionObserver
+    ClassChild
 };
