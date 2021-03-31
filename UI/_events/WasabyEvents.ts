@@ -232,6 +232,7 @@ export class WasabyEvents implements IWasabyEventSystem {
 
                                     if (needCallHandler) {
                                         fn.apply(fn.control, finalArgs); // Вызываем функцию из eventProperties
+                                        this.setWasNotifyList(fn.control._instId, eventObject.type);
                                     }
                                 }
                             } catch (err) {
