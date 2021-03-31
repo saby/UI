@@ -20,6 +20,14 @@ export interface IHeadOptions extends IHTMLOptions, IRootTemplateOptions {
    scripts?: Object[];
 }
 
+export function createTitle(title: string): void {
+   const API = AppHead.getInstance();
+   const titleTag = API.getTag('title');
+   if (!titleTag) {
+      API.createTag('title', {}, title);
+   }
+}
+
 export function createDefaultTags(cfg: IHeadOptions): void {
    const API = AppHead.getInstance();
 
