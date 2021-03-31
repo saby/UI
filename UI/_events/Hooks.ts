@@ -4,10 +4,10 @@ import { EventUtils, IWasabyEventSystem, IWasabyEvent } from '../Events';
 
 import { Set } from 'Types/shim';
 
-type TRef = (element?: HTMLElement & {
+type TElement =  HTMLElement & {
     eventProperties?: {[key: string]: IWasabyEvent[]};
     eventPropertiesCnt?: number;
-}) => void;
+}
 type TWasabyInputElement = HTMLInputElement & IWasabyHTMLElement;
 
 /**
@@ -76,10 +76,7 @@ function prepareEvents(events) {
 function addEventsToElement(
     events: {[key: string]: IWasabyEvent[]},
     eventSystem: IWasabyEventSystem,
-    element: HTMLElement & {
-        eventProperties?: {[key: string]: IWasabyEvent[]};
-        eventPropertiesCnt?: number;
-    }
+    element: TElement
 ): void {
     if (!element.eventProperties) {
         element.eventProperties = {};
@@ -109,33 +106,7 @@ function addEventsToElement(
     }
 }
 
-function removeEventsFromElement(
-    events: {[key: string]: IWasabyEvent[]},
-    eventSystem: IWasabyEventSystem,
-    element: HTMLElement & {
-        eventProperties?: {[key: string]: IWasabyEvent[]};
-        eventPropertiesCnt?: number;
-    }
-): void {
-    let eventProperties: {[key: string]: IWasabyEvent[]} = element.eventProperties;
-    const eventFullNamesNames: string[] = Object.keys(events);
-    for (let i = 0; i < eventFullNamesNames.length; i++) {
-        const eventFullName: string = eventFullNamesNames[i];
-        const eventName = EventUtils.getEventName(eventFullName);
-        eventSystem.removeCaptureEventHandler(eventName, element as unknown as IWasabyHTMLElement);
-        if (eventProperties) {
-            delete eventProperties[eventFullName];
-            element.eventPropertiesCnt--;
-            if (element.eventPropertiesCnt === 0) {
-                delete element.eventPropertiesCnt;
-                delete element.eventProperties;
-                eventProperties = null;
-            }
-        }
-    }
-}
-
-export function setEventHook<T extends HTMLElement>(
+export function setEventHook(
     tagName: string,
     props: {
         events?: {
@@ -143,38 +114,19 @@ export function setEventHook<T extends HTMLElement>(
         };
         eventSystem?: IWasabyEventSystem;
     },
-    element: T & {
-        eventProperties?: {[key: string]: IWasabyEvent[]};
-        eventPropertiesCnt?: number;
-    }
+    element: TElement
 ): void {
     const events = props.events;
     const eventSystem = props.eventSystem;
     prepareEvents(events);
-    let savedElement: HTMLElement;
     if (!haveEvents(events)) {
         return;
     }
     element.eventProperties = events;
-    const currentEventRef: TRef = function eventRef(element: HTMLElement): void {
-        const haveElement = !!element;
-        const updateEventsOnElementFn = haveElement ? addEventsToElement : removeEventsFromElement;
-        if (haveElement) {
-            savedElement = element;
-        }
-        updateEventsOnElementFn(events, eventSystem, savedElement);
-    };
-
-    const finalCurrentEventRef: TRef = inputTagNames.has(tagName) ?
-        function clearInputValueRef(element: HTMLElement): void {
-            if (currentEventRef) {
-                currentEventRef(element);
-            }
-            if (!element) {
-                clearInputValue(savedElement);
-            }
-        } :
-        currentEventRef;
-
-    finalCurrentEventRef(element);
+    if (!!element) {
+        addEventsToElement(events, eventSystem, element)
+    }
+    if (!element) {
+        clearInputValue(element);
+    }
 }

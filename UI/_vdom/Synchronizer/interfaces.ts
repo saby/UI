@@ -99,9 +99,9 @@ export interface IEvent {
 export type TEventsObject = Record<string, IEvent[]>;
 
 export interface IWasabyHTMLElement extends HTMLElement {
-    controlNodes?: IControlNode[];
-    eventProperties?: TEventsObject;
-    eventPropertiesCnt?: number;
+    controlNodes: IControlNode[];
+    eventProperties: TEventsObject;
+    eventPropertiesCnt: number;
 }
 
 export interface IProperties {

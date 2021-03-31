@@ -5,7 +5,7 @@ import { detection } from 'Env/Env';
 import { Logger, isNewEnvironment } from 'UI/Utils';
 import {ElementFinder, Events, focus, preventFocus, hasNoFocus} from 'UI/Focus';
 import { goUpByControlTree } from 'UI/NodeCollector';
-import { WasabyEvents } from 'UI/Events';
+import { WasabyEventsInferno } from 'UI/Events';
 import {
    IDOMEnvironment, TControlStateCollback,
    TMarkupNodeDecoratorFn, IHandlerInfo, TModifyHTMLNode,
@@ -76,7 +76,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
       this.__markupNodeDecorator = createRecursiveVNodeMapper(setEventHook);
 
       this._handleTabKey = this._handleTabKey.bind(this);
-      this.eventSystem = new WasabyEvents(_rootDOMNode, this as unknown as IDOMEnvironment, this._handleTabKey);
+      this.eventSystem = new WasabyEventsInferno(_rootDOMNode, this as unknown as IDOMEnvironment, this._handleTabKey);
 
       this.initFocusHandlers();
       this.__initBodyTabIndex();

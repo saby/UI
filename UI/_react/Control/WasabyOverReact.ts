@@ -17,7 +17,7 @@ import {
 import {setReactGenerator} from 'UI/_react/Control/setReactGenerator';
 import {OptionsResolver} from 'UI/Executor';
 
-import { WasabyEvents, callNotify } from 'UI/Events';
+import {WasabyEventsReact, callNotify, IWasabyEventSystem} from 'UI/Events';
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
@@ -63,7 +63,7 @@ export class Control<TOptions extends IControlOptions = {},
     /**
      * Система событий wasaby
      */
-    static eventSystem: WasabyEvents;
+    static eventSystem: IWasabyEventSystem;
 
     protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): void {
         callNotify(Control.eventSystem, this as Control, eventName, args, options);
@@ -556,7 +556,7 @@ export class Control<TOptions extends IControlOptions = {},
      * @param cfg Опции контрола.
      * @param domElement Элемент, на который должен быть смонтирован контрол.
      */
-    static createControl<P extends IControlOptions>(
+    static createControl<P extends IControlOptions & {eventSystem?: IWasabyEventSystem}>(
         ctor: React.ComponentType<P>,
         cfg: P,
         domElement: HTMLElement
@@ -564,8 +564,7 @@ export class Control<TOptions extends IControlOptions = {},
         // кладём в конфиг наследуемые опции, чтобы они попали в полноценные опции
         cfg.theme = cfg.theme ?? 'default';
         cfg.readOnly = cfg.readOnly ?? false;
-        this.eventSystem = new WasabyEvents(domElement);
-        this.eventSystem.useWasabyOverReact = true;
+        this.eventSystem = new WasabyEventsReact(domElement);
         cfg.eventSystem = this.eventSystem;
         ReactDOM.render(React.createElement(ctor, cfg), domElement);
     }
@@ -615,7 +614,7 @@ function logError(e: Error): void {
  * @param props Опции из реакта.
  * @param contextValue Контекст с наследуемыми опциями.
  */
-function createWasabyOptions<T extends IControlOptions>(
+function createWasabyOptions<T extends IControlOptions & {eventSystem?: IWasabyEventSystem}>(
     props: T,
     contextValue: IWasabyContextValue
 ): T {
