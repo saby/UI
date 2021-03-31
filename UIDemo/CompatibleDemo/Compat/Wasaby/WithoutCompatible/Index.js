@@ -1,10 +1,10 @@
 define('UIDemo/CompatibleDemo/Compat/Wasaby/WithoutCompatible/Index', [
    'UI/Base',
    'wml!UIDemo/CompatibleDemo/Compat/Wasaby/WithoutCompatible/Index'
-], function(UIBase, template) {
+], function(Base, template) {
    'use strict';
 
-   var ModuleClass = UIBase.Control.extend(
+   var ModuleClass = Base.Control.extend(
       {
          _template: template,
          _beforeMount: function() {
