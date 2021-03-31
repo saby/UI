@@ -160,35 +160,36 @@ function setObservableArray(value: unknown[], instance: Control, propName: strin
  */
 export function releaseProperties(instance: Control<any, any>) {
     const reactiveProps = Object.keys(instance.reactiveValues);
-    if (reactiveProps) {
-        for (let i = 0; i < reactiveProps.length; ++i) {
-            const value = instance && instance.reactiveValues[reactiveProps[i]];
-            if (value && value['_reactiveInstance'] === instance) {
-                value['_reactiveInstance'] = null;
-                Object.defineProperty(value, '_version', {
-                    value: value._version,
-                    enumerable: true,
-                    configurable: true,
-                    writable: true
-                });
-            }
-            releaseValue(instance, reactiveProps[i]);
-            delete instance.reactiveValues[reactiveProps[i]];
-        }
+    if (!reactiveProps) {
+        return;
     }
-
+    for (let i = 0; i < reactiveProps.length; ++i) {
+        const value = instance && instance.reactiveValues[reactiveProps[i]];
+        if (value && value['_reactiveInstance'] === instance) {
+            value['_reactiveInstance'] = null;
+            Object.defineProperty(value, '_version', {
+                value: value._version,
+                enumerable: true,
+                configurable: true,
+                writable: true
+            });
+        }
+        releaseValue(instance, reactiveProps[i]);
+        delete instance.reactiveValues[reactiveProps[i]];
+    }
 }
 
 function releaseValue(instance: Control, propName: string) {
-    if (instance.reactiveValues.hasOwnProperty(propName)) {
-        const value = instance.reactiveValues[propName];
-        Object.defineProperty(instance, propName, {
-            value: value,
-            configurable: true,
-            writable: true,
-            enumerable: true
-        });
+    if (!instance.reactiveValues.hasOwnProperty(propName)) {
+        return;
     }
+    const value = instance.reactiveValues[propName];
+    Object.defineProperty(instance, propName, {
+        value: value,
+        configurable: true,
+        writable: true,
+        enumerable: true
+    });
 }
 
 /**
