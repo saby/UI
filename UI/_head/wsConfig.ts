@@ -49,6 +49,7 @@ export function createWsConfig(cfg: IHeadOptions): void {
          `compatible: ${cfg.compat},`,
          `product: '${product}',`,
          `reactApp: ${cfg.reactApp || false}`,
+         'trackErrors: true',
          '};',
          cfg.buildnumber ? `window.buildnumber = '${cfg.buildnumber || constants.buildnumber}';` : '',
          `window['X-UNIQ-ID'] = '${getConfig('X-UNIQ-ID') || ''}';`,
