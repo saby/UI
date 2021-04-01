@@ -4,6 +4,7 @@ import * as ReactDOM from 'react-dom';
 import {EMPTY_THEME, getThemeController} from 'UI/theme/controller';
 import {getResourceUrl, Logger} from 'UI/Utils';
 import { _Options } from 'UI/Vdom';
+import {makeWasabyObservable, releaseProperties} from '../WasabyReactivity/MakeObservable';
 
 // @ts-ignore путь не определяется
 import template = require('wml!UI/_react/Control/WasabyOverReact');
@@ -57,6 +58,7 @@ export class Control<TOptions extends IControlOptions = {},
      * Название контрола.
      */
     _moduleName: string;
+    reactiveValues: object;
 
     // временно, чтобы typescript не ругался
     protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): unknown {
@@ -127,6 +129,7 @@ export class Control<TOptions extends IControlOptions = {},
 
         // Данный метод должен вызываться только при первом построении, поэтому очистим его на инстансе при вызове
         this._beforeFirstRender = undefined;
+        makeWasabyObservable(this);
 
         if (res && res.then) {
             promisesToWait.push(res);
@@ -325,6 +328,7 @@ export class Control<TOptions extends IControlOptions = {},
 
     componentWillUnmount(): void {
         this._beforeUnmount.apply(this);
+        releaseProperties(this);
     }
 
     render(): React.ReactNode {
