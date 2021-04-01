@@ -1,0 +1,3 @@
+<div>
+   <ws:partial template="{{ _options.some.case[0].someTpl }}" prop1="444" prop2="555" prop3="666" />
+</div>
