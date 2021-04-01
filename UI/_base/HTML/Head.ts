@@ -6,11 +6,10 @@ import Control from '../Control';
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Head');
-import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller';
 import { constants } from 'Env/Env';
 import { Head as AppHead } from 'Application/Page';
 import { createWsConfig, createDefaultTags, createMetaScriptsAndLinks, applyHeadJson } from "UI/Head";
-import { aggregateCSS, headDataStore, handlePrefetchModules } from "UI/Deps";
+import { aggregateCSS, headDataStore, handlePrefetchModules } from 'UI/Deps';
 import { TemplateFunction, IControlOptions } from 'UI/Base';
 import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
