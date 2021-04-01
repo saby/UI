@@ -10,7 +10,7 @@ import { Serializer } from 'UICore/State';
 // @ts-ignore
 import { Logger } from 'UICore/Utils';
 // @ts-ignore
-import {Config as config} from 'UI/BuilderConfig';
+import {Config as config} from 'UICore/BuilderConfig';
 // @ts-ignore
 import { ObjectUtils } from 'UICore/Utils';
 import { object } from 'Types/util';
@@ -53,11 +53,6 @@ function getGeneratorCompatible(config) {
 
 function isObject(obj: any): boolean {
    return Object.prototype.toString.call(obj) === '[object Object]';
-}
-
-let reactGenerator;
-export function setReactGenerator(value?: object) {
-   reactGenerator = value;
 }
 
 const ITERATORS = [
@@ -197,11 +192,7 @@ var
    },
    createGenerator = function (isVdom, forceCompatible = false, config) {
       if (isVdom) {
-         if (reactGenerator) {
-            return reactGenerator;
-         } else {
-            return Vdom(config);
-         }
+         return Vdom(config);
       }
       if (!Common.disableCompat() && (Common.isCompat() || forceCompatible)) {
          const Compatible = getGeneratorCompatible(config);

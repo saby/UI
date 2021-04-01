@@ -1,21 +1,20 @@
-import {Component, createElement} from 'react';
+import { Component, createElement } from 'react';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import {EMPTY_THEME, getThemeController} from 'UI/theme/controller';
-import {getResourceUrl, Logger} from 'UI/Utils';
+import { EMPTY_THEME, getThemeController } from 'UI/theme/controller';
+import { getResourceUrl, Logger} from 'UI/Utils';
 import { _Options } from 'UI/Vdom';
 
-// @ts-ignore путь не определяется
-import template = require('wml!UI/_react/Control/WasabyOverReact');
-import {IControlOptions, IControlState, TemplateFunction} from './interfaces';
-import {WasabyContextManager} from '../WasabyContext/WasabyContextManager';
+import template = require('wml!UICore/_base/Control');
+import { IControlOptions, IControlState, TemplateFunction } from './interfaces';
 import {
     getWasabyContext,
     IWasabyContextValue,
+    WasabyContextManager,
     TWasabyContext
-} from '../WasabyContext/WasabyContext';
-import {setReactGenerator} from 'UI/_react/Control/setReactGenerator';
-import {OptionsResolver} from 'UI/Executor';
+} from 'UICore/Contexts';
+
+import { OptionsResolver } from 'UI/Executor';
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
@@ -135,13 +134,11 @@ export class Control<TOptions extends IControlOptions = {},
         if (!this.isDeprecatedCSS() && !this.isCSSLoaded(options.theme)) {
             const cssLoading = Promise.all([
                 this.loadThemes(options.theme),
-                this.loadStyles()
+                this.loadStyles(),
+                this.loadThemeVariables(options.theme)
             ]);
             promisesToWait.push(cssLoading.then(nop));
         }
-        //Если ждать загрузки стилей новой темизации. то му получаем просадку производительности
-        //https://online.sbis.ru/doc/059aaa9a-e123-49ce-b3c3-e828fdd15e56
-        this.loadThemeVariables(options.theme);
 
         if (promisesToWait.length) {
             Promise.all(promisesToWait).then(() => {
@@ -345,15 +342,11 @@ export class Control<TOptions extends IControlOptions = {},
             return getLoadingComponent();
         }
 
-        setReactGenerator(true);
-
         let res;
         try {
             // this клонируется, чтобы вызвать шаблон с новыми значениями опций, но пока не класть их на инстанс.
             const ctx = {...this, _options: {...wasabyOptions}};
             res = this._template(ctx, undefined, undefined, true);
-        } finally {
-            setReactGenerator(false);
         }
 
         return createElement(
@@ -562,31 +555,6 @@ export class Control<TOptions extends IControlOptions = {},
         cfg.readOnly = cfg.readOnly ?? false;
 
         ReactDOM.render(React.createElement(ctor, cfg), domElement);
-    }
-
-    /**
-     * Старый способ наследоваться
-     * @param mixinsList массив миксинов либо расширяющий класс (если один аргумент)
-     * @param classExtender расширяюший класс
-     */
-    static extend(mixinsList: object | object[], classExtender?: object): Function {
-        class ExtendedControl extends Control {
-        }
-        if (Array.isArray(mixinsList)) {
-            mixinsList.forEach((mixin) => {
-                Object.keys(mixin).forEach((key) => {
-                    ExtendedControl.prototype[key] = mixinsList[key];
-                });
-                Object.keys(classExtender).forEach((key) => {
-                    ExtendedControl.prototype[key] = mixinsList[key];
-                });
-            });
-        } else {
-            Object.keys(mixinsList).forEach((key) => {
-                ExtendedControl.prototype[key] = mixinsList[key];
-            });
-        }
-        return ExtendedControl;
     }
 }
 
