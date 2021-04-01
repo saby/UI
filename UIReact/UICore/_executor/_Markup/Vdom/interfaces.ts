@@ -1,11 +1,10 @@
-import {Control} from 'UI/_react/Control/WasabyOverReact';
+import Control, { TemplateFunction } from 'UICore/Base';
 import {
     CommonUtils as Common,
     _IGeneratorType as IGT
 } from 'UICore/Executor';
-import {TemplateFunction} from 'UI/_react/Control/interfaces';
 import * as React from 'react';
-import {IWasabyContextValue} from 'UI/_react/WasabyContext/WasabyContext';
+import { IWasabyContextValue } from 'UICore/Contexts';
 
 /*
 FIXME: как я понимаю, в этом объекте могут быть HTMl-атрибуты+какие-то наши поля.

@@ -9,10 +9,8 @@ import {
    _IGeneratorType as IGT
 } from 'UICore/Executor';
 import { convertAttributes, WasabyAttributes } from './Attributes';
-import { WasabyContextManager } from 'UI/_react/WasabyContext/WasabyContextManager';
-import { Control } from 'UI/_react/Control/WasabyOverReact';
-
-import {IControlOptions, TemplateFunction} from 'UI/_react/Control/interfaces';
+import { WasabyContextManager } from 'UICore/Contexts';
+import Control, {IControlOptions, TemplateFunction} from 'UICore/Base';
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate, IWasabyEvent} from './interfaces';
 
 const Attr = _ForExecutorCompatible.Attr;

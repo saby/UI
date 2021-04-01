@@ -10,7 +10,7 @@ import { useReadonly } from './withReadonly';
 import {
    getWasabyContext,
    IWasabyContextValue
-} from 'UI/_react/WasabyContext/WasabyContext';
+} from './WasabyContext';
 
 /**
  * Контрол, управляющий контекстом совместимости. Используется для "наследования" опций theme и readOnly.

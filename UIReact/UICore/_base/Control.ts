@@ -21,7 +21,7 @@ import { OptionsResolver } from 'UI/Executor';
  * @author Mogilevsky Ivan
  * @public
  */
-export class Control<TOptions extends IControlOptions = {},
+export default class Control<TOptions extends IControlOptions = {},
     TState extends object | void = void> extends Component<TOptions, IControlState> {
     /**
      * Используется для того, чтобы не вызывать хуки ЖЦ до реального построения контрола.
