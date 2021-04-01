@@ -88,7 +88,7 @@ function isolateScope(scope: any, data: any, propertyName: any): any {
       let parentValueProperty = scope[propertyName];
       if (parentValueProperty !== undefined) {
          if (isObject(data)) {
-            data = Object.create(data);
+            data = { ...scope };
          }
          data[propertyName] = parentValueProperty;
       } else {
