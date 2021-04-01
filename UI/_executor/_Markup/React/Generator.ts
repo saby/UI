@@ -33,7 +33,7 @@ export class GeneratorReact {
     * т.е. либо та логика дублировалась где-то ещё, либо типы были описаны неправильно.
     * @param type Тип элемента, определяет каким методом генератор будет его строить.
     * @param origin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
-    * @param attributes
+    * @param attributes Опции, заданные через attr:<имя_опции>.
     * @param events
     * @param options Опции контрола/шаблона.
     * @param config
@@ -41,25 +41,38 @@ export class GeneratorReact {
    createControlNew(
       type: 'wsControl' | 'template',
       origin: TemplateOrigin,
-      attributes: IGeneratorAttrs | Record<string, unknown>,
+      attributes: Record<string, unknown>,
       events: { [key: string]: IWasabyEvent[]; },
       options: IControlOptions,
       config: IControlConfig
    ): React.ReactElement | React.ReactElement[] | string {
       const extractedEvents = extractEventNames(events);
 
-      const newOptions = {...options, ...extractedEvents, ...{events: extractedEvents}};
-      const templateAttributes: IGeneratorAttrs = {
-         attributes: attributes as Record<string, unknown>
+      /*
+      У шаблонов имя раньше бралось только из атрибута.
+      У контролов оно бралось только из опций.
+      Вряд ли есть места, где люди завязались на это поведение.
+      Поэтому чтобы не костылять с проверками, просто поддержу и опции, и атрибуты для всего.
+       */
+      const name = attributes.name as string ?? options.name;
+      const newOptions = {
+         ...options,
+         ...extractedEvents,
+         ...{events: extractedEvents},
+         ref: createRef(config.viewController, name)
       };
+      const templateAttributes: IGeneratorAttrs = {
+         attributes,
          /*
-         FIXME: судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
+         FIXME: https://online.sbis.ru/opendoc.html?guid=f354360c-5899-4f74-bf54-a06e526621eb
+         судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
          Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
          Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
           */
-      (templateAttributes).internal = {
+         internal: {
             parent: config.viewController
-         };
+         }
+      };
 
       return this.resolver(origin, newOptions, templateAttributes, undefined,
          config.depsLocal, config.includedTemplates);
@@ -170,7 +183,7 @@ export class GeneratorReact {
       deps?: Common.Deps<typeof Control, TemplateFunction>,
       includedTemplates?: Common.IncludedTemplates<TemplateFunction>
    ): React.ReactElement | React.ReactElement[] | string {
-      const parent = decorAttribs?.internal?.parent;
+      const parent = decorAttribs.internal.parent;
 
       const tplExtended: TemplateOrigin = resolveTpl(tplOrigin, includedTemplates, deps);
       const tpl = Common.fixDefaultExport(tplExtended);
@@ -238,23 +251,6 @@ export class GeneratorReact {
       __: unknown,
       control?: Control
    ): React.DetailedReactHTMLElement<P, T> {
-      let ref;
-      const name = attrs.attributes.name;
-      if (control && name) {
-         ref = (node: HTMLElement): void => {
-            if (node) {
-               // todo _children protected по апи, но здесь нужен доступ чтобы инициализировать.
-               //@ts-ignore
-               control._children[name] = node;
-               //@ts-ignore
-               onElementMount(control._children[name]);
-            } else {
-               //@ts-ignore
-               onElementUnmount(control._children, name);
-            }
-         };
-      }
-
       if (!attrToDecorate) {
          attrToDecorate = {};
       }
@@ -264,6 +260,8 @@ export class GeneratorReact {
             delete mergedAttrs[attrName];
          }
       });
+      const name = mergedAttrs.name;
+      const ref = createRef(control, name);
 
       const convertedAttributes = convertAttributes(mergedAttrs);
       const extractedEvents = control ?
@@ -283,6 +281,22 @@ export class GeneratorReact {
    escape<T>(value: T): T {
       return value;
    }
+}
+
+function createRef<T extends Control | Element>(parent: Control, name: string): React.RefCallback<T> | void {
+   // _children protected по апи, но здесь нужен доступ чтобы инициализировать.
+   /* tslint:disable:no-string-literal */
+   if (parent && name) {
+      return (node) => {
+         if (node) {
+            parent['_children'][name] = node;
+            onElementMount(parent['_children'][name]);
+         } else {
+            onElementUnmount(parent['_children'], name);
+         }
+      };
+   }
+   /* tslint:enable:no-string-literal */
 }
 
 function getLibraryTpl(tpl: IGeneratorNameObject,
