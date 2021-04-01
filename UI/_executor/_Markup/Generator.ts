@@ -122,6 +122,14 @@ function resolveTpl(tpl, deps, includedTemplates) {
             }
          }
       }
+      if (typeof tpl === 'string' && !controlClass) {
+         if (!wasOptional) {
+            Logger.error(`Ошибка при загрузке модуля: ${tpl}. 
+               Проверьте существует ли модуль по указаному пути или не должен ли он быть опциональным`);
+         } else {
+            controlClass = '';
+         }
+      }
       dataComponent = tpl;
       if (controlClass && controlClass.default && controlClass.default.isWasaby) {
          controlClass = controlClass.default;
