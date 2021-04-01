@@ -78,6 +78,50 @@ export function calcParent(obj: any, currentPropertyName: any, data: any): any {
 
 const mergeRegExp = /(^on:|^content$)/ig;
 
+function getInsertedData(templateCfg: any): any {
+   let insertedData;
+
+   if (templateCfg.data && templateCfg.data[Scope.ISOLATED_SCOPE_FLAG]) {
+      // на нужно пропатчить все области видимости для шаблонов, которые генерируется
+      // во время создания конфига для контрола
+      insertedData = templateCfg.data[templateCfg.data[Scope.ISOLATED_SCOPE_FLAG]];
+   }
+   return insertedData;
+}
+function preventMergeOptions(data: any): boolean {
+   // todo удалить поддержку preventMergeOptions
+   return data && (data._$preventMergeOptions || data._preventMergeOptions);
+}
+
+export function addContentOptionScope(data: any, templateCfg: any): any {
+   // если есть контентные данные, мы должны добавить их к существующим данным
+   const insertedData = getInsertedData(templateCfg);
+   if (insertedData && !preventMergeOptions(data)) {
+      // если в шаблон, в котором в корне лежит контрол, передали scope="{{ ... }}", в котором лежат
+      // все опции старого контрола, тогда их не нужно пропускать, потому что все опции контрола переданного
+      // через ... будут инициализировать контрол, который лежит внутри такого шаблона
+      if (!insertedData.hasOwnProperty('parent') &&
+         (!insertedData.hasOwnProperty('element') || !insertedData.element || insertedData.element.length === 0)) {
+
+         data = FunctionUtils.merge(data, insertedData, {
+            rec: !(templateCfg.viewController && templateCfg.viewController._template),
+
+            // для vdomных детей не клонируем объекты внутрь.
+            // копируем без замены свойств, потому что например может прилететь свойство content, которое
+            // перетрет указанное.
+            // Так например падает тест test_04_panel_move_record, при попытке перемещения записи не строится дерево,
+            // потмоу что прилетает content = '' и перетирает заданный content в шаблоне
+            preferSource: true,
+
+            // проигнорируем events потому что они летят через атрибуты на дом элементы
+            // и content, потому что content в каждой функции должен быть свой
+            ignoreRegExp: mergeRegExp
+         });
+      }
+   }
+   return data;
+}
+
 /**
  * todo: describe method
  * @param data
@@ -86,19 +130,18 @@ const mergeRegExp = /(^on:|^content$)/ig;
  */
 export function resolveControlCfg(data: any, templateCfg: any, attrs: any): any {
    const internal = templateCfg.internal || { };
-   let insertedData;
-   let enabledFromContent;
    data = Scope.calculateScope(data, plainMerge);
+   data = addContentOptionScope(data, templateCfg);
 
-   // если есть контентные данные, мы должны добавить их к существующим данным
-   if (templateCfg.data && templateCfg.data[Scope.ISOLATED_SCOPE_FLAG]) {
-      // на нужно пропатчить все области видимости для шаблонов, которые генерируется
-      // во время создания конфига для контрола
-      insertedData = templateCfg.data[templateCfg.data[Scope.ISOLATED_SCOPE_FLAG]];
-      // todo удалить поддержку preventMergeOptions
-      const preventMergeOptions = data && (data._$preventMergeOptions || data._preventMergeOptions);
+   // вычисляем служебные опции для контрола - его физического и логического родителей,
+   // видимость и активированность родителя
+   internal.logicParent = templateCfg.viewController;
 
-      if (!preventMergeOptions && insertedData) {
+   if (constants.compat) {
+      let enabledFromContent;
+
+      const insertedData = getInsertedData(data);
+      if (insertedData) {
          // Здесь не нужно прокидывать опции в старые контролы, поэтому будем прокидывать только для контента
          if (templateCfg.data[Scope.ISOLATED_SCOPE_FLAG] !== 'content') {
             delete insertedData.enabled;
@@ -106,36 +149,8 @@ export function resolveControlCfg(data: any, templateCfg: any, attrs: any): any 
          if (insertedData.hasOwnProperty('enabled')) {
             enabledFromContent = insertedData.enabled;
          }
-         // если в шаблон, в котором в корне лежит контрол, передали scope="{{ ... }}", в котором лежат
-         // все опции старого контрола, тогда их не нужно пропускать, потому что все опции контрола переданного
-         // через ... будут инициализировать контрол, который лежит внутри такого шаблона
-         if (!insertedData.hasOwnProperty('parent') &&
-            (!insertedData.hasOwnProperty('element') || !insertedData.element || insertedData.element.length === 0)) {
-
-            data = FunctionUtils.merge(data, insertedData, {
-               rec: !(templateCfg.viewController && templateCfg.viewController._template),
-
-               // для vdomных детей не клонируем объекты внутрь.
-               // копируем без замены свойств, потому что например может прилететь свойство content, которое
-               // перетрет указанное.
-               // Так например падает тест test_04_panel_move_record, при попытке перемещения записи не строится дерево,
-               // потмоу что прилетает content = '' и перетирает заданный content в шаблоне
-               preferSource: true,
-
-               ignoreRegExp: mergeRegExp
-
-               //проигнорируем events потому что они летят через атрибуты на дом элементы
-               // и content, потому что content в каждой функции должен быть свой
-            });
-         }
       }
-   }
 
-   // вычисляем служебные опции для контрола - его физического и логического родителей,
-   // видимость и активированность родителя
-   internal.logicParent = templateCfg.viewController;
-
-   if (constants.compat) {
       internal.parent = calcParent(templateCfg.ctx, templateCfg.pName, templateCfg.data);
       internal.parentEnabled = (enabledFromContent === undefined ? true : enabledFromContent)
          && isParentEnabled(

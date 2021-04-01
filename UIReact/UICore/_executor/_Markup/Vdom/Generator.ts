@@ -16,7 +16,10 @@ import { setEventHook } from 'UICore/_events/Hooks';
 import Control, {IControlOptions, TemplateFunction} from 'UICore/Base';
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate} from './interfaces';
 
-const Attr = _ForExecutorCompatible.Attr;
+import * as Attr from '../../_Expressions/Attr';
+import * as ConfigResolver from '../../_Utils/ConfigResolver';
+import * as Scope from '../../_Expressions/Scope';
+import {plainMerge} from '../../_Utils/Common';
 
 export class GeneratorReact {
    prepareDataForCreate(tplOrigin: TemplateOrigin,
@@ -51,22 +54,33 @@ export class GeneratorReact {
       options: IControlOptions,
       config: IControlConfig
    ): React.ReactElement | React.ReactElement[] | string {
-      const newOptions = {...options, ...{events: events}, ...{eventSystem: config.data._options.eventSystem}};
       const templateAttributes: IGeneratorAttrs = {
          attributes: attributes as Record<string, unknown>
       };
-         /*
-         FIXME: судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
-         Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
-         Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
-          */
+      /*
+      FIXME: судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
+      Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
+      Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
+       */
       (templateAttributes).internal = {
-            parent: config.viewController
-         };
+         parent: config.viewController
+      };
+
+      // вместо опций может прилететь функция, выполнение которой отдаст опции, calculateScope вычисляет такие опции
+      const resolvedOptions = Scope.calculateScope(options, plainMerge);
+      // если контрол создается внутри контентной опции, нужно пробросить в опции еще те, что доступны в контентной
+      // опции.
+      const resolvedOptionsExtended = ConfigResolver.addContentOptionScope(resolvedOptions, config);
+
+      const newOptions = {
+         ...resolvedOptionsExtended,
+         ...{events},
+         ...{eventSystem: config.data._options.eventSystem}
+      };
 
       return this.resolver(origin, newOptions, templateAttributes, undefined,
          config.depsLocal, config.includedTemplates);
-      }
+   }
 
    /*
    FIXME: не понимаю зачем нужен этот метод, по сути он ничего не делает.
@@ -257,21 +271,21 @@ export class GeneratorReact {
          };
          if (name) {
             ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
-               if (node) {
-                  // todo _children protected по апи, но здесь нужен доступ чтобы инициализировать.
-                  //@ts-ignore
-                  control._children[name] = node;
-                  //@ts-ignore
-                  onElementMount(control._children[name]);
+            if (node) {
+               // todo _children protected по апи, но здесь нужен доступ чтобы инициализировать.
+               //@ts-ignore
+               control._children[name] = node;
+               //@ts-ignore
+               onElementMount(control._children[name]);
                   if (Object.keys(eventsObject.events).length > 0) {
                      setEventHook(tagName, eventsObject, node);
                   }
-               } else {
-                  //@ts-ignore
-                  onElementUnmount(control._children, name);
-               }
-            };
-         }
+            } else {
+               //@ts-ignore
+               onElementUnmount(control._children, name);
+            }
+         };
+      }
       }
 
       if (!attrToDecorate) {

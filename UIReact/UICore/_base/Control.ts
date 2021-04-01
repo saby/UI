@@ -4,7 +4,7 @@ import * as ReactDOM from 'react-dom';
 import { EMPTY_THEME, getThemeController } from 'UI/theme/controller';
 import { getResourceUrl, Logger} from 'UI/Utils';
 import { _Options } from 'UI/Vdom';
-import {makeWasabyObservable, releaseProperties} from '../WasabyReactivity/MakeObservable';
+import {makeWasabyObservable, releaseProperties} from 'UI/WasabyReactReactivity';
 
 import template = require('wml!UICore/_base/Control');
 import { IControlOptions, IControlState, TemplateFunction } from './interfaces';
@@ -185,6 +185,31 @@ export default class Control<TOptions extends IControlOptions = {},
     }
 
     /**
+     * Синхронный хук жизненного цикла контрола. Вызывается сразу после установки контрола в DOM-окружение.
+     * @param {Object} options Опции контрола.
+     * @param {Object} context Поле контекста, запрошенное контролом.
+     * @example
+     * <pre class="brush: js">
+     *    Control.extend({
+     *       ...
+     *       _componentDidMount(options, context) {
+     *          this.subscribeToServerEvents();
+     *          this.buttonHeight = this._children.myButton.offsetHeight;
+     *       }
+     *       ...
+     *    });
+     * </pre>
+     * @remark
+     * Первый хук жизненного цикла контрола, который вызывается после подключения контрола к DOM-окружению.
+     * На этом этапе вы можете получить доступ к параметрам и контексту this._options.
+     * Этот хук жизненного цикла часто используется для доступа к DOM-элементам и подписки на события сервера.
+     * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
+     */
+    protected _componentDidMount(options?: TOptions, context?: object): void {
+        // Do
+    }
+
+    /**
      * Определяет, должен ли контрол обновляться. Вызывается каждый раз перед обновлением контрола.
      *
      * @param options Опции контрола.
@@ -295,6 +320,7 @@ export default class Control<TOptions extends IControlOptions = {},
     componentDidMount(): void {
         if (this._$controlMounted) {
             const newOptions = createWasabyOptions(this.props, this.context);
+            this._componentDidMount(newOptions);
             setTimeout(() => {
                 this._options = newOptions;
                 this._afterMount(newOptions);
