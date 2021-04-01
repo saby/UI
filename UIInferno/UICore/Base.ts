@@ -1,7 +1,5 @@
-import Control from './_base/Control';
-export default Control;
-
 export {
+    default as Control,
     IControlOptions,
     TemplateFunction,
     TControlConstructor,

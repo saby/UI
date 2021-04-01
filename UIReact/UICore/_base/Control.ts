@@ -4,7 +4,7 @@ import * as ReactDOM from 'react-dom';
 import { EMPTY_THEME, getThemeController } from 'UI/theme/controller';
 import { getResourceUrl, Logger} from 'UI/Utils';
 import { _Options } from 'UI/Vdom';
-import {makeWasabyObservable, releaseProperties} from 'UI/WasabyReactReactivity';
+import { makeWasabyObservable, releaseProperties } from 'UICore/Reactivity';
 
 import template = require('wml!UICore/_base/Control');
 import { IControlOptions, IControlState, TemplateFunction } from './interfaces';

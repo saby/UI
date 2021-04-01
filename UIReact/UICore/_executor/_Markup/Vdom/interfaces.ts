@@ -1,4 +1,4 @@
-import Control, { TemplateFunction } from 'UICore/Base';
+import { Control, TemplateFunction } from 'UICore/Base';
 import {
     CommonUtils as Common,
     _IGeneratorType as IGT

@@ -3,7 +3,7 @@
  */
 
 import { IWasabyEventSystem } from './IEvents';
-import { Control } from 'UI/ReactComponent';
+import { Control } from 'UIReact/UICore/Base';
 
 /**
  * запускает нотифай события (для wasabyOverReact)

@@ -1,6 +1,6 @@
 /// <amd-module name="UI/_base/Document" />
 
-import Control from 'UICore/Base';
+import { Control } from 'UICore/Base';
 
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore

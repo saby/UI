@@ -13,7 +13,7 @@ import { WasabyContextManager } from 'UICore/Contexts';
 import { IWasabyEvent } from 'UICore/Events';
 import { setEventHook } from 'UICore/_events/Hooks';
 
-import Control, {IControlOptions, TemplateFunction} from 'UICore/Base';
+import { Control, IControlOptions, TemplateFunction } from 'UICore/Base';
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate} from './interfaces';
 
 import * as Attr from '../../_Expressions/Attr';
