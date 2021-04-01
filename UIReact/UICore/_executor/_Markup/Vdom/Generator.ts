@@ -106,6 +106,22 @@ export class GeneratorReact {
    > {
       const controlClassExtended: TemplateOrigin = resolveTpl(origin, {}, deps);
       const controlClass = Common.fixDefaultExport(controlClassExtended) as typeof Control;
+
+      // todo временное решение только для поддержки юнит-тестов
+      // https://online.sbis.ru/opendoc.html?guid=a886b7c1-fda3-4594-b00d-b48f1185aaf8
+      if (Common.isCompound(controlClass)) {
+         const generatorCompatibleStr = 'View/_executorCompatible/_Markup/Compatible/GeneratorCompatible';
+         const GeneratorCompatible = requirejs(generatorCompatibleStr).GeneratorCompatible;
+         const generatorCompatible = new GeneratorCompatible();
+         const markup = generatorCompatible.createWsControl.apply(generatorCompatible, arguments);
+         const res = React.createElement('remove', {
+            dangerouslySetInnerHTML: {
+               __html: markup
+            }
+         });
+         //@ts-ignore
+         return res;
+      }
       return React.createElement(controlClass, scope);
    }
 
