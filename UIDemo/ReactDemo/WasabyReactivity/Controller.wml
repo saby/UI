@@ -1,0 +1,22 @@
+<div>
+    <div class="tabs">
+        <ws:for data="el in _tabs">
+            <div class="tabs-item {{activeTab === el.id ? 'tabs-item__active'}}" key="{{el.id}}" id="{{el.id}}"
+                 on:click="_changeActiveTab()">
+                {{el.name}}
+            </div>
+        </ws:for>
+    </div>
+    <div class="content">
+        <ws:if data="{{activeTab === 'primitive'}}">
+            <UIDemo.ReactDemo.WasabyReactivity.Primitive/>
+        </ws:if>
+        <ws:if data="{{activeTab === 'rec'}}">
+            <UIDemo.ReactDemo.WasabyReactivity.Rec/>
+        </ws:if>
+        <ws:if data="{{activeTab === 'array'}}">
+            <UIDemo.ReactDemo.WasabyReactivity.Arr/>
+        </ws:if>
+    </div>
+</div>
+
