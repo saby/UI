@@ -1,0 +1,9 @@
+<div>
+    <div>
+        c1 valueChanged: {{_valueCh}}
+    </div>
+    <ws:partial
+            template="UIDemo/ReactEventDemo/ReactOnTop/Component/WasabyNotifier"
+            bind:value="_value"
+            on:valueChanged="_handler()"/>
+</div>

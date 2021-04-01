@@ -5,7 +5,7 @@ import { detection } from 'Env/Env';
 import { Logger, isNewEnvironment } from 'UI/Utils';
 import {ElementFinder, Events, focus, preventFocus, hasNoFocus} from 'UI/Focus';
 import { goUpByControlTree } from 'UI/NodeCollector';
-import { WasabyEvents } from 'UI/Events';
+import { WasabyEventsInferno } from 'UI/Events';
 import {
    IDOMEnvironment, TControlStateCollback,
    TMarkupNodeDecoratorFn, IHandlerInfo, TModifyHTMLNode,
@@ -30,21 +30,21 @@ import { VNode } from 'Inferno/third-party/index';
 
 function createRecursiveVNodeMapper(fn: any): any {
    return function recursiveVNodeMapperFn(
-      tagName: VNode['type'],
-      properties: VNode['props'],
-      children: VNode['children'],
-      key: VNode['key'],
-      controlNode: any,
-      ref: VNode['ref']
+       tagName: VNode['type'],
+       properties: VNode['props'],
+       children: VNode['children'],
+       key: VNode['key'],
+       controlNode: any,
+       ref: VNode['ref']
    ): any {
       let childrenRest;
       let fnRes = fn(tagName, properties, children, key, controlNode, ref);
       const newChildren = fnRes[2];
 
       childrenRest = newChildren.map(
-         (child: VNode) => {
-            return mapVNode(recursiveVNodeMapperFn, controlNode, child);
-         }
+          (child: VNode) => {
+             return mapVNode(recursiveVNodeMapperFn, controlNode, child);
+          }
       );
       fnRes = [fnRes[0], fnRes[1], childrenRest, fnRes[3], fnRes[4]];
 
@@ -66,17 +66,17 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
    };
 
    constructor(
-      // она нужна что бы выполнить функцию render VDOM библиотеки от неё
-      _rootDOMNode: TModifyHTMLNode,
-      controlStateChangedCallback: TControlStateCollback,
-      rootAttrs: TComponentAttrs
+       // она нужна что бы выполнить функцию render VDOM библиотеки от неё
+       _rootDOMNode: TModifyHTMLNode,
+       controlStateChangedCallback: TControlStateCollback,
+       rootAttrs: TComponentAttrs
    ) {
       super(_rootDOMNode, controlStateChangedCallback);
 
       this.__markupNodeDecorator = createRecursiveVNodeMapper(setEventHook);
 
       this._handleTabKey = this._handleTabKey.bind(this);
-      this.eventSystem = new WasabyEvents(_rootDOMNode, this as unknown as IDOMEnvironment, this._handleTabKey);
+      this.eventSystem = new WasabyEventsInferno(_rootDOMNode, this as unknown as IDOMEnvironment, this._handleTabKey);
 
       this.initFocusHandlers();
       this.__initBodyTabIndex();
@@ -260,11 +260,11 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
    */
    _canDestroy(destroyedControl: any): any {
       return (
-         !this._rootDOMNode ||
-         !this._rootDOMNode.controlNodes ||
-         !this._rootDOMNode.controlNodes.find(
-            (node: any): any => !node.parent && node.control !== destroyedControl
-         )
+          !this._rootDOMNode ||
+          !this._rootDOMNode.controlNodes ||
+          !this._rootDOMNode.controlNodes.find(
+              (node: any): any => !node.parent && node.control !== destroyedControl
+          )
       );
    }
 
