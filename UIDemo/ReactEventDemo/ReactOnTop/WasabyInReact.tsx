@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import WasabyButton from './Component/WasabyButton';
+import WasabyNotify from './Component/WasabyNotify';
 
 export default class WasabyInReact extends React.Component {
     state = {
@@ -51,6 +52,9 @@ export default class WasabyInReact extends React.Component {
                 <div>
                     <WasabyButton {...wasabyDecrement } />
                     <WasabyButton {...wasabyIncrement } />
+                </div>
+                <div>
+                    <WasabyNotify />
                 </div>
             </div>
         );
