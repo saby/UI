@@ -10,6 +10,7 @@ interface CheckboxOptions extends IControlOptions {
 
 export default class Checkbox extends Control<CheckboxOptions> {
     protected _template: TemplateFunction = template;
+    protected _label: string = 'My checkbox';
     protected logger = LoggerService.getInstance();
     private expectedValue: boolean;
 
@@ -19,6 +20,13 @@ export default class Checkbox extends Control<CheckboxOptions> {
         const success = isEqual(this._options, {});
         this.logger.add(
             `"_beforeMount" опции должны быть пустыми
+            Компонент: Checkbox`, success);
+    }
+
+    protected _componentDidMount(options: CheckboxOptions, context?: object): void {
+        const success = isEqual(options, this._options);
+        this.logger.add(
+            `"_componentDidMount" опции в аргументах и на инстансе должны совпадать
             Компонент: Checkbox`, success);
     }
 
