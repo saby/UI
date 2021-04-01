@@ -179,7 +179,6 @@ function removeThemeParam(name: string): string {
 export function parseModuleName(name: string): IModuleInfo | null {
    const typeInfo = getType(name);
    if (typeInfo === null) {
-      Logger.warn(`[UI/_base/DepsCollector:parseModuleName] Wrong type Can not process module: ${name}`);
       return null;
    }
    let nameWithoutPlugin;
@@ -364,19 +363,21 @@ export function recursiveWalker(
             }
          }
          const module = parseModuleName(node);
-         if (module) {
-            const moduleType = module.typeInfo.type;
-            if (!allDeps[moduleType]) {
-               allDeps[moduleType] = {};
+         if(module === null) {
+            // Модули данного типа, мы не умеем подключать.
+            continue;
+         }
+         const moduleType = module.typeInfo.type;
+         if (!allDeps[moduleType]) {
+            allDeps[moduleType] = {};
+         }
+         if (!allDeps[moduleType][node]) {
+            if (!(skipDep && !!module.typeInfo.canBePackedInParent)) {
+               allDeps[moduleType][module.fullName] = module;
             }
-            if (!allDeps[moduleType][node]) {
-               if (!(skipDep && !!module.typeInfo.canBePackedInParent)) {
-                  allDeps[moduleType][module.fullName] = module;
-               }
-               if (module.typeInfo.hasDeps) {
-                  const nodeDeps = modDeps[node] || modDeps[module.moduleName];
-                  recursiveWalker(allDeps, nodeDeps, modDeps, modInfo, !!module.typeInfo.packOwnDeps);
-               }
+            if (module.typeInfo.hasDeps) {
+               const nodeDeps = modDeps[node] || modDeps[module.moduleName];
+               recursiveWalker(allDeps, nodeDeps, modDeps, modInfo, !!module.typeInfo.packOwnDeps);
             }
          }
       }
