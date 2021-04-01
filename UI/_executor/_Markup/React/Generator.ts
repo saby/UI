@@ -17,6 +17,7 @@ import * as Attr from '../../_Expressions/Attr';
 import * as ConfigResolver from '../../_Utils/ConfigResolver';
 import * as Scope from '../../_Expressions/Scope';
 import {plainMerge} from '../../_Utils/Common';
+import * as Helper from '../../_Markup/Helper';
 
 export class GeneratorReact {
    prepareDataForCreate(tplOrigin: TemplateOrigin,
@@ -46,13 +47,15 @@ export class GeneratorReact {
    createControlNew(
       type: 'wsControl' | 'template',
       origin: TemplateOrigin,
-      attributes: IGeneratorAttrs | Record<string, unknown>,
+      attributes: Attr.IAttributes,
       events: { [key: string]: IWasabyEvent[]; },
       options: IControlOptions,
       config: IControlConfig
    ): React.ReactElement | React.ReactElement[] | string {
       const templateAttributes: IGeneratorAttrs = {
-         attributes: attributes as Record<string, unknown>
+         attributes: config.compositeAttributes === null
+            ? attributes
+            : Helper.processMergeAttributes(config.compositeAttributes, attributes)
       };
       /*
       FIXME: судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
@@ -72,7 +75,7 @@ export class GeneratorReact {
       const newOptions = {
          ...resolvedOptionsExtended,
          ...{events},
-         ...{eventSystem: config.data._options.eventSystem}
+         ...{eventSystem: config.data?._options?.eventSystem}
       };
 
       return this.resolver(origin, newOptions, templateAttributes, undefined,
@@ -254,13 +257,14 @@ export class GeneratorReact {
    ): React.DetailedReactHTMLElement<P, T> {
       let ref;
       const name = attrs.attributes.name;
-      const eventsObject = {
-         //@ts-ignore _options объявлен пустым объектом по-умолчанию
-         events: {...attrs.events, ...control._options.events},
-         //@ts-ignore _options объявлен пустым объектом по-умолчанию
-         eventSystem: control._options.eventSystem
-      };
+
       if (control) {
+         const eventsObject = {
+            //@ts-ignore _options объявлен пустым объектом по-умолчанию
+            events: {...attrs.events, ...control._options.events},
+            //@ts-ignore _options объявлен пустым объектом по-умолчанию
+            eventSystem: control._options.eventSystem
+         };
          ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
             if (node && Object.keys(eventsObject.events).length > 0) {
                setEventHook(tagName, eventsObject, node);
@@ -268,21 +272,21 @@ export class GeneratorReact {
          };
          if (name) {
             ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
-            if (node) {
-               // todo _children protected по апи, но здесь нужен доступ чтобы инициализировать.
-               //@ts-ignore
-               control._children[name] = node;
-               //@ts-ignore
-               onElementMount(control._children[name]);
-                  if (Object.keys(eventsObject.events).length > 0) {
-                     setEventHook(tagName, eventsObject, node);
-                  }
-            } else {
-               //@ts-ignore
-               onElementUnmount(control._children, name);
-            }
-         };
-      }
+               if (node) {
+                  // todo _children protected по апи, но здесь нужен доступ чтобы инициализировать.
+                  //@ts-ignore
+                  control._children[name] = node;
+                  //@ts-ignore
+                  onElementMount(control._children[name]);
+                     if (Object.keys(eventsObject.events).length > 0) {
+                        setEventHook(tagName, eventsObject, node);
+                     }
+               } else {
+                  //@ts-ignore
+                  onElementUnmount(control._children, name);
+               }
+            };
+         }
       }
 
       if (!attrToDecorate) {
