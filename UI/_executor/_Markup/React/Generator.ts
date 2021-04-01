@@ -5,9 +5,11 @@ import { onElementMount, onElementUnmount } from '../../_Utils/ChildrenManager';
 import { convertAttributes, WasabyAttributes } from './Attributes';
 import { WasabyContextManager } from 'UI/_react/WasabyContext/WasabyContextManager';
 import { Control } from 'UI/_react/Control/WasabyOverReact';
+import { IWasabyEvent } from 'UI/Events';
+import { setEventHook } from 'UI/_events/Hooks';
 
 import {IControlOptions, TemplateFunction} from 'UI/_react/Control/interfaces';
-import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate, IWasabyEvent} from './interfaces';
+import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate} from './interfaces';
 import * as RequireHelper from '../../_Utils/RequireHelper';
 import {IGeneratorNameObject} from '../../_Markup/IGeneratorType';
 
@@ -66,9 +68,12 @@ export class GeneratorReact {
       // если контрол создается внутри контентной опции, нужно пробросить в опции еще те, что доступны в контентной
       // опции.
       const resolvedOptionsExtended = ConfigResolver.addContentOptionScope(resolvedOptions, config);
-      const extractedEvents = extractEventNames(events);
 
-      const newOptions = {...resolvedOptionsExtended, ...extractedEvents, ...{events: extractedEvents}};
+      const newOptions = {
+         ...resolvedOptionsExtended,
+         ...{events},
+         ...{eventSystem: config.data._options.eventSystem}
+      };
 
       return this.resolver(origin, newOptions, templateAttributes, undefined,
          config.depsLocal, config.includedTemplates);
@@ -113,6 +118,22 @@ export class GeneratorReact {
    > {
       const controlClassExtended: TemplateOrigin = resolveTpl(origin, {}, deps);
       const controlClass = Common.fixDefaultExport(controlClassExtended) as typeof Control;
+
+      // todo временное решение только для поддержки юнит-тестов
+      // https://online.sbis.ru/opendoc.html?guid=a886b7c1-fda3-4594-b00d-b48f1185aaf8
+      if (Common.isCompound(controlClass)) {
+         const generatorCompatibleStr = 'View/_executorCompatible/_Markup/Compatible/GeneratorCompatible';
+         const GeneratorCompatible = requirejs(generatorCompatibleStr).GeneratorCompatible;
+         const generatorCompatible = new GeneratorCompatible();
+         const markup = generatorCompatible.createWsControl.apply(generatorCompatible, arguments);
+         const res = React.createElement('remove', {
+            dangerouslySetInnerHTML: {
+               __html: markup
+            }
+         });
+         //@ts-ignore
+         return res;
+      }
       return React.createElement(controlClass, scope);
    }
 
@@ -233,19 +254,35 @@ export class GeneratorReact {
    ): React.DetailedReactHTMLElement<P, T> {
       let ref;
       const name = attrs.attributes.name;
-      if (control && name) {
-         ref = (node: HTMLElement): void => {
+      const eventsObject = {
+         //@ts-ignore _options объявлен пустым объектом по-умолчанию
+         events: {...attrs.events, ...control._options.events},
+         //@ts-ignore _options объявлен пустым объектом по-умолчанию
+         eventSystem: control._options.eventSystem
+      };
+      if (control) {
+         ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
+            if (node && Object.keys(eventsObject.events).length > 0) {
+               setEventHook(tagName, eventsObject, node);
+            }
+         };
+         if (name) {
+            ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
             if (node) {
                // todo _children protected по апи, но здесь нужен доступ чтобы инициализировать.
                //@ts-ignore
                control._children[name] = node;
                //@ts-ignore
                onElementMount(control._children[name]);
+                  if (Object.keys(eventsObject.events).length > 0) {
+                     setEventHook(tagName, eventsObject, node);
+                  }
             } else {
                //@ts-ignore
                onElementUnmount(control._children, name);
             }
          };
+      }
       }
 
       if (!attrToDecorate) {
@@ -260,8 +297,8 @@ export class GeneratorReact {
 
       const convertedAttributes = convertAttributes(mergedAttrs);
       const extractedEvents = control ?
-         {...control._options['events'], ...extractEventNames(attrs.events)} :
-         {...extractEventNames(attrs.events)};
+         {...control._options['events'], ...attrs.events} :
+         {...attrs.events};
 
       const newProps = {
          ...convertedAttributes,
@@ -325,28 +362,6 @@ function resolveTemplateArray(
       }
    });
    return result;
-}
-
-/**
- * Преобразует формат имени события к react (on:Eventname => onEventname)
- * @param text
- */
-function transformEventName(text: string): string {
-   if (text.indexOf(":") === -1) {
-      return text;
-   }
-   let textArray = text.split(":");
-   return textArray[0] + textArray[1].charAt(0).toUpperCase() + textArray[1].slice(1);
-}
-
-function extractEventNames(eventObject:{[key: string]: IWasabyEvent[]}): {[key: string]: Function} {
-   let extractedEvents = {};
-   for (let eventKey in eventObject) {
-      if (eventObject[eventKey][0].viewController) {
-         extractedEvents[transformEventName(eventKey)] = eventObject[eventKey][0].handler.bind(eventObject[eventKey][0].viewController)();
-      }
-   }
-   return extractedEvents;
 }
 
 function resolveTemplate(template: Function,

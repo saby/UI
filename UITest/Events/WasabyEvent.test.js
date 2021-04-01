@@ -5,7 +5,7 @@ define([
    function(Events, UIBase, UIUtils) {
       'use strict';
 
-      var WasabyEvents = Events.WasabyEvents;
+      var WasabyEvents = Events.WasabyEventsInferno;
 
       describe('WasabyEvent', function() {
          // В DOMEnvironment есть механизм совместимости для некоторых touch-устройств,

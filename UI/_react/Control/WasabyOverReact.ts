@@ -3,7 +3,8 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {EMPTY_THEME, getThemeController} from 'UI/theme/controller';
 import {getResourceUrl, Logger} from 'UI/Utils';
-import { _Options } from 'UI/Vdom';
+import {_Options} from 'UI/Vdom';
+import {makeWasabyObservable, releaseProperties} from 'UI/WasabyReactReactivity';
 
 // @ts-ignore путь не определяется
 import template = require('wml!UI/_react/Control/WasabyOverReact');
@@ -16,6 +17,8 @@ import {
 } from '../WasabyContext/WasabyContext';
 import {setReactGenerator} from 'UI/_react/Control/setReactGenerator';
 import {OptionsResolver} from 'UI/Executor';
+
+import {WasabyEventsReact, callNotify, IWasabyEventSystem} from 'UI/Events';
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
@@ -57,10 +60,15 @@ export class Control<TOptions extends IControlOptions = {},
      * Название контрола.
      */
     _moduleName: string;
+    reactiveValues: object;
 
-    // временно, чтобы typescript не ругался
-    protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): unknown {
-        return undefined;
+    /**
+     * Система событий wasaby
+     */
+    static eventSystem: IWasabyEventSystem;
+
+    protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): void {
+        callNotify(Control.eventSystem, this as Control, eventName, args, options);
     }
 
     constructor(props: TOptions, context?: IWasabyContextValue) {
@@ -127,6 +135,7 @@ export class Control<TOptions extends IControlOptions = {},
 
         // Данный метод должен вызываться только при первом построении, поэтому очистим его на инстансе при вызове
         this._beforeFirstRender = undefined;
+        makeWasabyObservable(this);
 
         if (res && res.then) {
             promisesToWait.push(res);
@@ -175,6 +184,31 @@ export class Control<TOptions extends IControlOptions = {},
      * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
      */
     protected _afterMount(options?: TOptions, context?: object): void {
+        // Do
+    }
+
+    /**
+     * Синхронный хук жизненного цикла контрола. Вызывается сразу после установки контрола в DOM-окружение.
+     * @param {Object} options Опции контрола.
+     * @param {Object} context Поле контекста, запрошенное контролом.
+     * @example
+     * <pre class="brush: js">
+     *    Control.extend({
+     *       ...
+     *       _componentDidMount(options, context) {
+     *          this.subscribeToServerEvents();
+     *          this.buttonHeight = this._children.myButton.offsetHeight;
+     *       }
+     *       ...
+     *    });
+     * </pre>
+     * @remark
+     * Первый хук жизненного цикла контрола, который вызывается после подключения контрола к DOM-окружению.
+     * На этом этапе вы можете получить доступ к параметрам и контексту this._options.
+     * Этот хук жизненного цикла часто используется для доступа к DOM-элементам и подписки на события сервера.
+     * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
+     */
+    protected _componentDidMount(options?: TOptions, context?: object): void {
         // Do
     }
 
@@ -289,6 +323,7 @@ export class Control<TOptions extends IControlOptions = {},
     componentDidMount(): void {
         if (this._$controlMounted) {
             const newOptions = createWasabyOptions(this.props, this.context);
+            this._componentDidMount(newOptions);
             setTimeout(() => {
                 this._options = newOptions;
                 this._afterMount(newOptions);
@@ -325,6 +360,7 @@ export class Control<TOptions extends IControlOptions = {},
 
     componentWillUnmount(): void {
         this._beforeUnmount.apply(this);
+        releaseProperties(this);
     }
 
     render(): React.ReactNode {
@@ -552,7 +588,7 @@ export class Control<TOptions extends IControlOptions = {},
      * @param cfg Опции контрола.
      * @param domElement Элемент, на который должен быть смонтирован контрол.
      */
-    static createControl<P extends IControlOptions>(
+    static createControl<P extends IControlOptions & {eventSystem?: IWasabyEventSystem}>(
         ctor: React.ComponentType<P>,
         cfg: P,
         domElement: HTMLElement
@@ -560,7 +596,8 @@ export class Control<TOptions extends IControlOptions = {},
         // кладём в конфиг наследуемые опции, чтобы они попали в полноценные опции
         cfg.theme = cfg.theme ?? 'default';
         cfg.readOnly = cfg.readOnly ?? false;
-
+        this.eventSystem = new WasabyEventsReact(domElement);
+        cfg.eventSystem = this.eventSystem;
         ReactDOM.render(React.createElement(ctor, cfg), domElement);
     }
 
@@ -609,7 +646,7 @@ function logError(e: Error): void {
  * @param props Опции из реакта.
  * @param contextValue Контекст с наследуемыми опциями.
  */
-function createWasabyOptions<T extends IControlOptions>(
+function createWasabyOptions<T extends IControlOptions & {eventSystem?: IWasabyEventSystem}>(
     props: T,
     contextValue: IWasabyContextValue
 ): T {
@@ -617,6 +654,7 @@ function createWasabyOptions<T extends IControlOptions>(
     const newProps = {...props};
     newProps.readOnly = props.readOnly ?? contextValue?.readOnly;
     newProps.theme = props.theme ?? contextValue?.theme;
+    newProps.eventSystem = Control.eventSystem;
     return newProps;
 }
 
