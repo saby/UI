@@ -22,6 +22,7 @@ export interface IControlConfig {
     depsLocal: Common.Deps<typeof Control, TemplateFunction>;
     viewController: Control;
     includedTemplates: Common.IncludedTemplates<TemplateFunction>;
+    data: any;
 }
 
 export type TemplateResult = React.FunctionComponentElement<

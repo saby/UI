@@ -1,24 +1,21 @@
-import { detection } from 'Env/Env';
-import { Logger } from 'UICore/Utils';
+import {detection} from 'Env/Env';
+import {Logger} from 'UIСore/Utils';
 
-import SyntheticEvent from './SyntheticEvent';
 import * as EventUtils from './EventUtils';
 import {
     ISyntheticEvent,
     IEventConfig,
     IWasabyEventSystem,
-    IFixedEvent,
     IHandlerInfo,
     IArrayEvent
 } from './IEvents';
 
-import { TouchHandlers } from './Touch/TouchHandlers';
-import { FastTouchEndController } from './Touch/FastTouchEndController';
-import { SwipeController } from './Touch/SwipeController';
-import { LongTapController } from './Touch/LongTapController';
-import { ITouchEvent } from './Touch/TouchEvents';
+import {TouchHandlers} from './Touch/TouchHandlers';
+import {FastTouchEndController} from './Touch/FastTouchEndController';
+import {SwipeController} from './Touch/SwipeController';
+import {LongTapController} from './Touch/LongTapController';
+import {ITouchEvent} from './Touch/TouchEvents';
 
-import { default as isInvisibleNode } from './InvisibleNodeChecker';
 import {
     IWasabyHTMLElement,
     IControlNode,
@@ -32,48 +29,33 @@ import {
 
 const callAfterMount: IArrayEvent[] = [];
 
-export class WasabyEvents implements IWasabyEventSystem {
+abstract class WasabyEvents implements IWasabyEventSystem {
     private capturedEventHandlers: Record<string, IHandlerInfo[]>;
-    private touchendTarget: Element;
+    protected touchendTarget: Element;
 
-    private wasNotifyList: string[] = [];
-    private lastNotifyEvent: string = '';
-    private needBlockNotify: boolean = false;
+    protected wasNotifyList: string[] = [];
+    protected lastNotifyEvent: string = '';
+    protected needBlockNotify: boolean = false;
 
-    private _rootDOMNode: TModifyHTMLNode;
-    private _environment: IDOMEnvironment;
+    protected _rootDOMNode: TModifyHTMLNode;
     private _handleTabKey: Function;
 
-    private touchHandlers: TouchHandlers;
+    protected touchHandlers: TouchHandlers;
 
     //#region инициализация системы событий
-    constructor(rootNode: TModifyHTMLNode, environment: IDOMEnvironment, tabKeyHandler?: Function) {
+    protected constructor(rootNode: TModifyHTMLNode, tabKeyHandler?: Function) {
+        this._rootDOMNode = rootNode;
         this.capturedEventHandlers = {};
+        this._handleTabKey = tabKeyHandler;
+
         this.initEventSystemFixes();
-        this.initWasabyEventSystem(rootNode, environment, tabKeyHandler);
         this.touchHandlers = new TouchHandlers(this._handleClick, this.captureEventHandler);
 
         // если я это не напишу, ts ругнется 'touchendTarget' is declared but its value is never read
         this.touchendTarget = this.touchendTarget || null;
     }
 
-    initWasabyEventSystem(rootNode: TModifyHTMLNode, environment: IDOMEnvironment, tabKeyHandler?: any): void {
-        this.setEnvironment(rootNode, environment);
-        this._handleTabKey = tabKeyHandler;
-        this.initProcessingHandlers(environment);
-    }
-
-    private setEnvironment(node: TModifyHTMLNode, environment: IDOMEnvironment): void {
-        this._rootDOMNode = node;
-        this._environment = environment;
-    }
-
-    private initProcessingHandlers(environment: IDOMEnvironment): void {
-        this.addCaptureProcessingHandler('click', this._handleClick, environment);
-        this.addCaptureProcessingHandler('touchstart', this._handleTouchstart, environment);
-        this.addCaptureProcessingHandler('touchmove', this._handleTouchmove, environment);
-        this.addCaptureProcessingHandler('touchend', this._handleTouchend, environment);
-    }
+    protected abstract initProcessingHandlers(environment?: IDOMEnvironment): void;
 
     private initEventSystemFixes() {
         // Edge (IE12) иногда стреляет selectstart при клике на элемент с user-select: none, и начинает
@@ -109,18 +91,9 @@ export class WasabyEvents implements IWasabyEventSystem {
      * @param event - объект события
      * @param environment - окружение (необходимо для слоя совместимости)
      */
-    captureEventHandler<TNativeEvent extends Event>(
+    abstract captureEventHandler<TNativeEvent extends Event>(
         event: TNativeEvent
-    ): void {
-        if (this.needPropagateEvent(this._environment, event)) {
-            const syntheticEvent = new SyntheticEvent(event);
-            if (detection.isMobileIOS && detection.safari && event.type === 'click' && this.touchendTarget) {
-                syntheticEvent.target = this.touchendTarget;
-                this.touchendTarget = null;
-            }
-            this.vdomEventBubbling(syntheticEvent, null, undefined, [], true);
-        }
-    }
+    ): void
 
     callEventsToDOM(): void {
         while (callAfterMount && callAfterMount.length) {
@@ -138,7 +111,7 @@ export class WasabyEvents implements IWasabyEventSystem {
         }
     }
 
-    showCapturedEventHandlers():  Record<string, IHandlerInfo[]> {
+    showCapturedEventHandlers(): Record<string, IHandlerInfo[]> {
         return this.capturedEventHandlers;
     }
 
@@ -154,7 +127,7 @@ export class WasabyEvents implements IWasabyEventSystem {
      * @param args - Аргументы, переданные в _notify
      * @param native {any} - TODO: describe function parameter
      */
-    private vdomEventBubbling(
+    protected vdomEventBubbling(
         eventObject: ISyntheticEvent,
         controlNode: IControlNode,
         eventPropertiesStartArray: unknown[],
@@ -192,7 +165,7 @@ export class WasabyEvents implements IWasabyEventSystem {
                     // happens in template function
                     templateArgs =
                         this.isArgsLengthEqual(this.checkControlNodeEvents(controlNode, eventPropertyName, i), evArgs)
-                        ? controlNode.events[eventPropertyName][i].args : evArgs;
+                            ? controlNode.events[eventPropertyName][i].args : evArgs;
                     try {
                         if (!args.concat) {
                             throw new Error(
@@ -302,44 +275,10 @@ export class WasabyEvents implements IWasabyEventSystem {
             }
         }
     }
-
-    private needPropagateEvent(environment: IDOMEnvironment, event: IFixedEvent): boolean {
-        if (!environment._rootDOMNode) {
-            return false;
-        } else if (
-            !(
-                (event.currentTarget === window && event.type === 'scroll') ||
-                (event.currentTarget === window && event.type === 'resize')
-            ) && event.eventPhase !== 1
-        ) {
-            // У событий scroll и resize нет capture-фазы,
-            // поэтому учитываем их в условии проверки на фазу распространения события
-            return false;
-        } else if (
-            detection.isIE &&
-            event.type === 'change' &&
-            !event._dispatchedForIE &&
-            this.needStopChangeEventForEdge(event.target)
-        ) {
-            // Из-за особенностей работы vdom в edge событие change у некоторых типов input'ов стреляет не всегда.
-            // Поэтому для этих типов мы будем стрелять событием сами.
-            // И чтобы обработчики событий не были вызваны два раза, стопаем нативное событие.
-            return false;
-        } else if (detection.isMobileIOS && FastTouchEndController.isFastEventFired(event.type) && event.isTrusted) {
-            // на ios 14.4 после событий тача стреляет дополнительный mousedown с isTrusted = true
-            // это связанно с тем, что мы пытаемся игнорировать нативную задержку в 300 мс
-            // поэтому для событий которые мы выстрелим руками повторный вызов не нужен
-            return false;
-        } else if (!isMyDOMEnvironment(environment, event)) {
-            return false;
-        }
-
-        return true;
-    }
     //#endregion
 
     //#region специфические обработчики
-    private _handleClick(event: MouseEvent): void {
+    protected _handleClick(event: MouseEvent): void {
         this.touchHandlers.shouldUseClickByTapOnClick(event);
 
         /**
@@ -387,32 +326,15 @@ export class WasabyEvents implements IWasabyEventSystem {
             this._rootDOMNode.removeEventListener('keydown', this._handleTabKey as EventListener, false);
         }
     }
+
     //#endregion
 
     //#region события тача
     // TODO: docs
-    private _handleTouchstart(event: ITouchEvent): void {
-        this.touchHandlers.setPreventShouldUseClickByTap(false);
-
-        this.touchHandlers.shouldUseClickByTapOnTouchstart(event);
-        // Compatibility. Touch events handling in Control.compatible looks for
-        // the `addedToClickState` flag to see if the event has already been
-        // processed. Since vdom has already handled this event, set this
-        // flag to true to avoid event triggering twice.
-        event.addedToClickState = true;
-
-        FastTouchEndController.setClickEmulateState(true);
-        SwipeController.initState(event);
-        const longTapCallback = () => {
-            // т.к. callbackFn вызывается асинхронно, надо передавать с правильным контекстом
-            FastTouchEndController.setClickEmulateState.call(FastTouchEndController, false);
-            this.touchHandlers.setPreventShouldUseClickByTap(true);
-        };
-        LongTapController.initState(event, longTapCallback.bind(this._environment));
-    }
+    protected abstract _handleTouchstart(event: ITouchEvent): void;
 
     // TODO: docs
-    private _handleTouchmove(event: ITouchEvent): void {
+    protected _handleTouchmove(event: ITouchEvent): void {
         this.touchHandlers.shouldUseClickByTapOnTouchmove(event);
         FastTouchEndController.setClickEmulateState(false);
         SwipeController.detectState(event);
@@ -420,7 +342,7 @@ export class WasabyEvents implements IWasabyEventSystem {
     }
 
     // TODO: docs
-    private _handleTouchend(event: ITouchEvent): void {
+    protected _handleTouchend(event: ITouchEvent): void {
         this.touchHandlers.shouldUseClickByTapOnTouchend(event);
 
         // Compatibility. Touch events handling in Control.compatible looks for
@@ -447,6 +369,7 @@ export class WasabyEvents implements IWasabyEventSystem {
         SwipeController.resetState();
         LongTapController.resetState();
     }
+
     //#endregion
 
     //#region _notify события
@@ -456,35 +379,9 @@ export class WasabyEvents implements IWasabyEventSystem {
      * @param controlNode
      * @param args
      */
-    startEvent<TArguments>(controlNode: IControlNode, args: TArguments): unknown {
-        const eventName = args[0].toLowerCase();
-        const handlerArgs = args[1] || [];
-        const eventDescription = args[2];
-        const eventConfig: IEventConfig = {};
-        let eventObject;
-        eventConfig._bubbling = eventDescription && eventDescription.bubbling !== undefined ?
-            eventDescription.bubbling : false;
-        eventConfig.type = eventName;
-        eventConfig.target = controlNode.element;
-        if (!eventConfig.target) {
-            if (
-                controlNode.fullMarkup.moduleName !== 'UI/_executor/_Expressions/RawMarkupNode' &&
-                !isInvisibleNode(controlNode, true)
-            ) {
-                Logger.error('Событие ' + eventName + ' было вызвано до монтирования контрола в DOM', controlNode);
-            }
-            return;
-        }
-        const startArray = this.getEventPropertiesStartArray(controlNode, eventName);
+    abstract startEvent<TArguments>(controlNode: IControlNode, args: TArguments): unknown
 
-        eventObject = new SyntheticEvent(null, eventConfig);
-        this.needBlockNotify = this.lastNotifyEvent === eventName;
-        this.vdomEventBubbling(eventObject, controlNode, startArray, handlerArgs, false);
-        this.clearWasNotifyList();
-        return eventObject.result;
-    }
-
-    private clearWasNotifyList(): void {
+    protected clearWasNotifyList(): void {
         this.wasNotifyList = [];
     }
 
@@ -511,29 +408,15 @@ export class WasabyEvents implements IWasabyEventSystem {
         }
     }
 
-    private addCaptureProcessingHandler(eventName: string, method: Function, environment: IDOMEnvironment): void {
-        if (this._rootDOMNode.parentNode) {
-            const handler = function(e: Event): void {
-                if (!isMyDOMEnvironment(environment, e)) {
-                    return;
-                }
-                method.apply(this, arguments);
-            };
-            this.addHandler(eventName, false, handler, true);
-        }
-    }
+    protected abstract addCaptureProcessingHandler(
+        eventName: string,
+        method: Function,
+        environment: IDOMEnvironment): void
 
-    private addCaptureProcessingHandlerOnEnvironment(eventName: string, method: Function, environment: IDOMEnvironment): void {
-        if (this._rootDOMNode.parentNode) {
-            const handler = function(e: Event): void {
-                if (!isMyDOMEnvironment(environment, e)) {
-                    return;
-                }
-                method.apply(environment, arguments);
-            };
-            this.addHandler(eventName, false, handler, true);
-        }
-    }
+    protected abstract addCaptureProcessingHandlerOnEnvironment(
+        eventName: string,
+        method: Function,
+        environment: IDOMEnvironment): void
 
     /**
      * Добавление обработчика на фазу захвата.
@@ -552,7 +435,7 @@ export class WasabyEvents implements IWasabyEventSystem {
      *  для самой системы событий, или же только для контролов.
      *  Будет true, если необходим для системы событий.
      */
-    private addHandler(eventName: string, isBodyElement: boolean, handler: EventListener, processingHandler: boolean): void {
+    protected addHandler(eventName: string, isBodyElement: boolean, handler: EventListener, processingHandler: boolean): void {
         let elementToSubscribe = this._rootDOMNode.parentNode as HTMLElement;
         let bodyEvent = false;
         if (isBodyElement && EventUtils.isSpecialBodyEvent(eventName)) {
@@ -588,14 +471,15 @@ export class WasabyEvents implements IWasabyEventSystem {
     private addNativeListener(element: HTMLElement, handler: EventListener, eventName: string, config: IEventConfig): void {
         element.addEventListener(eventName, handler, config);
     }
+
     //#endregion
 
     //#region удаление событий
     removeCaptureEventHandler(eventName: string, element: IWasabyHTMLElement): void {
         // TODO раскомментить после https://online.sbis.ru/opendoc.html?guid=450170bd-6322-4c3c-b6bd-3520ce3cba8a
         // Сейчас есть проблемы с вызовом ref-ов. Рефы на удаление событий вызываются большее количество раз,
-                // чем на добавление событий. Это приводит к тому, что обработчики на capture-фазу могут удаляться,
-                // когда еще есть активные подписки на события. Поэтому мы будем удалять обработчики на capture-фазу
+        // чем на добавление событий. Это приводит к тому, что обработчики на capture-фазу могут удаляться,
+        // когда еще есть активные подписки на события. Поэтому мы будем удалять обработчики на capture-фазу
         // только при дестрое самого DOMEnvironment. Последствиями такого решения будет то, что в редких случаях,
         // система событий будет распространять событие по DOM-у, несмотря на то, что мы заведомо знаем,
         // что обработчиков там не будет. Это менее критично, чем неработающие обработчики.
@@ -673,6 +557,7 @@ export class WasabyEvents implements IWasabyEventSystem {
             }
         }
     }
+
     //#endregion
 
     //#region хэлперы
@@ -711,49 +596,6 @@ export class WasabyEvents implements IWasabyEventSystem {
     }
 
     /**
-     * Находит массив обработчиков в массиве eventProperties у controlNode.element, которые будут вызваны
-     * @param controlNode
-     * @param eventName
-     * @returns {number}
-     */
-    private getEventPropertiesStartArray(controlNode: IControlNode, eventName: string): any {
-        const eventProperties = controlNode.element.eventProperties;
-        const controlNodes = controlNode.element.controlNodes;
-        const eventPropertyName = 'on:' + eventName;
-        const result = [];
-
-        if (eventProperties && eventProperties[eventPropertyName]) {
-            const eventProperty = eventProperties[eventPropertyName];
-
-            // найдем индекс controlNode распространяющего событие
-            const startControlNodeIndex = controlNodes.findIndex(
-                (cn: IControlNode): boolean => cn.control === controlNode.control
-            );
-
-            const foundHandlers = eventProperty.map((eventHandler: any): any => {
-                const foundIndex = controlNodes.findIndex(
-                    (controlNode: IControlNode): boolean => controlNode.control === eventHandler.fn.control
-                );
-                return {
-                    index: foundIndex,
-                    eventHandler
-                };
-            });
-
-            foundHandlers.forEach((handler: any): void => {
-                if (handler.index === -1 || handler.index > startControlNodeIndex) {
-                    result.push(handler.eventHandler);
-                }
-            });
-        }
-        return result;
-    }
-
-    private needStopChangeEventForEdge(node: any): boolean {
-        return node.type === 'text' || node.type === 'password';
-    }
-
-    /**
      * Определяем случаи, в которых нужно явно выставлять параметр passive: false в конфиге нативного обработчика события
      * @param {string} eventName - имя события, которое хотим обработать
      * @param config - конфиг, в который добавится поле passive, если нужно.
@@ -765,6 +607,7 @@ export class WasabyEvents implements IWasabyEventSystem {
         }
         return config;
     }
+
     //#endregion
 
     destroy(): void {
@@ -783,94 +626,4 @@ export class WasabyEvents implements IWasabyEventSystem {
     }
 }
 
-
-/*
-  * Checks if event.target is a child of current DOMEnvironment
-  * @param env
-  * @param event
-  */
-function isMyDOMEnvironment(env: IDOMEnvironment, event: Event): boolean {
-    let element = event.target as any;
-    if (element === window || element === document) {
-        return true;
-    }
-    const isCompatibleTemplate = requirejs.defined('OnlineSbisRu/CompatibleTemplate');
-    while (element) {
-        // для страниц с CompatibleTemplate вся обработка в checkSameEnvironment
-        if (element === env._rootDOMNode && !isCompatibleTemplate) {
-            return true;
-        }
-        // встретили controlNode - нужно принять решение
-        if (element.controlNodes && element.controlNodes[0]) {
-            return checkSameEnvironment(env, element, isCompatibleTemplate);
-        }
-        if (element === document.body) {
-            element = document.documentElement;
-        } else if (element === document.documentElement) {
-            element = document;
-        } else {
-            element = element.parentNode;
-        }
-    }
-    return false;
-}
-
-function checkSameEnvironment(env: IDOMEnvironment, element: IWasabyHTMLElement, isCompatibleTemplate: boolean): boolean {
-    // todo костыльное решение, в случае CompatibleTemplate нужно всегда работать с верхним окружением (которое на html)
-    // на ws3 страницах, переведенных на wasaby-окружение при быстром открытие/закртые окон не успевается полностью
-    // задестроится окружение (очищается пурификатором через 10 сек), поэтому следует проверить env на destroy
-    // @ts-ignore
-    if (isCompatibleTemplate && !env._destroyed) {
-        const htmlEnv = env._rootDOMNode.tagName.toLowerCase() === 'html';
-        if (element.controlNodes[0].environment === env && !htmlEnv) {
-            // FIXME: 1. проблема в том, что обработчики событий могут быть только на внутреннем окружении,
-            // в таком случае мы должны вызвать его с внутреннего окружения.
-            // FIXME: 2. обработчик может быть на двух окружениях, будем определять где он есть и стрелять
-            // с внутреннего окружения, если обработчика нет на внешнем
-            let hasHandlerOnEnv = false;
-            let eventIndex;
-            // проверяем обработчики на внутреннем окружении
-            // если processingHandler === false, значит подписка была через on:event
-            let currentCaptureEvent = env.showCapturedEvents()[event.type];
-            for (eventIndex = 0; eventIndex < currentCaptureEvent.length; eventIndex++) {
-                // нашли подписку через on:, пометим, что что на внутреннем окружении есть подходящий обработчик
-                if (!currentCaptureEvent[eventIndex].processingHandler) {
-                    hasHandlerOnEnv = true;
-                }
-            }
-            // Если обработчика на внутреннем окружении то ничего дальше не делаем
-            if (!hasHandlerOnEnv) {
-                return hasHandlerOnEnv;
-            }
-            // Следует определить есть ли обработчики на внешнем окружении
-            let _element: any = element;
-            while (_element.parentNode) {
-                _element = _element.parentNode;
-                // проверяем на наличие controlNodes на dom-элементе
-                if (_element.controlNodes && _element.controlNodes[0]) {
-                    // нашли самое верхнее окружение
-                    if (_element.controlNodes[0].environment._rootDOMNode.tagName.toLowerCase() === 'html') {
-                        // проверяем, что такой обработчик есть
-                        if (typeof _element.controlNodes[0].environment.showCapturedEvents()[event.type] !== 'undefined') {
-                            // обработчик есть на двух окружениях. Следует проанализировать обработчики на обоих окружениях
-                            currentCaptureEvent = _element.controlNodes[0].environment.showCapturedEvents()[event.type];
-                            let hasHandlerOnTopEnv = false;
-                            // проверяем обработчики на внешнем окружении
-                            for (eventIndex = 0; eventIndex < currentCaptureEvent.length; eventIndex++) {
-                                // нашли подписку через on:, пометим, что что на внешнем окружении есть подходящий обработчик
-                                if (!currentCaptureEvent[eventIndex].processingHandler) {
-                                    hasHandlerOnTopEnv = true;
-                                }
-                            }
-                            // если обработчик есть на двух окружениях, то ничего не делаем
-                            return !hasHandlerOnTopEnv && hasHandlerOnEnv;
-                        }
-                        return hasHandlerOnEnv;
-                    }
-                }
-            }
-        }
-        return htmlEnv;
-    }
-    return element.controlNodes[0].environment === env;
-}
+export default WasabyEvents;

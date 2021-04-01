@@ -10,8 +10,11 @@ import {
 } from 'UICore/Executor';
 import { convertAttributes, WasabyAttributes } from './Attributes';
 import { WasabyContextManager } from 'UICore/Contexts';
+import { IWasabyEvent } from 'UICore/Events';
+import { setEventHook } from 'UICore/_events/Hooks';
+
 import Control, {IControlOptions, TemplateFunction} from 'UICore/Base';
-import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate, IWasabyEvent} from './interfaces';
+import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate} from './interfaces';
 
 const Attr = _ForExecutorCompatible.Attr;
 
@@ -48,9 +51,7 @@ export class GeneratorReact {
       options: IControlOptions,
       config: IControlConfig
    ): React.ReactElement | React.ReactElement[] | string {
-      const extractedEvents = extractEventNames(events);
-
-      const newOptions = {...options, ...extractedEvents, ...{events: extractedEvents}};
+      const newOptions = {...options, ...{events: events}, ...{eventSystem: config.data._options.eventSystem}};
       const templateAttributes: IGeneratorAttrs = {
          attributes: attributes as Record<string, unknown>
       };
@@ -242,19 +243,35 @@ export class GeneratorReact {
    ): React.DetailedReactHTMLElement<P, T> {
       let ref;
       const name = attrs.attributes.name;
-      if (control && name) {
-         ref = (node: HTMLElement): void => {
-            if (node) {
-               // todo _children protected по апи, но здесь нужен доступ чтобы инициализировать.
-               //@ts-ignore
-               control._children[name] = node;
-               //@ts-ignore
-               onElementMount(control._children[name]);
-            } else {
-               //@ts-ignore
-               onElementUnmount(control._children, name);
+      const eventsObject = {
+         //@ts-ignore _options объявлен пустым объектом по-умолчанию
+         events: {...attrs.events, ...control._options.events},
+         //@ts-ignore _options объявлен пустым объектом по-умолчанию
+         eventSystem: control._options.eventSystem
+      };
+      if (control) {
+         ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
+            if (node && Object.keys(eventsObject.events).length > 0) {
+               setEventHook(tagName, eventsObject, node);
             }
          };
+         if (name) {
+            ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
+               if (node) {
+                  // todo _children protected по апи, но здесь нужен доступ чтобы инициализировать.
+                  //@ts-ignore
+                  control._children[name] = node;
+                  //@ts-ignore
+                  onElementMount(control._children[name]);
+                  if (Object.keys(eventsObject.events).length > 0) {
+                     setEventHook(tagName, eventsObject, node);
+                  }
+               } else {
+                  //@ts-ignore
+                  onElementUnmount(control._children, name);
+               }
+            };
+         }
       }
 
       if (!attrToDecorate) {
@@ -269,8 +286,8 @@ export class GeneratorReact {
 
       const convertedAttributes = convertAttributes(mergedAttrs);
       const extractedEvents = control ?
-         {...control._options['events'], ...extractEventNames(attrs.events)} :
-         {...extractEventNames(attrs.events)};
+         {...control._options['events'], ...attrs.events} :
+         {...attrs.events};
 
       const newProps = {
          ...convertedAttributes,
@@ -334,28 +351,6 @@ function resolveTemplateArray(
       }
    });
    return result;
-}
-
-/**
- * Преобразует формат имени события к react (on:Eventname => onEventname)
- * @param text
- */
-function transformEventName(text: string): string {
-   if (text.indexOf(":") === -1) {
-      return text;
-   }
-   let textArray = text.split(":");
-   return textArray[0] + textArray[1].charAt(0).toUpperCase() + textArray[1].slice(1);
-}
-
-function extractEventNames(eventObject:{[key: string]: IWasabyEvent[]}): {[key: string]: Function} {
-   let extractedEvents = {};
-   for (let eventKey in eventObject) {
-      if (eventObject[eventKey][0].viewController) {
-         extractedEvents[transformEventName(eventKey)] = eventObject[eventKey][0].handler.bind(eventObject[eventKey][0].viewController)();
-      }
-   }
-   return extractedEvents;
 }
 
 function resolveTemplate(template: Function,
