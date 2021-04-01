@@ -3,8 +3,8 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {EMPTY_THEME, getThemeController} from 'UI/theme/controller';
 import {getResourceUrl, Logger} from 'UI/Utils';
-import { _Options } from 'UI/Vdom';
-import {makeWasabyObservable, releaseProperties} from '../WasabyReactivity/MakeObservable';
+import {_Options} from 'UI/Vdom';
+import {makeWasabyObservable, releaseProperties} from 'UI/WasabyReactReactivity';
 
 // @ts-ignore путь не определяется
 import template = require('wml!UI/_react/Control/WasabyOverReact');
