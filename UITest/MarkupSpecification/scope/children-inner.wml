@@ -1,0 +1,1 @@
+<div>{{ _options.prop1 }} {{ _options.prop2 }} {{ _options.prop3 }} {{ _options.prop4 }} {{ _options.prop5 }}</div>
