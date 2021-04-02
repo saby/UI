@@ -80,7 +80,8 @@ export interface IGeneratorConfig {
    reservedWords?: Array<string>;
    resolvers?: Array<string>;
 
-   prepareAttrsForPartial?: Function;
+   prepareAttrsForPartial?(attrs: any): void;
+   prepareAttrsForRoot?(attrs: any, options: any): void;
 }
 
 // Базовый интерфейс конфига
