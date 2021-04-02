@@ -6,27 +6,33 @@ import { cookie } from 'Env/Env';
 const _generatorConfig = {
    prepareAttrsForPartial: function prepareAttrsForPartial(attributes: any): void {
       return _FocusAttrs.prepareAttrsForFocus(attributes.attributes);
-   }
-};
-const _oldPrepareAttrsForPartial = _generatorConfig.prepareAttrsForPartial;
-const _generatorConfig2 = {
-   prepareAttrsForPartial: function prepareAttrsForPartial(attributes: any): void {
-      _oldPrepareAttrsForPartial.apply(this, arguments);
-
-      if (attributes.events) {
-         Object.keys(attributes.events).forEach((key) => {
-            const event = attributes.events[key];
-            // tslint:disable-next-line:no-shadowed-variable
-            return event.forEach((event) => {
-               if (event.hasOwnProperty('data')) {
-                  const attrName = key.replace('on:', 'data-qa-');
-                  attributes.attributes[attrName] = attributes.attributes[attrName] || event.bindValue;
-               }
-            });
-         });
+   },
+   prepareAttrsForRoot: function prepareAttrsForRoot(attributes: any, options: any): void {
+      attributes.attributes.class = attributes.attributes.class || '';
+      if (typeof options.theme === 'string') {
+         const themeName = 'controls_theme-' + options.theme;
+         if (attributes.attributes.class.indexOf(themeName) === -1) {
+            attributes.attributes.class = attributes.attributes.class + ' ' + themeName;
+         }
       }
    }
 };
+function prepareAttrsForPartial2(attributes: any): void {
+   _generatorConfig.prepareAttrsForPartial.apply(this, arguments);
+
+   if (attributes.events) {
+      Object.keys(attributes.events).forEach((key) => {
+         const event = attributes.events[key];
+         // tslint:disable-next-line:no-shadowed-variable
+         return event.forEach((event) => {
+            if (event.hasOwnProperty('data')) {
+               const attrName = key.replace('on:', 'data-qa-');
+               attributes.attributes[attrName] = attributes.attributes[attrName] || event.bindValue;
+            }
+         });
+      });
+   }
+}
 
 let _bindToAttribute;
 function bindToAttribute(): string {
@@ -37,11 +43,10 @@ function bindToAttribute(): string {
 }
 
 function getGeneratorConfig(): _IGeneratorType.IGeneratorConfig {
-   let generatorConfig = _generatorConfig;
    if (bindToAttribute() === 'true') {
-      generatorConfig = _generatorConfig2;
+      _generatorConfig.prepareAttrsForPartial = prepareAttrsForPartial2;
    }
-   return generatorConfig;
+   return _generatorConfig;
 }
 export {
    getGeneratorConfig
