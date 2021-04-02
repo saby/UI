@@ -13,6 +13,7 @@ export type TemplateFunction = (
 export interface IControlOptions {
    readOnly?: boolean;
    theme?: string;
+   name?: string;
 }
 
 export interface IControlState {
