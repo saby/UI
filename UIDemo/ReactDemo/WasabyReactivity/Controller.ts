@@ -1,12 +1,16 @@
 import {Control, TemplateFunction} from 'UI/Base';
-import {SyntheticEvent} from 'UI/Vdom';
 // @ts-ignore
-import template from 'wml!UIDemo/ReactDemo/WasabyReactivity/Controller';
+import * as template from 'wml!UIDemo/ReactDemo/WasabyReactivity/Controller';
 import 'css!UIDemo/ReactDemo/WasabyReactivity/Controller';
+
+interface ITab {
+    name: string;
+    id: string;
+}
 
 export default class Controller extends Control {
     protected _template: TemplateFunction = template;
-    protected _tabs: object[] = [
+    protected _tabs: ITab[] = [
         {name: 'Примитивы', id: 'primitive'},
         {name: 'Массив', id: 'array'},
         {name: 'Record & RecordSet', id: 'rec'}];
@@ -17,7 +21,20 @@ export default class Controller extends Control {
         this._changeActiveTab = this._changeActiveTab.bind(this);
     }
 
-    _changeActiveTab(e: SyntheticEvent<Event>) {
+    protected _afterMount(options?: {}, context?: object): void {
+        this._tabs.forEach((tab) => {
+            (this._children[tab.id] as HTMLElement).addEventListener('click', this._changeActiveTab);
+        });
+    }
+
+    protected _beforeUnmount(): void {
+        this._tabs.forEach((tab) => {
+            (this._children[tab.id] as HTMLElement).removeEventListener('click', this._changeActiveTab);
+        });
+        super._beforeUnmount();
+    }
+
+    _changeActiveTab(e: Event): void {
         this.activeTab = (e.target as HTMLInputElement).id;
     }
 }

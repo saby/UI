@@ -2,7 +2,7 @@
     <div class="tabs">
         <ws:for data="el in _tabs">
             <div class="tabs-item {{activeTab === el.id ? 'tabs-item__active'}}" key="{{el.id}}" id="{{el.id}}"
-                 on:click="_changeActiveTab()">
+                 name="{{el.id}}">
                 {{el.name}}
             </div>
         </ws:for>

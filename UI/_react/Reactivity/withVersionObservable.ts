@@ -1,26 +1,29 @@
-import {ComponentType, createElement} from "react";
-import {IVersionable} from "Types/entity";
+import {ComponentType, createElement} from 'react';
+import {IVersionable} from 'Types/entity';
 
 /**
  * HOC для обновления компонента при изменении версии в опции на вход
  * @param WrappedComponent - Компонент который необходимо обновлять при изменении версии
- * @param props - Массив имен свойств, за которыми  необходимо следить
+ * @param customObserveProps - Массив имен свойств, за которыми необходимо следить, если их не передать
+ * отслеживаться будут все версионируемые свойства
  */
-export function withVersionObservable<T>(WrappedComponent: ComponentType<T>, props?: Array<keyof T>): ComponentType<T> {
+export function withVersionObservable<T>(WrappedComponent: ComponentType<T>,
+                                         customObserveProps?: (keyof T)[]): ComponentType<T> {
     const displayName =
         WrappedComponent.displayName || WrappedComponent.name || 'Component';
 
-    const ComponentWithVersionObserver = (inputProps: T) => {
-        let versionProps: IVersionable[] = [];
-        const requiredProps = props || Object.keys(inputProps);
-        requiredProps.forEach((prop) => {
-            if (inputProps?.[prop]?.['_version']) {
-                versionProps.push(inputProps?.[prop]);
+    const ComponentWithVersionObserver = (props: T) => {
+        const versionProps: IVersionable[] = [];
+        const observeProps = customObserveProps || Object.keys(props);
+        observeProps.forEach((prop) => {
+            if (props?.[prop]._version) {
+                versionProps.push(props?.[prop]);
             }
         });
         return createElement(WrappedComponent, {
+            // Навешиваем свойство с суммой версий свойств, для того, чтобы обновлялись Pure и memo компоненты
             'data-$$version': getReactiveVersionsProp(versionProps),
-            ...inputProps as T
+            ...props as T
         });
     };
 
