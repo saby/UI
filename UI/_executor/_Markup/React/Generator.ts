@@ -196,7 +196,7 @@ export class GeneratorReact {
       deps?: Common.Deps<typeof Control, TemplateFunction>,
       includedTemplates?: Common.IncludedTemplates<TemplateFunction>
    ): React.ReactElement | React.ReactElement[] | string {
-      const parent = decorAttribs?.internal?.parent;
+      const parent = decorAttribs.internal.parent;
 
       const tplExtended: TemplateOrigin = resolveTpl(tplOrigin, includedTemplates, deps);
       const tpl = Common.fixDefaultExport(tplExtended);
