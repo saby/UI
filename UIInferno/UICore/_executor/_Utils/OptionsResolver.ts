@@ -8,7 +8,7 @@
 // @ts-ignore
 import { constants } from 'Env/Env';
 // @ts-ignore
-import { Logger } from 'UICore/Utils';
+import { Logger } from 'UICommon/Utils';
 import { TControlConstructor } from 'UICore/Base';
 
 /**

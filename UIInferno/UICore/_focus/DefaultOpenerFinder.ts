@@ -32,7 +32,7 @@ Controls/Popup/Opener/Sticky
 Таким образом для решения проблемы достаточно будет просто не задавать opener для подробной карточки сотрудника.
 */
 
-import { Logger } from 'UICore/Utils';
+import { Logger } from 'UICommon/Utils';
 import { goUpByControlTree } from 'UICore/NodeCollector';
 import { IControl } from './IControl';
 

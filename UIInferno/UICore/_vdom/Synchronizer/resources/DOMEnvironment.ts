@@ -2,7 +2,7 @@
 // tslint:disable:variable-name no-any ban-ts-ignore
 
 import { detection } from 'Env/Env';
-import { Logger, isNewEnvironment } from 'UICore/Utils';
+import { Logger, isNewEnvironment } from 'UICommon/Utils';
 import {ElementFinder, Events, focus, preventFocus, hasNoFocus} from 'UICore/Focus';
 import { goUpByControlTree } from 'UICore/NodeCollector';
 import { WasabyEvents } from 'UICore/Events';

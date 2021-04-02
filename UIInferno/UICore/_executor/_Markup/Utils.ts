@@ -19,7 +19,7 @@ import * as Common from '../_Utils/Common';
 import voidElements from '../_Utils/VoidTags';
 import { invisibleNodeTagName } from '../Utils';
 // @ts-ignore
-import { NumberUtils } from 'UICore/Utils';
+import { NumberUtils } from 'UICommon/Utils';
 import { INodeAttribute } from './IGeneratorType';
 import { IAttributes } from '../_Expressions/Attr';
 import {Deps, IDefaultExport, IncludedTemplates} from '../_Utils/Common';

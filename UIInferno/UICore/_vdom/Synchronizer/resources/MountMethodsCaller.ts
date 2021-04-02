@@ -1,7 +1,7 @@
 import { onEndLifecycle, onStartLifecycle } from '../../../DevtoolsHook';
 import { IControlNode, TControlId } from '../interfaces';
 import { delay } from 'Types/function';
-import { Logger } from 'UICore/Utils';
+import { Logger } from 'UICommon/Utils';
 import { Control } from 'UICore/Base';
 
 /**

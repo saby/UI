@@ -2,7 +2,7 @@
 /* tslint:disable */
 
 import { TClosure } from 'UICore/Executor';
-import { Logger } from 'UICore/Utils';
+import { Logger } from 'UICommon/Utils';
 import {_FocusAttrs} from 'UICore/Focus';
 
 let compatibleUtils;

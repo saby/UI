@@ -3,7 +3,7 @@
  * Модуль для вычисления путей до статических ресурсов
  * @author Санников К.А.
  */
-import { getResourceUrl } from 'UICore/Utils';
+import { getResourceUrl } from 'UICommon/Utils';
 // @ts-ignore
 import { constants } from 'Env/Env';
 

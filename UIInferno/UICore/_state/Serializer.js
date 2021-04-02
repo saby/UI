@@ -1,6 +1,6 @@
 define('UICore/_state/Serializer', [
    'require',
-   'UICore/Utils',
+   'UICommon/Utils',
    'Env/Env',
    'UICore/_state/TemplateDeserialization',
    'WasabyLoader/Library'

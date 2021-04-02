@@ -4,7 +4,7 @@
  */
 
 import { goUpByControlTree } from 'UICore/NodeCollector';
-import { isElementVisible } from 'UICore/Utils';
+import { isElementVisible } from 'UICommon/Utils';
 
 import { notifyActivationEvents } from './Events';
 import { focus } from './Focus';

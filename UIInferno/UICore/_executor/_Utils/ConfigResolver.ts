@@ -4,7 +4,7 @@
  * @author Тэн В.А.
  */
 
-import { FunctionUtils } from 'UICore/Utils';
+import { FunctionUtils } from 'UICommon/Utils';
 import { constants } from 'Env/Env';
 import { plainMerge } from './Common';
 import * as Scope from '../_Expressions/Scope';

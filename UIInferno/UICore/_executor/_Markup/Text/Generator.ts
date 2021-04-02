@@ -5,7 +5,7 @@ import { Builder } from '../Builder';
 import * as Common from '../../_Utils/Common';
 import * as RequireHelper from '../../_Utils/RequireHelper';
 import * as Scope from '../../_Expressions/Scope';
-import { Logger } from 'UICore/Utils';
+import { Logger } from 'UICommon/Utils';
 import { Generator } from '../Generator';
 import { IGenerator } from '../IGenerator';
 import { ResolveControlName } from '../ResolveControlName';

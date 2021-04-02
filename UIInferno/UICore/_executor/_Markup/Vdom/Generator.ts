@@ -1,6 +1,6 @@
 // @ts-nocheck
-import { ArrayUtils } from 'UICore/Utils';
-import { Logger } from 'UICore/Utils';
+import { ArrayUtils } from 'UICommon/Utils';
+import { Logger } from 'UICommon/Utils';
 import { _FocusAttrs } from 'UICore/Focus';
 import * as Attr from '../../_Expressions/Attr';
 import * as Vdom from '../../_Utils/Vdom';

@@ -8,11 +8,11 @@
 // @ts-ignore
 import { Serializer } from 'UICore/State';
 // @ts-ignore
-import { Logger } from 'UICore/Utils';
+import { Logger } from 'UICommon/Utils';
 // @ts-ignore
 import {Config as config} from 'UICore/BuilderConfig';
 // @ts-ignore
-import { ObjectUtils } from 'UICore/Utils';
+import { ObjectUtils } from 'UICommon/Utils';
 import { object } from 'Types/util';
 // @ts-ignore
 import { constants } from 'Env/Env';

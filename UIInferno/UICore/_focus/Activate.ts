@@ -11,7 +11,7 @@ import { goUpByControlTree } from 'UICore/NodeCollector';
 
 import { IControlElement } from './IFocus';
 
-import { isElementVisible } from 'UICore/Utils';
+import { isElementVisible } from 'UICommon/Utils';
 
 function findAutofocusForVDOM(findContainer: Element): NodeListOf<Element> {
    return findContainer.querySelectorAll('[ws-autofocus="true"]');

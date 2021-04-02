@@ -6,13 +6,13 @@ import { DirtyKind, rebuildNode, destroyReqursive, getReceivedState } from './re
 import DOMEnvironment from './resources/DOMEnvironment';
 import { delay } from 'Types/function';
 // @ts-ignore
-import { ObjectUtils } from 'UICore/Utils';
+import { ObjectUtils } from 'UICommon/Utils';
 // @ts-ignore
 import { Serializer } from 'UICore/State';
 import { Control, IControlOptions } from 'UICore/Base';
 
 // @ts-ignore
-import { Logger } from 'UICore/Utils';
+import { Logger } from 'UICommon/Utils';
 import { IOptions, IControlNode, IMemoNode, IWasabyHTMLElement, IDOMEnvironment, IRootAttrs } from './interfaces';
 
 import {

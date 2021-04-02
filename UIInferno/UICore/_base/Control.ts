@@ -10,7 +10,7 @@ import { Synchronizer } from 'UICore/Vdom';
 import { _IGeneratorType, OptionsResolver } from 'UICore/Executor';
 import { ContextResolver } from 'UICommon/Contexts';
 import { _FocusAttrs, _IControl, activate, Events, focus } from 'UICore/Focus';
-import { Logger, Purifier, needToBeCompatible } from 'UICore/Utils';
+import { Logger, Purifier, needToBeCompatible } from 'UICommon/Utils';
 import { goUpByControlTree } from 'UICore/NodeCollector';
 import { constants } from 'Env/Env';
 import { getGeneratorConfig } from './GeneratorConfig';

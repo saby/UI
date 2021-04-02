@@ -12,7 +12,7 @@
  * <h2>Пример использования</h2>
  *
  * <pre>
- *    require(['UICore/Utils'], function(Utils) {
+ *    require(['UICommon/Utils'], function(Utils) {
  *       var isPlainObject = Utils.ObjectUtils.isPlainObject;
  *
  *       // true

@@ -5,7 +5,7 @@
 
 import { detection } from 'Env/Env';
 
-import { Logger } from 'UICore/Utils';
+import { Logger } from 'UICommon/Utils';
 
 import { collectScrollPositions } from './_ResetScrolling';
 import * as ElementFinder from './ElementFinder';

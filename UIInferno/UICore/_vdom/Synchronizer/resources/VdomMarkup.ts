@@ -1,11 +1,11 @@
 /// <amd-module name="UICore/_vdom/Synchronizer/resources/VdomMarkup" />
 
-import { ArrayUtils } from 'UICore/Utils';
+import { ArrayUtils } from 'UICommon/Utils';
 
 import { coreDebug, constants } from 'Env/Env';
 import { ListMonad } from '../../Utils/Monad';
 import { setControlNodeHook } from './Hooks';
-import { Logger } from 'UICore/Utils';
+import { Logger } from 'UICommon/Utils';
 import { WasabyProperties, VNode } from 'Inferno/third-party/index';
 import { Map, Set } from 'Types/shim';
 

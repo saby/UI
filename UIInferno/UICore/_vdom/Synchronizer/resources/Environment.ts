@@ -8,7 +8,7 @@ import { IControlNode, IMemoNode, TModifyHTMLNode } from '../interfaces';
 import { delay } from 'Types/function';
 import { DirtyKind } from './DirtyChecking';
 import MountMethodsCaller from './MountMethodsCaller';
-import { Logger } from 'UICore/Utils';
+import { Logger } from 'UICommon/Utils';
 import { BoundaryElements } from 'UICore/Focus';
 
 

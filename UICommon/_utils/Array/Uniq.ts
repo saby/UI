@@ -17,7 +17,7 @@
  *
  * <h2>Пример использования</h2>
  * <pre>
- *    require(['UICore/Utils'], function(Utils) {
+ *    require(['UICommon/Utils'], function(Utils) {
  *       var uniqArray = Utils.ArrayUtils.uniq;
  *
  *       // [1, 2, 3, 4, 5]

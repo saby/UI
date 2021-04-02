@@ -3,7 +3,7 @@
 /**
  * Библиотека служебных утилит для работы с UI Wasaby
  * @library UI/Utils
- * @includes Utils UICore/Utils
+ * @includes Utils UICommon/Utils
  * @author Шипин А.А.
  */
 
@@ -18,4 +18,4 @@ export {
    ObjectUtils,
    NumberUtils,
    ArrayUtils
-} from 'UICore/Utils';
+} from 'UICommon/Utils';
