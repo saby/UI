@@ -10,8 +10,8 @@ import {
 } from 'UICore/Executor';
 import { convertAttributes, WasabyAttributes } from './Attributes';
 import { WasabyContextManager } from 'UICore/Contexts';
-import { IWasabyEvent } from 'UICore/Events';
-import { setEventHook } from 'UICore/_events/Hooks';
+import { IWasabyEvent, IWasabyEventSystem } from 'UICommon/Events';
+import { setEventHook } from 'UICore/Events';
 
 import { Control, IControlOptions, TemplateFunction } from 'UICore/Base';
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate} from './interfaces';
@@ -41,7 +41,7 @@ export class GeneratorReact {
     * т.е. либо та логика дублировалась где-то ещё, либо типы были описаны неправильно.
     * @param type Тип элемента, определяет каким методом генератор будет его строить.
     * @param origin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
-    * @param attributes
+    * @param attributes Опции, заданные через attr:<имя_опции>.
     * @param events
     * @param options Опции контрола/шаблона.
     * @param config
@@ -49,21 +49,22 @@ export class GeneratorReact {
    createControlNew(
       type: 'wsControl' | 'template',
       origin: TemplateOrigin,
-      attributes: IGeneratorAttrs | Record<string, unknown>,
+      attributes: Record<string, unknown>,
       events: { [key: string]: IWasabyEvent[]; },
       options: IControlOptions,
       config: IControlConfig
    ): React.ReactElement | React.ReactElement[] | string {
       const templateAttributes: IGeneratorAttrs = {
-         attributes: attributes as Record<string, unknown>
-      };
-      /*
-      FIXME: судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
-      Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
-      Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
-       */
-      (templateAttributes).internal = {
-         parent: config.viewController
+         attributes,
+         /*
+         FIXME: https://online.sbis.ru/opendoc.html?guid=f354360c-5899-4f74-bf54-a06e526621eb
+         судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
+         Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
+         Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
+         */
+         internal: {
+            parent: config.viewController
+         }
       };
 
       // вместо опций может прилететь функция, выполнение которой отдаст опции, calculateScope вычисляет такие опции
@@ -71,11 +72,19 @@ export class GeneratorReact {
       // если контрол создается внутри контентной опции, нужно пробросить в опции еще те, что доступны в контентной
       // опции.
       const resolvedOptionsExtended = ConfigResolver.addContentOptionScope(resolvedOptions, config);
+      /*
+      У шаблонов имя раньше бралось только из атрибута.
+      У контролов оно бралось только из опций.
+      Вряд ли есть места, где люди завязались на это поведение.
+      Поэтому чтобы не костылять с проверками, просто поддержу и опции, и атрибуты для всего.
+       */
+      const name = attributes.name as string ?? options.name;
 
       const newOptions = {
          ...resolvedOptionsExtended,
          ...{events},
-         ...{eventSystem: config.data._options.eventSystem}
+         ...{eventSystem: config.data._options.eventSystem},
+         ref: createChildrenRef(config.viewController, name)
       };
 
       return this.resolver(origin, newOptions, templateAttributes, undefined,
@@ -187,7 +196,7 @@ export class GeneratorReact {
       deps?: Common.Deps<typeof Control, TemplateFunction>,
       includedTemplates?: Common.IncludedTemplates<TemplateFunction>
    ): React.ReactElement | React.ReactElement[] | string {
-      const parent = decorAttribs?.internal?.parent;
+      const parent = decorAttribs.internal.parent;
 
       const tplExtended: TemplateOrigin = resolveTpl(tplOrigin, includedTemplates, deps);
       const tpl = Common.fixDefaultExport(tplExtended);
@@ -255,38 +264,12 @@ export class GeneratorReact {
       __: unknown,
       control?: Control
    ): React.DetailedReactHTMLElement<P, T> {
-      let ref;
-      const name = attrs.attributes.name;
       const eventsObject = {
          //@ts-ignore _options объявлен пустым объектом по-умолчанию
          events: {...attrs.events, ...control._options.events},
          //@ts-ignore _options объявлен пустым объектом по-умолчанию
          eventSystem: control._options.eventSystem
       };
-      if (control) {
-         ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
-            if (node && Object.keys(eventsObject.events).length > 0) {
-               setEventHook(tagName, eventsObject, node);
-            }
-         };
-         if (name) {
-            ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
-            if (node) {
-               // todo _children protected по апи, но здесь нужен доступ чтобы инициализировать.
-               //@ts-ignore
-               control._children[name] = node;
-               //@ts-ignore
-               onElementMount(control._children[name]);
-                  if (Object.keys(eventsObject.events).length > 0) {
-                     setEventHook(tagName, eventsObject, node);
-                  }
-            } else {
-               //@ts-ignore
-               onElementUnmount(control._children, name);
-            }
-         };
-      }
-      }
 
       if (!attrToDecorate) {
          attrToDecorate = {};
@@ -297,6 +280,12 @@ export class GeneratorReact {
             delete mergedAttrs[attrName];
          }
       });
+      const name = mergedAttrs.name;
+      const ref = createChildrenRef(
+         control,
+         name,
+         createEventRef(tagName, eventsObject)
+      );
 
       const convertedAttributes = convertAttributes(mergedAttrs);
       const extractedEvents = control ?
@@ -318,7 +307,46 @@ export class GeneratorReact {
    }
 }
 
-function getLibraryTpl(tpl: IGT.IGeneratorNameObject,
+function createEventRef<T extends HTMLElement>(
+   tagName: string,
+   eventsObject: {
+      events?: {
+         [key: string]: IWasabyEvent[]
+      };
+      eventSystem?: IWasabyEventSystem;
+   },
+   prevRef?: React.RefCallback<T>
+): React.RefCallback<T> {
+   return (node) => {
+      prevRef?.(node);
+      if (node && Object.keys(eventsObject.events).length > 0) {
+         setEventHook(tagName, eventsObject, node);
+      }
+   };
+}
+
+function createChildrenRef<T extends Control | Element>(
+   parent: Control,
+   name: string,
+   prevRef?: React.RefCallback<T>
+): React.RefCallback<T> | void {
+   // _children protected по апи, но здесь нужен доступ чтобы инициализировать.
+   /* tslint:disable:no-string-literal */
+   if (parent && name) {
+      return (node) => {
+         prevRef?.(node);
+         if (node) {
+            parent['_children'][name] = node;
+            onElementMount(parent['_children'][name]);
+         } else {
+            onElementUnmount(parent['_children'], name);
+         }
+      };
+   }
+   /* tslint:enable:no-string-literal */
+}
+
+function getLibraryTpl(tpl: IGeneratorNameObject,
                        deps: Common.Deps<typeof Control, TemplateFunction>
 ): typeof Control | Common.ITemplateArray<TemplateFunction> {
    let controlClass;

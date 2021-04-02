@@ -13,8 +13,11 @@ FIXME: как я понимаю, в этом объекте могут быть 
  */
 export interface IGeneratorAttrs {
     attributes: Record<string, unknown>;
-    internal?: {
-        parent: Control;
+    internal: {
+        // FIXME: само поле есть всегда, но мне кажется, что для корня там ничего не будет.
+        // Если так, то просто убрать FIXME. Если не так, то убрать ? у типа.
+        // Ну и вообще можно см. https://online.sbis.ru/opendoc.html?guid=f354360c-5899-4f74-bf54-a06e526621eb
+        parent?: Control;
     };
 }
 
