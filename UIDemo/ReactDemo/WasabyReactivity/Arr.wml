@@ -5,11 +5,11 @@
     </ws:if>
     <ol>
         <ws:for data="key, el in _array">
-            <li key="{{key + el}}">{{el}}
-                <button id="{{key}}" on:click="_removeInArray()">Remove</button>
+            <li key="{{key + el}}">
+                {{el}}
             </li>
         </ws:for>
     </ol>
-    <input type="text" on:input="_textChange()" placeholder="Введите текст" value="{{_text}}"/>
-    <button on:click="_addInArray()" disabled="{{!_text.length}}">Add</button>
+    <input type="text" name="text" placeholder="Введите текст" value="{{_text}}"/>
+    <button name="add" disabled="{{!_text.length}}">Add</button>
 </div>

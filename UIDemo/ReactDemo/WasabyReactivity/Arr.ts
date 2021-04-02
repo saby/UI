@@ -1,7 +1,6 @@
 import {Control, TemplateFunction} from 'UI/Base';
 // @ts-ignore
 import * as template from 'wml!UIDemo/ReactDemo/WasabyReactivity/Arr';
-import {SyntheticEvent} from "UI/Vdom";
 
 export default class Arr extends Control {
     protected _template: TemplateFunction = template;
@@ -11,20 +10,25 @@ export default class Arr extends Control {
     constructor(...args: [object]) {
         super(...args);
         this._addInArray = this._addInArray.bind(this);
-        this._removeInArray = this._removeInArray.bind(this);
         this._textChange = this._textChange.bind(this);
     }
 
-    _addInArray() {
+    protected _afterMount(options?: {}, context?: object): void {
+        (this._children.add as HTMLElement).addEventListener('click', this._addInArray);
+        (this._children.text as HTMLElement).addEventListener('input', this._textChange);
+    }
+
+    protected _beforeUnmount(options?: {}, context?: object): void {
+        (this._children.add as HTMLElement).removeEventListener('click', this._addInArray);
+        (this._children.text as HTMLElement).removeEventListener('input', this._textChange);
+    }
+
+    _addInArray(): void {
         this._array.push(this._text);
         this._text = '';
     }
 
-    _removeInArray(e: SyntheticEvent<InputEvent>) {
-        this._array.splice(+(e.target as HTMLInputElement).id, 1);
-    }
-
-    _textChange(e: SyntheticEvent<InputEvent>) {
+    _textChange(e: Event): void {
         this._text = (e.target as HTMLInputElement).value;
     }
 }

@@ -3,7 +3,6 @@ import {Model, Record} from 'Types/entity';
 import {Control, TemplateFunction} from 'UI/Base';
 // @ts-ignore
 import * as template from 'wml!UIDemo/ReactDemo/WasabyReactivity/Rec';
-import {SyntheticEvent} from "UI/Vdom";
 
 export default class Rec extends Control {
     protected _template: TemplateFunction = template;
@@ -18,41 +17,44 @@ export default class Rec extends Control {
         this._incrementRec = this._incrementRec.bind(this);
         this._decrementRec = this._decrementRec.bind(this);
         this._addInRS = this._addInRS.bind(this);
-        this._removeInRS = this._removeInRS.bind(this);
-        this._editInRS = this._editInRS.bind(this);
         this._textChange = this._textChange.bind(this);
     }
 
-    _incrementRec() {
+    protected _afterMount(options?: {}, context?: object): void {
+        (this._children.increment as HTMLElement).addEventListener('click', this._incrementRec);
+        (this._children.decrement as HTMLElement).addEventListener('click', this._decrementRec);
+        (this._children.add as HTMLElement).addEventListener('click', this._addInRS);
+        (this._children.text as HTMLElement).addEventListener('input', this._textChange);
+    }
+
+    protected _beforeUnmount(): void {
+        super._beforeUnmount();
+        (this._children.increment as HTMLElement).removeEventListener('click', this._incrementRec);
+        (this._children.decrement as HTMLElement).removeEventListener('click', this._decrementRec);
+        (this._children.add as HTMLElement).removeEventListener('click', this._addInRS);
+        (this._children.text as HTMLElement).removeEventListener('input', this._textChange);
+    }
+
+    _incrementRec(): void {
         this._rec.set({
             count: this._rec.get('count') + 1
         });
     }
 
-    _decrementRec() {
+    _decrementRec(): void {
         this._rec.set({
             count: this._rec.get('count') - 1
         });
     }
 
-    _addInRS() {
+    _addInRS(): void {
         this._rs.add(Model.fromObject({
             text: this._text
         }));
         this._text = '';
     }
 
-    _removeInRS(e) {
-        this._rs.removeAt(+e.target.id);
-    }
-
-    _editInRS(e) {
-        this._rs.at(+e.target.id).set({
-            text: this._text || 'Edited'
-        });
-    }
-
-    _textChange(e: SyntheticEvent<InputEvent>) {
+    _textChange(e: Event): void {
         this._text = (e.target as HTMLInputElement).value;
     }
 }
