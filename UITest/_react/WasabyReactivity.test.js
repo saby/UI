@@ -11,7 +11,7 @@ define(['UI/WasabyReactReactivity', 'Core/core-extend'],
              let updated = false;
             let TestControl = extend.extend({
                _template: tmpl,
-               setState: function() {
+               forceUpdate: function() {
                   updated = true;
                }
             });
@@ -36,7 +36,7 @@ define(['UI/WasabyReactReactivity', 'Core/core-extend'],
                setNewTemplate: function() {
                   this._template = newTmpl;
                },
-               setState: function() {
+               forceUpdate: function() {
                   updateCount++;
                }
             });
@@ -67,7 +67,7 @@ define(['UI/WasabyReactReactivity', 'Core/core-extend'],
                setNewTemplate: function() {
                   this._template = newTmpl;
                },
-               setState: function() {
+               forceUpdate: function() {
                   updateCount++;
                }
             });
@@ -92,7 +92,7 @@ define(['UI/WasabyReactReactivity', 'Core/core-extend'],
             let updated = false;
             let TestControl = extend.extend({
                _template: tmpl,
-               setState: function() {
+               forceUpdate: function() {
                   updated = true;
                }
             });
@@ -114,7 +114,7 @@ define(['UI/WasabyReactReactivity', 'Core/core-extend'],
             let updated = false;
             let TestControl = extend.extend({
                _template: tmpl,
-               setState: function() {
+               forceUpdate: function() {
                   updated = true;
                }
             });
@@ -144,7 +144,7 @@ define(['UI/WasabyReactReactivity', 'Core/core-extend'],
                set prop(newVal) {
                   this._prop = newVal;
                },
-               setState: function() {
+               forceUpdate: function() {
                   updated = true;
                }
             });
@@ -168,7 +168,7 @@ define(['UI/WasabyReactReactivity', 'Core/core-extend'],
             let updated = false;
             let TestControl = extend.extend({
                _template: tmpl,
-               setState: function() {
+               forceUpdate: function() {
                   updated = true;
                }
             });
@@ -201,7 +201,7 @@ define(['UI/WasabyReactReactivity', 'Core/core-extend'],
             let updated = false;
             let TestControl = extend.extend({
                _template: tmpl,
-               setState: function() {
+               forceUpdate: function() {
                   updated = true;
                }
             });
@@ -235,7 +235,7 @@ define(['UI/WasabyReactReactivity', 'Core/core-extend'],
             let updated = false;
             let TestControl = extend.extend({
                _template: tmpl,
-               setState: function() {
+               forceUpdate: function() {
                   updated = true;
                }
             });
@@ -268,7 +268,7 @@ define(['UI/WasabyReactReactivity', 'Core/core-extend'],
             let updated = false;
             let TestControl = extend.extend({
                _template: tmpl,
-               setState: function() {
+               forceUpdate: function() {
                   updated = true;
                }
             });
@@ -293,7 +293,7 @@ define(['UI/WasabyReactReactivity', 'Core/core-extend'],
                   reactiveProps: ['prop']
                },
                updated: 0,
-               setState: function() {
+               forceUpdate: function() {
                   this.updated++;
                }
             });
@@ -306,7 +306,7 @@ define(['UI/WasabyReactReactivity', 'Core/core-extend'],
                   reactiveProps: ['prop']
                },
                updated: 0,
-               setState: function() {
+               forceUpdate: function() {
                   this.updated++;
                }
             });

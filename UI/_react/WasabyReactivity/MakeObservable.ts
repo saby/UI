@@ -1,5 +1,5 @@
-import {Control} from "UI/ReactComponent";
-import {IVersionable} from "Types/entity";
+import {Control} from 'UI/ReactComponent';
+import {IVersionable} from 'Types/entity';
 
 const arrayMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
 
@@ -7,7 +7,7 @@ const arrayMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reve
  * Запуск реактивности в WasabyReact компоненте
  * @param instance - Инстанс компонента, который необходимо перерисовывать
  */
-export function makeWasabyObservable(instance: Control<any, any>) {
+export function makeWasabyObservable(instance: Control<any, any>): void {
     observeTemplate(instance);
     observeProps(instance);
 }
@@ -17,7 +17,7 @@ export function makeWasabyObservable(instance: Control<any, any>) {
  * реактивных свойств
  * @param instance
  */
-function observeTemplate(instance: Control) {
+function observeTemplate(instance: Control): void {
     let templateFunction = instance['_template'];
     Object.defineProperty(instance, '_template', {
         enumerable: true,
@@ -25,12 +25,12 @@ function observeTemplate(instance: Control) {
         get: function () {
             return templateFunction;
         },
-        set: function (newTemplateFunction) {
+        set: function (newTemplateFunction): void {
             if (newTemplateFunction !== templateFunction && newTemplateFunction && newTemplateFunction.reactiveProps) {
                 templateFunction = newTemplateFunction;
                 releaseProperties(instance);
                 observeProps(instance);
-                instance.setState({});
+                instance.forceUpdate();
             }
         }
     });
@@ -41,27 +41,27 @@ function observeTemplate(instance: Control) {
  * @param instance - Инстанс компонента
  * @param props - Реактивные свойства
  */
-function observeProps(instance: Control) {
+function observeProps(instance: Control): void {
     const props = instance['_template'] ? instance['_template']['reactiveProps'] : [];
+    if (!instance.reactiveValues) {
+        instance.reactiveValues = {};
+    }
     props.forEach((propName) => {
         const descriptor = getDescriptor(instance, propName);
         let value = instance[propName];
-        if (!instance.reactiveValues) {
-            instance.reactiveValues = {};
-        }
         instance.reactiveValues[propName] = instance[propName];
         Object.defineProperty(instance, propName, {
             enumerable: true,
             configurable: true,
-            set(newVal) {
+            set(newVal): void {
                 if (descriptor?.set) {
                     descriptor.set.apply(this, arguments);
                 }
                 this.reactiveValues[propName] = newVal;
                 checkMutableTypes(newVal, instance, propName);
-                instance.setState({});
+                instance.forceUpdate();
             },
-            get() {
+            get(): unknown {
                 if (descriptor?.get) {
                     return descriptor.get.apply(this, arguments);
                 }
@@ -78,7 +78,7 @@ function observeProps(instance: Control) {
  * @param instance - Инстанс компонента
  * @param propName - Имя свойства
  */
-function checkMutableTypes(value: IVersionable | unknown[], instance: Control, propName: string) {
+function checkMutableTypes(value: IVersionable | unknown[], instance: Control, propName: string): void {
     // Обновляем только первый подписавшийся инстанс
     if (value && value['_reactiveInstance']) {
         return;
@@ -95,21 +95,21 @@ function checkMutableTypes(value: IVersionable | unknown[], instance: Control, p
  * @param value - Значение свойства
  * @param instance - Инстанс компонента
  */
-function setObservableVersion(value: IVersionable, instance: Control) {
+function setObservableVersion(value: IVersionable, instance: Control): void {
     let currentValue = value['_version'];
     Object.defineProperty(value, '_version', {
         enumerable: true,
         configurable: true,
-        set(val) {
+        set(val: number): void {
             currentValue = val;
-            instance.setState({});
+            instance.forceUpdate();
         },
-        get() {
+        get(): number {
             return currentValue;
         }
     });
     Object.defineProperties(value, {
-        '_reactiveInstance': {
+        _reactiveInstance: {
             value: instance,
             enumerable: false,
             writable: true,
@@ -124,13 +124,13 @@ function setObservableVersion(value: IVersionable, instance: Control) {
  * @param instance - Инстанс компонента
  * @param propName - Имя свойства
  */
-function setObservableArray(value: unknown[], instance: Control, propName: string) {
+function setObservableArray(value: unknown[], instance: Control, propName: string): void {
     arrayMethods.forEach((methodName) => {
         const method = value[methodName];
         const mutator = function () {
             const res = method.apply(this, arguments);
             instance[propName] = [...value];
-            instance.setState({});
+            instance.forceUpdate();
             return res;
         };
         Object.defineProperty(value, methodName, {
@@ -140,7 +140,7 @@ function setObservableArray(value: unknown[], instance: Control, propName: strin
             configurable: true
         });
         Object.defineProperties(value, {
-            '_reactiveInstance': {
+            _reactiveInstance: {
                 value: instance,
                 enumerable: false,
                 writable: true,
@@ -158,7 +158,7 @@ function setObservableArray(value: unknown[], instance: Control, propName: strin
  * Необходимо вызывать метод, когда экземпляр дестроится и когда присваивается новый шаблон.
  * @param instance
  */
-export function releaseProperties(instance: Control<any, any>) {
+export function releaseProperties(instance: Control<any, any>): void {
     const reactiveProps = Object.keys(instance.reactiveValues);
     if (!reactiveProps) {
         return;
@@ -179,13 +179,13 @@ export function releaseProperties(instance: Control<any, any>) {
     }
 }
 
-function releaseValue(instance: Control, propName: string) {
+function releaseValue(instance: Control, propName: string): void {
     if (!instance.reactiveValues.hasOwnProperty(propName)) {
         return;
     }
     const value = instance.reactiveValues[propName];
     Object.defineProperty(instance, propName, {
-        value: value,
+        value,
         configurable: true,
         writable: true,
         enumerable: true
@@ -198,7 +198,7 @@ function releaseValue(instance: Control, propName: string) {
  * @param {String} prop name of property
  * @returns {*} descriptor
  */
-function getDescriptor(_obj, prop) {
+function getDescriptor(_obj: object, prop: string): PropertyDescriptor {
     let res = null;
     let obj = _obj;
     while (obj) {
