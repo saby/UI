@@ -44,6 +44,7 @@ export function createWsConfig(cfg: IHeadOptions): void {
          `RUMEnabled: ${cfg.RUMEnabled || appData.RUMEnabled || false},`,
          `pageName: '${cfg.pageName || appData.pageName || ''}',`,
          'userConfigSupport: true,',
+         'trackErrors: true,',
          `staticDomains: ${staticDomains},`,
          `defaultServiceUrl: '${defaultServiceUrl}',`,
          `compatible: ${cfg.compat},`,
