@@ -7,7 +7,7 @@ interface IChildProps {
 
 class ClassChild extends PureComponent<IChildProps> {
     render(): ReactElement {
-        return <div>Количество записей: ${this.props.rs.getCount()}</div>;
+        return <div>Количество записей: {this.props.rs.getCount()}</div>;
     }
 }
 

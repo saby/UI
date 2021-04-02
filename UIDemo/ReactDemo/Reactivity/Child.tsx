@@ -6,7 +6,7 @@ interface IChildProps {
 }
 
 const Child = memo(({rs}: IChildProps) => {
-    return <div>Количество записей ${rs.getCount()}</div>;
+    return <div>Количество записей {rs.getCount()}</div>;
 });
 
 export {

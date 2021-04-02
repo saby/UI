@@ -11,7 +11,7 @@ export default function FunctionalComponent(): ReactElement {
     return <div>
         <h3>Функциональный компонент с использованием useMakeObservable</h3>
         <div>
-            Count: ${myRec.get('count')}
+            Count: {myRec.get('count')}
             <button onClick={() => {
                 myRec.set({
                     count: myRec.get('count') + 1
