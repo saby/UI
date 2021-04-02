@@ -1,5 +1,4 @@
 import {Control, TemplateFunction} from 'UI/Base';
-import {SyntheticEvent} from 'UI/Vdom';
 // @ts-ignore
 import * as template from 'wml!UIDemo/ReactDemo/WasabyReactivity/Primitive';
 
