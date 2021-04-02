@@ -100,8 +100,8 @@ export class Control<TOptions extends IControlOptions = {},
      * Запускает обновление. Нужен из-за того, что всех переводить на новое название метода не хочется.
      */
     _forceUpdate(): void {
-        // Вызываем setState, вместо стандартного forceUpdate(),
-        // чтобы React вызывал хук жизненного цикла shouldComponentUpdate
+        // При forceUpdate() не вызывается метод shouldComponentUpdate() и хук shouldUpdate()
+        // Текущая логика работы wasaby, при изменении на инстансе и _forceUpdate() вызывается shouldUpdate() всегда
         this.setState(({observableVersion}: IControlState) => ({
             observableVersion: observableVersion + 1
         }));
