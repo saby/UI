@@ -54,7 +54,10 @@ function resolveLink(path: string, type: string = ''): string {
 export function aggregateJS(deps: ICollectedDeps): void {
    const  API = AppJSLinks.getInstance();
 
-   deps.js.map((js) => resolveLink(js))
+   const hasRtpack: boolean = !!(deps.scripts && deps.scripts.filter((script) => script.includes('/rtpack/')).length > 0);
+
+   deps.js.filter((js) => !hasRtpack || !js.includes('/lang/'))
+      .map((js) => resolveLink(js))
       .concat(deps.scripts)
       .concat(deps.tmpl.map((rawLink) => resolveLink(rawLink, 'tmpl')))
       .concat(deps.wml.map((rawLink) => resolveLink(rawLink, 'wml')))
