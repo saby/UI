@@ -1,5 +1,5 @@
 import {detection} from 'Env/Env';
-import {Logger} from 'UIСore/Utils';
+import {Logger} from 'UICommon/Utils';
 
 import * as EventUtils from './EventUtils';
 import {
