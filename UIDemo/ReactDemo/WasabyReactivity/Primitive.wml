@@ -3,19 +3,19 @@
     <div>
         <h2>Number</h2>
         <div>
-            <button on:click="_decrement()">-</button>
+            <button name="decrement">-</button>
             <span class="hor-padding">Count {{_count}}</span>
-            <button on:click="_increment()">+</button>
+            <button name="increment">+</button>
         </div>
     </div>
     <div>
         <h2>String</h2>
-        <input type="text" on:input="_textChange()"/>
+        <input type="text" name="text"/>
         <div>Значение: {{_string}}</div>
     </div>
     <div>
         <h2>Boolean</h2>
-        <input type="checkbox" on:input="_boolChange()"/>
+        <input type="checkbox" name="check"/>
         <div>Значение: {{_bool.toString()}}</div>
     </div>
 </div>

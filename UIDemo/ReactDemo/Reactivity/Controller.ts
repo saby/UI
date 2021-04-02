@@ -61,7 +61,7 @@ export default class Controller extends Component<{}, { text: string }> {
             createElement(Child, {rs: this.myRS}),
             createElement('h3', null, 'Memo компонент c использованием метода getReactiveVersionsProp'),
             // @ts-ignore JSX поддерживает дата-аттрибуты, а вот createElement ругается
-            createElement(Child, {rs: this.myRS, 'data-$$version': getReactiveVersionsProp(this.myRS)}),
+            createElement(Child, {rs: this.myRS, 'data-$$version': getReactiveVersionsProp([this.myRS])}),
             createElement('h3', null, 'PureClass компонент с использованием withVersionObserver'),
             createElement(withVersionObservable(ClassChild, ['rs']), {rs: this.myRS}),
             createElement('h3', null, 'PureClass компонент без использования withVersionObserver'),
