@@ -1,7 +1,7 @@
 import { assert } from 'chai';
 import { replace, restore, fake } from 'sinon';
 
-import { IControlNode, IWasabyHTMLElement, TEventsObject, IEvent, IProperties } from 'UICore/_vdom/Synchronizer/interfaces';
+import { IControlNode, IWasabyHTMLElement, TEventsObject, IEvent, IProperties } from 'UICommon/interfaces';
 import { invisibleNodeTagName } from 'UI/Executor';
 import { TWasabyInputElement, TRef } from 'UICore/_vdom/Synchronizer/resources/Hooks';
 

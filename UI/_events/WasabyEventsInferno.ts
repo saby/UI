@@ -1,24 +1,24 @@
 import {detection} from 'Env/Env';
 import {Logger} from 'UI/Utils';
 
-import WasabyEvents from './WasabyEvents';
 import {
-    IFixedEvent,
+    WasabyEvents,
     IWasabyEventSystem,
-    IEventConfig
-} from './IEvents';
-import SyntheticEvent from './SyntheticEvent';
-import {default as isInvisibleNode} from './InvisibleNodeChecker';
-import {FastTouchEndController} from './Touch/FastTouchEndController';
-import {ITouchEvent} from './Touch/TouchEvents';
-import {SwipeController} from './Touch/SwipeController';
-import {LongTapController} from './Touch/LongTapController';
+    IEventConfig,
+    SyntheticEvent,
+    isInvisibleNode,
+    FastTouchEndController,
+    ITouchEvent,
+    IFixedEvent,
+    SwipeController,
+    LongTapController
+} from 'UICommon/Events';
 import {
     IDOMEnvironment,
     IWasabyHTMLElement,
     TModifyHTMLNode,
     IControlNode
-} from '../_vdom/Synchronizer/interfaces';
+} from 'UICommon/interfaces';
 
 export default class WasabyEventsInferno extends WasabyEvents implements IWasabyEventSystem {
     private _environment: IDOMEnvironment;

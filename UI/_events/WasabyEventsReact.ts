@@ -1,20 +1,23 @@
 import {detection} from 'Env/Env';
 import {Logger} from 'UI/Utils';
 
-import WasabyEvents from './WasabyEvents';
-import { IWasabyEventSystem, IEventConfig } from './IEvents';
-import SyntheticEvent from './SyntheticEvent';
-import {default as isInvisibleNode} from './InvisibleNodeChecker';
-import {FastTouchEndController} from './Touch/FastTouchEndController';
-import {ITouchEvent} from './Touch/TouchEvents';
-import {SwipeController} from './Touch/SwipeController';
-import {LongTapController} from './Touch/LongTapController';
+import {
+    WasabyEvents,
+    IWasabyEventSystem,
+    IEventConfig,
+    SyntheticEvent,
+    isInvisibleNode,
+    FastTouchEndController,
+    ITouchEvent,
+    SwipeController,
+    LongTapController
+} from 'UICommon/Events';
 import {
     IWasabyHTMLElement,
     TModifyHTMLNode,
     IControlNode,
     TEventsObject
-} from '../_vdom/Synchronizer/interfaces';
+} from 'UICommon/interfaces';
 
 export default class WasabyEventsReact extends WasabyEvents implements IWasabyEventSystem {
     private lastTarget: IWasabyHTMLElement;

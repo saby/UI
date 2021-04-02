@@ -2,7 +2,7 @@
  * @author Тэн В.А.
  */
 
-import { IWasabyEventSystem } from './IEvents';
+import { IWasabyEventSystem } from 'UICommon/Events';
 import { Control } from 'UIReact/UICore/Base';
 
 /**
