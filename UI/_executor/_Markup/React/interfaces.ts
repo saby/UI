@@ -4,6 +4,7 @@ import {TemplateFunction} from 'UI/_react/Control/interfaces';
 import * as React from 'react';
 import {IWasabyContextValue} from 'UI/_react/WasabyContext/WasabyContext';
 import {IGeneratorNameObject} from "UI/_executor/_Markup/IGeneratorType";
+import * as Attr from "UI/_executor/_Expressions/Attr";
 
 /*
 FIXME: как я понимаю, в этом объекте могут быть HTMl-атрибуты+какие-то наши поля.
@@ -24,6 +25,7 @@ export interface IControlConfig {
     depsLocal: Common.Deps<typeof Control, TemplateFunction>;
     viewController: Control;
     includedTemplates: Common.IncludedTemplates<TemplateFunction>;
+    compositeAttributes?: Attr.IAttributes;
     data: any;
 }
 
