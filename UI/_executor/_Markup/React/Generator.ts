@@ -5,7 +5,7 @@ import { onElementMount, onElementUnmount } from '../../_Utils/ChildrenManager';
 import { convertAttributes, WasabyAttributes } from './Attributes';
 import { WasabyContextManager } from 'UI/_react/WasabyContext/WasabyContextManager';
 import { Control } from 'UI/_react/Control/WasabyOverReact';
-import { IWasabyEvent } from 'UI/Events';
+import { IWasabyEvent, IWasabyEventSystem } from 'UI/Events';
 import { setEventHook } from 'UI/_events/Hooks';
 
 import {IControlOptions, TemplateFunction} from 'UI/_react/Control/interfaces';
@@ -39,7 +39,7 @@ export class GeneratorReact {
     * т.е. либо та логика дублировалась где-то ещё, либо типы были описаны неправильно.
     * @param type Тип элемента, определяет каким методом генератор будет его строить.
     * @param origin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
-    * @param attributes
+    * @param attributes Опции, заданные через attr:<имя_опции>.
     * @param events
     * @param options Опции контрола/шаблона.
     * @param config
@@ -55,15 +55,16 @@ export class GeneratorReact {
       const templateAttributes: IGeneratorAttrs = {
          attributes: config.compositeAttributes === null
             ? attributes
-            : Helper.processMergeAttributes(config.compositeAttributes, attributes)
-      };
-      /*
-      FIXME: судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
-      Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
-      Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
-       */
-      (templateAttributes).internal = {
-         parent: config.viewController
+            : Helper.processMergeAttributes(config.compositeAttributes, attributes),
+         /*
+         FIXME: https://online.sbis.ru/opendoc.html?guid=f354360c-5899-4f74-bf54-a06e526621eb
+         судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
+         Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
+         Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
+         */
+         internal: {
+            parent: config.viewController
+         }
       };
 
       // вместо опций может прилететь функция, выполнение которой отдаст опции, calculateScope вычисляет такие опции
@@ -71,11 +72,19 @@ export class GeneratorReact {
       // если контрол создается внутри контентной опции, нужно пробросить в опции еще те, что доступны в контентной
       // опции.
       const resolvedOptionsExtended = ConfigResolver.addContentOptionScope(resolvedOptions, config);
+      /*
+      У шаблонов имя раньше бралось только из атрибута.
+      У контролов оно бралось только из опций.
+      Вряд ли есть места, где люди завязались на это поведение.
+      Поэтому чтобы не костылять с проверками, просто поддержу и опции, и атрибуты для всего.
+       */
+      const name = attributes.name as string ?? options.name;
 
       const newOptions = {
          ...resolvedOptionsExtended,
          ...{events},
-         ...{eventSystem: config.data?._options?.eventSystem}
+         ...{eventSystem: config.data?._options?.eventSystem},
+         ref: createChildrenRef(config.viewController, name)
       };
 
       return this.resolver(origin, newOptions, templateAttributes, undefined,
@@ -255,40 +264,12 @@ export class GeneratorReact {
       __: unknown,
       control?: Control
    ): React.DetailedReactHTMLElement<P, T> {
-      let ref;
-      const name = attrs.attributes.name;
-
-      if (control) {
-         const eventsObject = {
-            //@ts-ignore _options объявлен пустым объектом по-умолчанию
-            events: {...attrs.events, ...control._options.events},
-            //@ts-ignore _options объявлен пустым объектом по-умолчанию
-            eventSystem: control._options.eventSystem
-         };
-         ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
-            if (node && Object.keys(eventsObject.events).length > 0) {
-               setEventHook(tagName, eventsObject, node);
-            }
-         };
-         if (name) {
-            ref = (node: HTMLElement & {eventProperties?: {[key: string]: IWasabyEvent[]}}): void => {
-               if (node) {
-                  // todo _children protected по апи, но здесь нужен доступ чтобы инициализировать.
-                  //@ts-ignore
-                  control._children[name] = node;
-                  //@ts-ignore
-                  onElementMount(control._children[name]);
-                     if (Object.keys(eventsObject.events).length > 0) {
-                        setEventHook(tagName, eventsObject, node);
-                     }
-               } else {
-                  //@ts-ignore
-                  onElementUnmount(control._children, name);
-               }
-            };
-         }
-      }
-
+      const eventsObject = {
+         //@ts-ignore _options объявлен пустым объектом по-умолчанию
+         events: {...attrs.events, ...control._options.events},
+         //@ts-ignore _options объявлен пустым объектом по-умолчанию
+         eventSystem: control._options.eventSystem
+      };
       if (!attrToDecorate) {
          attrToDecorate = {};
       }
@@ -298,6 +279,12 @@ export class GeneratorReact {
             delete mergedAttrs[attrName];
          }
       });
+      const name = mergedAttrs.name;
+      const ref = createChildrenRef(
+         control,
+         name,
+         createEventRef(tagName, eventsObject)
+      );
 
       const convertedAttributes = convertAttributes(mergedAttrs);
       const extractedEvents = control ?
@@ -317,6 +304,45 @@ export class GeneratorReact {
    escape<T>(value: T): T {
       return value;
    }
+}
+
+function createEventRef<T extends HTMLElement>(
+   tagName: string,
+   eventsObject: {
+      events?: {
+         [key: string]: IWasabyEvent[]
+      };
+      eventSystem?: IWasabyEventSystem;
+   },
+   prevRef?: React.RefCallback<T>
+): React.RefCallback<T> {
+   return (node) => {
+      prevRef?.(node);
+      if (node && Object.keys(eventsObject.events).length > 0) {
+         setEventHook(tagName, eventsObject, node);
+      }
+   };
+}
+
+function createChildrenRef<T extends Control | Element>(
+   parent: Control,
+   name: string,
+   prevRef?: React.RefCallback<T>
+): React.RefCallback<T> | void {
+   // _children protected по апи, но здесь нужен доступ чтобы инициализировать.
+   /* tslint:disable:no-string-literal */
+   if (parent && name) {
+      return (node) => {
+         prevRef?.(node);
+         if (node) {
+            parent['_children'][name] = node;
+            onElementMount(parent['_children'][name]);
+         } else {
+            onElementUnmount(parent['_children'], name);
+         }
+      };
+   }
+   /* tslint:enable:no-string-literal */
 }
 
 function getLibraryTpl(tpl: IGeneratorNameObject,
