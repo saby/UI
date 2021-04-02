@@ -18,4 +18,5 @@ export interface IControlOptions {
 
 export interface IControlState {
    loading: boolean;
+   observableVersion: number;
 }
