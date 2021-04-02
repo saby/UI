@@ -20,6 +20,7 @@ import * as Attr from '../../_Expressions/Attr';
 import * as ConfigResolver from '../../_Utils/ConfigResolver';
 import * as Scope from '../../_Expressions/Scope';
 import {plainMerge} from '../../_Utils/Common';
+import * as Helper from '../../_Markup/Helper';
 
 export class GeneratorReact {
    prepareDataForCreate(tplOrigin: TemplateOrigin,
@@ -49,13 +50,15 @@ export class GeneratorReact {
    createControlNew(
       type: 'wsControl' | 'template',
       origin: TemplateOrigin,
-      attributes: Record<string, unknown>,
+      attributes: Attr.IAttributes,
       events: { [key: string]: IWasabyEvent[]; },
       options: IControlOptions,
       config: IControlConfig
    ): React.ReactElement | React.ReactElement[] | string {
       const templateAttributes: IGeneratorAttrs = {
-         attributes,
+         attributes: config.compositeAttributes === null
+            ? attributes
+            : Helper.processMergeAttributes(config.compositeAttributes, attributes),
          /*
          FIXME: https://online.sbis.ru/opendoc.html?guid=f354360c-5899-4f74-bf54-a06e526621eb
          судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
@@ -83,7 +86,7 @@ export class GeneratorReact {
       const newOptions = {
          ...resolvedOptionsExtended,
          ...{events},
-         ...{eventSystem: config.data._options.eventSystem},
+         ...{eventSystem: config.data?._options?.eventSystem},
          ref: createChildrenRef(config.viewController, name)
       };
 
@@ -270,7 +273,6 @@ export class GeneratorReact {
          //@ts-ignore _options объявлен пустым объектом по-умолчанию
          eventSystem: control._options.eventSystem
       };
-
       if (!attrToDecorate) {
          attrToDecorate = {};
       }

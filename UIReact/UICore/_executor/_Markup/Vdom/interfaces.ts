@@ -5,6 +5,7 @@ import {
 } from 'UICore/Executor';
 import * as React from 'react';
 import { IWasabyContextValue } from 'UICore/Contexts';
+import * as Attr from "UI/_executor/_Expressions/Attr";
 
 /*
 FIXME: как я понимаю, в этом объекте могут быть HTMl-атрибуты+какие-то наши поля.
@@ -25,6 +26,7 @@ export interface IControlConfig {
     depsLocal: Common.Deps<typeof Control, TemplateFunction>;
     viewController: Control;
     includedTemplates: Common.IncludedTemplates<TemplateFunction>;
+    compositeAttributes?: Attr.IAttributes;
     data: any;
 }
 
