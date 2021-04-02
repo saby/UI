@@ -1,4 +1,4 @@
-/// <amd-module name='UICore/theme/_controller/css/SingleLinkPS' />
+/// <amd-module name='UICommon/theme/_controller/css/SingleLinkPS' />
 import LinkPS from './LinkPS';
 import { THEME_TYPE } from './const';
 import { ISingleCssEntity } from './interface';

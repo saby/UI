@@ -7,7 +7,7 @@ import * as Common from '../_Utils/Common';
 import * as RequireHelper from '../_Utils/RequireHelper';
 import * as OptionsResolver from '../_Utils/OptionsResolver';
 import * as Scope from '../_Expressions/Scope';
-import { EventUtils } from 'UICore/Events';
+import { EventUtils } from 'UICommon/Events';
 import * as ConfigResolver from '../_Utils/ConfigResolver'
 import {
    GeneratorEmptyObject,

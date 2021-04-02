@@ -4,4 +4,4 @@ export {
     THEME_TYPE,
     EMPTY_THEME,
     DEFAULT_THEME
-} from 'UICore/theme/controller';
+} from 'UICommon/theme/controller';

@@ -1,8 +1,8 @@
 /// <amd-module name="UICore/_executor/_Markup/Builder" />
 /* tslint:disable */
 
-import { Subscriber } from 'UICore/Events';
-import { ContextResolver } from 'UICore/Contexts';
+import { Subscriber } from 'UICommon/Events';
+import { ContextResolver } from 'UICommon/Contexts';
 import * as OptionsResolver from '../_Utils/OptionsResolver';
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';

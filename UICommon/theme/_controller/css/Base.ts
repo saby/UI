@@ -1,4 +1,4 @@
-/// <amd-module name='UICore/theme/_controller/css/Base' />
+/// <amd-module name='UICommon/theme/_controller/css/Base' />
 import { ICssEntity } from './interface';
 import { DEFAULT_THEME, THEME_TYPE } from './const';
 

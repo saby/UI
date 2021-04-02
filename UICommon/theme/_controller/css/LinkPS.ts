@@ -1,4 +1,4 @@
-/// <amd-module name='UICore/theme/_controller/css/LinkPS' />
+/// <amd-module name='UICommon/theme/_controller/css/LinkPS' />
 import { default as Link } from './Link';
 import { THEME_TYPE } from './const';
 import { Head as HeadAPI } from 'Application/Page';

@@ -2,10 +2,10 @@ import { assert } from 'chai';
 // import 'mocha';
 // @ts-ignore
 import { constants } from 'Env/Env';
-import { Controller } from 'UICore/theme/_controller/Controller';
-import Link from 'UICore/theme/_controller/css/Link';
-import LinkPS from 'UICore/theme/_controller/css/LinkPS';
-import { ICssLoader } from 'UICore/theme/_controller/Loader';
+import { Controller } from 'UICommon/theme/_controller/Controller';
+import Link from 'UICommon/theme/_controller/css/Link';
+import LinkPS from 'UICommon/theme/_controller/css/LinkPS';
+import { ICssLoader } from 'UICommon/theme/_controller/Loader';
 
 const cssName = 'Some/Control';
 const themeName = 'Some/Theme';
@@ -26,7 +26,7 @@ class CssLoaderMock implements ICssLoader {
    }
 }
 
-describe('UICore/theme/_controller/Controller', () => {
+describe('UICommon/theme/_controller/Controller', () => {
    const loader: CssLoaderMock = new CssLoaderMock();
    const controller: Controller = new Controller(loader);
 

@@ -1,5 +1,5 @@
-import { EventUtils, isInvisibleNode } from 'UICore/Events';
-import { IDOMEnvironment, IProperties, IWasabyHTMLElement, IControlNode, IEvent, TEventsObject, TControlId } from '../interfaces';
+import { EventUtils, isInvisibleNode } from 'UICommon/Events';
+import { IDOMEnvironment, IProperties, IWasabyHTMLElement, IControlNode, IEvent, TEventsObject, TControlId } from 'UICommon/interfaces';
 import { constants } from 'Env/Env';
 import { Set } from 'Types/shim';
 

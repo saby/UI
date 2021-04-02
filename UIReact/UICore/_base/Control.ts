@@ -1,13 +1,13 @@
 import { Component, createElement } from 'react';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { EMPTY_THEME, getThemeController } from 'UI/theme/controller';
+import { EMPTY_THEME, getThemeController } from 'UICommon/theme/controller';
 import { getResourceUrl, Logger} from 'UI/Utils';
 import { _Options } from 'UI/Vdom';
-import { makeWasabyObservable, releaseProperties } from 'UICore/Reactivity';
+import { makeWasabyObservable, releaseProperties } from 'UICore/WasabyReactivity';
 
 import template = require('wml!UICore/_base/Control');
-import { IControlOptions, IControlState, TemplateFunction } from './interfaces';
+import { IControlState, TemplateFunction } from './interfaces';
 import {
     getWasabyContext,
     IWasabyContextValue,
@@ -17,7 +17,9 @@ import {
 
 import { OptionsResolver } from 'UI/Executor';
 
-import {WasabyEventsReact, callNotify, IWasabyEventSystem} from 'UI/Events';
+import { WasabyEvents, callNotify } from 'UICore/Events';
+import { IWasabyEventSystem } from 'UICommon/Events';
+import { TIState, IControlOptions } from 'UICommon/interfaces';
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
@@ -25,7 +27,7 @@ import {WasabyEventsReact, callNotify, IWasabyEventSystem} from 'UI/Events';
  * @public
  */
 export default class Control<TOptions extends IControlOptions = {},
-    TState extends object | void = void> extends Component<TOptions, IControlState> {
+    TState extends TIState = void> extends Component<TOptions, IControlState> {
     /**
      * Используется для того, чтобы не вызывать хуки ЖЦ до реального построения контрола.
      */
@@ -591,7 +593,7 @@ export default class Control<TOptions extends IControlOptions = {},
         // кладём в конфиг наследуемые опции, чтобы они попали в полноценные опции
         cfg.theme = cfg.theme ?? 'default';
         cfg.readOnly = cfg.readOnly ?? false;
-        this.eventSystem = new WasabyEventsReact(domElement);
+        this.eventSystem = new WasabyEvents(domElement);
         cfg.eventSystem = this.eventSystem;
         ReactDOM.render(React.createElement(ctor, cfg), domElement);
     }

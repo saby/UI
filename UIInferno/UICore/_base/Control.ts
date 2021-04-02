@@ -8,14 +8,14 @@ import cExtend = require('Core/core-extend');
 
 import { Synchronizer } from 'UICore/Vdom';
 import { _IGeneratorType, OptionsResolver } from 'UICore/Executor';
-import { ContextResolver } from 'UICore/Contexts';
+import { ContextResolver } from 'UICommon/Contexts';
 import { _FocusAttrs, _IControl, activate, Events, focus } from 'UICore/Focus';
 import { Logger, Purifier, needToBeCompatible } from 'UICore/Utils';
 import { goUpByControlTree } from 'UICore/NodeCollector';
 import { constants } from 'Env/Env';
 import { getGeneratorConfig } from './GeneratorConfig';
 
-import { getThemeController, EMPTY_THEME } from 'UICore/theme/controller';
+import { getThemeController, EMPTY_THEME } from 'UICommon/theme/controller';
 import { ReactiveObserver } from 'UICore/Reactivity';
 
 import startApplication from './startApplication';
@@ -23,7 +23,7 @@ import { getProxyChildren } from './ProxyChildren';
 
 import { DisposeControl, IResourceDisposable } from 'Application/State';
 
-export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
+import { IControlOptions, TIState, IControlChildren } from 'UICommon/interfaces';
 
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
                                 forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
@@ -166,36 +166,6 @@ export const _private = {
       }
    }
 };
-
-export interface IControlOptions {
-   readOnly?: boolean;
-   theme?: string;
-}
-
-export interface ITemplateAttrs {
-   key?: string;
-   internal?: Record<string, any>;
-   inheritOptions?: Record<string, any>;
-   attributes?: Record<string, any>;
-   templateContext?: Record<string, any>;
-   context?: Record<string, any>;
-   domNodeProps?: Record<string, any>;
-   events?: Record<string, any>;
-}
-
-type TControlConfig = IControlOptions & {
-   [key: string]: any;
-   _logicParent?: Control;
-   _$createdFromCode?: boolean;
-};
-
-interface IState {
-}
-type TIState = void | IState;
-
-export type TControlConstructor<TOptions extends IControlOptions = {}, TState extends TIState = void> = {
-   new(cfg: TOptions): Control<TOptions, TState>;
-}
 
 /**
  * Базовый контрол, от которого наследуются все интерфейсные контролы фреймворка Wasaby.

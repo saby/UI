@@ -2,7 +2,7 @@ import { Control, IControlOptions } from 'UICore/Base';
 import { IOptions } from 'UICore/_vdom/Synchronizer/resources/Options';
 import { VNode } from 'Inferno/third-party/index';
 import { IGeneratorControlNode } from 'UICore/Executor';
-import { IWasabyEventSystem } from 'UICore/Events';
+import { IWasabyEventSystem } from 'UICommon/Events';
 
 export type TComponentAttrs = Record<string, unknown>;
 
@@ -10,7 +10,37 @@ export type TControlId = string;
 // VdomMarkup.getDecoratedMark
 // tslint:disable: member-ordering
 
-type IControlConstructor = () => Control;
+export interface IControlOptions {
+    readOnly?: boolean;
+    theme?: string;
+}
+export interface ITemplateAttrs {
+    key?: string;
+    internal?: Record<string, any>;
+    inheritOptions?: Record<string, any>;
+    attributes?: Record<string, any>;
+    templateContext?: Record<string, any>;
+    context?: Record<string, any>;
+    domNodeProps?: Record<string, any>;
+    events?: Record<string, any>;
+}
+
+export type TControlConfig = IControlOptions & {
+    [key: string]: any;
+    _logicParent?: Control;
+    _$createdFromCode?: boolean;
+};
+
+
+export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
+interface IState {
+}
+export type TIState = void | IState;
+
+export type TControlConstructor<TOptions extends IControlOptions = {}, TState extends TIState = void> = {
+    new(cfg: TOptions): Control<TOptions, TState>;
+};
+
 type TContext = Record<string, object>;
 type IObjectsVersions<T> = {
     [key in keyof T]: number
@@ -43,7 +73,7 @@ export interface IControlNode extends IRebuildNode {
     oldContext: TContext;
     errors: object | undefined;
     element: IWasabyHTMLElement;
-    controlClass: IControlConstructor;
+    controlClass: TControlConstructor;
     options: IOptions;
     oldOptions: IOptions;
     internalOptions: ICoreControlOptions;

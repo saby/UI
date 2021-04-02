@@ -3,4 +3,4 @@
  */
 export {
    ContextResolver
-} from 'UICore/Contexts';
+} from 'UICommon/Contexts';

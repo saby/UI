@@ -5,13 +5,13 @@ import { detection } from 'Env/Env';
 import { Logger, isNewEnvironment } from 'UICore/Utils';
 import {ElementFinder, Events, focus, preventFocus, hasNoFocus} from 'UICore/Focus';
 import { goUpByControlTree } from 'UICore/NodeCollector';
-import { WasabyEventsInferno } from 'UI/Events';
+import { WasabyEvents } from 'UICore/Events';
 import {
    IDOMEnvironment, TControlStateCollback,
    TMarkupNodeDecoratorFn, IHandlerInfo, TModifyHTMLNode,
    TComponentAttrs,
    IControlNode
-} from '../interfaces';
+} from 'UICommon/interfaces';
 
 import { mapVNode } from './VdomMarkup';
 import { setControlNodeHook, setEventHook } from './Hooks';
@@ -76,7 +76,7 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
       this.__markupNodeDecorator = createRecursiveVNodeMapper(setEventHook);
 
       this._handleTabKey = this._handleTabKey.bind(this);
-      this.eventSystem = new WasabyEventsInferno(_rootDOMNode, this as unknown as IDOMEnvironment, this._handleTabKey);
+      this.eventSystem = new WasabyEvents(_rootDOMNode, this as unknown as IDOMEnvironment, this._handleTabKey);
 
       this.initFocusHandlers();
       this.__initBodyTabIndex();

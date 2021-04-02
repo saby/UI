@@ -1,4 +1,4 @@
-/// <amd-module name='UICore/theme/_controller/Storage' />
+/// <amd-module name='UICommon/theme/_controller/Storage' />
 import { ICssEntity } from './css/interface';
 import { getStore as getAppStore, setStore as setAppStore } from 'Application/Env';
 import { IStore } from 'Application/Interface';
@@ -32,7 +32,7 @@ class EntityStore implements IStore<IEntities> {
       return this.data;
    }
 
-   static label: string = 'UICore/theme/_controller/Storage#CssEntityStore';
+   static label: string = 'UICommon/theme/_controller/Storage#CssEntityStore';
 }
 
 /**
@@ -140,7 +140,7 @@ class AliasStore implements IStore<IAliases>{
       return this.data;
    }
 
-   static label: string = 'UICore/theme/_controller/Storage#AliasStore';
+   static label: string = 'UICommon/theme/_controller/Storage#AliasStore';
 }
 
 export class AliasStorage {

@@ -1,8 +1,6 @@
 export {
     default as Control,
-    IControlOptions,
     TemplateFunction,
-    TControlConstructor,
     IControlChildren
 } from './_base/Control';
 

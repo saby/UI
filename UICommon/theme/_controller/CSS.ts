@@ -1,4 +1,4 @@
-/// <amd-module name='UICore/theme/_controller/CSS' />
+/// <amd-module name='UICommon/theme/_controller/CSS' />
 import { THEME_TYPE, ELEMENT_ATTR, DEPRECATED_ELEMENT_ATTR, EMPTY_THEME, DEPRECATED_THEME_TYPE } from './css/const';
 import { ICssEntity, IHTMLElement } from './css/interface';
 import SingleLinkPS from './css/SingleLinkPS';
@@ -21,7 +21,7 @@ export function createEntity(href: string, cssName: string, themeName: string, t
 /**
  * Создание экземпляра Link из HTMLLinkElement
  * @example
- * import { restoreEntity } from 'UICore/theme/_controller/CSS';
+ * import { restoreEntity } from 'UICommon/theme/_controller/CSS';
  * // получить массив Link
  *    Array
  *         .from(document.getElementsByTagName('link'))

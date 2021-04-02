@@ -7,7 +7,7 @@
 // @ts-nocheck
 // @ts-ignore
 import { constants } from 'Env/Env';
-import { Subscriber } from 'UICore/Events';
+import { Subscriber } from 'UICommon/Events';
 import {
    getFullMarkup,
    mapVNode,
@@ -18,7 +18,7 @@ import {
    isTemplateVNodeType
 } from './VdomMarkup';
 import { OptionsResolver } from 'UICore/Executor';
-import { ContextResolver } from 'UICore/Contexts';
+import { ContextResolver } from 'UICommon/Contexts';
 import { delay } from 'Types/function';
 // @ts-ignore
 import { Serializer } from 'UICore/State';

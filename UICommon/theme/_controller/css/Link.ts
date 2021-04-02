@@ -1,4 +1,4 @@
-/// <amd-module name='UICore/theme/_controller/css/Link' />
+/// <amd-module name='UICommon/theme/_controller/css/Link' />
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 import { Base } from './Base';
 import { ELEMENT_ATTR, THEME_TYPE, CSS_MODULE_PREFIX, EMPTY_THEME } from './const';

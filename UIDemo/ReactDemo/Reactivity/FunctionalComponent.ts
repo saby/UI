@@ -1,12 +1,12 @@
-import {createElement} from "react";
-import {useMakeObservable} from 'UI/ReactReactivity';
-import {Record} from "Types/entity";
+import { createElement, DetailedReactHTMLElement } from 'react';
+import { useMakeObservable } from 'UIReact/UICore/Reactivity';
+import { Record } from 'Types/entity';
 
 const myRec = Record.fromObject({
     count: 0
 });
 
-export default function FunctionalComponent() {
+export default function FunctionalComponent(): DetailedReactHTMLElement<null, HTMLElement> {
     useMakeObservable([myRec]);
     return createElement('div', null,
         createElement('h3', null, 'Функциональный компонент с использованием useMakeObservable'),

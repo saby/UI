@@ -1,5 +1,5 @@
-import { IControlNode, IDOMEnvironment, IWasabyHTMLElement } from 'UI/_vdom/Synchronizer/interfaces';
-import {Control} from '../_react/Control/WasabyOverReact';
+import { IControlNode, IDOMEnvironment, IWasabyHTMLElement } from 'UICommon/interfaces';
+import {Control} from 'UIReact/UICore/Base';
 
 type VoidFunction = () => void;
 

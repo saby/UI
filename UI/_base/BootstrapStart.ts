@@ -7,7 +7,8 @@
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
 import { loadAsync } from 'WasabyLoader/ModulesLoader';
-import { Control, TControlConstructor } from 'UICore/Base';
+import { Control } from 'UICore/Base';
+import { TControlConstructor } from 'UICommon/interfaces';
 
 export interface ICreateControlOptions {
     application?: string;

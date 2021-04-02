@@ -1,3 +1,4 @@
 export { default as Control}  from './_base/Control';
 
-export {IControlOptions, TemplateFunction} from './_base/interfaces';
+export { TemplateFunction } from './_base/interfaces';
+export { empty as getGeneratorConfig, empty as startApplication } from 'UICommon/Empty';

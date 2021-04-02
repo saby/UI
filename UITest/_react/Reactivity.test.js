@@ -1,4 +1,4 @@
-define(['UI/ReactReactivity', 'Core/core-extend'],
+define(['UIReact/UICore/Reactivity', 'Core/core-extend'],
     function (Reactivity, extend) {
        'use strict';
 

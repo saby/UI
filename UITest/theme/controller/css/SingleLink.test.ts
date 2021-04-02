@@ -1,9 +1,9 @@
 // @ts-ignore
 import { constants } from 'Env/Env';
-import SingleLink from 'UICore/theme/_controller/css/SingleLink';
+import SingleLink from 'UICommon/theme/_controller/css/SingleLink';
 import { THEME_TYPE } from 'UI/theme/controller';
-import { IHTMLElement } from 'UICore/theme/_controller/css/interface';
-import { ELEMENT_ATTR } from 'UICore/theme/_controller/css/const';
+import { IHTMLElement } from 'UICommon/theme/_controller/css/interface';
+import { ELEMENT_ATTR } from 'UICommon/theme/_controller/css/const';
 import { assert } from 'chai';
 // import 'mocha';
 
@@ -34,7 +34,7 @@ class LinkElementMock implements IHTMLElement {
 let element: LinkElementMock;
 let link: SingleLink;
 
-describe('UICore/theme/_controller/css/SingleLink', () => {
+describe('UICommon/theme/_controller/css/SingleLink', () => {
 
    const setHooks = () => {
       beforeEach(() => {

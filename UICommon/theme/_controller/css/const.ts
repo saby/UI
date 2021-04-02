@@ -1,4 +1,4 @@
-/// <amd-module name='UICore/theme/_controller/css/const' />
+/// <amd-module name='UICommon/theme/_controller/css/const' />
 /**
  * перечисление аттрибутов css сущностей в DOM
  */

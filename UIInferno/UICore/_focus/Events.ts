@@ -1,6 +1,6 @@
 /// <amd-module name="UICore/_focus/Events" />
 /* tslint:disable */
-import { IWasabyEventSystem } from 'UICore/Events'
+import { IWasabyEventSystem } from 'UICommon/Events'
 type TModifyHTMLNode = HTMLElement & Record<string, any>;
 export interface IDOMEnvironment {
    _rootDOMNode: TModifyHTMLNode;

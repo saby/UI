@@ -1,4 +1,4 @@
-/// <amd-module name='UICore/theme/_controller/css/interface' />
+/// <amd-module name='UICommon/theme/_controller/css/interface' />
 import { THEME_TYPE } from './const';
 /**
  * Сущность, представляющая собой ссылку на таблицу _мультитемных_ стилей
