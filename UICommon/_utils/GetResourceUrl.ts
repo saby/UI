@@ -11,7 +11,7 @@ import { cookie } from 'Env/Env';
  *
  * <h2>Возвращает</h2>
  * {String} обработанный URL.
- * @class UICore/_utils/getResourceUrl
+ * @class UICommon/_utils/getResourceUrl
  * @public
  * @author Мальцев А.А.
  */

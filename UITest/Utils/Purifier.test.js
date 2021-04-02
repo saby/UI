@@ -1,11 +1,11 @@
 define([
    'UI/Utils',
-   'UICore/_utils/Purifier/needLog'
+   'UICommon/_utils/Purifier/needLog'
 ], function(Utils,
             needLog
    ) {
 
-   describe('UICore/_utils/Purifier', () => {
+   describe('UICommon/_utils/Purifier', () => {
       const Purifier = Utils.Purifier;
       const Logger = Utils.Logger;
       describe('purifyInstance', () => {

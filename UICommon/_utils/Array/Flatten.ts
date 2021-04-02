@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_utils/Array/Flatten" />
+/// <amd-module name="UICommon/_utils/Array/Flatten" />
 /**
  * @author Мальцев А.А.
  */

@@ -3,8 +3,8 @@
 /**
  * Библиотека служебных утилит для работы с UI Wasaby
  * @library UICommon/Utils
- * @includes Logger UICore/_utils/Logger
- * @includes Purifier UICore/_utils/Purifier
+ * @includes Logger UICommon/_utils/Logger
+ * @includes Purifier UICommon/_utils/Purifier
  * @author Шипин А.А.
  */
 

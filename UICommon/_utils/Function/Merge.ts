@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_utils/Function/Merge" />
+/// <amd-module name="UICommon/_utils/Function/Merge" />
 
 interface IConfig {
    clone?: boolean; // Клонировать элементы
@@ -101,7 +101,7 @@ function cloneOrCopy(hash: object, hashExtender: object, key: string, config: IC
  *       console.log(original.two);//'dos'
  *    });
  * </pre>
- * @class UICore/_utils/Function/Merge
+ * @class UICommon/_utils/Function/Merge
  * @public
  * @author Мальцев А.А.
  */

@@ -119,7 +119,7 @@ function purifyInstanceSync(
  * @param {string} [instanceName = 'instance'] - имя экземпляра для отображения в предупреждении.
  * @param {boolean} [async = false] - вызывать ли очистку с задержкой.
  * @param {Record<string, boolean>} [stateNamesNoPurify?] - объект с именами полей, которые чистить не нужно.
- * @class UICore/_utils/Purifier/purifyInstance
+ * @class UICommon/_utils/Purifier/purifyInstance
  * @author Кондаков Р.Н.
  */
 export default function purifyInstance(

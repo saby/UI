@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_utils/Function/ShallowClone" />
+/// <amd-module name="UICommon/_utils/Function/ShallowClone" />
 import merge from './Merge';
 /**
  *
@@ -14,7 +14,7 @@ import merge from './Merge';
  * <h2>Возвращает</h2>
  * Скопированный объект или массив.
  *
- * @class UICore/_utils/Function/ShallowClone
+ * @class UICommon/_utils/Function/ShallowClone
  * @public
  * @author Мальцев А.А.
  */

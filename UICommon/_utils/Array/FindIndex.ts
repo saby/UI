@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_utils/Array/FindIndex" />
+/// <amd-module name="UICommon/_utils/Array/FindIndex" />
 
 /**
  * Модуль, в котором описана функция <b>findIndex(array, predicate, context)</b>.
@@ -35,7 +35,7 @@
  *    }));
  * });
  * </pre>
- * @class UICore/_utils/Array/findIndex
+ * @class UICommon/_utils/Array/findIndex
  * @public
  * @author Мальцев А.А.
  */

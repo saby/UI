@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_utils/Array/Uniq" />
+/// <amd-module name="UICommon/_utils/Array/Uniq" />
 
 /**
  * Модуль, в котором описана функция <b>uniq(array)</b>.
@@ -25,7 +25,7 @@
  *    });
  * </pre>
  *
- * @class UICore/_utils/Array/uniq
+ * @class UICommon/_utils/Array/uniq
  * @public
  * @author Мальцев А.А.
  */

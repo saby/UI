@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_utils/Object/IsPlainObject" />
+/// <amd-module name="UICommon/_utils/Object/IsPlainObject" />
 
 /**
  *
@@ -23,7 +23,7 @@
  *    });
  * </pre>
  *
- * @class UICore/_utils/Object/IsPlainObject
+ * @class UICommon/_utils/Object/IsPlainObject
  * @public
  * @author Мальцев А.А.
  */

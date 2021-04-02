@@ -17,7 +17,7 @@
  * <h2>Возвращает</h2>
  * {Boolean} Видимость элемента.
  *
- * @class UICore/_utils/IsElementVisible
+ * @class UICommon/_utils/IsElementVisible
  * @public
  * @author Шипин А.А.
  */

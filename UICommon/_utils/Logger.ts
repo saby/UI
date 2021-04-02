@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_utils/Logger" />
+/// <amd-module name="UICommon/_utils/Logger" />
 
 // @ts-ignore
 import { IoC } from 'Env/Env';
@@ -23,7 +23,7 @@ import { IoC } from 'Env/Env';
  *    at constructor.handleClick [as _handleClick] (DOMEnvironment.js:479)
  *    at constructor.<anonymous> (DOMEnvironment.js:968)
  *
- * @class UICore/_utils/Logger
+ * @class UICommon/_utils/Logger
  * @author Шипин А.А.
  * @public
  */
@@ -57,7 +57,7 @@ const _getCurrentFunctionInfo = (data: any = _createFakeError()): string  => {
       currentFunc = '[not detected]';
       logger().error(
          'CONTROL ERROR',
-         '[UICore/_utils/Logger:_getCurrentFunctionInfo()] \- ошибка получения текущей функции',
+         '[UICommon/_utils/Logger:_getCurrentFunctionInfo()] \- ошибка получения текущей функции',
          err);
    }
    return currentFunc;
@@ -212,7 +212,7 @@ const prepareStack = (stackNode: {[key: string]: any}): string => {
       // @ts-ignore
       const NodeCollector = requirejs('UICore/NodeCollector');
       // TODO: допущение, что библиотеке фокусов загружена до ошибок, подумать как сделать лучше
-      // явно тащить нельзя, цикл - UICore/NodeCollector -> UICore/_utils/Logger -> UICore/NodeCollector
+      // явно тащить нельзя, цикл - UICore/NodeCollector -> UICommon/_utils/Logger -> UICore/NodeCollector
 
       let arrayControls = [];
       if (NodeCollector) {

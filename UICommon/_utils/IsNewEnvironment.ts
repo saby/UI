@@ -11,7 +11,7 @@ import { getStore } from 'Application/Env';
  *     <li>true, если веб-страница создана на основе компонента Controls/Application.</li>
  *     <li>false, во всех остальных случаях.</li>
  * </ul>
- * @class UICore/_utils/IsNewEnvironment
+ * @class UICommon/_utils/IsNewEnvironment
  * @public
  * @author Шипин А.А.
  */

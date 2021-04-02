@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_utils/Object/IsEmpty" />
+/// <amd-module name="UICommon/_utils/Object/IsEmpty" />
 /**
  * @author Мальцев А.А.
  */
