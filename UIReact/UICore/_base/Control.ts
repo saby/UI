@@ -68,7 +68,7 @@ export default class Control<TOptions extends IControlOptions = {},
      */
     static eventSystem: IWasabyEventSystem;
 
-    protected _notify(eventName: string, args?: unknown[], options?: {bubbling?: boolean}): void {
+    protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): void {
         callNotify(Control.eventSystem, this as Control, eventName, args, options);
     }
 
@@ -80,25 +80,32 @@ export default class Control<TOptions extends IControlOptions = {},
          */
         if (!context) {
             Logger.error(
-                `[${ this._moduleName }] Неправильный вызов родительского конструктора, опции readOnly и theme могут содержать некорректные значения. Для исправления ошибки нужно передать в родительский конструктор все аргументы.`
+                `[${this._moduleName}] Неправильный вызов родительского конструктора, опции readOnly и theme могут содержать некорректные значения. Для исправления ошибки нужно передать в родительский конструктор все аргументы.`
             );
         }
         this.state = {
-            loading: true
+            loading: true,
+            // Флаг изменения реактивных свойств на instance, необходим для того, чтобы понять,
+            // что необходимо перерисовать компонент
+            observableVersion: 0
         };
         const constructor = this.constructor as React.ComponentType;
         // Записываем в статическое поле компонента имя для удобной работы через React DevTools
         if (!constructor.displayName) {
             constructor.displayName = this._moduleName;
         }
-        this._optionsVersions = { };
+        this._optionsVersions = {};
     }
 
     /**
      * Запускает обновление. Нужен из-за того, что всех переводить на новое название метода не хочется.
      */
     _forceUpdate(): void {
-        this.forceUpdate();
+        // При forceUpdate() не вызывается метод shouldComponentUpdate() и хук shouldUpdate()
+        // Текущая логика работы wasaby, при изменении на инстансе и _forceUpdate() вызывается shouldUpdate() всегда
+        this.setState(({observableVersion}: IControlState) => ({
+            observableVersion: observableVersion + 1
+        }));
     }
 
     /**
@@ -136,7 +143,7 @@ export default class Control<TOptions extends IControlOptions = {},
 
         // Данный метод должен вызываться только при первом построении, поэтому очистим его на инстансе при вызове
         this._beforeFirstRender = undefined;
-        makeWasabyObservable(this);
+        makeWasabyObservable<TOptions, TState>(this);
 
         if (res && res.then) {
             promisesToWait.push(res);
@@ -239,12 +246,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * @see https://wi.sbis.ru/doc/platform/developmentapl/interface-development/ui-library/control/#life-cycle-phases
      */
     protected _shouldUpdate(options: TOptions, context?: object): boolean {
-        return !!_Options.getChangedOptions(
-            options,
-            this._options,
-            false,
-            this._optionsVersions
-        );
+        return true;
     }
 
     /**
@@ -290,7 +292,7 @@ export default class Control<TOptions extends IControlOptions = {},
             this._theme instanceof Array || this._styles instanceof Array;
         if (isDeprecatedCSS) {
             Logger.warn(
-                `Стили и темы должны перечисляться в статическом свойстве класса ${ this._moduleName }`
+                `Стили и темы должны перечисляться в статическом свойстве класса ${this._moduleName}`
             );
         }
         return isDeprecatedCSS;
@@ -330,9 +332,17 @@ export default class Control<TOptions extends IControlOptions = {},
         }
     }
 
-    shouldComponentUpdate(newProps: TOptions): boolean {
+    shouldComponentUpdate(newProps: TOptions, newState: IControlState): boolean {
         const newOptions = createWasabyOptions(newProps, this.context);
-        return this._shouldUpdate(newOptions);
+        const changedOptions = !!_Options.getChangedOptions(
+            newProps,
+            this._options,
+            false,
+            this._optionsVersions
+        );
+        const reactiveStartUpdate = newState.observableVersion !== this.state.observableVersion;
+        // Если обновление запустила реактивность, нам надо перерисовать компонент
+        return (changedOptions && this._shouldUpdate(newOptions)) || reactiveStartUpdate;
     }
 
     componentDidUpdate(prevProps: TOptions): void {
@@ -359,7 +369,7 @@ export default class Control<TOptions extends IControlOptions = {},
 
     componentWillUnmount(): void {
         this._beforeUnmount.apply(this);
-        releaseProperties(this);
+        releaseProperties<TOptions, TState>(this);
     }
 
     render(): React.ReactNode {
@@ -585,7 +595,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * @param cfg Опции контрола.
      * @param domElement Элемент, на который должен быть смонтирован контрол.
      */
-    static createControl<P extends IControlOptions & {eventSystem?: IWasabyEventSystem}>(
+    static createControl<P extends IControlOptions & { eventSystem?: IWasabyEventSystem }>(
         ctor: React.ComponentType<P>,
         cfg: P,
         domElement: HTMLElement
@@ -596,6 +606,32 @@ export default class Control<TOptions extends IControlOptions = {},
         this.eventSystem = new WasabyEvents(domElement);
         cfg.eventSystem = this.eventSystem;
         ReactDOM.render(React.createElement(ctor, cfg), domElement);
+    }
+
+    /**
+     * Старый способ наследоваться
+     * @param mixinsList массив миксинов либо расширяющий класс (если один аргумент)
+     * @param classExtender расширяюший класс
+     */
+    static extend(mixinsList: object | object[], classExtender?: object): Function {
+        class ExtendedControl extends Control {
+        }
+
+        if (Array.isArray(mixinsList)) {
+            mixinsList.forEach((mixin) => {
+                Object.keys(mixin).forEach((key) => {
+                    ExtendedControl.prototype[key] = mixinsList[key];
+                });
+                Object.keys(classExtender).forEach((key) => {
+                    ExtendedControl.prototype[key] = mixinsList[key];
+                });
+            });
+        } else {
+            Object.keys(mixinsList).forEach((key) => {
+                ExtendedControl.prototype[key] = mixinsList[key];
+            });
+        }
+        return ExtendedControl;
     }
 }
 
@@ -618,7 +654,7 @@ function logError(e: Error): void {
  * @param props Опции из реакта.
  * @param contextValue Контекст с наследуемыми опциями.
  */
-function createWasabyOptions<T extends IControlOptions & {eventSystem?: IWasabyEventSystem}>(
+function createWasabyOptions<T extends IControlOptions & { eventSystem?: IWasabyEventSystem }>(
     props: T,
     contextValue: IWasabyContextValue
 ): T {
