@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Logger } from 'UI/Utils';
+import { Logger } from 'UICommon/Utils';
 import {
    CommonUtils as Common,
    RequireHelper,

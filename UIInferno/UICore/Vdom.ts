@@ -10,7 +10,6 @@ import * as VdomMarkup from './_vdom/Synchronizer/resources/VdomMarkup';
 import * as Functional from './_vdom/Utils/Functional';
 import * as Monad from './_vdom/Utils/Monad';
 
-import * as _Options from './_vdom/Synchronizer/resources/Options';
 import * as _MountMethodsCaller from './_vdom/Synchronizer/resources/MountMethodsCaller';
 
 /**
@@ -26,7 +25,6 @@ export { default as Environment } from './_vdom/Synchronizer/resources/Environme
 export { Hooks };
 export { default as SyntheticEvent } from './_vdom/Synchronizer/resources/SyntheticEvent';
 export { VdomMarkup };
-export { _Options };
 export { _MountMethodsCaller };
 
 export { Functional, Monad };

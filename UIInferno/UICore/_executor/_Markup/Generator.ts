@@ -5,11 +5,11 @@ import { coreDebug as timing } from 'Env/Env';
 import { Logger } from 'UICommon/Utils';
 import * as Common from '../_Utils/Common';
 import * as RequireHelper from '../_Utils/RequireHelper';
-import * as OptionsResolver from '../_Utils/OptionsResolver';
 import * as Scope from '../_Expressions/Scope';
 import { EventUtils } from 'UICommon/Events';
 import * as ConfigResolver from '../_Utils/ConfigResolver'
 import {
+   OptionsResolver,
    GeneratorEmptyObject,
    GeneratorObject,
    GeneratorTemplateOrigin,
@@ -24,7 +24,7 @@ import {
    TObject,
    IControlUserData,
    IControlConfig
-} from './IGeneratorType';
+} from 'UICommon/Executor';
 import * as Helper from './Helper';
 
 const defRegExp = /(\[def-[\w\d]+\])/g;

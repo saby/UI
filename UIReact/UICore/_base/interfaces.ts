@@ -1,4 +1,4 @@
-import { _IGeneratorType } from 'UI/Executor';
+import { _IGeneratorType } from 'UICommon/Executor';
 
 export type TemplateFunction = (
    data: object,

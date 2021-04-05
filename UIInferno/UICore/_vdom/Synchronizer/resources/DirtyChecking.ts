@@ -34,7 +34,7 @@ import {
    getNodeName
 } from 'UICore/DevtoolsHook';
 import { IControlNode, IDOMEnvironment, IMemoNode, IMemoForNode, TControlId } from '../interfaces';
-import { getChangedOptions, collectObjectVersions } from './Options';
+import { getChangedOptions, collectObjectVersions } from 'UICommon/Vdom';
 import { createNode } from './ControlNode';
 import { getStateReceiver } from 'Application/Env';
 import { isInit } from 'Application/Initializer';

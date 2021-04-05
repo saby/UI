@@ -4,7 +4,7 @@
  * @author Тэн В.А.
  */
 
-import { checkAttr } from './AttrHelper';
+import { AttrHelper } from 'UICommon/Executor';
 
 /**
  * Создание объекта, для декорировния рутового узла
@@ -43,7 +43,7 @@ export function createRootDecoratorObject(dataTemplateid, hasMarkup, componentNa
    if (typeof window !== 'undefined') {
       // We should be able to get component's config id before VDom mounting
       // The config attribute will be removed later
-      var configKey = checkAttr(obj) ? 'attr:__config' : '__config';
+      var configKey = AttrHelper.checkAttr(obj) ? 'attr:__config' : '__config';
       if (obj[configKey]) {
          // DOM element can have multiple VDOM components attached to it
          obj[configKey] += ',' + obj.config;

@@ -5,6 +5,8 @@
  * @author Тэн В.А.
  */
 
+import {IControlNode} from 'UICommon/interfaces';
+
 // Служебные опции контрола
 export interface IGeneratorConstructor {
    logicParent: IControl;
@@ -260,8 +262,6 @@ export interface IControlConfig {
 
 // Типы сопоставления для случаем когда однозначно описать тип не можем
 export type TProps = Record<string, any>;
-
-import { IControlNode } from 'UICore/_vdom/Synchronizer/interfaces';
 //import { VNode } from 'Inferno/third-party/index';
 
 export interface ITemplateNode {

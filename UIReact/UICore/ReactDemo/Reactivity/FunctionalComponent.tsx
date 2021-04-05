@@ -1,5 +1,5 @@
 import {ReactElement} from 'react';
-import {useMakeObservable} from 'UI/ReactReactivity';
+import {useMakeObservable} from 'UICore/Reactivity';
 import {Record} from 'Types/entity';
 
 const myRec = Record.fromObject({

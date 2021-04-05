@@ -2,8 +2,8 @@ import { Component, createElement } from 'react';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { EMPTY_THEME, getThemeController } from 'UICommon/theme/controller';
-import { getResourceUrl, Logger} from 'UI/Utils';
-import { _Options } from 'UI/Vdom';
+import { getResourceUrl, Logger} from 'UICommon/Utils';
+import { Options } from 'UICommon/Vdom';
 import { makeWasabyObservable, releaseProperties } from 'UICore/WasabyReactivity';
 
 import template = require('wml!UICore/_base/Control');
@@ -15,7 +15,7 @@ import {
     TWasabyContext
 } from 'UICore/Contexts';
 
-import { OptionsResolver } from 'UI/Executor';
+import { OptionsResolver } from 'UICommon/Executor';
 
 import { WasabyEvents, callNotify } from 'UICore/Events';
 import { IWasabyEventSystem } from 'UICommon/Events';
@@ -50,7 +50,7 @@ export default class Control<TOptions extends IControlOptions = {},
     /**
      * Версии опций для версионируемых объектов.
      */
-    _optionsVersions: _Options.IVersions;
+    _optionsVersions: Options.IVersions;
 
     // FIXME: не понимаю зачем объявлять _theme и _styles дважды: здесь и ниже.
     /** @deprecated */
@@ -334,7 +334,7 @@ export default class Control<TOptions extends IControlOptions = {},
 
     shouldComponentUpdate(newProps: TOptions, newState: IControlState): boolean {
         const newOptions = createWasabyOptions(newProps, this.context);
-        const changedOptions = !!_Options.getChangedOptions(
+        const changedOptions = !!Options.getChangedOptions(
             newProps,
             this._options,
             false,
@@ -348,7 +348,7 @@ export default class Control<TOptions extends IControlOptions = {},
     componentDidUpdate(prevProps: TOptions): void {
         const oldOptions = this._options;
         this._options = createWasabyOptions(this.props, this.context);
-        this._optionsVersions = _Options.collectObjectVersions(this._options);
+        this._optionsVersions = Options.collectObjectVersions(this._options);
         this._afterRender(oldOptions);
         setTimeout(() => {
             this._afterUpdate(oldOptions);

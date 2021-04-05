@@ -19,7 +19,7 @@ import { constants } from 'Env/Env';
 
 import { Text, Vdom } from './Markup';
 import * as Scope from './_Expressions/Scope';
-import * as Attr from './_Expressions/Attr';
+import { Attr } from 'UICommon/Executor';
 import { Common, ConfigResolver } from './Utils';
 
 var decorators;

@@ -1,8 +1,8 @@
 /// <amd-module name="UICore/_executor/_Markup/ResolveControlName" />
 /* tslint:disable */
 
-import { TAttributes } from './IGeneratorType';
-import { INodeAttribute } from './IGeneratorType';
+import { TAttributes } from 'UICommon/Executor';
+import { INodeAttribute } from 'UICommon/Executor';
 
 interface IControlData {
    name?: unknown;

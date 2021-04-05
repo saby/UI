@@ -1,11 +1,13 @@
 import { Control, TemplateFunction } from 'UICore/Base';
 import {
-    CommonUtils as Common,
-    _IGeneratorType as IGT
+    CommonUtils as Common
 } from 'UICore/Executor';
 import * as React from 'react';
 import { IWasabyContextValue } from 'UICore/Contexts';
-import * as Attr from "UI/_executor/_Expressions/Attr";
+import {
+    Attr,
+    IGeneratorNameObject
+} from 'UICommon/Executor';
 
 /*
 FIXME: как я понимаю, в этом объекте могут быть HTMl-атрибуты+какие-то наши поля.
@@ -53,7 +55,7 @@ export interface IWasabyEvent {
 export type TemplateOrigin =
     | Common.IDefaultExport<typeof Control>
     | TemplateFunction
-    | IGT.IGeneratorNameObject
+    | IGeneratorNameObject
     | typeof Control
     | string
     | Function

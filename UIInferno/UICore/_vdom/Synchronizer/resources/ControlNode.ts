@@ -1,9 +1,10 @@
 import { composeWithResultApply } from 'UICore/_vdom/Utils/Functional';
 import { IControlNode, IDOMEnvironment, IAttrs } from 'UICore/_vdom/Synchronizer/interfaces';
-import { textNode, OptionsResolver } from 'UICore/Executor';
+import { textNode } from 'UICore/Executor';
+import { OptionsResolver } from 'UICommon/Executor';
 import { Logger, needToBeCompatible } from 'UICommon/Utils';
 import { createCompoundControlNode, getCompatibleUtils } from 'UICore/_vdom/Synchronizer/resources/DirtyCheckingCompatible';
-import { collectObjectVersions } from 'UICore/_vdom/Synchronizer/resources/Options';
+import { collectObjectVersions } from 'UICommon/Vdom';
 /**
  * @author Кондаков Р.Н.
  */

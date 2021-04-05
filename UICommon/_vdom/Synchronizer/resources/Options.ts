@@ -1,8 +1,8 @@
-/// <amd-module name="UICore/_vdom/Synchronizer/resources/Options" />
+/// <amd-module name="UICommon/_vdom/Synchronizer/resources/Options" />
 
 import { Set } from 'Types/shim';
 import { IVersionable } from 'Types/entity';
-import { IControlOptions } from 'UICore/Base';
+import { IControlOptions } from 'UICommon/interfaces';
 
 export interface IVersionableArray {
    getArrayVersion?(): number;

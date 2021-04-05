@@ -1,6 +1,6 @@
 import { TemplateFunction } from 'UICore/Base';
-import { IControlNode } from './_vdom/Synchronizer/interfaces';
-import { IOptions } from './_vdom/Synchronizer/resources/Options';
+import { IControlNode } from 'UICommon/interfaces';
+import { IOptions } from 'UICommon/Vdom';
 import { TGeneratorNode, IGeneratorControlNode } from 'UICore/Executor';
 import { VNode } from 'Inferno/third-party/index';
 /**

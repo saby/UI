@@ -1,5 +1,5 @@
 import {detection} from 'Env/Env';
-import {Logger} from 'UI/Utils';
+import {Logger} from 'UICommon/Utils';
 
 import {
     WasabyEvents,

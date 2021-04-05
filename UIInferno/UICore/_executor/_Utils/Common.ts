@@ -8,14 +8,13 @@
 // @ts-ignore
 import { constants, cookie } from 'Env/Env';
 
-import * as Attr from '../_Expressions/Attr';
-
 import * as RequireHelper from './RequireHelper';
 
 import { ReactiveObserver } from 'UICore/Reactivity';
 import {
    IControl, IGeneratorNameObject,
-} from '../_Markup/IGeneratorType';
+   Attr
+} from 'UICommon/Executor';
 import { TemplateFunction } from 'UICore/Base';
 
 var

@@ -1,5 +1,5 @@
-import { Control, IControlOptions } from 'UICore/Base';
-import { IOptions } from 'UICore/_vdom/Synchronizer/resources/Options';
+import { Control } from 'UICore/Base';
+import { IOptions } from 'UICommon/Vdom';
 import { VNode } from 'Inferno/third-party/index';
 import { IGeneratorControlNode } from 'UICore/Executor';
 import { IWasabyEventSystem } from 'UICommon/Events';

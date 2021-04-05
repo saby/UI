@@ -1,10 +1,10 @@
 /// <amd-module name="UICore/_executor/_Markup/Utils" />
 /* tslint:disable */
 
-import * as Attr from '../_Expressions/Attr';
 import * as Decorate from '../_Expressions/Decorate';
 import { _FocusAttrs } from 'UICore/Focus';
 import {
+   Attr,
    GeneratorEmptyObject,
    GeneratorError,
    GeneratorStringArray,
@@ -13,15 +13,15 @@ import {
    IControl,
    IGeneratorDefCollection,
    TAttributes,
+   IAttributes,
+   INodeAttribute,
    TObject
-} from './IGeneratorType';
+} from 'UICommon/Executor';
 import * as Common from '../_Utils/Common';
 import voidElements from '../_Utils/VoidTags';
 import { invisibleNodeTagName } from '../Utils';
 // @ts-ignore
 import { NumberUtils } from 'UICommon/Utils';
-import { INodeAttribute } from './IGeneratorType';
-import { IAttributes } from '../_Expressions/Attr';
 import {Deps, IDefaultExport, IncludedTemplates} from '../_Utils/Common';
 import { TemplateFunction } from 'UICore/Base';
 

@@ -12,8 +12,11 @@ export {
     Hooks,
     SyntheticEvent,
     VdomMarkup,
-    _Options,
     _MountMethodsCaller,
     Functional,
     Monad
 } from 'UICore/Vdom';
+
+export { 
+    Options as _Options
+} from 'UICommon/Vdom';

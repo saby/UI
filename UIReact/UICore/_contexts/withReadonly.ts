@@ -1,7 +1,7 @@
 import { createElement, useContext, ReactElement } from 'react';
 import { Optional } from './Optional';
 import { getWasabyContext } from './WasabyContext';
-import { Logger } from 'UI/Utils';
+import { Logger } from 'UICommon/Utils';
 
 interface IReadOnlyComponent {
    readOnly: boolean;

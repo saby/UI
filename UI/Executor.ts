@@ -5,7 +5,6 @@ import RawMarkupNode from './_executor/_Expressions/RawMarkupNode';
  */
 
 export {
-   ITemplateNode,
    IGeneratorVNode,
    IGeneratorControlNode,
    TGeneratorNode,
@@ -20,11 +19,15 @@ export {
    createGenerator, // fabric method
    _ForExecutorCompatible,  // только для ExecutorCompatible
    _IGenerator, // только для ExecutorCompatible
+   _IBuilder // только для ExecutorCompatible
+} from 'UICore/Executor';
+
+export {
+   ITemplateNode,
    _IGeneratorType, // только для ExecutorCompatible
-   _IBuilder, // только для ExecutorCompatible
 
    OptionsResolver // ???
-} from 'UICore/Executor';
+} from 'UICommon/Executor';
 
 export {
    RawMarkupNode // ???
