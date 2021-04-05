@@ -1,10 +1,8 @@
 import {detection} from 'Env/Env';
-import {Logger} from 'UI/Utils';
 
 import WasabyEvents from './WasabyEvents';
 import { IWasabyEventSystem, IEventConfig } from './IEvents';
 import SyntheticEvent from './SyntheticEvent';
-import {default as isInvisibleNode} from './InvisibleNodeChecker';
 import {FastTouchEndController} from './Touch/FastTouchEndController';
 import {ITouchEvent} from './Touch/TouchEvents';
 import {SwipeController} from './Touch/SwipeController';
@@ -12,13 +10,12 @@ import {LongTapController} from './Touch/LongTapController';
 import {
     IWasabyHTMLElement,
     TModifyHTMLNode,
-    IControlNode,
-    TEventsObject
+    IControlNodeEvent
 } from '../_vdom/Synchronizer/interfaces';
 
 export default class WasabyEventsReact extends WasabyEvents implements IWasabyEventSystem {
     private lastTarget: IWasabyHTMLElement;
-    private wasWasabyNotifyList: IControlNode[] = [];
+    private wasWasabyNotifyList: IControlNodeEvent[] = [];
 
     //#region инициализация системы событий
     constructor(rootNode: TModifyHTMLNode, tabKeyHandler?: Function) {
@@ -71,8 +68,8 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
     //#endregion
 
     //#region _notify события
-    startEvent<TArguments>(controlNode: IControlNode, args: TArguments): unknown {
-        controlNode = this.createFakeControlNode(controlNode) as unknown as IControlNode;
+    startEvent<TArguments, TControlNode>(controlNode: TControlNode & IControlNodeEvent, args: TArguments): unknown {
+        const controlNodeModify = this.createFakeControlNode(controlNode);
         let allowEventBubbling = true;
         const eventName = args[0].toLowerCase();
         const handlerArgs = args[1] || [];
@@ -82,27 +79,16 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
         eventConfig._bubbling = eventDescription && eventDescription.bubbling !== undefined ?
             eventDescription.bubbling : false;
         eventConfig.type = eventName;
-        eventConfig.target = controlNode.element;
-        if (!eventConfig.target) {
-            if (
-                controlNode.fullMarkup.moduleName !== 'UI/_executor/_Expressions/RawMarkupNode' &&
-                !isInvisibleNode(controlNode, true)
-            ) {
-                Logger.error('Событие ' + eventName + ' было вызвано до монтирования контрола в DOM', controlNode);
-            }
-            return;
-        }
+        eventConfig.target = controlNodeModify.element;
 
         eventObject = new SyntheticEvent(null, eventConfig);
         this.needBlockNotify = this.lastNotifyEvent === eventName;
-        //@ts-ignore пока этот код используется в актуальной системе событий wasaby типы менять нельзя
-        if (this.wasWasabyNotifyList.indexOf(controlNode.controlNode) > -1) {
+        if (this.wasWasabyNotifyList.indexOf(controlNodeModify.controlNodeEvent) > -1) {
             allowEventBubbling = false;
         }
         if (allowEventBubbling) {
-            //@ts-ignore пока этот код используется в актуальной системе событий wasaby типы менять нельзя
-            this.wasWasabyNotifyList.push(controlNode.controlNode);
-            this.vdomEventBubbling(eventObject, controlNode, undefined, handlerArgs, false);
+            this.wasWasabyNotifyList.push(controlNodeModify.controlNodeEvent);
+            this.vdomEventBubbling(eventObject, controlNodeModify, undefined, handlerArgs, false);
         }
         this.clearWasNotifyList();
         this.clearWasWasabyNotifyList();
@@ -112,15 +98,12 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
     private setLastTarget(target: IWasabyHTMLElement): void {
         this.lastTarget = target;
     }
-    private createFakeControlNode(controlNode: IControlNode): {
-        element: IWasabyHTMLElement,
-        events: TEventsObject,
-        controlNode: IControlNode
-    } {
+    private createFakeControlNode(controlNodeEvent: IControlNodeEvent): IControlNodeEvent {
         return {
             element: this.lastTarget,
             events: this.lastTarget.eventProperties,
-            controlNode
+            controlNodeEvent,
+            control: undefined
         };
     }
 

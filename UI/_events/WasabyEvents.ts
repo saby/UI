@@ -18,9 +18,10 @@ import {ITouchEvent} from './Touch/TouchEvents';
 
 import {
     IWasabyHTMLElement,
-    IControlNode,
     IDOMEnvironment,
-    TModifyHTMLNode
+    TModifyHTMLNode,
+    IControlNode,
+    IControlNodeEvent
 } from 'UI/_vdom/Synchronizer/interfaces';
 
 /**
@@ -127,9 +128,9 @@ abstract class WasabyEvents implements IWasabyEventSystem {
      * @param args - Аргументы, переданные в _notify
      * @param native {any} - TODO: describe function parameter
      */
-    protected vdomEventBubbling(
+    protected vdomEventBubbling<T>(
         eventObject: ISyntheticEvent,
-        controlNode: IControlNode,
+        controlNode: T & (IControlNode | IControlNodeEvent),
         eventPropertiesStartArray: unknown[],
         args: unknown[],
         native: boolean
@@ -379,7 +380,7 @@ abstract class WasabyEvents implements IWasabyEventSystem {
      * @param controlNode
      * @param args
      */
-    abstract startEvent<TArguments>(controlNode: IControlNode, args: TArguments): unknown
+    abstract startEvent<TArguments, TControlNode>(controlNode: TControlNode, args: TArguments): unknown
 
     protected clearWasNotifyList(): void {
         this.wasNotifyList = [];
@@ -569,7 +570,7 @@ abstract class WasabyEvents implements IWasabyEventSystem {
         return controlNodesArgs && controlNodesArgs.args && controlNodesArgs.args.length === evArgs.length;
     }
 
-    private checkControlNodeEvents(controlNode: IControlNode, eventName: string, index: number): unknown {
+    private checkControlNodeEvents(controlNode: IControlNodeEvent, eventName: string, index: number): unknown {
         return controlNode && controlNode.events && controlNode.events[eventName] && controlNode.events[eventName][index];
     }
 

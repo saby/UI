@@ -48,7 +48,7 @@ export class GeneratorReact {
       type: 'wsControl' | 'template',
       origin: TemplateOrigin,
       attributes: Attr.IAttributes,
-      events: { [key: string]: IWasabyEvent[]; },
+      events: Record<string, IWasabyEvent[]>,
       options: IControlOptions,
       config: IControlConfig
    ): React.ReactElement | React.ReactElement[] | string {
@@ -80,10 +80,15 @@ export class GeneratorReact {
        */
       const name = attributes.name as string ?? options.name;
 
+      /* FIXME: для wasabyOverReact, событий нет в options,
+      *   получить их можно только из data (объявляется в шаблонной функции)
+      *   такое поведение очень похоже на ошибку, т.к. все события должны быть в опциях
+      *   надо разобраться почему события в опции не попадают и убрать мерж опций из data
+      */
       const newOptions = {
          ...resolvedOptionsExtended,
          ...{events},
-         ...{eventSystem: config.data?._options?.eventSystem},
+         ...{eventSystem: config.data?._options.eventSystem},
          ref: createChildrenRef(config.viewController, name)
       };
 
@@ -255,18 +260,21 @@ export class GeneratorReact {
             WasabyAttributes & {
                name?: string;
             };
-         events: {
-            [key: string]: IWasabyEvent[]
-         }
+         events: Record<string, IWasabyEvent[]>
       },
       children: React.ReactNode[],
       attrToDecorate: AttrToDecorate,
       __: unknown,
       control?: Control
    ): React.DetailedReactHTMLElement<P, T> {
+      /* если события объявляется на контроле, и корневом элементе шаблона, то мы должны смержить события,
+       * без этого события объявленные на контроле будут потеряны
+       */
+      const extractedEvents = control ?
+          {...control._options['events'], ...attrs.events} :
+          {...attrs.events};
       const eventsObject = {
-         //@ts-ignore _options объявлен пустым объектом по-умолчанию
-         events: {...attrs.events, ...control._options.events},
+         events: extractedEvents,
          //@ts-ignore _options объявлен пустым объектом по-умолчанию
          eventSystem: control._options.eventSystem
       };
@@ -287,9 +295,6 @@ export class GeneratorReact {
       );
 
       const convertedAttributes = convertAttributes(mergedAttrs);
-      const extractedEvents = control ?
-         {...control._options['events'], ...attrs.events} :
-         {...attrs.events};
 
       const newProps = {
          ...convertedAttributes,
@@ -309,10 +314,8 @@ export class GeneratorReact {
 function createEventRef<T extends HTMLElement>(
    tagName: string,
    eventsObject: {
-      events?: {
-         [key: string]: IWasabyEvent[]
-      };
-      eventSystem?: IWasabyEventSystem;
+      events: Record<string, IWasabyEvent[]>;
+      eventSystem: IWasabyEventSystem;
    },
    prevRef?: React.RefCallback<T>
 ): React.RefCallback<T> {

@@ -35,10 +35,16 @@ interface ICoreControlOptions extends IControlOptions {
     [key: string]: unknown;
 }
 
-export interface IControlNode extends IRebuildNode {
+export interface IControlNodeEvent {
+    element: IWasabyHTMLElement;
+    events: TEventsObject;
+    controlNodeEvent: IControlNodeEvent;
+    control: Control | undefined;
+}
+
+export interface IControlNode extends IRebuildNode, IControlNodeEvent {
     attributes: any;
     events: TEventsObject;
-    control: Control;
     contextVersions: IObjectsVersions<TContext>;
     context: TContext;
     oldContext: TContext;

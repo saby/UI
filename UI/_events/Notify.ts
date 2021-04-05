@@ -3,7 +3,6 @@
  */
 
 import { IWasabyEventSystem } from './IEvents';
-import { Control } from 'UI/ReactComponent';
 
 /**
  * запускает нотифай события (для wasabyOverReact)
@@ -14,14 +13,13 @@ import { Control } from 'UI/ReactComponent';
  * @param options
  * @returns {unknown}
  */
-export function callNotify(
+export function callNotify<TControl>(
     eventSystem: IWasabyEventSystem,
-    inst: Control,
+    inst: TControl,
     eventName: string,
     args?: unknown[],
     options?: { bubbling?: boolean }
 ): unknown {
     Array.prototype.splice.call(arguments, 0, 2);
-    // пока этот код используется в актуальной системе событий wasaby типы менять нельзя
-    return eventSystem.startEvent(inst as any, arguments);
+    return eventSystem.startEvent(inst, arguments);
 }
