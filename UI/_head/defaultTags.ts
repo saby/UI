@@ -54,7 +54,13 @@ export function createDefaultTags(cfg: IHeadOptions): void {
       API.createTag('meta', attrs);
    });
 }
-
+// tslint:disable-next-line: no-any
+const prepareMetaScriptsAndLinks = (tag: string, attrs?: object): any => {
+   return {
+      tag,
+      attrs
+   };
+};
 /**
  * Применим опции meta, scripts и links к странице
  * @param cfg
@@ -62,9 +68,9 @@ export function createDefaultTags(cfg: IHeadOptions): void {
 export function createMetaScriptsAndLinks(cfg: IHeadOptions): void {
    const API = AppHead.getInstance();
    []
-      .concat((cfg.meta || []).map(prepareMetaScriptsAndLinks.bind(null, 'meta')))
-      .concat((cfg.scripts || []).map(prepareMetaScriptsAndLinks.bind(null, 'script')))
-      .concat((cfg.links || []).map(prepareMetaScriptsAndLinks.bind(null, 'link')))
+      .concat((cfg.meta || []).map(prepareMetaScriptsAndLinks('meta')))
+      .concat((cfg.scripts || []).map(prepareMetaScriptsAndLinks('script')))
+      .concat((cfg.links || []).map(prepareMetaScriptsAndLinks('link')))
       .forEach((item: {tag: string, attrs: object}) => {
          ['href', 'src'].forEach((field) => {
             if (item.attrs[field]) {
@@ -99,9 +105,3 @@ export function applyHeadJson(json: JML[]): void {
    });
 }
 
-function prepareMetaScriptsAndLinks(tag: string, attrs: object): object {
-   return {
-      tag,
-      attrs
-   };
-}
