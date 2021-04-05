@@ -84,11 +84,12 @@ export class GeneratorReact {
       *   получить их можно только из data (объявляется в шаблонной функции)
       *   такое поведение очень похоже на ошибку, т.к. все события должны быть в опциях
       *   надо разобраться почему события в опции не попадают и убрать мерж опций из data
+      *   https://online.sbis.ru/opendoc.html?guid=c0aa021f-bd67-4fe9-8cfa-feee417fb3a3
       */
       const newOptions = {
          ...resolvedOptionsExtended,
          ...{events},
-         ...{eventSystem: config.data?._options.eventSystem},
+         ...{eventSystem: config.data?._options?.eventSystem},
          ref: createChildrenRef(config.viewController, name)
       };
 
