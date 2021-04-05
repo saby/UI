@@ -4,8 +4,8 @@ define([
    'UI/Base',
    'UI/Utils',
    'Env/Env',
-   'UI/_focus/ElementFinder',
-   'UI/_focus/_ResetScrolling',
+   'UICore/_focus/ElementFinder',
+   'UICore/_focus/_ResetScrolling',
    'UITest/Focus'
 ], function(
    Focus,

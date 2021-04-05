@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 // import 'mocha';
-import LinkPS from 'UI/theme/_controller/css/LinkPS';
+import LinkPS from 'UICommon/theme/_controller/css/LinkPS';
 const href = '#Some/href';
 const name = 'Some/Control';
 const theme = 'Some-theme';
@@ -8,7 +8,7 @@ const theme = 'Some-theme';
 
 let link: LinkPS;
 
-describe('UI/theme/_controller/css/LinkPS', () => {
+describe('UICommon/theme/_controller/css/LinkPS', () => {
 
    const setHooks = () => {
       beforeEach(() => { link = new LinkPS(href, name, theme); });
