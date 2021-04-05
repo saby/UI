@@ -55,12 +55,12 @@ export interface IClickEvent {
     altKey: boolean;
     shiftKey: boolean;
     metaKey: boolean;
-    button: number,
-    buttons: number,
+    button: number;
+    buttons: number;
     relatedTarget: EventTarget;
     target: EventTarget;
     currentTarget: EventTarget;
-    eventPhase: number,
+    eventPhase: number;
     stopPropagation: VoidFunction;
     preventDefault: VoidFunction;
 }

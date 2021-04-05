@@ -88,7 +88,7 @@ export class GeneratorReact {
       const newOptions = {
          ...resolvedOptionsExtended,
          ...{events},
-         ...{eventSystem: config.data?._options?.eventSystem},
+         ...{eventSystem: config.data?._options.eventSystem},
          ref: createChildrenRef(config.viewController, name)
       };
 
@@ -315,7 +315,7 @@ function createEventRef<T extends HTMLElement>(
    tagName: string,
    eventsObject: {
       events: Record<string, IWasabyEvent[]>;
-      eventSystem?: IWasabyEventSystem;
+      eventSystem: IWasabyEventSystem;
    },
    prevRef?: React.RefCallback<T>
 ): React.RefCallback<T> {
