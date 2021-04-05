@@ -15,9 +15,9 @@ import { Control } from 'UI/ReactComponent';
  * @param options
  * @returns {unknown}
  */
-export function callNotify<TControl extends Component = Control>(
+export function callNotify<T extends Component = Control>(
     eventSystem: IWasabyEventSystem,
-    inst: TControl,
+    inst: T,
     eventName: string,
     args?: unknown[],
     options?: { bubbling?: boolean }
