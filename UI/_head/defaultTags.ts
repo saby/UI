@@ -54,8 +54,7 @@ export function createDefaultTags(cfg: IHeadOptions): void {
       API.createTag('meta', attrs);
    });
 }
-// tslint:disable-next-line: no-any
-const prepareMetaScriptsAndLinks = (tag: string, attrs?: object): any => {
+const prepareMetaScriptsAndLinks = (tag: string, attrs?: object): object => {
    return {
       tag,
       attrs
@@ -68,9 +67,9 @@ const prepareMetaScriptsAndLinks = (tag: string, attrs?: object): any => {
 export function createMetaScriptsAndLinks(cfg: IHeadOptions): void {
    const API = AppHead.getInstance();
    []
-      .concat((cfg.meta || []).map(prepareMetaScriptsAndLinks('meta')))
-      .concat((cfg.scripts || []).map(prepareMetaScriptsAndLinks('script')))
-      .concat((cfg.links || []).map(prepareMetaScriptsAndLinks('link')))
+      .concat((cfg.meta || []).map((attr) => prepareMetaScriptsAndLinks('meta', attr)))
+      .concat((cfg.scripts || []).map((attr) => prepareMetaScriptsAndLinks('script', attr)))
+      .concat((cfg.links || []).map((attr) => prepareMetaScriptsAndLinks('link', attr)))
       .forEach((item: {tag: string, attrs: object}) => {
          ['href', 'src'].forEach((field) => {
             if (item.attrs[field]) {
