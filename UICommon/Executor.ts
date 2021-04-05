@@ -1,4 +1,5 @@
 export * as Attr from './_executor/_Expressions/Attr';
+export { processMergeAttributes } from './_executor/_Expressions/Attr';
 export { IAttributes } from './_executor/_Expressions/Attr';
 export * as AttrHelper from './_executor/_Expressions/AttrHelper';
 

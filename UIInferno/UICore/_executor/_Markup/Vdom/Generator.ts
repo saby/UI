@@ -2,7 +2,6 @@
 import { ArrayUtils } from 'UICommon/Utils';
 import { Logger } from 'UICommon/Utils';
 import { _FocusAttrs } from 'UICore/Focus';
-import * as Attr from '../../_Expressions/Attr';
 import * as Vdom from '../../_Utils/Vdom';
 import * as Common from '../../_Utils/Common';
 import * as RequireHelper from '../../_Utils/RequireHelper';
@@ -11,6 +10,7 @@ import { onElementMount, onElementUnmount } from '../../_Utils/ChildrenManager';
 import { Generator } from '../Generator';
 import { IGenerator } from '../IGenerator';
 import {
+   Attr,
    GeneratorEmptyObject,
    GeneratorError,
    GeneratorFn,
@@ -35,7 +35,7 @@ import {
    TScope,
    IControlConfig,
    IGeneratorNameObject
-} from '../IGeneratorType';
+} from 'UICommon/Executor';
 import { TGeneratorNode } from './IVdomType';
 import { cutFocusAttributes } from '../Utils';
 import { VNode } from 'Inferno/third-party/index';

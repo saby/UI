@@ -3,7 +3,7 @@
 
 import { Subscriber } from 'UICommon/Events';
 import { ContextResolver } from 'UICommon/Contexts';
-import * as OptionsResolver from '../_Utils/OptionsResolver';
+import { OptionsResolver } from 'UICommon/Executor';
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
 import { isNewEnvironment, Logger } from 'UICommon/Utils';

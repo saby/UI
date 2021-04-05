@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_executor/_Utils/OptionsResolver" />
+/// <amd-module name="UICommon/_executor/_Utils/OptionsResolver" />
 /* tslint:disable */
 
 /**
@@ -9,7 +9,7 @@
 import { constants } from 'Env/Env';
 // @ts-ignore
 import { Logger } from 'UICommon/Utils';
-import { TControlConstructor } from 'UICore/Base';
+import { TControlConstructor } from 'UICommon/interfaces';
 
 /**
  * Применить дефолтные опции конструктора
