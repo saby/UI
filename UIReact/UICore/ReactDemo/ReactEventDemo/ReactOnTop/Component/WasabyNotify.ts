@@ -19,7 +19,7 @@ export default class WasabyNotify extends Control {
     }
 
     _handler() {
-        this._valueCh += 1;
+        alert('_hanlder was notified')
         this._notify('valueChanged', [this._value]);
     }
 }

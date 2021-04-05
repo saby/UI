@@ -19,6 +19,7 @@ export default class WasabyNotifier extends Control {
     }
 
     _inputCompletedHandler() {
+        alert('_notify was called')
         this._notify('valueChanged', [this._value]);
     }
 }
