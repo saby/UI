@@ -331,9 +331,12 @@ function createChildrenRef<T extends Control | Element>(
 ): React.RefCallback<T> | void {
    // _children protected по апи, но здесь нужен доступ чтобы инициализировать.
    /* tslint:disable:no-string-literal */
+   const oldRef = (node) => {
+      prevRef?.(node);
+   };
    if (parent && name) {
       return (node) => {
-         prevRef?.(node);
+         oldRef(node);
          if (node) {
             parent['_children'][name] = node;
             onElementMount(parent['_children'][name]);
@@ -342,6 +345,7 @@ function createChildrenRef<T extends Control | Element>(
          }
       };
    }
+   return oldRef;
    /* tslint:enable:no-string-literal */
 }
 
