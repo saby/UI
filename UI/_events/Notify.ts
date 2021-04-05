@@ -1,8 +1,10 @@
 /**
  * @author Тэн В.А.
  */
+import {Component} from "react";
 
 import { IWasabyEventSystem } from './IEvents';
+import { Control } from 'UI/ReactComponent';
 
 /**
  * запускает нотифай события (для wasabyOverReact)
@@ -13,7 +15,7 @@ import { IWasabyEventSystem } from './IEvents';
  * @param options
  * @returns {unknown}
  */
-export function callNotify<TControl>(
+export function callNotify<TControl extends Component = Control>(
     eventSystem: IWasabyEventSystem,
     inst: TControl,
     eventName: string,
