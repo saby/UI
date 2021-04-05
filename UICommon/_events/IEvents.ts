@@ -1,5 +1,5 @@
 import { IControlNode, IDOMEnvironment, IWasabyHTMLElement } from 'UICommon/interfaces';
-import {Control} from 'UIReact/UICore/Base';
+import {Control} from 'UICore/Base';
 
 type VoidFunction = () => void;
 

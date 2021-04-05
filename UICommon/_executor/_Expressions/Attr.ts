@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_executor/_Expressions/Attr" />
+/// <amd-module name="UICommon/_executor/_Expressions/Attr" />
 /* tslint:disable */
 /**
  * @author Тэн В.А.

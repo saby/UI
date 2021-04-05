@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_events/EventUtils" />
+/// <amd-module name="UICommon/_events/EventUtils" />
 /* tslint:disable */
 
 /**

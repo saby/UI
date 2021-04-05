@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_contexts/ContextResolver" />
+/// <amd-module name="UICommon/_contexts/ContextResolver" />
 /* tslint:disable */
 
 /**
@@ -56,7 +56,7 @@ export function wrapContext(inst, currentCtx) {
       for (var i in ctx) {
          if (ctx.hasOwnProperty(i)) {
             if (ctx[i] && ctx[i]._moduleName && !whiteList[ctx[i]._moduleName]) {
-               const message = `[UICore/_contexts/ContextResolver:wrapContext()] Wrong context field "${ctx[i]._moduleName}". Only allowed context fields: ${Object.keys(whiteList)}`;
+               const message = `[UICommon/_contexts/ContextResolver:wrapContext()] Wrong context field "${ctx[i]._moduleName}". Only allowed context fields: ${Object.keys(whiteList)}`;
                Logger.error(message, inst);
             }
             currentCtx[i] = ctx[i];
@@ -82,7 +82,7 @@ export function resolveContext(controlClass, currentContext, control?) {
    var contextTypes = controlClass.contextTypes ? controlClass.contextTypes() : {};
    var resolvedContext = {};
    if (!contextTypes) {
-      const message = '[UICore/_contexts/ContextResolver:resolveContext()] Context types are not defined';
+      const message = '[UICommon/_contexts/ContextResolver:resolveContext()] Context types are not defined';
       Logger.error(message, control ? control : null);
    } else {
       for (var key in contextTypes) {

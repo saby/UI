@@ -1,7 +1,8 @@
 /// <amd-module name="UICore/_executor/_Markup/Helper" />
+import { Attr, processMergeAttributes } from 'UICommon/Executor';
 
 export { uniteScope } from '../_Expressions/Scope';
-export { Attr, processMergeAttributes } from 'UICommon/Executor';
+export { processMergeAttributes };
 
 export function plainMergeAttr(inner, object) {
    if (!inner) {

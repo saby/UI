@@ -17,7 +17,7 @@ import {
    isControlVNodeType,
    isTemplateVNodeType
 } from './VdomMarkup';
-import { OptionsResolver } from 'UICore/Executor';
+import { OptionsResolver } from 'UICommon/Executor';
 import { ContextResolver } from 'UICommon/Contexts';
 import { delay } from 'Types/function';
 // @ts-ignore

@@ -7,7 +7,7 @@ import template = require('wml!UICore/_base/Control');
 import cExtend = require('Core/core-extend');
 
 import { Synchronizer } from 'UICore/Vdom';
-import { _IGeneratorType, OptionsResolver } from 'UICore/Executor';
+import { _IGeneratorType, OptionsResolver } from 'UICommon/Executor';
 import { ContextResolver } from 'UICommon/Contexts';
 import { _FocusAttrs, _IControl, activate, Events, focus } from 'UICore/Focus';
 import { Logger, Purifier, needToBeCompatible } from 'UICommon/Utils';

@@ -1,5 +1,5 @@
 import { composeWithResultApply } from 'UICore/_vdom/Utils/Functional';
-import { IControlNode, IDOMEnvironment, IAttrs } from 'UICore/_vdom/Synchronizer/interfaces';
+import { IControlNode, IDOMEnvironment, IAttrs } from 'UICommon/interfaces';
 import { textNode } from 'UICore/Executor';
 import { OptionsResolver } from 'UICommon/Executor';
 import { Logger, needToBeCompatible } from 'UICommon/Utils';
