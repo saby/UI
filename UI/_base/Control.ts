@@ -170,6 +170,7 @@ export const _private = {
 export interface IControlOptions {
    readOnly?: boolean;
    theme?: string;
+   _$createdFromCode?: boolean;
 }
 
 export interface ITemplateAttrs {
@@ -373,6 +374,13 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
          }
       }
       const generatorConfig = getGeneratorConfig();
+      // временное решение до тех пор пока опция темы не перестанет быть наследуемой
+      // добавлено тут https://online.sbis.ru/opendoc.html?guid=5a70cc3b-0d05-4071-8ba3-3dd6cd1ba0bd
+      if (this._options._$createdFromCode) {
+         if (generatorConfig?.prepareAttrsForRoot) {
+            generatorConfig.prepareAttrsForRoot(attributes, this._options);
+         }
+      }
       res = this._template(this, attributes, rootKey, isVdom, undefined, undefined, generatorConfig);
       if (res) {
          if (isVdom) {
