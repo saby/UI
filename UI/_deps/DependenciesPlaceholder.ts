@@ -54,9 +54,7 @@ function resolveLink(path: string, type: string = ''): string {
 export function aggregateJS(deps: ICollectedDeps): void {
    const  API = AppJSLinks.getInstance();
 
-   const hasRtpack: boolean = !!(deps.scripts && deps.scripts.filter((script) => script.includes('/rtpack/')).length > 0);
-
-   deps.js.filter((js) => !hasRtpack || !js.includes('/lang/'))
+   filterJsDeps(deps.js, deps.scripts)
       .map((js) => resolveLink(js))
       .concat(deps.scripts)
       .concat(deps.tmpl.map((rawLink) => resolveLink(rawLink, 'tmpl')))
@@ -80,6 +78,25 @@ export function aggregateJS(deps: ICollectedDeps): void {
       { type: 'text/javascript' },
       `window['rtpackModuleNames']='${deps.rtpackModuleNames}';`
    );
+}
+
+/**
+ * Удаление из списка с JS зависисмостями словари локализации, 
+ * которые уже будут присутствовать в пакете rtpack, сформированном Сервисом Представления
+ * @param jsDeps список зависимостей страницы, которые вычислил UI/Deps:DepsCollector
+ * @param scripts список скриптов, которые пришли из СП как зависимости страницы
+ * @TODO Этот код будет вынесен в middleware код приложения 
+ * по задаче https://online.sbis.ru/opendoc.html?guid=0331640b-df1a-4903-9cb1-3bad0077b012
+ */
+function filterJsDeps(jsDeps: string[], scripts: string[]): string[] {
+   if (!scripts) {
+      return jsDeps;
+   }
+   const rtpackScripts: string[] = scripts.filter((item) => item.includes('/rtpack/'));
+   if (!rtpackScripts.length) {
+      return jsDeps;
+   }
+   return jsDeps.filter((js) => !js.includes('/lang/'));
 }
 
 export function aggregateCSS(theme: string, styles: string[] = [], themes: string[] = []): Promise<string> {
