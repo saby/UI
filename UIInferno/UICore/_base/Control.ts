@@ -245,7 +245,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
 
    private _isRendered: boolean;
 
-   constructor(cfg: TControlConfig) {
+   constructor(cfg: TControlConfig, context?: any) {
       if (!cfg) {
          cfg = {};
       }
