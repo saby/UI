@@ -1,5 +1,5 @@
 define([
-      'UIInferno/UICore/Events',
+      'UICore/Events',
       'UI/Base',
       'UI/Utils'],
    function(Events, UIBase, UIUtils) {
