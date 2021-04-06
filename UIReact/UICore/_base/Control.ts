@@ -68,8 +68,8 @@ export default class Control<TOptions extends IControlOptions = {},
      */
     static eventSystem: IWasabyEventSystem;
 
-    protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): void {
-        callNotify(Control.eventSystem, this as Control, eventName, args, options);
+    protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
+        return callNotify(Control.eventSystem, this, eventName, args, options);
     }
 
     constructor(props: TOptions, context?: IWasabyContextValue) {

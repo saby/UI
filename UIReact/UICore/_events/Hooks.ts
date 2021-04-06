@@ -6,7 +6,7 @@ import {  IWasabyEvent } from 'UIReact/UICore/_executor/_Markup/Vdom/interfaces'
 import { Set } from 'Types/shim';
 
 type TElement =  HTMLElement & {
-    eventProperties?: {[key: string]: IWasabyEvent[]};
+    eventProperties?: Record<string, IWasabyEvent[]>;
     eventPropertiesCnt?: number;
 }
 type TWasabyInputElement = HTMLInputElement & IWasabyHTMLElement;
@@ -32,7 +32,7 @@ function clearInputValue(element: HTMLElement & {value?: unknown}): void {
     }
 }
 
-function haveEvents(events: {[key: string]: IWasabyEvent[]}): boolean {
+function haveEvents(events: Record<string, IWasabyEvent[]>): boolean {
     return events && Object.keys(events).length > 0;
 }
 
@@ -75,7 +75,7 @@ function prepareEvents(events) {
 }
 
 function addEventsToElement(
-    events: {[key: string]: IWasabyEvent[]},
+    events: Record<string, IWasabyEvent[]>,
     eventSystem: IWasabyEventSystem,
     element: TElement
 ): void {
@@ -83,7 +83,7 @@ function addEventsToElement(
         element.eventProperties = {};
         element.eventPropertiesCnt = 0;
     }
-    const eventProperties: {[key: string]: IWasabyEvent[]} = element.eventProperties;
+    const eventProperties: Record<string, IWasabyEvent[]> = element.eventProperties;
 
     const eventFullNamesNames: string[] = Object.keys(events);
     for (let i = 0; i < eventFullNamesNames.length; i++) {
@@ -110,9 +110,7 @@ function addEventsToElement(
 export function setEventHook(
     tagName: string,
     props: {
-        events?: {
-            [key: string]: IWasabyEvent[]
-        };
+        events: Record<string, IWasabyEvent[]>;
         eventSystem?: IWasabyEventSystem;
     },
     element: TElement

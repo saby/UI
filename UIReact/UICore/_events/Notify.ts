@@ -1,6 +1,7 @@
 /**
  * @author Тэн В.А.
  */
+import {Component} from "react";
 
 import { IWasabyEventSystem } from 'UICommon/Events';
 import { Control } from 'UICore/Base';
@@ -14,14 +15,13 @@ import { Control } from 'UICore/Base';
  * @param options
  * @returns {unknown}
  */
-export function callNotify(
+export function callNotify<T extends Component = Control>(
     eventSystem: IWasabyEventSystem,
-    inst: Control,
+    inst: T,
     eventName: string,
     args?: unknown[],
     options?: { bubbling?: boolean }
 ): unknown {
     Array.prototype.splice.call(arguments, 0, 2);
-    // пока этот код используется в актуальной системе событий wasaby типы менять нельзя
-    return eventSystem.startEvent(inst as any, arguments);
+    return eventSystem.startEvent(inst, arguments);
 }

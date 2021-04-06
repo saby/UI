@@ -112,7 +112,7 @@ export default class WasabyEventsInferno extends WasabyEvents implements IWasaby
     //#endregion
 
     //#region _notify события
-    startEvent<TArguments>(controlNode: IControlNode, args: TArguments): unknown {
+    startEvent<TArguments, TControlNode>(controlNode: TControlNode & IControlNode, args: TArguments): unknown {
         const eventName = args[0].toLowerCase();
         const handlerArgs = args[1] || [];
         const eventDescription = args[2];

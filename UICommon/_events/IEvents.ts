@@ -1,5 +1,5 @@
-import { IControlNode, IDOMEnvironment, IWasabyHTMLElement } from 'UICommon/interfaces';
-import {Control} from 'UICore/Base';
+import { IDOMEnvironment, IWasabyHTMLElement } from 'UICommon/interfaces';
+import { Control } from 'UICore/Base';
 
 type VoidFunction = () => void;
 
@@ -23,16 +23,6 @@ export interface IEventConfig {
     target?: EventTarget;
     passive?: boolean;
     capture?: boolean;
-}
-
-export interface IClickState {
-    detected: boolean;
-    stage: string;
-    timer: unknown;
-    timeout: number;
-    target: EventTarget;
-    touchCount: number;
-    timeStart: unknown;
 }
 
 export interface IFixedEvent extends Event {
@@ -65,12 +55,12 @@ export interface IClickEvent {
     altKey: boolean;
     shiftKey: boolean;
     metaKey: boolean;
-    button: number,
-    buttons: number,
+    button: number;
+    buttons: number;
     relatedTarget: EventTarget;
     target: EventTarget;
     currentTarget: EventTarget;
-    eventPhase: number,
+    eventPhase: number;
     stopPropagation: VoidFunction;
     preventDefault: VoidFunction;
 }
@@ -90,7 +80,7 @@ export interface IWasabyEventSystem {
     handleSpecialEvent: (eventName: string, eventHandler: Function, environment: IDOMEnvironment) => void;
     addTabListener: VoidFunction;
     removeTabListener: VoidFunction;
-    startEvent: <TArguments>(controlNode: IControlNode, args: TArguments) => any;
+    startEvent: <TArguments, TControlNode>(controlNode: TControlNode, args: TArguments) => any;
     addCaptureEventHandler: (eventName: string, element: HTMLElement) => void;
     removeCaptureEventHandler: (eventName: string, element: IWasabyHTMLElement) => void;
 }
