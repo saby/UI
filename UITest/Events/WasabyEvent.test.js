@@ -1,11 +1,11 @@
 define([
-      'UI/Events',
+      'UICore/Events',
       'UI/Base',
       'UI/Utils'],
    function(Events, UIBase, UIUtils) {
       'use strict';
 
-      var WasabyEvents = Events.WasabyEventsInferno;
+      var WasabyEvents = Events.WasabyEvents;
 
       describe('WasabyEvent', function() {
          // В DOMEnvironment есть механизм совместимости для некоторых touch-устройств,

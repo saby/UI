@@ -1,5 +1,5 @@
 /* global describe, it, assert */
-define(['UI/Base', 'UI/Utils', 'UI/_base/Control'], (Base, Utils, Private) => {
+define(['UI/Base', 'UI/Utils', 'UICore/_base/Control'], (Base, Utils, Private) => {
    var fromNode = typeof document === 'undefined';
 
    describe('UITest/Test', () => {

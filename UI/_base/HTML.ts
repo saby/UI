@@ -2,7 +2,7 @@
 
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
-import Control from './Control';
+import { Control } from 'UICore/Base';
 
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore

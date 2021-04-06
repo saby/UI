@@ -1,9 +1,9 @@
 import { assert } from 'chai';
 // import 'mocha';
-import Loader from 'UI/theme/_controller/Loader';
-import { EMPTY_THEME } from 'UI/theme/_controller/css/const';
+import Loader from 'UICommon/theme/_controller/Loader';
+import { EMPTY_THEME } from 'UICommon/theme/_controller/css/const';
 
-describe('UI/theme/_controller/Loader', () => {
+describe('UICommon/theme/_controller/Loader', () => {
    const loader = new Loader();
    const theme_name = 'themeName';
    const first_name = 'Root';
