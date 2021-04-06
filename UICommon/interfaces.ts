@@ -13,6 +13,7 @@ export type TControlId = string;
 export interface IControlOptions {
     readOnly?: boolean;
     theme?: string;
+    _$createdFromCode?: boolean;
 }
 export interface ITemplateAttrs {
     key?: string;
