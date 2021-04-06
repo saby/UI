@@ -1,9 +1,9 @@
 /// <amd-module name="UI/_base/Start" />
 
-import Control from './Control';
+import { Control } from 'UICore/Base';
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
-import startApplication from 'UI/_base/startApplication';
+import { startApplication } from 'UICore/Base';
 
 /**
  * @author Санников К.А.

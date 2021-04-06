@@ -1,6 +1,6 @@
 /// <amd-module name="UI/_base/HTML/Head" />
 
-import Control from '../Control';
+import { Control } from 'UICore/Base';
 
 /* tslint:disable:deprecated-anywhere */
 // tslint:disable-next-line:ban-ts-ignore

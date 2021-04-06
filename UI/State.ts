@@ -1,13 +1,9 @@
-import * as Serializer from './_state/Serializer';
-import AppData from './_state/AppData';
-
 /**
  * @library UI/State
- * @includes StateReceiver UI/_state/StateReceiver
- * @includes Serializer UI/_state/Serializer
+ * @includes AppData UI/_state/AppData
+ * @includes State UICore/State
  * @author Санников А.А.
  */
-export {
-   Serializer,
-   AppData
-}
+
+export { default as AppData } from './_state/AppData';
+export { Serializer } from 'UICore/State';
