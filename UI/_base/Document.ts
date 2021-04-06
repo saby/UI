@@ -1,6 +1,6 @@
 /// <amd-module name="UI/_base/Document" />
 
-import Control from './Control';
+import { Control, TemplateFunction } from 'UICore/Base';
 
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
@@ -9,10 +9,10 @@ import { getThemeController } from 'UI/theme/controller';
 import * as AppEnv from 'Application/Env';
 import { headDataStore } from 'UI/Deps';
 import { AppData } from 'UI/State';
-import startApplication from 'UI/_base/startApplication';
+import { startApplication } from 'UICore/Base';
 
 class Document extends Control {
-    _template: Function = template;
+    _template: TemplateFunction = template;
 
     // tslint:disable-next-line:no-any
     private ctxData: any = null;
