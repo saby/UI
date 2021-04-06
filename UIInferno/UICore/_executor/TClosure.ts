@@ -6,7 +6,7 @@
  */
 
 // @ts-ignore
-import { Serializer } from 'UICore/State';
+import { Serializer } from 'UICommon/State';
 // @ts-ignore
 import { Logger } from 'UICommon/Utils';
 // @ts-ignore

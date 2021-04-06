@@ -1,4 +1,4 @@
-define('UICore/_state/TemplateDeserialization', ['UICore/_state/FunctionHeaderTemplate'], function(FunctionHeaderTemplate) {
+define('UICommon/_state/TemplateDeserialization', ['UICommon/_state/FunctionHeaderTemplate'], function(FunctionHeaderTemplate) {
    /**
     * @author Санников К.
     */

@@ -8,7 +8,7 @@ import { delay } from 'Types/function';
 // @ts-ignore
 import { ObjectUtils } from 'UICommon/Utils';
 // @ts-ignore
-import { Serializer } from 'UICore/State';
+import { Serializer } from 'UICommon/State';
 import { Control, IControlOptions } from 'UICore/Base';
 
 // @ts-ignore
