@@ -6,13 +6,20 @@
       "url": "git@platform-git.sbis.ru:saby/UI.git"
    },
    "files": [
-      "UI/*",
+      "Compiler/*",
       "Markup/*",
       "TextMarkup/*",
+      "UI/*",
+      "UICore/*",
+      "UICommon/*",
+      "UIDemo/*",
+      "UIDemo-default-theme/*",
+      "UIInferno/*",
+      "UIReact/*",
+      "UITest/*",
       "VirtualTreeMarkup/*",
       "VirtualDom/*",
-      "WmlBuilder/*",
-      "Compiler/*"
+      "WmlBuilder/*"
    ],
    "scripts": {
       "build": "npm run build:typescript && npm run build:app",
