@@ -320,6 +320,14 @@ export class Generator {
       attrs.internal = data.internal;
       const userData = data.user;
 
+      // временное решение до тех пор пока опция темы не перестанет быть наследуемой
+      // добавлено тут https://online.sbis.ru/opendoc.html?guid=5a70cc3b-0d05-4071-8ba3-3dd6cd1ba0bd
+      if (userData._$createdFromCode) {
+         if (this.generatorConfig && this.generatorConfig.prepareAttrsForRoot) {
+            this.generatorConfig.prepareAttrsForRoot(attrs, userData);
+         }
+      }
+
       // Здесь можем получить null  в следствии !optional. Поэтому возвращаем ''
       if (name === null) {
          return this.createEmptyText();
