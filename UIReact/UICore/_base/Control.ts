@@ -400,6 +400,7 @@ export default class Control<TOptions extends IControlOptions = {},
             const ctx = {...this, _options: {...wasabyOptions}};
             res = this._template(ctx, undefined, undefined, true);
         } catch (e) {
+            logError(e);
             res = [];
         }
 

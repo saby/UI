@@ -9,6 +9,6 @@
         <span>{{ count }}</span>
     </div>
     <div>
-        <UIDemo.ReactEventDemo.WasabyOnTop.Component.ReactCustomEvent eventName="myCustomEvent" on:myCustomEvent="customEventHandler()" />
+        <UICore.ReactDemo.ReactEventDemo.WasabyOnTop.Component.ReactCustomEvent eventName="myCustomEvent" on:myCustomEvent="customEventHandler()" />
     </div>
 </div>

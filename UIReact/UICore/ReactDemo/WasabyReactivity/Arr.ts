@@ -1,6 +1,6 @@
 import {Control, TemplateFunction} from 'UICore/Base';
 // @ts-ignore
-import * as template from 'wml!UIDemo/ReactDemo/WasabyReactivity/Arr';
+import * as template from 'wml!UICore/ReactDemo/WasabyReactivity/Arr';
 
 export default class Arr extends Control {
     protected _template: TemplateFunction = template;

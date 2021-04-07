@@ -9,7 +9,7 @@
         <span>{{ count }}</span>
     </div>
     <div>
-        <UIDemo.ReactEventDemo.WasabyOnTop.Component.ReactButton buttonText="decrement" buttonHandler="{{ decrement }}" />
-        <UIDemo.ReactEventDemo.WasabyOnTop.Component.ReactButton buttonText="increment" buttonHandler="{{ increment }}" />
+        <UICore.ReactDemo.ReactEventDemo.WasabyOnTop.Component.ReactButton buttonText="decrement" buttonHandler="{{ decrement }}" />
+        <UICore.ReactDemo.ReactEventDemo.WasabyOnTop.Component.ReactButton buttonText="increment" buttonHandler="{{ increment }}" />
     </div>
 </div>
