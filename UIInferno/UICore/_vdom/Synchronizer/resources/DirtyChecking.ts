@@ -4,7 +4,6 @@
  */
 
 /* tslint:disable:ban-ts-ignore no-any max-line-length */
-// @ts-nocheck
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { Subscriber } from 'UICommon/Events';
@@ -17,7 +16,7 @@ import {
    isControlVNodeType,
    isTemplateVNodeType
 } from './VdomMarkup';
-import { OptionsResolver } from 'UICommon/Executor';
+import { OptionsResolver, ITemplateNode } from 'UICommon/Executor';
 import { ContextResolver } from 'UICommon/Contexts';
 import { delay } from 'Types/function';
 // @ts-ignore
@@ -33,12 +32,12 @@ import {
    OperationType,
    getNodeName
 } from 'UICore/DevtoolsHook';
-import { IControlNode, IDOMEnvironment, IMemoNode, IMemoForNode, TControlId } from '../interfaces';
+import { IControlNode, IDOMEnvironment, IMemoNode, IMemoForNode, TControlId } from 'UICommon/interfaces';
 import { getChangedOptions, collectObjectVersions } from 'UICommon/Vdom';
 import { createNode } from './ControlNode';
 import { getStateReceiver } from 'Application/Env';
 import { isInit } from 'Application/Initializer';
-import { TGeneratorNode, IGeneratorVNode, IGeneratorControlNode, ITemplateNode } from 'UICore/Executor';
+import { TGeneratorNode, IGeneratorVNode, IGeneratorControlNode } from 'UICore/Executor';
 // import { VNode } from 'Inferno/third-party/index';
 import { getCompatibleUtils } from 'UICore/_vdom/Synchronizer/resources/DirtyCheckingCompatible';
 

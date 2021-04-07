@@ -1,16 +1,16 @@
-// @ts-nocheck
 import { ArrayUtils } from 'UICommon/Utils';
 import { Logger } from 'UICommon/Utils';
 import { _FocusAttrs } from 'UICore/Focus';
-import * as Vdom from '../../_Utils/Vdom';
-import * as Common from '../../_Utils/Common';
-import * as RequireHelper from '../../_Utils/RequireHelper';
-import { invisibleNodeTagName } from '../../Utils';
 import { onElementMount, onElementUnmount } from '../../_Utils/ChildrenManager';
-import { Generator } from '../Generator';
 import { IGenerator } from '../IGenerator';
 import {
    Attr,
+   CommonUtils as Common,
+   Vdom,
+   RequireHelper,
+   invisibleNodeTagName,
+   Generator,
+   cutFocusAttributes,
    GeneratorEmptyObject,
    GeneratorError,
    GeneratorFn,
@@ -37,7 +37,6 @@ import {
    IGeneratorNameObject
 } from 'UICommon/Executor';
 import { TGeneratorNode } from './IVdomType';
-import { cutFocusAttributes } from '../Utils';
 import { VNode } from 'Inferno/third-party/index';
 
 const emtpyProps = {

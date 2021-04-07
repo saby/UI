@@ -9,7 +9,7 @@ import * as AppInit from 'Application/Initializer';
 import { isNewEnvironment, Logger } from 'UICommon/Utils';
 import { IBuilder } from './IBuilder';
 
-import { invisibleNodeCompat, isInstOfPromise, asyncRenderErrorTag } from './Utils';
+import { invisibleNodeCompat, isInstOfPromise, asyncRenderErrorTag } from 'UICommon/Executor';
 
 /**
  * @author Тэн В.А.

@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_executor/_Utils/ConfigResolver" />
+/// <amd-module name="UICommon/_executor/_Utils/ConfigResolver" />
 
 /**
  * @author Тэн В.А.

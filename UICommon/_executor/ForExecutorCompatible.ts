@@ -5,7 +5,7 @@ import { Generator } from './_Markup/Generator';
 import * as RequireHelper from './_Utils/RequireHelper';
 import * as Scope from './_Expressions/Scope';
 import * as MarkupUtils from './_Markup/Utils';
-import { Attr } from 'UICommon/Executor';
+import * as Attr from './_Expressions/Attr';
 import * as Class from './_Utils/Class';
 import voidElements from './_Utils/VoidTags';
 

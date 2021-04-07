@@ -1,10 +1,10 @@
-/// <amd-module name="UICore/_executor/_Expressions/Decorate" />
+/// <amd-module name="UICommon/_executor/_Expressions/Decorate" />
 /* tslint:disable */
 /**
  * @author Тэн В.А.
  */
 
-import { AttrHelper } from 'UICommon/Executor';
+import * as AttrHelper from './AttrHelper';
 
 /**
  * Создание объекта, для декорировния рутового узла

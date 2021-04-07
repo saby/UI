@@ -18,9 +18,8 @@ import { object } from 'Types/util';
 import { constants } from 'Env/Env';
 
 import { Text, Vdom } from './Markup';
-import * as Scope from './_Expressions/Scope';
 import { Attr } from 'UICommon/Executor';
-import { Common, ConfigResolver } from './Utils';
+import { CommonUtils as Common, Scope, ConfigResolver } from 'UICommon/Executor';
 
 var decorators;
 function getDecorators() {

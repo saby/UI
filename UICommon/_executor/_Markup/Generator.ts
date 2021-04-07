@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_executor/_Markup/Generator" />
+/// <amd-module name="UICommon/_executor/_Markup/Generator" />
 /* tslint:disable */
 
 import { coreDebug as timing } from 'Env/Env';
@@ -7,9 +7,9 @@ import * as Common from '../_Utils/Common';
 import * as RequireHelper from '../_Utils/RequireHelper';
 import * as Scope from '../_Expressions/Scope';
 import { EventUtils } from 'UICommon/Events';
-import * as ConfigResolver from '../_Utils/ConfigResolver'
+import * as ConfigResolver from '../_Utils/ConfigResolver';
+import * as OptionsResolver from '../_Utils/OptionsResolver';
 import {
-   OptionsResolver,
    GeneratorEmptyObject,
    GeneratorObject,
    GeneratorTemplateOrigin,
@@ -24,7 +24,7 @@ import {
    TObject,
    IControlUserData,
    IControlConfig
-} from 'UICommon/Executor';
+} from './IGeneratorType';
 import * as Helper from './Helper';
 
 const defRegExp = /(\[def-[\w\d]+\])/g;
