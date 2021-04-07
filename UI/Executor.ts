@@ -16,13 +16,13 @@ export {
    RequireHelper,
    invisibleNodeTagName,
    ConfigResolver,
-   createGenerator, // fabric method
-   _IGenerator, // только для ExecutorCompatible
-   _IBuilder // только для ExecutorCompatible
+   createGenerator // fabric method
 } from 'UICore/Executor';
 
 export {
    ITemplateNode,
+   _IGenerator, // только для ExecutorCompatible
+   _IBuilder, // только для ExecutorCompatible
    _IGeneratorType, // только для ExecutorCompatible
 
    OptionsResolver // ???

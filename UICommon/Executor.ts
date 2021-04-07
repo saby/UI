@@ -5,6 +5,9 @@ export * as AttrHelper from './_executor/_Expressions/AttrHelper';
 
 export * as OptionsResolver from './_executor/_Utils/OptionsResolver';
 
+export * as _IGenerator from './_executor/_Markup/IGenerator';
+export * as _IBuilder from './_executor/_Markup/IBuilder';
+
 export * as _IGeneratorType from './_executor/_Markup/IGeneratorType';
 export {
     IGeneratorConstructor,
