@@ -26,7 +26,7 @@ export {
     cutFocusAttributes,
     stringTemplateResolver
 } from './_executor/_Markup/Utils';
-export * as ResolveControlName from './_executor/_Markup/ResolveControlName';
+export { ResolveControlName } from './_executor/_Markup/ResolveControlName';
 export { Generator } from './_executor/_Markup/Generator';
 
 export * as _IGeneratorType from './_executor/_Markup/IGeneratorType';
