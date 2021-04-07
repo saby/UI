@@ -5,7 +5,6 @@ import {
    RequireHelper,
    onElementMount,
    onElementUnmount,
-   _ForExecutorCompatible,
    _IGeneratorType as IGT
 } from 'UICore/Executor';
 import { convertAttributes, WasabyAttributes } from './Attributes';

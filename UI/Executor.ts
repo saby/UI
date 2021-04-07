@@ -17,7 +17,6 @@ export {
    invisibleNodeTagName,
    ConfigResolver,
    createGenerator, // fabric method
-   _ForExecutorCompatible,  // только для ExecutorCompatible
    _IGenerator, // только для ExecutorCompatible
    _IBuilder // только для ExecutorCompatible
 } from 'UICore/Executor';

@@ -13,7 +13,6 @@ export {
     empty as RequireHelper,
     empty as invisibleNodeTagName,
     empty as ConfigResolver,
-    empty as _ForExecutorCompatible,
     empty as onElementMount,
     empty as onElementUnmount
 } from 'UICommon/Empty';

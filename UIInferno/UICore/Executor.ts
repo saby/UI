@@ -11,7 +11,4 @@ export {
     ConfigResolver
 } from './_executor/Utils';
 
-// TODO: для работы executorCompatible
-export * as _ForExecutorCompatible from './_executor/ForExecutorCompatible';
-
 export { onElementMount, onElementUnmount } from './_executor/_Utils/ChildrenManager';
