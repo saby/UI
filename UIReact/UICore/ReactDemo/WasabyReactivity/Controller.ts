@@ -1,7 +1,7 @@
 import {Control, TemplateFunction} from 'UICore/Base';
 // @ts-ignore
 import * as template from 'wml!UICore/ReactDemo/WasabyReactivity/Controller';
-import 'css!UIDemo/ReactDemo/WasabyReactivity/Controller';
+import 'css!UICore/ReactDemo/WasabyReactivity/Controller';
 
 interface ITab {
     name: string;
