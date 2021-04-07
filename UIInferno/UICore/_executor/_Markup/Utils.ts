@@ -9,6 +9,9 @@ import {
    GeneratorError,
    GeneratorStringArray,
    IBaseAttrs,
+   CommonUtils as Common,
+   invisibleNodeTagName,
+   VoidTags as voidElements,
    IGeneratorConfig,
    IControl,
    IGeneratorDefCollection,
@@ -17,12 +20,8 @@ import {
    INodeAttribute,
    TObject
 } from 'UICommon/Executor';
-import * as Common from '../_Utils/Common';
-import voidElements from '../_Utils/VoidTags';
-import { invisibleNodeTagName } from '../Utils';
-// @ts-ignore
+
 import { NumberUtils } from 'UICommon/Utils';
-import {Deps, IDefaultExport, IncludedTemplates} from '../_Utils/Common';
 import { TemplateFunction } from 'UICore/Base';
 
 /**
@@ -253,10 +252,10 @@ export function resolveControlName<TOptions extends IControlData>(controlData: T
  * @returns {*}
  */
 export function stringTemplateResolver<T = IControl, K = TemplateFunction>(tpl: string,
-                                       includedTemplates: IncludedTemplates<K>,
-                                       _deps: Deps<T, K>,
+                                       includedTemplates: Common.IncludedTemplates<K>,
+                                       _deps: Common.Deps<T, K>,
                                        config: IGeneratorConfig,
-                                       parent?: IControl): T | K | IDefaultExport<T> {
+                                       parent?: IControl): T | K | Common.IDefaultExport<T> {
    const resolver = config && config.resolvers ? Common.findResolverInConfig(tpl, config.resolvers) : undefined;
    if (resolver) {
       return resolver(tpl);

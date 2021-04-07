@@ -2,11 +2,28 @@ export * as Attr from './_executor/_Expressions/Attr';
 export { processMergeAttributes } from './_executor/_Expressions/Attr';
 export { IAttributes } from './_executor/_Expressions/Attr';
 export * as AttrHelper from './_executor/_Expressions/AttrHelper';
+export * as Scope from './_executor/_Expressions/Scope';
 
 export * as OptionsResolver from './_executor/_Utils/OptionsResolver';
 
+export { IGenerator } from './_executor/_Markup/IGenerator';
 export * as _IGenerator from './_executor/_Markup/IGenerator';
 export * as _IBuilder from './_executor/_Markup/IBuilder';
+export * as Helper from './_executor/_Markup/Helper';
+
+
+
+export { htmlNode, textNode, controlNode } from './_executor/_Utils/Vdom';
+export {
+    Common as CommonUtils,
+    RequireHelper,
+    invisibleNodeTagName,
+    Vdom,
+    VoidTags,
+    ConfigResolver
+} from './_executor/Utils';
+
+export { onElementMount, onElementUnmount } from './_executor/_Utils/ChildrenManager';
 
 export * as _IGeneratorType from './_executor/_Markup/IGeneratorType';
 export {
@@ -53,3 +70,32 @@ export {
     TProps,
     ITemplateNode
 } from './_executor/_Markup/IGeneratorType';
+
+export {
+    isolateScope,
+    createScope,
+    presetScope,
+    uniteScope,
+    createDataArray,
+    filterOptions,
+    calcParent,
+    wrapUndef,
+    getDecorators,
+    Sanitize,
+    iterators,
+    templateError,
+    partialError,
+    makeFunctionSerializable,
+    getter,
+    setter,
+    config,
+    plainMerge,
+    plainMergeAttr,
+    plainMergeContext,
+    getTypeFunc,
+    validateNodeKey,
+    getRk,
+    getContext,
+    getIfNeedGeneratorCompatible,
+    _isTClosure
+ } from './_executor/TClosure';

@@ -1,6 +1,8 @@
 /* global describe, it, assert */
-define(['UI/Executor', 'UICore/_executor/_Expressions/Scope'], function(Executor, Scope) {
+define(['UI/Executor', 'UICommon/Executor'], function(Executor, CommonExecutor) {
    'use strict';
+
+   var Scope = CommonExecutor.Scope;
 
    describe('UI/_executor/_Expressions/Scope', function() {
       describe('createScope', function() {
