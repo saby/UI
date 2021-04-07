@@ -1,11 +1,11 @@
 import { assert } from 'chai';
+import { describe, before, after, afterEach } from 'mocha';
 import { replace, restore, fake } from 'sinon';
 
 import { IControlNode, IWasabyHTMLElement, TEventsObject, IEvent, IProperties } from 'UICommon/interfaces';
-import { invisibleNodeTagName } from 'UI/Executor';
+import { invisibleNodeTagName } from 'UICore/Executor';
 
-import { Hooks } from 'UI/Vdom';
-import { empty } from 'UICommon/Empty';
+import { Hooks } from 'UICore/Vdom';
 import { constants } from 'Env/Env';
 
 const globalEnvironment = {
@@ -16,9 +16,6 @@ const globalEnvironment = {
 };
 
 describe('UICore/_vdom/Synchronizer/resources/Hooks', () => {
-    if (Hooks as any === empty as any) {
-        return;
-    }
     before(() => {
         replace(constants, 'compat', false);
     });

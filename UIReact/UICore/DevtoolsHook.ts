@@ -1,4 +1,5 @@
 export {
+   empty as OperationType,
    empty as injectHook,
    empty as onStartCommit,
    empty as onEndCommit,
