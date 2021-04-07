@@ -1,7 +1,8 @@
 /// <amd-module name="UI/Vdom" />
 /* tslint:disable */
+import { Options as _Options } from 'UICommon/Vdom';
 
-export {
+import {
     Synchronizer,
     Debug,
     createInstance,
@@ -18,5 +19,18 @@ export {
 } from 'UICore/Vdom';
 
 export { 
-    Options as _Options
-} from 'UICommon/Vdom';
+    Synchronizer,
+    Debug,
+    createInstance,
+    DirtyChecking,
+    DirtyCheckingCompatible,
+    DOMEnvironment,
+    Environment,
+    Hooks,
+    SyntheticEvent,
+    VdomMarkup,
+    _MountMethodsCaller,
+    Functional,
+    Monad,
+    _Options
+};
