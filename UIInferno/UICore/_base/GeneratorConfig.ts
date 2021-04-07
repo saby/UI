@@ -3,22 +3,24 @@ import { _IGeneratorType } from 'UICore/Executor';
 import { _FocusAttrs } from 'UICore/Focus';
 import { cookie } from 'Env/Env';
 
-const _generatorConfig = {
-   prepareAttrsForPartial: function prepareAttrsForPartial(attributes: any): void {
-      return _FocusAttrs.prepareAttrsForFocus(attributes.attributes);
-   },
-   prepareAttrsForRoot: function prepareAttrsForRoot(attributes: any, options: any): void {
-      attributes.attributes.class = attributes.attributes.class || '';
-      if (typeof options.theme === 'string') {
-         const themeName = 'controls_theme-' + options.theme;
-         if (attributes.attributes.class.indexOf(themeName) === -1) {
-            attributes.attributes.class = attributes.attributes.class + ' ' + themeName;
-         }
+function prepareAttrsForPartial(attributes: any): void {
+   return _FocusAttrs.prepareAttrsForFocus(attributes.attributes);
+}
+function prepareAttrsForRoot(attributes: any, options: any): void {
+   attributes.attributes.class = attributes.attributes.class || '';
+   if (typeof options.theme === 'string') {
+      const themeName = 'controls_theme-' + options.theme;
+      if (attributes.attributes.class.indexOf(themeName) === -1) {
+         attributes.attributes.class = attributes.attributes.class + ' ' + themeName;
       }
    }
+}
+const _generatorConfig = {
+   prepareAttrsForPartial,
+   prepareAttrsForRoot
 };
 function prepareAttrsForPartial2(attributes: any): void {
-   _generatorConfig.prepareAttrsForPartial.apply(this, arguments);
+   prepareAttrsForPartial.apply(this, arguments);
 
    if (attributes.events) {
       Object.keys(attributes.events).forEach((key) => {
