@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_executor/TClosure" />
+/// <amd-module name="UICommon/_executor/TClosure" />
 /* tslint:disable */
 
 /**

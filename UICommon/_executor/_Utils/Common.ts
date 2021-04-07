@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_executor/_Utils/Common" />
+/// <amd-module name="UICommon/_executor/_Utils/Common" />
 /* tslint:disable */
 
 /**
@@ -12,9 +12,10 @@ import * as RequireHelper from './RequireHelper';
 
 import { ReactiveObserver } from 'UICore/Reactivity';
 import {
-   IControl, IGeneratorNameObject,
-   Attr
-} from 'UICommon/Executor';
+   IControl,
+   IGeneratorNameObject
+} from '../_Markup/IGeneratorType';
+import * as Attr from '../_Expressions/Attr';
 import { TemplateFunction } from 'UICore/Base';
 
 var
