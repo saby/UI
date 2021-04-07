@@ -150,7 +150,7 @@ abstract class Environment {
             // @ts-ignore FIXME: Unknown $
             control._container = window.$ ? $(newRootDOMNode) : newRootDOMNode;
          }
-         mountMethodsCaller.componentDidUpdate(controlNodesToCall);
+         mountMethodsCaller.componentAfterRender(controlNodesToCall);
          mountMethodsCaller.beforePaint(controlNodesToCall);
          delay(() => {
             // останавливать должны, только если запущено, иначе получается так,
@@ -183,7 +183,7 @@ abstract class Environment {
 
       this._haveRebuildRequest = false;
 
-      mountMethodsCaller.componentDidUpdate(controlNodesToCall);
+      mountMethodsCaller.componentAfterRender(controlNodesToCall);
       mountMethodsCaller.beforePaint(controlNodesToCall);
       // используется setTimeout вместо delay, т.к. delay работает через rAF
       // rAF зовётся до того, как браузер отрисует кадр,
