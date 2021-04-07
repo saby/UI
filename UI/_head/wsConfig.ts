@@ -28,6 +28,7 @@ export function createWsConfig(cfg: IHeadOptions): void {
    const defaultServiceUrl = cfg.servicesPath || appData.servicesPath || constants.defaultServiceUrl || '/service/';
    // @ts-ignore
    const product = cfg.product || appData.product || constants.product;
+   const buildnumber = cfg.buildnumber || constants.buildnumber;
    let preInitScript = cfg.preInitScript ? cfg.preInitScript : '';
    const errorMonitoringScript = AppEnv.getStore('ErrorMonitoringScript') || '';
    /** В случае, если в хранилище ничего нет, придет деволтный IStore, а мы хотим все-же строку. */
@@ -51,7 +52,7 @@ export function createWsConfig(cfg: IHeadOptions): void {
          `product: '${product}',`,
          `reactApp: ${cfg.reactApp || false}`,
          '};',
-         cfg.buildnumber ? `window.buildnumber = '${cfg.buildnumber || constants.buildnumber}';` : '',
+         buildnumber ? `window.buildnumber = '${buildnumber}';` : '',
          `window['X-UNIQ-ID'] = '${getConfig('X-UNIQ-ID') || ''}';`,
          `window['X-REQUESTUUID'] = '${getConfig('X-REQUESTUUID') || ''}';`,
          preInitScript ? preInitScript : ''
