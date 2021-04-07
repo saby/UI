@@ -54,7 +54,18 @@ export function createDefaultTags(cfg: IHeadOptions): void {
       API.createTag('meta', attrs);
    });
 }
-
+/**
+ * Функция для подготовки данных 
+ * @param tag 
+ * @param attrs 
+ * @returns 
+ */
+const prepareMetaScriptsAndLinks = (tag: string, attrs: object): object => {
+   return {
+      tag,
+      attrs
+   };
+}
 /**
  * Применим опции meta, scripts и links к странице
  * @param cfg
@@ -62,9 +73,9 @@ export function createDefaultTags(cfg: IHeadOptions): void {
 export function createMetaScriptsAndLinks(cfg: IHeadOptions): void {
    const API = AppHead.getInstance();
    []
-      .concat((cfg.meta || []).map(prepareMetaScriptsAndLinks.bind(null, 'meta')))
-      .concat((cfg.scripts || []).map(prepareMetaScriptsAndLinks.bind(null, 'script')))
-      .concat((cfg.links || []).map(prepareMetaScriptsAndLinks.bind(null, 'link')))
+      .concat((cfg.meta || []).map((attr) => prepareMetaScriptsAndLinks('meta', attr)))
+      .concat((cfg.scripts || []).map((attr) => prepareMetaScriptsAndLinks('script', attr)))
+      .concat((cfg.links || []).map((attr) => prepareMetaScriptsAndLinks('link', attr)))
       .forEach((item: {tag: string, attrs: object}) => {
          ['href', 'src'].forEach((field) => {
             if (item.attrs[field]) {
@@ -99,9 +110,3 @@ export function applyHeadJson(json: JML[]): void {
    });
 }
 
-function prepareMetaScriptsAndLinks(tag: string, attrs: object): object {
-   return {
-      tag,
-      attrs
-   };
-}
