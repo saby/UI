@@ -3,9 +3,9 @@ import { replace, restore, fake } from 'sinon';
 
 import { IControlNode, IWasabyHTMLElement, TEventsObject, IEvent, IProperties } from 'UICommon/interfaces';
 import { invisibleNodeTagName } from 'UI/Executor';
-import { TWasabyInputElement, TRef } from 'UICore/_vdom/Synchronizer/resources/Hooks';
 
 import { Hooks } from 'UI/Vdom';
+import { empty } from 'UICommon/Empty';
 import { constants } from 'Env/Env';
 
 const globalEnvironment = {
@@ -16,6 +16,9 @@ const globalEnvironment = {
 };
 
 describe('UICore/_vdom/Synchronizer/resources/Hooks', () => {
+    if (Hooks as any === empty as any) {
+        return;
+    }
     before(() => {
         replace(constants, 'compat', false);
     });
@@ -106,7 +109,7 @@ describe('UICore/_vdom/Synchronizer/resources/Hooks', () => {
             const ids = ['inst_10', 'inst_11', 'inst_9', 'inst_3', 'inst_27'];
             const controlNodes = ids.map(id => createMockControlNode(id));
             const propsArray = ids.map(() => ({} as IProperties));
-            let ref: TRef;
+            let ref: Hooks.TRef;
             for (let i = 0; i < ids.length; i++) {
                 ref = Hooks.setControlNodeHook(tagName, propsArray[i], [], ids[i], controlNodes[i], ref)[4];
             }
@@ -178,7 +181,7 @@ describe('UICore/_vdom/Synchronizer/resources/Hooks', () => {
 
         it('unmountRef clears input', () => {
             const tagName = 'input';
-            const element = createMockElement(tagName) as TWasabyInputElement;
+            const element = createMockElement(tagName) as Hooks.TWasabyInputElement;
             const id = 'inst_1';
             const controlNode = createMockControlNode(id);
             const props = {

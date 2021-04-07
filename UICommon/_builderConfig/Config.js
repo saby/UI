@@ -1,4 +1,4 @@
-define('UICore/_builderConfig/Config', [], function() {
+define('UICommon/_builderConfig/Config', [], function() {
 
    /**
     * @author Крылов М.А.

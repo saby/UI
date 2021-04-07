@@ -10,7 +10,7 @@ import { Serializer } from 'UICommon/State';
 // @ts-ignore
 import { Logger } from 'UICommon/Utils';
 // @ts-ignore
-import {Config as config} from 'UICore/BuilderConfig';
+import {Config as config} from 'UICommon/BuilderConfig';
 // @ts-ignore
 import { ObjectUtils } from 'UICommon/Utils';
 import { object } from 'Types/util';

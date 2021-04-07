@@ -6,4 +6,4 @@
 
 export {
    Config
-} from 'UICore/BuilderConfig';
+} from 'UICommon/BuilderConfig';
