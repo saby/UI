@@ -3,6 +3,7 @@
 import { Head as AppHead } from 'Application/Page';
 import { JML } from 'Application/Interface';
 import { getResourceUrl } from "UI/Utils";
+import escapeHtml = require('Core/helpers/String/escapeHtml');
 
 import { IHTMLOptions } from '../_base/interface/IHTML';
 import { IRootTemplateOptions } from '../_base/interface/IRootTemplate';
@@ -92,10 +93,25 @@ export function applyHeadJson(json: JML[]): void {
    const API = AppHead.getInstance();
    json.forEach((data) => {
       const tag = data[0];
-      const attrs = typeof data[1] === 'object' ? data[1] : null;
+      let attrs = typeof data[1] === 'object' ? data[1] : null;
       const content = typeof data[1] === 'string' ? data[1] : null;
+
+      if (!attrs) {
+         attrs = {};
+      }
+      /** Раньше HeadJSON прогонялся напрямую через TagMarkup. Сейчас необходимо выполнить подготовку */
+      for (const attrsKey in attrs) {
+         if (attrs.hasOwnProperty(attrsKey)) {
+            if (attrsKey === 'href' || attrsKey === 'src') {
+               attrs[attrsKey] = getResourceUrl(attrs[attrsKey]);
+               continue;
+            }
+            attrs[attrsKey] = escapeHtml(attrs[attrsKey]);
+         }
+      }
+
       // @ts-ignore
-      API.createTag(tag, attrs || {}, content);
+      API.createTag(tag, attrs, content);
    });
 }
 
