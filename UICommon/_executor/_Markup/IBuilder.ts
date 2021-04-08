@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_executor/_Markup/IBuilder" />
+/// <amd-module name="UICommon/_executor/_Markup/IBuilder" />
 /* tslint:disable */
 
 import { IBuilderScope, TObject, TAttributes } from './IGeneratorType';

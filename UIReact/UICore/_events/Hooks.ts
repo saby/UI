@@ -1,7 +1,6 @@
 import { IWasabyHTMLElement } from 'UICommon/interfaces';
 
-import { EventUtils, IWasabyEventSystem } from 'UICommon/Events';
-import { IWasabyEvent } from 'UIReact/UICore/_executor/_Markup/Vdom/interfaces';
+import { EventUtils, IWasabyEventSystem, IWasabyEvent } from 'UICommon/Events';
 import { findEventSystem } from './FindEventSystem';
 
 import { Set } from 'Types/shim';

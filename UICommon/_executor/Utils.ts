@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_executor/Utils" />
+/// <amd-module name="UICommon/_executor/Utils" />
 /* tslint:disable */
 
 /**
@@ -8,7 +8,7 @@
 import * as Class from './_Utils/Class';
 import * as Common from './_Utils/Common';
 import * as ConfigResolver from './_Utils/ConfigResolver';
-import { OptionsResolver } from 'UICommon/Executor';
+import * as OptionsResolver from './_Utils/OptionsResolver';
 import * as RequireHelper from './_Utils/RequireHelper';
 import * as Vdom from './_Utils/Vdom';
 import VoidTags from './_Utils/VoidTags';

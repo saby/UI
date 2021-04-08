@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/BuilderConfig" />
+/// <amd-module name="UICommon/BuilderConfig" />
 
 /**
  * @author Тэн В.А.

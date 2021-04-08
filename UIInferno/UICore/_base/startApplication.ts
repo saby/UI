@@ -1,7 +1,7 @@
 /// <amd-module name="UICore/_base/startApplication" />
 import { default as AppInit, isInit } from 'Application/Initializer';
 import { StateReceiver } from 'Application/State';
-import { Serializer } from 'UICore/State';
+import { Serializer } from 'UICommon/State';
 
 /**
  * Инициализация Application/Env для Sbis приложения

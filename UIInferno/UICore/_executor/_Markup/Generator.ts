@@ -3,12 +3,13 @@
 
 import { coreDebug as timing } from 'Env/Env';
 import { Logger } from 'UICommon/Utils';
-import * as Common from '../_Utils/Common';
-import * as RequireHelper from '../_Utils/RequireHelper';
-import * as Scope from '../_Expressions/Scope';
 import { EventUtils } from 'UICommon/Events';
-import * as ConfigResolver from '../_Utils/ConfigResolver'
 import {
+   CommonUtils as Common,
+   RequireHelper,
+   Scope,
+   ConfigResolver,
+   Helper,
    OptionsResolver,
    GeneratorEmptyObject,
    GeneratorObject,
@@ -25,7 +26,6 @@ import {
    IControlUserData,
    IControlConfig
 } from 'UICommon/Executor';
-import * as Helper from './Helper';
 
 const defRegExp = /(\[def-[\w\d]+\])/g;
 

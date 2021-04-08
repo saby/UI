@@ -1,5 +1,5 @@
-import {createElement, memo} from "react";
-import {RecordSet} from "Types/collection";
+import {createElement, memo} from 'react';
+import {RecordSet} from 'Types/collection';
 
 interface IChildProps {
     rs: RecordSet

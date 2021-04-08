@@ -1,5 +1,5 @@
-import {createElement, PureComponent} from "react";
-import {RecordSet} from "Types/collection";
+import {createElement, PureComponent} from 'react';
+import {RecordSet} from 'Types/collection';
 
 interface IChildProps {
     rs: RecordSet

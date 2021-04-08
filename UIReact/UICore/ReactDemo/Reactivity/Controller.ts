@@ -2,10 +2,10 @@ import {Component, createElement} from 'react';
 import {RecordSet} from 'Types/collection';
 import {Model} from 'Types/entity';
 import {makeObservable, withVersionObservable, getReactiveVersionsProp} from 'UIReact/UICore/Reactivity';
-import 'css!UIDemo/ReactDemo/Reactivity/Controller';
+import 'css!UICore/ReactDemo/Reactivity/Controller';
 import FunctionalComponent from './FunctionalComponent';
-import {Child} from "./Child";
-import {ClassChild} from "./ClassChild";
+import {Child} from './Child';
+import {ClassChild} from './ClassChild';
 
 export default class Controller extends Component<{}, { text: string }> {
     myRS = new RecordSet();
