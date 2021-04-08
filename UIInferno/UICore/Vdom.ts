@@ -23,7 +23,6 @@ export { DirtyCheckingCompatible };
 export { default as DOMEnvironment } from './_vdom/Synchronizer/resources/DOMEnvironment';
 export { default as Environment } from './_vdom/Synchronizer/resources/Environment';
 export { Hooks };
-export { default as SyntheticEvent } from './_vdom/Synchronizer/resources/SyntheticEvent';
 export { VdomMarkup };
 export { _MountMethodsCaller };
 

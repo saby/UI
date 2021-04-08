@@ -7,7 +7,6 @@ export {
     empty as DOMEnvironment,
     empty as Environment,
     empty as Hooks,
-    empty as SyntheticEvent,
     empty as VdomMarkup,
     empty as _MountMethodsCaller,
     empty as Functional,
