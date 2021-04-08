@@ -1,13 +1,14 @@
 /**
  * @author Тэн В.А.
  */
-import { Component } from "react";
+import {Component} from "react";
 
+import { IWasabyEventSystem } from 'UICommon/Events';
 import { Control } from 'UICore/Base';
-import { findEventSystem } from './FindEventSystem';
 
 /**
  * запускает нотифай события (для wasabyOverReact)
+ * @param eventSystem
  * @param inst
  * @param eventName
  * @param args
@@ -15,12 +16,12 @@ import { findEventSystem } from './FindEventSystem';
  * @returns {unknown}
  */
 export function callNotify<T extends Component = Control>(
-    inst: T & {eventTarget: HTMLElement},
+    eventSystem: IWasabyEventSystem,
+    inst: T,
     eventName: string,
     args?: unknown[],
     options?: { bubbling?: boolean }
 ): unknown {
-    const eventSystem = findEventSystem(inst.eventTarget);
-    Array.prototype.splice.call(arguments, 0, 1);
+    Array.prototype.splice.call(arguments, 0, 2);
     return eventSystem.startEvent(inst, arguments);
 }

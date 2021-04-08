@@ -1,7 +1,6 @@
 import { IWasabyHTMLElement } from 'UICommon/interfaces';
 
 import { EventUtils, IWasabyEventSystem, IWasabyEvent } from 'UICommon/Events';
-import { findEventSystem } from './FindEventSystem';
 
 import { Set } from 'Types/shim';
 
@@ -52,7 +51,6 @@ function prepareEvents(events) {
                     if (typeof handler === 'undefined') {
                         throw new Error(`Отсутствует обработчик ${ event.value } события ${ eventObj.type } у контрола ${ event.viewController._moduleName }`);
                     }
-                    context.eventTarget = eventObj.target;
                     const res = handler.apply(context, arguments);
                     if(res !== undefined) {
                         eventObj.result = res;
@@ -112,11 +110,12 @@ export function setEventHook(
     tagName: string,
     props: {
         events: Record<string, IWasabyEvent[]>;
+        eventSystem?: IWasabyEventSystem;
     },
     element: TElement
 ): void {
     const events = props.events;
-    const eventSystem = findEventSystem(element);
+    const eventSystem = props.eventSystem;
     prepareEvents(events);
     if (!haveEvents(events)) {
         return;

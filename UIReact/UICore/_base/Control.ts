@@ -63,8 +63,13 @@ export default class Control<TOptions extends IControlOptions = {},
     _moduleName: string;
     reactiveValues: object;
 
+    /**
+     * Система событий wasaby
+     */
+    static eventSystem: IWasabyEventSystem;
+
     protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
-        return callNotify(this, eventName, args, options);
+        return callNotify(Control.eventSystem, this, eventName, args, options);
     }
     
     protected activate(): void {
@@ -595,15 +600,16 @@ export default class Control<TOptions extends IControlOptions = {},
      * @param cfg Опции контрола.
      * @param domElement Элемент, на который должен быть смонтирован контрол.
      */
-    static createControl<P extends IControlOptions, T extends HTMLElement & {eventSystem?: IWasabyEventSystem}>(
+    static createControl<P extends IControlOptions & { eventSystem?: IWasabyEventSystem }>(
         ctor: React.ComponentType<P>,
         cfg: P,
-        domElement: T
+        domElement: HTMLElement
     ): void {
         // кладём в конфиг наследуемые опции, чтобы они попали в полноценные опции
         cfg.theme = cfg.theme ?? 'default';
         cfg.readOnly = cfg.readOnly ?? false;
-        domElement.eventSystem = new WasabyEvents(domElement);
+        this.eventSystem = new WasabyEvents(domElement);
+        cfg.eventSystem = this.eventSystem;
         ReactDOM.render(React.createElement(ctor, cfg), domElement);
     }
 
@@ -653,7 +659,7 @@ function logError(e: Error): void {
  * @param props Опции из реакта.
  * @param contextValue Контекст с наследуемыми опциями.
  */
-function createWasabyOptions<T extends IControlOptions>(
+function createWasabyOptions<T extends IControlOptions & { eventSystem?: IWasabyEventSystem }>(
     props: T,
     contextValue: IWasabyContextValue
 ): T {
@@ -661,6 +667,7 @@ function createWasabyOptions<T extends IControlOptions>(
     const newProps = {...props};
     newProps.readOnly = props.readOnly ?? contextValue?.readOnly;
     newProps.theme = props.theme ?? contextValue?.theme;
+    newProps.eventSystem = Control.eventSystem;
     return newProps;
 }
 
