@@ -6,7 +6,7 @@ import { ICssEntity, IHTMLElement } from './interface';
 import { Head as HeadAPI } from 'Application/Page';
 import { IHeadTagId, IHeadTagAttrs } from 'Application/Interface';
 
-const TIMEOUT = 30000;
+const TIMEOUT = 29000;
 
 /**
  * Мультитемная ссылка на клиенте
