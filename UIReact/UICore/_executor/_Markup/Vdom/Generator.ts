@@ -15,7 +15,7 @@ import {
 } from 'UICommon/Executor';
 import { convertAttributes, WasabyAttributes } from './Attributes';
 import { WasabyContextManager } from 'UICore/Contexts';
-import { IWasabyEvent } from 'UICommon/Events';
+import { IWasabyEvent, IWasabyEventSystem } from 'UICommon/Events';
 import { setEventHook } from 'UICore/Events';
 
 import { Control, TemplateFunction } from 'UICore/Base';
@@ -92,6 +92,7 @@ export class GeneratorVdom implements IGenerator {
       const newOptions = {
          ...resolvedOptionsExtended,
          ...{events},
+         ...{eventSystem: config.data?._options?.eventSystem},
          ref: createChildrenRef(config.viewController, name)
       };
 
@@ -278,6 +279,8 @@ export class GeneratorVdom implements IGenerator {
           {...attrs.events};
       const eventsObject = {
          events: extractedEvents,
+         //@ts-ignore _options объявлен пустым объектом по-умолчанию
+         eventSystem: control._options.eventSystem
       };
       if (!attrToDecorate) {
          attrToDecorate = {};
@@ -316,6 +319,7 @@ function createEventRef<T extends HTMLElement>(
    tagName: string,
    eventsObject: {
       events: Record<string, IWasabyEvent[]>;
+      eventSystem: IWasabyEventSystem;
    },
    prevRef?: React.RefCallback<T>
 ): React.RefCallback<T> {
