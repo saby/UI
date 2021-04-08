@@ -1,5 +1,5 @@
 define([
-    'UI/Vdom',
+    'UICore/Vdom',
     'Types/shim'
  ], function(Vdom, shim) {
     'use strict';

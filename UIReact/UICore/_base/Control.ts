@@ -71,6 +71,10 @@ export default class Control<TOptions extends IControlOptions = {},
     protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
         return callNotify(Control.eventSystem, this, eventName, args, options);
     }
+    
+    protected activate(): void {
+        
+    }
 
     constructor(props: TOptions, context?: IWasabyContextValue) {
         super(props);
@@ -396,6 +400,7 @@ export default class Control<TOptions extends IControlOptions = {},
             const ctx = {...this, _options: {...wasabyOptions}};
             res = this._template(ctx, undefined, undefined, true);
         } catch (e) {
+            logError(e);
             res = [];
         }
 

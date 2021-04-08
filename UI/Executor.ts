@@ -8,22 +8,21 @@ export {
    IGeneratorVNode,
    IGeneratorControlNode,
    TGeneratorNode,
-   htmlNode,
-   textNode,
-   controlNode,
    TClosure,
-   CommonUtils,
-   RequireHelper,
-   invisibleNodeTagName,
-   ConfigResolver,
-   createGenerator, // fabric method
-   _ForExecutorCompatible,  // только для ExecutorCompatible
-   _IGenerator, // только для ExecutorCompatible
-   _IBuilder // только для ExecutorCompatible
+   createGenerator // fabric method,
 } from 'UICore/Executor';
 
 export {
+   htmlNode,
+   textNode,
+   controlNode,
+   CommonUtils,
+   RequireHelper,
+   invisibleNodeTagName,
    ITemplateNode,
+   ConfigResolver,
+   _IGenerator, // только для ExecutorCompatible
+   _IBuilder, // только для ExecutorCompatible
    _IGeneratorType, // только для ExecutorCompatible
 
    OptionsResolver // ???

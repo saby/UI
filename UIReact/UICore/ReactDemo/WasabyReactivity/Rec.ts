@@ -2,7 +2,7 @@ import {RecordSet} from 'Types/collection';
 import {Model, Record} from 'Types/entity';
 import {Control, TemplateFunction} from 'UICore/Base';
 // @ts-ignore
-import * as template from 'wml!UIDemo/ReactDemo/WasabyReactivity/Rec';
+import * as template from 'wml!UICore/ReactDemo/WasabyReactivity/Rec';
 
 export default class Rec extends Control {
     protected _template: TemplateFunction = template;

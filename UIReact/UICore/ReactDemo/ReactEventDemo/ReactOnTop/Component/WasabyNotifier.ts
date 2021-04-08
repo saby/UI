@@ -1,6 +1,6 @@
-import { Control } from 'UIReact/UICore/Base';
+import { Control } from 'UICore/Base';
 // @ts-ignore
-import * as template from 'wml!UIDemo/ReactEventDemo/ReactOnTop/Component/WasabyNotifier';
+import * as template from 'wml!UICore/ReactDemo/ReactEventDemo/ReactOnTop/Component/WasabyNotifier';
 
 
 export default class WasabyNotifier extends Control {

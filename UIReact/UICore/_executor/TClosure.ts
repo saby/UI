@@ -1,7 +1,7 @@
-import { getIfNeedGeneratorCompatible, IGenerator } from 'UICommon/Executor';
+import { getIfNeedGeneratorCompatible } from 'UICommon/Executor';
 import { Text, Vdom } from './Markup';
 
-export function createGenerator(isVdom, forceCompatible = false, config): IGenerator {
+export function createGenerator(isVdom, forceCompatible = false, config) {
    if (isVdom) {
       return Vdom(config);
    }
