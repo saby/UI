@@ -1,1 +1,1 @@
-export { Subscriber, EventUtils } from 'UICommon/Events';
+export { Subscriber, EventUtils, SyntheticEvent } from 'UICommon/Events';
