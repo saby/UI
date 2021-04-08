@@ -17,5 +17,9 @@
     "UI/Deps",
     "UI/Head"
   ],
+  "includePackages": [
+    "UICommon/online-superbundle.package.js",
+    "UICore/online-superbundle.package.js"
+  ],
   "output": "online-superbundle.package.js"
 }

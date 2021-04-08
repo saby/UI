@@ -1,0 +1,14 @@
+{
+    "include": [
+      "UICore/Base",
+      "UICore/DevtoolsHook",
+      "UICore/Events",
+      "UICore/Executor",
+      "UICore/Focus",
+      "UICore/NodeCollector",
+      "UICore/Reactivity",
+      "UICore/Vdom"
+    ],
+    "output": "online-superbundle.package.js"
+  }
+  
