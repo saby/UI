@@ -8,7 +8,7 @@ import {
     TAttributes,
     TEvents,
     TProps
-} from '../IGeneratorType';
+} from 'UICommon/Executor';
 import { VNode } from 'Inferno/third-party/index';
 
 export type IGeneratorVNode = VNode;

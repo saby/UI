@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_executor/_Utils/ChildrenManager" />
+/// <amd-module name="UICommon/_executor/_Utils/ChildrenManager" />
 /* tslint:disable */
 
 /**

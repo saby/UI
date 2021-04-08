@@ -1,14 +1,7 @@
-// @ts-nocheck
 import { ArrayUtils } from 'UICommon/Utils';
 import { Logger } from 'UICommon/Utils';
 import { _FocusAttrs } from 'UICore/Focus';
-import * as Vdom from '../../_Utils/Vdom';
-import * as Common from '../../_Utils/Common';
-import * as RequireHelper from '../../_Utils/RequireHelper';
-import { invisibleNodeTagName } from '../../Utils';
-import { onElementMount, onElementUnmount } from '../../_Utils/ChildrenManager';
 import { Generator } from '../Generator';
-import { IGenerator } from '../IGenerator';
 import {
    Attr,
    GeneratorEmptyObject,
@@ -24,8 +17,15 @@ import {
    IControlProperties,
    ICreateControlTemplateCfg,
    IGeneratorAttrs,
+   IGenerator,
    IGeneratorConfig,
    IGeneratorDefCollection,
+   Vdom,
+   CommonUtils as Common,
+   RequireHelper,
+   invisibleNodeTagName,
+   onElementMount,
+   onElementUnmount,
    IPrepareDataForCreate,
    TAttributes,
    TDeps,

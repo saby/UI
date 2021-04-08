@@ -1,6 +1,6 @@
 import {Control, TemplateFunction} from 'UICore/Base';
 // @ts-ignore
-import * as template from 'wml!UIDemo/ReactDemo/WasabyReactivity/Primitive';
+import * as template from 'wml!UICore/ReactDemo/WasabyReactivity/Primitive';
 
 export default class Primitive extends Control {
     protected _template: TemplateFunction = template;

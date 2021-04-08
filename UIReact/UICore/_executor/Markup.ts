@@ -17,9 +17,9 @@ function Text(config: IGeneratorConfig): IGenerator {
    }
    return _text;
 }
-function Vdom(config: IGeneratorConfig): IGenerator {
+function Vdom(config?: IGeneratorConfig): IGenerator {
    if (!_vdom) {
-      _vdom = new GeneratorVdom(config);
+      _vdom = new GeneratorVdom();
    }
    return _vdom;
 }

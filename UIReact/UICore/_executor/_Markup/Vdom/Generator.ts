@@ -5,24 +5,24 @@ import {
    RequireHelper,
    onElementMount,
    onElementUnmount,
-   _ForExecutorCompatible,
-   _IGeneratorType as IGT
-} from 'UICore/Executor';
+   IGenerator,
+   Attr,
+   ConfigResolver,
+   Scope,
+   plainMerge,
+   Helper,
+   IGeneratorNameObject
+} from 'UICommon/Executor';
 import { convertAttributes, WasabyAttributes } from './Attributes';
 import { WasabyContextManager } from 'UICore/Contexts';
 import { IWasabyEvent, IWasabyEventSystem } from 'UICommon/Events';
 import { setEventHook } from 'UICore/Events';
 
-import { Control, IControlOptions, TemplateFunction } from 'UICore/Base';
+import { Control, TemplateFunction } from 'UICore/Base';
+import { IControlOptions } from 'UICommon/interfaces';
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate} from './interfaces';
 
-import * as Attr from '../../_Expressions/Attr';
-import * as ConfigResolver from '../../_Utils/ConfigResolver';
-import * as Scope from '../../_Expressions/Scope';
-import {plainMerge} from '../../_Utils/Common';
-import * as Helper from '../../_Markup/Helper';
-
-export class GeneratorReact {
+export class GeneratorVdom implements IGenerator {
    prepareDataForCreate(tplOrigin: TemplateOrigin,
       scope: IControlOptions,
       attrs: IGeneratorAttrs,
@@ -440,8 +440,8 @@ function logResolverError(tpl: TemplateOrigin, parent: Control<IControlOptions>)
       let errorText = 'Ошибка в шаблоне! ';
       if (Common.isLibraryModule(tpl)) {
          errorText += `Контрол не найден в библиотеке.
-                Библиотека: ${(tpl as IGT.IGeneratorNameObject).library}.
-                Контрол: ${(tpl as IGT.IGeneratorNameObject).module}`;
+                Библиотека: ${(tpl as IGeneratorNameObject).library}.
+                Контрол: ${(tpl as IGeneratorNameObject).module}`;
       } else {
          errorText += `Неверное значение в ws:partial. Шаблон: ${tpl} имеет тип ${typeof tpl}`;
       }

@@ -1,6 +1,6 @@
-import { Control } from 'UIReact/UICore/Base';
+import { Control } from 'UICore/Base';
 // @ts-ignore
-import * as template from 'wml!UIDemo/ReactEventDemo/WasabyOnTop/ReactInWasaby';
+import * as template from 'wml!UICore/ReactDemo/ReactEventDemo/WasabyOnTop/ReactInWasaby';
 
 export default class ReactInWasaby extends Control {
     protected _template = template;

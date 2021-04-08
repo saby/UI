@@ -1,4 +1,4 @@
-/// <amd-module name="UICore/_executor/_Expressions/Scope" />
+/// <amd-module name="UICommon/_executor/_Expressions/Scope" />
 /* tslint:disable */
 /**
  * @author Тэн В.А.
