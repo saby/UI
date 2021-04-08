@@ -250,7 +250,12 @@ export function mergeAttrs(attr1, attr2) {
          // children key value should be always preferable over parent
          } else if (name === 'key') {
             finalAttr.key = attr2[name];
-         } else {
+         } else if (name === 'alt') {
+            // для тега img следуют всегда оставлять переданный alt
+            // чтобы в случае неуспешной загрузки по основному пути вывести значение из alt
+            // если просто удалить alt, то получим пустую иконку
+            finalAttr.alt = attr2[name];
+         }else {
             if (!finalAttr.hasOwnProperty(name)) {
                if (attr2[name]) {
                   finalAttr[name] = attr2[name];
