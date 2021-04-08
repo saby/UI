@@ -11,12 +11,13 @@ import {
     DOMEnvironment,
     Environment,
     Hooks,
-    SyntheticEvent,
     VdomMarkup,
     _MountMethodsCaller,
     Functional,
     Monad
 } from 'UICore/Vdom';
+
+import { SyntheticEvent } from 'UICommon/Events';
 
 export { 
     Synchronizer,
