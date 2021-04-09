@@ -19,7 +19,7 @@ import { OptionsResolver } from 'UICommon/Executor';
 
 import { WasabyEvents, callNotify } from 'UICore/Events';
 import { IWasabyEventSystem } from 'UICommon/Events';
-import { TIState, IControlOptions } from 'UICommon/interfaces';
+import { TIState, IControlOptions, IControlChildren } from 'UICommon/interfaces';
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
@@ -35,7 +35,7 @@ export default class Control<TOptions extends IControlOptions = {},
     /**
      * Набор детей контрола, для которых задан атрибут name.
      */
-    protected _children: Record<string, Element | Control> = {};
+    protected _children: IControlChildren;
     /**
      * Шаблон контрола.
      */
