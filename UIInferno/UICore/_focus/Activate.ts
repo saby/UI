@@ -66,6 +66,10 @@ export function activate(
          const outerControlNode = autofocusElem.controlNodes[autofocusElem.controlNodes.length - 1];
          return outerControlNode.control.activate(cfg);
       }
+      // если среди найденных есть ws3-контрол, мы должны его сфокусировать
+      if (autofocusElem && autofocusElem.wsControl && autofocusElem.wsControl.canAcceptFocus()){
+         return autofocusElem.wsControl.setActive(true);
+      }
    }
 
    // если не получилось найти по автофокусу, поищем первый элемент по табиндексам и сфокусируем его.
