@@ -6,4 +6,12 @@ import {
 /**
  * @author Тэн В.А.
  */
-export class GeneratorText implements IGenerator {}
+export class GeneratorText implements IGenerator {
+   createText(value: string): string {
+      return value;
+   }
+
+   createDirective(value: string): string {
+      return '<' + value + '>';
+   }
+}
