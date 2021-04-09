@@ -68,8 +68,8 @@ export default class Control<TOptions extends IControlOptions = {},
      */
     static eventSystem: IWasabyEventSystem;
 
-    protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): void {
-        callNotify(Control.eventSystem, this as Control, eventName, args, options);
+    protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
+        return callNotify(Control.eventSystem, this as Control, eventName, args, options);
     }
     
     activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
@@ -78,6 +78,9 @@ export default class Control<TOptions extends IControlOptions = {},
 
     // несогласованное API, но используется в engine, и пока нужно для сборки UIReact
     deactivate(): void {}
+
+    // Пока много где объявлен, его отсуствие вызывает ошибки ts. Удалить после отказа.
+    protected _container: HTMLElement;
 
     constructor(props: TOptions, context?: IWasabyContextValue) {
         super(props);
