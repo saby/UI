@@ -211,8 +211,8 @@ export interface IBuilderScope extends IControlData {
    key: string
 }
 
-export interface ITplFunction {
-   func: Function
+export interface ITplFunction<T = Function> {
+   func: T
 }
 
 // Опции для ноды в слое совместимости
