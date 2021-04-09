@@ -87,7 +87,7 @@ export default class MountMethodsCaller {
         }
     }
 
-    private componentAfterRenderProcess(controlNode: IControlNode, control: Control): void {
+    private componentDidUpdateProcess(controlNode: IControlNode, control: Control): void {
         // tslint:disable-next-line:ban-ts-ignore
         // @ts-ignore
         if (control._destroyed) {
@@ -96,10 +96,21 @@ export default class MountMethodsCaller {
         try {
             // tslint:disable-next-line:ban-ts-ignore
             // @ts-ignore
-            if (typeof control._afterRender === 'function') {
+            // TODO: remove it
+            if (typeof control.__afterRender === 'function') {
                 // tslint:disable-next-line:ban-ts-ignore
                 // @ts-ignore
-                control._afterRender(
+                control.__afterRender(
+                   controlNode.oldOptions || controlNode.options,
+                   controlNode.context
+                );
+            }
+            // tslint:disable-next-line:ban-ts-ignore
+            // @ts-ignore
+            if (typeof control._componentDidUpdate === 'function') {
+                // tslint:disable-next-line:ban-ts-ignore
+                // @ts-ignore
+                control._componentDidUpdate(
                    controlNode.oldOptions || controlNode.options,
                    controlNode.context
                 );
@@ -168,7 +179,7 @@ export default class MountMethodsCaller {
                 Logger.error(`Хук "_beforePaint" был удален.
                 Вместо него следует использовать:
                 _componentDidMount - вызывается после монтирования контрола в DOM
-                _componentAfterRender - вызывается после каждого обновления DOM`, control);
+                _componentDidUpdate - вызывается после каждого обновления DOM`, control);
             }
         }
     }
@@ -200,14 +211,14 @@ export default class MountMethodsCaller {
     }
 
     /**
-     * Запускает вызов _afterRedner для каждого элемента массива controlNodes,
+     * Запускает вызов _componentDidUpdate для каждого элемента массива controlNodes,
      * если в массиве встречается еще не замаунченный контрол,
      * то для него вызывается _componentDidMount.
-     * Вызов _componentAfterRender/_componentDidMount происходит синхронно.
-     * @function UICore/_vdom/Synchronizer/resources/MountMethodsCaller#componentAfterRender
+     * Вызов _componentDidUpdate/_componentDidMount происходит синхронно.
+     * @function UICore/_vdom/Synchronizer/resources/MountMethodsCaller#componentDidUpdate
      * @param controlNodes Массив контрол нод.
      */
-    componentAfterRender: TMountMethod = (controlNodes: IControlNode[]) => {
+    componentDidUpdate: TMountMethod = (controlNodes: IControlNode[]) => {
         for (let i = 0; i < controlNodes.length; i++) {
             const controlNode: IControlNode = controlNodes[i];
             const control: Control = controlNode.control;
@@ -222,7 +233,7 @@ export default class MountMethodsCaller {
                     this.componentDidMountProcess(controlNode, control);
                 }
             } else {
-                this.componentAfterRenderProcess(controlNode, control);
+                this.componentDidUpdateProcess(controlNode, control);
             }
             onEndLifecycle(controlNode);
         }
