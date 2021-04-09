@@ -11,7 +11,7 @@ import {
    Scope,
    plainMerge,
    Helper,
-   IGeneratorNameObject
+   IGeneratorNameObject, ITplFunction
 } from 'UICommon/Executor';
 import { convertAttributes, WasabyAttributes } from './Attributes';
 import { WasabyContextManager } from 'UICore/Contexts';
@@ -221,6 +221,12 @@ export class GeneratorVdom implements IGenerator {
       if (typeof tpl === 'function') {
          return resolveTemplateFunction(parent, tpl, preparedScope, decorAttribs);
       }
+      // content option - в определенном способе использования контентная опция может представлять собой объект
+      // со свойством func, в котором и лежит функция контентной опции. Демка UITest/MarkupSpecification/resolver/Top
+      if (typeof tpl.func === 'function') {
+         return resolveTemplateFunction(parent, tpl.func, preparedScope, decorAttribs);
+      }
+
       // Common.ITemplateArray - массив шаблонов, может например прилететь,
       // если в контентной опции несколько корневых нод
       if (Common.isTemplateArray<TemplateFunction>(tpl)) {
@@ -386,11 +392,11 @@ function resolveTpl(tpl: TemplateOrigin,
 
 function resolveTemplateArray(
     parent: Control<IControlOptions>,
-    templateArray: Common.ITemplateArray<TemplateFunction>,
+    templateArray: Common.ITemplateArray<TemplateFunction | ITplFunction<TemplateFunction>>,
     resolvedScope: IControlOptions,
     decorAttribs: IGeneratorAttrs): TemplateResult[] {
    let result = [];
-   templateArray.forEach((template: Function) => {
+   templateArray.forEach((template: TemplateFunction | ITplFunction<TemplateFunction>) => {
       const resolvedTemplate = resolveTemplate(template, parent, resolvedScope, decorAttribs);
       if (Array.isArray(resolvedTemplate)) {
          result = result.concat(resolvedTemplate);
@@ -401,13 +407,15 @@ function resolveTemplateArray(
    return result;
 }
 
-function resolveTemplate(template: Function,
+function resolveTemplate(template: TemplateFunction | ITplFunction<TemplateFunction>,
     parent: Control<IControlOptions>,
     resolvedScope: IControlOptions,
     decorAttribs: IGeneratorAttrs): TemplateResult {
    let resolvedTemplate;
    if (typeof template === 'function') {
       resolvedTemplate = resolveTemplateFunction(parent, template, resolvedScope, decorAttribs);
+   } else if (typeof template.func === 'function') {
+      resolvedTemplate = resolveTemplateFunction(parent, template.func, resolvedScope, decorAttribs);
    } else {
       resolvedTemplate = template;
    }
@@ -425,7 +433,7 @@ function resolveTemplate(template: Function,
 }
 
 function resolveTemplateFunction(parent: Control<IControlOptions>,
-    template: Function,
+    template: TemplateFunction,
     resolvedScope: IControlOptions,
     decorAttribs: IGeneratorAttrs): TemplateResult {
    if (Common.isAnonymousFn(template)) {
@@ -449,7 +457,7 @@ function logResolverError(tpl: TemplateOrigin, parent: Control<IControlOptions>)
    }
 }
 
-function anonymousFnError(fn: Function, parent: Control<IControlOptions>): void {
+function anonymousFnError(fn: TemplateFunction, parent: Control<IControlOptions>): void {
    Logger.error(`Ошибка построения разметки. Была передана функция, которая не является шаблонной.
                Функция: ${fn.toString()}`, parent);
 }
