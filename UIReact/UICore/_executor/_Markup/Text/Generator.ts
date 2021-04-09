@@ -1,5 +1,6 @@
 /// <amd-module name="UICore/_executor/_Markup/Text/Generator" />
 import {
+   CommonUtils,
    IGenerator
 } from 'UICommon/Executor';
 
@@ -13,5 +14,9 @@ export class GeneratorText implements IGenerator {
 
    createDirective(value: string): string {
       return '<' + value + '>';
+   }
+
+   escape(value: string): string {
+      return CommonUtils.escape(value);
    }
 }
