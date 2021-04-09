@@ -447,6 +447,11 @@ function logResolverError(tpl: TemplateOrigin, parent: Control<IControlOptions>)
       }
       Logger.error(errorText, parent);
    }
+   if (typeof tpl === 'string' && tpl.split('!')[0] === 'wml'){
+      // если у нас тут осталась строка то проверим не путь ли это до шаблона
+      // если это так, значит мы не смогли построить контрол, т.к. указан не существующий шаблон
+      Logger.error('Ошибка при построение контрола. Проверьте существует ли шаблон ' + tpl, parent);
+   }
 }
 
 function anonymousFnError(fn: Function, parent: Control<IControlOptions>): void {
