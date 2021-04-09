@@ -51,7 +51,7 @@ export function createWsConfig(cfg: IHeadOptions): void {
          `product: '${product}',`,
          `reactApp: ${cfg.reactApp || false}`,
          '};',
-         cfg.buildnumber ? `window.buildnumber = '${cfg.buildnumber || constants.buildnumber}';` : '',
+          cfg.buildnumber ? `window.buildnumber = '${cfg.buildnumber || constants.buildnumber}';` : '',
          `window['X-UNIQ-ID'] = '${getConfig('X-UNIQ-ID') || ''}';`,
          `window['X-REQUESTUUID'] = '${getConfig('X-REQUESTUUID') || ''}';`,
          preInitScript ? preInitScript : ''
@@ -61,7 +61,9 @@ export function createWsConfig(cfg: IHeadOptions): void {
 
 function getStaticDomains(cfg: IHeadOptions): string {
    const appData = AppData.getAppData();
+    const hel = 'some';
    let staticDomains: string;
+
 
    // @ts-ignore
    staticDomains = cfg.staticDomains || appData.staticDomains || constants.staticDomains || '[]';
