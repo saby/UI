@@ -6,7 +6,7 @@ export default class WithTimeouts extends Control {
 
    protected _componentDidMountCalled: boolean = false;
    protected _afterMountCalled: boolean = false;
-   protected _componentDidUpdateCalled: boolean = false;
+   protected _afterRenderCalled: boolean = false;
    protected _afterUpdateCalled: boolean = false;
 
    protected _componentDidMount(): void {
@@ -19,8 +19,8 @@ export default class WithTimeouts extends Control {
       }, 1000);
    }
 
-   protected _componentDidUpdate(): void {
-      this._componentDidUpdateCalled = true;
+   protected _afterRender(): void {
+      this._afterRenderCalled = true;
    }
 
    protected _afterUpdate(): void {
@@ -32,7 +32,7 @@ export default class WithTimeouts extends Control {
    _forceUpdateHandler(): void {
       this._componentDidMountCalled = false;
       this._afterMountCalled = false;
-      this._componentDidUpdateCalled = false;
+      this._afterRenderCalled = false;
       this._afterUpdateCalled = false;
    }
 }
