@@ -79,6 +79,11 @@ export default class Control<TOptions extends IControlOptions = {},
     // несогласованное API, но используется в engine, и пока нужно для сборки UIReact
     deactivate(): void {}
 
+    // Пока что просто для сохрания API в ts. Возможно, нужна будет реализация. Метод используется в роутинге.
+    getInstanceId(): string {
+       return '';
+    }
+
     // Пока много где объявлен, его отсуствие вызывает ошибки ts. Удалить после отказа.
     protected _container: HTMLElement;
 
