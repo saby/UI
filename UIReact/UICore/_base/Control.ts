@@ -45,7 +45,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * ВАЖНО: значения могут не совпадать с props в некоторые моменты времени,
      * чтобы в хуках были правильные значения.
      */
-    _options: TOptions = {} as TOptions;
+    protected _options: TOptions = {} as TOptions;
 
     /**
      * Версии опций для версионируемых объектов.
@@ -72,9 +72,12 @@ export default class Control<TOptions extends IControlOptions = {},
         callNotify(Control.eventSystem, this as Control, eventName, args, options);
     }
     
-    protected activate(): void {
-        
+    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
+        return false;
     }
+
+    // несогласованное API, но используется в engine, и пока нужно для сборки UIReact
+    deactivate(): void {}
 
     constructor(props: TOptions, context?: IWasabyContextValue) {
         super(props);
