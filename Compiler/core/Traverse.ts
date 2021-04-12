@@ -66,6 +66,11 @@ export interface ITraverseConfig {
     * Warn about empty component content if component tag was not self-closing.
     */
    warnEmptyComponentContent?: boolean;
+
+   /**
+    * The template has references to inline-templates that defined in other file.
+    */
+   hasExternalInlineTemplates?: boolean;
 }
 
 /**
@@ -644,6 +649,11 @@ class Traverse implements ITraverse {
    private readonly warnEmptyComponentContent: boolean;
 
    /**
+    * The template has references to inline-templates that defined in other file.
+    */
+   private readonly hasExternalInlineTemplates: boolean;
+
+   /**
     * Mustache-expressions validator.
     */
    private readonly expressionValidator: IValidator;
@@ -674,6 +684,7 @@ class Traverse implements ITraverse {
       });
       this.textTranslator = config.textTranslator;
       this.warnEmptyComponentContent = !!config.warnEmptyComponentContent;
+      this.hasExternalInlineTemplates = !!config.hasExternalInlineTemplates;
    }
 
    /**
@@ -2843,7 +2854,7 @@ class Traverse implements ITraverse {
       }
       // TODO: Validate inline template name
       const inlineTemplate = new Ast.InlineTemplateNode(template, attributes.attributes, attributes.events, attributes.options);
-      if (!context.scope.hasTemplate(template)) {
+      if (!this.hasExternalInlineTemplates && !context.scope.hasTemplate(template)) {
          throw new Error(`шаблон с именем "${template}" не был определен`);
       }
       return inlineTemplate;

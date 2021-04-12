@@ -633,9 +633,11 @@ export class InternalVisitor implements Ast.IAstVisitor {
      */
     visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): void {
         const childContainer = this.processComponent(node, context);
-        const template = context.scope.getTemplate(node.__$ws_name);
-        const identifiers = collectInlineTemplateIdentifiers(node);
-        childContainer.joinContainer(template.__$ws_container, identifiers);
+        if (context.scope.hasTemplate(node.__$ws_name)) {
+            const template = context.scope.getTemplate(node.__$ws_name);
+            const identifiers = collectInlineTemplateIdentifiers(node);
+            childContainer.joinContainer(template.__$ws_container, identifiers);
+        }
         childContainer.desc = `<ws:partial> @@ inline "${node.__$ws_name}"`;
         node.__$ws_internalTree = childContainer.getInternalStructure();
         node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
