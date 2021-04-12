@@ -1,5 +1,5 @@
 // tslint:disable:no-any
-import { _IGeneratorType } from 'UICore/Executor';
+import { IGeneratorConfig } from 'UICommon/Executor';
 import { _FocusAttrs } from 'UICore/Focus';
 import { cookie } from 'Env/Env';
 import {isNewEnvironment} from 'UI/Utils';
@@ -51,7 +51,7 @@ function bindToAttribute(): string {
    return _bindToAttribute;
 }
 
-function getGeneratorConfig(): _IGeneratorType.IGeneratorConfig {
+function getGeneratorConfig(): IGeneratorConfig {
    if (bindToAttribute() === 'true') {
       _generatorConfig.prepareAttrsForPartial = prepareAttrsForPartial2;
    }

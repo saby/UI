@@ -7,7 +7,6 @@ interface IFocusElementProps {
    tabCycling: boolean;
 }
 
-import HTML from 'UI/_base/HTML';
 import { Control } from 'UICore/Base';
 
 // TODO: заменить экспорт во время реализации системы фокусов для Реакта.
@@ -48,6 +47,7 @@ export function focus(
    throw new Error('Метод focus ещё не реализован в системе фокусов для Реакта');
 }
 
+// TODO: заменить экспорт во время реализации системы фокусов для Реакта.
 export const _FocusAttrs = {
    prepareAttrsForFocus(attributes: Record<string, string>): void {
       throw new Error('Метод _FocusAttrs.prepareAttrsForFocus ещё не реализован в системе фокусов для Реакта');
@@ -82,6 +82,7 @@ export function activate(
 
 export { goUpByControlTree } from 'UICore/NodeCollector';
 
+// TODO: заменить экспорт во время реализации системы фокусов для Реакта.
 export const DefaultOpenerFinder = {
    find(control: Control | HTMLElement | HTMLElement[]): Control {
       throw new Error('Метод DefaultOpenerFinder.find ещё не реализован в системе фокусов для Реакта');

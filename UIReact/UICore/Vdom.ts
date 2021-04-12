@@ -1,14 +1,18 @@
-export {
-    empty as Synchronizer,
-    empty as Debug,
-    empty as createInstance,
-    empty as DirtyChecking,
-    empty as DirtyCheckingCompatible,
-    empty as DOMEnvironment,
-    empty as Environment,
-    empty as Hooks,
-    empty as VdomMarkup,
-    empty as _MountMethodsCaller,
-    empty as Functional,
-    empty as Monad
-} from 'UICommon/Empty';
+import { Control } from 'UICore/Base';
+import { IOptions } from 'UICommon/Vdom';
+import { IRootAttrs } from 'UICommon/interfaces';
+
+// TODO: удалить экспорт после замены всех использований.
+export const Synchronizer = {
+    mountControlToDOM(
+        control: Control,
+        options: IOptions,
+        mountPoint: HTMLElement,
+        attributes: IRootAttrs
+    ): void {
+        throw new Error('В сборке на Реакте нет метода mountControlToDOM, нужно использовать createControl');
+    },
+    unMountControlFromDOM(control: Control, element: HTMLElement | HTMLElement[]): void {
+        throw new Error('В сборке на Реакте нет метода unMountControlFromDOM, нужно реализовать в другом месте');
+    }
+};
