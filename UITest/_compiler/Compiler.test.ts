@@ -127,4 +127,49 @@ describe('Compiler/Compiler', () => {
             done(artifact.errors.pop());
          });
    });
+   it('hasExternalInlineTemplates = false', (done) => {
+      const html = '<ws:partial template="inlineTemplate" />';
+      let options = {
+         fileName: 'Compiler/Compiler/Template.wml',
+         fromBuilderTmpl: true,
+         hasExternalInlineTemplates: false
+      };
+      compiler.compile(html, options)
+          .then(function() {
+             done(new Error('Must be broken'));
+             done();
+          })
+          .catch(function(artifact) {
+             try {
+                assert.isFalse(artifact.stable);
+                assert.strictEqual(artifact.nodeName, 'wml!Compiler/Compiler/Template');
+                assert.strictEqual(artifact.errors[0].message, 'Template Compiler: Ошибка разбора директивы "ws:partial": шаблон с именем "inlineTemplate" не был определен. Строка: 1, столбец: 13');
+                done();
+             } catch (error) {
+                done(error);
+             }
+          });
+   });
+   it('hasExternalInlineTemplates = true', (done) => {
+      const html = '<ws:partial template="inlineTemplate" />';
+      let options = {
+         fileName: 'Compiler/Compiler/Template.wml',
+         fromBuilderTmpl: true,
+         hasExternalInlineTemplates: true
+      };
+      compiler.compile(html, options)
+          .then(function(artifact) {
+             try {
+                assert.isTrue(artifact.stable);
+                assert.strictEqual(artifact.nodeName, 'wml!Compiler/Compiler/Template');
+                assert.strictEqual(typeof artifact.text, 'string');
+                done();
+             } catch (error) {
+                done(error);
+             }
+          })
+          .catch(function(artifact) {
+             done(artifact.errors.pop());
+          });
+   });
 });
