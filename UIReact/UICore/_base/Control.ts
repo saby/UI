@@ -19,7 +19,7 @@ import { OptionsResolver } from 'UICommon/Executor';
 
 import { WasabyEvents, callNotify } from 'UICore/Events';
 import { IWasabyEventSystem } from 'UICommon/Events';
-import { TIState, IControlOptions } from 'UICommon/interfaces';
+import { TIState, IControlOptions, IControlChildren } from 'UICommon/interfaces';
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
@@ -35,7 +35,7 @@ export default class Control<TOptions extends IControlOptions = {},
     /**
      * Набор детей контрола, для которых задан атрибут name.
      */
-    protected _children: Record<string, Element | Control> = {};
+    protected _children: IControlChildren;
     /**
      * Шаблон контрола.
      */
@@ -45,7 +45,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * ВАЖНО: значения могут не совпадать с props в некоторые моменты времени,
      * чтобы в хуках были правильные значения.
      */
-    _options: TOptions = {} as TOptions;
+    protected _options: TOptions = {} as TOptions;
 
     /**
      * Версии опций для версионируемых объектов.
@@ -67,9 +67,20 @@ export default class Control<TOptions extends IControlOptions = {},
         return callNotify(this, eventName, args, options);
     }
     
-    protected activate(): void {
-        
+    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
+        return false;
     }
+
+    // несогласованное API, но используется в engine, и пока нужно для сборки UIReact
+    deactivate(): void {}
+
+    // Пока что просто для сохрания API в ts. Возможно, нужна будет реализация. Метод используется в роутинге.
+    getInstanceId(): string {
+       return '';
+    }
+
+    // Пока много где объявлен, его отсуствие вызывает ошибки ts. Удалить после отказа.
+    protected _container: HTMLElement;
 
     constructor(props: TOptions, context?: IWasabyContextValue) {
         super(props);
