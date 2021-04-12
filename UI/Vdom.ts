@@ -3,13 +3,15 @@
 import { Options as _Options } from 'UICommon/Vdom';
 
 import {
-    Synchronizer
+    Synchronizer,
+    Debug
 } from 'UICore/Vdom';
 
 import { SyntheticEvent } from 'UICommon/Events';
 
 export { 
     Synchronizer,
+    Debug,
     SyntheticEvent,
     _Options
 };
