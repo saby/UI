@@ -2,7 +2,7 @@
 
 import { Set } from 'Types/shim';
 import { IVersionable } from 'Types/entity';
-import { IControlOptions } from 'UICommon/interfaces';
+import { IControlOptions } from 'UICommon/Base';
 
 export interface IVersionableArray {
    getArrayVersion?(): number;

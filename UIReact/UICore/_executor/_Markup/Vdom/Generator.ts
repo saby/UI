@@ -19,7 +19,7 @@ import { IWasabyEvent, IWasabyEventSystem } from 'UICommon/Events';
 import { setEventHook } from 'UICore/Events';
 
 import { Control, TemplateFunction } from 'UICore/Base';
-import { IControlOptions } from 'UICommon/interfaces';
+import { IControlOptions } from 'UICommon/Base';
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate} from './interfaces';
 
 export class GeneratorVdom implements IGenerator {
@@ -446,6 +446,11 @@ function logResolverError(tpl: TemplateOrigin, parent: Control<IControlOptions>)
          errorText += `Неверное значение в ws:partial. Шаблон: ${tpl} имеет тип ${typeof tpl}`;
       }
       Logger.error(errorText, parent);
+   }
+   if (typeof tpl === 'string' && tpl.split('!')[0] === 'wml'){
+      // если у нас тут осталась строка то проверим не путь ли это до шаблона
+      // если это так, значит мы не смогли построить контрол, т.к. указан не существующий шаблон
+      Logger.error('Ошибка при построение контрола. Проверьте существует ли шаблон ' + tpl, parent);
    }
 }
 

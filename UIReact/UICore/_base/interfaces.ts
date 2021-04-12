@@ -10,12 +10,6 @@ export type TemplateFunction = (
    generatorConfig?: _IGeneratorType.IGeneratorConfig
 ) => string | object;
 
-export interface IControlOptions {
-   readOnly?: boolean;
-   theme?: string;
-   name?: string;
-}
-
 export interface IControlState {
    loading: boolean;
    observableVersion: number;
