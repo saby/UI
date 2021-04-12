@@ -1,6 +1,7 @@
 /// <amd-module name="UICore/_executor/_Markup/Text/Generator" />
 import {
    CommonUtils,
+   GeneratorStringArray,
    IGenerator
 } from 'UICommon/Executor';
 import { IControlOptions } from 'UICommon/interfaces';
@@ -43,5 +44,12 @@ export class GeneratorText implements IGenerator {
 
    createControlNew(): string {
       return '<div></div>';
+   }
+
+   joinElements(elements: GeneratorStringArray): string {
+      if (Array.isArray(elements)) {
+         return (elements as string[])[0];
+      }
+      return '';
    }
 }
