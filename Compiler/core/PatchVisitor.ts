@@ -853,9 +853,14 @@ class PatchVisitor implements Ast.IAstVisitor {
       node.originName = `ws:partial`;
       // @ts-ignore
       node.type = 'tag';
-      const inlineTemplate = context.scope.getTemplate(node.__$ws_name);
       // @ts-ignore
-      node.children = inlineTemplate.__$ws_content;
+      node.children = [];
+      if (context.scope.hasTemplate(node.__$ws_name)) {
+         // If template was processed with option hasExternalInlineTemplates
+         const inlineTemplate = context.scope.getTemplate(node.__$ws_name);
+         // @ts-ignore
+         node.children = inlineTemplate.__$ws_content;
+      }
       const innerContext: INavigationContext = {
          ...context,
          currentKey: ''

@@ -74,7 +74,8 @@ define('Compiler/core/bridge', [
          generateTranslations: (
             (USE_GENERATE_CODE_FOR_TRANSLATIONS && !!options.generateCodeForTranslations) ||
             !USE_GENERATE_CODE_FOR_TRANSLATIONS
-         )
+         ),
+         hasExternalInlineTemplates: options.hasExternalInlineTemplates
       };
       var traverseOptions = {
          fileName: options.fileName,
