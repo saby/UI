@@ -1,55 +1,58 @@
 /// <amd-module name="UICore/_executor/_Markup/Text/Generator" />
 import {
-   CommonUtils,
-   GeneratorStringArray,
+   TScope,
    IGenerator
 } from 'UICommon/Executor';
-import { IControlOptions } from 'UICommon/interfaces';
 
 /**
  * @author Тэн В.А.
  */
 export class GeneratorText implements IGenerator {
-   createText(text: string): string {
-      return text;
+   // TODO: Реализовать метод, пока что временная заглушка
+   createText(): string {
+      return '';
    }
 
-   createDirective(text: string): string {
-      return '<' + text + '>';
+   // TODO: Реализовать метод, пока что временная заглушка
+   createDirective(): string {
+      return '';
    }
 
-   escape(value: string): string {
-      return CommonUtils.escape(value);
+   // TODO: Реализовать метод, пока что временная заглушка
+   escape(): string {
+      return '';
    }
 
-   createComment(text: string): string {
-      return '<!--' + text + '-->';
+   // TODO: Реализовать метод, пока что временная заглушка
+   createComment(): string {
+      return '';
    }
 
-   createTag(tag: string): string {
-      return this.createDirective(tag);
+   // TODO: Реализовать метод, пока что временная заглушка
+   createTag(): string {
+      return '';
    }
 
-   getScope(data: any): any {
+   // TODO: Реализовать метод, пока что временная заглушка
+   getScope(data: TScope | Error): TScope | Error {
       return data;
    }
 
-   prepareDataForCreate(): IControlOptions {
-      return undefined;
-   }
+   // TODO: Реализовать метод, пока что временная заглушка
+   prepareDataForCreate(): void {}
 
+   // TODO: Реализовать метод, пока что временная заглушка
    createControl(): string {
-      return '<div></div>';
+      return '';
    }
 
+   // TODO: Реализовать метод, пока что временная заглушка
    createControlNew(): string {
-      return '<div></div>';
+      return '';
    }
 
-   joinElements(elements: GeneratorStringArray): string {
-      if (Array.isArray(elements)) {
-         return (elements as string[])[0];
-      }
+   // TODO: Реализовать метод, пока что временная заглушка
+   joinElements(): string {
       return '';
    }
 }
