@@ -1,7 +1,6 @@
 export {
     default as Control,
-    TemplateFunction,
-    IControlChildren
+    TemplateFunction
 } from './_base/Control';
 
 export { getGeneratorConfig } from './_base/GeneratorConfig';

@@ -19,7 +19,7 @@ import { IWasabyEvent, IWasabyEventSystem } from 'UICommon/Events';
 import { setEventHook } from 'UICore/Events';
 
 import { Control, TemplateFunction } from 'UICore/Base';
-import { IControlOptions } from 'UICommon/interfaces';
+import { IControlOptions } from 'UICommon/Base';
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate} from './interfaces';
 
 export class GeneratorVdom implements IGenerator {
