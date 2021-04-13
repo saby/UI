@@ -2,7 +2,7 @@
 define([
    'UICore/Focus',
    'UICore/Base',
-   'UICore/Utils',
+   'UICommon/Utils',
    'Env/Env',
    'UICore/_focus/ElementFinder',
    'UICore/_focus/_ResetScrolling',
