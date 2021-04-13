@@ -1,5 +1,5 @@
 import { Control, IControlOptions, TemplateFunction } from 'UI/Base';
-import * as template from 'wml!UICore/ReactTest/_base/TestControl';
+import * as template from 'wml!ReactUnitTest/_base/TestControl';
 
 export interface ITestControlOptions extends IControlOptions {
     testOption?: string;
