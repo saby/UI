@@ -2,7 +2,6 @@
     "include": [
       "UICore/Base",
       "UICore/Contexts",
-      "UICore/DevtoolsHook",
       "UICore/Events",
       "UICore/Executor",
       "UICore/Focus",

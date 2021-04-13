@@ -19,14 +19,12 @@ import { getThemeController, EMPTY_THEME } from 'UICommon/theme/controller';
 import { ReactiveObserver } from 'UICore/Reactivity';
 
 import startApplication from './startApplication';
-import { getProxyChildren } from 'UICommon/Base';
+import { getProxyChildren, IControlOptions, IControlChildren } from 'UICommon/Base';
 
 import { DisposeControl, IResourceDisposable } from 'Application/State';
 
 import {
-   IControlOptions,
    TIState,
-   IControlChildren,
    TControlConfig,
    ITemplateAttrs,
    TControlConstructor

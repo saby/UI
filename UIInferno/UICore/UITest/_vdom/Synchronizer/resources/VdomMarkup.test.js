@@ -1,7 +1,7 @@
 /* global define, describe, it, assert */
 define([
-   'UI/Vdom',
-   'UI/Executor'
+   'UICore/Vdom',
+   'UICore/Executor'
 ], (
    Vdom,
    Executor
@@ -10,7 +10,7 @@ define([
 
    var VdomMarkup = Vdom.VdomMarkup;
 
-   describe('UI/_vdom/Synchronizer/resources/VdomMarkup', () => {
+   describe('UICore/_vdom/Synchronizer/resources/VdomMarkup', () => {
       describe('getMarkupDiff', () => {
          const createTemplateNodeMock = (key, children) => ({
             key: key,
@@ -37,7 +37,7 @@ define([
          });
       });
    });
-   describe('UI/_executor/_Markup/Generator', () => {
+   describe('UICore/_executor/_Markup/Generator', () => {
       describe('chain Promise function', () => {
          let generator, out;
          beforeEach(function() {

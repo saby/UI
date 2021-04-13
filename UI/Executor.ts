@@ -5,9 +5,6 @@ import RawMarkupNode from './_executor/_Expressions/RawMarkupNode';
  */
 
 export {
-   IGeneratorVNode,
-   IGeneratorControlNode,
-   TGeneratorNode,
    TClosure,
    createGenerator // fabric method,
 } from 'UICore/Executor';

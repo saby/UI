@@ -4,7 +4,7 @@ import * as Library from 'WasabyLoader/Library';
 import { IoC, constants } from 'Env/Env';
 import { descriptor } from 'Types/entity';
 import { Control, TemplateFunction } from 'UICore/Base';
-import { IControlOptions } from 'UICommon/interfaces';
+import { IControlOptions } from 'UICommon/Base';
 import { headDataStore } from 'UI/Deps';
 import template = require('wml!UI/_async/Async');
 

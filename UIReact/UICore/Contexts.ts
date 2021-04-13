@@ -4,4 +4,3 @@ export {
     IWasabyContextValue,
     TWasabyContext
 } from './_contexts/WasabyContext';
-export { empty as ContextResolver } from 'UICommon/Empty';

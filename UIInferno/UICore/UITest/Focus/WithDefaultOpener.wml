@@ -1,0 +1,5 @@
+<div>
+   <UICore.UITest.Focus.Proxy isDefaultOpener="true" name="defaultOpener">
+      <UICore.UITest.Focus.Simple name="start" />
+   </UICore.UITest.Focus.Proxy>
+</div>

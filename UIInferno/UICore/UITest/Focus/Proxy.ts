@@ -1,7 +1,7 @@
-import {Control, TemplateFunction} from 'UI/Base';
+import {Control, TemplateFunction} from 'UICore/Base';
 
 // @ts-ignore
-import template = require('wml!UITest/Focus/Proxy');
+import template = require('wml!UICore/UITest/Focus/Proxy');
 
 class TestControl extends Control {
     _template: TemplateFunction = template;

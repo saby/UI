@@ -3,6 +3,7 @@ import { IOptions } from 'UICommon/Vdom';
 import { VNode } from 'Inferno/third-party/index';
 import { IGeneratorControlNode } from 'UICore/Executor';
 import { IWasabyEventSystem } from 'UICommon/Events';
+import { IControlOptions } from 'UICommon/Base';
 
 export type TComponentAttrs = Record<string, unknown>;
 
@@ -10,11 +11,6 @@ export type TControlId = string;
 // VdomMarkup.getDecoratedMark
 // tslint:disable: member-ordering
 
-export interface IControlOptions {
-    readOnly?: boolean;
-    theme?: string;
-    _$createdFromCode?: boolean;
-}
 export interface ITemplateAttrs {
     key?: string;
     internal?: Record<string, any>;
@@ -32,8 +28,6 @@ export type TControlConfig = IControlOptions & {
     _$createdFromCode?: boolean;
 };
 
-
-export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 interface IState {
 }
 export type TIState = void | IState;
