@@ -6,7 +6,7 @@ import * as React from 'react';
 import { IWasabyContextValue } from 'UICore/Contexts';
 import {
     Attr,
-    IGeneratorNameObject
+    IGeneratorNameObject, ITplFunction
 } from 'UICommon/Executor';
 
 /*
@@ -55,6 +55,7 @@ export interface IWasabyEvent {
 export type TemplateOrigin =
     | Common.IDefaultExport<typeof Control>
     | TemplateFunction
+    | ITplFunction<TemplateFunction>
     | IGeneratorNameObject
     | typeof Control
     | string

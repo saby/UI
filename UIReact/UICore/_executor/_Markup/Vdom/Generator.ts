@@ -223,7 +223,7 @@ export class GeneratorVdom implements IGenerator {
       }
       // content option - в определенном способе использования контентная опция может представлять собой объект
       // со свойством func, в котором и лежит функция контентной опции. Демка UITest/MarkupSpecification/resolver/Top
-      if (typeof tpl.func === 'function') {
+      if (tpl && typeof tpl.func === 'function') {
          return resolveTemplateFunction(parent, tpl.func, preparedScope, decorAttribs);
       }
 
@@ -414,7 +414,7 @@ function resolveTemplate(template: TemplateFunction | ITplFunction<TemplateFunct
    let resolvedTemplate;
    if (typeof template === 'function') {
       resolvedTemplate = resolveTemplateFunction(parent, template, resolvedScope, decorAttribs);
-   } else if (typeof template.func === 'function') {
+   } else if (template && typeof template.func === 'function') {
       resolvedTemplate = resolveTemplateFunction(parent, template.func, resolvedScope, decorAttribs);
    } else {
       resolvedTemplate = template;
