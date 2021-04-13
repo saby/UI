@@ -4,17 +4,7 @@ import { Options as _Options } from 'UICommon/Vdom';
 
 import {
     Synchronizer,
-    Debug,
-    createInstance,
-    DirtyChecking,
-    DirtyCheckingCompatible,
-    DOMEnvironment,
-    Environment,
-    Hooks,
-    VdomMarkup,
-    _MountMethodsCaller,
-    Functional,
-    Monad
+    Debug
 } from 'UICore/Vdom';
 
 import { SyntheticEvent } from 'UICommon/Events';
@@ -22,16 +12,6 @@ import { SyntheticEvent } from 'UICommon/Events';
 export { 
     Synchronizer,
     Debug,
-    createInstance,
-    DirtyChecking,
-    DirtyCheckingCompatible,
-    DOMEnvironment,
-    Environment,
-    Hooks,
     SyntheticEvent,
-    VdomMarkup,
-    _MountMethodsCaller,
-    Functional,
-    Monad,
     _Options
 };

@@ -63,8 +63,7 @@
          "^Markup",
          "^UIDemo",
          "^UITest",
-         "^WmlBuilder",
-         "^UI/DevtoolsHook"
+         "^WmlBuilder"
       ],
       "fontSize": "26px",
       "graphVizOptions": {
