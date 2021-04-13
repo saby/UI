@@ -1,3 +1,10 @@
+/**
+ * Библиотека событий
+ * @library UICommon/Events
+ * @public
+ * @author Тэн В.А.
+ */
+
 export { FastTouchEndController } from './_events/Touch/FastTouchEndController';
 export { ITouchEvent } from './_events/Touch/TouchEvents';
 export { SwipeController } from './_events/Touch/SwipeController';

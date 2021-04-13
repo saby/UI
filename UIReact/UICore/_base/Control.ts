@@ -25,7 +25,6 @@ import { IControlOptions, IControlChildren } from 'UICommon/Base';
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
  * @author Mogilevsky Ivan
- * @public
  */
 export default class Control<TOptions extends IControlOptions = {},
     TState extends TIState = void> extends Component<TOptions, IControlState> {
@@ -460,7 +459,6 @@ export default class Control<TOptions extends IControlOptions = {},
      * @param themes массив доп тем для скачивания
      * @param styles массив доп стилей для скачивания
      * @static
-     * @public
      * @method
      * @example
      * <pre class="brush: js">
@@ -510,7 +508,6 @@ export default class Control<TOptions extends IControlOptions = {},
      * Вызовет загрузку коэффициентов (CSS переменных) для тем.
      * @param {String} themeName имя темы. Например: "default", "default__cola" или "retail__light-medium"
      * @static
-     * @public
      * @method
      * @example
      * <pre>
@@ -582,7 +579,6 @@ export default class Control<TOptions extends IControlOptions = {},
      * @param instThemes массив доп тем для скачивания
      * @param instStyles массив доп стилей для скачивания
      * @static
-     * @public
      * @method
      */
     static isCSSLoaded(

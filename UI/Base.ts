@@ -1,7 +1,8 @@
 /**
  * Библиотека базового контрола
  * @library UI/Base
- * @includes Control UICore/_base/Control
+ * @includes CoreBase UICore/Base
+ * @includes CommonBase UICommon/Base
  * @includes HTML UI/_base/HTML
  * @includes Creator UI/_base/Creator
  * @includes Async UI/_async/Async
