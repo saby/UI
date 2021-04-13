@@ -1,8 +1,8 @@
-import {TemplateFunction} from 'UI/Base';
+import {TemplateFunction} from 'UICore/Base';
 import {TestBaseControl} from '../Base'
 
 // @ts-ignore
-import template = require('wml!UITest/Focus/Deactivate');
+import template = require('wml!UICore/UITest/Focus/Deactivate');
 
 class TestControl extends TestBaseControl {
     _template: TemplateFunction = template;

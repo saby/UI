@@ -2,7 +2,7 @@
 import { IGeneratorConfig } from 'UICommon/Executor';
 import { _FocusAttrs } from 'UICore/Focus';
 import { cookie } from 'Env/Env';
-import {isNewEnvironment} from 'UI/Utils';
+import {isNewEnvironment} from 'UICommon/Utils';
 
 function prepareAttrsForPartial(attributes: any): void {
    return _FocusAttrs.prepareAttrsForFocus(attributes.attributes);

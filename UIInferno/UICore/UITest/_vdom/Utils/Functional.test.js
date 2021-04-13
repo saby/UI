@@ -11,7 +11,7 @@ define([
 
    var Functional = Vdom.Functional;
 
-   describe('UI/_vdom/Utils/Functional', function () {
+   describe('UICore/_vdom/Utils/Functional', function () {
 
 
       describe('API', function() {
