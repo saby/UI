@@ -88,6 +88,11 @@ export interface IOptions {
     * TODO: Enable this option.
     */
    generateCodeForTranslations: boolean;
+
+   /**
+    * The template has references to inline-templates that defined in other file.
+    */
+   hasExternalInlineTemplates: boolean;
 }
 
 /**
@@ -114,6 +119,11 @@ export class Options implements IOptions {
     * Flag for creating translations dictionary.
     */
    readonly createResultDictionary: boolean;
+
+   /**
+    * The template has references to inline-templates that defined in other file.
+    */
+   readonly hasExternalInlineTemplates: boolean;
 
    /**
     * Translatable control options dictionary.
@@ -145,6 +155,7 @@ export class Options implements IOptions {
       this.fileName = this.modulePath.module;
       this.fromBuilderTmpl = !!options.fromBuilderTmpl;
       this.createResultDictionary = !!options.createResultDictionary;
+      this.hasExternalInlineTemplates = !!options.hasExternalInlineTemplates;
       this.componentsProperties = options.componentsProperties || { };
       this.config = options.config || Config as ITraverseOptions;
       this.isWasabyTemplate = this.modulePath.extension === 'wml';

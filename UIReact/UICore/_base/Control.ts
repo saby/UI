@@ -67,7 +67,7 @@ export default class Control<TOptions extends IControlOptions = {},
     protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
         return callNotify(this, eventName, args, options);
     }
-    
+
     activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
         return false;
     }
@@ -176,9 +176,12 @@ export default class Control<TOptions extends IControlOptions = {},
                         loading: false
                     },
                     () => {
-                        this._$controlMounted = true;
                         this._options = options;
-                        this._afterMount(options);
+                        this._componentDidMount(options);
+                        setTimeout(() => {
+                            this._afterMount(options);
+                            this._$controlMounted = true;
+                        }, 0);
                     }
                 );
             });
@@ -337,7 +340,6 @@ export default class Control<TOptions extends IControlOptions = {},
             const newOptions = createWasabyOptions(this.props, this.context);
             this._componentDidMount(newOptions);
             setTimeout(() => {
-                this._options = newOptions;
                 this._afterMount(newOptions);
             }, 0);
         }
@@ -357,13 +359,15 @@ export default class Control<TOptions extends IControlOptions = {},
     }
 
     componentDidUpdate(prevProps: TOptions): void {
-        const oldOptions = this._options;
-        this._options = createWasabyOptions(this.props, this.context);
-        this._optionsVersions = Options.collectObjectVersions(this._options);
-        this._afterRender(oldOptions);
-        setTimeout(() => {
-            this._afterUpdate(oldOptions);
-        }, 0);
+        if (this._$controlMounted) {
+            const oldOptions = this._options;
+            this._options = createWasabyOptions(this.props, this.context);
+            this._optionsVersions = Options.collectObjectVersions(this._options);
+            this._afterRender(oldOptions);
+            setTimeout(() => {
+                this._afterUpdate(oldOptions);
+            }, 0);
+        }
     }
 
     getSnapshotBeforeUpdate(): null {
