@@ -30,6 +30,11 @@ import {
    TControlConstructor
 } from 'UICommon/interfaces';
 
+/**
+ * Тип шаблон-функции
+ * @typedef UICore/_base/Control#TemplateFunction
+* @public
+ */
 export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
                                 forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
 

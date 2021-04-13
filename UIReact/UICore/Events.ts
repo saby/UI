@@ -1,10 +1,8 @@
 /**
  * Библиотека событий
- * @library UICore/Events
  * @includes WasabyEvents UICore/_events/WasabyEvents
  * @includes Notify UICore/_events/Notify
  * @includes Hooks UICore/_events/Hooks
- * @public
  * @author Тэн В.А.
  */
 
