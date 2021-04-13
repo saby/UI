@@ -48,7 +48,7 @@ export function createWsConfig(cfg: IHeadOptions): void {
          'trackErrors: true,',
          `staticDomains: ${staticDomains},`,
          `defaultServiceUrl: '${defaultServiceUrl}',`,
-         `compatible: ${cfg.compat},`,
+         `compatible: ${cfg.compat || false},`,
          `product: '${product}',`,
          `reactApp: ${cfg.reactApp || false}`,
          '};',
