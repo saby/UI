@@ -19,7 +19,7 @@ import { OptionsResolver } from 'UICommon/Executor';
 
 import { WasabyEvents, callNotify } from 'UICore/Events';
 import { IWasabyEventSystem } from 'UICommon/Events';
-import { TIState } from 'UICommon/interfaces';
+import { TIState, TControlConfig } from 'UICommon/interfaces';
 import { IControlOptions, IControlChildren } from 'UICommon/Base';
 
 /**
@@ -88,8 +88,9 @@ export default class Control<TOptions extends IControlOptions = {},
     // Пока много где объявлен, его отсуствие вызывает ошибки ts. Удалить после отказа.
     protected _container: HTMLElement;
 
-    constructor(props: TOptions, context?: IWasabyContextValue) {
-        super(props);
+    // TODO: TControlConfig добавлен для совместимости, в 3000 нужно сделать TOptions и здесь, и в UIInferno.
+    constructor(props: TOptions | TControlConfig, context?: IWasabyContextValue) {
+        super(props as TOptions);
         /*
         Если люди сами задают конструктор, то обычно они вызывают его неправильно (передают только один аргумент).
         Из-за этого контекст может потеряться и не получится в конструкторе вытащить значение из него.
