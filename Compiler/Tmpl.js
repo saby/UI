@@ -7,7 +7,7 @@ define('Compiler/Tmpl', [
    'Compiler/utils/ModulePath',
    'Compiler/html/Parser',
    'Compiler/core/Tags',
-   'Compiler/core/_deprecated/ComponentCollector'
+   'Compiler/core/deprecated/ComponentCollector'
 ], function(
    traversing,
    ErrorHandlerLib,
