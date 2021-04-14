@@ -94,13 +94,30 @@ function getTabStopState(element: IControlElement, tabbable: boolean = false): b
    return tabStopState;
 }
 
+const canHasHrefElements = ['a', 'area'];
+const canBeDisabledElements = ['input', 'textArea', 'select', 'button'];
+
+// Вычислим подходящий нашей системе фокусов табиндекс, если он не задан явно.
+function fixInvalidTabindex(element: HTMLElement, isContentEditable: boolean): number {
+   if (isContentEditable) {
+      return 0;
+   }
+   const tagName: string = element.tagName.toLowerCase();
+   if (canHasHrefElements.indexOf(tagName) !== -1) {
+      return element.getAttribute('href') ? 0 : -1;
+   }
+   if (canBeDisabledElements.indexOf(tagName) !== -1) {
+      return element.getAttribute('disabled') === null ? 0 : -1;
+   }
+   return -1;
+}
+
 export function getElementProps(element: HTMLElement, tabbable: boolean = false): IFocusElementProps {
    let elementPropsClassRe = /\bws-(hidden|disabled)\b/g;
    let className = element.getAttribute('class');
    let classes;
    let tabIndex;
    let tabIndexAttr;
-   let validTabIndex;
    let isContentEditable;
    let flags;
    let enabled;
@@ -129,16 +146,18 @@ export function getElementProps(element: HTMLElement, tabbable: boolean = false)
    if (enabled) {
       tabIndexAttr = element.getAttribute('tabindex');
       tabIndex = parseInt(tabIndexAttr, 10);
-      validTabIndex = !isNaN(tabIndex);
       isContentEditable = element.getAttribute('contenteditable') === 'true';
+      if(isNaN(tabIndex)) {
+         tabIndex = fixInvalidTabindex(element, isContentEditable);
+      }
       result = {
          enabled: true,
          tabStop:
-            (validTabIndex && tabIndex >= 0) ||
+            (tabIndex >= 0) ||
             (tabIndexAttr === null && getTabStopState(element, tabbable)) ||
             (tabIndex !== -1 && isContentEditable),
          createsContext: (flags & CLASS_CREATES_CONTEXT) !== 0,
-         tabIndex: tabIndex || 0, // обязательно хоть 0
+         tabIndex: tabIndex,
          delegateFocusToChildren: ((flags & CLASS_DELEGATES_TAB_FLAG) !== 0 && !isContentEditable),
          tabCycling: (flags & CLASS_TAB_CYCLING) !== 0
       };
