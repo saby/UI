@@ -1,4 +1,4 @@
-define('Compiler/core/_deprecated/ComponentCollector', [
+define('Compiler/core/deprecated/ComponentCollector', [
    'Compiler/modules/utils/tag',
    'Compiler/modules/utils/common',
    'Compiler/expressions/Statement',
