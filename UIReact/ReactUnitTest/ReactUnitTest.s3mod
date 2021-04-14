@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui_module id="62bf645b-207a-4e83-b06d-41e8c51d6485" is_react="1" name="ReactUnitTest" version="1.00">
+
+  <description/>
+
+  <depends>
+      <module id="f27abe12-19df-4c9f-b886-634bd20a0011" name="UI" />
+      <module id="548e4ee9-10cd-4227-9e3c-0811958f979c" name="UICore" />
+  </depends>
+
+  <load_after/>
+
+  <parameters/>
+
+  <unit_test/>
+
+  <resources/>
+
+</ui_module>
