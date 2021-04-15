@@ -42,7 +42,7 @@ export function createWsConfig(cfg: IHeadOptions): void {
          `resourceRoot: '${cfg.resourceRoot || constants.resourceRoot}',`,
          `appRoot: '${cfg.appRoot || appData.appRoot || (cfg.builder ? '/' : constants.appRoot)}',`,
          `RUMEnabled: ${cfg.RUMEnabled || appData.RUMEnabled || false},`,
-         `pageName: '${cfg.pageName || appData.pageName || ''}',`,
+         `pageName: '${getConfig('pageName') || appData.pageName || ''}',`,
          'userConfigSupport: true,',
          'trackErrors: true,',
          `staticDomains: ${staticDomains},`,
