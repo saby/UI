@@ -9,6 +9,7 @@ import * as AppInit from 'Application/Initializer';
 import { loadAsync } from 'WasabyLoader/ModulesLoader';
 import { Control } from 'UICore/Base';
 import { TControlConstructor } from 'UICommon/interfaces';
+import { headDataStore } from 'UI/Deps';
 
 export interface ICreateControlOptions {
     application?: string;
@@ -27,6 +28,11 @@ export default function startFunction(config: ICreateControlOptions = {}, domEle
     if (typeof window !== 'undefined' && window['receivedStates'] && AppInit.isInit()) {
         AppEnv.getStateReceiver().deserialize(window['receivedStates']);
     }
+
+    // TODO свойство isNewEnvironment будет пересмотрено 
+    // в https://online.sbis.ru/opendoc.html?guid=c28a34a5-54b2-4873-be99-f452189e64c0
+    // Тут мы всегда находимся в "новом" окружении
+    headDataStore.write('isNewEnvironment', true);
 
     // @ts-ignore
     let moduleName = domElement.attributes.application;

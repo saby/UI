@@ -1,9 +1,9 @@
 /// <amd-module name="UI/_base/Start" />
 
-import { Control } from 'UICore/Base';
+import { Control, startApplication } from 'UICore/Base';
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
-import { startApplication } from 'UICore/Base';
+import { headDataStore } from 'UI/Deps';
 
 /**
  * @author Санников К.А.
@@ -44,6 +44,11 @@ function startFunction(config: any, domElement: HTMLElement): void {
         // tslint:disable-next-line:no-string-literal
         AppEnv.getStateReceiver().deserialize(window['receivedStates']);
     }
+
+    // TODO свойство isNewEnvironment будет пересмотрено 
+    // в https://online.sbis.ru/opendoc.html?guid=c28a34a5-54b2-4873-be99-f452189e64c0
+    // Тут мы всегда находимся в "новом" окружении
+    headDataStore.write('isNewEnvironment', true);
 
     const dom = domElement || document.getElementById('root');
     let dcomp = dom.attributes.rootapp;
