@@ -54,6 +54,7 @@ export function createWsConfig(cfg: IHeadOptions): void {
          cfg.buildnumber ? `window.buildnumber = '${cfg.buildnumber || constants.buildnumber}';` : '',
          `window['X-UNIQ-ID'] = '${getConfig('X-UNIQ-ID') || ''}';`,
          `window['X-REQUESTUUID'] = '${getConfig('X-REQUESTUUID') || ''}';`,
+         `window['X-CURRENTMETHOD'] = '${getConfig('X-CURRENTMETHOD') || ''}';`,
          preInitScript ? preInitScript : ''
       ].join('\n')
    );
