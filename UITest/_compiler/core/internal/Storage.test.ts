@@ -7,15 +7,7 @@ function parse(text: string) {
 }
 
 function parseAndCreate(text: string, index: number) {
-    return createProgramMeta(
-        null,
-        ProgramType.SIMPLE,
-        parse(text),
-        index,
-        false,
-        0,
-        0
-    );
+    return createProgramMeta(null, ProgramType.SIMPLE, parse(text), index, false, 0, 0);
 }
 
 const PROGRAMS = [
