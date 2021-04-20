@@ -25,12 +25,14 @@
       "build": "npm run build:typescript && npm run build:app",
       "build:typescript": "wasaby-cli --tasks=prepare",
       "build:app": "wasaby-cli --tasks=build",
+      "build:react": "wasaby-cli --tasks=build --react",
       "build:watch": "wasaby-cli --tasks=build --watcher",
       "compile": "saby-typescript --compiler",
       "start": "wasaby-cli --tasks=app",
       "start-react": "wasaby-cli --tasks=app --reactApp",
       "start:units": "wasaby-cli --tasks=startTest --server",
       "test": "wasaby-cli --tasks=startTest --node --report=console",
+      "test:react": "wasaby-cli --tasks=startTest --node --react --report=console",
       "test:coverage": "wasaby-cli --tasks=startTest --node --coverage",
       "lint": "node ./node_modules/eslint/bin/eslint --color --no-eslintrc -c=.eslintrc -f=stylish .",
       "lintless": "stylelint \"Controls/**/*.less\"",
@@ -63,8 +65,7 @@
          "^Markup",
          "^UIDemo",
          "^UITest",
-         "^WmlBuilder",
-         "^UI/DevtoolsHook"
+         "^WmlBuilder"
       ],
       "fontSize": "26px",
       "graphVizOptions": {

@@ -1,4 +1,5 @@
-import { Control, IControlOptions } from 'UI/Base';
+import { Control } from 'UICore/Base';
+import { IControlOptions } from 'UICommon/Base';
 
 interface ITestOptions extends IControlOptions {
     testName: string;

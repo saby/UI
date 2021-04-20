@@ -7,7 +7,7 @@ define('Compiler/modules/partial', [
    'Compiler/codegen/Generator',
    'Compiler/codegen/templates',
    'Compiler/codegen/TClosure',
-   'Compiler/codegen/_feature/Partial',
+   'Compiler/codegen/feature/Partial',
    'Compiler/codegen/Internal'
 ], function partialLoader(
    injectedDataForce, names, Process, parse, FSC,

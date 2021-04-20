@@ -3,7 +3,7 @@
  * @author Крылов М.А.
  */
 
-import * as ComponentCollector from './core/_deprecated/ComponentCollector';
+import * as ComponentCollector from './core/deprecated/ComponentCollector';
 import { parse } from './html/Parser';
 import { createErrorHandler } from './utils/ErrorHandler';
 import getWasabyTagDescription from './core/Tags';

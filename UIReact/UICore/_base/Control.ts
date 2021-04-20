@@ -19,13 +19,12 @@ import { OptionsResolver } from 'UICommon/Executor';
 
 import { WasabyEvents, callNotify } from 'UICore/Events';
 import { IWasabyEventSystem } from 'UICommon/Events';
-import { TIState } from 'UICommon/interfaces';
-import { IControlOptions } from 'UICommon/Base';
+import { TIState, TControlConfig } from 'UICommon/interfaces';
+import { IControlOptions, IControlChildren } from 'UICommon/Base';
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
  * @author Mogilevsky Ivan
- * @public
  */
 export default class Control<TOptions extends IControlOptions = {},
     TState extends TIState = void> extends Component<TOptions, IControlState> {
@@ -36,7 +35,7 @@ export default class Control<TOptions extends IControlOptions = {},
     /**
      * Набор детей контрола, для которых задан атрибут name.
      */
-    protected _children: Record<string, Element | Control> = {};
+    protected _children: IControlChildren;
     /**
      * Шаблон контрола.
      */
@@ -46,7 +45,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * ВАЖНО: значения могут не совпадать с props в некоторые моменты времени,
      * чтобы в хуках были правильные значения.
      */
-    _options: TOptions = {} as TOptions;
+    protected _options: TOptions = {} as TOptions;
 
     /**
      * Версии опций для версионируемых объектов.
@@ -68,12 +67,24 @@ export default class Control<TOptions extends IControlOptions = {},
         return callNotify(this, eventName, args, options);
     }
 
-    protected activate(): void {
-
+    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
+        return false;
     }
 
-    constructor(props: TOptions, context?: IWasabyContextValue) {
-        super(props);
+    // несогласованное API, но используется в engine, и пока нужно для сборки UIReact
+    deactivate(): void {}
+
+    // Пока что просто для сохрания API в ts. Возможно, нужна будет реализация. Метод используется в роутинге.
+    getInstanceId(): string {
+       return '';
+    }
+
+    // Пока много где объявлен, его отсуствие вызывает ошибки ts. Удалить после отказа.
+    protected _container: HTMLElement;
+
+    // TODO: TControlConfig добавлен для совместимости, в 3000 нужно сделать TOptions и здесь, и в UIInferno.
+    constructor(props: TOptions | TControlConfig, context?: IWasabyContextValue) {
+        super(props as TOptions);
         /*
         Если люди сами задают конструктор, то обычно они вызывают его неправильно (передают только один аргумент).
         Из-за этого контекст может потеряться и не получится в конструкторе вытащить значение из него.
@@ -448,7 +459,6 @@ export default class Control<TOptions extends IControlOptions = {},
      * @param themes массив доп тем для скачивания
      * @param styles массив доп стилей для скачивания
      * @static
-     * @public
      * @method
      * @example
      * <pre class="brush: js">
@@ -498,7 +508,6 @@ export default class Control<TOptions extends IControlOptions = {},
      * Вызовет загрузку коэффициентов (CSS переменных) для тем.
      * @param {String} themeName имя темы. Например: "default", "default__cola" или "retail__light-medium"
      * @static
-     * @public
      * @method
      * @example
      * <pre>
@@ -570,7 +579,6 @@ export default class Control<TOptions extends IControlOptions = {},
      * @param instThemes массив доп тем для скачивания
      * @param instStyles массив доп стилей для скачивания
      * @static
-     * @public
      * @method
      */
     static isCSSLoaded(

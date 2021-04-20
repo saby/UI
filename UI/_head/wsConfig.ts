@@ -48,13 +48,14 @@ export function createWsConfig(cfg: IHeadOptions): void {
          'trackErrors: true,',
          `staticDomains: ${staticDomains},`,
          `defaultServiceUrl: '${defaultServiceUrl}',`,
-         `compatible: ${cfg.compat},`,
+         `compatible: ${cfg.compat || false},`,
          `product: '${product}',`,
          `reactApp: ${cfg.reactApp || false}`,
          '};',
          buildnumber ? `window.buildnumber = '${buildnumber}';` : '',
          `window['X-UNIQ-ID'] = '${getConfig('X-UNIQ-ID') || ''}';`,
          `window['X-REQUESTUUID'] = '${getConfig('X-REQUESTUUID') || ''}';`,
+         `window['X-CURRENTMETHOD'] = '${getConfig('X-CURRENTMETHOD') || ''}';`,
          preInitScript ? preInitScript : ''
       ].join('\n')
    );

@@ -1,12 +1,12 @@
 /* global describe, it, assert */
 define([
-   'UI/Focus',
-   'UI/Base',
-   'UI/Utils',
+   'UICore/Focus',
+   'UICore/Base',
+   'UICommon/Utils',
    'Env/Env',
    'UICore/_focus/ElementFinder',
    'UICore/_focus/_ResetScrolling',
-   'UITest/Focus'
+   'UICore/UITest/Focus'
 ], function(
    Focus,
    Base,
