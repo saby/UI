@@ -13,7 +13,7 @@ import {
    plainMerge,
    Helper,
    IGeneratorNameObject,
-   ITplFunction, IAttributes, VoidTags as voidElements
+   ITplFunction, IAttributes, VoidTags as voidElements, TAttributes
 } from 'UICommon/Executor';
 import {Attr} from 'UICommon/Executor';
 import {IWasabyEvent} from 'UICommon/_events/IEvents';
@@ -61,6 +61,15 @@ export class GeneratorText {
          });
          //@ts-ignore
          return res;
+      }
+      if (origin.name ===  "StartApplicationScript") {
+         const start = `<div><script>document.addEventListener('DOMContentLoaded', function() { let steps = [ { deps: ['Env/Env', 'Application/Initializer', 'Application/Env', 'SbisEnvUI/Wasaby', 'UI/Base', 'UI/State', 'Application/State', 'Core/polyfill'], callback: function (Env, AppInit, AppEnv, EnvUIWasaby, UIBase, UIState, AppState) { window.startContextData = {AppData: new UIState.AppData({})}; Object.assign(Env.constants, window.wsConfig); require( ["UIDemo/Index"], function () { var sr = new AppState.StateReceiver(UIState.Serializer); AppInit.default(window.wsConfig, void 0, sr); UIBase.BootstrapStart({}, document.getElementById('wasaby-content')); }); if (Env.constants.isProduction) { console.log( '%c\tЭта функция браузера предназначена для разработчиков. tЕсли кто-то сказал вам скопировать и вставить что-то здесь, это мошенники.\t\tВыполнив эти действия, вы предоставите им доступ к своему аккаунту.\t', 'background: red; color: white; font-size: 22px; font-weight: bolder; text-shadow: 1px 1px 2px black;' ); } } } ]; if (false) { steps.unshift({ deps: ['Core/polyfill'], callback: function () {} }) } function startApplication(steps) { let step = steps.shift(); require(step.deps, function(){ step.callback.apply(this, arguments); if (steps.length) { startApplication(steps); } }) } startApplication(steps); });</script></div>`
+         const props = {
+             dangerouslySetInnerHTML: {
+                __html: start
+             }
+         };
+         return ReactDOMServer.renderToString(React.createElement('div', props));
       }
       return ReactDOMServer.renderToString(React.createElement(controlClass, scope));
    }
@@ -201,7 +210,9 @@ export class GeneratorText {
          }
       });
 
-      const mergedAttrsStr = '';
+      const mergedAttrsStr = mergedAttrs
+          ? decorateAttrs(mergedAttrs, {})
+          : '';
       // tslint:disable-next-line:no-bitwise
       if (~voidElements.indexOf(tag)) {
          return '<' + tag + mergedAttrsStr + ' />';
@@ -211,6 +222,26 @@ export class GeneratorText {
    }
 }
 
+function decorateAttrs(attr1: TAttributes, attr2: TAttributes): string {
+   function wrapUndef(value: string): string {
+      if (value === undefined || value === null) {
+         return '';
+      } else {
+         return value;
+      }
+   }
+
+   const attrToStr = (attrs: Array<string>): string => {
+      let str = '';
+      for (const attr in attrs) {
+         if (attrs.hasOwnProperty(attr)) {
+            str += (wrapUndef(attrs[attr]) !== '' ? ' ' + (attr + '="' + attrs[attr] + '"') : '');
+         }
+      }
+      return str;
+   };
+   return attrToStr(Attr.joinAttrs(attr1, attr2));
+}
 
 function resolveTemplateArray(
     parent: Control<IControlOptions>,
