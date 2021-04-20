@@ -8,6 +8,7 @@ import template = require('wml!UIDemo/Index');
 class Index extends Control {
    _template: TemplateFunction = template;
    static _styles: string[] = ['UIDemo/Index'];
+   pageConfig = {title: 'demo'}
 }
 
 export default Index;

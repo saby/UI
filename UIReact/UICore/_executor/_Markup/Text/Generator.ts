@@ -4,7 +4,8 @@ import { Control } from 'UICore/Base';
 import { IControlOptions } from 'UICommon/Base';
 import { TemplateOrigin, IControlConfig, TemplateFunction } from './interfaces';
 import {IGeneratorAttrs, TemplateResult} from '../Vdom/interfaces';
-import { Logger } from 'UICommon/Utils';import {
+import {Logger} from 'UICommon/Utils';
+import {
    CommonUtils as Common,
    RequireHelper,
    ConfigResolver,
@@ -12,10 +13,11 @@ import { Logger } from 'UICommon/Utils';import {
    plainMerge,
    Helper,
    IGeneratorNameObject,
-   ITplFunction
+   ITplFunction, IAttributes, VoidTags as voidElements
 } from 'UICommon/Executor';
-import {Attr} from '../../../../../UICommon/Executor';
-import {IWasabyEvent} from '../../../../../UICommon/_events/IEvents';
+import {Attr} from 'UICommon/Executor';
+import {IWasabyEvent} from 'UICommon/_events/IEvents';
+
 
 
 /**
@@ -25,7 +27,6 @@ export class GeneratorText {
    generatorBase: Generator;
 
    createDirective(text) {
-      return ReactDOMServer.renderToString(text);
       return '<' + text + '>';
    };
 
@@ -61,7 +62,7 @@ export class GeneratorText {
          //@ts-ignore
          return res;
       }
-      return React.createElement(controlClass, scope);
+      return ReactDOMServer.renderToString(React.createElement(controlClass, scope));
    }
 
    createControlNew(
@@ -72,7 +73,8 @@ export class GeneratorText {
        options: IControlOptions,
        config: IControlConfig
    ): any {
-      if (type === 'wsControl') {
+      // @ts-ignore
+      if (type === 'wsControl' || type === 'resolver') {
          const templateAttributes: IGeneratorAttrs = {
             attributes: config.compositeAttributes === null
                 ? attributes
@@ -115,7 +117,7 @@ export class GeneratorText {
          return this.resolver(origin, newOptions, templateAttributes, undefined,
              config.depsLocal, config.includedTemplates);
       }
-      throw new Error('unknouwn type ' + type);
+      throw new Error('unknown type ' + type);
    }
 
    resolver(
@@ -161,10 +163,51 @@ export class GeneratorText {
    }
    joinElements(elements: React.ReactNode): React.ReactNode {
       if (Array.isArray(elements)) {
-         return elements;
+         let res = '';
+         const self = this;
+         elements.forEach(function joinOneElement(element) {
+            if (Array.isArray(element)) {
+               element = self.joinElements(element);
+            }
+            res += (element || '');
+         });
+
+         return res;
       } else {
          throw new Error('joinElements: elements is not array');
       }
+   }
+   createText(text) {
+      return text;
+   };
+   createTag(tag, attrs, children, attrToDecorate?, defCollection?): string {
+      if (!attrToDecorate) {
+         attrToDecorate = {};
+      }
+      if (!attrs) {
+         attrs = {attributes: {}};
+      }
+
+      let mergedAttrs = Attr.processMergeAttributes(
+          attrToDecorate.attributes as IAttributes,
+          attrs.attributes as IAttributes
+      );
+
+      Object.keys(mergedAttrs).forEach((attrName) => {
+         if (attrName.indexOf('top:') === 0) {
+            const newAttrName = attrName.replace('top:', '');
+            mergedAttrs[newAttrName] = mergedAttrs[newAttrName] || mergedAttrs[attrName];
+            delete mergedAttrs[attrName];
+         }
+      });
+
+      const mergedAttrsStr = '';
+      // tslint:disable-next-line:no-bitwise
+      if (~voidElements.indexOf(tag)) {
+         return '<' + tag + mergedAttrsStr + ' />';
+      }
+      return '<' + tag + mergedAttrsStr + '>' + this.joinElements(children) + '</' + tag + '>';
+
    }
 }
 

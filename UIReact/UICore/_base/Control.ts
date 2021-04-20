@@ -400,7 +400,7 @@ export default class Control<TOptions extends IControlOptions = {},
         OptionsResolver.validateOptions(this.constructor, wasabyOptions);
 
         const asyncMount = this._beforeFirstRender && this._beforeFirstRender(wasabyOptions);
-
+        const isServer = typeof(window) === "undefined";
         if (asyncMount && this.state.loading) {
             return getLoadingComponent();
         }
@@ -409,7 +409,7 @@ export default class Control<TOptions extends IControlOptions = {},
         try {
             // this клонируется, чтобы вызвать шаблон с новыми значениями опций, но пока не класть их на инстанс.
             const ctx = {...this, _options: {...wasabyOptions}};
-            res = this._template(ctx, undefined, undefined, true);
+            res = this._template(ctx, undefined, undefined, !isServer);
         } catch (e) {
             logError(e);
             res = [];
