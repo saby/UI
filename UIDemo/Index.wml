@@ -3,6 +3,6 @@
     bodyClass="controls-default-bg"
     bootstrapWrapperMode="{{_options.bootstrapWrapperMode}}">
     <ws:content>
-        <UIDemo.RootRouter />
+        <UIDemo.ReactDemo.Index />
     </ws:content>
 </SbisEnvUI.Bootstrap>
