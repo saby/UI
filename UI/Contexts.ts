@@ -1,8 +1,8 @@
-import * as ContextResolver from './_contexts/ContextResolver';
-
 /**
  * @author Тэн В.А.
+ * @public
+ * @includes CommonContexts UICommon/Contexts
  */
 export {
    ContextResolver
-}
+} from 'UICommon/Contexts';

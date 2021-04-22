@@ -1,0 +1,7 @@
+<div class="logger">
+    <ws:for data="i, log in logs">
+        <div key="{{i + log.title}}" class="{{log.success ? 'logger_success' : 'logger_error'}}">
+            {{log.title}}
+        </div>
+    </ws:for>
+</div>

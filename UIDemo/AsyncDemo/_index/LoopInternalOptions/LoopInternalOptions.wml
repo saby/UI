@@ -1,7 +1,7 @@
 <div>
     <div class="UIDemo-AsyncDemo__buttonContainer">
-        <input type="button" value="Изменить шаблонные опции" on:click="changeTemplateOptions()" class="UIDemo-AsyncDemo__navigationButton"/>
-        <input type="button" value="Изменить внутренние опции" on:click="changeInternalOptions()" class="UIDemo-AsyncDemo__navigationButton"/>
+        <input type="button" value="Изменить шаблонные опции" on:click="changeTemplateOptions()" class="UIDemo-AsyncDemo__navigationButton demo-AsyncDemo__templateOpt-loop"/>
+        <input type="button" value="Изменить внутренние опции" on:click="changeInternalOptions()" class="UIDemo-AsyncDemo__navigationButton demo-AsyncDemo__internalOpt-loop"/>
     </div>
 
     <div class="UIDemo-AsyncDemo__flexbox">

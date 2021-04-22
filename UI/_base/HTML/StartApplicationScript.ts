@@ -1,17 +1,19 @@
 /// <amd-module name="UI/_base/HTML/StartApplicationScript" />
 
-import Control from '../Control';
+import { detection } from 'Env/Env';
+import { Control } from 'UICore/Base';
 
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/StartApplicationScript');
-import { headDataStore } from 'UI/_base/HeadData';
+import { headDataStore } from 'UI/Deps';
 
 class StartApplicationScript extends Control {
    // tslint:disable-next-line:ban-ts-ignore
    // @ts-ignore
    _template: Function = template;
    private additionalDeps: string[] = [];
+   protected isIE: boolean = detection.isIE;
 
    // tslint:disable-next-line:no-any
    _beforeMount(): Promise<any> {
@@ -19,7 +21,7 @@ class StartApplicationScript extends Control {
          return;
       }
       const def = headDataStore.read('waitAppContent')();
-      return new Promise((resolve) => {
+      return new Promise<void>((resolve) => {
          def.then((res) => {
             this.additionalDeps = res.additionalDeps;
             resolve();

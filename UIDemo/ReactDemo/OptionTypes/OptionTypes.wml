@@ -1,0 +1,7 @@
+<div>
+    <h2>Тестируем валидацию опций</h2>
+    <p>Здесь построено 2 одинаковых контрола: при первом построении первый кинет ошибку, при нажатии на кнопку второй кинет ошибку.</p>
+    <UIDemo.ReactDemo.OptionTypes.Tester testOption="{{ _firstValue }}" />
+    <UIDemo.ReactDemo.OptionTypes.Tester testOption="{{ _secondValue }}" />
+    <button onClick="{{ _swapValue }}">Поменять опции местами</button>
+</div>

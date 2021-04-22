@@ -1,0 +1,16 @@
+<div class="demo-flex">
+    <div>
+        <h1>Проверяем обновление при контентных опциях</h1>
+
+        <button name="button">Increment</button>
+
+        <div>
+            <h2>Content</h2>
+            <UIDemo.ReactDemo.ContentOptions.Component>
+                        <ws:content>
+                            <div>Counter: {{ counter.value }}</div>
+                        </ws:content>
+            </UIDemo.ReactDemo.ContentOptions.Component>
+        </div>
+    </div>
+</div>

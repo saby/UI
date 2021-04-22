@@ -1,0 +1,5 @@
+<div>
+    <h2>Тестируем наследуемые опции</h2>
+    <UIDemo.ReactDemo.InheritedOptions.InheritedOptions readOnly="{{ _readOnly }}"
+                                                        theme="{{ _themeName }}" />
+</div>

@@ -1,6 +1,6 @@
 import { assert } from 'chai';
 import { Head } from 'Application/Page';
-import { PrefetchLinksStore, PrefetchLinksStorePS, handlePrefetchModules } from 'UI/_base/HTML/PrefetchLinks';
+import { PrefetchLinksStore, PrefetchLinksStorePS, handlePrefetchModules } from 'UI/_deps/PrefetchLinks';
 import {JML} from "../../UI/_base/HTML/_meta/interface";
 
 const module = {

@@ -3,8 +3,9 @@ import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 import * as Library from 'WasabyLoader/Library';
 import { IoC, constants } from 'Env/Env';
 import { descriptor } from 'Types/entity';
-import { default as Control, IControlOptions, TemplateFunction } from 'UI/_base/Control';
-import { headDataStore } from 'UI/_base/HeadData';
+import { Control, TemplateFunction } from 'UICore/Base';
+import { IControlOptions } from 'UICommon/Base';
+import { headDataStore } from 'UI/Deps';
 import template = require('wml!UI/_async/Async');
 
 function generateErrorMsg(templateName: string, msg?: string): string {

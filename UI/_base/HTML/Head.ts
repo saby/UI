@@ -1,6 +1,6 @@
 /// <amd-module name="UI/_base/HTML/Head" />
 
-import Control from '../Control';
+import { Control } from 'UICore/Base';
 
 /* tslint:disable:deprecated-anywhere */
 // tslint:disable-next-line:ban-ts-ignore
@@ -9,19 +9,17 @@ import template = require('wml!UI/_base/HTML/Head');
 import { getThemeController, EMPTY_THEME, THEME_TYPE } from 'UI/theme/controller';
 import { constants } from 'Env/Env';
 import { Head as AppHead } from 'Application/Page';
-import { getResourceUrl } from 'UI/Utils';
-import { headDataStore } from 'UI/_base/HeadData';
+import { createWsConfig, createDefaultTags, createMetaScriptsAndLinks, applyHeadJson } from "UI/Head";
+import { aggregateCSS, headDataStore, handlePrefetchModules } from "UI/Deps";
 import { TemplateFunction, IControlOptions } from 'UI/Base';
 import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
 import { JML } from 'UI/_base/HTML/_meta/interface';
-import { handlePrefetchModules } from 'UI/_base/HTML/PrefetchLinks';
 
 class Head extends Control<IHeadOptions> {
     _template: TemplateFunction = template;
 
     head: Function[] = null;
-    headAdditiveTagsMarkup: string = '';
     headApiData: string = '';
 
     // Содержит информацию о том, был ли серверный рендеринг
@@ -33,18 +31,9 @@ class Head extends Control<IHeadOptions> {
     // Также оно должно быть разное на клиенте при наличии или отсутствии серверное верстки.
     isSSR: boolean;
 
-    staticDomainsstringified: string = '[]';
-
     _beforeMount(options: IHeadOptions): Promise<void> {
         this.isSSR = !constants.isBrowserPlatform;
-        /** Написано Д. Зуевым в 2019 году. Просто перенес при реструктуризации. */
-        if (typeof options.staticDomains === 'string') {
-            this.staticDomainsstringified = options.staticDomains;
-        } else if (options.staticDomains instanceof Array) {
-            this.staticDomainsstringified = JSON.stringify(options.staticDomains);
-        }
         this.head = options.head;
-        this.headAdditiveTagsMarkup = applyHeadJSON(options);
 
         this._selfPath();
         this._createHEADTags(options);
@@ -55,7 +44,7 @@ class Head extends Control<IHeadOptions> {
         return headDataStore.read('waitAppContent')()
             .then(({ js, css }) => {
                 return new Promise<void>((resolve) => {
-                    collectCSS(options.theme, css.simpleCss, css.themedCss)
+                    aggregateCSS(options.theme, css.simpleCss, css.themedCss)
                         .then(() => { resolve(); })
                         .catch((error) => { onerror(error); resolve(); });
                 }).then(() => {
@@ -69,7 +58,6 @@ class Head extends Control<IHeadOptions> {
                     if (data && data.length) {
                         this.headApiData += new TagMarkup(data.map(fromJML), {getResourceUrl: false}).outerHTML;
                     }
-                    AppHead.getInstance().clear();
                 });
             });
     }
@@ -120,28 +108,11 @@ class Head extends Control<IHeadOptions> {
         if (this.wasServerSide) {
             return;
         }
-        const API = AppHead.getInstance();
-        if (!options.compat) {
-            API.createTag('script', {type: 'text/javascript'},
-                `window.themeName = '${options.theme || options.defaultTheme || ''}';`
-            );
-        }
-        API.createNoScript(options.noscript);
-        const metaAttrs = [
-            {'http-equiv': 'X-UA-Compatible', content: 'IE=edge'},
-            {charset: 'utf-8', class: 'head-server-block'}
-        ];
-        /** Возможно, кто-то уже добавил viewport */
-        const viewPort = API.getTag('meta', {name: 'viewport'});
-        /** Если не нашли тег, или если нашли очень много, добавим свой */
-        if (!viewPort || (viewPort instanceof Array)) {
-            metaAttrs.push({name: 'viewport', content: options.viewport || 'width=1024'});
-        }
-        metaAttrs.forEach((attrs) => {
-            API.createTag('meta', attrs);
-        });
-        createWsConfig(options, this.staticDomainsstringified);
+
+        createDefaultTags(options);
+        createWsConfig(options);
         createMetaScriptsAndLinks(options);
+        applyHeadJson(options.headJson);
     }
 
     // tslint:disable-next-line:ban-ts-ignore
@@ -177,95 +148,19 @@ class Head extends Control<IHeadOptions> {
     }
 }
 
+Object.defineProperty(Head, 'defaultProps', {
+   enumerable: true,
+   configurable: true,
+
+   get(): object {
+      return Head.getDefaultOptions();
+   }
+});
+
 export default Head;
-
-function collectCSS(theme: string, styles: string[] = [], themes: string[] = []): Promise<string> {
-    const tc = getThemeController();
-    const gettingStyles = styles.filter((name) => !!name).map((name) => tc.get(name, EMPTY_THEME));
-    const gettingThemes = themes.filter((name) => !!name).map((name) => tc.get(name, theme, THEME_TYPE.SINGLE));
-    return Promise.all(gettingStyles.concat(gettingThemes)).then();
-
-}
 
 function onerror(e: Error): void {
     import('UI/Utils').then(({ Logger }) => { Logger.error(e.message); });
-}
-
-function prepareMetaScriptsAndLinks(tag: string, attrs: object): object {
-    return {
-        tag,
-        attrs
-    };
-}
-
-/**
- * Подготовка когфига, который прилетит с сервака на клиент
- * wsConfig нет смысла рендерить на клиенте.
- * Он обязательно должен прийти с сервера.
- * Потому что необходим для загрузки ресурсов
- * @param options
- */
-function createWsConfig(options: IHeadOptions, staticDomainsstringified: string): void {
-    if (constants.isBrowserPlatform) {
-        return;
-    }
-
-    const API = AppHead.getInstance();
-    API.createTag('script', {type: 'text/javascript'},
-        [
-            'window.wsConfig = {',
-            `wsRoot: '${options.wsRoot}',`,
-            `resourceRoot: '${options.resourceRoot}',`,
-            `appRoot: '${options.appRoot}',`,
-            `RUMEnabled: ${options.RUMEnabled},`,
-            `pageName: '${options.pageName}',`,
-            'userConfigSupport: true,',
-            `staticDomains: ${staticDomainsstringified},`,
-            `defaultServiceUrl: '${options.servicesPath}',`,
-            `compatible: ${options.compat},`,
-            `product: '${options.product}'`,
-            '};',
-            options.buildnumber ? `window.buildnumber = '${options.buildnumber}';` : '',
-            options.preInitScript ? options.preInitScript : ''
-        ].join('\n')
-    );
-}
-
-/**
- * Применим опции meta, scripts и links к странице
- * @param options
- */
-function createMetaScriptsAndLinks(options: IHeadOptions): void {
-    const API = AppHead.getInstance();
-    []
-        .concat((options.meta || []).map(prepareMetaScriptsAndLinks.bind(null, 'meta')))
-        .concat((options.scripts || []).map(prepareMetaScriptsAndLinks.bind(null, 'script')))
-        .concat((options.links || []).map(prepareMetaScriptsAndLinks.bind(null, 'link')))
-        .forEach((item: {tag: string, attrs: object}) => {
-            ['href', 'src'].forEach((field) => {
-                if (item.attrs[field]) {
-                    item.attrs[field] = getResourceUrl(item.attrs[field])
-                }
-            });
-            API.createTag(item.tag, item.attrs);
-        });
-}
-/**
- * Поддержка старой опции
- * Запустил процесс отказа от нее
- * https://online.sbis.ru/opendoc.html?guid=fe14fe59-a564-4904-9a87-c38a5a22b924
- * @param options
- * @deprecated
- */
-function applyHeadJSON(options: IHeadOptions): string {
-    /** Deprecated опция в формате JML.Нет смысла гнать ее через HEAD API */
-    if (options.headJson) {
-        const tagDescriptions = options.headJson
-            .map(fromJML)
-            // не вставляем переданные link css, это обязанность theme_controller'a
-            .filter(({ attrs }) => attrs.rel !== 'stylesheet' && attrs.type !== 'text/css');
-        return new TagMarkup(tagDescriptions).outerHTML;
-    }
 }
 
 interface IHeadOptions extends IControlOptions {
@@ -278,7 +173,7 @@ interface IHeadOptions extends IControlOptions {
     compat: boolean;
     head: TemplateFunction[];
     headJson: JML[];
-    staticDomains: string | string[];
+    staticDomains: string[];
     buildnumber: string;
     noscript: string;
     viewport: string;
@@ -289,4 +184,5 @@ interface IHeadOptions extends IControlOptions {
     meta?: Object[];
     links?: Object[];
     scripts?: Object[];
+    reactApp?: boolean;
 }

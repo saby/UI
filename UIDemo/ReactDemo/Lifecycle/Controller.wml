@@ -1,0 +1,25 @@
+<div class="demo-flex">
+    <div>
+        <h1>Проверяем хуки жизненного цикла</h1>
+        <h2>Checkbox</h2>
+        <ws:if data="{{show}}">
+            <UIDemo.ReactDemo.Lifecycle.Checkbox
+                    changeHandler="{{toggleHandler}}"
+                    color="{{color}}"
+                    value="{{value}}"
+            />
+        </ws:if>
+        <button name="hideButton">{{show ? 'Hide' : 'Show'}}</button>
+        <button name="clearLogs">Clear Logs</button>
+        <div>
+            <h2>AsyncMount</h2>
+            <ws:if data="{{showAsync}}">
+                <UIDemo.ReactDemo.Lifecycle.AsyncMount/>
+            </ws:if>
+            <div>
+                <button name="asyncBtn">{{showAsync ? 'Hide async' : 'Show async'}}</button>
+            </div>
+        </div>
+    </div>
+    <UIDemo.ReactDemo.Lifecycle.Logger.Logger addLog="{{addLog}}"/>
+</div>

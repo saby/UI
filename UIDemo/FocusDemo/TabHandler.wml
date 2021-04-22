@@ -1,0 +1,21 @@
+<UIDemo.FocusDemo.Index>
+    <h2>Переходы по табу</h2>
+    <div>Проверим реакцию системы фокусов на нажание клавиши tab</div>
+    <div>Активированный фон расположен вокруг контролов, внутри которых по два поля ввода с табиндексами 1 и 2</div>
+    <div>Собственный табиндекс контролов указан текстом, а также перед _ в плейсхолдерах внутренних инпутов</div>
+    <div>Рядом с контролами лежат внешние поля ввода, табиндекс каждого указан в плейсхолдере</div>
+    <div>После оживления страницы фокус должен уходить на инпут 1, дальше порядок перехода по табу такой:</div>
+    <div>1 - 2 - 3_1 - 3_2 - 4_1 - 4_2 - 5 - 6 - 7 - 8</div>
+    <div>shift + tab должны переводить фокус в обратном порядке</div>
+    <div>С помощью атрибута ws-tab-cycling обход по табу долен зациклиться, после 8 по табу фокус должен уходить снова в 1</div>
+    <div ws-tab-cycling="true">
+        <input placeholder="1" tabindex="1" />
+        <input placeholder="2" tabindex="2" />
+        <UIDemo.FocusDemo.TabHandler.TabHandlerInner rootTabindex="3" />
+        <input placeholder="6" tabindex="6" />
+        <input placeholder="5" tabindex="5" />
+        <UIDemo.FocusDemo.TabHandler.TabHandlerInner rootTabindex="4" />
+        <input placeholder="7" tabindex="7" />
+        <input placeholder="8" tabindex="8" />
+    </div>
+</UIDemo.FocusDemo.Index>

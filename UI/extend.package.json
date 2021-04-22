@@ -3,7 +3,6 @@
     "UI/Base",
     "UI/HotKeys",
     "UI/Vdom",
-    "UI/DevtoolsHook",
     "UI/Focus",
     "UI/Utils",
     "UI/NodeCollector",
@@ -14,7 +13,8 @@
     "UI/State",
     "UI/Events",
     "UI/BuilderConfig",
-    "UI/Deps"
+    "UI/Deps",
+    "UI/Head"
   ],
   "output": "online-superbundle.package.js"
 }

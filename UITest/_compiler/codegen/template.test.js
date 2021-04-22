@@ -1,5 +1,5 @@
 define([
-    'UI/_builder/Compiler',
+    'Compiler/Compiler',
     'UITest/_compiler/codegen/resources'
 ], function(Compiler, resources) {
     'use strict';

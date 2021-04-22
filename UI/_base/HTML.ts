@@ -2,7 +2,7 @@
 
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
-import Control from './Control';
+import { Control } from 'UICore/Base';
 
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
@@ -12,12 +12,13 @@ import template = require('wml!UI/_base/HTML/HTML');
 import {constants, detection} from 'Env/Env';
 import { LinkResolver } from 'UI/theme/controller';
 import { getResourceUrl } from 'UI/Utils';
-import AppData from './AppData';
+import { AppData } from 'UI/State';
 import {IHTMLOptions, ILinksAttrsHTML, IScriptsAttrsHTML} from './interface/IHTML';
 import { IRootTemplateOptions } from './interface/IRootTemplate';
-import { headDataStore } from 'UI/_base/HeadData';
+import { headDataStore } from 'UI/Deps';
 import mountChecker from 'UI/_base/MountChecker';
 import { Stack as MetaStack, IMetaStackInternal } from 'UI/_base/HTML/meta';
+import { Body as AppBody } from 'Application/Page';
 
 // Бывают ситуации, когда страницу открыли и сразу перешли на другую вкладку или перевели компьютер в режим сна.
 // У открытой страницы в фоновом режиме начинают по таймауту отваливаться запросы и страница в итоге не оживает.
@@ -53,6 +54,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
     // @ts-ignore
     _template: Function = template;
 
+    private _bodyClasses: string = '__htmlBodyClasses';
     private onServer: Boolean = false;
     // tslint:disable-next-line:ban-ts-ignore
     // @ts-ignore
@@ -72,6 +74,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
     private servicesPath: string = '';
     private application: string = '';
     private product: string = '';
+    private reactApp: Boolean = false;
 
     // tslint:disable-next-line:ban-ts-ignore
     // @ts-ignore
@@ -85,6 +88,20 @@ class HTML extends Control<IHTMLCombinedOptions> {
     private initState(cfg: any): void {
         this.templateConfig = cfg.templateConfig;
         this.compat = cfg.compat || false;
+        /**
+         * Пишу так, потому что inferno перезатирает атрибут class на теге body
+         * и восстанавливать его состояние на клиенте при оживлении правльнее всего из всех доступных источников:
+         * recievedState + опции + фактическое состояние
+         * TODO: Удалить после полного перехода но постоение от #bootstrap
+         */
+        const cfgClasses = (cfg.bodyClasses || '').split(' ');
+        const thisClasses = (this._bodyClasses || '').split(' ').filter((item) => {
+            return !cfgClasses.includes(item);
+        });
+        const apiClasses = (AppBody.getInstance().getClassString() || '').split(' ').filter((item) => {
+            return !cfgClasses.includes(item) && !thisClasses.includes(item);
+        });
+        this._bodyClasses = cfgClasses.concat(thisClasses).concat(apiClasses).join(' ');
     }
 
     private isFocusNode(node: Element): boolean {
@@ -117,6 +134,9 @@ class HTML extends Control<IHTMLCombinedOptions> {
     // tslint:disable-next-line:no-any
     _beforeMount(cfg: IHTMLCombinedOptions, context: any, receivedState: any): Promise<any> {
         this.onServer = typeof window === 'undefined';
+        if (!this.onServer) {
+            window.document.body.addEventListener('_bodyClassesUpdateCrunch', this._onBodyClassesUpdate.bind(this));
+        }
         this.isCompatible = cfg.compat;
         this.initState(receivedState || cfg);
         this.metaStack = MetaStack.restore(receivedState?.metaStackSer);
@@ -145,6 +165,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
         this.resourceRoot = cfg.resourceRoot || constants.resourceRoot;
         this.product = cfg.product || appData.product || constants.product;
         this.wsRoot = cfg.wsRoot || appData.wsRoot || constants.wsRoot;
+        this.reactApp = cfg.reactApp || false;
 
         // TODO нужно удалить после решения
         // https://online.sbis.ru/opendoc.html?guid=a9ceff55-1c8b-4238-90a7-22dde0e1bdbe
@@ -183,7 +204,9 @@ class HTML extends Control<IHTMLCombinedOptions> {
             return;
         }
         return new Promise((resolve) => {
+            this._bodyClasses = `${this._bodyClasses} ${AppBody.getInstance().getClassString()}`;
             resolve({
+                bodyClasses: this._bodyClasses,
                 buildnumber: this.buildnumber,
                 metaStackSer: this.metaStack.serialize(),
                 appRoot: this.appRoot,
@@ -195,7 +218,8 @@ class HTML extends Control<IHTMLCombinedOptions> {
                 templateConfig: this.templateConfig,
                 servicesPath: this.servicesPath,
                 compat: this.compat,
-                product: this.product
+                product: this.product,
+                reactApp: this.reactApp
             });
         });
     }
@@ -227,6 +251,10 @@ class HTML extends Control<IHTMLCombinedOptions> {
         }
     }
 
+    _onBodyClassesUpdate(event: CustomEvent): void {
+        this._bodyClasses = event.detail;
+    }
+
     // tslint:disable-next-line:no-any
     static contextTypes(): { AppData: any } {
         return {
@@ -244,5 +272,14 @@ class HTML extends Control<IHTMLCombinedOptions> {
         };
     }
 }
+
+Object.defineProperty(HTML, 'defaultProps', {
+   enumerable: true,
+   configurable: true,
+
+   get(): object {
+      return HTML.getDefaultOptions();
+   }
+});
 
 export default HTML;

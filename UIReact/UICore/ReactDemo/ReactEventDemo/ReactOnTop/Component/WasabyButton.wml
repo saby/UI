@@ -1,0 +1,9 @@
+<div>
+    <button on:click="_options.buttonHandler()">
+        {{ _options.buttonText }} (on:)
+    </button>
+
+    <button onClick={{_options.buttonHandler}}>
+        {{ _options.buttonText }}
+    </button>
+</div>

@@ -4,7 +4,7 @@ define([
 ], function(Utils) {
    const Logger = Utils.Logger;
 
-   describe('UI/_utils/Logger //Started testing log message, please ignore console log', () => {
+   describe('UICommon/_utils/Logger //Started testing log message, please ignore console log', () => {
       let result = '';
 
       // // template for case
