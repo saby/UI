@@ -26,14 +26,6 @@ import {IWasabyEvent} from 'UICommon/_events/IEvents';
 export class GeneratorText {
    generatorBase: Generator;
 
-   createDirective(text) {
-      return '<' + text + '>';
-   };
-
-   escape(value) {
-      return Common.escape(value);
-   };
-
    createWsControl(
        origin: string | typeof Control,
        scope: IControlOptions,
@@ -82,51 +74,40 @@ export class GeneratorText {
        options: IControlOptions,
        config: IControlConfig
    ): any {
-      // @ts-ignore
-      if (type === 'wsControl' || type === 'resolver') {
-         const templateAttributes: IGeneratorAttrs = {
-            attributes: config.compositeAttributes === null
-                ? attributes
-                : Helper.processMergeAttributes(config.compositeAttributes, attributes),
-            /*
-            FIXME: https://online.sbis.ru/opendoc.html?guid=f354360c-5899-4f74-bf54-a06e526621eb
-            судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
-            Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
-            Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
-            */
-            internal: {
-               parent: config.viewController
-            }
-         };
+     const templateAttributes: IGeneratorAttrs = {
+        attributes: config.compositeAttributes === null
+            ? attributes
+            : Helper.processMergeAttributes(config.compositeAttributes, attributes),
+        /*
+        FIXME: https://online.sbis.ru/opendoc.html?guid=f354360c-5899-4f74-bf54-a06e526621eb
+        судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
+        Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
+        Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
+        */
+        internal: {
+           parent: config.viewController
+        }
+     };
 
-         // вместо опций может прилететь функция, выполнение которой отдаст опции, calculateScope вычисляет такие опции
-         const resolvedOptions = Scope.calculateScope(options, plainMerge);
-         // если контрол создается внутри контентной опции, нужно пробросить в опции еще те, что доступны в контентной
-         // опции.
-         const resolvedOptionsExtended = ConfigResolver.addContentOptionScope(resolvedOptions, config);
-         /*
-         У шаблонов имя раньше бралось только из атрибута.
-         У контролов оно бралось только из опций.
-         Вряд ли есть места, где люди завязались на это поведение.
-         Поэтому чтобы не костылять с проверками, просто поддержу и опции, и атрибуты для всего.
-          */
-         const name = attributes.name as string ?? options.name;
+     // вместо опций может прилететь функция, выполнение которой отдаст опции, calculateScope вычисляет такие опции
+     const resolvedOptions = Scope.calculateScope(options, plainMerge);
+     // если контрол создается внутри контентной опции, нужно пробросить в опции еще те, что доступны в контентной
+     // опции.
+     const resolvedOptionsExtended = ConfigResolver.addContentOptionScope(resolvedOptions, config);
 
-         /* FIXME: для wasabyOverReact, событий нет в options,
-         *   получить их можно только из data (объявляется в шаблонной функции)
-         *   такое поведение очень похоже на ошибку, т.к. все события должны быть в опциях
-         *   надо разобраться почему события в опции не попадают и убрать мерж опций из data
-         *   https://online.sbis.ru/opendoc.html?guid=c0aa021f-bd67-4fe9-8cfa-feee417fb3a3
-         */
-         const newOptions = {
-            ...resolvedOptionsExtended,
-            ...{events}
-         };
+     /* FIXME: для wasabyOverReact, событий нет в options,
+     *   получить их можно только из data (объявляется в шаблонной функции)
+     *   такое поведение очень похоже на ошибку, т.к. все события должны быть в опциях
+     *   надо разобраться почему события в опции не попадают и убрать мерж опций из data
+     *   https://online.sbis.ru/opendoc.html?guid=c0aa021f-bd67-4fe9-8cfa-feee417fb3a3
+     */
+     const newOptions = {
+        ...resolvedOptionsExtended,
+        ...{events}
+     };
 
-         return this.resolver(origin, newOptions, templateAttributes, undefined,
-             config.depsLocal, config.includedTemplates);
-      }
-      throw new Error('unknown type ' + type);
+     return this.resolver(origin, newOptions, templateAttributes, undefined,
+         config.depsLocal, config.includedTemplates);
    }
 
    resolver(
