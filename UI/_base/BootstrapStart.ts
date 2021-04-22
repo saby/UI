@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_base/Start" />
+/// <amd-module name="UI/_base/BootstrapStart" />
 /**
  * Модуль для создания корневого контрола и его оживления
  * @author Мустафин Л.И.
@@ -29,7 +29,7 @@ export default function startFunction(config: ICreateControlOptions = {}, domEle
         AppEnv.getStateReceiver().deserialize(window['receivedStates']);
     }
 
-    // TODO свойство isNewEnvironment будет пересмотрено 
+    // TODO свойство isNewEnvironment будет пересмотрено
     // в https://online.sbis.ru/opendoc.html?guid=c28a34a5-54b2-4873-be99-f452189e64c0
     // Тут мы всегда находимся в "новом" окружении
     headDataStore.write('isNewEnvironment', true);
@@ -82,4 +82,3 @@ function createControl(control: TControlConstructor, config: ICreateControlOptio
 
     Control.createControl(control, configReady, dom);
 }
-
