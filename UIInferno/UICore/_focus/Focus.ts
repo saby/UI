@@ -27,12 +27,26 @@ interface IFocus {
 }
 
 let isTouchInterface = false;
+let mouseMoveTime;
 if (typeof window !== 'undefined') {
+   // мы не можем точно знать что за устройство у пользователя, самая большая проблема  - это windows с тачем и мышкой
+   // основная проблема возникает с фокусом полей ввода после открытия панелей (или спа-переходов)
+   // на таких устройствах пользователь может моментально из режима планшета переходить в режим мыши
+   // чтобы определить тач мы используем событие touchstart - в таком случае мы 100% должны работать как тач устройство
+   // определить, что начали использовать мышь намного сложнее:
+   // после физического тача события mousedown срабатывает после touchstart, а mouseover используется в fastTouch
+   // поэтому мы не можем полагаться на mousedown или mouseover, т.к. в случае с панелями это приведет к ошибке
+   // для более точного определения надо следить за событием mousemove, если время между перемещением мыши
+   // и событием mousedown равно 0. то значит мы все еще на тач устройстве и фактического движения мыши не было
    window.addEventListener('touchstart', () => {
       isTouchInterface = true;
+      mouseMoveTime = 0;
    }, true);
-   window.addEventListener('mousedown', () => {
-      if (isTouchInterface) {
+   window.addEventListener('mousemove', function (event) {
+      mouseMoveTime = event.timeStamp;
+   }, true);
+   window.addEventListener('mousedown', (event) => {
+      if (isTouchInterface && mouseMoveTime > 0 && event.timeStamp - mouseMoveTime > 0) {
          isTouchInterface = false;
       }
    }, true);
@@ -320,3 +334,4 @@ function _initFocus(): void {
 _initFocus();
 
 export { focus, _initFocus, IFocusConfig, nativeFocus };
+>>>>>>> remotes/origin/rc-21.2000:UIInferno/UICore/_focus/Focus.ts
