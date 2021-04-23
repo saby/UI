@@ -1,18 +1,18 @@
 /// <amd-module name="UI/_base/Document" />
 
-import Control from './Control';
+import { Control, TemplateFunction } from 'UICore/Base';
 
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/Document/Document');
 import { getThemeController } from 'UI/theme/controller';
 import * as AppEnv from 'Application/Env';
-import { headDataStore } from 'UI/_base/HeadData';
-import AppData from './AppData';
-import startApplication from 'UI/_base/startApplication';
+import { headDataStore } from 'UI/Deps';
+import { AppData } from 'UI/State';
+import { startApplication } from 'UICore/Base';
 
 class Document extends Control {
-    _template: Function = template;
+    _template: TemplateFunction = template;
 
     // tslint:disable-next-line:no-any
     private ctxData: any = null;
@@ -21,8 +21,13 @@ class Document extends Control {
 
     private coreTheme: string = '';
 
-    constructor(cfg: object) {
-        super(cfg);
+    /*
+    FIXME: для реакта тут будет 2 параметра, и передавать надо оба.
+    Пока в описании типа оставляю только первый, потому что это подходит под оба типа конструктора.
+     */
+    constructor(...args: [object]) {
+        super(...args);
+        const cfg = args[0];
 
         /*
         * Копипаста из Controls/Application/Core для сервиса представления.

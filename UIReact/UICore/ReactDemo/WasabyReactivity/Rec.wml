@@ -1,0 +1,26 @@
+<div>
+   <h1>Record(Set)</h1>
+   <div>
+      <h2>Record</h2>
+      <div>
+         <button name="decrement">-</button>
+         <span class="hor-padding">Count {{_rec.count}}</span>
+         <button name="increment">+</button>
+      </div>
+   </div>
+   <div>
+      <h2>RecordSet</h2>
+      <ws:if data="{{_rs.getCount() === 0}}">
+         <div>Список пуст</div>
+      </ws:if>
+      <ol>
+         <ws:for data="key, el in _rs">
+            <li key="{{key + el}}">
+               {{el.text}}
+            </li>
+         </ws:for>
+      </ol>
+      <input type="text" name="text" placeholder="Введите текст" value="{{_text}}"/>
+      <button name="add" disabled="{{!_text.length}}">Add</button>
+   </div>
+</div>

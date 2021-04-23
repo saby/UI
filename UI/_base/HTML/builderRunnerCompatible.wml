@@ -15,10 +15,10 @@
          Env.constants.$body = body;
          Env.constants.$window = window;
          Compatible.AppInit();
-         require(['UI/Base', 'UI/Executor',
+         require(['UI/Base', 'UI/Executor', 'UI/State',
             'Core/helpers/Hcontrol/makeInstanceCompatible',
-            {{ __setHTMLUnsafe(_options.dependencies) }}], function(UI, UIExecutor, makeInstanceCompatible) {
-            var AppData = UI.AppData,
+            {{ __setHTMLUnsafe(_options.dependencies) }}], function(UI, UIExecutor, UIState, makeInstanceCompatible) {
+            var AppData = UIState.AppData,
                Control = UI.Control,
                Core = UI.Document;
 

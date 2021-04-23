@@ -1,16 +1,12 @@
 /**
  * Библиотека событий
- * @library UI/Events
- * @includes EventUtils UI/_events/EventUtils
- * @includes Subscriber UI/_events/Subscriber
+ * @library UICore/Events
+ * @includes CoreEvents UICore/Events
+ * @includes CommonEvents UICommon/Events
  * @public
  * @author Тэн В.А.
  */
-import * as Subscriber from './_events/Subscriber';
-import * as EventUtils from './_events/EventUtils';
-import { FastTouchEndController } from './_events/FastTouchEndController';
-export {
-   Subscriber,
-   EventUtils,
-   FastTouchEndController
-}
+
+export { WasabyEvents } from 'UICore/Events';
+
+export { Subscriber, EventUtils, SyntheticEvent } from 'UICommon/Events';

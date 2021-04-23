@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui_module id="548e4ee9-10cd-4227-9e3c-0811958f979c" name="UICore" package="Платформа" responsible="Шипин А.А." required="1" version="1.00">
+
+  <description>Библиотека для работы ядра через Inferno. Имеет общее API с UIReact/UICore</description>
+
+  <depends>
+    <module id="0f15ac6b-86b2-4265-9da1-05eac93ebdf6" name="UICommon" />
+  </depends>
+
+  <load_after/>
+
+  <parameters/>
+
+  <resources/>
+
+  <preload/>
+
+</ui_module>

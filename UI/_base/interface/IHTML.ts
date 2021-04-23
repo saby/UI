@@ -1,4 +1,4 @@
-import {IControlOptions} from '../Control';
+import {IControlOptions} from 'UICommon/Base';
 
 /**
  * Интерфейс для контролов, поддерживающих конфигурацию HTML-документа.

@@ -6,6 +6,7 @@
   <depends>
       <module id="f27abe12-19df-4c9f-b886-634bd20a0011" name="UI" />
       <module id="85db6f66-683e-4ab1-9531-cfa9a718f696" name="UIDemo" />
+      <module id="1456f36f-76ef-4323-a2dd-a22bc91e7209" name="Compiler" />
   </depends>
 
   <load_after/>

@@ -27,6 +27,7 @@ class Simple extends Control<IControlOptions, INestedState> {
     }
 }
 
+// @ts-ignore
 Simple._styles = ['UIDemo/LimitedDemo/Simple'];
 
 export default Simple;

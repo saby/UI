@@ -1,60 +1,16 @@
 /**
  * Библиотека базового контрола
  * @library UI/Base
- * @includes Control UI/_base/Control
+ * @includes CoreBase UICore/Base
+ * @includes CommonBase UICommon/Base
  * @includes HTML UI/_base/HTML
- * @includes getMetaStack UI/_base/HTML/meta#getMetaStack
  * @includes Creator UI/_base/Creator
  * @includes Async UI/_async/Async
+ * @includes meta UI/_base/HTML/meta
+ * @includes getMetaStack UI/_base/HTML/meta
  * @public
  * @author Шипин А.А.
  */
-import {default as Control, IControlOptions, TemplateFunction, IControlChildren} from './_base/Control';
-import HTML from './_base/HTML';
-import Document from './_base/Document';
-
-import AppData from './_base/AppData';
-import Start from './_base/Start';
-import HeadController from './_base/HeadController';
-import HeadData, { headDataStore } from 'UI/_base/HeadData';
-import {DepsCollector} from './_base/DepsCollector';
-import { getGeneratorConfig } from "./_base/GeneratorConfig";
-
-//@ts-ignore
-import BaseRoute = require('wml!UI/_base/Route');
-import {IHTMLOptions, IHTML} from './_base/interface/IHTML';
-import {IRootTemplateOptions, IRootTemplate} from './_base/interface/IRootTemplate';
-import Creator, { async as AsyncCreator } from './_base/Creator';
-export { default as startApplication } from 'UI/_base/startApplication';
-export { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
-export { fromJML } from 'UI/_base/HTML/_meta/JsonML';
-
-//#region meta data
-export { getMetaStack, IMeta, IMetaState } from 'UI/_base/HTML/meta';
-//#endregion
-
-export { default as PrefetchLinksStore } from 'UI/_base/HTML/PrefetchLinks';
-export { default as Async, IAsyncOptions, TAsyncStateReceived } from 'UI/_async/Async';
-
-export {
-    Control,
-    IControlOptions,
-    HTML,
-    Document,
-    AppData,
-    Start,
-    BaseRoute,
-    HeadController,
-    Creator,
-    AsyncCreator,
-    DepsCollector,
-    HeadData,
-    headDataStore,
-    TemplateFunction,
-    IHTMLOptions,
-    IHTML,
-    IControlChildren,
-    IRootTemplateOptions,
-    IRootTemplate,
-    getGeneratorConfig
-};
+export { Control, TemplateFunction } from 'UICore/Base';
+export { IControlOptions, IControlChildren } from 'UICommon/Base';
+export * from './_base/CommonLib';

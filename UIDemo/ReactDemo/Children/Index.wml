@@ -1,0 +1,6 @@
+<div>
+    <div attr:name="element">123</div>
+    <UIDemo.ReactDemo.Children.TestControl name="control" />
+    <ws:partial attr:name="partialElement" template="wml!UIDemo/ReactDemo/Children/partialElement" />
+    <ws:partial name="partialControl" template="UIDemo/ReactDemo/Children/TestControl" />
+</div>

@@ -1,6 +1,5 @@
 import { assert } from 'chai';
-import { addPageDeps } from 'UI/Deps';
-import { headDataStore } from 'UI/Base';
+import { addPageDeps, headDataStore } from 'UI/Deps';
 
 
 describe('UI/Deps:addPageDeps', () => {

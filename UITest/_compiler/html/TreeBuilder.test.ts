@@ -1,11 +1,9 @@
-import { TreeBuilder } from 'UI/_builder/Tmpl/html/TreeBuilder';
-import { MarkupVisitor } from 'UI/_builder/Tmpl/html/MarkupVisitor';
+import { TreeBuilder } from 'Compiler/html/TreeBuilder';
+import { MarkupVisitor } from 'Compiler/html/MarkupVisitor';
 import createErrorHandler from '../NullLogger';
-import { createSource } from 'UI/_builder/Tmpl/html/Source';
-import getTagDescription from 'UI/_builder/Tmpl/html/Tags';
+import { createSource } from 'Compiler/html/Source';
+import getTagDescription from 'Compiler/html/Tags';
 import { assert } from 'chai';
-
-// TODO: UI/_builder/Tmpl/* -> Compiler/*
 
 const FILE_NAME = 'Compiler/html/TreeBuilder/TestTemplate.wml';
 const visitor = new MarkupVisitor();

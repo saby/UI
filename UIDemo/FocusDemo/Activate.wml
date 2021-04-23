@@ -1,0 +1,20 @@
+<UIDemo.FocusDemo.Index>
+    <h2>Демонстрация событий активации и деактивации</h2>
+    <div>Отслеживаются события актиивации и деактивации Первого и Второго элементов (это контролы)</div>
+    <div>То есть фокусировка и уход фокуса соответственно</div>
+    <div>После оживления страницы должен активироваться первый элемент</div>
+    <div>Он обводится в рамку и записывается в последний активированный элемент</div>
+    <div>Дальше можно любыми действиями менять фокус на странице, последний активированный и деактивированный отслеживаемых должен обновляться</div>
+    <div ws-tab-cycling="true">
+        <div class="elementToFocus">
+            <UIDemo.FocusDemo.Activate.ActivateElement on:activated="isActivated('Первый')" on:deactivated="isDeactivated('Первый')" />
+            <span>&nbsp;Первый элемент</span>
+        </div>
+        <div class="elementToFocus">
+            <UIDemo.FocusDemo.Activate.ActivateElement on:activated="isActivated('Второй')" on:deactivated="isDeactivated('Второй')" />
+            <span>&nbsp;Второй элемент</span>
+        </div>
+    </div>
+    <div>Последний активированный элемент: {{ lastActivated }}</div>
+    <div>Последний деактивированный элемент: {{ lastDeactivated }}</div>
+</UIDemo.FocusDemo.Index>

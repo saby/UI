@@ -1,18 +1,25 @@
 {
    "name": "saby-ui",
-   "version": "21.1200.0",
+   "version": "21.2000.0",
    "repository": {
       "type": "git",
       "url": "git@platform-git.sbis.ru:saby/UI.git"
    },
    "files": [
-      "UI/*",
+      "Compiler/*",
       "Markup/*",
       "TextMarkup/*",
+      "UI/*",
+      "UICore/*",
+      "UICommon/*",
+      "UIDemo/*",
+      "UIDemo-default-theme/*",
+      "UIInferno/*",
+      "UIReact/*",
+      "UITest/*",
       "VirtualTreeMarkup/*",
       "VirtualDom/*",
-      "WmlBuilder/*",
-      "Compiler/*"
+      "WmlBuilder/*"
    ],
    "scripts": {
       "build": "npm run build:typescript && npm run build:app",
@@ -20,6 +27,7 @@
       "build:app": "wasaby-cli --tasks=build",
       "compile": "saby-typescript --compiler",
       "start": "wasaby-cli --tasks=app",
+      "start-react": "wasaby-cli --tasks=app --reactApp",
       "start:units": "wasaby-cli --tasks=startTest --server",
       "test": "wasaby-cli --tasks=startTest --node --report=console",
       "test:coverage": "wasaby-cli --tasks=startTest --node --coverage",
@@ -37,14 +45,14 @@
       "@types/react": "17.0.0",
       "@types/react-dom": "17.0.0",
       "body-parser": "^1.18.3",
-      "cookie-parser": "^1.4.3",
+      "cookie-parser": "^1.4.5",
       "eslint": "^5.6.1",
       "express": "^4.16.3",
       "react": "17.0.1",
       "react-dom": "17.0.1",
       "requirejs": "2.1.18",
       "serve-static": "1.11.x",
-      "wasaby-cli": "git+https://platform-git.sbis.ru/saby/wasaby-cli.git#rc-21.1200"
+      "wasaby-cli": "git+https://platform-git.sbis.ru/saby/wasaby-cli.git#rc-21.2000"
    },
    "madge": {
       "baseDir": ".",
@@ -54,8 +62,7 @@
          "^Markup",
          "^UIDemo",
          "^UITest",
-         "^WmlBuilder",
-         "^UI/DevtoolsHook"
+         "^WmlBuilder"
       ],
       "fontSize": "26px",
       "graphVizOptions": {

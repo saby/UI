@@ -22,6 +22,7 @@ class Nested extends Control<IControlOptions, INestedState> {
     }
 }
 
+// @ts-ignore
 Nested._styles = ['UIDemo/LimitedDemo/Nested'];
 
 export default Nested;
