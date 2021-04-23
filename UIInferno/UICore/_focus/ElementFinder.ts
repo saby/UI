@@ -81,9 +81,6 @@ function getFromFocusableElement(element: IControlElement): boolean {
 }
 
 function getTabStopState(element: IControlElement, tabbable: boolean = false): boolean {
-   if (!tabbable){
-      return getFromFocusableElement(element)
-   }
    let tabStopState = false;
    for (let selector = 0; selector < CANDIDATE_SELECTOR.length; selector++) {
       if (element.matches(CANDIDATE_SELECTOR[selector])) {
