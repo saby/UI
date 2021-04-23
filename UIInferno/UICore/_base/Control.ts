@@ -803,9 +803,11 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
          this.loadThemes(options.theme),
          this.loadStyles()
       ]);
-      //Если ждать загрузки стилей новой темизации. то му получаем просадку производительности
-      //https://online.sbis.ru/doc/059aaa9a-e123-49ce-b3c3-e828fdd15e56
-      this.loadThemeVariables(options.theme)
+      if (!options.notLoadThemes) {
+         //Если ждать загрузки стилей новой темизации. то му получаем просадку производительности
+         //https://online.sbis.ru/doc/059aaa9a-e123-49ce-b3c3-e828fdd15e56
+         this.loadThemeVariables(options.theme)
+      }
       if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded(options.theme)) {
          return this._$resultBeforeMount = resultBeforeMount;
       }
@@ -1511,6 +1513,12 @@ export default Control;
  * Когда значение опции не задано явно, оно будет взято от родительского контрола. Это продемонстрировано в примере.
  *
  * Подробнее о работе с темами оформления читайте {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/ здесь}.
+ */
+
+/**
+ * @name UICore/_base/Control#notLoadThemes
+ * @cfg {Boolean} Флаг. отключающий загрузку переменных тем оформления контролом
+ * @default undefined
  */
 
 /*

@@ -9,6 +9,7 @@ import { Control } from 'UICore/Base';
 export interface IControlOptions {
     readOnly?: boolean;
     theme?: string;
+    notLoadThemes?: boolean,
     _$createdFromCode?: boolean;
 }
 

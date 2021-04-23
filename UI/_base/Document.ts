@@ -92,6 +92,10 @@ class Document extends Control {
         }
         return result;
     }
+
+    static defaultProps: object = {
+        notLoadThemes: true
+    };
 }
 
 export default Document;
