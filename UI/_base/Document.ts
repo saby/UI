@@ -93,6 +93,12 @@ class Document extends Control {
         }
         return result;
     }
+
+    static getDefaultOptions(): any {
+        return {
+            notLoadThemes: true
+        };
+    }
 }
 
 export default Document;
