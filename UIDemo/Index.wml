@@ -1,8 +1,9 @@
 <SbisEnvUI.Bootstrap
-    scope="{{_options}}"
-    bodyClass="controls-default-bg"
-    bootstrapWrapperMode="{{_options.bootstrapWrapperMode}}">
+        scope="{{_options}}"
+        bodyClass="controls-default-bg"
+        bootstrapWrapperMode="{{_options.bootstrapWrapperMode}}">
     <ws:content>
-        <UIDemo.ReactDemo.Index />
+        <UIDemo.ReactEventDemo.ReactEventDemo.WasabyOnTop.ReactInWasaby />
+<!--        <UIDemo.RootRouter />-->
     </ws:content>
 </SbisEnvUI.Bootstrap>
