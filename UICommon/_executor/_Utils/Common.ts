@@ -276,7 +276,7 @@ export function isControlString(str) {
 }
 
 export function isOptionalString(str) {
-   return str.indexOf('optional!') === 0;
+   return typeof str === 'string' && str.indexOf('optional!') === 0;
 }
 
 export function isLibraryModuleString(str) {
