@@ -2,8 +2,7 @@
  * @author Тэн В.А.
  */
 
-import { focus } from 'UICore/Focus';
-import { IControlElement } from 'UICore/_focus/IFocus';
+import { focus, IControlElement } from 'UICore/Focus';
 
 interface IMouseEventInitExtend extends MouseEventInit {
    type: string;
