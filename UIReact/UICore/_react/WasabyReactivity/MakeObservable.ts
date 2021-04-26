@@ -1,4 +1,5 @@
-import { Control, TemplateFunction } from 'UICore/Base';
+import { Control } from 'UICore/Base';
+import { TemplateFunction } from 'UICommon/Base';
 import { IVersionable } from 'Types/entity';
 
 const arrayMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];

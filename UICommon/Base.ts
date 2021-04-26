@@ -6,4 +6,4 @@
 
  export { getProxyChildren } from './_base/ProxyChildren';
 
-export { IControlOptions, IControlChildren } from './_base/Control';
+export { IControlOptions, IControlChildren, TemplateFunction } from './_base/Control';

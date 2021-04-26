@@ -5,7 +5,10 @@
  * @author Тэн В.А.
  */
 
-import {IControlNode} from 'UICommon/interfaces';
+import {
+   ICommonControlNode as IControlNode,
+   IControl
+} from 'UICommon/interfaces';
 
 // Служебные опции контрола
 export interface IGeneratorConstructor {
@@ -149,53 +152,6 @@ export interface IControlProperties {
    enabled: boolean;
    __key?: string;
    __noDirtyChecking?: boolean;
-}
-
-// Базовый контрол
-export interface IControl {
-   _template: Function;
-   _mounted: boolean;
-   _unmounted: boolean;
-   _destroyed: boolean;
-   _$active: boolean;
-   _reactiveStart: boolean;
-   _options: TOptions;
-   _internalOptions: TObject;
-   _context: TObject;
-   context: IControlContext;
-   saveFullContext: Function;
-   _saveContextObject: Function;
-   _saveEnvironment: Function;
-   saveInheritOptions: Function;
-   _getEnvironment: Function;
-   _notify: Function;
-   _container: HTMLElement;
-   _logicParent: IControl;
-   _getMarkup: (rootKey?: string, attributes?: object, isVdom?: boolean) => any;
-   render: Function;
-   _children: TObject;
-   _forceUpdate: Function;
-   _instId: string;
-   reactiveValues: TObject;
-   __lastGetterPath: Array<string>;
-
-   readonly prototype: {
-      _moduleName: string;
-      _template?: Function;
-      _dotTplFn?: Function;
-   };
-
-   props?: {
-      readOnly: boolean;
-      theme: string;
-   };
-}
-
-// Контекст базовый контрола
-export interface IControlContext {
-   get: Function;
-   set: Function;
-   has: Function;
 }
 
 // Основные атрибуты контрола

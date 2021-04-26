@@ -15,10 +15,18 @@ import {
 import {
     IWasabyHTMLElement,
     TModifyHTMLNode,
-    IControlNode,
+    ICommonControlNode,
     TEventsObject
 } from 'UICommon/interfaces';
 
+interface IControlNode extends ICommonControlNode {
+    controlClass: unknown;
+    parent: IControlNode;
+    childrenNodes: IControlNode[];
+    serializedChildren: IControlNode[];
+    vnode: unknown;
+    environment: unknown;
+}
 export default class WasabyEventsReact extends WasabyEvents implements IWasabyEventSystem {
     private lastTarget: IWasabyHTMLElement;
     private wasWasabyNotifyList: IControlNode[] = [];
@@ -33,7 +41,7 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
         this.addCaptureProcessingHandler('click', this._handleClick);
         this.addCaptureProcessingHandler('touchstart', this._handleTouchstart);
         this.addCaptureProcessingHandler('touchmove', this._handleTouchmove);
-        this.addCaptureProcessingHandler('touchend', this._handleTouchend,);
+        this.addCaptureProcessingHandler('touchend', this._handleTouchend);
     }
     //#endregion
 

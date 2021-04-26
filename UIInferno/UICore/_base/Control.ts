@@ -19,24 +19,18 @@ import { getThemeController, EMPTY_THEME } from 'UICommon/theme/controller';
 import { ReactiveObserver } from 'UICore/Reactivity';
 
 import startApplication from './startApplication';
-import { getProxyChildren, IControlOptions, IControlChildren } from 'UICommon/Base';
+import { getProxyChildren, IControlOptions, IControlChildren, TemplateFunction } from 'UICommon/Base';
 
 import { DisposeControl, IResourceDisposable } from 'Application/State';
 
 import {
    TIState,
    TControlConfig,
-   ITemplateAttrs,
    TControlConstructor
 } from 'UICommon/interfaces';
-
-/**
- * Тип шаблон-функции
- * @typedef UICore/_base/Control#TemplateFunction
-* @public
- */
-export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
-                                forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
+import {
+   ITemplateAttrs
+} from 'UICore/interfaces';
 
 /**
  * @event UICore/_base/Control#activated Происходит при активации контрола.
@@ -329,7 +323,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
        attributes?: ITemplateAttrs,
        isVdom: boolean = true
    ): any {
-      if (!(this._template as any).stable) {
+      if (!this._template.stable) {
          Logger.error(`[UICore/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
          return '';
       }

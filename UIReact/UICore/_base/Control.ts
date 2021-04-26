@@ -7,7 +7,7 @@ import { Options } from 'UICommon/Vdom';
 import { makeWasabyObservable, releaseProperties } from 'UICore/WasabyReactivity';
 
 import template = require('wml!UICore/_base/Control');
-import { IControlState, TemplateFunction } from './interfaces';
+import { IControlState } from './interfaces';
 import {
     getWasabyContext,
     IWasabyContextValue,
@@ -20,7 +20,7 @@ import { OptionsResolver } from 'UICommon/Executor';
 import { WasabyEvents, callNotify } from 'UICore/Events';
 import { IWasabyEventSystem } from 'UICommon/Events';
 import { TIState, TControlConfig } from 'UICommon/interfaces';
-import { IControlOptions, IControlChildren } from 'UICommon/Base';
+import { IControlOptions, IControlChildren, TemplateFunction } from 'UICommon/Base';
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
