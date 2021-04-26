@@ -19,7 +19,7 @@ import { goUpByControlTree } from 'UICore/NodeCollector';
 import * as DefaultOpenerFinder from './_focus/DefaultOpenerFinder';
 import * as FocusAttrs from './_focus/FocusAttrs';
 import { IControl } from './_focus/IControl';
-import { IControlElement } from '/_focus/IFocus';
+import { IControlElement } from './_focus/IFocus';
 
 export {
    ElementFinder,
