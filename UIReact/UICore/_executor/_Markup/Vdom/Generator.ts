@@ -233,8 +233,8 @@ export class GeneratorVdom implements IGenerator {
          return resolveTemplateArray(parent, tpl, preparedScope, decorAttribs);
       }
       // Здесь может быть незарезолвленный контрол optional!. Поэтому результат должен быть пустым
-      if (Common.isOptionalString(tplOrigin)) {
-         return '';
+      if (Common.isOptionalString<TemplateOrigin>(tplOrigin)) {
+         return null;
       }
 
       // не смогли зарезолвить - нужно вывести ошибку
