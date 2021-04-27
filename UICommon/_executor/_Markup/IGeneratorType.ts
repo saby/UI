@@ -219,7 +219,9 @@ export interface IControlConfig {
 
 // Типы сопоставления для случаем когда однозначно описать тип не можем
 export type TProps = Record<string, any>;
-//import { VNode } from 'Inferno/third-party/index';
+
+// Для поддержки ExecutorCompatible из ws
+export { IControl } from 'UICommon/interfaces';
 
 export interface ITemplateNode {
    compound: false;
