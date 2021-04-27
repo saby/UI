@@ -19,15 +19,16 @@ import { OptionsResolver } from 'UICommon/Executor';
 
 import { WasabyEvents, callNotify } from 'UICore/Events';
 import { IWasabyEventSystem } from 'UICommon/Events';
-import { TIState, TControlConfig } from 'UICommon/interfaces';
+import { TIState, TControlConfig, IControl } from 'UICommon/interfaces';
 import { IControlOptions, IControlChildren, TemplateFunction } from 'UICommon/Base';
+import { IControlNode } from 'UICore/interfaces';
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
  * @author Mogilevsky Ivan
  */
 export default class Control<TOptions extends IControlOptions = {},
-    TState extends TIState = void> extends Component<TOptions, IControlState> {
+    TState extends TIState = void> extends Component<TOptions, IControlState> implements IControl {
     /**
      * Используется для того, чтобы не вызывать хуки ЖЦ до реального построения контрола.
      */

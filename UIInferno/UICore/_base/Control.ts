@@ -26,6 +26,7 @@ import { DisposeControl, IResourceDisposable } from 'Application/State';
 import {
    TIState,
    TControlConfig,
+   IControl,
    TControlConstructor
 } from 'UICommon/interfaces';
 import {
@@ -180,7 +181,7 @@ export const _private = {
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
-class Control<TOptions extends IControlOptions = {}, TState extends TIState = void> implements _IControl {
+class Control<TOptions extends IControlOptions = {}, TState extends TIState = void> implements IControl {
    protected _moduleName: string;
 
    private _mounted: boolean = false;
