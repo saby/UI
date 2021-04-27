@@ -282,7 +282,7 @@ export function isOptionalString(str) {
 export function isLibraryModuleString(str) {
    // library module string example: SomeStorage.Library:Module
    var name = str.indexOf('ws:') === 0 ? str.replace('ws:', '') : str;
-   return /^(([a-zA-Z]+)[.]([a-zA-Z]+)[:]([a-zA-Z]+))$/.test(name);
+   return /(([a-zA-Z]+)[./]([a-zA-Z]+)[:]([a-zA-Z]+))$/.test(name);
 }
 
 // для обработки контролов без js, через partial
