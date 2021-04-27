@@ -1,5 +1,7 @@
 
-import { Control } from 'UICore/Base';
+import { IControl } from 'UICommon/interfaces';
+import { IGeneratorConfig } from 'UICommon/Executor';
+import { SbisTable } from 'Types/_entity/adapter';
 
 /**
  * Интерфейс опций базового контрола
@@ -13,10 +15,24 @@ export interface IControlOptions {
     _$createdFromCode?: boolean;
 }
 
+interface IStable {
+    stable: boolean;
+}
+
+// TODO: в 3000 исправить тип возвращаемого значения. Только string для совместимости.
+type TTemplateFunction = (
+    data: object,
+    attr?: object,
+    context?: string,
+    isVdom?: boolean,
+    sets?: object,
+    forceCompatible?: boolean,
+    generatorConfig?: IGeneratorConfig
+ ) => string;
 
 /**
- * Тип детей базового контрола, то есть поля _children
- * @typedef UICommon/_base/Control#IControlChildren
+ * Тип шаблон-функции
+ * @typedef UICommon/_base/Control#TemplateFunction
  * @public
  */
-export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
+export type TemplateFunction = TTemplateFunction & IStable;

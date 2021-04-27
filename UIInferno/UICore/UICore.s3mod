@@ -4,6 +4,11 @@
   <description>Библиотека для работы ядра через Inferno. Имеет общее API с UIReact/UICore</description>
 
   <depends>
+    <module id="0df0fce3-53ba-47f8-987d-edf1fd078295" name="WS.Core"/>
+    <module id="636177e5-4d75-44fa-9173-977dc90ff111" name="Env"/>
+    <module id="323fd54f-1fab-42a6-8aea-6726d6392d53" name="Application"/>
+    <module id="686f183d-0bcc-4732-b4e4-6016c2a67a0f" name="Types"/>
+    <module id="951e1c80-ee24-4022-8349-96123fae8026" name="Inferno"/>
     <module id="0f15ac6b-86b2-4265-9da1-05eac93ebdf6" name="UICommon" />
   </depends>
 

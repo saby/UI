@@ -1,5 +1,5 @@
-import {TemplateFunction} from 'UICore/Base';
-import {TestBaseControl} from '../Base'
+import { TemplateFunction } from 'UICommon/Base';
+import {TestBaseControl} from '../Base';
 
 // @ts-ignore
 import template = require('wml!UICore/UITest/Focus/MinusOneTabindex');

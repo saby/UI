@@ -1,5 +1,5 @@
-import { TemplateFunction } from 'UICore/Base';
-import { IControlNode } from 'UICommon/interfaces';
+import { TemplateFunction } from 'UICommon/Base';
+import { IControlNode } from 'UICore/interfaces';
 import { IOptions } from 'UICommon/Vdom';
 import { TGeneratorNode, IGeneratorControlNode } from 'UICore/Executor';
 import { VNode } from 'Inferno/third-party/index';

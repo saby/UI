@@ -18,9 +18,9 @@ import {ITouchEvent} from './Touch/TouchEvents';
 
 import {
     IWasabyHTMLElement,
-    IDOMEnvironment,
+    ICommonDOMEnvironment as IDOMEnvironment,
     TModifyHTMLNode,
-    IControlNode,
+    ICommonControlNode as IControlNode,
     IControlNodeEvent
 } from 'UICommon/interfaces';
 
