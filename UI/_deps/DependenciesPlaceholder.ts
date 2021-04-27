@@ -73,10 +73,17 @@ export function aggregateJS(deps: ICollectedDeps): void {
       { type: 'text/javascript' },
       `window['receivedStates']='${deps.rsSerialized}';`
    );
+   /**
+    * На страницах OnlineSbisRu/CompatibleTemplate зависимости пакуются в rt-пакеты и собираются DepsCollector
+    * Поэтому в глобальной переменной храним имена запакованных в rt-пакет модулей
+    * И игнорируем попытки require (см. WS.Core\ext\requirejs\plugins\preload.js)
+    * https://online.sbis.ru/opendoc.html?guid=348beb13-7b57-4257-b8b8-c5393bee13bd
+    * TODO следует избавится при отказе от rt-паковки
+    */
    API.createTag(
       'script',
       { type: 'text/javascript' },
-      `window['rtpackModuleNames']='${deps.rtpackModuleNames}';`
+      `window['rtpackModuleNames']='${JSON.stringify(arrayToObject(deps.rtpackModuleNames))}';`
    );
 }
 
@@ -97,6 +104,16 @@ function filterJsDeps(jsDeps: string[], scripts: string[]): string[] {
       return jsDeps;
    }
    return jsDeps.filter((js) => !js.includes('/lang/'));
+}
+
+/** Конвертируем в hashmap для быстрого поиска имени модуля */
+function arrayToObject(arr: string[]): Record<string, number> {
+   const obj: Record<string, number> = {};
+   let index = 0;
+   for (const key of arr) {
+      obj[key] = index++;
+   }
+   return obj;
 }
 
 export function aggregateCSS(theme: string, styles: string[] = [], themes: string[] = []): Promise<string> {
