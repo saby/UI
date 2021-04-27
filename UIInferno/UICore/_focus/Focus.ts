@@ -334,4 +334,3 @@ function _initFocus(): void {
 _initFocus();
 
 export { focus, _initFocus, IFocusConfig, nativeFocus };
->>>>>>> remotes/origin/rc-21.2000:UIInferno/UICore/_focus/Focus.ts
