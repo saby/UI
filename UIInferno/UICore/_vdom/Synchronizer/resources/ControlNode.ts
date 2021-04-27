@@ -1,6 +1,10 @@
 import { composeWithResultApply } from 'UICore/_vdom/Utils/Functional';
-import { IControlNode, IDOMEnvironment, IAttrs } from 'UICommon/interfaces';
-import { textNode } from 'UICore/Executor';
+import { IAttrs } from 'UICommon/interfaces';
+import {
+    IDOMEnvironment,
+   IControlNode
+} from 'UICore/interfaces';
+import { textNode } from 'UICommon/Executor';
 import { OptionsResolver } from 'UICommon/Executor';
 import { Logger, needToBeCompatible } from 'UICommon/Utils';
 import { createCompoundControlNode, getCompatibleUtils } from 'UICore/_vdom/Synchronizer/resources/DirtyCheckingCompatible';

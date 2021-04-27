@@ -18,8 +18,8 @@ import {ITouchEvent} from './Touch/TouchEvents';
 
 import {
     IWasabyHTMLElement,
-    IControlNode,
-    IDOMEnvironment,
+    ICommonControlNode as IControlNode,
+    ICommonDOMEnvironment as IDOMEnvironment,
     TModifyHTMLNode
 } from 'UICommon/interfaces';
 

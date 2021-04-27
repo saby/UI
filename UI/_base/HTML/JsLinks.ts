@@ -1,6 +1,7 @@
 /// <amd-module name="UI/_base/HTML/JsLinks" />
 
-import { Control, TemplateFunction } from 'UICore/Base';
+import { Control } from 'UICore/Base';
+import { TemplateFunction } from 'UICommon/Base';
 
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore

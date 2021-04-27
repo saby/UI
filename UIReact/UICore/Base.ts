@@ -1,6 +1,4 @@
-export { default as Control}  from './_base/Control';
-
-export { TemplateFunction } from './_base/interfaces';
+export { default as Control, IControlChildren }  from './_base/Control';
 
 import { IGeneratorConfig } from 'UICommon/Executor';
 

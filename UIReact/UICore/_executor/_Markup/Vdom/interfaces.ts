@@ -1,10 +1,9 @@
-import { Control, TemplateFunction } from 'UICore/Base';
-import {
-    CommonUtils as Common
-} from 'UICore/Executor';
+import { Control } from 'UICore/Base';
+import { TemplateFunction } from 'UICommon/Base';
 import * as React from 'react';
 import { IWasabyContextValue } from 'UICore/Contexts';
 import {
+    CommonUtils as Common,
     Attr,
     IGeneratorNameObject
 } from 'UICommon/Executor';
