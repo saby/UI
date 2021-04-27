@@ -11,6 +11,6 @@
  * @public
  * @author Шипин А.А.
  */
-export { Control, TemplateFunction } from 'UICore/Base';
-export { IControlOptions, IControlChildren } from 'UICommon/Base';
+export { Control, IControlChildren } from 'UICore/Base';
+export { IControlOptions, TemplateFunction } from 'UICommon/Base';
 export * from './_base/CommonLib';

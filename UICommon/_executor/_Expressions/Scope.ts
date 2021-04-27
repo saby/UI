@@ -3,7 +3,7 @@
 /**
  * @author Тэн В.А.
  */
-import { ReactiveObserver } from 'UICore/Reactivity';
+import { pauseReactive } from '../pauseReactive';
 
 /**
  * Набор свойств, которые необходимо не переопределять, а конкатенировать.
@@ -95,7 +95,7 @@ function isolateScope(scope: any, data: any, propertyName: any): any {
          scope[UNDEF_FLAG_PREFIX + propertyName] = true;
       }
       // pause reactive behaviour of properties while scope initializing
-      ReactiveObserver.pauseReactive(scope, () => {
+      pauseReactive(scope, () => {
          scope[propertyName] = data;
       });
       scope[PATCHED_FLAG_PREFIX + propertyName] = true;
@@ -107,7 +107,7 @@ function isolateScope(scope: any, data: any, propertyName: any): any {
          data[propertyName] = scope[propertyName][propertyName];
       }
       // pause reactive behaviour of properties while scope initializing
-      ReactiveObserver.pauseReactive(scope, () => {
+      pauseReactive(scope, () => {
          scope[propertyName] = data;
       });
    }
@@ -136,7 +136,7 @@ interface CycleIdentifiers {
 
 function presetScope(object: any, data: any, key: any, firstArgument: CycleIdentifiers): any {
    // pause reactive behaviour of properties while scope initializing
-   ReactiveObserver.pauseReactive(data, () => {
+   pauseReactive(data, () => {
       if (firstArgument.key) {
          data[firstArgument.key] = key;
       }
