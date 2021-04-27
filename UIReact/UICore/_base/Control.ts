@@ -21,7 +21,6 @@ import { WasabyEvents, callNotify } from 'UICore/Events';
 import { IWasabyEventSystem } from 'UICommon/Events';
 import { TIState, TControlConfig, IControl } from 'UICommon/interfaces';
 import { IControlOptions, IControlChildren, TemplateFunction } from 'UICommon/Base';
-import { IControlNode } from 'UICore/interfaces';
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
