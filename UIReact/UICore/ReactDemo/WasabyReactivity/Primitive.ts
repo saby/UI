@@ -1,4 +1,5 @@
-import {Control, TemplateFunction} from 'UICore/Base';
+import {Control} from 'UICore/Base';
+import { TemplateFunction } from 'UICommon/Base';
 // @ts-ignore
 import * as template from 'wml!UICore/ReactDemo/WasabyReactivity/Primitive';
 

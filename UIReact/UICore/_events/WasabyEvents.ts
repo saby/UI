@@ -5,7 +5,6 @@ import {
     IWasabyEventSystem,
     IEventConfig,
     SyntheticEvent,
-    isInvisibleNode,
     FastTouchEndController,
     ITouchEvent,
     SwipeController,
@@ -31,7 +30,7 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
         this.addCaptureProcessingHandler('click', this._handleClick);
         this.addCaptureProcessingHandler('touchstart', this._handleTouchstart);
         this.addCaptureProcessingHandler('touchmove', this._handleTouchmove);
-        this.addCaptureProcessingHandler('touchend', this._handleTouchend,);
+        this.addCaptureProcessingHandler('touchend', this._handleTouchend);
     }
     //#endregion
 

@@ -1,4 +1,4 @@
-import {TemplateFunction} from 'UICore/Base';
+import { TemplateFunction } from 'UICommon/Base';
 import {TestBaseControl} from '../Base';
 
 // @ts-ignore

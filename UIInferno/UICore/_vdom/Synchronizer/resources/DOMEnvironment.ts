@@ -7,11 +7,14 @@ import {ElementFinder, Events, focus, preventFocus, hasNoFocus} from 'UICore/Foc
 import { goUpByControlTree } from 'UICore/NodeCollector';
 import { WasabyEvents } from 'UICore/Events';
 import {
+   TModifyHTMLNode
+} from 'UICommon/interfaces';
+import {
    IDOMEnvironment, TControlStateCollback,
-   TMarkupNodeDecoratorFn, IHandlerInfo, TModifyHTMLNode,
+   TMarkupNodeDecoratorFn, IHandlerInfo,
    TComponentAttrs,
    IControlNode
-} from 'UICommon/interfaces';
+} from 'UICore/interfaces';
 
 import { mapVNode } from './VdomMarkup';
 import { setControlNodeHook, setEventHook } from './Hooks';

@@ -1,4 +1,4 @@
-define('UICore/_reactivity/ReactiveObserver', ['UICore/DevtoolsHook', 'Types/shim', 'Env/Env'], function(DevtoolsHook, TypesShim, Env) {
+define('UICore/_reactivity/ReactiveObserver', ['UICore/DevtoolsHook', 'Types/shim', 'Env/Env', 'UICommon/Executor'], function(DevtoolsHook, TypesShim, Env, Executor) {
    /**
     * @author Шипин А.А.
     */
@@ -351,6 +351,8 @@ define('UICore/_reactivity/ReactiveObserver', ['UICore/DevtoolsHook', 'Types/shi
          Env.IoC.resolve('ILogger').warn(text);
       }
    }
+
+   Executor.setPauseReactive(pauseReactive);
 
    return {
       observeProperties: observeProperties,

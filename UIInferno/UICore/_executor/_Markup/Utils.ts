@@ -3,6 +3,7 @@
 
 import * as Decorate from '../_Expressions/Decorate';
 import { _FocusAttrs } from 'UICore/Focus';
+import { IControl } from 'UICommon/interfaces';
 import {
    Attr,
    GeneratorEmptyObject,
@@ -13,7 +14,6 @@ import {
    invisibleNodeTagName,
    VoidTags as voidElements,
    IGeneratorConfig,
-   IControl,
    IGeneratorDefCollection,
    TAttributes,
    IAttributes,
@@ -22,7 +22,7 @@ import {
 } from 'UICommon/Executor';
 
 import { NumberUtils } from 'UICommon/Utils';
-import { TemplateFunction } from 'UICore/Base';
+import { TemplateFunction } from 'UICommon/Base';
 
 /**
  * @author Тэн В.А.

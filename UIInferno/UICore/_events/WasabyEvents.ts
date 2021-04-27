@@ -14,11 +14,13 @@ import {
     LongTapController
 } from 'UICommon/Events';
 import {
-    IDOMEnvironment,
     IWasabyHTMLElement,
-    TModifyHTMLNode,
-    IControlNode
+    TModifyHTMLNode
 } from 'UICommon/interfaces';
+import {
+    IDOMEnvironment,
+   IControlNode
+} from 'UICore/interfaces';
 
 export default class WasabyEventsInferno extends WasabyEvents implements IWasabyEventSystem {
     private _environment: IDOMEnvironment;

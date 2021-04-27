@@ -1,39 +1,74 @@
-import { Control } from 'UICore/Base';
 import { IOptions } from 'UICommon/Vdom';
-import { VNode } from 'Inferno/third-party/index';
-import { IGeneratorControlNode } from 'UICore/Executor';
 import { IWasabyEventSystem } from 'UICommon/Events';
 import { IControlOptions } from 'UICommon/Base';
-
-export type TComponentAttrs = Record<string, unknown>;
+import { TObject } from 'UICommon/Executor';
 
 export type TControlId = string;
 // VdomMarkup.getDecoratedMark
 // tslint:disable: member-ordering
 
-export interface ITemplateAttrs {
-    key?: string;
-    internal?: Record<string, any>;
-    inheritOptions?: Record<string, any>;
-    attributes?: Record<string, any>;
-    templateContext?: Record<string, any>;
-    context?: Record<string, any>;
-    domNodeProps?: Record<string, any>;
-    events?: Record<string, any>;
-}
-
 export type TControlConfig = IControlOptions & {
     [key: string]: any;
-    _logicParent?: Control;
+    _logicParent?: IControl;
     _$createdFromCode?: boolean;
 };
+
+// Контекст базовый контрола
+export interface IControlContext {
+   get: Function;
+   set: Function;
+   has: Function;
+}
+
+
+// Базовый контрол
+export interface IControl {
+    _template: Function;
+    _mounted: boolean;
+    _unmounted: boolean;
+    _destroyed: boolean;
+    _$active: boolean;
+    _reactiveStart: boolean;
+    _options: IControlOptions;
+    _internalOptions: TObject;
+    _context: TObject;
+    context: IControlContext;
+    saveFullContext: Function;
+    _getChildContext: Function;
+    _saveContextObject: Function;
+    _saveEnvironment: Function;
+    saveInheritOptions: Function;
+    _getEnvironment: Function;
+    _notify: Function;
+    _container: HTMLElement;
+    _logicParent: IControl;
+    _getMarkup: (rootKey?: string, attributes?: object, isVdom?: boolean) => any;
+    render: Function;
+    _children: TObject;
+    _forceUpdate: Function;
+    _instId: string;
+    reactiveValues: TObject;
+    __lastGetterPath: [];
+
+    readonly prototype: {
+       _moduleName: string;
+       _template?: Function;
+       _dotTplFn?: Function;
+    };
+
+    props?: {
+       readOnly: boolean;
+       theme: string;
+    };
+ }
 
 interface IState {
 }
 export type TIState = void | IState;
 
-export type TControlConstructor<TOptions extends IControlOptions = {}, TState extends TIState = void> = {
-    new(cfg: TOptions): Control<TOptions, TState>;
+export type TControlConstructor<TOptions extends IControlOptions = {}> = {
+    new(cfg: TOptions): IControl;
+    prototype: IControl;
 };
 
 type TContext = Record<string, object>;
@@ -63,18 +98,18 @@ export interface IControlNodeEvent {
     element: IWasabyHTMLElement;
     events: TEventsObject;
     controlNodeEvent: IControlNodeEvent;
-    control: Control | undefined;
+    control: IControl | undefined;
 }
 
-export interface IControlNode extends IRebuildNode, IControlNodeEvent {
+export interface ICommonControlNode extends IRebuildNode, IControlNodeEvent {
     attributes: any;
     events: TEventsObject;
+    control: IControl;
     contextVersions: IObjectsVersions<TContext>;
     context: TContext;
     oldContext: TContext;
     errors: object | undefined;
     element: IWasabyHTMLElement;
-    controlClass: TControlConstructor;
     options: IOptions;
     oldOptions: IOptions;
     internalOptions: ICoreControlOptions;
@@ -82,19 +117,17 @@ export interface IControlNode extends IRebuildNode, IControlNodeEvent {
     inheritOptions: ICoreControlOptions;
     internalVersions: IObjectsVersions<ICoreControlOptions>;
     id: TControlId;
-    parent: IControlNode;
+    parent: ICommonControlNode;
     key: TControlId;
     defaultOptions: ICoreControlOptions;
-    markup: VNode | undefined;
-    fullMarkup: VNode | undefined;
-    childrenNodes: IControlNode[];
+    markup?: { type?: string, moduleName?: string };
+    fullMarkup?: { type?: string, moduleName?: string };
+    childrenNodes: ICommonControlNode[];
     markupDecorator: Function;
-    serializedChildren: IControlNode[];
+    serializedChildren: ICommonControlNode[];
     hasCompound: false;
     receivedState: undefined;
     invisible: boolean;
-    vnode: IGeneratorControlNode;
-    environment: IDOMEnvironment;
 
     // TODO это нужно вынести в расширенные интерфейсы
     _moduleName?: string;  // это добавляет какой то Executor
@@ -104,22 +137,10 @@ export interface IControlNode extends IRebuildNode, IControlNodeEvent {
     __captureEventHandler: Function;
 }
 
-export interface ICompatableControl {
-    _parent?: ICompatableControl;
-    hasCompatible(): boolean;
-    isDestroyed(): boolean;
-}
-
-export interface ICompatableNode {
-    control: ICompatableControl;
-}
-
-export type TControlStateCollback = (nodeId: TControlId) => void;
-
 // Наверное, здесь им здесь не место, но для рефактора Hooks они были срочно нужны.
 export interface IEvent {
     args: any[];
-    controlNode: IControlNode;
+    controlNode: ICommonControlNode;
     fn: () => void;
     name: string;
     toPartial?: boolean;
@@ -129,7 +150,7 @@ export interface IEvent {
 export type TEventsObject = Record<string, IEvent[]>;
 
 export interface IWasabyHTMLElement extends HTMLElement {
-    controlNodes: IControlNode[];
+    controlNodes: ICommonControlNode[];
     eventProperties: TEventsObject;
     eventPropertiesCnt: number;
 }
@@ -142,37 +163,13 @@ export interface IProperties {
 
 export type TModifyHTMLNode = HTMLElement & Record<string, any>;
 
-export type TMarkupNodeDecoratorFn = (
-    tagName: string,
-    properties: IProperties,
-    children: any,
-    key: TControlId,
-    controlNode: any,
-    ref: any
-) => VNode[];
-
 export interface IHandlerInfo {
     handler: (evt: Event) => void;
     bodyEvent: boolean;
     processingHandler: boolean;
     count: number;
 }
-export interface IMemoForNode {
-    createdNodes: IControlNode[];
-    destroyedNodes: IControlNode[];
-    selfDirtyNodes: IControlNode[];
-    updatedChangedNodes: IControlNode[];
-    updatedNodes: IControlNode[];
-    updatedUnchangedNodes: IControlNode[];
-    notUpdatedGNodes: IGeneratorControlNode[];
-}
-export interface IMemoNode {
-    memo: IMemoForNode;
-    value: IControlNode;
-    getChangedCNodeIds(): Set<TControlId | 0>;
-}
-
-export interface IDOMEnvironment {
+export interface ICommonDOMEnvironment {
     destroy(): void;
 
     setRebuildIgnoreId(id: string): void;
@@ -181,15 +178,7 @@ export interface IDOMEnvironment {
     _handleBlurEvent(e: any): void;
     _handleMouseDown(e: any): void;
 
-    decorateFullMarkup(vnode: VNode, controlNode: any): VNode;
-    getMarkupNodeDecorator(): TMarkupNodeDecoratorFn;
     getDOMNode(): HTMLElement;
-
-    _canDestroy(destroyedControl: Control): any;
-
-    setupControlNode(controlNode: IControlNode): void;
-
-    applyNodeMemo(nodeMemo: IMemoNode, devtoolCallback: Function): void;
 
     showCapturedEvents(): Record<string, IHandlerInfo[]>;
 
