@@ -19,7 +19,7 @@ import { getThemeController, EMPTY_THEME } from 'UICommon/theme/controller';
 import { ReactiveObserver } from 'UICore/Reactivity';
 
 import startApplication from './startApplication';
-import { getProxyChildren, IControlOptions, IControlChildren, TemplateFunction } from 'UICommon/Base';
+import { getProxyChildren, IControlOptions, TemplateFunction } from 'UICommon/Base';
 
 import { DisposeControl, IResourceDisposable } from 'Application/State';
 
@@ -32,6 +32,8 @@ import {
 import {
    ITemplateAttrs
 } from 'UICore/interfaces';
+
+export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
 /**
  * @event UICore/_base/Control#activated Происходит при активации контрола.

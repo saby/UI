@@ -36,10 +36,3 @@ type TTemplateFunction = (
  * @public
  */
 export type TemplateFunction = TTemplateFunction & IStable;
-
-/**
- * Тип детей базового контрола, то есть поля _children
- * @typedef UICommon/_base/Control#IControlChildren
- * @public
- */
-export type IControlChildren = Record<string, Element | IControl>;

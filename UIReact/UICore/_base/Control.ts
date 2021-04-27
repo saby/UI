@@ -20,7 +20,9 @@ import { OptionsResolver } from 'UICommon/Executor';
 import { WasabyEvents, callNotify } from 'UICore/Events';
 import { IWasabyEventSystem } from 'UICommon/Events';
 import { TIState, TControlConfig, IControl } from 'UICommon/interfaces';
-import { IControlOptions, IControlChildren, TemplateFunction } from 'UICommon/Base';
+import { IControlOptions, TemplateFunction } from 'UICommon/Base';
+
+export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
