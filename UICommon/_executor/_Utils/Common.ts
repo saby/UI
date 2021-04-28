@@ -280,7 +280,7 @@ export function isOptionalString<T = unknown>(tplOrigin: T) {
 export function isLibraryModuleString(str) {
    // library module string example: SomeStorage.Library:Module
    var name = str.indexOf('ws:') === 0 ? str.replace('ws:', '') : str;
-   return /(([a-zA-Z]+)[./]([a-zA-Z]+)[:]([_a-zA-Z]+))$/.test(name);
+   return /(([-_a-zA-Z0-9]+)[./]([-_a-zA-Z0-9]+)[:]([-_a-zA-Z0-9]+))$/.test(name);
 }
 
 // для обработки контролов без js, через partial
