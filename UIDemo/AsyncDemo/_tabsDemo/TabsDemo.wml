@@ -1,5 +1,5 @@
 <div class="UIDemo-AsyncDemo">
-    <h3 class="UIDemo-AsyncDemo__headerMain">Демо асинхронной загрузки содержимого табов UI/Base:Async</h3>
+    <h3 class="UIDemo-AsyncDemo__headerMain">Демо асинхронной загрузки содержимого табов UICore/Base:Async</h3>
 
     <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__showHideColumn">
         <span class="UIDemo-AsyncDemo__subHeader">1. Асинхронная загрузка шаблона при быстром прокликивании по табам</span>
