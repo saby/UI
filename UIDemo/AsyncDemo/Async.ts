@@ -1,6 +1,6 @@
-import { Async } from 'UICore/Base';
+import { Async } from 'UICore/Async';
 
 /**
- * Реализация класса UICore/Base:Async для демок
+ * Реализация класса UICore/Async:Async для демок
  */
 export default class extends Async {}

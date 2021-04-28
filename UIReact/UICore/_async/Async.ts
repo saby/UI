@@ -32,14 +32,14 @@ const SUCCESS_BUILDED = 's';
  * @see Controls/Container/Async
  * Подробное описание и примеры вы можете найти <a href='/doc/platform/developmentapl/interface-development/pattern-and-practice/async-load/'>здесь</a>.
  *
- * @class UI/Base:Async
+ * @class UICore/Async:Async
  *
  * @public
  * @author Санников К.А.
  */
 export default abstract class Async extends Control<IAsyncOptions, TAsyncStateReceived> {
    /**
-    * @event UI/Base:Async#load Событие оповещения, что указанный в templateName шаблон загружен и вставлен в DOM
+    * @event UICore/Async:Async#load Событие оповещения, что указанный в templateName шаблон загружен и вставлен в DOM
     */
 
    protected _template: TemplateFunction = template;
@@ -245,17 +245,17 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
 }
 
 /**
- * @name UI/Base:Async#content
+ * @name UICore/Async:Async#content
  * @cfg {String} Содержимое контейнера.
  */
 
 /**
- * @name UI/Base:Async#templateName
+ * @name UICore/Async:Async#templateName
  * @cfg {String} Имя асинхронно загружаемого контрола.
  * Можно использовать только {@link /doc/platform/developmentapl/interface-development/pattern-and-practice/javascript-libraries/#_2 публичные пути библиотеки}.
  */
 
 /**
- * @name UI/Base:Async#templateOptions
+ * @name UICore/Async:Async#templateOptions
  * @cfg {Object} Параметры содержимого контейнера Async.
  */
