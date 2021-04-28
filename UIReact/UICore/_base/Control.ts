@@ -37,7 +37,7 @@ export default class Control<TOptions extends IControlOptions = {},
     /**
      * Набор детей контрола, для которых задан атрибут name.
      */
-    protected _children: IControlChildren;
+    protected _children: IControlChildren = {};
     /**
      * Шаблон контрола.
      */
