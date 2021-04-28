@@ -44,7 +44,7 @@ export default function startFunction(config: ICreateControlOptions = {}, domEle
         config.buildnumber = window['buildnumber'];
         const dom: HTMLElement = (domElement.firstElementChild || domElement.firstChild) as HTMLElement;
         // @ts-ignore
-        config.bootstrapKey = dom.attributes.key.value;
+        config.bootstrapKey = dom.attributes.key?.value || 'bd_';
         createControl(module, config, dom);
     });
 }
