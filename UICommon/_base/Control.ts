@@ -1,7 +1,4 @@
-
-import { IControl } from 'UICommon/interfaces';
 import { IGeneratorConfig } from 'UICommon/Executor';
-import { SbisTable } from 'Types/_entity/adapter';
 
 /**
  * Интерфейс опций базового контрола
