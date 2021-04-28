@@ -1,4 +1,4 @@
-export { default as Control, IControlChildren }  from './_base/Control';
+export { default as Control, IControlChildren, IControlConstructor }  from './_base/Control';
 
 import { IGeneratorConfig } from 'UICommon/Executor';
 

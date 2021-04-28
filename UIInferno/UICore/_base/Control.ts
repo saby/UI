@@ -33,6 +33,8 @@ import {
    ITemplateAttrs
 } from 'UICore/interfaces';
 
+export type IControlConstructor<P = IControlOptions> = TControlConstructor<P>;
+
 export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
 /**
@@ -1377,7 +1379,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
       return inherit;
    }
 
-   static createControl(ctor: TControlConstructor, cfg: TControlConfig, domElement: HTMLElement): Control {
+   static createControl(ctor: IControlConstructor, cfg: TControlConfig, domElement: HTMLElement): Control {
       if (domElement) {
          // если пришел jquery, вытащим оттуда элемент
          domElement = domElement[0] || domElement;
