@@ -1,5 +1,5 @@
-import { IDOMEnvironment, IWasabyHTMLElement } from 'UICommon/interfaces';
-import { Control } from 'UICore/Base';
+import { ICommonDOMEnvironment as IDOMEnvironment, IWasabyHTMLElement } from 'UICommon/interfaces';
+import { IControl } from 'UICommon/interfaces';
 
 type VoidFunction = () => void;
 
@@ -71,7 +71,7 @@ export interface IWasabyEvent {
     handler: Function;
     isControl: boolean;
     value: string;
-    viewController: Control;
+    viewController: IControl;
 }
 
 export interface IWasabyEventSystem {

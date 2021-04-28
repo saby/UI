@@ -7,7 +7,7 @@ import { Options } from 'UICommon/Vdom';
 import { makeWasabyObservable, releaseProperties } from 'UICore/WasabyReactivity';
 
 import template = require('wml!UICore/_base/Control');
-import { IControlState, TemplateFunction } from './interfaces';
+import { IControlState } from './interfaces';
 import {
     getWasabyContext,
     IWasabyContextValue,
@@ -19,15 +19,17 @@ import { OptionsResolver } from 'UICommon/Executor';
 
 import { WasabyEvents, callNotify } from 'UICore/Events';
 import { IWasabyEventSystem } from 'UICommon/Events';
-import { TIState, TControlConfig } from 'UICommon/interfaces';
-import { IControlOptions, IControlChildren } from 'UICommon/Base';
+import { TIState, TControlConfig, IControl } from 'UICommon/interfaces';
+import { IControlOptions, TemplateFunction } from 'UICommon/Base';
+
+export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
  * @author Mogilevsky Ivan
  */
 export default class Control<TOptions extends IControlOptions = {},
-    TState extends TIState = void> extends Component<TOptions, IControlState> {
+    TState extends TIState = void> extends Component<TOptions, IControlState> implements IControl {
     /**
      * Используется для того, чтобы не вызывать хуки ЖЦ до реального построения контрола.
      */

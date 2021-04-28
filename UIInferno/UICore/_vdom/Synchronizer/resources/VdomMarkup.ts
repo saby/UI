@@ -16,7 +16,8 @@ import {
    textNode,
    invisibleNodeTagName
 } from 'UICommon/Executor';
-import { IControlNode, TControlConstructor } from 'UICommon/interfaces';
+import { TControlConstructor } from 'UICommon/interfaces';
+import { IControlNode } from 'UICore/interfaces';
 
 // this.childFlags = childFlags;
 // this.children = children;

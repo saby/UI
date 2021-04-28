@@ -25,6 +25,8 @@ export {
 
 export { onElementMount, onElementUnmount } from './_executor/_Utils/ChildrenManager';
 
+export { pauseReactive, setPauseReactive } from './_executor/pauseReactive';
+
 export * as _IGeneratorType from './_executor/_Markup/IGeneratorType';
 export {
     IGeneratorConstructor,
@@ -45,8 +47,6 @@ export {
     IControlUserData,
     IPrepareDataForCreate,
     IControlProperties,
-    IControl,
-    IControlContext,
     IPrepareDataForCreateAttrs,
     IBuilderScope,
     ITplFunction,

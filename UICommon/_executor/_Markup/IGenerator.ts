@@ -19,13 +19,12 @@ import {
    GeneratorTemplateOrigin,
    IGeneratorAttrs,
    IControlProperties,
-   IControl,
    IControlData,
    ICreateControlTemplateCfg,
    ITemplateNode,
    IControlConfig
 } from './IGeneratorType';
-import { VNode } from 'Inferno/third-party/index';
+import { IControl }  from 'UICommon/interfaces';
 
 /**
  * @author Тэн В.А.
@@ -165,7 +164,7 @@ export interface IGenerator {
     * @param key?
     * @return {string} text
     */
-   createText(text: string, key?: string): VNode;
+   createText(text: string, key?: string): string;
 
    /**
     * Создание компонента с шаблоном

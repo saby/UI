@@ -18,8 +18,8 @@ import { WasabyContextManager } from 'UICore/Contexts';
 import { IWasabyEvent } from 'UICommon/Events';
 import { setEventHook } from 'UICore/Events';
 
-import { Control, TemplateFunction } from 'UICore/Base';
-import { IControlOptions } from 'UICommon/Base';
+import { Control } from 'UICore/Base';
+import { IControlOptions, TemplateFunction } from 'UICommon/Base';
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate} from './interfaces';
 
 export class GeneratorVdom implements IGenerator {
@@ -231,6 +231,10 @@ export class GeneratorVdom implements IGenerator {
       // если в контентной опции несколько корневых нод
       if (Common.isTemplateArray<TemplateFunction>(tpl)) {
          return resolveTemplateArray(parent, tpl, preparedScope, decorAttribs);
+      }
+      // Здесь может быть незарезолвленный контрол optional!. Поэтому результат должен быть пустым
+      if (Common.isOptionalString<TemplateOrigin>(tplOrigin)) {
+         return null;
       }
 
       // не смогли зарезолвить - нужно вывести ошибку
