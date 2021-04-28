@@ -1,5 +1,5 @@
 /* global assert */
-define('UITest/MarkupSpecification/asserts', ['UITest/MarkupSpecification/compareMarkup'], function(compareMarkup) {
+define('UIReact/UITest/MarkupSpecification/asserts', ['UITest/MarkupSpecification/compareMarkup'], function(compareMarkup) {
    'use strict';
 
    function assertMarkup(standard, standardVDOM) {

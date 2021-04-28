@@ -273,8 +273,8 @@ export function isControlString(str) {
    return str.indexOf('js!') === 0;
 }
 
-export function isOptionalString(str) {
-   return str.indexOf('optional!') === 0;
+export function isOptionalString<T = unknown>(tplOrigin: T) {
+   return typeof tplOrigin === 'string' && tplOrigin.indexOf('optional!') === 0;
 }
 
 export function isLibraryModuleString(str) {
