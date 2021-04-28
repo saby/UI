@@ -1,12 +1,12 @@
-/// <amd-module name='UI/_async/Async' />
+/// <amd-module name='UICore/_async/Async' />
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 import * as Library from 'WasabyLoader/Library';
 import { IoC, constants } from 'Env/Env';
 import { descriptor } from 'Types/entity';
-import { Control, TemplateFunction } from 'UICore/Base';
-import { IControlOptions } from 'UICommon/Base';
+import { Control } from 'UICore/Base';
+import { IControlOptions, TemplateFunction } from 'UICommon/Base';
 import { headDataStore } from 'UI/Deps';
-import template = require('wml!UI/_async/Async');
+import template = require('wml!UICore/_async/Async');
 
 function generateErrorMsg(templateName: string, msg?: string): string {
    const tTemplate = `Ошибка загрузки контрола "${templateName}"`;

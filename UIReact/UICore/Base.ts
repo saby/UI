@@ -13,3 +13,5 @@ export function getGeneratorConfig(): IGeneratorConfig {
 export function startApplication(cfg?: Record<string, unknown>): void {
     throw new Error('В сборке на Реатке нет метода startApplication');
 }
+
+export { default as Async, IAsyncOptions, TAsyncStateReceived } from 'UICore/_async/Async';

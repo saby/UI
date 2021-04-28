@@ -1,7 +1,7 @@
-import { Async, TAsyncStateReceived, IAsyncOptions } from 'UI/Base';
+import { Async, TAsyncStateReceived, IAsyncOptions } from 'UICore/Base';
 
 /**
- * Реализация класса UI/Base:Async для тестов
+ * Реализация класса UICore/Base:Async для тестов
  */
 export default class AsyncTest extends Async {
     _beforeMount(options: IAsyncOptions, _: unknown = null, receivedState: TAsyncStateReceived = ''): Promise<TAsyncStateReceived> {
