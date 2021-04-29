@@ -1,13 +1,13 @@
 define([
-   'UITest/MarkupSpecification/testing',
-   'UITest/MarkupSpecification/asserts'
+   'ReactUnitTest/MarkupSpecification/testing',
+   'ReactUnitTest/MarkupSpecification/asserts'
 ], (Testing, Asserts) => {
    let checkStr = Asserts.assertMarkup;
 
    let tests = {
       'Library 1': {
          templateStr: '' +
-            '<ws:partial template="UITest/MarkupSpecification/resolver/TestLibrary:TestControl"/>',
+            '<ws:partial template="ReactUnitTest/MarkupSpecification/resolver/TestLibrary:TestControl"/>',
          checkers: [
             checkStr('<div></div>')
          ],

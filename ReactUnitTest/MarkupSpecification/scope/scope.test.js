@@ -1,6 +1,6 @@
 define([
-   'UITest/MarkupSpecification/testing',
-   'UITest/MarkupSpecification/asserts'
+   'ReactUnitTest/MarkupSpecification/testing',
+   'ReactUnitTest/MarkupSpecification/asserts'
 ], (Testing, Asserts) => {
    let checkStr = Asserts.assertMarkup;
 
@@ -8,11 +8,11 @@ define([
       'Array content template 1': {
          templateStr: '' +
             '<div>' +
-            '   <UITest.MarkupSpecification.scope.children-some>' +
+            '   <ReactUnitTest.MarkupSpecification.scope.children-some>' +
             '      <ws:someTpl>' +
-            '         <UITest.MarkupSpecification.scope.children-inner prop4="777" prop5="888" />' +
+            '         <ReactUnitTest.MarkupSpecification.scope.children-inner prop4="777" prop5="888" />' +
             '      </ws:someTpl>' +
-            '   </UITest.MarkupSpecification.scope.children-some>' +
+            '   </ReactUnitTest.MarkupSpecification.scope.children-some>' +
             '</div>',
          checkers: [
             checkStr('' +
@@ -28,19 +28,19 @@ define([
       'Array content template 2': {
          templateStr: '' +
             '<div>' +
-               '<UITest.MarkupSpecification.scope.children-in-template>' +
+               '<ReactUnitTest.MarkupSpecification.scope.children-in-template>' +
                   '<ws:some>' +
                      '<ws:case>' +
                         '<ws:Array>' +
                            '<ws:Object>' +
                               '<ws:someTpl>' +
-                                 '<UITest.MarkupSpecification.scope.children-inner prop4="777" prop5="888" />' +
+                                 '<ReactUnitTest.MarkupSpecification.scope.children-inner prop4="777" prop5="888" />' +
                               '</ws:someTpl>' +
                            '</ws:Object>' +
                         '</ws:Array>' +
                      '</ws:case>' +
                   '</ws:some>' +
-               '</UITest.MarkupSpecification.scope.children-in-template>' +
+               '</ReactUnitTest.MarkupSpecification.scope.children-in-template>' +
             '</div>',
          checkers: [
             checkStr('' +
@@ -56,19 +56,19 @@ define([
       'Array content template 3': {
          templateStr: '' +
             '<div>' +
-               '<UITest.MarkupSpecification.scope.children-in-template>' +
+               '<ReactUnitTest.MarkupSpecification.scope.children-in-template>' +
                   '<ws:some>' +
                      '<ws:case>' +
                         '<ws:Array>' +
                            '<ws:Object>' +
                               '<ws:someTpl>' +
-                                 '<UITest.MarkupSpecification.scope.children-inner prop4="777" prop5="888" />' +
+                                 '<ReactUnitTest.MarkupSpecification.scope.children-inner prop4="777" prop5="888" />' +
                               '</ws:someTpl>' +
                            '</ws:Object>' +
                         '</ws:Array>' +
                      '</ws:case>' +
                   '</ws:some>' +
-               '</UITest.MarkupSpecification.scope.children-in-template>' +
+               '</ReactUnitTest.MarkupSpecification.scope.children-in-template>' +
             '</div>',
          checkers: [
             checkStr('' +

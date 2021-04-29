@@ -1,4 +1,4 @@
-define('UITest/MarkupSpecification/template-engine', [
+define('ReactUnitTest/MarkupSpecification/template-engine', [
    'UI/Builder',
    'UI/Executor',
    'UI/Focus'

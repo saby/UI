@@ -1,5 +1,5 @@
 /* global assert */
-define('UITest/MarkupSpecification/compareMarkup', ['react-dom/server'], function(ReactDOMServer) {
+define('ReactUnitTest/MarkupSpecification/compareMarkup', ['react-dom/server'], function(ReactDOMServer) {
    'use strict';
 
    const EMPTY_STRING = '';
