@@ -12,8 +12,7 @@ import { Control } from 'UICore/Base';
 // TODO: заменить экспорт во время реализации системы фокусов для Реакта.
 export const ElementFinder = {
    getElementProps(
-      element: HTMLElement,
-      tabbable?: boolean
+      element: HTMLElement
    ): IFocusElementProps {
       throw new Error('Метод ElementFinder.getElementProps ещё не реализован в системе фокусов для Реакта');
    },
