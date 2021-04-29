@@ -25,8 +25,6 @@ export { getMetaStack } from 'UI/_base/HTML/meta';
 export { meta };
 //#endregion
 
-export { default as Async, IAsyncOptions, TAsyncStateReceived } from 'UI/_async/Async';
-
 export {
    HTML,
    Document,

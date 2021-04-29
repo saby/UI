@@ -1,5 +1,5 @@
 <div class="UIDemo-AsyncDemo">
-    <h3 class="UIDemo-AsyncDemo__headerMain">Демо UI/Base:Async</h3>
+    <h3 class="UIDemo-AsyncDemo__headerMain">Демо UICore/Async:Async</h3>
 
     <UIDemo.AsyncDemo._index.LoadModules/>
 
@@ -28,7 +28,7 @@
     </div>
 
     <div class="UIDemo-AsyncDemo__column demo-AsyncDemo__showHideColumn">
-        <span class="UIDemo-AsyncDemo__subHeader">5. Тест: скрыть/показать UI.Base:Async, который грузит модуль с шаблоном {{'<invisible-node/>'}}</span>
+        <span class="UIDemo-AsyncDemo__subHeader">5. Тест: скрыть/показать UI.Async:Async, который грузит модуль с шаблоном {{'<invisible-node/>'}}</span>
         <div class="UIDemo-AsyncDemo__row">
             Скрытие/показ модуля Async, который загружает компонент с {{'<invisible-node/>'}} в разметке.&nbsp;
             <a href="https://online.sbis.ru/opendoc.html?guid=689bb38b-770e-421f-8619-1d6e5518faac" target="_blank">Пример ошибки</a>

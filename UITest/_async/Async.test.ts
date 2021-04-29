@@ -2,7 +2,7 @@ import { assert } from 'chai';
 import { stub } from 'sinon';
 
 import { IoC, constants } from 'Env/Env';
-import { IAsyncOptions } from 'UI/Base';
+import { IAsyncOptions } from 'UICore/Async';
 import { default as Async }  from 'UITest/_async/Async';
 import TestControlSync = require('UITest/_async/TestControlSync');
 
@@ -13,7 +13,7 @@ function getOptions(templateName: string): IAsyncOptions {
     };
 }
 
-describe('UI/Base:Async', () => {
+describe('UICore/Async:Async', () => {
     // переопределяем логгер, чтобы при ошибках загрузки не упали тесты из-за сообщений логгера
     const warns = [];
     const originalLogger = IoC.resolve('ILogger');
