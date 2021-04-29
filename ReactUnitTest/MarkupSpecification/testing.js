@@ -1,7 +1,7 @@
 /* global it, assert */
-define('UITest/MarkupSpecification/testing', [
-   'UITest/MarkupSpecification/template-engine',
-   'UITest/MarkupSpecification/asserts'
+define('ReactUnitTest/MarkupSpecification/testing', [
+   'ReactUnitTest/MarkupSpecification/template-engine',
+   'ReactUnitTest/MarkupSpecification/asserts'
 ], function(TemplateEngine, Asserts) {
    'use strict';
 

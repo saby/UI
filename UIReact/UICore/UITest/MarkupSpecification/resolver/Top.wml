@@ -1,3 +1,0 @@
-<UITest.MarkupSpecification.resolver.Middle>
-   <ws:partial template="wml!UITest/MarkupSpecification/resolver/Bottom" />
-</UITest.MarkupSpecification.resolver.Middle>
