@@ -5,6 +5,7 @@
       "UICommon/Contexts",
       "UICommon/Events",
       "UICommon/Executor",
+      "UICommon/interfaces",
       "UICommon/State",
       "UICommon/theme/controller",
       "UICommon/Utils",
