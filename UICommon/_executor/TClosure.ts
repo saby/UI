@@ -35,7 +35,7 @@ export function getIfNeedGeneratorCompatible(forceCompatible: boolean, config) {
    if (Common.disableCompat() || (!Common.isCompat() && !forceCompatible)) {
       return false;
    }
-   if (generatorCompatible) {
+   if (generatorCompatible && generatorCompatible.generatorConfig === config) {
       return generatorCompatible;
    }
    if (require.defined('View/ExecutorCompatible')) {
@@ -50,7 +50,7 @@ export function getIfNeedGeneratorCompatible(forceCompatible: boolean, config) {
 }
 
 export function needGeneratorCompatible(forceCompatible: boolean, config) {
-   
+
 }
 
 function isObject(obj: any): boolean {
