@@ -6,6 +6,7 @@ import {
    onElementUnmount,
    IGenerator,
    Attr,
+   Scope
 } from 'UICommon/Executor';
 import { convertAttributes, WasabyAttributes } from './Attributes';
 import { IWasabyEvent } from 'UICommon/Events';
@@ -22,9 +23,12 @@ export class GeneratorVdom extends Generator implements IGenerator {
                         attrs: IGeneratorAttrs,
                         deps: Common.Deps<typeof Control, TemplateFunction>,
                         includedTemplates?: Common.IncludedTemplates<TemplateFunction>): IControlOptions {
+      // scope может прийти после обработки метода uniteScope в шаблоне - это функция reshaper
+      // которую надо выполнить чтобы получить результирующий scope
+      const controlProperties = Scope.calculateScope(scope, Common.plainMerge) || {};
       if (tplOrigin === '_$inline_template') {
          // в случае ws:template отдаем текущие свойства
-         return scope;
+         return controlProperties;
       }
       return undefined;
    }

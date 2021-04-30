@@ -87,7 +87,24 @@ define([
                   '</div>' +
                '</div>')
          ]
-      }
+      },
+      'String options setting': {
+         templateStr: '' +
+            '<ws:template name="a">{{b}} {{str}}</ws:template>' +
+            '<ws:partial template="a" scope="{{data}}">' +
+               '<ws:b>' +
+                  '<ws:String>string</ws:String>' +
+               '</ws:b>' +
+            '</ws:partial>',
+         checkers: checkStr('string string2'),
+         executionConfig: {
+            data: {
+               data: {
+                  str: 'string2'
+               }
+            }
+         },
+      },
    };
 
    describe('Markup!', () => {
