@@ -67,7 +67,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * Название контрола.
      */
     _moduleName: string;
-    reactiveValues: object;
+    reactiveValues: Record<string, unknown>;
 
     protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
         return callNotify(this, eventName, args, options);
@@ -453,15 +453,15 @@ export default class Control<TOptions extends IControlOptions = {},
             res = [];
         }
 
-        return res[0];
-        /* createElement(
+        // return res[0];
+        createElement(
             WasabyContextManager,
             {
                 readOnly: wasabyOptions.readOnly,
                 theme: wasabyOptions.theme
             },
             res[0]
-        ); */
+        );
     }
 
     /**
