@@ -1,6 +1,6 @@
 define([
-   'UITest/MarkupSpecification/testing',
-   'UITest/MarkupSpecification/asserts'
+   'ReactUnitTest/MarkupSpecification/testing',
+   'ReactUnitTest/MarkupSpecification/asserts'
 ], (Testing, Asserts) => {
    let checkStr = Asserts.assertMarkup;
 

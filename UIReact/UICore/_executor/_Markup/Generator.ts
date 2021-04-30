@@ -144,7 +144,7 @@ export class Generator implements IGenerator {
             return resolveTemplateFunction(parent, tpl, preparedScope, decorAttribs);
         }
         // content option - в определенном способе использования контентная опция может представлять собой объект
-        // со свойством func, в котором и лежит функция контентной опции. Демка UITest/MarkupSpecification/resolver/Top
+        // со свойством func, в котором и лежит функция контентной опции. Демка ReactUnitTest/MarkupSpecification/resolver/Top
         if (tpl && typeof tpl.func === 'function') {
             return resolveTemplateFunction(parent, tpl.func, preparedScope, decorAttribs);
         }
