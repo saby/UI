@@ -108,6 +108,7 @@ export class Generator implements IGenerator {
             scope.theme = parent?.props?.theme ?? parent?.context?.theme;
         }
 
+        // return resolveTemplateFunction(parent, resultingFn, scope, attributes);
         return React.createElement(
             WasabyContextManager,
             {
