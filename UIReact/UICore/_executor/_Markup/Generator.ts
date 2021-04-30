@@ -151,7 +151,7 @@ export class Generator implements IGenerator {
         }
         // Здесь может быть незарезолвленный контрол optional!. Поэтому результат должен быть пустым
         if (Common.isOptionalString(tplOrigin)) {
-            return '';
+            return null;
         }
 
         // не смогли зарезолвить - нужно вывести ошибку
