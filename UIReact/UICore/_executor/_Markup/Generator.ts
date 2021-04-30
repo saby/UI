@@ -154,6 +154,10 @@ export class Generator implements IGenerator {
         if (Common.isTemplateArray<TemplateFunction>(tpl)) {
             return resolveTemplateArray(parent, tpl, preparedScope, decorAttribs);
         }
+        // Здесь может быть незарезолвленный контрол optional!. Поэтому результат должен быть пустым
+        if (Common.isOptionalString<TemplateOrigin>(tplOrigin)) {
+            return null;
+        }
 
         // не смогли зарезолвить - нужно вывести ошибку
         logResolverError(tplOrigin, parent);
@@ -180,7 +184,7 @@ export class Generator implements IGenerator {
         // todo временное решение только для поддержки юнит-тестов
         // https://online.sbis.ru/opendoc.html?guid=a886b7c1-fda3-4594-b00d-b48f1185aaf8
         if (Common.isCompound(controlClass)) {
-            this.createCompatibleReactControl(origin, scope, _, __, deps);
+            return this.createCompatibleReactControl(origin, scope, decorAttribs, __, deps);
         }
         return React.createElement(controlClass, scope);
     }
