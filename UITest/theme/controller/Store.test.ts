@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-// import 'mocha';
 import { EntityStorage } from "UICommon/theme/_controller/Storage";
 import { ICssEntity } from "UICommon/theme/_controller/css/interface";
 import { DEFAULT_THEME, DEFAULT_THEME_TYPE } from "UICommon/theme/_controller/css/const";

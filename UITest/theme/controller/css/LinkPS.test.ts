@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-// import 'mocha';
 import LinkPS from 'UICommon/theme/_controller/css/LinkPS';
 const href = '#Some/href';
 const name = 'Some/Control';
