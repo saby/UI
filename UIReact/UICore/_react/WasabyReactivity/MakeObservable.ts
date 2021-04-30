@@ -32,7 +32,7 @@ function observeTemplate<P, S extends object | void>(instance: Control<P, S>): v
                 templateFunction = newTemplateFunction;
                 releaseProperties(instance);
                 observeProps(instance);
-                instance._forceUpdate();
+                // instance._forceUpdate();
             }
         }
     });
@@ -61,7 +61,7 @@ function observeProps<P, S extends object | void>(instance: Control<P, S>): void
                 }
                 this.reactiveValues[propName] = newVal;
                 checkMutableTypes(newVal as IVersionable | unknown[], instance, propName);
-                instance._forceUpdate();
+                // instance._forceUpdate();
             },
             get(): unknown {
                 if (descriptor?.get) {
@@ -108,7 +108,7 @@ function setObservableVersion<P, S extends object | void>(value: IVersionable, i
         configurable: true,
         set(val: number): void {
             currentValue = val;
-            instance._forceUpdate();
+            // instance._forceUpdate();
         },
         get(): number {
             return currentValue;
@@ -137,7 +137,7 @@ function setObservableArray<P, S extends object | void>(value: unknown[], instan
         const mutator = function (): unknown[] {
             const res = method.apply(this, arguments);
             instance[propName] = [...value];
-            instance._forceUpdate();
+            // instance._forceUpdate();
             return res;
         };
         Object.defineProperty(value, methodName, {

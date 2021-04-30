@@ -186,6 +186,9 @@ function createChildrenRef<T extends Control | Element>(
    const oldRef = (node) => {
       prevRef?.(node);
    };
+   if (!parent['_children']) {
+      parent['_children'] = {};
+   }
    if (parent && name) {
       return (node) => {
          oldRef(node);

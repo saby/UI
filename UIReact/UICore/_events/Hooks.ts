@@ -117,6 +117,9 @@ export function setEventHook(
 ): void {
     const events = props.events;
     const eventSystem = findEventSystem(element);
+    if (!eventSystem) {
+        return;
+    }
     prepareEvents(events);
     if (!haveEvents(events)) {
         return;

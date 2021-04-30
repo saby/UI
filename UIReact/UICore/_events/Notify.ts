@@ -20,7 +20,13 @@ export function callNotify<T extends Component = Control>(
     args?: unknown[],
     options?: { bubbling?: boolean }
 ): unknown {
+    if (!inst.eventTarget) {
+        return;
+    }
     const eventSystem = findEventSystem(inst.eventTarget);
+    if (!eventSystem) {
+        return;
+    }
     Array.prototype.splice.call(arguments, 0, 1);
     return eventSystem.startEvent(inst, arguments);
 }

@@ -66,6 +66,10 @@ export interface IControlNodeEvent {
     control: Control | undefined;
 }
 
+export interface ICommonControlNode {
+    
+}
+
 export interface IControlNode extends IRebuildNode, IControlNodeEvent {
     attributes: any;
     events: TEventsObject;
