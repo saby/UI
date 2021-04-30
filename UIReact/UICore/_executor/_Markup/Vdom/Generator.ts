@@ -71,14 +71,14 @@ export class GeneratorVdom extends Generator implements IGenerator {
    createWsControl(
        origin: string | typeof Control,
        scope: IControlOptions,
-       _: unknown,
+       decorAttribs: IGeneratorAttrs,
        __: unknown,
        deps: Common.Deps<typeof Control, TemplateFunction>
    ): React.ComponentElement<
        IControlOptions,
        Control<IControlOptions, object>
        >  {
-      return this.createReactControl(origin, scope, _, __, deps);
+      return this.createReactControl(origin, scope, decorAttribs, __, deps);
    }
 
    /*

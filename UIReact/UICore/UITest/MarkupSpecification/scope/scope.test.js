@@ -5,6 +5,13 @@ define([
    let checkStr = Asserts.assertMarkup;
 
    let tests = {
+      'Delegate attributes into control': {
+         templateStr: '<UITest.MarkupSpecification.scope.twoRootsControl attr:class="mom" name="witch" />',
+         checkers: [
+            checkStr('<div class="mom" name="witch" id="vdomClass"></div>')
+         ],
+         vdomOnly: true
+      },
       'Array content template 1': {
          templateStr: '' +
             '<div>' +

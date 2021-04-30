@@ -8,8 +8,9 @@ import { IGeneratorConfig } from 'UICommon/Executor';
 export interface IControlOptions {
     readOnly?: boolean;
     theme?: string;
-    notLoadThemes?: boolean,
+    notLoadThemes?: boolean;
     _$createdFromCode?: boolean;
+    name?: string;
 }
 
 interface IStable {

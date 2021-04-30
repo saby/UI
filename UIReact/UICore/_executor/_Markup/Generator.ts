@@ -40,10 +40,15 @@ export class Generator implements IGenerator {
         options: IControlOptions,
         config: IControlConfig
     ): React.ReactElement | React.ReactElement[] | string {
+        let decorAttribs = !config.compositeAttributes
+            ? attributes
+            : Helper.processMergeAttributes(config.compositeAttributes, attributes);
+        decorAttribs = !config.attr ?
+            decorAttribs :
+            Helper.processMergeAttributes(config.attr.attributes, decorAttribs);
+
         const templateAttributes: IGeneratorAttrs = {
-            attributes: config.compositeAttributes === null
-                ? attributes
-                : Helper.processMergeAttributes(config.compositeAttributes, attributes),
+            attributes: decorAttribs,
             /*
             FIXME: https://online.sbis.ru/opendoc.html?guid=f354360c-5899-4f74-bf54-a06e526621eb
             судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
@@ -158,7 +163,7 @@ export class Generator implements IGenerator {
     protected createReactControl(
         origin: string | typeof Control,
         scope: IControlOptions,
-        _: unknown,
+        decorAttribs: IGeneratorAttrs,
         __: unknown,
         deps: Common.Deps<typeof Control, TemplateFunction>
     ): React.ComponentElement<
@@ -167,6 +172,10 @@ export class Generator implements IGenerator {
         > {
         const controlClassExtended: TemplateOrigin = resolveTpl(origin, {}, deps);
         const controlClass = Common.fixDefaultExport(controlClassExtended) as typeof Control;
+
+        resolveControlName(scope, decorAttribs.attributes);
+        // @ts-ignore
+        scope._$attributes = decorAttribs;
 
         // todo временное решение только для поддержки юнит-тестов
         // https://online.sbis.ru/opendoc.html?guid=a886b7c1-fda3-4594-b00d-b48f1185aaf8
@@ -218,7 +227,7 @@ export class Generator implements IGenerator {
     abstract createWsControl(
         origin: string | typeof Control,
         scope: IControlOptions,
-        _: unknown,
+        decorAttribs: IGeneratorAttrs,
         __: unknown,
         deps: Common.Deps<typeof Control, TemplateFunction>
     ): string | React.ComponentElement<
@@ -345,6 +354,18 @@ function resolveTemplateFunction(parent: Control<IControlOptions>,
         return null;
     }
     return template.call(parent, resolvedScope, decorAttribs, undefined, true, undefined, undefined) as TemplateResult;
+}
+function resolveControlName(controlData: IControlOptions, attributes: Attr.IAttributes):
+    Attr.IAttributes {
+    const attr = attributes || {};
+    if (controlData && typeof controlData.name === 'string') {
+        attr.name = controlData.name;
+    } else {
+        if (attributes && typeof attributes.name === 'string') {
+            controlData.name = attributes.name;
+        }
+    }
+    return attr;
 }
 
 function logResolverError(tpl: TemplateOrigin, parent: Control<IControlOptions>): void {
