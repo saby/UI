@@ -158,6 +158,10 @@ export class Generator implements IGenerator {
         if (Common.isOptionalString<TemplateOrigin>(tplOrigin)) {
             return null;
         }
+        // игнорируем выводимое значение null для совместимости с реализацией wasaby
+        if (tplOrigin === null) {
+            return null;
+        }
 
         // не смогли зарезолвить - нужно вывести ошибку
         logResolverError(tplOrigin, parent);
