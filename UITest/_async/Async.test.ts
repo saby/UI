@@ -56,20 +56,18 @@ describe('UICore/Async:Async', () => {
                 + 'Контрола не существует';
 
             const async = new Async(options);
-            return async._beforeMount(options).then(() => {
-                async._beforeUpdate(options);
+            async._beforeMount(options)
+            async._beforeUpdate(options);
 
-                assert.equal(async.getError(), ERROR_TEXT);
-                assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, undefined);
-            });
-        }).timeout(4000);
+            assert.equal(async.getError(), ERROR_TEXT);
+            assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, undefined);
+        });
     }
 
     it('Loading synchronous client-side', () => {
         const oldCompat = constants.compat;
         constants.compat = false;
         const options = getOptions('UITest/_async/TestControlSync');
-        const BUILDED_ON_SERVER = true;
 
         const async = new Async(options);
         // @ts-ignore Хак: Почему-то нет опций после конструктора
@@ -77,7 +75,7 @@ describe('UICore/Async:Async', () => {
         // @ts-ignore
         const notifyStub = stub(async, '_notify');
 
-        async._beforeMount(options, undefined, BUILDED_ON_SERVER);
+        async._beforeMount(options);
         async._componentDidMount();
 
         assert.isNotOk(async.getError(), 'error state should be empty');
@@ -99,43 +97,42 @@ describe('UICore/Async:Async', () => {
             + 'Контрола не существует';
 
         const async = new Async(options);
-        return async._beforeMount(options).then(() => {
-            async._beforeUpdate(options);
+        async._beforeMount(options)
+        async._beforeUpdate(options);
 
-            assert.equal(async.getError(), ERROR_TEXT);
-            assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, undefined);
-        });
-    }).timeout(4000);
+        assert.equal(async.getError(), ERROR_TEXT);
+        assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, undefined);
+    });
 
-    it('Loading asynchronous client-side', () => {
-        const options = getOptions('UITest/_async/TestControlAsync');
-        const async = new Async(options);
-        // @ts-ignore Хак: Почему-то нет опций после конструктора
-        async._options = options;
-        return async._beforeMount(options).then(() => {
-            async._beforeUpdate(options);
-            async._afterUpdate();
+    // it('Loading asynchronous client-side', () => {
+    //     const options = getOptions('UITest/_async/TestControlAsync');
+    //     const async = new Async(options);
+    //     // @ts-ignore Хак: Почему-то нет опций после конструктора
+    //     async._options = options;
+    //     return async._beforeMount(options).then(() => {
+    //         async._beforeUpdate(options);
+    //         async._afterUpdate();
 
-            assert.isNotOk(async.getError(), 'Error message should be empty');
-            assert.strictEqual(async.getOptionsForComponent().resolvedTemplate,
-                require('UITest/_async/TestControlAsync'));
-        });
-    }).timeout(3000);
+    //         assert.isNotOk(async.getError(), 'Error message should be empty');
+    //         assert.strictEqual(async.getOptionsForComponent().resolvedTemplate,
+    //             require('UITest/_async/TestControlAsync'));
+    //     });
+    // }).timeout(3000);
 
-    it('Loading asynchronous from library client-side', () => {
-        const options = getOptions('UITest/_async/TestLibraryAsync:ExportControl');
-        const async = new Async(options);
-        // @ts-ignore Хак: Почему-то нет опций после конструктора
-        async._options = options;
-        return async._beforeMount(options).then(() => {
-            async._beforeUpdate(options);
-            async._afterUpdate();
+    // it('Loading asynchronous from library client-side', () => {
+    //     const options = getOptions('UITest/_async/TestLibraryAsync:ExportControl');
+    //     const async = new Async(options);
+    //     // @ts-ignore Хак: Почему-то нет опций после конструктора
+    //     async._options = options;
+    //     return async._beforeMount(options).then(() => {
+    //         async._beforeUpdate(options);
+    //         async._afterUpdate();
 
-            assert.isNotOk(async.getError(), 'Error message should be empty');
-            assert.strictEqual(async.getOptionsForComponent().resolvedTemplate,
-                require('UITest/_async/TestLibraryAsync').ExportControl);
-        });
-    }).timeout(3000);
+    //         assert.isNotOk(async.getError(), 'Error message should be empty');
+    //         assert.strictEqual(async.getOptionsForComponent().resolvedTemplate,
+    //             require('UITest/_async/TestLibraryAsync').ExportControl);
+    //     });
+    // }).timeout(3000);
 
     it('Loading asynchronous client-side failed', () => {
         const options = getOptions('UITest/_async/Fail/TestControlAsync');

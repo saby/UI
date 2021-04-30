@@ -1,6 +1,9 @@
 <ws:if data="{{ error }}">
    <div>{{ userErrorMessage }}</div>
 </ws:if>
+<ws:else data="{{ asyncLoading }}">
+   <div>Идет загрузка шаблона...</div>
+</ws:else>
 <ws:else>
    <ws:partial template="{{ _options.content || optionsForComponent.resolvedTemplate }}" scope="{{ optionsForComponent }}"/>
 </ws:else>

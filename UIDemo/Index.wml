@@ -1,13 +1,8 @@
-<UI.Base:HTML
-        attr:application="UIDemo/Index"
-        attr:rootapp="UI/Base:Document"
-        scope="{{_options}}"
-        bodyClass="controls-default-bg">
-    <ws:bodyTemplate>
-        <ws:partial template="{{bodyTemplate.content}}">
-            <ws:bodyContent>
-                <UIDemo.RootRouter />
-            </ws:bodyContent>
-        </ws:partial>
-    </ws:bodyTemplate>
-</UI.Base:HTML>
+<SbisEnvUI.Bootstrap
+    scope="{{_options}}"
+    bodyClass="controls-default-bg"
+    bootstrapWrapperMode="{{_options.bootstrapWrapperMode}}">
+    <ws:content>
+        <UIDemo.RootRouter />
+    </ws:content>
+</SbisEnvUI.Bootstrap>
