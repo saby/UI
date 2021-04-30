@@ -14,7 +14,7 @@ FIXME: как я понимаю, в этом объекте могут быть 
 Надо разобраться и заменить на нормальный тип.
  */
 export interface IGeneratorAttrs {
-    attributes: Record<string, unknown>;
+    attributes: Attr.IAttributes;
     internal: {
         // FIXME: само поле есть всегда, но мне кажется, что для корня там ничего не будет.
         // Если так, то просто убрать FIXME. Если не так, то убрать ? у типа.
@@ -29,6 +29,8 @@ export interface IControlConfig {
     includedTemplates: Common.IncludedTemplates<TemplateFunction>;
     compositeAttributes?: Attr.IAttributes;
     data: any;
+    mergeType: 'attribute' | 'context';
+    attr: IGeneratorAttrs;
 }
 
 export type TemplateResult = React.FunctionComponentElement<

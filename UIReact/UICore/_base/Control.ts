@@ -417,7 +417,7 @@ export default class Control<TOptions extends IControlOptions = {},
         try {
             // this клонируется, чтобы вызвать шаблон с новыми значениями опций, но пока не класть их на инстанс.
             const ctx = {...this, _options: {...wasabyOptions}};
-            res = this._template(ctx, undefined, undefined, true);
+            res = this._template(ctx, this._options._$attributes, undefined, true);
         } catch (e) {
             logError(e);
             res = [];
