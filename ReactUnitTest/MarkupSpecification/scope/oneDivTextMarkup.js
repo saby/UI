@@ -1,6 +1,6 @@
-define('UITest/MarkupSpecification/scope/oneDivTextMarkup', [
+define('ReactUnitTest/MarkupSpecification/scope/oneDivTextMarkup', [
    'UI/Base',
-   'wml!UITest/MarkupSpecification/scope/oneDivTextMarkup'
+   'wml!ReactUnitTest/MarkupSpecification/scope/oneDivTextMarkup'
 ], function(Base, tmpl) {
    'use strict';
 
