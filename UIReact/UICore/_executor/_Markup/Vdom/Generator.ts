@@ -37,12 +37,21 @@ export class GeneratorVdom extends Generator implements IGenerator {
        resolvedOptionsExtended: IControlOptions,
        config: IControlConfig,
        events: Record<string, IWasabyEvent[]>,
-       name: string): IControlOptions & {ref: unknown} {
+      name: string): IControlOptions & { ref: unknown } {
+      if ('key' in config) {
+         return {
+            bootstrapKey: config.key,
+            ...resolvedOptionsExtended,
+            ...{ events },
+            ref: createChildrenRef(config.viewController, name)
+         };
+      }
+
       return {
          ...resolvedOptionsExtended,
-         ...{events},
+         ...{ events },
          ref: createChildrenRef(config.viewController, name)
-      }
+      };
    }
 
    /*
@@ -190,17 +199,23 @@ function createChildrenRef<T extends Control | Element>(
    const oldRef = (node) => {
       prevRef?.(node);
    };
-   if (parent && name) {
-      return (node) => {
-         oldRef(node);
-         if (node) {
-            parent['_children'][name] = node;
-            onElementMount(parent['_children'][name]);
-         } else {
-            onElementUnmount(parent['_children'], name);
-         }
-      };
+
+   if (!parent || !name) {
+      return oldRef;
    }
-   return oldRef;
+
+   return (node) => {
+      oldRef(node);
+      if (!parent['_children']) {
+         parent['_children'] = {};
+      }
+
+      if (node) {
+         parent['_children'][name] = node;
+         onElementMount(parent['_children'][name]);
+      } else {
+         onElementUnmount(parent['_children'], name);
+      }
+   };
    /* tslint:enable:no-string-literal */
 }
