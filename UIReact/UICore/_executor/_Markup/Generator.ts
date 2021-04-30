@@ -149,6 +149,10 @@ export class Generator implements IGenerator {
         if (Common.isTemplateArray<TemplateFunction>(tpl)) {
             return resolveTemplateArray(parent, tpl, preparedScope, decorAttribs);
         }
+        // Здесь может быть незарезолвленный контрол optional!. Поэтому результат должен быть пустым
+        if (Common.isOptionalString(tplOrigin)) {
+            return '';
+        }
 
         // не смогли зарезолвить - нужно вывести ошибку
         logResolverError(tplOrigin, parent);
