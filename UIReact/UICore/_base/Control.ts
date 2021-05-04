@@ -117,7 +117,13 @@ export default class Control<TOptions extends IControlOptions = {},
     }
 
     protected get _container(): HTMLElement {
-        return this._containerRef.current;
+        // @ts-ignore
+        return this._CONTROLS_container || this._containerRef.current;
+    }
+
+    protected set _container(value: HTMLElement) {
+        // @ts-ignore
+        this._CONTROLS_container = value;
     }
 
     /**
