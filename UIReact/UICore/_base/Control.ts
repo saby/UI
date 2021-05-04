@@ -454,7 +454,7 @@ export default class Control<TOptions extends IControlOptions = {},
         }
 
         // return res[0];
-        createElement(
+        return createElement(
             WasabyContextManager,
             {
                 readOnly: wasabyOptions.readOnly,

@@ -43,9 +43,12 @@ export default function startFunction(config: ICreateControlOptions = {}, domEle
     loadAsync(moduleName).then((module: IControlConstructor<IControlOptions>): void => {
         config.application = moduleName;
         config.buildnumber = window['buildnumber'];
-        const dom: HTMLElement = (domElement.firstElementChild || domElement.firstChild) as HTMLElement;
+
+        /* В случае с Inferno мы должны вешать обработку на дочерний элемент. Так работает синхронизатор
+            В случае с React, мы должны работать от непосредственно указанного элемента */
+        const dom: HTMLElement = (domElement.firstElementChild || domElement.firstChild || domElement) as HTMLElement;
         // @ts-ignore
-        config.bootstrapKey = dom.attributes.key.value;
+        config.bootstrapKey = dom?.attributes?.key?.value || '';
         createControl(module, config, dom);
     });
 }
