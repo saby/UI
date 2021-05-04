@@ -1,7 +1,7 @@
-define('UITest/MarkupSpecification/scope/twoRootsControl',
+define('ReactUnitTest/MarkupSpecification/scope/twoRootsControl',
    [
       'UI/Base',
-      'wml!UITest/MarkupSpecification/scope/twoRootsControl'
+      'wml!ReactUnitTest/MarkupSpecification/scope/twoRootsControl'
    ], function(Base, template) {
       'use strict';
 
