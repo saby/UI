@@ -194,6 +194,7 @@ export default class Control<TOptions extends IControlOptions = {},
             this.loadThemeVariables(options.theme)
         }
 
+        this._options = options;
         if (promisesToWait.length) {
             Promise.all(promisesToWait).then(() => {
                 this.setState(
@@ -201,7 +202,6 @@ export default class Control<TOptions extends IControlOptions = {},
                         loading: false
                     },
                     () => {
-                        this._options = options;
                         this._componentDidMount(options);
                         this._$controlMounted = true;
                         setTimeout(() => {
@@ -213,7 +213,6 @@ export default class Control<TOptions extends IControlOptions = {},
             });
             return true;
         } else {
-            this._options = options;
             this._$controlMounted = true;
             return false;
         }
