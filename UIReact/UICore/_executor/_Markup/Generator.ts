@@ -109,7 +109,11 @@ export class Generator implements IGenerator {
         }
 
         return React.createElement(
-            WasabyContextManager, scope,
+            WasabyContextManager,
+            {
+                readOnly: scope.readOnly,
+                theme: scope.theme
+            },
             resolveTemplateFunction(parent, resultingFn, scope, attributes)
         );
     }
