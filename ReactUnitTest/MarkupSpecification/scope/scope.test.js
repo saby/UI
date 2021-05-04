@@ -8,7 +8,7 @@ define([
       'Delegate attributes into control': {
          templateStr: '<ReactUnitTest.MarkupSpecification.scope.twoRootsControl attr:class="mom" name="witch" />',
          checkers: [
-            checkStr('<div class="mom" name="witch" id="vdomClass"></div>')
+            checkStr('<div name="witch" id="vdomClass" class="mom"></div>')
          ],
          vdomOnly: true
       },
