@@ -86,7 +86,8 @@ export default class Control<TOptions extends IControlOptions = {},
     }
 
     // Пока много где объявлен, его отсуствие вызывает ошибки ts. Удалить после отказа.
-    protected _container: HTMLElement;
+    // protected _container: HTMLElement;
+    private _containerRef: React.RefObject<HTMLElement>;
 
     // TODO: TControlConfig добавлен для совместимости, в 3000 нужно сделать TOptions и здесь, и в UIInferno.
     constructor(props: TOptions | TControlConfig = {}, context?: IWasabyContextValue) {
@@ -113,6 +114,10 @@ export default class Control<TOptions extends IControlOptions = {},
             constructor.displayName = this._moduleName;
         }
         this._optionsVersions = {};
+    }
+
+    protected get _container(): HTMLElement {
+        return this._containerRef.current;
     }
 
     /**
@@ -441,6 +446,8 @@ export default class Control<TOptions extends IControlOptions = {},
             return showErrorRender(wasabyOptions, this.state.error);
         }
 
+        this._containerRef = React.createRef();
+
         let res;
         try {
             // FIXME https://online.sbis.ru/opendoc.html?guid=be97d672-d7ff-442b-b409-494515282ec5
@@ -453,14 +460,16 @@ export default class Control<TOptions extends IControlOptions = {},
             res = [];
         }
 
-        // return res[0];
-        return createElement(
-            WasabyContextManager,
-            {
-                readOnly: wasabyOptions.readOnly,
-                theme: wasabyOptions.theme
-            },
-            res[0]
+        return createElement('div', { ref: this._containerRef, style: { disply: 'inline-block' } }, [
+            createElement(
+                WasabyContextManager,
+                {
+                    readOnly: wasabyOptions.readOnly,
+                    theme: wasabyOptions.theme
+                },
+                res[0]
+            )
+        ]
         );
     }
 
