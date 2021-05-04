@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-// import 'mocha';
 import Loader from 'UICommon/theme/_controller/Loader';
 import { EMPTY_THEME } from 'UICommon/theme/_controller/css/const';
 

@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-// import 'mocha';
 import { IMeta } from 'UI/_base/HTML/meta';
 import Stack from 'UI/_base/HTML/_meta/Stack';
 import State from 'UI/_base/HTML/_meta/State';

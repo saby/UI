@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-// import 'mocha';
 // @ts-ignore
 import { constants } from 'Env/Env';
 import { THEME_TYPE } from 'UI/theme/controller';
