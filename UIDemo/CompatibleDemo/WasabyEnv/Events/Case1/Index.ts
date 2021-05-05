@@ -6,6 +6,7 @@ class WasabyIndex extends Control<IControlOptions> {
    clickCount: number = 0;
    _mouseDownHandler() {
       this.clickCount++;
+      console.log('.');
    }
    static _styles: string[] = ['UIDemo/CompatibleDemo/WasabyEnv/Events/EventDemo'];
 }
