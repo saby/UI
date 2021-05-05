@@ -5,14 +5,14 @@ import RawMarkupNode from './_executor/_Expressions/RawMarkupNode';
  */
 
 export {
+   htmlNode,
+   textNode,
+   controlNode,
    TClosure,
    createGenerator // fabric method,
 } from 'UICore/Executor';
 
 export {
-   htmlNode,
-   textNode,
-   controlNode,
    CommonUtils,
    RequireHelper,
    invisibleNodeTagName,

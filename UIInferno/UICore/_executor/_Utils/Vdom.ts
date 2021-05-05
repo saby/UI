@@ -1,4 +1,4 @@
-/// <amd-module name="UICommon/_executor/_Utils/Vdom" />
+/// <amd-module name="UICore/_executor/_Utils/Vdom" />
 
 /* tslint:disable:no-string-literal */
 
