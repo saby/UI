@@ -86,8 +86,8 @@ export default class Control<TOptions extends IControlOptions = {},
     }
 
     // Пока много где объявлен, его отсуствие вызывает ошибки ts. Удалить после отказа.
-    // protected _container: HTMLElement;
-    private _containerRef: React.RefObject<HTMLElement>;
+    // private _containerRef: React.RefObject<HTMLElement>;
+    protected _container: HTMLElement;
 
     // TODO: TControlConfig добавлен для совместимости, в 3000 нужно сделать TOptions и здесь, и в UIInferno.
     constructor(props: TOptions | TControlConfig = {}, context?: IWasabyContextValue) {
@@ -114,16 +114,6 @@ export default class Control<TOptions extends IControlOptions = {},
             constructor.displayName = this._moduleName;
         }
         this._optionsVersions = {};
-    }
-
-    protected get _container(): HTMLElement {
-        // @ts-ignore
-        return this._CONTROLS_container || this._containerRef.current;
-    }
-
-    protected set _container(value: HTMLElement) {
-        // @ts-ignore
-        this._CONTROLS_container = value;
     }
 
     /**
