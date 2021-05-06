@@ -106,7 +106,7 @@ describe('Compiler/Compiler', () => {
          });
    });
    it('Create dictionary', (done) => {
-      const html = '<div>Hello</div>';
+      const html = '<div>Hello</div><div>{[Goodbye]}</div>';
       let options = {
          fileName: 'Compiler/Compiler/Template.wml',
          createResultDictionary: true
@@ -115,9 +115,15 @@ describe('Compiler/Compiler', () => {
          .then(function(artifact) {
             try {
                assert.isTrue(artifact.hasOwnProperty('localizedDictionary'));
+               assert.strictEqual(artifact.localizedDictionary[0].type, 'auto');
                assert.strictEqual(artifact.localizedDictionary[0].key, 'Hello');
                assert.strictEqual(artifact.localizedDictionary[0].context, '');
                assert.strictEqual(artifact.localizedDictionary[0].module, 'Compiler/Compiler/Template');
+
+               assert.strictEqual(artifact.localizedDictionary[1].type, 'manual');
+               assert.strictEqual(artifact.localizedDictionary[1].key, 'Goodbye');
+               assert.strictEqual(artifact.localizedDictionary[1].context, '');
+               assert.strictEqual(artifact.localizedDictionary[1].module, 'Compiler/Compiler/Template');
                done();
             } catch (error) {
                done(error);
