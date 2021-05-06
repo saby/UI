@@ -441,8 +441,6 @@ export default class Control<TOptions extends IControlOptions = {},
             return showErrorRender(wasabyOptions, this.state.error);
         }
 
-        this._containerRef = React.createRef();
-
         let res;
         try {
             // FIXME https://online.sbis.ru/opendoc.html?guid=be97d672-d7ff-442b-b409-494515282ec5
@@ -455,16 +453,13 @@ export default class Control<TOptions extends IControlOptions = {},
             res = [];
         }
 
-        return createElement('div', { ref: this._containerRef, style: { disply: 'inline-block' } }, [
-            createElement(
-                WasabyContextManager,
-                {
-                    readOnly: wasabyOptions.readOnly,
-                    theme: wasabyOptions.theme
-                },
-                res[0]
-            )
-        ]
+        return createElement(
+            WasabyContextManager,
+            {
+                readOnly: wasabyOptions.readOnly,
+                theme: wasabyOptions.theme
+            },
+            res[0]
         );
     }
 
