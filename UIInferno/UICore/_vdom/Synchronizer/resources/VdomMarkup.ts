@@ -9,11 +9,13 @@ import { Logger } from 'UICommon/Utils';
 import { WasabyProperties, VNode } from 'Inferno/third-party/index';
 import { Map, Set } from 'Types/shim';
 
-import { TGeneratorNode } from 'UICore/Executor';
 import {
-   ITemplateNode,
    htmlNode,
    textNode,
+   TGeneratorNode
+} from 'UICore/Executor';
+import {
+   ITemplateNode,
    invisibleNodeTagName
 } from 'UICommon/Executor';
 import { TControlConstructor } from 'UICommon/interfaces';

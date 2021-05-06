@@ -5,7 +5,6 @@ import { THEME_TYPE } from 'UI/theme/controller';
 import { IHTMLElement } from 'UICommon/theme/_controller/css/interface';
 import { ELEMENT_ATTR } from 'UICommon/theme/_controller/css/const';
 import { assert } from 'chai';
-// import 'mocha';
 
 const href = '#Some/href';
 const name = 'Some/Control';

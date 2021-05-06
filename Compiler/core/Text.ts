@@ -8,6 +8,7 @@ import * as Ast from 'Compiler/core/Ast';
 import { IParser } from 'Compiler/expressions/Parser';
 import { IValidator } from 'Compiler/expressions/Validator';
 import { SourcePosition } from 'Compiler/html/Reader';
+import { TranslationType } from 'Compiler/i18n/Dictionary';
 
 /**
  * Interface for text processor config.
@@ -37,11 +38,12 @@ export interface ITranslationsRegistrar {
 
    /**
     * Register translation key.
+    * @param type {TranslationType} Translation type.
     * @param module {string} Template file where translation item was discovered.
     * @param text {string} Translation text.
     * @param context {string} Translation context.
     */
-   registerTranslation(module: string, text: string, context: string): void;
+   registerTranslation(type: TranslationType, module: string, text: string, context: string): void;
 }
 
 /**
@@ -357,17 +359,18 @@ function createTextNode(data: string, options: ITextProcessorOptions): Ast.TextD
 
 /**
  * Parse and create translation node.
+ * @param type {TranslationType} Translation type.
  * @param data {string} Text content.
  * @param options {ITextProcessorOptions} Text processor options.
  * @throws {Error} Throws error if text data contains disallowed content type.
  * @returns {TextDataNode} Translation node.
  */
-function createTranslationNode(data: string, options: ITextProcessorOptions): Ast.TranslationNode {
+function createTranslationNode(type: TranslationType, data: string, options: ITextProcessorOptions): Ast.TranslationNode {
    if ((options.allowedContent & TextContentFlags.TRANSLATION) === 0) {
       throw new Error(`${whatExpected(options.allowedContent)}. Обнаружена конструкция локализации "${data}"`);
    }
    const { text, context } = splitLocalizationText(data);
-   options.translationsRegistrar.registerTranslation(options.fileName, text, context);
+   options.translationsRegistrar.registerTranslation(type, options.fileName, text, context);
    return new Ast.TranslationNode(text, context);
 }
 
@@ -435,8 +438,10 @@ class TextProcessor implements ITextProcessor {
       const collection: Ast.TText[] = [];
       for (let index = 0; index < items.length; index++) {
          let type = items[index].type;
+         const translationType = type === RawTextType.TRANSLATION ? 'manual' : 'auto';
          const data = items[index].data;
-         const isTranslatableItem = items.length === 1 && type === RawTextType.TEXT && options.translateText && canBeTranslated(items[0].data);
+         const isTranslatableItem = items.length === 1 && type === RawTextType.TEXT
+             && options.translateText && canBeTranslated(items[0].data);
          if (data.trim() === EMPTY_STRING && type !== RawTextType.TEXT) {
             // TODO: Do not process empty strings.
             //  1) Warn in case of empty mustache expressions
@@ -453,7 +458,7 @@ class TextProcessor implements ITextProcessor {
                break;
             case RawTextType.TRANSLATION:
                if (this.generateTranslations) {
-                  node = createTranslationNode(data, options);
+                  node = createTranslationNode(translationType, data, options);
                   break;
                }
                node = createTextNode(data, options);

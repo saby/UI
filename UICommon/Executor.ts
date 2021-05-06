@@ -12,13 +12,10 @@ export * as _IBuilder from './_executor/_Markup/IBuilder';
 export * as Helper from './_executor/_Markup/Helper';
 
 
-
-export { htmlNode, textNode, controlNode } from './_executor/_Utils/Vdom';
 export {
     Common as CommonUtils,
     RequireHelper,
     invisibleNodeTagName,
-    Vdom,
     VoidTags,
     ConfigResolver
 } from './_executor/Utils';

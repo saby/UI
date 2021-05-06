@@ -2,6 +2,8 @@ import { ArrayUtils } from 'UICommon/Utils';
 import { Logger } from 'UICommon/Utils';
 import { _FocusAttrs } from 'UICore/Focus';
 import { Generator } from '../Generator';
+import { IControl } from 'UICommon/interfaces';
+import * as Vdom from '../../_Utils/Vdom';
 import {
    Attr,
    GeneratorEmptyObject,
@@ -12,7 +14,6 @@ import {
    GeneratorTemplateOrigin,
    GeneratorVoid,
    IBaseAttrs,
-   IControl,
    IControlData,
    IControlProperties,
    ICreateControlTemplateCfg,
@@ -20,7 +21,6 @@ import {
    IGenerator,
    IGeneratorConfig,
    IGeneratorDefCollection,
-   Vdom,
    CommonUtils as Common,
    RequireHelper,
    invisibleNodeTagName,
