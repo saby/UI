@@ -1,7 +1,6 @@
 import { InternalNode, InternalNodeType } from 'Compiler/core/internal/Container';
 import { IProgramMeta } from 'Compiler/core/internal/Storage';
 import { ExpressionVisitor } from './Expression';
-import { canUseNewInternalMechanism } from '../core/Internal';
 
 //#region Constants
 
@@ -45,7 +44,7 @@ interface IOptions {
 }
 
 export function canUseNewInternalFunctions(): boolean {
-    return canUseNewInternalMechanism() && USE_INTERNAL_FUNCTIONS;
+    return USE_INTERNAL_FUNCTIONS;
 }
 
 export function generate(node: InternalNode, internalFunctions: string[]): string {
