@@ -7,8 +7,8 @@
 
 import * as Ast from 'Compiler/core/Ast';
 import Scope from 'Compiler/core/Scope';
-import { Container, ContainerType } from 'Compiler/core/internal/Container';
-import { IProgramMeta, ProgramType } from './Storage';
+import { Container, ContainerType } from './internal/Container';
+import { IProgramMeta, ProgramType } from './internal/Storage';
 import { ProgramNode } from 'Compiler/expressions/Nodes';
 import * as Walkers from 'Compiler/expressions/Walkers';
 
@@ -433,7 +433,7 @@ function checkForTranslations(scope: Scope, program: ProgramNode | null): void {
 /**
  * Abstract syntax tree annotator.
  */
-export class InternalVisitor implements Ast.IAstVisitor {
+class InternalVisitor implements Ast.IAstVisitor {
 
     /**
      * Stack of processing node types.
@@ -944,4 +944,8 @@ export class InternalVisitor implements Ast.IAstVisitor {
         node.__$ws_container = container;
         return container;
     }
+}
+
+export function process(nodes: Ast.Ast[], scope: Scope): IResultTree {
+    return new InternalVisitor().process(nodes, scope);
 }
