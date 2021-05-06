@@ -10,7 +10,6 @@
     <module id="686f183d-0bcc-4732-b4e4-6016c2a67a0f" name="Types"/>
     <module id="37e402f1-2fb0-4b73-81c5-113cf94dbf1c" name="WasabyLoader"/>
     <module id="7e8aabad-d60f-4c48-aa74-f29d78fd8be2" name="RequireJsLoader"/>
-    <module id="951e1c80-ee24-4022-8349-96123fae8026" name="Inferno"/>
   </depends>
 
   <load_after/>
