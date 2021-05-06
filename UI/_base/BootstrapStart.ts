@@ -44,8 +44,10 @@ export default function startFunction(config: ICreateControlOptions = {}, domEle
         config.application = moduleName;
         config.buildnumber = window['buildnumber'];
 
-        /* В случае с Inferno мы должны вешать обработку на дочерний элемент. Так работает синхронизатор
-            В случае с React, мы должны работать от непосредственно указанного элемента */
+        /* В случае с Inferno мы должны вешать обработку на дочерний элемент. Так работает синхронизатор/
+         * В случае с React, мы должны работать от непосредственно указанного элемента
+         * FIXME https://online.sbis.ru/opendoc.html?guid=253f2514-f594-45af-9cd2-106caa67df9b
+         */
         const dom: HTMLElement = (domElement.firstElementChild || domElement.firstChild || domElement) as HTMLElement;
         // @ts-ignore
         config.bootstrapKey = dom?.attributes?.key?.value || '';
