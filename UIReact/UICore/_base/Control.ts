@@ -1,6 +1,7 @@
 import { Component, createElement } from 'react';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { getStateReceiver } from 'Application/Env';
 import { EMPTY_THEME, getThemeController } from 'UICommon/theme/controller';
 import { getResourceUrl, Logger} from 'UICommon/Utils';
 import { Options } from 'UICommon/Vdom';
@@ -25,6 +26,7 @@ import { IControlOptions, TemplateFunction } from 'UICommon/Base';
 export type IControlConstructor<P = IControlOptions> = React.ComponentType<P>;
 
 export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
+
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
@@ -65,7 +67,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * Название контрола.
      */
     _moduleName: string;
-    reactiveValues: object;
+    reactiveValues: Record<string, unknown>;
 
     protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
         return callNotify(this, eventName, args, options);
@@ -84,10 +86,11 @@ export default class Control<TOptions extends IControlOptions = {},
     }
 
     // Пока много где объявлен, его отсуствие вызывает ошибки ts. Удалить после отказа.
+    // private _containerRef: React.RefObject<HTMLElement>;
     protected _container: HTMLElement;
 
     // TODO: TControlConfig добавлен для совместимости, в 3000 нужно сделать TOptions и здесь, и в UIInferno.
-    constructor(props: TOptions | TControlConfig, context?: IWasabyContextValue) {
+    constructor(props: TOptions | TControlConfig = {}, context?: IWasabyContextValue) {
         super(props as TOptions);
         /*
         Если люди сами задают конструктор, то обычно они вызывают его неправильно (передают только один аргумент).
@@ -97,6 +100,7 @@ export default class Control<TOptions extends IControlOptions = {},
             Logger.error(
                 `[${this._moduleName}] Неправильный вызов родительского конструктора, опции readOnly и theme могут содержать некорректные значения. Для исправления ошибки нужно передать в родительский конструктор все аргументы.`
             );
+            context = {};
         }
         this.state = {
             loading: true,
@@ -154,11 +158,20 @@ export default class Control<TOptions extends IControlOptions = {},
      */
     private _beforeFirstRender(options: TOptions): boolean {
         const promisesToWait = [];
-        const res = this._beforeMount(options);
+
+        let stateFromServer;
+        // @ts-ignore
+        if (!!options.bootstrapKey) {
+            getStateReceiver().register(options.bootstrapKey, {
+                getState: () => undefined,
+                setState: (state) => { stateFromServer = state; }
+            });
+        }
+
+        const res = this._beforeMount(options, {}, stateFromServer);
 
         // Данный метод должен вызываться только при первом построении, поэтому очистим его на инстансе при вызове
         this._beforeFirstRender = undefined;
-        makeWasabyObservable<TOptions, TState>(this);
 
         if (res && res.then) {
             promisesToWait.push(res);
@@ -177,6 +190,7 @@ export default class Control<TOptions extends IControlOptions = {},
             this.loadThemeVariables(options.theme)
         }
 
+        this._options = options;
         if (promisesToWait.length) {
             Promise.all(promisesToWait).then(() => {
                 this.setState(
@@ -184,18 +198,17 @@ export default class Control<TOptions extends IControlOptions = {},
                         loading: false
                     },
                     () => {
-                        this._options = options;
                         this._componentDidMount(options);
+                        this._$controlMounted = true;
                         setTimeout(() => {
                             this._afterMount(options);
-                            this._$controlMounted = true;
+                            makeWasabyObservable<TOptions, TState>(this);
                         }, 0);
                     }
                 );
             });
             return true;
         } else {
-            this._options = options;
             this._$controlMounted = true;
             return false;
         }
@@ -344,13 +357,15 @@ export default class Control<TOptions extends IControlOptions = {},
     }
 
     componentDidMount(): void {
-        if (this._$controlMounted) {
-            const newOptions = createWasabyOptions(this.props, this.context);
-            this._componentDidMount(newOptions);
-            setTimeout(() => {
-                this._afterMount(newOptions);
-            }, 0);
+        if (!this._$controlMounted) {
+            return;
         }
+        const newOptions = createWasabyOptions(this.props, this.context);
+        this._componentDidMount(newOptions);
+        makeWasabyObservable<TOptions, TState>(this);
+        setTimeout(() => {
+            this._afterMount(newOptions);
+        }, 0);
     }
 
     shouldComponentUpdate(newProps: TOptions, newState: IControlState): boolean {
@@ -363,7 +378,8 @@ export default class Control<TOptions extends IControlOptions = {},
         );
         const reactiveStartUpdate = newState.observableVersion !== this.state.observableVersion;
         // Если обновление запустила реактивность, нам надо перерисовать компонент
-        return (changedOptions && this._shouldUpdate(newOptions)) || reactiveStartUpdate;
+        const componentLoaded = newState.loading !== this.state.loading;
+        return (changedOptions && this._shouldUpdate(newOptions)) || reactiveStartUpdate || componentLoaded;
     }
 
     componentDidUpdate(prevProps: TOptions): void {
@@ -382,7 +398,7 @@ export default class Control<TOptions extends IControlOptions = {},
         if (this._$controlMounted) {
             try {
                 const newOptions = createWasabyOptions(this.props, this.context);
-                this._beforeUpdate(newOptions);
+                this._beforeUpdate(newOptions, { scrollContext: {}});
             } catch (e) {
                 logError(e);
             }
@@ -392,7 +408,15 @@ export default class Control<TOptions extends IControlOptions = {},
 
     componentWillUnmount(): void {
         this._beforeUnmount.apply(this);
+        // Не нужно очищать реактивные свойства
+        if (!this.reactiveValues) {
+            return;
+        }
         releaseProperties<TOptions, TState>(this);
+    }
+
+    componentDidCatch(error, errorInfo) {
+        console.error(error, errorInfo);
     }
 
     render(): React.ReactNode {
@@ -413,10 +437,16 @@ export default class Control<TOptions extends IControlOptions = {},
             return getLoadingComponent();
         }
 
+        if (this.state.hasError) {
+            return showErrorRender(wasabyOptions, this.state.error);
+        }
+
         let res;
         try {
+            // FIXME https://online.sbis.ru/opendoc.html?guid=be97d672-d7ff-442b-b409-494515282ec5
+            let ctx = Object.create(this);
+            ctx._options = { ...wasabyOptions };
             // this клонируется, чтобы вызвать шаблон с новыми значениями опций, но пока не класть их на инстанс.
-            const ctx = {...this, _options: {...wasabyOptions}};
             res = this._template(ctx, this._options._$attributes, undefined, true);
         } catch (e) {
             logError(e);
@@ -653,6 +683,10 @@ export default class Control<TOptions extends IControlOptions = {},
         }
         return ExtendedControl;
     }
+
+    static getDerivedStateFromError(error: unknown): { hasError: boolean, error: unknown } {
+        return { hasError: true, error };
+    }
 }
 
 /*
@@ -692,6 +726,23 @@ function getLoadingComponent(): React.ReactElement {
             '/cdn/LoaderIndicator/1.0.0/ajax-loader-indicator.gif'
         )
     });
+}
+
+
+function showErrorRender(props, error): React.ReactElement {
+    return createElement('div', {
+        style: {
+            width: "800px",
+            height: "800px",
+            border: "1px solid red",
+            overflow: "scroll"
+
+        }
+    }, [
+        createElement('div', { key: "e1" }, error.message),
+        createElement('div', { key: "e2" }, error.stack),
+        createElement('div', { key: "e3" }, JSON.stringify(props)),
+    ]);
 }
 
 const nop = () => undefined;

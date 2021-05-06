@@ -1,4 +1,4 @@
-import {useState, Component} from 'react';
+import { useState, Component } from 'react';
 import {IVersionable} from 'Types/entity';
 
 /**
