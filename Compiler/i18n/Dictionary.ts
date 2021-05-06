@@ -8,6 +8,8 @@
  */
 const EMPTY_STRING = '';
 
+export declare type TranslationType = 'auto' | 'manual';
+
 /**
  * Interface for translation key.
  */
@@ -27,6 +29,11 @@ export interface ITranslationKey {
     * Translation context.
     */
    context: string;
+
+   /**
+    * Translation type.
+    */
+   type: TranslationType;
 }
 
 /**
@@ -48,15 +55,17 @@ export class Dictionary {
 
    /**
     * Push new data into dictionary.
+    * @param type {TranslationType} Translation type.
     * @param module {string} Template file where translation item was discovered.
     * @param key {string} Translation text.
     * @param context {string} Translation context.
     */
-   push(module: string, key: string, context: string = EMPTY_STRING): void {
+   push(type: TranslationType, module: string, key: string, context: string = EMPTY_STRING): void {
       if (key.trim().length === 0) {
          return;
       }
       this.items.push({
+         type,
          key,
          context,
          module

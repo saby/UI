@@ -13,6 +13,7 @@ import * as templates from './codegen/templates';
 import { ISource, Source } from './utils/Source';
 import { IOptions, Options } from './utils/Options';
 import { ModulePath } from './utils/ModulePath';
+import { ITranslationKey } from './i18n/Dictionary';
 
 /**
  * Флаг - генерировать rk-функции
@@ -56,7 +57,7 @@ export interface IArtifact {
    /**
     * Translations dictionary.
     */
-   localizedDictionary: IDictionaryItem[];
+   localizedDictionary: ITranslationKey[];
 
    /**
     * Array of input file dependencies.
@@ -85,27 +86,6 @@ function createArtifact(options: IOptions): IArtifact {
 }
 
 /**
- * Record in translations dictionary.
- */
-interface IDictionaryItem {
-
-   /**
-    * Text to translate.
-    */
-   key: string;
-
-   /**
-    * Translation context.
-    */
-   context: string;
-
-   /**
-    * Template module that contains this translation.
-    */
-   module: string;
-}
-
-/**
  * Represents abstract syntax tree interface as array of "object" - abstract syntax nodes.
  * FIXME: release interfaces for these nodes.
  */
@@ -130,7 +110,7 @@ interface ITraversed {
    /**
     * Translations dictionary.
     */
-   localizedDictionary: IDictionaryItem[];
+   localizedDictionary: ITranslationKey[];
 
    /**
     * Array of input file dependencies.
@@ -150,7 +130,7 @@ interface ITraversed {
  * @param rawTraversed Actual traverse result.
  * @param dependencies Array of dependencies.
  */
-function fixTraversed(rawTraversed: IAST | { astResult: IAST; words: IDictionaryItem[]; }, dependencies: string[]): ITraversed {
+function fixTraversed(rawTraversed: IAST | { astResult: IAST; words: ITranslationKey[]; }, dependencies: string[]): ITraversed {
    if (Array.isArray(rawTraversed)) {
       return {
          ast: rawTraversed as IAST,
@@ -245,7 +225,7 @@ abstract class BaseCompiler implements ICompiler {
                rudeWhiteSpaceCleaning: true,
                normalizeLineFeed: true,
                cleanWhiteSpaces: true,
-               needPreprocess: needPreprocess,
+               needPreprocess,
                tagDescriptor: getWasabyTagDescription,
                errorHandler
             });
@@ -311,7 +291,6 @@ abstract class BaseCompiler implements ICompiler {
 /**
  * This class represents methods to compile tmpl files.
  */
-// @ts-ignore
 class CompilerTmpl extends BaseCompiler {
    constructor() {
       super();
@@ -358,7 +337,6 @@ class CompilerTmpl extends BaseCompiler {
 /**
  * This class represents methods to compile wml files.
  */
-// @ts-ignore
 class CompilerWml extends BaseCompiler {
    constructor() {
       super();
