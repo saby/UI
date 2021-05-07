@@ -7,30 +7,6 @@ import { IProgramMeta, ProgramType, ProgramStorage, createProgramMeta } from './
 import * as Walkers from 'Compiler/expressions/Walkers';
 import { Parser } from 'Compiler/expressions/Parser';
 
-/**
- * Пропускать internal выражения контентных опций для компонента.
- */
-const SKIP_CONTENT_OPTION_INTERNAL_ON_COMPONENT: boolean = true;
-
-/**
- * Если в test-выражение вычисляется не в своем контексте, значит не гарантируется, что результат вычисления
- * этого выражения в текущем контексте будет равен результату вычисления в оригинальном контексте.
- * В таком случае необходимо выполнить разворот условной цепочки.
- */
-const DROP_FOREIGN_TEST: boolean = true;
-
-/**
- * Если в test-выражение входит переменная, которая гарантированно не может быть вычислена в данном не оригинальном контексте,
- * то выполнить дробление выражения и разворот условной цепочки.
- */
-const DROP_TEST_IDENTIFIERS: boolean = true;
-
-/**
- * Если в test-выражение входит вызов функции, который может быть не вычислена в данном не оригинальном контексте,
- * то разворот условной цепочки.
- */
-const DROP_TEST_FUNCTIONS: boolean = true;
-
 const FILE_NAME = '[[Compiler/core/internal/Container]]';
 
 const PARSER = new Parser();
@@ -269,8 +245,7 @@ export class Container {
             const canSkipChild = options.depth === 0
                 && this.children[index].type === ContainerType.CONTENT_OPTION
                 && !this.children[index].isInDataType;
-            const skipChild = SKIP_CONTENT_OPTION_INTERNAL_ON_COMPONENT && canSkipChild;
-            if (skipChild) {
+            if (canSkipChild) {
                 continue;
             }
             const child = this.children[index].collectInternalStructure(childrenOptions);
@@ -559,9 +534,9 @@ export class InternalNode {
         const hasFunctionCall = Walkers.containsFunctionCall(this.test.node, FILE_NAME);
         const hasLocalIdentifier = Walkers.containsIdentifiers(this.test.node, identifiers, FILE_NAME);
         const isForeignTest = this.test.processingIndex !== options.rootIndex;
-        if (hasLocalIdentifier && DROP_TEST_IDENTIFIERS) {
+        if (hasLocalIdentifier) {
             this.dropAndAppend(identifiers, options.allocator);
-        } else if (hasFunctionCall && DROP_TEST_FUNCTIONS || isForeignTest && DROP_FOREIGN_TEST) {
+        } else if (hasFunctionCall || isForeignTest) {
             this.storage.set(this.test);
         } else {
             // Do not modify conditional node

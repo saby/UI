@@ -6,8 +6,7 @@ define('Compiler/core/bridge', [
    'Compiler/core/PatchVisitor',
    'Compiler/core/Scope',
    'Compiler/i18n/Translator',
-   'Compiler/core/Annotate',
-   'Compiler/core/Internal'
+   'Compiler/core/Annotate'
 ], function(
    Deferred,
    TraverseLib,
@@ -16,8 +15,7 @@ define('Compiler/core/bridge', [
    PatchVisitorLib,
    ScopeLib,
    Translator,
-   Annotate,
-   Internal
+   Annotate
 ) {
    'use strict';
 
@@ -38,12 +36,7 @@ define('Compiler/core/bridge', [
     * New annotation method.
     */
    function annotateWithVisitors(traversed, options, traverseOptions, deferred) {
-      if (Internal.canUseNewInternalMechanism()) {
-         Internal.process(traversed, traverseOptions.scope);
-      } else {
-         Annotate.default(traversed, traverseOptions.scope);
-      }
-
+      Annotate.process(traversed, traverseOptions.scope);
       PatchVisitorLib.default(traversed, traverseOptions.scope);
 
       // в случае сбора словаря локализуемых слов отдаем объект
