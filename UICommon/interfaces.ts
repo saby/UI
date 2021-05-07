@@ -34,7 +34,7 @@ export interface IControl {
     _context: TObject;
     context: IControlContext;
     saveFullContext: Function;
-    _getChildContext: Function;
+    _getChildContext?: Function;
     _saveContextObject: Function;
     _saveEnvironment: Function;
     saveInheritOptions: Function;
@@ -47,10 +47,10 @@ export interface IControl {
     _children: TObject;
     _forceUpdate: Function;
     _instId: string;
-    reactiveValues: TObject;
-    __lastGetterPath: [];
+    reactiveValues?: TObject;
+    __lastGetterPath?: [];
 
-    readonly prototype: {
+    readonly prototype?: {
        _moduleName: string;
        _template?: Function;
        _dotTplFn?: Function;
