@@ -150,9 +150,11 @@ export class GeneratorVdom extends Generator implements IGenerator {
 
         const convertedAttributes = convertAttributes(mergedAttrs);
 
+        /* не добавляем extractedEvents в новые пропсы на теге, т.к. реакт будет выводить ошибку о неизвестном свойстве
+            https://online.sbis.ru/opendoc.html?guid=d90ec578-f610-4d93-acdd-656095591bc1
+        */
         const newProps = {
             ...convertedAttributes,
-            ...extractedEvents,
             ref
         };
 
