@@ -1,205 +1,328 @@
 /**
- * @description Represents interfaces, methods and classes to annotate AST.
+ * @description Module for annotation of abstract syntax tree:
+ * 1) Collecting trees of internal nodes for components;
+ * 2) Checking for translations.
  * @author Крылов М.А.
  */
 
 import * as Ast from 'Compiler/core/Ast';
 import Scope from 'Compiler/core/Scope';
-import {
-   ContextType,
-   createGlobalContext,
-   IContext as ILexicalContext,
-   IProgramMeta,
-   SpecialProgramType
-} from 'Compiler/core/Context';
-import * as Walkers from 'Compiler/expressions/Walkers';
+import { Container, ContainerType } from './internal/Container';
+import { IProgramMeta, ProgramType } from './internal/Storage';
 import { ProgramNode } from 'Compiler/expressions/Nodes';
-
-// <editor-fold desc="Public interfaces and functions">
+import * as Walkers from 'Compiler/expressions/Walkers';
 
 /**
- * Interface for annotated abstract syntax tree.
+ * Prefix for internal mustache expressions.
  */
-export interface IAnnotatedTree extends Array<Ast.Ast> {
+const INTERNAL_PROGRAM_PREFIX = '__dirtyCheckingVars_';
 
-   /**
-    * Child names collection.
-    */
-   childrenStorage: string[];
+/**
+ * Hidden file name.
+ * @todo Use real template file name.
+ */
+const FILE_NAME = '[[Compiler/core/internal/Annotate]]';
 
-   /**
-    * Reactive property names collection.
-    */
-   reactiveProps: string[];
+/**
+ * Result of annotation process.
+ */
+export interface IResultTree extends Array<Ast.Ast> {
 
-   /**
-    * Inline template names collection.
-    */
-   templateNames: string[];
+    /**
+     * Child names collection.
+     */
+    childrenStorage: string[];
 
-   /**
-    * Global lexical context.
-    */
-   lexicalContext: ILexicalContext;
+    /**
+     * Reactive property names collection.
+     */
+    reactiveProps: string[];
 
-   /**
-    * Special flag.
-    * @deprecated
-    */
-   __newVersion: boolean;
+    /**
+     * Inline template names collection.
+     */
+    templateNames: string[];
 
-   /**
-    * Abstract syntax tree contains translations.
-    */
-   hasTranslations: boolean;
+    /**
+     * Global lexical context.
+     */
+    container: Container;
+
+    /**
+     * Abstract syntax tree contains translations.
+     */
+    hasTranslations: boolean;
+
+    /**
+     * Special flag.
+     * @deprecated
+     */
+    __newVersion: boolean;
 }
 
 /**
- * Annotate processor interface.
+ * Abstract node types.
  */
-export interface IAnnotateProcessor {
+enum AbstractNodeType {
 
-   /**
-    * Annotate abstract syntax tree.
-    * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
-    * @param scope {Scope} Processing scope object.
-    */
-   annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree;
+    /**
+     * Flag for root node which can be node of any type.
+     */
+    ROOT,
+
+    /**
+     * Flag for component, ws:template, ws:partial nodes.
+     */
+    COMPONENT,
+
+    /**
+     * Flag for content option nodes.
+     */
+    COMPONENT_OPTION,
+
+    /**
+     * Flag for element nodes.
+     */
+    ELEMENT,
+
+    /**
+     * Flag for data type nodes.
+     */
+    DATA_TYPE_DIRECTIVE,
+
+    /**
+     * Flag for directive nodes.
+     */
+    DIRECTIVE,
+
+    /**
+     * Flag for attribute nodes.
+     */
+    ATTRIBUTE,
+
+    /**
+     * Flag for option nodes.
+     */
+    OPTION,
+
+    /**
+     * Flag for text nodes.
+     */
+    TEXT
 }
 
 /**
- * Annotate abstract syntax tree.
- * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
- * @param scope {Scope} Processing scope object.
+ * Annotation counters.
  */
-export default function annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree {
-   return new AnnotateProcessor()
-      .annotate(nodes, scope);
+class Counters {
+
+    /**
+     * Counter for cycle nodes (ws:for aka for/foreach).
+     * @private
+     */
+    private cycle: number;
+
+    /**
+     * Initialize new instance of annotation counter.
+     */
+    constructor() {
+        this.cycle = 0;
+    }
+
+    /**
+     * Allocate new cycle index.
+     */
+    allocateCycleIndex(): number {
+        return this.cycle++;
+    }
 }
 
-// </editor-fold>
-
-// <editor-fold desc="Private interfaces and constants">
-
 /**
- * Annotating context.
+ * Interface for annotation context.
  */
 interface IContext {
 
-   /**
-    * Child names collection.
-    */
-   childrenStorage: string[];
+    /**
+     * Current processing attribute name.
+     */
+    attributeName?: string;
 
-   /**
-    * Lexical context.
-    */
-   lexicalContext: ILexicalContext;
+    /**
+     * Collection of child names for processing abstract syntax tree.
+     */
+    childrenStorage: string[];
 
-   /**
-    * Processing scope object.
-    */
-   scope: Scope;
+    /**
+     * Actual container for internal expressions.
+     */
+    container: Container;
 
-   /**
-    * Special node counters for prefixes and keys.
-    */
-   counters: Counters;
+    /**
+     * Scope object for processing abstract syntax tree.
+     */
+    scope: Scope;
+
+    /**
+     * Actual annotation counter for processing abstract syntax tree.
+     */
+    counters: Counters;
 }
-
-const FILE_NAME: string = '[[Annotate]]';
-
-class Counters {
-
-   private cycle: number;
-
-   constructor() {
-      this.cycle = 0;
-   }
-
-   allocateCycleIndex(): number {
-      return this.cycle++;
-   }
-}
-
-// </editor-fold>
-
-// <editor-fold desc="Private annotation functions">
 
 /**
- * Append internal expressions.
- * @param internal {IInternal} Internal collection.
- * @param programs {IProgramMeta[]} Collection of program meta information.
+ * Wrap mustache expression programs into special codegen structure and generate object with internal expressions.
+ * @param programs {IProgramMeta[]} Collection of meta of mustache expression programs.
+ * @returns {*} Object with internal expressions.
  */
-function appendInternalExpressions(internal: Ast.IInternal, programs: IProgramMeta[]): void {
-   for (let index = 0; index < programs.length; ++index) {
-      const program = programs[index];
-      internal[program.key] = {
-         data: [
-            new Ast.ExpressionNode(program.node)
-         ],
-         type: 'text'
-      };
-   }
+function wrapInternalExpressions(programs: IProgramMeta[]): any {
+    const internal = { };
+    for (let index = 0; index < programs.length; ++index) {
+        const program = programs[index];
+        internal[INTERNAL_PROGRAM_PREFIX + index] = {
+            data: [
+                new Ast.ExpressionNode(program.node)
+            ],
+            type: 'text'
+        };
+    }
+    return internal;
 }
 
 /**
- * Collect identifiers for inline template node.
+ * Object-like type of abstract syntax nodes.
+ */
+declare type IProperties = Ast.IAttributes | Ast.IEvents | Ast.IOptions | Ast.IContents | Ast.IObjectProperties;
+
+/**
+ * Visit collection of abstract syntax nodes.
+ * @param nodes {Ast[]} Collection of abstract syntax nodes.
+ * @param visitor {IAstVisitor} Concrete abstract syntax node visitor.
+ * @param context {IContext} Current context for visitor.
+ */
+function visitAll(nodes: Ast.Ast[], visitor: Ast.IAstVisitor, context: IContext): void {
+    for (let index = 0; index < nodes.length; ++index) {
+        nodes[index].accept(visitor, context);
+    }
+}
+
+/**
+ * Visit object-like collection of abstract syntax nodes.
+ * @param properties {IProperties} Collection of abstract syntax nodes.
+ * @param visitor {IAstVisitor} Concrete abstract syntax node visitor.
+ * @param context {IContext} Current context for visitor.
+ */
+function visitAllProperties(properties: IProperties, visitor: Ast.IAstVisitor, context: IContext): void {
+    for (const name in properties) {
+        properties[name].accept(visitor, context);
+    }
+}
+
+/**
+ * Collect name of identifiers in inline template node from options which names equal to values.
  * @param node {InlineTemplateNode} Inline template node.
- * @return {string[]} Identifier names collection.
+ * @returns {string[]} Collection of identifiers.
  */
 function collectInlineTemplateIdentifiers(node: Ast.InlineTemplateNode): string[] {
-   const identifiers = [];
-   for (const name in node.__$ws_events) {
-      const event = node.__$ws_events[name];
-      if (event instanceof Ast.BindNode) {
-         // bind:option="option" is simple alias and deep usages exist in current scope
-         if (event.__$ws_property !== event.__$ws_value.string) {
-            identifiers.push(event.__$ws_property);
-         }
-      }
-   }
-   for (const name in node.__$ws_options) {
-      const option = node.__$ws_options[name];
-      if (option.hasFlag(Ast.Flags.TYPE_CASTED | Ast.Flags.UNPACKED) && option.__$ws_value instanceof Ast.ValueNode) {
-         const value = option.__$ws_value;
-         const valuePart = value.__$ws_data[0];
-         if (value.__$ws_data.length === 1 && valuePart instanceof Ast.ExpressionNode) {
-            if (option.__$ws_name === valuePart.__$ws_program.string) {
-               // Skip only case option="{{ option }}"
-               continue;
+    const identifiers = [];
+    for (const name in node.__$ws_events) {
+        const event = node.__$ws_events[name];
+        if (event instanceof Ast.BindNode) {
+            // bind:option="option" is simple alias and deep usages exist in current scope
+            if (event.__$ws_property !== event.__$ws_value.string) {
+                identifiers.push(event.__$ws_property);
             }
-         }
-      }
-      identifiers.push(option.__$ws_name);
-   }
-   return identifiers;
+        }
+    }
+    for (const name in node.__$ws_options) {
+        const option = node.__$ws_options[name];
+        if (option.hasFlag(Ast.Flags.TYPE_CASTED | Ast.Flags.UNPACKED) && option.__$ws_value instanceof Ast.ValueNode) {
+            const value = option.__$ws_value;
+            const valuePart = value.__$ws_data[0];
+            if (value.__$ws_data.length === 1 && valuePart instanceof Ast.ExpressionNode) {
+                if (option.__$ws_name === valuePart.__$ws_program.string) {
+                    // Skip only case option="{{ option }}"
+                    continue;
+                }
+            }
+        }
+        identifiers.push(option.__$ws_name);
+    }
+    return identifiers;
 }
 
 /**
- * Set root node flag.
- * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
+ * Get processing program type that depends on type of processing abstract syntax node.
+ * @param stack {AbstractNodeType[]} Stack of types of processing abstract syntax node.
+ * @returns {ProgramType} Actual type of processing mustache expression.
  */
-function setRootNodeFlags(nodes: Ast.Ast[]): void {
-   nodes.forEach((node) => {
-      if (node instanceof Ast.IfNode) {
-         setRootNodeFlags(node.__$ws_consequent);
-         return;
-      }
-      if (node instanceof Ast.ElseNode) {
-         setRootNodeFlags(node.__$ws_consequent);
-         return;
-      }
-      if (node instanceof Ast.ForNode) {
-         setRootNodeFlags(node.__$ws_content);
-         return;
-      }
-      if (node instanceof Ast.ForeachNode) {
-         setRootNodeFlags(node.__$ws_content);
-         return;
-      }
-      node.__$ws_isRootNode = true;
-   });
+function getProgramType(stack: AbstractNodeType[]): ProgramType {
+    let isInComponent = false;
+    let isInAttribute = false;
+    let isInOption = false;
+    for (let index = stack.length - 1; index > -1; --index) {
+        if (stack[index] === AbstractNodeType.DATA_TYPE_DIRECTIVE) {
+            continue;
+        } else if (stack[index] === AbstractNodeType.COMPONENT) {
+            isInComponent = true;
+        } else if (stack[index] === AbstractNodeType.ATTRIBUTE) {
+            isInAttribute = true;
+            continue;
+        } else if (stack[index] === AbstractNodeType.OPTION) {
+            isInOption = true;
+            continue;
+        }
+        break;
+    }
+    if (isInComponent) {
+        if (isInAttribute) {
+            return ProgramType.ATTRIBUTE;
+        } else if (isInOption) {
+            return ProgramType.OPTION;
+        }
+    }
+    return ProgramType.SIMPLE;
+}
+
+/**
+ * Check if current processing is in attribute of component.
+ * @param stack {AbstractNodeType[]} Stack of types of processing abstract syntax node.
+ * @returns {boolean} True in case of processing attribute of component.
+ */
+function isInComponentAttributes(stack: AbstractNodeType[]): boolean {
+    for (let index = stack.length - 1; index > -1; --index) {
+        if (stack[index] === AbstractNodeType.DATA_TYPE_DIRECTIVE) {
+            continue;
+        }
+        if (stack[index] === AbstractNodeType.COMPONENT) {
+            return true;
+        }
+        break;
+    }
+    return false;
+}
+
+/**
+ * Check if current processing is in data type node.
+ * @param stack {AbstractNodeType[]} Stack of types of processing abstract syntax node.
+ * @returns {boolean} True in case of processing data type node.
+ */
+function isInDataTypeDirective(stack: AbstractNodeType[]): boolean {
+    for (let index = stack.length - 1; index > -1; --index) {
+        if (stack[index] === AbstractNodeType.DATA_TYPE_DIRECTIVE) {
+            return true;
+        }
+        if (
+            stack[index] === AbstractNodeType.COMPONENT ||
+            stack[index] === AbstractNodeType.COMPONENT_OPTION ||
+            stack[index] === AbstractNodeType.ELEMENT ||
+            stack[index] === AbstractNodeType.DIRECTIVE ||
+            stack[index] === AbstractNodeType.ATTRIBUTE ||
+            stack[index] === AbstractNodeType.OPTION ||
+            stack[index] === AbstractNodeType.TEXT
+        ) {
+            return false;
+        }
+    }
+    return false;
 }
 
 /**
@@ -208,14 +331,14 @@ function setRootNodeFlags(nodes: Ast.Ast[]): void {
  * @return {string | null} Returns string in case of collection has single text node.
  */
 function getStringValueFromText(value: Ast.TText[]): string | null {
-   if (value.length !== 1) {
-      return null;
-   }
-   const valueNode = value[0];
-   if (!(valueNode instanceof Ast.TextDataNode)) {
-      return null;
-   }
-   return valueNode.__$ws_content;
+    if (value.length !== 1) {
+        return null;
+    }
+    const valueNode = value[0];
+    if (!(valueNode instanceof Ast.TextDataNode)) {
+        return null;
+    }
+    return valueNode.__$ws_content;
 }
 
 /**
@@ -224,13 +347,13 @@ function getStringValueFromText(value: Ast.TText[]): string | null {
  * @return {string | null} Returns element name if it exists.
  */
 function getElementName(element: Ast.BaseHtmlElement): string | null {
-   if (element.__$ws_attributes.hasOwnProperty('attr:name')) {
-      return getStringValueFromText(element.__$ws_attributes['attr:name'].__$ws_value);
-   }
-   if (element.__$ws_attributes.hasOwnProperty('name')) {
-      return getStringValueFromText(element.__$ws_attributes.name.__$ws_value);
-   }
-   return null;
+    if (element.__$ws_attributes.hasOwnProperty('attr:name')) {
+        return getStringValueFromText(element.__$ws_attributes['attr:name'].__$ws_value);
+    }
+    if (element.__$ws_attributes.hasOwnProperty('name')) {
+        return getStringValueFromText(element.__$ws_attributes.name.__$ws_value);
+    }
+    return null;
 }
 
 /**
@@ -239,13 +362,13 @@ function getElementName(element: Ast.BaseHtmlElement): string | null {
  * @return {string | null} Returns string value for string or value node.
  */
 function getStringValueFromData(value: Ast.TData): string | null {
-   if (value instanceof Ast.ValueNode) {
-      return getStringValueFromText(value.__$ws_data);
-   }
-   if (value instanceof Ast.StringNode) {
-      return getStringValueFromText(value.__$ws_data);
-   }
-   return null;
+    if (value instanceof Ast.ValueNode) {
+        return getStringValueFromText(value.__$ws_data);
+    }
+    if (value instanceof Ast.StringNode) {
+        return getStringValueFromText(value.__$ws_data);
+    }
+    return null;
 }
 
 /**
@@ -254,546 +377,575 @@ function getStringValueFromData(value: Ast.TData): string | null {
  * @return {string | null} Returns component name if it exists.
  */
 function getComponentName(component: Ast.BaseWasabyElement): string | null {
-   const elementName = getElementName(component);
-   if (elementName !== null) {
-      return elementName;
-   }
-   if (component.__$ws_options.hasOwnProperty('attr:name')) {
-      return getStringValueFromData(component.__$ws_options['attr:name'].__$ws_value);
-   }
-   if (component.__$ws_options.hasOwnProperty('name')) {
-      return getStringValueFromData(component.__$ws_options.name.__$ws_value);
-   }
-   return null;
+    const elementName = getElementName(component);
+    if (elementName !== null) {
+        return elementName;
+    }
+    if (component.__$ws_options.hasOwnProperty('attr:name')) {
+        return getStringValueFromData(component.__$ws_options['attr:name'].__$ws_value);
+    }
+    if (component.__$ws_options.hasOwnProperty('name')) {
+        return getStringValueFromData(component.__$ws_options.name.__$ws_value);
+    }
+    return null;
 }
-
-function checkForTranslations(scope: Scope, program: ProgramNode | null): void {
-   if (!program) {
-      return;
-   }
-   if (Walkers.containsTranslationFunction(program, FILE_NAME)) {
-      scope.setDetectedTranslation();
-   }
-}
-
-// </editor-fold>
 
 /**
- * Annotate processor.
+ * Set root node flag.
+ * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
  */
-class AnnotateProcessor implements Ast.IAstVisitor, IAnnotateProcessor {
-
-   /**
-    * Annotate abstract syntax tree.
-    * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
-    * @param scope {Scope} Processing scope object.
-    */
-   annotate(nodes: Ast.Ast[], scope: Scope): IAnnotatedTree {
-      const childrenStorage: string[] = [];
-      const global = createGlobalContext();
-      const counters = new Counters();
-      nodes.forEach((node: Ast.Ast) => {
-         const lexicalContext = global.createContext({
-            type: ContextType.INTERMEDIATE
-         });
-         const context: IContext = {
-            childrenStorage,
-            lexicalContext,
-            scope,
-            counters
-         };
-         node.accept(this, context);
-         if (node instanceof Ast.TemplateNode) {
-            // Do not overwrite template node lexical context and internal
-            // because that node has its own programs
+function setRootNodeFlags(nodes: Ast.Ast[]): void {
+    nodes.forEach((node) => {
+        if (node instanceof Ast.IfNode) {
+            setRootNodeFlags(node.__$ws_consequent);
             return;
-         }
-         if (!(node instanceof Ast.ForNode || node instanceof Ast.ForeachNode)) {
-            // Do not overwrite cycle node lexical context and internal
-            // because that node has its own programs
-            node.__$ws_lexicalContext = lexicalContext;
-         }
-         node.__$ws_internal = {};
-         appendInternalExpressions(node.__$ws_internal, lexicalContext.getInternalPrograms());
-      });
-      const reactiveProperties: string[] = global.getOwnIdentifiers();
-      const result = nodes as IAnnotatedTree;
-      result.lexicalContext = global;
-      result.childrenStorage = childrenStorage;
-      result.reactiveProps = reactiveProperties;
-      result.templateNames = scope.getTemplateNames();
-      result.hasTranslations = scope.hasDetectedTranslations();
-      result.__newVersion = true;
-      return result;
-   }
+        }
+        if (node instanceof Ast.ElseNode) {
+            setRootNodeFlags(node.__$ws_consequent);
+            return;
+        }
+        if (node instanceof Ast.ForNode) {
+            setRootNodeFlags(node.__$ws_content);
+            return;
+        }
+        if (node instanceof Ast.ForeachNode) {
+            setRootNodeFlags(node.__$ws_content);
+            return;
+        }
+        node.__$ws_isRootNode = true;
+    });
+}
 
-   // <editor-fold desc="Data types">
+/**
+ * Check for translations in mustache expression node.
+ * @param scope {Scope} Scope object for processing abstract syntax tree.
+ * @param program {ProgramNode} Mustache expression node.
+ */
+function checkForTranslations(scope: Scope, program: ProgramNode | null): void {
+    if (!program) {
+        return;
+    }
+    if (Walkers.containsTranslationFunction(program, FILE_NAME)) {
+        scope.setDetectedTranslation();
+    }
+}
 
-   /**
-    * Visit array data node.
-    * @param node {ArrayNode} Concrete array data node.
-    * @param context {IContext} Annotating context.
-    */
-   visitArray(node: Ast.ArrayNode, context: IContext): void {
-      this.processNodes(node.__$ws_elements, context);
-   }
+/**
+ * Abstract syntax tree annotator.
+ */
+class InternalVisitor implements Ast.IAstVisitor {
 
-   /**
-    * Visit boolean data node.
-    * @param node {BooleanNode} Concrete boolean data node.
-    * @param context {IContext} Annotating context.
-    */
-   visitBoolean(node: Ast.BooleanNode, context: IContext): void {
-      this.processNodes(node.__$ws_data, context);
-   }
+    /**
+     * Stack of processing node types.
+     */
+    readonly stack: AbstractNodeType[];
 
-   /**
-    * Visit function data node.
-    * @param node {FunctionNode} Concrete function data node.
-    * @param context {IContext} Annotating context.
-    */
-   visitFunction(node: Ast.FunctionNode, context: IContext): void {
-      this.processCollection(node.__$ws_options, context);
-      this.processNodes(node.__$ws_functionExpression, context);
-   }
+    /**
+     * Initialize new instance of abstract syntax tree annotator.
+     */
+    constructor() {
+        this.stack = [];
+    }
 
-   /**
-    * Visit number data node.
-    * @param node {NumberNode} Concrete number data node.
-    * @param context {IContext} Annotating context.
-    */
-   visitNumber(node: Ast.NumberNode, context: IContext): void {
-      this.processNodes(node.__$ws_data, context);
-   }
+    /**
+     * Annotate abstract syntax tree.
+     * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
+     * @param scope {Scope} Scope object for processing abstract syntax tree.
+     */
+    process(nodes: Ast.Ast[], scope: Scope): IResultTree {
+        const container = new Container(null, ContainerType.GLOBAL);
+        const childrenStorage: string[] = [];
+        const context: IContext = {
+            childrenStorage,
+            container,
+            scope,
+            counters: new Counters()
+        };
+        this.stack.push(AbstractNodeType.ROOT);
+        for (let index = 0; index < nodes.length; ++index) {
+            nodes[index].accept(this, context);
+            if (!nodes[index].__$ws_container) {
+                nodes[index].__$ws_container = container;
+            }
+            if (!nodes[index].__$ws_internalTree) {
+                nodes[index].__$ws_internalTree = nodes[index].__$ws_container.getInternalStructure();
+                nodes[index].__$ws_internal = wrapInternalExpressions(nodes[index].__$ws_internalTree.flatten());
+            }
+        }
+        this.stack.pop();
+        const result = nodes as IResultTree;
+        result.childrenStorage = childrenStorage;
+        result.reactiveProps = container.getOwnIdentifiers();
+        result.templateNames = scope.getTemplateNames();
+        result.container = container;
+        result.hasTranslations = scope.hasDetectedTranslations();
+        result.__newVersion = true;
+        return result;
+    }
 
-   /**
-    * Visit object data node.
-    * @param node {ObjectNode} Concrete object data node.
-    * @param context {IContext} Annotating context.
-    */
-   visitObject(node: Ast.ObjectNode, context: IContext): void {
-      this.processCollection(node.__$ws_properties, context);
-   }
+    /**
+     * Visit attribute node.
+     * @param node {AttributeNode} Concrete attribute node.
+     * @param context {IContext} Visitor context.
+     */
+    visitAttribute(node: Ast.AttributeNode, context: IContext): void {
+        const childContext: IContext = {
+            childrenStorage: context.childrenStorage,
+            container: context.container,
+            scope: context.scope,
+            attributeName: node.__$ws_name,
+            counters: context.counters
+        };
+        this.stack.push(AbstractNodeType.ATTRIBUTE);
+        visitAll(node.__$ws_value, this, childContext);
+        this.stack.pop();
+    }
 
-   /**
-    * Visit string data node.
-    * @param node {StringNode} Concrete string data node.
-    * @param context {IContext} Annotating context.
-    */
-   visitString(node: Ast.StringNode, context: IContext): void {
-      this.processNodes(node.__$ws_data, context);
-   }
+    /**
+     * Visit option node.
+     * @param node {OptionNode} Concrete option node.
+     * @param context {IContext} Visitor context.
+     */
+    visitOption(node: Ast.OptionNode, context: IContext): void {
+        const childContext: IContext = {
+            childrenStorage: context.childrenStorage,
+            container: context.container,
+            scope: context.scope,
+            attributeName: node.__$ws_name,
+            counters: context.counters
+        };
+        this.stack.push(AbstractNodeType.OPTION);
+        node.__$ws_value.accept(this, childContext);
+        this.stack.pop();
+    }
 
-   /**
-    * Visit value data node.
-    * @param node {ValueNode} Concrete value data node.
-    * @param context {IContext} Annotating context.
-    */
-   visitValue(node: Ast.ValueNode, context: IContext): void {
-      this.processNodes(node.__$ws_data, context);
-   }
+    /**
+     * Visit content option node.
+     * @param node {ContentOptionNode} Concrete content option node.
+     * @param context {IContext} Visitor context.
+     */
+    visitContentOption(node: Ast.ContentOptionNode, context: IContext): void {
+        const container = context.container.createContainer(ContainerType.CONTENT_OPTION);
+        container.addIdentifier(node.__$ws_name);
+        container.desc = node.__$ws_name;
+        container.isInDataType = isInDataTypeDirective(this.stack);
+        const childContext: IContext = {
+            childrenStorage: context.childrenStorage,
+            container,
+            scope: context.scope,
+            counters: context.counters
+        };
+        this.stack.push(AbstractNodeType.COMPONENT_OPTION);
+        visitAll(node.__$ws_content, this, childContext);
+        setRootNodeFlags(node.__$ws_content);
+        this.stack.pop();
 
-   // </editor-fold>
+        node.__$ws_container = container;
+        node.__$ws_internalTree = container.getInternalStructure();
+        node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
+    }
 
-   // <editor-fold desc="Attributes and options">
+    /**
+     * Visit bind node.
+     * @param node {BindNode} Concrete bind node.
+     * @param context {IContext} Visitor context.
+     */
+    visitBind(node: Ast.BindNode, context: IContext): void {
+        const isInComponent = isInComponentAttributes(this.stack);
+        const programName = isInComponent ? node.__$ws_property : null;
+        context.container.registerProgram(node.__$ws_value, ProgramType.BIND, programName);
+        checkForTranslations(context.scope, node.__$ws_value);
+    }
 
-   /**
-    * Visit attribute node.
-    * @param node {AttributeNode} Concrete attribute node.
-    * @param context {IContext} Annotating context.
-    */
-   visitAttribute(node: Ast.AttributeNode, context: IContext): void {
-      this.processNodes(node.__$ws_value, context);
-   }
+    /**
+     * Visit event handler node.
+     * @param node {EventNode} Concrete event handler node.
+     * @param context {IContext} Visitor context.
+     */
+    visitEvent(node: Ast.EventNode, context: IContext): void {
+        const isInComponent = isInComponentAttributes(this.stack);
+        const programName = isInComponent ? node.__$ws_event : null;
+        context.container.registerProgram(node.__$ws_handler, ProgramType.EVENT, programName);
+        checkForTranslations(context.scope, node.__$ws_handler);
+    }
 
-   /**
-    * Visit bind node.
-    * @param node {BindNode} Concrete bind node.
-    * @param context {IContext} Annotating context.
-    */
-   visitBind(node: Ast.BindNode, context: IContext): void {
-      context.lexicalContext.registerProgram(node.__$ws_value, SpecialProgramType.BIND);
-      checkForTranslations(context.scope, node.__$ws_value);
-   }
+    /**
+     * Visit element node.
+     * @param node {ElementNode} Concrete element node.
+     * @param context {IContext} Visitor context.
+     */
+    visitElement(node: Ast.ElementNode, context: IContext): void {
+        const name = getElementName(node);
+        if (name !== null) {
+            context.childrenStorage.push(name);
+        }
+        this.stack.push(AbstractNodeType.ELEMENT);
+        visitAll(node.__$ws_content, this, context);
+        visitAllProperties(node.__$ws_attributes, this, context);
+        visitAllProperties(node.__$ws_events, this, context);
+        this.stack.pop();
+    }
 
-   /**
-    * Visit event handler node.
-    * @param node {EventNode} Concrete event handler node.
-    * @param context {IContext} Annotating context.
-    */
-   visitEvent(node: Ast.EventNode, context: IContext): void {
-      context.lexicalContext.registerProgram(node.__$ws_handler, SpecialProgramType.EVENT);
-      checkForTranslations(context.scope, node.__$ws_handler);
-   }
+    /**
+     * Visit doctype node.
+     * @param node {DoctypeNode} Concrete doctype node.
+     * @param context {IContext} Visitor context.
+     */
+    visitDoctype(node: Ast.DoctypeNode, context: IContext): void { }
 
-   /**
-    * Visit option node.
-    * @param node {OptionNode} Concrete option node.
-    * @param context {IContext} Annotating context.
-    */
-   visitOption(node: Ast.OptionNode, context: IContext): void {
-      node.__$ws_value.accept(this, context);
-   }
+    /**
+     * Visit CData section node.
+     * @param node {CDataNode} Concrete CData section node.
+     * @param context {IContext} Visitor context.
+     */
+    visitCData(node: Ast.CDataNode, context: IContext): void { }
 
-   // </editor-fold>
+    /**
+     * Visit instruction node.
+     * @param node {InstructionNode} Concrete instruction node.
+     * @param context {IContext} Visitor context.
+     */
+    visitInstruction(node: Ast.InstructionNode, context: IContext): void { }
 
-   // <editor-fold desc="HTML nodes">
+    /**
+     * Visit comment node.
+     * @param node {CommentNode} Concrete comment node.
+     * @param context {IContext} Visitor context.
+     */
+    visitComment(node: Ast.CommentNode, context: IContext): void { }
 
-   /**
-    * Visit CData section node.
-    * @param node {CDataNode} Concrete CData section node.
-    * @param context {IContext} Annotating context.
-    */
-   visitCData(node: Ast.CDataNode, context: IContext): void { }
+    /**
+     * Visit component node.
+     * @param node {ComponentNode} Concrete component node.
+     * @param context {IContext} Visitor context.
+     */
+    visitComponent(node: Ast.ComponentNode, context: IContext): void {
+        const childContainer = this.processComponent(node, context);
+        childContainer.desc = `<${node.__$ws_path.getFullPath()}>`;
+        node.__$ws_internalTree = childContainer.getInternalStructure();
+        node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
+    }
 
-   /**
-    * Visit comment node.
-    * @param node {CommentNode} Concrete comment node.
-    * @param context {IContext} Annotating context.
-    */
-   visitComment(node: Ast.CommentNode, context: IContext): void { }
+    /**
+     * Visit inline template node.
+     * @param node {InlineTemplateNode} Concrete inline template node.
+     * @param context {IContext} Visitor context.
+     */
+    visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): void {
+        const childContainer = this.processComponent(node, context);
+        if (context.scope.hasTemplate(node.__$ws_name)) {
+            const template = context.scope.getTemplate(node.__$ws_name);
+            const identifiers = collectInlineTemplateIdentifiers(node);
+            childContainer.joinContainer(template.__$ws_container, identifiers);
+        }
+        childContainer.desc = `<ws:partial> @@ inline "${node.__$ws_name}"`;
+        node.__$ws_internalTree = childContainer.getInternalStructure();
+        node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
+    }
 
-   /**
-    * Visit content option node.
-    * @param node {ContentOptionNode} Concrete content option node.
-    * @param context {IContext} Annotating context.
-    */
-   visitContentOption(node: Ast.ContentOptionNode, context: IContext): void {
-      const lexicalContext = context.lexicalContext.createContext({
-         identifiers: [node.__$ws_name]
-      });
-      const contentContext: IContext = {
-         ...context,
-         lexicalContext
-      };
-      this.processNodes(node.__$ws_content, contentContext);
-      setRootNodeFlags(node.__$ws_content);
-      node.__$ws_lexicalContext = lexicalContext;
-      node.__$ws_internal = { };
-      appendInternalExpressions(node.__$ws_internal, lexicalContext.getInternalPrograms());
-   }
+    /**
+     * Visit static template node.
+     * @param node {StaticPartialNode} Concrete static template node.
+     * @param context {IContext} Visitor context.
+     */
+    visitStaticPartial(node: Ast.StaticPartialNode, context: IContext): void {
+        const childContainer = this.processComponent(node, context);
+        childContainer.desc = `<ws:partial> @@ static "${node.__$ws_path.getFullPath()}"`;
+        node.__$ws_internalTree = childContainer.getInternalStructure();
+        node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
+    }
 
-   /**
-    * Visit doctype node.
-    * @param node {DoctypeNode} Concrete doctype node.
-    * @param context {IContext} Annotating context.
-    */
-   visitDoctype(node: Ast.DoctypeNode, context: IContext): void { }
+    /**
+     * Visit dynamic partial node.
+     * @param node {DynamicPartialNode} Concrete dynamic partial node.
+     * @param context {IContext} Visitor context.
+     */
+    visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): void {
+        const childContainer = this.processComponent(node, context);
+        childContainer.registerProgram(node.__$ws_expression, ProgramType.OPTION, 'template');
+        childContainer.desc = `<ws:partial> @@ dynamic "${node.__$ws_expression.string}"`;
+        node.__$ws_internalTree = childContainer.getInternalStructure();
+        node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
+        checkForTranslations(context.scope, node.__$ws_expression);
+    }
 
-   /**
-    * Visit doctype node.
-    * @param node {DoctypeNode} Concrete doctype node.
-    * @param context {IContext} Annotating context.
-    */
-   visitElement(node: Ast.ElementNode, context: IContext): void {
-      const name = getElementName(node);
-      if (name !== null) {
-         context.childrenStorage.push(name);
-      }
-      this.processNodes(node.__$ws_content, context);
-      for (const name in node.__$ws_attributes) {
-         const attribute = node.__$ws_attributes[name];
-         attribute.accept(this, context);
-      }
-      for (const name in node.__$ws_events) {
-         const event = node.__$ws_events[name];
-         event.accept(this, context);
-      }
-   }
+    /**
+     * Visit template node.
+     * @param node {TemplateNode} Concrete template node.
+     * @param context {IContext} Visitor context.
+     */
+    visitTemplate(node: Ast.TemplateNode, context: IContext): void {
+        const container = context.container.createContainer(ContainerType.TEMPLATE);
+        container.desc = `<ws:template> @@ "${node.__$ws_name}"`;
+        const childContext: IContext = {
+            childrenStorage: context.childrenStorage,
+            scope: context.scope,
+            container,
+            counters: context.counters
+        };
+        this.stack.push(AbstractNodeType.DIRECTIVE);
+        visitAll(node.__$ws_content, this, childContext);
+        this.stack.pop();
+        setRootNodeFlags(node.__$ws_content);
+        node.__$ws_container = container;
+        node.__$ws_internalTree = container.getInternalStructure();
+        node.__$ws_internal = wrapInternalExpressions(node.__$ws_internalTree.flatten());
+    }
 
-   /**
-    * Visit instruction node.
-    * @param node {InstructionNode} Concrete instruction node.
-    * @param context {IContext} Annotating context.
-    */
-   visitInstruction(node: Ast.InstructionNode, context: IContext): void { }
+    /**
+     * Visit conditional "if" node.
+     * @param node {IfNode} Concrete conditional "if" node.
+     * @param context {IContext} Visitor context.
+     */
+    visitIf(node: Ast.IfNode, context: IContext): void {
+        const container = context.container.createContainer(ContainerType.CONDITIONAL);
+        container.desc = `<ws:if> "${node.__$ws_test.string}"`;
+        container.registerTestProgram(node.__$ws_test);
+        const childContext: IContext = {
+            childrenStorage: context.childrenStorage,
+            scope: context.scope,
+            container,
+            counters: context.counters
+        };
+        this.stack.push(AbstractNodeType.DIRECTIVE);
+        visitAll(node.__$ws_consequent, this, childContext);
+        this.stack.pop();
+        node.__$ws_container = container;
+        checkForTranslations(context.scope, node.__$ws_test);
+    }
 
-   // </editor-fold>
+    /**
+     * Visit conditional "else" node.
+     * @param node {ElseNode} Concrete conditional "else" node.
+     * @param context {IContext} Visitor context.
+     */
+    visitElse(node: Ast.ElseNode, context: IContext): void {
+        const container = context.container.createContainer(ContainerType.CONDITIONAL);
+        container.desc = '<ws:else>';
+        container.isElse = true;
+        if (node.__$ws_test !== null) {
+            container.desc = `<ws:else> "${node.__$ws_test.string}"`;
+            container.registerTestProgram(node.__$ws_test);
+        }
+        const childContext: IContext = {
+            childrenStorage: context.childrenStorage,
+            scope: context.scope,
+            container,
+            counters: context.counters
+        };
+        this.stack.push(AbstractNodeType.DIRECTIVE);
+        visitAll(node.__$ws_consequent, this, childContext);
+        this.stack.pop();
+        node.__$ws_container = container;
+        checkForTranslations(context.scope, node.__$ws_test);
+    }
 
-   // <editor-fold desc="Directives">
+    /**
+     * Visit "for" cycle node.
+     * @param node {ForNode} Concrete "for" cycle node.
+     * @param context {IContext} Visitor context.
+     */
+    visitFor(node: Ast.ForNode, context: IContext): void {
+        const container = context.container.createContainer(ContainerType.CYCLE);
+        container.desc = '<ws:for> aka for';
+        const childContext: IContext = {
+            childrenStorage: context.childrenStorage,
+            scope: context.scope,
+            container,
+            counters: context.counters
+        };
+        if (node.__$ws_init) {
+            container.registerProgram(node.__$ws_init, ProgramType.FLOAT, 'data');
+        }
+        container.registerProgram(node.__$ws_test, ProgramType.FLOAT, 'data');
+        if (node.__$ws_update) {
+            container.registerProgram(node.__$ws_update, ProgramType.FLOAT, 'data');
+        }
+        this.stack.push(AbstractNodeType.DIRECTIVE);
+        visitAll(node.__$ws_content, this, childContext);
+        this.stack.pop();
+        node.__$ws_container = container;
+        node.__$ws_uniqueIndex = context.counters.allocateCycleIndex();
+        checkForTranslations(context.scope, node.__$ws_init);
+        checkForTranslations(context.scope, node.__$ws_test);
+        checkForTranslations(context.scope, node.__$ws_update);
+    }
 
-   /**
-    * Visit conditional "else" node.
-    * @param node {ElseNode} Concrete conditional "else" node.
-    * @param context {IContext} Annotating context.
-    */
-   visitElse(node: Ast.ElseNode, context: IContext): void {
-      this.processNodes(node.__$ws_consequent, context);
-      if (node.__$ws_test) {
-         context.lexicalContext.registerProgram(node.__$ws_test);
-      }
-      if (node.__$ws_alternate) {
-         node.__$ws_alternate.accept(this, context);
-      }
-      checkForTranslations(context.scope, node.__$ws_test);
-   }
+    /**
+     * Visit "foreach" cycle node.
+     * @param node {ForeachNode} Concrete "foreach" cycle node.
+     * @param context {IContext} Visitor context.
+     */
+    visitForeach(node: Ast.ForeachNode, context: IContext): void {
+        const container = context.container.createContainer(ContainerType.CYCLE);
+        container.desc = '<ws:for> aka foreach';
+        const childContext: IContext = {
+            childrenStorage: context.childrenStorage,
+            scope: context.scope,
+            container,
+            counters: context.counters
+        };
+        if (node.__$ws_index) {
+            container.addIdentifier(node.__$ws_index.string);
+        }
+        container.addIdentifier(node.__$ws_iterator.string);
+        container.registerProgram(node.__$ws_collection, ProgramType.SIMPLE, 'data');
+        this.stack.push(AbstractNodeType.DIRECTIVE);
+        visitAll(node.__$ws_content, this, childContext);
+        this.stack.pop();
+        node.__$ws_container = container;
+        node.__$ws_uniqueIndex = context.counters.allocateCycleIndex();
+        checkForTranslations(context.scope, node.__$ws_collection);
+    }
 
-   /**
-    * Visit "for" cycle node.
-    * @param node {ForNode} Concrete "for" cycle node.
-    * @param context {IContext} Annotating context.
-    */
-   visitFor(node: Ast.ForNode, context: IContext): void {
-      const lexicalContext = context.lexicalContext.createContext();
-      const contentContext: IContext = {
-         ...context,
-         lexicalContext
-      };
-      if (node.__$ws_init) {
-         lexicalContext.registerProgram(node.__$ws_init, SpecialProgramType.FLOAT);
-      }
-      lexicalContext.registerProgram(node.__$ws_test, SpecialProgramType.FLOAT);
-      if (node.__$ws_update) {
-         lexicalContext.registerProgram(node.__$ws_update, SpecialProgramType.FLOAT);
-      }
-      this.processNodes(node.__$ws_content, contentContext);
-      node.__$ws_lexicalContext = lexicalContext;
-      node.__$ws_uniqueIndex = context.counters.allocateCycleIndex();
-      checkForTranslations(context.scope, node.__$ws_init);
-      checkForTranslations(context.scope, node.__$ws_test);
-      checkForTranslations(context.scope, node.__$ws_update);
-   }
+    /**
+     * Visit array data node.
+     * @param node {ArrayNode} Concrete array data node.
+     * @param context {IContext} Visitor context.
+     */
+    visitArray(node: Ast.ArrayNode, context: IContext): void {
+        this.stack.push(AbstractNodeType.DATA_TYPE_DIRECTIVE);
+        visitAll(node.__$ws_elements, this, context);
+        this.stack.pop();
+    }
 
-   /**
-    * Visit "foreach" cycle node.
-    * @param node {ForeachNode} Concrete "foreach" cycle node.
-    * @param context {IContext} Annotating context.
-    */
-   visitForeach(node: Ast.ForeachNode, context: IContext): void {
-      const identifiers = [];
-      if (node.__$ws_index) {
-         identifiers.push(node.__$ws_index.string);
-      }
-      identifiers.push(node.__$ws_iterator.string);
-      const lexicalContext = context.lexicalContext.createContext({
-         identifiers
-      });
-      const contentContext: IContext = {
-         ...context,
-         lexicalContext
-      };
-      lexicalContext.registerProgram(node.__$ws_collection);
-      this.processNodes(node.__$ws_content, contentContext);
-      node.__$ws_lexicalContext = lexicalContext;
-      node.__$ws_uniqueIndex = context.counters.allocateCycleIndex();
-      checkForTranslations(context.scope, node.__$ws_collection);
-   }
+    /**
+     * Visit boolean data node.
+     * @param node {BooleanNode} Concrete boolean data node.
+     * @param context {IContext} Visitor context.
+     */
+    visitBoolean(node: Ast.BooleanNode, context: IContext): void {
+        this.stack.push(AbstractNodeType.DATA_TYPE_DIRECTIVE);
+        visitAll(node.__$ws_data, this, context);
+        this.stack.pop();
+    }
 
-   /**
-    * Visit conditional "if" node.
-    * @param node {IfNode} Concrete conditional "if" node.
-    * @param context {IContext} Annotating context.
-    */
-   visitIf(node: Ast.IfNode, context: IContext): void {
-      this.processNodes(node.__$ws_consequent, context);
-      context.lexicalContext.registerProgram(node.__$ws_test);
-      if (node.__$ws_alternate) {
-         node.__$ws_alternate.accept(this, context);
-      }
-      checkForTranslations(context.scope, node.__$ws_test);
-   }
+    /**
+     * Visit function data node.
+     * @param node {FunctionNode} Concrete function data node.
+     * @param context {IContext} Visitor context.
+     */
+    visitFunction(node: Ast.FunctionNode, context: IContext): void {
+        this.stack.push(AbstractNodeType.DATA_TYPE_DIRECTIVE);
+        visitAllProperties(node.__$ws_options, this, context);
+        visitAll(node.__$ws_functionExpression, this, context);
+        this.stack.pop();
+    }
 
-   /**
-    * Visit template node.
-    * @param node {TemplateNode} Concrete template node.
-    * @param context {IContext} Annotating context.
-    */
-   visitTemplate(node: Ast.TemplateNode, context: IContext): void {
-      const lexicalContext = context.lexicalContext.createContext({
-         type: ContextType.ISOLATED
-      });
-      const contentContext: IContext = {
-         ...context,
-         lexicalContext
-      };
-      this.processNodes(node.__$ws_content, contentContext);
-      setRootNodeFlags(node.__$ws_content);
-      node.__$ws_lexicalContext = lexicalContext;
-      node.__$ws_internal = { };
-      appendInternalExpressions(node.__$ws_internal, lexicalContext.getInternalPrograms());
-   }
+    /**
+     * Visit number data node.
+     * @param node {NumberNode} Concrete number data node.
+     * @param context {IContext} Visitor context.
+     */
+    visitNumber(node: Ast.NumberNode, context: IContext): void {
+        this.stack.push(AbstractNodeType.DATA_TYPE_DIRECTIVE);
+        visitAll(node.__$ws_data, this, context);
+        this.stack.pop();
+    }
 
-   // </editor-fold>
+    /**
+     * Visit object data node.
+     * @param node {ObjectNode} Concrete object data node.
+     * @param context {IContext} Visitor context.
+     */
+    visitObject(node: Ast.ObjectNode, context: IContext): void {
+        this.stack.push(AbstractNodeType.DATA_TYPE_DIRECTIVE);
+        visitAllProperties(node.__$ws_properties, this, context);
+        this.stack.pop();
+    }
 
-   // <editor-fold desc="Extended text">
+    /**
+     * Visit string data node.
+     * @param node {StringNode} Concrete string data node.
+     * @param context {IContext} Visitor context.
+     */
+    visitString(node: Ast.StringNode, context: IContext): void {
+        this.stack.push(AbstractNodeType.DATA_TYPE_DIRECTIVE);
+        visitAll(node.__$ws_data, this, context);
+        this.stack.pop();
+    }
 
-   /**
-    * Visit mustache expression node.
-    * @param node {ExpressionNode} Concrete mustache expression node.
-    * @param context {IContext} Annotating context.
-    */
-   visitExpression(node: Ast.ExpressionNode, context: IContext): void {
-      context.lexicalContext.registerProgram(node.__$ws_program);
-      checkForTranslations(context.scope, node.__$ws_program);
-   }
+    /**
+     * Visit value data node.
+     * @param node {ValueNode} Concrete value data node.
+     * @param context {IContext} Visitor context.
+     */
+    visitValue(node: Ast.ValueNode, context: IContext): void {
+        this.stack.push(AbstractNodeType.DATA_TYPE_DIRECTIVE);
+        visitAll(node.__$ws_data, this, context);
+        this.stack.pop();
+    }
 
-   /**
-    * Visit shared text node.
-    * @param node {TextNode} Concrete shared text node.
-    * @param context {IContext} Annotating context.
-    */
-   visitText(node: Ast.TextNode, context: IContext): void {
-      this.processNodes(node.__$ws_content, context);
-   }
+    /**
+     * Visit shared text node.
+     * @param node {TextNode} Concrete shared text node.
+     * @param context {IContext} Visitor context.
+     */
+    visitText(node: Ast.TextNode, context: IContext): void {
+        this.stack.push(AbstractNodeType.TEXT);
+        visitAll(node.__$ws_content, this, context);
+        this.stack.pop();
+    }
 
-   /**
-    * Visit text data node.
-    * @param node {TextDataNode} Concrete text data node.
-    * @param context {IContext} Annotating context.
-    */
-   visitTextData(node: Ast.TextDataNode, context: IContext): void { }
+    /**
+     * Visit text data node.
+     * @param node {TextDataNode} Concrete text data node.
+     * @param context {IContext} Visitor context.
+     */
+    visitTextData(node: Ast.TextDataNode, context: IContext): void { }
 
-   /**
-    * Visit translation node.
-    * @param node {TranslationNode} Concrete translation node.
-    * @param context {IContext} Annotating context.
-    */
-   visitTranslation(node: Ast.TranslationNode, context: IContext): void {
-      // TODO: Collect translation keys on annotation stage.
-      context.scope.setDetectedTranslation();
-   }
+    /**
+     * Visit mustache expression node.
+     * @param node {ExpressionNode} Concrete mustache expression node.
+     * @param context {IContext} Visitor context.
+     */
+    visitExpression(node: Ast.ExpressionNode, context: IContext): void {
+        const programType = getProgramType(this.stack);
+        const programName = programType === ProgramType.SIMPLE ? null : context.attributeName;
+        context.container.registerProgram(node.__$ws_program, programType, programName);
+        checkForTranslations(context.scope, node.__$ws_program);
+    }
 
-   // </editor-fold>
+    /**
+     * Visit translation node.
+     * @param node {TranslationNode} Concrete translation node.
+     * @param context {IContext} Visitor context.
+     */
+    visitTranslation(node: Ast.TranslationNode, context: IContext): void {
+        // TODO: Collect translation keys on annotation stage.
+        context.scope.setDetectedTranslation();
+    }
 
-   // <editor-fold desc="Components and templates">
+    /**
+     * Process component and ws:partial node.
+     * @param node {BaseWasabyElement} Component and ws:partial node.
+     * @param context {IContext} Visitor context.
+     * @returns {Container} Container instance for processing node.
+     * @private
+     */
+    private processComponent(node: Ast.BaseWasabyElement, context: IContext): Container {
+        const name = getComponentName(node);
+        if (name !== null) {
+            context.childrenStorage.push(name);
+        }
+        const container = context.container.createContainer(ContainerType.COMPONENT);
+        const childContext: IContext = {
+            childrenStorage: context.childrenStorage,
+            scope: context.scope,
+            container,
+            counters: context.counters
+        };
+        this.stack.push(AbstractNodeType.COMPONENT);
+        visitAllProperties(node.__$ws_attributes, this, childContext);
+        visitAllProperties(node.__$ws_events, this, childContext);
+        visitAllProperties(node.__$ws_options, this, childContext);
+        visitAllProperties(node.__$ws_contents, this, childContext);
+        this.stack.pop();
+        node.__$ws_container = container;
+        return container;
+    }
+}
 
-   /**
-    * Visit component node.
-    * @param node {ComponentNode} Concrete component node.
-    * @param context {IContext} Annotating context.
-    */
-   visitComponent(node: Ast.ComponentNode, context: IContext): void {
-      const lexicalContext = context.lexicalContext.createContext({
-         type: ContextType.INTERMEDIATE
-      });
-      const contentContext: IContext = {
-         ...context,
-         lexicalContext
-      };
-      this.processComponentContent(node, contentContext);
-   }
-
-   /**
-    * Visit dynamic partial node.
-    * @param node {DynamicPartialNode} Concrete dynamic partial node.
-    * @param context {IContext} Annotating context.
-    */
-   visitDynamicPartial(node: Ast.DynamicPartialNode, context: IContext): void {
-      const lexicalContext = context.lexicalContext.createContext({
-         type: ContextType.INTERMEDIATE
-      });
-      const contentContext: IContext = {
-         ...context,
-         lexicalContext
-      };
-      this.processComponentContent(node, contentContext);
-      lexicalContext.registerProgram(node.__$ws_expression);
-      checkForTranslations(context.scope, node.__$ws_expression);
-   }
-
-   /**
-    * Visit inline template node.
-    * @param node {InlineTemplateNode} Concrete inline template node.
-    * @param context {IContext} Annotating context.
-    */
-   visitInlineTemplate(node: Ast.InlineTemplateNode, context: IContext): void {
-      const lexicalContext = context.lexicalContext.createContext({
-         type: ContextType.INTERMEDIATE
-      });
-      if (context.scope.hasTemplate(node.__$ws_name)) {
-         // If template was processed with option hasExternalInlineTemplates
-         const template = context.scope.getTemplate(node.__$ws_name);
-         const identifiers = collectInlineTemplateIdentifiers(node);
-         lexicalContext.joinContext(template.__$ws_lexicalContext, { identifiers });
-      }
-      const contentContext: IContext = {
-         ...context,
-         lexicalContext
-      };
-      this.processComponentContent(node, contentContext);
-   }
-
-   /**
-    * Visit static template node.
-    * @param node {StaticPartialNode} Concrete static template node.
-    * @param context {IContext} Annotating context.
-    */
-   visitStaticPartial(node: Ast.StaticPartialNode, context: IContext): void {
-      const lexicalContext = context.lexicalContext.createContext({
-         type: ContextType.INTERMEDIATE
-      });
-      const contentContext: IContext = {
-         ...context,
-         lexicalContext
-      };
-      this.processComponentContent(node, contentContext);
-   }
-
-   // </editor-fold>
-
-   /**
-    * Process collection of options or object properties.
-    * @param collection {IOptions | IObjectProperties} Collection of options or object properties.
-    * @param context {IContext} Annotating context.
-    */
-   private processCollection(collection: Ast.IOptions | Ast.IObjectProperties, context: IContext): void {
-      for (const name in collection) {
-         const property = collection[name];
-         property.accept(this, context);
-      }
-   }
-
-   /**
-    * Process collection of nodes of abstract syntax tree.
-    * @param nodes {Ast[]} Collection of nodes of abstract syntax tree.
-    * @param context {IContext} Annotating context.
-    */
-   private processNodes(nodes: Ast.Ast[], context: IContext): void {
-      nodes.forEach((node: Ast.Ast) => {
-         node.accept(this, context);
-      });
-   }
-
-   /**
-    * Process component content.
-    * @param node {BaseWasabyElement} Component node.
-    * @param context {IContext} Annotating context.
-    */
-   private processComponentContent(node: Ast.BaseWasabyElement, context: IContext): void {
-      const name = getComponentName(node);
-      if (name !== null) {
-         context.childrenStorage.push(name);
-      }
-      const afterInternalNodes: Ast.Ast[] = [];
-      for (const name in node.__$ws_options) {
-         const option = node.__$ws_options[name];
-         if (option.__$ws_name === 'scope') {
-            option.accept(this, context);
-            continue;
-         }
-         afterInternalNodes.push(option);
-      }
-      for (const name in node.__$ws_contents) {
-         const content = node.__$ws_contents[name];
-         content.accept(this, context);
-      }
-      for (const name in node.__$ws_attributes) {
-         const attribute = node.__$ws_attributes[name];
-         afterInternalNodes.push(attribute);
-      }
-      for (const name in node.__$ws_events) {
-         const event = node.__$ws_events[name];
-         if (event instanceof Ast.BindNode) {
-            event.accept(this, context);
-            continue;
-         }
-         afterInternalNodes.push(event);
-      }
-      node.__$ws_lexicalContext = context.lexicalContext;
-      node.__$ws_internal = { };
-      appendInternalExpressions(node.__$ws_internal, context.lexicalContext.getInternalPrograms());
-      afterInternalNodes.forEach((node: Ast.Ast): void => {
-         node.accept(this, context);
-      });
-   }
+export function process(nodes: Ast.Ast[], scope: Scope): IResultTree {
+    return new InternalVisitor().process(nodes, scope);
 }
