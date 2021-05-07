@@ -75,7 +75,8 @@ export function prepareControlNodes(node: any, control: Control, constructor: TC
                     control: curControl,
                     parent: null,
                     element: container,
-                    environment: null,
+                    // @ts-ignore _getEnvironment сейчас private
+                    environment: curControl._getEnvironment(),
                     id: curControl.getInstanceId()
                 };
                 addControlNode(container.controlNodes, controlNode);
