@@ -1,4 +1,4 @@
-import { ISyntheticEvent, IEventConfig } from './IEvents';
+import { SyntheticEvent } from 'UICommon/Events';
 
 /**
  * Перехватываем события дома на этапе всплытия и поэтому далее сами
