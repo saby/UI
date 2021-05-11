@@ -36,9 +36,6 @@ define(['UI/Base', 'UI/Utils', 'UICore/_base/Control'], (Base, Utils, Private) =
       });
 
       beforeEach(function() {
-         if (fromNode){
-            this.skip();
-         }
          _privateFromControl = Private._private;
          startTime = Date.now();
          warnMessage = '';
