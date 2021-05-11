@@ -43,7 +43,7 @@ export class Generator implements IGenerator {
         let decorAttribs = !config.compositeAttributes
             ? attributes
             : Helper.processMergeAttributes(config.compositeAttributes, attributes);
-        decorAttribs = !config.attr ?
+        decorAttribs = !config.attr || config.mergeType !== 'attribute' ?
             decorAttribs :
             Helper.processMergeAttributes(config.attr.attributes, decorAttribs);
 
