@@ -22,7 +22,7 @@ function sortedAddControlNode(controlNodes: IControlNode[], newControlNode: ICon
     for (let index = 0; index < controlNodes.length; ++index) {
         const id = getNumberId(controlNodes[index].id);
 
-        // Добавляем ноду перед первой из тех, чей айди меньше.
+        // Добавляем node перед первой из тех, чей id меньше.
         if (id < generatedId) {
             newIndex = index;
             break;

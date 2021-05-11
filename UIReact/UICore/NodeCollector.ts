@@ -27,7 +27,6 @@ export function goUpByControlTree(target: IWrapHTMLElement, array?: IControlNode
     return controlTree;
 }
 
-
 /**
  * Вычисляет controlNode для control
  * @param control
