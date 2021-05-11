@@ -16,7 +16,7 @@ define([
          // тач-устройство стреляет их само после touchstart и touchend
          it('does not produce extra clicks on touch devices', function(done) {
             if (typeof document !== 'undefined') {
-               return this.skip();
+               return;
             }
 
             var
@@ -70,7 +70,7 @@ define([
                touchCount++;
             };
             touchEmitInterval = setInterval(touchEmit, 15);
-         }).timeout(3000);  // 15 * 50 = 1500 + 500 внутренний счетчик оценки клика. Т.е. есть вероятность не успеть за 2000 мс
+         }); // 15 * 50 = 1500 + 500 внутренний счетчик оценки клика. Т.е. есть вероятность не успеть за 2000 мс
 
          describe("WasabyEvents events", function() {
             var handlers, events, windowObject, rootDOM;
@@ -194,9 +194,6 @@ define([
                errorMessage = msg + ' ' + errorInfo;
             };
             beforeEach(function() {
-               if (fromNode) {
-                  this.skip();
-               }
                errorMessage = '';
                errorStub = sinon.stub(Logger, 'error').callsFake(loggerErrorMock);
             });
