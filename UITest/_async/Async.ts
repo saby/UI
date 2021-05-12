@@ -8,15 +8,15 @@ export default class AsyncTest extends Async {
         super._beforeMount(options);
     }
 
-    _componentDidMount() {
+    _componentDidMount(): void {
         super._componentDidMount();
     }
 
-    _beforeUpdate(opts: IAsyncOptions) {
+    _beforeUpdate(opts: IAsyncOptions): void {
         super._beforeUpdate(opts);
     }
 
-    _afterUpdate() {
+    _afterUpdate(): void {
         super._afterUpdate();
     }
 
