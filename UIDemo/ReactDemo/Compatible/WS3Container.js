@@ -11,7 +11,7 @@ define('UIDemo/ReactDemo/Compatible/WS3Container',
             _wasabyComponent: null,
 
             init: function () {
-                const self = this;
+                var self = this;
                 Container.superclass.init.call(self);
                 self._wasabyComponent = UIBase.Control.createControl(WasabyComponent.default, {}, document.getElementById('wasabyTarget'));
                 this.subscribeTo(self, 'onClick', function () {
