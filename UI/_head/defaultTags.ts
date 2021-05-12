@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_head/defaultTags" />
 
 import { Head as AppHead } from 'Application/Page';
-import { JML } from 'Application/Interface';
+import type { JML } from 'Application/Page';
 import { getResourceUrl } from "UI/Utils";
 import escapeHtml = require('Core/helpers/String/escapeHtml');
 
