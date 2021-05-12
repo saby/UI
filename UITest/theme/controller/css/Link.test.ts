@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-// import 'mocha';
 // @ts-ignore
 import { constants } from 'Env/Env';
 import Link from 'UICommon/theme/_controller/css/Link';

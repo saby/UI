@@ -1,5 +1,5 @@
 /**
- * @description Represents itnerfaces, methods and classes to print diagnostic messages.
+ * @description Represents interfaces, methods and classes to print diagnostic messages.
  * @author Крылов М.А.
  */
 

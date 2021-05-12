@@ -12,18 +12,17 @@ export * as _IBuilder from './_executor/_Markup/IBuilder';
 export * as Helper from './_executor/_Markup/Helper';
 
 
-
-export { htmlNode, textNode, controlNode } from './_executor/_Utils/Vdom';
 export {
     Common as CommonUtils,
     RequireHelper,
     invisibleNodeTagName,
-    Vdom,
     VoidTags,
     ConfigResolver
 } from './_executor/Utils';
 
 export { onElementMount, onElementUnmount } from './_executor/_Utils/ChildrenManager';
+
+export { pauseReactive, setPauseReactive } from './_executor/pauseReactive';
 
 export * as _IGeneratorType from './_executor/_Markup/IGeneratorType';
 export {
@@ -45,8 +44,6 @@ export {
     IControlUserData,
     IPrepareDataForCreate,
     IControlProperties,
-    IControl,
-    IControlContext,
     IPrepareDataForCreateAttrs,
     IBuilderScope,
     ITplFunction,

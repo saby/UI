@@ -1,4 +1,4 @@
-import { IControlNode } from 'UICommon/interfaces';
+import { ICommonControlNode as IControlNode } from 'UICommon/interfaces';
 /**
  * @author Санников К.А.
  */

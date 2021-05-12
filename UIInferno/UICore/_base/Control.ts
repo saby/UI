@@ -19,24 +19,23 @@ import { getThemeController, EMPTY_THEME } from 'UICommon/theme/controller';
 import { ReactiveObserver } from 'UICore/Reactivity';
 
 import startApplication from './startApplication';
-import { getProxyChildren, IControlOptions, IControlChildren } from 'UICommon/Base';
+import { getProxyChildren, IControlOptions, TemplateFunction } from 'UICommon/Base';
 
 import { DisposeControl, IResourceDisposable } from 'Application/State';
 
 import {
    TIState,
    TControlConfig,
-   ITemplateAttrs,
+   IControl,
    TControlConstructor
 } from 'UICommon/interfaces';
+import {
+   ITemplateAttrs
+} from 'UICore/interfaces';
 
-/**
- * Тип шаблон-функции
- * @typedef UICore/_base/Control#TemplateFunction
-* @public
- */
-export type TemplateFunction = (data: any, attr?: any, context?: any, isVdom?: boolean, sets?: any,
-                                forceCompatible?: boolean, generatorConfig?: _IGeneratorType.IGeneratorConfig) => string;
+export type IControlConstructor<P = IControlOptions> = TControlConstructor<P>;
+
+export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
 /**
  * @event UICore/_base/Control#activated Происходит при активации контрола.
@@ -186,7 +185,7 @@ export const _private = {
  * @ignoreMethods isBuildVDom isEnabled isVisible _getMarkup
  * @public
  */
-class Control<TOptions extends IControlOptions = {}, TState extends TIState = void> implements _IControl {
+class Control<TOptions extends IControlOptions = {}, TState extends TIState = void> implements IControl {
    protected _moduleName: string;
 
    private _mounted: boolean = false;
@@ -329,7 +328,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
        attributes?: ITemplateAttrs,
        isVdom: boolean = true
    ): any {
-      if (!(this._template as any).stable) {
+      if (!this._template.stable) {
          Logger.error(`[UICore/_base/Control:_getMarkup] Check what you put in _template "${this._moduleName}"`, this);
          return '';
       }
@@ -803,9 +802,11 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
          this.loadThemes(options.theme),
          this.loadStyles()
       ]);
-      //Если ждать загрузки стилей новой темизации. то му получаем просадку производительности
-      //https://online.sbis.ru/doc/059aaa9a-e123-49ce-b3c3-e828fdd15e56
-      this.loadThemeVariables(options.theme)
+      if (!options.notLoadThemes) {
+         //Если ждать загрузки стилей новой темизации. то му получаем просадку производительности
+         //https://online.sbis.ru/doc/059aaa9a-e123-49ce-b3c3-e828fdd15e56
+         this.loadThemeVariables(options.theme)
+      }
       if (constants.isServerSide || this.isDeprecatedCSS() || this.isCSSLoaded(options.theme)) {
          return this._$resultBeforeMount = resultBeforeMount;
       }
@@ -1378,7 +1379,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
       return inherit;
    }
 
-   static createControl(ctor: TControlConstructor, cfg: TControlConfig, domElement: HTMLElement): Control {
+   static createControl(ctor: IControlConstructor, cfg: TControlConfig, domElement: HTMLElement): Control {
       if (domElement) {
          // если пришел jquery, вытащим оттуда элемент
          domElement = domElement[0] || domElement;
@@ -1511,6 +1512,12 @@ export default Control;
  * Когда значение опции не задано явно, оно будет взято от родительского контрола. Это продемонстрировано в примере.
  *
  * Подробнее о работе с темами оформления читайте {@link https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/ здесь}.
+ */
+
+/**
+ * @name UICore/_base/Control#notLoadThemes
+ * @cfg {Boolean} Флаг, который отключает загрузку переменных тем оформления для контролов. 
+ * @default undefined
  */
 
 /*

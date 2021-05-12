@@ -40,10 +40,15 @@ export class Generator implements IGenerator {
         options: IControlOptions,
         config: IControlConfig
     ): React.ReactElement | React.ReactElement[] | string {
+        let decorAttribs = !config.compositeAttributes
+            ? attributes
+            : Helper.processMergeAttributes(config.compositeAttributes, attributes);
+        decorAttribs = !config.attr || config.mergeType !== 'attribute' ?
+            decorAttribs :
+            Helper.processMergeAttributes(config.attr.attributes, decorAttribs);
+
         const templateAttributes: IGeneratorAttrs = {
-            attributes: config.compositeAttributes === null
-                ? attributes
-                : Helper.processMergeAttributes(config.compositeAttributes, attributes),
+            attributes: decorAttribs,
             /*
             FIXME: https://online.sbis.ru/opendoc.html?guid=f354360c-5899-4f74-bf54-a06e526621eb
             судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
@@ -103,6 +108,7 @@ export class Generator implements IGenerator {
             scope.theme = parent?.props?.theme ?? parent?.context?.theme;
         }
 
+        // return resolveTemplateFunction(parent, resultingFn, scope, attributes);
         return React.createElement(
             WasabyContextManager,
             {
@@ -139,7 +145,7 @@ export class Generator implements IGenerator {
             return resolveTemplateFunction(parent, tpl, preparedScope, decorAttribs);
         }
         // content option - в определенном способе использования контентная опция может представлять собой объект
-        // со свойством func, в котором и лежит функция контентной опции. Демка UITest/MarkupSpecification/resolver/Top
+        // со свойством func, в котором и лежит функция контентной опции. Демка ReactUnitTest/MarkupSpecification/resolver/Top
         if (tpl && typeof tpl.func === 'function') {
             return resolveTemplateFunction(parent, tpl.func, preparedScope, decorAttribs);
         }
@@ -148,6 +154,14 @@ export class Generator implements IGenerator {
         // если в контентной опции несколько корневых нод
         if (Common.isTemplateArray<TemplateFunction>(tpl)) {
             return resolveTemplateArray(parent, tpl, preparedScope, decorAttribs);
+        }
+        // Здесь может быть незарезолвленный контрол optional!. Поэтому результат должен быть пустым
+        if (Common.isOptionalString<TemplateOrigin>(tplOrigin)) {
+            return null;
+        }
+        // игнорируем выводимое значение null для совместимости с реализацией wasaby
+        if (tplOrigin === null) {
+            return null;
         }
 
         // не смогли зарезолвить - нужно вывести ошибку
@@ -158,20 +172,24 @@ export class Generator implements IGenerator {
     protected createReactControl(
         origin: string | typeof Control,
         scope: IControlOptions,
-        _: unknown,
+        decorAttribs: IGeneratorAttrs,
         __: unknown,
         deps: Common.Deps<typeof Control, TemplateFunction>
     ): React.ComponentElement<
         IControlOptions,
         Control<IControlOptions, object>
-    > {
+        > {
         const controlClassExtended: TemplateOrigin = resolveTpl(origin, {}, deps);
         const controlClass = Common.fixDefaultExport(controlClassExtended) as typeof Control;
+
+        resolveControlName(scope, decorAttribs.attributes);
+        // @ts-ignore
+        scope._$attributes = decorAttribs;
 
         // todo временное решение только для поддержки юнит-тестов
         // https://online.sbis.ru/opendoc.html?guid=a886b7c1-fda3-4594-b00d-b48f1185aaf8
         if (Common.isCompound(controlClass)) {
-            this.createCompatibleReactControl(origin, scope, _, __, deps);
+            return this.createCompatibleReactControl(origin, scope, decorAttribs, __, deps);
         }
         return React.createElement(controlClass, scope);
     }
@@ -185,7 +203,7 @@ export class Generator implements IGenerator {
     ) : React.ComponentElement<
         IControlOptions,
         Control<IControlOptions, object>
-    > {
+        > {
         const generatorCompatibleStr = 'View/_executorCompatible/_Markup/Compatible/GeneratorCompatible';
         const GeneratorCompatible = requirejs(generatorCompatibleStr).GeneratorCompatible;
         const generatorCompatible = new GeneratorCompatible();
@@ -218,7 +236,7 @@ export class Generator implements IGenerator {
     abstract createWsControl(
         origin: string | typeof Control,
         scope: IControlOptions,
-        _: unknown,
+        decorAttribs: IGeneratorAttrs,
         __: unknown,
         deps: Common.Deps<typeof Control, TemplateFunction>
     ): string | React.ComponentElement<
@@ -345,6 +363,18 @@ function resolveTemplateFunction(parent: Control<IControlOptions>,
         return null;
     }
     return template.call(parent, resolvedScope, decorAttribs, undefined, true, undefined, undefined) as TemplateResult;
+}
+function resolveControlName(controlData: IControlOptions, attributes: Attr.IAttributes):
+    Attr.IAttributes {
+    const attr = attributes || {};
+    if (controlData && typeof controlData.name === 'string') {
+        attr.name = controlData.name;
+    } else {
+        if (attributes && typeof attributes.name === 'string') {
+            controlData.name = attributes.name;
+        }
+    }
+    return attr;
 }
 
 function logResolverError(tpl: TemplateOrigin, parent: Control<IControlOptions>): void {

@@ -2,9 +2,6 @@
  * @author Тэн В.А.
  */
 
-import { focus } from 'UICore/Focus';
-import { IControlElement } from 'UICore/_focus/IFocus';
-
 interface IMouseEventInitExtend extends MouseEventInit {
    type: string;
    target: EventTarget;
@@ -30,7 +27,7 @@ export class FastTouchEndController {
       if (this.useNativeTouchEnd(targetElement, nativeEvent)) {
          return;
       }
-      focus(nativeEvent.target as IControlElement);
+      (nativeEvent.target as HTMLElement).focus();
       nativeEvent.preventDefault();
       const touch = nativeEvent.changedTouches[0];
       let clickEvent;
@@ -66,7 +63,9 @@ export class FastTouchEndController {
       }
       // БТР - это div c contentEditable, поэтому выделяя его или элементы внутри него мы не должны
       // менять поведение тача (напримре выделение текста по двойному тапу);
-      if (this.isContentEditable(targetElement)) {
+      // в новом БТР на react внутри div contenteditable находятся вложенные элементы
+      // надо проверить что по клику на эелмент мы не кликнули в div contenteditable
+      if (this.findContantEditable(targetElement)) {
          return true;
       }
       // надо учитывать, что поведение при клике в элемент который должен работать с нативным touchend
@@ -87,6 +86,16 @@ export class FastTouchEndController {
 
    private static isNativeList(element: Element): boolean {
       return useNativeEventList.indexOf(element.tagName.toLowerCase()) > -1;
+   }
+
+   private static findContantEditable(element: Element): boolean {
+      if (this.isContentEditable(element)) {
+         return true;
+      }
+      if (element.parentElement) {
+         return this.findContantEditable(element.parentElement);
+      }
+      return false;
    }
 
    private static isContentEditable(element: Element): boolean {

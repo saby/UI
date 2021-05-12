@@ -1,18 +1,25 @@
 define([
-   'UITest/MarkupSpecification/testing',
-   'UITest/MarkupSpecification/asserts'
+   'ReactUnitTest/MarkupSpecification/testing',
+   'ReactUnitTest/MarkupSpecification/asserts'
 ], (Testing, Asserts) => {
    let checkStr = Asserts.assertMarkup;
 
    let tests = {
+      'Delegate attributes into control': {
+         templateStr: '<ReactUnitTest.MarkupSpecification.scope.twoRootsControl attr:class="mom" name="witch" />',
+         checkers: [
+            checkStr('<div name="witch" id="vdomClass" class="mom"></div>')
+         ],
+         vdomOnly: true
+      },
       'Array content template 1': {
          templateStr: '' +
             '<div>' +
-            '   <UITest.MarkupSpecification.scope.children-some>' +
+            '   <ReactUnitTest.MarkupSpecification.scope.children-some>' +
             '      <ws:someTpl>' +
-            '         <UITest.MarkupSpecification.scope.children-inner prop4="777" prop5="888" />' +
+            '         <ReactUnitTest.MarkupSpecification.scope.children-inner prop4="777" prop5="888" />' +
             '      </ws:someTpl>' +
-            '   </UITest.MarkupSpecification.scope.children-some>' +
+            '   </ReactUnitTest.MarkupSpecification.scope.children-some>' +
             '</div>',
          checkers: [
             checkStr('' +
@@ -28,19 +35,19 @@ define([
       'Array content template 2': {
          templateStr: '' +
             '<div>' +
-               '<UITest.MarkupSpecification.scope.children-in-template>' +
+               '<ReactUnitTest.MarkupSpecification.scope.children-in-template>' +
                   '<ws:some>' +
                      '<ws:case>' +
                         '<ws:Array>' +
                            '<ws:Object>' +
                               '<ws:someTpl>' +
-                                 '<UITest.MarkupSpecification.scope.children-inner prop4="777" prop5="888" />' +
+                                 '<ReactUnitTest.MarkupSpecification.scope.children-inner prop4="777" prop5="888" />' +
                               '</ws:someTpl>' +
                            '</ws:Object>' +
                         '</ws:Array>' +
                      '</ws:case>' +
                   '</ws:some>' +
-               '</UITest.MarkupSpecification.scope.children-in-template>' +
+               '</ReactUnitTest.MarkupSpecification.scope.children-in-template>' +
             '</div>',
          checkers: [
             checkStr('' +
@@ -56,19 +63,19 @@ define([
       'Array content template 3': {
          templateStr: '' +
             '<div>' +
-               '<UITest.MarkupSpecification.scope.children-in-template>' +
+               '<ReactUnitTest.MarkupSpecification.scope.children-in-template>' +
                   '<ws:some>' +
                      '<ws:case>' +
                         '<ws:Array>' +
                            '<ws:Object>' +
                               '<ws:someTpl>' +
-                                 '<UITest.MarkupSpecification.scope.children-inner prop4="777" prop5="888" />' +
+                                 '<ReactUnitTest.MarkupSpecification.scope.children-inner prop4="777" prop5="888" />' +
                               '</ws:someTpl>' +
                            '</ws:Object>' +
                         '</ws:Array>' +
                      '</ws:case>' +
                   '</ws:some>' +
-               '</UITest.MarkupSpecification.scope.children-in-template>' +
+               '</ReactUnitTest.MarkupSpecification.scope.children-in-template>' +
             '</div>',
          checkers: [
             checkStr('' +
@@ -80,14 +87,27 @@ define([
                   '</div>' +
                '</div>')
          ]
-      }
+      },
+      'String options setting': {
+         templateStr: '' +
+            '<ws:template name="a">{{b}} {{str}}</ws:template>' +
+            '<ws:partial template="a" scope="{{data}}">' +
+               '<ws:b>' +
+                  '<ws:String>string</ws:String>' +
+               '</ws:b>' +
+            '</ws:partial>',
+         checkers: checkStr('string string2'),
+         executionConfig: {
+            data: {
+               data: {
+                  str: 'string2'
+               }
+            }
+         },
+      },
    };
 
    describe('Markup!', () => {
-      beforeEach(function() {
-         // пока не работает потому что не выделен модуль с реактом, с которым надо запускать эти тесты
-         this.skip();
-      });
       Testing.runTests(tests);
    });
 });

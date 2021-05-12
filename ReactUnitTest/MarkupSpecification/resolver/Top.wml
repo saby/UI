@@ -1,0 +1,3 @@
+<ReactUnitTest.MarkupSpecification.resolver.Middle>
+   <ws:partial template="wml!ReactUnitTest/MarkupSpecification/resolver/Bottom" />
+</ReactUnitTest.MarkupSpecification.resolver.Middle>

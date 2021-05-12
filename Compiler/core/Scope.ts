@@ -6,7 +6,7 @@
 import * as Ast from 'Compiler/core/Ast';
 import { ITranslationsRegistrar } from 'Compiler/core/Text';
 import { IPath } from 'Compiler/core/Resolvers';
-import { Dictionary, ITranslationKey } from 'Compiler/i18n/Dictionary';
+import { Dictionary, ITranslationKey, TranslationType } from 'Compiler/i18n/Dictionary';
 // @ts-ignore TODO: This module can only be referenced with ECMAScript imports/exports
 //             by turning on the 'esModuleInterop' flag and referencing its default export.
 import * as ParallelDeferred from 'Core/ParallelDeferred';
@@ -72,12 +72,13 @@ export default class Scope implements ITranslationsRegistrar {
 
    /**
     * Register translation key.
+    * @param type {TranslationType} Translation type.
     * @param module {string} Template file where translation item was discovered.
     * @param text {string} Translation text.
     * @param context {string} Translation context.
     */
-   registerTranslation(module: string, text: string, context: string): void {
-      this.dictionary.push(module, text, context);
+   registerTranslation(type: TranslationType, module: string, text: string, context: string): void {
+      this.dictionary.push(type, module, text, context);
    }
 
    /**

@@ -7,7 +7,8 @@
 
 export {
     default as Control,
-    TemplateFunction
+    IControlChildren,
+    IControlConstructor
 } from './_base/Control';
 
 export { getGeneratorConfig } from './_base/GeneratorConfig';

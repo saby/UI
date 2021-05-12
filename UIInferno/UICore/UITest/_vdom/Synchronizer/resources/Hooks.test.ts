@@ -1,9 +1,9 @@
 import { assert } from 'chai';
-import { describe, before, after, afterEach } from 'mocha';
 import { replace, restore, fake } from 'sinon';
 
-import { IControlNode, IWasabyHTMLElement, TEventsObject, IEvent, IProperties } from 'UICommon/interfaces';
-import { invisibleNodeTagName } from 'UICore/Executor';
+import { IWasabyHTMLElement, TEventsObject, IEvent, IProperties } from 'UICommon/interfaces';
+import { IControlNode } from 'UICore/interfaces';
+import { invisibleNodeTagName } from 'UICommon/Executor';
 
 import { Hooks } from 'UICore/Vdom';
 import { constants } from 'Env/Env';

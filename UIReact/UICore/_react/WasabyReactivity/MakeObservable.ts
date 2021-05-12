@@ -1,7 +1,9 @@
-import { Control, TemplateFunction } from 'UICore/Base';
+import { Control } from 'UICore/Base';
+import { TemplateFunction } from 'UICommon/Base';
 import { IVersionable } from 'Types/entity';
 
 const arrayMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
+
 
 /**
  * Запуск реактивности в WasabyReact компоненте
@@ -32,7 +34,8 @@ function observeTemplate<P, S extends object | void>(instance: Control<P, S>): v
                 templateFunction = newTemplateFunction;
                 releaseProperties(instance);
                 observeProps(instance);
-                // instance._forceUpdate();
+                // FIXME https://online.sbis.ru/opendoc.html?guid=9ae5b21b-749c-40ea-b8aa-7c7f11b2bf39
+                Promise.resolve(() => instance._forceUpdate());
             }
         }
     });
@@ -61,7 +64,8 @@ function observeProps<P, S extends object | void>(instance: Control<P, S>): void
                 }
                 this.reactiveValues[propName] = newVal;
                 checkMutableTypes(newVal as IVersionable | unknown[], instance, propName);
-                // instance._forceUpdate();
+                // FIXME https://online.sbis.ru/opendoc.html?guid=9ae5b21b-749c-40ea-b8aa-7c7f11b2bf39
+                Promise.resolve(() => instance._forceUpdate());
             },
             get(): unknown {
                 if (descriptor?.get) {
@@ -108,7 +112,8 @@ function setObservableVersion<P, S extends object | void>(value: IVersionable, i
         configurable: true,
         set(val: number): void {
             currentValue = val;
-            // instance._forceUpdate();
+            // FIXME https://online.sbis.ru/opendoc.html?guid=9ae5b21b-749c-40ea-b8aa-7c7f11b2bf39
+            Promise.resolve(() => instance._forceUpdate());
         },
         get(): number {
             return currentValue;
@@ -137,7 +142,8 @@ function setObservableArray<P, S extends object | void>(value: unknown[], instan
         const mutator = function (): unknown[] {
             const res = method.apply(this, arguments);
             instance[propName] = [...value];
-            // instance._forceUpdate();
+            // FIXME https://online.sbis.ru/opendoc.html?guid=9ae5b21b-749c-40ea-b8aa-7c7f11b2bf39
+            Promise.resolve(() => instance._forceUpdate());
             return res;
         };
         Object.defineProperty(value, methodName, {

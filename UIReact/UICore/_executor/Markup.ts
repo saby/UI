@@ -12,13 +12,13 @@ let _text: IGenerator;
 let _vdom: IGenerator;
 
 function Text(config: IGeneratorConfig): IGenerator {
-   if (!_text) {
+   if (!_text || _text.generatorConfig !== config) {
       _text = new GeneratorText(config);
    }
    return _text;
 }
 function Vdom(config?: IGeneratorConfig): IGenerator {
-   if (!_vdom) {
+   if (!_vdom || _vdom.generatorConfig !== config) {
       _vdom = new GeneratorVdom();
    }
    return _vdom;

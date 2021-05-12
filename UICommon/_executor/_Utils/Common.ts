@@ -10,13 +10,11 @@ import { constants, cookie } from 'Env/Env';
 
 import * as RequireHelper from './RequireHelper';
 
-import { ReactiveObserver } from 'UICore/Reactivity';
-import {
-   IControl,
-   IGeneratorNameObject
-} from '../_Markup/IGeneratorType';
+import { pauseReactive } from '../pauseReactive';
+import { IControl } from 'UICommon/interfaces';
+import { IGeneratorNameObject } from '../_Markup/IGeneratorType';
 import * as Attr from '../_Expressions/Attr';
-import { TemplateFunction } from 'UICore/Base';
+import { TemplateFunction } from 'UICommon/Base';
 
 var
    requireIfDefined = function requireIfDefined(tpl) {
@@ -187,7 +185,7 @@ export function plainMerge(inner, object, cloneFirst?) {
 
    if (cloneFirst) {
       // pause reactive behaviour of properties while merging
-      ReactiveObserver.pauseReactive(copyInner, () => {
+      pauseReactive(copyInner, () => {
          for (prop in inner) {
             if (inner.hasOwnProperty(prop)) {
                copyInner[prop] = inner[prop];
@@ -199,7 +197,7 @@ export function plainMerge(inner, object, cloneFirst?) {
    }
 
    // pause reactive behaviour of properties while merging
-   ReactiveObserver.pauseReactive(copyInner, () => {
+   pauseReactive(copyInner, () => {
       for (prop in object) {
          if (object.hasOwnProperty(prop)) {
             copyInner[prop] = object[prop];
@@ -275,14 +273,14 @@ export function isControlString(str) {
    return str.indexOf('js!') === 0;
 }
 
-export function isOptionalString(str) {
-   return str.indexOf('optional!') === 0;
+export function isOptionalString<T = unknown>(tplOrigin: T) {
+   return typeof tplOrigin === 'string' && tplOrigin.indexOf('optional!') === 0;
 }
 
 export function isLibraryModuleString(str) {
    // library module string example: SomeStorage.Library:Module
    var name = str.indexOf('ws:') === 0 ? str.replace('ws:', '') : str;
-   return name.match(/:([a-zA-z]+)/) && name.indexOf('<') === -1 && name.indexOf(' ') === -1;
+   return /(([-_a-zA-Z0-9]+)[./]([-_a-zA-Z0-9]+)[:]([-_a-zA-Z]+))/.test(name) && name.indexOf(' ') === -1;
 }
 
 // для обработки контролов без js, через partial

@@ -1,8 +1,8 @@
 define([
-   'UITest/MarkupSpecification/testing',
-   'UITest/MarkupSpecification/asserts',
-   'UITest/MarkupSpecification/resolver/TestControl',
-   'wml!UITest/MarkupSpecification/resolver/TestControl'
+   'ReactUnitTest/MarkupSpecification/testing',
+   'ReactUnitTest/MarkupSpecification/asserts',
+   'ReactUnitTest/MarkupSpecification/resolver/TestControl',
+   'wml!ReactUnitTest/MarkupSpecification/resolver/TestControl'
 ], (Testing, Asserts, TestControl, WmlTestControl) => {
    let checkStr = Asserts.assertMarkup;
 
@@ -23,7 +23,7 @@ define([
       },
       'Inline template 2': {
          templateStr: '' +
-            '<ws:partial template="{{\'UITest/MarkupSpecification/resolver/TestControl\'}}"/>',
+            '<ws:partial template="{{\'ReactUnitTest/MarkupSpecification/resolver/TestControl\'}}"/>',
          checkers: [
             checkStr('<div></div>')
          ],
@@ -34,7 +34,7 @@ define([
       },
       'Inline template 3': {
          templateStr: '' +
-            '<ws:partial template="{{\'wml!UITest/MarkupSpecification/resolver/TestControl\'}}"/>',
+            '<ws:partial template="{{\'wml!ReactUnitTest/MarkupSpecification/resolver/TestControl\'}}"/>',
          checkers: [
             checkStr('<div></div>')
          ],
@@ -70,10 +70,6 @@ define([
    };
 
    describe('Markup!', () => {
-      beforeEach(function() {
-         // пока не работает потому что не выделен модуль с реактом, с которым надо запускать эти тесты
-         this.skip();
-      });
       Testing.runTests(tests);
    });
 });
