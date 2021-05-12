@@ -29,7 +29,6 @@
       "build:watch": "wasaby-cli --tasks=build --watcher",
       "compile": "saby-typescript --compiler",
       "start": "wasaby-cli --tasks=app",
-      "start-react": "wasaby-cli --tasks=app --reactApp",
       "start:units": "wasaby-cli --tasks=startTest --server",
       "start-react:units": "wasaby-cli --tasks=startTest --server --react",
       "test": "wasaby-cli --tasks=startTest --node --report=console",

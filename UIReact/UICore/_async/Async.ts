@@ -65,7 +65,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
     * Promise асинхронной загрузки шаблона в _beforeMount, чтобы потом в _afterMount подписаться на него
     * и вызвать _forceUpdate после загрузки шаблона
     */
-   private loadAsyncPromise: Promise<TAsyncStateReceived>;
+   private loadAsyncPromise: Promise<TAsyncStateReceived> = null;
 
    protected _beforeMount(options: IAsyncOptions): void {
       if (!options.templateName) {
@@ -91,6 +91,10 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
    }
 
    protected _afterMount(): void {
+      if (this.loadAsyncPromise === null) {
+         return;
+      }
+
       this.loadAsyncPromise.then(() => {
          this._forceUpdate();
       });
