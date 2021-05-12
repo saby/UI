@@ -1,14 +1,14 @@
-import { Component, createElement } from 'react';
+import {Component, createElement} from 'react';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { getStateReceiver } from 'Application/Env';
-import { EMPTY_THEME, getThemeController } from 'UICommon/theme/controller';
-import { getResourceUrl, Logger} from 'UICommon/Utils';
-import { Options } from 'UICommon/Vdom';
-import { makeWasabyObservable, releaseProperties } from 'UICore/WasabyReactivity';
+import {getStateReceiver} from 'Application/Env';
+import {EMPTY_THEME, getThemeController} from 'UICommon/theme/controller';
+import {getResourceUrl, Logger, needToBeCompatible} from 'UICommon/Utils';
+import {Options} from 'UICommon/Vdom';
+import {makeWasabyObservable, releaseProperties} from 'UICore/WasabyReactivity';
 
 import template = require('wml!UICore/_base/Control');
-import { IControlState } from './interfaces';
+import {IControlState} from './interfaces';
 import {
     getWasabyContext,
     IWasabyContextValue,
@@ -16,17 +16,21 @@ import {
     TWasabyContext
 } from 'UICore/Contexts';
 
-import { OptionsResolver } from 'UICommon/Executor';
+import {OptionsResolver} from 'UICommon/Executor';
 
-import { WasabyEvents, callNotify } from 'UICore/Events';
-import { IWasabyEventSystem } from 'UICommon/Events';
-import { TIState, TControlConfig, IControl } from 'UICommon/interfaces';
-import { IControlOptions, TemplateFunction } from 'UICommon/Base';
+import {WasabyEvents, callNotify} from 'UICore/Events';
+import {IWasabyEventSystem} from 'UICommon/Events';
+import {TIState, TControlConfig, IControl} from 'UICommon/interfaces';
+import {IControlOptions, TemplateFunction} from 'UICommon/Base';
+import {prepareControlNodes} from '../ControlNodes';
+import {goUpByControlTree} from 'UICore/NodeCollector';
+import {constants} from 'Env/Env';
 
 export type IControlConstructor<P = IControlOptions> = React.ComponentType<P>;
 
 export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
+let countInst = 1;
 
 /**
  * Базовый контрол, наследник React.Component с поддержкой совместимости с Wasaby
@@ -68,6 +72,7 @@ export default class Control<TOptions extends IControlOptions = {},
      */
     _moduleName: string;
     reactiveValues: Record<string, unknown>;
+    private readonly _instId: string = 'inst_' + countInst++;
 
     protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
         return callNotify(this, eventName, args, options);
@@ -82,11 +87,13 @@ export default class Control<TOptions extends IControlOptions = {},
 
     // Пока что просто для сохрания API в ts. Возможно, нужна будет реализация. Метод используется в роутинге.
     getInstanceId(): string {
-       return '';
+        return this._instId;
     }
 
-    // Пока много где объявлен, его отсуствие вызывает ошибки ts. Удалить после отказа.
-    // private _containerRef: React.RefObject<HTMLElement>;
+    _getEnvironment(): object {
+        return {};
+    }
+
     protected _container: HTMLElement;
 
     // TODO: TControlConfig добавлен для совместимости, в 3000 нужно сделать TOptions и здесь, и в UIInferno.
@@ -114,6 +121,9 @@ export default class Control<TOptions extends IControlOptions = {},
             constructor.displayName = this._moduleName;
         }
         this._optionsVersions = {};
+        if (needToBeCompatible(constructor, null, false)) {
+            Control.mixCompatible<TOptions, TState>(this, {});
+        }
     }
 
     /**
@@ -164,7 +174,9 @@ export default class Control<TOptions extends IControlOptions = {},
         if (!!options.bootstrapKey) {
             getStateReceiver().register(options.bootstrapKey, {
                 getState: () => undefined,
-                setState: (state) => { stateFromServer = state; }
+                setState: (state) => {
+                    stateFromServer = state;
+                }
             });
         }
 
@@ -398,7 +410,7 @@ export default class Control<TOptions extends IControlOptions = {},
         if (this._$controlMounted) {
             try {
                 const newOptions = createWasabyOptions(this.props, this.context);
-                this._beforeUpdate(newOptions, { scrollContext: {}});
+                this._beforeUpdate(newOptions, {scrollContext: {}});
             } catch (e) {
                 logError(e);
             }
@@ -445,9 +457,18 @@ export default class Control<TOptions extends IControlOptions = {},
         try {
             // FIXME https://online.sbis.ru/opendoc.html?guid=be97d672-d7ff-442b-b409-494515282ec5
             let ctx = Object.create(this);
-            ctx._options = { ...wasabyOptions };
+            ctx._options = {...wasabyOptions};
             // this клонируется, чтобы вызвать шаблон с новыми значениями опций, но пока не класть их на инстанс.
             res = this._template(ctx, this._options._$attributes, undefined, true);
+            const originRef = res[0].ref;
+            // tslint:disable-next-line:no-this-assignment
+            const control = this;
+            res[0] = {
+                ...res[0], ref: (node) => {
+                    prepareControlNodes(node, control, Control);
+                    return originRef && originRef.apply(this, [node]);
+                }
+            };
         } catch (e) {
             logError(e);
             res = [];
@@ -640,22 +661,62 @@ export default class Control<TOptions extends IControlOptions = {},
         );
     }
 
+    static mixCompatible<TOption, TState>(ctor: Control<TOption, TState>, cfg: object): void {
+        if (requirejs.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
+            const makeInstanceCompatible = requirejs('Core/helpers/Hcontrol/makeInstanceCompatible');
+            makeInstanceCompatible(ctor, cfg);
+        }
+    }
+
     /**
      * Создаёт и монтирует контрол на элемент
      * @param ctor Конструктор контрола.
      * @param cfg Опции контрола.
      * @param domElement Элемент, на который должен быть смонтирован контрол.
      */
-    static createControl<P extends IControlOptions, T extends HTMLElement & {eventSystem?: IWasabyEventSystem}>(
+    static createControl<P extends IControlOptions, T extends HTMLElement & { eventSystem?: IWasabyEventSystem }>(
         ctor: IControlConstructor<P>,
         cfg: P,
         domElement: T
-    ): void {
+    ): Control {
         // кладём в конфиг наследуемые опции, чтобы они попали в полноценные опции
         cfg.theme = cfg.theme ?? 'default';
         cfg.readOnly = cfg.readOnly ?? false;
         domElement.eventSystem = new WasabyEvents(domElement);
-        ReactDOM.render(React.createElement(ctor, cfg), domElement);
+        const result = ReactDOM.render(React.createElement(ctor, cfg), domElement);
+
+        if (result instanceof Control) {
+            const compatible = Control.configureCompatibility(domElement, cfg, ctor);
+            if (compatible) {
+                Control.mixCompatible(result, cfg);
+            }
+            return result;
+        }
+    }
+
+    static configureCompatibility(domElement: HTMLElement, cfg: any, ctor: any): boolean {
+        if (!constants.compat) {
+            return false;
+        }
+
+        // вычисляем родителя физически - ближайший к элементу родительский контрол
+        const parent = goUpByControlTree(domElement)[0];
+
+        if (needToBeCompatible(ctor, parent)) {
+            cfg.element = domElement;
+
+            if (parent && parent._options === cfg) {
+                Logger.error('Для создания контрола ' + ctor.prototype._moduleName +
+                    ' в качестве конфига был передан объект с опциями его родителя ' + parent._moduleName +
+                    '. Не нужно передавать чужие опции для создания контрола, потому что они могут ' +
+                    'изменяться в процессе создания!', this);
+            } else {
+                cfg.parent = cfg.parent || parent;
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
