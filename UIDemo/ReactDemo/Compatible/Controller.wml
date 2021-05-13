@@ -6,12 +6,10 @@
             component="UIDemo/ReactDemo/Compatible/WS3Component"
             name="compoundContainer"
             componentOptions="{{opts}}"
-            on:click="test()"
-            iWantBeWS3="{{ true }}"/>
+            on:click="test()"/>
     <h2>WasabyOverReact внутри WS3</h2>
     <Core.CompoundContainer
             attr:class="CompoundDemo-CompoundContainer"
             component="UIDemo/ReactDemo/Compatible/WS3Container"
-            name="compoundContainer2"
-            iWantBeWS3="{{ true }}"/>
+            name="compoundContainer2"/>
 </div>
