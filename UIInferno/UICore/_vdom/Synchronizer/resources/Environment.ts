@@ -2,7 +2,7 @@
 // tslint:disable: ban-ts-ignore
 
 import { render } from 'Inferno/third-party/index';
-import type { VNode } from 'Inferno/third-party/index';
+import { VNode } from 'Inferno/third-party/index';
 import { hydrate } from 'Inferno/third-party/hydrate';
 import { IControlNode, IMemoNode, TModifyHTMLNode } from '../interfaces';
 import { delay } from 'Types/function';
