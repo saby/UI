@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Async, TAsyncStateReceived, IAsyncOptions } from 'UICore/Async';
 
 /**
@@ -16,7 +17,7 @@ export default class AsyncTest extends Async {
         super._beforeUpdate(opts);
     }
 
-    _afterUpdate(): void {
+    _afterUpdate() {
         super._afterUpdate();
     }
 
