@@ -1,6 +1,7 @@
 import {Control} from 'UI/Base';
 import {TControlConstructor} from 'UICommon/interfaces';
 import {IDOMEnvironment} from 'UICore/interfaces';
+import {Logger} from 'UICommon/Utils';
 
 interface IControlNode {
     control: Control;
@@ -79,6 +80,15 @@ export function prepareControlNodes(node: any, control: Control, constructor: TC
                     environment: curControl._getEnvironment(),
                     id: curControl.getInstanceId()
                 };
+                // @ts-ignore _moduleName сейчас _protected
+                const moduleName = curControl._moduleName;
+                Object.defineProperty(controlNode, 'environment', {
+                    get(): object {
+                        Logger.error(`Попытка использовать Environment в React окружении,
+                        необходимо убрать зависимость. Компонент - ${moduleName}`);
+                        return this.control._getEnvironment();
+                    }
+                });
                 addControlNode(container.controlNodes, controlNode);
                 // @ts-ignore _container сейчас _protected
                 curControl._container = container;

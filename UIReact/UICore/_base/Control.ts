@@ -83,7 +83,8 @@ export default class Control<TOptions extends IControlOptions = {},
     }
 
     // несогласованное API, но используется в engine, и пока нужно для сборки UIReact
-    deactivate(): void {}
+    deactivate(): void {
+    }
 
     // Пока что просто для сохрания API в ts. Возможно, нужна будет реализация. Метод используется в роутинге.
     getInstanceId(): string {
@@ -665,6 +666,9 @@ export default class Control<TOptions extends IControlOptions = {},
         if (requirejs.defined('Core/helpers/Hcontrol/makeInstanceCompatible')) {
             const makeInstanceCompatible = requirejs('Core/helpers/Hcontrol/makeInstanceCompatible');
             makeInstanceCompatible(ctor, cfg);
+        } else {
+            Logger.error(`Попытка подмешать совместимость контролу, но makeInstanceCompatible не был подгружен.
+            Компонент - ${ctor._moduleName}`);
         }
     }
 
@@ -746,7 +750,7 @@ export default class Control<TOptions extends IControlOptions = {},
     }
 
     static getDerivedStateFromError(error: unknown): { hasError: boolean, error: unknown } {
-        return { hasError: true, error };
+        return {hasError: true, error};
     }
 }
 
@@ -800,9 +804,9 @@ function showErrorRender(props, error): React.ReactElement {
 
         }
     }, [
-        createElement('div', { key: "e1" }, error.message),
-        createElement('div', { key: "e2" }, error.stack),
-        createElement('div', { key: "e3" }, JSON.stringify(props)),
+        createElement('div', {key: "e1"}, error.message),
+        createElement('div', {key: "e2"}, error.stack),
+        createElement('div', {key: "e3"}, JSON.stringify(props)),
     ]);
 }
 
