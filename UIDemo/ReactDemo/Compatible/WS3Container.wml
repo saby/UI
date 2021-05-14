@@ -1,0 +1,4 @@
+<div>
+    <div id="wasabyTarget"></div>
+    <button name="btn" on:click="changeCounter()">Я ws3 кнопка, при клике будем вызывать метод React компонента</button>
+</div>

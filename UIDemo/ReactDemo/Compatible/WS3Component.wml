@@ -1,0 +1,1 @@
+<div>I'm child {{_options.text}}</div>
