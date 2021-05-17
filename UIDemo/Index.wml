@@ -1,8 +1,5 @@
-<SbisEnvUI.Bootstrap
-    scope="{{_options}}"
-    bodyClass="controls-default-bg"
-    bootstrapWrapperMode="{{_options.bootstrapWrapperMode}}">
-    <ws:content>
-        <UIDemo.RootRouter />
-    </ws:content>
-</SbisEnvUI.Bootstrap>
+<div style="width: inherit; height: inherit;">
+   <a class="vdom-focus-in" tabindex="1" attr:key="vdom-focus-in"></a>
+   <UIDemo.RootRouter scope="{{_options}}"/>
+   <a class="vdom-focus-out" tabindex="0" attr:key="vdom-focus-out"></a>
+</div>
