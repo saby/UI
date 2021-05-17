@@ -456,7 +456,6 @@ export default class Control<TOptions extends IControlOptions = {},
 
         let res;
         try {
-            // FIXME https://online.sbis.ru/opendoc.html?guid=be97d672-d7ff-442b-b409-494515282ec5
             let ctx = Object.create(this);
             ctx._options = {...wasabyOptions};
             // this клонируется, чтобы вызвать шаблон с новыми значениями опций, но пока не класть их на инстанс.
