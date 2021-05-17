@@ -804,9 +804,8 @@ function showErrorRender(props, error): React.ReactElement {
 
         }
     }, [
-        createElement('div', {key: "e1"}, error.message),
-        createElement('div', {key: "e2"}, error.stack),
-        createElement('div', {key: "e3"}, JSON.stringify(props)),
+        createElement('div', { key: "e1" }, error.message),
+        createElement('div', { key: "e2" }, error.stack)
     ]);
 }
 
