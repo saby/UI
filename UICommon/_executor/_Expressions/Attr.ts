@@ -279,9 +279,11 @@ export function mergeEvents(events1, events2) {
    }
    for (name in events2) {
       if (events2.hasOwnProperty(name)){
-         // надо сравнить обработчики событий, т.к. для Async контентом которого является
-         // partial с подпиской на событие, при построение одинаковые события смержаться
-         // т.к. событие будет у partial (templateNode) и у Async (ControlNode)
+         // надо сравнить обработчики событий, т.к. есть ситуация при которой внутрь partial вставляют
+         // контентную опцию, которая содержит этот же partial, а внутри partial логика завязана на эту опцию
+         // а в partial есть подписка на событие через on:
+         // в таком случае события смержаться хотя не должны
+         // https://online.sbis.ru/opendoc.html?guid=80e990de-0813-446e-a372-f00fb7163461
          if (finalAttr[name] && events2[name][0].handler() !== finalAttr[name][0].handler()) {
           finalAttr[name] = events2[name].concat(finalAttr[name]);
          } else {
