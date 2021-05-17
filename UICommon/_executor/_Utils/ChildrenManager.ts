@@ -42,7 +42,7 @@ function addToQueue(children, childName): void {
 }
 
 function clearChildren(children, childName) {
-   if (children[childName] && children[childName][deletedPropertyName]) {
+   if (hasChild(children, childName) && children[childName][deletedPropertyName]) {
       delete children[childName];
    }
 }
@@ -52,9 +52,13 @@ function clearChildren(children, childName) {
 // на самом деле в этот момент элемент из дома не удален - во время работы патча такое может произойти
 // с любым элементов VDOM
 export function onElementUnmount(children, childName) {
-    if (children[childName]) {
-       children[childName][deletedPropertyName] = true;
-    }
+   if (hasChild(children, childName)) {
+      children[childName][deletedPropertyName] = true;
+   }
 
    addToQueue(children, childName);
+}
+
+function hasChild(children: unknown[], childName: string): boolean {
+   return children && children.hasOwnProperty(childName);
 }
