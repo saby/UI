@@ -69,6 +69,13 @@
             "group": "build",
             "problemMatcher": [],
             "detail": "wasaby-cli --tasks=build --react"
+        },
+        {
+            "type": "npm",
+            "script": "start",
+            "problemMatcher": [],
+            "label": "Start local server",
+            "detail": "wasaby-cli --tasks=app"
         }
     ]
 }

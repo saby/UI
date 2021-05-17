@@ -50,7 +50,7 @@ export default function startFunction(config: ICreateControlOptions = {}, domEle
          */
         const dom: HTMLElement = (domElement.firstElementChild || domElement.firstChild || domElement) as HTMLElement;
         // @ts-ignore
-        config.bootstrapKey = dom?.attributes?.key?.value || '';
+        config.bootstrapKey = dom?.attributes?.key?.value || 'bd_';
         createControl(module, config, dom);
     });
 }

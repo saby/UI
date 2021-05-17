@@ -24,8 +24,6 @@ export interface IAsyncOptions extends IControlOptions {
    templateOptions: IControlOptions;
 }
 
-const SUCCESS_BUILDED = 's';
-
 /**
  * Абстрактная реализация контейнера для асинхронной загрузки контролов.
  * !Важно: нельзя использовать этот контейнер напрямую! Необходимо использовать {@link Controls/Container/Async}
@@ -48,7 +46,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
    /**
     * Флаг для того, чтобы избежать повторной загрузки шаблона, при изменении опций до окончания асинхронной загрузки
     */
-   private asyncLoading: boolean = false;
+   protected asyncLoading: boolean = false;
    /**
     * Флаг, о том, что произошла ошибка при загрузке модуля - чтобы не было циклической попытки загрузки
     */
@@ -63,33 +61,43 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
     */
    private needNotifyOnLoad: boolean = false;
 
-   protected _beforeMount(options: IAsyncOptions, _: unknown, receivedState: TAsyncStateReceived): Promise<TAsyncStateReceived> {
+   /**
+    * Promise асинхронной загрузки шаблона в _beforeMount, чтобы потом в _afterMount подписаться на него
+    * и вызвать _forceUpdate после загрузки шаблона
+    */
+   private loadAsyncPromise: Promise<TAsyncStateReceived> = null;
+
+   protected _beforeMount(options: IAsyncOptions): void {
       if (!options.templateName) {
          this.error = 'В модуль Async передали не корректное имя шаблона (templateName=undefined|null|empty)';
          IoC.resolve('ILogger').error(this.error);
-         return Promise.resolve(this.error);
+         return;
       }
 
-      if (receivedState && receivedState !== SUCCESS_BUILDED) {
-         IoC.resolve('ILogger').error(receivedState);
-      }
-
-      if (constants.isBrowserPlatform && (!ModulesLoader.isLoaded(options.templateName) ||
-         this._isCompat() || !receivedState)) {
-         return this._loadContentAsync(options.templateName, options.templateOptions);
+      if (constants.isBrowserPlatform && (!ModulesLoader.isLoaded(options.templateName) || constants.compat)) {
+         this.loadAsyncPromise = this._loadContentAsync(options.templateName, options.templateOptions)
+         return;
       }
 
       this.error = this._loadContentSync(options.templateName, options.templateOptions);
       if (this.error) {
          this.userErrorMessage = this.defaultErrorMessage;
-         return Promise.resolve(this.error);
+         return;
       }
-
-      return Promise.resolve(SUCCESS_BUILDED);
    }
 
    protected _componentDidMount(): void {
       this._notifyOnLoad();
+   }
+
+   protected _afterMount(): void {
+      if (this.loadAsyncPromise === null) {
+         return;
+      }
+
+      this.loadAsyncPromise.then(() => {
+         this._forceUpdate();
+      });
    }
 
    /**
@@ -220,6 +228,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
       this.error = '';
       this.currentTemplateName = templateName;
       this.optionsForComponent = {};
+      opts = opts || {};
       for (const key in opts) {
          if (opts.hasOwnProperty(key)) {
             this.optionsForComponent[key] = opts[key];
@@ -231,10 +240,6 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
          return;
       }
       this.optionsForComponent.resolvedTemplate = tpl;
-   }
-
-   protected _isCompat(): boolean {
-      return constants.compat;
    }
 
    static getOptionTypes(): Record<string, unknown> {
