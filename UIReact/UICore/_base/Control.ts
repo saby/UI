@@ -28,8 +28,6 @@ import {constants} from 'Env/Env';
 
 export type IControlConstructor<P = IControlOptions> = React.ComponentType<P>;
 
-export type IControlConstructor<P = IControlOptions> = React.ComponentType<P>;
-
 export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
 let countInst = 1;
