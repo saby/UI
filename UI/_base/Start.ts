@@ -7,6 +7,7 @@ import { headDataStore } from 'UI/Deps';
 
 /**
  * @author Санников К.А.
+ * Это старт для страниц, которые строятся от HTML-ноды
  */
 
 // tslint:disable-next-line:no-any
@@ -45,7 +46,7 @@ function startFunction(config: any, domElement: HTMLElement): void {
         AppEnv.getStateReceiver().deserialize(window['receivedStates']);
     }
 
-    // TODO свойство isNewEnvironment будет пересмотрено 
+    // TODO свойство isNewEnvironment будет пересмотрено
     // в https://online.sbis.ru/opendoc.html?guid=c28a34a5-54b2-4873-be99-f452189e64c0
     // Тут мы всегда находимся в "новом" окружении
     headDataStore.write('isNewEnvironment', true);

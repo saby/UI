@@ -7,9 +7,8 @@
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
 import { loadAsync } from 'WasabyLoader/ModulesLoader';
-import { Control } from 'UICore/Base';
+import { Control, selectRenderDomNode, IControlConstructor } from 'UICore/Base';
 import { IControlOptions } from 'UICommon/Base';
-import { IControlConstructor } from 'UICore/Base';
 import { headDataStore } from 'UI/Deps';
 
 export interface ICreateControlOptions extends IControlOptions {
@@ -48,7 +47,7 @@ export default function startFunction(config: ICreateControlOptions = {}, domEle
          * В случае с React, мы должны работать от непосредственно указанного элемента
          * FIXME https://online.sbis.ru/opendoc.html?guid=253f2514-f594-45af-9cd2-106caa67df9b
          */
-        const dom: HTMLElement = (domElement.firstElementChild || domElement.firstChild || domElement) as HTMLElement;
+        const dom: HTMLElement = selectRenderDomNode(domElement);
         // @ts-ignore
         config.bootstrapKey = dom?.attributes?.key?.value || '';
         createControl(module, config, dom);
