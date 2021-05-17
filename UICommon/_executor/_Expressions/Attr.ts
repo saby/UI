@@ -278,8 +278,15 @@ export function mergeEvents(events1, events2) {
       }
    }
    for (name in events2) {
-      if (events2.hasOwnProperty(name)) {
-         finalAttr[name] = finalAttr[name] ? events2[name].concat(finalAttr[name]) : events2[name];
+      if (events2.hasOwnProperty(name)){
+         // надо сравнить обработчики событий, т.к. для Async контентом которого является
+         // partial с подпиской на событие, при построение одинаковые события смержаться
+         // т.к. событие будет у partial (templateNode) и у Async (ControlNode)
+         if (finalAttr[name] && events2[name][0].handler() !== finalAttr[name][0].handler()) {
+          finalAttr[name] = events2[name].concat(finalAttr[name]);
+         } else {
+          finalAttr[name] = events2[name];
+         }
       }
    }
    return finalAttr;
