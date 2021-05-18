@@ -6,7 +6,7 @@ define([
       'use strict';
 
       var WasabyEvents = Events.WasabyEvents;
-      var fromNode = typeof document === 'undefined';
+      var isNodeJs = typeof document === 'undefined';
 
       var testIf = function(condition) {
          return condition ? it : it.skip;
@@ -23,7 +23,7 @@ define([
          // единообразно с обычным кликом.
          // Проверяем, что этот механизм не сбоит, и что он не генерирует лишние клики, если
          // тач-устройство стреляет их само после touchstart и touchend
-         testIf(fromNode)('does not produce extra clicks on touch devices', function(done) {
+         testIf(isNodeJs)('does not produce extra clicks on touch devices', function(done) {
             var
                elem = { removeEventListener: function(){}, blur: function() {}, focus: function() {} },
                events = new WasabyEvents(elem),
@@ -176,7 +176,7 @@ define([
                assert.isUndefined(rootDOM.parentNode.eventsRemoved);
             });
          });
-         describeIf(!fromNode)('DOMEnvironment events error', function() {
+         describeIf(!isNodeJs)('DOMEnvironment events error', function() {
             function click(el) {
                var el = el[0] ? el[0] : el;
                var ev = document.createEvent('MouseEvent');

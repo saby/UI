@@ -1,6 +1,6 @@
 /* global describe, it, assert */
 define(['UI/Base', 'UI/Utils', 'UICore/_base/Control'], (Base, Utils, Private) => {
-   var fromBrowser = typeof document !== 'undefined';
+   var isBrowser = typeof document !== 'undefined';
 
    var describeIf = function(condition) {
       return condition ? describe : describe.skip;
@@ -13,7 +13,7 @@ define(['UI/Base', 'UI/Utils', 'UICore/_base/Control'], (Base, Utils, Private) =
       });
    });
 
-   describeIf(fromBrowser)('Async _beforeMount on client', () => {
+   describeIf(isBrowser)('Async _beforeMount on client', () => {
       var Logger = Utils.Logger;
       var _privateFromControl, startTime, beforeMount, result, message;
       var warnMessage, errorMessage, warnStub, errorStub;
