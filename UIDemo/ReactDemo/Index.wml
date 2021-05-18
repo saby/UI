@@ -1,4 +1,5 @@
 <div class="demo-ReactWasaby">
-  <h1>React-Wasaby Demo</h1>
-  <UIDemo.ReactDemo.InheritedOptions.Controller />
+<!--  <h1>React-Wasaby Demo</h1>-->
+  <UIDemo.ReactDemo.InheritedOptions.Controller  on:click="clickMe()"/>
+  <button on:click="clickMe()" > Click me</button>
 </div>
