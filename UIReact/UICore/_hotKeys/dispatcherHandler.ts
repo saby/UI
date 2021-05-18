@@ -1,7 +1,7 @@
 /**
  * @author Тэн В.А.
  */
-import { goUpByControlTree } from 'UICore/NodeCollector';
+import { goUpByControlTree, IWrapHTMLElement } from 'UICore/NodeCollector';
 import { constants } from 'Env/Env';
 
 interface IExtendEvent extends Event {
