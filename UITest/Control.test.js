@@ -9,7 +9,11 @@ define(['UI/Base', 'UI/Utils', 'UICore/_base/Control'], (Base, Utils, Private) =
       });
    });
 
-   describe('Async _beforeMount on client', () => {
+   var describeIf = function(condition) {
+      return condition ? describe : describe.skip;
+   };
+
+   describeIf(!fromNode)('Async _beforeMount on client', () => {
 
       var Logger = Utils.Logger;
       var _privateFromControl, startTime, beforeMount, result, message;
@@ -36,9 +40,6 @@ define(['UI/Base', 'UI/Utils', 'UICore/_base/Control'], (Base, Utils, Private) =
       });
 
       beforeEach(function() {
-         if (fromNode){
-            this.skip();
-         }
          _privateFromControl = Private._private;
          startTime = Date.now();
          warnMessage = '';
