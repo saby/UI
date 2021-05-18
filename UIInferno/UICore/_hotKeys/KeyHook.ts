@@ -1,8 +1,8 @@
-import { Control } from 'UI/Base';
+import { Control } from 'UICore/Base';
 
 // @ts-ignore
-import template = require('wml!UI/_hotKeys/KeyHook');
-import { goUpByControlTree } from 'UI/NodeCollector';
+import template = require('wml!UICore/_hotKeys/KeyHook');
+import { goUpByControlTree } from 'UICore/NodeCollector';
 import Dispatcher from './Dispatcher';
 
 /**
@@ -41,8 +41,8 @@ function isHidden(container: HTMLElement): boolean {
  * контролом. Он регистрирует клавиши по умолчанию для всех предков, у которых еще нет зарегистрированного действия на
  * эту клавишу, и, в случае необработанного нажатия этих клавиш, в дочерний контрол будет перенаправлено событие о
  * нажатии на клавишу, и там будет обработано.
- * @class UI/_hotKeys/KeyHook
- * @extends UI/Base:Control
+ * @class UICore/_hotKeys/KeyHook
+ * @extends UICore/Base:Control
  * @public
  * @author Тэн В.А.
  */
@@ -74,7 +74,7 @@ class KeyHook extends Control {
           // todo придумать проверку получше https://online.sbis.ru/opendoc.html?guid=50215de6-da5c-44bf-b6f6-a9f7cb0e17d2
           const wholeParents = goUpByControlTree(this._container);
           const popupIndex = wholeParents.findIndex((parent) => parent._moduleName === 'Controls/_popup/Manager/Popup');
-          const keyHookIndex = wholeParents.findIndex((parent) => parent._moduleName === 'UI/HotKeys:KeyHook');
+          const keyHookIndex = wholeParents.findIndex((parent) => parent._moduleName === 'UICore/HotKeys:KeyHook');
           const startIndex = keyHookIndex === -1 ? 0 : keyHookIndex;
           const endIndex = popupIndex === -1 ? wholeParents.length : popupIndex + 1;
           const parents = wholeParents.slice(startIndex, endIndex);
