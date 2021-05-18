@@ -8,10 +8,11 @@ import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
 import { loadAsync } from 'WasabyLoader/ModulesLoader';
 import { Control } from 'UICore/Base';
-import { TControlConstructor } from 'UICommon/interfaces';
+import { IControlOptions } from 'UICommon/Base';
+import { IControlConstructor } from 'UICore/Base';
 import { headDataStore } from 'UI/Deps';
 
-export interface ICreateControlOptions {
+export interface ICreateControlOptions extends IControlOptions {
     application?: string;
     buildnumber?: string;
     bootstrapKey?: string;
@@ -39,7 +40,7 @@ export default function startFunction(config: ICreateControlOptions = {}, domEle
     if (moduleName) {
         moduleName = moduleName.value;
     }
-    loadAsync(moduleName).then((module: TControlConstructor): void => {
+    loadAsync(moduleName).then((module: IControlConstructor<IControlOptions>): void => {
         config.application = moduleName;
         config.buildnumber = window['buildnumber'];
         const dom: HTMLElement = (domElement.firstElementChild || domElement.firstChild) as HTMLElement;
@@ -55,7 +56,7 @@ export default function startFunction(config: ICreateControlOptions = {}, domEle
  * @param config
  * @param dom
  */
-function createControl(control: TControlConstructor, config: ICreateControlOptions, dom: HTMLElement): void {
+function createControl(control: IControlConstructor<IControlOptions>, config: ICreateControlOptions, dom: HTMLElement): void {
     let configReady: ICreateControlOptions = config || {};
     if (typeof window !== 'undefined' && window['wsConfig']) {
         configReady = {...configReady, ...window['wsConfig']};

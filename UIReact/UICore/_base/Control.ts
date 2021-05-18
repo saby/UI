@@ -22,6 +22,8 @@ import { IWasabyEventSystem } from 'UICommon/Events';
 import { TIState, TControlConfig, IControl } from 'UICommon/interfaces';
 import { IControlOptions, TemplateFunction } from 'UICommon/Base';
 
+export type IControlConstructor<P = IControlOptions> = React.ComponentType<P>;
+
 export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 
 /**
@@ -616,7 +618,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * @param domElement Элемент, на который должен быть смонтирован контрол.
      */
     static createControl<P extends IControlOptions & { eventSystem?: IWasabyEventSystem }>(
-        ctor: React.ComponentType<P>,
+        ctor: IControlConstructor<P>,
         cfg: P,
         domElement: HTMLElement
     ): void {
