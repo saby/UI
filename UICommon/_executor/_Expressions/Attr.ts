@@ -278,7 +278,7 @@ export function mergeEvents(events1, events2) {
       }
    }
    for (name in events2) {
-      if (events2.hasOwnProperty(name)){
+      if (events2.hasOwnProperty(name)) {
          finalAttr[name] = finalAttr[name] ? events2[name].concat(finalAttr[name]) : events2[name];
       }
    }
