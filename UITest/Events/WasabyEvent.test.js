@@ -75,7 +75,7 @@ define([
                touchCount++;
             };
             touchEmitInterval = setInterval(touchEmit, 15);
-         }).timeout(3000);  // 15 * 50 = 1500 + 500 внутренний счетчик оценки клика. Т.е. есть вероятность не успеть за 2000 мс
+         });
 
          describe("WasabyEvents events", function() {
             var handlers, events, windowObject, rootDOM;
