@@ -56,6 +56,11 @@ export default class Control<TOptions extends IControlOptions = {},
      * чтобы в хуках были правильные значения.
      */
     protected _options: TOptions = {} as TOptions;
+    /**
+     * Опции, который были до рендера контрола, передаются как параметр в хуки
+     * жизненного цикла _afterRender и _afterUpdate
+     */
+    private _oldOptions: TOptions = {} as TOptions;
 
     /**
      * Версии опций для версионируемых объектов.
@@ -397,7 +402,7 @@ export default class Control<TOptions extends IControlOptions = {},
 
     componentDidUpdate(prevProps: TOptions): void {
         if (this._$controlMounted) {
-            const oldOptions = this._options;
+            const oldOptions = this._oldOptions;
             this._options = createWasabyOptions(this.props, this.context);
             this._optionsVersions = Options.collectObjectVersions(this._options);
             this._afterRender(oldOptions);
@@ -456,10 +461,9 @@ export default class Control<TOptions extends IControlOptions = {},
 
         let res;
         try {
-            let ctx = Object.create(this);
-            ctx._options = {...wasabyOptions};
-            // this клонируется, чтобы вызвать шаблон с новыми значениями опций, но пока не класть их на инстанс.
-            res = this._template(ctx, this._options._$attributes, undefined, true);
+            this._oldOptions = this._options;
+            this._options = wasabyOptions;
+            res = this._template(this, this._options._$attributes, undefined, true);
             const originRef = res[0].ref;
             // tslint:disable-next-line:no-this-assignment
             const control = this;
