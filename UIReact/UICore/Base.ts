@@ -11,3 +11,12 @@ export function getGeneratorConfig(): IGeneratorConfig {
 export function startApplication(cfg?: Record<string, unknown>): void {
     throw new Error('В сборке на Реатке нет метода startApplication');
 }
+
+/**
+ * Возвращаем ноду, от которой начинаем строить.
+ * UIReact строит в переданном контейнере
+ * @param node Element
+ */
+export function selectRenderDomNode(node: HTMLElement): HTMLElement {
+    return node;
+}
