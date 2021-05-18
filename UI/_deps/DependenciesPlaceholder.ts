@@ -46,7 +46,15 @@ function addBaseScripts(cfg: IOptions): void {
 function resolveLink(path: string, type: string = ''): string {
    return ModulesLoader.getModuleUrl(type ? `${type}!${path}` : path, cookie.get('s3debug'));
 }
-
+export const UTILS_SCRIPTS_NAMESPACE: string = 'utilScripts';
+function addUtilScripts(): void {
+   const API = AppJSLinks.getInstance(UTILS_SCRIPTS_NAMESPACE);
+   API.createTag('script', {
+      type: 'text/javascript',
+      src: getResourceUrl('/cdn/Boomerang/v.0.0.2.js'),
+      defer: 'defer'
+   });
+}
 /**
  * Наполняем JSLinks API собранными зависимостями
  * @param deps
@@ -138,7 +146,9 @@ export function aggregateDependencies(cfg: IOptions, deps: ICollectedDeps): ICol
    aggregateCSS(cfg.theme, deps.css.simpleCss, deps.css.themedCss);
    handlePrefetchModules(deps.js);
    addBaseScripts(cfg);
+   addUtilScripts();
    aggregateJS(deps);
 
    return deps;
 }
+
