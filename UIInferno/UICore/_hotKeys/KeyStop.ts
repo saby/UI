@@ -1,7 +1,7 @@
-import { Control, IControlOptions, TemplateFunction } from 'UI/Base';
+import { Control, IControlOptions, TemplateFunction } from 'UICore/Base';
 
 // @ts-ignore
-import * as template from 'wml!UI/_hotKeys/KeyStop';
+import * as template from 'wml!UICore/_hotKeys/KeyStop';
 
 import { SyntheticEvent } from 'UICommon/Events';
 
@@ -15,8 +15,8 @@ interface IKeyStopOptions extends IControlOptions {
 
 /**
  * Контрол, который позволяет предотвращать всплытие событий нажатий на клавиши
- * @class UI/_hotKeys/KeyStop
- * @extends UI/Base:Control
+ * @class UICore/_hotKeys/KeyStop
+ * @extends UICore/Base:Control
  * @public
  * @author Тэн В.А.
  */
