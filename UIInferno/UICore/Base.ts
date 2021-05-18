@@ -13,4 +13,4 @@ export {
 
 export { getGeneratorConfig } from './_base/GeneratorConfig';
 
-export { default as startApplication } from './_base/startApplication';
+export { default as startApplication, selectRenderDomNode } from './_base/startApplication';

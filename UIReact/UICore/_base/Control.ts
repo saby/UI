@@ -459,23 +459,29 @@ export default class Control<TOptions extends IControlOptions = {},
             return showErrorRender(wasabyOptions, this.state.error);
         }
 
-        let res;
+        let realFiberNode;
+        let result: React.ReactElement;
         try {
             this._oldOptions = this._options;
             this._options = wasabyOptions;
-            res = this._template(this, this._options._$attributes, undefined, true);
-            const originRef = res[0].ref;
+            const res = this._template(this, this._options._$attributes, undefined, true);
+            realFiberNode = res;
+            while (realFiberNode instanceof Array) {
+                realFiberNode = realFiberNode[0]
+            }
+            const originRef = realFiberNode.ref;
+
             // tslint:disable-next-line:no-this-assignment
             const control = this;
-            res[0] = {
-                ...res[0], ref: (node) => {
+            result = {
+                ...realFiberNode, ref: (node) => {
                     prepareControlNodes(node, control, Control);
                     return originRef && originRef.apply(this, [node]);
                 }
             };
         } catch (e) {
             logError(e);
-            res = [];
+            result = null;
         }
 
         return createElement(
@@ -484,7 +490,7 @@ export default class Control<TOptions extends IControlOptions = {},
                 readOnly: wasabyOptions.readOnly,
                 theme: wasabyOptions.theme
             },
-            res[0]
+            result
         );
     }
 
@@ -807,9 +813,8 @@ function showErrorRender(props, error): React.ReactElement {
 
         }
     }, [
-        createElement('div', {key: "e1"}, error.message),
-        createElement('div', {key: "e2"}, error.stack),
-        createElement('div', {key: "e3"}, JSON.stringify(props)),
+        createElement('div', { key: "e1" }, error.message),
+        createElement('div', { key: "e2" }, error.stack)
     ]);
 }
 
