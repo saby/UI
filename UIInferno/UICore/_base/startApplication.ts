@@ -25,3 +25,12 @@ export default function startApplication(cfg?: Record<string, any>): void {
         stateReceiverInst.deserialize(window['receivedStates']);
     }
 }
+
+/**
+ * Возвращаем ноду, от которой начинаем строить.
+ * UIInferno заменяет переданный компонент.
+ * @param node HTMLElement
+ */
+export function selectRenderDomNode(node: HTMLElement): HTMLElement {
+    return (node.firstElementChild || node.firstChild) as HTMLElement;
+}

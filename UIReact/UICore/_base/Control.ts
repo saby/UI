@@ -454,25 +454,31 @@ export default class Control<TOptions extends IControlOptions = {},
             return showErrorRender(wasabyOptions, this.state.error);
         }
 
-        let res;
+        let realFiberNode;
+        let result: React.ReactElement;
         try {
             // FIXME https://online.sbis.ru/opendoc.html?guid=be97d672-d7ff-442b-b409-494515282ec5
             let ctx = Object.create(this);
-            ctx._options = {...wasabyOptions};
+            ctx._options = { ...wasabyOptions };
             // this клонируется, чтобы вызвать шаблон с новыми значениями опций, но пока не класть их на инстанс.
-            res = this._template(ctx, this._options._$attributes, undefined, true);
-            const originRef = res[0].ref;
+            const res = this._template(ctx, this._options._$attributes, undefined, true);
+            realFiberNode = res;
+            while (realFiberNode instanceof Array) {
+                realFiberNode = realFiberNode[0]
+            }
+            const originRef = realFiberNode.ref;
+
             // tslint:disable-next-line:no-this-assignment
             const control = this;
-            res[0] = {
-                ...res[0], ref: (node) => {
+            result = {
+                ...realFiberNode, ref: (node) => {
                     prepareControlNodes(node, control, Control);
                     return originRef && originRef.apply(this, [node]);
                 }
             };
         } catch (e) {
             logError(e);
-            res = [];
+            result = null;
         }
 
         return createElement(
@@ -481,7 +487,7 @@ export default class Control<TOptions extends IControlOptions = {},
                 readOnly: wasabyOptions.readOnly,
                 theme: wasabyOptions.theme
             },
-            res[0]
+            result
         );
     }
 
