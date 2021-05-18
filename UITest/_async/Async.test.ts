@@ -62,7 +62,7 @@ describe('UICore/Async:Async', () => {
                 assert.equal(async.getError(), ERROR_TEXT);
                 assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, undefined);
             });
-        }).timeout(4000);
+        });
     }
 
     it('Loading synchronous client-side', () => {
@@ -105,7 +105,7 @@ describe('UICore/Async:Async', () => {
             assert.equal(async.getError(), ERROR_TEXT);
             assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, undefined);
         });
-    }).timeout(4000);
+    });
 
     it('Loading asynchronous client-side', () => {
         const options = getOptions('UITest/_async/TestControlAsync');
@@ -120,7 +120,7 @@ describe('UICore/Async:Async', () => {
             assert.strictEqual(async.getOptionsForComponent().resolvedTemplate,
                 require('UITest/_async/TestControlAsync'));
         });
-    }).timeout(3000);
+    });
 
     it('Loading asynchronous from library client-side', () => {
         const options = getOptions('UITest/_async/TestLibraryAsync:ExportControl');
@@ -135,7 +135,7 @@ describe('UICore/Async:Async', () => {
             assert.strictEqual(async.getOptionsForComponent().resolvedTemplate,
                 require('UITest/_async/TestLibraryAsync').ExportControl);
         });
-    }).timeout(3000);
+    });
 
     it('Loading asynchronous client-side failed', () => {
         const options = getOptions('UITest/_async/Fail/TestControlAsync');
@@ -156,5 +156,5 @@ describe('UICore/Async:Async', () => {
             assert.equal(async.getError(), ERROR_TEXT);
             assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, undefined);
         });
-    }).timeout(4000);
+    });
 });
