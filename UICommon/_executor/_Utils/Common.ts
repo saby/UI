@@ -71,13 +71,16 @@ const tagsToReplace = {
    '{{': '&lcub;&lcub;',
    '}}': '&rcub;&rcub;'
 };
-const ampRegExp = /&([^#])/g;
+const ampRegExp = /&/g;
 const otherEscapeRegExp = /({{)|(}})|([<>'"])/g;
 
 export function escape(entity) {
    if (isString(entity)) {
-      entity = entity.replace(ampRegExp, function escapeReplace(tag, suffix) {
-         return '&amp;' + suffix;
+      entity = entity.replace(ampRegExp, function escapeReplace(match, offset, str) {
+         if (str[offset + 1] === '#') {
+            return match;
+         }
+         return '&amp;';
       });
 
       return entity.replace(otherEscapeRegExp, function escapeReplace(tag) {

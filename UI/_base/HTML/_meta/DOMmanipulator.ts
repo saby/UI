@@ -1,7 +1,7 @@
 /// <amd-module name="UI/_base/HTML/_meta/DOMmanipulator" />
 import { IMetaState, IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
 import { Head as HeadAPI } from 'Application/Page';
-import { IHeadTagId } from 'Application/Interface';
+import type { IHeadTagId } from 'Application/Page';
 
 export function mountState(state: IMetaStateInternal): IHeadTagId[] {
    const { title, og } = state.getMeta();

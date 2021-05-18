@@ -26,14 +26,20 @@ import { DisposeControl, IResourceDisposable } from 'Application/State';
 import {
    TIState,
    TControlConfig,
-   IControl,
-   TControlConstructor
+   IControl
 } from 'UICommon/interfaces';
 import {
    ITemplateAttrs
 } from 'UICore/interfaces';
 
-export type IControlConstructor<P = IControlOptions> = TControlConstructor<P>;
+interface IHasChildContext {
+   _getChildContext?: Function;
+}
+
+export type IControlConstructor<TOptions extends IControlOptions = {}> = {
+   new(cfg: TOptions): Control<TOptions> & IHasChildContext;
+   prototype: Control<TOptions> & IHasChildContext;
+};
 
 export type IControlChildren = Record<string, Element | Control | Control<IControlOptions, {}>>;
 

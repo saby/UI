@@ -109,13 +109,16 @@ define('Compiler/modules/utils/common', ['Env/Env'], function utilsLoader(Env) {
       '{{': '&lcub;&lcub;',
       '}}': '&rcub;&rcub;'
    };
-   var ampRegExp = /&([^#])/g;
+   var ampRegExp = /&/g;
    var otherEscapeRegExp = /({{)|(}})|([<>'"])/g;
 
    function escape(entity) {
       if (entity && typeof entity === 'string') {
-         entity = entity.replace(ampRegExp, function escapeReplace(tag, suffix) {
-            return '&amp;' + suffix;
+         entity = entity.replace(ampRegExp, function escapeReplace(match, offset, str) {
+            if (str[offset + 1] === '#') {
+               return match;
+            }
+            return '&amp;';
          });
 
          return entity.replace(otherEscapeRegExp, function escapeReplace(tag) {

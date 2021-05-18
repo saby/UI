@@ -7,4 +7,7 @@ export default class Controller extends Control {
    protected _template: TemplateFunction = template;
    protected _themeName: string = 'testTheme';
    protected _readOnly: boolean = false;
+   protected clickMe() {
+      console.log('click click');
+   }
 }
