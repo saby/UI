@@ -283,8 +283,8 @@ export function mergeEvents(events1, events2, preventMergeEvents = false) {
       // в таком случае события смержаться хотя не должны, поэтому следует передать опцию _preventMergeEvents = true
       // такой костыль нужен для того чтобы пробросить item вниз для каждого элемента for
       // https://online.sbis.ru/opendoc.html?guid=80e990de-0813-446e-a372-f00fb7163461
-      if (events2.hasOwnProperty(name) && !preventMergeEvents){
-         finalAttr[name] = finalAttr[name] ? events2[name].concat(finalAttr[name]) : events2[name];
+      if (events2.hasOwnProperty(name)){
+         finalAttr[name] = (finalAttr[name] && !preventMergeEvents) ? events2[name].concat(finalAttr[name]) : events2[name];
       }
    }
    return finalAttr;
