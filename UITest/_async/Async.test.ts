@@ -13,6 +13,18 @@ function getOptions(templateName: string): IAsyncOptions {
     };
 }
 
+function testWithTimeout(name: string, fn: unknown, timeout?: number): unknown {
+    // @ts-ignore FIXME: удалить после полного переключения на Jest
+    const res = it(name, fn, timeout);
+    if (typeof timeout !== 'number') {
+        return res;
+    }
+    if (typeof res.timeout === 'function') {
+        res.timeout(timeout);
+    }
+    return res;
+}
+
 describe('UICore/Async:Async', () => {
     // переопределяем логгер, чтобы при ошибках загрузки не упали тесты из-за сообщений логгера
     const warns = [];
@@ -47,7 +59,7 @@ describe('UICore/Async:Async', () => {
             constants.compat = oldCompat;
         });
 
-        it('Loading synchronous server-side failed', () => {
+        testWithTimeout('Loading synchronous server-side failed', () => {
             const options = getOptions('UITest/_async/Fail/TestControlSync');
             const ERROR_TEXT = 'Ошибка загрузки контрола "UITest/_async/Fail/TestControlSync"'
                 + '\nВозможны следующие причины:\n\t                   • '
@@ -62,10 +74,10 @@ describe('UICore/Async:Async', () => {
                 assert.equal(async.getError(), ERROR_TEXT);
                 assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, undefined);
             });
-        }).timeout(4000);
+        }, 4000);
     }
 
-    it('Loading synchronous client-side', () => {
+    testWithTimeout('Loading synchronous client-side', () => {
         const oldCompat = constants.compat;
         constants.compat = false;
         const options = getOptions('UITest/_async/TestControlSync');
@@ -88,9 +100,9 @@ describe('UICore/Async:Async', () => {
         assert.includeMembers(notifyStub.getCall(0).args, ['load'], 'Не было опубликовано событие "load"');
 
         constants.compat = oldCompat;
-    });
+    }, 4000);
 
-    it('Loading synchronous client-side failed', () => {
+    testWithTimeout('Loading synchronous client-side failed', () => {
         const options = getOptions('UITest/_async/Fail/TestControlSync');
         const ERROR_TEXT = 'Ошибка загрузки контрола "UITest/_async/Fail/TestControlSync"\n'
             + 'Возможны следующие причины:\n\t                   • '
@@ -105,9 +117,9 @@ describe('UICore/Async:Async', () => {
             assert.equal(async.getError(), ERROR_TEXT);
             assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, undefined);
         });
-    }).timeout(4000);
+    }, 4000);
 
-    it('Loading asynchronous client-side', () => {
+    testWithTimeout('Loading asynchronous client-side', () => {
         const options = getOptions('UITest/_async/TestControlAsync');
         const async = new Async(options);
         // @ts-ignore Хак: Почему-то нет опций после конструктора
@@ -120,9 +132,9 @@ describe('UICore/Async:Async', () => {
             assert.strictEqual(async.getOptionsForComponent().resolvedTemplate,
                 require('UITest/_async/TestControlAsync'));
         });
-    }).timeout(3000);
+    }, 3000);
 
-    it('Loading asynchronous from library client-side', () => {
+    testWithTimeout('Loading asynchronous from library client-side', () => {
         const options = getOptions('UITest/_async/TestLibraryAsync:ExportControl');
         const async = new Async(options);
         // @ts-ignore Хак: Почему-то нет опций после конструктора
@@ -135,9 +147,9 @@ describe('UICore/Async:Async', () => {
             assert.strictEqual(async.getOptionsForComponent().resolvedTemplate,
                 require('UITest/_async/TestLibraryAsync').ExportControl);
         });
-    }).timeout(3000);
+    }, 3000);
 
-    it('Loading asynchronous client-side failed', () => {
+    testWithTimeout('Loading asynchronous client-side failed', () => {
         const options = getOptions('UITest/_async/Fail/TestControlAsync');
         const ERROR_TEXT = 'Ошибка загрузки контрола "UITest/_async/Fail/TestControlAsync"\n'
             + 'Возможны следующие причины:\n\t                   • '
@@ -156,5 +168,5 @@ describe('UICore/Async:Async', () => {
             assert.equal(async.getError(), ERROR_TEXT);
             assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, undefined);
         });
-    }).timeout(4000);
+    }, 4000);
 });
