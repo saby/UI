@@ -5,6 +5,7 @@ import { Async, TAsyncStateReceived, IAsyncOptions } from 'UICore/Async';
  */
 export default class AsyncTest extends Async {
     _beforeMount(options: IAsyncOptions, _: unknown = null, receivedState: TAsyncStateReceived = ''): Promise<TAsyncStateReceived> {
+        // @ts-ignore
         return super._beforeMount(options, _, receivedState);
     }
 
