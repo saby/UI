@@ -219,8 +219,8 @@ export default class Control<TOptions extends IControlOptions = {},
                         this._componentDidMount(options);
                         this._$controlMounted = true;
                         setTimeout(() => {
-                            this._afterMount(options);
                             makeWasabyObservable<TOptions, TState>(this);
+                            this._afterMount(options);
                         }, 0);
                     }
                 );
