@@ -524,6 +524,21 @@ export default class Control<TOptions extends IControlOptions = {},
     static _theme: string[] = [];
 
     /**
+     * Получение прототипа суперкласса.
+     * TODO: удалить после переписывания всех использований поля superclass.
+     * Этап переписывания https://online.sbis.ru/opendoc.html?guid=8275658b-2b1a-4e00-870f-038edd1efb94
+     * @deprecated
+     * @static
+     * @example
+     * <pre class="brush: js">
+     *     GridView.superclass._beforeUpdate.apply(this, arguments);
+     * </pre>
+     */
+    static get superclass(): Control {
+        return Object.getPrototypeOf(this).prototype;
+    }
+
+    /**
      * Загрузка стилей и тем контрола
      * @param themeName имя темы (по-умолчанию тема приложения)
      * @param themes массив доп тем для скачивания
