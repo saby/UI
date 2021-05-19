@@ -56,6 +56,11 @@ export default class Control<TOptions extends IControlOptions = {},
      * чтобы в хуках были правильные значения.
      */
     protected _options: TOptions = {} as TOptions;
+    /**
+     * Опции, который были до рендера контрола, передаются как параметр в хуки
+     * жизненного цикла _afterRender и _afterUpdate
+     */
+    private _oldOptions: TOptions = {} as TOptions;
 
     /**
      * Версии опций для версионируемых объектов.
@@ -397,7 +402,7 @@ export default class Control<TOptions extends IControlOptions = {},
 
     componentDidUpdate(prevProps: TOptions): void {
         if (this._$controlMounted) {
-            const oldOptions = this._options;
+            const oldOptions = this._oldOptions;
             this._options = createWasabyOptions(this.props, this.context);
             this._optionsVersions = Options.collectObjectVersions(this._options);
             this._afterRender(oldOptions);
@@ -457,11 +462,10 @@ export default class Control<TOptions extends IControlOptions = {},
         let realFiberNode;
         let result: React.ReactElement;
         try {
-            // FIXME https://online.sbis.ru/opendoc.html?guid=be97d672-d7ff-442b-b409-494515282ec5
-            let ctx = Object.create(this);
-            ctx._options = { ...wasabyOptions };
-            // this клонируется, чтобы вызвать шаблон с новыми значениями опций, но пока не класть их на инстанс.
-            const res = this._template(ctx, this._options._$attributes, undefined, true);
+            this._oldOptions = this._options;
+            // можем обновить здесь опции, старые опции для хуков будем брать из _oldOptions
+            this._options = wasabyOptions;
+            const res = this._template(this, this._options._$attributes, undefined, true);
             realFiberNode = res;
             while (realFiberNode instanceof Array) {
                 realFiberNode = realFiberNode[0]
