@@ -56,23 +56,18 @@ export const UTILS_SCRIPTS_NAMESPACE: string = 'utilScripts';
 function addUtilScripts(cfg: IOptions): void {
    const API = AppJSLinks.getInstance(UTILS_SCRIPTS_NAMESPACE);
    const scripts = {
-      boomerang: '/cdn/Boomerang/v.0.0.2',
-      timetester: 'SbisEnvUI/TimeTesterInv'
+      boomerang: '/cdn/Boomerang/v.0.0.2.js',
+      timetester: `${cfg.resourceRoot}SbisEnvUI/TimeTesterInv.js`
    };
    for (const scriptsKey in scripts) {
       if (scripts.hasOwnProperty(scriptsKey)) {
-         const rawUrl = `${scripts[scriptsKey]}.js`;
-         const src = rawUrl.startsWith('/') ? rawUrl : getResourceUrl(cfg.resourceRoot + rawUrl);
-
          API.createTag('script', {
             type: 'text/javascript',
-            defer: 'defer',
             key: scriptsKey,
-            src
+            src: getResourceUrl(scripts[scriptsKey])
          });
       }
    }
-
 }
 
 /**
