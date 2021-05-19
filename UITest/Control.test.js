@@ -1,6 +1,10 @@
 /* global describe, it, assert */
 define(['UI/Base', 'UI/Utils', 'UICore/_base/Control'], (Base, Utils, Private) => {
-   var fromNode = typeof document === 'undefined';
+   var isBrowser = typeof document !== 'undefined';
+
+   var describeIf = function(condition) {
+      return condition ? describe : describe.skip;
+   };
 
    describe('UITest/Test', () => {
       it('new control', () => {
@@ -9,8 +13,7 @@ define(['UI/Base', 'UI/Utils', 'UICore/_base/Control'], (Base, Utils, Private) =
       });
    });
 
-   describe('Async _beforeMount on client', () => {
-
+   describeIf(isBrowser)('Async _beforeMount on client', () => {
       var Logger = Utils.Logger;
       var _privateFromControl, startTime, beforeMount, result, message;
       var warnMessage, errorMessage, warnStub, errorStub;
@@ -36,9 +39,6 @@ define(['UI/Base', 'UI/Utils', 'UICore/_base/Control'], (Base, Utils, Private) =
       });
 
       beforeEach(function() {
-         if (fromNode){
-            this.skip();
-         }
          _privateFromControl = Private._private;
          startTime = Date.now();
          warnMessage = '';

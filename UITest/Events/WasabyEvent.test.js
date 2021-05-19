@@ -6,6 +6,15 @@ define([
       'use strict';
 
       var WasabyEvents = Events.WasabyEvents;
+      var isNodeJs = typeof document === 'undefined';
+
+      var testIf = function(condition) {
+         return condition ? it : it.skip;
+      };
+
+      var describeIf = function(condition) {
+         return condition ? describe : describe.skip;
+      };
 
       describe('WasabyEvent', function() {
          // В DOMEnvironment есть механизм совместимости для некоторых touch-устройств,
@@ -14,11 +23,7 @@ define([
          // единообразно с обычным кликом.
          // Проверяем, что этот механизм не сбоит, и что он не генерирует лишние клики, если
          // тач-устройство стреляет их само после touchstart и touchend
-         it('does not produce extra clicks on touch devices', function(done) {
-            if (typeof document !== 'undefined') {
-               return this.skip();
-            }
-
+         testIf(isNodeJs)('does not produce extra clicks on touch devices', function(done) {
             var
                elem = { removeEventListener: function(){}, blur: function() {}, focus: function() {} },
                events = new WasabyEvents(elem),
@@ -70,7 +75,7 @@ define([
                touchCount++;
             };
             touchEmitInterval = setInterval(touchEmit, 15);
-         }).timeout(3000);  // 15 * 50 = 1500 + 500 внутренний счетчик оценки клика. Т.е. есть вероятность не успеть за 2000 мс
+         });
 
          describe("WasabyEvents events", function() {
             var handlers, events, windowObject, rootDOM;
@@ -171,7 +176,7 @@ define([
                assert.isUndefined(rootDOM.parentNode.eventsRemoved);
             });
          });
-         describe('DOMEnvironment events error', function() {
+         describeIf(!isNodeJs)('DOMEnvironment events error', function() {
             function click(el) {
                var el = el[0] ? el[0] : el;
                var ev = document.createEvent('MouseEvent');
@@ -189,14 +194,10 @@ define([
 
             var Logger = UIUtils.Logger;
             var errorMessage, errorStub;
-            var fromNode = typeof document === 'undefined';
             var loggerErrorMock = (msg, errorPoint, errorInfo) => {
                errorMessage = msg + ' ' + errorInfo;
             };
             beforeEach(function() {
-               if (fromNode) {
-                  this.skip();
-               }
                errorMessage = '';
                errorStub = sinon.stub(Logger, 'error').callsFake(loggerErrorMock);
             });
