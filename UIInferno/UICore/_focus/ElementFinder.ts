@@ -130,7 +130,8 @@ export function getElementProps(element: HTMLElement): IFocusElementProps {
    }
    if (enabled) {
       tabIndexAttr = element.getAttribute('tabindex');
-      tabIndex = parseInt(tabIndexAttr, 10);if(isNaN(tabIndex)) {
+      tabIndex = parseInt(tabIndexAttr, 10);
+      if(isNaN(tabIndex)) {
          tabIndex = fixInvalidTabindex(element, isContentEditable);
       }
       isContentEditable = element.getAttribute('contenteditable') === 'true';
