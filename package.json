@@ -22,7 +22,7 @@
       "WmlBuilder/*"
    ],
    "scripts": {
-      "build": "npm run build:typescript && npm run build:react",
+      "build": "npm run build:typescript && npm run build:app",
       "build:typescript": "wasaby-cli --tasks=prepare",
       "build:app": "wasaby-cli --tasks=build",
       "build:react": "wasaby-cli --tasks=build --react",
