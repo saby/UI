@@ -145,7 +145,8 @@ export function getElementProps(element: HTMLElement, tabbable: boolean = false)
    }
    if (enabled) {
       tabIndexAttr = element.getAttribute('tabindex');
-      tabIndex = parseInt(tabIndexAttr, 10);if(isNaN(tabIndex)) {
+      tabIndex = parseInt(tabIndexAttr, 10);
+      if(isNaN(tabIndex)) {
          tabIndex = fixInvalidTabindex(element, isContentEditable);
       }
       isContentEditable = element.getAttribute('contenteditable') === 'true';
