@@ -468,7 +468,7 @@ export default class Control<TOptions extends IControlOptions = {},
             const res = this._template(this, this._options._$attributes, undefined, true);
             realFiberNode = res;
             while (realFiberNode instanceof Array) {
-                realFiberNode = realFiberNode[0]
+                realFiberNode = realFiberNode[0];
             }
             const originRef = realFiberNode.ref;
 

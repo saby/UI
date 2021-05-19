@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Logger } from 'UICommon/Utils';
+import { Logger, ArrayUtils } from 'UICommon/Utils';
 import {
     CommonUtils as Common,
     onElementMount,
@@ -94,7 +94,7 @@ export class GeneratorVdom extends Generator implements IGenerator {
      */
     joinElements(elements: React.ReactNode): React.ReactNode {
         if (Array.isArray(elements)) {
-            return elements;
+            return ArrayUtils.flatten(elements, true);
         } else {
             throw new Error('joinElements: elements is not array');
         }
