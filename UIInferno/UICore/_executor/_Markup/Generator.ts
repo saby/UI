@@ -231,9 +231,9 @@ function prepareNewArguments(
       key: config.key
    };
    const actualAttributes = config.mergeType === 'attribute'
-      ? Helper.plainMergeAttr(config.attr, decorAttribs)
+      ? Helper.plainMergeAttr(config.attr, decorAttribs, options)
       : config.mergeType === 'context'
-         ? Helper.plainMergeContext(config.attr, decorAttribs)
+         ? Helper.plainMergeContext(config.attr, decorAttribs, options)
          : decorAttribs;
    const actualOptions = config.scope === null ? options : Helper.uniteScope(config.scope, options);
    const actualConfig = {
