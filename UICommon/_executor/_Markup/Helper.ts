@@ -5,7 +5,7 @@ import { processMergeAttributes } from '../_Expressions/Attr';
 export { uniteScope } from '../_Expressions/Scope';
 export { processMergeAttributes };
 
-export function plainMergeAttr(inner, object) {
+export function plainMergeAttr(inner, object, options) {
    if (!inner) {
       inner = {};
    }
@@ -35,7 +35,7 @@ export function plainMergeAttr(inner, object) {
       domNodeProps: {},
       key: controlKey,
       attributes: Attr.processMergeAttributes(inner.attributes, object.attributes),
-      events: Attr.mergeEvents(inner.events, object.events)
+      events: Attr.mergeEvents(inner.events, object.events, options._preventMergeEvents)
    };
 }
 
