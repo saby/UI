@@ -463,6 +463,7 @@ export default class Control<TOptions extends IControlOptions = {},
         let result: React.ReactElement;
         try {
             this._oldOptions = this._options;
+            // можем обновить здесь опции, старые опции для хуков будем брать из _oldOptions
             this._options = wasabyOptions;
             const res = this._template(this, this._options._$attributes, undefined, true);
             realFiberNode = res;
