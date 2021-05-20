@@ -1,4 +1,5 @@
-import {Component, createElement} from 'react';
+//tslint:disable:ban-ts-ignore
+import { Component, createElement } from 'react';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {getStateReceiver} from 'Application/Env';
@@ -751,27 +752,28 @@ export default class Control<TOptions extends IControlOptions = {},
     /**
      * Старый способ наследоваться
      * @param mixinsList массив миксинов либо расширяющий класс (если один аргумент)
-     * @param classExtender расширяюший класс
+     * @param baseClass расширяюший класс
      */
-    static extend(mixinsList: object | object[], classExtender?: object): Function {
-        class ExtendedControl extends Control {
-        }
+    static extend(mixinsList: object | object[], baseClass?: object): Function {
+        let extendedClass = baseClass;
+        let mixins = mixinsList instanceof Array ? mixinsList : [mixinsList];
 
-        if (Array.isArray(mixinsList)) {
-            mixinsList.forEach((mixin) => {
-                Object.keys(mixin).forEach((key) => {
-                    ExtendedControl.prototype[key] = mixin[key];
-                });
-                Object.keys(classExtender).forEach((key) => {
-                    ExtendedControl.prototype[key] = classExtender[key];
-                });
-            });
-        } else {
-            Object.keys(mixinsList).forEach((key) => {
-                ExtendedControl.prototype[key] = mixinsList[key];
-            });
+        for (let i = 0; i < mixins.length; i++) {
+            // @ts-ignore
+            extendedClass = Control._extend<any,any>(classExtender, mixins[i]);
         }
-        return ExtendedControl;
+        // @ts-ignore
+        return extendedClass;
+    }
+
+    // @ts-ignore
+    static _extend<S, M>(self: S, mixin: M): S & M {
+        // @ts-ignore
+        const mixinClass = Object.assign(null, mixin);
+        // @ts-ignore
+        mixinClass.prototype = Object.create(self.prototype);
+        mixinClass.constructor = self.constructor;
+        return mixinClass;
     }
 
     static getDerivedStateFromError(error: unknown): { hasError: boolean, error: unknown } {
