@@ -47,14 +47,14 @@ function resolveLink(path: string, type: string = ''): string {
    return ModulesLoader.getModuleUrl(type ? `${type}!${path}` : path, cookie.get('s3debug'));
 }
 
-export const UTILS_SCRIPTS_NAMESPACE: string = 'utilScripts';
+export const TIMETESTER_SCRIPTS_NAMESPACE: string = 'timeTesterScripts';
 
 /**
  * Заполняем JSLinks API TimeTesterInv и boomerang для сбора показателей RUM.
  * @param cfg - конфиг для страницы.
  */
 function addTimeTester(cfg: IOptions): void {
-   const API = AppJSLinks.getInstance(UTILS_SCRIPTS_NAMESPACE);
+   const API = AppJSLinks.getInstance(TIMETESTER_SCRIPTS_NAMESPACE);
    [{
       type: 'text/javascript',
       key: 'boomerang',
