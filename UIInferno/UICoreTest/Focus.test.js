@@ -6,7 +6,7 @@ define([
    'Env/Env',
    'UICore/_focus/ElementFinder',
    'UICore/_focus/_ResetScrolling',
-   'UICore/UITest/Focus'
+   'UICoreTest/Focus'
 ], function(
    Focus,
    Base,
@@ -24,14 +24,15 @@ define([
       return this || (0, eval)('this');
    }());
 
+   var fromNode = typeof document === 'undefined';
+   let sandbox;
+   let compatValue;
+
    describe('Focus', function() {
       var div;
       var control;
       var globalCases = [];
       var currentCase;
-      var fromNode = typeof document === 'undefined';
-      let sandbox;
-      let compatValue;
 
       before(function() {
          // Запускаем эти тесты только под nodejs.
@@ -70,13 +71,13 @@ define([
          constants.compat = compatValue;
          sandbox.restore();
 
-         delete global.window;
-         delete global.document;
-         delete global.Element;
-         delete global.HTMLElement;
-         delete global.SVGElement;
-         delete global.Node;
-         delete global.getComputedStyle;
+         global.window = undefined;
+         global.document = undefined;
+         global.Element = undefined;
+         global.HTMLElement = undefined;
+         global.SVGElement = undefined;
+         global.Node = undefined;
+         global.getComputedStyle = undefined;
       });
 
       beforeEach(function(done) {
@@ -85,13 +86,12 @@ define([
          document.body.appendChild(div);
          var ctr = currentCase.control;
          if (ctr) {
-            Base.Creator(ctr, {
+            Base.Control.createControl(ctr, {
                afterMountCallback: function() {
                   control = div.controlNodes[0].control;
                   control._mounted = true;
                   done();
                },
-               fromNode: fromNode,
                testName: currentCase.name
             }, div);
          } else {
@@ -514,36 +514,50 @@ define([
    });
 
    describe('Focus functions', function() {
-      var fromNode = typeof document === 'undefined';
-      before(function(done) {
-         if (fromNode) {
-            require(['jsdom'], function(jsdom) {
-               var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
-               global.window = browser.window;
-               global.document = window.document;
-               global.Element = window.Element;
-               global.HTMLElement = window.HTMLElement;
-               global.SVGElement = window.SVGElement;
-               global.Node = window.Node;
-               global.getComputedStyle = window.getComputedStyle;
-               Focus._initFocus();
-               done();
-            });
-         } else {
-            done();
+      before(function() {
+         // Запускаем эти тесты только под nodejs.
+         if (!fromNode) {
+            this.skip();
          }
+         sandbox = sinon.createSandbox();
+         compatValue = constants.compat;
+         constants.compat = false;
+         sandbox.stub(Utils.Purifier, 'purifyInstance');
+
+         // На самом деле, юнит тесты могут не полностью эмулировать браузер, даже с jsdom.
+         // Где-то может быть проверка на process, тогда этот код выполнится как на сервере.
+         // Если же проверка на window или document - выполнится, как на клиенте.
+         // TODO: перевести тесты по фокусам на наглядные интеграционные тесты.
+         sandbox.stub(Control.prototype, 'loadThemes');
+         sandbox.stub(Control.prototype, 'loadStyles');
+         sandbox.stub(Control.prototype, 'loadThemeVariables');
+
+         var browser = new jsdom.JSDOM('', { pretendToBeVisual: true });
+         global.window = browser.window;
+         global.document = window.document;
+         global.Element = window.Element;
+         global.HTMLElement = window.HTMLElement;
+         global.SVGElement = window.SVGElement;
+         global.Node = window.Node;
+         global.getComputedStyle = window.getComputedStyle;
+         Focus._initFocus();
       });
 
       after(function() {
-         if (fromNode) {
-            delete global.window;
-            delete global.document;
-            delete global.Element;
-            delete global.HTMLElement;
-            delete global.SVGElement;
-            delete global.Node;
-            delete global.getComputedStyle;
+         // Запускаем эти тесты только под nodejs.
+         if (!fromNode) {
+            return;
          }
+         constants.compat = compatValue;
+         sandbox.restore();
+
+         global.window = undefined;
+         global.document = undefined;
+         global.Element = undefined;
+         global.HTMLElement = undefined;
+         global.SVGElement = undefined;
+         global.Node = undefined;
+         global.getComputedStyle = undefined;
       });
       it("Prevent focus on element without parentElement", function () {
          let focusPrevented = false;
