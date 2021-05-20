@@ -50,24 +50,20 @@ function resolveLink(path: string, type: string = ''): string {
 export const UTILS_SCRIPTS_NAMESPACE: string = 'utilScripts';
 
 /**
- * Заполняем JSLinks API вспомогательными JS зависимостями для страницы.
+ * Заполняем JSLinks API TimeTesterInv и boomerang для сбора показателей RUM.
  * @param cfg - конфиг для страницы.
  */
-function addUtilScripts(cfg: IOptions): void {
+function addTimeTester(cfg: IOptions): void {
    const API = AppJSLinks.getInstance(UTILS_SCRIPTS_NAMESPACE);
-   const scripts = {
-      boomerang: '/cdn/Boomerang/v.0.0.2.js',
-      timetester: `${cfg.resourceRoot}SbisEnvUI/TimeTesterInv.js`
-   };
-   for (const scriptsKey in scripts) {
-      if (scripts.hasOwnProperty(scriptsKey)) {
-         API.createTag('script', {
-            type: 'text/javascript',
-            key: scriptsKey,
-            src: getResourceUrl(scripts[scriptsKey])
-         });
-      }
-   }
+   [{
+      type: 'text/javascript',
+      key: 'boomerang',
+      src: getResourceUrl('/cdn/Boomerang/v.0.0.2.js')
+   }, {
+      type: 'text/javascript',
+      key: 'timetester',
+      src: getResourceUrl(`${cfg.resourceRoot}SbisEnvUI/TimeTesterInv.js`)
+   }].forEach((params) => API.createTag('script', params));
 }
 
 /**
@@ -161,7 +157,7 @@ export function aggregateDependencies(cfg: IOptions, deps: ICollectedDeps): ICol
    aggregateCSS(cfg.theme, deps.css.simpleCss, deps.css.themedCss);
    handlePrefetchModules(deps.js);
    addBaseScripts(cfg);
-   addUtilScripts(cfg);
+   addTimeTester(cfg);
    aggregateJS(deps);
 
    return deps;
