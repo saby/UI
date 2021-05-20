@@ -754,7 +754,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * @param mixinsList массив миксинов либо расширяющий класс (если один аргумент)
      * @param baseClass расширяюший класс
      */
-    static extend(mixinsList: object | object[], baseClass?: object): Function {
+    static extend(mixinsList: object | object[], baseClass: object = Control): Function {
         let extendedClass = baseClass;
         let mixins = mixinsList instanceof Array ? mixinsList : [mixinsList];
 
@@ -769,9 +769,10 @@ export default class Control<TOptions extends IControlOptions = {},
     // @ts-ignore
     static _extend<S, M>(self: S, mixin: M): S & M {
         // @ts-ignore
-        const mixinClass = Object.assign(null, mixin);
+        const mixinClass = Function() { }
         // @ts-ignore
         mixinClass.prototype = Object.create(self.prototype);
+        Object.assign(mixinClass.prototype, mixin);
         mixinClass.constructor = self.constructor;
         return mixinClass;
     }
