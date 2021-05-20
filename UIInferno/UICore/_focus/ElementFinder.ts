@@ -80,7 +80,7 @@ function getTabStopState(element: IControlElement): boolean {
 }
 
 const canHasHrefElements = ['a', 'area'];
-const canBeDisabledElements = ['input', 'textArea', 'select', 'button'];
+const canBeDisabledElements = ['input', 'textarea', 'select', 'button'];
 
 // Вычислим подходящий нашей системе фокусов табиндекс, если он не задан явно.
 function fixInvalidTabindex(element: HTMLElement, isContentEditable: boolean): number {
