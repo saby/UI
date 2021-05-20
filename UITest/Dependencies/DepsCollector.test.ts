@@ -1,8 +1,8 @@
-import { DepsCollector } from 'UI/Deps';
+import { DepsCollector } from 'UICommon/Deps';
 import { controller } from 'I18n/i18n';
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import { getType, parseModuleName, TYPES, recursiveWalker, ICollectedDeps } from 'UI/_deps/DepsCollector';
+import { getType, parseModuleName, TYPES, recursiveWalker, ICollectedDeps } from 'UICommon/_deps/DepsCollector';
 
 const modDeps = {
    'aaa/aaa': [],

@@ -1,8 +1,8 @@
-/// <amd-module name="UI/_deps/DependenciesPlaceholder" />
+/// <amd-module name="UICommon/_deps/DependenciesPlaceholder" />
 
 import { cookie } from "Env/Env";
-import { EMPTY_THEME, getThemeController, THEME_TYPE } from "UI/theme/controller";
-import { getResourceUrl } from 'UI/Utils';
+import { EMPTY_THEME, getThemeController, THEME_TYPE } from "UICommon/theme/controller";
+import { getResourceUrl } from 'UICommon/Utils';
 import { JSLinks as AppJSLinks } from 'Application/Page';
 import { handlePrefetchModules } from './PrefetchLinks';
 import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
@@ -90,7 +90,7 @@ export function aggregateJS(deps: ICollectedDeps): void {
 /**
  * Удаление из списка с JS зависисмостями словари локализации, 
  * которые уже будут присутствовать в пакете rtpack, сформированном Сервисом Представления
- * @param jsDeps список зависимостей страницы, которые вычислил UI/Deps:DepsCollector
+ * @param jsDeps список зависимостей страницы, которые вычислил UICommon/Deps:DepsCollector
  * @param scripts список скриптов, которые пришли из СП как зависимости страницы
  * @TODO Этот код будет вынесен в middleware код приложения 
  * по задаче https://online.sbis.ru/opendoc.html?guid=0331640b-df1a-4903-9cb1-3bad0077b012

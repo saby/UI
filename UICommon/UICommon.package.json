@@ -9,7 +9,8 @@
       "UICommon/State",
       "UICommon/theme/controller",
       "UICommon/Utils",
-      "UICommon/Vdom"
+      "UICommon/Vdom",
+      "UICommon/Deps"
     ],
     "output": "online-superbundle.package.js"
   }
