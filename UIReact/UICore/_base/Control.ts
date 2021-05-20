@@ -769,11 +769,12 @@ export default class Control<TOptions extends IControlOptions = {},
     // @ts-ignore
     static _extend<S, M>(self: S, mixin: M): S & M {
         // @ts-ignore
-        const mixinClass = new Function();
+        const mixinClass = Object.assign(new Function(), self);
         // @ts-ignore
         mixinClass.prototype = Object.create(self.prototype);
         Object.assign(mixinClass.prototype, mixin);
         mixinClass.constructor = self.constructor;
+        // @ts-ignore
         return mixinClass;
     }
 
