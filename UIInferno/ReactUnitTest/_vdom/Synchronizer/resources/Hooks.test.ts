@@ -14,6 +14,7 @@ const globalEnvironment = {
         removeCaptureEventHandler: fake()
     }
 };
+debugger;
 
 describe('UICore/_vdom/Synchronizer/resources/Hooks', () => {
     before(() => {
