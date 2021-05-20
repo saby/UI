@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<ui_module id="62bf645b-207a-4e83-b06d-41e8c51d6485" name="UICoreTest" version="1.00">
+
+  <description/>
+
+  <depends>
+    <module id="636177e5-4d75-44fa-9173-977dc90ff111" name="Env" />
+    <module id="548e4ee9-10cd-4227-9e3c-0811958f979c" name="UICore" />
+    <module id="0f15ac6b-86b2-4265-9da1-05eac93ebdf6" name="UICommon" />
+    <module id="686f183d-0bcc-4732-b4e4-6016c2a67a0f" name="Types" />
+  </depends>
+
+  <load_after/>
+
+  <parameters/>
+
+  <unit_test/>
+
+  <resources/>
+
+</ui_module>
