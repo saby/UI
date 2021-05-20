@@ -64,15 +64,19 @@ function observeProps<P, S extends object | void>(instance: Control<P, S>): void
                 if (descriptor?.set) {
                     descriptor.set.apply(this, arguments);
                 }
+                // Создаем новый объект для скопированного scope из генератора, например для инлайн шаблонов
+                if (!this.hasOwnProperty('reactiveValues')) {
+                    this.reactiveValues = Object.create(this.reactiveValues);
+                }
                 this.reactiveValues[propName] = newVal;
-                checkMutableTypes(newVal as IVersionable | unknown[], instance, propName);
-                updateInstance(instance);
+                checkMutableTypes(newVal as IVersionable | unknown[], this, propName);
+                updateInstance(this);
             },
             get(): unknown {
                 if (descriptor?.get) {
                     return descriptor.get.apply(this, arguments);
                 }
-                return instance.reactiveValues[propName];
+                return this.reactiveValues[propName];
             }
         });
         checkMutableTypes(value, instance, propName);
