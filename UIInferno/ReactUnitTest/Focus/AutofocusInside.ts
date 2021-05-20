@@ -2,11 +2,10 @@ import { TemplateFunction } from 'UICommon/Base';
 import {TestBaseControl} from '../Base';
 
 // @ts-ignore
-import template = require('wml!UICoreTest/Focus/ConditionContent');
+import template = require('wml!ReactUnitTest/Focus/AutofocusInside');
 
 class TestControl extends TestBaseControl {
-    _template: TemplateFunction = template;
-    noNeedContent: boolean = false;
+   _template: TemplateFunction = template;
 }
 
 export default TestControl;

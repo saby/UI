@@ -1,0 +1,5 @@
+<div>
+   <ReactUnitTest.Focus.Proxy isDefaultOpener="true" name="defaultOpener">
+      <ReactUnitTest.Focus.Simple name="start" />
+   </ReactUnitTest.Focus.Proxy>
+</div>
