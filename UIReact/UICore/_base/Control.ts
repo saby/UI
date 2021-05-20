@@ -760,7 +760,7 @@ export default class Control<TOptions extends IControlOptions = {},
 
         for (let i = 0; i < mixins.length; i++) {
             // @ts-ignore
-            extendedClass = Control._extend<any,any>(classExtender, mixins[i]);
+            extendedClass = Control._extend<any, any>(extendedClass, mixins[i]);
         }
         // @ts-ignore
         return extendedClass;
