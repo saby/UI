@@ -133,7 +133,7 @@ export class Generator implements IGenerator {
         const tpl = Common.fixDefaultExport(tplExtended);
 
         // typeof Control
-        if (Common.isControlClass<typeof Control>(tpl)) {
+        if (Common.isControlClass<typeof Control>(tpl) || (tpl.prototype && tpl.prototype instanceof Control)) {
             return this.createWsControl(tpl, preparedScope, decorAttribs, undefined, deps);
         }
         // TemplateFunction - wml шаблон
