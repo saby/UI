@@ -230,8 +230,7 @@ function getDescriptor(_obj: object, prop: string): PropertyDescriptor {
 }
 
 function updateInstance(instance: IControl): void {
-    // @ts-ignore getInstanceId protected
-    if (!pauseReactiveMap.has(instance.getInstanceId())) {
+    if (!pauseReactiveMap.has(instance)) {
         Promise.resolve().then(() => instance._forceUpdate());
     }
 }
@@ -239,18 +238,16 @@ function updateInstance(instance: IControl): void {
 export function pauseReactive(instance: IControl, action: Function): void {
     // Откуда то из генератора прилетает не контрол =\
     if (instance instanceof Control) {
-        // @ts-ignore getInstanceId protected
-        const id = instance.getInstanceId();
-        if (!pauseReactiveMap.has(id)) {
-            pauseReactiveMap.set(id, 0);
+        if (!pauseReactiveMap.has(instance)) {
+            pauseReactiveMap.set(instance, 0);
         }
-        pauseReactiveMap.set(id, pauseReactiveMap.get(id) + 1);
+        pauseReactiveMap.set(instance, pauseReactiveMap.get(instance) + 1);
         try {
             action();
         } finally {
-            pauseReactiveMap.set(id, pauseReactiveMap.get(id) - 1);
-            if (pauseReactiveMap.get(id) === 0) {
-                pauseReactiveMap.delete(id);
+            pauseReactiveMap.set(instance, pauseReactiveMap.get(instance) - 1);
+            if (pauseReactiveMap.get(instance) === 0) {
+                pauseReactiveMap.delete(instance);
             }
         }
     } else {
