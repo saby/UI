@@ -1,5 +1,6 @@
 {
     "include": [
+      "UICore/Async",
       "UICore/Base",
       "UICore/DevtoolsHook",
       "UICore/Events",

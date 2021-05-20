@@ -472,7 +472,7 @@ export default class Control<TOptions extends IControlOptions = {},
             const res = this._template(this, this._options._$attributes, undefined, true);
             realFiberNode = res;
             while (realFiberNode instanceof Array) {
-                realFiberNode = realFiberNode[0]
+                realFiberNode = realFiberNode[0];
             }
             const originRef = realFiberNode.ref;
 
@@ -526,6 +526,21 @@ export default class Control<TOptions extends IControlOptions = {},
      * </pre>
      */
     static _theme: string[] = [];
+
+    /**
+     * Получение прототипа суперкласса.
+     * TODO: удалить после переписывания всех использований поля superclass.
+     * Этап переписывания https://online.sbis.ru/opendoc.html?guid=8275658b-2b1a-4e00-870f-038edd1efb94
+     * @deprecated
+     * @static
+     * @example
+     * <pre class="brush: js">
+     *     GridView.superclass._beforeUpdate.apply(this, arguments);
+     * </pre>
+     */
+    static get superclass(): Control {
+        return Object.getPrototypeOf(this).prototype;
+    }
 
     /**
      * Загрузка стилей и тем контрола
@@ -749,10 +764,10 @@ export default class Control<TOptions extends IControlOptions = {},
         if (Array.isArray(mixinsList)) {
             mixinsList.forEach((mixin) => {
                 Object.keys(mixin).forEach((key) => {
-                    ExtendedControl.prototype[key] = mixinsList[key];
+                    ExtendedControl.prototype[key] = mixin[key];
                 });
                 Object.keys(classExtender).forEach((key) => {
-                    ExtendedControl.prototype[key] = mixinsList[key];
+                    ExtendedControl.prototype[key] = classExtender[key];
                 });
             });
         } else {

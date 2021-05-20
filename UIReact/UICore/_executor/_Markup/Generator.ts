@@ -134,6 +134,10 @@ export class Generator implements IGenerator {
         const tpl = Common.fixDefaultExport(tplExtended);
 
         // typeof Control
+        // тут может быть ситуация когда Прототип контрола является инстансом базового контрола,
+        // но сам контрол нет. Надо проверить наследование контрола
+        // отследить можно с помощью условия:
+        // !Common.isControlClass<typeof Control>(tpl) && (tpl.prototype && tpl.prototype instanceof Control)
         if (Common.isControlClass<typeof Control>(tpl)) {
             return this.createWsControl(tpl, preparedScope, decorAttribs, undefined, deps);
         }
