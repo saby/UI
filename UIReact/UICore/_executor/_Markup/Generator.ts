@@ -108,15 +108,16 @@ export class Generator implements IGenerator {
             scope.theme = parent?.props?.theme ?? parent?.context?.theme;
         }
 
-        // return resolveTemplateFunction(parent, resultingFn, scope, attributes);
-        return React.createElement(
-            WasabyContextManager,
-            {
-                readOnly: scope.readOnly,
-                theme: scope.theme
-            },
-            resolveTemplateFunction(parent, resultingFn, scope, attributes)
-        );
+        return resolveTemplateFunction(parent, resultingFn, scope, attributes);
+        // Получилась ситуация, что WasabyContextManager был сам в себе, и пошли ошибки с ref
+        // return React.createElement(
+        //     WasabyContextManager,
+        //     {
+        //         readOnly: scope.readOnly,
+        //         theme: scope.theme
+        //     },
+        //     resolveTemplateFunction(parent, resultingFn, scope, attributes)
+        // );
     }
 
     resolver(
