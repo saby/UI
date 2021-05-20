@@ -752,26 +752,32 @@ export default class Control<TOptions extends IControlOptions = {},
     /**
      * Старый способ наследоваться
      * @param mixinsList массив миксинов либо расширяющий класс (если один аргумент)
-     * @param baseClass расширяюший класс
+     * @param hackClass расширяюший класс через вызов конструктора
      */
-    static extend(mixinsList: object | object[], baseClass: object = Control): Function {
-        let extendedClass = baseClass;
-        let mixins = mixinsList instanceof Array ? mixinsList : [mixinsList];
+    static extend(mixinsList: object | object[], hackClass?: Function): Control {
+        class ExtededControl extends Control { }
+        if (hackClass) {
+            hackClass.prototype = Control;
+            ExtededControl.extend = Control.extend;
+        }
 
+        const mixins = mixinsList instanceof Array ? mixinsList : [mixinsList];
         for (let i = 0; i < mixins.length; i++) {
             // @ts-ignore
-            extendedClass = Control._extend<any, any>(extendedClass, mixins[i]);
+            ExtededControl = Control._extend<any, any>(ExtededControl, mixins[i]);
         }
+
         // @ts-ignore
-        return extendedClass;
+        return ExtededControl;
     }
 
     // @ts-ignore
     static _extend<S, M>(self: S, mixin: M): S & M {
+
         // @ts-ignore
         const mixinClass = Object.assign(new Function(), self);
         // @ts-ignore
-        mixinClass.prototype = Object.create(self.prototype);
+        mixinClass.prototype = Object.create(ExtededControl.prototype);
         Object.assign(mixinClass.prototype, mixin);
         mixinClass.constructor = self.constructor;
         // @ts-ignore
