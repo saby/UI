@@ -1,6 +1,7 @@
 import { Control } from 'UICore/Base';
 import { TemplateFunction } from 'UICommon/Base';
 import { IVersionable } from 'Types/entity';
+import {IControl} from 'UICommon/interfaces';
 
 const arrayMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
 const pauseReactiveMap = new Map();
@@ -222,13 +223,16 @@ function getDescriptor(_obj: object, prop: string): PropertyDescriptor {
     return res;
 }
 
-function updateInstance(instance: Control) {
+function updateInstance(instance: IControl): void {
     if (!pauseReactiveMap.has(instance)) {
         instance._forceUpdate();
     }
 }
 
-export function pauseReactive(instance: Control, action: Function): void {
+export function pauseReactive(instance: IControl, action: Function): void {
+    if (!(instance instanceof Control)) {
+        return;
+    }
     if (!pauseReactiveMap.has(instance)) {
         pauseReactiveMap.set(instance, 0);
     }

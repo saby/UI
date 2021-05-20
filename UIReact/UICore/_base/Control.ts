@@ -5,7 +5,7 @@ import {getStateReceiver} from 'Application/Env';
 import {EMPTY_THEME, getThemeController} from 'UICommon/theme/controller';
 import {getResourceUrl, Logger, needToBeCompatible} from 'UICommon/Utils';
 import {Options} from 'UICommon/Vdom';
-import {makeWasabyObservable, releaseProperties} from 'UICore/WasabyReactivity';
+import {makeWasabyObservable, pauseReactive, releaseProperties} from 'UICore/WasabyReactivity';
 
 import template = require('wml!UICore/_base/Control');
 import {IControlState} from './interfaces';
@@ -402,21 +402,25 @@ export default class Control<TOptions extends IControlOptions = {},
 
     componentDidUpdate(prevProps: TOptions): void {
         if (this._$controlMounted) {
-            const oldOptions = this._oldOptions;
-            this._options = createWasabyOptions(this.props, this.context);
-            this._optionsVersions = Options.collectObjectVersions(this._options);
-            this._afterRender(oldOptions);
-            setTimeout(() => {
-                this._afterUpdate(oldOptions);
-            }, 0);
+            pauseReactive(this, () => {
+                const oldOptions = this._oldOptions;
+                this._options = createWasabyOptions(this.props, this.context);
+                this._optionsVersions = Options.collectObjectVersions(this._options);
+                this._afterRender(oldOptions);
+                setTimeout(() => {
+                    this._afterUpdate(oldOptions);
+                }, 0);
+            });
         }
     }
 
     getSnapshotBeforeUpdate(): null {
         if (this._$controlMounted) {
             try {
-                const newOptions = createWasabyOptions(this.props, this.context);
-                this._beforeUpdate(newOptions, {scrollContext: {}});
+                pauseReactive(this, () => {
+                    const newOptions = createWasabyOptions(this.props, this.context);
+                    this._beforeUpdate(newOptions, {scrollContext: {}});
+                });
             } catch (e) {
                 logError(e);
             }

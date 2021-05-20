@@ -1,1 +1,1 @@
-export {makeWasabyObservable, releaseProperties} from './_react/WasabyReactivity/MakeObservable';
+export {makeWasabyObservable, releaseProperties, pauseReactive} from './_react/WasabyReactivity/MakeObservable';
