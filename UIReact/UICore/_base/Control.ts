@@ -452,7 +452,10 @@ export default class Control<TOptions extends IControlOptions = {},
         const asyncMount = this._beforeFirstRender && this._beforeFirstRender(wasabyOptions);
 
         if (asyncMount && this.state.loading) {
-            return getLoadingComponent(this);
+            if (typeof process !== 'undefined' && !process.versions) {
+                Logger.error(`При сборке реакта найден асинхронный контрол ${this._moduleName}. Верстка на сервере не будет построена`, this);
+            }
+            return getLoadingComponent();
         }
 
         if (this.state.hasError) {
@@ -810,10 +813,7 @@ function createWasabyOptions<T extends IControlOptions>(
 }
 
 // На данном этапе рисуем индикатор вместо компонента в момент загрузки асинхронного beforeMount
-function getLoadingComponent(control: Control): React.ReactElement {
-    if (typeof process !== 'undefined' && !process.versions) {
-        Logger.error(`При сборке реакта найден асинхронный контрол ${control._moduleName}. Верстка на сервере не будет построена`, control);
-    }
+function getLoadingComponent(): React.ReactElement {
     return createElement('img', {
         src: getResourceUrl(
             '/cdn/LoaderIndicator/1.0.0/ajax-loader-indicator.gif'
