@@ -2,10 +2,14 @@ import { TemplateFunction } from 'UICommon/Base';
 import {TestBaseControl} from '../Base'
 
 // @ts-ignore
-import template = require('wml!UICoreTest/Focus/DelegatedTabfocus');
+import template = require('wml!ReactUnitTest/Focus/Deactivate');
 
 class TestControl extends TestBaseControl {
     _template: TemplateFunction = template;
+    lastDeactivatedName: string = 'noone';
+    protected _markDeactivate = (e, name) => {
+        this.lastDeactivatedName = name;
+    }
 }
 
 export default TestControl;

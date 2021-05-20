@@ -6,7 +6,7 @@ define([
    'Env/Env',
    'UICore/_focus/ElementFinder',
    'UICore/_focus/_ResetScrolling',
-   'UICoreTest/Focus'
+   'ReactUnitTest/Focus'
 ], function(
    Focus,
    Base,

@@ -1,4 +1,0 @@
-<div>
-   <UICoreTest.Focus.Simple attr:id="first" on:deactivated="_markDeactivate('first')" />
-   <UICoreTest.Focus.Simple attr:id="second" on:deactivated="_markDeactivate('second')" />
-</div>
