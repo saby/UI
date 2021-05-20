@@ -760,7 +760,7 @@ export default class Control<TOptions extends IControlOptions = {},
         if (Array.isArray(mixinsList)) {
             mixinsList.forEach((mixin) => {
                 Object.keys(mixin).forEach((key) => {
-                    ExtendedControl.prototype[key] = mixinsList[key];
+                    ExtendedControl.prototype[key] = mixin[key];
                 });
                 Object.keys(classExtender).forEach((key) => {
                     ExtendedControl.prototype[key] = classExtender[key];
