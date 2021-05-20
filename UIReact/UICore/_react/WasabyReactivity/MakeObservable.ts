@@ -2,9 +2,11 @@ import { Control } from 'UICore/Base';
 import { TemplateFunction } from 'UICommon/Base';
 import { IVersionable } from 'Types/entity';
 import {IControl} from 'UICommon/interfaces';
+import { setPauseReactive } from 'UICommon/Executor';
 
 const arrayMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
 const pauseReactiveMap = new Map();
+setPauseReactive(pauseReactive);
 
 /**
  * Запуск реактивности в WasabyReact компоненте
@@ -224,25 +226,30 @@ function getDescriptor(_obj: object, prop: string): PropertyDescriptor {
 }
 
 function updateInstance(instance: IControl): void {
-    if (!pauseReactiveMap.has(instance)) {
-        instance._forceUpdate();
+    // @ts-ignore getInstanceId protected
+    if (!pauseReactiveMap.has(instance.getInstanceId())) {
+        Promise.resolve().then(() => instance._forceUpdate());
     }
 }
 
 export function pauseReactive(instance: IControl, action: Function): void {
-    if (!(instance instanceof Control)) {
-        return;
-    }
-    if (!pauseReactiveMap.has(instance)) {
-        pauseReactiveMap.set(instance, 0);
-    }
-    pauseReactiveMap.set(instance, pauseReactiveMap.get(instance) + 1);
-    try {
-        action();
-    } finally {
-        pauseReactiveMap.set(instance, pauseReactiveMap.get(instance) - 1);
-        if (pauseReactiveMap.get(instance) === 0) {
-            pauseReactiveMap.delete(instance);
+    // Откуда то из генератора прилетает не контрол =\
+    if (instance instanceof Control) {
+        // @ts-ignore getInstanceId protected
+        const id = instance.getInstanceId();
+        if (!pauseReactiveMap.has(id)) {
+            pauseReactiveMap.set(id, 0);
         }
+        pauseReactiveMap.set(id, pauseReactiveMap.get(id) + 1);
+        try {
+            action();
+        } finally {
+            pauseReactiveMap.set(id, pauseReactiveMap.get(id) - 1);
+            if (pauseReactiveMap.get(id) === 0) {
+                pauseReactiveMap.delete(id);
+            }
+        }
+    } else {
+        action();
     }
 }
