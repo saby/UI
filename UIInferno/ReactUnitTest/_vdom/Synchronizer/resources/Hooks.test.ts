@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-import { before, after, afterEach, describe } from 'mocha';
 import { replace, restore, fake } from 'sinon';
 
 import { IWasabyHTMLElement, TEventsObject, IEvent, IProperties } from 'UICommon/interfaces';
