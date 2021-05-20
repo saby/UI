@@ -1,5 +1,4 @@
 import { assert } from 'chai';
-import { describe, before, after, afterEach } from 'mocha';
 import { replace, restore, fake } from 'sinon';
 
 import { IWasabyHTMLElement, TEventsObject, IEvent, IProperties } from 'UICommon/interfaces';
@@ -15,6 +14,7 @@ const globalEnvironment = {
         removeCaptureEventHandler: fake()
     }
 };
+debugger;
 
 describe('UICore/_vdom/Synchronizer/resources/Hooks', () => {
     before(() => {
