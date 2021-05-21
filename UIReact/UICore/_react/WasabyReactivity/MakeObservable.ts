@@ -68,9 +68,11 @@ function observeProps<P, S extends object | void>(instance: Control<P, S>): void
                 if (!this.hasOwnProperty('reactiveValues')) {
                     this.reactiveValues = Object.create(this.reactiveValues);
                 }
-                this.reactiveValues[propName] = newVal;
-                checkMutableTypes(newVal as IVersionable | unknown[], this, propName);
-                updateInstance(this);
+                if (this.reactiveValues[propName] !== newVal) {
+                    this.reactiveValues[propName] = newVal;
+                    checkMutableTypes(newVal as IVersionable | unknown[], this, propName);
+                    updateInstance(this);
+                }
             },
             get(): unknown {
                 if (descriptor?.get) {
@@ -116,8 +118,10 @@ function setObservableVersion<P, S extends object | void>(value: IVersionable, i
         enumerable: true,
         configurable: true,
         set(val: number): void {
-            currentValue = val;
-            updateInstance(instance);
+            if (currentValue !== val) {
+                currentValue = val;
+                updateInstance(instance);
+            }
         },
         get(): number {
             return currentValue;

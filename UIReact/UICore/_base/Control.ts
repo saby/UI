@@ -402,15 +402,13 @@ export default class Control<TOptions extends IControlOptions = {},
 
     componentDidUpdate(prevProps: TOptions): void {
         if (this._$controlMounted) {
-            pauseReactive(this, () => {
-                const oldOptions = this._oldOptions;
-                this._options = createWasabyOptions(this.props, this.context);
-                this._optionsVersions = Options.collectObjectVersions(this._options);
-                this._afterRender(oldOptions);
-                setTimeout(() => {
-                    this._afterUpdate(oldOptions);
-                }, 0);
-            });
+            const oldOptions = this._oldOptions;
+            this._options = createWasabyOptions(this.props, this.context);
+            this._optionsVersions = Options.collectObjectVersions(this._options);
+            this._afterRender(oldOptions);
+            setTimeout(() => {
+                this._afterUpdate(oldOptions);
+            }, 0);
         }
     }
 
