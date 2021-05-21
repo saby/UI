@@ -1,9 +1,12 @@
 import { Control } from 'UICore/Base';
 import { TemplateFunction } from 'UICommon/Base';
 import { IVersionable } from 'Types/entity';
+import {IControl} from 'UICommon/interfaces';
+import { setPauseReactive } from 'UICommon/Executor';
 
 const arrayMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
-
+const pauseReactiveMap = new Map();
+setPauseReactive(pauseReactive);
 
 /**
  * Запуск реактивности в WasabyReact компоненте
@@ -34,8 +37,7 @@ function observeTemplate<P, S extends object | void>(instance: Control<P, S>): v
                 templateFunction = newTemplateFunction;
                 releaseProperties(instance);
                 observeProps(instance);
-                // FIXME https://online.sbis.ru/opendoc.html?guid=9ae5b21b-749c-40ea-b8aa-7c7f11b2bf39
-                Promise.resolve(() => instance._forceUpdate());
+                updateInstance(instance);
             }
         }
     });
@@ -62,16 +64,21 @@ function observeProps<P, S extends object | void>(instance: Control<P, S>): void
                 if (descriptor?.set) {
                     descriptor.set.apply(this, arguments);
                 }
-                this.reactiveValues[propName] = newVal;
-                checkMutableTypes(newVal as IVersionable | unknown[], instance, propName);
-                // FIXME https://online.sbis.ru/opendoc.html?guid=9ae5b21b-749c-40ea-b8aa-7c7f11b2bf39
-                Promise.resolve(() => instance._forceUpdate());
+                // Создаем новый объект для скопированного scope из генератора, например для инлайн шаблонов
+                if (!this.hasOwnProperty('reactiveValues')) {
+                    this.reactiveValues = Object.create(this.reactiveValues);
+                }
+                if (this.reactiveValues[propName] !== newVal) {
+                    this.reactiveValues[propName] = newVal;
+                    checkMutableTypes(newVal as IVersionable | unknown[], this, propName);
+                    updateInstance(this);
+                }
             },
             get(): unknown {
                 if (descriptor?.get) {
                     return descriptor.get.apply(this, arguments);
                 }
-                return instance.reactiveValues[propName];
+                return this.reactiveValues[propName];
             }
         });
         checkMutableTypes(value, instance, propName);
@@ -111,9 +118,10 @@ function setObservableVersion<P, S extends object | void>(value: IVersionable, i
         enumerable: true,
         configurable: true,
         set(val: number): void {
-            currentValue = val;
-            // FIXME https://online.sbis.ru/opendoc.html?guid=9ae5b21b-749c-40ea-b8aa-7c7f11b2bf39
-            Promise.resolve(() => instance._forceUpdate());
+            if (currentValue !== val) {
+                currentValue = val;
+                updateInstance(instance);
+            }
         },
         get(): number {
             return currentValue;
@@ -142,8 +150,7 @@ function setObservableArray<P, S extends object | void>(value: unknown[], instan
         const mutator = function (): unknown[] {
             const res = method.apply(this, arguments);
             instance[propName] = [...value];
-            // FIXME https://online.sbis.ru/opendoc.html?guid=9ae5b21b-749c-40ea-b8aa-7c7f11b2bf39
-            Promise.resolve(() => instance._forceUpdate());
+            updateInstance(instance);
             return res;
         };
         Object.defineProperty(value, methodName, {
@@ -224,4 +231,30 @@ function getDescriptor(_obj: object, prop: string): PropertyDescriptor {
         }
     }
     return res;
+}
+
+function updateInstance(instance: IControl): void {
+    if (!pauseReactiveMap.has(instance)) {
+        Promise.resolve().then(() => instance._forceUpdate());
+    }
+}
+
+export function pauseReactive(instance: IControl, action: Function): void {
+    // Откуда то из генератора прилетает не контрол =\
+    if (instance instanceof Control) {
+        if (!pauseReactiveMap.has(instance)) {
+            pauseReactiveMap.set(instance, 0);
+        }
+        pauseReactiveMap.set(instance, pauseReactiveMap.get(instance) + 1);
+        try {
+            action();
+        } finally {
+            pauseReactiveMap.set(instance, pauseReactiveMap.get(instance) - 1);
+            if (pauseReactiveMap.get(instance) === 0) {
+                pauseReactiveMap.delete(instance);
+            }
+        }
+    } else {
+        action();
+    }
 }

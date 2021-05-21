@@ -5,7 +5,7 @@ import {getStateReceiver} from 'Application/Env';
 import {EMPTY_THEME, getThemeController} from 'UICommon/theme/controller';
 import {getResourceUrl, Logger, needToBeCompatible} from 'UICommon/Utils';
 import {Options} from 'UICommon/Vdom';
-import {makeWasabyObservable, releaseProperties} from 'UICore/WasabyReactivity';
+import {makeWasabyObservable, pauseReactive, releaseProperties} from 'UICore/WasabyReactivity';
 
 import template = require('wml!UICore/_base/Control');
 import {IControlState} from './interfaces';
@@ -219,8 +219,8 @@ export default class Control<TOptions extends IControlOptions = {},
                         this._componentDidMount(options);
                         this._$controlMounted = true;
                         setTimeout(() => {
-                            this._afterMount(options);
                             makeWasabyObservable<TOptions, TState>(this);
+                            this._afterMount(options);
                         }, 0);
                     }
                 );
@@ -415,8 +415,10 @@ export default class Control<TOptions extends IControlOptions = {},
     getSnapshotBeforeUpdate(): null {
         if (this._$controlMounted) {
             try {
-                const newOptions = createWasabyOptions(this.props, this.context);
-                this._beforeUpdate(newOptions, {scrollContext: {}});
+                pauseReactive(this, () => {
+                    const newOptions = createWasabyOptions(this.props, this.context);
+                    this._beforeUpdate(newOptions, {scrollContext: {}});
+                });
             } catch (e) {
                 logError(e);
             }
@@ -763,10 +765,10 @@ export default class Control<TOptions extends IControlOptions = {},
         if (Array.isArray(mixinsList)) {
             mixinsList.forEach((mixin) => {
                 Object.keys(mixin).forEach((key) => {
-                    ExtendedControl.prototype[key] = mixinsList[key];
+                    ExtendedControl.prototype[key] = mixin[key];
                 });
                 Object.keys(classExtender).forEach((key) => {
-                    ExtendedControl.prototype[key] = mixinsList[key];
+                    ExtendedControl.prototype[key] = classExtender[key];
                 });
             });
         } else {

@@ -108,15 +108,17 @@ export class Generator implements IGenerator {
             scope.theme = parent?.props?.theme ?? parent?.context?.theme;
         }
 
-        // return resolveTemplateFunction(parent, resultingFn, scope, attributes);
-        return React.createElement(
-            WasabyContextManager,
-            {
-                readOnly: scope.readOnly,
-                theme: scope.theme
-            },
-            resolveTemplateFunction(parent, resultingFn, scope, attributes)
-        );
+        return resolveTemplateFunction(parent, resultingFn, scope, attributes);
+        // Получилась ситуация, что WasabyContextManager был сам в себе, и пошли ошибки с ref
+        // выписана задача - https://online.sbis.ru/opendoc.html?guid=ed465ef5-7e32-4456-94b8-14b7892150e1
+        // return React.createElement(
+        //     WasabyContextManager,
+        //     {
+        //         readOnly: scope.readOnly,
+        //         theme: scope.theme
+        //     },
+        //     resolveTemplateFunction(parent, resultingFn, scope, attributes)
+        // );
     }
 
     resolver(
@@ -132,7 +134,6 @@ export class Generator implements IGenerator {
         const tplExtended: TemplateOrigin = resolveTpl(tplOrigin, includedTemplates, deps);
         const tpl = Common.fixDefaultExport(tplExtended);
 
-        // typeof Control
         if (Common.isControlClass<typeof Control>(tpl)) {
             return this.createWsControl(tpl, preparedScope, decorAttribs, undefined, deps);
         }
