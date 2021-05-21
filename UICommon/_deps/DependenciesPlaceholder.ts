@@ -47,6 +47,25 @@ function resolveLink(path: string, type: string = ''): string {
    return ModulesLoader.getModuleUrl(type ? `${type}!${path}` : path, cookie.get('s3debug'));
 }
 
+export const TIMETESTER_SCRIPTS_NAMESPACE: string = 'timeTesterScripts';
+
+/**
+ * Заполняем JSLinks API TimeTesterInv и boomerang для сбора показателей RUM.
+ * @param cfg - конфиг для страницы.
+ */
+function addTimeTester(cfg: IOptions): void {
+   const API = AppJSLinks.getInstance(TIMETESTER_SCRIPTS_NAMESPACE);
+   [{
+      type: 'text/javascript',
+      key: 'boomerang',
+      src: getResourceUrl('/cdn/Boomerang/v.0.0.2.js')
+   }, {
+      type: 'text/javascript',
+      key: 'timetester',
+      src: getResourceUrl(`${cfg.resourceRoot}SbisEnvUI/TimeTesterInv.js`)
+   }].forEach((params) => API.createTag('script', params));
+}
+
 /**
  * Наполняем JSLinks API собранными зависимостями
  * @param deps
@@ -138,7 +157,9 @@ export function aggregateDependencies(cfg: IOptions, deps: ICollectedDeps): ICol
    aggregateCSS(cfg.theme, deps.css.simpleCss, deps.css.themedCss);
    handlePrefetchModules(deps.js);
    addBaseScripts(cfg);
+   addTimeTester(cfg);
    aggregateJS(deps);
 
    return deps;
 }
+
