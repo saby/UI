@@ -1,0 +1,4 @@
+<div>
+   Can focus it
+   <ReactUnitTest.Focus.Simple name="autofocusChild" ws-autofocus="true" />
+</div>
