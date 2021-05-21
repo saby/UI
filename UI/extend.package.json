@@ -13,7 +13,6 @@
     "UI/State",
     "UI/Events",
     "UI/BuilderConfig",
-    "UI/Deps",
     "UI/Head"
   ],
   "output": "online-superbundle.package.js"
