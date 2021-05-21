@@ -1,0 +1,4 @@
+<div>
+   <ReactUnitTest.Focus.Simple attr:id="first" on:deactivated="_markDeactivate('first')" />
+   <ReactUnitTest.Focus.Simple attr:id="second" on:deactivated="_markDeactivate('second')" />
+</div>

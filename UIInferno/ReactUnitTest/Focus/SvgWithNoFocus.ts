@@ -2,7 +2,7 @@ import { TemplateFunction } from 'UICommon/Base';
 import {TestBaseControl} from '../Base';
 
 // @ts-ignore
-import template = require('wml!UICore/UITest/Focus/SvgWithNoFocus');
+import template = require('wml!ReactUnitTest/Focus/SvgWithNoFocus');
 
 class TestControl extends TestBaseControl {
     _template: TemplateFunction = template;

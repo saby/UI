@@ -1,4 +1,0 @@
-<div>
-   Can focus it
-   <UICore.UITest.Focus.Simple name="autofocusChild" ws-autofocus="true" />
-</div>
