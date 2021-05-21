@@ -452,6 +452,9 @@ export default class Control<TOptions extends IControlOptions = {},
         const asyncMount = this._beforeFirstRender && this._beforeFirstRender(wasabyOptions);
 
         if (asyncMount && this.state.loading) {
+            if (typeof process !== 'undefined' && !process.versions) {
+                Logger.error(`При сборке реакта найден асинхронный контрол ${this._moduleName}. Верстка на сервере не будет построена`, this);
+            }
             return getLoadingComponent();
         }
 
