@@ -10,6 +10,11 @@
  * @public
  * @author Шипин А.А.
  */
+//@ts-ignore
+import * as BaseRoute from 'wml!UI/Route';
 export { Control, IControlChildren } from 'UICore/Base';
 export { IControlOptions, TemplateFunction } from 'UICommon/Base';
 export * from './_base/CommonLib';
+export {
+   BaseRoute
+};
