@@ -1,0 +1,3 @@
+<div class="UIDemo-ThemesDemo__react theme_{{_options.theme}}">
+  Hello, World!
+</div>
