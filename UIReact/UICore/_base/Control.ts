@@ -758,30 +758,26 @@ export default class Control<TOptions extends IControlOptions = {},
         class ExtededControl extends Control { }
         if (hackClass) {
             hackClass.prototype = Control;
-            ExtededControl.extend = Control.extend;
         }
 
+        ExtededControl.extend = Control.extend;
         const mixins = mixinsList instanceof Array ? mixinsList : [mixinsList];
         for (let i = 0; i < mixins.length; i++) {
             // @ts-ignore
             ExtededControl = Control._extend<any, any>(ExtededControl, mixins[i]);
         }
-
         // @ts-ignore
         return ExtededControl;
     }
 
     // @ts-ignore
-    static _extend<S, M>(self: S, mixin: M): S & M {
-
+    static private _extend<S, M>(self: S, mixin: M): S & M {
         // @ts-ignore
-        const mixinClass = Object.assign(new Function(), self);
+        class MixinClass extends self { }
         // @ts-ignore
-        mixinClass.prototype = Object.create(ExtededControl.prototype);
-        Object.assign(mixinClass.prototype, mixin);
-        mixinClass.constructor = self.constructor;
+        Object.assign(MixinClass.prototype, mixin);
         // @ts-ignore
-        return mixinClass;
+        return MixinClass;
     }
 
     static getDerivedStateFromError(error: unknown): { hasError: boolean, error: unknown } {
