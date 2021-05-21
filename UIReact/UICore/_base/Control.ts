@@ -195,11 +195,11 @@ export default class Control<TOptions extends IControlOptions = {},
             promisesToWait.push(res);
         }
 
-        if (!this.isDeprecatedCSS() && !this.isCSSLoaded(options.theme)) {
-            const cssLoading = Promise.all([
-                this.loadThemes(options.theme),
-                this.loadStyles()
-            ]);
+        const cssLoading = Promise.all([
+            this.loadThemes(options.theme),
+            this.loadStyles()
+        ]);
+        if (constants.isBrowserPlatform && !this.isDeprecatedCSS() && !this.isCSSLoaded(options.theme)) {
             promisesToWait.push(cssLoading.then(nop));
         }
         if (!options.notLoadThemes) {
@@ -355,23 +355,23 @@ export default class Control<TOptions extends IControlOptions = {},
         const themes = this._theme instanceof Array ? this._theme : [];
         const styles = this._styles instanceof Array ? this._styles : [];
         // FIXME: Поддержка старых контролов с подгрузкой тем и стилей из статических полей
-        return Control.isCSSLoaded(themeName, themes, styles);
+        return (this.constructor as typeof  Control).isCSSLoaded(themeName, themes, styles);
     }
 
     private loadThemes(themeName?: string): Promise<void> {
         const themes = this._theme instanceof Array ? this._theme : [];
         // FIXME: Поддержка старых контролов с подгрузкой тем и стилей из статических полей
-        return Control.loadThemes(themeName, themes).catch(logError);
+        return (this.constructor as typeof  Control).loadThemes(themeName, themes).catch(logError);
     }
 
     private loadStyles(): Promise<void> {
         const styles = this._styles instanceof Array ? this._styles : [];
         // FIXME: Поддержка старых контролов с подгрузкой тем и стилей из статических полей
-        return Control.loadStyles(styles).catch(logError);
+        return (this.constructor as typeof  Control).loadStyles(styles).catch(logError);
     }
 
     private loadThemeVariables(themeName?: string): Promise<void> {
-        return Control.loadThemeVariables(themeName).catch(logError);
+        return (this.constructor as typeof  Control).loadThemeVariables(themeName).catch(logError);
     }
 
     componentDidMount(): void {
