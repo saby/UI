@@ -7,7 +7,7 @@ import Document from './Document';
 import Start from './Start';
 import BootstrapStart from './BootstrapStart';
 import HeadController from './HeadController';
-import { HeadData, headDataStore } from 'UI/Deps';
+import { HeadData, headDataStore } from 'UICommon/Deps';
 import { getGeneratorConfig } from 'UICore/Base';
 
 import {IHTMLOptions, IHTML} from './interface/IHTML';

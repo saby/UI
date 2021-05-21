@@ -5,7 +5,7 @@ import { TemplateFunction } from 'UICommon/Base';
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/Wait');
-import { headDataStore } from 'UI/Deps';
+import { headDataStore } from 'UICommon/Deps';
 
 const asyncTemplate: TemplateFunction = function(): string {
    const res = template.apply(this, arguments);

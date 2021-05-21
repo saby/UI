@@ -15,7 +15,7 @@ import { getResourceUrl } from 'UI/Utils';
 import { AppData } from 'UI/State';
 import {IHTMLOptions, ILinksAttrsHTML, IScriptsAttrsHTML} from './interface/IHTML';
 import { IRootTemplateOptions } from './interface/IRootTemplate';
-import { headDataStore } from 'UI/Deps';
+import { headDataStore } from 'UICommon/Deps';
 import mountChecker from 'UI/_base/MountChecker';
 import { Stack as MetaStack, IMetaStackInternal } from 'UI/_base/HTML/meta';
 import { Body as AppBody } from 'Application/Page';

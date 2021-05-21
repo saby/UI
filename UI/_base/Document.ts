@@ -7,8 +7,7 @@ import { TemplateFunction } from 'UICommon/Base';
 // @ts-ignore
 import template = require('wml!UI/_base/Document/Document');
 import { getThemeController } from 'UI/theme/controller';
-import * as AppEnv from 'Application/Env';
-import { headDataStore } from 'UI/Deps';
+import { headDataStore } from 'UICommon/Deps';
 import { AppData } from 'UI/State';
 import { startApplication } from 'UICore/Base';
 

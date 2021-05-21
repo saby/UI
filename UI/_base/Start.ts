@@ -3,7 +3,7 @@
 import { Control, startApplication } from 'UICore/Base';
 import * as AppEnv from 'Application/Env';
 import * as AppInit from 'Application/Initializer';
-import { headDataStore } from 'UI/Deps';
+import { headDataStore } from 'UICommon/Deps';
 
 /**
  * @author Санников К.А.

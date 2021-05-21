@@ -9,7 +9,7 @@ import * as AppInit from 'Application/Initializer';
 import { loadAsync } from 'WasabyLoader/ModulesLoader';
 import { Control, selectRenderDomNode, IControlConstructor } from 'UICore/Base';
 import { IControlOptions } from 'UICommon/Base';
-import { headDataStore } from 'UI/Deps';
+import { headDataStore } from 'UICommon/Deps';
 
 export interface ICreateControlOptions extends IControlOptions {
     application?: string;

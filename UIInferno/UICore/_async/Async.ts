@@ -5,7 +5,7 @@ import { IoC, constants } from 'Env/Env';
 import { descriptor } from 'Types/entity';
 import { Control } from 'UICore/Base';
 import { IControlOptions, TemplateFunction } from 'UICommon/Base';
-import { headDataStore } from 'UI/Deps';
+import { headDataStore } from 'UICommon/Deps';
 import template = require('wml!UICore/_async/Async');
 
 function generateErrorMsg(templateName: string, msg?: string): string {

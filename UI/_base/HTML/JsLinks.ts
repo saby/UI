@@ -6,14 +6,11 @@ import { TemplateFunction } from 'UICommon/Base';
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
 import template = require('wml!UI/_base/HTML/JsLinks');
-import { headDataStore } from 'UI/Deps';
+import { headDataStore, aggregateJS } from 'UICommon/Deps';
 import { IControlOptions } from 'UI/Base';
-import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
-import { cookie } from "Env/Env";
 import { JSLinks } from 'Application/Page';
 import { default as TagMarkup } from 'UI/_base/HTML/_meta/TagMarkup';
 import { fromJML } from 'UI/_base/HTML/_meta/JsonML';
-import {aggregateJS} from 'UI/Deps';
 
 interface IJsLinksOptions extends IControlOptions {
    resourceRoot: string;

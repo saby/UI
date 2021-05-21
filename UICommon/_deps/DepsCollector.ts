@@ -1,6 +1,6 @@
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
-import { Logger } from 'UI/Utils';
+import { Logger } from 'UICommon/Utils';
 import * as Library from 'WasabyLoader/Library';
 import { controller } from 'I18n/i18n';
 
@@ -163,7 +163,7 @@ function getExt(fileName: string): string {
       return res[0].slice(1);
    }
 
-   const message = `[UI/_base/DepsCollector:getExt] Incorrect extension: ${fileName}`;
+   const message = `[UICommon/_deps/DepsCollector:getExt] Incorrect extension: ${fileName}`;
    Logger.error(message);
    return '';
 }
