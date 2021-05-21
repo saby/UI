@@ -1,8 +1,8 @@
 import { assert } from 'chai';
-import { addPageDeps, headDataStore } from 'UI/Deps';
+import { addPageDeps, headDataStore } from 'UICommon/Deps';
 
 
-describe('UI/Deps:addPageDeps', () => {
+describe('UICommon/Deps:addPageDeps', () => {
    if (typeof window === 'undefined') {
       it('add module', () => {
          const moduleName: string = 'Module/Name';

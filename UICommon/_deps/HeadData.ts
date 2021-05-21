@@ -1,4 +1,4 @@
-/// <amd-module name="UI/_deps/HeadData" />
+/// <amd-module name="UICommon/_deps/HeadData" />
 import { IDeps } from './DepsCollector';
 import PageDeps from './PageDeps';
 import * as AppEnv from 'Application/Env';
