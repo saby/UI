@@ -17,5 +17,6 @@ export {
     handlePrefetchModules,
     HeadData,
     headDataStore,
-    DepsCollector
+    DepsCollector,
+    TIMETESTER_SCRIPTS_NAMESPACE
 } from 'UICommon/Deps';
