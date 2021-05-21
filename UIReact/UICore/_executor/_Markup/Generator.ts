@@ -110,6 +110,7 @@ export class Generator implements IGenerator {
 
         return resolveTemplateFunction(parent, resultingFn, scope, attributes);
         // Получилась ситуация, что WasabyContextManager был сам в себе, и пошли ошибки с ref
+        // выписана задача - https://online.sbis.ru/opendoc.html?guid=ed465ef5-7e32-4456-94b8-14b7892150e1
         // return React.createElement(
         //     WasabyContextManager,
         //     {
@@ -133,11 +134,6 @@ export class Generator implements IGenerator {
         const tplExtended: TemplateOrigin = resolveTpl(tplOrigin, includedTemplates, deps);
         const tpl = Common.fixDefaultExport(tplExtended);
 
-        // typeof Control
-        // тут может быть ситуация когда Прототип контрола является инстансом базового контрола,
-        // но сам контрол нет. Надо проверить наследование контрола
-        // отследить можно с помощью условия:
-        // !Common.isControlClass<typeof Control>(tpl) && (tpl.prototype && tpl.prototype instanceof Control)
         if (Common.isControlClass<typeof Control>(tpl)) {
             return this.createWsControl(tpl, preparedScope, decorAttribs, undefined, deps);
         }
