@@ -737,7 +737,7 @@ export default class Control<TOptions extends IControlOptions = {},
     /**
      * Старый способ наследоваться
      * @param mixinsList массив миксинов либо расширяющий класс (если один аргумент)
-     * @param hackClass расширяюший класс через вызов конструктора
+     * @param hackClass расширяюший класс
      */
     static extend(mixinsList: object | object[], hackClass?: Function): Control {
         class ExtededControl extends Control {
@@ -757,12 +757,11 @@ export default class Control<TOptions extends IControlOptions = {},
             }
         }
 
-        if (hackClass) {
-            hackClass.prototype = Control;
-        }
-
         ExtededControl.extend = Control.extend;
-        const mixins = mixinsList instanceof Array ? mixinsList : [mixinsList];
+        const mixins: object[] = mixinsList instanceof Array ? mixinsList : [mixinsList];
+        if (hackClass) {
+            mixins.push(hackClass);
+        }
         for (let i = 0; i < mixins.length; i++) {
             // @ts-ignore
             ExtededControl = Control._extend<any, any>(ExtededControl, mixins[i]);
