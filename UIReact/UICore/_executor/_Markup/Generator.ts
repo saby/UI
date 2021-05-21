@@ -75,6 +75,9 @@ export class Generator implements IGenerator {
 
         const newOptions = this.calculateOptions(resolvedOptionsExtended, config, events, name);
 
+        // @ts-ignore FIXME: Нужно положить ключ в опцию rskey для Received state. Сделать это хорошо
+        newOptions.rskey = templateAttributes.attributes.key || config.key;
+
         return this.resolver(origin, newOptions, templateAttributes, undefined,
             config.depsLocal, config.includedTemplates);
     }
