@@ -20,29 +20,32 @@ export interface IControlContext {
    has: Function;
 }
 
+interface IInfernoControl {
+    mounted?: boolean;
+    _unmounted?: boolean;
+    _destroyed?: boolean;
+    _$active?: boolean;
+    _reactiveStart?: boolean;
+    _internalOptions?: TObject;
+    _context?: TObject;
+    saveFullContext?: Function;
+    _saveContextObject?: Function;
+    _saveEnvironment?: Function;
+    saveInheritOptions?: Function;
+    _logicParent?: IControl;
+    _getMarkup?: (rootKey?: string, attributes?: object, isVdom?: boolean) => any;
+}
 
 // Базовый контрол
-export interface IControl {
+export interface IControl extends Partial<IInfernoControl> {
+    // Поля которые только в Inferno
     _template: Function;
-    _mounted: boolean;
-    _unmounted: boolean;
-    _destroyed: boolean;
-    _$active: boolean;
-    _reactiveStart: boolean;
     _options: IControlOptions;
-    _internalOptions: TObject;
-    _context: TObject;
     context: IControlContext;
-    saveFullContext: Function;
     _getChildContext?: Function;
-    _saveContextObject: Function;
-    _saveEnvironment: Function;
-    saveInheritOptions: Function;
     _getEnvironment: Function;
     _notify: Function;
     _container: HTMLElement;
-    _logicParent: IControl;
-    _getMarkup: (rootKey?: string, attributes?: object, isVdom?: boolean) => any;
     render: Function;
     _children: TObject;
     _forceUpdate: Function;
