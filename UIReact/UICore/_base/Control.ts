@@ -1,4 +1,5 @@
-import {Component, createElement} from 'react';
+//tslint:disable:ban-ts-ignore
+import { Component, createElement } from 'react';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {getStateReceiver} from 'Application/Env';
@@ -529,21 +530,6 @@ export default class Control<TOptions extends IControlOptions = {},
     static _theme: string[] = [];
 
     /**
-     * Получение прототипа суперкласса.
-     * TODO: удалить после переписывания всех использований поля superclass.
-     * Этап переписывания https://online.sbis.ru/opendoc.html?guid=8275658b-2b1a-4e00-870f-038edd1efb94
-     * @deprecated
-     * @static
-     * @example
-     * <pre class="brush: js">
-     *     GridView.superclass._beforeUpdate.apply(this, arguments);
-     * </pre>
-     */
-    static get superclass(): Control {
-        return Object.getPrototypeOf(this).prototype;
-    }
-
-    /**
      * Загрузка стилей и тем контрола
      * @param themeName имя темы (по-умолчанию тема приложения)
      * @param themes массив доп тем для скачивания
@@ -756,27 +742,47 @@ export default class Control<TOptions extends IControlOptions = {},
     /**
      * Старый способ наследоваться
      * @param mixinsList массив миксинов либо расширяющий класс (если один аргумент)
-     * @param classExtender расширяюший класс
+     * @param hackClass расширяюший класс
      */
-    static extend(mixinsList: object | object[], classExtender?: object): Function {
-        class ExtendedControl extends Control {
+    static extend(mixinsList: object | object[], hackClass?: Function): Control {
+        class ExtededControl extends Control {
+            /**
+             * Получение прототипа суперкласса.
+             * TODO: удалить после переписывания всех использований поля superclass.
+             * Этап переписывания https://online.sbis.ru/opendoc.html?guid=8275658b-2b1a-4e00-870f-038edd1efb94
+             * @deprecated
+             * @static
+             * @example
+             * <pre class="brush: js">
+             *     GridView.superclass._beforeUpdate.apply(this, arguments);
+             * </pre>
+             */
+            static get superclass(): Control {
+                return Object.getPrototypeOf(this).prototype;
+            }
         }
 
-        if (Array.isArray(mixinsList)) {
-            mixinsList.forEach((mixin) => {
-                Object.keys(mixin).forEach((key) => {
-                    ExtendedControl.prototype[key] = mixin[key];
-                });
-                Object.keys(classExtender).forEach((key) => {
-                    ExtendedControl.prototype[key] = classExtender[key];
-                });
-            });
-        } else {
-            Object.keys(mixinsList).forEach((key) => {
-                ExtendedControl.prototype[key] = mixinsList[key];
-            });
+        ExtededControl.extend = Control.extend;
+        const mixins: object[] = mixinsList instanceof Array ? mixinsList : [mixinsList];
+        if (hackClass) {
+            mixins.push(hackClass);
         }
-        return ExtendedControl;
+        for (let i = 0; i < mixins.length; i++) {
+            // @ts-ignore
+            ExtededControl = Control._extend<any, any>(ExtededControl, mixins[i]);
+        }
+        // @ts-ignore
+        return ExtededControl;
+    }
+
+    // @ts-ignore
+    static private _extend<S, M>(self: S, mixin: M): S & M {
+        // @ts-ignore
+        class MixinClass extends self { }
+        // @ts-ignore
+        Object.assign(MixinClass.prototype, mixin);
+        // @ts-ignore
+        return MixinClass;
     }
 
     static getDerivedStateFromError(error: unknown): { hasError: boolean, error: unknown } {
