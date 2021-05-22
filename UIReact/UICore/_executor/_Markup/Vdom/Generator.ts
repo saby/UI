@@ -158,7 +158,8 @@ export class GeneratorVdom extends Generator implements IGenerator {
             ref
         };
 
-        return React.createElement<P, T>(tagName, newProps, children.length ? children : undefined);
+        // Разворачиваем массив с детьми, так как в противном случае react считает, что мы отрисовываем список
+        return React.createElement<P, T>(tagName, newProps, ...ArrayUtils.flatten(children, true));
     }
 
     // FIXME: бесполезный метод, но он зовётся из шаблонов
