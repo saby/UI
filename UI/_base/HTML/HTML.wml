@@ -74,6 +74,9 @@
          </ws:if>
       </div>
       <a class="vdom-focus-out" tabindex="0" attr:key="vdom-focus-out"></a>
+      <ws:if data="{{ onServer && !isCompatible }}">
+         <div name="loadingOverlay" class="preload-overlay"></div>
+      </ws:if>
    </body>
 </ws:template>
 
