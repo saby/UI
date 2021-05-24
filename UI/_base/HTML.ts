@@ -254,6 +254,14 @@ class HTML extends Control<IHTMLCombinedOptions> {
         if (!detection.isMobilePlatform && !inIframe()) {
             this.activate();
         }
+        this._hideOverlay();
+    }
+
+    private _hideOverlay(): void {
+        const overlayElement: HTMLDivElement = this._container.querySelector('.preload-overlay');
+        if (overlayElement) {
+            overlayElement.style.display = 'none';
+        }
     }
 
     _onBodyClassesUpdate(event: CustomEvent): void {
