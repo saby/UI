@@ -17,7 +17,7 @@ export default class AsyncTest extends Async {
         super._beforeUpdate(opts);
     }
 
-    _afterUpdate() {
+    _afterUpdate(): void {
         super._afterUpdate();
     }
 
