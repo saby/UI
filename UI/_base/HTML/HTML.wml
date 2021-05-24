@@ -1,6 +1,6 @@
 <html attr:lang="ru" attr:xml:lang="ru" attr:xmlns="http://www.w3.org/1999/xhtml" attr:id="root"
       attr:component="Controls/Application"
-      attr:class="ui-HTML {{ onServer && !isCompatible ? 'pre-load' : '' }}">
+      attr:class="ui-HTML">
 
 <ws:template name="bodyTemplate">
    <body id="body" key="body-el" class="{{ _bodyClasses }}">
@@ -74,6 +74,9 @@
          </ws:if>
       </div>
       <a class="vdom-focus-out" tabindex="0" attr:key="vdom-focus-out"></a>
+      <ws:if data="{{ onServer && !isCompatible }}">
+         <div name="loadingOverlay" class="preload-overlay"></div>
+      </ws:if>
    </body>
 </ws:template>
 
