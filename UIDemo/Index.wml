@@ -1,4 +1,4 @@
-<div style="width: inherit; height: inherit;">
+<div style="width: inherit; height: inherit;" class="{{ isServerSide ? 'pre-load' : '' }}">
    <a class="vdom-focus-in" tabindex="1" attr:key="vdom-focus-in"></a>
    <UIDemo.RootRouter scope="{{_options}}"/>
    <a class="vdom-focus-out" tabindex="0" attr:key="vdom-focus-out"></a>
