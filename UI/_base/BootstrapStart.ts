@@ -45,7 +45,6 @@ export default function startFunction(config: ICreateControlOptions = {}, domEle
 
         /* В случае с Inferno мы должны вешать обработку на дочерний элемент. Так работает синхронизатор/
          * В случае с React, мы должны работать от непосредственно указанного элемента
-         * FIXME https://online.sbis.ru/opendoc.html?guid=253f2514-f594-45af-9cd2-106caa67df9b
          */
         const dom: HTMLElement = selectRenderDomNode(domElement);
         // @ts-ignore
