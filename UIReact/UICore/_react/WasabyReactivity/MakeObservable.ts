@@ -240,21 +240,16 @@ function updateInstance(instance: IControl): void {
 }
 
 export function pauseReactive(instance: IControl, action: Function): void {
-    // Откуда то из генератора прилетает не контрол =\
-    if (instance instanceof Control) {
-        if (!pauseReactiveMap.has(instance)) {
-            pauseReactiveMap.set(instance, 0);
-        }
-        pauseReactiveMap.set(instance, pauseReactiveMap.get(instance) + 1);
-        try {
-            action();
-        } finally {
-            pauseReactiveMap.set(instance, pauseReactiveMap.get(instance) - 1);
-            if (pauseReactiveMap.get(instance) === 0) {
-                pauseReactiveMap.delete(instance);
-            }
-        }
-    } else {
+    if (!pauseReactiveMap.has(instance)) {
+        pauseReactiveMap.set(instance, 0);
+    }
+    pauseReactiveMap.set(instance, pauseReactiveMap.get(instance) + 1);
+    try {
         action();
+    } finally {
+        pauseReactiveMap.set(instance, pauseReactiveMap.get(instance) - 1);
+        if (pauseReactiveMap.get(instance) === 0) {
+            pauseReactiveMap.delete(instance);
+        }
     }
 }
