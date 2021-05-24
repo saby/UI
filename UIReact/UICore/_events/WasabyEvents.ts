@@ -16,6 +16,9 @@ import {
     IControlNodeEvent
 } from 'UICommon/interfaces';
 
+/**
+ * @author Тэн В.А.
+ */
 export default class WasabyEventsReact extends WasabyEvents implements IWasabyEventSystem {
     private lastTarget: IWasabyHTMLElement;
     private wasWasabyNotifyList: IControlNodeEvent[] = [];

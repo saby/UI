@@ -5,12 +5,14 @@ import { Component } from "react";
 
 import { Control } from 'UICore/Base';
 import { WasabyEventsSingleton } from './WasabyEventsSingleton';
+import { WasabyEventsDebug } from './WasabyEventsDebug';
 import { Logger } from 'UI/Utils';
 
 function getControlNode(inst: Control) {
     if (!inst._container) {
-        const errorName = inst._moduleName === 'Controls/Container/Async' ? 'async: ' + inst.currentTemplateName : inst._moduleName;
+        const errorName = inst._moduleName === 'Controls/Container/Async' ? 'Async: ' + inst.currentTemplateName : inst._moduleName;
         Logger.error(`[WasabyEvents] У контрола ${ errorName } отсутствует контейнер. ControlNode не может быть вычислен.`, inst);
+        WasabyEventsDebug.debugNotify(inst, errorName).attach();
         return false;
     }
     const controlNodes = inst._container.controlNodes;
