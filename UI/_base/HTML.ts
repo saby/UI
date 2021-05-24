@@ -19,6 +19,7 @@ import { headDataStore } from 'UICommon/Deps';
 import mountChecker from 'UI/_base/MountChecker';
 import { Stack as MetaStack, IMetaStackInternal } from 'UI/_base/HTML/meta';
 import { Body as AppBody } from 'Application/Page';
+import * as cBodyClasses from 'Core/BodyClasses';
 
 // Бывают ситуации, когда страницу открыли и сразу перешли на другую вкладку или перевели компьютер в режим сна.
 // У открытой страницы в фоновом режиме начинают по таймауту отваливаться запросы и страница в итоге не оживает.
@@ -94,14 +95,19 @@ class HTML extends Control<IHTMLCombinedOptions> {
          * recievedState + опции + фактическое состояние
          * TODO: Удалить после полного перехода но постоение от #bootstrap
          */
-        const cfgClasses = (cfg.bodyClasses || '').split(' ');
+        const cfgClasses = cBodyClasses()
+           .replace('ws-is-touch', '')
+           .replace('ws-is-no-touch', '')
+           .split(' ')
+           .concat(['zIndex-context', 'Application-body', `controls_theme-${cfg.theme}`])
+           .concat((cfg.bodyClasses || '').split(' '));
         const thisClasses = (this._bodyClasses || '').split(' ').filter((item) => {
             return !cfgClasses.includes(item);
         });
         const apiClasses = (AppBody.getInstance().getClassString() || '').split(' ').filter((item) => {
             return !cfgClasses.includes(item) && !thisClasses.includes(item);
         });
-        this._bodyClasses = cfg.fix180521 || cfgClasses.concat(thisClasses).concat(apiClasses).join(' ');
+        this._bodyClasses = cfgClasses.concat(thisClasses).concat(apiClasses).join(' ');
     }
 
     private isFocusNode(node: Element): boolean {
@@ -204,7 +210,6 @@ class HTML extends Control<IHTMLCombinedOptions> {
             return;
         }
         return new Promise((resolve) => {
-            this._bodyClasses = `${this._bodyClasses} ${AppBody.getInstance().getClassString()}`;
             resolve({
                 bodyClasses: this._bodyClasses,
                 buildnumber: this.buildnumber,
