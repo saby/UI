@@ -1,6 +1,6 @@
 <html attr:lang="ru" attr:xml:lang="ru" attr:xmlns="http://www.w3.org/1999/xhtml" attr:id="root"
       attr:component="Controls/Application"
-      attr:class="ui-HTML">
+      attr:class="ui-HTML {{ onServer && !isCompatible ? 'pre-load' : '' }}">
 
 <ws:template name="bodyTemplate">
    <body id="body" key="body-el" class="{{ _bodyClasses }}">
