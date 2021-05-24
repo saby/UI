@@ -32,5 +32,8 @@ export default function startApplication(cfg?: Record<string, any>): void {
  * @param node HTMLElement
  */
 export function selectRenderDomNode(node: HTMLElement): HTMLElement {
+    // firstElementChild содержит только реальную ноду. firstChild содержит первый потомок, не обязательно нода.
+    // в IE<9 нет firstElementChild, а firstChild там ведет себя как firstElementChild.
+    // поэтому для всех браузеров сначала пытаемся получить firstElementChild, а если его нет то firstChild.
     return (node.firstElementChild || node.firstChild) as HTMLElement;
 }
