@@ -44,6 +44,10 @@ export default class Control<TOptions extends IControlOptions = {},
      */
     private _$controlMounted: boolean = false;
     /**
+     * Используется для того, чтобы не перерисовывать компонент, пока не закончится асинхронный beforeMount.
+     */
+    private _$asyncInProgress: boolean = false;
+    /**
      * Набор детей контрола, для которых задан атрибут name.
      */
     protected _children: IControlChildren = {};
@@ -211,7 +215,8 @@ export default class Control<TOptions extends IControlOptions = {},
 
         this._options = options;
         if (promisesToWait.length) {
-            Promise.all(promisesToWait).then(() => {
+            Promise.all(promisesToWait).finally(() => {
+                this._$asyncInProgress = false;
                 this.setState(
                     {
                         loading: false
@@ -226,6 +231,7 @@ export default class Control<TOptions extends IControlOptions = {},
                     }
                 );
             });
+            this._$asyncInProgress = true;
             return true;
         } else {
             this._$controlMounted = true;
@@ -452,9 +458,9 @@ export default class Control<TOptions extends IControlOptions = {},
         */
         OptionsResolver.validateOptions(this.constructor, wasabyOptions);
 
-        const asyncMount = this._beforeFirstRender && this._beforeFirstRender(wasabyOptions);
+        this._beforeFirstRender?.(wasabyOptions);
 
-        if (asyncMount && this.state.loading) {
+        if (this._$asyncInProgress && this.state.loading) {
             if (typeof process !== 'undefined' && !process.versions) {
                 Logger.error(`При сборке реакта найден асинхронный контрол ${this._moduleName}. Верстка на сервере не будет построена`, this);
             }
