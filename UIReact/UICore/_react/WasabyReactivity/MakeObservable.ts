@@ -239,7 +239,7 @@ function updateInstance(instance: IControl): void {
     }
 }
 
-export function pauseReactive(instance: IControl, action: Function): void {
+export function pauseReactive(instance: object, action: Function): void {
     if (!pauseReactiveMap.has(instance)) {
         pauseReactiveMap.set(instance, 0);
     }
