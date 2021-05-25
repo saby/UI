@@ -7,6 +7,7 @@ import {EMPTY_THEME, getThemeController} from 'UICommon/theme/controller';
 import {getResourceUrl, Logger, needToBeCompatible} from 'UICommon/Utils';
 import {Options} from 'UICommon/Vdom';
 import {makeWasabyObservable, pauseReactive, releaseProperties} from 'UICore/WasabyReactivity';
+import cExtend = require('Core/core-extend');
 
 import template = require('wml!UICore/_base/Control');
 import {IControlState} from './interfaces';
@@ -745,44 +746,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * @param hackClass расширяюший класс
      */
     static extend(mixinsList: object | object[], hackClass?: Function): Control {
-        class ExtededControl extends Control {
-            /**
-             * Получение прототипа суперкласса.
-             * TODO: удалить после переписывания всех использований поля superclass.
-             * Этап переписывания https://online.sbis.ru/opendoc.html?guid=8275658b-2b1a-4e00-870f-038edd1efb94
-             * @deprecated
-             * @static
-             * @example
-             * <pre class="brush: js">
-             *     GridView.superclass._beforeUpdate.apply(this, arguments);
-             * </pre>
-             */
-            static get superclass(): Control {
-                return Object.getPrototypeOf(this).prototype;
-            }
-        }
-
-        ExtededControl.extend = Control.extend;
-        const mixins: object[] = mixinsList instanceof Array ? mixinsList : [mixinsList];
-        if (hackClass) {
-            mixins.push(hackClass);
-        }
-        for (let i = 0; i < mixins.length; i++) {
-            // @ts-ignore
-            ExtededControl = Control._extend<any, any>(ExtededControl, mixins[i]);
-        }
-        // @ts-ignore
-        return ExtededControl;
-    }
-
-    // @ts-ignore
-    static private _extend<S, M>(self: S, mixin: M): S & M {
-        // @ts-ignore
-        class MixinClass extends self { }
-        // @ts-ignore
-        Object.assign(MixinClass.prototype, mixin);
-        // @ts-ignore
-        return MixinClass;
+        return cExtend(this, mixinsList, hackClass);
     }
 
     static getDerivedStateFromError(error: unknown): { hasError: boolean, error: unknown } {
