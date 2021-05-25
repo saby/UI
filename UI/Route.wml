@@ -1,5 +1,5 @@
 <!doctype html>
-<UI.Base.Document
+<UI.Base:Document
    application="{{application}}"
    scope="{{_options}}"
    attr:application="{{application}}"
