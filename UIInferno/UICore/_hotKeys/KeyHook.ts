@@ -77,15 +77,15 @@ class KeyHook extends Control {
           const keyHookIndex = wholeParents.findIndex((parent) => parent._moduleName === 'UICore/HotKeys:KeyHook');
           const startIndex = keyHookIndex === -1 ? 0 : keyHookIndex;
           const endIndex = popupIndex === -1 ? wholeParents.length : popupIndex + 1;
-          const parents = wholeParents.slice(startIndex, endIndex);
+          const parents1 = wholeParents.slice(startIndex, endIndex);
 
-          this._savedParents = parents;
+          this._savedParents = parents1;
 
           // собираем всех предков, и говорим им, какое действие по умолчанию нужно выполнить на необработанное
           // нажатие клавиш
           this._options.defaultActions.forEach((action) => {
-             for (let i = 0; i < parents.length; i++) {
-                const parent = parents[i];
+             for (let i = 0; i < parents1.length; i++) {
+                const parent = parents1[i];
                 // если у контрола уже есть зарегистрированное действие по умолчанию на эту клавишу,
                 // перестаем регистрацию
                 if (parent._$defaultActions && parent._$defaultActions[action.keyCode]) {
