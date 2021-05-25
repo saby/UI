@@ -49,7 +49,7 @@ function observeTemplate<P, S extends object | void>(instance: Control<P, S>): v
  */
 function observeProps<P, S extends object | void>(instance: Control<P, S>): void {
     // @ts-ignore _template сейчас _protected
-    const props = instance._template ? instance._template.reactiveProps : [];
+    const props = instance._template ? instance._template.reactiveProps || [] : [];
     if (!instance.reactiveValues) {
         instance.reactiveValues = {};
     }
