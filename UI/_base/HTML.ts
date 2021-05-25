@@ -99,7 +99,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
            .replace('ws-is-touch', '')
            .replace('ws-is-no-touch', '')
            .split(' ')
-           .concat(['zIndex-context', 'Application-body', `controls_theme-${cfg.theme}`])
+           .concat(['zIndex-context', 'Application-body'])
            .concat((cfg.bodyClasses || '').split(' '));
         const thisClasses = (this._bodyClasses || '').split(' ').filter((item) => {
             return !cfgClasses.includes(item);
