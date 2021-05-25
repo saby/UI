@@ -19,7 +19,7 @@ import {
 
 import {OptionsResolver} from 'UICommon/Executor';
 
-import {WasabyEvents, callNotify} from 'UICore/Events';
+import {WasabyEventsSingleton, callNotify} from 'UICore/Events';
 import {IWasabyEventSystem} from 'UICommon/Events';
 import {TIState, TControlConfig, IControl} from 'UICommon/interfaces';
 import {IControlOptions, TemplateFunction} from 'UICommon/Base';
@@ -702,7 +702,7 @@ export default class Control<TOptions extends IControlOptions = {},
         // кладём в конфиг наследуемые опции, чтобы они попали в полноценные опции
         cfg.theme = cfg.theme ?? 'default';
         cfg.readOnly = cfg.readOnly ?? false;
-        domElement.eventSystem = new WasabyEvents(domElement);
+        WasabyEventsSingleton.initEventSystem(domElement);
         const result = ReactDOM.render(React.createElement(ctor, cfg), domElement);
 
         if (result instanceof Control) {

@@ -1,7 +1,7 @@
 import { IWasabyHTMLElement } from 'UICommon/interfaces';
 
 import { EventUtils, IWasabyEventSystem, IWasabyEvent } from 'UICommon/Events';
-import { findEventSystem } from './FindEventSystem';
+import { WasabyEventsSingleton } from './WasabyEventsSingleton';
 
 import { Set } from 'Types/shim';
 
@@ -116,7 +116,7 @@ export function setEventHook(
     element: TElement
 ): void {
     const events = props.events;
-    const eventSystem = findEventSystem(element);
+    const eventSystem = WasabyEventsSingleton.getEventSystem();
     prepareEvents(events);
     if (!haveEvents(events)) {
         return;
