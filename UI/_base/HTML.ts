@@ -281,7 +281,8 @@ class HTML extends Control<IHTMLCombinedOptions> {
             rtpackJsModuleNames: [],
             rtpackCssModuleNames: [],
             links: [],
-            scripts: []
+            scripts: [],
+            notLoadThemes: true
         };
     }
 }
