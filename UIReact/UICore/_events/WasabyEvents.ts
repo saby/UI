@@ -16,6 +16,9 @@ import {
     IControlNodeEvent
 } from 'UICommon/interfaces';
 
+/**
+ * @author Тэн В.А.
+ */
 export default class WasabyEventsReact extends WasabyEvents implements IWasabyEventSystem {
     private lastTarget: IWasabyHTMLElement;
     private wasWasabyNotifyList: IControlNodeEvent[] = [];
@@ -72,7 +75,6 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
 
     //#region _notify события
     startEvent<TArguments, TControlNode>(controlNode: TControlNode & IControlNodeEvent, args: TArguments): unknown {
-        const controlNodeModify = this.createFakeControlNode(controlNode);
         let allowEventBubbling = true;
         const eventName = args[0].toLowerCase();
         const handlerArgs = args[1] || [];
@@ -82,16 +84,16 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
         eventConfig._bubbling = eventDescription && eventDescription.bubbling !== undefined ?
             eventDescription.bubbling : false;
         eventConfig.type = eventName;
-        eventConfig.target = controlNodeModify.element;
+        eventConfig.target = controlNode.element;
 
         eventObject = new SyntheticEvent(null, eventConfig);
         this.needBlockNotify = this.lastNotifyEvent === eventName;
-        if (this.wasWasabyNotifyList.indexOf(controlNodeModify.controlNodeEvent) > -1) {
+        if (this.wasWasabyNotifyList.indexOf(controlNode.controlNodeEvent) > -1) {
             allowEventBubbling = false;
         }
         if (allowEventBubbling) {
-            this.wasWasabyNotifyList.push(controlNodeModify.controlNodeEvent);
-            this.vdomEventBubbling(eventObject, controlNodeModify, undefined, handlerArgs, false);
+            this.wasWasabyNotifyList.push(controlNode.controlNodeEvent);
+            this.vdomEventBubbling(eventObject, controlNode, undefined, handlerArgs, false);
         }
         this.clearWasNotifyList();
         this.clearWasWasabyNotifyList();
@@ -100,14 +102,6 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
 
     private setLastTarget(target: IWasabyHTMLElement): void {
         this.lastTarget = target;
-    }
-    private createFakeControlNode(controlNodeEvent: IControlNodeEvent): IControlNodeEvent {
-        return {
-            element: this.lastTarget,
-            events: this.lastTarget.eventProperties,
-            controlNodeEvent,
-            control: undefined
-        };
     }
 
     private clearWasWasabyNotifyList(): void {
