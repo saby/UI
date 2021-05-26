@@ -1,0 +1,7 @@
+<ws:template name="MyTemplate">
+    <ws:if data="{{value}}">I</ws:if>
+    <div>Am</div>
+    <ws:if data="{{value}}">Fine</ws:if>
+</ws:template>
+
+<ws:partial template="MyTemplate"/>
