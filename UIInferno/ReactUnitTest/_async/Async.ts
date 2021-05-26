@@ -32,4 +32,8 @@ export default class AsyncTest extends Async {
     getOptionsForComponent(): Record<string, unknown> {
         return this.optionsForComponent;
     }
+
+    _notify(eventName: string): unknown {
+        return super._notify(eventName);
+    }
 }

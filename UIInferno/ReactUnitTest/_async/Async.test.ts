@@ -1,36 +1,38 @@
 import { assert } from 'chai';
-import { stub } from 'sinon';
+import { createSandbox, stub } from 'sinon';
 
+import * as ModulesLoader from 'WasabyLoader/ModulesLoader';
 import { IoC, constants } from 'Env/Env';
 import { IAsyncOptions } from 'UICore/Async';
 import { default as Async }  from 'ReactUnitTest/_async/Async';
+
+// предзагрузим модули, на которых будем тестировать Async - в тестах главное протестировать факт вызова require
 import TestControlSync = require('ReactUnitTest/_async/TestControlSync');
+import TestControlAsync = require('ReactUnitTest/_async/TestControlAsync');
+import TestLibraryAsync = require('ReactUnitTest/_async/TestLibraryAsync');
 
-function getOptions(templateName: string): IAsyncOptions {
-    return {
-        templateName,
-        templateOptions: {}
-    };
-}
-
-function testWithTimeout(name: string, fn: unknown, timeout?: number): unknown {
-    // @ts-ignore FIXME: удалить после полного переключения на Jest
-    const res = it(name, fn, timeout);
-    if (typeof timeout !== 'number') {
-        return res;
-    }
-    if (typeof res.timeout === 'function') {
-        res.timeout(timeout);
-    }
-    return res;
-}
 
 describe('UICore/Async:Async', () => {
-    // переопределяем логгер, чтобы при ошибках загрузки не упали тесты из-за сообщений логгера
+    function getOptions(templateName: string): IAsyncOptions {
+        return {
+            templateName,
+            templateOptions: {}
+        };
+    }
+
+    function getErrorText(moduleName: string): string {
+        return `Ошибка загрузки контрола "${moduleName}"\n`
+            + 'Возможны следующие причины:\n\t                   • '
+            + 'Ошибка в самом контроле\n\t                   • '
+            + 'Долго отвечал БЛ метод в _beforeUpdate\n\t                   • '
+            + 'Контрола не существует';
+    }
+
     const warns = [];
     const originalLogger = IoC.resolve('ILogger');
 
-    beforeEach(() => {
+    before(() => {
+        // переопределяем логгер, чтобы при ошибках загрузки не упали тесты из-за сообщений логгера
         IoC.bind('ILogger', {
             warn: (message) => {
                 warns.push(message);
@@ -40,133 +42,178 @@ describe('UICore/Async:Async', () => {
             info: originalLogger.info
         });
     });
-    afterEach(() => {
+    after(() => {
         IoC.bind('ILogger', originalLogger);
     });
 
+    // тесты поведения на сервере
     if (typeof window === 'undefined') {
-        it('Loading synchronous server-side', () => {
-            const options = getOptions('ReactUnitTest/_async/TestControlSync');
-            const oldCompat = constants.compat;
-            constants.compat = false;
+        it('Синхронная загрузка контрола на сервере', () => {
+            const moduleName = 'ReactUnitTest/_async/TestControlSync';
+            const options = getOptions(moduleName);
 
             const async = new Async(options);
             async._beforeMount(options);
 
-            assert.isNotOk(async.getError(), 'error state should be empty');
-            assert.equal(async.getCurrentTemplateName(), 'ReactUnitTest/_async/TestControlSync');
+            assert.isNotOk(async.getError(), 'Поле с ошибкой должно быть пустым.');
+            assert.equal(async.getCurrentTemplateName(), moduleName);
             assert.equal(async.getOptionsForComponent().resolvedTemplate, TestControlSync);
-            constants.compat = oldCompat;
         });
 
-        testWithTimeout('Loading synchronous server-side failed', () => {
-            const options = getOptions('ReactUnitTest/_async/Fail/TestControlSync');
-            const ERROR_TEXT = 'Ошибка загрузки контрола "ReactUnitTest/_async/Fail/TestControlSync"'
-                + '\nВозможны следующие причины:\n\t                   • '
-                + 'Ошибка в самом контроле\n\t                   • '
-                + 'Долго отвечал БЛ метод в _beforeUpdate\n\t                   • '
-                + 'Контрола не существует';
-
+        it('Синхронная загрузка контрола на сервере, с ошибкой', () => {
+            const moduleName = 'ReactUnitTest/_async/Fail/TestControlSync';
+            const options = getOptions(moduleName);
             const async = new Async(options);
-            return async._beforeMount(options).then(() => {
-                async._beforeUpdate(options);
+            return async._beforeMount(options);
 
-                assert.equal(async.getError(), ERROR_TEXT);
-                assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, undefined);
-            });
-        }, 4000);
+            assert.equal(async.getError(), getErrorText(moduleName));
+            assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, undefined);
+        });
     }
 
-    testWithTimeout('Loading synchronous client-side', () => {
-        const oldCompat = constants.compat;
-        constants.compat = false;
-        const options = getOptions('ReactUnitTest/_async/TestControlSync');
+    describe('Проверка работы Async в браузере', () => {
+        let isBrowserPlatformStub;
+        let compatStub;
+        let sandbox;
         const BUILDED_ON_SERVER = true;
 
-        const async = new Async(options);
-        // @ts-ignore Хак: Почему-то нет опций после конструктора
-        async._options = options;
-        // @ts-ignore
-        const notifyStub = stub(async, '_notify');
+        before(() => {
+            isBrowserPlatformStub = stub(constants, 'isBrowserPlatform').value(true);
+            compatStub = stub(constants, 'compat').value(false);
+        });
 
-        async._beforeMount(options, undefined, BUILDED_ON_SERVER);
-        async._componentDidMount();
+        after(() => {
+            isBrowserPlatformStub.restore();
+            compatStub.restore();
+        });
 
-        assert.isNotOk(async.getError(), 'error state should be empty');
-        assert.equal(async.getCurrentTemplateName(), 'ReactUnitTest/_async/TestControlSync');
-        assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, TestControlSync);
+        beforeEach(() => {
+            sandbox = createSandbox();
+        });
 
-        assert(notifyStub.called, 'Ожидалось, что будет вызван метод публикации события "_notify"');
-        assert.includeMembers(notifyStub.getCall(0).args, ['load'], 'Не было опубликовано событие "load"');
+        afterEach(() => {
+            sandbox.restore();
+        });
 
-        constants.compat = oldCompat;
-    }, 4000);
+        it('Синхронная загрузка контрола', () => {
+            const moduleName = 'ReactUnitTest/_async/TestControlSync';
+            const options = getOptions(moduleName);
+            // заглушка для проверки события загрузки контрола
+            const notifyStub = sandbox.stub(Async.prototype, '_notify');
 
-    testWithTimeout('Loading synchronous client-side failed', () => {
-        const options = getOptions('ReactUnitTest/_async/Fail/TestControlSync');
-        const ERROR_TEXT = 'Ошибка загрузки контрола "ReactUnitTest/_async/Fail/TestControlSync"\n'
-            + 'Возможны следующие причины:\n\t                   • '
-            + 'Ошибка в самом контроле\n\t                   • '
-            + 'Долго отвечал БЛ метод в _beforeUpdate\n\t                   • '
-            + 'Контрола не существует';
+            const async = new Async(options);
+            // @ts-ignore Хак: Почему-то нет опций после конструктора
+            async._options = options;
+            async._beforeMount(options, undefined, BUILDED_ON_SERVER);
+            async._componentDidMount();
 
-        const async = new Async(options);
-        return async._beforeMount(options).then(() => {
-            async._beforeUpdate(options);
+            assert.isNotOk(async.getError(), 'Поле с ошибкой должно быть пустым.');
+            assert.equal(async.getCurrentTemplateName(), moduleName);
+            assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, TestControlSync);
+            sandbox.assert.called(notifyStub);  // Ожидалось, что будет вызван метод публикации события "_notify"
+            assert.includeMembers(notifyStub.getCall(0).args, ['load'], 'Не было опубликовано событие "load"');
+        });
 
-            assert.equal(async.getError(), ERROR_TEXT);
+        it('Синхронная загрузка контрола, с ошибкой', () => {
+            const moduleName = 'ReactUnitTest/_async/Fail/TestControlSync';
+            const options = getOptions(moduleName);
+            // заглушка для проверки факта вызова загрузки в "require"
+            const loadSyncStub = sandbox.stub(ModulesLoader, 'loadSync').withArgs(moduleName).returns(null);
+            // заглушка для ModulesLoader.isLoaded, чтобы проверить синхронную загрузку контрола
+            const isLoadedStub = sandbox.stub(ModulesLoader, 'isLoaded');
+            isLoadedStub.withArgs(moduleName).returns(true);
+
+            const async = new Async(options);
+            async._beforeMount(options, undefined, BUILDED_ON_SERVER);
+
+            // проверим, что была попытка синхронной загрузки контрола
+            assert(loadSyncStub.called, 'Требуемый контрол не грузился синхронно.');
+            assert.equal(async.getError(), getErrorText(moduleName));
             assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, undefined);
         });
-    }, 4000);
 
-    testWithTimeout('Loading asynchronous client-side', () => {
-        const options = getOptions('ReactUnitTest/_async/TestControlAsync');
-        const async = new Async(options);
-        // @ts-ignore Хак: Почему-то нет опций после конструктора
-        async._options = options;
-        return async._beforeMount(options).then(() => {
-            async._beforeUpdate(options);
-            async._afterUpdate();
+        it('Асинхронная загрузка контрола', () => {
+            const moduleName = 'ReactUnitTest/_async/TestControlAsync';
+            const options = getOptions(moduleName);
+            // заглушка для проверки события загрузки контрола
+            const notifyStub = sandbox.stub(Async.prototype, '_notify');
+            // заглушка для проверки факта вызова загрузки в "require"
+            const loadAsyncStub = sandbox.stub(ModulesLoader, 'loadAsync')
+                .withArgs(moduleName).resolves(TestControlAsync);
+            // заглушка для ModulesLoader.isLoaded, чтобы проверить асинхронную загрузку контрола
+            const isLoadedStub = sandbox.stub(ModulesLoader, 'isLoaded');
+            isLoadedStub.withArgs(moduleName).returns(false);
 
-            assert.isNotOk(async.getError(), 'Error message should be empty');
-            assert.strictEqual(async.getOptionsForComponent().resolvedTemplate,
-                require('ReactUnitTest/_async/TestControlAsync'));
+            const async = new Async(options);
+            // @ts-ignore Хак: Почему-то нет опций после конструктора
+            async._options = options;
+            return async._beforeMount(options, undefined, BUILDED_ON_SERVER).then(() => {
+                // удалим заглушку функции ModulesLoader.isLoaded
+                isLoadedStub.restore();
+
+                // проверим, что был вызов асинхронной загрузки контрола
+                sandbox.assert.called(loadAsyncStub);
+
+                async._componentDidMount();
+                async._beforeUpdate(options);
+                async._afterUpdate();
+
+                assert.isNotOk(async.getError(), 'Поле с ошибкой должно быть пустым.');
+                assert.equal(async.getCurrentTemplateName(), moduleName);
+                assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, TestControlAsync);
+                sandbox.assert.called(notifyStub);  // Ожидалось, что будет вызван метод публикации события "_notify"
+                assert.includeMembers(notifyStub.getCall(0).args, ['load'], 'Не было опубликовано событие "load"');
+            });
         });
-    }, 3000);
 
-    testWithTimeout('Loading asynchronous from library client-side', () => {
-        const options = getOptions('ReactUnitTest/_async/TestLibraryAsync:ExportControl');
-        const async = new Async(options);
-        // @ts-ignore Хак: Почему-то нет опций после конструктора
-        async._options = options;
-        return async._beforeMount(options).then(() => {
-            async._beforeUpdate(options);
-            async._afterUpdate();
+        it('Асинхронная загрузка контрола, с ошибкой', () => {
+            const moduleName = 'ReactUnitTest/_async/Fail/TestControlAsync';
+            const options = getOptions(moduleName);
+            // заглушка для проверки события загрузки контрола
+            const notifyStub = sandbox.stub(Async.prototype, '_notify');
+            // заглушка для проверки факта вызова загрузки в "require"
+            const loadAsyncStub = sandbox.stub(ModulesLoader, 'loadAsync').withArgs(moduleName).rejects();
 
-            assert.isNotOk(async.getError(), 'Error message should be empty');
-            assert.strictEqual(async.getOptionsForComponent().resolvedTemplate,
-                require('ReactUnitTest/_async/TestLibraryAsync').ExportControl);
+
+            const async = new Async(options);
+            return async._beforeMount(options, undefined, BUILDED_ON_SERVER).then(() => {
+                // проверим, что был вызов асинхронной загрузки контрола
+                sandbox.assert.called(loadAsyncStub);
+
+                async._componentDidMount();
+                async._beforeUpdate(options);
+                async._afterUpdate();
+
+                assert.equal(async.getError(), getErrorText(moduleName));
+                assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, undefined);
+                sandbox.assert.notCalled(notifyStub);  // не должно быть вызова метода публикации события "_notify"
+            });
         });
-    }, 3000);
 
-    testWithTimeout('Loading asynchronous client-side failed', () => {
-        const options = getOptions('ReactUnitTest/_async/Fail/TestControlAsync');
-        const ERROR_TEXT = 'Ошибка загрузки контрола "ReactUnitTest/_async/Fail/TestControlAsync"\n'
-            + 'Возможны следующие причины:\n\t                   • '
-            + 'Ошибка в самом контроле\n\t                   • '
-            + 'Долго отвечал БЛ метод в _beforeUpdate\n\t                   • '
-            + 'Контрола не существует';
+        it('Асинхронная загрузка из библиотеки', () => {
+            const moduleName = 'ReactUnitTest/_async/TestLibraryAsync:ExportControl';
+            const options = getOptions(moduleName);
+            // заглушка для проверки факта вызова загрузки в "require"
+            sandbox.stub(ModulesLoader, 'loadAsync').withArgs(moduleName).resolves(TestLibraryAsync.ExportControl);
+            // заглушка для ModulesLoader.isLoaded, чтобы проверить асинхронную загрузку контрола
+            const isLoadedStub = sandbox.stub(ModulesLoader, 'isLoaded');
+            isLoadedStub.withArgs(moduleName).returns(false);
 
-        const async = new Async(options);
-        async._beforeMount(options);
-        async._beforeUpdate(options);
-        async._afterUpdate();
+            const async = new Async(options);
+            // @ts-ignore Хак: Почему-то нет опций после конструктора
+            async._options = options;
+            return async._beforeMount(options, undefined, BUILDED_ON_SERVER).then(() => {
+                // удалим заглушку функции ModulesLoader.isLoaded
+                isLoadedStub.restore();
 
-        return new Promise((resolve) => {
-            setTimeout(resolve, 2000);
-        }).then(() => {
-            assert.equal(async.getError(), ERROR_TEXT);
-            assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, undefined);
+                async._componentDidMount();
+                async._beforeUpdate(options);
+                async._afterUpdate();
+
+                assert.isNotOk(async.getError(), 'Поле с ошибкой должно быть пустым.');
+                assert.equal(async.getCurrentTemplateName(), moduleName);
+                assert.strictEqual(async.getOptionsForComponent().resolvedTemplate, TestLibraryAsync.ExportControl);
+            });
         });
-    }, 4000);
+    });
 });
