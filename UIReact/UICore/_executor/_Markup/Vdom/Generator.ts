@@ -123,18 +123,16 @@ export class GeneratorVdom extends Generator implements IGenerator {
         __: unknown,
         control?: Control
     ): React.DetailedReactHTMLElement<P, T> {
-        /* если события объявляется на контроле, и корневом элементе шаблона, то мы должны смержить события,
-         * без этого события объявленные на контроле будут потеряны
-         */
-        const extractedEvents = control ?
-            { ...control._options['events'], ...attrs.events } :
-            { ...attrs.events };
-        const eventsObject = {
-            events: extractedEvents,
-        };
         if (!attrToDecorate) {
             attrToDecorate = {};
         }
+        /* если события объявляется на контроле, и корневом элементе шаблона, то мы должны смержить события,
+         * без этого события объявленные на контроле будут потеряны
+         */
+        const extractedEvents = { ...attrToDecorate.events, ...attrs.events };
+        const eventsObject = {
+            events: extractedEvents
+        };
         const mergedAttrs = Attr.mergeAttrs(attrToDecorate.attributes, attrs.attributes);
         Object.keys(mergedAttrs).forEach((attrName) => {
             if (!mergedAttrs[attrName]) {
@@ -145,6 +143,7 @@ export class GeneratorVdom extends Generator implements IGenerator {
         const ref = createChildrenRef(
             control,
             name,
+            //@ts-ignore поправить типы https://online.sbis.ru/opendoc.html?guid=90617273-89f9-4e7a-9e66-6f2f9f6d8f19
             createEventRef(tagName, eventsObject)
         );
 
