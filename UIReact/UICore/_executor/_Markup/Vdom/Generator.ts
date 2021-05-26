@@ -143,7 +143,7 @@ export class GeneratorVdom extends Generator implements IGenerator {
         const ref = createChildrenRef(
             control,
             name,
-            //@ts-ignore
+            //@ts-ignore поправить типы https://online.sbis.ru/opendoc.html?guid=90617273-89f9-4e7a-9e66-6f2f9f6d8f19
             createEventRef(tagName, eventsObject)
         );
 
