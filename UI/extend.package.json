@@ -14,7 +14,9 @@
     "UI/Events",
     "UI/BuilderConfig",
     "UI/Deps",
-    "UI/Head"
+    "UI/Head",
+    "UI/Route",
+    "wml!UI/Route"
   ],
   "output": "online-superbundle.package.js"
 }
