@@ -94,9 +94,7 @@ export class GeneratorVdom extends Generator implements IGenerator {
      */
     joinElements(elements: React.ReactNode): React.ReactNode {
         if (Array.isArray(elements)) {
-            return ArrayUtils.flatten(elements, true)
-                // Убираем пустые строки из массива компонентов
-                .filter(node => !!node);
+            return ArrayUtils.flatten(elements, true, true);
         } else {
             throw new Error('joinElements: elements is not array');
         }
