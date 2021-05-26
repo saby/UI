@@ -61,7 +61,7 @@ export class GeneratorVdom extends Generator implements IGenerator {
             );
             return '';
         }
-        return text;
+        return text || undefined;
     }
 
     /**
