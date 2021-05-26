@@ -61,7 +61,7 @@ export class GeneratorVdom extends Generator implements IGenerator {
             );
             return '';
         }
-        return text || undefined;
+        return text;
     }
 
     /**
@@ -94,7 +94,9 @@ export class GeneratorVdom extends Generator implements IGenerator {
      */
     joinElements(elements: React.ReactNode): React.ReactNode {
         if (Array.isArray(elements)) {
-            return ArrayUtils.flatten(elements, true);
+            return ArrayUtils.flatten(elements, true)
+                // Убираем пустые строки из массива компонентов
+                .filter(node => !!node);
         } else {
             throw new Error('joinElements: elements is not array');
         }
