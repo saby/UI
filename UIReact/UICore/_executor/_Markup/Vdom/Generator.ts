@@ -59,9 +59,9 @@ export class GeneratorVdom extends Generator implements IGenerator {
             Logger.error(
                 'Тут должна была прийти строка, нужно подняться по стеку и понять откуда здесь что-то другое'
             );
-            return '';
+            return undefined;
         }
-        return text;
+        return !!text ? text : undefined;
     }
 
     /**
