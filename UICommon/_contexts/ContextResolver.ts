@@ -82,8 +82,8 @@ export function resolveContext(controlClass, currentContext, control?) {
    var contextTypes = controlClass.contextTypes ? controlClass.contextTypes() : {};
    var resolvedContext = {};
    if (!contextTypes) {
-      const message12 = '[UICommon/_contexts/ContextResolver:resolveContext()] Context types are not defined';
-      Logger.error(message12, control ? control : null);
+      const message = '[UICommon/_contexts/ContextResolver:resolveContext()] Context types are not defined';
+      Logger.error(message, control ? control : null);
    } else {
       for (var key in contextTypes) {
          if (!(key in currentContext)) {
