@@ -20,12 +20,12 @@ function sortedAddControlNode(controlNodes: IControlNode[], newControlNode: ICon
 
     // Если массив пустой или все id не меньше чем у новой ноды - добавляем в конец.
     let newIndex: number = controlNodes.length;
-    for (let index = 0; index < controlNodes.length; ++index) {
-        const id = getNumberId(controlNodes[index].id);
+    for (let index1 = 0; index1 < controlNodes.length; ++index1) {
+        const id = getNumberId(controlNodes[index1].id);
 
         // Добавляем node перед первой из тех, чей id меньше.
         if (id < generatedId) {
-            newIndex = index;
+            newIndex = index1;
             break;
         }
     }
