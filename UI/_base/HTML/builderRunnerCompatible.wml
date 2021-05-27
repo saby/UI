@@ -31,6 +31,9 @@
             var cnt = Core.extend({
                _template: templateFn
             });
+            cnt.defaultProps = {
+              notLoadThemes: true
+            }
             Compatible.AppStart._shouldStart = false;
             Compatible.AppStart.createControl(cnt, {iWantBeWS3: true}, document.getElementById('root'));
          });
