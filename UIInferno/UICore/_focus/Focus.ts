@@ -42,7 +42,7 @@ if (typeof window !== 'undefined') {
       isTouchInterface = true;
       mouseMoveTime = 0;
    }, true);
-   window.addEventListener('mousemove', function (event) {
+   window.addEventListener('mousemove', (event) => {
       mouseMoveTime = event.timeStamp;
    }, true);
    window.addEventListener('mousedown', (event) => {
@@ -292,9 +292,9 @@ let focusingState;
 let nativeFocus: Function;
 let lastFocused: IControlElement;
 
-let focus : IFocus;
-focus = <IFocus>(element: IControlElement, {enableScreenKeyboard = false, enableScrollToElement = false}:
+const focus: IFocus = (elementToFocus: IControlElement, {enableScreenKeyboard = false, enableScrollToElement = false}:
    IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}, isOldControl?: boolean): boolean => {
+   let element: IControlElement = elementToFocus;
    let res;
    const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard};
    // в ie фокус может быть null
@@ -315,7 +315,7 @@ focus = <IFocus>(element: IControlElement, {enableScreenKeyboard = false, enable
       }
    }
    return res;
-}
+};
 
    // Заменяем нативный фокус на функцию из библиотеки фокусов.
    // В ней исправлены многие ошибки кроссбраузерной и кроссплатформенной совместимости.
