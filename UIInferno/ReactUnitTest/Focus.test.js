@@ -536,10 +536,6 @@ define([
       });
 
       after(function() {
-         // Запускаем эти тесты только под nodejs.
-         if (!fromNode) {
-            return;
-         }
          constants.compat = compatValue;
          sandbox.restore();
 
