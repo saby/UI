@@ -72,7 +72,7 @@ export class Generator implements IGenerator {
         Вряд ли есть места, где люди завязались на это поведение.
         Поэтому чтобы не костылять с проверками, просто поддержу и опции, и атрибуты для всего.
          */
-        const name = attributes.name as string ?? options.name;
+        const name = attributes.name as string ?? resolvedOptionsExtended.name;
 
         const newOptions = this.calculateOptions(resolvedOptionsExtended, config, events, name);
 
