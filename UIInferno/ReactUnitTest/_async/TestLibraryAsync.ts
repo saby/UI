@@ -1,5 +1,5 @@
 import { Control, TemplateFunction } from 'UI/Base';
-import template = require('wml!UITest/_async/TestControlAsync');
+import template = require('wml!ReactUnitTest/_async/TestControlAsync');
 
 class ExportControl extends Control {
     protected _template: TemplateFunction = template;

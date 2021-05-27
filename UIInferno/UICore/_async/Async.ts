@@ -63,7 +63,8 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
     */
    private needNotifyOnLoad: boolean = false;
 
-   protected _beforeMount(options: IAsyncOptions, _: unknown, receivedState: TAsyncStateReceived): Promise<TAsyncStateReceived> {
+   protected _beforeMount(options: IAsyncOptions, _: unknown,
+                          receivedState: TAsyncStateReceived): Promise<TAsyncStateReceived> {
       if (!options.templateName) {
          this.error = 'В модуль Async передали не корректное имя шаблона (templateName=undefined|null|empty)';
          IoC.resolve('ILogger').error(this.error);
