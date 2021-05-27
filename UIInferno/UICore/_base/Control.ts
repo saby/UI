@@ -1522,7 +1522,7 @@ export default Control;
 
 /**
  * @name UICore/_base/Control#notLoadThemes
- * @cfg {Boolean} Флаг, который отключает загрузку переменных тем оформления для контролов. 
+ * @cfg {Boolean} Флаг, который отключает загрузку переменных тем оформления для контролов.
  * @default undefined
  */
 
