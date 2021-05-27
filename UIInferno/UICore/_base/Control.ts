@@ -281,11 +281,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
       this._fullContext = ctx;
    }
 
-   private _saveContextObject(ctx: unknown):void {
-      this.context.scope = ctx;
-      this._context = ctx;
-   }
-
+   joinElements
    /**
     * end todo
     */
@@ -1522,7 +1518,7 @@ export default Control;
 
 /**
  * @name UICore/_base/Control#notLoadThemes
- * @cfg {Boolean} Флаг, который отключает загрузку переменных тем оформления для контролов. 
+ * @cfg {Boolean} Флаг, который отключает загрузку переменных тем оформления для контролов.
  * @default undefined
  */
 

@@ -6,6 +6,7 @@
       "UICore/Events",
       "UICore/Executor",
       "UICore/Focus",
+      "UICore/HotKeys",
       "UICore/NodeCollector",
       "UICore/Reactivity",
       "UICore/Vdom",
@@ -13,4 +14,3 @@
     ],
     "output": "online-superbundle.package.js"
   }
-  
