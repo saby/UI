@@ -108,6 +108,9 @@ export default class Control<TOptions extends IControlOptions = {},
 
     protected _container: HTMLElement;
 
+    protected _$childrenPromises: unknown[] = [];
+    protected _$afterMountResolve: unknown;
+
     // TODO: TControlConfig добавлен для совместимости, в 3000 нужно сделать TOptions и здесь, и в UIInferno.
     constructor(props: TOptions | TControlConfig = {}, context?: IWasabyContextValue) {
         super(props as TOptions);
@@ -227,7 +230,11 @@ export default class Control<TOptions extends IControlOptions = {},
                         this._$controlMounted = true;
                         setTimeout(() => {
                             makeWasabyObservable<TOptions, TState>(this);
-                            this._afterMount(options);
+                            Promise.all(this._$childrenPromises).then(() => {
+                                this._afterMount(options);
+                                // @ts-ignore
+                                this._$afterMountResolve && this._$afterMountResolve();
+                            });
                         }, 0);
                     }
                 );
@@ -390,7 +397,13 @@ export default class Control<TOptions extends IControlOptions = {},
         this._componentDidMount(newOptions);
         makeWasabyObservable<TOptions, TState>(this);
         setTimeout(() => {
-            this._afterMount(newOptions);
+            Promise.all(this._$childrenPromises).then(() => {
+                this._afterMount(newOptions);
+                // @ts-ignore
+                this._$afterMountResolve && this._$afterMountResolve();
+            });
+            // @ts-ignore
+            this._$afterMountResolve && this._$afterMountResolve();
         }, 0);
     }
 
