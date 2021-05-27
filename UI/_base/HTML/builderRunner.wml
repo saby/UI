@@ -32,7 +32,7 @@
             });
             cnt.defaultProps = {
                notLoadThemes: true
-            }
+            };
             Compatible.AppStart._shouldStart = false;
             Compatible.AppStart.createControl(cnt, {}, document.getElementById('root'));
          });
