@@ -281,7 +281,11 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
       this._fullContext = ctx;
    }
 
-   joinElements
+   private _saveContextObject(ctx: unknown):void {
+      this.context.scope = ctx;
+      this._context = ctx;
+   }
+
    /**
     * end todo
     */
