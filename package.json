@@ -53,6 +53,7 @@
       "express": "^4.16.3",
       "react": "17.0.1",
       "react-dom": "17.0.1",
+      "react-test-renderer": "17.0.1",
       "requirejs": "2.1.18",
       "serve-static": "1.11.x",
       "wasaby-cli": "git+https://platform-git.sbis.ru/saby/wasaby-cli.git#rc-21.4000"
