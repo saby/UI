@@ -8,8 +8,6 @@ import { assert } from 'chai';
 // @ts-ignore
 import { JSDOM } from 'jsdom';
 import TestControl from './TestControl';
-import TestControl2 from './TestControl2';
-import TestControl2Inner from './TestControl2Inner';
 
 describe('UIReact/UICore/_base/Control', () => {
     describe('хуки жизненного цикла', () => {
@@ -845,28 +843,6 @@ describe('UIReact/UICore/_base/Control', () => {
             tick(0);
 
             sandbox.assert.calledOnce(_afterUpdateStub);
-        });
-
-        it('сначала зовется _afterMount асинхронного ребенка а потом родителя', async () => {
-            const _afterMountOuter = sandbox.stub(
-                TestControl2.prototype,
-                '_afterMount'
-            );
-            const _afterMountInner = sandbox.stub(
-                TestControl2Inner.prototype,
-                '_afterMount'
-            );
-
-            act(() => {
-                render(<TestControl2 />, container);
-            });
-            await tickAsync(1000);
-            tick(0);
-
-            sandbox.assert.callOrder(
-                _afterMountInner,
-                _afterMountOuter
-            );
         });
     });
 });
