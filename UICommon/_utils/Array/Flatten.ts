@@ -8,20 +8,28 @@
  * "Выравнивает" вложенные массивы (любого уровня вложенности), склеивая в одноуровневый массив.
  *
  * @param {Array} arr
+ * @param {Boolean} skipUndefined
+ * @param {Boolean} skipEmptyString
  * @returns {Array}
  * @example
  * <pre>
  * flatten([1, [2], [3, [[4]]]]) => [1, 2, 3, 4]
  * </pre>
  */
-export default function flatten<T>(arr: T[], skipundefined?: boolean): T[] {
+export default function flatten<T>(arr: T[], skipUndefined?: boolean, skipEmptyString?: boolean): T[] {
    let result = [];
    const ln = arr.length;
    for (let i = 0; i !== ln; i++) {
       if (Array.isArray(arr[i])) {
-         result = result.concat(flatten<any>(arr[i] as any, skipundefined) as any);
+         result = result.concat(flatten<any>(arr[i] as any, skipUndefined) as any);
       } else {
-         if (skipundefined && arr[i] === undefined) {
+         if (skipUndefined && arr[i] === undefined) {
+            continue;
+         }
+
+         // Убираем пустые строки, чтобы не трогать кодогенерацию одинаковую для React и Inferno
+         // Inferno отрисовывает пустые строки, а для React это не валидная нода
+         if (skipEmptyString && arr[i] as unknown === '') {
             continue;
          }
          result.push(arr[i]);
