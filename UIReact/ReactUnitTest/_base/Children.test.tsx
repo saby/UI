@@ -9,7 +9,7 @@ import { JSDOM } from 'jsdom';
 import OuterControl from './OuterControl';
 import InnerControl from './InnerControl';
 
-describe('хуки жизненного цикла', () => {
+describe('дочерние контролы', () => {
     let container;
     let sandbox;
 
@@ -48,7 +48,7 @@ describe('хуки жизненного цикла', () => {
         document.body.appendChild(container);
     });
 
-    it('123', () => {
+    it('наличие дочернего контрола', () => {
 
         // отрисовываем компонент и сразу дожидаемся _afterMount
         let instance;
@@ -58,10 +58,6 @@ describe('хуки жизненного цикла', () => {
         tick(0);
         // endregion
 
-        act(() => {
-            instance._forceUpdate();
-        });
-        tick(0);
         sandbox.assert.match(instance._children.mycontrol instanceof InnerControl, true);
     });
 });

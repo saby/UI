@@ -34,15 +34,18 @@ export class GeneratorVdom extends Generator implements IGenerator {
     }
 
     protected calculateOptions(
-        resolvedOptionsExtended: IControlOptions,
+        resolvedOptionsExtended: IControlOptions & { ref: React.RefCallback<Control> },
         config: IControlConfig,
         events: Record<string, IWasabyEvent[]>,
-        name: string): IControlOptions & { ref: unknown } {
+        name: string): IControlOptions & { ref: React.RefCallback<Control> } {
         return {
             ...resolvedOptionsExtended,
             ...{ events },
-            ref: createChildrenRef(config.viewController, name)
-        }
+            ref: createAsyncRef(
+                config.viewController,
+                createChildrenRef(config.viewController, name, resolvedOptionsExtended.ref)
+            )
+        };
     }
 
     /*
@@ -124,7 +127,7 @@ export class GeneratorVdom extends Generator implements IGenerator {
         control?: Control
     ): React.DetailedReactHTMLElement<P, T> {
         if (!attrToDecorate) {
-            attrToDecorate = {};
+            attrToDecorate = {attributes: {}, events: {}};
         }
         /* если события объявляется на контроле, и корневом элементе шаблона, то мы должны смержить события,
          * без этого события объявленные на контроле будут потеряны
@@ -143,7 +146,6 @@ export class GeneratorVdom extends Generator implements IGenerator {
         const ref = createChildrenRef(
             control,
             name,
-            //@ts-ignore поправить типы https://online.sbis.ru/opendoc.html?guid=90617273-89f9-4e7a-9e66-6f2f9f6d8f19
             createEventRef(tagName, eventsObject)
         );
 
@@ -182,11 +184,11 @@ function createEventRef<T extends HTMLElement>(
     };
 }
 
-function createChildrenRef<T extends Control | Element>(
+function createChildrenRef(
     parent: Control,
     name: string,
-    prevRef?: React.RefCallback<T>
-): React.RefCallback<T> | void {
+    prevRef?: React.RefCallback<Control>
+): React.RefCallback<Control> {
     // _children protected по апи, но здесь нужен доступ чтобы инициализировать.
     /* tslint:disable:no-string-literal */
     const oldRef = (node) => {
@@ -206,4 +208,26 @@ function createChildrenRef<T extends Control | Element>(
         }
     };
     /* tslint:enable:no-string-literal */
+}
+function createAsyncRef(
+    parent: Control,
+    prevRef?: React.RefCallback<Control>
+): React.RefCallback<Control> {
+    const oldRef = (node) => {
+        prevRef?.(node);
+    };
+    if (!parent) {
+        return oldRef;
+    }
+
+    return (control) => {
+        oldRef(control);
+        if (!control) {
+            return;
+        }
+        const afterMountPromise = new Promise((resolve) => {
+            control._$afterMountResolve = resolve;
+        });
+        parent._$childrenPromises?.push(afterMountPromise);
+    };
 }
