@@ -7,6 +7,7 @@ import {
     Attr,
     IGeneratorNameObject, ITplFunction
 } from 'UICommon/Executor';
+import { IWasabyEvent } from 'UICommon/Events';
 
 /*
 FIXME: как я понимаю, в этом объекте могут быть HTMl-атрибуты+какие-то наши поля.
@@ -37,18 +38,10 @@ export type TemplateResult = React.FunctionComponentElement<
     Partial<IWasabyContextValue> & { children?: React.ReactNode }
     >;
 
-export type AttrToDecorate = Record<string, {
-    attributes: Record<string, unknown>
-}>;
-
-export interface IWasabyEvent {
-    args: unknown[];
-    context: Function;
-    handler: Function;
-    isControl: boolean;
-    value: string;
-    viewController: Control;
-}
+export type AttrToDecorate = {
+    attributes: Record<string, unknown>;
+    events: Record<string, IWasabyEvent[]>
+};
 
 /**
  * Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
