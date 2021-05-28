@@ -1,27 +1,11 @@
 // @ts-nocheck
-import { Async, TAsyncStateReceived, IAsyncOptions } from 'UICore/Async';
+import { Async, IAsyncOptions } from 'UICore/Async';
 
 /**
  * Реализация класса UICore/Async:Async для тестов
  */
-export default class AsyncTest extends Async {
-    _beforeMount(options: IAsyncOptions): void {
-        super._beforeMount(options);
-    }
-
-    _componentDidMount(): void {
-        super._componentDidMount();
-    }
-
-    _beforeUpdate(opts: IAsyncOptions): void {
-        super._beforeUpdate(opts);
-    }
-
-    _afterUpdate() {
-        super._afterUpdate();
-    }
-
-    getError(): TAsyncStateReceived | void {
+export default class AsyncTest extends Async<IAsyncOptions> {
+    getError(): string | void {
         return this.error;
     }
 
@@ -31,5 +15,9 @@ export default class AsyncTest extends Async {
 
     getOptionsForComponent(): Record<string, unknown> {
         return this.optionsForComponent;
+    }
+
+    _notify(eventName: string): unknown {
+        return super._notify(eventName);
     }
 }
