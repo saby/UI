@@ -108,8 +108,19 @@ export default class Control<TOptions extends IControlOptions = {},
 
     protected _container: HTMLElement;
 
+    /**
+     * Набор промисов дочерних контролов, которые должны зарезолвиться в _afterMount, чтобы запустился _afterMount
+     * текущего контрола. Таким образом будет поддержано правило, что _afterMount родителя срабатывает только когда
+     * сработали все _afterMount дочерних контролов (как этом было при wasaby-inferno)
+     */
     protected _$childrenPromises: unknown[] = [];
-    protected _$afterMountResolve: unknown;
+    /**
+     * Резолвер промиса, уведомляет что _afterMount завершился. Пока не завершится промис текущего контрола,
+     * _afterMount родительского контрола не запустится. Подробнее {@link UICore/_base/Control#_$childrenPromises здесь}
+     */
+    protected _$afterMountResolve: Function = () => {
+        // nothing
+    };
 
     // TODO: TControlConfig добавлен для совместимости, в 3000 нужно сделать TOptions и здесь, и в UIInferno.
     constructor(props: TOptions | TControlConfig = {}, context?: IWasabyContextValue) {
@@ -232,8 +243,7 @@ export default class Control<TOptions extends IControlOptions = {},
                             makeWasabyObservable<TOptions, TState>(this);
                             Promise.all(this._$childrenPromises).then(() => {
                                 this._afterMount(options);
-                                // @ts-ignore
-                                this._$afterMountResolve && this._$afterMountResolve();
+                                this._$afterMountResolve();
                             });
                         }, 0);
                     }
@@ -399,11 +409,9 @@ export default class Control<TOptions extends IControlOptions = {},
         setTimeout(() => {
             Promise.all(this._$childrenPromises).then(() => {
                 this._afterMount(newOptions);
-                // @ts-ignore
-                this._$afterMountResolve && this._$afterMountResolve();
+                this._$afterMountResolve();
             });
-            // @ts-ignore
-            this._$afterMountResolve && this._$afterMountResolve();
+            this._$afterMountResolve();
         }, 0);
     }
 
