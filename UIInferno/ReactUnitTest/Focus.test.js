@@ -20,25 +20,25 @@ define([
    const Control = Base.Control;
    const constants = Env.constants;
 
+   var isNode = typeof document === 'undefined';
+
+   var describeIf = function(condition) {
+      return condition ? describe : describe.skip;
+   };
+
    var global = (function() {
       return this || (0, eval)('this');
    }());
-
-   var fromNode = typeof document === 'undefined';
    let sandbox;
    let compatValue;
 
-   describe('Focus', function() {
+   describeIf(isNode)('Focus', function() {
       var div;
       var control;
       var globalCases = [];
       var currentCase;
 
       before(function() {
-         // Запускаем эти тесты только под nodejs.
-         if (!fromNode) {
-            this.skip();
-         }
          sandbox = sinon.createSandbox();
          compatValue = constants.compat;
          constants.compat = false;
@@ -64,10 +64,6 @@ define([
       });
 
       after(function() {
-         // Запускаем эти тесты только под nodejs.
-         if (!fromNode) {
-            return;
-         }
          constants.compat = compatValue;
          sandbox.restore();
 
@@ -513,12 +509,8 @@ define([
       });
    });
 
-   describe('Focus functions', function() {
+   describeIf(isNode)('Focus functions', function() {
       before(function() {
-         // Запускаем эти тесты только под nodejs.
-         if (!fromNode) {
-            this.skip();
-         }
          sandbox = sinon.createSandbox();
          compatValue = constants.compat;
          constants.compat = false;
@@ -544,10 +536,6 @@ define([
       });
 
       after(function() {
-         // Запускаем эти тесты только под nodejs.
-         if (!fromNode) {
-            return;
-         }
          constants.compat = compatValue;
          sandbox.restore();
 
