@@ -861,6 +861,7 @@ describe('UIReact/UICore/_base/Control', () => {
                 render(<TestControl2 />, container);
             });
             await tickAsync(1000);
+            tick(0);
 
             sandbox.assert.callOrder(
                 _afterMountInner,
