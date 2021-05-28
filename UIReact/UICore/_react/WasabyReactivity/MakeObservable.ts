@@ -49,7 +49,7 @@ function observeTemplate<P, S extends object | void>(instance: Control<P, S>): v
  */
 function observeProps<P, S extends object | void>(instance: Control<P, S>): void {
     // @ts-ignore _template сейчас _protected
-    const props = instance._template ? instance._template.reactiveProps : [];
+    const props = instance._template ? instance._template.reactiveProps || [] : [];
     if (!instance.reactiveValues) {
         instance.reactiveValues = {};
     }
@@ -239,7 +239,7 @@ function updateInstance(instance: IControl): void {
     }
 }
 
-export function pauseReactive(instance: IControl, action: Function): void {
+export function pauseReactive(instance: object, action: Function): void {
     if (!pauseReactiveMap.has(instance)) {
         pauseReactiveMap.set(instance, 0);
     }

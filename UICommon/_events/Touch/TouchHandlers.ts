@@ -7,7 +7,7 @@ let touchId: number = 0;
 export class TouchHandlers {
     private clickStateTarget: Array<{ target: HTMLElement, touchId: number }> = [];
     private preventShouldUseClickByTap: boolean = false;
-    private clickState: {
+    private clickState = {
         detected: false,
         stage: '',
         timer: undefined,

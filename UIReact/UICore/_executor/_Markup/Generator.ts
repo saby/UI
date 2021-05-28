@@ -49,6 +49,7 @@ export class Generator implements IGenerator {
 
         const templateAttributes: IGeneratorAttrs = {
             attributes: decorAttribs,
+            events,
             /*
             FIXME: https://online.sbis.ru/opendoc.html?guid=f354360c-5899-4f74-bf54-a06e526621eb
             судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
@@ -71,7 +72,7 @@ export class Generator implements IGenerator {
         Вряд ли есть места, где люди завязались на это поведение.
         Поэтому чтобы не костылять с проверками, просто поддержу и опции, и атрибуты для всего.
          */
-        const name = attributes.name as string ?? options.name;
+        const name = attributes.name as string ?? resolvedOptionsExtended.name;
 
         const newOptions = this.calculateOptions(resolvedOptionsExtended, config, events, name);
 

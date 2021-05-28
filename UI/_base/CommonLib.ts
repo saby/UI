@@ -10,6 +10,8 @@ import HeadController from './HeadController';
 import { HeadData, headDataStore } from 'UICommon/Deps';
 import { getGeneratorConfig } from 'UICore/Base';
 
+//@ts-ignore
+import * as BaseRoute from 'wml!UI/_base/Route';
 import {IHTMLOptions, IHTML} from './interface/IHTML';
 import {IRootTemplateOptions, IRootTemplate} from './interface/IRootTemplate';
 import Creator, { async as AsyncCreator } from './Creator';
@@ -25,6 +27,7 @@ export { meta };
 
 export {
    HTML,
+   BaseRoute,
    Document,
    Start,
    BootstrapStart,

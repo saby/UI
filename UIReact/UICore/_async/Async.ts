@@ -75,7 +75,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
       }
 
       if (constants.isBrowserPlatform && (!ModulesLoader.isLoaded(options.templateName) || constants.compat)) {
-         this.loadAsyncPromise = this._loadContentAsync(options.templateName, options.templateOptions)
+         this.loadAsyncPromise = this._loadContentAsync(options.templateName, options.templateOptions);
          return;
       }
 
@@ -96,6 +96,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
       }
 
       this.loadAsyncPromise.then(() => {
+         this.loadAsyncPromise = null;
          this._forceUpdate();
       });
    }

@@ -7,6 +7,7 @@ import {EMPTY_THEME, getThemeController} from 'UICommon/theme/controller';
 import {getResourceUrl, Logger, needToBeCompatible} from 'UICommon/Utils';
 import {Options} from 'UICommon/Vdom';
 import {makeWasabyObservable, pauseReactive, releaseProperties} from 'UICore/WasabyReactivity';
+import cExtend = require('Core/core-extend');
 
 import template = require('wml!UICore/_base/Control');
 import {IControlState} from './interfaces';
@@ -19,7 +20,7 @@ import {
 
 import {OptionsResolver} from 'UICommon/Executor';
 
-import {WasabyEvents, callNotify} from 'UICore/Events';
+import {WasabyEventsSingleton, callNotify} from 'UICore/Events';
 import {IWasabyEventSystem} from 'UICommon/Events';
 import {TIState, TControlConfig, IControl} from 'UICommon/interfaces';
 import {IControlOptions, TemplateFunction} from 'UICommon/Base';
@@ -43,6 +44,10 @@ export default class Control<TOptions extends IControlOptions = {},
      * Используется для того, чтобы не вызывать хуки ЖЦ до реального построения контрола.
      */
     private _$controlMounted: boolean = false;
+    /**
+     * Используется для того, чтобы не перерисовывать компонент, пока не закончится асинхронный beforeMount.
+     */
+    private _$asyncInProgress: boolean = false;
     /**
      * Набор детей контрола, для которых задан атрибут name.
      */
@@ -211,7 +216,8 @@ export default class Control<TOptions extends IControlOptions = {},
 
         this._options = options;
         if (promisesToWait.length) {
-            Promise.all(promisesToWait).then(() => {
+            Promise.all(promisesToWait).finally(() => {
+                this._$asyncInProgress = false;
                 this.setState(
                     {
                         loading: false
@@ -226,6 +232,7 @@ export default class Control<TOptions extends IControlOptions = {},
                     }
                 );
             });
+            this._$asyncInProgress = true;
             return true;
         } else {
             this._$controlMounted = true;
@@ -452,9 +459,9 @@ export default class Control<TOptions extends IControlOptions = {},
         */
         OptionsResolver.validateOptions(this.constructor, wasabyOptions);
 
-        const asyncMount = this._beforeFirstRender && this._beforeFirstRender(wasabyOptions);
+        this._beforeFirstRender?.(wasabyOptions);
 
-        if (asyncMount && this.state.loading) {
+        if (this._$asyncInProgress && this.state.loading) {
             if (typeof process !== 'undefined' && !process.versions) {
                 Logger.error(`При сборке реакта найден асинхронный контрол ${this._moduleName}. Верстка на сервере не будет построена`, this);
             }
@@ -702,7 +709,7 @@ export default class Control<TOptions extends IControlOptions = {},
         // кладём в конфиг наследуемые опции, чтобы они попали в полноценные опции
         cfg.theme = cfg.theme ?? 'default';
         cfg.readOnly = cfg.readOnly ?? false;
-        domElement.eventSystem = new WasabyEvents(domElement);
+        WasabyEventsSingleton.initEventSystem(domElement);
         const result = ReactDOM.render(React.createElement(ctor, cfg), domElement);
 
         if (result instanceof Control) {
@@ -745,44 +752,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * @param hackClass расширяюший класс
      */
     static extend(mixinsList: object | object[], hackClass?: Function): Control {
-        class ExtededControl extends Control {
-            /**
-             * Получение прототипа суперкласса.
-             * TODO: удалить после переписывания всех использований поля superclass.
-             * Этап переписывания https://online.sbis.ru/opendoc.html?guid=8275658b-2b1a-4e00-870f-038edd1efb94
-             * @deprecated
-             * @static
-             * @example
-             * <pre class="brush: js">
-             *     GridView.superclass._beforeUpdate.apply(this, arguments);
-             * </pre>
-             */
-            static get superclass(): Control {
-                return Object.getPrototypeOf(this).prototype;
-            }
-        }
-
-        ExtededControl.extend = Control.extend;
-        const mixins: object[] = mixinsList instanceof Array ? mixinsList : [mixinsList];
-        if (hackClass) {
-            mixins.push(hackClass);
-        }
-        for (let i = 0; i < mixins.length; i++) {
-            // @ts-ignore
-            ExtededControl = Control._extend<any, any>(ExtededControl, mixins[i]);
-        }
-        // @ts-ignore
-        return ExtededControl;
-    }
-
-    // @ts-ignore
-    static private _extend<S, M>(self: S, mixin: M): S & M {
-        // @ts-ignore
-        class MixinClass extends self { }
-        // @ts-ignore
-        Object.assign(MixinClass.prototype, mixin);
-        // @ts-ignore
-        return MixinClass;
+        return cExtend(this, mixinsList, hackClass);
     }
 
     static getDerivedStateFromError(error: unknown): { hasError: boolean, error: unknown } {

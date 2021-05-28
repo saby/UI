@@ -99,7 +99,7 @@ class HTML extends Control<IHTMLCombinedOptions> {
            .replace('ws-is-touch', '')
            .replace('ws-is-no-touch', '')
            .split(' ')
-           .concat(['zIndex-context', 'Application-body', `controls_theme-${cfg.theme}`])
+           .concat(['zIndex-context', 'Application-body'])
            .concat((cfg.bodyClasses || '').split(' '));
         const thisClasses = (this._bodyClasses || '').split(' ').filter((item) => {
             return !cfgClasses.includes(item);
@@ -254,6 +254,14 @@ class HTML extends Control<IHTMLCombinedOptions> {
         if (!detection.isMobilePlatform && !inIframe()) {
             this.activate();
         }
+        this._hideOverlay();
+    }
+
+    private _hideOverlay(): void {
+        const overlayElement: HTMLDivElement = this._container.querySelector('.preload-overlay');
+        if (overlayElement) {
+            overlayElement.style.display = 'none';
+        }
     }
 
     _onBodyClassesUpdate(event: CustomEvent): void {
@@ -273,7 +281,8 @@ class HTML extends Control<IHTMLCombinedOptions> {
             rtpackJsModuleNames: [],
             rtpackCssModuleNames: [],
             links: [],
-            scripts: []
+            scripts: [],
+            notLoadThemes: true
         };
     }
 }
