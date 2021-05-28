@@ -411,7 +411,6 @@ export default class Control<TOptions extends IControlOptions = {},
                 this._afterMount(newOptions);
                 this._$afterMountResolve();
             });
-            this._$afterMountResolve();
         }, 0);
     }
 
