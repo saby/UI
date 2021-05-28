@@ -18,6 +18,12 @@ import TestLibraryAsync = require('ReactUnitTest/_async/TestLibraryAsync');
 
 
 describe('UICore/Async:Async', () => {
+    const warns = [];
+    const originalLogger = IoC.resolve('ILogger');
+    let container: HTMLDivElement;
+    let sandbox;
+    let clock;
+    let notifyLoadStub;
 
     function getErrorText(moduleName: string): string {
         return `Ошибка загрузки контрола "${moduleName}"\n`
@@ -50,12 +56,6 @@ describe('UICore/Async:Async', () => {
         });
     }
 
-    const warns = [];
-    const originalLogger = IoC.resolve('ILogger');
-    let container: HTMLDivElement;
-    let sandbox;
-    let clock;
-
     before(() => {
         const browser = new JSDOM();
         global.window = browser.window;
@@ -86,6 +86,8 @@ describe('UICore/Async:Async', () => {
         Чтобы не делать тесты асинхронными, мы просто мокнем таймеры и сами будем управлять временем.
          */
         clock = sandbox.useFakeTimers();
+        // заглушка для нотификации событий контрола, просто проверим факт вызова метода публикации события
+        notifyLoadStub = sandbox.stub(Async.prototype, '_notify').withArgs('load');
 
         container = document.createElement('div');
         document.body.appendChild(container);
@@ -97,7 +99,6 @@ describe('UICore/Async:Async', () => {
         sandbox.restore();
 
         container.remove();
-        container = null;
     });
 
     // тесты поведения на сервере
@@ -150,7 +151,6 @@ describe('UICore/Async:Async', () => {
 
         it('Синхронная загрузка контрола', () => {
             const moduleName = 'ReactUnitTest/_async/TestControlSync';
-            const notifyStub = sandbox.stub(Async.prototype, '_notify');
 
             let instance;
             act(() => {
@@ -163,8 +163,7 @@ describe('UICore/Async:Async', () => {
             assert.isNotOk(instance.getError(), 'Поле с ошибкой должно быть пустым.');
             assert.equal(instance.getCurrentTemplateName(), moduleName);
             assert.strictEqual(instance.getOptionsForComponent().resolvedTemplate, TestControlSync);
-            sandbox.assert.called(notifyStub);  // Ожидалось, что будет вызван метод публикации события "_notify"
-            assert.includeMembers(notifyStub.getCall(0).args, ['load'], 'Не было опубликовано событие "load"');
+            sandbox.assert.calledOnce(notifyLoadStub);  // Должен быть вызван метод публикации события "_notify"
         });
 
         it('Синхронная загрузка контрола, с ошибкой', () => {
@@ -195,8 +194,6 @@ describe('UICore/Async:Async', () => {
 
         it('Асинхронная загрузка контрола', (done) => {
             const moduleName = 'ReactUnitTest/_async/TestControlAsync';
-            // заглушка для проверки события загрузки контрола
-            const notifyStub = sandbox.stub(Async.prototype, '_notify');
             // заглушка для проверки факта вызова загрузки в "require"
             const loadAsyncStub = sandbox.stub(ModulesLoader, 'loadAsync')
                 .withArgs(moduleName).resolves(TestControlAsync);
@@ -226,8 +223,7 @@ describe('UICore/Async:Async', () => {
                 assert.isNotOk(instance.getError(), 'Поле с ошибкой должно быть пустым.');
                 assert.equal(instance.getCurrentTemplateName(), moduleName);
                 assert.strictEqual(instance.getOptionsForComponent().resolvedTemplate, TestControlAsync);
-                sandbox.assert.called(notifyStub);  // Ожидалось, что будет вызван метод публикации события "_notify"
-                assert.includeMembers(notifyStub.getCall(0).args, ['load'], 'Не было опубликовано событие "load"');
+                sandbox.assert.calledOnce(notifyLoadStub);  // Должен быть вызван метод публикации события "_notify"
                 done();
             }).catch((err) => {
                 done(err);
@@ -236,8 +232,6 @@ describe('UICore/Async:Async', () => {
 
         it('Асинхронная загрузка контрола, с ошибкой', (done) => {
             const moduleName = 'ReactUnitTest/_async/Fail/TestControlAsync';
-            // заглушка для проверки события загрузки контрола
-            const notifyStub = sandbox.stub(Async.prototype, '_notify');
             // заглушка для проверки факта вызова загрузки в "require"
             const loadAsyncStub = sandbox.stub(ModulesLoader, 'loadAsync').withArgs(moduleName).rejects();
 
@@ -260,7 +254,7 @@ describe('UICore/Async:Async', () => {
 
                 assert.equal(instance.getError(), getErrorText(moduleName));
                 assert.strictEqual(instance.getOptionsForComponent().resolvedTemplate, undefined);
-                sandbox.assert.notCalled(notifyStub);  // не должно быть вызова метода публикации события "_notify"
+                sandbox.assert.notCalled(notifyLoadStub);  // не должно быть вызова метода публикации события "_notify"
                 done();
             }).catch((err) => {
                 done(err);
