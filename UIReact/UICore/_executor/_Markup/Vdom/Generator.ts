@@ -43,7 +43,7 @@ export class GeneratorVdom extends Generator implements IGenerator {
             ...{ events },
             ref: createAsyncRef(
                 config.viewController,
-                createChildrenRef(config.viewController, name, resolvedOptionsExtended.ref)
+                createChildrenRef(config.viewController, name)
             )
         };
     }
