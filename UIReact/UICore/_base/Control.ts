@@ -115,12 +115,10 @@ export default class Control<TOptions extends IControlOptions = {},
      */
     protected _$childrenPromises: unknown[] = [];
     /**
-     * Резолвер промиса, уведомляет что _afterMount завершился. Пока не завершится промис текущего контрола,
+     * Набор резолверов промиса, уведомляет что _afterMount завершился. Пока не завершатся промисы текущего контрола,
      * _afterMount родительского контрола не запустится. Подробнее {@link UICore/_base/Control#_$childrenPromises здесь}
      */
-    protected _$afterMountResolve: Function = () => {
-        // nothing
-    };
+    protected _$afterMountResolve: Function[] = [];
 
     // TODO: TControlConfig добавлен для совместимости, в 3000 нужно сделать TOptions и здесь, и в UIInferno.
     constructor(props: TOptions | TControlConfig = {}, context?: IWasabyContextValue) {
@@ -242,8 +240,12 @@ export default class Control<TOptions extends IControlOptions = {},
                         setTimeout(() => {
                             makeWasabyObservable<TOptions, TState>(this);
                             Promise.all(this._$childrenPromises).then(() => {
+                                this._$childrenPromises = [];
                                 this._afterMount(options);
-                                this._$afterMountResolve();
+                                this._$afterMountResolve.forEach((resolve) => {
+                                    resolve();
+                                });
+                                this._$afterMountResolve = [];
                             });
                         }, 0);
                     }
@@ -408,8 +410,12 @@ export default class Control<TOptions extends IControlOptions = {},
         makeWasabyObservable<TOptions, TState>(this);
         setTimeout(() => {
             Promise.all(this._$childrenPromises).then(() => {
+                this._$childrenPromises = [];
                 this._afterMount(newOptions);
-                this._$afterMountResolve();
+                this._$afterMountResolve.forEach((resolve) => {
+                    resolve();
+                });
+                this._$afterMountResolve = [];
             });
         }, 0);
     }
