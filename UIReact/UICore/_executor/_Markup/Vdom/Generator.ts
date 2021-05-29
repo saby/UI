@@ -226,7 +226,7 @@ function createAsyncRef(
             return;
         }
         const afterMountPromise = new Promise((resolve) => {
-            control._$afterMountResolve = resolve;
+            control._$afterMountResolve.push(resolve);
         });
         parent._$childrenPromises?.push(afterMountPromise);
     };
