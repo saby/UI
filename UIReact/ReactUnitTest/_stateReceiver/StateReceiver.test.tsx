@@ -47,7 +47,7 @@ describe('UICore/Base:Control ReceivedState', () => {
       let instance;
       act(() => {
          instance = render(
-            <Parent data-key="foo"/>,
+            <Parent/>,
             container
          );
       });
