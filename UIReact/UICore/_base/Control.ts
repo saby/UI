@@ -1,4 +1,4 @@
-//tslint:disable:ban-ts-ignore
+// tslint:disable:ban-ts-ignore
 import { Component, createElement } from 'react';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -85,27 +85,6 @@ export default class Control<TOptions extends IControlOptions = {},
     reactiveValues: Record<string, unknown>;
     private readonly _instId: string = 'inst_' + countInst++;
 
-    protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
-        return callNotify(this, eventName, args, options);
-    }
-
-    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
-        return false;
-    }
-
-    // несогласованное API, но используется в engine, и пока нужно для сборки UIReact
-    deactivate(): void {
-    }
-
-    // Пока что просто для сохрания API в ts. Возможно, нужна будет реализация. Метод используется в роутинге.
-    getInstanceId(): string {
-        return this._instId;
-    }
-
-    _getEnvironment(): object {
-        return {};
-    }
-
     protected _container: HTMLElement;
 
     /**
@@ -148,6 +127,27 @@ export default class Control<TOptions extends IControlOptions = {},
         if (needToBeCompatible(constructor, null, false)) {
             Control.mixCompatible<TOptions, TState>(this, {});
         }
+    }
+
+    protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
+        return callNotify(this, eventName, args, options);
+    }
+
+    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
+        return false;
+    }
+
+    // несогласованное API, но используется в engine, и пока нужно для сборки UIReact
+    deactivate(): void {
+    }
+
+    // Пока что просто для сохрания API в ts. Возможно, нужна будет реализация. Метод используется в роутинге.
+    getInstanceId(): string {
+        return this._instId;
+    }
+
+    _getEnvironment(): object {
+        return {};
     }
 
     /**
@@ -221,9 +221,9 @@ export default class Control<TOptions extends IControlOptions = {},
             promisesToWait.push(cssLoading.then(nop));
         }
         if (!options.notLoadThemes) {
-            //Если ждать загрузки стилей новой темизации. то му получаем просадку производительности
-            //https://online.sbis.ru/doc/059aaa9a-e123-49ce-b3c3-e828fdd15e56
-            this.loadThemeVariables(options.theme)
+            // Если ждать загрузки стилей новой темизации. то му получаем просадку производительности
+            // https://online.sbis.ru/doc/059aaa9a-e123-49ce-b3c3-e828fdd15e56
+            this.loadThemeVariables(options.theme);
         }
 
         this._options = options;
@@ -495,7 +495,7 @@ export default class Control<TOptions extends IControlOptions = {},
         }
 
         if (this.state.hasError) {
-            return showErrorRender(wasabyOptions, this.state.error);
+            return React.createElement(ErrorController, {error: this.state.error as Error});
         }
 
         let realFiberNode;
@@ -799,6 +799,54 @@ function logError(e: Error): void {
     Logger.error(e.message);
 }
 
+interface IErrorConfig {
+    _errorMessage: string;
+    templateName: string;
+    error?: Error;
+}
+
+class ErrorController extends Control<{error: Error}, {
+    error: Error, errorConfig: IErrorConfig | undefined }>{
+    constructor(props: {error: Error}, context?: IWasabyContextValue) {
+        super(props, context);
+        this.state = {
+            error: undefined,
+            errorConfig: undefined
+        };
+    }
+    proccess(error: Error): Promise<void | IErrorConfig> {
+        return Promise.resolve({
+            _errorMessage: 'Что-то пошло не так',
+            templateName: 'Default/Template',
+            error
+        });
+    }
+    componentDidMount(): void {
+        this.proccess(this.props.error)
+            .then((cfg: any) => this.setState({errorConfig: cfg}));
+    }
+    render(): React.ReactElement {
+        return (
+            this.state.errorConfig
+                ? React.createElement(ErrorContainer, {errorConfig: this.state.errorConfig})
+                : null
+        );
+    }
+}
+class ErrorContainer extends Control<{errorConfig: IErrorConfig}, {}> {
+
+    getTemplate(): React.ReactElement {
+        // здесь должен быть код который принимает errorConfig,
+        // обрабатывает их и возвращает template.
+        // Пока опустим часть обработки и будем всегда возвращать default template.
+        return createElement(DefaultTemplate, {errorConfig: this.props.errorConfig});
+    }
+    render(): React.ReactElement {
+        return this.getTemplate();
+    }
+}
+
+
 /**
  * Подмешивает к реактовским опциям значения theme и readOnly из контекста.
  * Если в реактовских опциях были какие-то значения, то возьмутся они.
@@ -825,20 +873,32 @@ function getLoadingComponent(): React.ReactElement {
     });
 }
 
-
-function showErrorRender(props, error): React.ReactElement {
-    return createElement('div', {
-        style: {
-            width: "800px",
-            height: "800px",
-            border: "1px solid red",
-            overflow: "scroll"
-
-        }
-    }, [
-        createElement('div', { key: "e1" }, error.message),
-        createElement('div', { key: "e2" }, error.stack)
-    ]);
+class DefaultTemplate extends Control<{errorConfig: IErrorConfig}, {}> {
+    render(): React.ReactElement {
+        const { errorConfig } = this.props;
+        return createElement('div',{
+            style: {
+                border: '1px solid red',
+                padding: '50px',
+                maxWidth: '30%',
+                margin: '0 auto',
+                wordBreak: 'break-all'
+            }
+        }, [
+        createElement('img', { key: 'e1',
+            style: {
+                maxWidth: '100%',
+                maxHeight: '200px'
+            },
+            src: getResourceUrl(
+                `/cdn/Maintenance/1.1.0/img/NOT_FOUND_${this.context?.theme}.svg`)
+        }),
+        createElement('div', { key: 'e2' }, errorConfig._errorMessage),
+        createElement('div', { key: 'e3' }, errorConfig.error.message),
+        createElement('div', { key: 'e4' }, errorConfig.error.stack)
+        ]);
+    }
 }
+
 
 const nop = () => undefined;
