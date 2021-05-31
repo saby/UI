@@ -1,9 +1,9 @@
 <ws:template name="MyTemplate">
-    <ws:if data="{{value}}">
+    <ws:if data="{{_options.value}}">
         <div>I</div>
     </ws:if>
     <div>Am</div>
-    <ws:if data="{{value}}">
+    <ws:if data="{{_options.value}}">
         <div>Fine</div>
     </ws:if>
 </ws:template>
