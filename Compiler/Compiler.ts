@@ -80,7 +80,7 @@ function createArtifact(options: IOptions): IArtifact {
       errors: [],
       text: null,
       localizedDictionary: [],
-      dependencies: null,
+      dependencies: [],
       stable: false
    };
 }
