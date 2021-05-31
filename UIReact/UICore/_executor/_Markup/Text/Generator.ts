@@ -42,16 +42,6 @@ export class GeneratorText extends Generator implements IGenerator {
        __: unknown,
        deps: any
    ): string {
-      if (origin.name === "StartApplicationScript") {
-         // FIXME https://online.sbis.ru/opendoc.html?guid=ed5d78ef-4f7b-4f82-bad0-7bbf6b261232
-         const start = `<div><script>document.addEventListener('DOMContentLoaded', function() { let steps = [ { deps: ['Env/Env', 'Application/Initializer', 'Application/Env', 'SbisEnvUI/Wasaby', 'UI/Base', 'UI/State', 'Application/State', 'Core/polyfill'], callback: function (Env, AppInit, AppEnv, EnvUIWasaby, UIBase, UIState, AppState) { window.startContextData = {AppData: new UIState.AppData({})}; Object.assign(Env.constants, window.wsConfig); require( ["UIDemo/Index"], function () { var sr = new AppState.StateReceiver(UIState.Serializer); AppInit.default(window.wsConfig, void 0, sr); UIBase.BootstrapStart({}, document.getElementById('wasaby-content')); }); if (Env.constants.isProduction) { console.log( '%c\tЭта функция браузера предназначена для разработчиков. tЕсли кто-то сказал вам скопировать и вставить что-то здесь, это мошенники.\t\tВыполнив эти действия, вы предоставите им доступ к своему аккаунту.\t', 'background: red; color: white; font-size: 22px; font-weight: bolder; text-shadow: 1px 1px 2px black;' ); } } } ]; if (false) { steps.unshift({ deps: ['Core/polyfill'], callback: function () {} }) } function startApplication(steps) { let step = steps.shift(); require(step.deps, function(){ step.callback.apply(this, arguments); if (steps.length) { startApplication(steps); } }) } startApplication(steps); });</script></div>`;
-         const props = {
-            dangerouslySetInnerHTML: {
-               __html: start
-            }
-         };
-         return ReactDOMServer.renderToString(React.createElement('div', props));
-      }
       return ReactDOMServer.renderToString(this.createReactControl(origin, scope, _, __, deps));
    }
 
