@@ -9,6 +9,7 @@ interface IControlNode {
     parent: HTMLElement;
     environment: IDOMEnvironment;
     id: string;
+    eventScope: any;
 }
 
 function getNumberId(id: string | 0): number {
@@ -78,7 +79,8 @@ export function prepareControlNodes(node: any, control: Control, constructor: TC
                     element: container,
                     // @ts-ignore _getEnvironment сейчас private
                     environment: curControl._getEnvironment(),
-                    id: curControl.getInstanceId()
+                    id: curControl.getInstanceId(),
+                    eventScope: curControl.props.eventScope || {}
                 };
                 // @ts-ignore _moduleName сейчас _protected
                 const moduleName = curControl._moduleName;

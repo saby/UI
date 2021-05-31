@@ -75,7 +75,6 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
 
     //#region _notify события
     startEvent<TArguments, TControlNode>(controlNode: TControlNode & IControlNodeEvent, args: TArguments): unknown {
-        let allowEventBubbling = true;
         const eventName = args[0].toLowerCase();
         const handlerArgs = args[1] || [];
         const eventDescription = args[2];
@@ -88,24 +87,14 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
 
         eventObject = new SyntheticEvent(null, eventConfig);
         this.needBlockNotify = this.lastNotifyEvent === eventName;
-        if (this.wasWasabyNotifyList.indexOf(controlNode.controlNodeEvent) > -1) {
-            allowEventBubbling = false;
-        }
-        if (allowEventBubbling) {
-            this.wasWasabyNotifyList.push(controlNode.controlNodeEvent);
-            this.vdomEventBubbling(eventObject, controlNode, undefined, handlerArgs, false);
-        }
+        this.vdomEventBubbling(eventObject, controlNode, undefined, handlerArgs, false);
+
         this.clearWasNotifyList();
-        this.clearWasWasabyNotifyList();
         return eventObject.result;
     }
 
     private setLastTarget(target: IWasabyHTMLElement): void {
         this.lastTarget = target;
-    }
-
-    private clearWasWasabyNotifyList(): void {
-        this.wasWasabyNotifyList = [];
     }
     //#endregion
 

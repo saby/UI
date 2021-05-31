@@ -37,10 +37,12 @@ export class GeneratorVdom extends Generator implements IGenerator {
         resolvedOptionsExtended: IControlOptions & { ref: React.RefCallback<Control> },
         config: IControlConfig,
         events: Record<string, IWasabyEvent[]>,
-        name: string): IControlOptions & { ref: React.RefCallback<Control> } {
+        name: string,
+        eventScope: Record<string, IWasabyEvent[]>): IControlOptions & { ref: React.RefCallback<Control> } {
         return {
             ...resolvedOptionsExtended,
             ...{ events },
+            ...{ eventScope },
             ref: createAsyncRef(
                 config.viewController,
                 createChildrenRef(config.viewController, name)
@@ -178,6 +180,14 @@ function createEventRef<T extends HTMLElement>(
 ): React.RefCallback<T> {
     return (node) => {
         prevRef?.(node);
+        if (!node) {
+            return;
+        }
+        if (node.controlNodes) {
+            node.controlNodes.forEach((controlNode) => {
+                eventsObject.events = {...eventsObject.events, ...controlNode.eventScope};
+            });
+        }
         if (node && Object.keys(eventsObject.events).length > 0) {
             setEventHook(tagName, eventsObject, node);
         }

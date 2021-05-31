@@ -46,10 +46,12 @@ export class Generator implements IGenerator {
         decorAttribs = !config.attr || config.mergeType !== 'attribute' ?
             decorAttribs :
             Helper.processMergeAttributes(config.attr.attributes, decorAttribs);
+        const eventScope =  config.attr ? {...config.attr.events, ...events} : events;
 
         const templateAttributes: IGeneratorAttrs = {
             attributes: decorAttribs,
             events,
+            eventScope,
             /*
             FIXME: https://online.sbis.ru/opendoc.html?guid=f354360c-5899-4f74-bf54-a06e526621eb
             судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
@@ -74,7 +76,7 @@ export class Generator implements IGenerator {
          */
         const name = attributes.name as string ?? resolvedOptionsExtended.name;
 
-        const newOptions = this.calculateOptions(resolvedOptionsExtended, config, events, name);
+        const newOptions = this.calculateOptions(resolvedOptionsExtended, config, events, name, eventScope);
 
         // @ts-ignore FIXME: Нужно положить ключ в опцию rskey для Received state. Сделать это хорошо
         newOptions.rskey = templateAttributes.attributes.key || config.key;
@@ -226,7 +228,8 @@ export class Generator implements IGenerator {
         resolvedOptionsExtended: IControlOptions,
         config: IControlConfig,
         events: Record<string, IWasabyEvent[]>,
-        name: string): IControlOptions;
+        name: string,
+        eventsScope: Record<string, IWasabyEvent[]>): IControlOptions;
 
     abstract createText(text: string): string
 
