@@ -107,7 +107,8 @@ class HTML extends Control<IHTMLCombinedOptions> {
         const apiClasses = (AppBody.getInstance().getClassString() || '').split(' ').filter((item) => {
             return !cfgClasses.includes(item) && !thisClasses.includes(item);
         });
-        this._bodyClasses = cfgClasses.concat(thisClasses).concat(apiClasses).join(' ');
+        /** Статичные шаблоны страниц все еще на старте от HTML, и это доставляет проблем. */
+        this._bodyClasses = cfg.fix180521 || cfgClasses.concat(thisClasses).concat(apiClasses).join(' ');
     }
 
     private isFocusNode(node: Element): boolean {
