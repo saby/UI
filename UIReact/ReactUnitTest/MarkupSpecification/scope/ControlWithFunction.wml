@@ -1,0 +1,1 @@
+<div>{{ _someMethod() }}</div>
