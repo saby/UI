@@ -57,6 +57,21 @@ class SetChildren extends  AbstractChainOfResponse {
     }
 }
 
+
+type IResponseHandler = (node: HTMLElement) => void;
+
+interface IResponse<T = any> {
+    find(node: HTMLElement): T;
+    getHandler(): IResponseHandler;
+}
+
+
+interface IChainResponse {
+    add(response: IResponse): void;
+    getHandler(node: HTMLElement): () => void;
+}
+
+
 export {
     GetContainer,
     CreateControlNode,
