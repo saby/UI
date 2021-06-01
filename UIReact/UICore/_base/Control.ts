@@ -1,4 +1,4 @@
-//tslint:disable:ban-ts-ignore
+// tslint:disable:ban-ts-ignore
 import { Component, createElement } from 'react';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -27,6 +27,7 @@ import {IControlOptions, TemplateFunction} from 'UICommon/Base';
 import {prepareControlNodes} from '../ControlNodes';
 import {goUpByControlTree} from 'UICore/NodeCollector';
 import {constants} from 'Env/Env';
+import { ErrorController } from 'UICore/_base/errorProcessors';
 
 export type IControlConstructor<P = IControlOptions> = React.ComponentType<P>;
 
@@ -85,27 +86,6 @@ export default class Control<TOptions extends IControlOptions = {},
     reactiveValues: Record<string, unknown>;
     private readonly _instId: string = 'inst_' + countInst++;
 
-    protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
-        return callNotify(this, eventName, args, options);
-    }
-
-    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
-        return false;
-    }
-
-    // несогласованное API, но используется в engine, и пока нужно для сборки UIReact
-    deactivate(): void {
-    }
-
-    // Пока что просто для сохрания API в ts. Возможно, нужна будет реализация. Метод используется в роутинге.
-    getInstanceId(): string {
-        return this._instId;
-    }
-
-    _getEnvironment(): object {
-        return {};
-    }
-
     protected _container: HTMLElement;
 
     /**
@@ -148,6 +128,27 @@ export default class Control<TOptions extends IControlOptions = {},
         if (needToBeCompatible(constructor, null, false)) {
             Control.mixCompatible<TOptions, TState>(this, {});
         }
+    }
+
+    protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
+        return callNotify(this, eventName, args, options);
+    }
+
+    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
+        return false;
+    }
+
+    // несогласованное API, но используется в engine, и пока нужно для сборки UIReact
+    deactivate(): void {
+    }
+
+    // Пока что просто для сохрания API в ts. Возможно, нужна будет реализация. Метод используется в роутинге.
+    getInstanceId(): string {
+        return this._instId;
+    }
+
+    _getEnvironment(): object {
+        return {};
     }
 
     /**
@@ -221,9 +222,9 @@ export default class Control<TOptions extends IControlOptions = {},
             promisesToWait.push(cssLoading.then(nop));
         }
         if (!options.notLoadThemes) {
-            //Если ждать загрузки стилей новой темизации. то му получаем просадку производительности
-            //https://online.sbis.ru/doc/059aaa9a-e123-49ce-b3c3-e828fdd15e56
-            this.loadThemeVariables(options.theme)
+            // Если ждать загрузки стилей новой темизации. то му получаем просадку производительности
+            // https://online.sbis.ru/doc/059aaa9a-e123-49ce-b3c3-e828fdd15e56
+            this.loadThemeVariables(options.theme);
         }
 
         this._options = options;
@@ -469,9 +470,6 @@ export default class Control<TOptions extends IControlOptions = {},
         releaseProperties<TOptions, TState>(this);
     }
 
-    componentDidCatch(error, errorInfo) {
-        console.error(error, errorInfo);
-    }
 
     render(): React.ReactNode {
         const wasabyOptions = createWasabyOptions(this.props, this.context);
@@ -495,7 +493,10 @@ export default class Control<TOptions extends IControlOptions = {},
         }
 
         if (this.state.hasError) {
-            return showErrorRender(wasabyOptions, this.state.error);
+            return React.createElement(ErrorController, {
+                error: this.state.error,
+                theme: this.context.theme
+            } as unknown);
         }
 
         let realFiberNode;
@@ -825,20 +826,5 @@ function getLoadingComponent(): React.ReactElement {
     });
 }
 
-
-function showErrorRender(props, error): React.ReactElement {
-    return createElement('div', {
-        style: {
-            width: "800px",
-            height: "800px",
-            border: "1px solid red",
-            overflow: "scroll"
-
-        }
-    }, [
-        createElement('div', { key: "e1" }, error.message),
-        createElement('div', { key: "e2" }, error.stack)
-    ]);
-}
 
 const nop = () => undefined;
