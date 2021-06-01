@@ -1,16 +1,41 @@
 import { assert } from 'chai';
 import { Head } from 'Application/Page';
 import { PrefetchLinksStore, PrefetchLinksStorePS, handlePrefetchModules } from 'UICommon/_deps/PrefetchLinks';
-import {JML} from "../../UI/_base/HTML/_meta/interface";
+import { JML } from '../../UI/_base/HTML/_meta/interface';
 
 const module = {
     name: 'Module/File',
     path: '/Module/File.js'
 };
-const expectedObject: Record<string, string|boolean> = {"data-vdomignore": true, as: 'script', href: module.path}
+
+const expectedObject: Record<string, string|boolean> = {
+    'data-vdomignore': true, as: 'script', href: module.path
+};
+
+/**
+ * Проверка корректности добавленного тега в Head API
+ * @param tag название тега
+ * @param contents
+ * @param attrs атрибуты тега, который добавили в Head
+ * @param expected эталонные данные
+ */
+function checker(tag: any, contents: any, attrs: any, expected: any): void {
+    if (contents instanceof Object) {
+        expected = attrs;
+        attrs = contents;
+    }
+    assert.equal(tag, expected.tag);
+    assert.equal(attrs.rel, expected.rel);
+    assert.equal(attrs.as, expected.as);
+    assert.include(attrs.href, expected.href);
+}
+
+const isBrowser = typeof window !== 'undefined';
+const isNode = typeof window === 'undefined';
+const describeIf = (condition) => condition ? describe : describe.skip;
+
 describe('UI/_base/HTML/PrefetchLinks', () => {
-    typeof window !== 'undefined' &&
-    describe('client side', () => {
+    describeIf(isBrowser)('client side', () => {
         beforeEach(() => {
             Head.getInstance().clear();
         });
@@ -32,8 +57,7 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
         });
     });
 
-    typeof window === 'undefined' &&
-    describe('server side', () => {
+    describeIf(isNode)('server side', () => {
         beforeEach(() => {
             Head.getInstance().clear();
             new PrefetchLinksStorePS().clear();
@@ -66,21 +90,3 @@ describe('UI/_base/HTML/PrefetchLinks', () => {
         });
     });
 });
-
-/**
- * Проверка корректности добавленного тега в Head API
- * @param tag название тега
- * @param contents
- * @param attrs атрибуты тега, который добавили в Head
- * @param expected эталонные данные
- */
-function checker(tag, contents, attrs, expected) {
-    if (contents instanceof Object) {
-        expected = attrs;
-        attrs = contents;
-    }
-    assert.equal(tag, expected.tag);
-    assert.equal(attrs.rel, expected.rel);
-    assert.equal(attrs.as, expected.as);
-    assert.include(attrs.href, expected.href);
-}
