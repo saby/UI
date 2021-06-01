@@ -1,0 +1,3 @@
+<div name="element" ref="{{ elementRef }}">
+   <ReactUnitTest._refs.InnerControl name="control" ref="{{ controlRef }}"/>
+</div>

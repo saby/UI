@@ -74,7 +74,9 @@ export class Generator implements IGenerator {
          */
         const name = attributes.name as string ?? resolvedOptionsExtended.name;
 
-        const newOptions = this.calculateOptions(resolvedOptionsExtended, config, events, name);
+        const originRef = resolvedOptions.ref;
+
+        const newOptions = this.calculateOptions(resolvedOptionsExtended, config, events, name, originRef);
 
         // @ts-ignore FIXME: Нужно положить ключ в опцию rskey для Received state. Сделать это хорошо
         newOptions.rskey = templateAttributes.attributes.key || config.key;
@@ -226,7 +228,8 @@ export class Generator implements IGenerator {
         resolvedOptionsExtended: IControlOptions,
         config: IControlConfig,
         events: Record<string, IWasabyEvent[]>,
-        name: string): IControlOptions;
+        name: string,
+        originRef: React.MutableRefObject<Control> | React.LegacyRef<Control>): IControlOptions;
 
     abstract createText(text: string): string
 
