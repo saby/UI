@@ -2,6 +2,7 @@
 import { Component, createElement } from 'react';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { isInit } from 'Application/Initializer';
 import {getStateReceiver} from 'Application/Env';
 import {EMPTY_THEME, getThemeController} from 'UICommon/theme/controller';
 import {getResourceUrl, Logger, needToBeCompatible} from 'UICommon/Utils';
@@ -193,18 +194,8 @@ export default class Control<TOptions extends IControlOptions = {},
     private _beforeFirstRender(options: TOptions): boolean {
         const promisesToWait = [];
 
-        let stateFromServer;
-        // @ts-ignore
-        if (!!options.bootstrapKey) {
-            getStateReceiver().register(options.bootstrapKey, {
-                getState: () => undefined,
-                setState: (state) => {
-                    stateFromServer = state;
-                }
-            });
-        }
-
-        const res = this._beforeMount(options, {}, stateFromServer);
+        const res = this._beforeMount(options, {}, this.ejectReceivedState(options));
+        this.saveReceivedState(res, options);
 
         // Данный метод должен вызываться только при первом построении, поэтому очистим его на инстансе при вызове
         this._beforeFirstRender = undefined;
@@ -399,6 +390,65 @@ export default class Control<TOptions extends IControlOptions = {},
 
     private loadThemeVariables(themeName?: string): Promise<void> {
         return (this.constructor as typeof  Control).loadThemeVariables(themeName).catch(logError);
+    }
+
+    /**
+     * Метод помещает в StateReceiver состояние контрола, полученное из _beforeMount
+     * Сработает только если _beforeMount вернул Promise
+     * @param beforeMountResult
+     * @param options
+     * @private
+     */
+    private saveReceivedState(beforeMountResult: Promise<TState | void> | void, options: TOptions): void {
+        const meta = {ulid: options.rskey, moduleName: this._moduleName};
+        if (beforeMountResult instanceof Promise) {
+            beforeMountResult.then((receivedState) => {
+                if (receivedState && isInit()) {
+                    this._registerReceivedState(receivedState, meta);
+                }
+            });
+            return;
+        }
+
+        this._registerReceivedState(beforeMountResult, meta);
+    }
+
+    //FIXME: https://online.sbis.ru/opendoc.html?guid=cb620168-3933-4133-9ee9-ce07835063ee
+    private _registerReceivedState(receivedState: TState, meta: any): void {
+        if (receivedState && isInit()) {
+            getStateReceiver().register(meta, {
+                getState: () => (receivedState as Record<string, any>),
+                setState: () => void 0
+            });
+        }
+    }
+
+    /**
+     * Метод извлекает из StateReceiver состояние контрола
+     * @param options
+     * @private
+     */
+    private ejectReceivedState(options: TOptions): TState {
+        if (constants.isServerSide || !options.rskey || !isInit()) {
+            return;
+        }
+
+        const stateReceiver = getStateReceiver();
+        if (!stateReceiver || !stateReceiver.register) {
+            return;
+        }
+
+        let result;
+        stateReceiver.unregister?.(options.rskey);
+        stateReceiver.register(options.rskey, {
+            getState: () => undefined,
+            setState: (state) => {
+                result = state;
+            }
+        });
+        stateReceiver.unregister?.(options.rskey);
+
+        return result;
     }
 
     componentDidMount(): void {
