@@ -3,6 +3,7 @@ import { IGeneratorConfig } from 'UICommon/Executor';
 /**
  * Интерфейс опций базового контрола
  * @interface UICommon/_base/Control#IControlOptions
+ * @property {String} rskey - ключ для сохранения/извлечения состояния из хранилища ReceivedState
  * @public
  */
 export interface IControlOptions {
@@ -11,6 +12,7 @@ export interface IControlOptions {
     notLoadThemes?: boolean;
     _$createdFromCode?: boolean;
     name?: string;
+    rskey?: string;
 }
 
 interface IStable {
