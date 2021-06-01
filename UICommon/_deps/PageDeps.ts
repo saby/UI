@@ -143,3 +143,11 @@ type IBundlesRoute = Record<string, string>;
 interface IModulesDescription extends IModulesDeps {
    bundles: IBundlesRoute;
 }
+
+/**
+ * Проверяет по файлу module-dependencies наличие указанного модуля в текущем сервисе
+ * @param moduleName Название модуля, которое хотим проверить на наличие
+ */
+export function isModuleExists(moduleName: string): boolean {
+   return !!nodes[moduleName];
+}
