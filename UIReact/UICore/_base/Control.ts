@@ -8,6 +8,7 @@ import {getResourceUrl, Logger, needToBeCompatible} from 'UICommon/Utils';
 import {Options} from 'UICommon/Vdom';
 import {makeWasabyObservable, pauseReactive, releaseProperties} from 'UICore/WasabyReactivity';
 import cExtend = require('Core/core-extend');
+import { isInit } from 'Application/Initializer';
 
 import template = require('wml!UICore/_base/Control');
 import {IControlState} from './interfaces';
@@ -603,11 +604,11 @@ export default class Control<TOptions extends IControlOptions = {},
         themeName?: string,
         instThemes: string[] = []
     ): Promise<void> {
-        const themeController = getThemeController();
         const themes = instThemes.concat(this._theme);
-        if (themes.length === 0) {
+        if (themes.length === 0 || !isInit()) {
             return Promise.resolve();
         }
+        const themeController = getThemeController();
         return Promise.all(
             themes.map((name) => themeController.get(name, themeName))
         ).then(nop);
@@ -625,7 +626,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * </pre>
      */
     static loadThemeVariables(themeName?: string): Promise<void> {
-        if (!themeName) {
+        if (!themeName || !isInit()) {
             return Promise.resolve();
         }
         return getThemeController().getVariables(themeName);
@@ -644,11 +645,11 @@ export default class Control<TOptions extends IControlOptions = {},
      * </pre>
      */
     static loadStyles(instStyles: string[] = []): Promise<void> {
-        const themeController = getThemeController();
         const styles = instStyles.concat(this._styles);
-        if (styles.length === 0) {
+        if (styles.length === 0 || !isInit()) {
             return Promise.resolve();
         }
+        const themeController = getThemeController();
         return Promise.all(
             styles.map((name) => themeController.get(name, EMPTY_THEME))
         ).then(nop);
@@ -667,12 +668,12 @@ export default class Control<TOptions extends IControlOptions = {},
         instThemes: string[] = [],
         instStyles: string[] = []
     ): Promise<void> {
-        const themeController = getThemeController();
         const styles = instStyles.concat(this._styles);
         const themes = instThemes.concat(this._theme);
-        if (styles.length === 0 && themes.length === 0) {
+        if ((styles.length === 0 && themes.length === 0) || !isInit()) {
             return Promise.resolve();
         }
+        const themeController = getThemeController();
         const removingStyles = Promise.all(
             styles.map((name) => themeController.remove(name, EMPTY_THEME))
         );
@@ -695,12 +696,12 @@ export default class Control<TOptions extends IControlOptions = {},
         instThemes: string[] = [],
         instStyles: string[] = []
     ): boolean {
-        const themeController = getThemeController();
         const themes = instThemes.concat(this._theme);
         const styles = instStyles.concat(this._styles);
-        if (styles.length === 0 && themes.length === 0) {
+        if ((styles.length === 0 && themes.length === 0) || !isInit()) {
             return true;
         }
+        const themeController = getThemeController();
         return (
             themes.every((cssName) =>
                 themeController.isMounted(cssName, themeName)
