@@ -95,7 +95,6 @@ define('ReactUnitTest/MarkupSpecification/testing', [
    }
 
    function runTest(testName, test, buildConfig, executionConfig) {
-      const timeout = test.timeout || DEFAULT_TIMEOUT;
       it(testName, function(done) {
          if (typeof test.beforeTest === 'function') {
             test.beforeTest();
@@ -121,7 +120,7 @@ define('ReactUnitTest/MarkupSpecification/testing', [
                   done(e);
                }
             });
-      }).timeout(timeout);
+      });
    }
 
    function canRun(test) {
