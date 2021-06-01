@@ -17,6 +17,22 @@ import { IControlOptions } from 'UICommon/Base';
 import { IGeneratorAttrs, TemplateOrigin, IControlConfig, AttrToDecorate } from './interfaces';
 import { Generator } from '../Generator';
 
+function mergeRefs<T>(refs: (React.MutableRefObject<T> | React.LegacyRef<T>)[]): React.RefCallback<T> {
+    return value => {
+        refs.forEach(ref => {
+            if (typeof ref === 'function') {
+                ref(value);
+            } else if (typeof ref === 'string') {
+                Logger.warn('Although string refs are not deprecated, they are considered legacy,' +
+                    ' and will likely be deprecated at some point in the future. Callback refs are preferred.');
+            } else if (ref !== null && ref !== undefined) {
+                // @ts-ignore на самом деле current меняется
+                ref.current = value;
+            }
+        });
+    };
+}
+
 export class GeneratorVdom extends Generator implements IGenerator {
     prepareDataForCreate(tplOrigin: TemplateOrigin,
         scope: IControlOptions,
@@ -37,14 +53,23 @@ export class GeneratorVdom extends Generator implements IGenerator {
         resolvedOptionsExtended: IControlOptions & { ref: React.RefCallback<Control> },
         config: IControlConfig,
         events: Record<string, IWasabyEvent[]>,
-        name: string): IControlOptions & { ref: React.RefCallback<Control> } {
+        name: string,
+        originRef: React.MutableRefObject<Control> | React.LegacyRef<Control>
+    ): IControlOptions & { ref: React.RefCallback<Control> } {
+
+        const refs: (React.MutableRefObject<Control> | React.LegacyRef<Control>)[] = [
+            createChildrenRef<Control>(config.viewController, name),
+            createAsyncRef(config.viewController)
+        ];
+        if (originRef) {
+            refs.push(originRef);
+        }
+        const ref = mergeRefs(refs);
+
         return {
             ...resolvedOptionsExtended,
             ...{ events },
-            ref: createAsyncRef(
-                config.viewController,
-                createChildrenRef(config.viewController, name)
-            )
+            ref
         };
     }
 
@@ -118,6 +143,7 @@ export class GeneratorVdom extends Generator implements IGenerator {
             attributes: P &
             WasabyAttributes & {
                 name?: string;
+                ref?: React.MutableRefObject<HTMLElement> | React.LegacyRef<HTMLElement>
             };
             events: Record<string, IWasabyEvent[]>
         },
@@ -143,11 +169,15 @@ export class GeneratorVdom extends Generator implements IGenerator {
             }
         });
         const name = mergedAttrs.name;
-        const ref = createChildrenRef(
-            control,
-            name,
-            createEventRef(tagName, eventsObject)
-        );
+        const originRef = attrs.attributes.ref;
+        const refs: (React.MutableRefObject<HTMLElement> | React.LegacyRef<HTMLElement>)[] = [
+            createEventRef(tagName, eventsObject),
+            createChildrenRef(control, name)
+        ];
+        if (originRef) {
+            refs.push(originRef);
+        }
+        const ref = mergeRefs(refs);
 
         const convertedAttributes = convertAttributes(mergedAttrs);
 
@@ -169,37 +199,28 @@ export class GeneratorVdom extends Generator implements IGenerator {
     }
 }
 
-function createEventRef<T extends HTMLElement>(
+function createEventRef<HTMLElement>(
     tagName: string,
     eventsObject: {
         events: Record<string, IWasabyEvent[]>;
-    },
-    prevRef?: React.RefCallback<T>
-): React.RefCallback<T> {
+    }
+): React.RefCallback<HTMLElement> {
     return (node) => {
-        prevRef?.(node);
         if (node && Object.keys(eventsObject.events).length > 0) {
             setEventHook(tagName, eventsObject, node);
         }
     };
 }
 
-function createChildrenRef(
+function createChildrenRef<T>(
     parent: Control,
-    name: string,
-    prevRef?: React.RefCallback<Control>
-): React.RefCallback<Control> {
-    // _children protected по апи, но здесь нужен доступ чтобы инициализировать.
-    /* tslint:disable:no-string-literal */
-    const oldRef = (node) => {
-        prevRef?.(node);
-    };
+    name: string
+): React.RefCallback<T> {
     if (!parent || !name) {
-        return oldRef;
+        return;
     }
 
     return (node) => {
-        oldRef(node);
         if (node) {
             parent['_children'][name] = node;
             onElementMount(parent['_children'][name]);
@@ -210,18 +231,13 @@ function createChildrenRef(
     /* tslint:enable:no-string-literal */
 }
 function createAsyncRef(
-    parent: Control,
-    prevRef?: React.RefCallback<Control>
+    parent: Control
 ): React.RefCallback<Control> {
-    const oldRef = (node) => {
-        prevRef?.(node);
-    };
     if (!parent) {
-        return oldRef;
+        return;
     }
 
     return (control) => {
-        oldRef(control);
         if (!control) {
             return;
         }
