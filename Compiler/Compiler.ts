@@ -52,7 +52,7 @@ export interface IArtifact {
    /**
     * Compile result: Javascript source code.
     */
-   text: string;
+   text: string | null;
 
    /**
     * Translations dictionary.
