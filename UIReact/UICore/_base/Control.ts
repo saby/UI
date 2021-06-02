@@ -28,7 +28,7 @@ import {IControlOptions, TemplateFunction} from 'UICommon/Base';
 import {prepareControlNodes} from '../ControlNodes';
 import {goUpByControlTree} from 'UICore/NodeCollector';
 import {constants} from 'Env/Env';
-import { ErrorController } from 'UICore/_base/errorProcessors';
+import { ErrorController } from 'UICore/_base/ErrorController';
 
 export type IControlConstructor<P = IControlOptions> = React.ComponentType<P>;
 
@@ -217,7 +217,7 @@ export default class Control<TOptions extends IControlOptions = {},
         if (!options.notLoadThemes) {
             //Если ждать загрузки стилей новой темизации. то му получаем просадку производительности
             //https://online.sbis.ru/doc/059aaa9a-e123-49ce-b3c3-e828fdd15e56
-            this.loadThemeVariables(options.theme);
+            this.loadThemeVariables(options.theme)
         }
 
         this._options = options;
