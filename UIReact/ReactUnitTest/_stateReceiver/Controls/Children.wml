@@ -1,0 +1,3 @@
+<div class="ReactUnitTest-stateReceiver__children">
+  {{ _options.rskey }}
+</div>

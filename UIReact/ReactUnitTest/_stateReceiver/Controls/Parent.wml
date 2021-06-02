@@ -1,0 +1,4 @@
+<div class="ReactUnitTest-stateReceiver__parent">
+  <ReactUnitTest._stateReceiver.Controls.UselessChildren/>
+  <ReactUnitTest._stateReceiver.Controls.Children name="children"/>
+</div>
