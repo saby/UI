@@ -1,7 +1,7 @@
 import * as ReactDOMServer from 'react-dom/server';
 import { Control } from 'UICore/Base';
 import { IControlOptions } from 'UICommon/Base';
-import { IControlConfig } from './interfaces';
+import { IControlConfig } from '../interfaces';
 import {
    CommonUtils as Common,
    IAttributes,
@@ -13,7 +13,7 @@ import { Attr } from 'UICommon/Executor';
 import { IWasabyEvent } from 'UICommon/_events/IEvents';
 import { Generator } from '../Generator';
 import React from "react";
-import {TemplateOrigin} from '../Vdom/interfaces';
+import {TemplateOrigin} from '../interfaces';
 
 /**
  * @author Тэн В.А.

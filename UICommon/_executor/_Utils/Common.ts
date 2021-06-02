@@ -12,7 +12,7 @@ import * as RequireHelper from './RequireHelper';
 
 import { pauseReactive } from '../pauseReactive';
 import { IControl } from 'UICommon/interfaces';
-import { IGeneratorNameObject } from '../_Markup/IGeneratorType';
+import {IGeneratorNameObject, ITplFunction} from '../_Markup/IGeneratorType';
 import * as Attr from '../_Expressions/Attr';
 import { TemplateFunction } from 'UICommon/Base';
 
@@ -280,7 +280,7 @@ export function isOptionalString<T = unknown>(tplOrigin: T) {
    return typeof tplOrigin === 'string' && tplOrigin.indexOf('optional!') === 0;
 }
 
-export function isLibraryModuleString(str) {
+export function isLibraryModuleString(str: string): boolean {
    // library module string example: SomeStorage.Library:Module
    var name = str.indexOf('ws:') === 0 ? str.replace('ws:', '') : str;
    return /(([-_a-zA-Z0-9]+)[./]([-_a-zA-Z0-9]+)[:]([-_a-zA-Z]+))/.test(name) && name.indexOf(' ') === -1;
@@ -343,6 +343,9 @@ export function splitModule(string: string): IGeneratorNameObject {
    };
 }
 
+export function isTplFunction(tpl: unknown): tpl is ITplFunction<TemplateFunction> {
+   return tpl && tpl.hasOwnProperty('func');
+}
 export function extractLibraryModule(library, modulePath, extendedLibrary?) {
    let mod = library;
    modulePath.forEach(function (part) {
@@ -410,14 +413,6 @@ export function depsTemplateResolver<T = IControl, K = TemplateFunction>(
    return result;
 }
 
-export function fixDefaultExport<T = IControl, K = unknown>(tplOrigin: K | IDefaultExport<T>): K | T {
-   // При использовании ts-модуля, где нужный класс экспортируется дефолтно, внутри js-модуля
-   // сюда приходит объект tplOrigin, где __esModule есть true, а в default лежит нужная нам
-   // функция построения верстки
-   // Для того, чтобы верстка строилась, необходимо вытащить функцию из default
-   return isDefaultExport(tplOrigin) ? (tplOrigin as IDefaultExport<T>).default : tplOrigin as K;
-}
-
 export interface IDefaultExport<T = IControl> {
    __esModule: boolean;
    default: T;
@@ -426,7 +421,7 @@ export interface IDefaultExport<T = IControl> {
  * Либо сужает тип obj до IDefaultExport, либо однозначно говорит, что это другой тип.
  * @param obj
  */
-function isDefaultExport<T = IControl>(obj: unknown): obj is IDefaultExport<T> {
+export function isDefaultExport<T = IControl>(obj: unknown): obj is IDefaultExport<T> {
    if (obj && typeof obj === 'object') {
       return obj.hasOwnProperty('__esModule') && obj.hasOwnProperty('default');
    }

@@ -11,10 +11,10 @@ import {
     Helper,
     IGeneratorNameObject, ITplFunction
 } from 'UICommon/Executor';
-import { WasabyAttributes } from './Attributes';
 import { IWasabyEvent } from 'UICommon/Events';
 
-import { Control, TemplateFunction } from 'UICore/Base';
+import { Control } from 'UICore/Base';
+import { TemplateFunction } from 'UICommon/Base';
 import { IControlOptions } from 'UICommon/Base';
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate} from './interfaces';
 
@@ -48,17 +48,9 @@ export class Generator implements IGenerator {
 
         const templateAttributes: IGeneratorAttrs = {
             attributes: decorAttribs,
-            events,
-            /*
-            FIXME: https://online.sbis.ru/opendoc.html?guid=f354360c-5899-4f74-bf54-a06e526621eb
-            судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
-            Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
-            Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
-            */
-            internal: {
-                parent: config.viewController
-            }
+            events
         };
+        const parent = config.viewController;
 
         // вместо опций может прилететь функция, выполнение которой отдаст опции, calculateScope вычисляет такие опции
         const resolvedOptions = Scope.calculateScope(options, plainMerge);
@@ -80,10 +72,24 @@ export class Generator implements IGenerator {
         // @ts-ignore FIXME: Нужно положить ключ в опцию rskey для Received state. Сделать это хорошо
         newOptions.rskey = templateAttributes.attributes.key || config.key;
 
-        const parent = templateAttributes.internal.parent;
-
-        const tplExtended: TemplateOrigin = resolveTpl(origin, config.includedTemplates, config.depsLocal);
-        const tpl = Common.fixDefaultExport(tplExtended);
+        const tplExtended:
+            typeof Control |
+            TemplateFunction |
+            Common.IDefaultExport<typeof Control> |
+            Function |
+            ITplFunction<TemplateFunction> |
+            Common.ITemplateArray =
+            resolveTpl(origin, config.includedTemplates, config.depsLocal);
+        let tpl: typeof Control |
+            TemplateFunction |
+            Function |
+            ITplFunction<TemplateFunction> |
+            Common.ITemplateArray;
+        if (Common.isDefaultExport<typeof Control>(tplExtended)) {
+            tpl = tplExtended.default;
+        } else {
+            tpl = tplExtended;
+        }
 
         if (Common.isControlClass<typeof Control>(tpl)) {
             return this.processControl(
@@ -91,8 +97,8 @@ export class Generator implements IGenerator {
             );
         }
         // TemplateFunction - wml шаблон
-        if (Common.isTemplateClass<TemplateFunction>(tpl)) {
-            return createTemplate(tpl, newOptions, templateAttributes, config.depsLocal);
+        if (Common.isTemplateClass(tpl)) {
+            return createTemplate(tpl, newOptions, templateAttributes, config.depsLocal, parent);
         }
         // inline template, xhtml, tmpl шаблон (closured), content option
         if (typeof tpl === 'function') {
@@ -101,13 +107,13 @@ export class Generator implements IGenerator {
         // content option - в определенном способе использования контентная опция может представлять собой объект
         // со свойством func, в котором и лежит функция контентной опции.
         // Демка ReactUnitTest/MarkupSpecification/resolver/Top
-        if (tpl && typeof tpl.func === 'function') {
+        if (Common.isTplFunction(tpl)) {
             return resolveTemplateFunction(parent, tpl.func, newOptions, templateAttributes);
         }
 
         // Common.ITemplateArray - массив шаблонов, может например прилететь,
         // если в контентной опции несколько корневых нод
-        if (Common.isTemplateArray<TemplateFunction>(tpl)) {
+        if (Common.isTemplateArray(tpl)) {
             return resolveTemplateArray(parent, tpl, newOptions, templateAttributes);
         }
         // Здесь может быть незарезолвленный контрол optional!. Поэтому результат должен быть пустым
@@ -170,10 +176,7 @@ export class Generator implements IGenerator {
     abstract createTag<T extends HTMLElement, P extends React.HTMLAttributes<T>>(
         tagName: keyof React.ReactHTML,
         attrs: {
-            attributes: P &
-                WasabyAttributes & {
-                name?: string;
-            };
+            attributes: P;
             events: Record<string, IWasabyEvent[]>
         },
         children: React.ReactNode[],
@@ -193,8 +196,8 @@ export class Generator implements IGenerator {
 }
 
 function getLibraryTpl(tpl: IGeneratorNameObject,
-                       deps: Common.Deps<typeof Control, TemplateFunction>
-): typeof Control | Common.ITemplateArray<TemplateFunction> {
+                       deps: Common.Deps<typeof Control>
+): typeof Control | Common.ITemplateArray {
     let controlClass;
     if (deps && deps[tpl.library]) {
         controlClass = Common.extractLibraryModule(deps[tpl.library], tpl.module);
@@ -204,10 +207,10 @@ function getLibraryTpl(tpl: IGeneratorNameObject,
     return controlClass;
 }
 function resolveTpl(tpl: TemplateOrigin,
-                    includedTemplates: Common.IncludedTemplates<TemplateFunction>,
-                    deps: Common.Deps<typeof Control, TemplateFunction>
-): typeof Control | TemplateFunction | Common.IDefaultExport<typeof Control> |
-    Function | Common.ITemplateArray<TemplateFunction> {
+                    includedTemplates: Common.IncludedTemplates,
+                    deps: Common.Deps<typeof Control>
+): Common.IDefaultExport<typeof Control> | typeof Control | TemplateFunction | Common.IDefaultExport<typeof Control> |
+    Function | Common.ITemplateArray | ITplFunction<TemplateFunction> {
     if (typeof tpl === 'string') {
         if (Common.isLibraryModuleString(tpl)) {
             // if this is a module string, it probably is from a dynamic partial template
@@ -248,7 +251,7 @@ function resolveTemplate(template: TemplateFunction | ITplFunction<TemplateFunct
     let resolvedTemplate;
     if (typeof template === 'function') {
         resolvedTemplate = resolveTemplateFunction(parent, template, resolvedScope, decorAttribs);
-    } else if (template && typeof template.func === 'function') {
+    } else if (Common.isTplFunction(template)) {
         resolvedTemplate = resolveTemplateFunction(parent, template.func, resolvedScope, decorAttribs);
     } else {
         resolvedTemplate = template;
@@ -267,7 +270,7 @@ function resolveTemplate(template: TemplateFunction | ITplFunction<TemplateFunct
 }
 
 function resolveTemplateFunction(parent: Control<IControlOptions>,
-                                 template: TemplateFunction,
+                                 template: TemplateFunction | Function,
                                  resolvedScope: IControlOptions,
                                  decorAttribs: IGeneratorAttrs): TemplateResult {
     if (Common.isAnonymousFn(template)) {
@@ -289,27 +292,6 @@ function resolveControlName(controlData: IControlOptions, attributes: Attr.IAttr
     return attr;
 }
 
-function createCompatibleReactControl(
-    origin: string | typeof Control,
-    scope: IControlOptions,
-    deps: Common.Deps<typeof Control, TemplateFunction>
-): React.ComponentElement<
-    IControlOptions,
-    Control<IControlOptions, object>
-> {
-    const generatorCompatibleStr = 'View/_executorCompatible/_Markup/Compatible/GeneratorCompatible';
-    const GeneratorCompatible = requirejs(generatorCompatibleStr).GeneratorCompatible;
-    const generatorCompatible = new GeneratorCompatible();
-    const markup = generatorCompatible.createWsControl.apply(generatorCompatible, arguments);
-    const res = React.createElement('remove', {
-        dangerouslySetInnerHTML: {
-            __html: markup
-        }
-    });
-    //@ts-ignore
-    return res;
-}
-
 /**
  * Получает конструктор контрола по его названию и создаёт его с переданными опциями.
  * @param origin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
@@ -318,27 +300,18 @@ function createCompatibleReactControl(
  * @param deps Объект с зависимостями контрола, в нём должно быть поле, соответствующее name.
  */
 function createWsControl(
-    origin: string | typeof Control,
+    origin: typeof Control,
     scope: IControlOptions,
     decorAttribs: IGeneratorAttrs,
-    deps: Common.Deps<typeof Control, TemplateFunction>
+    deps: Common.Deps<typeof Control>
 ): React.ComponentElement<
     IControlOptions,
     Control<IControlOptions, object>
 > {
-    const controlClassExtended: TemplateOrigin = resolveTpl(origin, {}, deps);
-    const controlClass = Common.fixDefaultExport(controlClassExtended) as typeof Control;
-
     resolveControlName(scope, decorAttribs.attributes);
-    // @ts-ignore
     scope._$attributes = decorAttribs;
 
-    // todo временное решение только для поддержки юнит-тестов
-    // https://online.sbis.ru/opendoc.html?guid=a886b7c1-fda3-4594-b00d-b48f1185aaf8
-    if (Common.isCompound(controlClass)) {
-        return createCompatibleReactControl(origin, scope, deps);
-    }
-    return React.createElement(controlClass, scope);
+    return React.createElement(origin, scope);
 }
 /**
  * Получает шаблон по его названию и строит его.
@@ -346,15 +319,15 @@ function createWsControl(
  * @param scope Опции шаблона.
  * @param attributes
  * @param deps Объект с зависимостями шаблона, в нём должно быть поле, соответствующее name.
+ * @param parent Контрол, внутри которого создается данный шаблон
  */
 function createTemplate(
-    origin: string | TemplateFunction,
+    origin: TemplateFunction,
     scope: IControlOptions,
     attributes: IGeneratorAttrs,
-    deps: Common.Deps<typeof Control, TemplateFunction>
+    deps: Common.Deps<typeof Control>,
+    parent: Control<IControlOptions>
 ): TemplateResult {
-    const resultingFn: TemplateFunction = resolveTpl(origin, {}, deps) as TemplateFunction;
-    const parent: Control<IControlOptions> = attributes?.internal?.parent;
     /*
     Контролы берут наследуемые опции из контекста.
     Шаблоны так не могут, потому что они не полноценные реактовские компоненты.
@@ -367,7 +340,7 @@ function createTemplate(
         scope.theme = parent?.props?.theme ?? parent?.context?.theme;
     }
 
-    return resolveTemplateFunction(parent, resultingFn, scope, attributes);
+    return resolveTemplateFunction(parent, origin, scope, attributes);
     // Получилась ситуация, что WasabyContextManager был сам в себе, и пошли ошибки с ref
     // выписана задача - https://online.sbis.ru/opendoc.html?guid=ed465ef5-7e32-4456-94b8-14b7892150e1
     // return React.createElement(
@@ -399,7 +372,7 @@ function logResolverError(tpl: TemplateOrigin, parent: Control<IControlOptions>)
     }
 }
 
-function anonymousFnError(fn: TemplateFunction, parent: Control<IControlOptions>): void {
+function anonymousFnError(fn: TemplateFunction | Function, parent: Control<IControlOptions>): void {
     Logger.error(`Ошибка построения разметки. Была передана функция, которая не является шаблонной.
                Функция: ${fn.toString()}`, parent);
 }

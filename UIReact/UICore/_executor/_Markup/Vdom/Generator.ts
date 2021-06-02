@@ -8,13 +8,13 @@ import {
     Attr,
     Scope
 } from 'UICommon/Executor';
-import { convertAttributes, WasabyAttributes } from './Attributes';
+import { convertAttributes, WasabyAttributes } from '../Attributes';
 import { IWasabyEvent } from 'UICommon/Events';
 import { setEventHook } from 'UICore/Events';
 
 import { Control } from 'UICore/Base';
 import { IControlOptions } from 'UICommon/Base';
-import { TemplateOrigin, IControlConfig, AttrToDecorate } from './interfaces';
+import { TemplateOrigin, IControlConfig, AttrToDecorate } from '../interfaces';
 import { Generator } from '../Generator';
 
 function mergeRefs<T>(refs: (React.MutableRefObject<T> | React.LegacyRef<T>)[]): React.RefCallback<T> {
@@ -144,11 +144,7 @@ export class GeneratorVdom extends Generator implements IGenerator {
     createTag<T extends HTMLElement, P extends React.HTMLAttributes<T>>(
         tagName: keyof React.ReactHTML,
         attrs: {
-            attributes: P &
-            WasabyAttributes & {
-                name?: string;
-                ref?: React.MutableRefObject<HTMLElement> | React.LegacyRef<HTMLElement>
-            };
+            attributes: P & WasabyAttributes;
             events: Record<string, IWasabyEvent[]>
         },
         children: React.ReactNode[],
@@ -166,6 +162,9 @@ export class GeneratorVdom extends Generator implements IGenerator {
         const eventsObject = {
             events: extractedEvents
         };
+        /**
+         * Объединяет атрибуты, указанные на элементе, с атрибутами, которые пришли сверху
+         */
         const mergedAttrs = Attr.mergeAttrs(attrToDecorate.attributes, attrs.attributes);
         Object.keys(mergedAttrs).forEach((attrName) => {
             if (!mergedAttrs[attrName]) {

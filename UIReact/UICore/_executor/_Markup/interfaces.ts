@@ -10,18 +10,11 @@ import {
 import { IWasabyEvent } from 'UICommon/Events';
 
 /*
-FIXME: как я понимаю, в этом объекте могут быть HTMl-атрибуты+какие-то наши поля.
-Из наших полей пока используется только internal, и даже от него вроде можно избавиться.
-Надо разобраться и заменить на нормальный тип.
+    FIXME: как я понимаю, в этом объекте могут быть HTMl-атрибуты+какие-то наши поля.
  */
 export interface IGeneratorAttrs {
     attributes: Attr.IAttributes;
-    internal: {
-        // FIXME: само поле есть всегда, но мне кажется, что для корня там ничего не будет.
-        // Если так, то просто убрать FIXME. Если не так, то убрать ? у типа.
-        // Ну и вообще можно см. https://online.sbis.ru/opendoc.html?guid=f354360c-5899-4f74-bf54-a06e526621eb
-        parent?: Control;
-    };
+    events: Record<string, IWasabyEvent[]>;
 }
 
 export interface IControlConfig {
