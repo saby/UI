@@ -2,7 +2,7 @@
 
 import {Control, TemplateFunction} from 'UI/Base';
 import * as template from 'wml!UIDemo/Production/Index';
-import { detection, constants } from 'Env/Env';
+import { constants } from 'Env/Env';
 
 export default class Index extends Control {
    _template: TemplateFunction = template;
