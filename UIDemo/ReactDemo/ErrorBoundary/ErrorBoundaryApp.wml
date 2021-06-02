@@ -1,0 +1,6 @@
+<div class='errorboundary-app-tmplte'>
+    <h2>ErrorBoundary</h2>
+    <UIDemo.ReactDemo.ErrorBoundary.ControlThrowError />
+</div>
+
+
