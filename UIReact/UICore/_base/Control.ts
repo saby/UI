@@ -89,6 +89,28 @@ export default class Control<TOptions extends IControlOptions = {},
     reactiveValues: Record<string, unknown>;
     private readonly _instId: string = 'inst_' + countInst++;
 
+    protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
+        return callNotify(this, eventName, args, options);
+    }
+
+    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
+        return false;
+    }
+
+    // несогласованное API, но используется в engine, и пока нужно для сборки UIReact
+    deactivate(): void {
+    }
+
+    // Пока что просто для сохрания API в ts. Возможно, нужна будет реализация. Метод используется в роутинге.
+    getInstanceId(): string {
+        return this._instId;
+    }
+
+    _getEnvironment(): object {
+        return {};
+    }
+
+        
     protected _container: HTMLElement;
 
     /**
@@ -133,26 +155,6 @@ export default class Control<TOptions extends IControlOptions = {},
         }
     }
 
-    protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
-        return callNotify(this, eventName, args, options);
-    }
-
-    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
-        return false;
-    }
-
-    // несогласованное API, но используется в engine, и пока нужно для сборки UIReact
-    deactivate(): void {
-    }
-
-    // Пока что просто для сохрания API в ts. Возможно, нужна будет реализация. Метод используется в роутинге.
-    getInstanceId(): string {
-        return this._instId;
-    }
-
-    _getEnvironment(): object {
-        return {};
-    }
 
     /**
      * Запускает обновление. Нужен из-за того, что всех переводить на новое название метода не хочется.
