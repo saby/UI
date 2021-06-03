@@ -8,13 +8,13 @@ import {
     Attr,
     Scope
 } from 'UICommon/Executor';
-import { convertAttributes, WasabyAttributes } from './Attributes';
+import { convertAttributes, WasabyAttributes } from '../Attributes';
 import { IWasabyEvent } from 'UICommon/Events';
 import { setEventHook } from 'UICore/Events';
 
-import { Control, TemplateFunction } from 'UICore/Base';
+import { Control } from 'UICore/Base';
 import { IControlOptions } from 'UICommon/Base';
-import { IGeneratorAttrs, TemplateOrigin, IControlConfig, AttrToDecorate } from './interfaces';
+import { TemplateOrigin, IControlConfig, AttrToDecorate } from '../interfaces';
 import { Generator } from '../Generator';
 
 function mergeRefs<T>(refs: (React.MutableRefObject<T> | React.LegacyRef<T>)[]): React.RefCallback<T> {
@@ -34,11 +34,12 @@ function mergeRefs<T>(refs: (React.MutableRefObject<T> | React.LegacyRef<T>)[]):
 }
 
 export class GeneratorVdom extends Generator implements IGenerator {
-    prepareDataForCreate(tplOrigin: TemplateOrigin,
-        scope: IControlOptions,
-        attrs: IGeneratorAttrs,
-        deps: Common.Deps<typeof Control, TemplateFunction>,
-        includedTemplates?: Common.IncludedTemplates<TemplateFunction>): IControlOptions {
+    /**
+     * подготавливает опции для контрола. вызывается в функции шаблона в случае выполнения инлайн шаблона
+     * @param tplOrigin тип шаблона
+     * @param scope результирующий контекст выполнения
+     */
+    prepareDataForCreate(tplOrigin: TemplateOrigin, scope: IControlOptions): IControlOptions {
         // scope может прийти после обработки метода uniteScope в шаблоне - это функция reshaper
         // которую надо выполнить чтобы получить результирующий scope
         const controlProperties = Scope.calculateScope(scope, Common.plainMerge) || {};
@@ -47,6 +48,14 @@ export class GeneratorVdom extends Generator implements IGenerator {
             return controlProperties;
         }
         return undefined;
+    }
+
+    createDirective(text: any): any {
+        try {
+            throw new Error('vdomMarkupGenerator createDirective not realized');
+        } catch (e) {
+            Logger.error('createDirective  ... in VDom', text, e);
+        }
     }
 
     protected calculateOptions(
@@ -93,24 +102,19 @@ export class GeneratorVdom extends Generator implements IGenerator {
     }
 
     /**
-     * Получает конструктор контрола по его названию и создаёт его с переданными опциями.
-     * @param origin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
-     * @param scope Опции контрола.
-     * @param _
-     * @param __
-     * @param deps Объект с зависимостями контрола, в нём должно быть поле, соответствующее name.
+     * Дает возможность дополнительно трансформировать результат построения контрола.
+     * @param control Результат построения контрола.
      */
-    createWsControl(
-        origin: string | typeof Control,
-        scope: IControlOptions,
-        decorAttribs: IGeneratorAttrs,
-        __: unknown,
-        deps: Common.Deps<typeof Control, TemplateFunction>
+    processControl(
+        control: React.ComponentElement<
+            IControlOptions,
+            Control<IControlOptions, object>
+            >
     ): React.ComponentElement<
         IControlOptions,
         Control<IControlOptions, object>
     > {
-        return this.createReactControl(origin, scope, decorAttribs, __, deps);
+        return control;
     }
 
     /*
@@ -133,18 +137,14 @@ export class GeneratorVdom extends Generator implements IGenerator {
      * @param tagName Название DOM-элемента.
      * @param attrs Атрибуты DOM-элемента.
      * @param children Дети DOM-элемента.
-     * @param _
+     * @param attrToDecorate атрибуты элемента.
      * @param __
      * @param control Инстанс контрола-родителя, используется для заполнения _children.
      */
     createTag<T extends HTMLElement, P extends React.HTMLAttributes<T>>(
         tagName: keyof React.ReactHTML,
         attrs: {
-            attributes: P &
-            WasabyAttributes & {
-                name?: string;
-                ref?: React.MutableRefObject<HTMLElement> | React.LegacyRef<HTMLElement>
-            };
+            attributes: P & WasabyAttributes;
             events: Record<string, IWasabyEvent[]>
         },
         children: React.ReactNode[],
@@ -162,6 +162,9 @@ export class GeneratorVdom extends Generator implements IGenerator {
         const eventsObject = {
             events: extractedEvents
         };
+        /**
+         * Объединяет атрибуты, указанные на элементе, с атрибутами, которые пришли сверху
+         */
         const mergedAttrs = Attr.mergeAttrs(attrToDecorate.attributes, attrs.attributes);
         Object.keys(mergedAttrs).forEach((attrName) => {
             if (!mergedAttrs[attrName]) {

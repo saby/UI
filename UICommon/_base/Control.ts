@@ -13,6 +13,7 @@ export interface IControlOptions {
     _$createdFromCode?: boolean;
     name?: string;
     rskey?: string;
+    _$attributes?: object;
 }
 
 interface IStable {
