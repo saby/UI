@@ -1,7 +1,7 @@
 import { Control, TemplateFunction } from 'UI/Base';
 // @ts-ignore
 import * as template from 'wml!UIDemo/ReactDemo/Index';
-import { AsyncErrorViewer } from 'UICore/_base/ErrorViewer';
+import { AsyncErrorViewer } from 'UICore/Base';
 
 export default class Index extends Control {
    protected _template: TemplateFunction = template;

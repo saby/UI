@@ -21,3 +21,4 @@ export function selectRenderDomNode(node: HTMLElement): HTMLElement {
     return node;
 }
 
+export { AsyncErrorViewer, ErrorViewer } from 'UICore/_base/ErrorViewer';
