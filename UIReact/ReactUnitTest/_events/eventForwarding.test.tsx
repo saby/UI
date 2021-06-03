@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { render } from 'react-dom';
+import {render, unmountComponentAtNode} from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import { createSandbox } from 'sinon';
 // FIXME: типы для jsdom нигде не подцеплены, подцепим после переезда на jest
@@ -47,6 +47,13 @@ describe('Подписки на контролы', () => {
         clock = sandbox.useFakeTimers();
         container = document.createElement('div');
         document.body.appendChild(container);
+    });
+    afterEach(() => {
+        clock.restore();
+        sandbox.restore();
+        unmountComponentAtNode(container);
+        container.remove();
+        container = null;
     });
 
     it('подписка на нативное событие на контроле должна навешиваться на внутренний контейнер', () => {
