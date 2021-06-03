@@ -31,6 +31,8 @@ export interface WasabyAttributes {
    style?: string;
    tabindex?: string | number;
    'xml:lang'?: string;
+   name?: string;
+   ref?: React.MutableRefObject<HTMLElement> | React.LegacyRef<HTMLElement>;
 }
 
 /**
