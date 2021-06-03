@@ -7,9 +7,10 @@ import { createSandbox } from 'sinon';
 // @ts-ignore
 import { JSDOM } from 'jsdom';
 import OuterControl from './OuterControl';
-import InnerControl from './InnerControl';
 
-describe('дочерние контролы', () => {
+import { WasabyEventsSingleton } from 'UICore/Events';
+
+describe('Подписки на контролы', () => {
     let container;
     let sandbox;
 
@@ -48,13 +49,20 @@ describe('дочерние контролы', () => {
         document.body.appendChild(container);
     });
 
-    it('наличие дочернего контрола', () => {
-        let instance;
+    it('подписка на нативное событие на контроле должна навешиваться на внутренний контейнер', () => {
+        WasabyEventsSingleton.initEventSystem(container);
+
         act(() => {
-            instance = render(<OuterControl/>, container);
+            render(<OuterControl/>, container);
         });
         tick(0);
 
-        sandbox.assert.match(instance._children.mycontrol instanceof InnerControl, true);
+        const element = container.children[0];
+        const handlers = element.eventProperties['on:click'];
+        const clickHandler = handlers[0].handler.apply(OuterControl.prototype);
+        sandbox.assert.match(
+            clickHandler === OuterControl.prototype._clickHandler,
+            true
+        );
     });
 });
