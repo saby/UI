@@ -41,7 +41,7 @@ describe('Check result of "if condition"', () => {
         });
         const children = [...container.children[0].children];
         children.forEach((element, key) => {
-            assert.equal(element.tagName, NODE_TYPE);
+            assert.equal(element.tagName.toLowerCase(), NODE_TYPE);
             assert.equal(element.textContent, NODES_TEXT[key]);
         });
     });
@@ -52,7 +52,7 @@ describe('Check result of "if condition"', () => {
         });
         const child = container.children[0];
         assert.equal(child.textContent, NODES_TEXT[1]);
-        assert.equal(child.tagName, NODE_TYPE);
+        assert.equal(child.tagName.toLowerCase(), NODE_TYPE);
     });
 
 });

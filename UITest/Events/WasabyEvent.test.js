@@ -24,6 +24,11 @@ define([
          // Проверяем, что этот механизм не сбоит, и что он не генерирует лишние клики, если
          // тач-устройство стреляет их само после touchstart и touchend
          testIf(isNodeJs)('does not produce extra clicks on touch devices', function(done) {
+            if (requirejs.defined('react')) {
+               this.skip();
+               return;
+            }
+
             var
                elem = { removeEventListener: function(){}, blur: function() {}, focus: function() {} },
                events = new WasabyEvents(elem),
