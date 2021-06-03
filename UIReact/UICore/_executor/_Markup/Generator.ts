@@ -11,11 +11,10 @@ import {
     Helper,
     IGeneratorNameObject, ITplFunction
 } from 'UICommon/Executor';
-import { WasabyAttributes } from './Attributes';
-import { WasabyContextManager } from 'UICore/Contexts';
 import { IWasabyEvent } from 'UICommon/Events';
 
-import { Control, TemplateFunction } from 'UICore/Base';
+import { Control } from 'UICore/Base';
+import { TemplateFunction } from 'UICommon/Base';
 import { IControlOptions } from 'UICommon/Base';
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate} from './interfaces';
 
@@ -49,17 +48,9 @@ export class Generator implements IGenerator {
 
         const templateAttributes: IGeneratorAttrs = {
             attributes: decorAttribs,
-            events,
-            /*
-            FIXME: https://online.sbis.ru/opendoc.html?guid=f354360c-5899-4f74-bf54-a06e526621eb
-            судя по нашей кодогенерации, createTemplate - это приватный метод, потому что она его не выдаёт.
-            Если это действительно так, то можно передавать родителя явным образом, а не через такие костыли.
-            Но т.к. раньше parent прокидывался именно так, то мне страшно это менять.
-            */
-            internal: {
-                parent: config.viewController
-            }
+            events
         };
+        const parent = config.viewController;
 
         // вместо опций может прилететь функция, выполнение которой отдаст опции, calculateScope вычисляет такие опции
         const resolvedOptions = Scope.calculateScope(options, plainMerge);
@@ -81,147 +72,62 @@ export class Generator implements IGenerator {
         // @ts-ignore FIXME: Нужно положить ключ в опцию rskey для Received state. Сделать это хорошо
         newOptions.rskey = templateAttributes.attributes.key || config.key;
 
-        return this.resolver(origin, newOptions, templateAttributes, undefined,
-            config.depsLocal, config.includedTemplates);
-    }
-
-    /**
-     * Получает шаблон по его названию и строит его.
-     * @param origin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
-     * @param scope Опции шаблона.
-     * @param attributes
-     * @param _
-     * @param deps Объект с зависимостями шаблона, в нём должно быть поле, соответствующее name.
-     */
-    createTemplate(
-        origin: string | TemplateFunction,
-        scope: IControlOptions,
-        attributes: IGeneratorAttrs,
-        _: unknown,
-        deps: Common.Deps<typeof Control, TemplateFunction>
-    ): TemplateResult {
-        const resultingFn: TemplateFunction = resolveTpl(origin, {}, deps) as TemplateFunction;
-        const parent: Control<IControlOptions> = attributes?.internal?.parent;
-        /*
-        Контролы берут наследуемые опции из контекста.
-        Шаблоны так не могут, потому что они не полноценные реактовские компоненты.
-        Поэтому берём значения либо из опций, либо из родителя.
-         */
-        if (typeof scope.readOnly === 'undefined') {
-            scope.readOnly = parent?.props?.readOnly ?? parent?.context?.readOnly;
+        const tplExtended:
+            typeof Control |
+            TemplateFunction |
+            Common.IDefaultExport<typeof Control> |
+            Function |
+            ITplFunction<TemplateFunction> |
+            Common.ITemplateArray =
+            resolveTpl(origin, config.includedTemplates, config.depsLocal);
+        let tpl: typeof Control |
+            TemplateFunction |
+            Function |
+            ITplFunction<TemplateFunction> |
+            Common.ITemplateArray;
+        if (Common.isDefaultExport<typeof Control>(tplExtended)) {
+            tpl = tplExtended.default;
+        } else {
+            tpl = tplExtended;
         }
-        if (typeof scope.theme === 'undefined') {
-            scope.theme = parent?.props?.theme ?? parent?.context?.theme;
-        }
-
-        return resolveTemplateFunction(parent, resultingFn, scope, attributes);
-        // Получилась ситуация, что WasabyContextManager был сам в себе, и пошли ошибки с ref
-        // выписана задача - https://online.sbis.ru/opendoc.html?guid=ed465ef5-7e32-4456-94b8-14b7892150e1
-        // return React.createElement(
-        //     WasabyContextManager,
-        //     {
-        //         readOnly: scope.readOnly,
-        //         theme: scope.theme
-        //     },
-        //     resolveTemplateFunction(parent, resultingFn, scope, attributes)
-        // );
-    }
-
-    resolver(
-        tplOrigin: TemplateOrigin,
-        preparedScope: IControlOptions,
-        decorAttribs: IGeneratorAttrs,
-        _: string,
-        deps?: Common.Deps<typeof Control, TemplateFunction>,
-        includedTemplates?: Common.IncludedTemplates<TemplateFunction>
-    ): React.ReactElement | React.ReactElement[] | string {
-        const parent = decorAttribs.internal.parent;
-
-        const tplExtended: TemplateOrigin = resolveTpl(tplOrigin, includedTemplates, deps);
-        const tpl = Common.fixDefaultExport(tplExtended);
 
         if (Common.isControlClass<typeof Control>(tpl)) {
-            return this.createWsControl(tpl, preparedScope, decorAttribs, undefined, deps);
+            return this.processControl(
+                createWsControl(tpl, newOptions, templateAttributes, config.depsLocal)
+            );
         }
         // TemplateFunction - wml шаблон
-        if (Common.isTemplateClass<TemplateFunction>(tpl)) {
-            return this.createTemplate(tpl, preparedScope, decorAttribs, undefined, deps);
+        if (Common.isTemplateClass(tpl)) {
+            return createTemplate(tpl, newOptions, templateAttributes, config.depsLocal, parent);
         }
         // inline template, xhtml, tmpl шаблон (closured), content option
         if (typeof tpl === 'function') {
-            return resolveTemplateFunction(parent, tpl, preparedScope, decorAttribs);
+            return resolveTemplateFunction(parent, tpl, newOptions, templateAttributes);
         }
         // content option - в определенном способе использования контентная опция может представлять собой объект
-        // со свойством func, в котором и лежит функция контентной опции. Демка ReactUnitTest/MarkupSpecification/resolver/Top
-        if (tpl && typeof tpl.func === 'function') {
-            return resolveTemplateFunction(parent, tpl.func, preparedScope, decorAttribs);
+        // со свойством func, в котором и лежит функция контентной опции.
+        // Демка ReactUnitTest/MarkupSpecification/resolver/Top
+        if (Common.isTplFunction(tpl)) {
+            return resolveTemplateFunction(parent, tpl.func, newOptions, templateAttributes);
         }
 
         // Common.ITemplateArray - массив шаблонов, может например прилететь,
         // если в контентной опции несколько корневых нод
-        if (Common.isTemplateArray<TemplateFunction>(tpl)) {
-            return resolveTemplateArray(parent, tpl, preparedScope, decorAttribs);
+        if (Common.isTemplateArray(tpl)) {
+            return resolveTemplateArray(parent, tpl, newOptions, templateAttributes);
         }
         // Здесь может быть незарезолвленный контрол optional!. Поэтому результат должен быть пустым
-        if (Common.isOptionalString<TemplateOrigin>(tplOrigin)) {
+        if (Common.isOptionalString<TemplateOrigin>(origin)) {
             return null;
         }
         // игнорируем выводимое значение null для совместимости с реализацией wasaby
-        if (tplOrigin === null) {
+        if (origin === null) {
             return null;
         }
 
         // не смогли зарезолвить - нужно вывести ошибку
-        logResolverError(tplOrigin, parent);
-        return '' + tplOrigin;
-    }
-
-    protected createReactControl(
-        origin: string | typeof Control,
-        scope: IControlOptions,
-        decorAttribs: IGeneratorAttrs,
-        __: unknown,
-        deps: Common.Deps<typeof Control, TemplateFunction>
-    ): React.ComponentElement<
-        IControlOptions,
-        Control<IControlOptions, object>
-        > {
-        const controlClassExtended: TemplateOrigin = resolveTpl(origin, {}, deps);
-        const controlClass = Common.fixDefaultExport(controlClassExtended) as typeof Control;
-
-        resolveControlName(scope, decorAttribs.attributes);
-        // @ts-ignore
-        scope._$attributes = decorAttribs;
-
-        // todo временное решение только для поддержки юнит-тестов
-        // https://online.sbis.ru/opendoc.html?guid=a886b7c1-fda3-4594-b00d-b48f1185aaf8
-        if (Common.isCompound(controlClass)) {
-            return this.createCompatibleReactControl(origin, scope, decorAttribs, __, deps);
-        }
-        return React.createElement(controlClass, scope);
-    }
-
-    protected createCompatibleReactControl(
-        origin: string | typeof Control,
-        scope: IControlOptions,
-        _: unknown,
-        __: unknown,
-        deps: Common.Deps<typeof Control, TemplateFunction>
-    ) : React.ComponentElement<
-        IControlOptions,
-        Control<IControlOptions, object>
-        > {
-        const generatorCompatibleStr = 'View/_executorCompatible/_Markup/Compatible/GeneratorCompatible';
-        const GeneratorCompatible = requirejs(generatorCompatibleStr).GeneratorCompatible;
-        const generatorCompatible = new GeneratorCompatible();
-        const markup = generatorCompatible.createWsControl.apply(generatorCompatible, arguments);
-        const res = React.createElement('remove', {
-            dangerouslySetInnerHTML: {
-                __html: markup
-            }
-        });
-        //@ts-ignore
-        return res;
+        logResolverError(origin, parent);
+        return '' + origin;
     }
 
     protected abstract calculateOptions(
@@ -231,26 +137,23 @@ export class Generator implements IGenerator {
         name: string,
         originRef: React.MutableRefObject<Control> | React.LegacyRef<Control>): IControlOptions;
 
-    abstract createText(text: string): string
-
     /**
-     * Получает конструктор контрола по его названию и создаёт его с переданными опциями.
-     * @param origin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
-     * @param scope Опции контрола.
-     * @param _
-     * @param __
-     * @param deps Объект с зависимостями контрола, в нём должно быть поле, соответствующее name.
+     * Дает возможность дополнительно трансформировать результат построения контрола.
+     * @param control Результат построения контрола.
      */
-    abstract createWsControl(
-        origin: string | typeof Control,
-        scope: IControlOptions,
-        decorAttribs: IGeneratorAttrs,
-        __: unknown,
-        deps: Common.Deps<typeof Control, TemplateFunction>
+    protected abstract processControl(
+        control: React.ComponentElement<
+            IControlOptions,
+            Control<IControlOptions, object>
+            >
     ): string | React.ComponentElement<
         IControlOptions,
         Control<IControlOptions, object>
-        >
+        >;
+
+    abstract createText(text: string): string;
+
+    abstract createDirective(text: string): string;
 
     /*
     FIXME: Изначально в joinElements было return ArrayUtils.flatten(elements, true).
@@ -259,38 +162,42 @@ export class Generator implements IGenerator {
     несколько корневых нод из partial, возвращался просто массив из двух элементов.
     Так что пока этот метод ничего не делает.
      */
-    abstract joinElements(elements: string[] | React.ReactNode): string | React.ReactNode
+    abstract joinElements(elements: string[] | React.ReactNode): string | React.ReactNode;
 
     /**
      * Строит DOM-элемент.
      * @param tagName Название DOM-элемента.
      * @param attrs Атрибуты DOM-элемента.
      * @param children Дети DOM-элемента.
-     * @param _
+     * @param attrToDecorate атрибуты элемента.
      * @param __
      * @param control Инстанс контрола-родителя, используется для заполнения _children.
      */
     abstract createTag<T extends HTMLElement, P extends React.HTMLAttributes<T>>(
         tagName: keyof React.ReactHTML,
         attrs: {
-            attributes: P &
-                WasabyAttributes & {
-                name?: string;
-            };
+            attributes: P;
             events: Record<string, IWasabyEvent[]>
         },
         children: React.ReactNode[],
         attrToDecorate: AttrToDecorate,
         __: unknown,
         control?: Control
-    ): string | React.DetailedReactHTMLElement<P, T>
+    ): string | React.DetailedReactHTMLElement<P, T>;
 
-    abstract escape<T>(value: T): T
+    abstract escape<T>(value: T): T;
+
+    /**
+     * подготавливает опции для контрола. вызывается в функции шаблона в случае выполнения инлайн шаблона
+     * @param tplOrigin тип шаблона
+     * @param scope результирующий контекст выполнения
+     */
+    abstract prepareDataForCreate(tplOrigin: TemplateOrigin, scope: IControlOptions): IControlOptions;
 }
 
 function getLibraryTpl(tpl: IGeneratorNameObject,
-                       deps: Common.Deps<typeof Control, TemplateFunction>
-): typeof Control | Common.ITemplateArray<TemplateFunction> {
+                       deps: Common.Deps<typeof Control>
+): typeof Control | Common.ITemplateArray {
     let controlClass;
     if (deps && deps[tpl.library]) {
         controlClass = Common.extractLibraryModule(deps[tpl.library], tpl.module);
@@ -300,10 +207,10 @@ function getLibraryTpl(tpl: IGeneratorNameObject,
     return controlClass;
 }
 function resolveTpl(tpl: TemplateOrigin,
-                    includedTemplates: Common.IncludedTemplates<TemplateFunction>,
-                    deps: Common.Deps<typeof Control, TemplateFunction>
-): typeof Control | TemplateFunction | Common.IDefaultExport<typeof Control> |
-    Function | Common.ITemplateArray<TemplateFunction> {
+                    includedTemplates: Common.IncludedTemplates,
+                    deps: Common.Deps<typeof Control>
+): Common.IDefaultExport<typeof Control> | typeof Control | TemplateFunction | Common.IDefaultExport<typeof Control> |
+    Function | Common.ITemplateArray | ITplFunction<TemplateFunction> {
     if (typeof tpl === 'string') {
         if (Common.isLibraryModuleString(tpl)) {
             // if this is a module string, it probably is from a dynamic partial template
@@ -344,7 +251,7 @@ function resolveTemplate(template: TemplateFunction | ITplFunction<TemplateFunct
     let resolvedTemplate;
     if (typeof template === 'function') {
         resolvedTemplate = resolveTemplateFunction(parent, template, resolvedScope, decorAttribs);
-    } else if (template && typeof template.func === 'function') {
+    } else if (Common.isTplFunction(template)) {
         resolvedTemplate = resolveTemplateFunction(parent, template.func, resolvedScope, decorAttribs);
     } else {
         resolvedTemplate = template;
@@ -363,7 +270,7 @@ function resolveTemplate(template: TemplateFunction | ITplFunction<TemplateFunct
 }
 
 function resolveTemplateFunction(parent: Control<IControlOptions>,
-                                 template: TemplateFunction,
+                                 template: TemplateFunction | Function,
                                  resolvedScope: IControlOptions,
                                  decorAttribs: IGeneratorAttrs): TemplateResult {
     if (Common.isAnonymousFn(template)) {
@@ -385,6 +292,67 @@ function resolveControlName(controlData: IControlOptions, attributes: Attr.IAttr
     return attr;
 }
 
+/**
+ * Получает конструктор контрола по его названию и создаёт его с переданными опциями.
+ * @param origin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
+ * @param scope Опции контрола.
+ * @param decorAttribs атрибуты контрола
+ * @param deps Объект с зависимостями контрола, в нём должно быть поле, соответствующее name.
+ */
+function createWsControl(
+    origin: typeof Control,
+    scope: IControlOptions,
+    decorAttribs: IGeneratorAttrs,
+    deps: Common.Deps<typeof Control>
+): React.ComponentElement<
+    IControlOptions,
+    Control<IControlOptions, object>
+> {
+    resolveControlName(scope, decorAttribs.attributes);
+    scope._$attributes = decorAttribs;
+
+    return React.createElement(origin, scope);
+}
+/**
+ * Получает шаблон по его названию и строит его.
+ * @param origin Либо сам шаблон/конструктор контрола, либо строка, по которой его можно получить.
+ * @param scope Опции шаблона.
+ * @param attributes
+ * @param deps Объект с зависимостями шаблона, в нём должно быть поле, соответствующее name.
+ * @param parent Контрол, внутри которого создается данный шаблон
+ */
+function createTemplate(
+    origin: TemplateFunction,
+    scope: IControlOptions,
+    attributes: IGeneratorAttrs,
+    deps: Common.Deps<typeof Control>,
+    parent: Control<IControlOptions>
+): TemplateResult {
+    /*
+    Контролы берут наследуемые опции из контекста.
+    Шаблоны так не могут, потому что они не полноценные реактовские компоненты.
+    Поэтому берём значения либо из опций, либо из родителя.
+     */
+    if (typeof scope.readOnly === 'undefined') {
+        scope.readOnly = parent?.props?.readOnly ?? parent?.context?.readOnly;
+    }
+    if (typeof scope.theme === 'undefined') {
+        scope.theme = parent?.props?.theme ?? parent?.context?.theme;
+    }
+
+    return resolveTemplateFunction(parent, origin, scope, attributes);
+    // Получилась ситуация, что WasabyContextManager был сам в себе, и пошли ошибки с ref
+    // выписана задача - https://online.sbis.ru/opendoc.html?guid=ed465ef5-7e32-4456-94b8-14b7892150e1
+    // return React.createElement(
+    //     WasabyContextManager,
+    //     {
+    //         readOnly: scope.readOnly,
+    //         theme: scope.theme
+    //     },
+    //     resolveTemplateFunction(parent, resultingFn, scope, attributes)
+    // );
+}
+
 function logResolverError(tpl: TemplateOrigin, parent: Control<IControlOptions>): void {
     if (typeof tpl !== 'string') {
         let errorText = 'Ошибка в шаблоне! ';
@@ -404,7 +372,7 @@ function logResolverError(tpl: TemplateOrigin, parent: Control<IControlOptions>)
     }
 }
 
-function anonymousFnError(fn: TemplateFunction, parent: Control<IControlOptions>): void {
+function anonymousFnError(fn: TemplateFunction | Function, parent: Control<IControlOptions>): void {
     Logger.error(`Ошибка построения разметки. Была передана функция, которая не является шаблонной.
                Функция: ${fn.toString()}`, parent);
 }
