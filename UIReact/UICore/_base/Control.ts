@@ -1,4 +1,4 @@
-//tslint:disable:ban-ts-ignore
+// tslint:disable:ban-ts-ignore
 import { Component, createElement } from 'react';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -11,7 +11,7 @@ import {makeWasabyObservable, pauseReactive, releaseProperties} from 'UICore/Was
 import cExtend = require('Core/core-extend');
 
 import template = require('wml!UICore/_base/Control');
-import {IControlState} from './interfaces';
+import {IControlState, IErrorConfig, TErrBoundaryOptions} from './interfaces';
 import {
     getWasabyContext,
     IWasabyContextValue,
@@ -28,7 +28,8 @@ import {IControlOptions, TemplateFunction} from 'UICommon/Base';
 import {prepareControlNodes} from '../ControlNodes';
 import {goUpByControlTree} from 'UICore/NodeCollector';
 import {constants} from 'Env/Env';
-import { ErrorController } from 'UICore/_base/ErrorController';
+import { ErrorViewer } from 'UICore/_base/ErrorViewer';
+import { ErrorContainer } from 'UICore/_base/ErrorContainer';
 
 export type IControlConstructor<P = IControlOptions> = React.ComponentType<P>;
 
@@ -70,6 +71,7 @@ export default class Control<TOptions extends IControlOptions = {},
      */
     private _oldOptions: TOptions = {} as TOptions;
 
+
     /**
      * Версии опций для версионируемых объектов.
      */
@@ -86,27 +88,6 @@ export default class Control<TOptions extends IControlOptions = {},
     _moduleName: string;
     reactiveValues: Record<string, unknown>;
     private readonly _instId: string = 'inst_' + countInst++;
-
-    protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
-        return callNotify(this, eventName, args, options);
-    }
-
-    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
-        return false;
-    }
-
-    // несогласованное API, но используется в engine, и пока нужно для сборки UIReact
-    deactivate(): void {
-    }
-
-    // Пока что просто для сохрания API в ts. Возможно, нужна будет реализация. Метод используется в роутинге.
-    getInstanceId(): string {
-        return this._instId;
-    }
-
-    _getEnvironment(): object {
-        return {};
-    }
 
     protected _container: HTMLElement;
 
@@ -152,7 +133,26 @@ export default class Control<TOptions extends IControlOptions = {},
         }
     }
 
+    protected _notify(eventName: string, args?: unknown[], options?: { bubbling?: boolean }): unknown {
+        return callNotify(this, eventName, args, options);
+    }
 
+    activate(cfg: { enableScreenKeyboard?: boolean, enableScrollToElement?: boolean } = {}): boolean {
+        return false;
+    }
+
+    // несогласованное API, но используется в engine, и пока нужно для сборки UIReact
+    deactivate(): void {
+    }
+
+    // Пока что просто для сохрания API в ts. Возможно, нужна будет реализация. Метод используется в роутинге.
+    getInstanceId(): string {
+        return this._instId;
+    }
+
+    _getEnvironment(): object {
+        return {};
+    }
 
     /**
      * Запускает обновление. Нужен из-за того, что всех переводить на новое название метода не хочется.
@@ -498,7 +498,6 @@ export default class Control<TOptions extends IControlOptions = {},
             }, 0);
         }
     }
-
     getSnapshotBeforeUpdate(): null {
         if (this._$controlMounted) {
             try {
@@ -525,7 +524,7 @@ export default class Control<TOptions extends IControlOptions = {},
 
     render(): React.ReactNode {
         const wasabyOptions = createWasabyOptions(this.props, this.context);
-
+        const { errorViewer, errorContainer } = this.props;
         /*
         Валидируем опции именно здесь по двум причинам:
         1) Здесь они уже полностью вычислены.
@@ -545,10 +544,22 @@ export default class Control<TOptions extends IControlOptions = {},
         }
 
         if (this.state.hasError) {
-            return React.createElement(ErrorController, {
-                error: this.state.error,
+            let errorConfig: Promise<IErrorConfig | void> | IErrorConfig | void = this.state.errorConfig;
+            if (!errorConfig) {
+                errorConfig = errorViewer.process(this.state.error);
+            }
+            if ('then' in errorConfig) {
+                errorConfig.then((cfg: IErrorConfig) => {
+                    // @ts-ignore
+                    this.state.errorConfig = cfg;
+                    this._forceUpdate();
+                });
+                errorConfig = ErrorViewer.process(this.state.error);
+            }
+            return React.createElement<TErrBoundaryOptions>(errorContainer, {
+                errorConfig,
                 theme: this.context.theme
-            } as unknown);
+            });
         }
 
         let realFiberNode;
@@ -614,7 +625,10 @@ export default class Control<TOptions extends IControlOptions = {},
      * </pre>
      */
     static _theme: string[] = [];
-
+    static defaultProps: object = {
+        errorContainer: ErrorContainer,
+        errorViewer: ErrorViewer
+    };
     /**
      * Загрузка стилей и тем контрола
      * @param themeName имя темы (по-умолчанию тема приложения)

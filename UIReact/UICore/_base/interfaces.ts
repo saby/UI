@@ -2,7 +2,7 @@ export interface IControlState {
    loading: boolean;
    observableVersion: number;
    hasError?: boolean;
-   error?: void | Error;
+   error?: Error;
    errorConfig: IErrorConfig;
 }
 
@@ -16,10 +16,13 @@ export interface IErrorConfig {
 }
 
 /**
- * Интерфейс пропсов для Компонентов errorProcessors
+ * Интерфейс пропсов для Компонентов ErrorContainer, ErrorController
  */
 export interface TErrBoundaryOptions {
    error?: Error;
    errorConfig?: IErrorConfig;
    theme?: string;
+}
+export interface IErrorViewer {
+   process(error: Error): Promise<IErrorConfig | void> | IErrorConfig;
 }

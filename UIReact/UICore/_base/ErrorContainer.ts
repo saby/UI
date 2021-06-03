@@ -3,12 +3,12 @@ import { getResourceUrl } from 'UICommon/Utils';
 import { TErrBoundaryOptions } from 'UICore/_base/interfaces';
 
 /**
- * ErrorContainer должен принимать конфиг с ошибкой и возвращать нужный шаблон.
- * Временно возвращает всегда один и тот же дефолтный шаблон.
+ * ErrorContainer, возвращает всегда один и тот же дефолтный шаблон.
  */
-export class ErrorContainer extends Component<TErrBoundaryOptions> {
+export class ErrorContainer extends Component<TErrBoundaryOptions>{
     render(): ReactElement {
         return createElement('div',{
+            key: 'e1',
             style: {
                 border: '1px solid red',
                 padding: '50px',
@@ -17,7 +17,7 @@ export class ErrorContainer extends Component<TErrBoundaryOptions> {
                 textAlign: 'center'
             }
         }, [
-            createElement('img', { key: 'e1',
+            createElement('img', { key: 'e11',
                 style: {
                     maxWidth: '100%',
                     maxHeight: '200px',
@@ -26,7 +26,7 @@ export class ErrorContainer extends Component<TErrBoundaryOptions> {
                 src: getResourceUrl(
                     `/cdn/Maintenance/1.1.0/img/NOT_FOUND_${this.props?.theme}.svg`)
             }),
-            createElement('div', { key: 'e2' }, this.props.errorConfig._errorMessage)
+            createElement('div', {key: 'e12'}, this.props.errorConfig._errorMessage)
         ]);
     }
 }
