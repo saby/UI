@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { render } from 'react-dom';
+import { render, unmountComponentAtNode } from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import { createSandbox } from 'sinon';
 // FIXME: типы для jsdom нигде не подцеплены, подцепим после переезда на jest
@@ -46,6 +46,14 @@ describe('дочерние контролы', () => {
         clock = sandbox.useFakeTimers();
         container = document.createElement('div');
         document.body.appendChild(container);
+    });
+
+    afterEach(() => {
+        unmountComponentAtNode(container);
+        container.remove();
+        container = null;
+        clock.restore();
+        sandbox.restore();
     });
 
     it('наличие дочернего контрола', () => {
