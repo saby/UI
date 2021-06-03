@@ -4,6 +4,7 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { isInit } from 'Application/Initializer';
 import {getStateReceiver} from 'Application/Env';
+import {IStateReceiverMeta} from 'Application/State';
 import {EMPTY_THEME, getThemeController} from 'UICommon/theme/controller';
 import {getResourceUrl, Logger, needToBeCompatible} from 'UICommon/Utils';
 import {Options} from 'UICommon/Vdom';
@@ -176,7 +177,7 @@ export default class Control<TOptions extends IControlOptions = {},
         options?: TOptions,
         contexts?: object,
         receivedState?: TState
-    ): Promise<TState | void> | void {
+    ): Promise<TState | void> | TState | void {
         // Do
     }
 
@@ -399,8 +400,8 @@ export default class Control<TOptions extends IControlOptions = {},
      * @param options
      * @private
      */
-    private saveReceivedState(beforeMountResult: Promise<TState | void> | void, options: TOptions): void {
-        const meta = {ulid: options.rskey, moduleName: this._moduleName};
+    private saveReceivedState(beforeMountResult: Promise<TState | void> | TState | void, options: TOptions): void {
+        const meta: IStateReceiverMeta = {ulid: options.rskey, moduleName: this._moduleName};
         if (beforeMountResult instanceof Promise) {
             beforeMountResult.then((receivedState) => {
                 if (receivedState && isInit()) {
@@ -413,8 +414,7 @@ export default class Control<TOptions extends IControlOptions = {},
         this._registerReceivedState(beforeMountResult, meta);
     }
 
-    //FIXME: https://online.sbis.ru/opendoc.html?guid=cb620168-3933-4133-9ee9-ce07835063ee
-    private _registerReceivedState(receivedState: TState, meta: any): void {
+    private _registerReceivedState(receivedState: TState | void, meta: IStateReceiverMeta): void {
         if (receivedState && isInit()) {
             getStateReceiver().register(meta, {
                 getState: () => (receivedState as Record<string, any>),
