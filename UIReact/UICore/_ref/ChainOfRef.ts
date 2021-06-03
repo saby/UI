@@ -1,4 +1,4 @@
-import { IResponsibility } from './Responsibility';
+import { IResponsibility, IResponsibilityHandler } from './Responsibility';
 
 interface IChainRefResponsibility {
     add(responsibility: IResponsibility): ChainOfRef;
@@ -28,14 +28,10 @@ export class ChainOfRef implements IChainRefResponsibility {
 
     /**
      * Запуск цепочки обязанностей
+     * execute()(node)
      * @param node
      */
-    public execute(node: HTMLElement): void {
-        this.handlers.forEach((handler) => handler.getHandler()(node));
-    }
-
-    // TODO: Remove
-    public show(): void {
-        console.log(this);
+    public execute(node: HTMLElement): IResponsibilityHandler {
+        return (node: HTMLElement) => this.handlers.forEach((handler) =>  handler.getHandler());
     }
 }
