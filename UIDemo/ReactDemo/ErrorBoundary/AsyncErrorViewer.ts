@@ -1,6 +1,6 @@
-import {Component, createElement, ReactElement} from 'react';
-import {IErrorConfig, TErrBoundaryOptions} from 'UICore/_base/interfaces';
-import {getResourceUrl} from 'UICommon/Utils';
+import { Component, createElement, ReactElement } from 'react';
+import { IErrorConfig, TErrBoundaryOptions } from 'UICore/Base';
+import { getResourceUrl } from 'UICommon/Utils';
 
 export class AsyncErrorViewer extends Component<TErrBoundaryOptions> {
     render(): ReactElement {

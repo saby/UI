@@ -22,3 +22,4 @@ export function selectRenderDomNode(node: HTMLElement): HTMLElement {
 }
 
 export { ErrorViewer } from './_base/ErrorViewer';
+export { IErrorConfig, TErrBoundaryOptions } from 'UICore/_base/interfaces';
