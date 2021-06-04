@@ -1,0 +1,3 @@
+<div class="control-throw-error" on:click="increaseCounter()">
+    some
+</div>
