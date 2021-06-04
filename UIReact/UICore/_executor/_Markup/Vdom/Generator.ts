@@ -52,8 +52,10 @@ export class GeneratorVdom extends Generator implements IGenerator {
         originRef: React.MutableRefObject<Control> | React.LegacyRef<Control>
     ): IControlOptions & { ref: React.RefCallback<Control> } {
         const chainOfRef = new ChainOfRef();
-        chainOfRef.add(createChildrenRef(config.viewController, name));
-        chainOfRef.add(createAsyncRef(config.viewController));
+        const createChildrenRef = new CreateChildrenRef(config.viewController, name);
+        const createAsyncRef = new CreateAsyncRef(config.viewController);
+        chainOfRef.add(createChildrenRef);
+        chainOfRef.add(createAsyncRef);
 
         return {
             ...resolvedOptionsExtended,
@@ -153,8 +155,10 @@ export class GeneratorVdom extends Generator implements IGenerator {
         });
         const name = mergedAttrs.name;
         const chainOfRef = new ChainOfRef();
-        chainOfRef.add(createChildrenRef(control, name));
-        chainOfRef.add(createEventRef(tagName, eventsObject));
+        const createChildrenRef = new CreateChildrenRef(control, name);
+        const createEventRef = new CreateEventRef(tagName, eventsObject);
+        chainOfRef.add(createChildrenRef);
+        chainOfRef.add(createEventRef);
         const convertedAttributes = convertAttributes(mergedAttrs);
 
         /* не добавляем extractedEvents в новые пропсы на теге, т.к. реакт будет выводить ошибку о неизвестном свойстве
@@ -174,28 +178,3 @@ export class GeneratorVdom extends Generator implements IGenerator {
         return value;
     }
 }
-
-function createEventRef<HTMLElement>(
-    tagName: string,
-    eventsObject: {
-        events: Record<string, IWasabyEvent[]>;
-    }
-): CreateEventRef {
-    return new CreateEventRef(tagName, eventsObject);
-}
-
-function createChildrenRef<T>(
-    parent: Control,
-    name: string
-): CreateChildrenRef {
-    return new CreateChildrenRef(parent, name);
-}
-
-function createAsyncRef(
-    parent: Control
-): CreateAsyncRef {
-    return new CreateAsyncRef(parent);
-}
-
-
-
