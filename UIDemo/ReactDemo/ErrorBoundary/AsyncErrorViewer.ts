@@ -1,19 +1,8 @@
+import {Component, createElement, ReactElement} from 'react';
 import {IErrorConfig, TErrBoundaryOptions} from 'UICore/_base/interfaces';
-import {Component, createElement, ReactElement} from "react";
 import {getResourceUrl} from 'UICommon/Utils';
 
-
-/**
- * ErrorViewer, возвращает всегда один и тот же дефолтный шаблон.
- */
-export class ErrorViewer extends Component<TErrBoundaryOptions> {
-    static process(error?: Error): IErrorConfig {
-        // возвращаем пока всегда один и тот же конфиг
-        return {
-            _errorMessage: 'Что-то пошло не так',
-            error
-        };
-    }
+export class AsyncErrorViewer extends Component<TErrBoundaryOptions> {
     render(): ReactElement {
         return createElement('div',{
             key: 'e1',
@@ -37,6 +26,11 @@ export class ErrorViewer extends Component<TErrBoundaryOptions> {
             createElement('div', {key: 'e12'}, this.props.errorConfig._errorMessage)
         ]);
     }
+    static process(error?: Error): Promise<IErrorConfig> {
+        // возвращаем пока всегда один и тот же конфиг
+        return Promise.resolve({
+            _errorMessage: 'Что-то пошло не так',
+            error
+        });
+    }
 }
-
-

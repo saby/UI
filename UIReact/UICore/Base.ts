@@ -21,4 +21,4 @@ export function selectRenderDomNode(node: HTMLElement): HTMLElement {
     return node;
 }
 
-export { AsyncErrorViewer, ErrorViewer } from './_base/ErrorViewer';
+export { ErrorViewer } from './_base/ErrorViewer';
