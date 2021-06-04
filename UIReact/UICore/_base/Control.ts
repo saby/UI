@@ -28,8 +28,7 @@ import {IControlOptions, TemplateFunction} from 'UICommon/Base';
 import {prepareControlNodes} from '../ControlNodes';
 import {goUpByControlTree} from 'UICore/NodeCollector';
 import {constants} from 'Env/Env';
-import { ErrorViewer } from 'UICore/_base/ErrorViewer';
-import { ErrorContainer } from 'UICore/_base/ErrorContainer';
+import { ErrorViewer, ErrorContainer } from 'UICore/_base/ErrorViewer';
 
 export type IControlConstructor<P = IControlOptions> = React.ComponentType<P>;
 
