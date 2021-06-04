@@ -2,7 +2,7 @@ import { IResponsibility, IResponsibilityHandler } from './Responsibility';
 
 interface IChainRefResponsibility {
     add(responsibility: IResponsibility): ChainOfRef;
-    execute(node: HTMLElement): void;
+    execute(): IResponsibilityHandler;
 }
 
 /**
@@ -31,7 +31,9 @@ export class ChainOfRef implements IChainRefResponsibility {
      * execute()(node)
      * @param node
      */
-    public execute(node: HTMLElement): IResponsibilityHandler {
-        return (node: HTMLElement) => this.handlers.forEach((handler) =>  handler.getHandler());
+    public execute(): IResponsibilityHandler {
+        return (node: HTMLElement) => this.handlers.forEach(
+            (handler) =>  handler.getHandler()(node)
+        );
     }
 }

@@ -2,36 +2,22 @@ import * as React from 'react';
 import { Logger, ArrayUtils } from 'UICommon/Utils';
 import {
     CommonUtils as Common,
-    onElementMount,
-    onElementUnmount,
     IGenerator,
     Attr,
     Scope
 } from 'UICommon/Executor';
 import { convertAttributes, WasabyAttributes } from '../Attributes';
 import { IWasabyEvent } from 'UICommon/Events';
-import { setEventHook } from 'UICore/Events';
 
 import { Control } from 'UICore/Base';
 import { IControlOptions } from 'UICommon/Base';
 import { TemplateOrigin, IControlConfig, AttrToDecorate } from '../interfaces';
 import { Generator } from '../Generator';
 
-function mergeRefs<T>(refs: (React.MutableRefObject<T> | React.LegacyRef<T>)[]): React.RefCallback<T> {
-    return value => {
-        refs.forEach(ref => {
-            if (typeof ref === 'function') {
-                ref(value);
-            } else if (typeof ref === 'string') {
-                Logger.warn('Although string refs are not deprecated, they are considered legacy,' +
-                    ' and will likely be deprecated at some point in the future. Callback refs are preferred.');
-            } else if (ref !== null && ref !== undefined) {
-                // @ts-ignore на самом деле current меняется
-                ref.current = value;
-            }
-        });
-    };
-}
+import { ChainOfRef } from 'UICore/Ref';
+import { CreateEventRef } from './Refs/CreateEventRef';
+import { CreateChildrenRef } from './Refs/CreateChildrenRef';
+import { CreateAsyncRef } from './Refs/CreateAsyncRef';
 
 export class GeneratorVdom extends Generator implements IGenerator {
     /**
@@ -65,20 +51,16 @@ export class GeneratorVdom extends Generator implements IGenerator {
         name: string,
         originRef: React.MutableRefObject<Control> | React.LegacyRef<Control>
     ): IControlOptions & { ref: React.RefCallback<Control> } {
-
-        const refs: (React.MutableRefObject<Control> | React.LegacyRef<Control>)[] = [
-            createChildrenRef<Control>(config.viewController, name),
-            createAsyncRef(config.viewController)
-        ];
-        if (originRef) {
-            refs.push(originRef);
-        }
-        const ref = mergeRefs(refs);
+        const chainOfRef = new ChainOfRef();
+        const createChildrenRef = new CreateChildrenRef(config.viewController, name);
+        const createAsyncRef = new CreateAsyncRef(config.viewController);
+        chainOfRef.add(createChildrenRef);
+        chainOfRef.add(createAsyncRef);
 
         return {
             ...resolvedOptionsExtended,
             ...{ events },
-            ref
+            ref: chainOfRef.execute()
         };
     }
 
@@ -172,16 +154,11 @@ export class GeneratorVdom extends Generator implements IGenerator {
             }
         });
         const name = mergedAttrs.name;
-        const originRef = attrs.attributes.ref;
-        const refs: (React.MutableRefObject<HTMLElement> | React.LegacyRef<HTMLElement>)[] = [
-            createEventRef(tagName, eventsObject),
-            createChildrenRef(control, name)
-        ];
-        if (originRef) {
-            refs.push(originRef);
-        }
-        const ref = mergeRefs(refs);
-
+        const chainOfRef = new ChainOfRef();
+        const createChildrenRef = new CreateChildrenRef(control, name);
+        const createEventRef = new CreateEventRef(tagName, eventsObject);
+        chainOfRef.add(createChildrenRef);
+        chainOfRef.add(createEventRef);
         const convertedAttributes = convertAttributes(mergedAttrs);
 
         /* не добавляем extractedEvents в новые пропсы на теге, т.к. реакт будет выводить ошибку о неизвестном свойстве
@@ -189,7 +166,7 @@ export class GeneratorVdom extends Generator implements IGenerator {
         */
         const newProps = {
             ...convertedAttributes,
-            ref
+            ref: chainOfRef.execute()
         };
 
         // Разворачиваем массив с детьми, так как в противном случае react считает, что мы отрисовываем список
@@ -200,53 +177,4 @@ export class GeneratorVdom extends Generator implements IGenerator {
     escape<T>(value: T): T {
         return value;
     }
-}
-
-function createEventRef<HTMLElement>(
-    tagName: string,
-    eventsObject: {
-        events: Record<string, IWasabyEvent[]>;
-    }
-): React.RefCallback<HTMLElement> {
-    return (node) => {
-        if (node && Object.keys(eventsObject.events).length > 0) {
-            setEventHook(tagName, eventsObject, node);
-        }
-    };
-}
-
-function createChildrenRef<T>(
-    parent: Control,
-    name: string
-): React.RefCallback<T> {
-    if (!parent || !name) {
-        return;
-    }
-
-    return (node) => {
-        if (node) {
-            parent['_children'][name] = node;
-            onElementMount(parent['_children'][name]);
-        } else {
-            onElementUnmount(parent['_children'], name);
-        }
-    };
-    /* tslint:enable:no-string-literal */
-}
-function createAsyncRef(
-    parent: Control
-): React.RefCallback<Control> {
-    if (!parent) {
-        return;
-    }
-
-    return (control) => {
-        if (!control) {
-            return;
-        }
-        const afterMountPromise = new Promise((resolve) => {
-            control._$afterMountResolve.push(resolve);
-        });
-        parent._$childrenPromises?.push(afterMountPromise);
-    };
 }
