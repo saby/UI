@@ -32,6 +32,6 @@ export class ChainOfRef implements IChainRefResponsibility {
      * @param node
      */
     public execute(node: HTMLElement): IResponsibilityHandler {
-        return (node: HTMLElement) => this.handlers.forEach((handler) =>  handler.getHandler());
+        return (node: HTMLElement) => this.handlers.forEach((handler) =>  handler.getHandler()(node));
     }
 }

@@ -17,6 +17,8 @@ import { IControlOptions } from 'UICommon/Base';
 import { TemplateOrigin, IControlConfig, AttrToDecorate } from '../interfaces';
 import { Generator } from '../Generator';
 
+import { Responsibility, IResponsibilityHandler, ChainOfRef } from 'UICore/Ref';
+
 function mergeRefs<T>(refs: (React.MutableRefObject<T> | React.LegacyRef<T>)[]): React.RefCallback<T> {
     return value => {
         refs.forEach(ref => {
@@ -31,6 +33,72 @@ function mergeRefs<T>(refs: (React.MutableRefObject<T> | React.LegacyRef<T>)[]):
             }
         });
     };
+}
+
+class CreateEventRef extends Responsibility {
+    private tagName: string;
+    private eventsObject: {
+        events: Record<string, IWasabyEvent[]>;
+    };
+    constructor(tagName, eventsObject) {
+        super();
+        this.tagName = tagName;
+        this.eventsObject = eventsObject;
+
+    }
+    public getHandler(): IResponsibilityHandler {
+        return (node: HTMLElement): void => {
+            if (node && Object.keys(this.eventsObject.events).length > 0) {
+                setEventHook(this.tagName, this.eventsObject, node);
+            }
+        };
+    }
+}
+
+class CreateChildrenRef extends Responsibility {
+    private parent: Control;
+    private name: string;
+
+    constructor(parent: Control, name: string) {
+        super();
+        this.name = name;
+        this.parent = parent;
+
+    }
+    public getHandler(): IResponsibilityHandler {
+        return (node: HTMLElement) => {
+            if (!node) {
+                onElementUnmount(this.parent['_children'], this.name);
+                return;
+            }
+            this.parent['_children'][this.name] = node;
+            onElementMount(this.parent['_children'][this.name]);
+        };
+    }
+}
+
+class CreateAsyncRef extends Responsibility {
+    private parent: Control;
+
+    constructor(parent: Control) {
+        super();
+        this.parent = parent;
+
+    }
+    public getHandler(): IResponsibilityHandler {
+        if (!parent) {
+            return () => {};
+        }
+        return (control) => {
+            if (!control) {
+                return;
+            }
+            const afterMountPromise = new Promise((resolve) => {
+                control._$afterMountResolve.push(resolve);
+            });
+            this.parent._$childrenPromises?.push(afterMountPromise);
+        };
+    }
 }
 
 export class GeneratorVdom extends Generator implements IGenerator {
@@ -65,20 +133,14 @@ export class GeneratorVdom extends Generator implements IGenerator {
         name: string,
         originRef: React.MutableRefObject<Control> | React.LegacyRef<Control>
     ): IControlOptions & { ref: React.RefCallback<Control> } {
-
-        const refs: (React.MutableRefObject<Control> | React.LegacyRef<Control>)[] = [
-            createChildrenRef<Control>(config.viewController, name),
-            createAsyncRef(config.viewController)
-        ];
-        if (originRef) {
-            refs.push(originRef);
-        }
-        const ref = mergeRefs(refs);
+        const chainOfRef = new ChainOfRef();
+        chainOfRef.add(createChildrenRef(config.viewController, name));
+        chainOfRef.add(createAsyncRef(config.viewController));
 
         return {
             ...resolvedOptionsExtended,
             ...{ events },
-            ref
+            ref: chainOfRef.execute()
         };
     }
 
@@ -172,16 +234,9 @@ export class GeneratorVdom extends Generator implements IGenerator {
             }
         });
         const name = mergedAttrs.name;
-        const originRef = attrs.attributes.ref;
-        const refs: (React.MutableRefObject<HTMLElement> | React.LegacyRef<HTMLElement>)[] = [
-            createEventRef(tagName, eventsObject),
-            createChildrenRef(control, name)
-        ];
-        if (originRef) {
-            refs.push(originRef);
-        }
-        const ref = mergeRefs(refs);
-
+        const chainOfRef = new ChainOfRef();
+        chainOfRef.add(createChildrenRef(control, name));
+        chainOfRef.add(createEventRef(tagName, eventsObject));
         const convertedAttributes = convertAttributes(mergedAttrs);
 
         /* не добавляем extractedEvents в новые пропсы на теге, т.к. реакт будет выводить ошибку о неизвестном свойстве
@@ -189,7 +244,7 @@ export class GeneratorVdom extends Generator implements IGenerator {
         */
         const newProps = {
             ...convertedAttributes,
-            ref
+            ref: chainOfRef.execute()
         };
 
         // Разворачиваем массив с детьми, так как в противном случае react считает, что мы отрисовываем список
@@ -207,46 +262,22 @@ function createEventRef<HTMLElement>(
     eventsObject: {
         events: Record<string, IWasabyEvent[]>;
     }
-): React.RefCallback<HTMLElement> {
-    return (node) => {
-        if (node && Object.keys(eventsObject.events).length > 0) {
-            setEventHook(tagName, eventsObject, node);
-        }
-    };
+): CreateEventRef {
+    return new CreateEventRef(tagName, eventsObject);
 }
 
 function createChildrenRef<T>(
     parent: Control,
     name: string
-): React.RefCallback<T> {
-    if (!parent || !name) {
-        return;
-    }
-
-    return (node) => {
-        if (node) {
-            parent['_children'][name] = node;
-            onElementMount(parent['_children'][name]);
-        } else {
-            onElementUnmount(parent['_children'], name);
-        }
-    };
-    /* tslint:enable:no-string-literal */
+): CreateChildrenRef {
+    return new CreateChildrenRef(parent, name);
 }
+
 function createAsyncRef(
     parent: Control
-): React.RefCallback<Control> {
-    if (!parent) {
-        return;
-    }
-
-    return (control) => {
-        if (!control) {
-            return;
-        }
-        const afterMountPromise = new Promise((resolve) => {
-            control._$afterMountResolve.push(resolve);
-        });
-        parent._$childrenPromises?.push(afterMountPromise);
-    };
+): CreateAsyncRef {
+    return new CreateAsyncRef(parent);
 }
+
+
+
