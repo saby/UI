@@ -2,104 +2,22 @@ import * as React from 'react';
 import { Logger, ArrayUtils } from 'UICommon/Utils';
 import {
     CommonUtils as Common,
-    onElementMount,
-    onElementUnmount,
     IGenerator,
     Attr,
     Scope
 } from 'UICommon/Executor';
 import { convertAttributes, WasabyAttributes } from '../Attributes';
 import { IWasabyEvent } from 'UICommon/Events';
-import { setEventHook } from 'UICore/Events';
 
 import { Control } from 'UICore/Base';
 import { IControlOptions } from 'UICommon/Base';
 import { TemplateOrigin, IControlConfig, AttrToDecorate } from '../interfaces';
 import { Generator } from '../Generator';
 
-import { Responsibility, IResponsibilityHandler, ChainOfRef } from 'UICore/Ref';
-
-function mergeRefs<T>(refs: (React.MutableRefObject<T> | React.LegacyRef<T>)[]): React.RefCallback<T> {
-    return value => {
-        refs.forEach(ref => {
-            if (typeof ref === 'function') {
-                ref(value);
-            } else if (typeof ref === 'string') {
-                Logger.warn('Although string refs are not deprecated, they are considered legacy,' +
-                    ' and will likely be deprecated at some point in the future. Callback refs are preferred.');
-            } else if (ref !== null && ref !== undefined) {
-                // @ts-ignore на самом деле current меняется
-                ref.current = value;
-            }
-        });
-    };
-}
-
-class CreateEventRef extends Responsibility {
-    private tagName: string;
-    private eventsObject: {
-        events: Record<string, IWasabyEvent[]>;
-    };
-    constructor(tagName, eventsObject) {
-        super();
-        this.tagName = tagName;
-        this.eventsObject = eventsObject;
-
-    }
-    public getHandler(): IResponsibilityHandler {
-        return (node: HTMLElement): void => {
-            if (node && Object.keys(this.eventsObject.events).length > 0) {
-                setEventHook(this.tagName, this.eventsObject, node);
-            }
-        };
-    }
-}
-
-class CreateChildrenRef extends Responsibility {
-    private parent: Control;
-    private name: string;
-
-    constructor(parent: Control, name: string) {
-        super();
-        this.name = name;
-        this.parent = parent;
-
-    }
-    public getHandler(): IResponsibilityHandler {
-        return (node: HTMLElement) => {
-            if (!node) {
-                onElementUnmount(this.parent['_children'], this.name);
-                return;
-            }
-            this.parent['_children'][this.name] = node;
-            onElementMount(this.parent['_children'][this.name]);
-        };
-    }
-}
-
-class CreateAsyncRef extends Responsibility {
-    private parent: Control;
-
-    constructor(parent: Control) {
-        super();
-        this.parent = parent;
-
-    }
-    public getHandler(): IResponsibilityHandler {
-        if (!parent) {
-            return () => {};
-        }
-        return (control) => {
-            if (!control) {
-                return;
-            }
-            const afterMountPromise = new Promise((resolve) => {
-                control._$afterMountResolve.push(resolve);
-            });
-            this.parent._$childrenPromises?.push(afterMountPromise);
-        };
-    }
-}
+import { ChainOfRef } from 'UICore/Ref';
+import { CreateEventRef } from './Refs/CreateEventRef';
+import { CreateChildrenRef } from './Refs/CreateChildrenRef';
+import { CreateAsyncRef } from './Refs/CreateAsyncRef';
 
 export class GeneratorVdom extends Generator implements IGenerator {
     /**
