@@ -10,4 +10,4 @@
 export { default as WasabyEvents } from './_events/WasabyEvents';
 export { WasabyEventsSingleton } from './_events/WasabyEventsSingleton';
 export { callNotify } from './_events/Notify';
-export { setEventHook } from './_events/Hooks';
+export { setEventHook, mergeEvents } from './_events/Hooks';

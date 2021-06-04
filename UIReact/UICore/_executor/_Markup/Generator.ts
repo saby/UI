@@ -17,6 +17,7 @@ import { Control } from 'UICore/Base';
 import { TemplateFunction } from 'UICommon/Base';
 import { IControlOptions } from 'UICommon/Base';
 import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate} from './interfaces';
+import { mergeEvents } from 'UICore/Events';
 
 export class Generator implements IGenerator {
     /**
@@ -46,9 +47,14 @@ export class Generator implements IGenerator {
             decorAttribs :
             Helper.processMergeAttributes(config.attr.attributes, decorAttribs);
 
+        let fullEvents = Object.create(events) || {}
+        if (config && config.attr && config.attr.events){
+            fullEvents = mergeEvents(events, config.attr.events);
+        }
+
         const templateAttributes: IGeneratorAttrs = {
             attributes: decorAttribs,
-            events
+            events: fullEvents
         };
         const parent = config.viewController;
 
@@ -67,7 +73,7 @@ export class Generator implements IGenerator {
 
         const originRef = resolvedOptions.ref;
 
-        const newOptions = this.calculateOptions(resolvedOptionsExtended, config, events, name, originRef);
+        const newOptions = this.calculateOptions(resolvedOptionsExtended, config, fullEvents, name, originRef);
 
         // @ts-ignore FIXME: Нужно положить ключ в опцию rskey для Received state. Сделать это хорошо
         newOptions.rskey = templateAttributes.attributes.key || config.key;

@@ -574,6 +574,10 @@ export default class Control<TOptions extends IControlOptions = {},
             const control = this;
             result = {
                 ...realFiberNode, ref: (node) => {
+                    //TODO: в случае если нет node, вызов рефа для детей и событий приводит к ошибке
+                    if(!node) {
+                        return;
+                    }
                     prepareControlNodes(node, control, Control);
                     return originRef && originRef.apply(this, [node]);
                 }
