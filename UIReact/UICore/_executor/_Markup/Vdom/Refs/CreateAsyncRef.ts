@@ -1,7 +1,7 @@
 import { Control } from 'UICore/Base';
 import { Responsibility, IResponsibilityHandler, } from 'UICore/Ref';
 
-class CreateAsyncRef extends Responsibility {
+export class CreateAsyncRef extends Responsibility {
     private parent: Control;
 
     constructor(parent: Control) {
