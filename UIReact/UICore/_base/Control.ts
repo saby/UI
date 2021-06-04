@@ -28,7 +28,7 @@ import {IControlOptions, TemplateFunction} from 'UICommon/Base';
 import {prepareControlNodes} from '../ControlNodes';
 import {goUpByControlTree} from 'UICore/NodeCollector';
 import {constants} from 'Env/Env';
-import { ErrorViewer, ErrorContainer } from 'UICore/_base/ErrorViewer';
+import { ErrorViewer } from 'UICore/_base/ErrorViewer';
 
 export type IControlConstructor<P = IControlOptions> = React.ComponentType<P>;
 
@@ -627,7 +627,7 @@ export default class Control<TOptions extends IControlOptions = {},
      */
     static _theme: string[] = [];
     static defaultProps: object = {
-        errorContainer: ErrorContainer,
+        errorContainer: ErrorViewer,
         errorViewer: ErrorViewer
     };
     /**
