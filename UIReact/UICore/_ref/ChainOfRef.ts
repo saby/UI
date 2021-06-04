@@ -33,7 +33,7 @@ export class ChainOfRef implements IChainRefResponsibility {
      */
     public execute(): IResponsibilityHandler {
         return (node: HTMLElement) => this.handlers.forEach(
-        (handler) =>  handler.getHandler()(node)
+            (handler) =>  handler.getHandler()(node)
         );
     }
 }
