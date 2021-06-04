@@ -20,3 +20,4 @@ export function startApplication(cfg?: Record<string, unknown>): void {
 export function selectRenderDomNode(node: HTMLElement): HTMLElement {
     return node;
 }
+export { ErrorViewer } from './_base/ErrorViewer';
