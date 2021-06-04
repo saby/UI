@@ -3,7 +3,7 @@ export interface IControlState {
    observableVersion: number;
    hasError?: boolean;
    error?: Error;
-   errorConfig: IErrorConfig;
+   errorConfig?: IErrorConfig;
 }
 
 /**
