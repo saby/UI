@@ -105,6 +105,11 @@ define([
             }
          },
       },
+      'function call': {
+         templateStr: '' +
+            '<ReactUnitTest.MarkupSpecification.scope.ControlWithFunction/>',
+         checkers: checkStr('<div>some text</div>')
+      }
    };
 
    describe('Markup!', () => {
