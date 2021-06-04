@@ -1,4 +1,6 @@
 import { IGeneratorConfig } from 'UICommon/Executor';
+import { IErrorViewer } from 'UICore/_base/interfaces';
+import * as React from 'react';
 
 /**
  * Интерфейс опций базового контрола
@@ -13,6 +15,8 @@ export interface IControlOptions {
     _$createdFromCode?: boolean;
     name?: string;
     rskey?: string;
+    errorContainer?: React.ComponentClass;
+    errorViewer?: IErrorViewer;
     _$attributes?: object;
 }
 
