@@ -662,12 +662,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
       // проверим не пустой ли контейнер, например в случае CompaundContainer'а, видимость которого зависит от условия
       const res = container && activate(container, cfg);
 
-      // может случиться так, что на focus() сработает обработчик в DOMEnvironment,
-      // и тогда тут ничего не надо делать
-      // todo делать проверку не на _$active а на то, что реально состояние изменилось.
-      // например переходим от компонента к его предку, у предка состояние не изменилось.
-      // но с которого уходили у него изменилось
-      if (res && !this._$active) {
+      if (res) {
          const env = this._getEnvironment();
          env._handleFocusEvent({ target: document.activeElement, relatedTarget: activeElement });
       }
