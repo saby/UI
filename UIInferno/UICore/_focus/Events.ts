@@ -117,7 +117,7 @@ let notifyActivationEvents : INotifyActivationEvents;
 notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
                                        relatedTarget: Element,
                                        env?: IDOMEnvironment,
-                                       isTabPressed?: ITabPressed): boolean | void  => {
+                                       isTabPressed?: ITabPressed): void  => {
    if (detectStrangeElement(target)) {
       return;
    }
@@ -129,6 +129,9 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
    const realRelatedTarget = (!detectStrangeElement(relatedTarget) && relatedTarget) ||
        notifyActivationEvents._savedFocusedElement;
 
+   if (target === realRelatedTarget) {
+      return;
+   }
    const
       arrayMaker = goUpByControlTree(target), // Массив активированных компонентов
       relatedArrayMaker = goUpByControlTree(realRelatedTarget); // Массив деактивированных компонентов

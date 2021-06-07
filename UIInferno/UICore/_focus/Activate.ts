@@ -21,6 +21,9 @@ function doFocus(container: IControlElement,
                  cfg: { enableScreenKeyboard?: boolean,
                     enableScrollToElement?: boolean } = {}): boolean {
 
+   if (container === document.activeElement) {
+      return true;
+   }
    let res = false;
    if (container.wsControl && container.wsControl.setActive) {
       // если нашли контейнер старого контрола, активируем его старым способом (для совместимости)
