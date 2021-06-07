@@ -624,10 +624,6 @@ export default class Control<TOptions extends IControlOptions = {},
      * </pre>
      */
     static _theme: string[] = [];
-    static defaultProps: object = {
-        errorContainer: ErrorViewer,
-        errorViewer: ErrorViewer
-    };
     /**
      * Загрузка стилей и тем контрола
      * @param themeName имя темы (по-умолчанию тема приложения)
