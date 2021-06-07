@@ -1,0 +1,5 @@
+<div>
+    <UICore.ReactDemo.KeyedLogger.WasabyComponent />
+    <UICore.ReactDemo.KeyedLogger.CorrectReactComponent />
+    <UICore.ReactDemo.KeyedLogger.IncorrectReactComponent />
+</div>
