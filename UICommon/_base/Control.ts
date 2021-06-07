@@ -1,5 +1,5 @@
 import { IGeneratorConfig } from 'UICommon/Executor';
-import { IErrorViewer } from 'UICore/_base/interfaces';
+import { IErrorViewer } from 'UICore/Base';
 import * as React from 'react';
 
 /**
