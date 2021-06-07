@@ -296,9 +296,6 @@ let focus : IFocus;
 focus = <IFocus>(element: IControlElement, {enableScreenKeyboard = false, enableScrollToElement = false}:
    IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}, isOldControl?: boolean): boolean => {
    const activeElement: Element = document.activeElement;
-   if (element === activeElement) {
-      return true;
-   }
    let res;
    const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard};
    // в ie фокус может быть null
