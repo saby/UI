@@ -13,6 +13,9 @@ export class CreateChildrenRef extends Responsibility {
 
     }
     public getHandler(): IResponsibilityHandler {
+        if(!name || !parent) {
+            return () => {};
+        }
         return (node: HTMLElement) => {
             if (!node) {
                 onElementUnmount(this.parent['_children'], this.name);

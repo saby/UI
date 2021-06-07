@@ -2,6 +2,7 @@ import { IWasabyHTMLElement } from 'UICommon/interfaces';
 
 import { EventUtils, IWasabyEventSystem, IWasabyEvent } from 'UICommon/Events';
 import { WasabyEventsSingleton } from './WasabyEventsSingleton';
+import { Control } from 'UICore/Control';
 
 import { Set } from 'Types/shim';
 
@@ -108,24 +109,66 @@ function addEventsToElement(
     }
 }
 
+function findEventProperties(newEvents, eventProperties) {
+    const newEventsKey = Object.keys(newEvents);
+    const eventPropertiesKey  = Object.keys(eventProperties);
+
+    if (newEventsKey.length !== eventPropertiesKey.length) {
+        return false;
+    }
+
+    for (let key of newEventsKey) {
+        if (!eventProperties.hasOwnProperty(key)) {
+            return false;
+        }
+        if (newEvents[key].fn !== eventProperties[key].fn && newEvents[key].value !== eventProperties[key].value ) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 export function setEventHook(
     tagName: string,
     props: {
         events: Record<string, IWasabyEvent[]>;
     },
-    element: TElement
+    element: TElement | Control
 ): void {
+    const domElement = element._container || element;
     const events = props.events;
     const eventSystem = WasabyEventsSingleton.getEventSystem();
     prepareEvents(events);
     if (!haveEvents(events)) {
         return;
     }
-    element.eventProperties = events;
-    if (!!element) {
-        addEventsToElement(events, eventSystem, element)
+    const origEventProperties = domElement.eventProperties || {};
+    domElement.eventProperties = events;
+    if (!findEventProperties(events, origEventProperties)) {
+        domElement.eventProperties = mergeEvents(origEventProperties, events);
     }
-    if (!element) {
-        clearInputValue(element);
+    if (!!domElement) {
+        addEventsToElement(events, eventSystem, domElement)
     }
+    if (!domElement) {
+        clearInputValue(domElement);
+    }
+}
+
+
+export function mergeEvents(currentEvents, newEvents) {
+    let mergedEvents = currentEvents;
+    const newEventsKeys = Object.keys(newEvents);
+
+    for (let key of newEventsKeys) {
+        if (!currentEvents.hasOwnProperty(key)) {
+            mergedEvents[key] = newEvents[key];
+            continue;
+        }
+        if (currentEvents[key].fn !== newEvents[key].fn && currentEvents[key].value !== newEvents[key].value ) {
+            mergedEvents[key].push(newEvents[key]);
+        }
+    }
+    return mergedEvents;
 }

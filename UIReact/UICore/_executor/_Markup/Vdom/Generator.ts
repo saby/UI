@@ -53,9 +53,15 @@ export class GeneratorVdom extends Generator implements IGenerator {
     ): IControlOptions & { ref: React.RefCallback<Control> } {
         const chainOfRef = new ChainOfRef();
         const createChildrenRef = new CreateChildrenRef(config.viewController, name);
+        //TODO: удалить tagName по задаче https://online.sbis.ru/opendoc.html?guid=41170c27-2019-4090-8646-801e2e82d23a
+        const createEventRef = new CreateEventRef('', { events });
         const createAsyncRef = new CreateAsyncRef(config.viewController);
         chainOfRef.add(createChildrenRef);
+        chainOfRef.add(createEventRef);
         chainOfRef.add(createAsyncRef);
+        if (originRef) {
+            chainOfRef.addHandler(originRef);
+        }
 
         return {
             ...resolvedOptionsExtended,
@@ -154,11 +160,16 @@ export class GeneratorVdom extends Generator implements IGenerator {
             }
         });
         const name = mergedAttrs.name;
+        const originRef = attrs.attributes.ref;
         const chainOfRef = new ChainOfRef();
         const createChildrenRef = new CreateChildrenRef(control, name);
         const createEventRef = new CreateEventRef(tagName, eventsObject);
         chainOfRef.add(createChildrenRef);
         chainOfRef.add(createEventRef);
+        if (originRef){
+            chainOfRef.addHandler(originRef);
+        }
+
         const convertedAttributes = convertAttributes(mergedAttrs);
 
         /* не добавляем extractedEvents в новые пропсы на теге, т.к. реакт будет выводить ошибку о неизвестном свойстве
