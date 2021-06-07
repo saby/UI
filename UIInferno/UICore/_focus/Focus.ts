@@ -295,11 +295,15 @@ let lastFocused: IControlElement;
 let focus : IFocus;
 focus = <IFocus>(element: IControlElement, {enableScreenKeyboard = false, enableScrollToElement = false}:
    IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}, isOldControl?: boolean): boolean => {
+   const activeElement: Element = document.activeElement;
+   if (element === activeElement) {
+      return false;
+   }
    let res;
    const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard};
    // в ie фокус может быть null
-   const isBodyFocused = document.activeElement && document.activeElement.tagName === 'BODY';
-   lastFocused = isBodyFocused ? lastFocused : document.activeElement as IControlElement;
+   const isBodyFocused = activeElement && activeElement.tagName === 'BODY';
+   lastFocused = isBodyFocused ? lastFocused : activeElement as IControlElement;
    if (isBodyFocused && lastFocused && isOldControl) {
       element = lastFocused;
    }
