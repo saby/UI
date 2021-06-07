@@ -186,6 +186,11 @@ export default class DOMEnvironment extends Environment implements IDOMEnvironme
 
       saveValueForChangeEvent(e.target);
 
+      if (e.target === e.relatedTarget) {
+         // Фокус не поменялся.
+         return;
+      }
+
       // запускаем обработчик только для правильного DOMEnvironment, в который прилетел фокус
       if (this._rootDOMNode && this._rootDOMNode.contains(e.target)) {
          // @ts-ignore FIXME: Class 'DOMEnvironment' incorrectly implements interface IDOMEnvironment

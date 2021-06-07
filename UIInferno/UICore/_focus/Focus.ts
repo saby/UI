@@ -297,7 +297,7 @@ focus = <IFocus>(element: IControlElement, {enableScreenKeyboard = false, enable
    IFocusConfig = {enableScreenKeyboard: false, enableScrollToElement: false}, isOldControl?: boolean): boolean => {
    const activeElement: Element = document.activeElement;
    if (element === activeElement) {
-      return false;
+      return true;
    }
    let res;
    const cfg: IFocusConfig = {enableScrollToElement, enableScreenKeyboard};
