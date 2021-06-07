@@ -304,11 +304,11 @@ focus = <IFocus>(element: IControlElement, {enableScreenKeyboard = false, enable
    if (isBodyFocused && lastFocused && isOldControl) {
       element = lastFocused;
    }
-   if (element === activeElement) {
-      return true;
-   }
    const elementFixed = fixElementForMobileInputs(element, cfg);
    if (focusingState) {
+      if (element === activeElement) {
+         return true;
+      }
       nativeFocus.call(elementFixed);
    } else {
       focusingState = true;
