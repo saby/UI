@@ -18,6 +18,7 @@ import { ChainOfRef } from 'UICore/Ref';
 import { CreateEventRef } from './Refs/CreateEventRef';
 import { CreateChildrenRef } from './Refs/CreateChildrenRef';
 import { CreateAsyncRef } from './Refs/CreateAsyncRef';
+import { CreateOriginRef } from './Refs/CreateOriginRef';
 
 export class GeneratorVdom extends Generator implements IGenerator {
     /**
@@ -60,7 +61,8 @@ export class GeneratorVdom extends Generator implements IGenerator {
         chainOfRef.add(createEventRef);
         chainOfRef.add(createAsyncRef);
         if (originRef) {
-            chainOfRef.addHandler(originRef);
+            const createOriginRef = new CreateOriginRef(originRef);
+            chainOfRef.add(createOriginRef);
         }
 
         return {
@@ -167,7 +169,8 @@ export class GeneratorVdom extends Generator implements IGenerator {
         chainOfRef.add(createChildrenRef);
         chainOfRef.add(createEventRef);
         if (originRef){
-            chainOfRef.addHandler(originRef);
+            const createOriginRef = new CreateOriginRef(originRef);
+            chainOfRef.add(createOriginRef);
         }
 
         const convertedAttributes = convertAttributes(mergedAttrs);
