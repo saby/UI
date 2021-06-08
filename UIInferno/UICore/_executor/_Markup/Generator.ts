@@ -235,6 +235,8 @@ function prepareNewArguments(
       : config.mergeType === 'context'
          ? Helper.plainMergeContext(config.attr, decorAttribs, options)
          : decorAttribs;
+   actualAttributes.key = Helper.calculateKey(decorAttribs, config.attr);
+
    const actualOptions = config.scope === null ? options : Helper.uniteScope(config.scope, options);
    const actualConfig = {
       isRootTag: config.isRootTag,
