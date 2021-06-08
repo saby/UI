@@ -47,7 +47,7 @@ export class Generator implements IGenerator {
             decorAttribs :
             Helper.processMergeAttributes(config.attr.attributes, decorAttribs);
 
-        let fullEvents = Object.create(events) || {}
+        let fullEvents = {...events};
         if (config && config.attr && config.attr.events){
             fullEvents = mergeEvents(events, config.attr.events);
         }

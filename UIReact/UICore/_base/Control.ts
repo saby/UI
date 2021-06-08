@@ -107,19 +107,20 @@ export default class Control<TOptions extends IControlOptions = {},
     _getEnvironment(): object {
         return {};
     }
+
     protected _container: HTMLElement;
 
     /**
-     * Набор промисов дочерних контролов, которые должны зарезолвиться в _afterMount, чтобы запустился _afterMount
-     * текущего контрола. Таким образом будет поддержано правило, что _afterMount родителя срабатывает только когда
-     * сработали все _afterMount дочерних контролов (как этом было при wasaby-inferno)
+     * Набор промисов дочерних контролов, которые нужно подождать (потому что они или их дети строились асинхронно).
+     * Таким образом будет поддержано правило, что _afterMount и _componentDidMount родителя срабатывает только
+     * когда сработали все хуки дочерних контролов (как этом было при wasaby-inferno)
      */
-    protected _$childrenPromises: unknown[] = [];
+    protected _$childrenPromises: Promise<unknown>[] = [];
     /**
-     * Набор резолверов промиса, уведомляет что _afterMount завершился. Пока не завершатся промисы текущего контрола,
-     * _afterMount родительского контрола не запустится. Подробнее {@link UICore/_base/Control#_$childrenPromises здесь}
+     * Резолвер промиса, который уведомляет родителя о том, что завершилось асинхронное построение.
+     * Подробнее {@link UICore/_base/Control#_$childrenPromises}.
      */
-    protected _$afterMountResolve: Function[] = [];
+    protected _$afterMountResolver?: () => void;
 
     // TODO: TControlConfig добавлен для совместимости, в 3000 нужно сделать TOptions и здесь, и в UIInferno.
     constructor(props: TOptions | TControlConfig = {}, context?: IWasabyContextValue) {
@@ -150,6 +151,7 @@ export default class Control<TOptions extends IControlOptions = {},
             Control.mixCompatible<TOptions, TState>(this, {});
         }
     }
+
     /**
      * Запускает обновление. Нужен из-за того, что всех переводить на новое название метода не хочется.
      */
@@ -216,8 +218,11 @@ export default class Control<TOptions extends IControlOptions = {},
             this.loadThemeVariables(options.theme)
         }
 
-        this._options = options;
         if (promisesToWait.length) {
+            const afterMountPromise: Promise<void> = new Promise((resolve) => {
+                this._$afterMountResolver = resolve;
+            });
+            options._$parentsChildrenPromises?.push(afterMountPromise);
             Promise.all(promisesToWait).finally(() => {
                 this._$asyncInProgress = false;
                 this.setState(
@@ -225,25 +230,37 @@ export default class Control<TOptions extends IControlOptions = {},
                         loading: false
                     },
                     () => {
-                        this._componentDidMount(options);
-                        this._$controlMounted = true;
-                        setTimeout(() => {
-                            makeWasabyObservable<TOptions, TState>(this);
+                        if (this._$childrenPromises.length) {
                             Promise.all(this._$childrenPromises).then(() => {
+                                this._$controlMounted = true;
+                                this._$afterMountResolver();
+                                this._$afterMountResolver = undefined;
                                 this._$childrenPromises = [];
-                                this._afterMount(options);
-                                this._$afterMountResolve.forEach((resolve) => {
-                                    resolve();
-                                });
-                                this._$afterMountResolve = [];
+                                this._options = options;
+                                makeWasabyObservable<TOptions, TState>(this);
+                                this._componentDidMount(options);
+                                setTimeout(() => {
+                                    this._afterMount(options);
+                                }, 0);
                             });
-                        }, 0);
+                        } else {
+                            this._$controlMounted = true;
+                            this._$afterMountResolver();
+                            this._$afterMountResolver = undefined;
+                            this._options = options;
+                            makeWasabyObservable<TOptions, TState>(this);
+                            this._componentDidMount(options);
+                            setTimeout(() => {
+                                this._afterMount(options);
+                            }, 0);
+                        }
                     }
                 );
             });
             this._$asyncInProgress = true;
             return true;
         } else {
+            this._options = options;
             this._$controlMounted = true;
             return false;
         }
@@ -454,18 +471,30 @@ export default class Control<TOptions extends IControlOptions = {},
             return;
         }
         const newOptions = createWasabyOptions(this.props, this.context);
-        this._componentDidMount(newOptions);
-        makeWasabyObservable<TOptions, TState>(this);
-        setTimeout(() => {
-            Promise.all(this._$childrenPromises).then(() => {
-                this._$childrenPromises = [];
-                this._afterMount(newOptions);
-                this._$afterMountResolve.forEach((resolve) => {
-                    resolve();
-                });
-                this._$afterMountResolve = [];
+        if (this._$childrenPromises.length) {
+            const afterMountPromise: Promise<void> = new Promise((resolve) => {
+                this._$afterMountResolver = resolve;
             });
-        }, 0);
+            newOptions._$parentsChildrenPromises?.push(afterMountPromise);
+            Promise.all(this._$childrenPromises).then(() => {
+                this._$afterMountResolver();
+                this._$afterMountResolver = undefined;
+                this._$childrenPromises = [];
+                this._options = newOptions;
+                makeWasabyObservable<TOptions, TState>(this);
+                this._componentDidMount(newOptions);
+                setTimeout(() => {
+                    this._afterMount(newOptions);
+                }, 0);
+            });
+        } else {
+            this._options = newOptions;
+            makeWasabyObservable<TOptions, TState>(this);
+            this._componentDidMount(newOptions);
+            setTimeout(() => {
+                this._afterMount(newOptions);
+            }, 0);
+        }
     }
 
     shouldComponentUpdate(newProps: TOptions, newState: IControlState): boolean {
@@ -482,7 +511,7 @@ export default class Control<TOptions extends IControlOptions = {},
         return (changedOptions && this._shouldUpdate(newOptions)) || reactiveStartUpdate || componentLoaded;
     }
 
-    componentDidUpdate(prevProps: TOptions): void {
+    componentDidUpdate(): void {
         if (this._$controlMounted) {
             const oldOptions = this._oldOptions;
             this._options = createWasabyOptions(this.props, this.context);
@@ -493,11 +522,13 @@ export default class Control<TOptions extends IControlOptions = {},
             }, 0);
         }
     }
+
     getSnapshotBeforeUpdate(): null {
         if (this._$controlMounted) {
             try {
                 pauseReactive(this, () => {
                     const newOptions = createWasabyOptions(this.props, this.context);
+                    // TODO: https://online.sbis.ru/opendoc.html?guid=a9962c03-d5ca-432c-bc8b-a244e5a1b1ed
                     this._beforeUpdate(newOptions, {scrollContext: {}});
                 });
             } catch (e) {
@@ -563,8 +594,7 @@ export default class Control<TOptions extends IControlOptions = {},
             this._oldOptions = this._options;
             // можем обновить здесь опции, старые опции для хуков будем брать из _oldOptions
             this._options = wasabyOptions;
-            const res = this._template(this, this._options._$attributes, undefined, true);
-            realFiberNode = res;
+            realFiberNode = this._template(this, this._options._$attributes, undefined, true);
             while (realFiberNode instanceof Array) {
                 realFiberNode = realFiberNode[0];
             }
