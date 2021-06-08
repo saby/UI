@@ -77,7 +77,7 @@ define('Compiler/core/bridge', [
       };
       var traversed = TraverseLib.default(htmlTree, traverseConfig, traverseOptions);
       var hasFailures = errorHandler.hasFailures();
-      var lastMessage = errorHandler.popLastErrorMessage();
+      var lastMessage = hasFailures ? errorHandler.popLastErrorMessage() : undefined;
       errorHandler.flush();
       if (hasFailures) {
          deferred.errback(new Error(lastMessage));
