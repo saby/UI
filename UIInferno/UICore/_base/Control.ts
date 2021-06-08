@@ -661,11 +661,8 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
       const activeElement = document.activeElement;
       // проверим не пустой ли контейнер, например в случае CompaundContainer'а, видимость которого зависит от условия
       const res = container && activate(container, cfg);
-
-      if (res) {
-         const env = this._getEnvironment();
-         env._handleFocusEvent({ target: document.activeElement, relatedTarget: activeElement });
-      }
+      const env = this._getEnvironment();
+      env._handleFocusEvent({ target: document.activeElement, relatedTarget: activeElement });
 
       return res;
    }
