@@ -98,7 +98,7 @@ function addControlsToFlatArray(controlNode: IControlNode, array: any[]): void {
 
     // В React ref строится снизу вверх, поэтому на момент построения мы не можем указать дочерним компонентам их
     // родителей, отсюда данный код по составлению массива родительских компонентов
-    let parent = controlNode.element.parentNode as IWrapHTMLElement;
+    let parent = controlNode?.element?.parentNode as IWrapHTMLElement;
     let inProgress = true;
 
     while (parent && inProgress) {
@@ -111,7 +111,7 @@ function addControlsToFlatArray(controlNode: IControlNode, array: any[]): void {
 
     // Поднимаемся по controlNode'ам, потому что у control'а нет доступа к родительскому контролу
     // @ts-ignore _options -> protected
-    let next = control._options.opener || parent?.controlNodes[0];
+    let next = control._options.opener || parent?.controlNodes[0] || controlNode.parent;
     if (next && next._destroyed) {
         return;
     }
