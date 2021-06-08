@@ -176,7 +176,7 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
             Logger.warn(message, control);
          }
 
-         if (found === undefined && control._$active === true) {
+         if (found === undefined) {
             // не стреляем событием для HOC, события сейчас так работают что если
             // стрельнем событием на контроле, обработчик позовутся и для контрола, и для его хоков.
             // todo надо удалить этот код, если события исправят этот недочет.
@@ -206,7 +206,7 @@ notifyActivationEvents = <INotifyActivationEvents>(target: IControlElement,
    // Меняем состояние у тех компонентов, которые реально получили активность
    let found = undefined;
    arrayMaker.find(function (control) {
-      if (control !== mutualTarget && control._$active === false) {
+      if (control !== mutualTarget) {
          // не стреляем событием для HOC, события сейчас так работают что если
          // стрельнем событием на контроле, обработчик позовутся и для контрола, и для его хоков.
          // todo надо удалить этот код, если события исправят этот недочет.
