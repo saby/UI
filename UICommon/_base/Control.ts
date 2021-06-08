@@ -1,5 +1,4 @@
 import { IGeneratorConfig } from 'UICommon/Executor';
-import { IErrorViewer } from 'UICore/Base';
 import * as React from 'react';
 
 /**
@@ -16,8 +15,24 @@ export interface IControlOptions {
     name?: string;
     rskey?: string;
     errorContainer?: React.ComponentClass;
-    errorViewer?: IErrorViewer;
+    errorController?: IErrorViewer;
     _$attributes?: object;
+}
+
+/**
+ * IErrorViewer необходим для отлова и показа ошибки в контроле WasabyOverReact
+ */
+interface IErrorViewer {
+    process(error: Error): Promise<IErrorConfig | void> | IErrorConfig;
+}
+
+/**
+ * Интерфейс для конфига ошибки для работы с ErrorViewer.
+ */
+interface IErrorConfig {
+    _errorMessage: string;
+    templateName?: string;
+    error?: Error;
 }
 
 interface IStable {
