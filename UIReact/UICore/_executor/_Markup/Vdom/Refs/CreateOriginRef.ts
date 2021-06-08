@@ -1,6 +1,6 @@
-import {IResponsibilityHandler, Responsibility} from './Responsibility';
+import { Responsibility, IResponsibilityHandler, } from 'UICore/Ref';
 
-export class OriginResponsibility extends Responsibility {
+export class CreateOriginRef extends Responsibility {
     private func: IResponsibilityHandler = () => {};
 
     constructor(handler: IResponsibilityHandler) {
