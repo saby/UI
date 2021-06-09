@@ -5,10 +5,11 @@
  * @author Печеркин С.В.
  */
 import { createWsConfig } from 'UI/_head/wsConfig';
-import { createTitle, createDefaultTags, createMetaScriptsAndLinks, applyHeadJson, IHeadOptions } from 'UI/_head/defaultTags';
+import { createTitle, createViewPort, createDefaultTags, createMetaScriptsAndLinks, applyHeadJson, IHeadOptions } from 'UI/_head/defaultTags';
 export {
    applyHeadJson,
    createTitle,
+   createViewPort,
    createWsConfig,
    createDefaultTags,
    createMetaScriptsAndLinks,
