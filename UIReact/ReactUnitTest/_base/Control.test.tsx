@@ -10,6 +10,7 @@ import { JSDOM } from 'jsdom';
 import TestControl from './TestControl';
 import TestControl2 from './TestControl2';
 import TestControl2Inner from './TestControl2Inner';
+import ControlWithState from './ControlWithState';
 
 describe('UIReact/UICore/_base/Control', () => {
     describe('хуки жизненного цикла', () => {
@@ -194,6 +195,23 @@ describe('UIReact/UICore/_base/Control', () => {
 
         it('при обновлении должны вызываться только хуки update-фазы', () => {
             // region Setup
+            // небольшой компонент, который прокидывает состояние в ребёнка
+            class Parent extends React.Component<
+                {},
+                {
+                    childOption: string;
+                }
+                > {
+                constructor(props: {}) {
+                    super(props);
+                    this.state = {
+                        childOption: '123'
+                    };
+                }
+                render(): React.ReactNode {
+                    return <TestControl testOption={this.state.childOption} />;
+                }
+            }
             const _beforeMountStub = sandbox.stub(
                 TestControl.prototype,
                 '_beforeMount'
@@ -210,6 +228,10 @@ describe('UIReact/UICore/_base/Control', () => {
             const _beforeUpdateStub = sandbox.stub(
                 TestControl.prototype,
                 '_beforeUpdate'
+            );
+            const _shouldUpdateStub = sandbox.spy(
+                TestControl.prototype,
+                '_shouldUpdate'
             );
             const _afterRenderStub = sandbox.stub(
                 TestControl.prototype,
@@ -228,23 +250,27 @@ describe('UIReact/UICore/_base/Control', () => {
             // отрисовываем компонент и сразу дожидаемся _afterMount
             let instance;
             act(() => {
-                instance = render(<TestControl />, container);
+                instance = render(<Parent />, container);
             });
             tick(0);
             // endregion
 
             // обновлений ещё не было, так что ничего не должно быть вызвано
             sandbox.assert.notCalled(_beforeUpdateStub);
+            sandbox.assert.notCalled(_shouldUpdateStub);
             sandbox.assert.notCalled(_afterRenderStub);
             sandbox.assert.notCalled(_afterUpdateStub);
 
             act(() => {
-                instance._forceUpdate();
+                instance.setState({
+                    childOption: '456'
+                });
             });
             tick(0);
 
             sandbox.assert.callOrder(
                 _beforeUpdateStub,
+                _shouldUpdateStub,
                 _afterRenderStub,
                 _afterUpdateStub
             );
@@ -524,6 +550,61 @@ describe('UIReact/UICore/_base/Control', () => {
             tick(0);
 
             sandbox.assert.calledOnce(_afterMountStub);
+        });
+
+        it('_beforeUpdate вызывается до вызова шаблона', () => {
+            // region Setup
+            // небольшой компонент, который прокидывает состояние в ребёнка
+            class Parent extends React.Component<
+                {},
+                {
+                    childOption: string;
+                }
+                > {
+                constructor(props: {}) {
+                    super(props);
+                    this.state = {
+                        childOption: '123'
+                    };
+                }
+                render(): React.ReactNode {
+                    return <ControlWithState testOption={this.state.childOption} />;
+                }
+            }
+            act(() => {
+                render(<ControlWithState testOption="123" />, container);
+            });
+            tick(0);
+            // endregion
+            const _beforeUpdateStub = sandbox
+                .stub(ControlWithState.prototype, '_beforeUpdate')
+                .callsFake(function(): void {
+                    this._someState = 1;
+                });
+
+            // отрисовываем компонент и сразу дожидаемся _afterMount
+            let instance;
+            act(() => {
+                instance = render(<Parent />, container);
+            });
+            tick(0);
+
+            assert.equal(
+                document.getElementById('testContainer').textContent,
+                '0123'
+            );
+
+            act(() => {
+                instance.setState({
+                    childOption: '456'
+                });
+            });
+
+            sandbox.assert.calledOnce(_beforeUpdateStub);
+            assert.equal(
+                document.getElementById('testContainer').textContent,
+                '1456'
+            );
         });
 
         it('при вызове _beforeUpdate аргументы метода и состояние инстанса совпадают с Wasaby', () => {
@@ -867,7 +948,9 @@ describe('UIReact/UICore/_base/Control', () => {
             inner _afterMount
             outer _afterMount
             outer _beforeUpdate
+            outer _shouldUpdate
             inner _beforeUpdate
+            inner _shouldUpdate
             inner _afterRender
             outer _afterRender
             inner _afterUpdate

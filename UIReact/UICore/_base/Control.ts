@@ -499,6 +499,27 @@ export default class Control<TOptions extends IControlOptions = {},
 
     shouldComponentUpdate(newProps: TOptions, newState: IControlState): boolean {
         const newOptions = createWasabyOptions(newProps, this.context);
+        /*
+        Это единственное место, где мы можем позвать _beforeUpdate, если смотреть на схему:
+        https://projects.wojtekmaj.pl/react-lifecycle-methods-diagram/
+        На эту схему есть ссылка в официальной доке, так что она должна быть близка к реальности.
+        У нас есть два ограничения на время вызова _beforeUpdate, если мы хотим сохранить порядок вызова хуков:
+        1) До вызова шаблона.
+        2) До вызова _shouldUpdate.
+        Это оставляет нам 2 места:
+        1) getDerivedStateFromProps - статичный метод, так что не подходит.
+        2) shouldComponentUpdate - мы здесь.
+         */
+        if (this._$controlMounted) {
+            try {
+                pauseReactive(this, () => {
+                    // TODO: https://online.sbis.ru/opendoc.html?guid=a9962c03-d5ca-432c-bc8b-a244e5a1b1ed
+                    this._beforeUpdate(newOptions, {scrollContext: {}});
+                });
+            } catch (e) {
+                logError(e);
+            }
+        }
         const changedOptions = !!Options.getChangedOptions(
             newProps,
             this._options,
@@ -514,6 +535,7 @@ export default class Control<TOptions extends IControlOptions = {},
     componentDidUpdate(): void {
         if (this._$controlMounted) {
             const oldOptions = this._oldOptions;
+            this._oldOptions = undefined;
             this._options = createWasabyOptions(this.props, this.context);
             this._optionsVersions = Options.collectObjectVersions(this._options);
             this._afterRender(oldOptions);
@@ -521,21 +543,6 @@ export default class Control<TOptions extends IControlOptions = {},
                 this._afterUpdate(oldOptions);
             }, 0);
         }
-    }
-
-    getSnapshotBeforeUpdate(): null {
-        if (this._$controlMounted) {
-            try {
-                pauseReactive(this, () => {
-                    const newOptions = createWasabyOptions(this.props, this.context);
-                    // TODO: https://online.sbis.ru/opendoc.html?guid=a9962c03-d5ca-432c-bc8b-a244e5a1b1ed
-                    this._beforeUpdate(newOptions, {scrollContext: {}});
-                });
-            } catch (e) {
-                logError(e);
-            }
-        }
-        return null;
     }
 
     componentWillUnmount(): void {
