@@ -7,12 +7,6 @@
  * @author Тэн В.А.
  */
 
-import { IResponsibilityHandler, IResponsibility, Responsibility } from './_ref/Responsibility';
-import { ChainOfRef }from './_ref/ChainOfRef';
-
-export {
-    IResponsibilityHandler,
-    IResponsibility,
-    Responsibility,
-    ChainOfRef
-};
+export { IResponsibilityHandler, IResponsibility, Responsibility } from './_ref/Responsibility';
+export { ChainOfRef } from './_ref/ChainOfRef';
+export { CreateOriginRef } from './_ref/CreateOriginRef';
