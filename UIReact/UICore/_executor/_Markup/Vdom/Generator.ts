@@ -14,10 +14,9 @@ import { IControlOptions } from 'UICommon/Base';
 import { TemplateOrigin, IControlConfig, AttrToDecorate } from '../interfaces';
 import { Generator } from '../Generator';
 
-import { ChainOfRef } from 'UICore/Ref';
+import { ChainOfRef, CreateOriginRef, IResponsibilityHandler } from 'UICore/Ref';
 import { CreateEventRef } from './Refs/CreateEventRef';
 import { CreateChildrenRef } from './Refs/CreateChildrenRef';
-import { CreateAsyncRef } from './Refs/CreateAsyncRef';
 
 export class GeneratorVdom extends Generator implements IGenerator {
     /**
@@ -49,24 +48,23 @@ export class GeneratorVdom extends Generator implements IGenerator {
         config: IControlConfig,
         events: Record<string, IWasabyEvent[]>,
         name: string,
-        originRef: React.MutableRefObject<Control> | React.LegacyRef<Control>
-    ): IControlOptions & { ref: React.RefCallback<Control> } {
+        originRef: string | React.MutableRefObject<Control> | React.RefCallback<Control>
+    ): IControlOptions & { ref: IResponsibilityHandler } {
         const chainOfRef = new ChainOfRef();
         const createChildrenRef = new CreateChildrenRef(config.viewController, name);
-        //TODO: удалить tagName по задаче https://online.sbis.ru/opendoc.html?guid=41170c27-2019-4090-8646-801e2e82d23a
+        // TODO: удалить tagName по задаче https://online.sbis.ru/opendoc.html?guid=41170c27-2019-4090-8646-801e2e82d23a
         const createEventRef = new CreateEventRef('', { events });
-        const createAsyncRef = new CreateAsyncRef(config.viewController);
         chainOfRef.add(createChildrenRef);
         chainOfRef.add(createEventRef);
-        chainOfRef.add(createAsyncRef);
         if (originRef) {
-            chainOfRef.addHandler(originRef);
+            chainOfRef.add(new CreateOriginRef(originRef));
         }
 
         return {
             ...resolvedOptionsExtended,
             ...{ events },
-            ref: chainOfRef.execute()
+            ref: chainOfRef.execute(),
+            _$parentsChildrenPromises: config.viewController?._$childrenPromises
         };
     }
 
@@ -167,7 +165,7 @@ export class GeneratorVdom extends Generator implements IGenerator {
         chainOfRef.add(createChildrenRef);
         chainOfRef.add(createEventRef);
         if (originRef){
-            chainOfRef.addHandler(originRef);
+            chainOfRef.add(new CreateOriginRef(originRef));
         }
 
         const convertedAttributes = convertAttributes(mergedAttrs);

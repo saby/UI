@@ -1,10 +1,8 @@
 import { IResponsibility, IResponsibilityHandler } from './Responsibility';
-import { OriginResponsibility } from './OriginResponsibility';
 
 interface IChainRefResponsibility {
     add(responsibility: IResponsibility): ChainOfRef;
     execute(): IResponsibilityHandler;
-    addHandler(handler: IResponsibilityHandler): ChainOfRef;
 }
 
 /**
@@ -23,20 +21,9 @@ export class ChainOfRef implements IChainRefResponsibility {
      * @param responsibility
      * @return ChainOfRef
      */
-    public add(responsibility: IResponsibility): ChainOfRef {
+    add(responsibility: IResponsibility): ChainOfRef {
         this.handlers.push(responsibility);
         return this;
-    }
-
-    /**
-     * Добавление цепочки обязанностей в цепочку
-     * addHandler(IResponsibility)
-     * @param handler
-     * @return ChainOfRef
-     */
-    public addHandler(handler: IResponsibilityHandler): ChainOfRef {
-        const originRef = new OriginResponsibility(handler);
-        return this.add(originRef);
     }
 
     /**
@@ -44,9 +31,9 @@ export class ChainOfRef implements IChainRefResponsibility {
      * execute()(node)
      * @return IResponsibilityHandler
      */
-    public execute(): IResponsibilityHandler {
-        return (node: HTMLElement) => this.handlers.forEach(
-            (handler) =>  handler.getHandler()(node)
-        );
+    execute(): IResponsibilityHandler {
+        return (node: HTMLElement) => this.handlers.forEach((handler) => {
+            return handler.getHandler()(node);
+        });
     }
 }

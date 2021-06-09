@@ -6,7 +6,7 @@ export interface IResponsibility<T = any> {
 }
 
 export abstract class Responsibility implements IResponsibility {
-    public find(node: HTMLElement) {
+    find(node: HTMLElement): HTMLElement {
         return node;
     }
 

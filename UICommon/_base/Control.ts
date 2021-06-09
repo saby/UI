@@ -18,6 +18,7 @@ export interface IControlOptions {
     errorContainer?: React.ComponentClass;
     errorViewer?: IErrorViewer;
     _$attributes?: object;
+    _$parentsChildrenPromises?: Promise<void>[];
 }
 
 interface IStable {
