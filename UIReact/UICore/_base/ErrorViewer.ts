@@ -1,6 +1,6 @@
-import {IErrorConfig, TErrBoundaryOptions} from 'UICore/_base/interfaces';
-import {Component, createElement, ReactElement} from "react";
-import {getResourceUrl} from 'UICommon/Utils';
+import { IErrorConfig, TErrBoundaryOptions } from 'UICore/_base/interfaces';
+import { Component, createElement, ReactElement } from 'react';
+import { getResourceUrl } from 'UICommon/Utils';
 
 
 /**
@@ -18,7 +18,6 @@ export class ErrorViewer extends Component<TErrBoundaryOptions> {
         return createElement('div',{
             key: 'e1',
             style: {
-                border: '1px solid red',
                 padding: '50px',
                 maxWidth: '30%',
                 margin: '0 auto',
