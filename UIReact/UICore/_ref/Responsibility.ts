@@ -2,13 +2,11 @@ export type IResponsibilityHandler = (node: HTMLElement) => void;
 
 export interface IResponsibility<T = any> {
     find(node: HTMLElement): T;
-    getHandler(): IResponsibilityHandler | {
-        current: unknown;
-    };
+    getHandler(): IResponsibilityHandler;
 }
 
 export abstract class Responsibility implements IResponsibility {
-    public find(node: HTMLElement) {
+    find(node: HTMLElement): HTMLElement {
         return node;
     }
 
