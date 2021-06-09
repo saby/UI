@@ -33,6 +33,7 @@
       "start:units": "wasaby-cli --tasks=startTest --server",
       "start-react:units": "wasaby-cli --tasks=startTest --server --react",
       "test": "wasaby-cli --tasks=startTest --node --report=console",
+      "test:react": "wasaby-cli --tasks=startTest --node --react --report=console",
       "test:coverage": "wasaby-cli --tasks=startTest --node --coverage",
       "lint": "node ./node_modules/eslint/bin/eslint --color --no-eslintrc -c=.eslintrc -f=stylish .",
       "lintless": "stylelint \"Controls/**/*.less\"",

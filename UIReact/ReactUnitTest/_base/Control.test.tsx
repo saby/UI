@@ -662,8 +662,6 @@ describe('UIReact/UICore/_base/Control', () => {
         });
 
         it('_beforeUpdate вызывается до обновления DOM', () => {
-            // FIXME https://online.sbis.ru/opendoc.html?guid=d26f315c-9fb9-4a05-99a8-8f6ee7ddced0
-            return;
             // region Setup
             // небольшой компонент, который прокидывает состояние в ребёнка
             class Parent extends React.Component<
