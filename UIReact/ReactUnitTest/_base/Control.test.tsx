@@ -571,8 +571,10 @@ describe('UIReact/UICore/_base/Control', () => {
                     return <ControlWithState testOption={this.state.childOption} />;
                 }
             }
+            // отрисовываем компонент и сразу дожидаемся _afterMount
+            let instance;
             act(() => {
-                render(<ControlWithState testOption="123" />, container);
+                instance = render(<Parent />, container);
             });
             tick(0);
             // endregion
@@ -581,13 +583,6 @@ describe('UIReact/UICore/_base/Control', () => {
                 .callsFake(function(): void {
                     this._someState = 1;
                 });
-
-            // отрисовываем компонент и сразу дожидаемся _afterMount
-            let instance;
-            act(() => {
-                instance = render(<Parent />, container);
-            });
-            tick(0);
 
             assert.equal(
                 document.getElementById('testContainer').textContent,
@@ -680,8 +675,10 @@ describe('UIReact/UICore/_base/Control', () => {
                     return <TestControl testOption={this.state.childOption} />;
                 }
             }
+            // отрисовываем компонент и сразу дожидаемся _afterMount
+            let instance;
             act(() => {
-                render(<TestControl testOption="123" />, container);
+                instance = render(<Parent />, container);
             });
             tick(0);
             // endregion
@@ -694,13 +691,6 @@ describe('UIReact/UICore/_base/Control', () => {
                         '123'
                     );
                 });
-
-            // отрисовываем компонент и сразу дожидаемся _afterMount
-            let instance;
-            act(() => {
-                instance = render(<Parent />, container);
-            });
-            tick(0);
 
             act(() => {
                 instance.setState({
