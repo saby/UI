@@ -2,6 +2,7 @@ import * as React from 'react';
 import {render, unmountComponentAtNode} from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import { createSandbox } from 'sinon';
+import { assert } from 'chai';
 // FIXME: типы для jsdom нигде не подцеплены, подцепим после переезда на jest
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
@@ -67,9 +68,6 @@ describe('Подписки на контролы', () => {
         const element = container.children[0];
         const handlers = element.eventProperties['on:click'];
         const clickHandler = handlers[0].handler.apply(OuterControl.prototype);
-        sandbox.assert.match(
-            clickHandler === OuterControl.prototype._clickHandler,
-            true
-        );
+        assert.strictEqual(clickHandler, OuterControl.prototype._clickHandler);
     });
 });
