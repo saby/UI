@@ -1,5 +1,5 @@
 /// <amd-module name="UI/_base/HTML/_meta/DOMmanipulator" />
-import { IMetaState, IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
+import { IMetaStateInternal } from 'UI/_base/HTML/_meta/interface';
 import { Head as HeadAPI } from 'Application/Page';
 import type { IHeadTagId } from 'Application/Page';
 
@@ -10,15 +10,12 @@ export function mountState(state: IMetaStateInternal): IHeadTagId[] {
        .concat([createTitleElement(title, state.getId())]);
 }
 
-export function unmountState(state?: IMetaState): void {
-   if (typeof state === 'undefined') { return; }
+export function unmountState(headTagIds: IHeadTagId[]): void {
+   if (!headTagIds) { return; }
    const API = HeadAPI.getInstance();
-   const tags: IHeadTagId | IHeadTagId[] | null = API.getTag(null, {class: state.getId()});
-   if (tags) {
-      [].concat(tags).forEach((tag: IHeadTagId) => {
-         API.deleteTag(tag);
-      });
-   }
+   headTagIds.forEach((tag: IHeadTagId) => {
+      API.deleteTag(tag);
+   });
 }
 
 function createTitleElement(val: string, guid: string): IHeadTagId {

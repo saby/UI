@@ -18,14 +18,15 @@ import { IStore } from 'Application/Interface';
  */
 export default class Stack implements IMetaStackInternal {
    private _lastState: IMetaStateInternal;
+   private _headTagIds: string[];
 
    get lastState(): IMetaStateInternal {
       return this._lastState;
    }
 
    set lastState(state: IMetaStateInternal) {
-      unmountState(this._lastState);
-      mountState(state);
+      unmountState(this._headTagIds);
+      this._headTagIds = mountState(state);
       this._lastState = state;
    }
 
