@@ -8,6 +8,9 @@ import { assert } from 'chai';
 // @ts-ignore
 import { JSDOM } from 'jsdom';
 import TestControl from './TestControl';
+import TestControl2 from './TestControl2';
+import TestControl2Inner from './TestControl2Inner';
+import ControlWithState from './ControlWithState';
 
 describe('UIReact/UICore/_base/Control', () => {
     describe('хуки жизненного цикла', () => {
@@ -110,8 +113,8 @@ describe('UIReact/UICore/_base/Control', () => {
 
             sandbox.assert.callOrder(
                 _beforeMountStub,
-                _componentDidMountStub
-                //_afterMountStub todo похоже не сработает потому что тут clock а там setTimeout, они не контачат
+                _componentDidMountStub,
+                _afterMountStub
             );
             sandbox.assert.notCalled(_beforeUpdateStub);
             sandbox.assert.notCalled(_afterRenderStub);
@@ -180,8 +183,8 @@ describe('UIReact/UICore/_base/Control', () => {
             tick(0);
 
             sandbox.assert.callOrder(
-                _componentDidMountStub
-                // _afterMountStub todo похоже не сработает потому что тут clock а там setTimeout, они не контачат
+                _componentDidMountStub,
+                _afterMountStub
             );
 
             sandbox.assert.notCalled(_beforeUpdateStub);
@@ -192,6 +195,23 @@ describe('UIReact/UICore/_base/Control', () => {
 
         it('при обновлении должны вызываться только хуки update-фазы', () => {
             // region Setup
+            // небольшой компонент, который прокидывает состояние в ребёнка
+            class Parent extends React.Component<
+                {},
+                {
+                    childOption: string;
+                }
+                > {
+                constructor(props: {}) {
+                    super(props);
+                    this.state = {
+                        childOption: '123'
+                    };
+                }
+                render(): React.ReactNode {
+                    return <TestControl testOption={this.state.childOption} />;
+                }
+            }
             const _beforeMountStub = sandbox.stub(
                 TestControl.prototype,
                 '_beforeMount'
@@ -208,6 +228,10 @@ describe('UIReact/UICore/_base/Control', () => {
             const _beforeUpdateStub = sandbox.stub(
                 TestControl.prototype,
                 '_beforeUpdate'
+            );
+            const _shouldUpdateStub = sandbox.spy(
+                TestControl.prototype,
+                '_shouldUpdate'
             );
             const _afterRenderStub = sandbox.stub(
                 TestControl.prototype,
@@ -226,23 +250,27 @@ describe('UIReact/UICore/_base/Control', () => {
             // отрисовываем компонент и сразу дожидаемся _afterMount
             let instance;
             act(() => {
-                instance = render(<TestControl />, container);
+                instance = render(<Parent />, container);
             });
             tick(0);
             // endregion
 
             // обновлений ещё не было, так что ничего не должно быть вызвано
             sandbox.assert.notCalled(_beforeUpdateStub);
+            sandbox.assert.notCalled(_shouldUpdateStub);
             sandbox.assert.notCalled(_afterRenderStub);
             sandbox.assert.notCalled(_afterUpdateStub);
 
             act(() => {
-                instance._forceUpdate();
+                instance.setState({
+                    childOption: '456'
+                });
             });
             tick(0);
 
             sandbox.assert.callOrder(
                 _beforeUpdateStub,
+                _shouldUpdateStub,
                 _afterRenderStub,
                 _afterUpdateStub
             );
@@ -252,8 +280,7 @@ describe('UIReact/UICore/_base/Control', () => {
              */
             sandbox.assert.calledOnce(_beforeMountStub);
             sandbox.assert.calledOnce(_componentDidMountStub);
-            // todo похоже не сработает потому что тут clock а там setTimeout, они не контачат
-            // sandbox.assert.calledOnce(_afterMountStub);
+            sandbox.assert.calledOnce(_afterMountStub);
             sandbox.assert.notCalled(_beforeUnmountStub);
         });
 
@@ -340,8 +367,7 @@ describe('UIReact/UICore/_base/Control', () => {
              */
             sandbox.assert.calledOnce(_beforeMountStub);
             sandbox.assert.calledOnce(_componentDidMountStub);
-            // todo похоже не сработает потому что тут clock а там setTimeout, они не контачат
-            // sandbox.assert.calledOnce(_afterMountStub);
+            sandbox.assert.calledOnce(_afterMountStub);
             /*
             другой тест проверяет, что хуки update-фазы вызываются в нужное время,
             здесь мы просто проверяем, что они не вызывались при уничтожении
@@ -351,7 +377,7 @@ describe('UIReact/UICore/_base/Control', () => {
             sandbox.assert.notCalled(_afterUpdateStub);
         });
 
-        it.skip('при вызове синхронного _beforeMount аргументы метода и состояние инстанса совпадают с Wasaby', () => {
+        it('при вызове синхронного _beforeMount аргументы метода и состояние инстанса совпадают с Wasaby', () => {
             const _beforeMountStub = sandbox
                 .stub(TestControl.prototype, '_beforeMount')
                 .callsFake(function (this: TestControl): void {
@@ -367,10 +393,12 @@ describe('UIReact/UICore/_base/Control', () => {
                 readOnly: false,
                 testOption: '123'
             };
-            sandbox.assert.calledWithExactly(_beforeMountStub, expectedOptions);
+            const expectedContext = {};
+            const expectedReceivedState = undefined;
+            sandbox.assert.calledWithExactly(_beforeMountStub, expectedOptions, expectedContext, expectedReceivedState);
         });
 
-        it.skip('при вызове асинхронного _beforeMount состояние инстанса не меняется до завершения асинхронщины', () => {
+        it('при вызове асинхронного _beforeMount состояние инстанса не меняется до завершения асинхронщины', () => {
             let resolved = false; // по сути это флаг для контроля того, что мы в тесте попали в коллбек Promise
             const PROMISE_WAIT_TIME = 1000;
             const _beforeMountStub = sandbox
@@ -395,7 +423,9 @@ describe('UIReact/UICore/_base/Control', () => {
                 readOnly: false,
                 testOption: '123'
             };
-            sandbox.assert.calledWithExactly(_beforeMountStub, expectedOptions);
+            const expectedContext = {};
+            const expectedReceivedState = undefined;
+            sandbox.assert.calledWithExactly(_beforeMountStub, expectedOptions, expectedContext, expectedReceivedState);
             assert.isFalse(resolved);
 
             tick(PROMISE_WAIT_TIME);
@@ -476,7 +506,7 @@ describe('UIReact/UICore/_base/Control', () => {
             sandbox.assert.calledOnce(_componentDidMountStub);
         });
 
-        it.skip('при вызове _afterMount аргументы метода и состояние инстанса совпадают с Wasaby', () => {
+        it('при вызове _afterMount аргументы метода и состояние инстанса совпадают с Wasaby', () => {
             const expectedOptions = {
                 theme: 'default',
                 readOnly: false,
@@ -519,11 +549,60 @@ describe('UIReact/UICore/_base/Control', () => {
 
             tick(0);
 
-            // todo похоже не сработает потому что тут clock а там setTimeout, они не контачат
-            // sandbox.assert.calledOnce(_afterMountStub);
+            sandbox.assert.calledOnce(_afterMountStub);
         });
 
-        it.skip('при вызове _beforeUpdate аргументы метода и состояние инстанса совпадают с Wasaby', () => {
+        it('_beforeUpdate вызывается до вызова шаблона', () => {
+            // region Setup
+            // небольшой компонент, который прокидывает состояние в ребёнка
+            class Parent extends React.Component<
+                {},
+                {
+                    childOption: string;
+                }
+                > {
+                constructor(props: {}) {
+                    super(props);
+                    this.state = {
+                        childOption: '123'
+                    };
+                }
+                render(): React.ReactNode {
+                    return <ControlWithState testOption={this.state.childOption} />;
+                }
+            }
+            // отрисовываем компонент и сразу дожидаемся _afterMount
+            let instance;
+            act(() => {
+                instance = render(<Parent />, container);
+            });
+            tick(0);
+            // endregion
+            const _beforeUpdateStub = sandbox
+                .stub(ControlWithState.prototype, '_beforeUpdate')
+                .callsFake(function(): void {
+                    this._someState = 1;
+                });
+
+            assert.equal(
+                document.getElementById('testContainer').textContent,
+                '0123'
+            );
+
+            act(() => {
+                instance.setState({
+                    childOption: '456'
+                });
+            });
+
+            sandbox.assert.calledOnce(_beforeUpdateStub);
+            assert.equal(
+                document.getElementById('testContainer').textContent,
+                '1456'
+            );
+        });
+
+        it('при вызове _beforeUpdate аргументы метода и состояние инстанса совпадают с Wasaby', () => {
             // region Setup
             // небольшой компонент, который прокидывает состояние в ребёнка
             class Parent extends React.Component<
@@ -572,7 +651,9 @@ describe('UIReact/UICore/_base/Control', () => {
                 });
             });
 
-            sandbox.assert.calledWithExactly(_beforeUpdateStub, newOptions);
+            // TODO: https://online.sbis.ru/opendoc.html?guid=a9962c03-d5ca-432c-bc8b-a244e5a1b1ed
+            const expectedContext = {scrollContext: {}};
+            sandbox.assert.calledWithExactly(_beforeUpdateStub, newOptions, expectedContext);
         });
 
         it('_beforeUpdate вызывается до обновления DOM', () => {
@@ -594,8 +675,10 @@ describe('UIReact/UICore/_base/Control', () => {
                     return <TestControl testOption={this.state.childOption} />;
                 }
             }
+            // отрисовываем компонент и сразу дожидаемся _afterMount
+            let instance;
             act(() => {
-                render(<TestControl testOption="123" />, container);
+                instance = render(<Parent />, container);
             });
             tick(0);
             // endregion
@@ -608,13 +691,6 @@ describe('UIReact/UICore/_base/Control', () => {
                         '123'
                     );
                 });
-
-            // отрисовываем компонент и сразу дожидаемся _afterMount
-            let instance;
-            act(() => {
-                instance = render(<Parent />, container);
-            });
-            tick(0);
 
             act(() => {
                 instance.setState({
@@ -849,6 +925,213 @@ describe('UIReact/UICore/_base/Control', () => {
             tick(0);
 
             sandbox.assert.calledOnce(_afterUpdateStub);
+        });
+
+        describe('порядок вызова хуков с детьми', () => {
+            // TODO: сейчас тесты написаны только на mount-хуки
+            /*
+            В Wasaby было так:
+            outer _beforeMount
+            inner _beforeMount
+            inner _componentDidMount
+            outer _componentDidMount
+            inner _afterMount
+            outer _afterMount
+            outer _beforeUpdate
+            outer _shouldUpdate
+            inner _beforeUpdate
+            inner _shouldUpdate
+            inner _afterRender
+            outer _afterRender
+            inner _afterUpdate
+            outer _afterUpdate
+             */
+
+            describe('асинхронный ребёнок', () => {
+                it('порядок mount хуков совпадает с Wasaby', async () => {
+                    // region Setup
+                    const _beforeMountOuter = sandbox.stub(
+                        TestControl2.prototype,
+                        '_beforeMount'
+                    );
+                    const _componentDidMountOuter = sandbox.stub(
+                        TestControl2.prototype,
+                        '_componentDidMount'
+                    );
+                    const _afterMountOuter = sandbox.stub(
+                        TestControl2.prototype,
+                        '_afterMount'
+                    );
+                    const _beforeUpdateOuter = sandbox.stub(
+                        TestControl2.prototype,
+                        '_beforeUpdate'
+                    );
+                    const _afterRenderOuter = sandbox.stub(
+                        TestControl2.prototype,
+                        '_afterRender'
+                    );
+                    const _afterUpdateOuter = sandbox.stub(
+                        TestControl2.prototype,
+                        '_afterUpdate'
+                    );
+
+                    const CHILD_TIMEOUT_DURATION = 100;
+                    const _beforeMountInner = sandbox.stub(
+                        TestControl2Inner.prototype,
+                        '_beforeMount'
+                    ).callsFake(
+                        (): Promise<void> => {
+                            return new Promise((resolve) => {
+                                setTimeout(() => {
+                                    resolve();
+                                }, CHILD_TIMEOUT_DURATION);
+                            });
+                        }
+                    );
+                    const _componentDidMountInner = sandbox.stub(
+                        TestControl2Inner.prototype,
+                        '_componentDidMount'
+                    );
+                    const _afterMountInner = sandbox.stub(
+                        TestControl2Inner.prototype,
+                        '_afterMount'
+                    );
+                    const _beforeUpdateInner = sandbox.stub(
+                        TestControl2Inner.prototype,
+                        '_beforeUpdate'
+                    );
+                    const _afterRenderInner = sandbox.stub(
+                        TestControl2Inner.prototype,
+                        '_afterRender'
+                    );
+                    const _afterUpdateInner = sandbox.stub(
+                        TestControl2Inner.prototype,
+                        '_afterUpdate'
+                    );
+                    // endregion
+
+                    act(() => {
+                        render(<TestControl2 />, container);
+                    });
+
+                    sandbox.assert.calledOnce(_beforeMountOuter);
+                    sandbox.assert.calledOnce(_beforeMountInner);
+                    sandbox.assert.callOrder(_beforeMountOuter, _beforeMountInner);
+
+                    await tickAsync(CHILD_TIMEOUT_DURATION);
+
+                    sandbox.assert.calledOnce(_componentDidMountInner);
+                    sandbox.assert.calledOnce(_componentDidMountOuter);
+                    sandbox.assert.callOrder(_componentDidMountInner, _componentDidMountOuter);
+                    sandbox.assert.notCalled(_afterMountInner);
+                    sandbox.assert.notCalled(_afterMountOuter);
+
+                    tick(0);
+
+                    sandbox.assert.calledOnce(_afterMountInner);
+                    sandbox.assert.calledOnce(_afterMountOuter);
+                    sandbox.assert.callOrder(
+                        _afterMountInner,
+                        _afterMountOuter
+                    );
+
+                    sandbox.assert.notCalled(_beforeUpdateOuter);
+                    sandbox.assert.notCalled(_afterRenderOuter);
+                    sandbox.assert.notCalled(_afterUpdateOuter);
+                    sandbox.assert.notCalled(_beforeUpdateInner);
+                    sandbox.assert.notCalled(_afterRenderInner);
+                    sandbox.assert.notCalled(_afterUpdateInner);
+                });
+            });
+
+            describe('синхронный ребёнок', () => {
+                it('порядок mount хуков совпадает с Wasaby', () => {
+                    // region Setup
+                    const _beforeMountOuter = sandbox.stub(
+                        TestControl2.prototype,
+                        '_beforeMount'
+                    );
+                    const _componentDidMountOuter = sandbox.stub(
+                        TestControl2.prototype,
+                        '_componentDidMount'
+                    );
+                    const _afterMountOuter = sandbox.stub(
+                        TestControl2.prototype,
+                        '_afterMount'
+                    );
+                    const _beforeUpdateOuter = sandbox.stub(
+                        TestControl2.prototype,
+                        '_beforeUpdate'
+                    );
+                    const _afterRenderOuter = sandbox.stub(
+                        TestControl2.prototype,
+                        '_afterRender'
+                    );
+                    const _afterUpdateOuter = sandbox.stub(
+                        TestControl2.prototype,
+                        '_afterUpdate'
+                    );
+
+                    const _beforeMountInner = sandbox.stub(
+                        TestControl2Inner.prototype,
+                        '_beforeMount'
+                    );
+                    const _componentDidMountInner = sandbox.stub(
+                        TestControl2Inner.prototype,
+                        '_componentDidMount'
+                    );
+                    const _afterMountInner = sandbox.stub(
+                        TestControl2Inner.prototype,
+                        '_afterMount'
+                    );
+                    const _beforeUpdateInner = sandbox.stub(
+                        TestControl2Inner.prototype,
+                        '_beforeUpdate'
+                    );
+                    const _afterRenderInner = sandbox.stub(
+                        TestControl2Inner.prototype,
+                        '_afterRender'
+                    );
+                    const _afterUpdateInner = sandbox.stub(
+                        TestControl2Inner.prototype,
+                        '_afterUpdate'
+                    );
+                    // endregion
+
+                    act(() => {
+                        render(<TestControl2 />, container);
+                    });
+
+                    sandbox.assert.calledOnce(_beforeMountOuter);
+                    sandbox.assert.calledOnce(_beforeMountInner);
+                    sandbox.assert.calledOnce(_componentDidMountInner);
+                    sandbox.assert.calledOnce(_componentDidMountOuter);
+                    sandbox.assert.callOrder(
+                        _beforeMountOuter,
+                        _beforeMountInner,
+                        _componentDidMountInner,
+                        _componentDidMountOuter
+                    );
+                    sandbox.assert.notCalled(_afterMountInner);
+                    sandbox.assert.notCalled(_afterMountOuter);
+
+                    tick(0);
+
+                    sandbox.assert.calledOnce(_afterMountInner);
+                    sandbox.assert.calledOnce(_afterMountOuter);
+                    sandbox.assert.callOrder(
+                        _afterMountInner,
+                        _afterMountOuter
+                    );
+
+                    sandbox.assert.notCalled(_beforeUpdateOuter);
+                    sandbox.assert.notCalled(_afterRenderOuter);
+                    sandbox.assert.notCalled(_afterUpdateOuter);
+                    sandbox.assert.notCalled(_beforeUpdateInner);
+                    sandbox.assert.notCalled(_afterRenderInner);
+                    sandbox.assert.notCalled(_afterUpdateInner);
+                });
+            });
         });
     });
 });

@@ -2,6 +2,7 @@ import * as React from 'react';
 import {render, unmountComponentAtNode} from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import { createSandbox } from 'sinon';
+import { assert } from 'chai';
 // FIXME: типы для jsdom нигде не подцеплены, подцепим после переезда на jest
 // tslint:disable-next-line:ban-ts-ignore
 // @ts-ignore
@@ -65,9 +66,9 @@ describe('Тестирование ref', () => {
         });
         tick(0);
 
-        sandbox.assert.match(instance.controlRef.current instanceof InnerControl, true);
-        sandbox.assert.match(instance.controlRef.current === instance._children.control, true);
-        sandbox.assert.match(instance.elementRef.current === instance._children.element, true);
+        assert.instanceOf(instance.controlRef.current, InnerControl);
+        assert.strictEqual(instance.controlRef.current, instance._children.control);
+        assert.strictEqual(instance.elementRef.current, instance._children.element);
     });
 
     it('Ref навешенные пользователем должны срабатывать - функции', () => {
@@ -77,7 +78,7 @@ describe('Тестирование ref', () => {
         });
         tick(0);
 
-        sandbox.assert.match(instance.controlResult === instance._children.control, true);
-        sandbox.assert.match(instance.elementResult === instance._children.element, true);
+        assert.strictEqual(instance.controlResult, instance._children.control);
+        assert.strictEqual(instance.elementResult, instance._children.element);
     });
 });
