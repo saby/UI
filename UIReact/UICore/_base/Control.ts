@@ -557,7 +557,7 @@ export default class Control<TOptions extends IControlOptions = {},
 
     render(): React.ReactNode {
         const wasabyOptions = createWasabyOptions(this.props, this.context);
-        const { errorViewer, errorContainer } = this.props;
+        const { errorController, errorContainer } = this.props;
         /*
         Валидируем опции именно здесь по двум причинам:
         1) Здесь они уже полностью вычислены.
@@ -576,17 +576,29 @@ export default class Control<TOptions extends IControlOptions = {},
             return getLoadingComponent();
         }
 
+        /**
+         * При обработке ошибки используются два пропса errorContainer и errorController,
+         * которым по дефолту ставятся класс-заглушка ErrorViewer, что берет ответственность
+         * за обработку конфига (errorController) и отрисовку шаблона ошибки (errorContainer).
+         * При необходимости можно  пробрасывать нужный errorContainer, errorController.
+         */
         if (this.state.hasError) {
             let errorConfig: Promise<IErrorConfig | void> | IErrorConfig | void = this.state.errorConfig;
+            // логика обработки ошибки предполагает два рендера.
+            // В первом рендере устанавливаем в state ErrorConfig, во втором уже напрямую берем errorConfig из state
             if (!errorConfig) {
-                errorConfig = errorViewer.process(this.state.error);
+                errorConfig = errorController.process(this.state.error);
             }
+            // если в errorConfig найден промис, значит в errorConfig ссылка на  настоящий errorController
+            // в это условие заходим, только при первом рендере
             if ('then' in errorConfig) {
+                // здесь добавляем напрямую в state errorConfig, что в итоге приведет к повторному рендеру
                 errorConfig.then((cfg: IErrorConfig) => {
                     // @ts-ignore
                     this.state.errorConfig = cfg;
                     this._forceUpdate();
                 });
+                // на момент первого рендера устанавливаем дефолтную заглушку в качестве конфига
                 errorConfig = ErrorViewer.process(this.state.error);
             }
             return React.createElement<TErrBoundaryOptions>(errorContainer, {
