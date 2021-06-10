@@ -4,7 +4,10 @@ import { Control, IControlChildren } from 'UI/Base';
 
 describe('UICommon/_base/ProxyChildren', () => {
   const _children = getProxyChildren<IControlChildren>() as IControlChildren;
-  const testChild = new Control<{}, {}>({});
+  const testChild = new Control<{}, {}>({}, {
+    readOnly: false,
+    theme: 'default'
+  });
   // @ts-ignore
   _children.firstChild = testChild;
 

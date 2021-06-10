@@ -21,3 +21,4 @@ export function selectRenderDomNode(node: HTMLElement): HTMLElement {
     return node;
 }
 export { ErrorViewer } from './_base/ErrorViewer';
+export { IErrorViewer } from './_base/interfaces';

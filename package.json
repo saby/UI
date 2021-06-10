@@ -22,6 +22,7 @@
       "WmlBuilder/*"
    ],
    "scripts": {
+      "build:full:react": "npm run update-cli-store && npm run build:react && npm run start",
       "build": "npm run build:typescript && npm run build:app",
       "build:typescript": "wasaby-cli --tasks=prepare",
       "build:app": "wasaby-cli --tasks=build",

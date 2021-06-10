@@ -13,7 +13,7 @@ export class CreateEventRef extends Responsibility {
         this.eventsObject = eventsObject;
 
     }
-    public getHandler(): IResponsibilityHandler {
+    getHandler(): IResponsibilityHandler {
         return (node: HTMLElement): void => {
             if (node && Object.keys(this.eventsObject.events).length > 0) {
                 setEventHook(this.tagName, this.eventsObject, node);

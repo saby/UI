@@ -3,7 +3,7 @@ import * as template from 'wml!ReactUnitTest/_refs/OuterControl';
 import * as React from 'react';
 import InnerControl from 'ReactUnitTest/_refs/InnerControl';
 
-export default class TestControl extends Control {
+export default class OuterControl extends Control {
     _template: TemplateFunction = template;
 
     elementRef: React.RefObject<HTMLElement>;

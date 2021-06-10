@@ -13,7 +13,7 @@ export class CreateChildrenRef extends Responsibility {
 
     }
     public getHandler(): IResponsibilityHandler {
-        if(!name || !parent) {
+        if(!this.name || !this.parent) {
             return () => {};
         }
         return (node: HTMLElement) => {

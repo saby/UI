@@ -21,19 +21,12 @@ export function plainMergeAttr(inner, object, options) {
       object = {};
    }
 
-   var controlKey;
-   if (object.attributes && object.attributes['key']) {
-      controlKey = object.attributes['key'];
-   }
-   controlKey = controlKey || object.key || inner.key;
-
    return {
       inheritOptions: object.inheritOptions,
       context: inner.context,
       internal: inner.internal,
       systemOptions: {},
       domNodeProps: {},
-      key: controlKey,
       attributes: Attr.processMergeAttributes(inner.attributes, object.attributes),
       events: Attr.mergeEvents(inner.events, object.events, options._preventMergeEvents)
    };
@@ -46,11 +39,6 @@ export function plainMergeContext(inner, object) {
    if (!object) {
       object = {};
    }
-   var controlKey;
-   if (object.attributes && object.attributes['key']) {
-      controlKey = object.attributes['key'];
-   }
-   controlKey = controlKey || object.key || inner.key;
 
    return {
       attributes: object.attributes || {},
@@ -58,8 +46,15 @@ export function plainMergeContext(inner, object) {
       inheritOptions: inner.inheritOptions,
       internal: inner.internal,
       context: inner.context,
-      key: controlKey
    };
+}
+
+export function calculateKey(decorAttr, configAttr): string {
+   let controlKey;
+   if (decorAttr.attributes && decorAttr.attributes['key']) {
+      controlKey = decorAttr.attributes['key'];
+   }
+   return controlKey || decorAttr.key || configAttr.key;
 }
 
 export const config = {

@@ -13,10 +13,10 @@ import {
 } from 'UICommon/Executor';
 import { IWasabyEvent } from 'UICommon/Events';
 
+import { TemplateFunction, IControlOptions } from 'UICommon/Base';
+import type { TIState } from 'UICommon/interfaces';
+import type { IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate } from './interfaces';
 import { Control } from 'UICore/Base';
-import { TemplateFunction } from 'UICommon/Base';
-import { IControlOptions } from 'UICommon/Base';
-import {IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate} from './interfaces';
 import { mergeEvents } from 'UICore/Events';
 
 export class Generator implements IGenerator {
@@ -47,7 +47,7 @@ export class Generator implements IGenerator {
             decorAttribs :
             Helper.processMergeAttributes(config.attr.attributes, decorAttribs);
 
-        let fullEvents = Object.create(events) || {}
+        let fullEvents = {...events};
         if (config && config.attr && config.attr.events){
             fullEvents = mergeEvents(events, config.attr.events);
         }
@@ -312,7 +312,7 @@ function createWsControl(
     deps: Common.Deps<typeof Control>
 ): React.ComponentElement<
     IControlOptions,
-    Control<IControlOptions, object>
+    Control<IControlOptions, TIState>
 > {
     resolveControlName(scope, decorAttribs.attributes);
     scope._$attributes = decorAttribs;
