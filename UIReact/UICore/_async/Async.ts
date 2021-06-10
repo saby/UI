@@ -87,6 +87,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
    }
 
    protected _componentDidMount(): void {
+      this._notifyOnLoad();
       if (this.loadAsyncPromise === null) {
          return;
       }
@@ -95,7 +96,6 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
          this.loadAsyncPromise = null;
          this._forceUpdate();
       });
-      this._notifyOnLoad();
    }
 
    /**
