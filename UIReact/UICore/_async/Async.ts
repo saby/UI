@@ -62,7 +62,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
    private needNotifyOnLoad: boolean = false;
 
    /**
-    * Promise асинхронной загрузки шаблона в _beforeMount, чтобы потом в _afterMount подписаться на него
+    * Promise асинхронной загрузки шаблона в _beforeMount, чтобы потом в _componentDidMount подписаться на него
     * и вызвать _forceUpdate после загрузки шаблона
     */
    private loadAsyncPromise: Promise<TAsyncStateReceived> = null;
@@ -87,10 +87,6 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
    }
 
    protected _componentDidMount(): void {
-      this._notifyOnLoad();
-   }
-
-   protected _afterMount(): void {
       if (this.loadAsyncPromise === null) {
          return;
       }
@@ -99,6 +95,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
          this.loadAsyncPromise = null;
          this._forceUpdate();
       });
+      this._notifyOnLoad();
    }
 
    /**
