@@ -164,12 +164,6 @@ define([
    };
 
    describe('Test function goUpByControlTree()', function() {
-      beforeEach(function() {
-         if (requirejs.defined('react')) {
-            this.skip();
-         }
-      });
-
       Object.keys(tests).forEach(function(testName) {
          var test = tests[testName];
          it(testName, function literalTest() {
