@@ -69,7 +69,7 @@ describe('UICommon/theme/_controller/CSS', () => {
       });
    });
 
-   describeIf(constants.isBrowserPlatform)('createEntity на СП', () => {
+   describeIf(constants.isServerSide)('createEntity на СП', () => {
       it('Создает экземпляр LinkPS для мультитемы', () => {
          const entity = createEntity(href, cssName, themeName, THEME_TYPE.MULTI);
          assert.instanceOf(entity, LinkPS);
