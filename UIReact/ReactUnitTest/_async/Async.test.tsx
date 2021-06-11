@@ -17,7 +17,10 @@ import TestControlAsync = require('ReactUnitTest/_async/TestControlAsync');
 import TestLibraryAsync = require('ReactUnitTest/_async/TestLibraryAsync');
 
 
-describe('UICore/Async:Async', () => {
+const isBrowser = typeof window !== 'undefined';
+const describeIf = (condition) => condition ? describe : describe.skip;
+
+describeIf(isBrowser)('UICore/Async:Async', () => {
     const warns = [];
     const originalLogger = IoC.resolve('ILogger');
     let container: HTMLDivElement;
@@ -55,19 +58,6 @@ describe('UICore/Async:Async', () => {
             await Promise.resolve();
         });
     }
-
-    before(() => {
-        const browser = new JSDOM();
-        global.window = browser.window;
-        global.document = window.document;
-        // global.MessageChannel = require('worker_threads').MessageChannel;
-    });
-
-    after(() => {
-        delete global.window;
-        delete global.document;
-        // delete global.MessageChannel;
-    });
 
     beforeEach(() => {
         // переопределяем логгер, чтобы при ошибках загрузки не упали тесты из-за сообщений логгера

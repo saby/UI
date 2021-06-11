@@ -9,7 +9,10 @@ import { JSDOM } from 'jsdom';
 import OuterControl from './OuterControl';
 import InnerControl from './InnerControl';
 
-describe('дочерние контролы', () => {
+const isBrowser = typeof window !== 'undefined';
+const describeIf = (condition) => condition ? describe : describe.skip;
+
+describeIf(isBrowser)('дочерние контролы', () => {
     let container;
     let sandbox;
 
@@ -23,18 +26,6 @@ describe('дочерние контролы', () => {
             clock.tick(duration);
         });
     }
-
-    // не выношу это в describe повыше, чтобы тесты построения на сервере не нужно было выносить в отдельный файл
-    before(() => {
-        const browser = new JSDOM();
-        global.window = browser.window;
-        global.document = window.document;
-    });
-
-    after(() => {
-        delete global.window;
-        delete global.document;
-    });
 
     let clock;
     beforeEach(() => {

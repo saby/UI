@@ -8,21 +8,13 @@ import { act } from 'react-dom/test-utils';
 import { JSDOM } from 'jsdom';
 import { default as Parent } from 'ReactUnitTest/_stateReceiver/Controls/Parent';
 
-describe('UICore/Base:Control ReceivedState', () => {
+const isBrowser = typeof window !== 'undefined';
+const describeIf = (condition) => condition ? describe : describe.skip;
+
+describeIf(isBrowser)('UICore/Base:Control ReceivedState', () => {
    let clock;
    let sandbox;
    let container: HTMLDivElement;
-
-   before(() => {
-      const browser = new JSDOM();
-      global.window = browser.window;
-      global.document = window.document;
-   });
-
-   after(() => {
-      delete global.window;
-      delete global.document;
-   });
 
    beforeEach(() => {
       sandbox = createSandbox();
