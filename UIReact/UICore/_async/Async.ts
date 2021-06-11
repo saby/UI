@@ -120,10 +120,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
       }
    }
 
-   /**
-    * Если до обновления не загрузили синхронно, то пробуем загрузить асинхронно
-    */
-   protected _afterUpdate(): void {
+   componentDidUpdate(): void {
       if (this.asyncLoading) {
          return;
       }
@@ -135,10 +132,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
          this._notifyOnLoad();
          return;
       }
-
-      this._loadContentAsync(this._options.templateName, this._options.templateOptions).then(() => {
-         this._forceUpdate();
-      });
+      this._loadContentAsync(this._options.templateName, this._options.templateOptions);
    }
 
    protected _notifyOnLoad(): void {
