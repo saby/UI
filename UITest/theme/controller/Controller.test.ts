@@ -25,40 +25,32 @@ class CssLoaderMock implements ICssLoader {
    }
 }
 
+const describeIf = (condition) => condition ? describe : describe.skip;
+
 describe('UICommon/theme/_controller/Controller', () => {
    const loader: CssLoaderMock = new CssLoaderMock();
    const controller: Controller = new Controller(loader);
 
-   const setHooks = () => {
-      afterEach(() =>
-         Promise
-            .all(controller.getAll().map((link) => link.remove()))
-            .then(controller.clear)
-      );
-   };
+   afterEach(() =>
+       Promise
+           .all(controller.getAll().map((link) => link.remove()))
+           .then(controller.clear)
+   );
 
-   describe('get', () => {
-      setHooks();
-
+   describeIf(constants.isBrowserPlatform)('get', () => {
       it('Метод возвращает Promise<Link> на клиенте', () => {
-         if (!constants.isBrowserPlatform) { return; }
          const getting = controller.get(cssName);
-
          assert.instanceOf(getting, Promise);
-
          return getting.then((css) => { assert.instanceOf(css, Link); });
       });
 
       it('Метод возвращает Promise<LinkPS> на СП', () => {
-         if (!constants.isServerSide) { return; }
          const getting = controller.get(cssName);
-
          assert.instanceOf(getting, Promise);
          return getting.then((css) => { assert.instanceOf(css, LinkPS); });
       });
 
       it('Загруженные стили не запрашиваются повторно', () => {
-         if (!constants.isBrowserPlatform) { return; }
          return controller.get(cssName, themeName)
             .then(() => controller.get(cssName, themeName))
             .then(() => controller.get(cssName, themeName))
@@ -67,14 +59,12 @@ describe('UICommon/theme/_controller/Controller', () => {
       });
 
       it('Стили загружаются отдельно для каждой темы', () => {
-         if (!constants.isBrowserPlatform) { return; }
          const theme2 = 'Another/Theme';
          return controller.get(cssName, themeName)
             .then(() => controller.get(cssName, theme2));
       });
 
       it('При ошибке скачивания стилей, link не сохраняется в Store', () => {
-         if (!constants.isBrowserPlatform) { return; }
          const loader2 = new CssLoaderMock(createBrokenHref);
          const controller2 = new Controller(loader2);
          return controller2.get(cssName, themeName)
@@ -85,11 +75,8 @@ describe('UICommon/theme/_controller/Controller', () => {
       });
    });
 
-   describe('getAll', () => {
-      setHooks();
-
+   describeIf(constants.isBrowserPlatform)('getAll', () => {
       it('Метод возвращает Link[] на клиенте', () => {
-         if (!constants.isBrowserPlatform) { return; }
          const cssName2 = 'Another/Control';
          return controller.get(cssName)
             .then(() => controller.get(cssName2))
@@ -100,8 +87,6 @@ describe('UICommon/theme/_controller/Controller', () => {
       });
 
       it('Метод возвращает LinkPS[] на СП', () => {
-         if (!constants.isServerSide) { return; }
-
          const cssName2 = 'Another/Control';
          return controller.get(cssName)
             .then(() => controller.get(cssName2))
@@ -113,8 +98,6 @@ describe('UICommon/theme/_controller/Controller', () => {
    });
 
    describe('has', () => {
-      setHooks();
-
       it('Возвращает false для несохраненной темы', () => {
          assert.isFalse(controller.has(cssName));
       });
@@ -127,8 +110,6 @@ describe('UICommon/theme/_controller/Controller', () => {
    });
 
    describe('remove', () => {
-      setHooks();
-
       it('невостребованные стили удаляются', () => {
          return controller.get(cssName)
             .then(() => controller.remove(cssName))
@@ -160,7 +141,6 @@ describe('UICommon/theme/_controller/Controller', () => {
    });
 
    describe('define', () => {
-      setHooks();
       const aliasName = 'alias_name_1';
       const originalName = 'original_name_1';
       const aliasName2 = 'alias_name_2';
