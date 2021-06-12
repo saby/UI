@@ -22,11 +22,10 @@ export interface IHeadOptions extends IHTMLOptions, IRootTemplateOptions {
 }
 
 export function createTitle(title: string): void {
-   const API = AppHead.getInstance();
-   const titleTag = API.getTag('title');
-   if (!titleTag) {
-      API.createTag('title', {}, title);
-   }
+   AppHead.getInstance().createTag('title', {}, title);
+}
+export function createViewPort(): void {
+   AppHead.getInstance().createTag('meta', {content: 'width=1024', name: 'viewport'});
 }
 
 export function createDefaultTags(cfg: IHeadOptions): void {
@@ -43,23 +42,16 @@ export function createDefaultTags(cfg: IHeadOptions): void {
       {'http-equiv': 'X-UA-Compatible', content: 'IE=edge'},
       {charset: 'utf-8', class: 'head-server-block'}
    ];
-   /** Возможно, кто-то уже добавил viewport */
-   const viewPort = API.getTag('meta', {name: 'viewport'});
-   /** Если не нашли тег, или если нашли очень много, добавим свой */
-   if (!viewPort || (viewPort instanceof Array)) {
-      // @ts-ignore
-      metaAttrs.push({name: 'viewport', content: cfg.viewport || 'width=1024'});
-   }
    metaAttrs.forEach((attrs) => {
       // @ts-ignore
       API.createTag('meta', attrs);
    });
 }
 /**
- * Функция для подготовки данных 
- * @param tag 
- * @param attrs 
- * @returns 
+ * Функция для подготовки данных
+ * @param tag
+ * @param attrs
+ * @returns
  */
 const prepareMetaScriptsAndLinks = (tag: string, attrs: object): object => {
    return {
