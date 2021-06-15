@@ -29,13 +29,14 @@ import {
  */
 
 const callAfterMount: IArrayEvent[] = [];
-const notifyOnlyOnceList: string[] = ['valuechanged', 'inputcomplete'];
 
 abstract class WasabyEvents implements IWasabyEventSystem {
     private capturedEventHandlers: Record<string, IHandlerInfo[]>;
     protected touchendTarget: Element;
 
     protected wasNotifyList: string[] = [];
+    protected lastNotifyEvent: string = '';
+    protected needBlockNotify: boolean = false;
 
     protected _rootDOMNode: TModifyHTMLNode;
     private _handleTabKey: Function;
@@ -196,10 +197,9 @@ abstract class WasabyEvents implements IWasabyEventSystem {
                                     callAfterMount.push({fn, finalArgs});
                                 } else {
                                     let needCallHandler = native;
-                                    const needCallOnce = notifyOnlyOnceList.indexOf(eventObject.type) > -1;
-                                    if (!needCallHandler || needCallOnce) {
+                                    if (!needCallHandler) {
                                         needCallHandler = !this.wasNotified(fn.control._instId, eventObject.type);
-                                        if (needCallHandler && needCallOnce) {
+                                        if (needCallHandler && this.needBlockNotifyState() && eventObject.type.indexOf('mouse') === -1) {
                                             this.setWasNotifyList(fn.control._instId, eventObject.type);
                                         }
                                     }
@@ -384,6 +384,10 @@ abstract class WasabyEvents implements IWasabyEventSystem {
 
     protected clearWasNotifyList(): void {
         this.wasNotifyList = [];
+    }
+
+    private needBlockNotifyState(): boolean {
+        return this.needBlockNotify;
     }
 
     private setWasNotifyList(instId: string, eventType: string): void {
