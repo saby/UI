@@ -196,10 +196,10 @@ abstract class WasabyEvents implements IWasabyEventSystem {
                                     callAfterMount.push({fn, finalArgs});
                                 } else {
                                     let needCallHandler = native;
-                                    let needCallOnce = notifyOnlyOnceList.indexOf(eventObject.type) > -1;
+                                    const needCallOnce = notifyOnlyOnceList.indexOf(eventObject.type) > -1;
                                     if (!needCallHandler || needCallOnce) {
                                         needCallHandler = !this.wasNotified(fn.control._instId, eventObject.type);
-                                        if (needCallHandler && (eventObject.type.indexOf('mouse') === -1 || needCallOnce)) {
+                                        if (needCallHandler && needCallOnce) {
                                             this.setWasNotifyList(fn.control._instId, eventObject.type);
                                         }
                                     }
