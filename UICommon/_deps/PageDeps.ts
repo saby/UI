@@ -149,5 +149,10 @@ interface IModulesDescription extends IModulesDeps {
  * @param moduleName Название модуля, которое хотим проверить на наличие
  */
 export function isModuleExists(moduleName: string): boolean {
+   // Если сервис собран в debug-режиме, то файл module-dependencies не будет сгенерирован.
+   // Тогда по умолчанию считаем что модуль существует.
+   if (contents.buildMode === 'debug') {
+      return true;
+   }
    return !!nodes[moduleName];
 }
