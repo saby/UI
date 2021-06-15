@@ -11,6 +11,7 @@
     <module id="a10cb1cb-b23d-4ef6-a757-4f7382e0e8d1" name="SbisEnvUI"/>
     <module id="ea29a33a-6636-4a1f-a655-1dec6974e04e" name="SbisEnvUI-default-theme"/>
     <module id="636177e5-4d75-44fa-9173-977dc90ff111" name="Env"/>
+    <module id="3735da8d-a287-4fc1-a22d-7d00a7732ce8" name="SBIS3.CONTROLS"/>
   </depends>
 
   <load_after/>

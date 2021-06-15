@@ -11,7 +11,7 @@
             </div>
         </div>
         <div class="compatibleDemo__row">
-            <Controls.buttons:Button href="{{'/UIDemo/app/UIDemo%2FCompatibleDemo%2FWasabyEnv%2FEvents%2FCase1%2FIndex'}}" fontSize="s" inlineHeight="l" caption="Два wasaby окна"/>
+            <Controls.buttons:Button href="{{'/UIDemo/app/CompatibleDemo%2FWasabyEnv%2FEvents%2FCase1%2FIndex'}}" fontSize="s" inlineHeight="l" caption="Два wasaby окна"/>
         </div>
     </div>
     <hr/>
@@ -48,7 +48,7 @@
             </div>
         </div>
         <div class="compatibleDemo__row">
-            <Controls.buttons:Button href="{{'/UIDemo/app/UIDemo%2FCompatibleDemo%2FWasabyEnv%2FEvents%2FCase2%2FIndex'}}" fontSize="s" inlineHeight="l" caption="Нативный click срабатывает дважды"/>
+            <Controls.buttons:Button href="{{'/UIDemo/app/CompatibleDemo%2FWasabyEnv%2FEvents%2FCase2%2FIndex'}}" fontSize="s" inlineHeight="l" caption="Нативный click срабатывает дважды"/>
         </div>
     </div>
     <hr/>
@@ -91,7 +91,7 @@
             </div>
         </div>
         <div class="compatibleDemo__row">
-            <Controls.buttons:Button href="{{'/UIDemo/app/UIDemo%2FCompatibleDemo%2FWasabyEnv%2FEvents%2FCase3%2FIndex'}}" fontSize="s" inlineHeight="l" caption="Не работает поиск"/>
+            <Controls.buttons:Button href="{{'/UIDemo/app/CompatibleDemo%2FWasabyEnv%2FEvents%2FCase3%2FIndex'}}" fontSize="s" inlineHeight="l" caption="Не работает поиск"/>
         </div>
     </div>
 </div>
