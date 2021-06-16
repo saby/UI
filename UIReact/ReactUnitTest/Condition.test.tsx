@@ -10,18 +10,12 @@ import { JSDOM } from 'jsdom';
 const NODES_TEXT = ['I', 'Am', 'Fine'];
 const NODE_TYPE = 'div';
 
-describe('Check result of "if condition"', () => {
-    let container = null;
-    before(() => {
-        const browser = new JSDOM();
-        global.window = browser.window;
-        global.document = window.document;
-    });
+const isBrowser = typeof window !== 'undefined';
+const describeIf = (condition) => condition ? describe : describe.skip;
 
-    after(() => {
-        delete global.window;
-        delete global.document;
-    });
+describeIf(isBrowser)('Check result of "if condition"', () => {
+    let container = null;
+
     beforeEach(() => {
         // setup a DOM element as a render target
         container = document.createElement("div", {});

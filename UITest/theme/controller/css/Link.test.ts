@@ -31,24 +31,21 @@ class LinkElementMock implements IHTMLElement {
 let element: LinkElementMock;
 let link: Link;
 
+const describeIf = (condition) => condition ? describe : describe.skip;
+
 describe('UICommon/theme/_controller/css/Link', () => {
 
-   const setHooks = () => {
-      beforeEach(() => {
-         element = new LinkElementMock(href, name, theme, themeType);
-         link = new Link(href, name, theme, element);
-      });
-      afterEach(() => {
-         link.remove();
-         element = null;
-         link = null;
-      });
-   };
+   beforeEach(() => {
+      element = new LinkElementMock(href, name, theme, themeType);
+      link = new Link(href, name, theme, element);
+   });
+   afterEach(() => {
+      link.remove();
+      element = null;
+      link = null;
+   });
 
-   describe('load', () => {
-      if (!constants.isBrowserPlatform) { return; }
-      setHooks();
-
+   describeIf(constants.isBrowserPlatform)('load', () => {
       it('load returns Promise<void>', () => {
          const link = new Link(href, name, theme);
          assert.instanceOf(link.load(), Promise);
@@ -64,7 +61,6 @@ describe('UICommon/theme/_controller/css/Link', () => {
    });
 
    describe('from', () => {
-      setHooks();
       it('Link`s instance from HTMLLinkElement', () => {
          assert.instanceOf(link, Link);
          assert.strictEqual(name, link.cssName);
@@ -73,7 +69,6 @@ describe('UICommon/theme/_controller/css/Link', () => {
    });
 
    describe('require / remove', () => {
-      setHooks();
       it('при удалении экземпляр Link также удаляется элемент из DOM', () => {
          return link.remove().then((isRemoved) => {
             assert.isFalse(link.isMounted);
