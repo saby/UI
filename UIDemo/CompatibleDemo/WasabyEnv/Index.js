@@ -52,7 +52,7 @@ define('UIDemo/CompatibleDemo/WasabyEnv/Index', [
             return null;
          },
          goHomeHandler: function() {
-            window.location = "/UIDemo%2FCompatibleDemo%2FWasabyEnv%2FDemo";
+            window.location = "/CompatibleDemo%2FWasabyEnv%2FDemo";
          }
       }
    );
