@@ -124,7 +124,9 @@ export default class Control<TOptions extends IControlOptions = {},
 
     // TODO: TControlConfig добавлен для совместимости, в 3000 нужно сделать TOptions и здесь, и в UIInferno.
     constructor(props: TOptions | TControlConfig = {}, context?: IWasabyContextValue) {
-        super(props as TOptions);
+        super({...props as TOptions,
+            errorContainer: props.errorContainer ? props.errorContainer : ErrorViewer,
+            errorViewer: props.errorViewer ? props.errorViewer : ErrorViewer});
         /*
         Если люди сами задают конструктор, то обычно они вызывают его неправильно (передают только один аргумент).
         Из-за этого контекст может потеряться и не получится в конструкторе вытащить значение из него.
@@ -557,7 +559,7 @@ export default class Control<TOptions extends IControlOptions = {},
 
     render(): React.ReactNode {
         const wasabyOptions = createWasabyOptions(this.props, this.context);
-        const { errorController, errorContainer } = this.props;
+        const { errorViewer, errorContainer } = this.props;
         /*
         Валидируем опции именно здесь по двум причинам:
         1) Здесь они уже полностью вычислены.
@@ -587,7 +589,7 @@ export default class Control<TOptions extends IControlOptions = {},
             // логика обработки ошибки предполагает два рендера.
             // В первом рендере устанавливаем в state ErrorConfig, во втором уже напрямую берем errorConfig из state
             if (!errorConfig) {
-                errorConfig = errorController.process(this.state.error);
+                errorConfig = errorViewer.process(this.state.error);
             }
             // если в errorConfig найден промис, значит в errorConfig ссылка на  настоящий errorController
             // в это условие заходим, только при первом рендере
@@ -674,10 +676,6 @@ export default class Control<TOptions extends IControlOptions = {},
      * </pre>
      */
     static _theme: string[] = [];
-    static defaultProps: object = {
-        errorContainer: ErrorViewer,
-        errorViewer: ErrorViewer
-    };
     /**
      * Загрузка стилей и тем контрола
      * @param themeName имя темы (по-умолчанию тема приложения)
