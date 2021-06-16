@@ -15,3 +15,4 @@
 /tslib.js
 /tslint.json
 builderConfig.json
+wasabyGlobalTypings.d.ts
