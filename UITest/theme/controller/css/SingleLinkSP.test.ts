@@ -8,14 +8,14 @@ const theme = 'Some-theme';
 let link: SingleLinkPS;
 
 describe('UICommon/theme/_controller/css/SingleLinkPS', () => {
-
-   const setHooks = () => {
-      beforeEach(() => { link = new SingleLinkPS(href, name, theme); });
-      afterEach(() => { link = null; });
-   };
+   beforeEach(() => {
+      link = new SingleLinkPS(href, name, theme);
+   });
+   afterEach(() => {
+      link = null;
+   });
 
    describe('removeForce', () => {
-      setHooks();
       it('при удалении экземпляр SingleLink также удаляется элемент из DOM', () => {
          return link.removeForce()
             .then(link.remove)

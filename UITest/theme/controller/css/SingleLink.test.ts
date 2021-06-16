@@ -34,21 +34,17 @@ let element: LinkElementMock;
 let link: SingleLink;
 
 describe('UICommon/theme/_controller/css/SingleLink', () => {
-
-   const setHooks = () => {
-      beforeEach(() => {
-         element = new LinkElementMock(href, name, theme, themeType);
-         link = new SingleLink(href, name, theme, element);
-      });
-      afterEach(() => {
-         link.remove();
-         element = null;
-         link = null;
-      });
-   };
+   beforeEach(() => {
+      element = new LinkElementMock(href, name, theme, themeType);
+      link = new SingleLink(href, name, theme, element);
+   });
+   afterEach(() => {
+      link.remove();
+      element = null;
+      link = null;
+   });
 
    describe('removeForce', () => {
-      setHooks();
       it('при удалении экземпляр SingleLink также удаляется элемент из DOM', () => {
          return link.removeForce().then(() => {
             assert.isFalse(link.isMounted);

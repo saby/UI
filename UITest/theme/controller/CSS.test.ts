@@ -50,14 +50,14 @@ class DeprecatedLinkElementMock extends LinkMock {
    }
 }
 
+const describeIf = (condition) => condition ? describe : describe.skip;
+
 describe('UICommon/theme/_controller/CSS', () => {
    const href = '#href';
    const cssName = 'cssName';
    const themeName = 'themeName';
 
-   describe('createEntity на клиенте', () => {
-      if (!constants.isBrowserPlatform) { return; }
-
+   describeIf(constants.isBrowserPlatform)('createEntity на клиенте', () => {
       it('Создает экземпляр Link для мультитемы', () => {
          const entity = createEntity(href, cssName, themeName, THEME_TYPE.MULTI);
          assert.instanceOf(entity, Link);
@@ -69,9 +69,7 @@ describe('UICommon/theme/_controller/CSS', () => {
       });
    });
 
-   describe('createEntity на СП', () => {
-      if (!constants.isServerSide) { return; }
-
+   describeIf(constants.isServerSide)('createEntity на СП', () => {
       it('Создает экземпляр LinkPS для мультитемы', () => {
          const entity = createEntity(href, cssName, themeName, THEME_TYPE.MULTI);
          assert.instanceOf(entity, LinkPS);
@@ -83,9 +81,7 @@ describe('UICommon/theme/_controller/CSS', () => {
       });
    });
 
-   describe('restoreEntity ', () => {
-      if (!constants.isBrowserPlatform) { return; }
-
+   describeIf(constants.isBrowserPlatform)('restoreEntity ', () => {
       it('Создает экземпляр Link для мультитемы', () => {
          const element = new LinkElementMock(href, cssName, themeName, THEME_TYPE.MULTI);
          const entity = restoreEntity(element);
@@ -124,9 +120,7 @@ describe('UICommon/theme/_controller/CSS', () => {
       });
    });
 
-   describe('restorDeprecatedEntity ', () => {
-      if (!constants.isBrowserPlatform) { return; }
-
+   describeIf(constants.isBrowserPlatform)('restorDeprecatedEntity ', () => {
       it('Создает экземпляр Link для мультитемы', () => {
          const element = new DeprecatedLinkElementMock(href, cssName, themeName, DEPRECATED_THEME_TYPE.MULTI);
          const entity = restoreDeprecatedEntity(element);
