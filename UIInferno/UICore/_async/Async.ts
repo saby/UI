@@ -89,7 +89,7 @@ export default abstract class Async extends Control<IAsyncOptions, TAsyncStateRe
       return Promise.resolve(SUCCESS_BUILDED);
    }
 
-   protected _afterMount(): void {
+   protected _componentDidMount(): void {
       this._notifyOnLoad();
    }
 
