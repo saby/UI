@@ -14,7 +14,7 @@
             </div>
         </div>
         <div class="compatibleDemo__row">
-            <Controls.buttons:Button href="{{'/UIDemo/app/UIDemo%252FCompatibleDemo%252FWasabyEnv%252FWS3%252FWithoutCompatible'}}" fontSize="s" inlineHeight="l" caption="Wasaby без слоя совместимости"/>
+            <Controls.buttons:Button href="{{'/UIDemo/app/CompatibleDemo%252FWasabyEnv%252FWS3%252FWithoutCompatible'}}" fontSize="s" inlineHeight="l" caption="Wasaby без слоя совместимости"/>
         </div>
     </div>
     <hr/>
@@ -26,7 +26,7 @@
             Проблемы:
         </div>
         <div class="compatibleDemo__row">
-            <Controls.buttons:Button href="{{'/UIDemo/app/UIDemo%252FCompatibleDemo%252FWasabyEnv%252FWS3%252FWS3'}}" fontSize="s" inlineHeight="l" caption="WS3 в CompoundContainer без ws:handlers"/>
+            <Controls.buttons:Button href="{{'/UIDemo/app/CompatibleDemo%252FWasabyEnv%252FWS3%252FWS3'}}" fontSize="s" inlineHeight="l" caption="WS3 в CompoundContainer без ws:handlers"/>
         </div>
     </div>
     <hr/>
@@ -45,7 +45,7 @@
             </div>
         </div>
         <div class="compatibleDemo__row">
-            <Controls.buttons:Button href="{{'/UIDemo/app/UIDemo%252FCompatibleDemo%252FWasabyEnv%252FWS3%252FWS3WithHandlers'}}" fontSize="s" inlineHeight="l" caption="WS3 в CompoundContainer с ws:handlers"/>
+            <Controls.buttons:Button href="{{'/UIDemo/app/CompatibleDemo%252FWasabyEnv%252FWS3%252FWS3WithHandlers'}}" fontSize="s" inlineHeight="l" caption="WS3 в CompoundContainer с ws:handlers"/>
         </div>
     </div>
     <hr/>
@@ -61,7 +61,7 @@
             </div>
         </div>
         <div class="compatibleDemo__row">
-            <Controls.buttons:Button href="{{'/UIDemo/app/UIDemo%252FCompatibleDemo%252FWasabyEnv%252FWS3%252FWS3Wrapper'}}" fontSize="s" inlineHeight="l" caption="WS3 в обертке через CompoundContainer"/>
+            <Controls.buttons:Button href="{{'/UIDemo/app/CompatibleDemo%252FWasabyEnv%252FWS3%252FWS3Wrapper'}}" fontSize="s" inlineHeight="l" caption="WS3 в обертке через CompoundContainer"/>
         </div>
     </div>
     <hr/>
@@ -70,7 +70,7 @@
             <b>Загрузка Wasaby-контрола из WS3-контрола-обертки в новом окружении через CompoundContainer без ws:componentOptions</b>
         </div>
         <div class="compatibleDemo__row">
-            <Controls.buttons:Button href="{{'/UIDemo/app/UIDemo%252FCompatibleDemo%252FWasabyEnv%252FWasaby%252FWrappedWS3'}}" fontSize="s" inlineHeight="l" caption="Wasaby в WS3 через CompoundContainer"/>
+            <Controls.buttons:Button href="{{'/UIDemo/app/CompatibleDemo%252FWasabyEnv%252FWasaby%252FWrappedWS3'}}" fontSize="s" inlineHeight="l" caption="Wasaby в WS3 через CompoundContainer"/>
         </div>
     </div>
     <hr/>
@@ -86,7 +86,7 @@
             </div>
         </div>
         <div class="compatibleDemo__row">
-            <Controls.buttons:Button href="{{'/UIDemo/app/UIDemo%252FCompatibleDemo%252FWasabyEnv%252FWasaby%252FWrappedWS3WithOptions'}}" fontSize="s" inlineHeight="l" caption="Wasaby в WS3 через CompoundContainer"/>
+            <Controls.buttons:Button href="{{'/UIDemo/app/CompatibleDemo%252FWasabyEnv%252FWasaby%252FWrappedWS3WithOptions'}}" fontSize="s" inlineHeight="l" caption="Wasaby в WS3 через CompoundContainer"/>
         </div>
     </div>
     <hr/>
@@ -102,7 +102,7 @@
             </div>
         </div>
         <div class="compatibleDemo__row">
-            <Controls.buttons:Button href="{{'/UIDemo/app/UIDemo%252FCompatibleDemo%252FWasabyEnv%252FMixed%252FMixed'}}" fontSize="s" inlineHeight="l" caption="Вложенная совместимость"/>
+            <Controls.buttons:Button href="{{'/UIDemo/app/CompatibleDemo%252FWasabyEnv%252FMixed%252FMixed'}}" fontSize="s" inlineHeight="l" caption="Вложенная совместимость"/>
         </div>
     </div>
     <hr/>

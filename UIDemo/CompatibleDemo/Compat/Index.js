@@ -57,7 +57,7 @@ define('UIDemo/CompatibleDemo/Compat/Index', [
             return null;
          },
          goHomeHandler: function() {
-            window.location = "/UIDemo%2FCompatibleDemo%2FCompat%2FDemo";
+            window.location = "/CompatibleDemo%2FCompat%2FDemo";
          }
       }
    );
