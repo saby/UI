@@ -130,14 +130,14 @@ export default class MountMethodsCaller {
         try {
             // tslint:disable-next-line:ban-ts-ignore
             // @ts-ignore
+            control._mounted = true;
+            // tslint:disable-next-line:ban-ts-ignore
+            // @ts-ignore
             if (typeof control._afterMount === 'function') {
                 // tslint:disable-next-line:ban-ts-ignore
                 // @ts-ignore
                 control._afterMount(controlNode.options, controlNode.context);
             }
-            // tslint:disable-next-line:ban-ts-ignore
-            // @ts-ignore
-            control._mounted = true;
             this.forceUpdateIfNeed(control);
         } catch (error) {
             Logger.lifeError('_afterMount', control, error);

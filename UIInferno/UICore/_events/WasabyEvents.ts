@@ -128,9 +128,9 @@ export default class WasabyEventsInferno extends WasabyEvents implements IWasaby
         eventConfig.type = eventName;
         eventConfig.target = controlNode.element;
         if (!eventConfig.target) {
-            if (
-                controlNode.fullMarkup.moduleName !== 'UI/_executor/_Expressions/RawMarkupNode' &&
-                !isInvisibleNode(controlNode, true)
+            if (!controlNode.control._mounted ||
+                (controlNode.fullMarkup.moduleName !== 'UI/_executor/_Expressions/RawMarkupNode' &&
+                !isInvisibleNode(controlNode, true))
             ) {
                 Logger.error('Событие ' + eventName + ' было вызвано до монтирования контрола в DOM', controlNode);
             }
