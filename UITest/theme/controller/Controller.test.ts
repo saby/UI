@@ -38,20 +38,20 @@ describe('UICommon/theme/_controller/Controller', () => {
            .then(controller.clear)
    );
 
-   describeIf(constants.isBrowserPlatform)('get', () => {
-      it('Метод возвращает Promise<Link> на клиенте', () => {
+   describe('get', () => {
+      itIf(constants.isBrowserPlatform)('Метод возвращает Promise<Link> на клиенте', () => {
          const getting = controller.get(cssName);
          assert.instanceOf(getting, Promise);
          return getting.then((css) => { assert.instanceOf(css, Link); });
       });
 
-      it('Метод возвращает Promise<LinkPS> на СП', () => {
+      itIf(constants.isServerSide)('Метод возвращает Promise<LinkPS> на СП', () => {
          const getting = controller.get(cssName);
          assert.instanceOf(getting, Promise);
          return getting.then((css) => { assert.instanceOf(css, LinkPS); });
       });
 
-      it('Загруженные стили не запрашиваются повторно', () => {
+      itIf(constants.isBrowserPlatform)('Загруженные стили не запрашиваются повторно', () => {
          return controller.get(cssName, themeName)
             .then(() => controller.get(cssName, themeName))
             .then(() => controller.get(cssName, themeName))
@@ -59,13 +59,13 @@ describe('UICommon/theme/_controller/Controller', () => {
             .then(() => controller.remove(cssName, themeName));
       });
 
-      it('Стили загружаются отдельно для каждой темы', () => {
+      itIf(constants.isBrowserPlatform)('Стили загружаются отдельно для каждой темы', () => {
          const theme2 = 'Another/Theme';
          return controller.get(cssName, themeName)
             .then(() => controller.get(cssName, theme2));
       });
 
-      it('При ошибке скачивания стилей, link не сохраняется в Store', () => {
+      itIf(constants.isBrowserPlatform)('При ошибке скачивания стилей, link не сохраняется в Store', () => {
          const loader2 = new CssLoaderMock(createBrokenHref);
          const controller2 = new Controller(loader2);
          return controller2.get(cssName, themeName)
