@@ -124,9 +124,7 @@ export default class Control<TOptions extends IControlOptions = {},
 
     // TODO: TControlConfig добавлен для совместимости, в 3000 нужно сделать TOptions и здесь, и в UIInferno.
     constructor(props: TOptions | TControlConfig = {}, context?: IWasabyContextValue) {
-        super({...props as TOptions,
-            errorContainer: props.errorContainer ? props.errorContainer : ErrorViewer,
-            errorViewer: props.errorViewer ? props.errorViewer : ErrorViewer});
+        super(props as TOptions);
         /*
         Если люди сами задают конструктор, то обычно они вызывают его неправильно (передают только один аргумент).
         Из-за этого контекст может потеряться и не получится в конструкторе вытащить значение из него.
@@ -559,7 +557,7 @@ export default class Control<TOptions extends IControlOptions = {},
 
     render(): React.ReactNode {
         const wasabyOptions = createWasabyOptions(this.props, this.context);
-        const { errorViewer, errorContainer } = this.props;
+        const { errorViewer = ErrorViewer, errorContainer = ErrorViewer} = this.props;
         /*
         Валидируем опции именно здесь по двум причинам:
         1) Здесь они уже полностью вычислены.
