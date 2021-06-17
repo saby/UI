@@ -15,7 +15,7 @@ export interface IControlOptions {
     name?: string;
     rskey?: string;
     errorContainer?: React.ComponentClass;
-    errorController?: IErrorViewer;
+    errorViewer?: IErrorViewer;
     _$attributes?: object;
     _$parentsChildrenPromises?: Promise<void>[];
 }
