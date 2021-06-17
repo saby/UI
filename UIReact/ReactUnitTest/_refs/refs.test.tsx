@@ -12,9 +12,13 @@ import InnerControl from './InnerControl';
 
 import OuterControl2 from './OuterControl2';
 
-describe('Тестирование ref', () => {
+const isBrowser = typeof window !== 'undefined';
+const describeIf = (condition) => condition ? describe : describe.skip;
+
+describeIf(isBrowser)('Тестирование ref', () => {
     let container;
     let sandbox;
+    let clock;
 
     /**
      * Эта функция существует для того, чтобы не забывать оборачивать тики в act.
@@ -27,19 +31,6 @@ describe('Тестирование ref', () => {
         });
     }
 
-    // не выношу это в describe повыше, чтобы тесты построения на сервере не нужно было выносить в отдельный файл
-    before(() => {
-        const browser = new JSDOM();
-        global.window = browser.window;
-        global.document = window.document;
-    });
-
-    after(() => {
-        delete global.window;
-        delete global.document;
-    });
-
-    let clock;
     beforeEach(() => {
         sandbox = createSandbox();
         /*

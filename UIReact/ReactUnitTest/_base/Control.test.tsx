@@ -12,24 +12,15 @@ import TestControl2 from './TestControl2';
 import TestControl2Inner from './TestControl2Inner';
 import ControlWithState from './ControlWithState';
 
+const isBrowser = typeof window !== 'undefined';
+const describeIf = (condition) => condition ? describe : describe.skip;
+
 describe('UIReact/UICore/_base/Control', () => {
-    describe('хуки жизненного цикла', () => {
+    describeIf(isBrowser)('хуки жизненного цикла', () => {
         let container;
         let sandbox;
-
-        // не выношу это в describe повыше, чтобы тесты построения на сервере не нужно было выносить в отдельный файл
-        before(() => {
-            const browser = new JSDOM();
-            global.window = browser.window;
-            global.document = window.document;
-        });
-
-        after(() => {
-            delete global.window;
-            delete global.document;
-        });
-
         let clock;
+
         beforeEach(() => {
             sandbox = createSandbox();
             /*

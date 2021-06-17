@@ -38,21 +38,17 @@ let store: EntityStorage;
 
 describe('UICommon/theme/_controller/Store', () => {
 
-   const setHooks = () => {
-      beforeEach(() => {
-         link = new LinkMock(name, theme);
-         store = new EntityStorage();
-      });
+   beforeEach(() => {
+      link = new LinkMock(name, theme);
+      store = new EntityStorage();
+   });
 
-      afterEach(() => {
-         link = null;
-         store = null;
-      });
-   };
+   afterEach(() => {
+      link = null;
+      store = null;
+   });
 
    describe('has', () => {
-      setHooks();
-
       it('Проверка наличия темы для контрола css', () => {
          store.set(link);
          assert.isTrue(store.has(name, theme));
@@ -65,8 +61,6 @@ describe('UICommon/theme/_controller/Store', () => {
    });
 
    describe('set / get', () => {
-      setHooks();
-
       it('Добавление новой css', () => {
          store.set(link);
          assert.deepEqual(store.get(name, theme), link);
@@ -85,8 +79,6 @@ describe('UICommon/theme/_controller/Store', () => {
    });
 
    describe('remove / require', () => {
-      setHooks();
-
       it('Удаление темы', () => {
          store.set(link);
          return store.remove(name, theme).then((isRemoved) => {
