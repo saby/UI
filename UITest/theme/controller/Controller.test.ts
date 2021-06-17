@@ -26,7 +26,6 @@ class CssLoaderMock implements ICssLoader {
 }
 
 const itIf = (condition) => condition ? it : it.skip;
-const describeIf = (condition) => condition ? describe : describe.skip;
 
 describe('UICommon/theme/_controller/Controller', () => {
    const loader: CssLoaderMock = new CssLoaderMock();
