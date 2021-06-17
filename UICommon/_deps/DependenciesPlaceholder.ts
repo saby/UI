@@ -62,7 +62,7 @@ function addTimeTester(cfg: IOptions): void {
    }, {
       type: 'text/javascript',
       key: 'timetester',
-      src: getResourceUrl(`${cfg.resourceRoot}SbisEnvUI/TimeTesterInv.js`)
+      src: getResourceUrl(`${cfg.resourceRoot}SbisEnvUI/callTimeTesterMinified.js`)
    }].forEach((params) => API.createTag('script', params));
 }
 
