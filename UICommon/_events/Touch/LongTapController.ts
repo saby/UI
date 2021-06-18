@@ -48,7 +48,7 @@ export class LongTapController {
     }
 
     public static detectState(event: ITouchEvent): boolean {
-        if (longTapState.target) {
+        if (longTapState && longTapState.target) {
             const isLongTap = this.detectLongTap(event);
             if (isLongTap) {
                 // block default action on long tap
