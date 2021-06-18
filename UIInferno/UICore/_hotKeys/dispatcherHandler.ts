@@ -60,7 +60,7 @@ export function dispatcherHandler(event: ISyntheticEvent): void {
       // todo придумать проверку получше https://online.sbis.ru/opendoc.html?guid=50215de6-da5c-44bf-b6f6-a9f7cb0e17d2
       const wholeParents = goUpByControlTree(nativeEvent.target as IWrapHTMLElement);
       const findIndexFunction = (parent) => {
-         return (parent._keysWeHandle && key in parent._keysWeHandle) || parent._moduleName === 'Controls/_popup/Manager/Popup';
+         return (parent._keysWeHandle && key in parent._keysWeHandle) || parent._moduleName === 'Controls/_popup/Manager/Popup' || parent.preventHotKeys;
       };
       const popupIndex = wholeParents.findIndex(findIndexFunction);
       const parents = popupIndex === -1 ? wholeParents : wholeParents.slice(0, popupIndex + 1);
