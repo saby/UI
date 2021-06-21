@@ -512,6 +512,8 @@ export default class Control<TOptions extends IControlOptions = {},
          */
         if (this._$controlMounted) {
             try {
+                // необходимо приостановить работу реактивности, чтобы в случае изменения состояния в _beforeUpdate
+                // не произошло запуска еще одной перерисовки - перерисовка и так уже запущена
                 pauseReactive(this, () => {
                     // TODO: https://online.sbis.ru/opendoc.html?guid=a9962c03-d5ca-432c-bc8b-a244e5a1b1ed
                     this._beforeUpdate(newOptions, {scrollContext: {}});
