@@ -1,10 +1,9 @@
 import { ICommonDOMEnvironment as IDOMEnvironment, IWasabyHTMLElement } from 'UICommon/interfaces';
 import { IControl } from 'UICommon/interfaces';
-import {SyntheticEvent} from '../Events';
 
 type VoidFunction = () => void;
 
-type TFn = (eventObj: SyntheticEvent, value?: unknown) => void;
+type TFn = (eventObj: ISyntheticEvent, value?: unknown) => void;
 interface IFn extends TFn {
     control?: IControl;
 }
