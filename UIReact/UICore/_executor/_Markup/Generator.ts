@@ -316,7 +316,12 @@ function createWsControl(
 > {
     resolveControlName(scope, decorAttribs.attributes);
     scope._$attributes = decorAttribs;
-
+    if (decorAttribs.attributes && decorAttribs.attributes.key) {
+        // переносим ключ чтобы он выставился именно для контрола,
+        // а не для элемента внутри, чтобы избежать перерисовки контрола
+        scope.key = decorAttribs.attributes.key;
+        delete decorAttribs.attributes.key;
+    }
     return React.createElement(origin, scope);
 }
 /**
