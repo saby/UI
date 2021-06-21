@@ -65,7 +65,7 @@ describe('WasabyReact Reactivity', function () {
                 inst._string = 'wow2';
             }
         }
-        const inst = new TestControl({});
+        const inst = new TestControl({}, {});
         inst._string = '';
         assert.equal(updated, 0);
         makeWasabyObservable(inst);
