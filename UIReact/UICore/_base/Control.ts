@@ -657,6 +657,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * Все стили будут скачаны при создании
      *
      * @static
+     * @deprecated
      * @example
      * <pre>
      *   static _styles: string[] = ['Controls/Utils/getWidth'];
@@ -668,6 +669,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * Все стили будут скачаны при создании
      *
      * @static
+     * @deprecated
      * @example
      * <pre>
      *   static _theme: string[] = ['Controls/popupConfirmation'];

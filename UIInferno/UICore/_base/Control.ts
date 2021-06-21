@@ -1220,6 +1220,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
     * Все стили будут скачаны при создании
     *
     * @static
+    * @deprecated
     * @example
     * <pre>
     *   static _styles: string[] = ['Controls/Utils/getWidth'];
@@ -1231,6 +1232,7 @@ class Control<TOptions extends IControlOptions = {}, TState extends TIState = vo
     * Все стили будут скачаны при создании
     *
     * @static
+    * @deprecated
     * @example
     * <pre>
     *   static _theme: string[] = ['Controls/popupConfirmation'];
