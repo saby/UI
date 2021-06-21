@@ -5,6 +5,7 @@ import template = require('wml!UICore/_base/Control');
 
 // @ts-ignore FIXME: убрал зависимость от шаблонизатора - core перестал тянуться. Исследовать и исправить
 import cExtend = require('Core/core-extend');
+import isNewEnvironment = require('Core/helpers/isNewEnvironment');
 
 import { Synchronizer } from 'UICore/Vdom';
 import { _IGeneratorType, OptionsResolver } from 'UICommon/Executor';
@@ -177,7 +178,7 @@ export const _private = {
          }
          return true;
       } else {
-         return false;
+         return !isNewEnvironment();
       }
    }
 };

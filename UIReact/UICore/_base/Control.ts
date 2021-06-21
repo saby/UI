@@ -10,6 +10,7 @@ import {getResourceUrl, Logger, needToBeCompatible} from 'UICommon/Utils';
 import {Options} from 'UICommon/Vdom';
 import {makeWasabyObservable, pauseReactive, releaseProperties} from 'UICore/WasabyReactivity';
 import cExtend = require('Core/core-extend');
+import isNewEnvironment = require('Core/helpers/isNewEnvironment');
 
 import template = require('wml!UICore/_base/Control');
 import { IControlState, IErrorConfig, TErrBoundaryOptions } from './interfaces';
@@ -884,7 +885,7 @@ export default class Control<TOptions extends IControlOptions = {},
             }
             return true;
         } else {
-            return false;
+            return !isNewEnvironment();
         }
     }
 
