@@ -17,7 +17,7 @@ import { TemplateFunction, IControlOptions } from 'UICommon/Base';
 import type { TIState } from 'UICommon/interfaces';
 import type { IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate } from './interfaces';
 import { Control } from 'UICore/Base';
-import { mergeEvents } from 'UICore/Events';
+import { WasabyEvents } from 'UICore/Events';
 
 export class Generator implements IGenerator {
     /**
@@ -49,7 +49,7 @@ export class Generator implements IGenerator {
 
         let fullEvents = {...events};
         if (config && config.attr && config.attr.events){
-            fullEvents = mergeEvents(events, config.attr.events);
+            fullEvents = WasabyEvents.mergeEvents(events, config.attr.events);
         }
 
         const templateAttributes: IGeneratorAttrs = {

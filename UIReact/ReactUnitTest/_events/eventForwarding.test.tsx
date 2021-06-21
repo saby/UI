@@ -9,7 +9,7 @@ import { assert } from 'chai';
 import { JSDOM } from 'jsdom';
 import OuterControl from './OuterControl';
 
-import { WasabyEventsSingleton } from 'UICore/Events';
+import { WasabyEvents } from 'UICore/Events';
 
 describe('Подписки на контролы', () => {
     let container;
@@ -58,7 +58,7 @@ describe('Подписки на контролы', () => {
     });
 
     it('подписка на нативное событие на контроле должна навешиваться на внутренний контейнер', () => {
-        WasabyEventsSingleton.initEventSystem(container);
+        WasabyEvents.initInstance(container);
 
         act(() => {
             render(<OuterControl/>, container);

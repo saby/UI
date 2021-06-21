@@ -1,7 +1,13 @@
 import { ICommonDOMEnvironment as IDOMEnvironment, IWasabyHTMLElement } from 'UICommon/interfaces';
 import { IControl } from 'UICommon/interfaces';
+import {SyntheticEvent} from '../Events';
 
 type VoidFunction = () => void;
+
+type TFn = (eventObj: SyntheticEvent, value?: unknown) => void;
+interface IFn extends TFn {
+    control?: IControl;
+}
 
 export interface ISyntheticEvent {
     nativeEvent: Event;
@@ -69,6 +75,7 @@ export interface IWasabyEvent {
     args: unknown[];
     context: Function;
     handler: Function;
+    fn: IFn;
     isControl: boolean;
     value: string;
     viewController: IControl;
