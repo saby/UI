@@ -38,18 +38,6 @@ describeIf(isBrowser)('Подписки на контролы', () => {
         });
     }
 
-    // не выношу это в describe повыше, чтобы тесты построения на сервере не нужно было выносить в отдельный файл
-    before(() => {
-        const browser = new JSDOM();
-        global.window = browser.window;
-        global.document = window.document;
-    });
-
-    after(() => {
-        delete global.window;
-        delete global.document;
-    });
-
     let clock;
     let eventSystem;
     beforeEach(() => {
