@@ -61,8 +61,6 @@ describeIf(isBrowser)('Подписки на контролы', () => {
     });
 
     it('подписка на нативное событие на контроле должна навешиваться на внутренний контейнер', () => {
-        WasabyEvents.initInstance(container);
-
         act(() => {
             render(<OuterControl/>, container);
         });
