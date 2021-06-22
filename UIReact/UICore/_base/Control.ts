@@ -10,6 +10,7 @@ import {getResourceUrl, Logger, needToBeCompatible} from 'UICommon/Utils';
 import {Options} from 'UICommon/Vdom';
 import {makeWasabyObservable, pauseReactive, releaseProperties} from 'UICore/WasabyReactivity';
 import cExtend = require('Core/core-extend');
+import isNewEnvironment = require('Core/helpers/isNewEnvironment');
 
 import template = require('wml!UICore/_base/Control');
 import { IControlState, IErrorConfig, TErrBoundaryOptions } from './interfaces';
@@ -22,7 +23,7 @@ import {
 
 import {OptionsResolver} from 'UICommon/Executor';
 
-import {WasabyEventsSingleton, callNotify} from 'UICore/Events';
+import {WasabyEvents, callNotify} from 'UICore/Events';
 import {IWasabyEventSystem} from 'UICommon/Events';
 import {TIState, TControlConfig, IControl} from 'UICommon/interfaces';
 import {IControlOptions, TemplateFunction} from 'UICommon/Base';
@@ -512,6 +513,8 @@ export default class Control<TOptions extends IControlOptions = {},
          */
         if (this._$controlMounted) {
             try {
+                // необходимо приостановить работу реактивности, чтобы в случае изменения состояния в _beforeUpdate
+                // не произошло запуска еще одной перерисовки - перерисовка и так уже запущена
                 pauseReactive(this, () => {
                     // TODO: https://online.sbis.ru/opendoc.html?guid=a9962c03-d5ca-432c-bc8b-a244e5a1b1ed
                     this._beforeUpdate(newOptions, {scrollContext: {}});
@@ -557,7 +560,7 @@ export default class Control<TOptions extends IControlOptions = {},
 
     render(): React.ReactNode {
         const wasabyOptions = createWasabyOptions(this.props, this.context);
-        const { errorController, errorContainer } = this.props;
+        const { errorViewer = ErrorViewer, errorContainer = ErrorViewer} = this.props;
         /*
         Валидируем опции именно здесь по двум причинам:
         1) Здесь они уже полностью вычислены.
@@ -587,7 +590,7 @@ export default class Control<TOptions extends IControlOptions = {},
             // логика обработки ошибки предполагает два рендера.
             // В первом рендере устанавливаем в state ErrorConfig, во втором уже напрямую берем errorConfig из state
             if (!errorConfig) {
-                errorConfig = errorController.process(this.state.error);
+                errorConfig = errorViewer.process(this.state.error);
             }
             // если в errorConfig найден промис, значит в errorConfig ссылка на  настоящий errorController
             // в это условие заходим, только при первом рендере
@@ -674,10 +677,6 @@ export default class Control<TOptions extends IControlOptions = {},
      * </pre>
      */
     static _theme: string[] = [];
-    static defaultProps: object = {
-        errorContainer: ErrorViewer,
-        errorViewer: ErrorViewer
-    };
     /**
      * Загрузка стилей и тем контрола
      * @param themeName имя темы (по-умолчанию тема приложения)
@@ -851,7 +850,7 @@ export default class Control<TOptions extends IControlOptions = {},
         // кладём в конфиг наследуемые опции, чтобы они попали в полноценные опции
         cfg.theme = cfg.theme ?? 'default';
         cfg.readOnly = cfg.readOnly ?? false;
-        WasabyEventsSingleton.initEventSystem(domElement);
+        WasabyEvents.initInstance(domElement);
         const result = ReactDOM.render(React.createElement(ctor, cfg), domElement);
 
         if (result instanceof Control) {
@@ -884,7 +883,7 @@ export default class Control<TOptions extends IControlOptions = {},
             }
             return true;
         } else {
-            return false;
+            return !isNewEnvironment();
         }
     }
 

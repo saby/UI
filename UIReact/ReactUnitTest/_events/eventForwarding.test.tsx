@@ -10,7 +10,7 @@ import { JSDOM } from 'jsdom';
 import OuterControl from './OuterControl';
 import CounterControl from './CounterControl';
 
-import { WasabyEventsSingleton } from 'UICore/Events';
+import { WasabyEvents } from 'UICore/Events';
 
 describe('Подписки на контролы', () => {
     let container;
@@ -59,7 +59,7 @@ describe('Подписки на контролы', () => {
         clock = sandbox.useFakeTimers();
         container = document.createElement('div');
         document.body.appendChild(container);
-        eventSystem = WasabyEventsSingleton.initEventSystem(container);
+        eventSystem = WasabyEvents.initInstance(container);
     });
 
     afterEach(() => {

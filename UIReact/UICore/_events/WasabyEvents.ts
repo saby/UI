@@ -1,4 +1,4 @@
-import {detection} from 'Env/Env';
+import {cookie, detection} from 'Env/Env';
 
 import {
     WasabyEvents,
@@ -8,20 +8,37 @@ import {
     FastTouchEndController,
     ITouchEvent,
     SwipeController,
-    LongTapController
+    LongTapController,
+    IWasabyEvent,
+    EventUtils
 } from 'UICommon/Events';
 import {
     IWasabyHTMLElement,
     TModifyHTMLNode,
     IControlNodeEvent
 } from 'UICommon/interfaces';
+import { WasabyEventsDebug } from './WasabyEventsDebug';
+import { Control } from 'UICore/Control';
+import { Set } from 'Types/shim';
+
+type TElement =  HTMLElement & {
+    eventProperties?: Record<string, IWasabyEvent[]>;
+    eventPropertiesCnt?: number;
+};
+type TWasabyInputElement = HTMLInputElement & IWasabyHTMLElement;
+
+const inputTagNames = new Set([
+    'input',
+    'INPUT',
+    'textarea',
+    'TEXTAREA'
+]);
 
 /**
  * @author Тэн В.А.
  */
 export default class WasabyEventsReact extends WasabyEvents implements IWasabyEventSystem {
     private lastTarget: IWasabyHTMLElement;
-    private wasWasabyNotifyList: IControlNodeEvent[] = [];
 
     //#region инициализация системы событий
     constructor(rootNode: TModifyHTMLNode, tabKeyHandler?: Function) {
@@ -75,7 +92,6 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
 
     //#region _notify события
     startEvent<TArguments, TControlNode>(controlNode: TControlNode & IControlNodeEvent, args: TArguments): unknown {
-        let allowEventBubbling = true;
         const eventName = args[0].toLowerCase();
         const handlerArgs = args[1] || [];
         const eventDescription = args[2];
@@ -100,6 +116,139 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
     //#endregion
 
     //#region регистрация событий
+    setEventHook(
+        tagName: string,
+        props: {
+            events: Record<string, IWasabyEvent[]>;
+        },
+        element: TElement | Control
+    ): void {
+        const domElement = element._container || element;
+        const events = props.events;
+        const eventSystem = WasabyEventsReact.getInstance();
+        this.prepareEvents(events);
+        if (!this.haveEvents(events)) {
+            return;
+        }
+        const origEventProperties = domElement.eventProperties || {};
+        domElement.eventProperties = events;
+        if (!this.findEventProperties(events, origEventProperties)) {
+            domElement.eventProperties = WasabyEventsReact.mergeEvents(origEventProperties, events);
+        }
+        if (!!domElement) {
+            this.addEventsToElement(events, eventSystem, domElement);
+        }
+        if (!domElement) {
+            this.clearInputValue(domElement);
+        }
+    }
+
+    private prepareEvents(events: Record<string, IWasabyEvent[]>): void {
+        Object.keys(events).forEach((eventName) => {
+            const eventArr = events[eventName];
+            eventArr.forEach((event: IWasabyEvent) => {
+                if (event.args) {
+                    event.fn = function (eventObj: SyntheticEvent): void {
+                        const context = event.context.apply(this.viewController);
+                        const handler = event.handler.apply(this.viewController);
+                        if (typeof handler === 'undefined') {
+                            throw new Error(`Отсутствует обработчик ${ event.value } события ${ eventObj.type } у контрола ${ event.viewController._moduleName }`);
+                        }
+                        context.eventTarget = eventObj.target;
+                        const res = handler.apply(context, arguments);
+                        if(res !== undefined) {
+                            eventObj.result = res;
+                        }
+                    };
+                } else {
+                    event.fn = function (eventObj: SyntheticEvent, value: unknown): void {
+                        if (!event.handler(this.viewController, value)) {
+                            event.handler(this.data, value);
+                        }
+                    };
+                }
+
+                event.fn = event.fn.bind({
+                    viewController: event.viewController,
+                    data: event.data
+                });
+                event.fn.control = event.viewController;
+            });
+        });
+    }
+
+    private addEventsToElement(
+        events: Record<string, IWasabyEvent[]>,
+        eventSystem: IWasabyEventSystem,
+        element: TElement
+    ): void {
+        if (!element.eventProperties) {
+            element.eventProperties = {};
+            element.eventPropertiesCnt = 0;
+        }
+        const eventProperties: Record<string, IWasabyEvent[]> = element.eventProperties;
+
+        const eventFullNamesNames: string[] = Object.keys(events);
+        for (let i = 0; i < eventFullNamesNames.length; i++) {
+            const eventFullName: string = eventFullNamesNames[i];
+            const eventValue: IWasabyEvent[] = events[eventFullName];
+            const eventName = EventUtils.getEventName(eventFullName);
+            let eventDescrArray: IWasabyEvent[] = eventValue.map((event: IWasabyEvent): IWasabyEvent => {
+                return event;
+            });
+            if (eventProperties[eventFullName]) {
+                const elementEvents = this.eventDescrAttach(eventProperties[eventFullName], eventDescrArray);
+                if (eventProperties[eventFullName] && elementEvents.length === 0) {
+                    eventDescrArray = eventDescrArray.concat(eventProperties[eventFullName]);
+                }
+            } else {
+                element.eventPropertiesCnt++;
+            }
+
+            eventProperties[eventFullName] = eventDescrArray;
+            eventSystem.addCaptureEventHandler(eventName, element);
+        }
+    }
+
+    private findEventProperties(
+        newEvents: Record<string, IWasabyEvent[]>,
+        eventProperties: Record<string, IWasabyEvent[]>
+    ): boolean {
+        const newEventsKey = Object.keys(newEvents);
+        const eventPropertiesKey  = Object.keys(eventProperties);
+
+        if (newEventsKey.length !== eventPropertiesKey.length) {
+            return false;
+        }
+
+        for (const key of newEventsKey) {
+            if (!eventProperties.hasOwnProperty(key)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private isInputElement(element: HTMLElement): element is TWasabyInputElement {
+        return inputTagNames.has(element.tagName);
+    }
+
+    private clearInputValue(element: HTMLElement & {value?: unknown}): void {
+        if (element && this.isInputElement(element)) {
+            delete element.value;
+        }
+    }
+
+    private haveEvents(events: Record<string, IWasabyEvent[]>): boolean {
+        return events && Object.keys(events).length > 0;
+    }
+
+    private eventDescrAttach(elementEvents: IWasabyEvent[], eventDescriptionArray: IWasabyEvent[]): IWasabyEvent[] {
+        const eventDescriptionFirstValue = eventDescriptionArray[0] && eventDescriptionArray[0].value;
+        return elementEvents.filter((event) => eventDescriptionFirstValue === event.value);
+    }
+
     protected addCaptureProcessingHandler(eventName: string, method: Function): void {
         if (this._rootDOMNode.parentNode) {
             const handler = function(e: Event): void {
@@ -118,4 +267,36 @@ export default class WasabyEventsReact extends WasabyEvents implements IWasabyEv
         }
     }
     //#endregion
+
+    private static eventSystem: WasabyEventsReact;
+    static initInstance(domElement: HTMLElement): WasabyEventsReact {
+        if (!WasabyEventsReact.eventSystem) {
+            WasabyEventsDebug.debugEnable = WasabyEventsDebug.debugEnable || cookie.get('eventSystemDebug');
+            WasabyEventsReact.eventSystem = new WasabyEventsReact(domElement);
+        }
+        return WasabyEventsReact.eventSystem;
+    }
+
+    static getInstance(node?: HTMLElement): WasabyEventsReact {
+        if (!WasabyEventsReact.eventSystem) {
+            WasabyEventsReact.initInstance(node);
+        }
+        return WasabyEventsReact.eventSystem;
+    }
+
+
+    static mergeEvents(
+        currentEvents: Record<string, IWasabyEvent[]>,
+        newEvents: Record<string, IWasabyEvent[]>
+    ): Record<string, IWasabyEvent[]> {
+        const mergedEvents = currentEvents;
+        const newEventsKeys = Object.keys(newEvents);
+
+        for (const key of newEventsKeys) {
+            if (!currentEvents.hasOwnProperty(key)) {
+                mergedEvents[key] = newEvents[key];
+            }
+        }
+        return mergedEvents;
+    }
 }
