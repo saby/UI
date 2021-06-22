@@ -4,7 +4,7 @@
 import { Component } from "react";
 
 import { Control } from 'UICore/Base';
-import { WasabyEventsSingleton } from './WasabyEventsSingleton';
+import { default as WasabyEvents } from './WasabyEvents';
 import { WasabyEventsDebug } from './WasabyEventsDebug';
 import { Logger } from 'UI/Utils';
 
@@ -36,7 +36,7 @@ export function callNotify<T extends Component = Control>(
     args?: unknown[],
     options?: { bubbling?: boolean }
 ): unknown {
-    const eventSystem = WasabyEventsSingleton.getEventSystem();
+    const eventSystem = WasabyEvents.getInstance();
     Array.prototype.splice.call(arguments, 0, 1);
     const controlNode = getControlNode(inst);
     if (controlNode) {

@@ -9,7 +9,7 @@ import { assert } from 'chai';
 import { JSDOM } from 'jsdom';
 import OuterControl from './OuterControl';
 
-import { WasabyEventsSingleton } from 'UICore/Events';
+import { WasabyEvents } from 'UICore/Events';
 
 const isBrowser = typeof window !== 'undefined';
 const describeIf = (condition) => condition ? describe : describe.skip;
@@ -49,7 +49,7 @@ describeIf(isBrowser)('Подписки на контролы', () => {
     });
 
     it('подписка на нативное событие на контроле должна навешиваться на внутренний контейнер', () => {
-        WasabyEventsSingleton.initEventSystem(container);
+        WasabyEvents.initInstance(container);
 
         act(() => {
             render(<OuterControl/>, container);
