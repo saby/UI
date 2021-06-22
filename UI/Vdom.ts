@@ -15,12 +15,11 @@ import { SyntheticEvent } from 'UICommon/Events';
  * @param newOptions {object} Новый набор опций.
  * @param oldOptions {object} Старый набор опций.
  */
-function isOptionsChanged(newOptions: object, oldOptions: object): boolean {
+export function isOptionsChanged(newOptions: object, oldOptions: object): boolean {
     return !!_Options.getChangedOptions(newOptions as TOptions, oldOptions as TOptions);
 }
 
 export {
-    isOptionsChanged,
     Synchronizer,
     Debug,
     SyntheticEvent,
