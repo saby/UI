@@ -8,6 +8,7 @@ import { assert } from 'chai';
 // @ts-ignore
 import { JSDOM } from 'jsdom';
 import OuterControl from './OuterControl';
+import CounterControl from './CounterControl';
 
 import { WasabyEvents } from 'UICore/Events';
 
@@ -26,6 +27,14 @@ describe('Подписки на контролы', () => {
         });
     }
 
+    async function tickAsync(duration: number): Promise<void> {
+        return act(async () => {
+            // в новой версии sinon есть clock.tickAsync, который в теории делает то же самое
+            clock.tick(duration);
+            await Promise.resolve();
+        });
+    }
+
     // не выношу это в describe повыше, чтобы тесты построения на сервере не нужно было выносить в отдельный файл
     before(() => {
         const browser = new JSDOM();
@@ -39,6 +48,7 @@ describe('Подписки на контролы', () => {
     });
 
     let clock;
+    let eventSystem;
     beforeEach(() => {
         sandbox = createSandbox();
         /*
@@ -48,6 +58,7 @@ describe('Подписки на контролы', () => {
         clock = sandbox.useFakeTimers();
         container = document.createElement('div');
         document.body.appendChild(container);
+        eventSystem = WasabyEvents.initInstance(container);
     });
     afterEach(() => {
         clock.restore();
@@ -55,6 +66,7 @@ describe('Подписки на контролы', () => {
         unmountComponentAtNode(container);
         container.remove();
         container = null;
+        eventSystem = null;
     });
 
     it('подписка на нативное событие на контроле должна навешиваться на внутренний контейнер', () => {
@@ -69,5 +81,53 @@ describe('Подписки на контролы', () => {
         const handlers = element.eventProperties['on:click'];
         const clickHandler = handlers[0].handler.apply(OuterControl.prototype);
         assert.strictEqual(clickHandler, OuterControl.prototype._clickHandler);
+    });
+    it('Проверка работы обработчика события on:', () => {
+        let instance;
+        act(() => {
+            instance = render(<CounterControl/>, container);
+        });
+        tick(0);
+
+        const button = container.querySelector('button');
+        assert.equal(instance.clickCount, '0');
+
+        act(() => {
+            button.dispatchEvent(new window.MouseEvent('click', {bubbles: true}));
+        });
+        tick(0);
+
+        assert.equal(instance.clickCount,'1');
+    });
+
+    // TODO: расскоментировать после выполнения (проблема с контекстом)
+    // https://online.sbis.ru/opendoc.html?guid=e4cb8aee-57e5-4c8e-9902-b69828cdf5d3
+    it('Проверяем события тача', async () => {
+        global.navigation = { maxTouchPoints: 1 };
+        const originalTouchState = eventSystem.shouldUseClickByTap;
+        eventSystem.shouldUseClickByTap = () => {
+            return true;
+        };
+
+        let instance;
+        act(() => {
+            instance = render(<CounterControl/>, container);
+        });
+        tick(0);
+
+        const button = container.querySelector('button');
+        assert.equal(instance.clickCount, '0');
+
+        act(() => {
+            button.dispatchEvent(new window.TouchEvent('touchstart', {bubbles: true}));
+            button.dispatchEvent(new window.TouchEvent('touchend', {bubbles: true}));
+        });
+        await tickAsync(500);
+        tick(0);
+
+        assert.equal(instance.clickCount,'1');
+
+        eventSystem.shouldUseClickByTap = originalTouchState;
+        delete global.navigation;
     });
 });
