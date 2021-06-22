@@ -1,0 +1,1 @@
+<div style="border: 2px solid red;" on:click="clickHandler()">LiveContent. click to add counter. Counter={{ counter }}</div>
