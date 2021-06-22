@@ -37,7 +37,6 @@ describeIf(isBrowser)('Подписки на контролы', () => {
             await Promise.resolve();
         });
     }
-
     let clock;
     let eventSystem;
     beforeEach(() => {
@@ -89,8 +88,6 @@ describeIf(isBrowser)('Подписки на контролы', () => {
         assert.equal(instance.clickCount,'1');
     });
 
-    // TODO: расскоментировать после выполнения (проблема с контекстом)
-    // https://online.sbis.ru/opendoc.html?guid=e4cb8aee-57e5-4c8e-9902-b69828cdf5d3
     it('Проверяем события тача', async () => {
         global.navigation = { maxTouchPoints: 1 };
         const originalTouchState = eventSystem.shouldUseClickByTap;
