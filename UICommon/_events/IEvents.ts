@@ -3,6 +3,11 @@ import { IControl } from 'UICommon/interfaces';
 
 type VoidFunction = () => void;
 
+type TFn = (eventObj: ISyntheticEvent, value?: unknown) => void;
+interface IFn extends TFn {
+    control?: IControl;
+}
+
 export interface ISyntheticEvent {
     nativeEvent: Event;
     type: string;
@@ -69,6 +74,7 @@ export interface IWasabyEvent {
     args: unknown[];
     context: Function;
     handler: Function;
+    fn: IFn;
     isControl: boolean;
     value: string;
     viewController: IControl;
