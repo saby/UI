@@ -95,7 +95,7 @@ describe('Compiler/core/Text', () => {
    it('ExpressionNode', () => {
       const collection = processText('{{ identifier }}');
       assert.strictEqual(collection.length, 1);
-      assert.instanceOf(collection[0], Ast.ExpressionNode);
+      assert.instanceOf(collection[0], Ast.TranslationNode);
       const expressionNode = <Ast.ExpressionNode>collection[0];
       assert.isTrue(!!expressionNode.__$ws_program);
    });
