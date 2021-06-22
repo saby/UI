@@ -205,11 +205,6 @@ const basicPrototype: object = Object.getPrototypeOf({});
 // Про пробрасывании скоупа мы создаём новый прототип через Object.create.
 // Нужно отслеживать изменение опций на всех уровнях.
 function getKeysWithPrototypes(obj: Object): string[] {
-   // В 3100 для безопасности включим только для конкретного случая. В 4100 этого if не должно быть.
-   if (!obj.hasOwnProperty('contextOptionsInnerComponent')) {
-      return Object.keys(obj);
-   }
-
    const keys: string[] = [];
    let currentPrototype: object = obj;
 
