@@ -74,6 +74,8 @@ export default class SyntheticEvent<TNativeEvent extends Event = Event> implemen
      */
     currentTarget: EventTarget;
 
+    result: unknown;
+
     private stopped: boolean;
     private _bubbling: boolean;
 

@@ -34,7 +34,8 @@ const whiteList = {
    "WSTests/unit/tmpl/sync-tests/context/dirtyCheckingUpdate/contextField": true,
    "Controls/scroll:_scrollContext": true,
    "Controls/scroll:_stickyHeaderContext": true,
-   "UI/State:AppData": true
+   "UI/State:AppData": true,
+   "Layout/Selector/__SelectorContext": true // Временное поле для раскладки окна выбора по новому дизайну
 };
 
 function compositeGetVersion() {
