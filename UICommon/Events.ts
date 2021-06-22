@@ -17,3 +17,4 @@ export * as Subscriber from './_events/Subscriber';
 
 export { default as SyntheticEvent } from './_events/SyntheticEvent';
 export { default as isInvisibleNode } from './_events/InvisibleNodeChecker';
+export { TouchHandlers } from './_events/Touch/TouchHandlers';

@@ -34,7 +34,6 @@ describe('Подписки на контролы', () => {
             await Promise.resolve();
         });
     }
-
     // не выношу это в describe повыше, чтобы тесты построения на сервере не нужно было выносить в отдельный файл
     before(() => {
         const browser = new JSDOM();
@@ -46,7 +45,6 @@ describe('Подписки на контролы', () => {
         delete global.window;
         delete global.document;
     });
-
     let clock;
     let eventSystem;
     beforeEach(() => {
@@ -100,8 +98,7 @@ describe('Подписки на контролы', () => {
         assert.equal(instance.clickCount,'1');
     });
 
-    // TODO: расскоментировать после выполнения (проблема с контекстом)
-    // https://online.sbis.ru/opendoc.html?guid=e4cb8aee-57e5-4c8e-9902-b69828cdf5d3
+
     it('Проверяем события тача', async () => {
         global.navigation = { maxTouchPoints: 1 };
         const originalTouchState = eventSystem.shouldUseClickByTap;
