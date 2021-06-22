@@ -1,4 +1,4 @@
-import {constants, detection} from 'Env/Env';
+import {detection} from 'Env/Env';
 import {Logger} from 'UICommon/Utils';
 
 import * as EventUtils from './EventUtils';
@@ -7,8 +7,7 @@ import {
     IEventConfig,
     IWasabyEventSystem,
     IHandlerInfo,
-    IArrayEvent,
-    IClickEvent
+    IArrayEvent
 } from './IEvents';
 
 import {TouchHandlers} from './Touch/TouchHandlers';
@@ -30,7 +29,6 @@ import {
  */
 
 const callAfterMount: IArrayEvent[] = [];
-
 
 abstract class WasabyEvents implements IWasabyEventSystem {
     private capturedEventHandlers: Record<string, IHandlerInfo[]>;
