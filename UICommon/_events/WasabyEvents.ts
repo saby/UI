@@ -7,7 +7,8 @@ import {
     IEventConfig,
     IWasabyEventSystem,
     IHandlerInfo,
-    IArrayEvent, IClickEvent
+    IArrayEvent,
+    IClickEvent
 } from './IEvents';
 
 import {FastTouchEndController} from './Touch/FastTouchEndController';
