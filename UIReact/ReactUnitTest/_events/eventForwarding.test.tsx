@@ -19,7 +19,7 @@ describeIf(isBrowser)('Подписки на контролы', () => {
     let container;
     let sandbox;
 
-        /**
+    /**
      * Эта функция существует для того, чтобы не забывать оборачивать тики в act.
      * Это нужно, чтобы реакт реагировал на изменение времени и обновлял компоненты.
      * @param duration Значение, на которое должно продвинуться время.
@@ -104,34 +104,32 @@ describeIf(isBrowser)('Подписки на контролы', () => {
         assert.equal(instance.clickCount,'1');
     });
 
-    // TODO: расскоментировать после выполнения (проблема с контекстом)
-    // https://online.sbis.ru/opendoc.html?guid=e4cb8aee-57e5-4c8e-9902-b69828cdf5d3
-    // it('Проверяем события тача', async () => {
-    //     global.navigation = { maxTouchPoints: 1 };
-    //     const originalTouchState = eventSystem.touchHandlers.shouldUseClickByTap;
-    //     eventSystem.touchHandlers.shouldUseClickByTap = () => {
-    //         return true;
-    //     };
-    //
-    //     let instance;
-    //     act(() => {
-    //         instance = render(<CounterControl/>, container);
-    //     });
-    //     tick(0);
-    //
-    //     const button = container.querySelector('button');
-    //     assert.equal(instance.clickCount, '0');
-    //
-    //     act(() => {
-    //         button.dispatchEvent(new window.TouchEvent('touchstart', {bubbles: true}));
-    //         button.dispatchEvent(new window.TouchEvent('touchend', {bubbles: true}));
-    //     });
-    //     await tickAsync(500);
-    //     tick(0);
-    //
-    //     assert.equal(instance.clickCount,'1');
-    //
-    //     eventSystem.touchHandlers.shouldUseClickByTap = originalTouchState;
-    //     delete global.navigation;
-    // });
+    it('Проверяем события тача', async () => {
+        global.navigation = { maxTouchPoints: 1 };
+        const originalTouchState = eventSystem.touchHandlers.shouldUseClickByTap;
+        eventSystem.touchHandlers.shouldUseClickByTap = () => {
+            return true;
+        };
+
+        let instance;
+        act(() => {
+            instance = render(<CounterControl/>, container);
+        });
+        tick(0);
+
+        const button = container.querySelector('button');
+        assert.equal(instance.clickCount, '0');
+
+        act(() => {
+            button.dispatchEvent(new window.TouchEvent('touchstart', {bubbles: true}));
+            button.dispatchEvent(new window.TouchEvent('touchend', {bubbles: true}));
+        });
+        await tickAsync(500);
+        tick(0);
+
+        assert.equal(instance.clickCount,'1');
+
+        eventSystem.touchHandlers.shouldUseClickByTap = originalTouchState;
+        delete global.navigation;
+    });
 });

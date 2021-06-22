@@ -17,7 +17,7 @@ import { TemplateFunction, IControlOptions } from 'UICommon/Base';
 import type { TIState } from 'UICommon/interfaces';
 import type { IGeneratorAttrs, TemplateOrigin, IControlConfig, TemplateResult, AttrToDecorate } from './interfaces';
 import { Control } from 'UICore/Base';
-import { mergeEvents } from 'UICore/Events';
+import { WasabyEvents } from 'UICore/Events';
 
 export class Generator implements IGenerator {
     /**
@@ -49,7 +49,7 @@ export class Generator implements IGenerator {
 
         let fullEvents = {...events};
         if (config && config.attr && config.attr.events){
-            fullEvents = mergeEvents(events, config.attr.events);
+            fullEvents = WasabyEvents.mergeEvents(events, config.attr.events);
         }
 
         const templateAttributes: IGeneratorAttrs = {
@@ -316,7 +316,12 @@ function createWsControl(
 > {
     resolveControlName(scope, decorAttribs.attributes);
     scope._$attributes = decorAttribs;
-
+    if (decorAttribs.attributes && decorAttribs.attributes.key) {
+        // переносим ключ чтобы он выставился именно для контрола,
+        // а не для элемента внутри, чтобы избежать перерисовки контрола
+        scope.key = decorAttribs.attributes.key;
+        delete decorAttribs.attributes.key;
+    }
     return React.createElement(origin, scope);
 }
 /**

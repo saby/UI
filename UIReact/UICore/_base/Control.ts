@@ -10,6 +10,7 @@ import {getResourceUrl, Logger, needToBeCompatible} from 'UICommon/Utils';
 import {Options} from 'UICommon/Vdom';
 import {makeWasabyObservable, pauseReactive, releaseProperties} from 'UICore/WasabyReactivity';
 import cExtend = require('Core/core-extend');
+import isNewEnvironment = require('Core/helpers/isNewEnvironment');
 
 import template = require('wml!UICore/_base/Control');
 import { IControlState, IErrorConfig, TErrBoundaryOptions } from './interfaces';
@@ -22,7 +23,7 @@ import {
 
 import {OptionsResolver} from 'UICommon/Executor';
 
-import {WasabyEventsSingleton, callNotify} from 'UICore/Events';
+import {WasabyEvents, callNotify} from 'UICore/Events';
 import {IWasabyEventSystem} from 'UICommon/Events';
 import {TIState, TControlConfig, IControl} from 'UICommon/interfaces';
 import {IControlOptions, TemplateFunction} from 'UICommon/Base';
@@ -512,6 +513,8 @@ export default class Control<TOptions extends IControlOptions = {},
          */
         if (this._$controlMounted) {
             try {
+                // необходимо приостановить работу реактивности, чтобы в случае изменения состояния в _beforeUpdate
+                // не произошло запуска еще одной перерисовки - перерисовка и так уже запущена
                 pauseReactive(this, () => {
                     // TODO: https://online.sbis.ru/opendoc.html?guid=a9962c03-d5ca-432c-bc8b-a244e5a1b1ed
                     this._beforeUpdate(newOptions, {scrollContext: {}});
@@ -657,6 +660,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * Все стили будут скачаны при создании
      *
      * @static
+     * @deprecated
      * @example
      * <pre>
      *   static _styles: string[] = ['Controls/Utils/getWidth'];
@@ -668,6 +672,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * Все стили будут скачаны при создании
      *
      * @static
+     * @deprecated
      * @example
      * <pre>
      *   static _theme: string[] = ['Controls/popupConfirmation'];
@@ -847,7 +852,7 @@ export default class Control<TOptions extends IControlOptions = {},
         // кладём в конфиг наследуемые опции, чтобы они попали в полноценные опции
         cfg.theme = cfg.theme ?? 'default';
         cfg.readOnly = cfg.readOnly ?? false;
-        WasabyEventsSingleton.initEventSystem(domElement);
+        WasabyEvents.initInstance(domElement);
         const result = ReactDOM.render(React.createElement(ctor, cfg), domElement);
 
         if (result instanceof Control) {
@@ -880,7 +885,7 @@ export default class Control<TOptions extends IControlOptions = {},
             }
             return true;
         } else {
-            return false;
+            return !isNewEnvironment();
         }
     }
 

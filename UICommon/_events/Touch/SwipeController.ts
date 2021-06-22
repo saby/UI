@@ -54,7 +54,7 @@ export class SwipeController {
     }
 
     public static detectState(event: ITouchEvent): void {
-        if (swipeState.target) {
+        if (swipeState && swipeState.target) {
             const swipeDirection = this.detectSwipe(event);
             if (swipeDirection) {
                 const swipe = new Event('swipe') as any;

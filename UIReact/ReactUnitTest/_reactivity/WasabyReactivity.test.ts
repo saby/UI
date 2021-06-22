@@ -3,6 +3,7 @@ import * as extend from 'Core/core-extend';
 import {assert} from 'chai';
 import {createSandbox} from "sinon";
 import {act} from "react-dom/test-utils";
+import {Control} from 'UI/Base';
 
 describe('WasabyReact Reactivity', function () {
     let sandbox;
@@ -47,6 +48,31 @@ describe('WasabyReact Reactivity', function () {
         inst._string = 'wow';
         await tickAsync(0)
         assert.isTrue(updated);
+    });
+
+    it('won\'t update when field changed in _beforeUpdate', async () => {
+        const tmpl = {
+            reactiveProps: ['_string']
+        };
+        let updated = 0;
+        class TestControl extends Control {
+            _string: string;
+            _template: any = tmpl;
+            _forceUpdate(): void {
+                updated++;
+            }
+            _beforeUpdate(): void {
+                inst._string = 'wow2';
+            }
+        }
+        const inst = new TestControl({}, {});
+        inst._string = '';
+        assert.equal(updated, 0);
+        makeWasabyObservable(inst);
+        inst._$controlMounted = true;
+        inst.shouldComponentUpdate({_string: 'wow'}, {});
+        await tickAsync(0);
+        assert.equal(updated, 0);
     });
 
     it('should change reactiveValues when template change', async () => {
