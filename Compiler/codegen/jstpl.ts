@@ -95,6 +95,7 @@ export const FOR = `(function customForTemplate() {
          out = out.concat(processed);
       }
    }).call(data);
+   Object.defineProperty(out, 'for', {value: true, enumerable: false});
    return out;
 })(),
 `;
@@ -132,6 +133,7 @@ export const FOREACH = `(function forTemplate() {
          out = markupGenerator.createText("");
       }
    }).call(data);
+   Object.defineProperty(out, 'for', {value: true, enumerable: false});
    return out;
 }).call(this),
 `;
