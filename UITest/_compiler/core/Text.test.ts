@@ -47,7 +47,7 @@ function createTextProcessorOptions(allowedContent: Text.TextContentFlags, trans
 }
 
 function processText(data: string, allowedContent: Text.TextContentFlags = Text.TextContentFlags.FULL_TEXT, translateText: boolean = false) {
-   const html = parse(data, FILE_NAME, parseConfig);
+   const html = parse(data + '}}}}}', FILE_NAME, parseConfig);
    assert.strictEqual(html.length, 1);
    assert.isTrue(html[0] instanceof Nodes.Text);
    const text = <Nodes.Text>html[0];
