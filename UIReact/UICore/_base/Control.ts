@@ -27,7 +27,7 @@ import {WasabyEvents, callNotify} from 'UICore/Events';
 import {IWasabyEventSystem} from 'UICommon/Events';
 import {TIState, TControlConfig, IControl} from 'UICommon/interfaces';
 import {IControlOptions, TemplateFunction} from 'UICommon/Base';
-import { ChainOfRef, CreateOriginRef, IResponsibilityHandler } from 'UICore/Ref';
+import { ChainOfRef, CreateOriginRef } from 'UICore/Ref';
 import { CreateControlNodeRef } from './Refs/CreateControlNodeRef';
 import {goUpByControlTree} from 'UICore/NodeCollector';
 import {constants} from 'Env/Env';
@@ -622,7 +622,7 @@ export default class Control<TOptions extends IControlOptions = {},
                 realFiberNode = realFiberNode[0];
             }
             const chainOfRef = new ChainOfRef();
-            chainOfRef.add(new CreateControlNodeRef(this)).add(realFiberNode.ref);
+            chainOfRef.add(new CreateControlNodeRef(this)).add(new CreateOriginRef(realFiberNode.ref));
             result = {
                 ...realFiberNode, ref: (node) => {
                     return chainOfRef.execute()(node);
