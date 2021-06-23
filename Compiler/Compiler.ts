@@ -133,30 +133,6 @@ interface ITraversed {
 }
 
 /**
- * Fix traverse result.
- * @param rawTraversed Actual traverse result.
- * @param dependencies Array of dependencies.
- */
-function fixTraversed(rawTraversed: IAST | { astResult: IAST; words: ITranslationKey[]; }, dependencies: string[]): ITraversed {
-   if (Array.isArray(rawTraversed)) {
-      return {
-         ast: rawTraversed as IAST,
-         localizedDictionary: [],
-         templateNames: rawTraversed.templateNames,
-         hasTranslations: rawTraversed.hasTranslations,
-         dependencies
-      };
-   }
-   return {
-      ast: rawTraversed.astResult as IAST,
-      localizedDictionary: rawTraversed.words,
-      templateNames: rawTraversed.astResult.templateNames,
-      hasTranslations: rawTraversed.astResult.hasTranslations,
-      dependencies
-   };
-}
-
-/**
  * Represents base compiler methods for wml and tmpl.
  */
 abstract class BaseCompiler implements ICompiler {
@@ -221,8 +197,7 @@ abstract class BaseCompiler implements ICompiler {
       // TODO: реализовать whitespace visitor и убрать флаг needPreprocess
       const needPreprocess = options.modulePath.extension === 'wml';
       const errorHandler = createErrorHandler(!options.fromBuilderTmpl);
-      // tslint:disable:prefer-const
-      let parsed = parse(source.text, options.fileName, {
+      const parsed = parse(source.text, options.fileName, {
          xml: true,
          allowComments: true,
          allowCDATA: true,
@@ -235,14 +210,13 @@ abstract class BaseCompiler implements ICompiler {
          errorHandler
       });
       const hasFailures = errorHandler.hasFailures();
-      const lastMessage = errorHandler.popLastErrorMessage();
+      const lastMessage = hasFailures ? errorHandler.popLastErrorMessage() : undefined;
       errorHandler.flush();
       if (hasFailures) {
          throw new Error(lastMessage);
       }
       const dependencies = ComponentCollector.getComponents(parsed);
-      const traversed = traverseSync(parsed, options);
-      return fixTraversed(traversed, dependencies);
+      return traverseSync(parsed, options, dependencies);
    }
 
    /**

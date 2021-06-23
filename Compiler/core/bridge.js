@@ -91,7 +91,7 @@ define('Compiler/core/bridge', [
       return deferred;
    }
 
-   function traverseSync(htmlTree, options) {
+   function traverseSync(htmlTree, options, dependencies) {
       var scope = new ScopeLib.default(!options.fromBuilderTmpl);
       var errorHandler = ErrorHandlerLib.createErrorHandler(!options.fromBuilderTmpl);
       var traverseConfig = {
@@ -124,8 +124,11 @@ define('Compiler/core/bridge', [
       PatchVisitorLib.default(traversed, traverseOptions.scope);
 
       return {
-         astResult: traversed,
-         words: traverseOptions.scope.getTranslationKeys()
+         ast: traversed,
+         localizedDictionary: traverseOptions.scope.getTranslationKeys(),
+         templateNames: traversed.templateNames,
+         hasTranslations: traversed.hasTranslations,
+         dependencies: dependencies
       };
    }
 
