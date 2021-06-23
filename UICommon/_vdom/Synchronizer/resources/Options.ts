@@ -81,7 +81,10 @@ function isVersionableArray(obj: IVersionableArray): boolean {
 }
 
 function isTemplate(tmpl: ITemplate): boolean {
-   return !!(tmpl && typeof tmpl.func === 'function' && tmpl.hasOwnProperty('internal'));
+   return !!(
+       tmpl && typeof tmpl.hasOwnProperty === 'function' &&
+       typeof tmpl.func === 'function' && tmpl.hasOwnProperty('internal')
+   );
 }
 
 function isTemplateArray(templateArray: ITemplateArray): boolean {
@@ -215,6 +218,16 @@ function getKeys(first: object, second: object): string[] {
       properties.push(key);
    });
    return properties;
+}
+
+/**
+ * Проверить, является ли некоторое значение контентной опцией.
+ * @param value
+ */
+export function isContentOption(value: unknown): boolean {
+   return isTemplate(value as ITemplate) ||
+       isTemplateObject(value as ITemplateObject) ||
+       isTemplateArray(value as ITemplateArray);
 }
 
 export function getChangedOptions(
