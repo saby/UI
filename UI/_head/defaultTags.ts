@@ -37,7 +37,9 @@ export function createDefaultTags(cfg: IHeadOptions): void {
       );
    }
 
-   API.createNoScript(cfg.noscript);
+   if(cfg.noscript){
+      API.createNoScript(cfg.noscript);
+   }
    const metaAttrs = [
       {'http-equiv': 'X-UA-Compatible', content: 'IE=edge'},
       {charset: 'utf-8', class: 'head-server-block'}
