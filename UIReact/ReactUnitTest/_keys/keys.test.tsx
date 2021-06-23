@@ -8,6 +8,7 @@ import { assert } from 'chai';
 // @ts-ignore
 import { JSDOM } from 'jsdom';
 import TestControl from './Container';
+import TestControl2 from './Container2';
 describe('Тесты работы ключей в шаблонизаторе', () => {
     let container;
     let sandbox;
@@ -84,6 +85,29 @@ describe('Тесты работы ключей в шаблонизаторе', (
         await tickAsync(0);
         await tickAsync(0);
 
-        assert.equal(inst._children.item_5.updated, 0);
+        // потому что в реакте componentDidUpdate реально срабатывает
+        // https://codesandbox.io/s/react-list-sample-map-with-keys-forked-ldi42
+        assert.equal(inst._children.item_5.updated, 3);
+    });
+
+    it('Выставленные ключи для контролов внутри цикла позволяют избежать лишних перерисовок контролов 2', async () => {
+        let inst;
+        act(() => {
+            inst = render(<TestControl2 />, container);
+        });
+        await tickAsync(0);
+        await tickAsync(0);
+        inst.keys = [2,3,4,5];
+        await tickAsync(0);
+        await tickAsync(0);
+        inst.keys = [3,4,5];
+        await tickAsync(0);
+        await tickAsync(0);
+        inst.keys = [4,5];
+        await tickAsync(0);
+        await tickAsync(0);
+
+        // если
+        assert.equal(inst._children.item_5.updated, 3);
     });
 });
