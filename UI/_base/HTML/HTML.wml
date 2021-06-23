@@ -42,7 +42,10 @@
             <script key="config" type="text/javascript"
                     src="{{ linkResolver.resolveLink('RequireJsLoader/config', 'js') }}"></script>
          </ws:else>
-
+         <script key="boomerang" type="text/javascript"
+                    src="{{ getResourceUrl('/cdn/Boomerang/v.0.0.2.js') }}"></script>
+         <script key="timetester" type="text/javascript"
+                    src="{{ getResourceUrl(resourceRoot + 'SbisEnvUI/callTimeTesterMinified.js') }}"></script>
 
          <ws:if data="{{_options.builder && _options.builderCompatible}}">
             <ws:partial template="wml!UI/_base/HTML/builderRunnerCompatible"
