@@ -10,7 +10,8 @@ import { JSDOM } from 'jsdom';
 import OuterControl from './OuterControl';
 import CounterControl from './CounterControl';
 
-import { WasabyEvents } from 'UICore/Events';
+import { WasabyEvents} from 'UICore/Events';
+import { TouchHandlers } from 'UICommon/Events';
 
 const isBrowser = typeof window !== 'undefined';
 const describeIf = (condition) => condition ? describe : describe.skip;
@@ -90,8 +91,8 @@ describeIf(isBrowser)('Подписки на контролы', () => {
 
     it('Проверяем события тача', async () => {
         global.navigation = { maxTouchPoints: 1 };
-        const originalTouchState = eventSystem.shouldUseClickByTap;
-        eventSystem.shouldUseClickByTap = () => {
+        const originalTouchState = TouchHandlers.shouldUseClickByTap;
+        TouchHandlers.shouldUseClickByTap = () => {
             return true;
         };
 
@@ -113,7 +114,7 @@ describeIf(isBrowser)('Подписки на контролы', () => {
 
         assert.equal(instance.clickCount,'1');
 
-        eventSystem.shouldUseClickByTap = originalTouchState;
+        TouchHandlers.shouldUseClickByTap = originalTouchState;
         delete global.navigation;
     });
 });
