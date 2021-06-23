@@ -7,7 +7,7 @@ import * as ComponentCollector from './core/deprecated/ComponentCollector';
 import { parse } from './html/Parser';
 import { createErrorHandler } from './utils/ErrorHandler';
 import getWasabyTagDescription from './core/Tags';
-import { traverse } from './core/bridge';
+import { traverseSync } from './core/bridge';
 import * as codegenBridge from './codegen/bridge';
 import * as templates from './codegen/templates';
 import { ISource, Source } from './utils/Source';
@@ -31,6 +31,13 @@ export interface ICompiler {
     * @param options Compiler options.
     */
    compile(text: string, options: IOptions): Promise<IArtifact>;
+
+   /**
+    * Compile input text.
+    * @param text Source code text.
+    * @param options Compiler options.
+    */
+   compileSync(text: string, options: IOptions): IArtifact;
 }
 
 /**
@@ -210,43 +217,32 @@ abstract class BaseCompiler implements ICompiler {
     * @param source Source code.
     * @param options Compiler options.
     */
-   traverse(source: ISource, options: IOptions): Promise<ITraversed> {
-      return new Promise<ITraversed>((resolve: any, reject: any) => {
-         try {
-            // TODO: реализовать whitespace visitor и убрать флаг needPreprocess
-            const needPreprocess = options.modulePath.extension === 'wml';
-            const errorHandler = createErrorHandler(!options.fromBuilderTmpl);
-            // tslint:disable:prefer-const
-            let parsed = parse(source.text, options.fileName, {
-               xml: true,
-               allowComments: true,
-               allowCDATA: true,
-               compatibleTreeStructure: true,
-               rudeWhiteSpaceCleaning: true,
-               normalizeLineFeed: true,
-               cleanWhiteSpaces: true,
-               needPreprocess,
-               tagDescriptor: getWasabyTagDescription,
-               errorHandler
-            });
-            const hasFailures = errorHandler.hasFailures();
-            const lastMessage = errorHandler.popLastErrorMessage();
-            errorHandler.flush();
-            if (hasFailures) {
-               reject(new Error(lastMessage));
-               return;
-            }
-            const dependencies = ComponentCollector.getComponents(parsed);
-            // tslint:disable:prefer-const
-            let traversed = traverse(parsed, options);
-            traversed.addCallbacks(
-               (rawTraversed) => resolve(fixTraversed(rawTraversed, dependencies)),
-               (error) => reject(error)
-            );
-         } catch (error) {
-            reject(error);
-         }
+   traverse(source: ISource, options: IOptions): ITraversed {
+      // TODO: реализовать whitespace visitor и убрать флаг needPreprocess
+      const needPreprocess = options.modulePath.extension === 'wml';
+      const errorHandler = createErrorHandler(!options.fromBuilderTmpl);
+      // tslint:disable:prefer-const
+      let parsed = parse(source.text, options.fileName, {
+         xml: true,
+         allowComments: true,
+         allowCDATA: true,
+         compatibleTreeStructure: true,
+         rudeWhiteSpaceCleaning: true,
+         normalizeLineFeed: true,
+         cleanWhiteSpaces: true,
+         needPreprocess,
+         tagDescriptor: getWasabyTagDescription,
+         errorHandler
       });
+      const hasFailures = errorHandler.hasFailures();
+      const lastMessage = errorHandler.popLastErrorMessage();
+      errorHandler.flush();
+      if (hasFailures) {
+         throw new Error(lastMessage);
+      }
+      const dependencies = ComponentCollector.getComponents(parsed);
+      const traversed = traverseSync(parsed, options);
+      return fixTraversed(traversed, dependencies);
    }
 
    /**
@@ -256,35 +252,31 @@ abstract class BaseCompiler implements ICompiler {
     */
    compile(text: string, options: IOptions): Promise<IArtifact> {
       return new Promise<IArtifact>((resolve: any, reject: any) => {
-         let artifact: IArtifact = createArtifact(options);
-         try {
-            const source: ISource = this.createSource(text, options.fileName);
-            this.traverse(source, options)
-               .then((traversed) => {
-                  try {
-                     this.initWorkspace(traversed.templateNames);
-                     artifact.text = this.generate(traversed, options);
-                     artifact.localizedDictionary = traversed.localizedDictionary;
-                     artifact.dependencies = traversed.dependencies;
-                     artifact.stable = true;
-                     resolve(artifact);
-                  } catch (error) {
-                     artifact.errors.push(error);
-                     reject(artifact);
-                  } finally {
-                     this.cleanWorkspace();
-                  }
-               })
-               .catch((error) => {
-                  this.cleanWorkspace();
-                  artifact.errors.push(error);
-                  reject(artifact);
-               });
-         } catch (error) {
-            artifact.errors.push(error);
-            reject(artifact);
+         const artifact = this.compileSync(text, options);
+         if (artifact.stable) {
+            resolve(artifact);
+            return;
          }
+         reject(artifact);
       });
+   }
+
+   compileSync(text: string, options: IOptions): IArtifact {
+      const artifact: IArtifact = createArtifact(options);
+      try {
+         const source: ISource = this.createSource(text, options.fileName);
+         const traversed = this.traverse(source, options);
+         this.initWorkspace(traversed.templateNames);
+         artifact.text = this.generate(traversed, options);
+         artifact.localizedDictionary = traversed.localizedDictionary;
+         artifact.dependencies = traversed.dependencies;
+         artifact.stable = true;
+      } catch (error) {
+         artifact.errors.push(error);
+      } finally {
+         this.cleanWorkspace();
+      }
+      return artifact;
    }
 }
 
@@ -410,23 +402,36 @@ class CompilerXHTML implements ICompiler {
     */
    compile(text: string, options: IOptions): Promise<IArtifact> {
       return new Promise((resolve: any, reject: any) => {
-         let artifact: IArtifact = createArtifact(options);
-         if (!DoT) {
-            DoT = requirejs.defined('Core/js-template-doT') && requirejs('Core/js-template-doT');
-         }
-         try {
-            // tslint:disable:prefer-const
-            let config = DoT.getSettings();
-            // tslint:disable:prefer-const
-            let template = DoT.template(text, config, undefined, undefined, options.modulePath.module);
-            artifact.text = this.generate(template, options.modulePath);
-            artifact.stable = true;
+         const artifact = this.compileSync(text, options);
+         if (artifact.stable) {
             resolve(artifact);
-         } catch (error) {
-            artifact.errors.push(error);
-            reject(artifact);
+            return;
          }
+         reject(artifact);
       });
+   }
+
+   /**
+    * Compile input source code into Javascript code.
+    * @param text Input source code.
+    * @param options Compiler options.
+    */
+   compileSync(text: string, options: IOptions): IArtifact {
+      const artifact: IArtifact = createArtifact(options);
+      if (!DoT) {
+         DoT = requirejs.defined('Core/js-template-doT') && requirejs('Core/js-template-doT');
+      }
+      try {
+         // tslint:disable:prefer-const
+         let config = DoT.getSettings();
+         // tslint:disable:prefer-const
+         let template = DoT.template(text, config, undefined, undefined, options.modulePath.module);
+         artifact.text = this.generate(template, options.modulePath);
+         artifact.stable = true;
+      } catch (error) {
+         artifact.errors.push(error);
+      }
+      return artifact;
    }
 }
 
@@ -435,11 +440,17 @@ class CompilerXHTML implements ICompiler {
  */
 class ErrorCompiler implements ICompiler {
    compile(text: string, options: IOptions): Promise<IArtifact> {
-      let artifact = createArtifact(options);
+      return Promise.reject(this.compileSync(text, options));
+   }
+
+   compileSync(text: string, options: IOptions): IArtifact {
+      const artifact = createArtifact(options);
       artifact.errors.push(new Error(
-         'Данное расширение шаблона не поддерживается. Получен шаблон с расширением "' + options.modulePath.extension + '". Ожидалось одно из следующих расширений: wml, tmpl, xhtml.'
+          'Данное расширение шаблона не поддерживается. Получен шаблон с расширением "' +
+          options.modulePath.extension +
+          '". Ожидалось одно из следующих расширений: wml, tmpl, xhtml.'
       ));
-      return Promise.reject(artifact);
+      return artifact;
    }
 }
 
@@ -474,5 +485,16 @@ export class Compiler implements ICompiler {
       const options = new Options(config);
       const compiler = getCompiler(options.modulePath.extension);
       return compiler.compile(text, options);
+   }
+
+   /**
+    * Compile input source code into Javascript code.
+    * @param text Input source code.
+    * @param config Compiler options.
+    */
+   compileSync(text: string, config: IOptions): IArtifact {
+      const options = new Options(config);
+      const compiler = getCompiler(options.modulePath.extension);
+      return compiler.compileSync(text, options);
    }
 }
