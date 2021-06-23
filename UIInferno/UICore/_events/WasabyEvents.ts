@@ -46,6 +46,13 @@ export default class WasabyEventsInferno extends WasabyEvents implements IWasaby
     captureEventHandler<TNativeEvent extends Event>(
         event: TNativeEvent
     ): void {
+        //@ts-ignore https://online.sbis.ru/opendoc.html?guid=8866baa5-2b6f-4c42-875d-863effd4f12e
+        // нативная система событий react и wasaby конфликтуют, т.к. среди обработчиков может быть такой
+        // который вызывает stopPropagation, что останавливает нативное событие.
+        // в таком случае нативное событие не перехватится реактом и обработчик не будет вызван
+        if (event.isThirdPartyEvent) {
+            return;
+        }
         if (this.needPropagateEvent(this._environment, event)) {
             const syntheticEvent = new SyntheticEvent(event);
             if (detection.isMobileIOS && detection.safari && event.type === 'click' && this.touchendTarget) {

@@ -30,6 +30,13 @@ function checkTarget(target: Element): [number] {
 
 export function dispatcherHandler(event: ISyntheticEvent): void {
    const nativeEvent = event.nativeEvent;
+   //@ts-ignore https://online.sbis.ru/opendoc.html?guid=8866baa5-2b6f-4c42-875d-863effd4f12e
+   // нативная система событий react и wasaby конфликтуют, т.к. среди обработчиков может быть такой
+   // который вызывает stopPropagation, что останавливает нативное событие.
+   // в таком случае нативное событие не перехватится реактом и обработчик не будет вызван
+   if (nativeEvent.isThirdPartyEvent ) {
+      return;
+   }
    if (nativeEvent.handledByDispatcher) {
       // TODO https://online.sbis.ru/opendoc.html?guid=0de5f15f-70eb-40da-b3f0-8b99d4eb1c85
       // It's probably not the right way to fix a problem.
