@@ -1,0 +1,7 @@
+<div>
+   <ws:for data="i in keys">
+      <div attr:key="{{i}}">
+         <ReactUnitTest._keys.Item attr:key="{{i}}" name="item_{{i}}"/>
+      </div>
+   </ws:for>
+</div>

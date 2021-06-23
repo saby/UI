@@ -22,6 +22,9 @@ export default function flatten<T>(arr: T[], skipUndefined?: boolean, skipEmptyS
    for (let i = 0; i !== ln; i++) {
       if (Array.isArray(arr[i])) {
          result = result.concat(flatten<any>(arr[i] as any, skipUndefined, skipEmptyString) as any);
+         if (arr[i].for) {
+            Object.defineProperty(result, 'for', {value: true, enumerable: false});
+         }
       } else {
          if (skipUndefined && arr[i] === undefined) {
             continue;

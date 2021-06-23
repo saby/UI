@@ -133,7 +133,9 @@ export class GeneratorVdom extends Generator implements IGenerator {
             attributes: P & WasabyAttributes;
             events: Record<string, IWasabyEvent[]>
         },
-        children: React.ReactNode[],
+        children: React.ReactNode[] & {
+            for: boolean
+        },
         attrToDecorate: AttrToDecorate,
         __: unknown,
         control?: Control
@@ -179,7 +181,12 @@ export class GeneratorVdom extends Generator implements IGenerator {
         };
 
         // Разворачиваем массив с детьми, так как в противном случае react считает, что мы отрисовываем список
-        return React.createElement<P, T>(tagName, newProps, ...ArrayUtils.flatten(children, true));
+        const flatChildren = ArrayUtils.flatten(children, true);
+        if (flatChildren.for) {
+            // если дети получены циклом - нужно вставлять их массивом, чтобы учитывались ключи
+            return React.createElement<P, T>(tagName, newProps, flatChildren);
+        }
+        return React.createElement<P, T>(tagName, newProps, ...flatChildren);
     }
 
     // FIXME: бесполезный метод, но он зовётся из шаблонов
