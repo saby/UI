@@ -185,9 +185,8 @@ export class GeneratorVdom extends Generator implements IGenerator {
         if (flatChildren.for) {
             // если дети получены циклом - нужно вставлять их массивом, чтобы учитывались ключи
             return React.createElement<P, T>(tagName, newProps, flatChildren);
-        } else {
-            return React.createElement<P, T>(tagName, newProps, ...flatChildren);
         }
+        return React.createElement<P, T>(tagName, newProps, ...flatChildren);
     }
 
     // FIXME: бесполезный метод, но он зовётся из шаблонов
