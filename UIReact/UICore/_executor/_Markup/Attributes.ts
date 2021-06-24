@@ -1,7 +1,12 @@
 import * as React from 'react';
 
-const formatStringToCamelCase = (str) => {
-   const splitted = str.split('-');
+const formatStringToCamelCase = (name: string) => {
+   // CSSVariables names do not converted
+   if (name.slice(0, 1) === '--') {
+      return name;
+   }
+
+   const splitted = name.split('-');
    if (splitted.length === 1) return splitted[0];
    return (
       splitted[0] +
