@@ -11,7 +11,8 @@ import {
     ITouchEvent,
     IFixedEvent,
     SwipeController,
-    LongTapController
+    LongTapController,
+    TouchHandlers
 } from 'UICommon/Events';
 import {
     IWasabyHTMLElement,
@@ -96,9 +97,9 @@ export default class WasabyEventsInferno extends WasabyEvents implements IWasaby
 
     //#region события тача
     protected _handleTouchstart(event: ITouchEvent): void {
-        this.touchHandlers.setPreventShouldUseClickByTap(false);
+        TouchHandlers.setPreventShouldUseClickByTap(false);
 
-        this.touchHandlers.shouldUseClickByTapOnTouchstart(event);
+        TouchHandlers.shouldUseClickByTapOnTouchstart(event);
         // Compatibility. Touch events handling in Control.compatible looks for
         // the `addedToClickState` flag to see if the event has already been
         // processed. Since vdom has already handled this event, set this
@@ -110,7 +111,7 @@ export default class WasabyEventsInferno extends WasabyEvents implements IWasaby
         const longTapCallback = () => {
             // т.к. callbackFn вызывается асинхронно, надо передавать с правильным контекстом
             FastTouchEndController.setClickEmulateState.call(FastTouchEndController, false);
-            this.touchHandlers.setPreventShouldUseClickByTap(true);
+            TouchHandlers.setPreventShouldUseClickByTap(true);
         };
         LongTapController.initState(event, longTapCallback.bind(this._environment));
     }
