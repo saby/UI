@@ -91,7 +91,49 @@ define('Compiler/core/bridge', [
       return deferred;
    }
 
+   function traverseSync(htmlTree, options, dependencies) {
+      var scope = new ScopeLib.default(!options.fromBuilderTmpl);
+      var errorHandler = ErrorHandlerLib.createErrorHandler(!options.fromBuilderTmpl);
+      var traverseConfig = {
+         expressionParser: new ParserLib.Parser(),
+         hierarchicalKeys: true,
+         errorHandler: errorHandler,
+         allowComments: false,
+         textTranslator: Translator.createTextTranslator(options.componentsProperties || { }),
+         generateTranslations: (
+             (USE_GENERATE_CODE_FOR_TRANSLATIONS && !!options.generateCodeForTranslations) ||
+             !USE_GENERATE_CODE_FOR_TRANSLATIONS
+         ),
+         hasExternalInlineTemplates: options.hasExternalInlineTemplates
+      };
+      var traverseOptions = {
+         fileName: options.fileName,
+         scope: scope,
+         translateText: true
+      };
+      var traversed = TraverseLib.default(htmlTree, traverseConfig, traverseOptions);
+      var hasFailures = errorHandler.hasFailures();
+      var lastMessage = hasFailures ? errorHandler.popLastErrorMessage() : undefined;
+      errorHandler.flush();
+      if (hasFailures) {
+         throw new Error(lastMessage);
+      }
+
+      // annotation
+      Annotate.process(traversed, traverseOptions.scope);
+      PatchVisitorLib.default(traversed, traverseOptions.scope);
+
+      return {
+         ast: traversed,
+         localizedDictionary: traverseOptions.scope.getTranslationKeys(),
+         templateNames: traversed.templateNames,
+         hasTranslations: traversed.hasTranslations,
+         dependencies: dependencies
+      };
+   }
+
    return {
+      traverseSync: traverseSync,
       traverse: traverse
    };
 });
