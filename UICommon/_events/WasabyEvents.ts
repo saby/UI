@@ -29,6 +29,7 @@ import {
  */
 
 const callAfterMount: IArrayEvent[] = [];
+const afterMountEvent: string[] = ['mouseenter', 'mousedown'];
 
 abstract class WasabyEvents implements IWasabyEventSystem {
     private capturedEventHandlers: Record<string, IHandlerInfo[]>;
@@ -187,7 +188,7 @@ abstract class WasabyEvents implements IWasabyEventSystem {
                             try {
                                 // TODO: убрать проверку на тип события - сделать более универсальный метод возможно надо смотреть
                                 //  на eventObject.nativeEvent или вообще для всех?
-                                if (!fn.control._mounted && eventObject.type === 'mouseenter') {
+                                if (!fn.control._mounted && afterMountEvent.indexOf(eventObject.type) > -1) {
                                     /* Асинхронный _afterMount контролов приводит к тому,
                                      * что события с dom начинают стрелять до маунта,
                                      * в таком случае их надо вызвать отложено */
