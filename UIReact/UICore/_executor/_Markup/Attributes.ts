@@ -2,7 +2,7 @@ import * as React from 'react';
 
 const formatStringToCamelCase = (name: string) => {
    // CSSVariables names do not converted
-   if (name.slice(0, 1) === '--') {
+   if (name.slice(0, 2) === '--') {
       return name;
    }
 
