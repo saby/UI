@@ -16,12 +16,17 @@ function fixedWasabyPortalTemplate(...args: unknown[]): string | VNode[] {
     }
     return [createPortal(portalContainer, out)];
 }
-fixedWasabyPortalTemplate.stable = true;
-fixedWasabyPortalTemplate.isWasabyTemplate = true;
+
+function bindWasabyPortalTemplate(self: Control): TemplateFunction {
+    const bindedTemplate: TemplateFunction = fixedWasabyPortalTemplate.bind(self);
+    bindedTemplate.stable = true;
+    bindedTemplate.isWasabyTemplate = true;
+    return bindedTemplate;
+}
 
 export default class WasabyPortal extends Control<IWasabyPortalOptions> {
     constructor(cfg: IWasabyPortalOptions, context: unknown) {
         super(cfg, context);
-        this._template = fixedWasabyPortalTemplate.bind(this);
+        this._template = bindWasabyPortalTemplate(this);
     }
 }
