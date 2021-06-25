@@ -1,19 +1,21 @@
 import { Responsibility, IResponsibilityHandler } from 'UICore/Ref';
-import { default as ControlNodes } from 'UICore/ControlNodes';
-import { IControl } from 'UICommon/interfaces';
+import { prepareContainer, prepareControlNodes } from 'UICore/ControlNodes';
+import { Control } from 'UI/Base';
 
 export class CreateControlNodeRef extends Responsibility {
-    private readonly control: IControl;
+    private readonly _control: Control;
+    private readonly _constructor: Control;
 
-    constructor(control: IControl) {
+    constructor(control: Control, constructor: Control) {
         super();
-        this.control = control;
+        this._control = control;
+        this._constructor = constructor;
     }
 
     getHandler(): IResponsibilityHandler {
         return (node: HTMLElement): void => {
-            const container = ControlNodes.prepareContainer(node, this.control);
-            return ControlNodes.prepareControlNode(container, node, this.control);
+            const container = prepareContainer(node, this._control, this._constructor);
+            return prepareControlNodes(node, this._control, container);
         };
     }
 }

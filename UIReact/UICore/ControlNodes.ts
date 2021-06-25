@@ -1,6 +1,7 @@
-import {Logger} from 'UICommon/Utils';
-import {Control} from 'UICore/Base';
+import {Control} from 'UI/Base';
+import {TControlConstructor} from 'UICommon/interfaces';
 import {IDOMEnvironment} from 'UICore/interfaces';
+import {Logger} from 'UICommon/Utils';
 
 interface IControlNode {
     control: Control;
@@ -9,109 +10,97 @@ interface IControlNode {
     environment: IDOMEnvironment;
     id: string;
 }
-
 type TControlNode = HTMLElement | Control;
 
-export default class ControlNodes {
+function getNumberId(id: string | 0): number {
+    return parseInt((id + '').replace('inst_', ''), 10);
+}
 
-    private static removeControlNode(controlNodes: IControlNode[], controlToRemove: Control): void {
-        if (!controlNodes) {
-            return;
-        }
-        const foundControlNode = controlNodes.find((controlNode) => {
-            return controlNode.control === controlToRemove;
-        });
-        if (foundControlNode) {
-            controlNodes.splice(controlNodes.indexOf(foundControlNode), 1);
-        }
-    }
+function sortedAddControlNode(controlNodes: IControlNode[], newControlNode: IControlNode): void {
+    const generatedId: number = getNumberId(newControlNode.id);
 
-    private static addControlNode(controlNodes: IControlNode[], controlNode: IControlNode): void {
-        const controlNodeIdx = controlNodes.indexOf(controlNode);
-        const haveNode = controlNodeIdx !== -1;
-        if (!haveNode) {
-            this.sortedAddControlNode(controlNodes, controlNode);
+    // Если массив пустой или все id не меньше чем у новой ноды - добавляем в конец.
+    let newIndex: number = controlNodes.length;
+    for (let index = 0; index < controlNodes.length; ++index) {
+        const id = getNumberId(controlNodes[index].id);
+
+        // Добавляем node перед первой из тех, чей id меньше.
+        if (id < generatedId) {
+            newIndex = index;
+            break;
         }
     }
+    controlNodes.splice(newIndex, 0, newControlNode);
+}
 
-    private static sortedAddControlNode(controlNodes: IControlNode[], newControlNode: IControlNode): void {
-        const generatedId: number = ControlNodes.getNumberId(newControlNode.id);
-
-        // Если массив пустой или все id не меньше чем у новой ноды - добавляем в конец.
-        let newIndex: number = controlNodes.length;
-        for (let index = 0; index < controlNodes.length; ++index) {
-            const id = ControlNodes.getNumberId(controlNodes[index].id);
-
-            // Добавляем node перед первой из тех, чей id меньше.
-            if (id < generatedId) {
-                newIndex = index;
-                break;
-            }
-        }
-        controlNodes.splice(newIndex, 0, newControlNode);
+function addControlNode(controlNodes: IControlNode[], controlNode: IControlNode): void {
+    const controlNodeIdx = controlNodes.indexOf(controlNode);
+    const haveNode = controlNodeIdx !== -1;
+    if (!haveNode) {
+        sortedAddControlNode(controlNodes, controlNode);
     }
+}
 
-    private static getNumberId(id: string | 0): number {
-        return parseInt((id + '').replace('inst_', ''), 10);
+function removeControlNode(controlNodes: IControlNode[], controlToRemove: Control): void {
+    if (!controlNodes) {
+        return;
     }
-
-    static prepareContainer(node: TControlNode, control: Control): TControlNode {
-        if (node?.nodeType) {
-            // если у контрола отрисовался контейнер, используем его
-            return node;
-        } else if (node?._container?.nodeType) {
-            // если строим хок и дочерний контрол уже построен, используем его элемент как контейнер
-            return node._container;
-        }
-        if (node instanceof Control) {
-            // храним родительский хок, чтобы потом ему установить контейнер тоже
-            // @ts-ignore
-            node._parentHoc = control;
-        }
+    const foundControlNode = controlNodes.find((controlNode) => {
+        return controlNode.control === controlToRemove;
+    });
+    if (foundControlNode) {
+        controlNodes.splice(controlNodes.indexOf(foundControlNode), 1);
+    }
+}
+export function prepareContainer(node: TControlNode, control: Control, constructor: TControlConstructor) {
+    if (node?.nodeType) {
+        // если у контрола отрисовался контейнер, используем его
         return node;
+    } else if (node?._container?.nodeType) {
+        // если строим хок и дочерний контрол уже построен, используем его элемент как контейнер
+        return node._container;
     }
+    if (node instanceof constructor) {
+        // храним родительский хок, чтобы потом ему установить контейнер тоже
+        // @ts-ignore
+        node._parentHoc = control;
+    }
+    return node;
+}
 
-    static prepareControlNode(
-        container: HTMLElement & {
-            controlNodes: IControlNode[]
-        },
-        node: TControlNode,
-        control: Control): void {
-        if (!container) {
-            return;
-        }
-        if (!node) {
-            // @ts-ignore _container сейчас _protected
-            ControlNodes.removeControlNode(control._container.controlNodes, control);
-            return;
-        }
-
-        let curControl = control;
+export function prepareControlNodes(node: TControlNode, control: Control, container: HTMLElement): void {
+    if (!container) {
+        return;
+    }
+    if (!node) {
         // @ts-ignore _container сейчас _protected
-        while (curControl && (!curControl._container || !curControl._container.parentNode)) {
-            container.controlNodes = container.controlNodes || [];
-            const controlNode: IControlNode = {
-                control: curControl,
-                parent: null,
-                element: container,
-                // @ts-ignore _getEnvironment сейчас private
-                environment: curControl._getEnvironment(),
-                id: curControl.getInstanceId()
-            };
-            // @ts-ignore _moduleName сейчас _protected
-            const moduleName = curControl._moduleName;
-            Object.defineProperty(controlNode, 'environment', {
-                get(): object {
-                    Logger.error(`Попытка использовать Environment в React окружении,
+        removeControlNode(control._container.controlNodes, control);
+    }
+    let curControl = control;
+    // @ts-ignore _container сейчас _protected
+    while (curControl && (!curControl._container || !curControl._container.parentNode)) {
+        container.controlNodes = container.controlNodes || [];
+        const controlNode: IControlNode = {
+            control: curControl,
+            parent: null,
+            element: container,
+            // @ts-ignore _getEnvironment сейчас private
+            environment: curControl._getEnvironment(),
+            id: curControl.getInstanceId()
+        };
+        // @ts-ignore _moduleName сейчас _protected
+        const moduleName = curControl._moduleName;
+        Object.defineProperty(controlNode, 'environment', {
+            get(): object {
+                Logger.error(`Попытка использовать Environment в React окружении,
                 необходимо убрать зависимость. Компонент - ${moduleName}`);
-                    return control._getEnvironment();
-                }
-            });
-            ControlNodes.addControlNode(container.controlNodes, controlNode);
-            // @ts-ignore _container сейчас _protected
-            curControl._container = container;
-            // @ts-ignore _container сейчас _protected
-            curControl = curControl._parentHoc;
-        }
+                return this.control._getEnvironment();
+            }
+        });
+        addControlNode(container.controlNodes, controlNode);
+        // @ts-ignore _container сейчас _protected
+        curControl._container = container;
+        // @ts-ignore _container сейчас _protected
+        curControl = curControl._parentHoc;
     }
 }

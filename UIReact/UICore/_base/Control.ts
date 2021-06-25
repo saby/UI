@@ -622,7 +622,7 @@ export default class Control<TOptions extends IControlOptions = {},
                 realFiberNode = realFiberNode[0];
             }
             const chainOfRef = new ChainOfRef();
-            chainOfRef.add(new CreateControlNodeRef(this)).add(new CreateOriginRef(realFiberNode.ref));
+            chainOfRef.add(new CreateControlNodeRef(this, Control)).add(new CreateOriginRef(realFiberNode.ref));
             result = {
                 ...realFiberNode, ref: (node) => {
                     return chainOfRef.execute()(node);
