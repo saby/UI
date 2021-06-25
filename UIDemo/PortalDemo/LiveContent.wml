@@ -1,1 +1,1 @@
-<div style="border: 2px solid red;" on:click="clickHandler()">:Живой контент. Кликнуто раз: {{ counter }}</div>
+<div style="border: 2px solid red;" on:click="clickHandler()">Живой контент. Кликнуто раз: {{ counter }}</div>

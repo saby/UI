@@ -14,7 +14,7 @@ function fixedWasabyPortalTemplate(...args: unknown[]): string | VNode[] {
     if (!portalContainer) {
         return out;
     }
-    return [createPortal(portalContainer, out)];
+    return [createPortal(out, portalContainer)];
 }
 
 function bindWasabyPortalTemplate(self: Control): TemplateFunction {
