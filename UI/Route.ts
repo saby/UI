@@ -1,2 +1,9 @@
-//FIXME: https://online.sbis.ru/opendoc.html?guid=eb306d8b-f1c7-441d-94e7-62513e3635a0
+/**
+ * выключаем режим совместимости для "новых" старых страниц - WS3Page/MasterPage, которые строятся на базе wml!UI/Route
+ */
+try {
+    process.domain.req.compatible = false;
+    // tslint:disable-next-line:no-empty
+} catch (e) {}
+
 export = {};
