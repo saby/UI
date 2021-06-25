@@ -48,7 +48,7 @@ export default function startFunction(config: ICreateControlOptions = {}, domEle
          */
         const dom: HTMLElement = selectRenderDomNode(domElement);
         // @ts-ignore
-        config.bootstrapKey = dom?.attributes?.key?.value || 'bd_';
+        config.bootstrapKey = config.rskey = dom?.attributes?.key?.value || 'bd_';
         createControl(module, config, dom);
     });
 }

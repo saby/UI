@@ -7,6 +7,7 @@ interface IFocusElementProps {
    tabCycling: boolean;
 }
 
+import { logger } from 'Application/Env';
 import { Control } from 'UICore/Base';
 
 // TODO: заменить экспорт во время реализации системы фокусов для Реакта.
@@ -42,14 +43,14 @@ export function focus(
       enableScreenKeyboard?: boolean,
       enableScrollToElement?: boolean
    }
-): boolean {
-   throw new Error('Метод focus ещё не реализован в системе фокусов для Реакта');
+): boolean | void {
+   logger.error('Метод focus ещё не реализован в системе фокусов для Реакта');
 }
 
 // TODO: заменить экспорт во время реализации системы фокусов для Реакта.
 export const _FocusAttrs = {
    prepareAttrsForFocus(attributes: Record<string, string>): void {
-      throw new Error('Метод _FocusAttrs.prepareAttrsForFocus ещё не реализован в системе фокусов для Реакта');
+      logger.error('Метод _FocusAttrs.prepareAttrsForFocus ещё не реализован в системе фокусов для Реакта');
    },
    prepareTabindex(attrs: Record<string, string>): void {
       throw new Error('Метод _FocusAttrs.prepareTabindex ещё не реализован в системе фокусов для Реакта');
