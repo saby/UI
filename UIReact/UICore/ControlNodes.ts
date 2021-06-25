@@ -71,7 +71,7 @@ export default class ControlNodes {
         return node;
     }
 
-    static setupControlNode(
+    static prepareControlNode(
         container: HTMLElement & {
             controlNodes: IControlNode[]
         },

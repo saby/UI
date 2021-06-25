@@ -1,5 +1,5 @@
 import { Responsibility, IResponsibilityHandler } from 'UICore/Ref';
-import { default as ControlNodes } from './ControlNodes';
+import { default as ControlNodes } from 'UICore/ControlNodes';
 import { IControl } from 'UICommon/interfaces';
 
 export class CreateControlNodeRef extends Responsibility {
@@ -13,7 +13,7 @@ export class CreateControlNodeRef extends Responsibility {
     getHandler(): IResponsibilityHandler {
         return (node: HTMLElement): void => {
             const container = ControlNodes.prepareContainer(node, this.control);
-            return ControlNodes.setupControlNode(container, node, this.control);
+            return ControlNodes.prepareControlNode(container, node, this.control);
         };
     }
 }
