@@ -16,6 +16,8 @@ define([
          return condition ? describe : describe.skip;
       };
 
+      var isReact = requirejs.defined('react');
+
       describe('WasabyEvent', function() {
          // В DOMEnvironment есть механизм совместимости для некоторых touch-устройств,
          // которые не стреляют событие клика, а стреляют только touchstart и touchend.
@@ -23,12 +25,7 @@ define([
          // единообразно с обычным кликом.
          // Проверяем, что этот механизм не сбоит, и что он не генерирует лишние клики, если
          // тач-устройство стреляет их само после touchstart и touchend
-         testIf(isNodeJs)('does not produce extra clicks on touch devices', function(done) {
-            if (requirejs.defined('react')) {
-               this.skip();
-               return;
-            }
-
+         testIf(isNodeJs && isReact)('does not produce extra clicks on touch devices', function(done) {
             var
                elem = { removeEventListener: function(){}, blur: function() {}, focus: function() {} },
                events = new WasabyEvents(elem),
