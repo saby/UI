@@ -192,11 +192,3 @@ export function genCreateControlNew(
       + `/*config*/ ${config}`
       + ')';
 }
-
-export function genCreateContentOption(
-   content: string,
-   isWasabyTemplate: boolean
-): string {
-   // createContentOption(content, filename, isWasabyTemplate);
-   return `${VAR_MODULE_NAME}.createContentOption(${content}, filename, ${isWasabyTemplate})`;
-}

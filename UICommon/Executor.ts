@@ -74,6 +74,7 @@ export {
     presetScope,
     uniteScope,
     createDataArray,
+    createDataArrayReact,
     filterOptions,
     calcParent,
     wrapUndef,
