@@ -183,6 +183,7 @@ export function setControlNodeHook(
     if (tagName === portalTagName as unknown as string) {
         // Поскольку у портала в качестве рефа ДОМ элемент, мы не сможем повесить _container, как для других контролов.
         // Попробуем вешать контейнер опенера.
+        // Если что-то пойдёт не так - можно будет дождаться рефа ребёнка и присвоить контейнер оттуда.
         const element: IWasabyHTMLElement = ref as unknown as IWasabyHTMLElement;
         controlNode.control._container = element;
         controlNode.element = element;
