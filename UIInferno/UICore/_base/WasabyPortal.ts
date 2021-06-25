@@ -7,6 +7,8 @@ interface IWasabyPortalOptions extends IControlOptions {
     portalContainer: HTMLElement;
 }
 
+const wasabyPortalProps = {};
+
 function fixedWasabyPortalTemplate(...args: unknown[]): string | VNode[] {
     const out = template.apply(this, args);
 
@@ -14,7 +16,10 @@ function fixedWasabyPortalTemplate(...args: unknown[]): string | VNode[] {
     if (!portalContainer) {
         return out;
     }
-    return [createPortal(out, portalContainer)];
+    const portalVNode = createPortal(out, portalContainer);
+    portalVNode.props = wasabyPortalProps;
+    portalVNode.hprops = wasabyPortalProps;
+    return [portalVNode];
 }
 
 function bindWasabyPortalTemplate(self: Control): TemplateFunction {

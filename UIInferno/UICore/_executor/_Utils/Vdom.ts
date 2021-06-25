@@ -37,7 +37,7 @@ export function htmlNode(
    key: VNode['key'],
    ref?: VNode['ref']
 ): VNode {
-   const flags = getFlagsForElementVnode(tagName);
+   const flags = tagName === portalTagName ? tagName : getFlagsForElementVnode(tagName);
    const className = (hprops && hprops.attributes && hprops.attributes['class']) || '';
    const childFlags = getChildFlags(children, key);
    const vnode = createVNode(

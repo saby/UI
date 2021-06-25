@@ -5,7 +5,7 @@
 
     <div>Див перед точкой вставки портала в шаблоне</div>
     <ws:if data="{{ alive }}">
-        <div class="PortalWrapper">insert portal here: <UIDemo.PortalDemo.ToBePortal opener="{{ _children.opener }}" /></div>
+        <UIDemo.PortalDemo.ToBePortal opener="{{ _children.opener }}" />
     </ws:if>
     <div>Див после точки вставки портала в шаблоне</div>
 
