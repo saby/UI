@@ -657,7 +657,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * Все стили будут скачаны при создании
      *
      * @static
-     * @deprecated
+     * @deprecated Подключать стили необходимо так import 'css!MyModule/library'
      * @example
      * <pre>
      *   static _styles: string[] = ['Controls/Utils/getWidth'];
@@ -669,7 +669,7 @@ export default class Control<TOptions extends IControlOptions = {},
      * Все стили будут скачаны при создании
      *
      * @static
-     * @deprecated
+     * @deprecated https://wi.sbis.ru/doc/platform/developmentapl/interface-development/themes/
      * @example
      * <pre>
      *   static _theme: string[] = ['Controls/popupConfirmation'];
