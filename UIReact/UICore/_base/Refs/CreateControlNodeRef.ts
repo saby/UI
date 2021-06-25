@@ -1,11 +1,11 @@
 import { Responsibility, IResponsibilityHandler } from 'UICore/Ref';
 import { default as ControlNodes } from './ControlNodes';
-import { default as Control } from '../Control';
+import { IControl } from 'UICommon/interfaces';
 
 export class CreateControlNodeRef extends Responsibility {
-    private readonly control: Control;
+    private readonly control: IControl;
 
-    constructor(control: Control) {
+    constructor(control: IControl) {
         super();
         this.control = control;
     }
