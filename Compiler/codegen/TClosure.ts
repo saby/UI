@@ -26,6 +26,15 @@ export function genCreateDataArray(array: string, isWasabyTemplate: boolean): st
 }
 
 /**
+ * Generate content templates array wrapper for React.
+ * @param array {string} Content templates array.
+ * @param isWasabyTemplate {string} Wml template flag.
+ */
+export function genCreateDataArrayReact(array: string, isWasabyTemplate: boolean): string {
+   return `${VAR_MODULE_NAME}.createDataArrayReact(${array}, filename, ${!!isWasabyTemplate})`;
+}
+
+/**
  * Generate undef wrapper.
  * @param expression {string} Expression data.
  */

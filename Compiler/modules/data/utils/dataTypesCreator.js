@@ -1,8 +1,7 @@
 define('Compiler/modules/data/utils/dataTypesCreator', [
    'Compiler/modules/data/utils/functionStringCreator',
-   'Compiler/codegen/TClosure',
-   'Compiler/codegen/Generator'
-], function(FSC, TClosure, Generator) {
+   'Compiler/codegen/TClosure'
+], function(FSC, TClosure) {
    'use strict';
 
    /**
@@ -59,7 +58,7 @@ define('Compiler/modules/data/utils/dataTypesCreator', [
    function createArrayDataRepresentation(str, isWasabyTemplate, useReact) {
       if (useReact) {
          return FSC.wrapAroundExec(
-            Generator.genCreateContentOption(
+            TClosure.genCreateDataArrayReact(
                FSC.prepareStringForExec(JSON.stringify(str)),
                isWasabyTemplate
             )
