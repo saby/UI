@@ -181,7 +181,7 @@ export function genCreateControlNew(
    events: string,
    options: string,
    config: string
-) {
+): string {
    // createControlNew(type, method, attributes, events, options, config)
    return `${VAR_MODULE_NAME}.createControlNew(`
       + `"${type}",`
@@ -190,5 +190,13 @@ export function genCreateControlNew(
       + `/*events*/ ${events},`
       + `/*options*/ ${options},`
       + `/*config*/ ${config}`
-      + `)`;
+      + ')';
+}
+
+export function genCreateContentOption(
+   content: string,
+   isWasabyTemplate: boolean
+): string {
+   // createContentOption(content, filename, isWasabyTemplate);
+   return `${VAR_MODULE_NAME}.createContentOption(${content}, filename, ${isWasabyTemplate})`;
 }
