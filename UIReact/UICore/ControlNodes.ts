@@ -10,6 +10,7 @@ interface IControlNode {
     environment: IDOMEnvironment;
     id: string;
 }
+type TControlNode = HTMLElement | Control;
 
 function getNumberId(id: string | 0): number {
     return parseInt((id + '').replace('inst_', ''), 10);
@@ -51,53 +52,55 @@ function removeControlNode(controlNodes: IControlNode[], controlToRemove: Contro
         controlNodes.splice(controlNodes.indexOf(foundControlNode), 1);
     }
 }
-
-export function prepareControlNodes(node: any, control: Control, constructor: TControlConstructor): void {
-    let container;
+export function prepareContainer(node: TControlNode, control: Control, constructor: TControlConstructor) {
     if (node?.nodeType) {
         // если у контрола отрисовался контейнер, используем его
-        container = node;
+        return node;
     } else if (node?._container?.nodeType) {
         // если строим хок и дочерний контрол уже построен, используем его элемент как контейнер
-        container = node._container;
+        return node._container;
     }
     if (node instanceof constructor) {
         // храним родительский хок, чтобы потом ему установить контейнер тоже
         // @ts-ignore
         node._parentHoc = control;
     }
-    if (container) {
-        if (node) {
-            let curControl = control;
-            // @ts-ignore _container сейчас _protected
-            while (curControl && (!curControl._container || !curControl._container.parentNode)) {
-                container.controlNodes = container.controlNodes || [];
-                const controlNode: IControlNode = {
-                    control: curControl,
-                    parent: null,
-                    element: container,
-                    // @ts-ignore _getEnvironment сейчас private
-                    environment: curControl._getEnvironment(),
-                    id: curControl.getInstanceId()
-                };
-                // @ts-ignore _moduleName сейчас _protected
-                const moduleName = curControl._moduleName;
-                Object.defineProperty(controlNode, 'environment', {
-                    get(): object {
-                        Logger.error(`Попытка использовать Environment в React окружении,
-                        необходимо убрать зависимость. Компонент - ${moduleName}`);
-                        return this.control._getEnvironment();
-                    }
-                });
-                addControlNode(container.controlNodes, controlNode);
-                // @ts-ignore _container сейчас _protected
-                curControl._container = container;
-                // @ts-ignore _container сейчас _protected
-                curControl = curControl._parentHoc;
+    return node;
+}
+
+export function prepareControlNodes(node: TControlNode, control: Control, container: HTMLElement): void {
+    if (!container) {
+        return;
+    }
+    if (!node) {
+        // @ts-ignore _container сейчас _protected
+        removeControlNode(control._container.controlNodes, control);
+    }
+    let curControl = control;
+    // @ts-ignore _container сейчас _protected
+    while (curControl && (!curControl._container || !curControl._container.parentNode)) {
+        container.controlNodes = container.controlNodes || [];
+        const controlNode: IControlNode = {
+            control: curControl,
+            parent: null,
+            element: container,
+            // @ts-ignore _getEnvironment сейчас private
+            environment: curControl._getEnvironment(),
+            id: curControl.getInstanceId()
+        };
+        // @ts-ignore _moduleName сейчас _protected
+        const moduleName = curControl._moduleName;
+        Object.defineProperty(controlNode, 'environment', {
+            get(): object {
+                Logger.error(`Попытка использовать Environment в React окружении,
+                необходимо убрать зависимость. Компонент - ${moduleName}`);
+                return this.control._getEnvironment();
             }
-        } else {
-            // @ts-ignore _container сейчас _protected
-            removeControlNode(control._container.controlNodes, control);
-        }
+        });
+        addControlNode(container.controlNodes, controlNode);
+        // @ts-ignore _container сейчас _protected
+        curControl._container = container;
+        // @ts-ignore _container сейчас _protected
+        curControl = curControl._parentHoc;
     }
 }
