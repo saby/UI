@@ -181,6 +181,11 @@ export function setControlNodeHook(
     ref?: TRef
 ): [string, IProperties, IControlNode[], TControlId | 0, TRef] {
     if (tagName === portalTagName as unknown as string) {
+        // Поскольку у портала в качестве рефа ДОМ элемент, мы не сможем повесить _container, как для других контролов.
+        // Попробуем вешать контейнер опенера.
+        const element: IWasabyHTMLElement = ref as unknown as IWasabyHTMLElement;
+        controlNode.control._container = element;
+        controlNode.element = element;
         return [tagName, props, children, key, ref];
     }
     const environment: IDOMEnvironment = controlNode.environment;
